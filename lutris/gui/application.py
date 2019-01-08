@@ -35,6 +35,7 @@ from lutris import settings
 from lutris.running_game import RunningGame
 from lutris.config import check_config
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
+from lutris.gui.installerwindow import InstallerWindow
 from lutris.migrations import migrate
 from lutris.platforms import update_platforms
 from lutris.settings import read_setting, VERSION
@@ -48,6 +49,7 @@ from lutris.util.monitor import set_child_subreaper
 from lutris.util.system import check_libs
 from lutris.util.drivers import check_driver
 from lutris.util.vkquery import check_vulkan
+from lutris.util.wine.dxvk import init_dxvk_versions
 
 from .lutriswindow import LutrisWindow
 from lutris.gui.lutristray import LutrisTray
@@ -70,6 +72,7 @@ class Application(Gtk.Application):
         check_driver()
         check_libs()
         check_vulkan()
+        init_dxvk_versions()
 
         GLib.set_application_name(_("Lutris"))
         self.running_games = []
@@ -371,9 +374,12 @@ class Application(Gtk.Application):
                 action = "install"
 
         if action == "install":
-            self.window.present()
-            self.window.on_install_clicked(
-                game_slug=game_slug, installer_file=installer_file, revision=revision
+            InstallerWindow(
+                game_slug=game_slug,
+                installer_file=installer_file,
+                revision=revision,
+                parent=self,
+                application=self.application,
             )
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
@@ -389,7 +395,7 @@ class Application(Gtk.Application):
             # If game is not installed, show the GUI before running. Otherwise leave the GUI closed.
             if not db_game["installed"]:
                 self.window.present()
-            self.window.on_game_run(game_id=db_game["id"])
+            self.launch(db_game["id"])
 
         else:
             self.window.present()

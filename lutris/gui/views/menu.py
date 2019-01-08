@@ -3,14 +3,9 @@ from gi.repository import Gtk
 
 from lutris.game import Game
 
-from lutris.util import xdgshortcuts
 from lutris import runners
-from lutris.gui.views import (
-    COL_ID,
-    COL_SLUG,
-    COL_RUNNER,
-    COL_INSTALLED
-)
+from lutris.game_actions import GameActions
+from lutris.gui.views import COL_ID
 
 
 class ContextualMenu(Gtk.Menu):
@@ -35,37 +30,6 @@ class ContextualMenu(Gtk.Menu):
             return None
         return runner.context_menu_entries
 
-    @staticmethod
-    def get_hidden_entries(game):
-        """Return a dictionary of actions that should be hidden for a game"""
-        return {
-            "add": game.is_installed,
-            "install": game.is_installed,
-            "install_more": not game.is_installed,
-            "play": not game.is_installed,
-            "configure": not game.is_installed,
-            "desktop-shortcut": (
-                not game.is_installed or xdgshortcuts.desktop_launcher_exists(game.slug, game.id)
-            ),
-            "menu-shortcut": (
-                not game.is_installed or xdgshortcuts.menu_launcher_exists(game.slug, game.id)
-            ),
-            "rm-desktop-shortcut": (
-                not game.is_installed or not xdgshortcuts.desktop_launcher_exists(game.slug, game.id)
-            ),
-            "rm-menu-shortcut": (
-                not game.is_installed or not xdgshortcuts.menu_launcher_exists(game.slug, game.id)
-            ),
-            "browse": not game.is_installed or game.runner_name == "browser",
-        }
-
-    @staticmethod
-    def get_disabled_entries(game):
-        """Return a dictionary of actions that should be disabled for a game"""
-        return {
-            "execute-script": game.runner and not game.runner.system_config.get("manual_command")
-        }
-
     def popup(self, event, game_row=None, game=None):
         if game_row:
             game = Game(game_row[COL_ID])
@@ -87,8 +51,8 @@ class ContextualMenu(Gtk.Menu):
                 self.add_menuitems(runner_entries)
         self.show_all()
 
-        hidden_entries = self.get_hidden_entries(game)
-        disabled_entries = self.get_disabled_entries(game)
+        hidden_entries = GameActions.get_hidden_entries(game)
+        disabled_entries = GameActions.get_disabled_entries(game)
         for menuitem in self.get_children():
             if not isinstance(menuitem, Gtk.ImageMenuItem):
                 continue

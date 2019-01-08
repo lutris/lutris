@@ -65,5 +65,5 @@ class LutrisTray(Gtk.StatusIcon):
         for game in installed_games[:number_of_games_in_menu]:
             self.menu.append(self._make_menu_item_for_game(game))
 
-    def on_game_selected(self, _widget, *data):
-        self.application.window.on_game_run(game_id=data[0])
+    def on_game_selected(self, _widget, game_id):
+        self.application.launch(game_id)

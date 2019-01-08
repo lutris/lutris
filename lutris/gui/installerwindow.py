@@ -35,8 +35,8 @@ class InstallerWindow(Gtk.ApplicationWindow):
             parent=None,
             application=None,
     ):
-        Gtk.ApplicationWindow.__init__(self, application=application)
-        self.set_default_icon_name("lutris")
+        Gtk.ApplicationWindow.__init__(self, icon_name="lutris", application=application)
+        self.application = application
         self.set_show_menubar(False)
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
@@ -507,11 +507,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         """Launch a game after it's been installed."""
         widget.set_sensitive(False)
         self.close(widget)
-        if self.parent:
-            self.parent.on_game_run(game_id=self.interpreter.game_id)
-        else:
-            game = Game(self.interpreter.game_id)
-            game.play()
+        self.application.launch(self.interpreter.game_id)
 
     def close(self, _widget):
         self.destroy()

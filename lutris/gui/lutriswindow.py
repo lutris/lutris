@@ -2,7 +2,6 @@
 # pylint: disable=no-member
 import os
 import math
-import time
 from collections import namedtuple
 from itertools import chain
 
@@ -10,21 +9,17 @@ from gi.repository import Gtk, Gdk, GLib, Gio
 
 from lutris import api, pga, settings
 from lutris.game import Game
+from lutris.game_actions import GameActions
 from lutris.sync import sync_from_remote
 from lutris.runtime import RuntimeUpdater
 
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
-from lutris.util.system import path_exists
 
 from lutris.util import http
 from lutris.util import datapath
-from lutris.util import xdgshortcuts
 # from lutris.util.steam.watcher import SteamWatcher
-from lutris.util.wine.dxvk import init_dxvk_versions
-
-from lutris.command import MonitoredCommand
 
 from lutris.services import get_services_synced_at_startup, steam
 
@@ -35,10 +30,7 @@ from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarListBox
 from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.runnersdialog import RunnersDialog
-from lutris.gui.installerwindow import InstallerWindow
-from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.system import SystemConfigDialog
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.grid import GameGridView
@@ -80,13 +72,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.application = application
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
-        self.search_event = None  # Event ID for search entry debouncing
 
         # Emulate double click to workaround GTK bug #484640
         # https://bugzilla.gnome.org/show_bug.cgi?id=484640
-        self.game_selection_time = 0
         self.game_launch_time = 0
-        self.last_selected_game = None
         self.selected_runner = None
         self.selected_platform = None
         self.icon_type = None
@@ -119,6 +108,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         )
 
         # Window initialization
+        self.game_actions = GameActions(application=application, window=self)
         self.game_list = pga.get_games(show_installed_first=self.show_installed_first)
         self.game_store = GameStore(
             [],
@@ -150,15 +140,24 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.set_dark_theme(self.use_dark_theme)
         self.set_viewtype_icon(view_type)
 
+        # Add additional widgets
         self.sidebar_listbox = SidebarListBox()
         self.sidebar_listbox.set_size_request(250, -1)
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar_listbox)
 
+        self.game_revealer = Gtk.Revealer()
+        self.game_revealer.set_transition_duration(500)
+        self.game_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
+        self.game_action_box = Gtk.Box()
+        self.game_revealer.add(self.game_action_box)
+        self.game_revealer.show_all()
+        self.main_box.pack_end(self.game_revealer, False, False, 0)
+
         self.view.show()
 
         # Contextual menu
-        self.view.contextual_menu = ContextualMenu(self.get_game_actions())
+        self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
 
         # Sidebar
         self.game_store.fill_store(self.game_list)
@@ -196,7 +195,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "synchronize": Action(lambda *x: self.sync_library()),
             "sync-local": Action(lambda *x: self.open_sync_dialog()),
             "add-game": Action(self.on_add_game_button_clicked),
-            "remove-game": Action(self.on_remove_game, enabled=False),
             "preferences": Action(self.on_preferences_activate),
             "manage-runners": Action(self.on_manage_runners),
             "about": Action(self.on_about_clicked),
@@ -258,63 +256,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.add_action(action)
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
-
-    def get_game_actions(self):
-        """Return a list of game actions and their callbacks"""
-        return [
-            (
-                "play", "Play",
-                self.on_game_run
-            ),
-            (
-                "install", "Install",
-                self.on_install_clicked
-            ),
-            (
-                "add", "Add manually",
-                self.on_add_manually
-            ),
-            (
-                "configure", "Configure",
-                self.on_edit_game_configuration
-            ),
-            (
-                "execute-script", "Execute script",
-                self.on_execute_script_clicked
-            ),
-            (
-                "browse", "Browse files",
-                self.on_browse_files
-            ),
-            (
-                "desktop-shortcut", "Create desktop shortcut",
-                self.create_desktop_shortcut,
-            ),
-            (
-                "rm-desktop-shortcut", "Delete desktop shortcut",
-                self.remove_desktop_shortcut,
-            ),
-            (
-                "menu-shortcut", "Create application menu shortcut",
-                self.create_menu_shortcut,
-            ),
-            (
-                "rm-menu-shortcut", "Delete application menu shortcut",
-                self.remove_menu_shortcut,
-            ),
-            (
-                "install_more", "Install another version",
-                self.on_install_clicked
-            ),
-            (
-                "remove", "Remove",
-                self.on_remove_game
-            ),
-            (
-                "view", "View on Lutris.net",
-                self.on_view_game
-            ),
-        ]
 
     @property
     def current_view_type(self):
@@ -402,9 +343,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """
         self.connect("delete-event", lambda *x: self.hide_on_delete())
         self.view.connect("game-installed", self.on_game_installed)
-        self.view.connect("game-activated", self.on_game_run)
         self.view.connect("game-selected", self.game_selection_changed)
-        self.view.connect("remove-game", self.on_remove_game)
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
@@ -500,7 +439,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.set_icon_type(self.icon_type)
 
         self.view = self.get_view(view_type)
-        self.view.contextual_menu = ContextualMenu(self.get_game_actions())
+        self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         self._connect_signals()
         scrollwindow_children = self.games_scrollwindow.get_children()
         if scrollwindow_children:
@@ -724,68 +663,32 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Open the about dialog."""
         dialogs.AboutDialog(parent=self)
 
-    def _get_current_game_id(self):
-        """Return the id of the current selected game while taking care of the
-        double clic bug.
-        """
-        # Wait two seconds to avoid running a game twice
-        if time.time() - self.game_launch_time < 2:
-            return None
-        self.game_launch_time = time.time()
-        return self.view.selected_game
-
-    def on_game_run(self, *_args, game_id=None):
-        """Launch a game, or install it if it is not"""
-        if not game_id:
-            game_id = self._get_current_game_id()
-        if not game_id:
-            return None
-        self.application.launch(game_id)
-
     def on_game_error(self, game, error):
         """Called when a game has sent the 'game-error' signal"""
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
 
-    def on_install_clicked(
-        self, *_args, game_slug=None, installer_file=None, revision=None
-    ):
-        """Install a game"""
-        logger.info(
-            "Installing %s%s",
-            game_slug if game_slug else installer_file,
-            " (%s)" % revision if revision else "",
-        )
+    def get_action_box(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        box.show()
+        for action in self.game_actions.get_game_actions():
+            action_id, label, callback = action
+            button = Gtk.Button(label)
+            button.connect("clicked", callback)
+            button.show()
+            box.add(button)
+        return box
 
-        if not game_slug and not installer_file:
-            # Install the currently selected game in the UI
-            game_id = self._get_current_game_id()
-            game = pga.get_game_by_field(game_id, "id")
-            game_slug = game.get("slug")
-        if not game_slug and not installer_file:
-            return
-        return InstallerWindow(
-            game_slug=game_slug,
-            installer_file=installer_file,
-            revision=revision,
-            parent=self,
-            application=self.application,
-        )
-
-    def game_selection_changed(self, _widget):
+    def game_selection_changed(self, widget):
         """Callback to handle the selection of a game in the view"""
-        # Emulate double click to workaround GTK bug #484640
-        # https://bugzilla.gnome.org/show_bug.cgi?id=484640
-        if isinstance(self.view, GameGridView):
-            is_double_click = time.time() - self.game_selection_time < 0.4
-            is_same_game = self.view.selected_game == self.last_selected_game
-            if is_double_click and is_same_game:
-                self.on_game_run()
-            self.game_selection_time = time.time()
-            self.last_selected_game = self.view.selected_game
-
-        sensitive = True if self.view.selected_game else False
-        self.actions["remove-game"].props.enabled = sensitive
+        self.game_action_box.destroy()
+        if not self.view.selected_game:
+            self.game_revealer.set_reveal_child(False)
+            return
+        self.game_actions.game_id = self.view.selected_game
+        self.game_action_box = self.get_action_box()
+        self.game_revealer.add(self.game_action_box)
+        self.game_revealer.set_reveal_child(True)
 
     def on_game_installed(self, view, game_id):
         """Callback to handle newly installed games"""
@@ -810,27 +713,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             game = Game(pga_game["id"])
             self.view.update_image(game.id, game.is_installed)
 
-    def on_add_manually(self, _widget, *_args):
-        """Callback that presents the Add game dialog"""
-
-        def on_game_added(game):
-            self.view.set_installed(game)
-            GLib.idle_add(resources.fetch_icon, game.slug, self.on_image_downloaded)
-            self.sidebar_listbox.update()
-
-        game = Game(self.view.selected_game)
-        AddGameDialog(
-            self,
-            game=game,
-            runner=self.selected_runner,
-            callback=lambda: on_game_added(game),
-        )
-
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
         self.add_popover.hide()
-        init_dxvk_versions()
         dialog = AddGameDialog(
             self,
             runner=self.selected_runner,
@@ -859,14 +745,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         else:
             do_add_game()
 
-    @GtkTemplate.Callback
-    def on_remove_game(self, *_args):
-        """Callback that present the uninstall dialog to the user"""
-        selected_game = self.view.selected_game
-        UninstallGameDialog(
-            game_id=selected_game, callback=self.remove_game_from_view, parent=self
-        )
-
     def remove_game_from_view(self, game_id, from_library=False):
         """Remove a game from the view"""
 
@@ -880,52 +758,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.view.update_image(game_id, is_installed=False)
         self.sidebar_listbox.update()
 
-    def on_browse_files(self, _widget):
-        """Callback to open a game folder in the file browser"""
-        game = Game(self.view.selected_game)
-        path = game.get_browse_dir()
-        if path and os.path.exists(path):
-            open_uri("file://%s" % path)
-        else:
-            dialogs.NoticeDialog("Can't open %s \nThe folder doesn't exist." % path)
-
-    def on_view_game(self, _widget):
-        """Callback to open a game on lutris.net"""
-        game = Game(self.view.selected_game)
-        open_uri("https://lutris.net/games/%s" % game.slug)
-
-    def on_edit_game_configuration(self, _widget):
-        """Edit game preferences"""
-        init_dxvk_versions()
-        game = Game(self.view.selected_game)
-
-        def on_dialog_saved():
-            game_id = dialog.game.id
-            self.view.remove_game(game_id)
-            self.view.add_game_by_id(game_id)
-            self.view.set_selected_game(game_id)
-            self.sidebar_listbox.update()
-
-        if game.is_installed:
-            dialog = EditGameConfigDialog(self, game, on_dialog_saved)
-
     def on_toggle_viewtype(self, *args):
         if self.current_view_type == "grid":
             self.switch_view("list")
         else:
             self.switch_view("grid")
-
-    def on_execute_script_clicked(self, _widget):
-        """Execute the game's associated script"""
-        game = Game(self.view.selected_game)
-        manual_command = game.runner.system_config.get("manual_command")
-        if path_exists(manual_command):
-            MonitoredCommand(
-                [manual_command],
-                include_processes=[os.path.basename(manual_command)],
-                cwd=game.directory,
-            ).start()
-            logger.info("Running %s in the background", manual_command)
 
     def on_viewtype_state_change(self, action, val):
         """Callback to handle view type switch"""
@@ -967,26 +804,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting(
             "view_sorting_ascending", "true" if self.view_sorting_ascending else "false"
         )
-
-    def create_menu_shortcut(self, *_args):
-        """Add the selected game to the system's Games menu."""
-        game = Game(self.view.selected_game)
-        xdgshortcuts.create_launcher(game.slug, game.id, game.name, menu=True)
-
-    def create_desktop_shortcut(self, *_args):
-        """Create a desktop launcher for the selected game."""
-        game = Game(self.view.selected_game)
-        xdgshortcuts.create_launcher(game.slug, game.id, game.name, desktop=True)
-
-    def remove_menu_shortcut(self, *_args):
-        """Remove an XDG menu shortcut"""
-        game = Game(self.view.selected_game)
-        xdgshortcuts.remove_launcher(game.slug, game.id, menu=True)
-
-    def remove_desktop_shortcut(self, *_args):
-        """Remove a .desktop shortcut"""
-        game = Game(self.view.selected_game)
-        xdgshortcuts.remove_launcher(game.slug, game.id, desktop=True)
 
     def on_sidebar_state_change(self, action, value):
         """Callback to handle siderbar toggle"""
