@@ -115,7 +115,8 @@ class MonitoredCommand:
             self.log_handler_stdout,
             self.log_handler_console_output,
         ]
-        if log_buffer:
+        self.log_buffer = log_buffer
+        if self.log_buffer:
             self.log_handlers.append(self.log_handler_buffer)
         self.stdout_monitor = None
         self.watch_children_running = False
@@ -169,6 +170,14 @@ class MonitoredCommand:
 
         _commands.add(self)
         if self.watch:
+    def get_log_handlers(self):
+        """Return appropriate log handlers"""
+        log_handlers = [self.log_handler_stdout]
+        if self.log_buffer:
+            log_handlers.append(self.log_handler_buffer)
+        if self.debug_output:
+            log_handlers.append(self.log_handler_console_output)
+        return log_handlers
             GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
             self.stdout_monitor = GLib.io_add_watch(
                 self.game_process.stdout,
