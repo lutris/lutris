@@ -428,7 +428,7 @@ class Game(GObject.Object):
                     path
                     for path in [
                         env.get("LD_PRELOAD"),
-                        "/usr/$LIB/libgamemodeauto.so.0",
+                        "/usr/$LIB/libgamemodeauto.so",
                     ]
                     if path
                 ]

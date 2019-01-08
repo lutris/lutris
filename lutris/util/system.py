@@ -77,6 +77,9 @@ SYSTEM_COMPONENTS = {
         ],
         "RADEON": [
             "libvulkan_radeon.so"
+        ],
+        "GAMEMODE": [
+            "libgamemodeauto.so"
         ]
     }
 }
@@ -158,7 +161,7 @@ class LinuxSystem:
     @property
     def requirements(self):
         """Return used system requirements"""
-        _requirements = ["OPENGL", "WINE", "VULKAN"]
+        _requirements = ["OPENGL", "WINE", "VULKAN", "GAMEMODE"]
         if drivers.is_amd():
             _requirements.append("RADEON")
         return _requirements
@@ -205,16 +208,23 @@ class LinuxSystem:
             for soundfont in os.listdir(folder):
                 self._cache["SOUNDFONTS"].append(soundfont)
 
+    def get_missing_requirement_libs(self, req):
+        required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])
+        return [
+            required_libs - set(self._cache["LIBRARIES"]["i386"][req])
+            for arch in self.runtime_architectures
+        ]
+
     def get_missing_libs(self):
         """Return a tuple of 32 and 64bit missing libraries"""
-        missing_libs = {}
-        for req in self.requirements:
-            required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])
-            missing_libs[req] = [
-                required_libs - set(self._cache["LIBRARIES"]["i386"][req])
-                for arch in self.runtime_architectures
-            ]
-        return missing_libs
+        return {
+            req: self.get_missing_requirement_libs(req)
+            for req in self.requirements
+        }
+
+    def is_feature_supported(self, feature):
+        """Return whether the system has the necessary libs to support a feature"""
+        return not self.get_missing_requirement_libs(feature)[0]
 
 
 LINUX_SYSTEM = LinuxSystem()
