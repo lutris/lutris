@@ -40,7 +40,10 @@ from lutris.gui.uninstallgamedialog import UninstallGameDialog
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.system import SystemConfigDialog
-from lutris.gui.gameviews import GameListView, GameGridView, ContextualMenu, GameStore
+from lutris.gui.views.list import GameListView
+from lutris.gui.views.grid import GameGridView
+from lutris.gui.views.menu import ContextualMenu
+from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.utils import IMAGE_SIZES
 
 

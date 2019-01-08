@@ -30,6 +30,7 @@ setup(
         'lutris.gui',
         'lutris.gui.widgets',
         'lutris.gui.config',
+        'lutris.gui.views',
         'lutris.installer',
         'lutris.migrations',
         'lutris.runners',
