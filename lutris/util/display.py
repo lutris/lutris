@@ -166,8 +166,10 @@ def restore_gamma():
     xgamma_path = system.find_executable("xgamma")
     try:
         subprocess.Popen([xgamma_path, "-gamma", "1.0"])
-    except FileNotFoundError:
+    except (FileNotFoundError, TypeError):
         logger.warning("xgamma is not available on your system")
+    except PermissionError:
+        logger.warning("you do not have permission to call xgamma")
 
 
 def get_xrandr_version():
