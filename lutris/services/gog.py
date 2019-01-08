@@ -35,6 +35,7 @@ class GogService:
     login_success_url = "https://www.gog.com/on_login_success"
     credentials_path = os.path.join(settings.CACHE_DIR, ".gog.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
+    cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
 
     @property
     def login_url(self):
@@ -150,8 +151,14 @@ class GogService:
         url = "https://embed.gog.com/userData.json"
         return self.make_api_request(url)
 
-    def get_library(self):
+    def get_library(self, force_reload=False):
         """Return the user's library of GOG games"""
+
+        if system.path_exists(self.cache_path) and not force_reload:
+            logger.debug("Returning cached GOG library")
+            with open(self.cache_path, 'r') as gog_cache:
+                return json.load(gog_cache)
+
         total_pages = 1
         games = []
         page = 1
@@ -160,6 +167,8 @@ class GogService:
             page += 1
             total_pages = products_response["totalPages"]
             games += products_response["products"]
+        with open(self.cache_path, 'w') as gog_cache:
+            json.dump(games, gog_cache)
         return games
 
     def get_products_page(self, page=1, search=None):
@@ -240,6 +249,7 @@ def disconnect():
 
 class GOGSyncer:
     """Sync GOG games to Lutris"""
+
     @classmethod
     def load(cls):
         """Load the user game library from the GOG API"""
