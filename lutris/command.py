@@ -170,14 +170,6 @@ class MonitoredCommand:
 
         _commands.add(self)
         if self.watch:
-    def get_log_handlers(self):
-        """Return appropriate log handlers"""
-        log_handlers = [self.log_handler_stdout]
-        if self.log_buffer:
-            log_handlers.append(self.log_handler_buffer)
-        if self.debug_output:
-            log_handlers.append(self.log_handler_console_output)
-        return log_handlers
             GLib.timeout_add(HEARTBEAT_DELAY, self.watch_children)
             self.stdout_monitor = GLib.io_add_watch(
                 self.game_process.stdout,
@@ -277,7 +269,7 @@ class MonitoredCommand:
         self.original_env = {}
 
     def stop(self):
-        """Stops the current game process and cleans up the thread"""
+        """Stops the current game process and cleans up the instance"""
         try:
             _commands.remove(self)
         except KeyError:  # may have never been added.
@@ -326,7 +318,7 @@ class MonitoredCommand:
             logger.error("Game is not running")
             return False
         if not self.ready_state:
-            # Don't monitor processes until the thread is in a ready state
+            # Don't monitor processes until the process is in a ready state
             self.process_monitor.cycles_without_children = 0
             return True
 
@@ -348,8 +340,8 @@ class MonitoredCommand:
         return True
 
 
-def exec_in_thread(command):
-    """Execute arbitrary command in a Lutris thread
+def exec_command(command):
+    """Execute arbitrary command in a MonitoredCommand
 
     Used by the --exec command line flag.
     """

@@ -38,7 +38,7 @@ from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.migrations import migrate
 from lutris.platforms import update_platforms
 from lutris.settings import read_setting, VERSION
-from lutris.thread import exec_in_thread
+from lutris.command import exec_command
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.util import datapath
@@ -461,16 +461,15 @@ class Application(Gtk.Application):
 
     @staticmethod
     def execute_command(command):
-        """
-            Execute an arbitrary command in a Lutris context
-            with the runtime enabled and monitored by a MonitoredCommand
+        """Execute an arbitrary command in a Lutris context
+        with the runtime enabled and monitored by a MonitoredCommand
         """
         logger.info("Running command '%s'", command)
-        thread = exec_in_thread(command)
+        monitored_command = exec_command(command)
         try:
             GLib.MainLoop().run()
         except KeyboardInterrupt:
-            thread.stop()
+            monitored_command.stop()
 
     def print_steam_folders(self, command_line):
         steamapps_paths = get_steamapps_paths()

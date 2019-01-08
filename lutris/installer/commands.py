@@ -18,7 +18,7 @@ from lutris.util.wine.wine import get_wine_version_exe, WINE_DEFAULT_ARCH
 from lutris.util import selective_merge
 
 from lutris.runners import import_task
-from lutris.thread import MonitoredCommand
+from lutris.command import MonitoredCommand
 
 
 class CommandsMixin:

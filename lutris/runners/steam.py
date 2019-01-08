@@ -6,7 +6,7 @@ import subprocess
 
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
-from lutris.thread import MonitoredCommand
+from lutris.command import MonitoredCommand
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.steam.config import get_default_acf, read_config

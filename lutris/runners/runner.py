@@ -6,7 +6,7 @@ from gi.repository import Gtk
 from lutris import pga, settings, runtime
 from lutris.config import LutrisConfig
 from lutris.gui import dialogs
-from lutris.thread import MonitoredCommand
+from lutris.command import MonitoredCommand
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 from lutris.util import system

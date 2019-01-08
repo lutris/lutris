@@ -6,7 +6,7 @@ import subprocess
 
 from lutris import settings
 from lutris.runners import wine
-from lutris.thread import MonitoredCommand
+from lutris.command import MonitoredCommand
 from lutris.util.process import Process
 from lutris.util import system
 from lutris.util.log import logger

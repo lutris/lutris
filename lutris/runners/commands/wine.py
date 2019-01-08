@@ -7,7 +7,7 @@ import time
 from lutris import runtime, settings
 from lutris.config import LutrisConfig
 from lutris.runners import import_runner
-from lutris.thread import MonitoredCommand
+from lutris.command import MonitoredCommand
 from lutris.util import datapath, system
 from lutris.util.log import logger
 from lutris.util.wine.wine import (

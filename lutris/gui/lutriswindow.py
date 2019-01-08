@@ -24,7 +24,7 @@ from lutris.util import xdgshortcuts
 from lutris.util.steam.watcher import SteamWatcher
 from lutris.util.wine.dxvk import init_dxvk_versions
 
-from lutris.thread import MonitoredCommand
+from lutris.command import MonitoredCommand
 
 from lutris.services import get_services_synced_at_startup, steam
 
