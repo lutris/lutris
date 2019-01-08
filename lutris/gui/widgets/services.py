@@ -1,5 +1,5 @@
 """Window for importing games from third party services"""
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris.gui.widgets.utils import get_icon, get_pixbuf
 from lutris.gui.notifications import send_notification
@@ -279,7 +279,10 @@ class ServiceSyncBox(Gtk.Box):
         if self.service.ONLINE and not self.service.is_connected():
             return
         syncer = self.service.SYNCER()
-        self.games = syncer.load(force_reload=force_reload)
+        AsyncCall(syncer.load, self.on_games_loaded, force_reload)
+
+    def on_games_loaded(self, result, _error):
+        self.games = result
         self.store = self.get_store()
 
         self.current_filter = None
