@@ -421,29 +421,16 @@ class winesteam(wine.wine):
     def get_run_data(self):
         return {"command": self.launch_args, "env": self.get_env(os_env=False)}
 
-    def play(self):
+    def get_command(self):
         game_args = self.game_config.get("args") or ""
-
-        launch_info = {"env": self.get_env(os_env=False)}
-
-        if self.runner_config.get("x360ce-path"):
-            self.setup_x360ce(self.runner_config["x360ce-path"])
-
-        steamless_binary = self.game_config.get("steamless_binary")
-        if self.game_config.get("run_without_steam") and steamless_binary:
+        game_binary = self.game_config.get("steamless_binary")
+        if self.game_config.get("run_without_steam") and game_binary:
             # Start without steam
-            if not system.path_exists(steamless_binary):
-                return {"error": "FILE_NOT_FOUND", "file": steamless_binary}
-            command = [self.get_executable()]
-            runner_args = self.runner_config.get("args") or ""
-            if runner_args:
-                for arg in shlex.split(runner_args):
-                    command.append(arg)
-            command.append(steamless_binary)
-            if game_args:
-                for arg in shlex.split(game_args):
-                    command.append(arg)
-
+            if not system.path_exists(game_binary):
+                raise FileNotFoundError(2, "Game binary not found", game_binary)
+            command = [self.get_executable(), game_binary]
+            for arg in shlex.split(game_args):
+                command.append(arg)
         else:
             # Start through steam
             command = self.launch_args
@@ -454,11 +441,20 @@ class winesteam(wine.wine):
             else:
                 command.append("-applaunch")
                 command.append(self.appid)
-                if game_args:
-                    for arg in shlex.split(game_args):
-                        command.append(arg)
-        launch_info["command"] = command
-        return launch_info
+                for arg in shlex.split(game_args):
+                    command.append(arg)
+        return command
+
+    def play(self):
+        if self.runner_config.get("x360ce-path"):
+            self.setup_x360ce(self.runner_config["x360ce-path"])
+        try:
+            return {
+                "env": self.get_env(os_env=False),
+                "command": self.get_command()
+            }
+        except FileNotFoundError as ex:
+            return {"error": "FILE_NOT_FOUND", "file": ex.filename}
 
     def shutdown(self):
         logger.debug("Stopping all winesteam processes")
