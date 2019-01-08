@@ -54,7 +54,7 @@ class GogService:
 
     def disconnect(self):
         """Disconnect from GOG by removing all credentials"""
-        for auth_file in self.credential_files:
+        for auth_file in self.credential_files + [self.cache_path]:
             try:
                 os.remove(auth_file)
             except OSError:
@@ -251,9 +251,12 @@ class GOGSyncer:
     """Sync GOG games to Lutris"""
 
     @classmethod
-    def load(cls):
+    def load(cls, force_reload=False):
         """Load the user game library from the GOG API"""
-        return [GOGGame.new_from_gog_game(game) for game in GOG_SERVICE.get_library()]
+        return [
+            GOGGame.new_from_gog_game(game)
+            for game in GOG_SERVICE.get_library(force_reload=force_reload)
+        ]
 
     @classmethod
     def sync(cls, games, full=False):

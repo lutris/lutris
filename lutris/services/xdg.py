@@ -154,7 +154,7 @@ class XDGSyncer:
         return True
 
     @classmethod
-    def load(cls):
+    def load(cls, force_reload=False):
         """Return the list of games stored in the XDG menu."""
         return [
             XDGGame.new_from_xdg_app(app)

@@ -108,7 +108,7 @@ class SteamSyncer:
             self._lutris_steamids = {str(game["steamid"]) for game in self.lutris_games}
         return self._lutris_steamids
 
-    def load(self):
+    def load(self, force_reload=False):
         """Return importable Steam games"""
         games = []
         steamapps_paths = get_steamapps_paths()

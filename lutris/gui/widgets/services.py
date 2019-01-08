@@ -32,6 +32,7 @@ class ServiceSyncBox(Gtk.Box):
         self.games = []
         self.store = None
         self.num_selected = 0
+        self.games_loaded = False
 
         title_box = Gtk.Box()
         label = Gtk.Label()
@@ -40,7 +41,13 @@ class ServiceSyncBox(Gtk.Box):
 
         self.connect_button = Gtk.Button()
         self.connect_button.connect("clicked", self.on_connect_clicked)
+
         if service.ONLINE:
+            self.refresh_button = Gtk.Button()
+            self.refresh_button.connect("clicked", self.on_refresh_clicked)
+            self.refresh_button.set_tooltip_text("Reload")
+            self.refresh_button.set_image(Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.MENU))
+            title_box.add(self.refresh_button)
             self._connect_button_toggle()
             title_box.add(self.connect_button)
 
@@ -109,19 +116,20 @@ class ServiceSyncBox(Gtk.Box):
             return icon
         return Gtk.Label(self.name)
 
+    def on_refresh_clicked(self, _button):
+        self.load_games(force_reload=True)
+
     def on_connect_clicked(self, _button):
         if self.service.is_connected():
-            self.games = []
-            self.service.disconnect()
-            self.swap_content(self.get_content_widget())
-            self._connect_button_toggle()
-
-            self.sync_switch.set_sensitive(False)
+            self.unload_games()
             self.sync_button.set_sensitive(False)
-
+            self.sync_switch.set_sensitive(False)
             # Disable sync on disconnect
             if self.sync_switch and self.sync_switch.get_active():
                 self.sync_switch.set_state(False)
+            self._connect_button_toggle()
+            self.service.disconnect()
+            self.swap_content(self.get_content_widget())
         else:
             self.service.connect()
             self._connect_button_toggle()
@@ -131,11 +139,15 @@ class ServiceSyncBox(Gtk.Box):
         return False
 
     def _connect_button_toggle(self):
-        is_connected = self.service.is_connected()
-        icon_name = "system-log-out-symbolic" \
-            if is_connected \
-            else "avatar-default-symbolic"
-        self.connect_button.set_tooltip_text('Disconnect' if is_connected else 'Connect')
+        if self.service.is_connected():
+            icon_name = "system-log-out-symbolic"
+            label = "Disconnect"
+            self.refresh_button.show()
+        else:
+            icon_name = "avatar-default-symbolic"
+            label = "Connect"
+            self.refresh_button.hide()
+        self.connect_button.set_tooltip_text(label)
         self.connect_button.set_image(Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU))
 
     def on_sync_button_clicked(self, _button, sync_with_lutris_method):
@@ -260,18 +272,25 @@ class ServiceSyncBox(Gtk.Box):
         content.show_all()
         return content
 
-    def load_games(self):
+    def load_games(self, force_reload=False):
         """Load the list of games in a treeview"""
+        if self.games_loaded and not force_reload:
+            return
         if self.service.ONLINE and not self.service.is_connected():
             return
         syncer = self.service.SYNCER()
-        self.games = syncer.load()
+        self.games = syncer.load(force_reload=force_reload)
         self.store = self.get_store()
 
         self.current_filter = None
         self.store_filter = self.store.filter_new()
         self.store_filter.set_visible_func(self.store_filter_func)
         self.swap_content(self.get_game_list_widget())
+        self.games_loaded = True
+
+    def unload_games(self):
+        self.games = []
+        self.games_loaded = False
 
     def swap_content(self, widget):
         widget_position = self.child_get_property(self.content_widget, 'position')
