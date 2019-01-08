@@ -33,7 +33,7 @@ from lutris.vendor.gi_composites import GtkTemplate
 from lutris.gui.util import open_uri
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarListBox  # NOQA FIXME Removing this unused import causes a crash
-from lutris.gui.sync import SyncServiceWindow
+from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.runnersdialog import RunnersDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.uninstallgamedialog import UninstallGameDialog
