@@ -17,7 +17,7 @@ class dosbox(Runner):
             "label": "Main file",
             "help": (
                 "The CONF, EXE, COM or BAT file to launch.\n"
-                "It can be left blank if the launch of the executable is"
+                "It can be left blank if the launch of the executable is "
                 "managed in the config file."
             ),
         },
