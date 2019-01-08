@@ -209,14 +209,15 @@ class LinuxSystem:
                 self._cache["SOUNDFONTS"].append(soundfont)
 
     def get_missing_requirement_libs(self, req):
+        """Return a list of sets of missing libraries for each supported architecture"""
         required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])
         return [
-            required_libs - set(self._cache["LIBRARIES"]["i386"][req])
+            required_libs - set(self._cache["LIBRARIES"][arch][req])
             for arch in self.runtime_architectures
         ]
 
     def get_missing_libs(self):
-        """Return a tuple of 32 and 64bit missing libraries"""
+        """Return a dictionary of missing libraries"""
         return {
             req: self.get_missing_requirement_libs(req)
             for req in self.requirements
