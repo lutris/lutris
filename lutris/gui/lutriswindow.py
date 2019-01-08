@@ -154,7 +154,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "view-" + other_view + "-symbolic", Gtk.IconSize.BUTTON
         )
 
-
         self.sidebar_listbox = SidebarListBox()
         self.sidebar_listbox.set_size_request(250, -1)
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
@@ -162,38 +161,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.show()
 
         # Contextual menu
-        main_entries = [
-            ("play", "Play", self.on_game_run),
-            ("install", "Install", self.on_install_clicked),
-            ("add", "Add manually", self.on_add_manually),
-            ("configure", "Configure", self.on_edit_game_configuration),
-            ("execute-script", "Execute script", self.on_execute_script_clicked),
-            ("browse", "Browse files", self.on_browse_files),
-            (
-                "desktop-shortcut",
-                "Create desktop shortcut",
-                self.create_desktop_shortcut,
-            ),
-            (
-                "rm-desktop-shortcut",
-                "Delete desktop shortcut",
-                self.remove_desktop_shortcut,
-            ),
-            (
-                "menu-shortcut",
-                "Create application menu shortcut",
-                self.create_menu_shortcut,
-            ),
-            (
-                "rm-menu-shortcut",
-                "Delete application menu shortcut",
-                self.remove_menu_shortcut,
-            ),
-            ("install_more", "Install (add) another version", self.on_install_clicked),
-            ("remove", "Remove", self.on_remove_game),
-            ("view", "View on Lutris.net", self.on_view_game),
-        ]
-        self.menu = ContextualMenu(main_entries)
+        self.menu = ContextualMenu(self.get_game_actions())
         self.view.contextual_menu = self.menu
 
         # Sidebar
@@ -295,6 +263,63 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.add_action(action)
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
+
+    def get_game_actions(self):
+        """Return a list of game actions and their callbacks"""
+        return [
+            (
+                "play", "Play",
+                self.on_game_run
+            ),
+            (
+                "install", "Install",
+                self.on_install_clicked
+            ),
+            (
+                "add", "Add manually",
+                self.on_add_manually
+            ),
+            (
+                "configure", "Configure",
+                self.on_edit_game_configuration
+            ),
+            (
+                "execute-script", "Execute script",
+                self.on_execute_script_clicked
+            ),
+            (
+                "browse", "Browse files",
+                self.on_browse_files
+            ),
+            (
+                "desktop-shortcut", "Create desktop shortcut",
+                self.create_desktop_shortcut,
+            ),
+            (
+                "rm-desktop-shortcut", "Delete desktop shortcut",
+                self.remove_desktop_shortcut,
+            ),
+            (
+                "menu-shortcut", "Create application menu shortcut",
+                self.create_menu_shortcut,
+            ),
+            (
+                "rm-menu-shortcut", "Delete application menu shortcut",
+                self.remove_menu_shortcut,
+            ),
+            (
+                "install_more", "Install another version",
+                self.on_install_clicked
+            ),
+            (
+                "remove", "Remove",
+                self.on_remove_game
+            ),
+            (
+                "view", "View on Lutris.net",
+                self.on_view_game
+            ),
+        ]
 
     @property
     def current_view_type(self):
