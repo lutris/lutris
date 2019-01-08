@@ -88,8 +88,10 @@ class Game(GObject.Object):
         self.log_buffer.create_tag("warning", foreground="red")
 
         self.timer = Timer("hours")
-        self.playtime = game_data.get("playtime") or "0.0 hrs"
-        self.playtime = float(self.playtime.split()[0])
+        try:
+            self.playtime = float(game_data.get("playtime") or 0.0)
+        except ValueError:
+            logger.error("Invalid playtime value %s", game_data.get("playtime"))
 
     def __repr__(self):
         return self.__unicode__()
