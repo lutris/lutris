@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.0" width="374.56" height="86.040001" id="svg2">
+  <defs id="defs4">
+    <linearGradient id="linearGradient3159">
+      <stop style="stop-color:#113aeb;stop-opacity:1" offset="0" id="stop3161"/>
+      <stop style="stop-color:#08dbe4;stop-opacity:1" offset="1" id="stop3163"/>
+    </linearGradient>
+    <linearGradient x1="351.28055" y1="191.58546" x2="351.28055" y2="257.62466" id="linearGradient3173" xlink:href="#linearGradient3159" gradientUnits="userSpaceOnUse"/>
+    <linearGradient x1="351.28055" y1="191.58546" x2="351.28055" y2="257.62466" id="linearGradient3190" xlink:href="#linearGradient3159" gradientUnits="userSpaceOnUse"/>
+    <linearGradient x1="351.28055" y1="191.58546" x2="351.28055" y2="257.62466" id="linearGradient3192" xlink:href="#linearGradient3159" gradientUnits="userSpaceOnUse"/>
+  </defs>
+  <g transform="translate(-14.384909,-18.65191)" id="layer1">
+    <g transform="translate(-22.841498,-162.93339)" id="g3185">
+      <path d="M 47.298599,191.71221 L 157.83634,191.71221 L 157.83634,227.57263 L 52.780471,227.57263 L 52.780471,257.62467 L 47.224632,257.62467 L 47.224632,222.01679 L 152.47176,222.01679 L 152.47176,198.2782 L 47.224631,198.2782 L 47.298599,191.71221 z " style="opacity:1;color:#000000;fill:url(#linearGradient3190);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" id="path2170"/>
+      <path d="M 272.74119,191.71221 L 272.74119,198.78328 L 217.68787,198.78328 L 217.68787,257.62467 L 158.08887,257.62467 L 158.08887,250.30106 L 211.12188,250.30106 L 211.12188,191.71221 L 272.74119,191.71221 z " style="opacity:1;color:#000000;fill:url(#linearGradient3192);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" id="path2172"/>
+      <path d="M 292.06036,191.58594 L 401.78818,191.71221 L 401.78818,227.57263 L 297.99501,227.57263 L 297.99501,250.5536 L 401.53564,250.5536 L 401.53564,257.62467 L 291.93409,257.62467 L 291.93409,221.76425 L 395.22218,221.76425 L 395.22218,198.02567 L 292.06035,198.02567 L 292.06036,191.58594 z " style="fill:url(#linearGradient3173);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" id="path2174"/>
+    </g>
+  </g>
+</svg>
