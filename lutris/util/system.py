@@ -229,19 +229,6 @@ class LinuxSystem:
 
 LINUX_SYSTEM = LinuxSystem()
 
-# Path to Feral gamemode library
-GAMEMODE_PATH = next(
-    (
-        path
-        for path in map(
-            lambda x: os.path.join(x, "libgamemodeauto.so"),
-            ["/usr/lib/x86_64-linux-gnu", "/usr/lib"],
-        )
-        if os.path.exists(path)
-    ),
-    None,
-)
-
 
 def check_libs():
     """Checks that required libraries are installed on the system"""
