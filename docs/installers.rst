@@ -600,7 +600,7 @@ Example:
         - en: English
         - fr: French
         - "value and": "label can be anything, surround them with quotes to avoid issues"
-        preselect: bf
+        preselect: fr
 
 In this example, English would be preselected. If the option eventually
 selected is French, the "$INPUT_LANG" alias would be available in
