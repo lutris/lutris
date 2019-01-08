@@ -193,7 +193,7 @@ class steam(Runner):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        if self.game_config["run_without_steam"]:
+        if self.game_config.get("run_without_steam"):
             steamless_binary = self.game_config.get("steamless_binary")
             if steamless_binary and os.path.isfile(steamless_binary):
                 return os.path.dirname(steamless_binary)
@@ -301,7 +301,7 @@ class steam(Runner):
         game_args = self.game_config.get("args") or ""
 
         binary_path = self.game_config.get("steamless_binary")
-        if self.game_config["run_without_steam"] and binary_path:
+        if self.game_config.get("run_without_steam") and binary_path:
             # Start without steam
             if not system.path_exists(binary_path):
                 return {"error": "FILE_NOT_FOUND", "file": binary_path}

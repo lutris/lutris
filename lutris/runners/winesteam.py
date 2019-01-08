@@ -201,7 +201,7 @@ class winesteam(wine.wine):
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        if self.game_config["run_without_steam"]:
+        if self.game_config.get("run_without_steam"):
             steamless_binary = self.game_config.get("steamless_binary")
             if steamless_binary and os.path.isfile(steamless_binary):
                 return os.path.dirname(steamless_binary)
@@ -430,7 +430,7 @@ class winesteam(wine.wine):
             self.setup_x360ce(self.runner_config["x360ce-path"])
 
         steamless_binary = self.game_config.get("steamless_binary")
-        if self.game_config["run_without_steam"] and steamless_binary:
+        if self.game_config.get("run_without_steam") and steamless_binary:
             # Start without steam
             if not system.path_exists(steamless_binary):
                 return {"error": "FILE_NOT_FOUND", "file": steamless_binary}
