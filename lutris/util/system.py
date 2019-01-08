@@ -103,6 +103,8 @@ class LinuxSystem:
     ]
 
     recommended_no_file_open = 1048576
+    required_components = ["OPENGL"]
+    optional_components = ["VULKAN", "WINE", "GAMEMODE"]
 
     def __init__(self):
         for key in ("COMMANDS", "TERMINALS"):
@@ -160,10 +162,19 @@ class LinuxSystem:
 
     @property
     def requirements(self):
+        return self.get_requirements()
+
+    @property
+    def critical_requirements(self):
+        return self.get_requirements(include_optional=False)
+
+    def get_requirements(self, include_optional=True):
         """Return used system requirements"""
-        _requirements = ["OPENGL", "WINE", "VULKAN", "GAMEMODE"]
-        if drivers.is_amd():
-            _requirements.append("RADEON")
+        _requirements = self.required_components
+        if include_optional:
+            _requirements += self.optional_components
+            if drivers.is_amd():
+                _requirements.append("RADEON")
         return _requirements
 
     def get(self, command):
@@ -231,10 +242,14 @@ class LinuxSystem:
 LINUX_SYSTEM = LinuxSystem()
 
 
-def check_libs():
+def check_libs(all_components=False):
     """Checks that required libraries are installed on the system"""
     missing_libs = LINUX_SYSTEM.get_missing_libs()
-    for req in LINUX_SYSTEM.requirements:
+    if all_components:
+        components = LINUX_SYSTEM.requirements
+    else:
+        components = LINUX_SYSTEM.critical_requirements
+    for req in components:
         for index, arch in enumerate(LINUX_SYSTEM.runtime_architectures):
             for lib in missing_libs[req][index]:
                 logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
