@@ -170,7 +170,7 @@ class LinuxSystem:
 
     def get_requirements(self, include_optional=True):
         """Return used system requirements"""
-        _requirements = self.required_components
+        _requirements = self.required_components.copy()
         if include_optional:
             _requirements += self.optional_components
             if drivers.is_amd():
