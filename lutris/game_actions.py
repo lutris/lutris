@@ -69,7 +69,7 @@ class GameActions:
                 self.on_install_clicked
             ),
             (
-                "add", "Add manually",
+                "add", "Add installed game",
                 self.on_add_manually
             ),
             (
@@ -140,7 +140,9 @@ class GameActions:
                 self.game.is_installed
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
-            "browse": not self.game.is_installed and self.game.runner_name != "browser"
+            "browse": self.game.is_installed and self.game.runner_name != "browser",
+            "remove": self.game.is_installed,
+            "view": True
         }
 
     def get_disabled_entries(self):
@@ -194,7 +196,7 @@ class GameActions:
             self.window.sidebar_listbox.update()
 
         AddGameDialog(
-            self,
+            self.window,
             game=self.game,
             runner=self.game.runner_name,
             callback=lambda: on_game_added(self.game),

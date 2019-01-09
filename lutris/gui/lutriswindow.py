@@ -37,6 +37,7 @@ from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.utils import IMAGE_SIZES
+from lutris.gui.game_panel import GamePanel
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
@@ -148,7 +149,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_revealer.show()
         self.game_revealer.set_transition_duration(500)
         self.game_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
-        self.game_action_box = Gtk.Box()
+
+        self.game_scrolled = Gtk.ScrolledWindow()
+        self.game_scrolled.set_size_request(320, -1)
+        self.game_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
+        self.game_scrolled.show()
+        self.game_revealer.add(self.game_scrolled)
+
+        self.game_panel = Gtk.Box()
         self.main_box.pack_end(self.game_revealer, False, False, 0)
 
         self.view.show()
@@ -656,56 +664,19 @@ class LutrisWindow(Gtk.ApplicationWindow):
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
 
-    def get_action_box(self):
-        box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL,
-            spacing=12,
-            margin_top=18,
-            margin_right=18,
-            margin_left=18
-        )
-        box.set_size_request(100, -1)
-        box.show()
-        game = self.game_actions.game
-        label = Gtk.Label(game.name)
-        label.show()
-        box.add(label)
-        sep = Gtk.Separator()
-        sep.show()
-        box.add(sep)
-        displayed = self.game_actions.get_displayed_entries()
-        disabled_entries = self.game_actions.get_disabled_entries()
-        for action in self.game_actions.get_game_actions():
-            action_id, label, callback = action
-            if action_id == "stop":
-                button = Gtk.Button.new_from_icon_name(
-                    "media-playback-stop-symbolic",
-                    Gtk.IconSize.MENU
-                )
-            elif action == "play":
-                button = Gtk.Button.new_from_icon_name(
-                    "media-playback-play-symbolic",
-                    Gtk.IconSize.MENU
-                )
-            else:
-                button = Gtk.Button(label)
-            button.connect("clicked", callback)
-            if displayed.get(action_id):
-                button.show()
-            if disabled_entries.get(action_id, False) or True:
-                button.set_sensitive(False)
-            box.add(button)
-        return box
-
     def game_selection_changed(self, widget):
         """Callback to handle the selection of a game in the view"""
-        self.game_action_box.destroy()
+        child = self.game_scrolled.get_child()
+        if child:
+            self.game_scrolled.remove(child)
+            child.destroy()
+
         if not self.view.selected_game:
             self.game_revealer.set_reveal_child(False)
             return
         self.game_actions.set_game(game_id=self.view.selected_game)
-        self.game_action_box = self.get_action_box()
-        self.game_revealer.add(self.game_action_box)
+        self.game_panel = GamePanel(self.game_actions)
+        self.game_scrolled.add(self.game_panel)
         self.game_revealer.set_reveal_child(True)
 
     def on_game_installed(self, view, game_id):

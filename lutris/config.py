@@ -25,6 +25,7 @@ def check_config():
         join(settings.DATA_DIR, "covers"),
         settings.ICON_PATH,
         join(settings.DATA_DIR, "banners"),
+        join(settings.DATA_DIR, "coverart"),
         join(settings.DATA_DIR, "runners"),
         join(settings.DATA_DIR, "lib"),
         settings.RUNTIME_DIR,
