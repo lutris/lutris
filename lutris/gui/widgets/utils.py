@@ -117,40 +117,46 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
         return transparent_pixbuf
     return pixbuf
 
-def convert_to_background(background_path):
+
+def convert_to_background(background_path, target_size=(320, 550)):
     """Converts a image to a pane background"""
 
-    file, _ext = os.path.splitext(background_path)
-
-    target_width = 320
-    target_height = 550
-    background = Image.new('RGBA', (target_width, target_height), (255, 255, 255, 0))
     coverart = Image.open(background_path)
     coverart = coverart.convert("RGBA")
 
+    target_width, target_height = target_size
     orig_width, orig_height = coverart.size
+
+    # Resize and crop coverart
     width = int(orig_width * (target_height / orig_height))
     offset = int((width - target_width) / 2)
-
     coverart = coverart.resize((width, target_height), resample=Image.BICUBIC)
     coverart = coverart.crop((offset, 0, target_width + offset, target_height))
 
+    # Apply a tint to the base image
     tint = Image.new('RGBA', (target_width, target_height), (0, 0, 0, 255))
     coverart = Image.blend(coverart, tint, 0.8)
 
+    # Paste coverart on transparent image while applying a gradient mask
+    background = Image.new('RGBA', (target_width, target_height), (255, 255, 255, 0))
     mask = Image.open(os.path.join(datapath.get(), "media/mask.png"))
     background.paste(coverart, mask=mask)
+
     return background
 
-def image2pixbuf(im):
-    arr = array.array('B', im.tobytes())
-    width, height = im.size
-    return GdkPixbuf.Pixbuf.new_from_data(arr, GdkPixbuf.Colorspace.RGB,
-                                          True, 8, width, height, width * 4)
+
+def image2pixbuf(image):
+    """Converts a PIL Image to a GDK Pixbuf"""
+    image_array = array.array('B', image.tobytes())
+    width, height = image.size
+    return GdkPixbuf.Pixbuf.new_from_data(
+        image_array, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4
+    )
+
 
 def get_pixbuf_for_panel(game_slug):
+    """Return the pixbuf for the game panel background"""
     source_path = os.path.join(settings.COVERART_PATH, "%s.jpg" % game_slug)
-    print(source_path)
     if not os.path.exists(source_path):
         source_path = os.path.join(datapath.get(), "media/generic-panel-bg.jpg")
     return image2pixbuf(convert_to_background(source_path))

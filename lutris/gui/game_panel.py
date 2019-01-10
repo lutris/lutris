@@ -53,7 +53,10 @@ class GamePanel(Gtk.Fixed):
         """Return the label containing the runner info"""
         runner_label = Gtk.Label()
         runner_label.show()
-        runner_label.set_markup("For <b>%s</b>, runs with %s" % (self.game.platform, self.game.runner.name))
+        runner_label.set_markup(
+            "For <b>%s</b>, runs with %s" %
+            (self.game.platform, self.game.runner.name)
+        )
         return runner_label
 
     def get_playtime_label(self):
