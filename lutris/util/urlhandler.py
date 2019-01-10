@@ -10,7 +10,6 @@ from lutris.util.log import logger
 
 def register_url_handler():
     """Register the lutris: protocol to open with the application."""
-    logger.debug("registering protocol")
     executable = os.path.abspath(sys.argv[0])
     base_key = "desktop.gnome.url-handlers.lutris"
     schema_directory = "/usr/share/glib-2.0/schemas/"

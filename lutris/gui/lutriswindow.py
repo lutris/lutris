@@ -555,7 +555,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def toggle_connection(self, is_connected, username=None):
         """Sets or unset connected state for the current user"""
-        self.props.application.set_connect_state(is_connected)
         self.connect_button.props.visible = not is_connected
         self.register_button.props.visible = not is_connected
         self.disconnect_button.props.visible = is_connected

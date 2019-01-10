@@ -42,7 +42,7 @@ def set_child_subreaper():
 
 
 def main():
-    """???"""
+    """Runs a command independently from the Lutris client"""
     set_child_subreaper()
     _, include_proc_count, exclude_proc_count, *args = sys.argv
 
