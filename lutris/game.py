@@ -34,6 +34,7 @@ class Game(GObject.Object):
 
     __gsignals__ = {
         "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ())
     }
 
@@ -482,7 +483,7 @@ class Game(GObject.Object):
             self.game_thread.stop_func = self.runner.stop
         self.game_thread.start()
         self.state = self.STATE_RUNNING
-
+        self.emit("game-start")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def xboxdrv_start(self, config):
