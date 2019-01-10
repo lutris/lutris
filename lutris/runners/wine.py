@@ -200,6 +200,7 @@ class wine(Runner):
                 "option": "custom_wine_path",
                 "label": "Custom Wine executable",
                 "type": "file",
+                "advanced": True,
                 "help": (
                     "The Wine executable to be used if you have "
                     'selected "Custom" as the Wine version.'
@@ -368,6 +369,7 @@ class wine(Runner):
                 "option": "Audio",
                 "label": "Audio driver",
                 "type": "choice",
+                "advanced": True,
                 "choices": [
                     ("Auto", "auto"),
                     ("ALSA", "alsa"),
@@ -382,10 +384,10 @@ class wine(Runner):
                 ),
             },
             {
-                "option": "ShowCrashDialog",
-                "label": "Show crash dialogs",
-                "type": "bool",
-                "default": False,
+                "option": "overrides",
+                "type": "mapping",
+                "label": "DLL overrides",
+                "help": "Sets WINEDLLOVERRIDES when launching the game.",
             },
             {
                 "option": "show_debug",
@@ -399,18 +401,17 @@ class wine(Runner):
                     ("Full (CAUTION: Will cause MASSIVE slowdown)", "+all"),
                 ],
                 "default": "-all",
-                "advanced": True,
                 "help": (
                     "Output debugging information in the game log "
                     "(might affect performance)"
                 ),
             },
             {
-                "option": "overrides",
-                "type": "mapping",
-                "label": "DLL overrides",
+                "option": "ShowCrashDialog",
+                "label": "Show crash dialogs",
+                "type": "bool",
+                "default": False,
                 "advanced": True,
-                "help": "Sets WINEDLLOVERRIDES when launching the game.",
             },
             {
                 "option": "autoconf_joypad",
@@ -428,6 +429,7 @@ class wine(Runner):
                 "type": "bool",
                 "label": "Create a sandbox for wine folders",
                 "default": True,
+                "advanced": True,
                 "help": (
                     "Do not use $HOME for desktop integration folders.\n"
                     "By default, it use the directories in the confined "
@@ -439,6 +441,7 @@ class wine(Runner):
                 "type": "directory_chooser",
                 "label": "Sandbox directory",
                 "help": "Custom directory for desktop integration folders.",
+                "advanced": True,
             },
         ]
 
