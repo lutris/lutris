@@ -136,11 +136,11 @@ class GameActions:
                 self.game.is_installed
                 and not xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
-            "rm-desktop-shortcut": (
+            "rm-desktop-shortcut": bool(
                 self.game.is_installed
                 and xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)
             ),
-            "rm-menu-shortcut": (
+            "rm-menu-shortcut": bool(
                 self.game.is_installed
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
