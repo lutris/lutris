@@ -321,36 +321,6 @@
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
-            <property name="text" translatable="yes">_Runner</property>
-            <property name="action-target">'runner'</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">6</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.view-sorting</property>
-            <property name="text" translatable="yes">_Platform</property>
-            <property name="action-target">'platform'</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">7</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.view-sorting</property>
             <property name="text" translatable="yes">_Last played</property>
             <property name="action-target">'lastplayed'</property>
           </object>
