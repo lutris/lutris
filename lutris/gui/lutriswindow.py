@@ -346,7 +346,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         This must be called each time the view is rebuilt.
         """
-        self.connect("delete-event", lambda *x: self.hide_on_delete())
         self.view.connect("game-installed", self.on_game_installed)
         self.view.connect("game-selected", self.game_selection_changed)
 
