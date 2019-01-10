@@ -73,6 +73,7 @@ class Game(GObject.Object):
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
+        self.playtime = game_data.get("playtime") or 0.0
         self.game_config_id = game_data.get("configpath") or ""
         self.steamid = game_data.get("steamid") or ""
         self.has_custom_banner = bool(game_data.get("has_custom_banner")) or False
@@ -101,6 +102,10 @@ class Game(GObject.Object):
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
+
+    @property
+    def formatted_playtime(self):
+        return strings.get_formatted_playtime(self.playtime)
 
     @staticmethod
     def show_error_message(message):

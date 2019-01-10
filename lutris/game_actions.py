@@ -123,7 +123,7 @@ class GameActions:
             "stop": self.is_game_running,
             "show_logs": self.is_game_running,
             "configure": bool(self.game.is_installed),
-            "install_more": bool(self.game.is_installed),
+            "install_more": self.game.is_installed,
             "desktop-shortcut": (
                 self.game.is_installed
                 and not xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)

@@ -1,4 +1,5 @@
 """Game panel"""
+from datetime import datetime
 from gi.repository import Gtk, Pango
 from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_pixbuf_for_game
 
@@ -18,8 +19,12 @@ class GamePanel(Gtk.Fixed):
         self.put(self.get_title_label(), 50, 20)
         if self.game.is_installed:
             self.put(self.get_runner_label(), 12, 64)
+        if self.game.playtime:
+            self.put(self.get_playtime_label(), 12, 86)
+        if self.game.lastplayed:
+            self.put(self.get_last_played_label(), 12, 108)
 
-        self.place_buttons(self.get_buttons(), 100)
+        self.place_buttons(self.get_buttons(), 145)
 
     def get_background(self):
         """Return the background image for the panel"""
@@ -48,8 +53,23 @@ class GamePanel(Gtk.Fixed):
         """Return the label containing the runner info"""
         runner_label = Gtk.Label()
         runner_label.show()
-        runner_label.set_markup("Runner: <b>%s</b>" % self.game.runner.name)
+        runner_label.set_markup("For <b>%s</b>, runs with %s" % (self.game.platform, self.game.runner.name))
         return runner_label
+
+    def get_playtime_label(self):
+        """Return the label containing the playtime info"""
+        playtime_label = Gtk.Label()
+        playtime_label.show()
+        playtime_label.set_markup("Time played: <b>%s</b>" % self.game.formatted_playtime)
+        return playtime_label
+
+    def get_last_played_label(self):
+        """Return the label containing the last played info"""
+        last_played_label = Gtk.Label()
+        last_played_label.show()
+        lastplayed = datetime.fromtimestamp(self.game.lastplayed)
+        last_played_label.set_markup("Last played: <b>%s</b>" % lastplayed.strftime("%Y/%m/%d"))
+        return last_played_label
 
     def get_buttons(self):
         displayed = self.game_actions.get_displayed_entries()
@@ -67,9 +87,10 @@ class GamePanel(Gtk.Fixed):
                 button = Gtk.Button.new_from_icon_name(
                     icon_map[action_id], Gtk.IconSize.MENU
                 )
+                button.set_tooltip_text(label)
             else:
                 button = Gtk.Button(label)
-                button.set_size_request(200, 24)
+                button.set_size_request(220, 24)
             button.connect("clicked", callback)
             if displayed.get(action_id):
                 button.show()
@@ -80,6 +101,7 @@ class GamePanel(Gtk.Fixed):
 
     def place_buttons(self, buttons, base_height):
         placed_buttons = set()
+        menu_buttons = {}  # Move create and remove desktop and menu shortcuts out of the way
         for action_id, button in buttons.items():
             position = None
             if action_id in ("play", "stop"):
@@ -88,15 +110,26 @@ class GamePanel(Gtk.Fixed):
                 position = (56, base_height)
             if action_id == "browse":
                 position = (100, base_height)
+            if action_id == "show_logs":
+                position = (140, base_height)
+            if action_id == "execute-script":
+                position = (12, base_height + 32)
 
-            if action_id == "install":
-                position = (60, base_height + 150)
-            if action_id == "add":
-                position = (60, base_height + 190)
+            current_y = base_height + 100
+            if action_id in ("install", "remove"):
+                position = (50, current_y)
+            if action_id in ("add", "install_more"):
+                position = (50, current_y + 40)
             if action_id == "view":
-                position = (60, base_height + 230)
+                position = (50, current_y + 80)
+            if action_id in ("desktop-shortcut", "rm-desktop-shortcut",
+                             "menu-shortcut", "rm-menu-shortcut"):
+                menu_buttons[action_id] = button
+                placed_buttons.add(action_id)
+
             if position:
                 self.put(button, position[0], position[1])
                 placed_buttons.add(action_id)
+            # TODO place menu buttons
         for action in set(buttons.keys()).difference(placed_buttons):
             print(action)
