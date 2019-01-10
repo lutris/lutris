@@ -227,6 +227,7 @@ class wine(Runner):
             {
                 "option": "dxvk_version",
                 "label": "DXVK version",
+                "advanced": True,
                 "type": "choice_with_entry",
                 "choices": get_dxvk_choices,
                 "default": dxvk.DXVK_LATEST,
