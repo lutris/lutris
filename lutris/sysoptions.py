@@ -26,6 +26,27 @@ system_options = [  # pylint: disable=invalid-name
         "help": "The default folder where you install your games."
     },
     {
+        "option": "disable_runtime",
+        "type": "bool",
+        "label": "Disable Lutris Runtime",
+        "default": False,
+        "help": (
+            "The Lutris Runtime loads some libraries before running the "
+            "game. Which can cause some incompatibilities in some cases. "
+            "Check this option to disable it."
+        ),
+    },
+    {
+        "option": "prefer_system_libs",
+        "type": "bool",
+        "label": "Prefer system libraries",
+        "default": False,
+        "help": (
+            "When the runtime is enabled, prioritize the system libraries"
+            " over the provided ones."
+        ),
+    },
+    {
         "option": "reset_desktop",
         "type": "bool",
         "label": "Restore resolution on game exit",
@@ -37,14 +58,63 @@ system_options = [  # pylint: disable=invalid-name
         ),
     },
     {
+        "option": "single_cpu",
+        "type": "bool",
+        "label": "Restrict to single core",
+        "advanced": True,
+        "default": False,
+        "help": "Restrict the game to a single CPU core.",
+    },
+    {
         "option": "restore_gamma",
         "type": "bool",
         "default": False,
         "label": "Restore gamma on game exit",
+        "advanced": True,
         "help": (
             "Some games don't correctly restores gamma on exit, making "
             "your display too bright. Select this option to correct it."
         ),
+    },
+    {
+        "option": "disable_compositor",
+        "label": "Disable desktop effects",
+        "type": "bool",
+        "default": False,
+        "advanced": True,
+        "help": (
+            "Disable desktop effects while game is running, "
+            "reducing stuttering and increasing performance"
+        ),
+    },
+    {
+        "option": "reset_pulse",
+        "type": "bool",
+        "label": "Reset PulseAudio",
+        "default": False,
+        "advanced": True,
+        "condition": system.find_executable("pulseaudio"),
+        "help": "Restart PulseAudio before launching the game.",
+    },
+    {
+        "option": "pulse_latency",
+        "type": "bool",
+        "label": "Reduce PulseAudio latency",
+        "default": False,
+        "advanced": True,
+        "condition": system.find_executable("pulseaudio"),
+        "help": (
+            "Set the environment variable PULSE_LATENCY_MSEC=60 "
+            "to improve audio quality on some games"
+        ),
+    },
+    {
+        "option": "use_us_layout",
+        "type": "bool",
+        "label": "Switch to US keyboard layout",
+        "default": False,
+        "advanced": True,
+        "help": "Switch to US keyboard qwerty layout while game is running",
     },
     {
         "option": "optimus",
@@ -52,6 +122,7 @@ system_options = [  # pylint: disable=invalid-name
         "default": "off",
         "choices": get_optirun_choices,
         "label": "Optimus launcher (NVIDIA Optimus laptops)",
+        "advanced": True,
         "help": (
             "If you have installed the primus or bumblebee packages, "
             "select what launcher will run the game with the command, "
@@ -65,6 +136,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "string",
         "size": "small",
         "label": "Fps limit",
+        "advanced": True,
         "condition": bool(system.find_executable("strangle")),
         "help": "Limit the game's fps to desired number",
     },
@@ -82,6 +154,7 @@ system_options = [  # pylint: disable=invalid-name
         "default": False,
         "condition": display.USE_DRI_PRIME,
         "label": "Use PRIME (hybrid graphics on laptops)",
+        "advanced": True,
         "help": (
             "If you have open source graphic drivers (Mesa), selecting this "
             "option will run the game with the 'DRI_PRIME=1' environment variable, "
@@ -95,6 +168,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": "SDL 1.2 Fullscreen Monitor",
         "choices": display.get_output_list,
         "default": "off",
+        "advanced": True,
         "help": (
             "Hint SDL 1.2 games to use a specific monitor when going "
             "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
@@ -107,6 +181,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": "Turn off monitors except",
         "choices": display.get_output_choices,
         "default": "off",
+        "advanced": True,
         "help": (
             "Only keep the selected screen active while the game is "
             "running. \n"
@@ -148,7 +223,6 @@ system_options = [  # pylint: disable=invalid-name
         "option": "env",
         "type": "mapping",
         "label": "Environment variables",
-        "advanced": True,
         "help": "Environment variables loaded at run time",
     },
     {
@@ -214,77 +288,6 @@ system_options = [  # pylint: disable=invalid-name
             "Space-separated list, processes including spaces "
             "can be wrapped in quotation marks."
         ),
-    },
-    {
-        "option": "single_cpu",
-        "type": "bool",
-        "label": "Restrict to single core",
-        "advanced": True,
-        "default": False,
-        "help": "Restrict the game to a single CPU core.",
-    },
-    {
-        "option": "disable_runtime",
-        "type": "bool",
-        "label": "Disable Lutris Runtime",
-        "default": False,
-        "advanced": True,
-        "help": (
-            "The Lutris Runtime loads some libraries before running the "
-            "game. Which can cause some incompatibilities in some cases. "
-            "Check this option to disable it."
-        ),
-    },
-    {
-        "option": "prefer_system_libs",
-        "type": "bool",
-        "label": "Prefer system libraries",
-        "default": False,
-        "advanced": True,
-        "help": (
-            "When the runtime is enabled, prioritize the system libraries"
-            " over the provided ones."
-        ),
-    },
-    {
-        "option": "disable_compositor",
-        "label": "Disable desktop effects",
-        "type": "bool",
-        "default": False,
-        "advanced": True,
-        "help": (
-            "Disable desktop effects while game is running, "
-            "reducing stuttering and increasing performance"
-        ),
-    },
-    {
-        "option": "reset_pulse",
-        "type": "bool",
-        "label": "Reset PulseAudio",
-        "default": False,
-        "advanced": True,
-        "condition": system.find_executable("pulseaudio"),
-        "help": "Restart PulseAudio before launching the game.",
-    },
-    {
-        "option": "pulse_latency",
-        "type": "bool",
-        "label": "Reduce PulseAudio latency",
-        "default": False,
-        "advanced": True,
-        "condition": system.find_executable("pulseaudio"),
-        "help": (
-            "Set the environment variable PULSE_LATENCY_MSEC=60 "
-            "to improve audio quality on some games"
-        ),
-    },
-    {
-        "option": "use_us_layout",
-        "type": "bool",
-        "label": "Switch to US keyboard layout",
-        "default": False,
-        "advanced": True,
-        "help": "Switch to US keyboard qwerty layout while game is running",
     },
     {
         "option": "killswitch",
