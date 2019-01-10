@@ -498,7 +498,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         SyncServiceWindow(application=self.application)
 
     def update_existing_games(self, added, updated, first_run=False):
-        """???"""
+        """Updates the games in the view from the callback of the method
+        Still, working on this docstring.
+        If the implementation is shit,  the docstring is as well
+        """
         for game_id in updated.difference(added):
             game = pga.get_game_by_field(game_id, "id")
             self.view.update_row(game["id"], game["year"], game["playtime"])

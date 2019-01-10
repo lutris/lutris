@@ -215,20 +215,6 @@ class Application(Gtk.Application):
         appmenu = builder.get_object("app-menu")
         self.set_app_menu(appmenu)
 
-        if Gtk.get_major_version() > 3 or Gtk.get_minor_version() >= 20:
-            builder = Gtk.Builder.new_from_file(
-                os.path.join(datapath.get(), "ui", "help-overlay.ui")
-            )
-            self.help_overlay = builder.get_object("help_overlay")
-
-            it = appmenu.iterate_item_links(appmenu.get_n_items() - 1)
-            assert it.next()
-            last_section = it.get_value()
-            shortcuts_item = Gio.MenuItem.new(
-                _("Keyboard Shortcuts"), "win.show-help-overlay"
-            )
-            last_section.prepend_item(shortcuts_item)
-
         menubar = builder.get_object("menubar")
         self.set_menubar(menubar)
         self.set_tray_icon(read_setting("show_tray_icon", default="false") == "true")
