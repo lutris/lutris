@@ -832,10 +832,6 @@ class wine(Runner):
         launch_info["command"] = command
         return launch_info
 
-    def stop(self):
-        """Does nothing whatsoever."""
-        return True
-
     @staticmethod
     def parse_wine_path(path, prefix_path=None):
         """Take a Windows path, return the corresponding Linux path."""
