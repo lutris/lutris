@@ -31,7 +31,8 @@ Depends: ${misc:Depends},
  p7zip,
  curl,
  fluid-soundfont-gs,
- x11-xserver-utils
+ x11-xserver-utils,
+ python3-pil
 Recommends: python3-evdev,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]
