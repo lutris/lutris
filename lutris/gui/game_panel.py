@@ -9,6 +9,8 @@ class GamePanel(Gtk.Fixed):
     def __init__(self, game_actions):
         self.game_actions = game_actions
         self.game = game_actions.game
+        self.game.connect("game-start", self.on_game_start)
+        self.game.connect("game-stop", self.on_game_stop)
 
         super().__init__()
         self.set_size_request(320, -1)
@@ -132,3 +134,9 @@ class GamePanel(Gtk.Fixed):
             if position:
                 self.put(button, position[0], position[1])
             # TODO place menu buttons
+
+    def on_game_start(self, widget):
+        print("Game has started")
+
+    def on_game_stop(self, widget):
+        print("Game has stopped")
