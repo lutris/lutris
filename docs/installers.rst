@@ -938,35 +938,15 @@ Sysoptions
 
 ``version`` (example: ``staging-2.21-x86_64``)
 
-``custom_wine_path`` (example: ``/usr/local/bin/wine``)
-
-``x360ce-path`` (example: ``$GAMEDIR``)
-
-``x360ce-dinput`` (example: ``true``)
-
-``x360ce-xinput9`` (example: ``true``)
-
-``dumbxinputemu`` (example: ``true``)
-
-``xinput-arch`` (example: ``win32`` or ``win64``)
-
 ``Desktop`` (example: ``true``)
 
 ``WineDesktop`` (example: ``1024x768``)
 
 ``MouseWarpOverride`` (example: ``enable``, ``disable`` or ``force``)
 
-``OffscreenRenderingMode`` (example: ``fbo`` or ``backbuffer``)
-
-``StrictDrawOrdering`` (example: ``enabled`` or ``disabled``)
-
-``UseGLSL`` (example: ``enabled`` or ``disabled``)
-
 ``Audio`` (example: ``auto``, ``alsa``, ``oss`` or ``jack``)
 
 ``ShowCrashDialog`` (example: ``true``)
-
-``show_debug`` (example: empty value, ``-all`` or ``+all``)
 
 ``overrides`` (example: described above)
 
@@ -985,10 +965,6 @@ Sysoptions
 ``steamless_binary`` (example: fallout-nosteam)
 
 ``run_without_steam`` (example: ``true``)
-
-``quit_steam_on_exit`` (example: ``true``)
-
-``start_in_big_picture`` (example: ``true``)
 
 ``steam_native_runtime`` (example: ``false``)
 
