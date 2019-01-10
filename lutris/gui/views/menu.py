@@ -15,10 +15,9 @@ class ContextualMenu(Gtk.Menu):
 
     def add_menuitems(self, entries):
         for entry in entries:
-            name = entry[0]
-            label = entry[1]
+            name, label, callback = entry
             action = Gtk.Action(name=name, label=label)
-            action.connect("activate", entry[2])
+            action.connect("activate", callback)
             menuitem = action.create_menu_item()
             menuitem.action_id = name
             self.append(menuitem)

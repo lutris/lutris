@@ -126,7 +126,7 @@ class GameActions:
             "install_more": self.game.is_installed,
             "execute-script": (
                 self.game.is_installed
-                and not self.game.runner.system_config.get("manual_command")
+                and self.game.runner.system_config.get("manual_command")
             ),
             "desktop-shortcut": (
                 self.game.is_installed
