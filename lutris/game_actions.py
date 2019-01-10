@@ -124,6 +124,10 @@ class GameActions:
             "show_logs": self.is_game_running,
             "configure": bool(self.game.is_installed),
             "install_more": self.game.is_installed,
+            "execute-script": (
+                self.game.is_installed
+                and not self.game.runner.system_config.get("manual_command")
+            ),
             "desktop-shortcut": (
                 self.game.is_installed
                 and not xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)
@@ -147,12 +151,7 @@ class GameActions:
 
     def get_disabled_entries(self):
         """Return a dictionary of actions that should be disabled for a game"""
-        return {
-            "execute-script": (
-                self.game.runner
-                and not self.game.runner.system_config.get("manual_command")
-            )
-        }
+        return {}
 
     def on_game_run(self, *_args):
         """Launch a game"""
