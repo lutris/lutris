@@ -130,6 +130,8 @@ class MonitoredCommand:
                 GLib.IO_IN | GLib.IO_HUP,
                 self.on_stdout_output,
             )
+        else:
+            raise ValueError("Why do you use a MonitoredCommand if you're not going to watch it?")
 
     def log_handler_stdout(self, line):
         """Add the line to this command's stdout attribute"""
