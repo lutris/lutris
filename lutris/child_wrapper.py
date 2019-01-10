@@ -1,15 +1,15 @@
-# coding: utf-8
+"""???"""
 import os
-import time
-import ctypes
 import sys
 import subprocess
 import signal
+import ctypes
 from ctypes.util import find_library
-from lutris.util.log import logger
 from lutris.util.monitor import ProcessMonitor
 
 PR_SET_CHILD_SUBREAPER = 36
+
+
 def set_child_subreaper():
     """Sets the current process to a subreaper.
 
@@ -41,6 +41,7 @@ def set_child_subreaper():
 
 
 def main():
+    """???"""
     set_child_subreaper()
     _, include_proc_count, exclude_proc_count, *args = sys.argv
 
@@ -52,7 +53,7 @@ def main():
 
     monitor = ProcessMonitor(include_procs, exclude_procs)
 
-    def sig_handler(signum, frame):
+    def sig_handler(signum, _frame):
         signal.signal(signal.SIGTERM, old_sigterm_handler)
         signal.signal(signal.SIGINT, old_sigint_handler)
         monitor.refresh_process_status()

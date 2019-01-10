@@ -1,10 +1,7 @@
 """Process monitor management"""
 import os
 import shlex
-import ctypes
-from collections import defaultdict
 
-from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.process import Process
 

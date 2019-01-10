@@ -6,8 +6,6 @@ import shlex
 import subprocess
 import contextlib
 import signal
-import weakref
-import functools
 from textwrap import dedent
 
 from gi.repository import GLib
@@ -15,7 +13,6 @@ from gi.repository import GLib
 from lutris import settings
 from lutris import runtime
 from lutris.util.log import logger
-from lutris.util.process import Process
 from lutris.util import system
 
 
@@ -25,7 +22,9 @@ from lutris.util import system
 #
 _pids_to_handlers = {}
 
-def _sigchld_handler(signum, frame):
+
+def _sigchld_handler(_signum, _frame):
+    """No clue what this is for"""
     try:
         pid, returncode, _ = os.wait3(os.WNOHANG)
     except ChildProcessError:  # already handled by someone else
@@ -36,8 +35,11 @@ def _sigchld_handler(signum, frame):
         return
     GLib.timeout_add(0, handler, returncode)
 
+
 def _register_handler(pid, handler):
+    """No idea what is the purpose of this"""
     _pids_to_handlers[pid] = handler
+
 
 signal.signal(signal.SIGCHLD, _sigchld_handler)
 
@@ -63,13 +65,7 @@ class MonitoredCommand:
         else:
             self.env = env
 
-        # Is it bad if a path contains a space?
-        if any(' ' in path for path in sys.path):
-            logging.warning(
-                "FIXME not sure how PYTHONPATH operates when paths have "
-                "spaces.."
-            )
-        self.env['PYTHONPATH'] = ':'.join(sys.path)
+        self.env['PYTHONPATH'] = ':'.join(sys.path)  # What the actual fuck ?!?!?!?!?!
 
         self.original_env = {}
         self.command = command
@@ -98,6 +94,7 @@ class MonitoredCommand:
 
     @property
     def wrapper_command(self):
+        """uh?"""
         return [
             sys.executable, '-m', 'lutris.child_wrapper',
             str(len(self.include_processes)),
@@ -166,7 +163,7 @@ class MonitoredCommand:
         """Add the line to the associated LogBuffer object"""
         self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
 
-    def log_handler_console_output(self, line):
+    def log_handler_console_output(self, line):  # pylint: disable=no-self-use
         """Print the line to stdout"""
         with contextlib.suppress(BlockingIOError):
             sys.stdout.write(line)
@@ -183,16 +180,17 @@ class MonitoredCommand:
         self.return_code = returncode
         return False
 
-    def on_stdout_output(self, fd, condition):
+    def on_stdout_output(self, stdout, condition):
+        """Called by the stdout monitor to dispatch output to log handlers"""
         if condition == GLib.IO_HUP:
             self.stdout_monitor = None
             return False
         if not self.is_running:
             return False
         try:
-            line = fd.readline().decode("utf-8", errors="ignore")
+            line = stdout.readline().decode("utf-8", errors="ignore")
         except ValueError:
-            # fd might be closed
+            # file_desc might be closed
             return True
         if "winemenubuilder.exe" in line:
             return True
@@ -226,6 +224,7 @@ class MonitoredCommand:
         return self.execute_process([self.terminal, "-e", script_path])
 
     def execute_process(self, command, env=None):
+        """Execute and return a subprocess"""
         try:
             if self.cwd and not system.path_exists(self.cwd):
                 os.makedirs(self.cwd)
@@ -248,6 +247,7 @@ class MonitoredCommand:
             self.error = ex.strerror
 
     def restore_environment(self):
+        """Restore the environment to its original state"""
         logger.debug("Restoring environment")
         for key in self.original_env:
             if self.original_env[key] is None:
