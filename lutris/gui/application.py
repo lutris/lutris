@@ -74,7 +74,6 @@ class Application(Gtk.Application):
         GLib.set_application_name(_("Lutris"))
         self.running_games = []
         self.window = None
-        self.help_overlay = None
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
 
@@ -230,8 +229,6 @@ class Application(Gtk.Application):
     def do_activate(self):
         if not self.window:
             self.window = LutrisWindow(application=self)
-            if hasattr(self.window, "set_help_overlay"):
-                self.window.set_help_overlay(self.help_overlay)
             screen = self.window.props.screen
             Gtk.StyleContext.add_provider_for_screen(
                 screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION

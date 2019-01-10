@@ -174,7 +174,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Connect account and/or sync
         credentials = api.read_api_key()
         if credentials:
-            self.on_connect_success(None, credentials)
+            self.on_connect_success(None, credentials["username"])
         else:
             self.toggle_connection(False)
             self.sync_library()
@@ -500,7 +500,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def update_existing_games(self, added, updated, first_run=False):
         """Updates the games in the view from the callback of the method
         Still, working on this docstring.
-        If the implementation is shit,  the docstring is as well
+        If the implementation is shit,  the docstring is as well.
         """
         for game_id in updated.difference(added):
             game = pga.get_game_by_field(game_id, "id")
@@ -536,12 +536,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         login_dialog.connect("connected", self.on_connect_success)
         return True
 
-    def on_connect_success(self, _dialog, credentials):
+    def on_connect_success(self, _dialog, username):
         """Callback for user connect success"""
-        if isinstance(credentials, str):
-            username = credentials
-        else:
-            username = credentials["username"]
         self.toggle_connection(True, username)
         self.sync_library()
         self.connect_link.set_sensitive(False)
@@ -611,14 +607,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_show_installed_first_state_change(self, action, value):
         """Callback to handle installed games first toggle"""
         action.set_state(value)
-        show_installed_first = value.get_boolean()
-        self.set_show_installed_first_state(show_installed_first)
+        self.set_show_installed_first_state(value.get_boolean())
 
     def set_show_installed_first_state(self, show_installed_first):
         """Shows the installed games first in the view"""
         self.show_installed_first = show_installed_first
-        setting_value = "true" if show_installed_first else "false"
-        settings.write_setting("show_installed_first", setting_value)
+        settings.write_setting("show_installed_first",
+                               "true" if show_installed_first else "false")
         self.game_store.sort_view(show_installed_first)
         self.game_store.modelfilter.refilter()
 
@@ -631,8 +626,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""
         self.filter_installed = filter_installed
-        setting_value = "true" if filter_installed else "false"
-        settings.write_setting("filter_installed", setting_value)
+        settings.write_setting("filter_installed", "true" if filter_installed else "false")
         self.game_store.filter_installed = filter_installed
         self.invalidate_game_filter()
 
