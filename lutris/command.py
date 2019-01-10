@@ -5,7 +5,6 @@ import sys
 import shlex
 import subprocess
 import contextlib
-import signal
 from textwrap import dedent
 
 from gi.repository import GLib
@@ -14,37 +13,11 @@ from lutris import settings
 from lutris import runtime
 from lutris.util.log import logger
 from lutris.util import system
-
-
-_pids_to_handlers = {}
-
-
-def sigchld_handler(_signum, _frame):
-    """This handler uses SIGCHLD as a trigger to check on the runner process
-    in order to detect the monitoredcommand's complete exit asynchronously."""
-    try:
-        pid, returncode, _ = os.wait3(os.WNOHANG)
-    except ChildProcessError as ex:  # already handled by someone else
-        logger.debug("Wait call failed: %s", ex)
-        return
-    try:
-        handler = _pids_to_handlers.pop(pid)
-    except KeyError:
-        logger.debug("No handler for pid %s", pid)
-        return
-    GLib.timeout_add(0, handler, returncode)
-
-
-def _register_handler(pid, handler):
-    """No idea what is the purpose of this"""
-    _pids_to_handlers[pid] = handler
-
-
-signal.signal(signal.SIGCHLD, sigchld_handler)
+from lutris.util.signals import PID_HANDLERS, register_handler
 
 
 class MonitoredCommand:
-    """Run the game."""
+    """Exexcutes a commmand while keeping track of its state"""
 
     def __init__(
             self,
@@ -145,7 +118,7 @@ class MonitoredCommand:
             logger.warning("No game process available")
             return
 
-        _register_handler(self.game_process.pid, self._on_stop)
+        register_handler(self.game_process.pid, self.on_stop)
 
         if self.watch:
             self.stdout_monitor = GLib.io_add_watch(
@@ -168,7 +141,8 @@ class MonitoredCommand:
             sys.stdout.write(line)
             sys.stdout.flush()
 
-    def _on_stop(self, returncode):
+    def on_stop(self, returncode):
+        """Callback registered on the SIGCHLD handler"""
         self.is_running = False
 
         resume_stop = self.stop()
@@ -261,7 +235,7 @@ class MonitoredCommand:
     def stop(self):
         """Stops the current game process and cleans up the instance"""
         try:
-            _pids_to_handlers.pop(self.game_process.pid)
+            PID_HANDLERS.pop(self.game_process.pid)
         except KeyError:  # may have never been added.
             logger.debug("Can't find handler for pid %s", self.game_process.pid)
 
