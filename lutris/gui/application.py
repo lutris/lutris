@@ -233,6 +233,7 @@ class Application(Gtk.Application):
             Gtk.StyleContext.add_provider_for_screen(
                 screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
             )
+        self.window.present()
 
     @staticmethod
     def _print(command_line, string):
@@ -350,11 +351,7 @@ class Application(Gtk.Application):
             )
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
-                if self.window.is_visible():
-                    logger.info("No game found in library")
-                else:
-                    logger.info("No game found in library, shutting down")
-                    self.do_shutdown()
+                logger.warning("No game found in library")
                 return 0
 
             logger.info("Launching %s", db_game["name"])
