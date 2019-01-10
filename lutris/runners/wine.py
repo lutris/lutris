@@ -207,15 +207,6 @@ class wine(Runner):
                 ),
             },
             {
-                "option": "esync",
-                "label": "Enable Esync",
-                "type": "extended_bool",
-                "help": "Enable eventfd-based synchronization (esync)",
-                "callback": esync_limit_callback,
-                "callback_on": True,
-                "active": True,
-            },
-            {
                 "option": "dxvk",
                 "label": "Enable DXVK",
                 "type": "extended_bool",
@@ -231,6 +222,15 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": get_dxvk_choices,
                 "default": dxvk.DXVK_LATEST,
+            },
+            {
+                "option": "esync",
+                "label": "Enable Esync",
+                "type": "extended_bool",
+                "help": "Enable eventfd-based synchronization (esync)",
+                "callback": esync_limit_callback,
+                "callback_on": True,
+                "active": True,
             },
             {
                 "option": "x360ce-path",
