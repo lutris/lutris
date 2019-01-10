@@ -74,7 +74,7 @@ class Game(GObject.Object):
         self.log_buffer = Gtk.TextBuffer()
         self.log_buffer.create_tag("warning", foreground="red")
 
-        self.timer = Timer("hours")
+        self.timer = Timer()
         try:
             self.playtime = float(game_data.get("playtime") or 0.0)
         except ValueError:
@@ -531,12 +531,16 @@ class Game(GObject.Object):
             return False
         return True
 
+    def stop_timer(self):
+        """Stops the timer"""
+        if not self.timer.finished:
+            self.timer.end()
+            self.playtime = (self.timer.duration + self.playtime) / 3600
+
     def stop(self):
+        """Stops the game"""
         if self.state == self.STATE_STOPPED:
             logger.debug("Game already stopped")
-            return
-        if not self.runner:
-            self.error("No game actually running, this shouldn't happen")
             return
 
         logger.info("Stopping %s", self)
@@ -546,16 +550,12 @@ class Game(GObject.Object):
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None)
         self.state = self.STATE_STOPPED
-        if not self.timer.finished:
-            self.timer.end()
-            self.playtime = self.timer.duration + self.playtime
+        self.stop_timer()
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
 
-        if not self.timer.finished:
-            self.timer.end()
-            self.playtime = self.timer.duration + self.playtime
+        self.stop_timer()
 
         if self.prelaunch_executor and self.prelaunch_executor.is_running:
             logger.info("Stopping prelaunch script")
