@@ -237,6 +237,7 @@ class wine(Runner):
                 "label": "Path to the game's executable, for x360ce support",
                 "type": "directory_chooser",
                 "help": "Locate the path for the game's executable for x360 support",
+                "advanced": True,
             },
             {
                 "option": "x360ce-dinput",
@@ -244,6 +245,7 @@ class wine(Runner):
                 "type": "bool",
                 "default": False,
                 "help": "Configure x360ce with dinput8.dll, required for some games",
+                "advanced": True,
             },
             {
                 "option": "x360ce-xinput9",
@@ -251,6 +253,7 @@ class wine(Runner):
                 "type": "bool",
                 "default": False,
                 "help": "Configure x360ce with xinput9_1_0.dll, required for some newer games",
+                "advanced": True,
             },
             {
                 "option": "dumbxinputemu",
@@ -258,6 +261,7 @@ class wine(Runner):
                 "type": "bool",
                 "default": False,
                 "help": "Use the dlls from kozec/dumbxinputemu",
+                "advanced": True,
             },
             {
                 "option": "xinput-arch",
@@ -269,6 +273,7 @@ class wine(Runner):
                     ("64 bit", "win64"),
                 ],
                 "default": "",
+                "advanced": True,
             },
             {
                 "option": "Desktop",
