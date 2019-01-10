@@ -109,7 +109,7 @@ class MonitoredCommand:
         """Run the thread."""
         logger.debug("Running %s", " ".join(self.wrapper_command))
         for key, value in self.env.items():
-            # logger.debug("ENV: %s=\"%s\"", key, value)
+            logger.debug("ENV: %s=\"%s\"", key, value)
             pass
 
         if self.terminal:
