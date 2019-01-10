@@ -103,7 +103,6 @@ class GamePanel(Gtk.Fixed):
         return buttons
 
     def place_buttons(self, buttons, base_height):
-        placed_buttons = set()
         menu_buttons = {}  # Move create and remove desktop and menu shortcuts out of the way
         for action_id, button in buttons.items():
             position = None
@@ -116,7 +115,7 @@ class GamePanel(Gtk.Fixed):
             if action_id == "show_logs":
                 position = (140, base_height)
             if action_id == "execute-script":
-                position = (12, base_height + 32)
+                position = (12, base_height + 42)
 
             current_y = base_height + 100
             if action_id in ("install", "remove"):
@@ -128,11 +127,7 @@ class GamePanel(Gtk.Fixed):
             if action_id in ("desktop-shortcut", "rm-desktop-shortcut",
                              "menu-shortcut", "rm-menu-shortcut"):
                 menu_buttons[action_id] = button
-                placed_buttons.add(action_id)
 
             if position:
                 self.put(button, position[0], position[1])
-                placed_buttons.add(action_id)
             # TODO place menu buttons
-        for action in set(buttons.keys()).difference(placed_buttons):
-            print(action)
