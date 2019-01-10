@@ -137,7 +137,10 @@ class fsuae(Runner):
             "type": "choice",
             "choices": flsound_choices,
             "default": "0",
-            "help": "Set volume to 0 to disable floppy drive clicks when the drive is empty. Max volume is 100.",
+            "help": (
+                "Set volume to 0 to disable floppy drive clicks "
+                "when the drive is empty. Max volume is 100."
+            )
         },
         {
             "option": "fdspeed",
@@ -145,7 +148,12 @@ class fsuae(Runner):
             "type": "choice",
             "choices": flspeed_choices,
             "default": "100",
-            "help": "Set the speed of the emulated floppy drives, in percent. For example, you can specify 800 to get an 8x increase in speed. Use 0 to specify turbo mode. Turbo mode means that all floppy operations complete immediately. The default is 100 for most models.",
+            "help": (
+                "Set the speed of the emulated floppy drives, in percent. "
+                "For example, you can specify 800 to get an 8x increase in "
+                "speed. Use 0 to specify turbo mode. Turbo mode means that "
+                "all floppy operations complete immediately. The default is 100 for most models."
+            )
         },
         {
             "option": "grafixcard",
@@ -153,7 +161,10 @@ class fsuae(Runner):
             "type": "choice",
             "choices": gpucard_choices,
             "default": "0",
-            "help": "Use this option to enable a graphics card. This option is none by default, in which case only chipset graphics (OCS/ECS/AGA) support is available.",
+            "help": (
+                "Use this option to enable a graphics card. This option is none by default, in "
+                "which case only chipset graphics (OCS/ECS/AGA) support is available."
+            )
         },
         {
             "option": "grafixmemory",
@@ -161,7 +172,10 @@ class fsuae(Runner):
             "type": "choice",
             "choices": gpumem_choices,
             "default": "0",
-            "help": "Override the amount of graphics memory on the graphics card. The 0 MB option is not really valid, but exists for user interface reasons.",
+            "help": (
+                "Override the amount of graphics memory on the graphics card. The 0 MB option is "
+                "not really valid, but exists for user interface reasons."
+            )
         },
         {
             "option": "gfx_fullscreen_amiga",
