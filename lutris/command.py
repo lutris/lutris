@@ -16,22 +16,21 @@ from lutris.util.log import logger
 from lutris.util import system
 
 
-#
-# This setup uses SIGCHLD as a trigger to check on the runner process
-# in order to detect the monitoredcommand's complete exit asynchronously.
-#
 _pids_to_handlers = {}
 
 
-def _sigchld_handler(_signum, _frame):
-    """No clue what this is for"""
+def sigchld_handler(_signum, _frame):
+    """This handler uses SIGCHLD as a trigger to check on the runner process
+    in order to detect the monitoredcommand's complete exit asynchronously."""
     try:
         pid, returncode, _ = os.wait3(os.WNOHANG)
-    except ChildProcessError:  # already handled by someone else
+    except ChildProcessError as ex:  # already handled by someone else
+        logger.debug("Wait call failed: %s", ex)
         return
     try:
         handler = _pids_to_handlers.pop(pid)
     except KeyError:
+        logger.debug("No handler for pid %s", pid)
         return
     GLib.timeout_add(0, handler, returncode)
 
@@ -41,7 +40,7 @@ def _register_handler(pid, handler):
     _pids_to_handlers[pid] = handler
 
 
-signal.signal(signal.SIGCHLD, _sigchld_handler)
+signal.signal(signal.SIGCHLD, sigchld_handler)
 
 
 class MonitoredCommand:
@@ -264,7 +263,7 @@ class MonitoredCommand:
         try:
             _pids_to_handlers.pop(self.game_process.pid)
         except KeyError:  # may have never been added.
-            pass
+            logger.debug("Can't find handler for pid %s", self.game_process.pid)
 
         try:
             self.game_process.terminate()

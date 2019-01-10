@@ -8,7 +8,7 @@ from gi.repository import Gio
 from lutris.util.log import logger
 
 
-def register_handler():
+def register_url_handler():
     """Register the lutris: protocol to open with the application."""
     logger.debug("registering protocol")
     executable = os.path.abspath(sys.argv[0])
