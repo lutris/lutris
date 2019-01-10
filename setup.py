@@ -41,7 +41,7 @@ setup(
         'lutris.util.wine',
         'lutris.vendor'
     ],
-    scripts=['bin/lutris'],
+    scripts=['bin/lutris', 'bin/lutris-wrapper'],
     data_files=data_files,
     zip_safe=False,
     install_requires=[

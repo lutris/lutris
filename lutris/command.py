@@ -66,9 +66,11 @@ class MonitoredCommand:
 
     @property
     def wrapper_command(self):
-        """uh?"""
+        """Return launch arguments for the wrapper script"""
+
+        wrapper_path = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "lutris-wrapper")
         return [
-            sys.executable, '-m', 'lutris.child_wrapper',
+            wrapper_path,
             str(len(self.include_processes)),
             str(len(self.exclude_processes)),
         ] + self.include_processes + self.exclude_processes + self.command

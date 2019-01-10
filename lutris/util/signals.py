@@ -24,7 +24,7 @@ def sigchld_handler(_signum, _frame):
 
 
 def register_handler(pid, handler):
-    """No idea what is the purpose of this"""
+    """Attaches a callback to a pid, called when the process stops"""
     PID_HANDLERS[pid] = handler
 
 
