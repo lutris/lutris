@@ -6,6 +6,7 @@ import signal
 import ctypes
 from ctypes.util import find_library
 from lutris.util.monitor import ProcessMonitor
+from lutris.util.log import logger
 
 PR_SET_CHILD_SUBREAPER = 36
 
@@ -69,8 +70,8 @@ def main():
             os.wait3(0)
             if not monitor.refresh_process_status():
                 break
-    except ChildProcessError:
-        pass
+    except ChildProcessError as ex:
+        logger.exception(ex)
     sys.exit(returncode)
 
 

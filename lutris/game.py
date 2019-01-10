@@ -4,13 +4,12 @@ import json
 import time
 import shlex
 import subprocess
-from functools import wraps
 
 from gi.repository import GLib, Gtk, GObject
 
 from lutris import pga
 from lutris import runtime
-from lutris.exceptions import LutrisError, GameConfigError
+from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.util import xdgshortcuts
 from lutris.runners import import_runner, InvalidRunner, wine
 from lutris.util import audio, display, jobs, system, strings
@@ -22,22 +21,6 @@ from lutris.util.timer import Timer
 
 
 HEARTBEAT_DELAY = 2000
-
-
-def watch_lutris_errors(function):
-    """Decorator used to catch LutrisError exceptions and send events"""
-
-    @wraps(function)
-    def wrapper(*args, **kwargs):
-        """Catch all LutrisError exceptions and emit an event."""
-        try:
-            return function(*args, **kwargs)
-        except LutrisError as ex:
-            game = args[0]
-            logger.error("Unable to run %s", game.name)
-            game.emit("game-error", ex.message)
-
-    return wrapper
 
 
 class Game(GObject.Object):
