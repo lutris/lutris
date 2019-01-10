@@ -76,4 +76,10 @@ def main():
 
 
 if __name__ == "__main__":
+    LAUNCH_PATH = os.path.dirname(os.path.realpath(__file__))
+    if not LAUNCH_PATH.startswith("/usr"):
+        sys.dont_write_bytecode = True
+        SOURCE_PATH = os.path.normpath(os.path.join(LAUNCH_PATH, '..'))
+        sys.path.insert(0, SOURCE_PATH)
+
     main()
