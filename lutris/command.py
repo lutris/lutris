@@ -15,6 +15,8 @@ from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.signals import PID_HANDLERS, register_handler
 
+WRAPPER_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "lutris-wrapper")
+
 
 class MonitoredCommand:
     """Exexcutes a commmand while keeping track of its state"""
@@ -68,9 +70,8 @@ class MonitoredCommand:
     def wrapper_command(self):
         """Return launch arguments for the wrapper script"""
 
-        wrapper_path = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "lutris-wrapper")
         return [
-            wrapper_path,
+            WRAPPER_SCRIPT,
             str(len(self.include_processes)),
             str(len(self.exclude_processes)),
         ] + self.include_processes + self.exclude_processes + self.command
@@ -106,9 +107,10 @@ class MonitoredCommand:
 
     def start(self):
         """Run the thread."""
-        logger.debug("Running command: %s", " ".join(self.wrapper_command))
+        logger.debug("Running %s", " ".join(self.wrapper_command))
         for key, value in self.env.items():
-            logger.debug("ENV: %s=\"%s\"", key, value)
+            # logger.debug("ENV: %s=\"%s\"", key, value)
+            pass
 
         if self.terminal:
             self.game_process = self.run_in_terminal()
