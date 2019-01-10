@@ -378,7 +378,7 @@ class Application(Gtk.Application):
         if url:
             url = url.get_strv()
 
-        if url and len(url):
+        if url:
             url = url[0]  # TODO: Support multiple
             installer_info = parse_installer_url(url)
             if installer_info is False:

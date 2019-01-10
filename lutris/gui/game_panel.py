@@ -82,6 +82,7 @@ class GamePanel(Gtk.Fixed):
             "play": "media-playback-start-symbolic",
             "configure": "emblem-system-symbolic",
             "browse": "system-file-manager-symbolic",
+            "show_logs": "utilities-system-monitor-symbolic",
         }
         buttons = {}
         for action in self.game_actions.get_game_actions():
