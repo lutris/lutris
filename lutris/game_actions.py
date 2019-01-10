@@ -163,10 +163,11 @@ class GameActions:
             # If the signal is coming from a game, it has already stopped.
             self.game.stop()
         try:
-            logger.debug("Removing %s from running games", self.game_id)
             self.application.running_games.pop(self.application.running_games.index(self.game))
         except ValueError:
             logger.warning("%s not in running game list", self.game_id)
+        else:
+            logger.debug("Removed game with ID %s from running games", self.game_id)
 
     def on_show_logs(self, _widget):
         """Display game log in a LogDialog"""
