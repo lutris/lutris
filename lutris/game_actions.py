@@ -124,7 +124,7 @@ class GameActions:
             "show_logs": self.is_game_running,
             "configure": bool(self.game.is_installed),
             "install_more": self.game.is_installed,
-            "execute-script": (
+            "execute-script": bool(
                 self.game.is_installed
                 and self.game.runner.system_config.get("manual_command")
             ),
