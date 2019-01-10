@@ -962,8 +962,6 @@ Sysoptions
 
 ``UseGLSL`` (example: ``enabled`` or ``disabled``)
 
-``RenderTargetLockMode`` (example: ``disabled``, ``readtex`` or ``readdraw``)
-
 ``Audio`` (example: ``auto``, ``alsa``, ``oss`` or ``jack``)
 
 ``ShowCrashDialog`` (example: ``true``)

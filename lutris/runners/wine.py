@@ -98,7 +98,6 @@ class wine(Runner):
 
     reg_prefix = "HKEY_CURRENT_USER/Software/Wine"
     reg_keys = {
-        "RenderTargetLockMode": r"%s/Direct3D" % reg_prefix,
         "Audio": r"%s/Drivers" % reg_prefix,
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "OffscreenRenderingMode": r"%s/Direct3D" % reg_prefix,
@@ -353,26 +352,6 @@ class wine(Runner):
                     'When set to "disabled", this disables the use of GLSL for shaders. '
                     "In general disabling GLSL is not recommended, "
                     "only use this for debugging purposes."
-                ),
-            },
-            {
-                "option": "RenderTargetLockMode",
-                "label": "Render Target Lock Mode",
-                "type": "choice",
-                "choices": [
-                    ("Disabled", "disabled"),
-                    ("ReadTex", "readtex"),
-                    ("ReadDraw", "readdraw"),
-                ],
-                "default": "readtex",
-                "advanced": True,
-                "help": (
-                    "Select which mode is used for onscreen render targets:\n"
-                    "<b>Disabled</b>: Disables render target locking \n"
-                    "<b>ReadTex</b>: (Wine default) Reads by glReadPixels, "
-                    "writes by drawing a textured quad \n"
-                    "<b>ReadDraw</b>: Uses glReadPixels for reading and "
-                    "writing"
                 ),
             },
             {
