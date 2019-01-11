@@ -215,46 +215,6 @@ class fsuae(Runner):
                     return self.platforms[index]
         return ""
 
-    def get_memory(self):
-        fmemory = self.runner_config.get("fmemory")
-        if fmemory:
-            for index, fmemory1 in enumerate(self.memory_choices):
-                if fmemory1[1] == fmemory:
-                    return self.mem0ry[index]
-        return ""
-
-    def get_flsound(self):
-        fdvolume = self.runner_config.get("fdvolume")
-        if fdvolume:
-            for index, fdvolume1 in enumerate(self.flsound_choices):
-                if fdvolume1[1] == fdvolume:
-                    return self.flsound[index]
-        return ""
-
-    def get_flspeed(self):
-        fdspeed = self.runner_config.get("fdspeed")
-        if fdspeed:
-            for index, fdspeed1 in enumerate(self.flspeed_choices):
-                if fdspeed1[1] == fdspeed:
-                    return self.flspeed[index]
-        return ""
-
-    def get_gpucard(self):
-        grafixcard = self.runner_config.get("grafixcard")
-        if grafixcard:
-            for index, grafixcard1 in enumerate(self.gpucard_choices):
-                if grafixcard1[1] == grafixcard:
-                    return self.gpucard[index]
-        return ""
-
-    def get_gpumem(self):
-        grafixmemory = self.runner_config.get("grafixmemory")
-        if grafixmemory:
-            for index, grafixmemory1 in enumerate(self.gpumem_choices):
-                if grafixmemory1[1] == grafixmemory:
-                    return self.gpumem[index]
-        return ""
-
     def insert_floppies(self):
         disks = []
         main_disk = self.game_config.get("main_file")
