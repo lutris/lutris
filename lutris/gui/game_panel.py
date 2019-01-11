@@ -2,6 +2,7 @@
 from datetime import datetime
 from gi.repository import Gtk, Pango
 from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_pixbuf_for_game
+from lutris.util.strings import gtk_safe
 
 
 class GamePanel(Gtk.Fixed):
@@ -43,7 +44,7 @@ class GamePanel(Gtk.Fixed):
     def get_title_label(self):
         """Return the label with the game's title"""
         title_label = Gtk.Label()
-        title_label.set_markup("<span font_desc='16'>%s</span>" % self.game.name)
+        title_label.set_markup("<span font_desc='16'>%s</span>" % gtk_safe(self.game.name))
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
         title_label.set_size_request(256, -1)
         title_label.set_alignment(0, 0.5)
