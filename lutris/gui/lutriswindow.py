@@ -105,10 +105,23 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.show_tray_icon = (
             settings.read_setting("show_tray_icon", default="false").lower() == "true"
         )
-
+        self.show_hidden_games = (
+            settings.read_setting("show_hidden_games", default="true").lower() == "true"
+        )
+        
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
-        self.game_list = pga.get_games(show_installed_first=self.show_installed_first)
+
+        game_list_raw = pga.get_games(show_installed_first=self.show_installed_first)
+        if self.show_hidden_games:
+            self.game_list = game_list_raw
+        else:
+            # Check if the PGA contains game IDs that the user does not
+            # want to see
+            ignores = pga.get_hidden_ids()
+            should_be_hidden = lambda game: not game["id"] in ignores
+            self.game_list = list(filter(should_be_hidden, game_list_raw))
+
         self.game_store = GameStore(
             [],
             self.icon_type,
@@ -238,6 +251,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 default=self.sidebar_visible,
                 accel="F9",
             ),
+            "show-hidden-games": Action(
+                self.hidden_state_change,
+                type="b",
+                default=self.show_hidden_games,
+            ),
         }
 
         self.actions = {}
@@ -261,6 +279,46 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.add_action(action)
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
+
+    def on_hide_game(self, _widget):
+        """Add a game to the list of hidden games"""
+        game = Game(self.view.selected_game)
+
+        # Append the new hidden ID and save it
+        ignores = pga.get_hidden_ids() + [game.id]
+        pga.set_hidden_ids(ignores)
+
+        # Update the GUI
+        if not self.show_hidden_games:
+            self.view.remove_game(game.id)
+
+    def on_unhide_game(self, _widget):
+        """Removes a game from the list of hidden games"""
+        game = Game(self.view.selected_game)
+
+        # Remove the ID to unhide and save it
+        ignores = pga.get_hidden_ids()
+        ignores.remove(game.id)
+        pga.set_hidden_ids(ignores)
+
+    def hidden_state_change(self, action, value):
+        """Hides or shows the hidden games"""
+        self.show_hidden_games = value
+        action.set_state(value)
+
+        # Add or remove hidden games
+        ignores = pga.get_hidden_ids()
+        settings.write_setting("show_hidden_games",
+                               str(self.show_hidden_games).lower(),
+                               section="lutris")
+
+        # If we have to show the hidden games now, we need to add them back to
+        # the view. If we need to hide them, we just remove them from the view
+        for game_id in ignores:
+            if self.show_hidden_games:
+                self.view.add_game_by_id(game_id)
+            else:
+                self.view.remove_game(game_id)
 
     @property
     def current_view_type(self):
