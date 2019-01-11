@@ -149,14 +149,15 @@ class MonitoredCommand:
 
     def on_stop(self, returncode):
         """Callback registered on the SIGCHLD handler"""
+        logger.debug("The process has terminated with code %s", returncode)
         self.is_running = False
+        self.return_code = returncode
 
         resume_stop = self.stop()
         if not resume_stop:
             logger.info("Full shutdown prevented")
             return False
 
-        self.return_code = returncode
         return False
 
     def on_stdout_output(self, stdout, condition):
