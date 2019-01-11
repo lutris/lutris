@@ -1,5 +1,6 @@
 """Handle game specific actions"""
 import os
+import signal
 from gi.repository import GLib, Gio
 from lutris.command import MonitoredCommand
 from lutris.game import Game
@@ -26,20 +27,17 @@ class GameActions:
 
     @property
     def game(self):
-        if not self.game_id:
-            raise RuntimeError("The Game ID has not been set")
         if not self._game:
-            self._game = Game(self.game_id)
+            self._game = self.application.get_game_by_id(self.game_id)
+            if not self._game:
+                self._game = Game(self.game_id)
             self._game.connect("game-error", self.window.on_game_error)
             self._game.connect("game-stop", self.on_stop)
         return self._game
 
     @property
     def is_game_running(self):
-        for game in self.application.running_games:
-            if game.id == self.game_id:
-                return True
-        return False
+        return bool(self.application.get_game_by_id(self.game_id))
 
     def set_game(self, game=None, game_id=None):
         if game:
@@ -159,11 +157,9 @@ class GameActions:
 
     def on_stop(self, caller):
         """Stops the game"""
-        if not isinstance(caller, Game):
-            # If the signal is coming from a game, it has already stopped.
-            self.game.stop()
         try:
-            self.application.running_games.pop(self.application.running_games.index(self.game))
+            game = self.application.running_games.pop(self.application.running_games.index(self.game))
+            os.kill(game.game_thread.game_process.pid, signal.SIGKILL)
         except ValueError:
             logger.warning("%s not in running game list", self.game_id)
         else:

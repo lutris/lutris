@@ -136,7 +136,6 @@ class GamePanel(Gtk.Fixed):
             # TODO place menu buttons
 
     def on_game_start(self, widget):
-        print("Game has started")
         self.buttons["play"].hide()
         self.buttons["stop"].show()
         self.buttons["show_logs"].show()
