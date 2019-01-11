@@ -243,29 +243,29 @@ class MonitoredCommand:
         """Stops the current game process and cleans up the instance"""
         try:
             PID_HANDLERS.pop(self.game_process.pid)
-        except KeyError:  # may have never been added.
-            logger.debug("Can't find handler for pid %s", self.game_process.pid)
+        except KeyError:
+            # This game has no stop handler
+            pass
 
         try:
             self.game_process.terminate()
         except ProcessLookupError:  # process already dead.
             logger.debug("Management process looks dead already.")
 
-        # Remove logger early to avoid issues with zombie processes
-        # (unconfirmed)
-        if self.stdout_monitor:
-            logger.debug("Detaching logger")
-            GLib.source_remove(self.stdout_monitor)
-
         if hasattr(self, "stop_func"):
             resume_stop = self.stop_func()
             if not resume_stop:
                 return False
 
+        if self.stdout_monitor:
+            logger.debug("Detaching logger")
+            GLib.source_remove(self.stdout_monitor)
+        else:
+            logger.debug("logger already detached")
+
         self.restore_environment()
         self.is_running = False
         self.ready_state = False
-
         return True
 
 
