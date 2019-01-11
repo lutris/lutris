@@ -86,7 +86,7 @@ class FileChooserEntry(Gtk.Box):
                 current_entry = os.path.dirname(current_entry)
             if system.path_exists(current_entry):
                 default = current_entry
-        return os.path.expanduser(default)
+        return os.path.expanduser(default or "~")
 
     def on_browse_clicked(self, _widget, default_path):
         default_folder = self.get_default_folder(default_path)
