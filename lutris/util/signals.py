@@ -18,13 +18,13 @@ def sigchld_handler(_signum, _frame):
     try:
         handler = PID_HANDLERS.pop(pid)
     except KeyError:
-        logger.debug("No handler for pid %s", pid)
         return
     GLib.timeout_add(0, handler, returncode)
 
 
 def register_handler(pid, handler):
     """Attaches a callback to a pid, called when the process stops"""
+    logger.debug("Registering %s to %s", handler, pid)
     PID_HANDLERS[pid] = handler
 
 
