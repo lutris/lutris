@@ -25,8 +25,8 @@ class GamePanel(Gtk.Fixed):
             self.put(self.get_playtime_label(), 12, 86)
         if self.game.lastplayed:
             self.put(self.get_last_played_label(), 12, 108)
-
-        self.place_buttons(self.get_buttons(), 145)
+        self.buttons = self.get_buttons()
+        self.place_buttons(145)
 
     def get_background(self):
         """Return the background image for the panel"""
@@ -105,9 +105,9 @@ class GamePanel(Gtk.Fixed):
             buttons[action_id] = button
         return buttons
 
-    def place_buttons(self, buttons, base_height):
+    def place_buttons(self, base_height):
         menu_buttons = {}  # Move create and remove desktop and menu shortcuts out of the way
-        for action_id, button in buttons.items():
+        for action_id, button in self.buttons.items():
             position = None
             if action_id in ("play", "stop"):
                 position = (12, base_height)
@@ -137,6 +137,10 @@ class GamePanel(Gtk.Fixed):
 
     def on_game_start(self, widget):
         print("Game has started")
+        self.buttons["play"].hide()
+        self.buttons["stop"].show()
+        self.buttons["show_logs"].show()
 
     def on_game_stop(self, widget):
-        print("Game has stopped")
+        self.buttons["play"].show()
+        self.buttons["stop"].hide()
