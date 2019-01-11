@@ -368,8 +368,14 @@ class Application(Gtk.Application):
 
     def launch(self, game):
         """Launch a Lutris game"""
+        logger.debug("Adding game %s (%s) to running games", game, id(game))
         self.running_games.append(game)
         game.play()
+
+    def get_game_by_id(self, game_id):
+        for game in self.running_games:
+            if game.id == game_id:
+                return game
 
     @staticmethod
     def get_lutris_action(url):
