@@ -60,8 +60,8 @@ class MonitoredCommand:
         self.set_log_buffer(log_buffer)
         self.stdout_monitor = None
         self.watch_children_running = False
-        self.include_processes = include_processes
-        self.exclude_processes = exclude_processes
+        self.include_processes = include_processes or []
+        self.exclude_processes = exclude_processes or []
 
         # Keep a copy of previously running processes
         self.cwd = self.get_cwd(cwd)
