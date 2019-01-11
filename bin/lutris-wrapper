@@ -3,10 +3,14 @@ import os
 import sys
 import subprocess
 import signal
+# import logging
 import ctypes
 from ctypes.util import find_library
 from lutris.util.monitor import ProcessMonitor
-from lutris.util.log import logger
+# from lutris.util.log import logger
+
+# Set logging level if you want to use logging
+# logger.setLevel(logging.DEBUG)
 
 PR_SET_CHILD_SUBREAPER = 36
 
@@ -41,6 +45,18 @@ def set_child_subreaper():
         print("PR_SET_CHILD_SUBREAPER failed, process watching may fail")
 
 
+def log(line):
+    """Generic log function that can be adjusted for any log output method
+    (stdout, file, logging, t2s, Discord, ...)
+    """
+    sys.stdout.write(line + "\n")
+
+    # File output example
+    # with open(os.path.expanduser("~/lutris.log"), "a") as logfile:
+    #     logfile.write(line)
+    #     logfile.write("\n")
+
+
 def main():
     """Runs a command independently from the Lutris client"""
     set_child_subreaper()
@@ -55,23 +71,31 @@ def main():
     monitor = ProcessMonitor(include_procs, exclude_procs)
 
     def sig_handler(signum, _frame):
+        log("Caught signal %s" % signum)
         signal.signal(signal.SIGTERM, old_sigterm_handler)
         signal.signal(signal.SIGINT, old_sigint_handler)
         monitor.refresh_process_status()
         for child in monitor.children:
+            log("Killing PID %s" % child.pid)
             os.kill(child.pid, signum)
 
     old_sigterm_handler = signal.signal(signal.SIGTERM, sig_handler)
     old_sigint_handler = signal.signal(signal.SIGINT, sig_handler)
 
+    log("Running %s" % " ".join(args))
     returncode = subprocess.run(args).returncode
     try:
         while True:
+            log("Waiting on children")
             os.wait3(0)
             if not monitor.refresh_process_status():
+                log("All children gone")
                 break
-    except ChildProcessError as ex:
-        logger.exception(ex)
+    except ChildProcessError:
+        # If the game itself has quit then
+        # this process has no children
+        pass
+    log("Exit with returncode %s" % returncode)
     sys.exit(returncode)
 
 
