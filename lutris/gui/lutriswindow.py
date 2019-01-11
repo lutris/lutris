@@ -152,7 +152,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         self.game_scrolled = Gtk.ScrolledWindow()
         self.game_scrolled.set_size_request(320, -1)
-        self.game_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
+        self.game_scrolled.set_policy(Gtk.PolicyType.EXTERNAL, Gtk.PolicyType.EXTERNAL)
         self.game_scrolled.show()
         self.game_revealer.add(self.game_scrolled)
 
