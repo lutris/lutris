@@ -23,7 +23,7 @@ class GamePanel(Gtk.Fixed):
         self.put(self.get_title_label(), 50, 20)
         labels_x = 50
         if self.game.is_installed:
-            self.put(self.get_runner_label(), labels_x, 64)
+            self.put(self.get_runner_label(), labels_x - 23, 64)
         if self.game.playtime:
             self.put(self.get_playtime_label(), labels_x, 86)
         if self.game.lastplayed:
@@ -56,13 +56,18 @@ class GamePanel(Gtk.Fixed):
 
     def get_runner_label(self):
         """Return the label containing the runner info"""
+        runner_icon = Gtk.Image.new_from_icon_name(
+            self.game.runner.name.lower().replace(" ", "") + "-symbolic", Gtk.IconSize.MENU
+        )
+        runner_icon.show()
         runner_label = Gtk.Label()
         runner_label.show()
-        runner_label.set_markup(
-            "For <b>%s</b>, runs with %s" %
-            (self.game.platform, self.game.runner.name)
-        )
-        return runner_label
+        runner_label.set_markup("<b>%s</b>" % gtk_safe(self.game.platform))
+        runner_box = Gtk.Box(spacing=6)
+        runner_box.add(runner_icon)
+        runner_box.add(runner_label)
+        runner_box.show()
+        return runner_box
 
     def get_playtime_label(self):
         """Return the label containing the playtime info"""
