@@ -1,5 +1,6 @@
 from gi.repository import Gdk, GObject, GLib
 from lutris.util.log import logger
+from lutris.util.strings import get_formatted_playtime
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.gui.views import (
     COL_ID,
@@ -89,15 +90,7 @@ class GameView:
         row = self.get_row_by_id(game_id)
         if row:
             row[COL_YEAR] = str(game_year)
-            if game_playtime:
-                try:
-                    game_playtime = "%.1f hrs" % float(game_playtime)
-                except TypeError:
-                    logger.exception("Failed to parse playtime %s", game_playtime)
-                    game_playtime = "-"
-            else:
-                game_playtime = "-"
-            row[COL_PLAYTIME_TEXT] = game_playtime
+            row[COL_PLAYTIME_TEXT] = get_formatted_playtime(game_playtime)
 
             self.update_image(game_id, row[COL_INSTALLED])
 
