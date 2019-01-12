@@ -44,6 +44,8 @@ from lutris.gui.game_panel import GamePanel
 class LutrisWindow(Gtk.ApplicationWindow):
     """Handler class for main window signals."""
 
+    default_view_type = "grid"
+
     __gtype_name__ = "LutrisWindow"
 
     main_box = GtkTemplate.Child()
@@ -372,13 +374,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 # the dialog more than once.
                 settings.write_setting("latest_version", version)
 
-    @staticmethod
-    def get_view_type():
+    def get_view_type(self):
         """Return the type of view saved by the user"""
         view_type = settings.read_setting("view_type")
         if view_type in ["grid", "list"]:
             return view_type
-        return settings.GAME_VIEW
+        return self.default_view_type
 
     def do_key_press_event(self, event):
         if event.keyval == Gdk.KEY_Escape:
