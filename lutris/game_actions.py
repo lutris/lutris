@@ -119,7 +119,7 @@ class GameActions:
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "stop": self.is_game_running,
-            "show_logs": True,
+            "show_logs": self.game.is_installed,
             "configure": bool(self.game.is_installed),
             "install_more": self.game.is_installed,
             "execute-script": bool(

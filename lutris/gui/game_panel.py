@@ -101,7 +101,7 @@ class GamePanel(Gtk.Fixed):
                 button.set_size_request(32, 32)
             else:
                 button = Gtk.Button(label)
-                if action_id in ("play", "stop"):
+                if action_id in ("play", "stop", "install"):
                     button_width = 146
                     button_height = 42
                 else:
@@ -128,7 +128,7 @@ class GamePanel(Gtk.Fixed):
         buttons_x_offset = 28
         for action_id, button in self.buttons.items():
             position = None
-            if action_id in ("play", "stop"):
+            if action_id in ("play", "stop", "install"):
                 position = (play_x_offset,
                             base_height)
             if action_id == "configure":
@@ -140,7 +140,7 @@ class GamePanel(Gtk.Fixed):
             if action_id == "show_logs":
                 position = (icon_start + icon_offset * 2 + icon_width * 2,
                             base_height + icons_y_offset)
-            if action_id in ("install", "remove"):
+            if action_id in ("remove"):
                 position = (icon_start + icon_offset * 3 + icon_width * 3,
                             base_height + icons_y_offset)
             if action_id == "execute-script":
