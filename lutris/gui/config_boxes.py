@@ -618,7 +618,7 @@ class RunnerBox(ConfigBox):
         if lutris_config.level == "game":
             self.generate_top_info_box(
                 "If modified, these options supersede the same options from "
-                "the base runner configuration."
+                "the base runner configuration and global preferences."
             )
         self.generate_widgets("runner")
 
@@ -637,8 +637,7 @@ class SystemBox(ConfigBox):
         if lutris_config.game_config_id and runner_slug:
             self.generate_top_info_box(
                 "If modified, these options supersede the same options from "
-                "the base runner configuration, which themselves supersede "
-                "the global preferences."
+                "the base runner configuration and global preferences."
             )
         elif runner_slug:
             self.generate_top_info_box(
