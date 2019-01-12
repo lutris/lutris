@@ -37,9 +37,5 @@ ICON_URL = SITE_URL + "/games/icon/%s.png"
 BANNER_URL = SITE_URL + "/games/banner/%s.jpg"
 RUNTIME_URL = "https://lutris.net/api/runtime"
 
-# Default config options
-ICON_TYPE_GRIDVIEW = "banner"
-ICON_TYPE_LISTVIEW = "icon"
-
 read_setting = sio.read_setting
 write_setting = sio.write_setting

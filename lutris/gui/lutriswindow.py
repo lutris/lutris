@@ -406,10 +406,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Return the icon style depending on the type of view."""
         if view_type == "list":
             self.icon_type = settings.read_setting("icon_type_listview")
-            default = settings.ICON_TYPE_LISTVIEW
+            default = "icon"
         else:
             self.icon_type = settings.read_setting("icon_type_gridview")
-            default = settings.ICON_TYPE_GRIDVIEW
+            default = "banner"
         if self.icon_type not in IMAGE_SIZES.keys():
             self.icon_type = default
         return self.icon_type
