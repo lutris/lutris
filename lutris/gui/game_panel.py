@@ -166,6 +166,7 @@ class GamePanel(Gtk.Fixed):
                 self.put(button, position[0], position[1])
 
     def on_game_start(self, widget):
+        print("Game has started")
         self.buttons["play"].hide()
         self.buttons["stop"].show()
         self.buttons["show_logs"].set_sensitive(True)
