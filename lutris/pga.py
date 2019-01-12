@@ -388,7 +388,7 @@ def get_used_platforms_game_count():
     return {result[0]: result[1] for result in results if result[0]}
 
 
-def unfuck_playtime(game):
+def fix_playtime(game):
     """Fix a temporary glitch that happened with the playtime implementation"""
     broken_playtime = game["playtime"]
     if not broken_playtime.endswith(" hrs"):

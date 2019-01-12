@@ -194,7 +194,7 @@ class GameStore(GObject.Object):
             playtime_text = get_formatted_playtime(game["playtime"])
         except ValueError:
             # We're all screwed
-            pga.unfuck_playtime(game)
+            pga.fix_playtime(game)
             playtime_text = game["playtime"] + ":("
 
         self.store.append(
