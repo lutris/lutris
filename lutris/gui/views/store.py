@@ -17,9 +17,9 @@ from . import (
     COL_RUNNER,
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
-    COL_LASTPLAYED_TEXT,
+    COL_LASTPLAYED,
     COL_INSTALLED,
-    COL_INSTALLED_AT_TEXT,
+    COL_INSTALLED_AT,
     COL_PLAYTIME_TEXT,
 )
 
@@ -28,8 +28,8 @@ sortings = {
     "year": COL_YEAR,
     "runner": COL_RUNNER_HUMAN_NAME,
     "platform": COL_PLATFORM,
-    "lastplayed": COL_LASTPLAYED_TEXT,
-    "installed_at": COL_INSTALLED_AT_TEXT,
+    "lastplayed": COL_LASTPLAYED,
+    "installed_at": COL_INSTALLED_AT,
     "playtime": COL_PLAYTIME_TEXT
 }
 
