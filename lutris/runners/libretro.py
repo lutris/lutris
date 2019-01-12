@@ -313,3 +313,15 @@ class libretro(Runner):
             return {"error": "FILE_NOT_FOUND", "file": file}
         command.append(file)
         return {"command": command}
+
+    # Checks whether the retroarch or libretro directories can be uninstalled.
+    def can_uninstall(self):
+        retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
+        return os.path.isdir(retroarch_path) or super(libretro, self).can_uninstall()
+
+    # Remove the `retroarch` directory.
+    def uninstall(self):
+        retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
+        if os.path.isdir(retroarch_path):
+            system.remove_folder(retroarch_path)
+        super(libretro, self).uninstall()
