@@ -1,5 +1,6 @@
 import unicodedata
 import re
+import math
 
 
 def slugify(value):
@@ -104,5 +105,19 @@ def escape_gtk_label(string):
 def get_formatted_playtime(playtime):
     """Return a human readable value of the play time"""
     if not playtime:
-        return "0.0 hrs"
-    return "%.2f hrs" % float(playtime)
+        return "No play time recorded"
+    playtime = float(playtime)
+    hours = math.floor(playtime)
+
+    if hours:
+        hours_text = "%d hour%s" % (hours, "s" if hours > 1 else "")
+    else:
+        hours_text = ""
+
+    minutes = int((playtime - hours) * 60)
+    if minutes:
+        minutes_text = "%d minute%s" % (minutes, "s" if minutes > 1 else "")
+    else:
+        minutes_text = ""
+
+    return " and ".join([text for text in (hours_text, minutes_text) if text]) or "0 minute"
