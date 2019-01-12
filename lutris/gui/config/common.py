@@ -340,6 +340,7 @@ class GameDialogCommon:
 
     def on_cancel_clicked(self, widget=None):
         """Dialog destroy callback."""
+        self.game.load_config()
         self.destroy()
 
     def is_valid(self):
