@@ -374,7 +374,7 @@ class Application(Gtk.Application):
 
     def get_game_by_id(self, game_id):
         for game in self.running_games:
-            if game.id == game_id:
+            if hasattr(game, 'id') and game.id == game_id:
                 return game
 
     @staticmethod
