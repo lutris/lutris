@@ -346,8 +346,8 @@ class Application(Gtk.Application):
                 game_slug=game_slug,
                 installer_file=installer_file,
                 revision=revision,
-                parent=self,
-                application=self.application,
+                parent=self.window,
+                application=self,
             )
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
