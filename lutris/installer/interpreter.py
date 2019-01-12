@@ -637,13 +637,17 @@ class ScriptInterpreter(CommandsMixin):
             path = self._substitute(launcher_value)
             if not os.path.isabs(path):
                 path = os.path.join(self.target_path, path)
-
-        if path and not os.path.isfile(path):
-            self.parent.set_status("Can't find executable, install may not be complete")
-            logger.warning("No executable found at specified location %s", path)
-
         self._write_config()
-        self.parent.set_status("Installation finished !")
+        if path and not os.path.isfile(path):
+            self.parent.set_status(
+                "The executable at path %s can't be found, please check the destination folder.\n"
+                "Check the destination folder, "
+                "some parts of the installation process may have not completed successfully." % path
+            )
+            logger.warning("No executable found at specified location %s", path)
+        else:
+            self.parent.set_status("Installation finished!")
+
         self.parent.on_install_finished()
 
     def _write_config(self):
