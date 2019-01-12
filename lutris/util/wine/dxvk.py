@@ -14,21 +14,7 @@ from lutris.util import system
 CACHE_MAX_AGE = 86400  # Re-download DXVK versions every day
 DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/tags"
 DXVK_VERSIONS = [
-    "0.90",
-    "0.81",
-    "0.80",
-    "0.72",
-    "0.71",
-    "0.65",
-    "0.64",
-    "0.63",
-    "0.62",
-    "0.54",
-    "0.53",
-    "0.52",
-    "0.42",
-    "0.31",
-    "0.21",
+    "0.94",
 ]
 DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
 
