@@ -161,7 +161,7 @@ class GameActions:
         """Stops the game"""
         try:
             game = self.application.running_games.pop(self.application.running_games.index(self.game))
-            os.kill(game.game_thread.game_process.pid, signal.SIGKILL)
+            os.kill(game.game_thread.game_process.pid, signal.SIGTERM)
         except ValueError:
             logger.warning("%s not in running game list", self.game_id)
         else:
