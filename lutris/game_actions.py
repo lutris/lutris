@@ -226,7 +226,9 @@ class GameActions:
     def on_browse_files(self, _widget):
         """Callback to open a game folder in the file browser"""
         path = self.game.get_browse_dir()
-        if path and os.path.exists(path):
+        if not path:
+            dialogs.NoticeDialog("This game has no installation directory")
+        elif path_exists(path):
             open_uri("file://%s" % path)
         else:
             dialogs.NoticeDialog("Can't open %s \nThe folder doesn't exist." % path)
