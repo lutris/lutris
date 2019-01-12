@@ -141,10 +141,9 @@ class libretro(Runner):
                     return core[2]
         return ""
 
-    @staticmethod
-    def get_core_path(core):
+    def get_core_path(self, core):
         return os.path.join(
-            settings.RUNNER_DIR, "retroarch/cores/{}_libretro.so".format(core)
+            settings.RUNNER_DIR, "retroarch", "cores", "{}_libretro.so".format(core)
         )
 
     def get_version(self, use_default=True):
@@ -158,6 +157,7 @@ class libretro(Runner):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):
             return self.is_retroarch_installed()
+
         is_core_installed = system.path_exists(self.get_core_path(core))
         return self.is_retroarch_installed() and is_core_installed
 
@@ -304,6 +304,10 @@ class libretro(Runner):
                 "text": "No core has been selected for this game",
             }
         command.append("--libretro={}".format(self.get_core_path(core)))
+
+        # Ensure the core is available
+        if not self.is_installed(core):
+            self.install(core)
 
         # Main file
         file = self.game_config.get("main_file")
