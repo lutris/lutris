@@ -125,13 +125,17 @@ def convert_to_background(background_path, target_size=(320, 1080)):
     coverart = coverart.convert("RGBA")
 
     target_width, target_height = target_size
+    image_height = int(target_height * 0.80)  # 80% of the mask is visible
     orig_width, orig_height = coverart.size
 
     # Resize and crop coverart
-    width = int(orig_width * (target_height / orig_height))
+    width = int(orig_width * (image_height / orig_height))
     offset = int((width - target_width) / 2)
-    coverart = coverart.resize((width, target_height), resample=Image.BICUBIC)
-    coverart = coverart.crop((offset, 0, target_width + offset, target_height))
+    coverart = coverart.resize((width, image_height), resample=Image.BICUBIC)
+    coverart = coverart.crop((offset, 0, target_width + offset, image_height))
+
+    coverart_bg = Image.new('RGBA', (target_width, target_height), (0, 0, 0, 0))
+    coverart_bg.paste(coverart, (0, 0, target_width, image_height))
 
     # Apply a tint to the base image
     # tint = Image.new('RGBA', (target_width, target_height), (0, 0, 0, 255))
@@ -140,7 +144,7 @@ def convert_to_background(background_path, target_size=(320, 1080)):
     # Paste coverart on transparent image while applying a gradient mask
     background = Image.new('RGBA', (target_width, target_height), (0, 0, 0, 0))
     mask = Image.open(os.path.join(datapath.get(), "media/mask.png"))
-    background.paste(coverart, mask=mask)
+    background.paste(coverart_bg, mask=mask)
 
     return background
 
