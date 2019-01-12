@@ -81,7 +81,7 @@ class GamePanel(Gtk.Fixed):
         last_played_label = Gtk.Label()
         last_played_label.show()
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
-        last_played_label.set_markup("Last played: <b>%s</b>" % lastplayed.strftime("%Y/%m/%d"))
+        last_played_label.set_markup("Last played: <b>%s</b>" % lastplayed.strftime("%x"))
         return last_played_label
 
     def get_buttons(self):
