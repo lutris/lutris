@@ -131,9 +131,6 @@ class GameStore(GObject.Object):
 
     def sort_view(self, key="name", ascending=True):
         self.modelsort.set_sort_column_id(
-            COL_NAME, Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING
-        )
-        self.modelsort.set_sort_column_id(
             sortings[key],
             Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING,
         )
