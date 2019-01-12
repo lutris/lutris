@@ -448,11 +448,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         self.zoom_adjustment.props.value = list(IMAGE_SIZES.keys()).index(self.icon_type)
 
+        self.set_viewtype_icon(view_type)
         settings.write_setting("view_type", view_type)
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name(
-            "view-%s-symbolic" % "list" if view_type == "grid" else "grid",
+            "view-%s-symbolic" % ("list" if view_type == "grid" else "grid"),
             Gtk.IconSize.BUTTON
         )
 
