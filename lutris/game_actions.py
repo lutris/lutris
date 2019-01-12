@@ -119,7 +119,7 @@ class GameActions:
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "stop": self.is_game_running,
-            "show_logs": self.is_game_running,
+            "show_logs": True,
             "configure": bool(self.game.is_installed),
             "install_more": self.game.is_installed,
             "execute-script": bool(
@@ -149,7 +149,9 @@ class GameActions:
 
     def get_disabled_entries(self):
         """Return a dictionary of actions that should be disabled for a game"""
-        return {}
+        return {
+            "show_logs": not self.is_game_running,
+        }
 
     def on_game_run(self, *_args):
         """Launch a game"""

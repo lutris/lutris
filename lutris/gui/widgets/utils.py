@@ -134,6 +134,7 @@ def convert_to_background(background_path, target_size=(320, 1080)):
     coverart = coverart.resize((width, image_height), resample=Image.BICUBIC)
     coverart = coverart.crop((offset, 0, target_width + offset, image_height))
 
+    # Resize canvas of coverart by putting transparent pixels on the bottom
     coverart_bg = Image.new('RGBA', (target_width, target_height), (0, 0, 0, 0))
     coverart_bg.paste(coverart, (0, 0, target_width, image_height))
 

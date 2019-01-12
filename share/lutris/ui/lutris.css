@@ -18,6 +18,10 @@
   border: 0;
 }
 
+.panel-button label {
+    font-weight: normal;
+}
+
 row:selected {
   background: transparent;
 }

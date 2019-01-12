@@ -14,18 +14,20 @@ class GamePanel(Gtk.Fixed):
         self.game.connect("game-stop", self.on_game_stop)
 
         super().__init__()
+        self.get_style_context().add_class("game-panel")
         self.set_size_request(320, -1)
         self.show()
 
         self.put(self.get_background(), 0, 0)
         self.put(self.get_icon(), 12, 16)
         self.put(self.get_title_label(), 50, 20)
+        labels_x = 50
         if self.game.is_installed:
-            self.put(self.get_runner_label(), 12, 64)
+            self.put(self.get_runner_label(), labels_x, 64)
         if self.game.playtime:
-            self.put(self.get_playtime_label(), 12, 86)
+            self.put(self.get_playtime_label(), labels_x, 86)
         if self.game.lastplayed:
-            self.put(self.get_last_played_label(), 12, 108)
+            self.put(self.get_last_played_label(), labels_x, 108)
         self.buttons = self.get_buttons()
         self.place_buttons(145)
 
@@ -81,11 +83,12 @@ class GamePanel(Gtk.Fixed):
         displayed = self.game_actions.get_displayed_entries()
         disabled_entries = self.game_actions.get_disabled_entries()
         icon_map = {
-            "stop": "media-playback-stop-symbolic",
-            "play": "media-playback-start-symbolic",
-            "configure": "emblem-system-symbolic",
+            # "stop": "media-playback-stop-symbolic",
+            # "play": "media-playback-start-symbolic",
+            "configure": "preferences-system-symbolic",
             "browse": "system-file-manager-symbolic",
             "show_logs": "utilities-system-monitor-symbolic",
+            "remove": "user-trash-symbolic",
         }
         buttons = {}
         for action in self.game_actions.get_game_actions():
@@ -95,9 +98,19 @@ class GamePanel(Gtk.Fixed):
                     icon_map[action_id], Gtk.IconSize.MENU
                 )
                 button.set_tooltip_text(label)
+                button.set_size_request(32, 32)
             else:
                 button = Gtk.Button(label)
-                button.set_size_request(220, 24)
+                if action_id in ("play", "stop"):
+                    button_width = 146
+                    button_height = 42
+                else:
+                    button_width = -1
+                    button_height = 24
+                    button.props.relief = Gtk.ReliefStyle.NONE
+                    button.get_children()[0].set_alignment(0, 0.5)
+                    button.get_style_context().add_class("panel-button")
+                button.set_size_request(button_width, button_height)
             button.connect("clicked", callback)
             if displayed.get(action_id):
                 button.show()
@@ -107,39 +120,50 @@ class GamePanel(Gtk.Fixed):
         return buttons
 
     def place_buttons(self, base_height):
-        menu_buttons = {}  # Move create and remove desktop and menu shortcuts out of the way
+        play_x_offset = 87
+        icon_offset = 6
+        icon_width = 32
+        icon_start = 84
+        icons_y_offset = 60
+        buttons_x_offset = 28
         for action_id, button in self.buttons.items():
             position = None
             if action_id in ("play", "stop"):
-                position = (12, base_height)
+                position = (play_x_offset,
+                            base_height)
             if action_id == "configure":
-                position = (56, base_height)
+                position = (icon_start,
+                            base_height + icons_y_offset)
             if action_id == "browse":
-                position = (100, base_height)
+                position = (icon_start + icon_offset + icon_width,
+                            base_height + icons_y_offset)
             if action_id == "show_logs":
-                position = (140, base_height)
-            if action_id == "execute-script":
-                position = (12, base_height + 42)
-
-            current_y = base_height + 100
+                position = (icon_start + icon_offset * 2 + icon_width * 2,
+                            base_height + icons_y_offset)
             if action_id in ("install", "remove"):
-                position = (50, current_y)
+                position = (icon_start + icon_offset * 3 + icon_width * 3,
+                            base_height + icons_y_offset)
+            if action_id == "execute-script":
+                position = (50,
+                            base_height + 82)
+
+            current_y = base_height + 150
             if action_id in ("add", "install_more"):
-                position = (50, current_y + 40)
+                position = (buttons_x_offset, current_y + 40)
             if action_id == "view":
-                position = (50, current_y + 80)
-            if action_id in ("desktop-shortcut", "rm-desktop-shortcut",
-                             "menu-shortcut", "rm-menu-shortcut"):
-                menu_buttons[action_id] = button
+                position = (buttons_x_offset, current_y + 80)
+            if action_id in ("desktop-shortcut", "rm-desktop-shortcut"):
+                position = (buttons_x_offset, current_y + 120)
+            if action_id in ("menu-shortcut", "rm-menu-shortcut"):
+                position = (buttons_x_offset, current_y + 160)
 
             if position:
                 self.put(button, position[0], position[1])
-            # TODO place menu buttons
 
     def on_game_start(self, widget):
         self.buttons["play"].hide()
         self.buttons["stop"].show()
-        self.buttons["show_logs"].show()
+        self.buttons["show_logs"].set_sensitive(True)
 
     def on_game_stop(self, widget):
         self.buttons["play"].show()
