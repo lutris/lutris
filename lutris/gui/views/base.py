@@ -10,6 +10,7 @@ from lutris.gui.views import (
     COL_RUNNER,
     COL_PLATFORM,
     COL_INSTALLED,
+    COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
 )
 
@@ -90,6 +91,7 @@ class GameView:
         row = self.get_row_by_id(game_id)
         if row:
             row[COL_YEAR] = str(game_year)
+            row[COL_PLAYTIME] = game_playtime
             row[COL_PLAYTIME_TEXT] = get_formatted_playtime(game_playtime)
 
             self.update_image(game_id, row[COL_INSTALLED])
