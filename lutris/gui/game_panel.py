@@ -1,24 +1,24 @@
 """Game panel"""
 from datetime import datetime
-from gi.repository import Gtk, Pango
+from gi.repository import Gtk, Pango, Gdk
 from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_pixbuf_for_game
 from lutris.util.strings import gtk_safe
 
 
 class GamePanel(Gtk.Fixed):
     """Panel allowing users to interact with a game"""
+    __gtype_name__ = "LutrisPanel"
+
     def __init__(self, game_actions):
         self.game_actions = game_actions
         self.game = game_actions.game
         self.game.connect("game-start", self.on_game_start)
         self.game.connect("game-stop", self.on_game_stop)
 
-        super().__init__()
-        self.get_style_context().add_class("game-panel")
+        super().__init__(visible=True)
         self.set_size_request(320, -1)
-        self.show()
-
-        self.put(self.get_background(), 0, 0)
+        self.get_style_context().add_class("game-panel")
+        self.set_background()
         self.put(self.get_icon(), 12, 16)
         self.put(self.get_title_label(), 50, 20)
         labels_x = 50
@@ -31,11 +31,21 @@ class GamePanel(Gtk.Fixed):
         self.buttons = self.get_buttons()
         self.place_buttons(145)
 
-    def get_background(self):
+    def set_background(self):
         """Return the background image for the panel"""
-        image = Gtk.Image.new_from_pixbuf(get_pixbuf_for_panel(self.game.slug))
-        image.show()
-        return image
+        bg_path = get_pixbuf_for_panel(self.game.slug)
+
+        style = Gtk.StyleContext()
+        style.add_class(Gtk.STYLE_CLASS_VIEW)
+        bg_provider = Gtk.CssProvider()
+        bg_provider.load_from_data(
+            b".game-scrolled { background-image: url(\"%s\"); }" % bg_path.encode("utf-8")
+        )
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            bg_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
 
     def get_icon(self):
         """Return the game icon"""

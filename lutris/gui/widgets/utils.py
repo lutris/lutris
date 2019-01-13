@@ -162,9 +162,12 @@ def image2pixbuf(image):
 def get_pixbuf_for_panel(game_slug):
     """Return the pixbuf for the game panel background"""
     source_path = os.path.join(settings.COVERART_PATH, "%s.jpg" % game_slug)
+    dest_path = os.path.join(settings.CACHE_DIR, "panel_bg.png")
     if not os.path.exists(source_path):
         source_path = os.path.join(datapath.get(), "media/generic-panel-bg.png")
-    return image2pixbuf(convert_to_background(source_path))
+    background = convert_to_background(source_path)
+    background.save(dest_path)
+    return dest_path
 
 
 def get_builder_from_file(glade_file):
