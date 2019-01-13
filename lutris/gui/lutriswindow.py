@@ -147,19 +147,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar_listbox)
 
-        self.game_revealer = Gtk.Revealer()
-        self.game_revealer.show()
-        self.game_revealer.set_transition_duration(500)
-        self.game_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
 
-        self.game_scrolled = Gtk.ScrolledWindow()
+        self.game_scrolled = Gtk.ScrolledWindow(visible=True)
         self.game_scrolled.set_size_request(320, -1)
+        self.game_scrolled.get_style_context().add_class("game-scrolled")
         self.game_scrolled.set_policy(Gtk.PolicyType.EXTERNAL, Gtk.PolicyType.EXTERNAL)
-        self.game_scrolled.show()
-        self.game_revealer.add(self.game_scrolled)
 
         self.game_panel = Gtk.Box()
-        self.main_box.pack_end(self.game_revealer, False, False, 0)
+        self.main_box.pack_end(self.game_scrolled, False, False, 0)
 
         self.view.show()
 
@@ -669,12 +664,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             child.destroy()
 
         if not self.view.selected_game:
-            self.game_revealer.set_reveal_child(False)
             return
         self.game_actions.set_game(game_id=self.view.selected_game)
         self.game_panel = GamePanel(self.game_actions)
         self.game_scrolled.add(self.game_panel)
-        self.game_revealer.set_reveal_child(True)
 
     def on_game_installed(self, view, game_id):
         """Callback to handle newly installed games"""
