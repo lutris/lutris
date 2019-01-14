@@ -35,20 +35,11 @@ class GameView:
         """Shortcut method to the GameStore fill_store method"""
         self.game_store.fill_store(games)
 
-    @property
-    def n_games(self):
-        return len(self.game_store.store)
-
     def get_row_by_id(self, game_id, filtered=False):
-        game_row = None
-        if filtered:
-            store = self.game_store.modelfilter
-        else:
-            store = self.game_store.store
+        store = self.game_store.modelfilter if filtered else self.game_store.store
         for model_row in store:
             if model_row[COL_ID] == int(game_id):
-                game_row = model_row
-        return game_row
+                return model_row
 
     def has_game_id(self, game_id):
         return bool(self.get_row_by_id(game_id))
@@ -61,7 +52,7 @@ class GameView:
         if row:
             self.remove_row(row.iter)
         else:
-            logger.debug("Tried to remove %s but couln't find the row", removed_id)
+            logger.warning("Tried to remove %s but couln't find the row", removed_id)
 
     def remove_row(self, model_iter):
         """Remove a game from the view."""

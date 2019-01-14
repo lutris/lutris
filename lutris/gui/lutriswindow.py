@@ -261,9 +261,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def update_games(self, games):
         """Update games from a list of game IDs"""
-        game_ids = [game["id"] for game in self.game_list]
         for game_id in games:
-            if game_id not in game_ids:
+            if self.view.has_game_id(game_id):
                 self.add_game_to_view(game_id)
             else:
                 self.view.set_installed(Game(game_id))
