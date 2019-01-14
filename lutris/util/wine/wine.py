@@ -279,7 +279,7 @@ def esync_display_limit_warning():
     )
 
 
-def esync_display_version_warning(on_launch):
+def esync_display_version_warning(on_launch=False):
     setting = "hide-wine-non-esync-version-warning"
     if on_launch:
         checkbox_message = "Launch anyway and do not show this message again."
