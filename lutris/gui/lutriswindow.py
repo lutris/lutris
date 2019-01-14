@@ -73,10 +73,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.application = application
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
-
-        # Emulate double click to workaround GTK bug #484640
-        # https://bugzilla.gnome.org/show_bug.cgi?id=484640
-        self.game_launch_time = 0
         self.selected_runner = None
         self.selected_platform = None
         self.icon_type = None
