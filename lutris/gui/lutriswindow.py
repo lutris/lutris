@@ -443,7 +443,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 return
             if result:
                 added_ids, updated_ids = result
-                self.game_store.add_games(pga.get_games_by_ids(added_ids))
+                self.game_store.add_games_by_ids(added_ids)
                 for game_id in updated_ids.difference(added_ids):
                     self.game_store.update_game_by_id(game_id)
             else:

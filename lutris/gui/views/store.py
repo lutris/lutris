@@ -211,6 +211,10 @@ class GameStore(GObject.Object):
         self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
         self.sort_view(sort_key, sort_ascending)
+        self.medias = {
+            "banner": {},
+            "icon": {}
+        }
         self.media_loaded = False
         self.connect('media-loaded', self.on_media_loaded)
         self.connect('icon-loaded', self.on_icon_loaded)
@@ -234,18 +238,26 @@ class GameStore(GObject.Object):
         for game in list(games):
             GLib.idle_add(self.add_game, game)
 
+    def add_games_by_ids(self, game_ids):
+        self.media_loaded = False
+        games = pga.get_games_by_ids(game_ids)
+        game_slugs = [game["slug"] for game in games]
+        GLib.idle_add(self.get_missing_media, game_slugs)
+        self.add_games(games)
+
     def has_icon(self, game_slug, media_type=None):
         """Return True if the game_slug has the icon of `icon_type`"""
         media_type = media_type or self.icon_type
         return system.path_exists(get_icon_path(game_slug, media_type))
 
-    def get_missing_media(self):
+    def get_missing_media(self, slugs=None):
         """Query the Lutris.net API for missing icons"""
+        slugs = slugs or self.game_slugs
         unavailable_banners = [
-            slug for slug in self.game_slugs if not self.has_icon(slug, "banner")
+            slug for slug in slugs if not self.has_icon(slug, "banner")
         ]
         unavailable_icons = [
-            slug for slug in self.game_slugs if not self.has_icon(slug, "icon")
+            slug for slug in slugs if not self.has_icon(slug, "icon")
         ]
 
         # Remove duplicate slugs
@@ -260,15 +272,11 @@ class GameStore(GObject.Object):
             logger.warning("Unable to get games, check your network connectivity")
             return
 
-        self.medias = {
-            "banner": {},
-            "icon": {}
-        }
         for game in lutris_media:
             if game["slug"] in unavailable_banners and game["banner_url"]:
                 self.medias["banner"][game["slug"]] = game["banner_url"]
             if game["slug"] in unavailable_icons and game["icon_url"]:
-                self.media["icon"][game["slug"]] = game["icon_url"]
+                self.medias["icon"][game["slug"]] = game["icon_url"]
         self.media_loaded = True
         self.emit("media-loaded")
 
@@ -365,7 +373,7 @@ class GameStore(GObject.Object):
         if media_type != self.icon_type:
             return
         for pga_game in pga.get_games_where(slug=game_slug):
-            self.update(pga_game)
+            GLib.idle_add(self.update, pga_game)
 
     def fetch_icon(self, slug):
         if not self.media_loaded:

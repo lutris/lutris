@@ -18,7 +18,7 @@ def get_icon_path(game_slug, icon_type):
     """Return the absolute path for a game_slug icon/banner"""
     if icon_type == BANNER:
         return os.path.join(settings.BANNER_PATH, "%s.jpg" % game_slug)
-    elif icon_type == ICON:
+    if icon_type == ICON:
         return os.path.join(settings.ICON_PATH, "lutris_%s.png" % game_slug)
     return None
 
