@@ -193,7 +193,7 @@ class GameActions:
         """Callback that presents the Add game dialog"""
 
         def on_game_added(game):
-            self.window.view.set_installed(game)
+            self.window.game_store.set_installed(game)
             GLib.idle_add(resources.fetch_icon, game.slug, self.window.on_image_downloaded)
             self.window.sidebar_listbox.update()
 
@@ -209,7 +209,7 @@ class GameActions:
 
         def on_dialog_saved():
             game_id = dialog.game.id
-            self.window.view.remove_game(game_id)
+            self.window.game_store.remove_game(game_id)
             self.window.game_store.add_game_by_id(game_id)
             self.window.view.set_selected_game(game_id)
             self.window.sidebar_listbox.update()

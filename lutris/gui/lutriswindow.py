@@ -151,7 +151,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
 
         # Sidebar
-        self.game_store.fill_store(self.game_list)
+        self.game_store.add_games(self.game_list)
         self.switch_splash_screen()
 
         self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
@@ -265,10 +265,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def update_games(self, games):
         """Update games from a list of game IDs"""
         for game_id in games:
-            if self.view.has_game_id(game_id):
+            if self.game_store.has_game_id(game_id):
                 self.game_store.add_game_by_id(game_id)
             else:
-                self.view.set_installed(Game(game_id))
+                self.game_store.set_installed(Game(game_id))
 
     def sync_services(self):
         """Sync local lutris library with current Steam games and desktop games"""
@@ -301,7 +301,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             for game in games:
                 if game["runner"] == runner_name:
                     steam.mark_as_uninstalled(game)
-                    self.view.set_uninstalled(Game(game["id"]))
+                    self.game_store.set_uninstalled(Game(game["id"]))
                     break
         elif operation in (Gio.FileMonitorEvent.CHANGED, Gio.FileMonitorEvent.CREATED):
             if not appmanifest.is_installed():
@@ -471,7 +471,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 )
                 self.game_list += added_games
                 self.switch_splash_screen()
-                self.view.populate_games(added_games)
+                self.game_store.add_games(added_games)
                 GLib.idle_add(self.update_existing_games, added_ids, updated_ids, True)
             else:
                 logger.error("No results returned when syncing the library")
@@ -496,7 +496,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """
         for game_id in updated.difference(added):
             game = pga.get_game_by_field(game_id, "id")
-            self.view.update_row(game["id"], game["year"], game["playtime"])
+            self.game_store.update_row(game["id"], game["year"], game["playtime"])
 
         if first_run:
             self.update_games(added)
@@ -667,9 +667,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Callback to handle newly installed games"""
         if not isinstance(game_id, int):
             raise ValueError("game_id must be an int")
-        if not self.view.has_game_id(game_id):
+        if not self.game_store.has_game_id(game_id):
             logger.debug("Adding new installed game to view (%d)", game_id)
-            self.add_game_to_view(game_id, is_async=False)
+            self.add_game_to_view(game_id)
 
         game = Game(game_id)
         view.set_installed(game)
@@ -684,7 +684,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def update_image_for_slug(self, slug):
         for pga_game in pga.get_games_where(slug=slug):
             game = Game(pga_game["id"])
-            self.view.update_image(game.id, game.is_installed)
+            self.game_store.update_image(game.id, game.is_installed)
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
@@ -697,7 +697,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         )
         return True
 
-    def add_game_to_view(self, game_id, is_async=True):
+    def add_game_to_view(self, game_id, is_async=False):
         """Add a given game to the current view
 
         Params:
@@ -722,13 +722,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Remove a game from the view"""
 
         def do_remove_game():
-            self.view.remove_game(game_id)
+            self.game_store.remove_game(game_id)
             self.switch_splash_screen()
 
         if from_library:
             GLib.idle_add(do_remove_game)
         else:
-            self.view.update_image(game_id, is_installed=False)
+            self.game_store.update_image(game_id, is_installed=False)
         self.sidebar_listbox.update()
 
     def on_toggle_viewtype(self, *args):

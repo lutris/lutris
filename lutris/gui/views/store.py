@@ -21,6 +21,7 @@ from . import (
     COL_INSTALLED,
     COL_INSTALLED_AT,
     COL_PLAYTIME,
+    COL_PLAYTIME_TEXT
 )
 
 sortings = {
@@ -202,7 +203,7 @@ class GameStore(GObject.Object):
         self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
         self.sort_view(sort_key, sort_ascending)
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
-        self.fill_store(games)
+        self.add_games(games)
 
     def __str__(self):
         return (
@@ -213,7 +214,7 @@ class GameStore(GObject.Object):
     def get_ids(self):
         return [row[COL_ID] for row in self.store]
 
-    def fill_store(self, games):
+    def add_games(self, games):
         """Add games to the store"""
         for game in games:
             self.add_game(game)
@@ -263,6 +264,58 @@ class GameStore(GObject.Object):
         if not game or "slug" not in game:
             raise ValueError("Can't find game {} ({})".format(game_id, game))
         self.add_game(game)
+
+    def get_row_by_id(self, game_id):
+        for model_row in self.store:
+            if model_row[COL_ID] == int(game_id):
+                return model_row
+
+    def has_game_id(self, game_id):
+        return bool(self.get_row_by_id(game_id))
+
+    def remove_game(self, removed_id):
+        """Remove a game from the view."""
+        row = self.get_row_by_id(removed_id)
+        self.store.remove(row.iter)
+
+    def set_installed(self, game):
+        """Update a game row to show as installed"""
+        row = self.get_row_by_id(game.id)
+        if not row:
+            raise ValueError("Couldn't find row for id %d (%s)" % (game.id, game))
+        row[COL_RUNNER] = game.runner_name
+        row[COL_PLATFORM] = ""
+        self.update_image(game.id, is_installed=True)
+
+    def set_uninstalled(self, game):
+        """Update a game row to show as uninstalled"""
+        row = self.get_row_by_id(game.id)
+        if not row:
+            raise ValueError("Couldn't find row for id %s" % game.id)
+        row[COL_RUNNER] = ""
+        row[COL_PLATFORM] = ""
+        self.update_image(game.id, is_installed=False)
+
+    def update_row(self, game_id, game_year, game_playtime):
+        """Update game informations."""
+        row = self.get_row_by_id(game_id)
+        row[COL_YEAR] = str(game_year)
+        row[COL_PLAYTIME] = game_playtime
+        row[COL_PLAYTIME_TEXT] = get_formatted_playtime(game_playtime)
+
+        self.update_image(game_id, row[COL_INSTALLED])
+
+    def update_image(self, game_id, is_installed=False):
+        """Update game icon."""
+        row = self.get_row_by_id(game_id)
+        game_slug = row[COL_SLUG]
+        game_pixbuf = get_pixbuf_for_game(
+            game_slug, self.icon_type, is_installed
+        )
+        row[COL_ICON] = game_pixbuf
+        row[COL_INSTALLED] = is_installed
+        # if "GameGridView" in self.__class__.__name__:
+        #     GLib.idle_add(self.queue_draw)
 
     def add_game(self, pga_game):
         game = PgaGame(pga_game)

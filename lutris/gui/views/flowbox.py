@@ -1,6 +1,7 @@
-from lutris import pga
+"""Unused flowbox view (most code removed)"""
+from gi.repository import Gtk, Gdk, GObject
+
 from lutris.util.log import logger
-from gi.repository import Gtk, Gdk, GObject, GLib
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.game import Game
 
@@ -106,7 +107,6 @@ class GameFlowBox(FlowBox):
         self.filter_installed = filter_installed
 
         self.game_list = game_list
-        self.populate_games(self.game_list)
 
     @property
     def selected_game(self):
@@ -118,22 +118,6 @@ class GameFlowBox(FlowBox):
             return None
         game_item = children[0].get_children()[0]
         return game_item.game.id
-
-    def populate_games(self, games):
-        loader = self._fill_store_generator(games)
-        GLib.idle_add(loader.__next__)
-
-    def _fill_store_generator(self, games, step=50):
-        """Generator to fill the model in steps."""
-        n = 0
-        for game in games:
-            item = GameItem(game, self, icon_type=self.icon_type)
-            game["item"] = item  # keep a reference of created widgets
-            self.add(item)
-            n += 1
-            if (n % step) == 0:
-                yield True
-        yield False
 
     def filter_func(self, child):
         game = child.get_children()[0]
@@ -175,48 +159,6 @@ class GameFlowBox(FlowBox):
             widget = child.get_children()[0]
             if widget == game_item:
                 return child
-
-    def has_game_id(self, game_id):
-        for game in self.game_list:
-            if game["id"] == game_id:
-                return True
-        return False
-
-    def add_game(self, game):
-        item = GameItem(game, self)
-        game["item"] = item
-        self.add(item)
-        self.game_list.append(game)
-
-    def remove_game(self, game_id):
-        for index, game in enumerate(self.game_list):
-            if game["id"] == game_id:
-                child = self.get_child(game["item"])
-                self.remove(child)
-                child.destroy()
-                self.game_list.pop(index)
-                return
-
-    def set_installed(self, game):
-        for index, _game in enumerate(self.game_list):
-            if game.id == _game["id"]:
-                _game["runner"] = game.runner_name
-                _game["item"].game.is_installed = True
-                _game["installed"] = True
-                self.update_image(_game["id"], True)
-
-    def set_uninstalled(self, game):
-        for index, _game in enumerate(self.game_list):
-            if game.id == _game["id"]:
-                _game["runner"] = ""
-                _game["installed"] = False
-                _game["item"].game.is_installed = False
-                self.update_image(_game["id"], False)
-
-    def update_row(self, game):
-        for index, _game in enumerate(self.game_list):
-            if game["id"] == _game["id"]:
-                self.update_image(game["id"], _game["installed"])
 
     def update_image(self, game_id, is_installed):
         for index, game in enumerate(self.game_list):
