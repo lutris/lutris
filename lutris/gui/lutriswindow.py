@@ -11,7 +11,6 @@ from lutris.game_actions import GameActions
 from lutris.sync import sync_from_remote
 from lutris.runtime import RuntimeUpdater
 
-from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 

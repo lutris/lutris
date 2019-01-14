@@ -4,7 +4,7 @@ import concurrent.futures
 from urllib.parse import urlparse, parse_qsl
 from gi.repository import GLib
 
-from lutris import api, settings
+from lutris import settings
 from lutris.util.http import Request
 from lutris.util.log import logger
 
