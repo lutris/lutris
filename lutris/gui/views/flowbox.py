@@ -182,14 +182,6 @@ class GameFlowBox(FlowBox):
                 return True
         return False
 
-    def add_game_by_id(self, game_id):
-        if not game_id:
-            return
-        game = pga.get_game_by_field(game_id, "id")
-        if not game or "slug" not in game:
-            raise ValueError("Can't find game {} ({})".format(game_id, game))
-        self.add_game(game)
-
     def add_game(self, game):
         item = GameItem(game, self)
         game["item"] = item

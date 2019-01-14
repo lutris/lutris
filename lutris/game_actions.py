@@ -210,7 +210,7 @@ class GameActions:
         def on_dialog_saved():
             game_id = dialog.game.id
             self.window.view.remove_game(game_id)
-            self.window.view.add_game_by_id(game_id)
+            self.window.game_store.add_game_by_id(game_id)
             self.window.view.set_selected_game(game_id)
             self.window.sidebar_listbox.update()
 

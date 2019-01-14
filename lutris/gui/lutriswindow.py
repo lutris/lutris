@@ -263,7 +263,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Update games from a list of game IDs"""
         for game_id in games:
             if self.view.has_game_id(game_id):
-                self.add_game_to_view(game_id)
+                self.game_store.add_game_by_id(game_id)
             else:
                 self.view.set_installed(Game(game_id))
 
@@ -708,7 +708,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             raise ValueError("Missing game id")
 
         def do_add_game():
-            self.view.add_game_by_id(game_id)
+            self.game_store.add_game_by_id(game_id)
             self.switch_splash_screen(force=True)
             self.sidebar_listbox.update()
             return False
@@ -760,8 +760,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self._set_icon_type(value.get_string())
 
     def on_view_sorting_state_change(self, action, value):
-        ascending = self.view_sorting_ascending
-        self.game_store.sort_view(value.get_string(), ascending)
+        self.game_store.sort_view(value.get_string(), self.view_sorting_ascending)
 
     def on_view_sorting_direction_change(self, action, value):
         self.game_store.sort_view(self.view_sorting, value.get_boolean())

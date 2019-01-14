@@ -35,17 +35,13 @@ class GameView:
         """Shortcut method to the GameStore fill_store method"""
         self.game_store.fill_store(games)
 
-    def get_row_by_id(self, game_id, filtered=False):
-        store = self.game_store.modelfilter if filtered else self.game_store.store
-        for model_row in store:
+    def get_row_by_id(self, game_id):
+        for model_row in self.game_store.store:
             if model_row[COL_ID] == int(game_id):
                 return model_row
 
     def has_game_id(self, game_id):
         return bool(self.get_row_by_id(game_id))
-
-    def add_game_by_id(self, game_id):
-        self.game_store.add_game_by_id(game_id)
 
     def remove_game(self, removed_id):
         row = self.get_row_by_id(removed_id)
