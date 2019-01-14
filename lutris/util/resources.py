@@ -23,38 +23,6 @@ def get_icon_path(game_slug, icon_type):
     return None
 
 
-def has_icon(game_slug, icon_type):
-    """Return True if the game_slug has the icon of `icon_type`"""
-    return system.path_exists(get_icon_path(game_slug, icon_type))
-
-
-def get_missing_media(game_slugs):
-    """Query the Lutris.net API for missing icons"""
-    unavailable_banners = [slug for slug in game_slugs if not has_icon(slug, BANNER)]
-    unavailable_icons = [slug for slug in game_slugs if not has_icon(slug, ICON)]
-
-    # Remove duplicate slugs
-    missing_media_slugs = list(set(unavailable_banners) | set(unavailable_icons))
-    if not missing_media_slugs:
-        return
-    logger.debug(
-        "Requesting missing icons from API for %d games", len(missing_media_slugs)
-    )
-    lutris_media = api.get_api_games(missing_media_slugs)
-    if not lutris_media:
-        logger.warning("Unable to get games, check your network connectivity")
-        return
-
-    available_banners = {}
-    available_icons = {}
-    for game in lutris_media:
-        if game["slug"] in unavailable_banners and game["banner_url"]:
-            available_banners[game["slug"]] = game["banner_url"]
-        if game["slug"] in unavailable_icons and game["icon_url"]:
-            available_icons[game["slug"]] = game["icon_url"]
-    return available_banners, available_icons
-
-
 def fetch_icons(lutris_media, callback):
     """Download missing icons from lutris.net"""
     if not lutris_media:
@@ -84,23 +52,6 @@ def fetch_icons(lutris_media, callback):
 
     if bool(available_icons):
         udpate_desktop_icons()
-
-
-def fetch_icon(slug, callback):
-    lutris_media = api.get_api_games([slug])
-    if not lutris_media:
-        return
-    game = lutris_media[0]
-    for media_type in ('banner', 'icon'):
-        url = game.get("%s_url" % media_type)
-        if url:
-            download_media(
-                url,
-                get_icon_path(slug, BANNER if media_type == "banner" else ICON)
-            )
-        else:
-            logger.error("No URL found in %s", game)
-    callback(slug)
 
 
 def udpate_desktop_icons():

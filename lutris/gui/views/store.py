@@ -6,8 +6,11 @@ from lutris import runners
 from lutris import pga
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf_for_game
-from lutris.util.resources import has_icon, fetch_icon
+from lutris.util.resources import get_icon_path, download_media
 from lutris.util.log import logger
+from lutris.util import system
+from lutris import api
+from lutris.util.jobs import AsyncCall
 from lutris.util.strings import gtk_safe, get_formatted_playtime
 from . import (
     COL_ID,
@@ -158,6 +161,8 @@ class PgaGame:
 
 class GameStore(GObject.Object):
     __gsignals__ = {
+        "media-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
         "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
         "sorting-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, bool)),
     }
@@ -172,6 +177,7 @@ class GameStore(GObject.Object):
     ):
         super(GameStore, self).__init__()
         self.games = pga.get_games(show_installed_first=show_installed_first)
+        self.games_to_refresh = set()
         self.icon_type = icon_type
         self.filter_installed = filter_installed
         self.show_installed_first = show_installed_first
@@ -205,6 +211,10 @@ class GameStore(GObject.Object):
         self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
         self.sort_view(sort_key, sort_ascending)
+        self.media_loaded = False
+        self.connect('media-loaded', self.on_media_loaded)
+        self.connect('icon-loaded', self.on_icon_loaded)
+        AsyncCall(self.get_missing_media)
 
     def __str__(self):
         return (
@@ -219,14 +229,48 @@ class GameStore(GObject.Object):
     def game_slugs(self):
         return [game["slug"] for game in self.games]
 
-    @property
-    def game_ids(self):
-        return [game["id"] for game in self.games]
-
     def add_games(self, games):
         """Add games to the store"""
         for game in list(games):
             GLib.idle_add(self.add_game, game)
+
+    def has_icon(self, game_slug, media_type=None):
+        """Return True if the game_slug has the icon of `icon_type`"""
+        media_type = media_type or self.icon_type
+        return system.path_exists(get_icon_path(game_slug, media_type))
+
+    def get_missing_media(self):
+        """Query the Lutris.net API for missing icons"""
+        unavailable_banners = [
+            slug for slug in self.game_slugs if not self.has_icon(slug, "banner")
+        ]
+        unavailable_icons = [
+            slug for slug in self.game_slugs if not self.has_icon(slug, "icon")
+        ]
+
+        # Remove duplicate slugs
+        missing_media_slugs = list(set(unavailable_banners) | set(unavailable_icons))
+        if not missing_media_slugs:
+            return
+        logger.debug(
+            "Requesting missing icons from API for %d games", len(missing_media_slugs)
+        )
+        lutris_media = api.get_api_games(missing_media_slugs)
+        if not lutris_media:
+            logger.warning("Unable to get games, check your network connectivity")
+            return
+
+        self.medias = {
+            "banner": {},
+            "icon": {}
+        }
+        for game in lutris_media:
+            if game["slug"] in unavailable_banners and game["banner_url"]:
+                self.medias["banner"][game["slug"]] = game["banner_url"]
+            if game["slug"] in unavailable_icons and game["icon_url"]:
+                self.media["icon"][game["slug"]] = game["icon_url"]
+        self.media_loaded = True
+        self.emit("media-loaded")
 
     def filter_view(self, model, _iter, filter_data=None):
         """Filter function for the game model"""
@@ -309,14 +353,34 @@ class GameStore(GObject.Object):
         row[COL_INSTALLED_AT_TEXT] = game.installed_at_text
         row[COL_PLAYTIME] = game.playtime
         row[COL_PLAYTIME_TEXT] = game.playtime_text
-        if not has_icon(game.slug, self.icon_type):
-            GLib.idle_add(fetch_icon, game.slug, self.on_icon_downloaded)
+        if not self.has_icon(game.slug):
+            self.refresh_icon(game.slug)
 
-    def on_icon_downloaded(self, game_slug):
-        logger.info("Icon downloaded for %s", game_slug)
+    def refresh_icon(self, game_slug):
+        AsyncCall(self.fetch_icon, None, game_slug)
+
+    def on_icon_loaded(self, store, game_slug, media_type):
+        if not self.has_icon(game_slug):
+            return
+        if media_type != self.icon_type:
+            return
         for pga_game in pga.get_games_where(slug=game_slug):
             self.update(pga_game)
-        return False
+
+    def fetch_icon(self, slug):
+        if not self.media_loaded:
+            self.games_to_refresh.add(slug)
+            return
+
+        for media_type in ('banner', 'icon'):
+            url = self.medias[media_type].get(slug)
+            if url:
+                download_media(url, get_icon_path(slug, media_type))
+                self.emit('icon-loaded', slug, media_type)
+
+    def on_media_loaded(self, response):
+        for slug in self.games_to_refresh:
+            self.refresh_icon(slug)
 
     def add_game_by_id(self, game_id):
         """Add a game into the store."""
@@ -345,8 +409,8 @@ class GameStore(GObject.Object):
                 game.playtime_text
             )
         )
-        if not has_icon(game.slug, self.icon_type):
-            GLib.idle_add(fetch_icon, game.slug, self.on_icon_downloaded)
+        if not self.has_icon(game.slug):
+            self.refresh_icon(game.slug)
 
     def add_or_update(self, game_id):
         try:
@@ -361,4 +425,4 @@ class GameStore(GObject.Object):
                 row[COL_ICON] = get_pixbuf_for_game(
                     row[COL_SLUG], icon_type, is_installed=row[COL_INSTALLED]
                 )
-            self.emit("icons-changed", icon_type)  # Obsolete, only for GridView
+            self.emit("icons-changed", icon_type)

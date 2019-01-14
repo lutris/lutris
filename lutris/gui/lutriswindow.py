@@ -447,7 +447,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 self.game_store.add_games(pga.get_games_by_ids(added_ids))
                 for game_id in updated_ids.difference(added_ids):
                     self.game_store.update_game_by_id(game_id)
-                GLib.idle_add(self.fetch_media)
             else:
                 logger.error("No results returned when syncing the library")
             self.sync_label.set_label("Synchronize library")
@@ -463,18 +462,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Opens the service sync dialog"""
         self.add_popover.hide()
         SyncServiceWindow(application=self.application)
-
-    def fetch_media(self):
-        """Called to update the media on the view"""
-        AsyncCall(resources.get_missing_media,
-                  self.on_media_returned,
-                  self.game_store.game_slugs)
-        return False
-
-    def on_media_returned(self, lutris_media, _error=None):
-        """Called when the Lutris API has provided a list of downloadable media"""
-        icons_sync = AsyncCall(resources.fetch_icons, None, lutris_media, self.update_game)
-        self.threads_stoppers.append(icons_sync.stop_request.set)
 
     def update_runtime(self):
         """Check that the runtime is up to date"""
