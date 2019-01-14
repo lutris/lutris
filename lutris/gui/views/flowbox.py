@@ -1,7 +1,6 @@
 """Unused flowbox view (most code removed)"""
 from gi.repository import Gtk, Gdk, GObject
 
-from lutris.util.log import logger
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.game import Game
 
@@ -159,16 +158,6 @@ class GameFlowBox(FlowBox):
             widget = child.get_children()[0]
             if widget == game_item:
                 return child
-
-    def update_image(self, game_id, is_installed):
-        for index, game in enumerate(self.game_list):
-            if game["id"] == game_id:
-                item = game.get("item")
-                if not item:
-                    logger.error("Couldn't get item for game %s", game)
-                    return
-                item.installed = is_installed
-                item.set_image_pixbuf()
 
     def set_selected_game(self, game_id):
         for game in self.game_list:

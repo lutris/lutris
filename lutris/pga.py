@@ -1,6 +1,7 @@
 """Personnal Game Archive module. Handle local database of user's games."""
 
 import os
+import math
 import time
 from itertools import chain
 
@@ -214,6 +215,20 @@ def get_games_where(**conditions):
         # no condition is present.
         return []
     return sql.db_query(PGA_DB, query, tuple(condition_values))
+
+
+def get_games_by_ids(game_ids):
+    # sqlite limits the number of query parameters to 999, to
+    # bypass that limitation, divide the query in chunks
+    size = 999
+    return list(chain.from_iterable(
+        [
+            get_games_where(
+                id__in=list(game_ids)[page * size: page * size + size]
+            )
+            for page in range(math.ceil(len(game_ids) / size))
+        ]
+    ))
 
 
 def get_game_by_field(value, field="slug"):

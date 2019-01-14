@@ -1,9 +1,7 @@
 """Main window for the Lutris interface."""
 # pylint: disable=no-member
 import os
-import math
 from collections import namedtuple
-from itertools import chain
 
 from gi.repository import Gtk, Gdk, GLib, Gio
 
@@ -100,9 +98,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
-        self.game_list = pga.get_games(show_installed_first=self.show_installed_first)
         self.game_store = GameStore(
-            [],
             self.icon_type,
             self.filter_installed,
             self.view_sorting,
@@ -150,10 +146,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Contextual menu
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
 
-        # Sidebar
-        self.game_store.add_games(self.game_list)
-        self.switch_splash_screen()
+        self.game_store.load()
 
+        # Sidebar
         self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
         self.update_runtime()
 
@@ -282,7 +277,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             if errors:
                 logger.error("Sync failed: %s", errors)
             added_games, removed_games = response
-            self.update_games(added_games)
+
+            for game_id in added_games:
+                self.game_store.add_or_update(game_id)
+
             for game_id in removed_games:
                 self.remove_game_from_view(game_id)
 
@@ -321,7 +319,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 game_id = steam.mark_as_installed(
                     appmanifest.steamid, runner_name, game_info
                 )
-                self.update_games([game_id])
+                self.game_store.update_game_by_id(game_id)
 
     def set_dark_theme(self):
         """Enables or disbales dark theme"""
@@ -457,22 +455,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 return
             if result:
                 added_ids, updated_ids = result
-
-                # sqlite limits the number of query parameters to 999, to
-                # bypass that limitation, divide the query in chunks
-                size = 999
-                added_games = chain.from_iterable(
-                    [
-                        pga.get_games_where(
-                            id__in=list(added_ids)[page * size: page * size + size]
-                        )
-                        for page in range(math.ceil(len(added_ids) / size))
-                    ]
-                )
-                self.game_list += added_games
-                self.switch_splash_screen()
-                self.game_store.add_games(added_games)
-                GLib.idle_add(self.update_existing_games, added_ids, updated_ids, True)
+                self.game_store.add_games(pga.get_games_by_ids(added_ids))
+                for game_id in updated_ids.difference(added_ids):
+                    self.game_store.update_game_by_id(game_id)
+                GLib.idle_add(self.fetch_media)
             else:
                 logger.error("No results returned when syncing the library")
             self.sync_label.set_label("Synchronize library")
@@ -489,23 +475,16 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.add_popover.hide()
         SyncServiceWindow(application=self.application)
 
-    def update_existing_games(self, added, updated, first_run=False):
-        """Updates the games in the view from the callback of the method
-        Still, working on this docstring.
-        If the implementation is shit,  the docstring is as well.
-        """
-        for game_id in updated.difference(added):
-            game = pga.get_game_by_field(game_id, "id")
-            self.game_store.update_row(game["id"], game["year"], game["playtime"])
-
-        if first_run:
-            self.update_games(added)
-            game_slugs = [game["slug"] for game in self.game_list]
-            AsyncCall(resources.get_missing_media, self.on_media_returned, game_slugs)
+    def fetch_media(self):
+        """Called to update the media on the view"""
+        AsyncCall(resources.get_missing_media,
+                  self.on_media_returned,
+                  self.game_store.game_slugs)
+        return False
 
     def on_media_returned(self, lutris_media, _error=None):
         """Called when the Lutris API has provided a list of downloadable media"""
-        icons_sync = AsyncCall(resources.fetch_icons, None, lutris_media, self)
+        icons_sync = AsyncCall(resources.fetch_icons, None, lutris_media, self.update_game)
         self.threads_stoppers.append(icons_sync.stop_request.set)
 
     def update_runtime(self):
@@ -667,24 +646,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Callback to handle newly installed games"""
         if not isinstance(game_id, int):
             raise ValueError("game_id must be an int")
-        if not self.game_store.has_game_id(game_id):
-            logger.debug("Adding new installed game to view (%d)", game_id)
-            self.add_game_to_view(game_id)
-
-        game = Game(game_id)
-        view.set_installed(game)
+        self.game_store.add_or_update(game_id)
         self.sidebar_listbox.update()
-        GLib.idle_add(resources.fetch_icon, game.slug, self.on_image_downloaded)
 
-    def on_image_downloaded(self, game_slugs, _error=None):
-        """Callback for handling successful image downloads"""
-        for game_slug in game_slugs:
-            self.update_image_for_slug(game_slug)
-
-    def update_image_for_slug(self, slug):
+    def update_game(self, slug):
         for pga_game in pga.get_games_where(slug=slug):
-            game = Game(pga_game["id"])
-            self.game_store.update_image(game.id, game.is_installed)
+            self.game_store.update_game_by_id(pga_game["id"])
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
@@ -693,49 +660,24 @@ class LutrisWindow(Gtk.ApplicationWindow):
         dialog = AddGameDialog(
             self,
             runner=self.selected_runner,
-            callback=lambda: self.add_game_to_view(dialog.game.id),
+            callback=lambda: self.game_store.add_game_by_id(dialog.game.id),
         )
         return True
-
-    def add_game_to_view(self, game_id, is_async=False):
-        """Add a given game to the current view
-
-        Params:
-            game_id (str): SQL ID of the game to add
-            is_async (bool): Adds the game asynchronously (defaults to True)
-        """
-        if not game_id:
-            raise ValueError("Missing game id")
-
-        def do_add_game():
-            self.game_store.add_game_by_id(game_id)
-            self.switch_splash_screen(force=True)
-            self.sidebar_listbox.update()
-            return False
-
-        if is_async:
-            GLib.idle_add(do_add_game)
-        else:
-            do_add_game()
 
     def remove_game_from_view(self, game_id, from_library=False):
         """Remove a game from the view"""
 
         def do_remove_game():
             self.game_store.remove_game(game_id)
-            self.switch_splash_screen()
 
         if from_library:
             GLib.idle_add(do_remove_game)
         else:
-            self.game_store.update_image(game_id, is_installed=False)
+            self.game_store.update(game_id)
         self.sidebar_listbox.update()
 
     def on_toggle_viewtype(self, *args):
-        if self.current_view_type == "grid":
-            self.switch_view("list")
-        else:
-            self.switch_view("grid")
+        self.switch_view("list" if self.current_view_type == "grid" else "grid")
 
     def on_viewtype_state_change(self, action, val):
         """Callback to handle view type switch"""

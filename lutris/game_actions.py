@@ -1,7 +1,7 @@
 """Handle game specific actions"""
 import os
 import signal
-from gi.repository import GLib, Gio
+from gi.repository import Gio
 from lutris.command import MonitoredCommand
 from lutris.game import Game
 from lutris.gui import dialogs
@@ -14,7 +14,6 @@ from lutris.gui.logdialog import LogDialog
 from lutris.util.system import path_exists
 from lutris.util.log import logger
 from lutris.util import xdgshortcuts
-from lutris.util import resources
 
 
 class GameActions:
@@ -160,7 +159,9 @@ class GameActions:
     def on_stop(self, caller):
         """Stops the game"""
         try:
-            game = self.application.running_games.pop(self.application.running_games.index(self.game))
+            game = self.application.running_games.pop(
+                self.application.running_games.index(self.game)
+            )
         except ValueError:
             logger.warning("%s not in running game list", self.game_id)
             return
@@ -193,8 +194,7 @@ class GameActions:
         """Callback that presents the Add game dialog"""
 
         def on_game_added(game):
-            self.window.game_store.set_installed(game)
-            GLib.idle_add(resources.fetch_icon, game.slug, self.window.on_image_downloaded)
+            self.window.game_store.update(game)
             self.window.sidebar_listbox.update()
 
         AddGameDialog(

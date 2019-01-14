@@ -14,24 +14,18 @@ BANNER = "banner"
 ICON = "icon"
 
 
-def get_icon_path(game, icon_type):
-    """Return the absolute path for a game icon/banner"""
+def get_icon_path(game_slug, icon_type):
+    """Return the absolute path for a game_slug icon/banner"""
     if icon_type == BANNER:
-        return os.path.join(settings.BANNER_PATH, "%s.jpg" % game)
+        return os.path.join(settings.BANNER_PATH, "%s.jpg" % game_slug)
     elif icon_type == ICON:
-        return os.path.join(settings.ICON_PATH, "lutris_%s.png" % game)
+        return os.path.join(settings.ICON_PATH, "lutris_%s.png" % game_slug)
     return None
 
 
-def has_icon(game, icon_type):
-    """Return True if the game has the icon of `icon_type`"""
-    if icon_type == BANNER:
-        icon_path = get_icon_path(game, BANNER)
-        return system.path_exists(icon_path)
-    elif icon_type == ICON:
-        icon_path = get_icon_path(game, ICON)
-        return system.path_exists(icon_path)
-    return False
+def has_icon(game_slug, icon_type):
+    """Return True if the game_slug has the icon of `icon_type`"""
+    return system.path_exists(get_icon_path(game_slug, icon_type))
 
 
 def get_missing_media(game_slugs):
@@ -61,7 +55,7 @@ def get_missing_media(game_slugs):
     return available_banners, available_icons
 
 
-def fetch_icons(lutris_media, window):
+def fetch_icons(lutris_media, callback):
     """Download missing icons from lutris.net"""
     if not lutris_media:
         return
@@ -86,7 +80,7 @@ def fetch_icons(lutris_media, window):
             except Exception as ex:  # pylint: disable=broad-except
                 logger.exception('%r generated an exception: %s', slug, ex)
             else:
-                GLib.idle_add(window.update_image_for_slug, slug, priority=GLib.PRIORITY_LOW)
+                GLib.idle_add(callback, slug, priority=GLib.PRIORITY_LOW)
 
     if bool(available_icons):
         udpate_desktop_icons()
@@ -106,7 +100,7 @@ def fetch_icon(slug, callback):
             )
         else:
             logger.error("No URL found in %s", game)
-    callback([slug])
+    callback(slug)
 
 
 def udpate_desktop_icons():

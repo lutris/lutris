@@ -1,11 +1,12 @@
 """Store object for a list of games"""
 import time
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris import runners
 from lutris import pga
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.util.resources import has_icon, fetch_icon
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, get_formatted_playtime
 from . import (
@@ -18,8 +19,10 @@ from . import (
     COL_RUNNER_HUMAN_NAME,
     COL_PLATFORM,
     COL_LASTPLAYED,
+    COL_LASTPLAYED_TEXT,
     COL_INSTALLED,
     COL_INSTALLED_AT,
+    COL_INSTALLED_AT_TEXT,
     COL_PLAYTIME,
     COL_PLAYTIME_TEXT
 )
@@ -161,7 +164,6 @@ class GameStore(GObject.Object):
 
     def __init__(
             self,
-            games,
             icon_type,
             filter_installed,
             sort_key,
@@ -169,7 +171,7 @@ class GameStore(GObject.Object):
             show_installed_first=False,
     ):
         super(GameStore, self).__init__()
-        self.games = games or []
+        self.games = pga.get_games(show_installed_first=show_installed_first)
         self.icon_type = icon_type
         self.filter_installed = filter_installed
         self.show_installed_first = show_installed_first
@@ -201,9 +203,8 @@ class GameStore(GObject.Object):
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
         self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
-        self.sort_view(sort_key, sort_ascending)
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
-        self.add_games(games)
+        self.sort_view(sort_key, sort_ascending)
 
     def __str__(self):
         return (
@@ -211,13 +212,21 @@ class GameStore(GObject.Object):
             "filter_text: {filter_text}>".format(**self.__dict__)
         )
 
-    def get_ids(self):
-        return [row[COL_ID] for row in self.store]
+    def load(self):
+        self.add_games(self.games)
+
+    @property
+    def game_slugs(self):
+        return [game["slug"] for game in self.games]
+
+    @property
+    def game_ids(self):
+        return [game["id"] for game in self.games]
 
     def add_games(self, games):
         """Add games to the store"""
-        for game in games:
-            self.add_game(game)
+        for game in list(games):
+            GLib.idle_add(self.add_game, game)
 
     def filter_view(self, model, _iter, filter_data=None):
         """Filter function for the game model"""
@@ -256,69 +265,67 @@ class GameStore(GObject.Object):
         self.prevent_sort_update = False
         self.emit("sorting-changed", key, ascending)
 
-    def add_game_by_id(self, game_id):
-        """Add a game into the store."""
-        if not game_id:
-            return
-        game = pga.get_game_by_field(game_id, "id")
-        if not game or "slug" not in game:
-            raise ValueError("Can't find game {} ({})".format(game_id, game))
-        self.add_game(game)
-
     def get_row_by_id(self, game_id):
         for model_row in self.store:
             if model_row[COL_ID] == int(game_id):
                 return model_row
 
-    def has_game_id(self, game_id):
-        return bool(self.get_row_by_id(game_id))
-
-    def remove_game(self, removed_id):
+    def remove_game(self, game_id):
         """Remove a game from the view."""
-        row = self.get_row_by_id(removed_id)
+        game_index = 0
+        for index, game in enumerate(self.games):
+            if game["id"] == game_id:
+                game_index = index
+                break
+        if game_index:
+            self.games.pop(game_index)
+        else:
+            logger.warning("Can't find game %s in game list", game_id)
+        row = self.get_row_by_id(game_id)
         self.store.remove(row.iter)
 
-    def set_installed(self, game):
-        """Update a game row to show as installed"""
-        row = self.get_row_by_id(game.id)
-        if not row:
-            raise ValueError("Couldn't find row for id %d (%s)" % (game.id, game))
-        row[COL_RUNNER] = game.runner_name
-        row[COL_PLATFORM] = ""
-        self.update_image(game.id, is_installed=True)
-
-    def set_uninstalled(self, game):
-        """Update a game row to show as uninstalled"""
-        row = self.get_row_by_id(game.id)
-        if not row:
-            raise ValueError("Couldn't find row for id %s" % game.id)
-        row[COL_RUNNER] = ""
-        row[COL_PLATFORM] = ""
-        self.update_image(game.id, is_installed=False)
-
-    def update_row(self, game_id, game_year, game_playtime):
+    def update_game_by_id(self, game_id):
         """Update game informations."""
-        row = self.get_row_by_id(game_id)
-        row[COL_YEAR] = str(game_year)
-        row[COL_PLAYTIME] = game_playtime
-        row[COL_PLAYTIME_TEXT] = get_formatted_playtime(game_playtime)
+        game = pga.get_game_by_field(game_id, "id")
+        return self.update(game)
 
-        self.update_image(game_id, row[COL_INSTALLED])
+    def update(self, pga_game):
+        game = PgaGame(pga_game)
+        row = self.get_row_by_id(game.id)
+        if not row:
+            raise ValueError("No existing row for game %s", game.slug)
+        row[COL_ID] = game.id
+        row[COL_SLUG] = game.slug
+        row[COL_NAME] = game.name
+        row[COL_ICON] = game.get_pixbuf(self.icon_type)
+        row[COL_YEAR] = game.year
+        row[COL_RUNNER] = game.runner
+        row[COL_RUNNER_HUMAN_NAME] = game.runner_text
+        row[COL_PLATFORM] = game.platform
+        row[COL_LASTPLAYED] = game.lastplayed
+        row[COL_LASTPLAYED_TEXT] = game.lastplayed_text
+        row[COL_INSTALLED] = game.installed
+        row[COL_INSTALLED_AT] = game.installed_at
+        row[COL_INSTALLED_AT_TEXT] = game.installed_at_text
+        row[COL_PLAYTIME] = game.playtime
+        row[COL_PLAYTIME_TEXT] = game.playtime_text
+        if not has_icon(game.slug, self.icon_type):
+            GLib.idle_add(fetch_icon, game.slug, self.on_icon_downloaded)
 
-    def update_image(self, game_id, is_installed=False):
-        """Update game icon."""
-        row = self.get_row_by_id(game_id)
-        game_slug = row[COL_SLUG]
-        game_pixbuf = get_pixbuf_for_game(
-            game_slug, self.icon_type, is_installed
-        )
-        row[COL_ICON] = game_pixbuf
-        row[COL_INSTALLED] = is_installed
-        # if "GameGridView" in self.__class__.__name__:
-        #     GLib.idle_add(self.queue_draw)
+    def on_icon_downloaded(self, game_slug):
+        logger.info("Icon downloaded for %s", game_slug)
+        for pga_game in pga.get_games_where(slug=game_slug):
+            self.update(pga_game)
+        return False
+
+    def add_game_by_id(self, game_id):
+        """Add a game into the store."""
+        game = pga.get_game_by_field(game_id, "id")
+        return self.add_game(game)
 
     def add_game(self, pga_game):
         game = PgaGame(pga_game)
+        self.games.append(pga_game)
         self.store.append(
             (
                 game.id,
@@ -338,6 +345,14 @@ class GameStore(GObject.Object):
                 game.playtime_text
             )
         )
+        if not has_icon(game.slug, self.icon_type):
+            GLib.idle_add(fetch_icon, game.slug, self.on_icon_downloaded)
+
+    def add_or_update(self, game_id):
+        try:
+            self.update_game_by_id(game_id)
+        except ValueError:
+            self.add_game_by_id(game_id)
 
     def set_icon_type(self, icon_type):
         if icon_type != self.icon_type:
