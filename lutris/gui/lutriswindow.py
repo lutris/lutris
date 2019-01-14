@@ -43,12 +43,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
     """Handler class for main window signals."""
 
     default_view_type = "grid"
+    default_width = 800
+    default_height = 600
 
     __gtype_name__ = "LutrisWindow"
 
     main_box = GtkTemplate.Child()
-    splash_box = GtkTemplate.Child()
-    connect_link = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
@@ -76,25 +76,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.icon_type = None
 
         # Load settings
-        width = int(settings.read_setting("width") or 800)
-        height = int(settings.read_setting("height") or 600)
+        width = int(settings.read_setting("width") or self.default_width)
+        height = int(settings.read_setting("height") or self.default_height)
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
 
         view_type = self.get_view_type()
         self.load_icon_type_from_settings(view_type)
-        self.filter_installed = settings.read_setting("filter_installed") == "true"
-        self.show_installed_first = (
-            settings.read_setting("show_installed_first") == "true"
-        )
-        self.sidebar_visible = settings.read_setting("sidebar_visible") in [
-            "true",
-            None,
-        ]
-        self.view_sorting = settings.read_setting("view_sorting") or "name"
-        self.view_sorting_ascending = (
-            settings.read_setting("view_sorting_ascending") != "false"
-        )
 
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
@@ -249,21 +237,36 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return "grid" if isinstance(self.view, GameGridView) else "list"
 
     @property
+    def filter_installed(self):
+        return settings.read_setting("filter_installed") == "true"
+
+    @property
+    def sidebar_visible(self):
+        return settings.read_setting("sidebar_visible") in [
+            "true",
+            None,
+        ]
+
+    @property
     def use_dark_theme(self):
         """Return whether to use the dark theme variant (if the theme provides one)"""
         return settings.read_setting("dark_theme", default="false").lower() == "true"
 
     @property
+    def show_installed_first(self):
+        return settings.read_setting("show_installed_first") == "true"
+
+    @property
     def show_tray_icon(self):
         return settings.read_setting("show_tray_icon", default="false").lower() == "true"
 
-    def update_games(self, games):
-        """Update games from a list of game IDs"""
-        for game_id in games:
-            if self.game_store.has_game_id(game_id):
-                self.game_store.add_game_by_id(game_id)
-            else:
-                self.game_store.set_installed(Game(game_id))
+    @property
+    def view_sorting(self):
+        return settings.read_setting("view_sorting") or "name"
+
+    @property
+    def view_sorting_ascending(self):
+        return settings.read_setting("view_sorting_ascending") != "false"
 
     def sync_services(self):
         """Sync local lutris library with current Steam games and desktop games"""
@@ -403,20 +406,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.icon_type = default
         return self.icon_type
 
-    def switch_splash_screen(self, force=None):
-        """Toggle the state of the splash screen based on the library contents"""
-        if not self.splash_box.get_visible() and self.game_list:
-            return
-        if self.game_list or force is True:
-            self.splash_box.hide()
-            self.main_box.show()
-            self.games_scrollwindow.show()
-        else:
-            logger.debug("Showing splash screen")
-            self.splash_box.show()
-            self.main_box.hide()
-            self.games_scrollwindow.hide()
-
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
         self.view.destroy()
@@ -509,7 +498,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Callback for user connect success"""
         self.toggle_connection(True, username)
         self.sync_library()
-        self.connect_link.set_sensitive(False)
         self.actions["synchronize"].props.enabled = True
         self.actions["register-account"].props.enabled = False
 
@@ -518,7 +506,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Callback from user disconnect"""
         api.disconnect()
         self.toggle_connection(False)
-        self.connect_link.show()
         self.actions["synchronize"].props.enabled = False
 
     def toggle_connection(self, is_connected, username=None):
@@ -580,29 +567,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def set_show_installed_first_state(self, show_installed_first):
         """Shows the installed games first in the view"""
-        self.show_installed_first = show_installed_first
-        settings.write_setting("show_installed_first",
-                               "true" if show_installed_first else "false")
+        settings.write_setting("show_installed_first", "true" if show_installed_first else "false")
         self.game_store.sort_view(show_installed_first)
         self.game_store.modelfilter.refilter()
 
     def on_show_installed_state_change(self, action, value):
         """Callback to handle uninstalled game filter switch"""
         action.set_state(value)
-        filter_installed = value.get_boolean()
-        self.set_show_installed_state(filter_installed)
+        self.set_show_installed_state(value.get_boolean())
 
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""
-        self.filter_installed = filter_installed
         settings.write_setting("filter_installed", "true" if filter_installed else "false")
         self.game_store.filter_installed = filter_installed
         self.invalidate_game_filter()
-
-    @GtkTemplate.Callback
-    def on_pga_menuitem_activate(self, *_args):
-        """Callback for opening the PGA dialog"""
-        dialogs.PgaSourceDialog(parent=self)
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, widget):
@@ -707,25 +685,19 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_view_sorting_direction_change(self, action, value):
         self.game_store.sort_view(self.view_sorting, value.get_boolean())
 
-    def on_game_store_sorting_changed(self, game_store, key, ascending):
-        self.view_sorting = key
-        self.view_sorting_ascending = ascending
+    def on_game_store_sorting_changed(self, _game_store, key, ascending):
         self.actions["view-sorting"].set_state(GLib.Variant.new_string(key))
-        self.actions["view-sorting-ascending"].set_state(
-            GLib.Variant.new_boolean(ascending)
-        )
-        settings.write_setting("view_sorting", self.view_sorting)
-        settings.write_setting(
-            "view_sorting_ascending", "true" if self.view_sorting_ascending else "false"
-        )
+        settings.write_setting("view_sorting", key)
+
+        self.actions["view-sorting-ascending"].set_state(GLib.Variant.new_boolean(ascending))
+        settings.write_setting("view_sorting_ascending", "true" if ascending else "false")
 
     def on_sidebar_state_change(self, action, value):
         """Callback to handle siderbar toggle"""
         action.set_state(value)
-        self.sidebar_visible = value.get_boolean()
-        setting = "true" if self.sidebar_visible else "false"
-        settings.write_setting("sidebar_visible", setting)
-        self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
+        sidebar_visible = value.get_boolean()
+        settings.write_setting("sidebar_visible", "true" if sidebar_visible else "false")
+        self.sidebar_revealer.set_reveal_child(sidebar_visible)
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
