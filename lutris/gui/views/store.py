@@ -269,7 +269,6 @@ class GameStore(GObject.Object):
         )
         lutris_media = api.get_api_games(missing_media_slugs)
         if not lutris_media:
-            logger.warning("Unable to get games, check your network connectivity")
             return
 
         for game in lutris_media:
