@@ -118,7 +118,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
             else:
                 shutil.move(source_path, destination_path)
         system.remove_folder(temp_dir)
-    logger.debug("Finished extracting %s", path)
+    logger.debug("Finished extracting %s to %s", path, to_directory)
     return path, to_directory
 
 

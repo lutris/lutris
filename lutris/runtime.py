@@ -113,10 +113,10 @@ class Runtime:
             logger.error(error)
             return
         archive_path, destination_path = result
-        logger.debug("Finished extracting %s to %s", archive_path, destination_path)
         os.unlink(archive_path)
         self.set_updated_at()
         self.updater.notify_finish(self)
+        return destination_path
 
 
 class RuntimeUpdater:
