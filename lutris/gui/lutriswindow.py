@@ -97,12 +97,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view_sorting_ascending = (
             settings.read_setting("view_sorting_ascending") != "false"
         )
-        self.use_dark_theme = (
-            settings.read_setting("dark_theme", default="false").lower() == "true"
-        )
-        self.show_tray_icon = (
-            settings.read_setting("show_tray_icon", default="false").lower() == "true"
-        )
 
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
@@ -134,7 +128,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.games_scrollwindow.add(self.view)
         self._connect_signals()
         # Set theme to dark if set in the settings
-        self.set_dark_theme(self.use_dark_theme)
+        self.set_dark_theme()
         self.set_viewtype_icon(view_type)
 
         # Add additional widgets
@@ -259,6 +253,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Returns which kind of view is currently presented (grid or list)"""
         return "grid" if isinstance(self.view, GameGridView) else "list"
 
+    @property
+    def use_dark_theme(self):
+        """Return whether to use the dark theme variant (if the theme provides one)"""
+        return settings.read_setting("dark_theme", default="false").lower() == "true"
+
+    @property
+    def show_tray_icon(self):
+        return settings.read_setting("show_tray_icon", default="false").lower() == "true"
+
     def update_games(self, games):
         """Update games from a list of game IDs"""
         for game_id in games:
@@ -320,11 +323,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 )
                 self.update_games([game_id])
 
-    @staticmethod
-    def set_dark_theme(is_dark):
+    def set_dark_theme(self):
         """Enables or disbales dark theme"""
         gtksettings = Gtk.Settings.get_default()
-        gtksettings.set_property("gtk-application-prefer-dark-theme", is_dark)
+        gtksettings.set_property("gtk-application-prefer-dark-theme", self.use_dark_theme)
 
     def get_view(self, view_type):
         """Return the appropriate widget for the current view"""
@@ -514,10 +516,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
         action.set_state(value)
-        self.use_dark_theme = value.get_boolean()
-        setting_value = "true" if self.use_dark_theme else "false"
-        settings.write_setting("dark_theme", setting_value)
-        self.set_dark_theme(self.use_dark_theme)
+        settings.write_setting("dark_theme", "true" if value.get_boolean() else "false")
+        self.set_dark_theme()
 
     @GtkTemplate.Callback
     def on_connect(self, *_args):
