@@ -34,6 +34,124 @@ sortings = {
 }
 
 
+class PgaGame:
+    """Representation of a database stored game"""
+    def __init__(self, pga_data):
+        self._pga_data = pga_data
+        runner_names = {}
+        for runner in runners.__all__:
+            runner_inst = runners.import_runner(runner)
+            runner_names[runner] = runner_inst.human_name
+        self.runner_names = runner_names
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return "<PgaGame id=%s slug=%s>" % (self.id, self.slug)
+
+    @property
+    def id(self):  # pylint: disable=invalid-name
+        """Game internal ID"""
+        return self._pga_data["id"]
+
+    @property
+    def slug(self):
+        """Slug identifier"""
+        return gtk_safe(self._pga_data["slug"])
+
+    @property
+    def name(self):
+        """Name"""
+        return gtk_safe(self._pga_data["name"])
+
+    @property
+    def year(self):
+        """Year"""
+        return str(self._pga_data["year"] or "")
+
+    @property
+    def runner(self):
+        """Runner slug"""
+        return gtk_safe(self._pga_data["runner"])
+
+    @property
+    def runner_text(self):
+        """Runner name"""
+        return gtk_safe(self.runner_names.get(self.runner))
+
+    @property
+    def platform(self):
+        """Platform"""
+        _platform = self._pga_data["platform"]
+        if not _platform and self.installed:
+            game_inst = Game(self._pga_data["id"])
+            _platform = game_inst.platform
+            if not _platform:
+                game_inst.set_platform_from_runner()
+                _platform = game_inst.platform
+                logger.debug("Setting platform for %s: %s", self, _platform)
+        return _platform
+
+    @property
+    def installed(self):
+        """Game is installed"""
+        if not self._pga_data["runner"]:
+            return False
+        return self._pga_data["installed"]
+
+    def get_pixbuf(self, icon_type):
+        """Pixbuf varying on icon type"""
+        return get_pixbuf_for_game(
+            self._pga_data["slug"],
+            icon_type,
+            self._pga_data["installed"]
+        )
+
+    @property
+    def installed_at(self):
+        """Date of install"""
+        return self._pga_data["installed_at"]
+
+    @property
+    def installed_at_text(self):
+        """Date of install (textual representation)"""
+        return gtk_safe(
+            time.strftime("%X %x", time.localtime(self._pga_data["installed_at"]))
+            if self._pga_data["installed_at"] else ""
+        )
+
+    @property
+    def lastplayed(self):
+        """Date of last play"""
+        return self._pga_data["lastplayed"]
+
+    @property
+    def lastplayed_text(self):
+        """Date of last play (textual representation)"""
+        return gtk_safe(
+            time.strftime("%X %x", time.localtime(self._pga_data["lastplayed"]))
+            if self._pga_data["lastplayed"] else ""
+        )
+
+    @property
+    def playtime(self):
+        """Playtime duration in hours"""
+        return self._pga_data["playtime"]
+
+    @property
+    def playtime_text(self):
+        """Playtime duration in hours (textual representation)"""
+        try:
+            playtime_text = get_formatted_playtime(self._pga_data["playtime"])
+        except ValueError:
+            # We're all screwed
+            logger.warning("Invalid playtime value %s for %s", self.playtime, self)
+            pga.fix_playtime(self._pga_data)
+            playtime_text = ""  # Do not show erroneous values
+        return playtime_text
+
+
 class GameStore(GObject.Object):
     __gsignals__ = {
         "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
@@ -50,14 +168,13 @@ class GameStore(GObject.Object):
             show_installed_first=False,
     ):
         super(GameStore, self).__init__()
-        self.games = games
+        self.games = games or []
         self.icon_type = icon_type
         self.filter_installed = filter_installed
         self.show_installed_first = show_installed_first
         self.filter_text = None
         self.filter_runner = None
         self.filter_platform = None
-        self.runner_names = self.populate_runner_names()
         self.store = Gtk.ListStore(
             int,
             str,
@@ -85,8 +202,7 @@ class GameStore(GObject.Object):
         self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
         self.sort_view(sort_key, sort_ascending)
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
-        if games:
-            self.fill_store(games)
+        self.fill_store(games)
 
     def __str__(self):
         return (
@@ -96,13 +212,6 @@ class GameStore(GObject.Object):
 
     def get_ids(self):
         return [row[COL_ID] for row in self.store]
-
-    def populate_runner_names(self):
-        names = {}
-        for runner in runners.__all__:
-            runner_inst = runners.import_runner(runner)
-            names[runner] = runner_inst.human_name
-        return names
 
     def fill_store(self, games):
         """Add games to the store"""
@@ -155,65 +264,25 @@ class GameStore(GObject.Object):
             raise ValueError("Can't find game {} ({})".format(game_id, game))
         self.add_game(game)
 
-    def get_runner_info(self, game):
-        if not game["runner"]:
-            return
-        runner_human_name = self.runner_names.get(game["runner"], "")
-        platform = game["platform"]
-        if not platform and game["installed"]:
-            game_inst = Game(game["id"])
-            platform = game_inst.platform
-            if not platform:
-                game_inst.set_platform_from_runner()
-                platform = game_inst.platform
-                logger.debug("Setting platform for %s: %s", game["name"], platform)
-
-        return runner_human_name, platform
-
-    def add_game(self, game):
-        platform = ""
-        runner_human_name = ""
-        runner_info = self.get_runner_info(game)
-        if runner_info:
-            runner_human_name, platform = runner_info
-        else:
-            game["installed"] = False
-
-        lastplayed_text = ""
-        if game["lastplayed"]:
-            lastplayed_text = time.strftime("%c", time.localtime(game["lastplayed"]))
-
-        installed_at_text = ""
-        if game["installed_at"]:
-            installed_at_text = time.strftime(
-                "%c", time.localtime(game["installed_at"])
-            )
-
-        pixbuf = get_pixbuf_for_game(game["slug"], self.icon_type, game["installed"])
-        try:
-            playtime_text = get_formatted_playtime(game["playtime"])
-        except ValueError:
-            # We're all screwed
-            pga.fix_playtime(game)
-            playtime_text = game["playtime"] + ":("
-
+    def add_game(self, pga_game):
+        game = PgaGame(pga_game)
         self.store.append(
             (
-                game["id"],
-                gtk_safe(game["slug"]),
-                gtk_safe(game["name"]),
-                pixbuf,
-                gtk_safe(str(game["year"] or "")),
-                gtk_safe(game["runner"]),
-                gtk_safe(runner_human_name),
-                gtk_safe(platform),
-                game["lastplayed"],
-                gtk_safe(lastplayed_text),
-                game["installed"],
-                game["installed_at"],
-                gtk_safe(installed_at_text),
-                game["playtime"],
-                playtime_text,
+                game.id,
+                game.slug,
+                game.name,
+                game.get_pixbuf(self.icon_type),
+                game.year,
+                game.runner,
+                game.runner_text,
+                game.platform,
+                game.lastplayed,
+                game.lastplayed_text,
+                game.installed,
+                game.installed_at,
+                game.installed_at_text,
+                game.playtime,
+                game.playtime_text
             )
         )
 
