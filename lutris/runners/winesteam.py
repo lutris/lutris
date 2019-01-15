@@ -457,8 +457,8 @@ class winesteam(wine.wine):
             return {"error": "FILE_NOT_FOUND", "file": ex.filename}
 
     def shutdown(self):
-        logger.debug("Stopping all winesteam processes")
-        super(winesteam, self).stop()
+        logger.warning("Steam shutdown has not been implemented "
+                       "(well it was but then we removed it and now we need it back)")
 
     def stop(self):
         if bool(self.runner_config.get("quit_steam_on_exit")):
@@ -473,9 +473,8 @@ class winesteam(wine.wine):
             return False
         self.force_shutdown()
         thread = MonitoredCommand(
-            (self.launch_args + ["steam://uninstall/%s" % appid or self.appid]),
+            (self.launch_args + ["steam://uninstall/%s" % (appid or self.appid)]),
             runner=self,
-            env=self.get_env(os_env=False),
-            watch=False
+            env=self.get_env(os_env=False)
         )
         thread.start()

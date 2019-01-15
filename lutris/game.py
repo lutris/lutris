@@ -40,16 +40,11 @@ class Game(GObject.Object):
 
     def __init__(self, game_id=None):
         super().__init__()
-        self.id = game_id
+        self.id = game_id  # pylint: disable=invalid-name
         self.runner = None
-        self.game_thread = None
-        self.prelaunch_executor = None
-        self.heartbeat = None
         self.config = None
-        self.killswitch = None
-        self.state = self.STATE_IDLE
-        self.exit_main_loop = False
-        self.xboxdrv_thread = None
+
+        # Load attributes from database
         game_data = pga.get_game_by_field(game_id, "id")
         self.slug = game_data.get("slug") or ""
         self.runner_name = game_data.get("runner") or ""
@@ -65,8 +60,19 @@ class Game(GObject.Object):
         self.steamid = game_data.get("steamid") or ""
         self.has_custom_banner = bool(game_data.get("has_custom_banner"))
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
+        try:
+            self.playtime = float(game_data.get("playtime") or 0.0)
+        except ValueError:
+            logger.error("Invalid playtime value %s", game_data.get("playtime"))
 
         self.load_config()
+        self.game_thread = None
+        self.prelaunch_executor = None
+        self.heartbeat = None
+        self.killswitch = None
+        self.state = self.STATE_IDLE
+        self.exit_main_loop = False
+        self.xboxdrv_thread = None
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
@@ -76,10 +82,6 @@ class Game(GObject.Object):
         self.log_buffer.create_tag("warning", foreground="red")
 
         self.timer = Timer()
-        try:
-            self.playtime = float(game_data.get("playtime") or 0.0)
-        except ValueError:
-            logger.error("Invalid playtime value %s", game_data.get("playtime"))
 
     def __repr__(self):
         return self.__unicode__()
@@ -92,6 +94,7 @@ class Game(GObject.Object):
 
     @property
     def formatted_playtime(self):
+        """Return a human readable formatted play time"""
         return strings.get_formatted_playtime(self.playtime)
 
     @staticmethod
@@ -141,6 +144,7 @@ class Game(GObject.Object):
             self.runner = runner_class(self.config)
 
     def set_desktop_compositing(self, enable):
+        """Enables or disables compositing"""
         if enable:
             system.execute(self.start_compositor, shell=True)
         else:
@@ -184,6 +188,7 @@ class Game(GObject.Object):
         do not save the config. This is useful when exiting the game since the
         config might have changed and we don't want to override the changes.
         """
+        logger.debug("Saving %s", self)
         if not metadata_only:
             self.config.save()
         self.id = pga.add_or_update(

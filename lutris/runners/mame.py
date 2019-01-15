@@ -19,7 +19,17 @@ class mame(Runner):
     ]
 
     runner_options = [
-        {"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": True}
+        {"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": True},
+        {
+            "option": "waitvsync",
+            "type": "bool",
+            "label": "Wait for VSync",
+            "help": (
+                "Enable waiting for  the  start  of  VBLANK  before "
+                "flipping  screens; reduces tearing effects."
+            ),
+            "default": False
+        }
     ]
 
     @property
@@ -47,6 +57,10 @@ class mame(Runner):
         rom = os.path.basename(self.game_config.get("main_file"))
         if not self.runner_config.get("fullscreen"):
             options.append("-window")
+
+        if self.runner_config.get("waitvsync"):
+            options.append("-waitvsync")
+
         return {
             "command": [
                 self.get_executable(),

@@ -8,6 +8,7 @@ from lutris.gui.widgets.common import VBox, Label, FileChooserEntry, EditableGri
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util.system import reverse_expanduser
+from lutris.util.jobs import AsyncCall
 
 
 class ConfigBox(VBox):
@@ -230,10 +231,8 @@ class ConfigBox(VBox):
 
         checkbox.connect(
             "notify::active",
-            self.checkbox_toggle_with_callback,
-            option["option"],
-            option["callback"],
-            option["callback_on"],
+            self._on_toggle_with_callback,
+            option
         )
         checkbox.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(checkbox, False, False, 0)
@@ -243,17 +242,23 @@ class ConfigBox(VBox):
         """Action for the checkbox's toggled signal."""
         self.option_changed(widget, option_name, widget.get_active())
 
-    def checkbox_toggle_with_callback(
-        self, widget, _gparam, option_name, callback, callback_on=None
-    ):
+    def _on_toggle_with_callback(self, widget, _gparam, option):
         """Action for the checkbox's toggled signal. With callback method"""
+
+        option_name = option["option"]
+        callback = option["callback"]
+        callback_on = option.get("callback_on")
         if widget.get_active() == callback_on or callback_on is None:
-            if callback(self.config):
-                self.option_changed(widget, option_name, widget.get_active())
-            else:
-                widget.set_active(False)
+            AsyncCall(callback, self._on_callback_finished, widget, option, self.config)
         else:
             self.option_changed(widget, option_name, widget.get_active())
+
+    def _on_callback_finished(self, result, _error):
+        widget, option, response = result
+        if response:
+            self.option_changed(widget, option["option"], widget.get_active())
+        else:
+            widget.set_active(False)
 
     # Entry
     def generate_entry(self, option_name, label, value=None, option_size=None):

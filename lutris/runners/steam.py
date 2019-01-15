@@ -342,16 +342,10 @@ class steam(Runner):
 
     def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():
-            installed = self.install_dialog()
-            if not installed:
-                return False
-        appid = appid if appid else self.appid
-        if appid is None:
-            raise RuntimeError(
-                "No appid given for uninstallation "
-                "(game config=%s)" % self.game_config
-            )
-        logger.debug("Launching Steam uninstall of game %s", appid)
-        command = [self.get_executable(), "steam://uninstall/%s" % appid]
-        thread = MonitoredCommand(command, runner=self, env=self.get_env(), watch=False)
-        thread.start()
+            return False
+        command = MonitoredCommand(
+            [self.get_executable(), "steam://uninstall/%s" % (appid or self.appid)],
+            runner=self,
+            env=self.get_env()
+        )
+        command.start()

@@ -445,21 +445,21 @@ class DontShowAgainDialog(Gtk.MessageDialog):
     """Display a message to the user and offer an option not to display this dialog again."""
 
     def __init__(
-        self,
-        setting,
-        message,
-        secondary_message=None,
-        parent=None,
-        checkbox_message=None,
+            self,
+            setting,
+            message,
+            secondary_message=None,
+            parent=None,
+            checkbox_message=None,
     ):
-        super().__init__(
-            type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent
-        )
 
         if settings.read_setting(setting) == "True":
             logger.info("Dialog %s dismissed by user", setting)
-            self.destroy()
             return
+
+        super().__init__(
+            type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent
+        )
 
         self.set_border_width(12)
         self.set_markup("<b>%s</b>" % message)
@@ -475,7 +475,6 @@ class DontShowAgainDialog(Gtk.MessageDialog):
         dont_show_checkbutton.show()
 
         content_area = self.get_content_area()
-        # content_area.props.halign = Gtk.Align.CENTER
         content_area.pack_start(dont_show_checkbutton, False, False, 0)
         self.run()
         if dont_show_checkbutton.get_active():

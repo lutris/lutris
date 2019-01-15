@@ -1,6 +1,7 @@
 """Personnal Game Archive module. Handle local database of user's games."""
 
 import os
+import math
 import time
 from itertools import chain
 
@@ -216,6 +217,20 @@ def get_games_where(**conditions):
     return sql.db_query(PGA_DB, query, tuple(condition_values))
 
 
+def get_games_by_ids(game_ids):
+    # sqlite limits the number of query parameters to 999, to
+    # bypass that limitation, divide the query in chunks
+    size = 999
+    return list(chain.from_iterable(
+        [
+            get_games_where(
+                id__in=list(game_ids)[page * size: page * size + size]
+            )
+            for page in range(math.ceil(len(game_ids) / size))
+        ]
+    ))
+
+
 def get_game_by_field(value, field="slug"):
     """Query a game based on a database field"""
     if field not in ("slug", "installer_slug", "id", "configpath", "steamid"):
@@ -388,7 +403,7 @@ def get_used_platforms_game_count():
     return {result[0]: result[1] for result in results if result[0]}
 
 
-def unfuck_playtime(game):
+def fix_playtime(game):
     """Fix a temporary glitch that happened with the playtime implementation"""
     broken_playtime = game["playtime"]
     if not broken_playtime.endswith(" hrs"):

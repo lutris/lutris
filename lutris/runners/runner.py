@@ -203,7 +203,7 @@ class Runner:
         if hasattr(self, "prelaunch"):
             self.prelaunch()
 
-        command_runner = MonitoredCommand(command, runner=self, env=env, watch=False)
+        command_runner = MonitoredCommand(command, runner=self, env=env)
         command_runner.start()
 
     def use_runtime(self):
@@ -254,6 +254,7 @@ class Runner:
         request = Request(runner_api_url)
         response = request.get()
         response_content = response.json
+
         if response_content:
             versions = response_content.get("versions") or []
             arch = self.arch
@@ -274,6 +275,9 @@ class Runner:
                 default_version = [v for v in versions if v["default"] is True]
                 if default_version:
                     return default_version[0]
+            # If we didn't find a proper version yet, return the first available.
+            if len(versions_for_arch) >= 1:
+                return versions_for_arch[0]
 
     def install(self, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""

@@ -37,3 +37,22 @@ class AsyncCall(threading.Thread):
 
         self.source_id = GLib.idle_add(self.callback, result, error)
         return self.source_id
+
+
+def synchronized_call(func, event, result):
+    """Calls func, stores the result by reference, set an event when finished"""
+    result.append(func())
+    event.set()
+
+
+def thread_safe_call(func):
+    """Synchronous call to func, safe to call in a callback started from a thread
+    Not safe to use otherwise, will crash if run from the main thread.
+
+    See: https://pygobject.readthedocs.io/en/latest/guide/threading.html
+    """
+    event = threading.Event()
+    result = []
+    GLib.idle_add(synchronized_call, func, event, result)
+    event.wait()
+    return result[0]

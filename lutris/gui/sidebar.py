@@ -138,6 +138,7 @@ class SidebarListBox(Gtk.ListBox):
         self.platforms = sorted(platforms.__all__)
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
+        GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
 
         # TODO: This should be in a more logical location
         icon_theme = Gtk.IconTheme.get_default()

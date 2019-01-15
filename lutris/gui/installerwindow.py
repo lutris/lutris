@@ -450,7 +450,6 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
     def on_install_finished(self):
         """Actual game installation."""
-        self.status_label.set_text("Installation finished!")
         self.notify_install_success()
         self.clean_widgets()
 

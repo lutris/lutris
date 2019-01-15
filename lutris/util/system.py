@@ -102,7 +102,7 @@ class LinuxSystem:
         '/usr/share/soundfonts',
     ]
 
-    recommended_no_file_open = 1048576
+    recommended_no_file_open = 524288
     required_components = ["OPENGL"]
     optional_components = ["VULKAN", "WINE", "GAMEMODE"]
 

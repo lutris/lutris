@@ -8,6 +8,7 @@ from lutris import runtime
 from lutris.settings import RUNTIME_DIR
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.runner import Runner
+from lutris.util.jobs import thread_safe_call
 from lutris.util import display, system
 from lutris.util.log import logger
 from lutris.util.strings import parse_version
@@ -157,31 +158,26 @@ class wine(Runner):
                 version_choices.append((version, version))
             return version_choices
 
-        def esync_limit_callback(config):
+        def esync_limit_callback(widget, option, config):
             limits_set = is_esync_limit_set()
             wine_path = self.get_path_for_version(config["version"])
             wine_ver = is_version_esync(wine_path)
 
-            if not limits_set and not wine_ver:
-                esync_display_version_warning(False)
-                esync_display_limit_warning()
-                return False
+            if not wine_ver:
+                response = thread_safe_call(esync_display_version_warning)
 
             if not limits_set:
-                esync_display_limit_warning()
-                return False
+                thread_safe_call(esync_display_limit_warning)
+                response = False
 
-            if not wine_ver:
-                if not esync_display_version_warning(False):
-                    return False
+            return widget, option, response
 
-            return True
-
-        def dxvk_vulkan_callback(config):
+        def dxvk_vulkan_callback(widget, option, config):
+            response = True
             if not is_vulkan_supported():
-                if not display_vulkan_error(False):
-                    return False
-            return True
+                if not thread_safe_call(display_vulkan_error):
+                    response = False
+            return widget, option, response
 
         self.runner_options = [
             {

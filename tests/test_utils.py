@@ -79,6 +79,13 @@ class TestStringUtils(TestCase):
         )
         self.assertEqual(strings.add_url_tags(text), expected)
 
+    def test_get_formatted_playtime(self):
+        self.assertEqual(strings.get_formatted_playtime(None), "No play time recorded")
+        self.assertEqual(strings.get_formatted_playtime(1.0), "1 hour")
+        self.assertEqual(strings.get_formatted_playtime(2.0), "2 hours")
+        self.assertEqual(strings.get_formatted_playtime(0.5), "30 minutes")
+        self.assertEqual(strings.get_formatted_playtime(1.5), "1 hour and 30 minutes")
+        self.assertEqual(strings.get_formatted_playtime(45.90), "45 hours and 53 minutes")
 
 class TestVersionSort(TestCase):
     def test_parse_version(self):

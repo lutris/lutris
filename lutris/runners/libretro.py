@@ -116,16 +116,22 @@ class libretro(Runner):
 
     runner_options = [
         {
+            "option": "config_file",
+            "type": "file",
+            "label": "Config file",
+            "default": get_default_config_path("retroarch.cfg"),
+        },
+        {
             "option": "fullscreen",
             "type": "bool",
             "label": "Fullscreen",
             "default": True,
         },
         {
-            "option": "config_file",
-            "type": "file",
-            "label": "Config file",
-            "default": get_default_config_path("retroarch.cfg"),
+            "option": "verbose",
+            "type": "bool",
+            "label": "Verbose logging",
+            "default": False,
         },
     ]
 
@@ -141,10 +147,9 @@ class libretro(Runner):
                     return core[2]
         return ""
 
-    @staticmethod
-    def get_core_path(core):
+    def get_core_path(self, core):
         return os.path.join(
-            settings.RUNNER_DIR, "retroarch/cores/{}_libretro.so".format(core)
+            settings.RUNNER_DIR, "retroarch", "cores", "{}_libretro.so".format(core)
         )
 
     def get_version(self, use_default=True):
@@ -158,6 +163,7 @@ class libretro(Runner):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):
             return self.is_retroarch_installed()
+
         is_core_installed = system.path_exists(self.get_core_path(core))
         return self.is_retroarch_installed() and is_core_installed
 
@@ -208,28 +214,16 @@ class libretro(Runner):
             retro_config = RetroConfig(config_file)
             retro_config["libretro_directory"] = get_default_config_path("cores")
             retro_config["libretro_info_path"] = get_default_config_path("info")
-            retro_config["content_database_path"] = get_default_config_path(
-                "database/rdb"
-            )
-            retro_config["cheat_database_path"] = get_default_config_path(
-                "database/cht"
-            )
-            retro_config["cursor_directory"] = get_default_config_path(
-                "database/cursors"
-            )
-            retro_config["screenshot_directory"] = get_default_config_path(
-                "screenshots"
-            )
-            retro_config["input_remapping_directory"] = get_default_config_path(
-                "remaps"
-            )
+            retro_config["content_database_path"] = get_default_config_path("database/rdb")
+            retro_config["cheat_database_path"] = get_default_config_path("database/cht")
+            retro_config["cursor_directory"] = get_default_config_path("database/cursors")
+            retro_config["screenshot_directory"] = get_default_config_path("screenshots")
+            retro_config["input_remapping_directory"] = get_default_config_path("remaps")
             retro_config["video_shader_dir"] = get_default_config_path("shaders")
             retro_config["core_assets_directory"] = get_default_config_path("downloads")
             retro_config["thumbnails_directory"] = get_default_config_path("thumbnails")
             retro_config["playlist_directory"] = get_default_config_path("playlists")
-            retro_config["joypad_autoconfig_dir"] = get_default_config_path(
-                "autoconfig"
-            )
+            retro_config["joypad_autoconfig_dir"] = get_default_config_path("autoconfig")
             retro_config["rgui_config_directory"] = get_default_config_path("config")
             retro_config["overlay_directory"] = get_default_config_path("overlay")
             retro_config["assets_directory"] = get_default_config_path("assets")
@@ -283,10 +277,16 @@ class libretro(Runner):
 
     def get_runner_parameters(self):
         parameters = []
+
         # Fullscreen
         fullscreen = self.runner_config.get("fullscreen")
         if fullscreen:
             parameters.append("--fullscreen")
+
+        # Verbose
+        verbose = self.runner_config.get("verbose")
+        if verbose:
+            parameters.append("--verbose")
 
         parameters.append("--config={}".format(self.get_config_file()))
         return parameters
@@ -305,6 +305,10 @@ class libretro(Runner):
             }
         command.append("--libretro={}".format(self.get_core_path(core)))
 
+        # Ensure the core is available
+        if not self.is_installed(core):
+            self.install(core)
+
         # Main file
         file = self.game_config.get("main_file")
         if not file:
@@ -313,3 +317,15 @@ class libretro(Runner):
             return {"error": "FILE_NOT_FOUND", "file": file}
         command.append(file)
         return {"command": command}
+
+    # Checks whether the retroarch or libretro directories can be uninstalled.
+    def can_uninstall(self):
+        retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
+        return os.path.isdir(retroarch_path) or super(libretro, self).can_uninstall()
+
+    # Remove the `retroarch` directory.
+    def uninstall(self):
+        retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
+        if os.path.isdir(retroarch_path):
+            system.remove_folder(retroarch_path)
+        super(libretro, self).uninstall()

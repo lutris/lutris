@@ -13,11 +13,16 @@ class RetroConfig:
         self.config = []
         with open(config_path, "r") as config_file:
             for line in config_file.readlines():
-                try:
-                    key, value = line.strip().split(" = ", 1)
-                except ValueError:
+                if not line:
                     continue
-                value = value.strip('"')
+                line = line.strip()
+                if line == "" or line.startswith('#'):
+                    continue
+                key, value = line.split("=")
+                key = key.strip()
+                value = value.strip().strip('"')
+                if not key or not value:
+                    continue
                 self.config.append((key, value))
 
     def save(self):
@@ -43,8 +48,8 @@ class RetroConfig:
                 return self.deserialize_value(value)
 
     def __setitem__(self, key, value):
-        for index, k, _ in enumerate(self.config):
-            if key == k:
+        for index, conf in enumerate(self.config):
+            if key == conf[0]:
                 self.config[index] = (key, self.serialize_value(value))
                 return
         self.config.append((key, self.serialize_value(value)))

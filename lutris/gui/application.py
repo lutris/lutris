@@ -42,7 +42,8 @@ from lutris.command import exec_command
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.util import datapath
-from lutris.util.log import logger, console_handler, DEBUG_FORMATTER
+from lutris.util import log
+from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
 from lutris.util.system import check_libs
 from lutris.util.drivers import check_driver
@@ -111,92 +112,48 @@ class Application(Gtk.Application):
                 "was added in GLib 2.56 (Released 2018-03-12)"
             )
         self.add_main_option(
-            "version",
-            ord("v"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Print the version of Lutris and exit"),
-            None,
+            "version", ord("v"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+            _("Print the version of Lutris and exit"), None,
         )
         self.add_main_option(
-            "debug",
-            ord("d"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Show debug messages"),
-            None,
+            "debug", ord("d"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+            _("Show debug messages"), None,
         )
         self.add_main_option(
-            "install",
-            ord("i"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Install a game from a yml file"),
-            None,
+            "install", ord("i"), GLib.OptionFlags.NONE, GLib.OptionArg.STRING,
+            _("Install a game from a yml file"), None,
         )
         self.add_main_option(
-            "exec",
-            ord("e"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Execute a program with the lutris runtime"),
-            None,
+            "exec", ord("e"), GLib.OptionFlags.NONE, GLib.OptionArg.STRING,
+            _("Execute a program with the lutris runtime"), None,
         )
         self.add_main_option(
-            "list-games",
-            ord("l"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("List all games in database"),
-            None,
+            "list-games", ord("l"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+            _("List all games in database"), None,
         )
         self.add_main_option(
-            "installed",
-            ord("o"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Only list installed games"),
-            None,
+            "installed", ord("o"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+            _("Only list installed games"), None,
         )
         self.add_main_option(
-            "list-steam-games",
-            ord("s"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("List available Steam games"),
-            None,
+            "list-steam-games", ord("s"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+            _("List available Steam games"), None,
         )
         self.add_main_option(
-            "list-steam-folders",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("List all known Steam library folders"),
-            None,
+            "list-steam-folders", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+            _("List all known Steam library folders"), None,
         )
         self.add_main_option(
-            "json",
-            ord("j"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Display the list of games in JSON format"),
-            None,
+            "json", ord("j"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+            _("Display the list of games in JSON format"), None,
         )
         self.add_main_option(
-            "reinstall",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Reinstall game"),
-            None,
+            "reinstall", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+            _("Reinstall game"), None,
         )
         self.add_main_option(
-            GLib.OPTION_REMAINING,
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING_ARRAY,
-            _("uri to open"),
-            "URI",
+            GLib.OPTION_REMAINING, 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING_ARRAY,
+            _("uri to open"), "URI",
         )
 
     def do_startup(self):
@@ -220,11 +177,9 @@ class Application(Gtk.Application):
 
     def set_tray_icon(self, active=False):
         """Creates or destroys a tray icon for the application"""
-        if self.tray:
-            self.tray.set_visible(active)
-        else:
+        if not self.tray:
             self.tray = LutrisTray(application=self)
-            self.tray.set_visible(active)
+        self.tray.set_visible(active)
 
     def do_activate(self):
         if not self.window:
@@ -243,9 +198,27 @@ class Application(Gtk.Application):
     def do_command_line(self, command_line):
         options = command_line.get_options_dict()
 
+        # Use stdout to output logs, only if no command line argument is
+        # provided
+        argc = len(sys.argv) - 1
+        if "-d" in sys.argv or "--debug" in sys.argv:
+            argc -= 1
+        if not argc:
+            # Switch back the log output to stderr (the default in Python)
+            # to avoid messing with any output from command line options.
+
+            # Use when targetting Python 3.7 minimum
+            # console_handler.setStream(sys.stderr)
+
+            # Until then...
+            logger.removeHandler(log.console_handler)
+            log.console_handler = logging.StreamHandler(stream=sys.stdout)
+            log.console_handler.setFormatter(log.SIMPLE_FORMATTER)
+            logger.addHandler(log.console_handler)
+
         # Set up logger
         if options.contains("debug"):
-            console_handler.setFormatter(DEBUG_FORMATTER)
+            log.console_handler.setFormatter(log.DEBUG_FORMATTER)
             logger.setLevel(logging.DEBUG)
 
         # Text only commands
@@ -346,8 +319,8 @@ class Application(Gtk.Application):
                 game_slug=game_slug,
                 installer_file=installer_file,
                 revision=revision,
-                parent=self,
-                application=self.application,
+                parent=self.window,
+                application=self,
             )
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
