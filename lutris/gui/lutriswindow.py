@@ -33,8 +33,8 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
+from lutris.gui.views.game_panel import GamePanel
 from lutris.gui.widgets.utils import IMAGE_SIZES
-from lutris.gui.game_panel import GamePanel
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
