@@ -27,7 +27,6 @@ class MonitoredCommand:
             runner=None,
             env=None,
             term=None,
-            watch=True,
             cwd=None,
             include_processes=None,
             exclude_processes=None,
@@ -48,7 +47,6 @@ class MonitoredCommand:
         self.game_process = None
         self.return_code = None
         self.terminal = system.find_executable(term)
-        self.watch = watch
         self.is_running = True
         self.stdout = ""
         self.daemon = True
@@ -124,14 +122,11 @@ class MonitoredCommand:
 
         register_handler(self.game_process.pid, self.on_stop)
 
-        if self.watch:
-            self.stdout_monitor = GLib.io_add_watch(
-                self.game_process.stdout,
-                GLib.IO_IN | GLib.IO_HUP,
-                self.on_stdout_output,
-            )
-        else:
-            raise ValueError("Why do you use a MonitoredCommand if you're not going to watch it?")
+        self.stdout_monitor = GLib.io_add_watch(
+            self.game_process.stdout,
+            GLib.IO_IN | GLib.IO_HUP,
+            self.on_stdout_output,
+        )
 
     def log_handler_stdout(self, line):
         """Add the line to this command's stdout attribute"""
@@ -209,15 +204,10 @@ class MonitoredCommand:
             if self.cwd and not system.path_exists(self.cwd):
                 os.makedirs(self.cwd)
 
-            if self.watch:
-                pipe = subprocess.PIPE
-            else:
-                pipe = None
-
             return subprocess.Popen(
                 command,
                 bufsize=1,
-                stdout=pipe,
+                stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 cwd=self.cwd,
                 env=env,
