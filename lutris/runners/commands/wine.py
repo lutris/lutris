@@ -244,6 +244,8 @@ def wineexec(
         MonitoredCommand instance otherwise.
     """
     executable = str(executable) if executable else ""
+    include_processes = shlex.split(include_processes or "")
+    exclude_processes = shlex.split(exclude_processes or "")
     if not wine_path:
         wine = import_runner("wine")
         wine_path = wine().get_executable()
