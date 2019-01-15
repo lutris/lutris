@@ -1,6 +1,7 @@
 """Utility module to handle media resources"""
 import os
 import concurrent.futures
+import locale
 from urllib.parse import urlparse, parse_qsl
 from gi.repository import GLib
 
@@ -113,3 +114,4 @@ def parse_installer_url(url):
         query = dict(parse_qsl(parsed_url.query))
         revision = query.get("revision")
     return {"game_slug": game_slug, "revision": revision, "action": action}
+locale.setlocale(locale.LC_ALL, 'C')
