@@ -338,7 +338,7 @@ class GameDialogCommon:
         self._build_system_tab("game")
         self.show_all()
 
-    def on_cancel_clicked(self, widget=None):
+    def on_cancel_clicked(self, _widget=None, _event=None):
         """Dialog destroy callback."""
         if self.game:
             self.game.load_config()

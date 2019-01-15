@@ -30,6 +30,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.build_tabs("game")
         self.build_action_area(self.on_save, callback)
         self.name_entry.grab_focus()
+        self.connect("delete-event", self.on_cancel_clicked)
         self.show_all()
 
     def get_config_id(self):
