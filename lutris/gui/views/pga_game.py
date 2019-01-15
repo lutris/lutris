@@ -9,7 +9,9 @@ from lutris.gui.widgets.utils import get_pixbuf_for_game
 
 
 class PgaGame:
-    """Representation of a game for views"""
+    """Representation of a game for views
+    TODO: Fix overlap with Game class
+    """
     def __init__(self, pga_data):
         self._pga_data = pga_data
         self.runner_names = {

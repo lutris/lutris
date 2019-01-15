@@ -19,6 +19,9 @@ class GamePanel(Gtk.Fixed):
         self.set_size_request(320, -1)
         self.get_style_context().add_class("game-panel")
         self.set_background()
+        self.place_content()
+
+    def place_content(self):
         self.put(self.get_icon(), 12, 16)
         self.put(self.get_title_label(), 50, 20)
         labels_x = 50
@@ -181,5 +184,6 @@ class GamePanel(Gtk.Fixed):
         self.buttons["show_logs"].set_sensitive(True)
 
     def on_game_stop(self, widget):
-        self.buttons["play"].show()
-        self.buttons["stop"].hide()
+        for child in self.get_children():
+            child.destroy()
+        self.place_content()
