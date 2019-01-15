@@ -35,7 +35,8 @@ class Game(GObject.Object):
     __gsignals__ = {
         "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ())
+        "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-removed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
     }
 
     def __init__(self, game_id=None):
@@ -172,6 +173,7 @@ class Game(GObject.Object):
             pga.set_uninstalled(self.id)
         self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
+        self.emit("game-removed", self.id)
         return from_library
 
     def set_platform_from_runner(self):
