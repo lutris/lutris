@@ -473,7 +473,7 @@ class winesteam(wine.wine):
             return False
         self.force_shutdown()
         thread = MonitoredCommand(
-            (self.launch_args + ["steam://uninstall/%s" % appid or self.appid]),
+            (self.launch_args + ["steam://uninstall/%s" % (appid or self.appid)]),
             runner=self,
             env=self.get_env(os_env=False)
         )
