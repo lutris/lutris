@@ -104,6 +104,7 @@ class wine(Runner):
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "OffscreenRenderingMode": r"%s/Direct3D" % reg_prefix,
         "StrictDrawOrdering": r"%s/Direct3D" % reg_prefix,
+        "SampleCount": r"%s/Direct3D" % reg_prefix,
         "Desktop": "MANAGED",
         "WineDesktop": "MANAGED",
         "ShowCrashDialog": "MANAGED",
@@ -344,6 +345,25 @@ class wine(Runner):
                     "In general disabling GLSL is not recommended, "
                     "only use this for debugging purposes."
                 ),
+            },
+            {
+                'option': 'SampleCount',
+                'label': "Anti-aliasing Sample Count",
+                'type': 'choice',
+                'choices': [
+                            ('0', '0 (disabled)'),
+                            ('2', '2'),
+                            ('4', '4'),
+                            ('8', '8'),
+                            ('16', '16')],
+                'default': '0',
+                'advanced': True,
+                'help': (
+                    "Override swapchain sample count. It can be used to force enable multisampling"
+                    "with applications that otherwise don't support it, like the similar control panel setting"
+                    "available with some GPU drivers. This one might work in more cases than the driver setting though."
+                    " Not all applications are compatible with all sample counts. "
+                   )
             },
             {
                 "option": "UseXVidMode",
@@ -659,7 +679,11 @@ class wine(Runner):
                         value = None
                     managed_keys[key](value)
                     continue
-                prefix_manager.set_registry_key(path, key, value)
+                # Convert numeric strings to integers so they are saved as dword
+                if value.isdigit():
+                    value = int(value)
+
+                    prefix_manager.set_registry_key(path, key, value)
 
     def toggle_dxvk(self, enable, version=None):
         dxvk_manager = dxvk.DXVKManager(
