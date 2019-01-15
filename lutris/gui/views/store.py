@@ -1,17 +1,14 @@
 """Store object for a list of games"""
-import time
 from gi.repository import Gtk, GObject, GLib
 from gi.repository.GdkPixbuf import Pixbuf
-from lutris import runners
 from lutris import pga
-from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.util.resources import get_icon_path, download_media
 from lutris.util.log import logger
 from lutris.util import system
 from lutris import api
 from lutris.util.jobs import AsyncCall
-from lutris.util.strings import gtk_safe, get_formatted_playtime
+from lutris.gui.views.pga_game import PgaGame
 from . import (
     COL_ID,
     COL_SLUG,
@@ -31,124 +28,6 @@ from . import (
 )
 
 
-class PgaGame:
-    """Representation of a database stored game"""
-    def __init__(self, pga_data):
-        self._pga_data = pga_data
-        runner_names = {}
-        for runner in runners.__all__:
-            runner_inst = runners.import_runner(runner)
-            runner_names[runner] = runner_inst.human_name
-        self.runner_names = runner_names
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return "<PgaGame id=%s slug=%s>" % (self.id, self.slug)
-
-    @property
-    def id(self):  # pylint: disable=invalid-name
-        """Game internal ID"""
-        return self._pga_data["id"]
-
-    @property
-    def slug(self):
-        """Slug identifier"""
-        return gtk_safe(self._pga_data["slug"])
-
-    @property
-    def name(self):
-        """Name"""
-        return gtk_safe(self._pga_data["name"])
-
-    @property
-    def year(self):
-        """Year"""
-        return str(self._pga_data["year"] or "")
-
-    @property
-    def runner(self):
-        """Runner slug"""
-        return gtk_safe(self._pga_data["runner"])
-
-    @property
-    def runner_text(self):
-        """Runner name"""
-        return gtk_safe(self.runner_names.get(self.runner))
-
-    @property
-    def platform(self):
-        """Platform"""
-        _platform = self._pga_data["platform"]
-        if not _platform and self.installed:
-            game_inst = Game(self._pga_data["id"])
-            _platform = game_inst.platform
-            if not _platform:
-                game_inst.set_platform_from_runner()
-                _platform = game_inst.platform
-                logger.debug("Setting platform for %s: %s", self, _platform)
-        return _platform
-
-    @property
-    def installed(self):
-        """Game is installed"""
-        if not self._pga_data["runner"]:
-            return False
-        return self._pga_data["installed"]
-
-    def get_pixbuf(self, icon_type):
-        """Pixbuf varying on icon type"""
-        return get_pixbuf_for_game(
-            self._pga_data["slug"],
-            icon_type,
-            self._pga_data["installed"]
-        )
-
-    @property
-    def installed_at(self):
-        """Date of install"""
-        return self._pga_data["installed_at"]
-
-    @property
-    def installed_at_text(self):
-        """Date of install (textual representation)"""
-        return gtk_safe(
-            time.strftime("%X %x", time.localtime(self._pga_data["installed_at"]))
-            if self._pga_data["installed_at"] else ""
-        )
-
-    @property
-    def lastplayed(self):
-        """Date of last play"""
-        return self._pga_data["lastplayed"]
-
-    @property
-    def lastplayed_text(self):
-        """Date of last play (textual representation)"""
-        return gtk_safe(
-            time.strftime("%X %x", time.localtime(self._pga_data["lastplayed"]))
-            if self._pga_data["lastplayed"] else ""
-        )
-
-    @property
-    def playtime(self):
-        """Playtime duration in hours"""
-        return self._pga_data["playtime"]
-
-    @property
-    def playtime_text(self):
-        """Playtime duration in hours (textual representation)"""
-        try:
-            playtime_text = get_formatted_playtime(self._pga_data["playtime"])
-        except ValueError:
-            # We're all screwed
-            logger.warning("Invalid playtime value %s for %s", self.playtime, self)
-            pga.fix_playtime(self._pga_data)
-            playtime_text = ""  # Do not show erroneous values
-        return playtime_text
-
-
 class GameStore(GObject.Object):
     __gsignals__ = {
         "media-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -166,7 +45,6 @@ class GameStore(GObject.Object):
         "installed_at": COL_INSTALLED_AT,
         "playtime": COL_PLAYTIME
     }
-
 
     def __init__(
             self,
@@ -345,7 +223,7 @@ class GameStore(GObject.Object):
         game = PgaGame(pga_game)
         row = self.get_row_by_id(game.id)
         if not row:
-            raise ValueError("No existing row for game %s", game.slug)
+            raise ValueError("No existing row for game %s" % game.slug)
         row[COL_ID] = game.id
         row[COL_SLUG] = game.slug
         row[COL_NAME] = game.name
@@ -367,7 +245,7 @@ class GameStore(GObject.Object):
     def refresh_icon(self, game_slug):
         AsyncCall(self.fetch_icon, None, game_slug)
 
-    def on_icon_loaded(self, store, game_slug, media_type):
+    def on_icon_loaded(self, _store, game_slug, media_type):
         if not self.has_icon(game_slug):
             return
         if media_type != self.icon_type:
