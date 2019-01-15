@@ -30,16 +30,6 @@ from . import (
     COL_PLAYTIME_TEXT
 )
 
-sortings = {
-    "name": COL_NAME,
-    "year": COL_YEAR,
-    "runner": COL_RUNNER_HUMAN_NAME,
-    "platform": COL_PLATFORM,
-    "lastplayed": COL_LASTPLAYED,
-    "installed_at": COL_INSTALLED_AT,
-    "playtime": COL_PLAYTIME
-}
-
 
 class PgaGame:
     """Representation of a database stored game"""
@@ -166,6 +156,17 @@ class GameStore(GObject.Object):
         "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
         "sorting-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, bool)),
     }
+
+    sort_columns = {
+        "name": COL_NAME,
+        "year": COL_YEAR,
+        "runner": COL_RUNNER_HUMAN_NAME,
+        "platform": COL_PLATFORM,
+        "lastplayed": COL_LASTPLAYED,
+        "installed_at": COL_INSTALLED_AT,
+        "playtime": COL_PLAYTIME
+    }
+
 
     def __init__(
             self,
@@ -301,7 +302,7 @@ class GameStore(GObject.Object):
 
     def sort_view(self, key="name", ascending=True):
         self.modelsort.set_sort_column_id(
-            sortings[key],
+            self.sort_columns[key],
             Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING,
         )
 
@@ -309,7 +310,7 @@ class GameStore(GObject.Object):
         if self.prevent_sort_update:
             return
         (col, direction) = model.get_sort_column_id()
-        key = next((c for c, k in sortings.items() if k == col), None)
+        key = next((c for c, k in self.sort_columns.items() if k == col), None)
         ascending = direction == Gtk.SortType.ASCENDING
         self.prevent_sort_update = True
         self.sort_view(key, ascending)
