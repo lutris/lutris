@@ -6,6 +6,9 @@ from lutris.util import http, jobs
 from lutris.util.log import logger
 
 
+get_time = time.monotonic
+
+
 class Downloader:
     """Non-blocking downloader.
 
@@ -49,7 +52,7 @@ class Downloader:
         """Start download job."""
         logger.debug("Starting download of:\n %s", self.url)
         self.state = self.DOWNLOADING
-        self.last_check_time = time.time()
+        self.last_check_time = get_time()
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
         self.file_pointer = open(self.dest, "wb")
@@ -137,7 +140,7 @@ class Downloader:
         self.full_size = full_size
         self.speed, self.average_speed = self.get_speed()
         self.time_left = self.get_average_time_left()
-        self.last_check_time = time.time()
+        self.last_check_time = get_time()
 
         if self.full_size:
             self.progress_fraction = float(self.downloaded_size) / float(self.full_size)
@@ -145,31 +148,27 @@ class Downloader:
 
     def get_speed(self):
         """Return (speed, average speed) tuple."""
-        elapsed_time = time.time() - self.last_check_time
+        elapsed_time = get_time() - self.last_check_time
         chunk_size = self.downloaded_size - self.last_size
         speed = chunk_size / elapsed_time or 1
         self.last_speeds.append(speed)
 
         # Average speed
-        if time.time() - self.speed_check_time < 1:  # Minimum delay
+        if get_time() - self.speed_check_time < 1:  # Minimum delay
             return self.speed, self.average_speed
 
-        sample_size = 20
-        while len(self.last_speeds) > sample_size:
+        while len(self.last_speeds) > 20:
             self.last_speeds.pop(0)
 
-        sample = self.last_speeds
-        if len(sample) > 7:
+        if len(self.last_speeds) > 7:
             # Skim extreme values
-            sample.pop() * 2
-            sample.pop(0) * 2
+            samples = self.last_speeds[1:-1]
+        else:
+            samples = self.last_speeds[:]
 
-        added_speeds = 0
-        for speed in sample:
-            added_speeds += speed
-        average_speed = added_speeds / len(sample)
+        average_speed = sum(samples) / len(samples)
 
-        self.speed_check_time = time.time()
+        self.speed_check_time = get_time()
         return speed, average_speed
 
     def get_average_time_left(self):
@@ -177,12 +176,12 @@ class Downloader:
         if not self.full_size:
             return "???"
 
-        elapsed_time = time.time() - self.time_left_check_time
+        elapsed_time = get_time() - self.time_left_check_time
         if elapsed_time < 1:  # Minimum delay
             return self.time_left
 
         average_time_left = (self.full_size - self.downloaded_size) / self.average_speed
         minutes, seconds = divmod(average_time_left, 60)
         hours, minutes = divmod(minutes, 60)
-        self.time_left_check_time = time.time()
+        self.time_left_check_time = get_time()
         return "%d:%02d:%02d" % (hours, minutes, seconds)
