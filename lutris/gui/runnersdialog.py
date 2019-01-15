@@ -30,7 +30,10 @@ class RunnersDialog(GtkBuilderDialog):
     dialog_object = "runners_dialog"
     runner_entry_ui = os.path.join(datapath.get(), "ui", 'runner-entry.ui')
 
-    __gsignals__ = {"runner-installed": (GObject.SIGNAL_RUN_FIRST, None, ())}
+    __gsignals__ = {
+        "runner-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "runner-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
 
     def initialize(self, **kwargs):
         width = int(settings.read_setting("runners_manager_width") or 800)
@@ -181,11 +184,13 @@ class RunnersDialog(GtkBuilderDialog):
     def on_remove_confirm_clicked(self, widget, runner, runner_label):
         runner.uninstall()
         self.refresh_button.emit("clicked")
+        self.emit("runner-removed")
         self.remove_confirm_dialog.destroy()
 
     def on_remove_all_clicked(self, _widget, runner, _runner_label):
         runner.uninstall()
         self.refresh_button.emit("clicked")
+        self.emit("runner-removed")
         self.all_versions_dialog.destroy()
 
     def on_cancel_confirm_clicked(self, _widget):
