@@ -637,7 +637,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if from_library:
             GLib.idle_add(do_remove_game)
         else:
-            self.game_store.update(game_id)
+            self.game_store.update_game_by_id(game_id)
         self.sidebar_listbox.update()
 
     def on_toggle_viewtype(self, *args):

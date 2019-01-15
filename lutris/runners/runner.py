@@ -203,7 +203,7 @@ class Runner:
         if hasattr(self, "prelaunch"):
             self.prelaunch()
 
-        command_runner = MonitoredCommand(command, runner=self, env=env, watch=False)
+        command_runner = MonitoredCommand(command, runner=self, env=env)
         command_runner.start()
 
     def use_runtime(self):

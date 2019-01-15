@@ -353,5 +353,5 @@ class steam(Runner):
             )
         logger.debug("Launching Steam uninstall of game %s", appid)
         command = [self.get_executable(), "steam://uninstall/%s" % appid]
-        thread = MonitoredCommand(command, runner=self, env=self.get_env(), watch=False)
+        thread = MonitoredCommand(command, runner=self, env=self.get_env())
         thread.start()

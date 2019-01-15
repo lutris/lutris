@@ -4,6 +4,7 @@ import shutil
 import tarfile
 import subprocess
 import gzip
+import zlib
 from lutris.util import system
 from lutris.util.log import logger
 from lutris import settings
@@ -87,7 +88,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
     try:
         _do_extract(path, temp_path, opener, mode, extractor)
-    except OSError as ex:
+    except (OSError, zlib.error) as ex:
         logger.exception("Extraction failed: %s", ex)
         raise ExtractFailure(str(ex))
     if merge_single:
