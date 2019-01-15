@@ -1,6 +1,7 @@
 import os
 import string
 import shlex
+import locale
 from urllib.parse import urlparse
 
 from lutris.runners.runner import Runner
@@ -258,3 +259,4 @@ class web(Runner):
             command.append("--devtools")
 
         return {"command": command, "env": self.get_env(False)}
+locale.setlocale(locale.LC_ALL, 'C')
