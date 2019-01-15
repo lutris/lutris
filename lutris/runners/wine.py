@@ -680,10 +680,17 @@ class wine(Runner):
 
     def get_dll_overrides(self):
         """Return the DLLs overriden at runtime"""
-        overrides = self.runner_config.get("overrides") or {}
-        if not isinstance(overrides, dict):
-            logger.warning("DLL overrides is not a mapping: %s", overrides)
+        try:
+            overrides = self.runner_config['overrides']
+        except KeyError:
             overrides = {}
+        else:
+            if not isinstance(overrides, dict):
+                logger.warning("DLL overrides is not a mapping: %s", overrides)
+                overrides = {}
+            else:
+                overrides = overrides.copy()
+
         overrides.update(self.dll_overrides)
         return overrides
 
