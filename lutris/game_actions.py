@@ -142,7 +142,7 @@ class GameActions:
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
             "browse": self.game.is_installed and self.game.runner_name != "browser",
-            "remove": self.game.is_installed,
+            "remove": True,
             "view": True
         }
 
