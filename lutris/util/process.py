@@ -1,7 +1,7 @@
 """Class to manipulate a process"""
 import os
 from lutris.util.log import logger
-from lutris.util.system import kill_pid, path_exists
+from lutris.util.system import path_exists
 
 
 class InvalidPid(Exception):
@@ -87,22 +87,6 @@ class Process:
         return None
 
     @property
-    def ppid(self):
-        """PID of the parent."""
-        _stat = self.get_stat()
-        if _stat:
-            return _stat[1]
-        return None
-
-    @property
-    def pgrp(self):
-        """Process group ID of the process."""
-        _stat = self.get_stat()
-        if _stat:
-            return _stat[2]
-        return None
-
-    @property
     def cmdline(self):
         """Return command line used to run the process `pid`."""
         cmdline_path = "/proc/{}/cmdline".format(self.pid)
@@ -115,14 +99,3 @@ class Process:
         """Return current working dir of process"""
         cwd_path = "/proc/%d/cwd" % int(self.pid)
         return os.readlink(cwd_path)
-
-    def kill(self, killed_processes=None):
-        """Kills a process and its child processes"""
-        if not killed_processes:
-            killed_processes = set()
-        for child_pid in reversed(sorted(self.get_thread_ids())):
-            child = Process(child_pid)
-            if child.pid not in killed_processes:
-                killed_processes.add(child.pid)
-                child.kill(killed_processes)
-        kill_pid(self.pid)
