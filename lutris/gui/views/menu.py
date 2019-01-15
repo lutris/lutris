@@ -7,6 +7,7 @@ from lutris import runners
 from lutris.game_actions import GameActions
 from lutris.gui.views import COL_ID
 
+
 class ContextualMenu(Gtk.Menu):
     def __init__(self, main_entries):
         super().__init__()
