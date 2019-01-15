@@ -33,7 +33,7 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(loghandler)
 
 # Set the logging level to show debug messages.
-console_handler = logging.StreamHandler(stream=sys.stdout)
+console_handler = logging.StreamHandler(stream=sys.stderr)
 console_handler.setFormatter(SIMPLE_FORMATTER)
 logger.addHandler(console_handler)
 logger.setLevel(logging.INFO)
