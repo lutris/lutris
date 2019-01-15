@@ -359,9 +359,9 @@ class wine(Runner):
                 'default': '0',
                 'advanced': True,
                 'help': (
-                    "Override swapchain sample count. It can be used to force enable multisampling"
-                    "with applications that otherwise don't support it, like the similar control panel setting"
-                    "available with some GPU drivers. This one might work in more cases than the driver setting though."
+                    "Override swapchain sample count. It can be used to force enable multisampling "
+                    "with applications that otherwise don't support it, like the similar control panel setting "
+                    "available with some GPU drivers. This one might work in more cases than the driver setting though. "
                     " Not all applications are compatible with all sample counts. "
                    )
             },
