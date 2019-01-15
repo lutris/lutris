@@ -7,7 +7,6 @@ import subprocess
 from lutris import settings
 from lutris.runners import wine
 from lutris.command import MonitoredCommand
-from lutris.util.process import Process
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.steam.config import read_config
@@ -29,12 +28,7 @@ STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
 
 def is_running():
-    pid = system.get_pid("Steam.exe$")
-    if pid:
-        # If process is defunct, don't consider it as running
-        process = Process(pid)
-        return process.state != "Z"
-    return False
+    return True if system.get_pid("Steam.exe$") else False
 
 
 def kill():
