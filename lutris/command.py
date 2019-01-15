@@ -76,6 +76,8 @@ class MonitoredCommand:
 
     def set_log_buffer(self, log_buffer):
         """Attach a TextBuffer to this command enables the buffer handler"""
+        if not log_buffer:
+            return
         self.log_buffer = log_buffer
         if self.log_handler_buffer not in self.log_handlers:
             self.log_handlers.append(self.log_handler_buffer)
