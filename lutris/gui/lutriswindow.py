@@ -85,22 +85,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
-
-        game_list_raw = pga.get_games(show_installed_first=self.show_installed_first)
-        if self.show_hidden_games:
-            self.game_list = game_list_raw
-        else:
-            # Check if the PGA contains game IDs that the user does not
-            # want to see
-            ignores = pga.get_hidden_ids()
-            should_be_hidden = lambda game: game["id"] in ignores
-            self.game_list = [game for game in game_list_raw if not should_be_hidden(game)]
-
         self.game_store = GameStore(
             self.icon_type,
             self.filter_installed,
             self.view_sorting,
             self.view_sorting_ascending,
+            self.show_hidden_games,
             self.show_installed_first,
         )
         self.view = self.get_view(view_type)

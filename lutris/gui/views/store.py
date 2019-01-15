@@ -52,10 +52,21 @@ class GameStore(GObject.Object):
             filter_installed,
             sort_key,
             sort_ascending,
+            show_hidden_games,
             show_installed_first=False,
     ):
         super(GameStore, self).__init__()
-        self.games = pga.get_games(show_installed_first=show_installed_first)
+
+        game_list_raw = pga.get_games(show_installed_first=show_installed_first)
+        if show_hidden_games:
+            self.games = game_list_raw
+        else:
+            # Check if the PGA contains game IDs that the user does not
+            # want to see
+            ignores = pga.get_hidden_ids()
+            should_be_hidden = lambda game: game["id"] in ignores
+            self.games = [game for game in game_list_raw if not should_be_hidden(game)]
+
         self.games_to_refresh = set()
         self.icon_type = icon_type
         self.filter_installed = filter_installed
