@@ -99,7 +99,10 @@ def create_prefix(
     # Avoid issue of 64bit Wine refusing to create win32 prefix
     # over an existing empty folder.
     if os.path.isdir(prefix) and not os.listdir(prefix):
-        os.rmdir(prefix)
+        if os.path.islink(prefix):
+            os.unlink(prefix)
+        else:
+            os.rmdir(prefix)
 
     if not wine_path:
         wine = import_runner("wine")
