@@ -1,20 +1,21 @@
 #
-# Yunusemre Şentürk <yunusemre.senturk@pardus.org.tr>, 2018.
+# Yunusemre ŞENTÜRK <yunusemre.senturk@pardus.org.tr>, 2018.
+# Gökhan GÖKKAYA <gokhanlnx@gmail.com>, 2019.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-11-09 21:49+0100\n"
-"PO-Revision-Date: 2018-08-27 12:29+0300\n"
-"Last-Translator: Yunusemre Şentürk <yunusemre.senturk@pardus.org.tr>\n"
+"PO-Revision-Date: 2019-01-16 17:54+0300\n"
+"Last-Translator: Gökhan GÖKKAYA <gokhanlnx@gmail.com>\n"
 "Language-Team: Türkçe <>\n"
-"Language: \n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Gtranslator 2.91.7\n"
+"X-Generator: Poedit 2.0.6\n"
 
 #: ../data/ui/AboutDialog.ui.h:1
 msgid "About Lutris"
@@ -58,7 +59,7 @@ msgstr ""
 "\n"
 "Bu program ile birlikte GNU Genel Kamu Lisansıʼnın bir kopyasını almış "
 "olmalısınız.\n"
-"Eğer almadıysanız bile şuraya bakınız: <http://www.gnu.org/licenses/>"
+"Eğer almadıysanız bile şuraya bakınız: <http://www.gnu.org/licenses/>\n"
 
 #: ../data/ui/LutrisWindow3.ui.h:1 ../data/ui/LutrisWindow.ui.h:1
 msgid "Lutris"
@@ -106,11 +107,11 @@ msgstr "Bağlan"
 
 #: ../data/ui/LutrisWindow.ui.h:4
 msgid "Install and configure runners"
-msgstr "Koşucuları kurun ve yapılandırın"
+msgstr "Kurulum yapın ve çalıştırıcıları yapılandırın"
 
 #: ../data/ui/LutrisWindow.ui.h:5
 msgid "Manage runners"
-msgstr "Koşucuları yönet"
+msgstr "Çalıştırıcıları yönet"
 
 #: ../data/ui/LutrisWindow.ui.h:6
 msgid "Import"
@@ -146,7 +147,7 @@ msgstr "Başlat"
 
 #: ../data/ui/LutrisWindow.ui.h:17
 msgid "Play game"
-msgstr "Oyunu oyna"
+msgstr "Oyunu başlat"
 
 #: ../data/ui/LutrisWindow.ui.h:19
 msgid "Stop game"
@@ -154,7 +155,7 @@ msgstr "Oyunu durdur"
 
 #: ../data/ui/LutrisWindow.ui.h:22
 msgid "Add Game"
-msgstr "Oyun ekle"
+msgstr "Oyun Ekle"
 
 #: ../data/ui/LutrisWindow.ui.h:23
 msgid "Remove game from library"
@@ -162,7 +163,7 @@ msgstr "Oyunu kütüphaneden kaldır"
 
 #: ../data/ui/LutrisWindow.ui.h:25
 msgid "Filter the list of games"
-msgstr "Oyunların listesini filtrele"
+msgstr "Oyun listesini süz"
 
 #: ../data/ui/AboutLutrisDialog.ui.h:1
 msgid ""
@@ -179,22 +180,22 @@ msgid ""
 "# You should have received a copy of the GNU General Public License along\n"
 "# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 msgstr ""
-"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
-"# This program is free software: you can redistribute it and/or modify it\n"
-"# under the terms of the GNU General Public License version 3, as published\n"
-"# by the Free Software Foundation.\n"
+"# Telif Hakkı (C) 2010 Mathieu Comandon <strycore@gmail.com\n"
+"# Bu program özgür bir yazılımdır: Özgür Yazılım Vakfı tarafından\n"
+"# yayınlanan GNU Genel Kamu Lisansı sürüm 3 şartları kapsamında\n"
+"# yeniden dağıtabilir ve/veya değiştirebilirsiniz.\n"
 "#\n"
-"# This program is distributed in the hope that it will be useful, but\n"
-"# WITHOUT ANY WARRANTY; without even the implied warranties of\n"
-"# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR\n"
-"# PURPOSE.  See the GNU General Public License for more details.\n"
+"# Bu program faydalı olacağı amacıyla dağıtılmıştır, ancak\n"
+"# HİÇ BİR GARANTİSİ YOKTUR; TİCARİ, MEMNUNİYET KALİTESİ veya\n"
+"# BELİRLİ BİR AMACA UYGUNLUK gibi zimni garantileri de yoktur.\n"
+"# Daha fazla bilgi için GNU Genel Kamu Lisansına bakınız.\n"
 "#\n"
-"# You should have received a copy of the GNU General Public License along\n"
-"# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+"# Bu programla birlikte GNU Genel Kamu Lisansının bir kopyasını almış\n"
+"# olmalısınız.  Eğer yoksa, şuraya bakınız <http://www.gnu.org/licenses/>.\n"
 
 #: ../data/ui/AboutLutrisDialog.ui.h:14
 msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
-msgstr "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
+msgstr "Telif Hakkı (C) 2010 Mathieu Comandon <strycore@gmail.com>"
 
 #: ../data/ui/PreferencesLutrisDialog.ui.h:1
 msgid "gtk-cancel"
