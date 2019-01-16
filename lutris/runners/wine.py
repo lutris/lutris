@@ -683,7 +683,7 @@ class wine(Runner):
                 if value.isdigit():
                     value = int(value)
 
-                    prefix_manager.set_registry_key(path, key, value)
+                prefix_manager.set_registry_key(path, key, value)
 
     def toggle_dxvk(self, enable, version=None):
         dxvk_manager = dxvk.DXVKManager(
