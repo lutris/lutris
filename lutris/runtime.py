@@ -1,6 +1,7 @@
 """Runtime handling module"""
 import os
 import time
+import locale
 
 from gi.repository import GLib
 from lutris.settings import RUNTIME_DIR, RUNTIME_URL
@@ -246,3 +247,4 @@ def get_paths(prefer_system_libs=True, wine_path=None):
         paths.append(os.environ["LD_LIBRARY_PATH"])
 
     return paths
+locale.setlocale(locale.LC_ALL, 'C')
