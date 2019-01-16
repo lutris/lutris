@@ -52,7 +52,6 @@ class ProcessMonitor:
             exclude_processes (str or list): list of processes that shouldn't be monitored
             include_processes (str or list): list of process that should be forced to be monitored
         """
-
         # process names from /proc only contain 15 characters
         self.include_processes = [
             x[0:15] for x in self.parse_process_list(include_processes)
