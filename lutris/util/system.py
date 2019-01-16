@@ -571,7 +571,7 @@ def path_exists(path, check_symlinks=False):
     if os.path.exists(path):
         return True
     if os.path.islink(path):
-        logger.warning("%s is a broken link")
+        logger.warning("%s is a broken link", path)
         return not check_symlinks
 
 

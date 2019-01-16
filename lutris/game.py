@@ -36,6 +36,7 @@ class Game(GObject.Object):
         "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
     }
 
@@ -235,10 +236,12 @@ class Game(GObject.Object):
         if not self.runner:
             dialogs.ErrorDialog("Invalid game configuration: Missing runner")
             self.state = self.STATE_STOPPED
+            self.emit('game-stop')
             return
 
         if not self.prelaunch():
             self.state = self.STATE_STOPPED
+            self.emit('game-stop')
             return
 
         if hasattr(self.runner, "prelaunch"):
@@ -278,6 +281,7 @@ class Game(GObject.Object):
         if "error" in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
+            self.emit('game-stop')
             return
         logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
 
@@ -410,6 +414,7 @@ class Game(GObject.Object):
                     "%s" % terminal
                 )
                 self.state = self.STATE_STOPPED
+                self.emit('game-stop')
                 return
 
         # Env vars
@@ -558,6 +563,7 @@ class Game(GObject.Object):
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None)
         self.state = self.STATE_STOPPED
+        self.emit('game-stop')
         self.stop_timer()
 
     def on_game_quit(self):

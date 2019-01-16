@@ -31,7 +31,6 @@ class GameActions:
             if not self._game:
                 self._game = Game(self.game_id)
             self._game.connect("game-error", self.window.on_game_error)
-            self._game.connect("game-stop", self.on_stop)
         return self._game
 
     @property
@@ -154,14 +153,15 @@ class GameActions:
 
     def on_game_run(self, *_args):
         """Launch a game"""
+        logger.debug("Lauching %s", self.game)
         self.application.launch(self.game)
 
     def on_stop(self, caller):
         """Stops the game"""
         try:
-            game = self.application.running_games.pop(
+            game = self.application.running_games[
                 self.application.running_games.index(self.game)
-            )
+            ]
         except ValueError:
             logger.warning("%s not in running game list", self.game_id)
             return

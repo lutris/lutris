@@ -343,12 +343,23 @@ class Application(Gtk.Application):
         """Launch a Lutris game"""
         logger.debug("Adding game %s (%s) to running games", game, id(game))
         self.running_games.append(game)
+        game.connect("game-stop", self.on_game_stop)
         game.play()
 
     def get_game_by_id(self, game_id):
         for game in self.running_games:
             if game.id == game_id:
                 return game
+
+    def on_game_stop(self, game):
+        """Callback to remove the game from the running games"""
+        game_index = None
+        for i, running_game in enumerate(self.running_games):
+            if game is running_game:
+                game_index = i
+        if game_index is not None:
+            self.running_games.pop(game_index)
+        game.emit("game-stopped", game.id)
 
     @staticmethod
     def get_lutris_action(url):
