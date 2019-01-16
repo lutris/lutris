@@ -6,6 +6,10 @@ from lutris.util import http, jobs
 from lutris.util.log import logger
 
 
+# `time.time` can skip ahead or even go backwards if the current
+# system time is changed between invocations. Use `time.monotonic`
+# so we won't have screenshots making fun of us for showing negative
+# download speeds.
 get_time = time.monotonic
 
 
