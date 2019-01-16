@@ -37,7 +37,6 @@ from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.migrations import migrate
 from lutris.platforms import update_platforms
-from lutris.settings import read_setting, VERSION
 from lutris.command import exec_command
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
@@ -173,13 +172,14 @@ class Application(Gtk.Application):
 
         menubar = builder.get_object("menubar")
         self.set_menubar(menubar)
-        self.set_tray_icon(read_setting("show_tray_icon", default="false") == "true")
 
-    def set_tray_icon(self, active=False):
+    def set_tray_icon(self):
         """Creates or destroys a tray icon for the application"""
-        if not self.tray:
+        active = settings.read_setting("show_tray_icon", default="false") == "true"
+        if active and not self.tray:
             self.tray = LutrisTray(application=self)
-        self.tray.set_visible(active)
+        if self.tray:
+            self.tray.set_visible(active)
 
     def do_activate(self):
         if not self.window:
@@ -226,7 +226,7 @@ class Application(Gtk.Application):
         # Print Lutris version and exit
         if options.contains("version"):
             executable_name = os.path.basename(sys.argv[0])
-            print(executable_name + "-" + VERSION)
+            print(executable_name + "-" + settings.VERSION)
             logger.setLevel(logging.NOTSET)
             return 0
 
@@ -276,6 +276,7 @@ class Application(Gtk.Application):
 
         # Graphical commands
         self.activate()
+        self.set_tray_icon()
 
         db_game = None
         if game_slug:
