@@ -283,7 +283,7 @@ def add_or_update(**params):
         if not slug:
             slug = slugify(name)
         game = get_game_by_field(slug, "slug")
-    if game and (
+    if game and not game["installed"] and (
             game["runner"] == params.get("runner")
             or not all([params.get("runner"), game["runner"]])
     ):

@@ -674,7 +674,7 @@ class ScriptInterpreter(CommandsMixin):
         else:
             config = {"game": {}}
 
-        self.game_id = pga.add_game(
+        self.game_id = pga.add_or_update(
             name=self.game_name,
             runner=self.runner,
             slug=self.game_slug,
