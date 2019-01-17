@@ -187,3 +187,4 @@ class GamePanel(Gtk.Fixed):
         for child in self.get_children():
             child.destroy()
         self.place_content()
+        self.buttons["show_logs"].set_sensitive(True)
