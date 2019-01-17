@@ -20,6 +20,7 @@ LIBRETRO_CORES = [
     ("CrocoDS (Amstrad CPC)", "crocods", "Amstrad CPC"),
     ("Daphne (Arcade)", "daphne", "Arcade"),
     ("DesmuME (Nintendo DS)", "desmume", "Nintendo DS"),
+    ("Dinothawr (Game Engine)", "dinothawr", "Dinothawr"),
     ("Dolphin (Nintendo Wii/Gamecube)", "dolphin", "Nintendo Wii/Gamecube"),
     ("EightyOne (Sinclair ZX81)", "81", "Sinclair ZX81"),
     ("FB Alpha (Arcade)", "fbalpha", "Arcade"),
