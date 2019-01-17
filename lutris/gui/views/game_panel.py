@@ -3,7 +3,6 @@ from datetime import datetime
 from gi.repository import Gtk, Pango, Gdk
 from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_pixbuf_for_game
 from lutris.util.strings import gtk_safe
-from lutris.util.log import logger
 
 
 class GamePanel(Gtk.Fixed):
