@@ -1,0 +1,22 @@
+name of display: :0
+display: :0  screen: 0
+direct rendering: Yes
+Memory info (GL_NVX_gpu_memory_info):
+    Dedicated video memory: 4096 MB
+    Total available memory: 4096 MB
+    Currently available dedicated video memory: 3518 MB
+OpenGL vendor string: NVIDIA Corporation
+OpenGL renderer string: GeForce GTX 970/PCIe/SSE2
+OpenGL core profile version string: 4.6.0 NVIDIA 415.25
+OpenGL core profile shading language version string: 4.60 NVIDIA
+OpenGL core profile context flags: (none)
+OpenGL core profile profile mask: core profile
+
+OpenGL version string: 4.6.0 NVIDIA 415.25
+OpenGL shading language version string: 4.60 NVIDIA
+OpenGL context flags: (none)
+OpenGL profile mask: (none)
+
+OpenGL ES profile version string: OpenGL ES 3.2 NVIDIA 415.25
+OpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20
+
