@@ -38,8 +38,6 @@ class MonitoredCommand:
         else:
             self.env = env
 
-        self.env['PYTHONPATH'] = ':'.join(sys.path)  # What the actual fuck ?!?!?!?!?!
-
         self.original_env = {}
         self.command = command
         self.runner = runner
