@@ -96,6 +96,10 @@ def create_prefix(
         raise ValueError("No Wine prefix path given")
     logger.info("Creating a %s prefix in %s", arch, prefix)
 
+    # Follow symlinks, don't delete existing ones as it would break some setups
+    if os.path.islink(prefix):
+        prefix = os.readlink(prefix)
+
     # Avoid issue of 64bit Wine refusing to create win32 prefix
     # over an existing empty folder.
     if os.path.isdir(prefix) and not os.listdir(prefix):
@@ -159,7 +163,10 @@ def create_prefix(
             prefix=prefix,
             arch=arch
         )
-        os.remove(dest_path)
+        try:
+            os.remove(dest_path)
+        except FileNotFoundError:
+            logger.error("File %s was already removed", dest_path)
         steam_drive_path = os.path.join(prefix, 'dosdevices', 's:')
         if not system.path_exists(steam_drive_path):
             logger.info("Linking Steam default prefix to drive S:")
@@ -244,8 +251,10 @@ def wineexec(
         MonitoredCommand instance otherwise.
     """
     executable = str(executable) if executable else ""
-    include_processes = shlex.split(include_processes or "")
-    exclude_processes = shlex.split(exclude_processes or "")
+    if isinstance(include_processes, str):
+        include_processes = shlex.split(include_processes)
+    if isinstance(exclude_processes, str):
+        exclude_processes = shlex.split(exclude_processes)
     if not wine_path:
         wine = import_runner("wine")
         wine_path = wine().get_executable()

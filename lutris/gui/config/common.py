@@ -382,7 +382,7 @@ class GameDialogCommon:
         # Delete the old copy of the game if the runner changes
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
-        if self.game.platform != runner.get_platform():
+        if self.game.id and self.game.platform != runner.get_platform():
             self.game.remove()
         self.game.runner_name = self.runner_name
 

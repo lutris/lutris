@@ -12,7 +12,7 @@ from lutris.util.jobs import thread_safe_call
 from lutris.util import display, system
 from lutris.util.log import logger
 from lutris.util.strings import parse_version
-from lutris.util.vkquery import is_vulkan_supported
+from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.x360ce import X360ce
 from lutris.util.wine import dxvk
@@ -680,10 +680,17 @@ class wine(Runner):
 
     def get_dll_overrides(self):
         """Return the DLLs overriden at runtime"""
-        overrides = self.runner_config.get("overrides") or {}
-        if not isinstance(overrides, dict):
-            logger.warning("DLL overrides is not a mapping: %s", overrides)
+        try:
+            overrides = self.runner_config['overrides']
+        except KeyError:
             overrides = {}
+        else:
+            if not isinstance(overrides, dict):
+                logger.warning("DLL overrides is not a mapping: %s", overrides)
+                overrides = {}
+            else:
+                overrides = overrides.copy()
+
         overrides.update(self.dll_overrides)
         return overrides
 

@@ -38,7 +38,9 @@ class MonitoredCommand:
         else:
             self.env = env
 
-        self.env['PYTHONPATH'] = ':'.join(sys.path)  # What the actual fuck ?!?!?!?!?!
+        # not clear why this needs to be added, the path is already added in
+        # the wrappper script.
+        self.env['PYTHONPATH'] = ':'.join(sys.path)
 
         self.original_env = {}
         self.command = command

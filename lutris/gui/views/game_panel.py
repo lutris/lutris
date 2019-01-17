@@ -13,7 +13,7 @@ class GamePanel(Gtk.Fixed):
         self.game_actions = game_actions
         self.game = game_actions.game
         self.game.connect("game-start", self.on_game_start)
-        self.game.connect("game-stop", self.on_game_stop)
+        self.game.connect("game-stopped", self.on_game_stop)
 
         super().__init__(visible=True)
         self.set_size_request(320, -1)
@@ -183,7 +183,8 @@ class GamePanel(Gtk.Fixed):
         self.buttons["stop"].show()
         self.buttons["show_logs"].set_sensitive(True)
 
-    def on_game_stop(self, widget):
+    def on_game_stop(self, widget, game_id=None):
         for child in self.get_children():
             child.destroy()
         self.place_content()
+        self.buttons["show_logs"].set_sensitive(True)

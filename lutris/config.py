@@ -1,42 +1,17 @@
 """Handle the game, runner and global system configurations."""
 
 import os
-from os.path import join
 import time
 
-from lutris import pga, settings, sysoptions
+from lutris import settings, sysoptions
 from lutris.runners import import_runner, InvalidRunner
-from lutris.util.system import path_exists, create_folder
+from lutris.util.system import path_exists
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 from lutris.util.log import logger
 
 
 # Temporary config name for games that haven't been created yet
 TEMP_CONFIG = "TEMP_CONFIG"
-
-
-def check_config():
-    """Check if initial configuration is correct."""
-    directories = [
-        settings.CONFIG_DIR,
-        join(settings.CONFIG_DIR, "runners"),
-        join(settings.CONFIG_DIR, "games"),
-        settings.DATA_DIR,
-        join(settings.DATA_DIR, "covers"),
-        settings.ICON_PATH,
-        join(settings.DATA_DIR, "banners"),
-        join(settings.DATA_DIR, "coverart"),
-        join(settings.DATA_DIR, "runners"),
-        join(settings.DATA_DIR, "lib"),
-        settings.RUNTIME_DIR,
-        settings.CACHE_DIR,
-        join(settings.CACHE_DIR, "installer"),
-        join(settings.CACHE_DIR, "tmp"),
-    ]
-    for directory in directories:
-        create_folder(directory)
-
-    pga.syncdb()
 
 
 def make_game_config_id(game_slug):

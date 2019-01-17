@@ -5,6 +5,7 @@ from gi.repository import Gtk, Pango, GObject
 from lutris import runners
 from lutris import platforms
 from lutris import pga
+from lutris.game import Game
 from lutris.util import datapath
 from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config.runner import RunnerConfigDialog
@@ -139,6 +140,7 @@ class SidebarListBox(Gtk.ListBox):
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
         GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
+        GObject.add_emission_hook(Game, "game-removed", self.update)
 
         # TODO: This should be in a more logical location
         icon_theme = Gtk.IconTheme.get_default()

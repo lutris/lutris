@@ -747,7 +747,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Callback for handling tray icon toggle"""
         action.set_state(value)
         settings.write_setting("show_tray_icon", value)
-        self.application.set_tray_icon(value)
+        self.application.set_tray_icon()
 
     def set_selected_filter(self, runner, platform):
         """Filter the view to a given runner and platform"""

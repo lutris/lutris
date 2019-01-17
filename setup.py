@@ -39,6 +39,7 @@ setup(
         'lutris.util',
         'lutris.util.steam',
         'lutris.util.wine',
+        'lutris.util.graphics',
         'lutris.vendor'
     ],
     scripts=['bin/lutris', 'bin/lutris-wrapper'],

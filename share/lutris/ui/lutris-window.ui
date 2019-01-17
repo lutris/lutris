@@ -395,6 +395,20 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>
+            <property name="action_name">win.show-tray-icon</property>
+            <property name="text" translatable="yes">Show Tray Icon</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">13</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="receives_default">False</property>
             <property name="action_name">win.show-side-bar</property>
             <property name="text" translatable="yes">Show _Side Panel</property>
             <accelerator key="0xffffff" signal="clicked"/>
@@ -402,7 +416,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">13</property>
+            <property name="position">14</property>
           </packing>
         </child>
         <child>

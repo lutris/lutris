@@ -1,0 +1,41 @@
+name of display: :0
+display: :0  screen: 0
+direct rendering: Yes
+Extended renderer info (GLX_MESA_query_renderer):
+    Vendor: X.Org (0x1002)
+    Device: Radeon RX 580 Series (POLARIS10, DRM 3.26.0, 4.18.0-13-generic, LLVM 8.0.0) (0x67df)
+    Version: 19.0.0
+    Accelerated: yes
+    Video memory: 8192MB
+    Unified memory: no
+    Preferred profile: core (0x1)
+    Max core profile version: 4.5
+    Max compat profile version: 4.5
+    Max GLES1 profile version: 1.1
+    Max GLES[23] profile version: 3.2
+Memory info (GL_ATI_meminfo):
+    VBO free memory - total: 8040 MB, largest block: 8040 MB
+    VBO free aux. memory - total: 7973 MB, largest block: 7973 MB
+    Texture free memory - total: 8040 MB, largest block: 8040 MB
+    Texture free aux. memory - total: 7973 MB, largest block: 7973 MB
+    Renderbuffer free memory - total: 8040 MB, largest block: 8040 MB
+    Renderbuffer free aux. memory - total: 7973 MB, largest block: 7973 MB
+Memory info (GL_NVX_gpu_memory_info):
+    Dedicated video memory: 8192 MB
+    Total available memory: 16384 MB
+    Currently available dedicated video memory: 8040 MB
+OpenGL vendor string: X.Org
+OpenGL renderer string: Radeon RX 580 Series (POLARIS10, DRM 3.26.0, 4.18.0-13-generic, LLVM 8.0.0)
+OpenGL core profile version string: 4.5 (Core Profile) Mesa 19.0.0-devel - padoka PPA
+OpenGL core profile shading language version string: 4.50
+OpenGL core profile context flags: (none)
+OpenGL core profile profile mask: core profile
+
+OpenGL version string: 4.5 (Compatibility Profile) Mesa 19.0.0-devel - padoka PPA
+OpenGL shading language version string: 4.50
+OpenGL context flags: (none)
+OpenGL profile mask: compatibility profile
+
+OpenGL ES profile version string: OpenGL ES 3.2 Mesa 19.0.0-devel - padoka PPA
+OpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20
+

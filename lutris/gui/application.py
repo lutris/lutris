@@ -32,12 +32,10 @@ gi.require_version("GnomeDesktop", "3.0")
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris import settings
-from lutris.config import check_config
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.migrations import migrate
 from lutris.platforms import update_platforms
-from lutris.settings import read_setting, VERSION
 from lutris.command import exec_command
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
@@ -45,9 +43,7 @@ from lutris.util import datapath
 from lutris.util import log
 from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
-from lutris.util.system import check_libs
-from lutris.util.drivers import check_driver
-from lutris.util.vkquery import check_vulkan
+from lutris.startup import run_all_checks
 from lutris.util.wine.dxvk import init_dxvk_versions
 
 from .lutriswindow import LutrisWindow
@@ -64,12 +60,9 @@ class Application(Gtk.Application):
         gettext.bindtextdomain("lutris", "/usr/share/locale")
         gettext.textdomain("lutris")
 
-        check_config()
+        run_all_checks()
         migrate()
         update_platforms()
-        check_driver()
-        check_libs()
-        check_vulkan()
         init_dxvk_versions()
 
         GLib.set_application_name(_("Lutris"))
@@ -173,13 +166,14 @@ class Application(Gtk.Application):
 
         menubar = builder.get_object("menubar")
         self.set_menubar(menubar)
-        self.set_tray_icon(read_setting("show_tray_icon", default="false") == "true")
 
-    def set_tray_icon(self, active=False):
+    def set_tray_icon(self):
         """Creates or destroys a tray icon for the application"""
-        if not self.tray:
+        active = settings.read_setting("show_tray_icon", default="false") == "true"
+        if active and not self.tray:
             self.tray = LutrisTray(application=self)
-        self.tray.set_visible(active)
+        if self.tray:
+            self.tray.set_visible(active)
 
     def do_activate(self):
         if not self.window:
@@ -226,7 +220,7 @@ class Application(Gtk.Application):
         # Print Lutris version and exit
         if options.contains("version"):
             executable_name = os.path.basename(sys.argv[0])
-            print(executable_name + "-" + VERSION)
+            print(executable_name + "-" + settings.VERSION)
             logger.setLevel(logging.NOTSET)
             return 0
 
@@ -276,6 +270,7 @@ class Application(Gtk.Application):
 
         # Graphical commands
         self.activate()
+        self.set_tray_icon()
 
         db_game = None
         if game_slug:
@@ -343,12 +338,23 @@ class Application(Gtk.Application):
         """Launch a Lutris game"""
         logger.debug("Adding game %s (%s) to running games", game, id(game))
         self.running_games.append(game)
+        game.connect("game-stop", self.on_game_stop)
         game.play()
 
     def get_game_by_id(self, game_id):
         for game in self.running_games:
             if game.id == game_id:
                 return game
+
+    def on_game_stop(self, game):
+        """Callback to remove the game from the running games"""
+        game_index = None
+        for i, running_game in enumerate(self.running_games):
+            if game is running_game:
+                game_index = i
+        if game_index is not None:
+            self.running_games.pop(game_index)
+        game.emit("game-stopped", game.id)
 
     @staticmethod
     def get_lutris_action(url):

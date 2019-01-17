@@ -270,18 +270,15 @@ def add_or_update(**params):
     will try to match it, otherwise it will try matching
     by slug, creating one when possible.
     """
-    name = params.get("name")
     slug = params.get("slug")
     if "id" in params and params["id"] is None:
         params.pop("id")
-    game_id = params.get("id")
-    assert any([slug, name, game_id])
     game = None
-    if game_id:
+    if params.get("id"):
         game = get_game_by_field(params["id"], "id")
     if not game:
         if not slug:
-            slug = slugify(name)
+            slug = slugify(params["name"])
         game = get_game_by_field(slug, "slug")
     if game and (
             game["runner"] == params.get("runner")
@@ -289,6 +286,11 @@ def add_or_update(**params):
     ):
         sql.db_update(PGA_DB, "games", params, ("id", game["id"]))
         return game["id"]
+    if game:
+        logger.warning("Game found but not updated: %s", game)
+    if params.get("id"):
+        logger.warning("Removing id %s from parameters", params["id"])
+        params.pop("id")
     return add_game(**params)
 
 
