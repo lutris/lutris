@@ -1,4 +1,5 @@
 """Check to run at program start"""
+# pylint: disable=no-member
 import os
 from lutris.util.log import logger
 from lutris import pga
