@@ -1,5 +1,4 @@
 """System utilities"""
-# pylint: disable=inconsistent-return-statements
 import hashlib
 import signal
 import os

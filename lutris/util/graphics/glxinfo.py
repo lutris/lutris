@@ -1,6 +1,5 @@
 """Parser for the glxinfo utility"""
-from lutris.util import system
-
+import subprocess
 
 class Container:  # pylint: disable=too-few-public-methods
     """A dummy container for data"""
@@ -22,7 +21,7 @@ class GlxInfo:
     @staticmethod
     def get_glxinfo_output():
         """Return the glxinfo -B output"""
-        return system.execute(["glxinfo", "-B"])
+        return subprocess.check_output(["glxinfo", "-B"]).decode()
 
     def parse(self):
         """Converts the glxinfo output to class attributes"""

@@ -6,6 +6,7 @@ import platform
 import resource
 from collections import defaultdict
 from lutris.util import drivers
+from lutris.util.graphics import glxinfo
 from lutris.util.log import logger
 
 SYSTEM_COMPONENTS = {
@@ -115,6 +116,8 @@ class LinuxSystem:
         self.populate_libraries()
         self.populate_sound_fonts()
         self.soft_limit, self.hard_limit = self.get_file_limits()
+        if self.get("glxinfo"):
+            self.glxinfo = glxinfo.GlxInfo()
 
     @staticmethod
     def get_sbin_path(command):
