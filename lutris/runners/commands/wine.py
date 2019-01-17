@@ -96,13 +96,14 @@ def create_prefix(
         raise ValueError("No Wine prefix path given")
     logger.info("Creating a %s prefix in %s", arch, prefix)
 
+    # Follow symlinks, don't delete existing ones as it would break some setups
+    if os.path.islink(prefix):
+        prefix = os.readlink(prefix)
+
     # Avoid issue of 64bit Wine refusing to create win32 prefix
     # over an existing empty folder.
     if os.path.isdir(prefix) and not os.listdir(prefix):
-        if os.path.islink(prefix):
-            os.unlink(prefix)
-        else:
-            os.rmdir(prefix)
+        os.rmdir(prefix)
 
     if not wine_path:
         wine = import_runner("wine")
