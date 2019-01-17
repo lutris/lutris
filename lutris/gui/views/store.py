@@ -120,8 +120,7 @@ class GameStore(GObject.Object):
     def add_games_by_ids(self, game_ids):
         self.media_loaded = False
         games = pga.get_games_by_ids(game_ids)
-        game_slugs = [game["slug"] for game in games]
-        GLib.idle_add(self.get_missing_media, game_slugs)
+        AsyncCall(self.get_missing_media, None, [game["slug"] for game in games])
         self.add_games(games)
 
     def has_icon(self, game_slug, media_type=None):
