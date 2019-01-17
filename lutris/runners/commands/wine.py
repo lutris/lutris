@@ -163,7 +163,10 @@ def create_prefix(
             prefix=prefix,
             arch=arch
         )
-        os.remove(dest_path)
+        try:
+            os.remove(dest_path)
+        except FileNotFoundError:
+            logger.error("File %s was already removed", dest_path)
         steam_drive_path = os.path.join(prefix, 'dosdevices', 's:')
         if not system.path_exists(steam_drive_path):
             logger.info("Linking Steam default prefix to drive S:")
