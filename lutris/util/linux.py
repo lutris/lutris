@@ -5,7 +5,7 @@ import sys
 import platform
 import resource
 from collections import defaultdict
-from lutris.util import drivers
+from lutris.util.graphics import drivers
 from lutris.util.graphics import glxinfo
 from lutris.util.log import logger
 

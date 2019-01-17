@@ -45,8 +45,8 @@ from lutris.util import log
 from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
 from lutris.util.system import check_libs
-from lutris.util.drivers import check_driver
-from lutris.util.vkquery import check_vulkan
+from lutris.util.graphics.drivers import check_driver
+from lutris.util.graphics.vkquery import check_vulkan
 from lutris.util.wine.dxvk import init_dxvk_versions
 
 from .lutriswindow import LutrisWindow

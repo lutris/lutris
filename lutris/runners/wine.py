@@ -12,7 +12,7 @@ from lutris.util.jobs import thread_safe_call
 from lutris.util import display, system
 from lutris.util.log import logger
 from lutris.util.strings import parse_version
-from lutris.util.vkquery import is_vulkan_supported
+from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.x360ce import X360ce
 from lutris.util.wine import dxvk

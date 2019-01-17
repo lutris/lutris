@@ -1,6 +1,7 @@
 """Parser for the glxinfo utility"""
 import subprocess
 
+
 class Container:  # pylint: disable=too-few-public-methods
     """A dummy container for data"""
 
