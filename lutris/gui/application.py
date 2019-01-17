@@ -32,7 +32,6 @@ gi.require_version("GnomeDesktop", "3.0")
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris import settings
-from lutris.config import check_config
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.migrations import migrate
@@ -44,9 +43,7 @@ from lutris.util import datapath
 from lutris.util import log
 from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
-from lutris.util.system import check_libs
-from lutris.util.graphics.drivers import check_driver
-from lutris.util.graphics.vkquery import check_vulkan
+from lutris.startup import run_all_checks
 from lutris.util.wine.dxvk import init_dxvk_versions
 
 from .lutriswindow import LutrisWindow
@@ -63,12 +60,9 @@ class Application(Gtk.Application):
         gettext.bindtextdomain("lutris", "/usr/share/locale")
         gettext.textdomain("lutris")
 
-        check_config()
+        run_all_checks()
         migrate()
         update_platforms()
-        check_driver()
-        check_libs()
-        check_vulkan()
         init_dxvk_versions()
 
         GLib.set_application_name(_("Lutris"))

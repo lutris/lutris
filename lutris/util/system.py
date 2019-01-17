@@ -8,24 +8,8 @@ import string
 import subprocess
 import traceback
 
-from lutris.util.linux import LinuxSystem
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-
-
-LINUX_SYSTEM = LinuxSystem()
-
-
-def check_libs(all_components=False):
-    """Checks that required libraries are installed on the system"""
-    missing_libs = LINUX_SYSTEM.get_missing_libs()
-    if all_components:
-        components = LINUX_SYSTEM.requirements
-    else:
-        components = LINUX_SYSTEM.critical_requirements
-    for req in components:
-        for index, arch in enumerate(LINUX_SYSTEM.runtime_architectures):
-            for lib in missing_libs[req][index]:
-                logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
 
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):

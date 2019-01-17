@@ -232,3 +232,6 @@ class LinuxSystem:
     def is_feature_supported(self, feature):
         """Return whether the system has the necessary libs to support a feature"""
         return not self.get_missing_requirement_libs(feature)[0]
+
+
+LINUX_SYSTEM = LinuxSystem()

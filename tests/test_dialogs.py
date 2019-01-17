@@ -5,7 +5,7 @@ gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk
 from lutris.game import Game
-from lutris.config import check_config
+from lutris.startup import check_config
 # from lutris import settings
 from lutris import pga
 from lutris.gui.config.common import GameDialogCommon

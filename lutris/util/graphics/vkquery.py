@@ -1,8 +1,6 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, invalid-name
 # Vulkan detection by Patryk Obara (@dreamer)
 """Query Vulkan capabilities"""
-from lutris.util.log import logger
-
 from ctypes import (
     c_int32,
     c_uint32,
@@ -110,11 +108,3 @@ def is_vulkan_supported():
     result = vulkan.vkEnumeratePhysicalDevices(instance, byref(dev_count), 0)
     vulkan.vkDestroyInstance(instance, 0)
     return result == VK_SUCCESS and dev_count.value > 0
-
-
-def check_vulkan():
-    """Reports if Vulkan is enabled on the system"""
-    if is_vulkan_supported():
-        logger.info("Vulkan is supported")
-    else:
-        logger.info("Vulkan is not available or your system isn't Vulkan capable")
