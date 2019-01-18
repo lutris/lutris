@@ -118,6 +118,8 @@ class LinuxSystem:
         self.soft_limit, self.hard_limit = self.get_file_limits()
         if self.get("glxinfo"):
             self.glxinfo = glxinfo.GlxInfo()
+            if not hasattr(self.glxinfo, "display"):
+                self.glxinfo = None
 
     @staticmethod
     def get_sbin_path(command):

@@ -204,7 +204,11 @@ def get_env(version=None, prefer_system_libs=False, wine_path=None):
         for key, value in {
             "STEAM_RUNTIME": os.path.join(RUNTIME_DIR, "steam") if not RUNTIME_DISABLED else None,
             "LD_LIBRARY_PATH": ":".join(
-                get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)
+                get_paths(
+                    version=version,
+                    prefer_system_libs=prefer_system_libs,
+                    wine_path=wine_path
+                )
             ),
         }.items()
         if value
