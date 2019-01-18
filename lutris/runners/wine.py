@@ -726,8 +726,14 @@ class wine(Runner):
             wine_root = os.path.dirname(os.path.dirname(wine_path))
         else:
             wine_root = None
+        if "-4." in wine_path or "/4." in wine_path:
+            version = "Ubuntu-18.04"
+        else:
+            version = "legacy"
         return runtime.get_env(
-            self.system_config.get("prefer_system_libs", True), wine_path=wine_root
+            version=version,
+            prefer_system_libs=self.system_config.get("prefer_system_libs", True),
+            wine_path=wine_root
         )
 
     def get_pids(self, wine_path=None):
