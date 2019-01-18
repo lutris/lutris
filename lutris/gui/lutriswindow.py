@@ -26,7 +26,7 @@ from lutris.gui.util import open_uri
 from lutris.gui import dialogs
 from lutris.gui.sidebar import SidebarListBox
 from lutris.gui.widgets.services import SyncServiceWindow
-from lutris.gui.runnersdialog import RunnersDialog
+from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.system import SystemConfigDialog
 from lutris.gui.views.list import GameListView

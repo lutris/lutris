@@ -7,9 +7,9 @@ from lutris import platforms
 from lutris import pga
 from lutris.game import Game
 from lutris.util import datapath
-from lutris.gui.runnerinstalldialog import RunnerInstallDialog
 from lutris.gui.config.runner import RunnerConfigDialog
-from lutris.gui.runnersdialog import RunnersDialog
+from lutris.gui.dialogs.runner_install import RunnerInstallDialog
+from lutris.gui.dialogs.runners import RunnersDialog
 
 TYPE = 0
 SLUG = 1
