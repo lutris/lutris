@@ -2,7 +2,8 @@ import os.path
 import logging
 
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import DownloadDialog, ErrorDialog
+from lutris.gui.dialogs.download import DownloadDialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris.runners.runner import Runner
 from lutris.util import display, extract, system
 
