@@ -172,7 +172,9 @@ class Runner:
             dict
 
         """
-        return runtime.get_env(self.system_config.get("prefer_system_libs", True))
+        return runtime.get_env(
+            prefer_system_libs=self.system_config.get("prefer_system_libs", True)
+        )
 
     def play(self):
         """Dummy method, must be implemented by derived runners."""
