@@ -116,7 +116,7 @@ class Runtime:
         os.unlink(archive_path)
         self.set_updated_at()
         self.updater.notify_finish(self)
-        return destination_path
+        return False
 
 
 class RuntimeUpdater:
