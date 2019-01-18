@@ -4,7 +4,7 @@ import os
 
 from lutris import api, pga, runtime, settings
 from lutris.gui.util import open_uri
-from lutris.gui.logdialog import LogTextView
+from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.dialogs import Dialog
 from lutris.util import datapath
 from lutris.util.log import logger

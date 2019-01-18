@@ -6,7 +6,7 @@ import shutil
 
 from lutris import runtime
 from lutris.settings import RUNTIME_DIR
-from lutris.gui.dialogs import FileDialog, ErrorDialog
+from lutris.gui.dialogs import FileDialog
 from lutris.runners.runner import Runner
 from lutris.util.jobs import thread_safe_call
 from lutris.util import display, system

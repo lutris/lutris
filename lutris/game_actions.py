@@ -9,8 +9,8 @@ from lutris.gui.util import open_uri
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.installerwindow import InstallerWindow
-from lutris.gui.uninstallgamedialog import UninstallGameDialog
-from lutris.gui.logdialog import LogDialog
+from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
+from lutris.gui.dialogs.log import LogDialog
 from lutris.util.system import path_exists
 from lutris.util.log import logger
 from lutris.util import xdgshortcuts
