@@ -162,6 +162,7 @@ class wine(Runner):
             limits_set = is_esync_limit_set()
             wine_path = self.get_path_for_version(config["version"])
             wine_ver = is_version_esync(wine_path)
+            response = True
 
             if not wine_ver:
                 response = thread_safe_call(esync_display_version_warning)
