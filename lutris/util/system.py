@@ -6,7 +6,6 @@ import re
 import shutil
 import string
 import subprocess
-import traceback
 
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger

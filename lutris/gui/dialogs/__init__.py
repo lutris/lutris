@@ -5,7 +5,6 @@ import os
 from lutris import api, pga, runtime, settings
 from lutris.gui.util import open_uri
 from lutris.gui.widgets.log_text_view import LogTextView
-from lutris.gui.widgets.dialogs import Dialog
 from lutris.util import datapath
 from lutris.util.log import logger
 
@@ -13,6 +12,13 @@ import gi
 gi.require_version("WebKit2", "4.0")
 
 from gi.repository import GLib, GObject, Gtk, WebKit2
+
+
+class Dialog(Gtk.Dialog):
+    def __init__(self, title=None, parent=None, flags=0, buttons=None):
+        super().__init__(title, parent, flags, buttons)
+        self.set_border_width(10)
+        self.set_destroy_with_parent(True)
 
 
 class GtkBuilderDialog(GObject.Object):
