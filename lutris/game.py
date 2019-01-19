@@ -35,6 +35,7 @@ class Game(GObject.Object):
     __gsignals__ = {
         "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
@@ -244,6 +245,7 @@ class Game(GObject.Object):
             self.emit('game-stop')
             return
 
+        self.emit("game-start")
         if hasattr(self.runner, "prelaunch"):
             logger.debug("Prelaunching %s", self.runner)
             try:
@@ -494,8 +496,8 @@ class Game(GObject.Object):
         if hasattr(self.runner, "stop"):
             self.game_thread.stop_func = self.runner.stop
         self.game_thread.start()
+        self.emit("game-started")
         self.state = self.STATE_RUNNING
-        self.emit("game-start")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def xboxdrv_start(self, config):
