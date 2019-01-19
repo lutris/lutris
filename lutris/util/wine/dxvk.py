@@ -103,13 +103,13 @@ class DXVKManager:
             logger.warning("DXVK already available at %s", self.dxvk_path)
 
         dxvk_archive_path = os.path.join(self.base_dir, os.path.basename(dxvk_url))
+
         downloader = Downloader(dxvk_url, dxvk_archive_path)
         downloader.start()
-        while downloader.check_progress() < 1:
+        while downloader.check_progress() < 1 and downloader.state != downloader.ERROR:
             time.sleep(0.3)
         if not system.path_exists(dxvk_archive_path):
-            logger.error("DXVK %s not downloaded")
-            return
+            raise UnavailableDXVKVersion("Failed to download DXVK %s" % self.version)
         if os.stat(dxvk_archive_path).st_size:
             extract_archive(dxvk_archive_path, self.dxvk_path, merge_single=True)
             os.remove(dxvk_archive_path)

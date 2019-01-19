@@ -260,7 +260,6 @@ class Game(GObject.Object):
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
-        self.timer.start()
 
         if error:
             logger.error(error)
@@ -277,12 +276,13 @@ class Game(GObject.Object):
         )
 
         gameplay_info = self.runner.play()
-        logger.debug("Launching %s: %s", self.name, gameplay_info)
         if "error" in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             self.emit('game-stop')
             return
+        self.timer.start()
+        logger.debug("Launching %s: %s", self.name, gameplay_info)
         logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
 
         env = {}

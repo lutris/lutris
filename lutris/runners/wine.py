@@ -6,6 +6,7 @@ import shutil
 
 from lutris import runtime
 from lutris.settings import RUNTIME_DIR
+from lutris.exceptions import GameConfigError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.runner import Runner
 from lutris.util.jobs import thread_safe_call
@@ -673,10 +674,14 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
-        self.toggle_dxvk(
-            bool(self.runner_config.get("dxvk")),
-            version=self.runner_config.get("dxvk_version"),
-        )
+        try:
+            dxvk_version = self.runner_config.get("dxvk_version")
+            self.toggle_dxvk(
+                bool(self.runner_config.get("dxvk")),
+                version=dxvk_version,
+            )
+        except dxvk.UnavailableDXVKVersion:
+            raise GameConfigError("Unable to get DXVK %s" % dxvk_version)
         return True
 
     def get_dll_overrides(self):

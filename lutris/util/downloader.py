@@ -94,6 +94,7 @@ class Downloader:
 
     def on_done(self, _result, error):
         if error:
+            logger.error("Download failed: %s", error)
             self.state = self.ERROR
             self.error = error
             self.file_pointer.close()
