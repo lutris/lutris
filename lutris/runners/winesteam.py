@@ -402,7 +402,7 @@ class winesteam(wine.wine):
                 logger.info("Forcing Steam shutdown")
                 kill()
                 if not has_steam_shutdown(5):
-                    raise RuntimeError("Failed to shut down Wine Steam :(")
+                    logger.error("Failed to shut down Wine Steam :(")
 
     def prelaunch(self):
         super().prelaunch()
