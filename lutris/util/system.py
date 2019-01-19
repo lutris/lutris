@@ -128,6 +128,7 @@ def kill_pid(pid):
     except ValueError:
         logger.error("Invalid pid %s")
         return
+    logger.info("Killing PID %s", pid)
     try:
         os.kill(pid, signal.SIGKILL)
     except OSError:

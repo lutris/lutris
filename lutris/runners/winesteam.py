@@ -28,7 +28,7 @@ STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
 
 
 def is_running():
-    return True if system.get_pid("Steam.exe$") else False
+    return bool(system.get_pid("Steam.exe$"))
 
 
 def kill():
@@ -451,8 +451,14 @@ class winesteam(wine.wine):
             return {"error": "FILE_NOT_FOUND", "file": ex.filename}
 
     def shutdown(self):
-        logger.warning("Steam shutdown has not been implemented "
-                       "(well it was but then we removed it and now we need it back)")
+        """Orders Steam to shutdown"""
+        logger.info("Shutting down Steam")
+        shutdown_command = MonitoredCommand(
+            (self.launch_args + ["-shutdown"]),
+            runner=self,
+            env=self.get_env(os_env=False)
+        )
+        shutdown_command.start()
 
     def stop(self):
         if bool(self.runner_config.get("quit_steam_on_exit")):
@@ -466,9 +472,9 @@ class winesteam(wine.wine):
             logger.warning("Trying to remove a winesteam game but it's not installed.")
             return False
         self.force_shutdown()
-        thread = MonitoredCommand(
+        uninstall_command = MonitoredCommand(
             (self.launch_args + ["steam://uninstall/%s" % (appid or self.appid)]),
             runner=self,
             env=self.get_env(os_env=False)
         )
-        thread.start()
+        uninstall_command.start()
