@@ -46,7 +46,7 @@ class GameGridView(Gtk.IconView, GameView):
         return model.get_value(model.get_iter(self.current_path), COL_ID)
 
     def set_selected_game(self, game_id):
-        row = self.game_store.get_row_by_id(game_id)
+        row = self.game_store.get_row_by_id(game_id, filtered=True)
         if row:
             self.select_path(row.path)
 

@@ -194,8 +194,12 @@ class GameStore(GObject.Object):
         self.prevent_sort_update = False
         self.emit("sorting-changed", key, ascending)
 
-    def get_row_by_id(self, game_id):
-        for model_row in self.modelsort:
+    def get_row_by_id(self, game_id, filtered=False):
+        if filtered:
+            store = self.modelsort
+        else:
+            store = self.store
+        for model_row in store:
             if model_row[COL_ID] == int(game_id):
                 return model_row
 
