@@ -24,6 +24,7 @@ from lutris.config import LutrisConfig, make_game_config_id
 from lutris.installer.errors import ScriptingError
 from lutris.installer.commands import CommandsMixin
 
+from lutris.services import UnavailableGame
 from lutris.services.gog import (
     connect as connect_gog,
     GogService,
@@ -281,7 +282,7 @@ class ScriptInterpreter(CommandsMixin):
 
     def swap_gog_game_files(self):
         if not self.gogid:
-            raise ScriptingError("The installer has no GOG ID!")
+            raise UnavailableGame("The installer has no GOG ID!")
         links = self.get_gog_download_links()
         installer_file_id = None
         if links:
@@ -327,7 +328,10 @@ class ScriptInterpreter(CommandsMixin):
         """Gathers necessary files before iterating through them."""
         # If this is a GOG installer, download required files.
         if self.version.startswith("GOG"):
-            self.swap_gog_game_files()
+            try:
+                self.swap_gog_game_files()
+            except UnavailableGame:
+                logger.warning("Unable to get the game from GOG")
         self.iter_game_files()
 
     def iter_game_files(self):
