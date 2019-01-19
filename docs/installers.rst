@@ -790,7 +790,7 @@ Example gog linux game (mojosetup options found here https://www.reddit.com/r/li
       system:
         terminal: true
 
-Example gog linux game, alternative (requires unzip):
+Example gog linux game, alternative:
 
 ::
 
@@ -801,20 +801,19 @@ Example gog linux game, alternative (requires unzip):
     runner: linux
 
     script:
-      game:
-        exe: Game/start.sh
-        args: --some-arg
-        working_dir: $GAMEDIR
       files:
-      - installer: "N/A:Select the game's setup file"
+      - goginstaller: N/A:Please select the GOG.com Linux installer
+      game:
+        args: --some-arg
+        exe: start.sh
       installer:
-      - execute:
-          args: installer -d "$GAMEDIR" "data/noarch/*"
-          description: Extracting game data, it will take a while...
-          file: unzip
-      - rename:
-          dst: $GAMEDIR/Game
-          src: $GAMEDIR/data/noarch
+      - extract:
+          dst: $CACHE/GOG
+          file: goginstaller
+          format: zip
+      - merge:
+          dst: $GAMEDIR
+          src: $CACHE/GOG/data/noarch/
       system:
         terminal: true
 
