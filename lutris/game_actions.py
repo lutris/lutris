@@ -174,9 +174,10 @@ class GameActions:
 
     def on_show_logs(self, _widget):
         """Display game log in a LogDialog"""
-        log_title = u"Log for {}".format(self.game)
         log_window = LogDialog(
-            title=log_title, buffer=self.game.log_buffer, parent=self.window
+            title="Log for {}".format(self.game),
+            buffer=self.game.log_buffer,
+            parent=self.window
         )
         log_window.run()
         log_window.destroy()
