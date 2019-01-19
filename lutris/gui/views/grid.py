@@ -42,8 +42,8 @@ class GameGridView(Gtk.IconView, GameView):
         if not selection:
             return
         self.current_path = selection[0]
-        store = self.get_model()
-        return store.get(store.get_iter(self.current_path), COL_ID)[0]
+        model = self.get_model()
+        return model.get_value(model.get_iter(self.current_path), COL_ID)
 
     def set_selected_game(self, game_id):
         row = self.game_store.get_row_by_id(game_id)
