@@ -120,8 +120,6 @@ class PgaGame:
         try:
             playtime_text = get_formatted_playtime(self._pga_data["playtime"])
         except ValueError:
-            # We're all screwed
             logger.warning("Invalid playtime value %s for %s", self.playtime, self)
-            pga.fix_playtime(self._pga_data)
             playtime_text = ""  # Do not show erroneous values
         return playtime_text

@@ -13,6 +13,7 @@ class GamePanel(Gtk.Fixed):
         self.game_actions = game_actions
         self.game = game_actions.game
         self.game.connect("game-start", self.on_game_start)
+        self.game.connect("game-started", self.on_game_started)
         self.game.connect("game-stopped", self.on_game_stop)
 
         super().__init__(visible=True)
@@ -179,8 +180,14 @@ class GamePanel(Gtk.Fixed):
                 self.put(button, position[0], position[1])
 
     def on_game_start(self, widget):
-        self.buttons["play"].hide()
+        self.buttons["play"].set_label("Launching...")
+        self.buttons["play"].set_sensitive(False)
+
+    def on_game_started(self, widget):
         self.buttons["stop"].show()
+        self.buttons["play"].hide()
+        self.buttons["play"].set_label("Play")
+        self.buttons["play"].set_sensitive(True)
         self.buttons["show_logs"].set_sensitive(True)
 
     def on_game_stop(self, widget, game_id=None):

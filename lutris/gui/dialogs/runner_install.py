@@ -4,8 +4,7 @@ import random
 
 from gi.repository import GLib, Gtk
 from lutris import api, settings
-from lutris.gui.dialogs import ErrorDialog, QuestionDialog
-from lutris.gui.widgets.dialogs import Dialog
+from lutris.gui.dialogs import Dialog, ErrorDialog, QuestionDialog
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive

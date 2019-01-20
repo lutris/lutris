@@ -6,7 +6,6 @@ import re
 import shutil
 import string
 import subprocess
-import traceback
 
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -129,21 +128,11 @@ def kill_pid(pid):
     except ValueError:
         logger.error("Invalid pid %s")
         return
+    logger.info("Killing PID %s", pid)
     try:
         os.kill(pid, signal.SIGKILL)
     except OSError:
         logger.error("Could not kill process %s", pid)
-
-
-def get_command_line(pid):
-    """Return command line used to run the process `pid`."""
-    cmdline = None
-    cmdline_path = "/proc/{}/cmdline".format(pid)
-    if os.path.exists(cmdline_path):
-        with open(cmdline_path) as cmdline_file:
-            cmdline = cmdline_file.read()
-            cmdline = cmdline.replace("\x00", " ")
-    return cmdline
 
 
 def python_identifier(unsafe_string):
@@ -332,100 +321,11 @@ def path_exists(path, check_symlinks=False):
         return not check_symlinks
 
 
-def path_is_empty(path):
-    """Return True is the given path doen't exist or it is an empty directory"""
-    if not path_exists(path):
-        return True
-    return len(os.listdir(path)) == 0
-
-
-def stacktrace():
-    """Print a stacktrace at the current location"""
-    traceback.print_stack()
-
-
 def reset_library_preloads():
     """Remove library preloads from environment"""
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
         if os.environ.get(key):
             del os.environ[key]
-
-
-def get_desktop_environment():
-    """Return the desktop environment currently being used"""
-    # From http://stackoverflow.com/questions/2035657/what-is-my-current-desktop-environment
-    # and http://ubuntuforums.org/showthread.php?t=652320
-    # and http://ubuntuforums.org/showthread.php?t=652320
-    # and http://ubuntuforums.org/showthread.php?t=1139057
-    deskop_environments = [
-        "gnome",
-        "unity",
-        "cinnamon",
-        "mate",
-        "xfce4",
-        "lxde",
-        "fluxbox",
-        "blackbox",
-        "openbox",
-        "icewm",
-        "jwm",
-        "afterstep",
-        "trinity",
-        "kde",
-    ]
-    desktop_session = os.environ.get("DESKTOP_SESSION", "").lower()
-    if (
-            desktop_session
-    ):  # easier to match if we doesn't have to deal with caracter cases
-        if desktop_session in deskop_environments:
-            return desktop_session
-        # Special cases
-        # Canonical sets $DESKTOP_SESSION to Lubuntu rather than LXDE if using LXDE.
-        if desktop_session.startswith("lubuntu"):
-            return "lxde"
-        if desktop_session.startswith("razor"):  # e.g. razorkwin
-            return "razor-qt"
-        if desktop_session.startswith("wmaker"):  # e.g. wmaker-common
-            return "windowmaker"
-    if os.environ.get("KDE_FULL_SESSION") == "true":
-        return "kde"
-    if os.environ.get("GNOME_DESKTOP_SESSION_ID"):
-        if "deprecated" not in os.environ.get("GNOME_DESKTOP_SESSION_ID"):
-            return "gnome2"
-    # From http://ubuntuforums.org/showthread.php?t=652320
-    elif is_running("xfce-mcs-manage"):
-        return "xfce4"
-    elif is_running("ksmserver"):
-        return "kde"
-    return "unknown"
-
-
-def is_running(process):
-    """Determines if a given process is currently running.
-
-    The implementation looks brittle, unreliable and prone to false positives.
-    """
-    # From http://www.bloggerpolis.com/2011/05/how-to-check-if-a-process-is-running-using-python/
-    # and http://richarddingwall.name/2009/06/18/windows-equivalents-of-ps-and-kill-commands/
-    ps_process = subprocess.Popen(["ps", "axw"], stdout=subprocess.PIPE)
-    for line in ps_process.stdout:
-        if re.search(process, line):
-            return True
-    return False
-
-
-def find_lib(libname):
-    """Returns a list of absoulte paths found in the system of a given library"""
-    lib_paths = []
-    ldconfig_cmd = find_executable("ldconfig")
-    if ldconfig_cmd:
-        ldconfig_out = subprocess.check_output([ldconfig_cmd, "-p"]).decode("UTF-8")
-        for out in ldconfig_out.splitlines():
-            if libname in out:
-                lib_paths.append(out.split("=> ")[1])
-    else:
-        logger.error("ldconfig not found, can't search for lib %s", libname)
-    return lib_paths
 
 
 def run_once(function):

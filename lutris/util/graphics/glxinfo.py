@@ -1,5 +1,6 @@
 """Parser for the glxinfo utility"""
 import subprocess
+from lutris.util.log import logger
 
 
 class Container:  # pylint: disable=too-few-public-methods
@@ -22,12 +23,17 @@ class GlxInfo:
     @staticmethod
     def get_glxinfo_output():
         """Return the glxinfo -B output"""
-        return subprocess.check_output(["glxinfo", "-B"]).decode()
+        try:
+            return subprocess.check_output(["glxinfo", "-B"]).decode()
+        except subprocess.CalledProcessError as ex:
+            logger.error("glxinfo call failed: %s", ex)
+            return ""
 
     def parse(self):
         """Converts the glxinfo output to class attributes"""
         if not self._output:
-            raise ValueError("Missing glxinfo output")
+            logger.error("No available glxinfo output")
+            return
         # Fix glxinfo output (Great, you saved one line by
         # combining display and screen)
         output = self._output.replace("  screen", "\nscreen")

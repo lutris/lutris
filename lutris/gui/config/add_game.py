@@ -1,5 +1,5 @@
 from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
-from lutris.gui.widgets.dialogs import Dialog
+from lutris.gui.dialogs import Dialog
 from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.config import DIALOG_WIDTH, DIALOG_HEIGHT
 

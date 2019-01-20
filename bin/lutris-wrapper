@@ -66,6 +66,8 @@ def main():
     include_procs, args = args[:include_proc_count], args[include_proc_count:]
     exclude_procs, args = args[:exclude_proc_count], args[exclude_proc_count:]
 
+    if "PYTHONPATH" in os.environ:
+        del os.environ["PYTHONPATH"]
     monitor = ProcessMonitor(include_procs, exclude_procs)
 
     def sig_handler(signum, _frame):

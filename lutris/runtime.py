@@ -11,6 +11,7 @@ from lutris.util.log import logger
 from lutris.util.system import LINUX_SYSTEM
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
+DEFAULT_RUNTIME = "Ubuntu-18.04"
 
 
 class Runtime:
@@ -112,11 +113,11 @@ class Runtime:
             logger.error("Runtime update failed")
             logger.error(error)
             return
-        archive_path, destination_path = result
+        archive_path, _destination_path = result
         os.unlink(archive_path)
         self.set_updated_at()
         self.updater.notify_finish(self)
-        return destination_path
+        return False
 
 
 class RuntimeUpdater:
@@ -153,11 +154,11 @@ class RuntimeUpdater:
         runtimes = response.json or []
         for runtime in runtimes:
 
-            # Skip 32bit runtimes on 64 bit systems except the lib32 one
+            # Skip 32bit runtimes on 64 bit systems except the main runtime
             if (
                     runtime["architecture"] == "i386"
                     and system.LINUX_SYSTEM.is_64_bit
-                    and runtime["name"] != "lib32"
+                    and not runtime["name"].startswith(("Ubuntu", "lib32"))
             ):
                 logger.debug(
                     "Skipping runtime %s for %s",
@@ -185,64 +186,108 @@ class RuntimeUpdater:
             logger.info("Runtime updated")
 
 
-def get_env(prefer_system_libs=True, wine_path=None):
-    """Return a dict containing LD_LIBRARY_PATH and STEAM_RUNTIME env vars."""
+def get_env(version=None, prefer_system_libs=False, wine_path=None):
+    """Return a dict containing LD_LIBRARY_PATH and STEAM_RUNTIME env vars
+
+    Params:
+        version (str): Version of the runtime to use, such as "Ubuntu-18.04" or "legacy"
+        prefer_system_libs (bool): Whether to prioritize system libs over runtime libs
+        wine_path (str): If you prioritize system libs, provide the path for a lutris wine build
+                         if one is being used. This allows Lutris to prioritize the wine libs
+                         over everything else.
+    Returns:
+        dict
+    """
     # Adding the STEAM_RUNTIME here is probably unneeded and unwanted
     return {
         key: value
         for key, value in {
-            "STEAM_RUNTIME": os.path.join(RUNTIME_DIR, "steam")
-            if not RUNTIME_DISABLED
-            else None,
+            "STEAM_RUNTIME": os.path.join(RUNTIME_DIR, "steam") if not RUNTIME_DISABLED else None,
             "LD_LIBRARY_PATH": ":".join(
-                get_paths(prefer_system_libs=prefer_system_libs, wine_path=wine_path)
+                get_paths(
+                    version=version,
+                    prefer_system_libs=prefer_system_libs,
+                    wine_path=wine_path
+                )
             ),
         }.items()
         if value
     }
 
 
-def get_paths(prefer_system_libs=True, wine_path=None):
-    """Return a list of paths containing the runtime libraries."""
+def get_winelib_paths(wine_path):
+    """Return wine libraries path for a Lutris wine build"""
     paths = []
+    # Prioritize libwine.so.1 for lutris builds
+    for winelib_path in ("lib", "lib64"):
+        winelib_fullpath = os.path.join(wine_path or "", winelib_path)
+        if system.path_exists(winelib_fullpath):
+            paths.append(winelib_fullpath)
+    return paths
 
-    if not RUNTIME_DISABLED:
-        runtime_paths = [
-            "lib32",
-            "steam/i386/lib/i386-linux-gnu",
-            "steam/i386/lib",
-            "steam/i386/usr/lib/i386-linux-gnu",
-            "steam/i386/usr/lib",
+
+def get_system_paths():
+    """Return paths of system libraries"""
+    paths = []
+    # This prioritizes system libraries over
+    # the Lutris and Steam runtimes.
+    for lib_paths in LINUX_SYSTEM.iter_lib_folders():
+        for index, _arch in enumerate(LINUX_SYSTEM.runtime_architectures):
+            paths.append(lib_paths[index])
+    return paths
+
+
+def get_runtime_paths(version=None, prefer_system_libs=True, wine_path=None):
+    """Return Lutris runtime paths"""
+    version = version or DEFAULT_RUNTIME
+    if version.startswith("Ubuntu"):
+        lutris_runtime_path = "%s-i686"
+    elif version == "legacy":
+        lutris_runtime_path = "lib32"
+    else:
+        raise ValueError("Invalid runtime version %s" % version)
+
+    runtime_paths = [
+        lutris_runtime_path,
+        "steam/i386/lib/i386-linux-gnu",
+        "steam/i386/lib",
+        "steam/i386/usr/lib/i386-linux-gnu",
+        "steam/i386/usr/lib",
+    ]
+
+    if system.LINUX_SYSTEM.is_64_bit:
+        if version == "legacy":
+            lutris_runtime_path = "lib64"
+        else:
+            lutris_runtime_path = "%s-x86_64" % version
+        runtime_paths += [
+            lutris_runtime_path,
+            "steam/amd64/lib/x86_64-linux-gnu",
+            "steam/amd64/lib",
+            "steam/amd64/usr/lib/x86_64-linux-gnu",
+            "steam/amd64/usr/lib",
         ]
 
-        if system.LINUX_SYSTEM.is_64_bit:
-            runtime_paths += [
-                "lib64",
-                "steam/amd64/lib/x86_64-linux-gnu",
-                "steam/amd64/lib",
-                "steam/amd64/usr/lib/x86_64-linux-gnu",
-                "steam/amd64/usr/lib",
-            ]
+    paths = []
+    if prefer_system_libs:
+        if wine_path:
+            paths += get_winelib_paths(wine_path)
+        paths += get_system_paths()
+    # Then resolve absolute paths for the runtime
+    paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
+    return paths
 
-        if prefer_system_libs:
-            paths = []
-            # Prioritize libwine.so.1 for lutris builds
-            if system.path_exists(wine_path):
-                paths.append(os.path.join(wine_path, "lib"))
-                lib64_path = os.path.join(wine_path, "lib64")
-                if system.path_exists(lib64_path):
-                    paths.append(lib64_path)
 
-            # This prioritizes system libraries over
-            # the Lutris and Steam runtimes.
-            for lib_paths in LINUX_SYSTEM.iter_lib_folders():
-                for index, _arch in enumerate(LINUX_SYSTEM.runtime_architectures):
-                    paths.append(lib_paths[index])
-
-        # Then resolve absolute paths for the runtime
-        paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
-
+def get_paths(version=None, prefer_system_libs=True, wine_path=None):
+    """Return a list of paths containing the runtime libraries."""
+    if not RUNTIME_DISABLED:
+        paths = get_runtime_paths(
+            version=version,
+            prefer_system_libs=prefer_system_libs,
+            wine_path=wine_path
+        )
+    else:
+        paths = []
     if os.environ.get("LD_LIBRARY_PATH"):
         paths.append(os.environ["LD_LIBRARY_PATH"])
-
     return paths

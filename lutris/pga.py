@@ -284,6 +284,7 @@ def add_or_update(**params):
             game["runner"] == params.get("runner")
             or not all([params.get("runner"), game["runner"]])
     ):
+        params["playtime"] = float(game["playtime"] or 0) + float(params.get("playtime") or 0)
         sql.db_update(PGA_DB, "games", params, ("id", game["id"]))
         return game["id"]
     if game:
@@ -403,17 +404,6 @@ def get_used_platforms_game_count():
         rows = cursor.execute(query)
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}
-
-
-def fix_playtime(game):
-    """Fix a temporary glitch that happened with the playtime implementation"""
-    broken_playtime = game["playtime"]
-    if not broken_playtime.endswith(" hrs"):
-        logger.error("I don't know how to fix this playtime: %s", broken_playtime)
-        return
-    logger.warning("OMG, %s what have you done?! (%s)", game["name"], broken_playtime)
-    playtime = broken_playtime.split()[0]
-    sql.db_update(PGA_DB, "games", {"playtime": playtime}, ("id", game["id"]))
 
 def get_hidden_ids():
     """Return a list of game IDs to be excluded from the library view"""

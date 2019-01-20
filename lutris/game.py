@@ -35,6 +35,7 @@ class Game(GObject.Object):
     __gsignals__ = {
         "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
@@ -244,6 +245,7 @@ class Game(GObject.Object):
             self.emit('game-stop')
             return
 
+        self.emit("game-start")
         if hasattr(self.runner, "prelaunch"):
             logger.debug("Prelaunching %s", self.runner)
             try:
@@ -260,7 +262,6 @@ class Game(GObject.Object):
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
-        self.timer.start()
 
         if error:
             logger.error(error)
@@ -277,12 +278,12 @@ class Game(GObject.Object):
         )
 
         gameplay_info = self.runner.play()
-        logger.debug("Launching %s: %s", self.name, gameplay_info)
         if "error" in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             self.emit('game-stop')
             return
+        logger.debug("Launching %s: %s", self.name, gameplay_info)
         logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
 
         env = {}
@@ -494,9 +495,17 @@ class Game(GObject.Object):
         if hasattr(self.runner, "stop"):
             self.game_thread.stop_func = self.runner.stop
         self.game_thread.start()
+        self.timer.start()
+        self.emit("game-started")
         self.state = self.STATE_RUNNING
-        self.emit("game-start")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+
+    def stop_game(self):
+        self.state = self.STATE_STOPPED
+        self.emit('game-stop')
+        if not self.timer.finished:
+            self.timer.end()
+            self.playtime = self.timer.duration / 3600
 
     def xboxdrv_start(self, config):
         command = [
@@ -544,11 +553,6 @@ class Game(GObject.Object):
             return False
         return True
 
-    def stop_timer(self):
-        """Stops the timer"""
-        if not self.timer.finished:
-            self.timer.end()
-            self.playtime = (self.timer.duration + self.playtime) / 3600
 
     def stop(self):
         """Stops the game"""
@@ -562,14 +566,10 @@ class Game(GObject.Object):
             self.xboxdrv_thread.stop()
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None)
-        self.state = self.STATE_STOPPED
-        self.emit('game-stop')
-        self.stop_timer()
+        self.stop_game()
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
-
-        self.stop_timer()
 
         if self.prelaunch_executor and self.prelaunch_executor.is_running:
             logger.info("Stopping prelaunch script")
@@ -611,7 +611,6 @@ class Game(GObject.Object):
             display.restore_gamma()
 
         self.process_return_codes()
-        self.emit('game-stop')
         if self.exit_main_loop:
             exit()
 

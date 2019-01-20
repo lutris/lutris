@@ -172,7 +172,9 @@ class Runner:
             dict
 
         """
-        return runtime.get_env(self.system_config.get("prefer_system_libs", True))
+        return runtime.get_env(
+            prefer_system_libs=self.system_config.get("prefer_system_libs", True)
+        )
 
     def play(self):
         """Dummy method, must be implemented by derived runners."""
@@ -231,7 +233,7 @@ class Runner:
         )
         if Gtk.ResponseType.YES == dialog.result:
 
-            from lutris.gui.runnersdialog import simple_downloader
+            from lutris.gui.dialogs.runners import simple_downloader
             if hasattr(self, "get_version"):
                 self.install(downloader=simple_downloader,
                              version=self.get_version(use_default=False))

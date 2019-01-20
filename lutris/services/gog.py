@@ -6,8 +6,8 @@ from urllib.parse import urlencode, urlparse, parse_qsl
 from lutris import settings
 from lutris import pga
 from lutris import api
-from lutris.services import AuthenticationError
-from lutris.util.http import Request
+from lutris.services import AuthenticationError, UnavailableGame
+from lutris.util.http import Request, HTTPError
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.cookies import WebkitCookieJar
@@ -191,7 +191,10 @@ class GogService:
     def get_download_info(self, downlink):
         """Return file download information"""
         logger.info("Getting download info for %s", downlink)
-        response = self.make_api_request(downlink)
+        try:
+            response = self.make_api_request(downlink)
+        except HTTPError:
+            raise UnavailableGame()
         for field in ("checksum", "downlink"):
             field_url = response[field]
             parsed = urlparse(field_url)
