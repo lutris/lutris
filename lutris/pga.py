@@ -284,7 +284,7 @@ def add_or_update(**params):
             game["runner"] == params.get("runner")
             or not all([params.get("runner"), game["runner"]])
     ):
-        params["playtime"] = float(game["playtime"]) + float(params.get("playtime", 0))
+        params["playtime"] = float(game["playtime"] or 0) + float(params.get("playtime") or 0)
         sql.db_update(PGA_DB, "games", params, ("id", game["id"]))
         return game["id"]
     if game:
