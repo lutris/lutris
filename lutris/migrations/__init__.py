@@ -2,17 +2,11 @@ import importlib
 from lutris import settings
 from lutris.util.log import logger
 
-MIGRATION_VERSION = 4
+MIGRATION_VERSION = 4  # Never decrease this number
 
-MIGRATIONS = []
+MIGRATIONS = [[], [], [], [], []]
 
-MIGRATIONS.append(["wine_desktop"])
-
-MIGRATIONS.append(["gens_to_dgen", "fix_missing_steam_appids"])
-
-MIGRATIONS.append(["update_runners"])
-
-MIGRATIONS.append(["pcsxr_deprecation", "update_xdg_shortcuts"])
+# MIGRATIONS.append(["pcsxr_deprecation"])
 
 
 def get_migration_module(migration_name):
@@ -20,8 +14,7 @@ def get_migration_module(migration_name):
 
 
 def migrate():
-    current_version = settings.read_setting("migration_version") or 0
-    current_version = int(current_version)
+    current_version = int(settings.read_setting("migration_version") or 0)
     if current_version >= MIGRATION_VERSION:
         return
     for i in range(current_version, MIGRATION_VERSION):
