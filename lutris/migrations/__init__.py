@@ -2,11 +2,10 @@ import importlib
 from lutris import settings
 from lutris.util.log import logger
 
-MIGRATION_VERSION = 4  # Never decrease this number
+MIGRATION_VERSION = 5  # Never decrease this number
 
-MIGRATIONS = [[], [], [], [], []]
-
-# MIGRATIONS.append(["pcsxr_deprecation"])
+MIGRATIONS = [[], [], [], []]  # Replace deprecated migrations with empty lists
+MIGRATIONS.append(["fix_playtime"])
 
 
 def get_migration_module(migration_name):
@@ -19,7 +18,7 @@ def migrate():
         return
     for i in range(current_version, MIGRATION_VERSION):
         for migration_name in MIGRATIONS[i]:
-            logger.debug("Running migration: %s" % migration_name)
+            logger.info("Running migration: %s", migration_name)
             migration = get_migration_module(migration_name)
             migration.migrate()
 
