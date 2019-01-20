@@ -105,7 +105,7 @@ class ScriptInterpreter(CommandsMixin):
         self.errors = []
         self.target_path = None
         self.parent = parent
-        self.reversion_data = {}
+        self.game_dir_created = False  # Whether a game folder was created during the install
         self.game_files = {}
         self.game_disc = None
         self.cancelled = False
@@ -353,7 +353,7 @@ class ScriptInterpreter(CommandsMixin):
                         "Lutris does not have the necessary permissions to install to path:",
                         self.target_path,
                     )
-                self.reversion_data["created_main_dir"] = True
+                self.game_dir_created = True
 
         if len(self.game_files) < len(self.files):
             logger.info(
@@ -774,7 +774,7 @@ class ScriptInterpreter(CommandsMixin):
         if self.abort_current_task:
             self.abort_current_task()
 
-        if self.reversion_data.get("created_main_dir"):
+        if self.game_dir_created:
             system.remove_folder(self.target_path)
 
     # -------------
