@@ -283,7 +283,6 @@ class Game(GObject.Object):
             self.state = self.STATE_STOPPED
             self.emit('game-stop')
             return
-        self.timer.start()
         logger.debug("Launching %s: %s", self.name, gameplay_info)
         logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
 
@@ -496,9 +495,17 @@ class Game(GObject.Object):
         if hasattr(self.runner, "stop"):
             self.game_thread.stop_func = self.runner.stop
         self.game_thread.start()
+        self.timer.start()
         self.emit("game-started")
         self.state = self.STATE_RUNNING
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+
+    def stop_game(self):
+        self.state = self.STATE_STOPPED
+        self.emit('game-stop')
+        if not self.timer.finished:
+            self.timer.end()
+            self.playtime = self.timer.duration / 3600
 
     def xboxdrv_start(self, config):
         command = [
@@ -546,11 +553,6 @@ class Game(GObject.Object):
             return False
         return True
 
-    def stop_timer(self):
-        """Stops the timer"""
-        if not self.timer.finished:
-            self.timer.end()
-            self.playtime = (self.timer.duration + self.playtime) / 3600
 
     def stop(self):
         """Stops the game"""
@@ -564,14 +566,10 @@ class Game(GObject.Object):
             self.xboxdrv_thread.stop()
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None)
-        self.state = self.STATE_STOPPED
-        self.emit('game-stop')
-        self.stop_timer()
+        self.stop_game()
 
     def on_game_quit(self):
         """Restore some settings and cleanup after game quit."""
-
-        self.stop_timer()
 
         if self.prelaunch_executor and self.prelaunch_executor.is_running:
             logger.info("Stopping prelaunch script")
@@ -613,7 +611,6 @@ class Game(GObject.Object):
             display.restore_gamma()
 
         self.process_return_codes()
-        self.emit('game-stop')
         if self.exit_main_loop:
             exit()
 
