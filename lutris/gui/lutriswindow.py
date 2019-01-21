@@ -24,7 +24,7 @@ from lutris.vendor.gi_composites import GtkTemplate
 
 from lutris.gui.util import open_uri
 from lutris.gui import dialogs
-from lutris.gui.sidebar import SidebarListBox
+from lutris.gui.widgets.sidebar import SidebarListBox
 from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.gui.config.add_game import AddGameDialog

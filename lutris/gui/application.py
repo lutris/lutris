@@ -47,7 +47,7 @@ from lutris.startup import run_all_checks
 from lutris.util.wine.dxvk import init_dxvk_versions
 
 from .lutriswindow import LutrisWindow
-from lutris.gui.lutristray import LutrisTray
+from lutris.gui.widgets.tray import LutrisTray
 
 
 class Application(Gtk.Application):
