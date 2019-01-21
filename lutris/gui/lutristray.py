@@ -2,6 +2,7 @@
 from gi.repository import Gtk
 
 from lutris import pga
+from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 
 
@@ -66,4 +67,4 @@ class LutrisTray(Gtk.StatusIcon):
             self.menu.append(self._make_menu_item_for_game(game))
 
     def on_game_selected(self, _widget, game_id):
-        self.application.launch(game_id)
+        self.application.launch(Game(game_id))

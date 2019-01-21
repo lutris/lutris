@@ -507,7 +507,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         """Launch a game after it's been installed."""
         widget.set_sensitive(False)
         self.close(widget)
-        self.application.launch(self.interpreter.game_id)
+        self.application.launch(Game(self.interpreter.game_id))
 
     def close(self, _widget):
         self.destroy()
