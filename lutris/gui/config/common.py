@@ -4,7 +4,7 @@ from gi.repository import Gtk, Pango
 from lutris.game import Game
 from lutris.config import LutrisConfig, TEMP_CONFIG
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label
-from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
+from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris import runners, settings
 from lutris import gui
