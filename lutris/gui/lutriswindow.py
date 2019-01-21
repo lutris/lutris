@@ -33,7 +33,7 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
-from lutris.gui.views.game_panel import GamePanel
+from lutris.gui.views.game_panel import GamePanel, GenericPanel
 from lutris.gui.widgets.utils import IMAGE_SIZES
 
 
@@ -125,7 +125,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_scrolled.get_style_context().add_class("game-scrolled")
         self.game_scrolled.set_policy(Gtk.PolicyType.EXTERNAL, Gtk.PolicyType.EXTERNAL)
 
-        self.game_panel = Gtk.Box()
+        self.game_panel = GenericPanel()
+        self.game_scrolled.add(self.game_panel)
         self.main_box.pack_end(self.game_scrolled, False, False, 0)
 
         self.view.show()
@@ -601,9 +602,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             child.destroy()
 
         if not self.view.selected_game:
-            return
-        self.game_actions.set_game(game_id=self.view.selected_game)
-        self.game_panel = GamePanel(self.game_actions)
+            self.game_panel = GenericPanel()
+        else:
+            self.game_actions.set_game(game_id=self.view.selected_game)
+            self.game_panel = GamePanel(self.game_actions)
         self.game_scrolled.add(self.game_panel)
 
     def on_game_installed(self, view, game_id):

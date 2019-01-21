@@ -1,7 +1,7 @@
 import os
 import array
 from PIL import Image
-from gi.repository import GdkPixbuf, GLib, Gtk
+from gi.repository import GdkPixbuf, GLib, Gtk, Gio
 
 from lutris.util.log import logger
 from lutris.util import datapath
@@ -25,6 +25,17 @@ IMAGE_SIZES = {
     "banner_small": BANNER_SMALL_SIZE,
     "banner": BANNER_SIZE,
 }
+
+
+def get_main_window(widget):
+    """Return the application's main window from one of its widget"""
+    parent = widget.get_toplevel()
+    if not isinstance(parent, Gtk.Window):
+        # The sync dialog may have closed
+        parent = Gio.Application.get_default().props.active_window
+    for window in parent.application.get_windows():
+        if "LutrisWindow" in window.__class__.__name__:
+            return window
 
 
 def get_pixbuf(image, size, fallback=None):
@@ -162,9 +173,9 @@ def image2pixbuf(image):
 def get_pixbuf_for_panel(game_slug):
     """Return the pixbuf for the game panel background"""
     source_path = os.path.join(settings.COVERART_PATH, "%s.jpg" % game_slug)
-    dest_path = os.path.join(settings.CACHE_DIR, "panel_bg.png")
     if not os.path.exists(source_path):
         source_path = os.path.join(datapath.get(), "media/generic-panel-bg.png")
+    dest_path = os.path.join(settings.CACHE_DIR, "panel_bg.png")
     background = convert_to_background(source_path)
     background.save(dest_path)
     return dest_path
