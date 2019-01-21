@@ -21,8 +21,9 @@ from lutris.util.wine.wine import get_wine_version_exe, get_system_wine_version
 
 from lutris.config import LutrisConfig, make_game_config_id
 
-from lutris.installer.errors import ScriptingError
+from lutris.installer.errors import ScriptingError, FileNotAvailable
 from lutris.installer.commands import CommandsMixin
+from lutris.installer.installer_file import InstallerFile
 
 from lutris.services import UnavailableGame
 from lutris.services.gog import (
@@ -374,8 +375,6 @@ class ScriptInterpreter(CommandsMixin):
     def _download_file(self, game_file):
         """Download a file referenced in the installer script.
 
-        KILL IT WITH FIRE!!! This method is a mess.
-
         Game files can be either a string, containing the location of the
         file to fetch or a dict with the following keys:
         - url : location of file, if not present, filename will be used
@@ -388,88 +387,32 @@ class ScriptInterpreter(CommandsMixin):
         # Setup file_id, file_uri and local filename
         file_id = list(game_file.keys())[0]
         file_meta = game_file[file_id]
-        if isinstance(file_meta, dict):
-            for field in ("url", "filename"):
-                if field not in file_meta:
-                    raise ScriptingError(
-                        "missing field `%s` for file `%s`" % (field, file_id)
-                    )
-            file_uri = file_meta["url"]
-            filename = file_meta["filename"]
-            referer = file_meta.get("referer")
-            checksum = file_meta.get("checksum")
-        else:
-            file_uri = file_meta
-            filename = os.path.basename(file_uri)
-            referer = None
-            checksum = None
-
-        if file_uri.startswith("/"):
-            file_uri = "file://" + file_uri
-        elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
-            # Download Steam data
-            self._download_steam_data(file_uri, file_id)
-            return
-
-        if not filename:
-            raise ScriptingError(
-                "No filename provided, please provide 'url' and 'filename' parameters in the script"
-            )
-
-        # Check for file availability in PGA
-        pga_uri = pga.check_for_file(self.game_slug, file_id)
-        if pga_uri:
-            file_uri = pga_uri
-
-        # Setup destination path
-        dest_file = os.path.join(self.cache_path, filename)
-
-        logger.debug("Downloading [%s]: %s to %s", file_id, file_uri, dest_file)
-
-        if file_uri.startswith("N/A"):
-            # Ask the user where the file is located
-            parts = file_uri.split(":", 1)
-            if len(parts) == 2:
-                message = parts[1]
-            else:
-                message = "Please select file '%s'" % file_id
-            self.current_file_id = file_id
-            self.parent.ask_user_for_file(message)
-            return
-
-        if os.path.exists(dest_file):
-            os.remove(dest_file)
-
-        # Change parent's status
-        self.parent.set_status("")
-        self.game_files[file_id] = dest_file
-
-        if checksum:
-            self.parent.start_download(
-                file_uri,
-                dest_file,
-                lambda *args: self.check_hash(checksum, dest_file, file_uri),
-                referer=referer
-            )
-        else:
-            self.parent.start_download(file_uri, dest_file, referer=referer)
-
-    def check_hash(self, checksum, dest_file, dest_file_uri):
-        """Checks the checksum of `file` and compare it to `value`
-
-        Args:
-            checksum (str): The checksum to look for (type:hash)
-            dest_file (str): The path to the destination file
-            dest_file_uri (str): The uri for the destination file
-        """
-
+        installer_file = InstallerFile(self.game_slug, file_id, file_meta)
         try:
-            hash_type, expected_hash = checksum.split(':', 1)
-        except ValueError:
-            raise ScriptingError("Invalid checksum, expected format (type:hash) ", dest_file_uri)
+            self.game_files[file_id] = installer_file.get_download_info()
+        except FileNotAvailable:
+            if installer_file.url.startswith(("$WINESTEAM", "$STEAM")):
+                # Download Steam data
+                self._download_steam_data(installer_file.url, installer_file.id)
+                return
+            if installer_file.url.startswith("N/A"):
+                # Ask the user where the file is located
+                parts = installer_file.url.split(":", 1)
+                if len(parts) == 2:
+                    message = parts[1]
+                else:
+                    message = "Please select file '%s'" % file_id
+                self.current_file_id = file_id
+                self.parent.ask_user_for_file(message)
+                return
 
-        if system.get_file_checksum(dest_file, hash_type) != expected_hash:
-            raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", dest_file_uri)
+        self.parent.set_status("")
+        self.parent.start_download(
+            installer_file.url,
+            installer_file.dest_file,
+            installer_file.check_hash,
+            referer=installer_file.referer
+        )
 
     def check_runner_install(self):
         """Check if the runner is installed before starting the installation

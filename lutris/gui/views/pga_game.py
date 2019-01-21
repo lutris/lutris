@@ -1,7 +1,6 @@
 """Game representation for views"""
 import time
 from lutris import runners
-from lutris import pga
 from lutris.game import Game
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, get_formatted_playtime

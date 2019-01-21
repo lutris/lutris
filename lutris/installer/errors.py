@@ -22,6 +22,10 @@ class ScriptingError(Exception):
         return self.message
 
 
+class FileNotAvailable(Exception):
+    """Raised when a file has to be provided by the user"""
+
+
 _excepthook = sys.excepthook
 
 

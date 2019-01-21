@@ -362,6 +362,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         """Action called on a completed download."""
         if callback:
             try:
+                callback_data = callback_data or {}
                 callback(**callback_data)
             except Exception as ex:  # pylint: disable:broad-except
                 raise ScriptingError(str(ex))
