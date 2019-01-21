@@ -44,7 +44,8 @@ class GameDialogCommon:
         if config_level == "game":
             self._build_info_tab()
             self._build_game_tab()
-        self._build_runner_tab(config_level)
+        if config_level in ("game", "runner"):
+            self._build_runner_tab(config_level)
         self._build_system_tab(config_level)
 
     def _build_info_tab(self):

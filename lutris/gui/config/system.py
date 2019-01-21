@@ -15,9 +15,8 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
 
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
-        self.system_box = SystemBox(self.lutris_config)
-        self.system_sw = self.build_scrolled_window(self.system_box)
-        self.vbox.pack_start(self.system_sw, True, True, 0)
+        self.build_notebook()
+        self.build_tabs("system")
         self.build_action_area(self.on_save)
         self.show_all()
 
