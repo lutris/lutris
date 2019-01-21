@@ -37,7 +37,10 @@ class GenericPanel(Gtk.Fixed):
         self.put(self.get_preferences_button(), 272, 16)
 
     def get_preferences_button(self):
-        preferences_button = Gtk.Button.new_from_icon_name("preferences-system-symbolic", Gtk.IconSize.MENU)
+        preferences_button = Gtk.Button.new_from_icon_name(
+            "preferences-system-symbolic",
+            Gtk.IconSize.MENU
+        )
         preferences_button.set_tooltip_text("Preferences")
         preferences_button.set_size_request(32, 32)
         preferences_button.props.relief = Gtk.ReliefStyle.NONE

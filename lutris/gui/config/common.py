@@ -46,38 +46,52 @@ class GameDialogCommon:
             self._build_game_tab()
         if config_level in ("game", "runner"):
             self._build_runner_tab(config_level)
+        if config_level == "system":
+            self._build_prefs_tab()
         self._build_system_tab(config_level)
 
     def _build_info_tab(self):
         info_box = VBox()
 
         if self.game:
-            info_box.pack_start(self._get_banner_box(), False, False, 5)  # Banner
+            info_box.pack_start(self._get_banner_box(), False, False, 6)  # Banner
 
-        info_box.pack_start(self._get_name_box(), False, False, 5)  # Game name
+        info_box.pack_start(self._get_name_box(), False, False, 6)  # Game name
 
         if self.game:
-            info_box.pack_start(self._get_slug_box(), False, False, 5)  # Game id
+            info_box.pack_start(self._get_slug_box(), False, False, 6)  # Game id
 
         self.runner_box = self._get_runner_box()
-        info_box.pack_start(self.runner_box, False, False, 5)  # Runner
+        info_box.pack_start(self.runner_box, False, False, 6)  # Runner
 
-        info_box.pack_start(self._get_year_box(), False, False, 5)  # Year
+        info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, "Game info")
 
+    def _build_prefs_tab(self):
+        prefs_box = VBox()
+        prefs_box.pack_start(self._get_game_cache_box(), False, False, 6)
+        info_sw = self.build_scrolled_window(prefs_box)
+        self._add_notebook_tab(info_sw, "Game info")
+
+    def _get_game_cache_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        label = Label("Cache path")
+        box.pack_start(label, False, False, 0)
+        self.name_entry = Gtk.Entry()
+        self.name_entry.set_text("pouet")
+        box.pack_start(self.name_entry, True, True, 0)
+        return box
+
     def _get_name_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-
         label = Label("Name")
         box.pack_start(label, False, False, 0)
-
         self.name_entry = Gtk.Entry()
         if self.game:
             self.name_entry.set_text(self.game.name)
         box.pack_start(self.name_entry, True, True, 0)
-
         return box
 
     def _get_slug_box(self):

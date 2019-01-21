@@ -1,7 +1,6 @@
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import Dialog
 from lutris.gui.config.common import GameDialogCommon
-from lutris.gui.config_boxes import SystemBox
 from lutris.gui.config import DIALOG_WIDTH, DIALOG_HEIGHT
 
 
@@ -20,6 +19,6 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
         self.build_action_area(self.on_save)
         self.show_all()
 
-    def on_save(self, widget):
+    def on_save(self, _widget):
         self.lutris_config.save()
         self.destroy()

@@ -553,7 +553,6 @@ class Game(GObject.Object):
             return False
         return True
 
-
     def stop(self):
         """Stops the game"""
         if self.state == self.STATE_STOPPED:
