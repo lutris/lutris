@@ -16,7 +16,14 @@ class vice(Runner):
         "Commodore Plus/4",
         "Commodore CBM II",
     ]
-
+    machine_choices = [
+        ("C64", "c64"),
+        ("C128", "c128"),
+        ("vic20", "vic20"),
+        ("PET", "pet"),
+        ("Plus/4", "plus4"),
+        ("CBM-II", "cbmii"),
+    ]
     game_options = [
         {
             "option": "main_file",
@@ -67,14 +74,7 @@ class vice(Runner):
             "option": "machine",
             "type": "choice",
             "label": "Machine",
-            "choices": [
-                ("C64", "c64"),
-                ("C128", "c128"),
-                ("vic20", "vic20"),
-                ("PET", "pet"),
-                ("Plus/4", "plus4"),
-                ("CBM-II", "cbmii"),
-            ],
+            "choices": machine_choices,
             "default": "c64",
         },
     ]
