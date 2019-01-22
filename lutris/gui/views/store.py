@@ -117,12 +117,6 @@ class GameStore(GObject.Object):
         for game in list(games):
             GLib.idle_add(self.add_game, game)
 
-    def add_games_by_ids(self, game_ids):
-        self.media_loaded = False
-        games = pga.get_games_by_ids(game_ids)
-        AsyncCall(self.get_missing_media, None, [game["slug"] for game in games])
-        self.add_games(games)
-
     def has_icon(self, game_slug, media_type=None):
         """Return True if the game_slug has the icon of `icon_type`"""
         media_type = media_type or self.icon_type
@@ -246,14 +240,18 @@ class GameStore(GObject.Object):
             self.refresh_icon(game.slug)
 
     def refresh_icon(self, game_slug):
+        logger.debug("Getting icon for %s", game_slug)
         AsyncCall(self.fetch_icon, None, game_slug)
 
     def on_icon_loaded(self, _store, game_slug, media_type):
         if not self.has_icon(game_slug):
+            logger.warning("%s has not icon", game_slug)
             return
         if media_type != self.icon_type:
+            logger.debug("%s type does not match %s", media_type, self.icon_type)
             return
-        for pga_game in pga.get_games_where(slug=game_slug):
+        for pga_game in pga.get_games_by_slug(game_slug):
+            logger.debug("Updating %s", pga_game["id"])
             GLib.idle_add(self.update, pga_game)
 
     def fetch_icon(self, slug):
@@ -269,12 +267,18 @@ class GameStore(GObject.Object):
 
     def on_media_loaded(self, response):
         for slug in self.games_to_refresh:
+            logger.debug("Refreshing %s", slug)
             self.refresh_icon(slug)
+
+    def add_games_by_ids(self, game_ids):
+        self.media_loaded = False
+        games = pga.get_games_by_ids(game_ids)
+        AsyncCall(self.get_missing_media, None, [game["slug"] for game in games])
+        self.add_games(games)
 
     def add_game_by_id(self, game_id):
         """Add a game into the store."""
-        game = pga.get_game_by_field(game_id, "id")
-        return self.add_game(game)
+        return self.add_games_by_ids([game_id])
 
     def add_game(self, pga_game):
         game = PgaGame(pga_game)
