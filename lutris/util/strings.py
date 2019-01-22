@@ -124,4 +124,10 @@ def get_formatted_playtime(playtime):
     else:
         minutes_text = ""
 
-    return " and ".join([text for text in (hours_text, minutes_text) if text]) or "0 minute"
+    formatted_time = " and ".join([text for text in (hours_text, minutes_text) if text])
+    if formatted_time:
+        return formatted_time
+    seconds = int(hours * 3600)
+    if seconds:
+        return "%d seconds" % seconds
+    return "No play time recorded"
