@@ -360,7 +360,7 @@ class WebConnectDialog(Dialog):
             )
         WebKit2.CookieManager.set_persistent_storage(
             self.context.get_cookie_manager(),
-            service.credentials_path,
+            service.cookies_path,
             WebKit2.CookiePersistentStorage(0),
         )
         self.service = service

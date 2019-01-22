@@ -33,7 +33,7 @@ class GogService:
     redirect_uri = "https://embed.gog.com/on_login_success?origin=client"
 
     login_success_url = "https://www.gog.com/on_login_success"
-    credentials_path = os.path.join(settings.CACHE_DIR, ".gog.auth")
+    cookies_path = os.path.join(settings.CACHE_DIR, ".gog.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
     cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
 
@@ -50,7 +50,7 @@ class GogService:
 
     @property
     def credential_files(self):
-        return [self.credentials_path, self.token_path]
+        return [self.cookies_path, self.token_path]
 
     def disconnect(self):
         """Disconnect from GOG by removing all credentials"""
@@ -103,11 +103,11 @@ class GogService:
 
     def load_cookies(self):
         """Load cookies from disk"""
-        logger.debug("Loading cookies from %s", self.credentials_path)
-        if not os.path.exists(self.credentials_path):
+        logger.debug("Loading cookies from %s", self.cookies_path)
+        if not os.path.exists(self.cookies_path):
             logger.debug("No cookies found, please authenticate first")
             return
-        cookiejar = WebkitCookieJar(self.credentials_path)
+        cookiejar = WebkitCookieJar(self.cookies_path)
         cookiejar.load()
         return cookiejar
 
@@ -127,8 +127,7 @@ class GogService:
 
     def make_request(self, url):
         """Send a cookie authenticated HTTP request to GOG"""
-        cookies = self.load_cookies()
-        request = Request(url, cookies=cookies)
+        request = Request(url, cookies=self.load_cookies())
         request.get()
         return request.json
 
@@ -142,7 +141,7 @@ class GogService:
             self.request_token(refresh_token=token["refresh_token"])
             token = self.load_token()
         headers = {"Authorization": "Bearer " + token["access_token"]}
-        request = Request(url, headers=headers)
+        request = Request(url, headers=headers, cookies=self.load_cookies())
         request.get()
         return request.json
 

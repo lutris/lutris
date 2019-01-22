@@ -62,7 +62,7 @@ class InstallerFile:
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
         if settings.read_setting("pga_cache_path"):
-            if "cdn.gog.com" in self.url:
+            if "cdn.gog.com" in self.url or "cdn-hw.gog.com" in self.url:
                 folder = "gog"
             else:
                 folder = self.id
