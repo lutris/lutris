@@ -49,7 +49,8 @@ setup(
     install_requires=[
         'PyYAML',
         'PyGObject',
-        'evdev'
+        'evdev',
+        'requests'
     ],
     url='https://lutris.net',
     description='Install and play any video game on Linux',

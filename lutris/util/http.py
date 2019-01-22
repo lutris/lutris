@@ -16,13 +16,12 @@ class HTTPError(Exception):
 
 class Request:
     def __init__(
-        self,
-        url,
-        timeout=30,
-        stop_request=None,
-        thread_queue=None,
-        headers=None,
-        cookies=None,
+            self,
+            url,
+            timeout=30,
+            stop_request=None,
+            headers=None,
+            cookies=None,
     ):
 
         if not url:
@@ -36,11 +35,11 @@ class Request:
 
         self.url = url
         self.status_code = None
-        self.content = ""
+        self.content = b""
         self.timeout = timeout
         self.stop_request = stop_request
-        self.thread_queue = thread_queue
         self.buffer_size = 1024 * 1024  # Bytes
+        self.total_size = None
         self.downloaded_size = 0
         self.headers = {"User-Agent": self.user_agent}
         self.response_headers = None
@@ -76,38 +75,33 @@ class Request:
         if request.getcode() > 200:
             logger.debug("Server responded with status code %s", request.getcode())
         try:
-            total_size = request.info().get("Content-Length").strip()
-            total_size = int(total_size)
+            self.total_size = int(request.info().get("Content-Length").strip())
         except AttributeError:
             logger.warning("Failed to read response's content length")
-            total_size = 0
+            self.total_size = 0
 
         self.response_headers = request.getheaders()
         self.status_code = request.getcode()
         if self.status_code > 299:
             logger.warning("Request responded with code %s", self.status_code)
-        chunks = []
+        self.content = b"".join(self._iter_chunks(request))
+        self.info = request.info()
+        request.close()
+        return self
+
+    def _iter_chunks(self, request):
         while 1:
             if self.stop_request and self.stop_request.is_set():
-                self.content = ""
+                self.content = b""
                 return self
             try:
                 chunk = request.read(self.buffer_size)
             except socket.timeout:
-                logger.error("Request timed out")
-                self.content = ""
-                return self
+                raise HTTPError("Request timed out")
             self.downloaded_size += len(chunk)
-            if self.thread_queue:
-                self.thread_queue.put((chunk, self.downloaded_size, total_size))
-            else:
-                chunks.append(chunk)
             if not chunk:
-                break
-        request.close()
-        self.content = b"".join(chunks)
-        self.info = request.info()
-        return self
+                return
+            yield chunk
 
     def post(self, data):
         raise NotImplementedError
