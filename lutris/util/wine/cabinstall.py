@@ -1,15 +1,12 @@
 # pylint: disable=missing-docstring
 import os
-import sys
+import re
 import subprocess
 import tempfile
 import shutil
-import logging
-
 import xml.etree.ElementTree
-import re
 
-LOGGER = logging.getLogger(__name__)
+from lutris.util.log import logger
 
 
 class CabInstaller:
@@ -215,5 +212,5 @@ class CabInstaller:
         try:
             self.process_files(self.extract_from_cab(cabfile, component))
         except RuntimeError as ex:
-            LOGGER.error(ex)
+            logger.error(ex)
         self.cleanup()
