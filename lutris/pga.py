@@ -241,6 +241,10 @@ def get_game_by_field(value, field="slug"):
     return {}
 
 
+def get_games_by_slug(slug):
+    return sql.db_select(PGA_DB, "games", condition=("slug", slug))
+
+
 def add_game(name, **game_data):
     """Add a game to the PGA database."""
     game_data["name"] = name
@@ -270,28 +274,34 @@ def add_or_update(**params):
     will try to match it, otherwise it will try matching
     by slug, creating one when possible.
     """
-    slug = params.get("slug")
-    if "id" in params and params["id"] is None:
-        params.pop("id")
-    game = None
+    game_id = get_matching_game(params)
+    if game_id:
+        sql.db_update(PGA_DB, "games", params, ("id", game_id))
+        return game_id
+    return add_game(**params)
+
+
+def get_matching_game(params):
+    """Tries to match given parameters with an existing game"""
+    # Always match by ID if provided
     if params.get("id"):
         game = get_game_by_field(params["id"], "id")
-    if not game:
-        if not slug:
-            slug = slugify(params["name"])
-        game = get_game_by_field(slug, "slug")
-    if game and (
-            game["runner"] == params.get("runner")
-            or not all([params.get("runner"), game["runner"]])
-    ):
-        sql.db_update(PGA_DB, "games", params, ("id", game["id"]))
-        return game["id"]
-    if game:
-        logger.warning("Game found but not updated: %s", game)
-    if params.get("id"):
-        logger.warning("Removing id %s from parameters", params["id"])
-        params.pop("id")
-    return add_game(**params)
+        if game:
+            return game["id"]
+        logger.warning("Game ID %s provided but couldn't be matched", params["id"])
+    slug = params.get("slug") or slugify(params.get("name"))
+    if not slug:
+        raise ValueError("Can't add or update without an identifier")
+    for game in get_games_by_slug(slug):
+        if (
+                (
+                    game["runner"] == params.get("runner")
+                    or not all([params.get("runner"), game["runner"]])
+                )
+                and not game["installed"]
+        ):
+            return game["id"]
+    return None
 
 
 def delete_game(game_id):
