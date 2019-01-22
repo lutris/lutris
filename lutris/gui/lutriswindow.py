@@ -22,7 +22,6 @@ from lutris.services import get_services_synced_at_startup, steam
 
 from lutris.vendor.gi_composites import GtkTemplate
 
-from lutris.gui.util import open_uri
 from lutris.gui import dialogs
 from lutris.gui.widgets.sidebar import SidebarListBox
 from lutris.gui.widgets.services import SyncServiceWindow
@@ -34,7 +33,7 @@ from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
 from lutris.gui.views.game_panel import GamePanel, GenericPanel
-from lutris.gui.widgets.utils import IMAGE_SIZES
+from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))

@@ -5,7 +5,7 @@ from gi.repository import Gio
 from lutris.command import MonitoredCommand
 from lutris.game import Game
 from lutris.gui import dialogs
-from lutris.gui.util import open_uri
+from lutris.gui.widgets.utils import open_uri
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.installerwindow import InstallerWindow

@@ -1,7 +1,8 @@
+"""Various utilities using the GObject framework"""
 import os
 import array
 from PIL import Image
-from gi.repository import GdkPixbuf, GLib, Gtk, Gio
+from gi.repository import GdkPixbuf, GLib, Gtk, Gio, Gdk
 
 from lutris.util.log import logger
 from lutris.util import datapath
@@ -36,6 +37,12 @@ def get_main_window(widget):
     for window in parent.application.get_windows():
         if "LutrisWindow" in window.__class__.__name__:
             return window
+
+
+def open_uri(uri):
+    """Opens a local or remote URI with the default application"""
+    system.reset_library_preloads()
+    Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
 
 
 def get_pixbuf(image, size, fallback=None):
