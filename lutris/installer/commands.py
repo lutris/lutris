@@ -11,6 +11,7 @@ from gi.repository import GLib
 from lutris.installer.errors import ScriptingError
 
 from lutris import runtime
+from lutris import settings
 from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
@@ -62,6 +63,13 @@ class CommandsMixin:
                         % (param, command_name),
                         command_data,
                     )
+
+    def _is_cached_file(self, file_path):
+        """Return whether a file referenced by file_id is stored in the cache"""
+        pga_cache_path = settings.read_setting("pga_cache_path")
+        if not pga_cache_path:
+            return False
+        return file_path.startswith(pga_cache_path)
 
     def chmodx(self, filename):
         """Make filename executable"""
@@ -269,26 +277,24 @@ class CommandsMixin:
         logger.debug("Moving %s to %s", src, dst)
         if not os.path.exists(src):
             raise ScriptingError("I can't move %s, it does not exist" % src)
+
         if os.path.isfile(src):
-            src_filename = os.path.basename(src)
-            src_dir = os.path.dirname(src)
-            dst_path = os.path.join(dst, src_filename)
-            if src_dir == dst:
+            if os.path.dirname(src) == dst:
                 logger.info("Source file is the same as destination, skipping")
-            elif os.path.exists(dst_path):
+                return
+            elif os.path.exists(os.path.join(dst, os.path.basename(src))):
                 # May not be the best choice, but it's the safest.
                 # Maybe should display confirmation dialog (Overwrite / Skip) ?
                 logger.info("Destination file exists, skipping")
+                return
+        try:
+            if self._is_cached_file(src):
+                action = shutil.copy
             else:
-                self._killable_process(shutil.move, src, dst)
-        else:
-            try:
-                self._killable_process(shutil.move, src, dst)
-            except shutil.Error:
-                raise ScriptingError("Can't move %s \nto destination %s" % (src, dst))
-        if os.path.isfile(src) and params["src"] in self.game_files.keys():
-            # Change game file reference so it can be used as executable
-            self.game_files["src"] = src
+                action = shutil.move
+            self._killable_process(action, src, dst)
+        except shutil.Error:
+            raise ScriptingError("Can't move %s \nto destination %s" % (src, dst))
 
     def rename(self, params):
         """Rename file or folder."""
