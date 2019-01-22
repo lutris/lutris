@@ -11,80 +11,33 @@ import re
 tmpdir = None
 
 
-def cleanup():
-    if not tmpdir:
-        return
-    if options["nocleanup"]:
-        print("Not cleaning up. Find the files at %s" % tmpdir)
-    else:
-        shutil.rmtree(tmpdir)
-
-
-def bad_exit(text):
-    print(text)
-    cleanup()
-    sys.exit(1)
-
-
-def print_debug(text):
-    if options["debug"]:
-        print(text)
-
-
-arch_map = {"amd64": "win64", "x86": "win32", "wow64": "wow64"}
-
-dest_map = {
-    "win64:win32": "Syswow64",
-    "win64:win64": "System32",
-    "win64:wow64": "System32",
-    "win32:win32": "System32",
-}
-
-
-def check_wineprefix_arch(prefix_path):
-    if not os.path.exists(prefix_path):
-        bad_exit("Wineprefix path does not exist! (%s)" % prefix_path)
-    system_reg_file = os.path.join(prefix_path, "system.reg")
-    with open(system_reg_file) as f:
-        for line in f.readlines():
-            if line.startswith("#arch=win32"):
-                return "win32"
-            elif line.startswith("#arch=win64"):
-                return "win64"
-        bad_exit("Could not determine wineprefix arch!")
-
-
 def get_system32_realdir(arch):
-    return dest_map[winearch + ":" + arch]
+    dest_map = {
+        "win64:win32": "Syswow64",
+        "win64:win64": "System32",
+        "win64:wow64": "System32",
+        "win32:win32": "System32",
+    }
+    return dest_map[WINEARCH + ":" + arch]
 
 
 def get_dll_destdir(dll_path):
     arch = check_dll_arch(dll_path)
-    if arch == "win32" and winearch == "win64":
-        dest_dir = syswow64_path
-    elif arch == "win64" and winearch == "win32":
-        bad_exit("Invalid win64 assembly for win32 wineprefix!")
-    else:
-        dest_dir = system32_path
-    return dest_dir
+    if arch == "win32" and WINEARCH == "win64":
+        return syswow64_path
+    return system32_path
 
 
 def get_winebin(arch):
-    if arch in ("win64", "wow64") and winearch == "win32":
-        bad_exit("Invalid win64 assembly for win32 wineprefix!")
-    elif arch in("win32", "wow64"):
-        winebin = "wine"
-    else:
-        winebin = "wine64"
-    return winebin
+    if arch in("win32", "wow64"):
+        return "wine"
+    return "wine64"
 
 
 def check_dll_arch(dll_path):
-    out = subprocess.check_output(["file", dll_path]).decode()
-    if "x86-64" in out:
+    if "x86-64" in subprocess.check_output(["file", dll_path]).decode():
         return "win64"
-    else:
-        return "win32"
+    return "win32"
 
 
 def replace_variables(value, arch):
@@ -158,22 +111,14 @@ def process_value(rv, arch):
 
 
 def process_key(key):
-    key = key.strip("\\")
-    key = key.replace("HKEY_CLASSES_ROOT", "HKEY_LOCAL_MACHINE\\Software\\Classes")
-    return key
+    return key.strip("\\").replace("HKEY_CLASSES_ROOT", "HKEY_LOCAL_MACHINE\\Software\\Classes")
 
 
 def parse_manifest_arch(elmt):
     registry_keys = elmt.findall("{urn:schemas-microsoft-com:asm.v3}assemblyIdentity")
-    if not len(registry_keys):
-        bad_exit("Can't find processor architecture")
     arch = registry_keys[0].attrib["processorArchitecture"]
-    if arch not in arch_map:
-        bad_exit("Unknown processor architecture %s" % arch)
-    arch = arch_map[arch]
-    if arch in ("win64", "wow64") and winearch == "win32":
-        bad_exit("Invalid 64 bit assembly for 32 bit system!")
-    return arch
+    arch_map = {"amd64": "win64", "x86": "win32", "wow64": "wow64"}
+    return arch_map[arch]
 
 
 def process_manifest(file_name):
@@ -195,35 +140,23 @@ def process_manifest(file_name):
     return (out, arch)
 
 
-#######################################
-# Installer Processing
-
-
 def extract_from_installer(orig_file, dest_dir, component):
-    filter_str = "*%s*" % component
-    print("%s" % component.strip("_"))
-    subprocess.check_output(["cabextract", "-F", filter_str, "-d", dest_dir, orig_file])
+    subprocess.check_output(["cabextract", "-F", "*%s*" % component, "-d", dest_dir, orig_file])
     return [os.path.join(r, file) for r, d, f in os.walk(dest_dir) for file in f]
 
 
 def load_manifest(file_path):
-    file_name = os.path.basename(file_path)
-    reg_data, arch = process_manifest(file_path)
-    print("- %s (%s)" % (file_name, arch))
-    return reg_data, arch
+    return process_manifest(file_path)
 
 
 def register_dll(dll_path):
     if not options["register"]:
         return
     arch = check_dll_arch(dll_path)
-    winebin = get_winebin(arch)
-    subprocess.call([winebin, "regsvr32", os.path.basename(dll_path)])
+    subprocess.call([get_winebin(arch), "regsvr32", os.path.basename(dll_path)])
 
 
 def install_dll(dll_path):
-    if options["nodll"]:
-        return
     dest_dir = get_dll_destdir(dll_path)
     file_name = os.path.basename(dll_path)
     print("- %s -> %s" % (file_name, dest_dir))
@@ -232,11 +165,7 @@ def install_dll(dll_path):
 
 
 def install_regfile(path, reg_file, arch):
-    if options["noreg"]:
-        return
-    winebin = get_winebin(arch)
-    print_debug("  install reg %s with %s" % (reg_file, winebin))
-    subprocess.call([winebin, "regedit", os.path.join(path, reg_file)])
+    subprocess.call([get_winebin(arch), "regedit", os.path.join(path, reg_file)])
 
 
 def process_files(output_files):
@@ -247,7 +176,7 @@ def process_files(output_files):
             outdata, arch = load_manifest(file_path)
             if outdata:
                 out += outdata
-                print_debug("  %s assembly" % arch)
+                print("  %s assembly" % arch)
                 with open(os.path.join(tmpdir, file_path + ".reg"), "w") as f:
                     f.write(out)
                 reg_files.append((file_path, arch))
@@ -262,27 +191,42 @@ def process_files(output_files):
 
 options = {
     "register": False,
-    "nocleanup": False,
-    "nodll": False,
-    "noreg": False,
     "stripdllpath": False,
-    "debug": False,
 }
 
 
-def parse_command_line_opts(options):
-    app_argv = list(sys.argv)
-    for opt_key in options.keys():
-        opt_command = "--%s" % opt_key
-        if opt_command in app_argv:
-            options[opt_key] = True
-            app_argv.remove(opt_command)
-    return app_argv
-
-
 if __name__ == "__main__":
+    def parse_command_line_opts(options):
+        app_argv = list(sys.argv)
+        for opt_key in options.keys():
+            opt_command = "--%s" % opt_key
+            if opt_command in app_argv:
+                options[opt_key] = True
+                app_argv.remove(opt_command)
+        return app_argv
+
+    def cleanup():
+        if not tmpdir:
+            return
+        shutil.rmtree(tmpdir)
+
+    def bad_exit(text):
+        print(text)
+        cleanup()
+        sys.exit(1)
+
+    def check_wineprefix_arch(prefix_path):
+        if not os.path.exists(prefix_path):
+            raise RuntimeError("Wineprefix path does not exist! (%s)" % prefix_path)
+        system_reg_file = os.path.join(prefix_path, "system.reg")
+        with open(system_reg_file) as f:
+            for line in f.readlines():
+                if line.startswith("#arch=win32"):
+                    return "win32"
+                elif line.startswith("#arch=win64"):
+                    return "win64"
+
     app_argv = parse_command_line_opts(options)
-    # sanity checks
     if len(app_argv) < 3:
         print("usage:")
         print("  installcab.py [options] cabfile component [wineprefix_path]")
@@ -293,9 +237,6 @@ if __name__ == "__main__":
         )
         print("")
         print("options:")
-        print("  --nocleanup: do not perform cleanup")
-        print("  --noreg: do not import registry entries")
-        print("  --nodll: do not install dlls into system dir")
         print("  --register: register dlls with regsrv32")
         print(
             "  --stripdllpath: strip full path for dlls in registry so wine can find them anywhere"
@@ -311,7 +252,7 @@ if __name__ == "__main__":
     else:
         wineprefix = app_argv[3]
 
-    winearch = check_wineprefix_arch(wineprefix)
+    WINEARCH = check_wineprefix_arch(wineprefix)
 
     system32_path = os.path.join(wineprefix, "drive_c", "windows", "system32")
     syswow64_path = os.path.join(wineprefix, "drive_c", "windows", "syswow64")
@@ -319,10 +260,8 @@ if __name__ == "__main__":
     tmpdir = tempfile.mkdtemp()
     cabfile = app_argv[1]
     component = app_argv[2]
-
-    # processing
-    output_files = extract_from_installer(cabfile, tmpdir, component)
-    process_files(output_files)
-
-    # clean up
+    try:
+        process_files(extract_from_installer(cabfile, tmpdir, component))
+    except RuntimeError as ex:
+        bad_exit(str(ex))
     cleanup()
