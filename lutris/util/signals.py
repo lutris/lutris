@@ -12,8 +12,7 @@ def sigchld_handler(_signum, _frame):
     in order to detect the monitoredcommand's complete exit asynchronously."""
     try:
         pid, returncode, _ = os.wait3(os.WNOHANG)
-    except ChildProcessError as ex:  # already handled by someone else
-        logger.debug("Wait call failed: %s", ex)
+    except ChildProcessError:  # already handled by someone else
         return
     try:
         handler = PID_HANDLERS.pop(pid)

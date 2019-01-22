@@ -14,9 +14,9 @@ class CabInstaller:
 
     Based on an implementation by tonix64: https://github.com/tonix64/python-installcab
     """
-    def __init__(self, prefix, wine_path=None):
+    def __init__(self, prefix, arch=None, wine_path=None):
         self.prefix = prefix
-        self.winearch = self.get_wineprefix_arch()
+        self.winearch = arch or self.get_wineprefix_arch()
         self.tmpdir = tempfile.mkdtemp()
         self.wine_path = wine_path
 
@@ -36,10 +36,8 @@ class CabInstaller:
         return arch_map[arch]
 
     def get_winebin(self, arch):
-        binary = "wine" if arch in("win32", "wow64") else "wine64"
-        if self.wine_path:
-            return os.path.join(self.wine_path, "bin", binary)
-        return binary
+        wine_path = self.wine_path or "wine"
+        return wine_path if arch in("win32", "wow64") else wine_path + "64"
 
     @staticmethod
     def get_arch_from_dll(dll_path):
@@ -48,6 +46,7 @@ class CabInstaller:
         return "win32"
 
     def cleanup(self):
+        logger.info("Cleaning up %s", self.tmpdir)
         shutil.rmtree(self.tmpdir)
 
     def check_dll_arch(self, dll_path):
@@ -163,14 +162,16 @@ class CabInstaller:
 
     def install_dll(self, dll_path):
         dest_dir = self.get_dll_destdir(dll_path)
+        logger.debug("Copying %s to %s", dll_path, dest_dir)
         shutil.copy(dll_path, dest_dir)
+
         dest_dll_path = os.path.join(dest_dir, os.path.basename(dll_path))
         if not self.register_dlls:
             return
         arch = self.get_arch_from_dll(dest_dll_path)
         subprocess.call([self.get_winebin(arch), "regsvr32", os.path.basename(dest_dll_path)])
 
-    def process_files(self, output_files):
+    def get_registry_files(self, output_files):
         reg_files = []
         for file_path in output_files:
             if file_path.endswith(".manifest"):
@@ -181,17 +182,17 @@ class CabInstaller:
                     with open(os.path.join(self.tmpdir, file_path + ".reg"), "w") as reg_file:
                         reg_file.write(out)
                     reg_files.append((file_path, arch))
-
-        for file_path in output_files:
             if file_path.endswith(".dll"):
                 self.install_dll(file_path)
+        return reg_files
 
-        for file_path, arch in reg_files:
-            subprocess.call([
-                self.get_winebin(arch),
-                "regedit",
-                os.path.join(self.tmpdir, file_path + ".reg")
-            ])
+    def apply_to_registry(self, file_path, arch):
+        logger.info("Applying %s to registry", file_path)
+        subprocess.call([
+            self.get_winebin(arch),
+            "regedit",
+            os.path.join(self.tmpdir, file_path + ".reg")
+        ])
 
     def extract_from_cab(self, cabfile, component):
         """Extracts files matching a `component` name from a `cabfile`
@@ -210,8 +211,9 @@ class CabInstaller:
 
     def install(self, cabfile, component):
         """Install `component` from `cabfile`"""
-        try:
-            self.process_files(self.extract_from_cab(cabfile, component))
-        except RuntimeError as ex:
-            logger.error(ex)
+        logger.info("Installing %s from %s", component, cabfile)
+
+        for file_path, arch in self.get_registry_files(self.extract_from_cab(cabfile, component)):
+            self.apply_to_registry(file_path, arch)
+
         self.cleanup()

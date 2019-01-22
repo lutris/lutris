@@ -45,6 +45,7 @@ from lutris.runners.commands.wine import (  # noqa pylint: disable=unused-import
     wineexec,
     winekill,
     winetricks,
+    install_cab_component,
 )
 
 MIN_SAFE_VERSION = "3.0"  # Wine installers must run with at least this version
