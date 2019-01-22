@@ -36,10 +36,33 @@ class InstallerFile:
             raise ScriptingError(
                 "No filename provided, please provide 'url' and 'filename' parameters in the script"
             )
+        if self.uses_pga_cache(create=True):
+            logger.debug("Using cache path %s", self.cache_path)
+
+    def __str__(self):
+        return "%s/%s" % (self.game_slug, self.id)
+
+    def uses_pga_cache(self, create=False):
+        cache_path = settings.read_setting("pga_cache_path")
+        if not cache_path:
+            return False
+        if not system.path_exists(cache_path):
+            if create:
+                try:
+                    os.makedirs(self.cache_path)
+                except OSError as ex:
+                    logger.error("Failed to created cache path: %s", ex)
+                    return False
+                return True
+            logger.warning("Cache path %s does not exist", cache_path)
+            return False
+        return True
 
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
+        if settings.read_setting("pga_cache_path"):
+            return os.path.join(settings.read_setting("pga_cache_path"), self.game_slug, self.id)
         return os.path.join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
 
     def get_download_info(self):
@@ -54,7 +77,7 @@ class InstallerFile:
         dest_file = os.path.join(self.cache_path, self.filename)
         logger.debug("Downloading [%s]: %s to %s", self.id, self.url, dest_file)
 
-        if os.path.exists(dest_file):
+        if not self.uses_pga_cache() and os.path.exists(dest_file):
             os.remove(dest_file)
         self.dest_file = dest_file
         return self.dest_file
@@ -76,3 +99,22 @@ class InstallerFile:
 
         if system.get_file_checksum(self.dest_file, hash_type) != expected_hash:
             raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", self.checksum)
+
+    def download(self, downloader):
+        if self.uses_pga_cache() and system.path_exists(self.dest_file):
+            logger.info("File %s already cached", self)
+            return False
+
+        if not system.path_exists(self.cache_path):
+            os.makedirs(self.cache_path)
+        downloader(
+            self.url,
+            self.dest_file,
+            callback=self.check_hash,
+            referer=self.referer
+        )
+        return True
+
+    def cleanup(self):
+        if not self.uses_pga_cache():
+            system.remove_folder(self.cache_path)

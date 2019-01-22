@@ -141,7 +141,11 @@ class ScriptInterpreter(CommandsMixin):
                 "Invalid script: \n{}".format("\n".join(self.errors)), self.script
             )
 
-        self.files = self.script.get("files", [])
+        self.files = [
+            InstallerFile(self.game_slug, file_id, file_meta)
+            for file_desc in self.script.get("files")
+            for file_id, file_meta in file_desc.items()
+        ]
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
 
@@ -288,20 +292,11 @@ class ScriptInterpreter(CommandsMixin):
         installer_file_id = None
         if links:
             for index, file in enumerate(self.files):
-                file_id = list(file.keys())[0]
-                file_meta = file[file_id]
-                if (
-                        (
-                            isinstance(file_meta, str)
-                            and file_meta.startswith("N/A")
-                        ) or (
-                            isinstance(file_meta, dict)
-                            and file_meta.get('url', '').startswith('N/A')
-                        )
-                ):
-                    logger.debug("Removing file %s", file_id)
+                file_id = file.id
+                if file.url.startswith("N/A"):
+                    logger.debug("Removing file %s", file.id)
                     self.files.pop(index)
-                    installer_file_id = file_id
+                    installer_file_id = file.id
                     break
 
         if not installer_file_id:
@@ -317,13 +312,12 @@ class ScriptInterpreter(CommandsMixin):
                 file_id = "gog_file_%s" % index
 
             logger.debug("Adding GOG file %s as %s", filename, file_id)
-
-            self.files.append({
-                file_id: {
+            self.files.append(
+                InstallerFile(self.game_slug, file_id, {
                     "url": link,
                     "filename": filename,
-                }
-            })
+                })
+            )
 
     def prepare_game_files(self):
         """Gathers necessary files before iterating through them."""
@@ -338,10 +332,6 @@ class ScriptInterpreter(CommandsMixin):
     def iter_game_files(self):
         """Iterate through game files, downloading them or querying them from the user"""
         if self.files:
-            # Create cache dir if needed
-            if not os.path.exists(self.cache_path):
-                os.mkdir(self.cache_path)
-
             if (
                     self.target_path
                     and not system.path_exists(self.target_path)
@@ -372,7 +362,7 @@ class ScriptInterpreter(CommandsMixin):
             self.current_command = 0
             self._prepare_commands()
 
-    def _download_file(self, game_file):
+    def _download_file(self, installer_file):
         """Download a file referenced in the installer script.
 
         Game files can be either a string, containing the location of the
@@ -382,14 +372,8 @@ class ScriptInterpreter(CommandsMixin):
         - filename : force destination filename when url is present or path
                      of local file.
         """
-        if not isinstance(game_file, dict):
-            raise ScriptingError("Invalid file, check the installer script", game_file)
-        # Setup file_id, file_uri and local filename
-        file_id = list(game_file.keys())[0]
-        file_meta = game_file[file_id]
-        installer_file = InstallerFile(self.game_slug, file_id, file_meta)
         try:
-            self.game_files[file_id] = installer_file.get_download_info()
+            self.game_files[installer_file.id] = installer_file.get_download_info()
         except FileNotAvailable:
             if installer_file.url.startswith(("$WINESTEAM", "$STEAM")):
                 # Download Steam data
@@ -401,18 +385,13 @@ class ScriptInterpreter(CommandsMixin):
                 if len(parts) == 2:
                     message = parts[1]
                 else:
-                    message = "Please select file '%s'" % file_id
-                self.current_file_id = file_id
+                    message = "Please select file '%s'" % installer_file.id
+                self.current_file_id = installer_file.id
                 self.parent.ask_user_for_file(message)
                 return
-
-        self.parent.set_status("")
-        self.parent.start_download(
-            installer_file.url,
-            installer_file.dest_file,
-            installer_file.check_hash,
-            referer=installer_file.referer
-        )
+        is_downloading = installer_file.download(self.parent.start_download)
+        if not is_downloading:
+            self.iter_game_files()
 
     def check_runner_install(self):
         """Check if the runner is installed before starting the installation
@@ -703,7 +682,8 @@ class ScriptInterpreter(CommandsMixin):
     def cleanup(self):
         """Clean up install dir after a successful install"""
         os.chdir(os.path.expanduser("~"))
-        system.remove_folder(self.cache_path)
+        for file in self.files:
+            file.cleanup()
 
     # --------------
     # Revert install
