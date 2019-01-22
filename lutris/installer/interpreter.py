@@ -143,7 +143,7 @@ class ScriptInterpreter(CommandsMixin):
 
         self.files = [
             InstallerFile(self.game_slug, file_id, file_meta)
-            for file_desc in self.script.get("files")
+            for file_desc in self.script.get("files", [])
             for file_id, file_meta in file_desc.items()
         ]
         self.requires = self.script.get("requires")
