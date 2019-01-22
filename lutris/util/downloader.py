@@ -113,10 +113,11 @@ class Downloader:
         response = requests.get(self.url, headers=headers, stream=True)
         self.full_size = int(response.headers.get("Content-Length").strip())
         for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if not self.file_pointer:
+                break
             if chunk:
                 self.downloaded_size += len(chunk)
-                if self.file_pointer:
-                    self.file_pointer.write(chunk)
+                self.file_pointer.write(chunk)
 
     def get_stats(self):
         """Calculate and store download stats."""
