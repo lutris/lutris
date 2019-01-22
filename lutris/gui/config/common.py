@@ -422,7 +422,13 @@ class GameDialogCommon:
         self.game.name = name
         self.game.slug = self.slug
         self.game.year = year
-        self.game.config = self.lutris_config
+        self.game.game_config_id = self.lutris_config.game_config_id
+        self.game.runner_name = self.runner_name
+        self.game.directory = runner.game_path
+        self.game.is_installed = True
+        if self.runner_name in ("steam", "winesteam"):
+            self.game.steamid = self.lutris_config.game_config["appid"]
+        self.game.load_config()
 
         fps_limit = self.game.config.system_config.get("fps_limit", None)
         if fps_limit:
@@ -432,10 +438,6 @@ class GameDialogCommon:
                 ErrorDialog("Fps limit only accept numbers")
                 return
 
-        self.game.directory = runner.game_path
-        self.game.is_installed = True
-        if self.runner_name in ("steam", "winesteam"):
-            self.game.steamid = self.lutris_config.game_config["appid"]
         self.game.set_platform_from_runner()
         self.game.save()
         self.destroy()
