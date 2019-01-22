@@ -428,7 +428,6 @@ class GameDialogCommon:
         self.game.is_installed = True
         if self.runner_name in ("steam", "winesteam"):
             self.game.steamid = self.lutris_config.game_config["appid"]
-        self.game.load_config()
 
         fps_limit = self.game.config.system_config.get("fps_limit", None)
         if fps_limit:
@@ -440,6 +439,7 @@ class GameDialogCommon:
 
         self.game.set_platform_from_runner()
         self.game.save()
+        self.game.load_config()
         self.destroy()
         self.saved = True
         if callback:
