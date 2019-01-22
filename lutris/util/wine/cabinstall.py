@@ -181,7 +181,7 @@ class CabInstaller:
                     out += outdata
                     with open(os.path.join(self.tmpdir, file_path + ".reg"), "w") as reg_file:
                         reg_file.write(out)
-                    reg_files.append((file_path, arch))
+                    reg_files.append((file_path + ".reg", arch))
             if file_path.endswith(".dll"):
                 self.install_dll(file_path)
         return reg_files
@@ -191,7 +191,7 @@ class CabInstaller:
         subprocess.call([
             self.get_winebin(arch),
             "regedit",
-            os.path.join(self.tmpdir, file_path + ".reg")
+            os.path.join(self.tmpdir, file_path)
         ])
 
     def extract_from_cab(self, cabfile, component):

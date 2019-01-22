@@ -396,11 +396,12 @@ def eject_disc(wine_path, prefix):
     """Use Wine to eject a drive"""
     wineexec("eject", prefix=prefix, wine_path=wine_path, args="-a")
 
+
 def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=None):
+    """Install a component from a cabfile in a prefix"""
     cab_installer = CabInstaller(prefix, wine_path=wine_path, arch=arch)
     files = cab_installer.extract_from_cab(cabfile, component)
     registry_files = cab_installer.get_registry_files(files)
-    for registry_file, arch in registry_files:
-        set_regedit_file(registry_file, wine_path=wine_path, prefix=prefix, arch=arch)
-
+    for registry_file, _arch in registry_files:
+        set_regedit_file(registry_file, wine_path=wine_path, prefix=prefix, arch=_arch)
     cab_installer.cleanup()
