@@ -10,15 +10,11 @@ from lutris.util import system
 from lutris import settings
 
 
-UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(), "media/unavailable.png")
-
 BANNER_SIZE = (184, 69)
 BANNER_SMALL_SIZE = (120, 45)
 ICON_SIZE = (32, 32)
 ICON_SMALL_SIZE = (20, 20)
 
-DEFAULT_BANNER = os.path.join(datapath.get(), "media/default_banner.png")
-DEFAULT_ICON = os.path.join(datapath.get(), "media/default_icon.png")
 
 IMAGE_SIZES = {
     "icon_small": ICON_SMALL_SIZE,
@@ -105,10 +101,10 @@ def get_overlay(overlay_path, size):
 
 def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
     if icon_type.startswith("banner"):
-        default_icon_path = DEFAULT_BANNER
+        default_icon_path = os.path.join(datapath.get(), "media/default_banner.png")
         icon_path = datapath.get_banner_path(game_slug)
     elif icon_type.startswith("icon"):
-        default_icon_path = DEFAULT_ICON
+        default_icon_path = os.path.join(datapath.get(), "media/default_icon.png")
         icon_path = datapath.get_icon_path(game_slug)
     else:
         logger.error("Invalid icon type '%s'", icon_type)
@@ -118,7 +114,8 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
 
     pixbuf = get_pixbuf(icon_path, size, fallback=default_icon_path)
     if not is_installed:
-        transparent_pixbuf = get_overlay(UNAVAILABLE_GAME_OVERLAY, size).copy()
+        unavailable_game_overlay = os.path.join(datapath.get(), "media/unavailable.png")
+        transparent_pixbuf = get_overlay(unavailable_game_overlay, size).copy()
         pixbuf.composite(
             transparent_pixbuf,
             0,
