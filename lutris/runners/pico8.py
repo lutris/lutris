@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Runner for the PICO-8 fantasy console"""
 import os
 import json
@@ -15,7 +14,6 @@ from lutris.runners.runner import Runner
 DOWNLOAD_URL = "https://github.com/daniel-j/lutris-pico-8-runner/archive/master.tar.gz"
 
 
-# pylint: disable=C0103
 class pico8(Runner):
     description = "Runs PICO-8 fantasy console cartridges"
     multiple_versions = False
@@ -89,9 +87,7 @@ class pico8(Runner):
         if downloader:
             opts["downloader"] = downloader
         else:
-            from lutris.gui.runnersdialog import simple_downloader
-
-            opts["downloader"] = simple_downloader
+            raise RuntimeError("Unsupported download for this runner")
         self.download_and_extract(DOWNLOAD_URL, **opts)
 
     @property
