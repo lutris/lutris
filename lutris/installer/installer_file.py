@@ -118,7 +118,3 @@ class InstallerFile:
             referer=self.referer
         )
         return True
-
-    def cleanup(self):
-        if not self.uses_pga_cache():
-            system.remove_folder(self.cache_path)

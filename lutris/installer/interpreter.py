@@ -682,8 +682,7 @@ class ScriptInterpreter(CommandsMixin):
     def cleanup(self):
         """Clean up install dir after a successful install"""
         os.chdir(os.path.expanduser("~"))
-        for file in self.files:
-            file.cleanup()
+        system.remove_folder(self.cache_path)
 
     # --------------
     # Revert install
