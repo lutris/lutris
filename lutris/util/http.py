@@ -40,7 +40,7 @@ class Request:
         self.timeout = timeout
         self.stop_request = stop_request
         self.thread_queue = thread_queue
-        self.buffer_size = 32 * 1024  # Bytes
+        self.buffer_size = 1024 * 1024  # Bytes
         self.downloaded_size = 0
         self.headers = {"User-Agent": self.user_agent}
         self.response_headers = None
