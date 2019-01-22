@@ -14,10 +14,11 @@ class CabInstaller:
 
     Based on an implementation by tonix64: https://github.com/tonix64/python-installcab
     """
-    def __init__(self, prefix):
+    def __init__(self, prefix, wine_path=None):
         self.prefix = prefix
         self.winearch = self.get_wineprefix_arch()
         self.tmpdir = tempfile.mkdtemp()
+        self.wine_path = wine_path
 
         self.register_dlls = False  # Whether to register DLLs, I don't the purpose of that
         self.strip_dlls = False  # When registering, strip the full path
@@ -34,11 +35,11 @@ class CabInstaller:
         arch_map = {"amd64": "win64", "x86": "win32", "wow64": "wow64"}
         return arch_map[arch]
 
-    @staticmethod
-    def get_winebin(arch):
-        if arch in("win32", "wow64"):
-            return "wine"
-        return "wine64"
+    def get_winebin(self, arch):
+        binary = "wine" if arch in("win32", "wow64") else "wine64"
+        if self.wine_path:
+            return os.path.join(self.wine_path, "bin", binary)
+        return binary
 
     @staticmethod
     def get_arch_from_dll(dll_path):
@@ -110,7 +111,7 @@ class CabInstaller:
         elif value_type == "REG_SZ":
             value = '"%s"' % value
         else:
-            print("warning unkown type: %s" % value_type)
+            logger.warning("warning unkown type: %s", value_type)
             value = '"%s"' % value
         if value:
             value = self.replace_variables(value, arch)
