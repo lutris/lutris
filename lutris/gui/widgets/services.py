@@ -2,7 +2,7 @@
 from gi.repository import Gtk, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris.gui.widgets.utils import get_icon, get_pixbuf, get_main_window
-from lutris.gui.notifications import send_notification
+from lutris.gui.widgets.notifications import send_notification
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
 from lutris.util.log import logger
