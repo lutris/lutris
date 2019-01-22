@@ -1,9 +1,9 @@
 """Shared config dialog stuff"""
 import os
-from gi.repository import Gtk, Pango
+from gi.repository import Gtk, Pango, GLib
 from lutris.game import Game
 from lutris.config import LutrisConfig, TEMP_CONFIG
-from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label
+from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris import runners, settings
@@ -41,6 +41,8 @@ class GameDialogCommon:
         self.vbox.pack_start(self.notebook, True, True, 10)
 
     def build_tabs(self, config_level):
+
+        self.timer_id = None
         if config_level == "game":
             self._build_info_tab()
             self._build_game_tab()
@@ -73,16 +75,32 @@ class GameDialogCommon:
         prefs_box = VBox()
         prefs_box.pack_start(self._get_game_cache_box(), False, False, 6)
         info_sw = self.build_scrolled_window(prefs_box)
-        self._add_notebook_tab(info_sw, "Game info")
+        self._add_notebook_tab(info_sw, "Lutris preferences")
 
     def _get_game_cache_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
         label = Label("Cache path")
         box.pack_start(label, False, False, 0)
-        self.name_entry = Gtk.Entry()
-        self.name_entry.set_text("pouet")
-        box.pack_start(self.name_entry, True, True, 0)
+        cache_path = settings.read_setting("pga_cache_path")
+        path_chooser = FileChooserEntry(
+            title="Set the folder for the cache path",
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            default_path=cache_path
+        )
+        path_chooser.entry.connect("changed", self._on_cache_path_set)
+        box.pack_start(path_chooser, True, True, 0)
         return box
+
+    def _on_cache_path_set(self, entry):
+        if self.timer_id:
+            GLib.source_remove(self.timer_id)
+        self.timer_id = GLib.timeout_add(1000, self.save_cache_setting, entry.get_text())
+
+    def save_cache_setting(self, value):
+        settings.write_setting("pga_cache_path", value)
+        GLib.source_remove(self.timer_id)
+        self.timer_id = None
+        return False
 
     def _get_name_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
