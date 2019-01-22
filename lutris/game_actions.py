@@ -195,7 +195,7 @@ class GameActions:
         """Callback that presents the Add game dialog"""
 
         def on_game_added(game):
-            self.window.game_store.update(game)
+            self.window.game_store.update_game_by_id(game.id)
             self.window.sidebar_listbox.update()
 
         AddGameDialog(
