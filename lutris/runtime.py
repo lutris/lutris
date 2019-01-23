@@ -150,7 +150,11 @@ class RuntimeUpdater:
     @staticmethod
     def _iter_remote_runtimes():
         request = http.Request(RUNTIME_URL)
-        response = request.get()
+        try:
+            response = request.get()
+        except http.HTTPError as ex:
+            logger.error("Failed to get runtimes: %s", ex)
+            return
         runtimes = response.json or []
         for runtime in runtimes:
 
