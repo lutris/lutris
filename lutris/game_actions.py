@@ -10,7 +10,7 @@ from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
-from lutris.gui.dialogs.log import LogDialog
+from lutris.gui.dialogs.log import LogWindow
 from lutris.util.system import path_exists
 from lutris.util.log import logger
 from lutris.util import xdgshortcuts
@@ -173,14 +173,12 @@ class GameActions:
         logger.debug("Removed game with ID %s from running games", self.game_id)
 
     def on_show_logs(self, _widget):
-        """Display game log in a LogDialog"""
-        log_window = LogDialog(
+        """Display game log"""
+        return LogWindow(
             title="Log for {}".format(self.game),
             buffer=self.game.log_buffer,
-            parent=self.window
+            application=self.application
         )
-        log_window.run()
-        log_window.destroy()
 
     def on_install_clicked(self, *_args):
         """Install a game"""
