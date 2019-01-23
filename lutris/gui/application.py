@@ -35,12 +35,12 @@ from lutris import settings
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.migrations import migrate
-from lutris.platforms import update_platforms
 from lutris.command import exec_command
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.util import datapath
 from lutris.util import log
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.resources import parse_installer_url
 from lutris.startup import run_all_checks
@@ -62,8 +62,7 @@ class Application(Gtk.Application):
 
         run_all_checks()
         migrate()
-        update_platforms()
-        init_dxvk_versions()
+        AsyncCall(init_dxvk_versions)
 
         GLib.set_application_name(_("Lutris"))
         self.running_games = []
