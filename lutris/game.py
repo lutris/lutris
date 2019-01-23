@@ -39,6 +39,7 @@ class Game(GObject.Object):
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
+        "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, game_id=None):

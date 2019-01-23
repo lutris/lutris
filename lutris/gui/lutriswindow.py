@@ -3,7 +3,7 @@
 import os
 from collections import namedtuple
 
-from gi.repository import Gtk, Gdk, GLib, Gio
+from gi.repository import Gtk, Gdk, GLib, Gio, GObject
 
 from lutris import api, pga, settings
 from lutris.game import Game
@@ -92,6 +92,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.show_installed_first,
         )
         self.view = self.get_view(view_type)
+        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         self.game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
         super().__init__(
             default_width=width,
@@ -593,7 +594,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
 
-    def game_selection_changed(self, widget):
+    def on_game_updated(self, game):
+        """Callback to refresh the view when a game is updated"""
+        self.game_store.update_game_by_id(game.id)
+        self.view.set_selected_game(game.id)
+        self.sidebar_listbox.update()
+
+    def game_selection_changed(self, _widget):
         """Callback to handle the selection of a game in the view"""
         child = self.game_scrolled.get_child()
         if child:

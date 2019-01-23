@@ -191,28 +191,11 @@ class GameActions:
 
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""
-
-        def on_game_added(game):
-            self.window.game_store.update_game_by_id(game.id)
-            self.window.sidebar_listbox.update()
-
-        AddGameDialog(
-            self.window,
-            game=self.game,
-            runner=self.game.runner_name,
-            callback=lambda: on_game_added(self.game),
-        )
+        AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
-
-        def on_dialog_saved():
-            game_id = dialog.game.id
-            self.window.game_store.update_game_by_id(game_id)
-            self.window.view.set_selected_game(game_id)
-            self.window.sidebar_listbox.update()
-
-        dialog = EditGameConfigDialog(self.window, self.game, on_dialog_saved)
+        EditGameConfigDialog(self.window, self.game)
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""

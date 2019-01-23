@@ -7,7 +7,7 @@ from lutris.gui.config import DIALOG_WIDTH, DIALOG_HEIGHT
 class AddGameDialog(Dialog, GameDialogCommon):
     """Add game dialog class."""
 
-    def __init__(self, parent, game=None, runner=None, callback=None):
+    def __init__(self, parent, game=None, runner=None):
         super().__init__("Add a new game", parent=parent)
         self.game = game
         self.saved = False
@@ -28,7 +28,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         )
         self.build_notebook()
         self.build_tabs("game")
-        self.build_action_area(self.on_save, callback)
+        self.build_action_area(self.on_save)
         self.name_entry.grab_focus()
         self.connect("delete-event", self.on_cancel_clicked)
         self.show_all()

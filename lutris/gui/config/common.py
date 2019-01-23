@@ -15,7 +15,6 @@ from lutris.gui.widgets.utils import (
     ICON_SIZE,
 )
 from lutris.util.strings import slugify
-from lutris.util.log import logger
 from lutris.util import datapath
 from lutris.util import resources
 
@@ -303,7 +302,7 @@ class GameDialogCommon:
     def _add_notebook_tab(self, widget, label):
         self.notebook.append_page(widget, Gtk.Label(label=label))
 
-    def build_action_area(self, button_callback, callback2=None):
+    def build_action_area(self, button_callback):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
 
         # Advanced settings checkbox
@@ -321,10 +320,7 @@ class GameDialogCommon:
         hbox.pack_start(cancel_button, True, True, 10)
 
         save_button = Gtk.Button(label="Save")
-        if callback2:
-            save_button.connect("clicked", button_callback, callback2)
-        else:
-            save_button.connect("clicked", button_callback)
+        save_button.connect("clicked", button_callback)
         hbox.pack_start(save_button, True, True, 0)
         self.action_area.pack_start(hbox, True, True, 0)
 
@@ -398,7 +394,7 @@ class GameDialogCommon:
             return False
         return True
 
-    def on_save(self, _button, callback=None):
+    def on_save(self, _button):
         """Save game info and destroy widget. Return True if success."""
         if not self.is_valid():
             return False
@@ -438,8 +434,7 @@ class GameDialogCommon:
         self.game.save()
         self.destroy()
         self.saved = True
-        if callback:
-            callback()
+        self.game.emit("game-updated")
 
     def on_custom_image_select(self, widget, image_type):
         dialog = Gtk.FileChooserDialog(
