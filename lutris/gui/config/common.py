@@ -352,7 +352,7 @@ class GameDialogCommon:
 
         if runner_index == 0:
             self.runner_name = None
-            self.lutris_config = LutrisConfig()
+            self.lutris_config = None
         else:
             self.runner_name = widget.get_model()[runner_index][1]
             self.lutris_config = LutrisConfig(
