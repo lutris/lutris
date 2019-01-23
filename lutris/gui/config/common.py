@@ -8,7 +8,6 @@ from lutris import settings
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
-from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.gui.widgets.utils import (
     get_pixbuf_for_game,
     get_pixbuf,
@@ -16,6 +15,7 @@ from lutris.gui.widgets.utils import (
     ICON_SIZE,
 )
 from lutris.util.strings import slugify
+from lutris.util.log import logger
 from lutris.util import datapath
 from lutris.util import resources
 
@@ -30,6 +30,8 @@ class GameDialogCommon:
         self.vbox = None
         self.name_entry = None
         self.runner_box = None
+
+        self.game = None
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -257,6 +259,8 @@ class GameDialogCommon:
         self.slug_change_button.set_label("Change")
 
     def on_install_runners_clicked(self, _button):
+        """Messed up callback requiring an import in the method to avoid a circular dependency"""
+        from lutris.gui.dialogs.runners import RunnersDialog
         runners_dialog = RunnersDialog()
         runners_dialog.connect("runner-installed", self._update_runner_dropdown)
 
