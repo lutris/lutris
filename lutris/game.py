@@ -67,7 +67,8 @@ class Game(GObject.Object):
         except ValueError:
             logger.error("Invalid playtime value %s", game_data.get("playtime"))
 
-        self.load_config()
+        if self.game_config_id:
+            self.load_config()
         self.game_thread = None
         self.prelaunch_executor = None
         self.heartbeat = None
@@ -126,24 +127,24 @@ class Game(GObject.Object):
         """Return the path to open with the Browse Files action."""
         return self.runner.browse_dir
 
-    def load_config(self):
-        """Load the game's configuration."""
-        self.config = LutrisConfig(
-            runner_slug=self.runner_name, game_config_id=self.game_config_id
-        )
-        if not self.is_installed:
-            return
-        if not self.runner_name:
-            logger.error("Incomplete data for %s", self.slug)
-            return
+    def _get_runner(self):
+        """Return the runner instance for this game's configuration"""
         try:
             runner_class = import_runner(self.runner_name)
+            return runner_class(self.config)
         except InvalidRunner:
             logger.error(
                 "Unable to import runner %s for %s", self.runner_name, self.slug
             )
-        else:
-            self.runner = runner_class(self.config)
+
+    def load_config(self):
+        """Load the game's configuration."""
+        if not self.is_installed:
+            return
+        self.config = LutrisConfig(
+            runner_slug=self.runner_name, game_config_id=self.game_config_id
+        )
+        self.runner = self._get_runner()
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
