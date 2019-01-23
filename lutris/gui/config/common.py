@@ -256,7 +256,7 @@ class GameDialogCommon:
         self.slug_change_button.set_label("Change")
 
     def on_install_runners_clicked(self, _button):
-        runners_dialog = gui.runnersdialog.RunnersDialog()
+        runners_dialog = gui.dialogs.runners.RunnersDialog()
         runners_dialog.connect("runner-installed", self._update_runner_dropdown)
 
     def _update_runner_dropdown(self, _widget):
