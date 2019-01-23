@@ -16,6 +16,7 @@ API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 
 
 def read_api_key():
+    """Read the API token from disk"""
     if not system.path_exists(API_KEY_FILE_PATH):
         return None
     with open(API_KEY_FILE_PATH, "r") as token_file:
@@ -25,6 +26,7 @@ def read_api_key():
 
 
 def connect(username, password):
+    """Connect to the Lutris API"""
     credentials = urllib.parse.urlencode(
         {"username": username, "password": password}
     ).encode("utf-8")
@@ -44,14 +46,13 @@ def connect(username, password):
 
 
 def disconnect():
-    if not system.path_exists(API_KEY_FILE_PATH):
-        return
-    os.remove(API_KEY_FILE_PATH)
+    """Removes the API token, disconnecting the user"""
+    if system.path_exists(API_KEY_FILE_PATH):
+        os.remove(API_KEY_FILE_PATH)
 
 
 def get_library():
     """Return the remote library as a list of dicts."""
-    logger.debug("Fetching game library")
     credentials = read_api_key()
     if not credentials:
         return []
@@ -68,6 +69,7 @@ def get_library():
 
 
 def get_runners(runner_name):
+    """Return the available runners for a given runner name"""
     api_url = settings.SITE_URL + "/api/runners/" + runner_name
     response = http.Request(api_url).get()
     return response.json
@@ -119,7 +121,6 @@ def get_api_games(game_slugs=None, page="1", query_type="games"):
         else:
             logger.error("No page found in %s", response_data["next"])
             break
-        logger.debug("Current page is %s, next page is %s", page, next_page)
         response_data = get_game_api_page(game_slugs, page=next_page, query_type=query_type)
         if not response_data.get("results"):
             logger.warning("Unable to get response for page %s", next_page)
