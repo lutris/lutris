@@ -2,7 +2,7 @@
 import os
 from gi.repository import Gtk, Pango, GLib
 from lutris.game import Game
-from lutris.config import LutrisConfig, TEMP_CONFIG
+from lutris.config import LutrisConfig
 from lutris import runners
 from lutris import settings
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
@@ -409,7 +409,7 @@ class GameDialogCommon:
         if self.year_entry.get_text():
             year = int(self.year_entry.get_text())
 
-        if self.lutris_config.game_config_id == TEMP_CONFIG:
+        if not self.lutris_config.game_config_id:
             self.lutris_config.game_config_id = self.get_config_id()
 
         runner_class = runners.import_runner(self.runner_name)

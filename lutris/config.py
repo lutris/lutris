@@ -10,10 +10,6 @@ from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 from lutris.util.log import logger
 
 
-# Temporary config name for games that haven't been created yet
-TEMP_CONFIG = "TEMP_CONFIG"
-
-
 def make_game_config_id(game_slug):
     """Return an unique config id to avoid clashes between multiple games"""
     return "{}-{}".format(game_slug, int(time.time()))
@@ -119,7 +115,7 @@ class LutrisConfig:
 
     @property
     def game_config_path(self):
-        if not self.game_config_id or self.game_config_id == TEMP_CONFIG:
+        if not self.game_config_id:
             return None
         return os.path.join(settings.CONFIG_DIR, "games/%s.yml" % self.game_config_id)
 

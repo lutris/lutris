@@ -1,7 +1,8 @@
-from lutris.config import LutrisConfig, TEMP_CONFIG, make_game_config_id
+from lutris.config import LutrisConfig, make_game_config_id
 from lutris.gui.dialogs import Dialog
 from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.config import DIALOG_WIDTH, DIALOG_HEIGHT
+from lutris.util.log import logger
 
 
 class AddGameDialog(Dialog, GameDialogCommon):
@@ -36,4 +37,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         """For new games, create a special config type that won't be read
         from disk.
         """
-        return make_game_config_id(self.slug) if self.slug else TEMP_CONFIG
+        if not self.slug:
+            logger.error("Stop calling get_config_id when no slug is set")
+            return
+        return make_game_config_id(self.slug)
