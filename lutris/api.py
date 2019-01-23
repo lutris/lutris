@@ -109,6 +109,8 @@ def get_game_api_page(game_ids, page="1", query_type="games"):
 def get_api_games(game_slugs=None, page="1", query_type="games"):
     """Return all games from the Lutris API matching the given game slugs"""
     response_data = get_game_api_page(game_slugs, page=page, query_type=query_type)
+    if not response_data:
+        return []
     results = response_data.get("results", [])
     while response_data.get("next"):
         page_match = re.search(r"page=(\d+)", response_data["next"])
