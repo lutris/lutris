@@ -10,7 +10,6 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
         super().__init__("Configure %s" % game.name, parent=parent)
         self.game = game
         self.lutris_config = game.config
-        self.game_config_id = game.config.game_config_id
         self.slug = game.slug
         self.runner_name = game.runner_name
 

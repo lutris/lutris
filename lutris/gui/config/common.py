@@ -357,8 +357,8 @@ class GameDialogCommon:
             self.runner_name = widget.get_model()[runner_index][1]
             self.lutris_config = LutrisConfig(
                 runner_slug=self.runner_name,
-                game_config_id=self.game_config_id,
-                level="game",
+                game_config_id=self.get_config_id(),
+                level="game"
             )
 
         self._rebuild_tabs()
@@ -379,11 +379,10 @@ class GameDialogCommon:
         self.destroy()
 
     def is_valid(self):
-        name = self.name_entry.get_text()
         if not self.runner_name:
             ErrorDialog("Runner not provided")
             return False
-        if not name:
+        if not self.name_entry.get_text():
             ErrorDialog("Please fill in the name")
             return False
         if (

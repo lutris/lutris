@@ -20,10 +20,9 @@ class AddGameDialog(Dialog, GameDialogCommon):
             self.runner_name = runner
             self.slug = None
 
-        self.game_config_id = self.get_config_id()
         self.lutris_config = LutrisConfig(
             runner_slug=self.runner_name,
-            game_config_id=self.game_config_id,
+            game_config_id=self.get_config_id(),
             level="game",
         )
         self.build_notebook()
