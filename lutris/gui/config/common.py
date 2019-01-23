@@ -433,14 +433,6 @@ class GameDialogCommon:
         if self.runner_name in ("steam", "winesteam"):
             self.game.steamid = self.lutris_config.game_config["appid"]
 
-        fps_limit = self.game.config.system_config.get("fps_limit", None)
-        if fps_limit:
-            try:
-                int(fps_limit)
-            except ValueError:
-                ErrorDialog("Fps limit only accept numbers")
-                return
-
         self.game.set_platform_from_runner()
         self.game.save()
         self.game.load_config()
