@@ -3,11 +3,12 @@ import os
 from gi.repository import Gtk, Pango, GLib
 from lutris.game import Game
 from lutris.config import LutrisConfig, TEMP_CONFIG
+from lutris import runners
+from lutris import settings
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
-from lutris import runners, settings
-from lutris import gui
+from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.gui.widgets.utils import (
     get_pixbuf_for_game,
     get_pixbuf,
@@ -15,10 +16,11 @@ from lutris.gui.widgets.utils import (
     ICON_SIZE,
 )
 from lutris.util.strings import slugify
-from lutris.util import datapath, resources
+from lutris.util import datapath
+from lutris.util import resources
 
 
-# pylint: disable=too-many-instance-attributes,missing-docstring
+# pylint: disable=too-many-instance-attributes
 class GameDialogCommon:
     """Mixin for config dialogs"""
     no_runner_label = "Select a runner in the Game Info tab"
@@ -41,7 +43,6 @@ class GameDialogCommon:
         self.vbox.pack_start(self.notebook, True, True, 10)
 
     def build_tabs(self, config_level):
-
         self.timer_id = None
         if config_level == "game":
             self._build_info_tab()
@@ -256,7 +257,7 @@ class GameDialogCommon:
         self.slug_change_button.set_label("Change")
 
     def on_install_runners_clicked(self, _button):
-        runners_dialog = gui.runnersdialog.RunnersDialog()
+        runners_dialog = RunnersDialog()
         runners_dialog.connect("runner-installed", self._update_runner_dropdown)
 
     def _update_runner_dropdown(self, _widget):
