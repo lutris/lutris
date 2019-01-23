@@ -173,7 +173,8 @@ class Game(GObject.Object):
             pga.delete_game(self.id)
         else:
             pga.set_uninstalled(self.id)
-        self.config.remove()
+        if self.config:
+            self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         self.emit("game-removed", self.id)
         return from_library
