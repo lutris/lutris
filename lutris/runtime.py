@@ -245,7 +245,7 @@ def get_runtime_paths(version=None, prefer_system_libs=True, wine_path=None):
     """Return Lutris runtime paths"""
     version = version or DEFAULT_RUNTIME
     if version.startswith("Ubuntu"):
-        lutris_runtime_path = "%s-i686"
+        lutris_runtime_path = "%s-i686" % version
     elif version == "legacy":
         lutris_runtime_path = "lib32"
     else:
