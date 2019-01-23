@@ -434,8 +434,8 @@ class GameDialogCommon:
             self.game.steamid = self.lutris_config.game_config["appid"]
 
         self.game.set_platform_from_runner()
-        self.game.save()
         self.game.load_config()
+        self.game.save()
         self.destroy()
         self.saved = True
         if callback:
