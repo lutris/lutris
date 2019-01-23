@@ -173,11 +173,13 @@ class LutrisConfig:
 
     def remove(self):
         """Delete the configuration file from disk."""
-        if path_exists(self.game_config_path):
-            os.remove(self.game_config_path)
-            logger.debug("Removed config %s", self.game_config_path)
-        else:
+        if not self.game_config_path:
+            raise RuntimeError("Tried to remove a non-existent config")
+        if not path_exists(self.game_config_path):
             logger.debug("No config file at %s", self.game_config_path)
+            return
+        os.remove(self.game_config_path)
+        logger.debug("Removed config %s", self.game_config_path)
 
     def save(self):
         """Save configuration file according to its type"""
