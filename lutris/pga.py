@@ -276,6 +276,7 @@ def add_or_update(**params):
     """
     game_id = get_matching_game(params)
     if game_id:
+        params["id"] = game_id
         sql.db_update(PGA_DB, "games", params, ("id", game_id))
         return game_id
     return add_game(**params)
