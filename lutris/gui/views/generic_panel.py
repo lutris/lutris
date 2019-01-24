@@ -1,6 +1,7 @@
-from gi.repository import Gtk, Gdk, Gio
-from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_main_window
+from gi.repository import Gtk, Gdk, Gio, Pango
+from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_pixbuf_for_game, get_main_window
 from lutris.gui.config.system import SystemConfigDialog
+from lutris.gui.widgets.utils import get_pixbuf_for_game
 
 
 class GenericPanel(Gtk.Fixed):
@@ -36,7 +37,13 @@ class GenericPanel(Gtk.Fixed):
     def place_content(self):
         """Places widgets in the side panel"""
         self.put(self.get_preferences_button(), 272, 16)
-        self.put(self.get_running_games(), 12, 40)
+        application = Gio.Application.get_default()
+        games = application.running_games
+        if games:
+            running_label = Gtk.Label(visible=True)
+            running_label.set_markup("<b>Running:</b>")
+            self.put(running_label, 12, 328)
+            self.put(self.get_running_games(games), 12, 360)
 
     def get_preferences_button(self):
         preferences_button = Gtk.Button.new_from_icon_name(
@@ -54,11 +61,27 @@ class GenericPanel(Gtk.Fixed):
         SystemConfigDialog(get_main_window(button))
 
     def create_list_widget(self, game):
-        return Gtk.Label(game.name)
+        box = Gtk.Box(
+            spacing=6,
+            margin_top=6,
+            margin_bottom=6,
+            margin_right=6,
+            margin_left=6,
+        )
+        box.set_size_request(280, 32)
 
-    def get_running_games(self):
-        application = Gio.Application.get_default()
+        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(game.slug, "icon"))
+        icon.show()
+        box.add(icon)
+
+        game_label = Gtk.Label(game.name, visible=True)
+        game_label.set_ellipsize(Pango.EllipsizeMode.END)
+        box.add(game_label)
+
+        return box
+
+    def get_running_games(self, games):
         listbox = Gtk.ListBox()
-        listbox.bind_model(application.running_games, self.create_list_widget)
+        listbox.bind_model(games, self.create_list_widget)
         listbox.show()
         return listbox
