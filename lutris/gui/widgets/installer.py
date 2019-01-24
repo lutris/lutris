@@ -16,7 +16,7 @@ class InstallerLabel(Gtk.Label):
 
 class InstallerScriptBox(Gtk.VBox):
     """Box displaying the details of a script, with associated action buttons"""
-    def __init__(self, script, parent=None):
+    def __init__(self, script, parent=None, revealed=False):
         super().__init__()
         self.script = script
         self.parent = parent
@@ -27,7 +27,7 @@ class InstallerScriptBox(Gtk.VBox):
         box.pack_start(self.get_infobox(), True, True, 0)
         box.add(self.get_install_button())
         self.add(box)
-        self.add(self.get_revealer())
+        self.add(self.get_revealer(revealed))
 
     def get_rating(self):
         """Return a string representation of the API rating"""
@@ -50,10 +50,11 @@ class InstallerScriptBox(Gtk.VBox):
         info_box.add(InstallerLabel("%s" % self.script["description"]))
         return info_box
 
-    def get_revealer(self):
+    def get_revealer(self, revealed):
         """Return the revelaer widget"""
         self.revealer = Gtk.Revealer()
         self.revealer.add(self.get_notes())
+        self.revealer.set_reveal_child(revealed)
         return self.revealer
 
     def get_icon(self):
@@ -107,8 +108,10 @@ class InstallerPicker(Gtk.ListBox):
 
     def __init__(self, scripts):
         super().__init__()
+        revealed = True
         for script in scripts:
-            self.add(InstallerScriptBox(script, parent=self))
+            self.add(InstallerScriptBox(script, parent=self, revealed=revealed))
+            revealed = False  # Only reveal the first installer.
         self.connect('row-selected', self.on_activate)
         self.show_all()
 
