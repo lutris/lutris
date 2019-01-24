@@ -66,6 +66,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
     viewtype_icon = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
+        width = int(settings.read_setting("width") or self.default_width)
+        height = int(settings.read_setting("height") or self.default_height)
+        super().__init__(
+            default_width=width,
+            default_height=height,
+            icon_name="lutris",
+            application=application,
+            **kwargs
+        )
         self.application = application
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
@@ -74,8 +83,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.icon_type = None
 
         # Load settings
-        width = int(settings.read_setting("width") or self.default_width)
-        height = int(settings.read_setting("height") or self.default_height)
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
 
@@ -94,13 +101,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.view = self.get_view(view_type)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         self.game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
-        super().__init__(
-            default_width=width,
-            default_height=height,
-            icon_name="lutris",
-            application=application,
-            **kwargs
-        )
+        self.connect("delete-event", self.on_window_delete)
         if self.maximized:
             self.maximize()
         self.init_template()
@@ -516,6 +517,17 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.maximized = widget.is_maximized()
         if not self.maximized:
             self.window_size = widget.get_size()
+
+    def on_window_delete(self, *_args):
+        if self.application.running_games:
+            dlg = dialogs.QuestionDialog(
+                {
+                    "question": "Some games are still running, are you sure you want to quit Lutris?",
+                    "title": "Quit Lutris?",
+                }
+            )
+            if dlg.result != Gtk.ResponseType.YES:
+                return True
 
     @GtkTemplate.Callback
     def on_destroy(self, *_args):
