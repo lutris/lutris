@@ -460,7 +460,8 @@ class winesteam(wine.wine):
         )
         shutdown_command.start()
 
-    def stop(self):
+    def on_game_stop(self):
+        """TODO: Call this once it is possible to monitor Steam games"""
         if bool(self.runner_config.get("quit_steam_on_exit")):
             logger.debug("Game configured to stop Steam on exit")
             self.shutdown()
