@@ -31,6 +31,7 @@ gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga
+from lutris import game
 from lutris import settings
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.installerwindow import InstallerWindow
@@ -65,7 +66,7 @@ class Application(Gtk.Application):
         AsyncCall(init_dxvk_versions)
 
         GLib.set_application_name(_("Lutris"))
-        self.running_games = []
+        self.running_games = Gio.ListStore.new(game.Game)
         self.window = None
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
@@ -352,7 +353,7 @@ class Application(Gtk.Application):
             if game is running_game:
                 game_index = i
         if game_index is not None:
-            self.running_games.pop(game_index)
+            self.running_games.remove(game_index)
         game.emit("game-stopped", game.id)
 
     @staticmethod

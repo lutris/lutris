@@ -158,16 +158,17 @@ class GameActions:
 
     def on_stop(self, caller):
         """Stops the game"""
-        try:
-            game = self.application.running_games[
-                self.application.running_games.index(self.game)
-            ]
-        except ValueError:
+        matched_game = None
+        for game in self.application.running_games:
+            if game == self.game:
+                matched_game = game
+                break
+        if not matched_game:
             logger.warning("%s not in running game list", self.game_id)
             return
 
         try:
-            os.kill(game.game_thread.game_process.pid, signal.SIGTERM)
+            os.kill(matched_game.game_thread.game_process.pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
         logger.debug("Removed game with ID %s from running games", self.game_id)
