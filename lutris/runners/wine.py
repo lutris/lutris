@@ -154,9 +154,9 @@ class wine(Runner):
         def get_dxvk_choices():
             version_choices = [
                 ("Manual", "manual"),
-                (dxvk.DXVK_LATEST, dxvk.DXVK_LATEST),
+                ("Latest", "latest"),
             ]
-            for version in dxvk.DXVK_PAST_RELEASES:
+            for version in dxvk.DXVK_VERSIONS:
                 version_choices.append((version, version))
             return version_choices
 
@@ -649,6 +649,9 @@ class wine(Runner):
                 prefix_manager.set_registry_key(path, key, value)
 
     def toggle_dxvk(self, enable, version=None):
+        if version.lower() == "latest":
+            version = dxvk.DXVK_LATEST
+
         dxvk_manager = dxvk.DXVKManager(
             self.prefix_path, arch=self.wine_arch, version=version
         )

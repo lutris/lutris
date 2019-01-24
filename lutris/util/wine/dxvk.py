@@ -16,7 +16,7 @@ DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/tags"
 DXVK_VERSIONS = [
     "0.94",
 ]
-DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
+DXVK_LATEST = DXVK_VERSIONS[0]
 
 
 def get_dxvk_versions():
@@ -39,12 +39,11 @@ def get_dxvk_versions():
 def init_dxvk_versions():
     global DXVK_VERSIONS
     global DXVK_LATEST
-    global DXVK_PAST_RELEASES
     try:
         DXVK_VERSIONS = get_dxvk_versions()
     except Exception as ex:  # pylint: disable= broad-except
         logger.error(ex)
-    DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:]
+    DXVK_LATEST = DXVK_VERSIONS[0]
 
 
 class UnavailableDXVKVersion(RuntimeError):
