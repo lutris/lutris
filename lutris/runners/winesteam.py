@@ -22,6 +22,7 @@ from lutris.runners.commands.wine import ( # noqa pylint: disable=unused-import
     winetricks,
     winecfg,
     winekill,
+    install_cab_component,
 )
 
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
