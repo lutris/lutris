@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, Gio
 from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_main_window
 from lutris.gui.config.system import SystemConfigDialog
 
@@ -24,7 +24,8 @@ class GenericPanel(Gtk.Fixed):
         style.add_class(Gtk.STYLE_CLASS_VIEW)
         bg_provider = Gtk.CssProvider()
         bg_provider.load_from_data(
-            b".game-scrolled { background-image: url(\"%s\"); background-repeat: no-repeat; }" % bg_path.encode("utf-8")
+            b".game-scrolled { background-image: url(\"%s\"); "
+            b"background-repeat: no-repeat; }" % bg_path.encode("utf-8")
         )
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(),
@@ -35,6 +36,7 @@ class GenericPanel(Gtk.Fixed):
     def place_content(self):
         """Places widgets in the side panel"""
         self.put(self.get_preferences_button(), 272, 16)
+        self.put(self.get_running_games(), 12, 40)
 
     def get_preferences_button(self):
         preferences_button = Gtk.Button.new_from_icon_name(
@@ -50,3 +52,13 @@ class GenericPanel(Gtk.Fixed):
 
     def on_preferences_clicked(self, button):
         SystemConfigDialog(get_main_window(button))
+
+    def create_list_widget(self, game):
+        return Gtk.Label(game.name)
+
+    def get_running_games(self):
+        application = Gio.Application.get_default()
+        listbox = Gtk.ListBox()
+        listbox.bind_model(application.running_games, self.create_list_widget)
+        listbox.show()
+        return listbox
