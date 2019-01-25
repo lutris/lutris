@@ -8,11 +8,14 @@ import urllib.error
 import socket
 
 from lutris import settings
+from lutris.util import resources
 from lutris.util import http, system
 from lutris.util.log import logger
 
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
+USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
+USER_ICON_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.png")
 
 
 def read_api_key():
@@ -41,14 +44,33 @@ def connect(username, password):
         token = response["token"]
         with open(API_KEY_FILE_PATH, "w") as token_file:
             token_file.write(":".join((username, token)))
+        get_user_info()
         return response["token"]
     return False
 
 
 def disconnect():
     """Removes the API token, disconnecting the user"""
-    if system.path_exists(API_KEY_FILE_PATH):
-        os.remove(API_KEY_FILE_PATH)
+    for file_path in [API_KEY_FILE_PATH, USER_INFO_FILE_PATH, USER_ICON_FILE_PATH]:
+        if system.path_exists(file_path):
+            os.remove(file_path)
+
+
+def get_user_info():
+    """Retrieves the user info to cache it locally"""
+    credentials = read_api_key()
+    if not credentials:
+        return []
+    url = settings.SITE_URL + "/api/users/me"
+    request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
+    response = request.get()
+    account_info = response.json
+    if not account_info:
+        logger.warning("Unable to fetch user info for %s", credentials["username"])
+    with open(USER_INFO_FILE_PATH, "w") as token_file:
+        json.dump(account_info, token_file, indent=2)
+    if account_info.get("avatar_url"):
+        resources.download_media(account_info["avatar_url"], USER_ICON_FILE_PATH)
 
 
 def get_library():
@@ -56,11 +78,8 @@ def get_library():
     credentials = read_api_key()
     if not credentials:
         return []
-    username = credentials["username"]
-    token = credentials["token"]
-    url = settings.SITE_URL + "/api/games/library/%s" % username
-    headers = {"Authorization": "Token " + token}
-    request = http.Request(url, headers=headers)
+    url = settings.SITE_URL + "/api/games/library/%s" % credentials["username"]
+    request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
     response = request.get()
     response_data = response.json
     if response_data:
