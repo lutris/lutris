@@ -2,6 +2,7 @@
 import json
 from gi.repository import Gtk, Gdk, Gio, Pango, GLib, GObject
 from lutris import api
+from lutris.game import Game
 from lutris.util import system
 from lutris.gui.widgets.utils import (
     get_pixbuf_for_panel,
@@ -29,7 +30,10 @@ class GenericPanel(Gtk.Fixed):
     """Side panel displayed when no game is selected"""
 
     __gtype_name__ = "LutrisPanel"
-    __gsignals__ = {"game-searched": (GObject.SIGNAL_RUN_FIRST, None, (str, ))}
+    __gsignals__ = {
+        "game-searched": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "running-game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Game, ))
+    }
 
     def __init__(self):
         super().__init__(visible=True)
@@ -103,6 +107,7 @@ class GenericPanel(Gtk.Fixed):
         game_label = Gtk.Label(game.name, visible=True)
         game_label.set_ellipsize(Pango.EllipsizeMode.END)
         box.add(game_label)
+        box.game = game
 
         return box
 
@@ -190,10 +195,15 @@ class GenericPanel(Gtk.Fixed):
         return box
 
     def get_running_games(self, games):
-        listbox = Gtk.ListBox()
+        listbox = Gtk.ListBox(visible=True)
         listbox.bind_model(games, self.create_list_widget)
+        listbox.connect('row-selected', self.on_running_game_select)
         listbox.show()
         return listbox
+
+    def on_running_game_select(self, widget, row):
+        """Handler for hiding and showing the revealers in children"""
+        self.emit("running-game-selected", row.get_children()[0].game)
 
     def on_search_entry_changed(self, entry):
         if self.timer_id:
