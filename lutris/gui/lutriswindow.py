@@ -118,14 +118,21 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar_listbox)
 
+        self.game_panel = GenericPanel()
+
         self.game_scrolled = Gtk.ScrolledWindow(visible=True)
         self.game_scrolled.set_size_request(320, -1)
         self.game_scrolled.get_style_context().add_class("game-scrolled")
         self.game_scrolled.set_policy(Gtk.PolicyType.EXTERNAL, Gtk.PolicyType.EXTERNAL)
-
-        self.game_panel = GenericPanel()
         self.game_scrolled.add(self.game_panel)
-        self.main_box.pack_end(self.game_scrolled, False, False, 0)
+
+        self.panel_revealer = Gtk.Revealer(visible=True)
+        self.panel_revealer.set_transition_duration(300)
+        self.panel_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
+        self.panel_revealer.set_reveal_child(True)
+        self.panel_revealer.add(self.game_scrolled)
+
+        self.main_box.pack_end(self.panel_revealer, False, False, 0)
 
         self.view.show()
 
@@ -135,6 +142,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Sidebar
         self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
+        self.sidebar_revealer.set_transition_duration(300)
         self.update_runtime()
 
         # Connect account and/or sync
@@ -732,6 +740,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         sidebar_visible = value.get_boolean()
         settings.write_setting("sidebar_visible", "true" if sidebar_visible else "false")
         self.sidebar_revealer.set_reveal_child(sidebar_visible)
+        self.panel_revealer.set_reveal_child(sidebar_visible)
+        self.game_scrolled.set_visible(sidebar_visible)
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
