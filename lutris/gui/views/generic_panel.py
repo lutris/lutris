@@ -203,7 +203,11 @@ class GenericPanel(Gtk.Fixed):
 
     def on_running_game_select(self, widget, row):
         """Handler for hiding and showing the revealers in children"""
-        self.emit("running-game-selected", row.get_children()[0].game)
+        if not row:
+            game = None
+        else:
+            game = row.get_children()[0].game
+        self.emit("running-game-selected", game)
 
     def on_search_entry_changed(self, entry):
         if self.timer_id:

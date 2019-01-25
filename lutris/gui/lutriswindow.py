@@ -624,7 +624,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_game_updated(self, game):
         """Callback to refresh the view when a game is updated"""
-        logger.debug("Updating game %s", game)
+        # logger.debug("Updating game %s", game)
         self.game_store.update_game_by_id(game.id)
         self.view.set_selected_game(game.id)
         self.sidebar_listbox.update()
@@ -632,7 +632,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_game_searched(self, panel, query):
         """Called when the game-searched event is emitted"""
-        logger.info("Searching for :%s" % query)
+        # logger.info("Searching for :%s" % query)
         self.view.destroy()
         self.game_store = self.get_store(api.search_games(query) if query else None)
         self.game_store.set_icon_type(self.icon_type)
