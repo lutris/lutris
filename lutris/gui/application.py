@@ -31,7 +31,7 @@ gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga
-from lutris import game
+from lutris.game import Game
 from lutris import settings
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.installerwindow import InstallerWindow
@@ -66,7 +66,7 @@ class Application(Gtk.Application):
         AsyncCall(init_dxvk_versions)
 
         GLib.set_application_name(_("Lutris"))
-        self.running_games = Gio.ListStore.new(game.Game)
+        self.running_games = Gio.ListStore.new(Game)
         self.window = None
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()

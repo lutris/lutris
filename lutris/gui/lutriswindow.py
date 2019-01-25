@@ -97,7 +97,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(GenericPanel, "game-searched", self.on_game_searched)
-        GObject.add_emission_hook(GenericPanel, "running-game-selected", self.game_selection_changed)
+        GObject.add_emission_hook(GenericPanel,
+                                  "running-game-selected",
+                                  self.game_selection_changed)
         self.connect("delete-event", self.on_window_delete)
         if self.maximized:
             self.maximize()
@@ -661,8 +663,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
         else:
             self.game_actions.set_game(game=game)
             self.game_panel = GamePanel(self.game_actions)
+            self.game_panel.connect("panel-closed", self.on_panel_closed)
         self.game_scrolled.add(self.game_panel)
         return True
+
+    def on_panel_closed(self, panel):
+        self.game_selection_changed(panel, None)
 
     def on_game_installed(self, view, game_id):
         """Callback to handle newly installed games"""

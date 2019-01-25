@@ -1,11 +1,8 @@
 # pylint: disable=no-member
 from gi.repository import Gtk, Pango
-from lutris.game import Game
 from lutris import settings
 from lutris.gui.views.base import GameView
 from lutris.gui.views import (
-    COL_ID,
-    COL_SLUG,
     COL_NAME,
     COL_ICON,
     COL_YEAR,

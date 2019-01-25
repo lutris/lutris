@@ -1,6 +1,6 @@
 """Game panel"""
 from datetime import datetime
-from gi.repository import Gtk, Pango
+from gi.repository import Gtk, Pango, GObject
 from lutris.gui.widgets.utils import get_pixbuf_for_game, get_link_button
 from lutris.util.strings import gtk_safe
 from lutris.gui.views.generic_panel import GenericPanel
@@ -8,6 +8,10 @@ from lutris.gui.views.generic_panel import GenericPanel
 
 class GamePanel(GenericPanel):
     """Panel allowing users to interact with a game"""
+
+    __gsignals__ = {
+        "panel-closed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
 
     def __init__(self, game_actions):
         self.game_actions = game_actions
@@ -18,6 +22,7 @@ class GamePanel(GenericPanel):
         self.game.connect("game-stopped", self.on_game_stop)
 
     def place_content(self):
+        self.put(self.get_close_button(), 276, 16)
         self.put(self.get_icon(), 12, 16)
         self.put(self.get_title_label(), 50, 20)
         labels_x = 50
@@ -33,6 +38,15 @@ class GamePanel(GenericPanel):
     @property
     def background_id(self):
         return self.game.slug
+
+    def get_close_button(self):
+        """Return the close button"""
+        button = Gtk.Button.new_from_icon_name("window-close-symbolic", Gtk.IconSize.MENU)
+        button.set_tooltip_text("Close")
+        button.set_size_request(32, 32)
+        button.connect("clicked", self.on_close)
+        button.show()
+        return button
 
     def get_icon(self):
         """Return the game icon"""
@@ -175,3 +189,6 @@ class GamePanel(GenericPanel):
             child.destroy()
         self.place_content()
         self.buttons["show_logs"].set_sensitive(True)
+
+    def on_close(self, _widget):
+        self.emit("panel-closed")

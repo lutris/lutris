@@ -1,5 +1,5 @@
 """Window for importing games from third party services"""
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris.gui.widgets.utils import get_icon, get_pixbuf, get_main_window
 from lutris.gui.widgets.notifications import send_notification
