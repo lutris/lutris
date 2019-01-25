@@ -1,7 +1,7 @@
 """Game panel"""
 from datetime import datetime
 from gi.repository import Gtk, Pango
-from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game, get_link_button
 from lutris.util.strings import gtk_safe
 from lutris.gui.views.generic_panel import GenericPanel
 
@@ -103,17 +103,11 @@ class GamePanel(GenericPanel):
                 button.set_tooltip_text(label)
                 button.set_size_request(32, 32)
             else:
-                button = Gtk.Button(label)
                 if action_id in ("play", "stop", "install"):
-                    button_width = 146
-                    button_height = 42
+                    button = Gtk.Button(label)
+                    button.set_size_request(146, 42)
                 else:
-                    button_width = -1
-                    button_height = 24
-                    button.props.relief = Gtk.ReliefStyle.NONE
-                    button.get_children()[0].set_alignment(0, 0.5)
-                    button.get_style_context().add_class("panel-button")
-                button.set_size_request(button_width, button_height)
+                    button = get_link_button(label)
             button.connect("clicked", callback)
             if displayed.get(action_id):
                 button.show()

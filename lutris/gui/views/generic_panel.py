@@ -3,7 +3,7 @@ import json
 from gi.repository import Gtk, Gdk, Gio, Pango, GLib
 from lutris import api
 from lutris.util import system
-from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_pixbuf_for_game, get_main_window, open_uri
+from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_pixbuf_for_game, get_main_window, open_uri, get_link_button
 from lutris.gui.config.system import SystemConfigDialog
 
 LINKS = {
@@ -17,15 +17,6 @@ LINKS = {
     "discord": "https://discord.gg/C3uJjRD",
     "irc": "irc://irc.freenode.org:6667/lutris",
 }
-
-
-def get_link_button(text):
-    button = Gtk.Button(text, visible=True)
-    button.props.relief = Gtk.ReliefStyle.NONE
-    button.get_children()[0].set_alignment(0, 0.5)
-    button.get_style_context().add_class("panel-button")
-    button.set_size_request(-1, 24)
-    return button
 
 
 class GenericPanel(Gtk.Fixed):
