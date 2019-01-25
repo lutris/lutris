@@ -177,7 +177,6 @@ class ServiceSyncBox(Gtk.Box):
                 (len(games), "s were" if len(games) > 1 else " was")
             )
             window.game_store.add_games_by_ids(games)
-            GLib.idle_add(window.view.queue_draw)
 
     def on_switch_changed(self, switch, _data):
         write_setting("sync_at_startup", switch.get_active(), self.identifier)

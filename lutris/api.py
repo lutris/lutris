@@ -151,7 +151,7 @@ def get_api_games(game_slugs=None, page="1", query_type="games"):
 
 def search_games(query):
     query = query.lower().strip()[:32]
-    url = settings.SITE_URL + "/api/games?search=%s" % query
+    url = settings.SITE_URL + "/api/games?%s" % urllib.parse.urlencode({"search": query})
     response = http.Request(url, headers={"Content-Type": "application/json"})
     try:
         response.get()
@@ -160,9 +160,9 @@ def search_games(query):
         return None
     response_data = response.json
     api_games = response_data.get("results", [])
-    for game in api_games:
-        game["id"] = None
-        game["installed"] = 0
+    for index, game in enumerate(api_games):
+        game["id"] = index * -1
+        game["installed"] = 1
         game["runner"] = None
         game["platform"] = None
         game["lastplayed"] = None

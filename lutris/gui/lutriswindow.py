@@ -90,17 +90,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.load_icon_type_from_settings(view_type)
 
         # Window initialization
-        store_games = pga.get_games(show_installed_first=self.show_installed_first)
         self.game_actions = GameActions(application=application, window=self)
-        self.game_store = GameStore(
-            store_games,
-            self.icon_type,
-            self.filter_installed,
-            self.view_sorting,
-            self.view_sorting_ascending,
-            self.show_installed_first,
-        )
-        self.game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
+
+        self.game_store = self.get_store()
         self.view = self.get_view(view_type)
 
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
@@ -271,6 +263,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @property
     def view_sorting_ascending(self):
         return settings.read_setting("view_sorting_ascending") != "false"
+
+    def get_store(self, games=None):
+        """Return an instance of GameStore"""
+        games = games or pga.get_games(show_installed_first=self.show_installed_first)
+        game_store = GameStore(
+            games,
+            self.icon_type,
+            self.filter_installed,
+            self.view_sorting,
+            self.view_sorting_ascending,
+            self.show_installed_first,
+        )
+        game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
+        return game_store
 
     def sync_services(self):
         """Sync local lutris library with current Steam games and desktop games"""
@@ -566,7 +572,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.modelfilter.refilter()
         self.game_store.modelsort.clear_cache()
         self.game_store.sort_view(self.view_sorting, self.view_sorting_ascending)
-        self.no_results_overlay.props.visible = len(self.game_store.modelfilter) == 0
+        self.no_results_overlay.props.visible = (
+            not self.game_store
+            and len(self.game_store.modelfilter) == 0
+        )
 
     def on_show_installed_first_state_change(self, action, value):
         """Callback to handle installed games first toggle"""
@@ -626,10 +635,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_game_searched(self, panel, query):
         """Called when the game-searched event is emitted"""
         logger.info("Searching for :%s" % query)
-        self.game_store.games = api.search_games(query)
-        self.game_store.store.clear()
-        self.game_store.load()
+        self.view.destroy()
+        self.game_store = self.get_store(api.search_games(query) if query else None)
+        self.game_store.set_icon_type(self.icon_type)
+        self.game_store.load(from_search=bool(query))
         self.switch_view(self.get_view_type())
+        self.invalidate_game_filter()
         return True
 
     def game_selection_changed(self, _widget):
@@ -649,12 +660,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_game_installed(self, view, game_id):
         """Callback to handle newly installed games"""
         self.game_store.add_or_update(game_id)
-        GLib.idle_add(self.view.queue_draw)
         self.sidebar_listbox.update()
 
     def update_game(self, slug):
         for pga_game in pga.get_games_where(slug=slug):
-            self.game_store.update_game_by_id(pga_game["id"])
+            self.game_store.update(pga_game)
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):

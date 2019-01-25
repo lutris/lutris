@@ -681,7 +681,7 @@
                             <property name="label" translatable="yes">No Games Found</property>
                             <attributes>
                               <attribute name="weight" value="bold"/>
-                              <attribute name="scale" value="1.4399999999999999"/>
+                              <attribute name="scale" value="1.44"/>
                             </attributes>
                           </object>
                           <packing>
