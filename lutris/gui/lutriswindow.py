@@ -363,6 +363,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """
         self.view.connect("game-installed", self.on_game_installed)
         self.view.connect("game-selected", self.game_selection_changed)
+        self.view.connect("game-activated", self.on_game_launch)
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
@@ -513,6 +514,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sync_library()
         self.actions["synchronize"].props.enabled = True
         self.actions["register-account"].props.enabled = False
+
+    def on_game_launch(self, _widget, game):
+        self.game_selection_changed(None, game)
+        self.application.launch(game)
 
     @GtkTemplate.Callback
     def on_disconnect(self, *_args):

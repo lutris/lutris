@@ -50,7 +50,12 @@ class GameGridView(Gtk.IconView, GameView):
 
     def on_item_activated(self, _view, _path):
         """Handles double clicks"""
-        self.emit("game-activated")
+        selected_item = self.get_selected_item()
+        if selected_item:
+            self.selected_game = self.get_selected_game(selected_item)
+        else:
+            self.selected_game = None
+        self.emit("game-activated", self.selected_game)
 
     def on_selection_changed(self, _view):
         """Handles selection changes"""
