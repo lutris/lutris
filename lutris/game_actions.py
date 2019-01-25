@@ -155,13 +155,16 @@ class GameActions:
         """Launch a game"""
         self.application.launch(self.game)
 
+    def get_running_game(self):
+        for i in range(self.application.running_games.get_n_items()):
+            game = self.application.running_games.get_item(i)
+            if game == self.game:
+                return game
+
     def on_stop(self, caller):
         """Stops the game"""
-        matched_game = None
-        for game in self.application.running_games:
-            if game == self.game:
-                matched_game = game
-                break
+
+        matched_game = self.get_running_game()
         if not matched_game:
             logger.warning("%s not in running game list", self.game_id)
             return
