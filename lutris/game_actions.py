@@ -153,7 +153,6 @@ class GameActions:
 
     def on_game_run(self, *_args):
         """Launch a game"""
-        logger.debug("Lauching %s", self.game)
         self.application.launch(self.game)
 
     def on_stop(self, caller):

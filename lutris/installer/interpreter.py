@@ -913,7 +913,10 @@ class ScriptInterpreter(CommandsMixin):
         gog_installers = self.get_gog_installers(gog_service)
         if len(gog_installers) > 1:
             raise ScriptingError("Don't know how to deal with multiple installers yet.")
-        installer = gog_installers[0]
+        try:
+            installer = gog_installers[0]
+        except IndexError:
+            raise UnavailableGame
         download_links = []
         for game_file in installer.get('files', []):
             downlink = game_file.get("downlink")
