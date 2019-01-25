@@ -333,6 +333,6 @@ class GameStore(GObject.Object):
                 row[COL_ICON] = get_pixbuf_for_game(
                     row[COL_SLUG],
                     icon_type,
-                    is_installed=row[COL_INSTALLED],
+                    is_installed=row[COL_INSTALLED] if not self.search_mode else True,
                 )
             self.emit("icons-changed", icon_type)

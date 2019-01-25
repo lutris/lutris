@@ -101,6 +101,10 @@ class Game(GObject.Object):
         """Return a human readable formatted play time"""
         return strings.get_formatted_playtime(self.playtime)
 
+    @property
+    def is_search_result(self):
+        return self.id < 0
+
     @staticmethod
     def show_error_message(message):
         """Display an error message based on the runner's output."""

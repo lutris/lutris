@@ -113,7 +113,7 @@ class GameActions:
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
         return {
-            "add": not self.game.is_installed,
+            "add": not self.game.is_installed or not self.game.is_search_result,
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "stop": self.is_game_running,
@@ -141,7 +141,7 @@ class GameActions:
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
             "browse": self.game.is_installed and self.game.runner_name != "browser",
-            "remove": True,
+            "remove": not self.game.is_search_result,
             "view": True
         }
 

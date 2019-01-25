@@ -108,6 +108,7 @@ class GamePanel(GenericPanel):
                 else:
                     button = get_link_button(label)
             button.connect("clicked", callback)
+
             if displayed.get(action_id):
                 button.show()
             if disabled_entries.get(action_id):

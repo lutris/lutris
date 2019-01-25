@@ -1,12 +1,16 @@
 # pylint: disable=no-member
 from gi.repository import Gtk
+from lutris.game import Game
+from lutris import pga
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
 from lutris.gui.widgets.utils import BANNER_SIZE, BANNER_SMALL_SIZE
 from lutris.gui.views import (
     COL_ID,
+    COL_SLUG,
     COL_NAME,
     COL_ICON,
+    COL_INSTALLED
 )
 
 
@@ -36,27 +40,44 @@ class GameGridView(Gtk.IconView, GameView):
     def select(self):
         self.select_path(self.current_path)
 
-    def get_selected_game(self):
+    def get_selected_item(self):
         """Return the currently selected game's id."""
         selection = self.get_selected_items()
         if not selection:
             return
         self.current_path = selection[0]
-        model = self.get_model()
-        return model.get_value(model.get_iter(self.current_path), COL_ID)
+        return self.get_model().get_iter(self.current_path)
 
     def set_selected_game(self, game_id):
         row = self.game_store.get_row_by_id(game_id, filtered=True)
         if row:
             self.select_path(row.path)
 
-    def on_item_activated(self, view, path):
-        self.selected_game = self.get_selected_game()
+    def on_item_activated(self, _view, _path):
+        """Handles double clicks"""
         self.emit("game-activated")
 
-    def on_selection_changed(self, view):
-        self.selected_game = self.get_selected_game()
-        self.emit("game-selected")
+    def on_selection_changed(self, _view):
+        """Handles selection changes"""
+        selected_item = self.get_selected_item()
+        if selected_item:
+            model = self.get_model()
+            game_id = model.get_value(selected_item, COL_ID)
+            game_slug = model.get_value(selected_item, COL_SLUG)
+            pga_game = pga.get_games_by_slug(game_slug)
+            if game_id > 0:
+                self.selected_game = Game(game_id)
+            elif pga_game:
+                self.selected_game = Game(pga_game["id"])
+            else:
+                self.selected_game = Game(game_id)
+                self.selected_game.id = game_id
+                self.selected_game.slug = game_slug
+                self.selected_game.name = model.get_value(selected_item, COL_NAME)
+                self.selected_game.installed = model.get_value(selected_item, COL_INSTALLED)
+        else:
+            self.selected_game = None
+        self.emit("game-selected", self.selected_game)
 
     def on_icons_changed(self, store, icon_type):
         width = BANNER_SIZE[0] if icon_type == "banner" else BANNER_SMALL_SIZE[0]

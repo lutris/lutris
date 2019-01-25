@@ -1,9 +1,11 @@
 # pylint: disable=no-member
 from gi.repository import Gtk, Pango
+from lutris.game import Game
 from lutris import settings
 from lutris.gui.views.base import GameView
 from lutris.gui.views import (
     COL_ID,
+    COL_SLUG,
     COL_NAME,
     COL_ICON,
     COL_YEAR,
@@ -108,15 +110,14 @@ class GameListView(Gtk.TreeView, GameView):
 
         self.model.set_sort_func(col, sort_func)
 
-    def get_selected_game(self):
+    def get_selected_item(self):
         """Return the currently selected game's id."""
         selection = self.get_selection()
         if not selection:
             return None
         model, select_iter = selection.get_selected()
-        if not select_iter:
-            return None
-        return model.get_value(select_iter, COL_ID)
+        if select_iter:
+            return select_iter
 
     def select(self):
         self.set_cursor(self.current_path[0])
@@ -126,13 +127,18 @@ class GameListView(Gtk.TreeView, GameView):
         if row:
             self.set_cursor(row.path)
 
-    def on_cursor_changed(self, widget, line=None, column=None):
-        self.selected_game = self.get_selected_game()
-        self.emit("game-selected")
-
     def on_row_activated(self, widget, line=None, column=None):
-        self.selected_game = self.get_selected_game()
+        """Handles double clicks"""
         self.emit("game-activated")
+
+    def on_cursor_changed(self, widget, line=None, column=None):
+        selected_item = self.get_selected_item()
+        self.selected_game = Game()
+        self.selected_game.id = self.model.get_value(selected_item, COL_ID)
+        self.selected_game.slug = self.model.get_value(selected_item, COL_SLUG)
+        self.selected_game.name = self.model.get_value(selected_item, COL_NAME)
+        self.selected_game.year = self.model.get_value(selected_item, COL_YEAR)
+        self.emit("game-selected", self.selected_game)
 
     @staticmethod
     def on_column_width_changed(col, *args):

@@ -160,7 +160,7 @@ def search_games(query):
         return None
     response_data = response.json
     api_games = response_data.get("results", [])
-    for index, game in enumerate(api_games):
+    for index, game in enumerate(api_games, 1):
         game["id"] = index * -1
         game["installed"] = 1
         game["runner"] = None

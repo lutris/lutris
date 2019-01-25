@@ -572,10 +572,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.modelfilter.refilter()
         self.game_store.modelsort.clear_cache()
         self.game_store.sort_view(self.view_sorting, self.view_sorting_ascending)
-        self.no_results_overlay.props.visible = (
-            not self.game_store
-            and len(self.game_store.modelfilter) == 0
-        )
+        self.no_results_overlay.props.visible = bool(self.game_store.games)
 
     def on_show_installed_first_state_change(self, action, value):
         """Callback to handle installed games first toggle"""
@@ -643,17 +640,17 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.invalidate_game_filter()
         return True
 
-    def game_selection_changed(self, _widget):
+    def game_selection_changed(self, _widget, game):
         """Callback to handle the selection of a game in the view"""
         child = self.game_scrolled.get_child()
         if child:
             self.game_scrolled.remove(child)
             child.destroy()
 
-        if not self.view.selected_game:
+        if not game:
             self.game_panel = GenericPanel()
         else:
-            self.game_actions.set_game(game_id=self.view.selected_game)
+            self.game_actions.set_game(game=self.view.selected_game)
             self.game_panel = GamePanel(self.game_actions)
         self.game_scrolled.add(self.game_panel)
 
