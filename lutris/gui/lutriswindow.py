@@ -378,22 +378,27 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if event.keyval == Gdk.KEY_Escape:
             self.search_toggle.set_active(False)
             return Gdk.EVENT_STOP
+        return Gtk.ApplicationWindow.do_key_press_event(self, event)
+
+        # XXX: This block of code below is to enable searching on type.
+        # Enabling this feature steals focus from other entries so it needs
+        # some kind of focus detection before enabling library search.
 
         # Probably not ideal for non-english, but we want to limit
         # which keys actually start searching
-        if (
-            not Gdk.KEY_0 <= event.keyval <= Gdk.KEY_z
-            or event.state & Gdk.ModifierType.CONTROL_MASK
-            or event.state & Gdk.ModifierType.SHIFT_MASK
-            or event.state & Gdk.ModifierType.META_MASK
-            or event.state & Gdk.ModifierType.MOD1_MASK
-            or self.search_entry.has_focus()
-        ):
-            return Gtk.ApplicationWindow.do_key_press_event(self, event)
+        # if (
+        #     not Gdk.KEY_0 <= event.keyval <= Gdk.KEY_z
+        #     or event.state & Gdk.ModifierType.CONTROL_MASK
+        #     or event.state & Gdk.ModifierType.SHIFT_MASK
+        #     or event.state & Gdk.ModifierType.META_MASK
+        #     or event.state & Gdk.ModifierType.MOD1_MASK
+        #     or self.search_entry.has_focus()
+        # ):
+        #     return Gtk.ApplicationWindow.do_key_press_event(self, event)
 
-        self.search_toggle.set_active(True)
-        self.search_entry.grab_focus()
-        return self.search_entry.do_key_press_event(self.search_entry, event)
+        # self.search_toggle.set_active(True)
+        # self.search_entry.grab_focus()
+        # return self.search_entry.do_key_press_event(self.search_entry, event)
 
     def load_icon_type_from_settings(self, view_type):
         """Return the icon style depending on the type of view."""

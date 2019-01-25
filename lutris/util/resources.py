@@ -68,7 +68,6 @@ def udpate_desktop_icons():
 
 def download_media(url, dest, overwrite=False):
     """Save a remote media locally"""
-    # logger.debug("Downloading %s to %s", url, dest)
     if system.path_exists(dest):
         if overwrite:
             os.remove(dest)

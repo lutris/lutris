@@ -197,7 +197,6 @@ class GameDialogCommon:
         return box
 
     def _set_image(self, image_format):
-        assert image_format in ("banner", "icon")
         image = Gtk.Image()
         game_slug = self.game.slug if self.game else ""
         image.set_from_pixbuf(get_pixbuf_for_game(game_slug, image_format))
