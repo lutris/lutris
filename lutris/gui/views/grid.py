@@ -1,16 +1,11 @@
 # pylint: disable=no-member
 from gi.repository import Gtk
-from lutris.game import Game
-from lutris import pga
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
 from lutris.gui.widgets.utils import BANNER_SIZE, BANNER_SMALL_SIZE
 from lutris.gui.views import (
-    COL_ID,
-    COL_SLUG,
     COL_NAME,
     COL_ICON,
-    COL_INSTALLED
 )
 
 
@@ -61,20 +56,7 @@ class GameGridView(Gtk.IconView, GameView):
         """Handles selection changes"""
         selected_item = self.get_selected_item()
         if selected_item:
-            model = self.get_model()
-            game_id = model.get_value(selected_item, COL_ID)
-            game_slug = model.get_value(selected_item, COL_SLUG)
-            pga_game = pga.get_games_by_slug(game_slug)
-            if game_id > 0:
-                self.selected_game = Game(game_id)
-            elif pga_game:
-                self.selected_game = Game(pga_game[0]["id"])
-            else:
-                self.selected_game = Game(game_id)
-                self.selected_game.id = game_id
-                self.selected_game.slug = game_slug
-                self.selected_game.name = model.get_value(selected_item, COL_NAME)
-                self.selected_game.installed = model.get_value(selected_item, COL_INSTALLED)
+            self.selected_game = self.get_selected_game(selected_item)
         else:
             self.selected_game = None
         self.emit("game-selected", self.selected_game)

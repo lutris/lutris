@@ -133,11 +133,10 @@ class GameListView(Gtk.TreeView, GameView):
 
     def on_cursor_changed(self, widget, line=None, column=None):
         selected_item = self.get_selected_item()
-        self.selected_game = Game()
-        self.selected_game.id = self.model.get_value(selected_item, COL_ID)
-        self.selected_game.slug = self.model.get_value(selected_item, COL_SLUG)
-        self.selected_game.name = self.model.get_value(selected_item, COL_NAME)
-        self.selected_game.year = self.model.get_value(selected_item, COL_YEAR)
+        if selected_item:
+            self.selected_game = self.get_selected_game(selected_item)
+        else:
+            self.selected_game = None
         self.emit("game-selected", self.selected_game)
 
     @staticmethod
