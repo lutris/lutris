@@ -68,7 +68,7 @@ class GameGridView(Gtk.IconView, GameView):
             if game_id > 0:
                 self.selected_game = Game(game_id)
             elif pga_game:
-                self.selected_game = Game(pga_game["id"])
+                self.selected_game = Game(pga_game[0]["id"])
             else:
                 self.selected_game = Game(game_id)
                 self.selected_game.id = game_id

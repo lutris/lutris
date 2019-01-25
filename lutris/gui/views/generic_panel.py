@@ -199,7 +199,7 @@ class GenericPanel(Gtk.Fixed):
         if self.timer_id:
             GLib.source_remove(self.timer_id)
         self.timer_id = GLib.timeout_add(
-            1500, self.search_games, entry.get_text().lower().strip()
+            750, self.search_games, entry.get_text().lower().strip()
         )
 
     def search_games(self, value):

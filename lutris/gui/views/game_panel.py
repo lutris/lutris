@@ -111,6 +111,8 @@ class GamePanel(GenericPanel):
 
             if displayed.get(action_id):
                 button.show()
+            else:
+                button.hide()
             if disabled_entries.get(action_id):
                 button.set_sensitive(False)
             buttons[action_id] = button

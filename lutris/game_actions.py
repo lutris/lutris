@@ -113,13 +113,13 @@ class GameActions:
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
         return {
-            "add": not self.game.is_installed or not self.game.is_search_result,
+            "add": not self.game.is_installed and not self.game.is_search_result,
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "stop": self.is_game_running,
             "show_logs": self.game.is_installed,
             "configure": bool(self.game.is_installed),
-            "install_more": self.game.is_installed,
+            "install_more": self.game.is_installed and not self.game.is_search_result,
             "execute-script": bool(
                 self.game.is_installed
                 and self.game.runner.system_config.get("manual_command")

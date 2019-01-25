@@ -572,7 +572,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.modelfilter.refilter()
         self.game_store.modelsort.clear_cache()
         self.game_store.sort_view(self.view_sorting, self.view_sorting_ascending)
-        self.no_results_overlay.props.visible = bool(self.game_store.games)
+        self.no_results_overlay.props.visible = not bool(self.game_store.games)
 
     def on_show_installed_first_state_change(self, action, value):
         """Callback to handle installed games first toggle"""
