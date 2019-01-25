@@ -48,6 +48,7 @@ class GameStore(GObject.Object):
 
     def __init__(
             self,
+            games,
             icon_type,
             filter_installed,
             sort_key,
@@ -55,7 +56,7 @@ class GameStore(GObject.Object):
             show_installed_first=False,
     ):
         super(GameStore, self).__init__()
-        self.games = pga.get_games(show_installed_first=show_installed_first)
+        self.games = games
         self.games_to_refresh = set()
         self.icon_type = icon_type
         self.filter_installed = filter_installed

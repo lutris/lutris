@@ -147,3 +147,25 @@ def get_api_games(game_slugs=None, page="1", query_type="games"):
         else:
             results += response_data.get("results")
     return results
+
+
+def search_games(query):
+    query = query.lower().strip()[:32]
+    url = settings.SITE_URL + "/api/games?search=%s" % query
+    response = http.Request(url, headers={"Content-Type": "application/json"})
+    try:
+        response.get()
+    except http.HTTPError as ex:
+        logger.error("Unable to get games from API: %s", ex)
+        return None
+    response_data = response.json
+    api_games = response_data.get("results", [])
+    for game in api_games:
+        game["id"] = None
+        game["installed"] = 0
+        game["runner"] = None
+        game["platform"] = None
+        game["lastplayed"] = None
+        game["installed_at"] = None
+        game["playtime"] = None
+    return api_games

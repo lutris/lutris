@@ -8,7 +8,6 @@ from lutris.gui.views.generic_panel import GenericPanel
 
 class GamePanel(GenericPanel):
     """Panel allowing users to interact with a game"""
-    __gtype_name__ = "LutrisPanel"
 
     def __init__(self, game_actions):
         self.game_actions = game_actions

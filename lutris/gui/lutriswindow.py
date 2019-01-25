@@ -90,17 +90,21 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.load_icon_type_from_settings(view_type)
 
         # Window initialization
+        store_games = pga.get_games(show_installed_first=self.show_installed_first)
         self.game_actions = GameActions(application=application, window=self)
         self.game_store = GameStore(
+            store_games,
             self.icon_type,
             self.filter_installed,
             self.view_sorting,
             self.view_sorting_ascending,
             self.show_installed_first,
         )
-        self.view = self.get_view(view_type)
-        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         self.game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
+        self.view = self.get_view(view_type)
+
+        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
+        GObject.add_emission_hook(GenericPanel, "game-searched", self.on_game_searched)
         self.connect("delete-event", self.on_window_delete)
         if self.maximized:
             self.maximize()
@@ -132,10 +136,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         self.view.show()
 
+        self.game_store.load()
         # Contextual menu
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
-
-        self.game_store.load()
 
         # Sidebar
         self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
@@ -527,7 +530,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if self.application.running_games:
             dlg = dialogs.QuestionDialog(
                 {
-                    "question": "Some games are still running, are you sure you want to quit Lutris?",
+                    "question": ("Some games are still running, "
+                                 "are you sure you want to quit Lutris?"),
                     "title": "Quit Lutris?",
                 }
             )
@@ -613,9 +617,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_game_updated(self, game):
         """Callback to refresh the view when a game is updated"""
+        logger.debug("Updating game %s", game)
         self.game_store.update_game_by_id(game.id)
         self.view.set_selected_game(game.id)
         self.sidebar_listbox.update()
+        return True
+
+    def on_game_searched(self, panel, query):
+        """Called when the game-searched event is emitted"""
+        logger.info("Searching for :%s" % query)
+        self.game_store.games = api.search_games(query)
+        self.game_store.store.clear()
+        self.game_store.load()
+        self.switch_view(self.get_view_type())
+        return True
 
     def game_selection_changed(self, _widget):
         """Callback to handle the selection of a game in the view"""
