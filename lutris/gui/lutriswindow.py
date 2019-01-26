@@ -522,6 +522,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @GtkTemplate.Callback
     def on_disconnect(self, *_args):
         """Callback from user disconnect"""
+        dlg = dialogs.QuestionDialog(
+            {
+                "question": "Do you want to log out from Lutris?",
+                "title": "Log out?",
+            }
+        )
+        if dlg.result != Gtk.ResponseType.YES:
+            return
         api.disconnect()
         self.toggle_connection(False)
         self.actions["synchronize"].props.enabled = False
