@@ -648,6 +648,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_game_updated(self, game):
         """Callback to refresh the view when a game is updated"""
         # logger.debug("Updating game %s", game)
+        game.load_config()
         try:
             self.game_store.update_game_by_id(game.id)
         except ValueError:
