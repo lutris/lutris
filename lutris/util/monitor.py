@@ -11,8 +11,6 @@ EXCLUDED_PROCESSES = [
     "lutris",
     "python",
     "python3",
-    "bash",
-    "sh",
     "tee",
     "tr",
     "zenity",
