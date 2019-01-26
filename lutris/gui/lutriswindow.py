@@ -640,7 +640,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_game_updated(self, game):
         """Callback to refresh the view when a game is updated"""
         # logger.debug("Updating game %s", game)
-        self.game_store.update_game_by_id(game.id)
+        try:
+            self.game_store.update_game_by_id(game.id)
+        except ValueError:
+            self.game_store.add_game_by_id(game.id)
+
         self.view.set_selected_game(game.id)
         self.sidebar_listbox.update()
         return True
@@ -688,11 +692,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
         self.add_popover.hide()
-        dialog = AddGameDialog(
-            self,
-            runner=self.selected_runner,
-            callback=lambda: self.game_store.add_game_by_id(dialog.game.id),
-        )
+        AddGameDialog(self, runner=self.selected_runner)
         return True
 
     def remove_game_from_view(self, game_id, from_library=False):

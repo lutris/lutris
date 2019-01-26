@@ -181,12 +181,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
                     game = Game(pga.add_game(**game_data))
                 else:
                     game = None
-
-            AddGameDialog(
-                self.parent,
-                game=game,
-                callback=lambda: self.notify_install_success(game_data["id"]),
-            )
+            AddGameDialog(self.parent, game=game)
         elif dlg.result == dlg.NEW_INSTALLER:
             webbrowser.open(settings.GAME_URL % self.game_slug)
 
