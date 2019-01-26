@@ -59,7 +59,7 @@ class GamePanel(GenericPanel):
         title_label = Gtk.Label()
         title_label.set_markup("<span font_desc='16'>%s</span>" % gtk_safe(self.game.name))
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
-        title_label.set_size_request(256, -1)
+        title_label.set_size_request(226, -1)
         title_label.set_alignment(0, 0.5)
         title_label.set_justify(Gtk.Justification.LEFT)
         title_label.show()
