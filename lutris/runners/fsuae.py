@@ -160,7 +160,7 @@ class fsuae(Runner):
             "label": "Graphics Card",
             "type": "choice",
             "choices": gpucard_choices,
-            "default": "0",
+            "default": "None",
             "help": (
                 "Use this option to enable a graphics card. This option is none by default, in "
                 "which case only chipset graphics (OCS/ECS/AGA) support is available."
@@ -272,7 +272,7 @@ class fsuae(Runner):
         if grafixcard:
             params.append("--graphics_card=%s" % grafixcard)
         if grafixmemory:
-            params.append("--graphics_card=%s" % grafixmemory)
+            params.append("--graphics_memory=%s" % grafixmemory)
         if self.runner_config.get("gfx_fullscreen_amiga"):
             width = int(get_current_resolution().split("x")[0])
             params.append("--fullscreen")
