@@ -327,7 +327,7 @@ class Application(Gtk.Application):
             # If game is not installed, show the GUI before running. Otherwise leave the GUI closed.
             if not db_game["installed"]:
                 self.window.present()
-            self.launch(db_game["id"])
+            self.launch(Game(db_game["id"]))
 
         else:
             self.window.present()
