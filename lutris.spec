@@ -60,7 +60,6 @@ Requires:       mesa-dri-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
 BuildRequires:  fdupes
-BuildRequires:  libappstream-glib
 Requires:       mesa-libGL
 %endif
 
