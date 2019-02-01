@@ -1,6 +1,7 @@
 """Game panel"""
 from datetime import datetime
 from gi.repository import Gtk, Pango, GObject
+from lutris import runners
 from lutris.gui.widgets.utils import get_pixbuf_for_game, get_link_button
 from lutris.util.strings import gtk_safe
 from lutris.gui.views.generic_panel import GenericPanel
@@ -95,6 +96,13 @@ class GamePanel(GenericPanel):
         last_played_label.set_markup("Last played: <b>%s</b>" % lastplayed.strftime("%x"))
         return last_played_label
 
+    def get_runner_entries(self, game):
+        try:
+            runner = runners.import_runner(game.runner_name)(game.config)
+        except runners.InvalidRunner:
+            return None
+        return runner.context_menu_entries
+
     def get_buttons(self):
         displayed = self.game_actions.get_displayed_entries()
         disabled_entries = self.game_actions.get_disabled_entries()
@@ -130,6 +138,14 @@ class GamePanel(GenericPanel):
             if disabled_entries.get(action_id):
                 button.set_sensitive(False)
             buttons[action_id] = button
+
+        if self.game.runner_name and self.game.is_installed:
+            for entry in self.get_runner_entries(self.game):
+                name, label, callback = entry
+                button = get_link_button(label)
+                button.show()
+                button.connect("clicked", callback)
+                buttons[name] = button
         return buttons
 
     def place_buttons(self, base_height):
@@ -139,6 +155,8 @@ class GamePanel(GenericPanel):
         icon_start = 84
         icons_y_offset = 60
         buttons_x_offset = 28
+        extra_button_start = 520  # Y position for runner actions
+        extra_button_index = 0
         for action_id, button in self.buttons.items():
             position = None
             if action_id in ("play", "stop", "install"):
@@ -170,8 +188,11 @@ class GamePanel(GenericPanel):
             if action_id in ("menu-shortcut", "rm-menu-shortcut"):
                 position = (buttons_x_offset, current_y + 160)
 
-            if position:
-                self.put(button, position[0], position[1])
+            if not position:
+                position = (buttons_x_offset, extra_button_start + extra_button_index * 40)
+                extra_button_index += 1
+
+            self.put(button, position[0], position[1])
 
     def on_game_start(self, widget):
         self.buttons["play"].set_label("Launching...")
