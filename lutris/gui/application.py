@@ -220,8 +220,8 @@ class Application(Gtk.Application):
             return 0
 
         logger.info("Running Lutris %s", settings.VERSION)
-        run_all_checks()
         migrate()
+        run_all_checks()
         AsyncCall(init_dxvk_versions)
 
         # List game
