@@ -1,16 +1,16 @@
-lutris (0.50) cosmic; urgency=medium
+lutris (0.5.0) cosmic; urgency=medium
 
   * Modernize the Gtk UI, thanks to the improvements made by @TingPing
   * Add GOG support, allowing users to sign-in their account, import games and
     download game files automatically during install.
-  * Add finer game import options, allowing imports from different 3rd party 
+  * Add finer game import options, allowing imports from different 3rd party
     such as Steam, GOG and locally installed games.
   * Re-architecture the process monitor. This fixes issues with games exiting
     prematurely. Many thanks to @AaronOpfer for his patches!
   * Multiple games can now be launched at the same time without losing control
     over the first game.
   * Game information and actions are now displayed in a panel on the right side.
-    Coverart fetching for the panel will be added in a future release, until then 
+    Coverart fetching for the panel will be added in a future release, until then
     cover art files can be placed in ~/.local/share/lutris/coverart/[game-identifier].jpg
   * Games from lutris.net can be searched and installed from the client itself.
   * New install_cab_component installer command for Media Foundation based games.
