@@ -119,8 +119,11 @@ class GenericPanel(Gtk.Fixed):
             return user_box
         if system.path_exists(api.USER_ICON_FILE_PATH):
             user_icon = Gtk.Image(visible=True)
-            user_icon.set_from_pixbuf(get_pixbuf(api.USER_ICON_FILE_PATH, (48, 48)))
-            user_box.pack_end(user_icon, False, False, 0)
+            user_icon.set_from_pixbuf(get_pixbuf(api.USER_ICON_FILE_PATH, (56, 56)))
+            icon_align = Gtk.Alignment(visible=True)
+            icon_align.set(1, 0, 0, 0)
+            icon_align.add(user_icon)
+            user_box.pack_end(icon_align, False, False, 0)
         with open(api.USER_INFO_FILE_PATH) as user_info_file:
             user_info = json.load(user_info_file)
         user_info_box = Gtk.VBox(spacing=6, visible=True)
