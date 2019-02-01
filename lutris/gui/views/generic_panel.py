@@ -68,10 +68,10 @@ class GenericPanel(Gtk.Fixed):
 
     def place_content(self):
         """Places widgets in the side panel"""
-        # self.put(self.get_preferences_button(), 272, 16)
         self.put(self.get_preferences_button(), 12, 12)
         self.put(self.get_user_info_box(), 48, 16)
-        self.put(self.get_lutris_links(), 12, 92)
+
+        self.put(self.get_lutris_links(), 28, 92)
 
         application = Gio.Application.get_default()
         if application.running_games.get_n_items():
