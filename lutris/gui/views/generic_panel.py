@@ -169,7 +169,7 @@ class GenericPanel(Gtk.Fixed):
         search_label.set_margin_top(12)
         box.add(search_label)
 
-        search_entry = Gtk.Entry(visible=True)
+        search_entry = Gtk.SearchEntry(visible=True)
         search_entry.connect("changed", self.on_search_entry_changed)
         box.add(search_entry)
 
