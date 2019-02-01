@@ -57,13 +57,9 @@ class Application(Gtk.Application):
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         )
-        logger.info("Running Lutris %s", settings.VERSION)
         gettext.bindtextdomain("lutris", "/usr/share/locale")
         gettext.textdomain("lutris")
 
-        run_all_checks()
-        migrate()
-        AsyncCall(init_dxvk_versions)
 
         GLib.set_application_name(_("Lutris"))
         self.running_games = Gio.ListStore.new(Game)
@@ -223,6 +219,11 @@ class Application(Gtk.Application):
             print(executable_name + "-" + settings.VERSION)
             logger.setLevel(logging.NOTSET)
             return 0
+
+        logger.info("Running Lutris %s", settings.VERSION)
+        run_all_checks()
+        migrate()
+        AsyncCall(init_dxvk_versions)
 
         # List game
         if options.contains("list-games"):
