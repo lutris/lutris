@@ -112,6 +112,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
 %files
 %{_bindir}/%{name}
+%{_bindir}/lutris-wrapper
 %{_datadir}/%{name}/
 %{_datadir}/appdata/%{appid}.appdata.xml
 %{_datadir}/applications/%{appid}.desktop
