@@ -5,10 +5,11 @@ Build-Depends: debhelper,
  python3,
  python3-setuptools,
  python3-requests,
+ python3-pil,
+ python3-gi,
  dh-python,
  gir1.2-gtk-3.0,
  gir1.2-glib-2.0,
- python3-gi,
  libgirepository1.0-dev
 Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
