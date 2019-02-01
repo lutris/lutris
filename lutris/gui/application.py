@@ -60,7 +60,6 @@ class Application(Gtk.Application):
         gettext.bindtextdomain("lutris", "/usr/share/locale")
         gettext.textdomain("lutris")
 
-
         GLib.set_application_name(_("Lutris"))
         self.running_games = Gio.ListStore.new(Game)
         self.window = None

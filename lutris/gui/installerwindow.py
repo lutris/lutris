@@ -6,10 +6,10 @@ from gi.repository import Gtk
 
 from lutris import api, pga, settings
 from lutris.installer import interpreter
-from lutris.installer.errors import ScriptingError
+from lutris.installer.errors import ScriptingError, MissingGameDependency
 from lutris.game import Game
 from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog
+from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog, QuestionDialog
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.installer import InstallerPicker
@@ -219,7 +219,24 @@ class InstallerWindow(Gtk.ApplicationWindow):
                 install_script = script
         if not install_script:
             raise ValueError("Could not find script %s" % script_slug)
-        self.interpreter = interpreter.ScriptInterpreter(install_script, self)
+        try:
+            self.interpreter = interpreter.ScriptInterpreter(install_script, self)
+        except MissingGameDependency as ex:
+            dlg = QuestionDialog(
+                {
+                    "question": "This game requires %s, do you want to install it?" % ex.slug,
+                    "title": "Missing dependency",
+                }
+            )
+            if dlg.result == Gtk.ResponseType.YES:
+                InstallerWindow(
+                    game_slug=ex.slug,
+                    parent=self.parent,
+                    application=self.application,
+                )
+            self.destroy()
+            return
+
         self.title_label.set_markup(
             u"<b>Installing {}</b>".format(
                 escape_gtk_label(self.interpreter.game_name)

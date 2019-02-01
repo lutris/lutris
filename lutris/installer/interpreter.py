@@ -21,7 +21,7 @@ from lutris.util.wine.wine import get_wine_version_exe, get_system_wine_version
 
 from lutris.config import LutrisConfig, make_game_config_id
 
-from lutris.installer.errors import ScriptingError, FileNotAvailable
+from lutris.installer.errors import ScriptingError, FileNotAvailable, MissingGameDependency
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.installer_file import InstallerFile
 
@@ -264,19 +264,24 @@ class ScriptInterpreter(CommandsMixin):
         error_message = "You need to install {} before"
         for index, dependency in enumerate(dependencies):
             if isinstance(dependency, tuple):
-                dependency_choices = [
-                    self._get_installed_dependency(dep) for dep in dependency
+                installed_games = [
+                    dep for dep in [
+                        self._get_installed_dependency(dep) for dep in dependency
+                    ]
+                    if dep
                 ]
-                installed_games = [dep for dep in dependency_choices if dep]
                 if not installed_games:
-                    raise ScriptingError(error_message.format(" or ".join(dependency)))
+                    if len(dependency) == 1:
+                        raise MissingGameDependency(slug=dependency)
+                    else:
+                        raise ScriptingError(error_message.format(" or ".join(dependency)))
                 if index == 0:
                     self.target_path = installed_games[0]["directory"]
                     self.requires = installed_games[0]["installer_slug"]
             else:
                 game = self._get_installed_dependency(dependency)
                 if not game:
-                    raise ScriptingError(error_message.format(dependency))
+                    raise MissingGameDependency(slug=dependency)
                 if index == 0:
                     self.target_path = game["directory"]
                     self.requires = game["installer_slug"]
