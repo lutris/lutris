@@ -22,7 +22,7 @@ LINKS = {
     ),
     "donate": "https://lutris.net/donate",
     "forums": "https://forums.lutris.net/",
-    "discord": "https://discord.gg/C3uJjRD",
+    "discord": "https://discord.gg/Pnt5CuY",
     "irc": "irc://irc.freenode.org:6667/lutris",
 }
 
