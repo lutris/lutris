@@ -1,8 +1,28 @@
-lutris (0.50rc1) cosmic; urgency=medium
+lutris (0.50) cosmic; urgency=medium
 
-  * TODO
+  * Modernize the Gtk UI, thanks to the improvements made by @TingPing
+  * Add GOG support, allowing users to sign-in their account, import games and
+    download game files automatically during install.
+  * Add finer game import options, allowing imports from different 3rd party 
+    such as Steam, GOG and locally installed games.
+  * Re-architecture the process monitor. This fixes issues with games exiting
+    prematurely. Many thanks to @AaronOpfer for his patches!
+  * Multiple games can now be launched at the same time without losing control
+    over the first game.
+  * Game information and actions are now displayed in a panel on the right side.
+    Coverart fetching for the panel will be added in a future release, until then 
+    cover art files can be placed in ~/.local/share/lutris/coverart/[game-identifier].jpg
+  * Games from lutris.net can be searched and installed from the client itself.
+  * New install_cab_component installer command for Media Foundation based games.
+  * Add a download cache to re-use files between installations.
+  * Print graphics drivers and GPU on startup
+  * Re-design installer selection picker.
+  * Add a button to show installer scripts before installing.
+  * Add a FPS limiter option when libstrangle is available (https://gitlab.com/torkel104/libstrangle)
+  * Re-architecturing of several parts of the application (views, linux
+    feature detection, main game class, ...)
 
- -- Mathieu Comandon <strycore@gmail.com>  Fri, 04 Jan 2019 09:08:25 -0800
+ -- Mathieu Comandon <strycore@gmail.com>  Fri, 01 Feb 2019 07:26:25 -0800
 
 lutris (0.4.23) bionic; urgency=medium
 
