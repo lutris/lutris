@@ -115,11 +115,11 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %{_datadir}/%{name}/
 %{_datadir}/appdata/%{appid}.appdata.xml
 %{_datadir}/applications/%{appid}.desktop
-%{_datadir}/icons/hicolor/16x16/apps/lutris.svg
-%{_datadir}/icons/hicolor/22x22/apps/lutris.svg
-%{_datadir}/icons/hicolor/24x24/apps/lutris.svg
-%{_datadir}/icons/hicolor/32x32/apps/lutris.svg
-%{_datadir}/icons/hicolor/48x48/apps/lutris.svg
+%{_datadir}/icons/hicolor/16x16/apps/lutris.png
+%{_datadir}/icons/hicolor/22x22/apps/lutris.png
+%{_datadir}/icons/hicolor/24x24/apps/lutris.png
+%{_datadir}/icons/hicolor/32x32/apps/lutris.png
+%{_datadir}/icons/hicolor/48x48/apps/lutris.png
 %{_datadir}/icons/hicolor/scalable/apps/lutris.svg
 %{_datadir}/polkit-1/actions/*
 %{python3_sitelib}/%{name}-*.egg-info
