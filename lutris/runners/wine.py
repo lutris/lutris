@@ -738,7 +738,7 @@ class wine(Runner):
             version = "legacy"
         return runtime.get_env(
             version=version,
-            prefer_system_libs=self.system_config.get("prefer_system_libs", False),
+            prefer_system_libs=self.system_config.get("prefer_system_libs", True),
             wine_path=wine_root
         )
 

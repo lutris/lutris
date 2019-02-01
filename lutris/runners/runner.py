@@ -173,7 +173,7 @@ class Runner:
 
         """
         return runtime.get_env(
-            prefer_system_libs=self.system_config.get("prefer_system_libs", False)
+            prefer_system_libs=self.system_config.get("prefer_system_libs", True)
         )
 
     def play(self):

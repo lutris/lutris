@@ -40,8 +40,6 @@ class dolphin(Runner):
         },
     ]
 
-    system_options_override = [{"option": "prefer_system_libs", "default": True}]
-
     def get_platform(self):
         selected_platform = self.game_config.get("platform")
         if selected_platform:
