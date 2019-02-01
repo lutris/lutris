@@ -151,15 +151,23 @@ def get_api_games(game_slugs=None, page="1", query_type="games"):
 
 def search_games(query):
     query = query.lower().strip()[:32]
-    url = settings.SITE_URL + "/api/games?%s" % urllib.parse.urlencode({"search": query})
-    response = http.Request(url, headers={"Content-Type": "application/json"})
+    if query == "open source games":
+        url = "/api/bundles/open-source"
+    elif query == "free to play games":
+        url = "/api/bundles/free-to-play"
+    else:
+        url = "/api/games?%s" % urllib.parse.urlencode({"search": query})
+    response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
     try:
         response.get()
     except http.HTTPError as ex:
         logger.error("Unable to get games from API: %s", ex)
         return None
     response_data = response.json
-    api_games = response_data.get("results", [])
+    if "bundles" in url:
+        api_games = response_data.get("games", [])
+    else:
+        api_games = response_data.get("results", [])
     for index, game in enumerate(api_games, 1):
         game["id"] = index * -1
         game["installed"] = 1

@@ -152,13 +152,14 @@ class GenericPanel(Gtk.Fixed):
         return user_box
 
     def get_lutris_links(self):
+        search_entry = Gtk.SearchEntry(visible=True)
         box = Gtk.VBox(spacing=6, visible=True)
         floss_button = get_link_button("Browse Open Source games")
-        floss_button.connect("clicked", lambda *x: open_uri(LINKS["floss"]))
+        floss_button.connect("clicked", lambda *x: search_entry.set_text("open source games"))
         box.add(floss_button)
 
         f2p_button = get_link_button("Browse Free to Play games")
-        f2p_button.connect("clicked", lambda *x: open_uri(LINKS["f2p"]))
+        f2p_button.connect("clicked", lambda *x: search_entry.set_text("free to play games"))
         box.add(f2p_button)
 
         donate_button = get_link_button("Support the project")
