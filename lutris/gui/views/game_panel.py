@@ -153,7 +153,7 @@ class GamePanel(GenericPanel):
             if action_id == "show_logs":
                 position = (icon_start + icon_offset * 2 + icon_width * 2,
                             base_height + icons_y_offset)
-            if action_id in ("remove"):
+            if action_id == "remove":
                 position = (icon_start + icon_offset * 3 + icon_width * 3,
                             base_height + icons_y_offset)
             if action_id == "execute-script":

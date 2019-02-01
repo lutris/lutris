@@ -198,7 +198,7 @@ class GenericPanel(Gtk.Fixed):
         box.add(help_box)
         return box
 
-    def get_running_games(self, games):
+    def get_running_games(self):
         listbox = Gtk.ListBox(visible=True)
         listbox.bind_model(self.application.running_games, self.create_list_widget)
         listbox.connect('row-selected', self.on_running_game_select)
