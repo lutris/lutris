@@ -93,6 +93,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
 
+        self.search_terms = None
         self.game_store = self.get_store()
         self.view = self.get_view(view_type)
 
@@ -669,6 +670,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_game_searched(self, panel, query):
         """Called when the game-searched event is emitted"""
         # logger.info("Searching for :%s" % query)
+        self.search_terms = query
         self.view.destroy()
         self.game_store = self.get_store(api.search_games(query) if query else None)
         self.game_store.set_icon_type(self.icon_type)
@@ -685,7 +687,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             child.destroy()
 
         if not game:
-            self.game_panel = GenericPanel()
+            self.game_panel = GenericPanel(search_terms=self.search_terms)
         else:
             self.game_actions.set_game(game=game)
             self.game_panel = GamePanel(self.game_actions)
