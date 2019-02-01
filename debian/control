@@ -3,6 +3,7 @@ Section: games
 Priority: optional
 Build-Depends: debhelper,
  python3,
+ python3-yaml,
  python3-setuptools,
  python3-requests,
  python3-pil,
@@ -10,6 +11,9 @@ Build-Depends: debhelper,
  dh-python,
  gir1.2-gtk-3.0,
  gir1.2-glib-2.0,
+ gir1.2-gnomedesktop-3.0,
+ gir1.2-webkit2-4.0,
+ gir1.2-notify-0.7,
  libgirepository1.0-dev
 Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
