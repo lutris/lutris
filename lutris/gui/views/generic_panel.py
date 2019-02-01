@@ -71,7 +71,7 @@ class GenericPanel(Gtk.Fixed):
         self.put(self.get_preferences_button(), 12, 12)
         self.put(self.get_user_info_box(), 48, 16)
 
-        self.put(self.get_lutris_links(), 28, 92)
+        self.put(self.get_lutris_links(), 40, 92)
 
         application = Gio.Application.get_default()
         if application.running_games.get_n_items():
