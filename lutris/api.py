@@ -150,6 +150,8 @@ def get_api_games(game_slugs=None, page="1", query_type="games"):
 
 
 def search_games(query):
+    if not query:
+        return []
     query = query.lower().strip()[:32]
     if query == "open source games":
         url = "/api/bundles/open-source"
