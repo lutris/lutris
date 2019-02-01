@@ -71,16 +71,14 @@ class GenericPanel(Gtk.Fixed):
         # self.put(self.get_preferences_button(), 272, 16)
         self.put(self.get_preferences_button(), 12, 12)
         self.put(self.get_user_info_box(), 48, 16)
-
         self.put(self.get_lutris_links(), 12, 92)
 
         application = Gio.Application.get_default()
-        games = application.running_games
-        if games:
+        if application.running_games.get_n_items():
             running_label = Gtk.Label(visible=True)
             running_label.set_markup("<b>Playing:</b>")
             self.put(running_label, 12, 355)
-            self.put(self.get_running_games(games), 12, 377)
+            self.put(self.get_running_games(), 12, 377)
 
     def get_preferences_button(self):
         preferences_button = Gtk.Button.new_from_icon_name(
@@ -202,7 +200,7 @@ class GenericPanel(Gtk.Fixed):
 
     def get_running_games(self, games):
         listbox = Gtk.ListBox(visible=True)
-        listbox.bind_model(games, self.create_list_widget)
+        listbox.bind_model(self.application.running_games, self.create_list_widget)
         listbox.connect('row-selected', self.on_running_game_select)
         listbox.show()
         return listbox

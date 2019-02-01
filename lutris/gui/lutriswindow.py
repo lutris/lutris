@@ -566,7 +566,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.window_size = widget.get_size()
 
     def on_window_delete(self, *_args):
-        if self.application.running_games:
+        if self.application.running_games.get_n_items():
             dlg = dialogs.QuestionDialog(
                 {
                     "question": ("Some games are still running, "
