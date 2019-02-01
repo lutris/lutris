@@ -76,6 +76,16 @@ class GameDialogCommon:
     def _build_prefs_tab(self):
         prefs_box = VBox()
         prefs_box.pack_start(self._get_game_cache_box(), False, False, 6)
+
+        cache_help_label = Gtk.Label(visible=True)
+        cache_help_label.set_size_request(400, -1)
+        cache_help_label.set_markup(
+            "If provided, this location will be used by installers to cache "
+            "downloaded files locally for future re-use. \nIf left empty, the "
+            "installer files are discarded after the install completion."
+        )
+        prefs_box.pack_start(cache_help_label, False, False, 6)
+
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, "Lutris preferences")
 
