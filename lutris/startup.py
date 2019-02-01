@@ -100,7 +100,8 @@ def fill_missing_platforms():
         game = Game(game_id=pga_game["id"])
         logger.error("Providing missing platorm for game %s", game.slug)
         game.set_platform_from_runner()
-        game.save(metadata_only=True)
+        if game.platform:
+            game.save(metadata_only=True)
 
 
 def run_all_checks():
