@@ -49,14 +49,12 @@ Requires:       fluid-soundfont-gm, python3-Pillow, python3-requests
 BuildRequires: fdupes
 
 %ifarch x86_64
-Requires:       mesa-dri-drivers(x86-32)
 Requires:       mesa-vulkan-drivers(x86-32)
 Requires:       vulkan-loader(x86-32)
 Requires:       mesa-libGL(x86-32)
 %endif
 
 Requires:       mesa-vulkan-drivers
-Requires:       mesa-dri-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
 BuildRequires:  fdupes
