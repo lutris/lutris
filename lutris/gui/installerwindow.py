@@ -9,7 +9,9 @@ from lutris.installer import interpreter
 from lutris.installer.errors import ScriptingError, MissingGameDependency
 from lutris.game import Game
 from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.dialogs import NoInstallerDialog, DirectoryDialog, InstallerSourceDialog, QuestionDialog
+from lutris.gui.dialogs import (
+    NoInstallerDialog, DirectoryDialog, InstallerSourceDialog, QuestionDialog
+)
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.installer import InstallerPicker

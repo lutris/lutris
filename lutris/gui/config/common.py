@@ -2,7 +2,7 @@
 import os
 from gi.repository import Gtk, Pango, GLib
 from lutris.game import Game
-from lutris.config import LutrisConfig
+from lutris.config import LutrisConfig, make_game_config_id
 from lutris import runners
 from lutris import settings
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
@@ -366,7 +366,6 @@ class GameDialogCommon:
             self.runner_name = widget.get_model()[runner_index][1]
             self.lutris_config = LutrisConfig(
                 runner_slug=self.runner_name,
-                game_config_id=self.get_config_id(),
                 level="game"
             )
 
@@ -419,7 +418,7 @@ class GameDialogCommon:
             year = int(self.year_entry.get_text())
 
         if not self.lutris_config.game_config_id:
-            self.lutris_config.game_config_id = self.get_config_id()
+            self.lutris_config.game_config_id = make_game_config_id(self.slug)
 
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
