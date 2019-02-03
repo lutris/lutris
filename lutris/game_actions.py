@@ -8,6 +8,7 @@ from lutris.gui import dialogs
 from lutris.gui.widgets.utils import open_uri
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
+from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
 from lutris.gui.dialogs.log import LogWindow
@@ -73,6 +74,10 @@ class GameActions:
                 self.on_edit_game_configuration
             ),
             (
+                "category", "Categories",
+                self.on_edit_game_categories
+            ),
+            (
                 "execute-script", "Execute script",
                 self.on_execute_script_clicked
             ),
@@ -119,6 +124,7 @@ class GameActions:
             "stop": self.is_game_running,
             "show_logs": self.game.is_installed,
             "configure": bool(self.game.is_installed),
+            "category": bool(self.game.is_installed),
             "install_more": self.game.is_installed and not self.game.is_search_result,
             "execute-script": bool(
                 self.game.is_installed
@@ -199,6 +205,10 @@ class GameActions:
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
         EditGameConfigDialog(self.window, self.game)
+
+    def on_edit_game_categories(self, _widget):
+        """Edit game categories"""
+        EditGameCategoriesDialog(self.window, self.game)
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""
