@@ -51,14 +51,12 @@ BuildRequires: fdupes
 %ifarch x86_64
 Requires:       mesa-vulkan-drivers(x86-32)
 Requires:       vulkan-loader(x86-32)
-Requires:       mesa-libGL(x86-32)
 %endif
 
 Requires:       mesa-vulkan-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
 BuildRequires:  fdupes
-Requires:       mesa-libGL
 %endif
 
 #!BuildIgnore: rpmlint-mini
