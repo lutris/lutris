@@ -67,6 +67,7 @@ class Game(GObject.Object):
             self.playtime = float(game_data.get("playtime") or 0.0)
         except ValueError:
             logger.error("Invalid playtime value %s", game_data.get("playtime"))
+            self.playtime = 0.0
 
         if self.game_config_id:
             self.load_config()
