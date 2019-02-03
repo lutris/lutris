@@ -1,4 +1,4 @@
-lutris (0.5.0ubuntu1) UNRELEASED; urgency=medium
+lutris (0.5.0.1) UNRELEASED; urgency=medium
 
   * Bullshit my way out of Gtk+ fuckery (Closes #1697)
   * Initialize playtime attribute when invalid playtime found (Closes #1698)
