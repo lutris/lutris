@@ -36,8 +36,9 @@ class GenericPanel(Gtk.Fixed):
         "running-game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Game, ))
     }
 
-    def __init__(self, search_terms=None):
+    def __init__(self, search_terms=None, application=None):
         super().__init__(visible=True)
+        self.application = application
         self.search_terms = search_terms or ""
         self.set_size_request(320, -1)
         self.get_style_context().add_class("game-panel")
