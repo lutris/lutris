@@ -120,7 +120,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_cursor(self.current_path[0])
 
     def set_selected_game(self, game_id):
-        row = self.get_row_by_id(game_id, filtered=True)
+        row = self.game_store.get_row_by_id(game_id, filtered=True)
         if row:
             self.set_cursor(row.path)
 
