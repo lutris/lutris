@@ -7,13 +7,13 @@
 
 Name:           lutris
 Version:        0.5.0.1
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPL-3.0+
 Group:          Amusements/Games/Other
 URL:            http://lutris.net
-Source0:        http://lutris.net/releases/lutris_%{version}.tar.xz
+Source0:        http://lutris.net/releases/lutris_%{version}.tar.gz
 
 BuildArch:      noarch
 
@@ -23,10 +23,10 @@ BuildRequires:  python3-devel
 
 %if 0%{?fedora}
 BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
-Requires:       python3-gobject, python3-PyYAML, cabextract, gnome-deskop3
+Requires:       python3-gobject, python3-PyYAML, cabextract
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
 Requires:       python3-requests
-Recommends:     wine-core
+Recommends:     wine-core, gnome-deskop3
 %endif
 %if 0%{?rhel} || 0%{?centos}
 BuildRequires:  python3-gobject
@@ -51,12 +51,14 @@ BuildRequires: fdupes
 %ifarch x86_64
 Requires:       mesa-vulkan-drivers(x86-32)
 Requires:       vulkan-loader(x86-32)
+Requires:       mesa-libGL(x86-32)
 %endif
 
 Requires:       mesa-vulkan-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
 BuildRequires:  fdupes
+Requires:       mesa-libGL
 %endif
 
 #!BuildIgnore: rpmlint-mini
@@ -89,8 +91,8 @@ on Linux.
 %endif
 
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
-desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{name}.desktop
-desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{appid}.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %endif
 
 %if 0%{?suse_version} >= 1140
@@ -123,6 +125,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %{python3_sitelib}/%{name}/
 
 %changelog
+* Mon Feb 04 2019 Andrew Schott <andrew@schotty.com> - 0.5.0.1-3
+- Moved fedora dependency of "gnome-desktop3" to recommends to resolve a snafu with the way it was packaged.
+- Fixed the .desktop file registration (was using %{name}, needed %{appid})
+
 * Tue Nov 29 2016 Mathieu Comandon <strycore@gmail.com> - 0.4.3
 - Ensure correct Python3 dependencies
 - Set up Python macros for building (Thanks to Pharaoh_Atem on #opensuse-buildservice)
