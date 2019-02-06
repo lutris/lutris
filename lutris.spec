@@ -7,7 +7,7 @@
 
 Name:           lutris
 Version:        0.5.0.1
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPL-3.0+
@@ -26,7 +26,8 @@ BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobj
 Requires:       python3-gobject, python3-PyYAML, cabextract
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
 Requires:       python3-requests
-Recommends:     wine-core, gnome-desktop3
+Requires:	gnome-desktop3
+Recommends:     wine-core
 %endif
 %if 0%{?rhel} || 0%{?centos}
 BuildRequires:  python3-gobject
@@ -130,7 +131,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{python3_sitelib}/%{name}/
 
 %changelog
-* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com. 0.5.0.1-5
+* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com 0.5.0.1-6
+- Original problem with gnome-desktop3 was a typo from previously.  Correct spelling fixes the problem.
+
+* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com 0.5.0.1-5
 - Made changes specific to removing packages that are only for fedora and not suse to a fedora specific section (mesa-libGL)
 
 * Wed Feb 06 2019 Andrew Schott <andrew@schotty.com. 0.5.0.1-4
