@@ -36,7 +36,7 @@ class residualvm(Runner):
             "option": "renderer",
             "label": "Renderer",
             "type": "choice",
-            "choices": (("OpenGL", "0"), ("OpenGL shaders", "1"), ("Software", "2")),
+            "choices": (("OpenGL", "opengl"), ("OpenGL shaders", "opengl_shaders"), ("Software", "software")),
             "default": "OpenGL",
         },
         {
