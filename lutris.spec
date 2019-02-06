@@ -59,9 +59,11 @@ Recommends:     wine-core
 BuildRequires:  fdupes
 %endif
 
-%if 0%{?fedora} && %ifarch x86_64
+%if 0%{?fedora}
+%ifarch x86_64
 Requires:       mesa-libGL(x86-32)
 Requires:       mesa-libGL
+%endif
 %endif
 
 #!BuildIgnore: rpmlint-mini
