@@ -24,7 +24,11 @@ def read_api_key():
         return None
     with open(API_KEY_FILE_PATH, "r") as token_file:
         api_string = token_file.read()
-    username, token = api_string.split(":")
+    try:
+        username, token = api_string.split(":")
+    except ValueError:
+        logger.error("Unable to read Lutris token in %s", API_KEY_FILE_PATH)
+        return None
     return {"token": token, "username": username}
 
 
