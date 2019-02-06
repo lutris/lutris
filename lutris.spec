@@ -6,7 +6,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.0
+Version:        0.5.0.1
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
@@ -49,18 +49,14 @@ Requires:       fluid-soundfont-gm, python3-Pillow, python3-requests
 BuildRequires: fdupes
 
 %ifarch x86_64
-Requires:       mesa-dri-drivers(x86-32)
 Requires:       mesa-vulkan-drivers(x86-32)
 Requires:       vulkan-loader(x86-32)
-Requires:       mesa-libGL(x86-32)
 %endif
 
 Requires:       mesa-vulkan-drivers
-Requires:       mesa-dri-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
 BuildRequires:  fdupes
-Requires:       mesa-libGL
 %endif
 
 #!BuildIgnore: rpmlint-mini

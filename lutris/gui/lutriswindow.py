@@ -122,7 +122,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar_listbox)
 
-        self.game_panel = GenericPanel()
+        self.game_panel = GenericPanel(application=self.application)
 
         self.game_scrolled = Gtk.ScrolledWindow(visible=True)
         self.game_scrolled.set_size_request(320, -1)
@@ -687,7 +687,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             child.destroy()
 
         if not game:
-            self.game_panel = GenericPanel(search_terms=self.search_terms)
+            self.game_panel = GenericPanel(
+                search_terms=self.search_terms,
+                application=self.application
+            )
         else:
             self.game_actions.set_game(game=game)
             self.game_panel = GamePanel(self.game_actions)
