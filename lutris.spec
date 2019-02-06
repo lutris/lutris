@@ -7,13 +7,13 @@
 
 Name:           lutris
 Version:        0.5.0.1
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPL-3.0+
 Group:          Amusements/Games/Other
 URL:            http://lutris.net
-Source0:        http://lutris.net/releases/lutris_%{version}.tar.gz
+Source0:        http://lutris.net/releases/lutris_%{version}.tar.xz
 
 BuildArch:      noarch
 
@@ -26,7 +26,7 @@ BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobj
 Requires:       python3-gobject, python3-PyYAML, cabextract
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
 Requires:       python3-requests
-Recommends:     wine-core, gnome-deskop3
+Recommends:     wine-core, gnome-desktop3
 %endif
 %if 0%{?rhel} || 0%{?centos}
 BuildRequires:  python3-gobject
@@ -125,6 +125,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{python3_sitelib}/%{name}/
 
 %changelog
+* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com. 0.5.0.1-4
+- Fixed typo in package name for fedora - gnome-desktop3
+- Changed Source0 file extension from tar.gz to tar.xz
+
 * Mon Feb 04 2019 Andrew Schott <andrew@schotty.com> - 0.5.0.1-3
 - Moved fedora dependency of "gnome-desktop3" to recommends to resolve a snafu with the way it was packaged.
 - Fixed the .desktop file registration (was using %{name}, needed %{appid})
