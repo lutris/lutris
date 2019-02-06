@@ -7,7 +7,7 @@
 
 Name:           lutris
 Version:        0.5.0.1
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPL-3.0+
@@ -51,13 +51,16 @@ BuildRequires: fdupes
 %ifarch x86_64
 Requires:       mesa-vulkan-drivers(x86-32)
 Requires:       vulkan-loader(x86-32)
-Requires:       mesa-libGL(x86-32)
 %endif
 
 Requires:       mesa-vulkan-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
 BuildRequires:  fdupes
+%endif
+
+%if 0%{?fedora} && %ifarch x86_64
+Requires:       mesa-libGL(x86-32)
 Requires:       mesa-libGL
 %endif
 
@@ -125,6 +128,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{python3_sitelib}/%{name}/
 
 %changelog
+* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com. 0.5.0.1-5
+- Made changes specific to removing packages that are only for fedora and not suse to a fedora specific section (mesa-libGL)
+
 * Wed Feb 06 2019 Andrew Schott <andrew@schotty.com. 0.5.0.1-4
 - Fixed typo in package name for fedora - gnome-desktop3
 - Changed Source0 file extension from tar.gz to tar.xz
