@@ -131,7 +131,7 @@ def get_game_api_page(game_ids, page="1", query_type="games"):
     return response_data
 
 
-def get_api_games(game_slugs=None, page="1", query_type="games"):
+def get_api_games(game_slugs=None, page="1", query_type="games", inject_aliases=False):
     """Return all games from the Lutris API matching the given game slugs"""
     response_data = get_game_api_page(game_slugs, page=page, query_type=query_type)
     if not response_data:
@@ -150,6 +150,15 @@ def get_api_games(game_slugs=None, page="1", query_type="games"):
             break
         else:
             results += response_data.get("results")
+    if game_slugs and inject_aliases:
+        matched_games = []
+        for game in results:
+            for alias_slug in [alias["slug"] for alias in game.get("aliases", [])]:
+                if alias_slug in game_slugs:
+                    matched_games.append((alias_slug, game))
+        for alias_slug, game in matched_games:
+            game["slug"] = alias_slug
+            results.append(game)
     return results
 
 
