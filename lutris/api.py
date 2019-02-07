@@ -123,7 +123,11 @@ def get_game_api_page(game_ids, page="1", query_type="games"):
         logger.error("Unable to get games from API: %s", ex)
         return None
     response_data = response.json
-    logger.debug("Loaded %s games from page %s", len(response_data.get("results")), page)
+    num_games = len(response_data.get("results"))
+    if num_games:
+        logger.debug("Loaded %s games from page %s", num_games, page)
+    else:
+        logger.debug("No game found for %s", ', '.join(game_ids))
 
     if not response_data:
         logger.warning("Unable to get games from API, status code: %s", response.status_code)

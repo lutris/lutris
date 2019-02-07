@@ -139,9 +139,15 @@ class GameStore(GObject.Object):
         missing_media_slugs = list(set(unavailable_banners) | set(unavailable_icons))
         if not missing_media_slugs:
             return
-        logger.debug(
-            "Requesting missing icons from API for %d games", len(missing_media_slugs)
-        )
+        if len(missing_media_slugs) > 10:
+            logger.debug(
+                "Requesting missing icons from API for %d games", len(missing_media_slugs)
+            )
+        else:
+            logger.debug(
+                "Requesting missing icons from API for %s", ", ".join(missing_media_slugs)
+            )
+
         lutris_media = api.get_api_games(missing_media_slugs, inject_aliases=True)
         if not lutris_media:
             return
