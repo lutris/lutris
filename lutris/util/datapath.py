@@ -1,6 +1,6 @@
+"""Utility to get the path of Lutris assets"""
 import os
 import sys
-from lutris import settings
 from lutris.util import system
 
 
@@ -23,11 +23,3 @@ def get():
     if not system.path_exists(data_path):
         raise IOError("data_path can't be found at : %s" % data_path)
     return data_path
-
-
-def get_banner_path(slug):
-    return os.path.join(settings.BANNER_PATH, "%s.jpg" % slug)
-
-
-def get_icon_path(slug):
-    return os.path.join(settings.ICON_PATH, "lutris_%s.png" % slug)

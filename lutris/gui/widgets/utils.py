@@ -7,6 +7,7 @@ from gi.repository import GdkPixbuf, GLib, Gtk, Gio, Gdk
 from lutris.util.log import logger
 from lutris.util import datapath
 from lutris.util import system
+from lutris.util import resources
 from lutris import settings
 
 
@@ -102,10 +103,10 @@ def get_overlay(overlay_path, size):
 def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
     if icon_type.startswith("banner"):
         default_icon_path = os.path.join(datapath.get(), "media/default_banner.png")
-        icon_path = datapath.get_banner_path(game_slug)
+        icon_path = resources.get_banner_path(game_slug)
     elif icon_type.startswith("icon"):
         default_icon_path = os.path.join(datapath.get(), "media/default_icon.png")
-        icon_path = datapath.get_icon_path(game_slug)
+        icon_path = resources.get_icon_path(game_slug)
     else:
         logger.error("Invalid icon type '%s'", icon_type)
         return None

@@ -252,7 +252,6 @@ class GameStore(GObject.Object):
             self.refresh_icon(game.slug)
 
     def refresh_icon(self, game_slug):
-        logger.debug("Getting icon for %s", game_slug)
         AsyncCall(self.fetch_icon, None, game_slug)
 
     def on_icon_loaded(self, _store, game_slug, media_type):
@@ -280,12 +279,12 @@ class GameStore(GObject.Object):
         for media_type in ("banner", "icon"):
             url = self.medias[media_type].get(slug)
             if url:
+                logger.debug("Getting %s for %s: %s", media_type, slug, url)
                 download_media(url, get_icon_path(slug, media_type))
                 self.emit("icon-loaded", slug, media_type)
 
     def on_media_loaded(self, response):
         for slug in self.games_to_refresh:
-            logger.debug("Refreshing %s", slug)
             self.refresh_icon(slug)
 
     def add_games_by_ids(self, game_ids):

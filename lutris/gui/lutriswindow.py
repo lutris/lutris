@@ -806,4 +806,5 @@ class LutrisWindow(Gtk.ApplicationWindow):
         dialogs.ErrorDialog("Could not connect to your Lutris account, please sign-in again.")
 
     def show_library_sync_error(self):
-        dialogs.ErrorDialog("Failed to retrieve game library, there might be some problems contacting lutris.net")
+        dialogs.ErrorDialog("Failed to retrieve game library, "
+                            "there might be some problems contacting lutris.net")
