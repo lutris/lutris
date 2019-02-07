@@ -7,7 +7,7 @@
 
 Name:           lutris
 Version:        0.5.0.1
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPL-3.0+
@@ -29,10 +29,12 @@ Requires:       python3-requests
 Requires:	gnome-desktop3
 Recommends:     wine-core
 %endif
+
 %if 0%{?rhel} || 0%{?centos}
 BuildRequires:  python3-gobject
 Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
+
 %if 0%{?suse_version}
 BuildRequires:  python3-gobject, python3-setuptools, typelib-1_0-Gtk-3_0
 BuildRequires:  update-desktop-files
@@ -131,6 +133,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{python3_sitelib}/%{name}/
 
 %changelog
+* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com 0.5.0.1-6
+- Readability cleanup.
+
 * Wed Feb 06 2019 Andrew Schott <andrew@schotty.com 0.5.0.1-6
 - Original problem with gnome-desktop3 was a typo from previously.  Correct spelling fixes the problem.
 
