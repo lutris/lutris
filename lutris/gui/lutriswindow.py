@@ -468,8 +468,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Synchronize games with local stuff and server."""
 
         def update_gui(result, error):
+            self.sync_label.set_label("Synchronize library")
+            self.sync_spinner.props.active = False
+            self.sync_button.set_sensitive(True)
             if error:
-                logger.error("Failed to synchrone library: %s", error)
+                if isinstance(error, http.UnauthorizedAccess):
+                    GLib.idle_add(self.show_invalid_credential_warning)
+                else:
+                    GLib.idle_add(self.show_library_sync_error)
                 return
             if result:
                 added_ids, updated_ids = result
@@ -478,9 +484,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
                     self.game_store.update_game_by_id(game_id)
             else:
                 logger.error("No results returned when syncing the library")
-            self.sync_label.set_label("Synchronize library")
-            self.sync_spinner.props.active = False
-            self.sync_button.set_sensitive(True)
 
         self.sync_label.set_label("Synchronizing…")
         self.sync_spinner.props.active = True
@@ -798,3 +801,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.filter_runner = self.selected_runner
         self.game_store.filter_platform = self.selected_platform
         self.invalidate_game_filter()
+
+    def show_invalid_credential_warning(self):
+        dialogs.ErrorDialog("Could not connect to your Lutris account, please sign-in again.")
+
+    def show_library_sync_error(self):
+        dialogs.ErrorDialog("Failed to retrieve game library, there might be some problems contacting lutris.net")
