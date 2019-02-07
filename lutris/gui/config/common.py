@@ -477,7 +477,7 @@ class GameDialogCommon:
             self._set_image(image_type)
 
             if image_type == "icon":
-                resources.udpate_desktop_icons()
+                resources.update_desktop_icons()
 
         dialog.destroy()
 

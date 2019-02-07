@@ -1,7 +1,6 @@
 """Utility module to handle media resources"""
 import os
 import concurrent.futures
-from urllib.parse import urlparse, parse_qsl
 from gi.repository import GLib
 
 from lutris import settings
@@ -20,7 +19,7 @@ def get_icon_path(game_slug, icon_type=ICON):
         return os.path.join(settings.BANNER_PATH, "%s.jpg" % game_slug)
     if icon_type == ICON:
         return os.path.join(settings.ICON_PATH, "lutris_%s.png" % game_slug)
-    return None
+    raise ValueError("Invalid icon type %s" % icon_type)
 
 
 def get_banner_path(game_slug):
@@ -55,10 +54,10 @@ def fetch_icons(lutris_media, callback):
                 GLib.idle_add(callback, slug, priority=GLib.PRIORITY_LOW)
 
     if bool(available_icons):
-        udpate_desktop_icons()
+        update_desktop_icons()
 
 
-def udpate_desktop_icons():
+def update_desktop_icons():
     """Update Icon for GTK+ desktop manager"""
     gtk_update_icon_cache = system.find_executable("gtk-update-icon-cache")
     if gtk_update_icon_cache:
@@ -80,39 +79,3 @@ def download_media(url, dest, overwrite=False):
     request = Request(url).get()
     request.write_to_file(dest)
     return dest
-
-
-def parse_installer_url(url):
-    """
-    Parses `lutris:` urls, extracting any info necessary to install or run a game.
-    """
-    action = None
-    try:
-        parsed_url = urlparse(url, scheme="lutris")
-    except Exception:  # pylint: disable=broad-except
-        logger.warning("Unable to parse url %s", url)
-        return False
-    if parsed_url.scheme != "lutris":
-        return False
-    url_path = parsed_url.path
-    if not url_path:
-        return False
-    # urlparse can't parse if the path only contain numbers
-    # workaround to remove the scheme manually:
-    if url_path.startswith("lutris:"):
-        url_path = url_path[7:]
-
-    url_parts = url_path.split("/")
-    if len(url_parts) == 2:
-        action = url_parts[0]
-        game_slug = url_parts[1]
-    elif len(url_parts) == 1:
-        game_slug = url_parts[0]
-    else:
-        raise ValueError("Invalid lutris url %s" % url)
-
-    revision = None
-    if parsed_url.query:
-        query = dict(parse_qsl(parsed_url.query))
-        revision = query.get("revision")
-    return {"game_slug": game_slug, "revision": revision, "action": action}
