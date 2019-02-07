@@ -1,9 +1,10 @@
 """Store object for a list of games"""
+import concurrent.futures
 from gi.repository import Gtk, GObject, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris import pga
 from lutris.gui.widgets.utils import get_pixbuf_for_game
-from lutris.util.resources import get_icon_path, download_media
+from lutris.util.resources import get_icon_path, download_media, update_desktop_icons
 from lutris.util.log import logger
 from lutris.util import system
 from lutris import api
@@ -285,8 +286,39 @@ class GameStore(GObject.Object):
                 self.emit("icon-loaded", slug, media_type)
 
     def on_media_loaded(self, response):
-        for slug in self.games_to_refresh:
-            self.refresh_icon(slug)
+        """Callback to handle a response from the API with the new media"""
+        if not self.medias:
+            return
+        for media_type in ("banner", "icon"):
+            self.download_icons([
+                (slug, self.medias[media_type][slug], get_icon_path(slug, media_type))
+                for slug in self.medias[media_type]
+            ], media_type)
+
+    def download_icons(self, downloads, media_type):
+        """Download a list of media files concurrently.
+
+        Limits the number of simultaneous downloads to avoid API throttling
+        and UI being overloaded with signals.
+        """
+        if not downloads:
+            return
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            future_downloads = {
+                executor.submit(download_media, url, dest_path): slug
+                for slug, url, dest_path in downloads
+            }
+            for future in concurrent.futures.as_completed(future_downloads):
+                slug = future_downloads[future]
+                try:
+                    future.result()
+                except Exception as ex:  # pylint: disable=broad-except
+                    logger.exception('%r failed: %s', slug, ex)
+                else:
+                    self.emit("icon-loaded", slug, media_type)
+        if media_type == "icon":
+            update_desktop_icons()
 
     def add_games_by_ids(self, game_ids):
         self.add_games(pga.get_games_by_ids(game_ids))
