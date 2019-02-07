@@ -116,7 +116,8 @@ class GameStore(GObject.Object):
     def add_games(self, games):
         """Add games to the store"""
         self.media_loaded = False
-        AsyncCall(self.get_missing_media, None, [game["slug"] for game in games])
+        if games:
+            AsyncCall(self.get_missing_media, None, [game["slug"] for game in games])
         for game in list(games):
             GLib.idle_add(self.add_game, game)
 
