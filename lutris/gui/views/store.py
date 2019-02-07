@@ -94,6 +94,8 @@ class GameStore(GObject.Object):
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
         self.sort_view(sort_key, sort_ascending)
         self.medias = {"banner": {}, "icon": {}}
+        self.banner_misses = set()
+        self.icon_misses = set()
         self.media_loaded = False
         self.connect("media-loaded", self.on_media_loaded)
         self.connect("icon-loaded", self.on_icon_loaded)
@@ -130,13 +132,17 @@ class GameStore(GObject.Object):
     def get_missing_media(self, slugs=None):
         """Query the Lutris.net API for missing icons"""
         slugs = slugs or self.game_slugs
-        unavailable_banners = [
-            slug for slug in slugs if not self.has_icon(slug, "banner")
-        ]
-        unavailable_icons = [slug for slug in slugs if not self.has_icon(slug, "icon")]
+        unavailable_banners = {
+            slug for slug in slugs
+            if not self.has_icon(slug, "banner")
+        }
+        unavailable_icons = {
+            slug for slug in slugs
+            if not self.has_icon(slug, "icon")
+        }
 
         # Remove duplicate slugs
-        missing_media_slugs = list(set(unavailable_banners) | set(unavailable_icons))
+        missing_media_slugs = (unavailable_banners - self.banner_misses) | (unavailable_icons - self.icon_misses)
         if not missing_media_slugs:
             return
         if len(missing_media_slugs) > 10:
@@ -148,15 +154,19 @@ class GameStore(GObject.Object):
                 "Requesting missing icons from API for %s", ", ".join(missing_media_slugs)
             )
 
-        lutris_media = api.get_api_games(missing_media_slugs, inject_aliases=True)
+        lutris_media = api.get_api_games(list(missing_media_slugs), inject_aliases=True)
         if not lutris_media:
             return
 
         for game in lutris_media:
             if game["slug"] in unavailable_banners and game["banner_url"]:
                 self.medias["banner"][game["slug"]] = game["banner_url"]
+                unavailable_banners.remove(game["slug"])
             if game["slug"] in unavailable_icons and game["icon_url"]:
                 self.medias["icon"][game["slug"]] = game["icon_url"]
+                unavailable_icons.remove(game["slug"])
+        self.banner_misses = unavailable_banners
+        self.icon_misses = unavailable_icons
         self.media_loaded = True
         self.emit("media-loaded")
 
