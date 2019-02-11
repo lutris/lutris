@@ -122,7 +122,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar_listbox)
 
-        self.game_panel = GenericPanel()
+        self.game_panel = GenericPanel(application=self.application)
 
         self.game_scrolled = Gtk.ScrolledWindow(visible=True)
         self.game_scrolled.set_size_request(320, -1)
@@ -468,8 +468,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Synchronize games with local stuff and server."""
 
         def update_gui(result, error):
+            self.sync_label.set_label("Synchronize library")
+            self.sync_spinner.props.active = False
+            self.sync_button.set_sensitive(True)
             if error:
-                logger.error("Failed to synchrone library: %s", error)
+                if isinstance(error, http.UnauthorizedAccess):
+                    GLib.idle_add(self.show_invalid_credential_warning)
+                else:
+                    GLib.idle_add(self.show_library_sync_error)
                 return
             if result:
                 added_ids, updated_ids = result
@@ -478,9 +484,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
                     self.game_store.update_game_by_id(game_id)
             else:
                 logger.error("No results returned when syncing the library")
-            self.sync_label.set_label("Synchronize library")
-            self.sync_spinner.props.active = False
-            self.sync_button.set_sensitive(True)
 
         self.sync_label.set_label("Synchronizing…")
         self.sync_spinner.props.active = True
@@ -687,7 +690,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
             child.destroy()
 
         if not game:
-            self.game_panel = GenericPanel(search_terms=self.search_terms)
+            self.game_panel = GenericPanel(
+                search_terms=self.search_terms,
+                application=self.application
+            )
         else:
             self.game_actions.set_game(game=game)
             self.game_panel = GamePanel(self.game_actions)
@@ -795,3 +801,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.filter_runner = self.selected_runner
         self.game_store.filter_platform = self.selected_platform
         self.invalidate_game_filter()
+
+    def show_invalid_credential_warning(self):
+        dialogs.ErrorDialog("Could not connect to your Lutris account, please sign-in again.")
+
+    def show_library_sync_error(self):
+        dialogs.ErrorDialog("Failed to retrieve game library, "
+                            "there might be some problems contacting lutris.net")

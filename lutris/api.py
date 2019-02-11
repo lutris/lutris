@@ -24,7 +24,11 @@ def read_api_key():
         return None
     with open(API_KEY_FILE_PATH, "r") as token_file:
         api_string = token_file.read()
-    username, token = api_string.split(":")
+    try:
+        username, token = api_string.split(":")
+    except ValueError:
+        logger.error("Unable to read Lutris token in %s", API_KEY_FILE_PATH)
+        return None
     return {"token": token, "username": username}
 
 
@@ -119,7 +123,11 @@ def get_game_api_page(game_ids, page="1", query_type="games"):
         logger.error("Unable to get games from API: %s", ex)
         return None
     response_data = response.json
-    logger.debug("Loaded %s games from page %s", len(response_data.get("results")), page)
+    num_games = len(response_data.get("results"))
+    if num_games:
+        logger.debug("Loaded %s games from page %s", num_games, page)
+    else:
+        logger.debug("No game found for %s", ', '.join(game_ids))
 
     if not response_data:
         logger.warning("Unable to get games from API, status code: %s", response.status_code)
@@ -127,7 +135,7 @@ def get_game_api_page(game_ids, page="1", query_type="games"):
     return response_data
 
 
-def get_api_games(game_slugs=None, page="1", query_type="games"):
+def get_api_games(game_slugs=None, page="1", query_type="games", inject_aliases=False):
     """Return all games from the Lutris API matching the given game slugs"""
     response_data = get_game_api_page(game_slugs, page=page, query_type=query_type)
     if not response_data:
@@ -146,6 +154,15 @@ def get_api_games(game_slugs=None, page="1", query_type="games"):
             break
         else:
             results += response_data.get("results")
+    if game_slugs and inject_aliases:
+        matched_games = []
+        for game in results:
+            for alias_slug in [alias["slug"] for alias in game.get("aliases", [])]:
+                if alias_slug in game_slugs:
+                    matched_games.append((alias_slug, game))
+        for alias_slug, game in matched_games:
+            game["slug"] = alias_slug
+            results.append(game)
     return results
 
 
@@ -179,3 +196,39 @@ def search_games(query):
         game["installed_at"] = None
         game["playtime"] = None
     return api_games
+
+
+def parse_installer_url(url):
+    """
+    Parses `lutris:` urls, extracting any info necessary to install or run a game.
+    """
+    action = None
+    try:
+        parsed_url = urllib.parse.urlparse(url, scheme="lutris")
+    except Exception:  # pylint: disable=broad-except
+        logger.warning("Unable to parse url %s", url)
+        return False
+    if parsed_url.scheme != "lutris":
+        return False
+    url_path = parsed_url.path
+    if not url_path:
+        return False
+    # urlparse can't parse if the path only contain numbers
+    # workaround to remove the scheme manually:
+    if url_path.startswith("lutris:"):
+        url_path = url_path[7:]
+
+    url_parts = url_path.split("/")
+    if len(url_parts) == 2:
+        action = url_parts[0]
+        game_slug = url_parts[1]
+    elif len(url_parts) == 1:
+        game_slug = url_parts[0]
+    else:
+        raise ValueError("Invalid lutris url %s" % url)
+
+    revision = None
+    if parsed_url.query:
+        query = dict(urllib.parse.parse_qsl(parsed_url.query))
+        revision = query.get("revision")
+    return {"game_slug": game_slug, "revision": revision, "action": action}

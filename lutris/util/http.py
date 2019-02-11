@@ -14,6 +14,10 @@ class HTTPError(Exception):
     """Exception raised on request failures"""
 
 
+class UnauthorizedAccess(Exception):
+    """Exception raised for 401 HTTP errors"""
+
+
 class Request:
     def __init__(
             self,
@@ -69,7 +73,10 @@ class Request:
             else:
                 request = urllib.request.urlopen(req, timeout=self.timeout)
         except (urllib.error.HTTPError, CertificateError) as error:
-            raise HTTPError("Unavailable url %s: %s" % (self.url, error))
+            if error.code == 401:
+                raise UnauthorizedAccess("Access to %s denied" % self.url)
+            else:
+                raise HTTPError("Request to %s failed: %s" % (self.url, error))
         except (socket.timeout, urllib.error.URLError) as error:
             raise HTTPError("Unable to connect to server %s: %s" % (self.url, error))
         if request.getcode() > 200:

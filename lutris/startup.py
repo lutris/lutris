@@ -58,11 +58,14 @@ def check_driver():
 
     for card in drivers.get_gpus():
         # pylint: disable=logging-format-interpolation
-        logger.info(
-            "GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} drivers".format(
-                **drivers.get_gpu_info(card)
+        try:
+            logger.info(
+                "GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} drivers".format(
+                    **drivers.get_gpu_info(card)
+                )
             )
-        )
+        except KeyError:
+            logger.error("Unable to get GPU information from '%s'", card)
 
 
 def check_libs(all_components=False):

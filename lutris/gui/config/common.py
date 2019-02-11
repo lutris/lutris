@@ -2,7 +2,7 @@
 import os
 from gi.repository import Gtk, Pango, GLib
 from lutris.game import Game
-from lutris.config import LutrisConfig
+from lutris.config import LutrisConfig, make_game_config_id
 from lutris import runners
 from lutris import settings
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
@@ -15,7 +15,6 @@ from lutris.gui.widgets.utils import (
     ICON_SIZE,
 )
 from lutris.util.strings import slugify
-from lutris.util import datapath
 from lutris.util import resources
 
 
@@ -366,7 +365,6 @@ class GameDialogCommon:
             self.runner_name = widget.get_model()[runner_index][1]
             self.lutris_config = LutrisConfig(
                 runner_slug=self.runner_name,
-                game_config_id=self.get_config_id(),
                 level="game"
             )
 
@@ -419,7 +417,7 @@ class GameDialogCommon:
             year = int(self.year_entry.get_text())
 
         if not self.lutris_config.game_config_id:
-            self.lutris_config.game_config_id = self.get_config_id()
+            self.lutris_config.game_config_id = make_game_config_id(self.slug)
 
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
@@ -466,12 +464,12 @@ class GameDialogCommon:
             image_path = dialog.get_filename()
             if image_type == "banner":
                 self.game.has_custom_banner = True
-                dest_path = datapath.get_banner_path(self.game.slug)
+                dest_path = resources.get_banner_path(self.game.slug)
                 size = BANNER_SIZE
                 file_format = "jpeg"
             else:
                 self.game.has_custom_icon = True
-                dest_path = datapath.get_icon_path(self.game.slug)
+                dest_path = resources.get_icon_path(self.game.slug)
                 size = ICON_SIZE
                 file_format = "png"
             pixbuf = get_pixbuf(image_path, size)
@@ -479,17 +477,17 @@ class GameDialogCommon:
             self._set_image(image_type)
 
             if image_type == "icon":
-                resources.udpate_desktop_icons()
+                resources.update_desktop_icons()
 
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, widget, image_type):
         if image_type == "banner":
             self.game.has_custom_banner = False
-            dest_path = datapath.get_banner_path(self.game.slug)
+            dest_path = resources.get_banner_path(self.game.slug)
         elif image_type == "icon":
             self.game.has_custom_icon = False
-            dest_path = datapath.get_icon_path(self.game.slug)
+            dest_path = resources.get_icon_path(self.game.slug)
         else:
             raise ValueError("Unsupported image type %s", image_type)
         os.remove(dest_path)

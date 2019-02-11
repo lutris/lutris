@@ -43,7 +43,7 @@ from lutris.util import datapath
 from lutris.util import log
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.resources import parse_installer_url
+from lutris.api import parse_installer_url
 from lutris.startup import run_all_checks
 from lutris.util.wine.dxvk import init_dxvk_versions
 

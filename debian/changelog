@@ -1,3 +1,15 @@
+lutris (0.5.0.1) UNRELEASED; urgency=medium
+
+  * Bullshit my way out of Gtk+ fuckery (Closes #1697)
+  * Initialize playtime attribute when invalid playtime found (Closes #1698)
+  * Strip equal signs from envvars (Closes #1699)
+  * If the Fedora shit breaks the SUSE shit, I just delete it, OK? (Closes #1700)
+  * Add application attribute on GenericPanel (Closes #1702)
+  * Avoid crashing on weird GPU configs (Closes #1706)
+  * Remove get_config_id (Closes #1708)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 03 Feb 2019 00:21:32 -0800
+
 lutris (0.5.0) cosmic; urgency=medium
 
   * Modernize the Gtk UI, thanks to the improvements made by @TingPing

@@ -294,14 +294,15 @@ def get_matching_game(params):
     if not slug:
         raise ValueError("Can't add or update without an identifier")
     for game in get_games_by_slug(slug):
-        if (
-                (
+        if game["installed"]:
+            if game["configpath"] == params.get("configpath"):
+                return game["id"]
+        else:
+            if (
                     game["runner"] == params.get("runner")
                     or not all([params.get("runner"), game["runner"]])
-                )
-                and not game["installed"]
-        ):
-            return game["id"]
+            ):
+                return game["id"]
     return None
 
 

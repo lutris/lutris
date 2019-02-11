@@ -12,8 +12,6 @@ def get_nvidia_driver_info():
     with open("/proc/driver/nvidia/version") as version_file:
         content = version_file.readlines()
     nvrm_version = content[0].split(': ')[1].strip().split()
-    gcc_version = content[1].split(': ')[1].strip().split()
-
     return {
         'nvrm': {
             'vendor': nvrm_version[0],
@@ -21,10 +19,6 @@ def get_nvidia_driver_info():
             'arch': nvrm_version[2],
             'version': nvrm_version[5],
             'date': ' '.join(nvrm_version[6:])
-        },
-        'gcc': {
-            'version': gcc_version[2],
-            'platform': ' '.join(gcc_version[3:]).strip('()')
         }
     }
 
