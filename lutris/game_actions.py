@@ -140,12 +140,12 @@ class GameActions:
         ignores = pga.get_hidden_ids()
         ignores.remove(game.id)
         pga.set_hidden_ids(ignores)
-    
+
     @staticmethod
     def is_game_hidden(game):
         """Returns whether a game is on the list of hidden games"""
         return game.id in pga.get_hidden_ids()
-    
+
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
         return {
