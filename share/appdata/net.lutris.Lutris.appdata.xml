@@ -16,7 +16,7 @@
     <category>Game</category>
   </categories>
   <screenshots>
-    <screenshot type="default"><image>https://lutris.net/static/images/lutris-main-window.jpg</image></screenshot>
+    <screenshot type="default"><image>https://lutris.net/static/images/screenshots/main-window.bdae71679b4e.png</image></screenshot>
   </screenshots>
   <description><p>Lutris helps you install and manage your games in a unified interface. Our goal is to support every game which runs on Linux, from native to Windows games (via Wine) to emulators and browser games. The desktop application and the website are libre software, your contributions are welcome!</p></description>
   <description xml:lang="pt_BR"><p>Lutris ajuda você a instalar e gerenciar seus jogos em uma interface unificada. Nosso objetivo é suportar todos os jogos que rodam no Linux, desde jogos nativos até Windows (via Wine), emuladores e jogos de navegador. O aplicativo de desktop e o site são softwares livres, suas contribuições são bem vindas!</p></description>
