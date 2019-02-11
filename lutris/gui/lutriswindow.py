@@ -3,12 +3,13 @@
 import os
 from collections import namedtuple
 
-from gi.repository import Gtk, Gdk, GLib, Gio
+from gi.repository import Gtk, Gdk, GLib, Gio, GObject
 
 from lutris import api, pga, settings
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.sync import sync_from_remote
+from lutris.gui.installerwindow import InstallerWindow
 from lutris.runtime import RuntimeUpdater
 
 from lutris.util.log import logger
@@ -22,9 +23,8 @@ from lutris.services import get_services_synced_at_startup, steam
 
 from lutris.vendor.gi_composites import GtkTemplate
 
-from lutris.gui.util import open_uri
 from lutris.gui import dialogs
-from lutris.gui.sidebar import SidebarListBox
+from lutris.gui.widgets.sidebar import SidebarListBox
 from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.gui.config.add_game import AddGameDialog
@@ -33,8 +33,8 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
-from lutris.gui.views.game_panel import GamePanel
-from lutris.gui.widgets.utils import IMAGE_SIZES
+from lutris.gui.views.game_panel import GamePanel, GenericPanel
+from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
@@ -67,6 +67,15 @@ class LutrisWindow(Gtk.ApplicationWindow):
     viewtype_icon = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
+        width = int(settings.read_setting("width") or self.default_width)
+        height = int(settings.read_setting("height") or self.default_height)
+        super().__init__(
+            default_width=width,
+            default_height=height,
+            icon_name="lutris",
+            application=application,
+            **kwargs
+        )
         self.application = application
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
@@ -75,8 +84,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.icon_type = None
 
         # Load settings
-        width = int(settings.read_setting("width") or self.default_width)
-        height = int(settings.read_setting("height") or self.default_height)
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
 
@@ -85,23 +92,16 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
-        self.game_store = GameStore(
-            self.icon_type,
-            self.filter_installed,
-            self.view_sorting,
-            self.view_sorting_ascending,
-            self.show_hidden_games,
-            self.show_installed_first,
-        )
+        self.search_terms = None
+        self.game_store = self.get_store()
         self.view = self.get_view(view_type)
-        self.game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
-        super().__init__(
-            default_width=width,
-            default_height=height,
-            icon_name="lutris",
-            application=application,
-            **kwargs
-        )
+
+        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
+        GObject.add_emission_hook(GenericPanel, "game-searched", self.on_game_searched)
+        GObject.add_emission_hook(GenericPanel,
+                                  "running-game-selected",
+                                  self.game_selection_changed)
+        self.connect("delete-event", self.on_window_delete)
         if self.maximized:
             self.maximize()
         self.init_template()
@@ -121,23 +121,31 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar_listbox)
 
+        self.game_panel = GenericPanel(application=self.application)
+
         self.game_scrolled = Gtk.ScrolledWindow(visible=True)
         self.game_scrolled.set_size_request(320, -1)
         self.game_scrolled.get_style_context().add_class("game-scrolled")
         self.game_scrolled.set_policy(Gtk.PolicyType.EXTERNAL, Gtk.PolicyType.EXTERNAL)
+        self.game_scrolled.add(self.game_panel)
 
-        self.game_panel = Gtk.Box()
-        self.main_box.pack_end(self.game_scrolled, False, False, 0)
+        self.panel_revealer = Gtk.Revealer(visible=True)
+        self.panel_revealer.set_transition_duration(300)
+        self.panel_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
+        self.panel_revealer.set_reveal_child(True)
+        self.panel_revealer.add(self.game_scrolled)
+
+        self.main_box.pack_end(self.panel_revealer, False, False, 0)
 
         self.view.show()
 
+        self.game_store.load()
         # Contextual menu
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
 
-        self.game_store.load()
-
         # Sidebar
         self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
+        self.sidebar_revealer.set_transition_duration(300)
         self.update_runtime()
 
         # Connect account and/or sync
@@ -316,6 +324,21 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def show_hidden_games(self):
         return settings.read_setting("show_hidden_games").lower() == "true"
     
+    def get_store(self, games=None):
+        """Return an instance of GameStore"""
+        games = games or pga.get_games(show_installed_first=self.show_installed_first)
+        game_store = GameStore(
+            games,
+            self.icon_type,
+            self.filter_installed,
+            self.view_sorting,
+            self.view_sorting_ascending,
+            self.show_hidden_games,
+            self.show_installed_first,
+        )
+        game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
+        return game_store
+
     def sync_services(self):
         """Sync local lutris library with current Steam games and desktop games"""
         def full_sync(syncer_cls):
@@ -390,6 +413,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """
         self.view.connect("game-installed", self.on_game_installed)
         self.view.connect("game-selected", self.game_selection_changed)
+        self.view.connect("game-activated", self.on_game_activated)
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
@@ -425,22 +449,27 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if event.keyval == Gdk.KEY_Escape:
             self.search_toggle.set_active(False)
             return Gdk.EVENT_STOP
+        return Gtk.ApplicationWindow.do_key_press_event(self, event)
+
+        # XXX: This block of code below is to enable searching on type.
+        # Enabling this feature steals focus from other entries so it needs
+        # some kind of focus detection before enabling library search.
 
         # Probably not ideal for non-english, but we want to limit
         # which keys actually start searching
-        if (
-            not Gdk.KEY_0 <= event.keyval <= Gdk.KEY_z
-            or event.state & Gdk.ModifierType.CONTROL_MASK
-            or event.state & Gdk.ModifierType.SHIFT_MASK
-            or event.state & Gdk.ModifierType.META_MASK
-            or event.state & Gdk.ModifierType.MOD1_MASK
-            or self.search_entry.has_focus()
-        ):
-            return Gtk.ApplicationWindow.do_key_press_event(self, event)
+        # if (
+        #     not Gdk.KEY_0 <= event.keyval <= Gdk.KEY_z
+        #     or event.state & Gdk.ModifierType.CONTROL_MASK
+        #     or event.state & Gdk.ModifierType.SHIFT_MASK
+        #     or event.state & Gdk.ModifierType.META_MASK
+        #     or event.state & Gdk.ModifierType.MOD1_MASK
+        #     or self.search_entry.has_focus()
+        # ):
+        #     return Gtk.ApplicationWindow.do_key_press_event(self, event)
 
-        self.search_toggle.set_active(True)
-        self.search_entry.grab_focus()
-        return self.search_entry.do_key_press_event(self.search_entry, event)
+        # self.search_toggle.set_active(True)
+        # self.search_entry.grab_focus()
+        # return self.search_entry.do_key_press_event(self.search_entry, event)
 
     def load_icon_type_from_settings(self, view_type):
         """Return the icon style depending on the type of view."""
@@ -487,8 +516,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Synchronize games with local stuff and server."""
 
         def update_gui(result, error):
+            self.sync_label.set_label("Synchronize library")
+            self.sync_spinner.props.active = False
+            self.sync_button.set_sensitive(True)
             if error:
-                logger.error("Failed to synchrone library: %s", error)
+                if isinstance(error, http.UnauthorizedAccess):
+                    GLib.idle_add(self.show_invalid_credential_warning)
+                else:
+                    GLib.idle_add(self.show_library_sync_error)
                 return
             if result:
                 added_ids, updated_ids = result
@@ -497,9 +532,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
                     self.game_store.update_game_by_id(game_id)
             else:
                 logger.error("No results returned when syncing the library")
-            self.sync_label.set_label("Synchronize library")
-            self.sync_spinner.props.active = False
-            self.sync_button.set_sensitive(True)
 
         self.sync_label.set_label("Synchronizing…")
         self.sync_spinner.props.active = True
@@ -536,9 +568,28 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.actions["synchronize"].props.enabled = True
         self.actions["register-account"].props.enabled = False
 
+    def on_game_activated(self, _widget, game):
+        self.game_selection_changed(None, game)
+        if game.is_installed:
+            self.application.launch(game)
+        else:
+            InstallerWindow(
+                parent=self,
+                game_slug=game.slug,
+                application=self.application,
+            )
+
     @GtkTemplate.Callback
     def on_disconnect(self, *_args):
         """Callback from user disconnect"""
+        dlg = dialogs.QuestionDialog(
+            {
+                "question": "Do you want to log out from Lutris?",
+                "title": "Log out?",
+            }
+        )
+        if dlg.result != Gtk.ResponseType.YES:
+            return
         api.disconnect()
         self.toggle_connection(False)
         self.actions["synchronize"].props.enabled = False
@@ -564,6 +615,18 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.maximized = widget.is_maximized()
         if not self.maximized:
             self.window_size = widget.get_size()
+
+    def on_window_delete(self, *_args):
+        if self.application.running_games.get_n_items():
+            dlg = dialogs.QuestionDialog(
+                {
+                    "question": ("Some games are still running, "
+                                 "are you sure you want to quit Lutris?"),
+                    "title": "Quit Lutris?",
+                }
+            )
+            if dlg.result != Gtk.ResponseType.YES:
+                return True
 
     @GtkTemplate.Callback
     def on_destroy(self, *_args):
@@ -593,7 +656,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.modelfilter.refilter()
         self.game_store.modelsort.clear_cache()
         self.game_store.sort_view(self.view_sorting, self.view_sorting_ascending)
-        self.no_results_overlay.props.visible = len(self.game_store.modelfilter) == 0
+        self.no_results_overlay.props.visible = not bool(self.game_store.games)
 
     def on_show_installed_first_state_change(self, action, value):
         """Callback to handle installed games first toggle"""
@@ -642,39 +705,67 @@ class LutrisWindow(Gtk.ApplicationWindow):
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
 
-    def game_selection_changed(self, widget):
+    def on_game_updated(self, game):
+        """Callback to refresh the view when a game is updated"""
+        # logger.debug("Updating game %s", game)
+        game.load_config()
+        try:
+            self.game_store.update_game_by_id(game.id)
+        except ValueError:
+            self.game_store.add_game_by_id(game.id)
+
+        self.view.set_selected_game(game.id)
+        self.sidebar_listbox.update()
+        return True
+
+    def on_game_searched(self, panel, query):
+        """Called when the game-searched event is emitted"""
+        # logger.info("Searching for :%s" % query)
+        self.search_terms = query
+        self.view.destroy()
+        self.game_store = self.get_store(api.search_games(query) if query else None)
+        self.game_store.set_icon_type(self.icon_type)
+        self.game_store.load(from_search=bool(query))
+        self.switch_view(self.get_view_type())
+        self.invalidate_game_filter()
+        return True
+
+    def game_selection_changed(self, _widget, game):
         """Callback to handle the selection of a game in the view"""
         child = self.game_scrolled.get_child()
         if child:
             self.game_scrolled.remove(child)
             child.destroy()
 
-        if not self.view.selected_game:
-            return
-        self.game_actions.set_game(game_id=self.view.selected_game)
-        self.game_panel = GamePanel(self.game_actions)
+        if not game:
+            self.game_panel = GenericPanel(
+                search_terms=self.search_terms,
+                application=self.application
+            )
+        else:
+            self.game_actions.set_game(game=game)
+            self.game_panel = GamePanel(self.game_actions)
+            self.game_panel.connect("panel-closed", self.on_panel_closed)
         self.game_scrolled.add(self.game_panel)
+        return True
+
+    def on_panel_closed(self, panel):
+        self.game_selection_changed(panel, None)
 
     def on_game_installed(self, view, game_id):
         """Callback to handle newly installed games"""
-        if not isinstance(game_id, int):
-            raise ValueError("game_id must be an int")
         self.game_store.add_or_update(game_id)
         self.sidebar_listbox.update()
 
     def update_game(self, slug):
         for pga_game in pga.get_games_where(slug=slug):
-            self.game_store.update_game_by_id(pga_game["id"])
+            self.game_store.update(pga_game)
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
         self.add_popover.hide()
-        dialog = AddGameDialog(
-            self,
-            runner=self.selected_runner,
-            callback=lambda: self.game_store.add_game_by_id(dialog.game.id),
-        )
+        AddGameDialog(self, runner=self.selected_runner)
         return True
 
     def remove_game_from_view(self, game_id, from_library=False):
@@ -733,6 +824,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         sidebar_visible = value.get_boolean()
         settings.write_setting("sidebar_visible", "true" if sidebar_visible else "false")
         self.sidebar_revealer.set_reveal_child(sidebar_visible)
+        self.panel_revealer.set_reveal_child(sidebar_visible)
+        self.game_scrolled.set_visible(sidebar_visible)
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
@@ -756,3 +849,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.filter_runner = self.selected_runner
         self.game_store.filter_platform = self.selected_platform
         self.invalidate_game_filter()
+
+    def show_invalid_credential_warning(self):
+        dialogs.ErrorDialog("Could not connect to your Lutris account, please sign-in again.")
+
+    def show_library_sync_error(self):
+        dialogs.ErrorDialog("Failed to retrieve game library, "
+                            "there might be some problems contacting lutris.net")

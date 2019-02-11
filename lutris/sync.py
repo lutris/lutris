@@ -46,27 +46,16 @@ def sync_game_details(remote_library):
         local_game = pga.get_game_by_field(slug, "slug")
         if not local_game:
             continue
-
         if local_game["updated"] and remote_game["updated"] > local_game["updated"]:
             # The remote game's info is more recent than the local game
             sync_required = True
-        else:
-            for key in remote_game.keys():
-                if (
-                        key in local_game.keys()
-                        and remote_game[key]
-                        and not local_game[key]
-                ):
-                    # Remote game has data that is missing from the local game.
-                    logger.info("Key %s is not present, forcing update", key)
-                    sync_required = True
-                    break
 
         if not sync_required:
             continue
 
         logger.debug("Syncing details for %s", slug)
         game_id = pga.add_or_update(
+            id=local_game["id"],
             name=local_game["name"],
             runner=local_game["runner"],
             slug=slug,
@@ -94,16 +83,11 @@ def sync_from_remote():
     :return: The added and updated games (slugs)
     :rtype: tuple of sets, added games and updated games
     """
-    local_library = pga.get_games()
-    local_slugs = {game["slug"] for game in local_library}
 
-    try:
-        remote_library = api.get_library()
-    except Exception as ex:
-        logger.error("Error while downloading the remote library: %s", ex)
-        remote_library = {}
+    remote_library = api.get_library()
     remote_slugs = {game["slug"] for game in remote_library}
 
+    local_slugs = {game["slug"] for game in pga.get_games()}
     missing_slugs = remote_slugs.difference(local_slugs)
 
     added = sync_missing_games(missing_slugs, remote_library)

@@ -1,8 +1,8 @@
 """Window for importing games from third party services"""
-from gi.repository import Gtk, Gio, GLib
+from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
-from lutris.gui.widgets.utils import get_icon, get_pixbuf
-from lutris.gui.notifications import send_notification
+from lutris.gui.widgets.utils import get_icon, get_pixbuf, get_main_window
+from lutris.gui.widgets.notifications import send_notification
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
 from lutris.util.log import logger
@@ -164,18 +164,9 @@ class ServiceSyncBox(Gtk.Box):
             self.get_imported_games()
         )
 
-    def get_main_window(self):
-        parent = self.get_toplevel()
-        if not isinstance(parent, Gtk.Window):
-            # The sync dialog may have closed
-            parent = Gio.Application.get_default().props.active_window
-        for window in parent.application.get_windows():
-            if "LutrisWindow" in window.__class__.__name__:
-                return window
-
     def on_service_synced(self, games, _extra):
         """Called when games are imported"""
-        window = self.get_main_window()
+        window = get_main_window(self)
         if not window:
             logger.warning("Unable to get main window")
             return
@@ -186,7 +177,6 @@ class ServiceSyncBox(Gtk.Box):
                 (len(games), "s were" if len(games) > 1 else " was")
             )
             window.game_store.add_games_by_ids(games)
-            GLib.idle_add(window.view.queue_draw)
 
     def on_switch_changed(self, switch, _data):
         write_setting("sync_at_startup", switch.get_active(), self.identifier)

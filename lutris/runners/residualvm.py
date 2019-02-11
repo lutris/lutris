@@ -36,7 +36,11 @@ class residualvm(Runner):
             "option": "renderer",
             "label": "Renderer",
             "type": "choice",
-            "choices": (("OpenGL", "0"), ("OpenGL shaders", "1"), ("Software", "2")),
+            "choices": (
+                ("OpenGL", "opengl"),
+                ("OpenGL shaders", "opengl_shaders"),
+                ("Software", "software"),
+            ),
             "default": "OpenGL",
         },
         {
@@ -105,7 +109,7 @@ class residualvm(Runner):
                     dir_limit = None
                 if dir_limit is not None:
                     game_dir = game[0:dir_limit]
-                    game_name = game[dir_limit + 1:len(game)].strip()
+                    game_name = game[dir_limit + 1: len(game)].strip()
                     game_array.append([game_dir, game_name])
             # The actual list is below a separator
             if game.startswith("-----"):

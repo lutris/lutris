@@ -3,6 +3,7 @@
 import os
 from lutris.util.log import logger
 from lutris import pga
+from lutris.game import Game
 from lutris import settings
 from lutris.util.system import create_folder
 from lutris.util.graphics import drivers
@@ -57,11 +58,14 @@ def check_driver():
 
     for card in drivers.get_gpus():
         # pylint: disable=logging-format-interpolation
-        logger.info(
-            "GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} drivers".format(
-                **drivers.get_gpu_info(card)
+        try:
+            logger.info(
+                "GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} drivers".format(
+                    **drivers.get_gpu_info(card)
+                )
             )
-        )
+        except KeyError:
+            logger.error("Unable to get GPU information from '%s'", card)
 
 
 def check_libs(all_components=False):
@@ -85,9 +89,24 @@ def check_vulkan():
         logger.info("Vulkan is not available or your system isn't Vulkan capable")
 
 
+def fill_missing_platforms():
+    """Sets the platform on games where it's missing.
+    This should never happen.
+    """
+    pga_games = pga.get_games(filter_installed=True)
+    for pga_game in pga_games:
+        if pga_game.get("platform") or not pga_game["runner"]:
+            continue
+        game = Game(game_id=pga_game["id"])
+        logger.error("Providing missing platorm for game %s", game.slug)
+        game.set_platform_from_runner()
+        game.save(metadata_only=True)
+
+
 def run_all_checks():
     """Run all startup checks"""
     check_config()
     check_driver()
     check_libs()
     check_vulkan()
+    fill_missing_platforms()

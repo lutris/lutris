@@ -80,11 +80,6 @@ class zdoom(Runner):
         },
     ]
 
-    @property
-    def working_dir(self):
-        # Run in the installed game's directory.
-        return self.game_path
-
     def get_executable(self):
         executable = super(zdoom, self).get_executable()
         executable_dir = os.path.dirname(executable)

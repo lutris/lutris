@@ -53,7 +53,6 @@ class TestGameDialog(TestCase):
 
     def get_buttons(self):
         notebook = self.dlg.vbox.get_children()[1]
-        # For some reason, there isn't a ButtonBox on Ubuntu 14.4, weird.
         button_box = notebook.get_children()[0]
         if button_box.__class__ == Gtk.CheckButton:
             button_hbox = notebook.get_children()[1]

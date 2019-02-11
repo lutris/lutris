@@ -194,18 +194,19 @@ def _get_graphics_adapters():
     """Return the list of graphics cards available on a system
 
     Returns:
-        list: list of tuples containing PCI ID and description of the VGA adapter
+        list: list of tuples containing PCI ID and description of the display controller
     """
     lspci_path = system.find_executable("lspci")
+    dev_subclasses = ["VGA", "XGA", "3D controller", "Display controller"]
     if not lspci_path:
         logger.warning("lspci is not available. List of graphics cards not available")
         return []
     return [
-        (pci_id, vga_desc.split(": ")[1])
-        for pci_id, vga_desc in [
+        (pci_id, device_desc.split(": ")[1])
+        for pci_id, device_desc in [
             line.split(maxsplit=1)
             for line in system.execute(lspci_path).split("\n")
-            if "VGA" in line
+            if any(subclass in line for subclass in dev_subclasses)
         ]
     ]
 

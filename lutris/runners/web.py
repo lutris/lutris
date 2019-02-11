@@ -4,7 +4,7 @@ import shlex
 from urllib.parse import urlparse
 
 from lutris.runners.runner import Runner
-from lutris.util import datapath, system
+from lutris.util import datapath, system, resources
 from lutris import pga, settings
 
 DEFAULT_ICON = os.path.join(datapath.get(), "media/default_icon.png")
@@ -209,7 +209,7 @@ class web(Runner):
 
             return {"command": command}
 
-        icon = datapath.get_icon_path(game_data.get("slug"))
+        icon = resources.get_icon_path(game_data.get("slug"))
         if not system.path_exists(icon):
             icon = DEFAULT_ICON
 

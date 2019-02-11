@@ -1,8 +1,8 @@
 import os
 import time
-import queue
+import requests
 
-from lutris.util import http, jobs
+from lutris.util import jobs
 from lutris.util.log import logger
 
 
@@ -43,14 +43,12 @@ class Downloader:
         self.average_speed = 0
         self.time_left = "00:00:00"  # Based on average speed
 
-        self.last_size = None
+        self.last_size = 0
         self.last_check_time = 0
         self.last_speeds = []
         self.speed_check_time = 0
         self.time_left_check_time = 0
-
         self.file_pointer = None
-        self.queue = queue.Queue()
 
     def start(self):
         """Start download job."""
@@ -60,25 +58,15 @@ class Downloader:
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
         self.file_pointer = open(self.dest, "wb")
-        self.thread = jobs.AsyncCall(
-            self.async_download, self.on_done, self.url, self.queue
-        )
+        self.thread = jobs.AsyncCall(self.async_download, self.on_done)
         self.stop_request = self.thread.stop_request
 
     def check_progress(self):
         """Append last downloaded chunk to dest file and store stats.
 
         :return: progress (between 0.0 and 1.0)"""
-        if not self.queue.qsize() or self.state in [self.CANCELLED, self.ERROR]:
-            return self.progress_fraction
-
-        try:
-            downloaded_size, full_size = self.write_queue()
-        except OSError as ex:
-            self.on_done(None, str(ex))
-            return 0
-        self.get_stats(downloaded_size, full_size)
-
+        if self.state not in [self.CANCELLED, self.ERROR]:
+            self.get_stats()
         return self.progress_fraction
 
     def cancel(self):
@@ -89,6 +77,7 @@ class Downloader:
             self.stop_request.set()
         if self.file_pointer:
             self.file_pointer.close()
+            self.file_pointer = None
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
@@ -98,14 +87,13 @@ class Downloader:
             self.state = self.ERROR
             self.error = error
             self.file_pointer.close()
+            self.file_pointer = None
             return
 
         if self.state == self.CANCELLED:
             return
 
         logger.debug("Finished downloading %s", self.url)
-        while self.queue.qsize():
-            self.check_progress()
         if not self.downloaded_size:
             logger.warning("Downloaded file is empty")
 
@@ -114,38 +102,29 @@ class Downloader:
             self.progress_percentage = 100
         self.state = self.COMPLETED
         self.file_pointer.close()
+        self.file_pointer = None
         if self.callback:
             self.callback()
 
-    def async_download(self, url, queue, stop_request=None):
+    def async_download(self, stop_request=None):
         headers = {}
         if self.referer:
             headers["Referer"] = self.referer
-        request = http.Request(
-            url, stop_request=stop_request, headers=headers, thread_queue=queue
-        )
-        return request.get()
+        response = requests.get(self.url, headers=headers, stream=True)
+        self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if not self.file_pointer:
+                break
+            if chunk:
+                self.downloaded_size += len(chunk)
+                self.file_pointer.write(chunk)
 
-    def write_queue(self):
-        """Append download queue to destination file."""
-        buffered_chunk = b""
-        while self.queue.qsize():
-            chunk, received_bytes, total_bytes = self.queue.get()
-            buffered_chunk += chunk
-
-        if buffered_chunk:
-            self.file_pointer.write(buffered_chunk)
-
-        return received_bytes, total_bytes
-
-    def get_stats(self, downloaded_size, full_size):
+    def get_stats(self):
         """Calculate and store download stats."""
-        self.last_size = self.downloaded_size
-        self.downloaded_size = downloaded_size
-        self.full_size = full_size
         self.speed, self.average_speed = self.get_speed()
         self.time_left = self.get_average_time_left()
         self.last_check_time = get_time()
+        self.last_size = self.downloaded_size
 
         if self.full_size:
             self.progress_fraction = float(self.downloaded_size) / float(self.full_size)

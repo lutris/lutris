@@ -3,7 +3,7 @@
 import os
 
 from lutris import api, pga, runtime, settings
-from lutris.gui.util import open_uri
+from lutris.gui.widgets.utils import open_uri
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.log import logger
@@ -360,7 +360,7 @@ class WebConnectDialog(Dialog):
             )
         WebKit2.CookieManager.set_persistent_storage(
             self.context.get_cookie_manager(),
-            service.credentials_path,
+            service.cookies_path,
             WebKit2.CookiePersistentStorage(0),
         )
         self.service = service

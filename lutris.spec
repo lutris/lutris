@@ -6,7 +6,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.4.23
+Version:        0.5.0.1
 Release:        2%{?dist}
 Summary:        Install and play any video game easily
 
@@ -25,6 +25,7 @@ BuildRequires:  python3-devel
 BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
 Requires:       python3-gobject, python3-PyYAML, cabextract, gnome-deskop3
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
+Requires:       python3-requests
 Recommends:     wine-core
 %endif
 %if 0%{?rhel} || 0%{?centos}
@@ -40,27 +41,22 @@ BuildRequires:  polkit
 BuildRequires:  python3-setuptools
 Requires:       (python3-gobject-Gdk or python3-gobject)
 Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
-Requires:       typelib-1_0-GnomeDesktop-3_0, typelib-1_0-WebKit2-4_0
-Requires:       fluid-soundfont-gm, python3-Pillow
+Requires:       typelib-1_0-GnomeDesktop-3_0, typelib-1_0-WebKit2-4_0, typelib-1_0-Notify-0_7
+Requires:       fluid-soundfont-gm, python3-Pillow, python3-requests
 %endif
 
 %if 0%{?fedora} || 0%{?suse_version}
 BuildRequires: fdupes
 
 %ifarch x86_64
-Requires:       mesa-dri-drivers(x86-32)
 Requires:       mesa-vulkan-drivers(x86-32)
 Requires:       vulkan-loader(x86-32)
-Requires:       mesa-libGL(x86-32)
 %endif
 
 Requires:       mesa-vulkan-drivers
-Requires:       mesa-dri-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
 BuildRequires:  fdupes
-BuildRequires:  libappstream-glib
-Requires:       mesa-libGL
 %endif
 
 #!BuildIgnore: rpmlint-mini
@@ -112,14 +108,15 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
 %files
 %{_bindir}/%{name}
+%{_bindir}/lutris-wrapper
 %{_datadir}/%{name}/
 %{_datadir}/appdata/%{appid}.appdata.xml
 %{_datadir}/applications/%{appid}.desktop
-%{_datadir}/icons/hicolor/16x16/apps/lutris.svg
-%{_datadir}/icons/hicolor/22x22/apps/lutris.svg
-%{_datadir}/icons/hicolor/24x24/apps/lutris.svg
-%{_datadir}/icons/hicolor/32x32/apps/lutris.svg
-%{_datadir}/icons/hicolor/48x48/apps/lutris.svg
+%{_datadir}/icons/hicolor/16x16/apps/lutris.png
+%{_datadir}/icons/hicolor/22x22/apps/lutris.png
+%{_datadir}/icons/hicolor/24x24/apps/lutris.png
+%{_datadir}/icons/hicolor/32x32/apps/lutris.png
+%{_datadir}/icons/hicolor/48x48/apps/lutris.png
 %{_datadir}/icons/hicolor/scalable/apps/lutris.svg
 %{_datadir}/polkit-1/actions/*
 %{python3_sitelib}/%{name}-*.egg-info

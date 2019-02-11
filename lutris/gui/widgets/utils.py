@@ -1,23 +1,21 @@
+"""Various utilities using the GObject framework"""
 import os
 import array
 from PIL import Image
-from gi.repository import GdkPixbuf, GLib, Gtk
+from gi.repository import GdkPixbuf, GLib, Gtk, Gio, Gdk
 
 from lutris.util.log import logger
 from lutris.util import datapath
 from lutris.util import system
+from lutris.util import resources
 from lutris import settings
 
-
-UNAVAILABLE_GAME_OVERLAY = os.path.join(datapath.get(), "media/unavailable.png")
 
 BANNER_SIZE = (184, 69)
 BANNER_SMALL_SIZE = (120, 45)
 ICON_SIZE = (32, 32)
 ICON_SMALL_SIZE = (20, 20)
 
-DEFAULT_BANNER = os.path.join(datapath.get(), "media/default_banner.png")
-DEFAULT_ICON = os.path.join(datapath.get(), "media/default_icon.png")
 
 IMAGE_SIZES = {
     "icon_small": ICON_SMALL_SIZE,
@@ -25,6 +23,23 @@ IMAGE_SIZES = {
     "banner_small": BANNER_SMALL_SIZE,
     "banner": BANNER_SIZE,
 }
+
+
+def get_main_window(widget):
+    """Return the application's main window from one of its widget"""
+    parent = widget.get_toplevel()
+    if not isinstance(parent, Gtk.Window):
+        # The sync dialog may have closed
+        parent = Gio.Application.get_default().props.active_window
+    for window in parent.application.get_windows():
+        if "LutrisWindow" in window.__class__.__name__:
+            return window
+
+
+def open_uri(uri):
+    """Opens a local or remote URI with the default application"""
+    system.reset_library_preloads()
+    Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
 
 
 def get_pixbuf(image, size, fallback=None):
@@ -87,11 +102,11 @@ def get_overlay(overlay_path, size):
 
 def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
     if icon_type.startswith("banner"):
-        default_icon_path = DEFAULT_BANNER
-        icon_path = datapath.get_banner_path(game_slug)
+        default_icon_path = os.path.join(datapath.get(), "media/default_banner.png")
+        icon_path = resources.get_banner_path(game_slug)
     elif icon_type.startswith("icon"):
-        default_icon_path = DEFAULT_ICON
-        icon_path = datapath.get_icon_path(game_slug)
+        default_icon_path = os.path.join(datapath.get(), "media/default_icon.png")
+        icon_path = resources.get_icon_path(game_slug)
     else:
         logger.error("Invalid icon type '%s'", icon_type)
         return None
@@ -100,7 +115,8 @@ def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
 
     pixbuf = get_pixbuf(icon_path, size, fallback=default_icon_path)
     if not is_installed:
-        transparent_pixbuf = get_overlay(UNAVAILABLE_GAME_OVERLAY, size).copy()
+        unavailable_game_overlay = os.path.join(datapath.get(), "media/unavailable.png")
+        transparent_pixbuf = get_overlay(unavailable_game_overlay, size).copy()
         pixbuf.composite(
             transparent_pixbuf,
             0,
@@ -162,9 +178,9 @@ def image2pixbuf(image):
 def get_pixbuf_for_panel(game_slug):
     """Return the pixbuf for the game panel background"""
     source_path = os.path.join(settings.COVERART_PATH, "%s.jpg" % game_slug)
-    dest_path = os.path.join(settings.CACHE_DIR, "panel_bg.png")
     if not os.path.exists(source_path):
         source_path = os.path.join(datapath.get(), "media/generic-panel-bg.png")
+    dest_path = os.path.join(settings.CACHE_DIR, "panel_bg.png")
     background = convert_to_background(source_path)
     background.save(dest_path)
     return dest_path
@@ -178,3 +194,13 @@ def get_builder_from_file(glade_file):
     builder = Gtk.Builder()
     builder.add_from_file(ui_filename)
     return builder
+
+
+def get_link_button(text):
+    """Return a transparent text button for the side panels"""
+    button = Gtk.Button(text, visible=True)
+    button.props.relief = Gtk.ReliefStyle.NONE
+    button.get_children()[0].set_alignment(0, 0.5)
+    button.get_style_context().add_class("panel-button")
+    button.set_size_request(-1, 24)
+    return button

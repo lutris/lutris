@@ -1,28 +1,29 @@
 """Game panel"""
 from datetime import datetime
-from gi.repository import Gtk, Pango, Gdk
-from lutris.gui.widgets.utils import get_pixbuf_for_panel, get_pixbuf_for_game
+from gi.repository import Gtk, Pango, GObject
+from lutris import runners
+from lutris.gui.widgets.utils import get_pixbuf_for_game, get_link_button
 from lutris.util.strings import gtk_safe
+from lutris.gui.views.generic_panel import GenericPanel
 
 
-class GamePanel(Gtk.Fixed):
+class GamePanel(GenericPanel):
     """Panel allowing users to interact with a game"""
-    __gtype_name__ = "LutrisPanel"
+
+    __gsignals__ = {
+        "panel-closed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
 
     def __init__(self, game_actions):
         self.game_actions = game_actions
         self.game = game_actions.game
+        super().__init__()
         self.game.connect("game-start", self.on_game_start)
         self.game.connect("game-started", self.on_game_started)
         self.game.connect("game-stopped", self.on_game_stop)
 
-        super().__init__(visible=True)
-        self.set_size_request(320, -1)
-        self.get_style_context().add_class("game-panel")
-        self.set_background()
-        self.place_content()
-
     def place_content(self):
+        self.put(self.get_close_button(), 276, 16)
         self.put(self.get_icon(), 12, 16)
         self.put(self.get_title_label(), 50, 20)
         labels_x = 50
@@ -35,21 +36,18 @@ class GamePanel(Gtk.Fixed):
         self.buttons = self.get_buttons()
         self.place_buttons(145)
 
-    def set_background(self):
-        """Return the background image for the panel"""
-        bg_path = get_pixbuf_for_panel(self.game.slug)
+    @property
+    def background_id(self):
+        return self.game.slug
 
-        style = Gtk.StyleContext()
-        style.add_class(Gtk.STYLE_CLASS_VIEW)
-        bg_provider = Gtk.CssProvider()
-        bg_provider.load_from_data(
-            b".game-scrolled { background-image: url(\"%s\"); }" % bg_path.encode("utf-8")
-        )
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(),
-            bg_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
+    def get_close_button(self):
+        """Return the close button"""
+        button = Gtk.Button.new_from_icon_name("window-close-symbolic", Gtk.IconSize.MENU)
+        button.set_tooltip_text("Close")
+        button.set_size_request(32, 32)
+        button.connect("clicked", self.on_close)
+        button.show()
+        return button
 
     def get_icon(self):
         """Return the game icon"""
@@ -62,7 +60,7 @@ class GamePanel(Gtk.Fixed):
         title_label = Gtk.Label()
         title_label.set_markup("<span font_desc='16'>%s</span>" % gtk_safe(self.game.name))
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
-        title_label.set_size_request(256, -1)
+        title_label.set_size_request(226, -1)
         title_label.set_alignment(0, 0.5)
         title_label.set_justify(Gtk.Justification.LEFT)
         title_label.show()
@@ -98,6 +96,13 @@ class GamePanel(Gtk.Fixed):
         last_played_label.set_markup("Last played: <b>%s</b>" % lastplayed.strftime("%x"))
         return last_played_label
 
+    def get_runner_entries(self, game):
+        try:
+            runner = runners.import_runner(game.runner_name)(game.config)
+        except runners.InvalidRunner:
+            return None
+        return runner.context_menu_entries
+
     def get_buttons(self):
         displayed = self.game_actions.get_displayed_entries()
         disabled_entries = self.game_actions.get_disabled_entries()
@@ -119,23 +124,28 @@ class GamePanel(Gtk.Fixed):
                 button.set_tooltip_text(label)
                 button.set_size_request(32, 32)
             else:
-                button = Gtk.Button(label)
                 if action_id in ("play", "stop", "install"):
-                    button_width = 146
-                    button_height = 42
+                    button = Gtk.Button(label)
+                    button.set_size_request(146, 42)
                 else:
-                    button_width = -1
-                    button_height = 24
-                    button.props.relief = Gtk.ReliefStyle.NONE
-                    button.get_children()[0].set_alignment(0, 0.5)
-                    button.get_style_context().add_class("panel-button")
-                button.set_size_request(button_width, button_height)
+                    button = get_link_button(label)
             button.connect("clicked", callback)
+
             if displayed.get(action_id):
                 button.show()
+            else:
+                button.hide()
             if disabled_entries.get(action_id):
                 button.set_sensitive(False)
             buttons[action_id] = button
+
+        if self.game.runner_name and self.game.is_installed:
+            for entry in self.get_runner_entries(self.game):
+                name, label, callback = entry
+                button = get_link_button(label)
+                button.show()
+                button.connect("clicked", callback)
+                buttons[name] = button
         return buttons
 
     def place_buttons(self, base_height):
@@ -145,6 +155,8 @@ class GamePanel(Gtk.Fixed):
         icon_start = 84
         icons_y_offset = 60
         buttons_x_offset = 28
+        extra_button_start = 520  # Y position for runner actions
+        extra_button_index = 0
         for action_id, button in self.buttons.items():
             position = None
             if action_id in ("play", "stop", "install"):
@@ -159,7 +171,7 @@ class GamePanel(Gtk.Fixed):
             if action_id == "show_logs":
                 position = (icon_start + icon_offset * 2 + icon_width * 2,
                             base_height + icons_y_offset)
-            if action_id in ("remove"):
+            if action_id == "remove":
                 position = (icon_start + icon_offset * 3 + icon_width * 3,
                             base_height + icons_y_offset)
             if action_id == "execute-script":
@@ -176,8 +188,11 @@ class GamePanel(Gtk.Fixed):
             if action_id in ("menu-shortcut", "rm-menu-shortcut"):
                 position = (buttons_x_offset, current_y + 160)
 
-            if position:
-                self.put(button, position[0], position[1])
+            if not position:
+                position = (buttons_x_offset, extra_button_start + extra_button_index * 40)
+                extra_button_index += 1
+
+            self.put(button, position[0], position[1])
 
     def on_game_start(self, widget):
         self.buttons["play"].set_label("Launching...")
@@ -195,3 +210,6 @@ class GamePanel(Gtk.Fixed):
             child.destroy()
         self.place_content()
         self.buttons["show_logs"].set_sensitive(True)
+
+    def on_close(self, _widget):
+        self.emit("panel-closed")

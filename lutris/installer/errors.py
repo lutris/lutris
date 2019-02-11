@@ -22,6 +22,17 @@ class ScriptingError(Exception):
         return self.message
 
 
+class FileNotAvailable(Exception):
+    """Raised when a file has to be provided by the user"""
+
+
+class MissingGameDependency(Exception):
+    """Raise when a game requires another game that isn't installed"""
+    def __init__(self, slug=None):
+        self.slug = slug
+        super().__init__()
+
+
 _excepthook = sys.excepthook
 
 

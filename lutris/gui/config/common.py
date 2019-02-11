@@ -1,13 +1,13 @@
 """Shared config dialog stuff"""
 import os
-from gi.repository import Gtk, Pango
+from gi.repository import Gtk, Pango, GLib
 from lutris.game import Game
-from lutris.config import LutrisConfig, TEMP_CONFIG
-from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label
-from lutris.gui.config_boxes import GameBox, RunnerBox, SystemBox
+from lutris.config import LutrisConfig, make_game_config_id
+from lutris import runners
+from lutris import settings
+from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
+from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
-from lutris import runners, settings
-from lutris import gui
 from lutris.gui.widgets.utils import (
     get_pixbuf_for_game,
     get_pixbuf,
@@ -15,10 +15,10 @@ from lutris.gui.widgets.utils import (
     ICON_SIZE,
 )
 from lutris.util.strings import slugify
-from lutris.util import datapath, resources
+from lutris.util import resources
 
 
-# pylint: disable=too-many-instance-attributes,missing-docstring
+# pylint: disable=too-many-instance-attributes
 class GameDialogCommon:
     """Mixin for config dialogs"""
     no_runner_label = "Select a runner in the Game Info tab"
@@ -28,6 +28,8 @@ class GameDialogCommon:
         self.vbox = None
         self.name_entry = None
         self.runner_box = None
+
+        self.game = None
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -41,42 +43,84 @@ class GameDialogCommon:
         self.vbox.pack_start(self.notebook, True, True, 10)
 
     def build_tabs(self, config_level):
+        self.timer_id = None
         if config_level == "game":
             self._build_info_tab()
             self._build_game_tab()
-        self._build_runner_tab(config_level)
+        if config_level in ("game", "runner"):
+            self._build_runner_tab(config_level)
+        if config_level == "system":
+            self._build_prefs_tab()
         self._build_system_tab(config_level)
 
     def _build_info_tab(self):
         info_box = VBox()
 
         if self.game:
-            info_box.pack_start(self._get_banner_box(), False, False, 5)  # Banner
+            info_box.pack_start(self._get_banner_box(), False, False, 6)  # Banner
 
-        info_box.pack_start(self._get_name_box(), False, False, 5)  # Game name
+        info_box.pack_start(self._get_name_box(), False, False, 6)  # Game name
 
         if self.game:
-            info_box.pack_start(self._get_slug_box(), False, False, 5)  # Game id
+            info_box.pack_start(self._get_slug_box(), False, False, 6)  # Game id
 
         self.runner_box = self._get_runner_box()
-        info_box.pack_start(self.runner_box, False, False, 5)  # Runner
+        info_box.pack_start(self.runner_box, False, False, 6)  # Runner
 
-        info_box.pack_start(self._get_year_box(), False, False, 5)  # Year
+        info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, "Game info")
 
+    def _build_prefs_tab(self):
+        prefs_box = VBox()
+        prefs_box.pack_start(self._get_game_cache_box(), False, False, 6)
+
+        cache_help_label = Gtk.Label(visible=True)
+        cache_help_label.set_size_request(400, -1)
+        cache_help_label.set_markup(
+            "If provided, this location will be used by installers to cache "
+            "downloaded files locally for future re-use. \nIf left empty, the "
+            "installer files are discarded after the install completion."
+        )
+        prefs_box.pack_start(cache_help_label, False, False, 6)
+
+        info_sw = self.build_scrolled_window(prefs_box)
+        self._add_notebook_tab(info_sw, "Lutris preferences")
+
+    def _get_game_cache_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        label = Label("Cache path")
+        box.pack_start(label, False, False, 0)
+        cache_path = settings.read_setting("pga_cache_path")
+        path_chooser = FileChooserEntry(
+            title="Set the folder for the cache path",
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            default_path=cache_path
+        )
+        path_chooser.entry.connect("changed", self._on_cache_path_set)
+        box.pack_start(path_chooser, True, True, 0)
+        return box
+
+    def _on_cache_path_set(self, entry):
+        if self.timer_id:
+            GLib.source_remove(self.timer_id)
+        self.timer_id = GLib.timeout_add(1000, self.save_cache_setting, entry.get_text())
+
+    def save_cache_setting(self, value):
+        settings.write_setting("pga_cache_path", value)
+        GLib.source_remove(self.timer_id)
+        self.timer_id = None
+        return False
+
     def _get_name_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-
         label = Label("Name")
         box.pack_start(label, False, False, 0)
-
         self.name_entry = Gtk.Entry()
         if self.game:
             self.name_entry.set_text(self.game.name)
         box.pack_start(self.name_entry, True, True, 0)
-
         return box
 
     def _get_slug_box(self):
@@ -162,7 +206,6 @@ class GameDialogCommon:
         return box
 
     def _set_image(self, image_format):
-        assert image_format in ("banner", "icon")
         image = Gtk.Image()
         game_slug = self.game.slug if self.game else ""
         image.set_from_pixbuf(get_pixbuf_for_game(game_slug, image_format))
@@ -223,7 +266,9 @@ class GameDialogCommon:
         self.slug_change_button.set_label("Change")
 
     def on_install_runners_clicked(self, _button):
-        runners_dialog = gui.runnersdialog.RunnersDialog()
+        """Messed up callback requiring an import in the method to avoid a circular dependency"""
+        from lutris.gui.dialogs.runners import RunnersDialog
+        runners_dialog = RunnersDialog()
         runners_dialog.connect("runner-installed", self._update_runner_dropdown)
 
     def _update_runner_dropdown(self, _widget):
@@ -265,7 +310,7 @@ class GameDialogCommon:
     def _add_notebook_tab(self, widget, label):
         self.notebook.append_page(widget, Gtk.Label(label=label))
 
-    def build_action_area(self, button_callback, callback2=None):
+    def build_action_area(self, button_callback):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
 
         # Advanced settings checkbox
@@ -283,10 +328,7 @@ class GameDialogCommon:
         hbox.pack_start(cancel_button, True, True, 10)
 
         save_button = Gtk.Button(label="Save")
-        if callback2:
-            save_button.connect("clicked", button_callback, callback2)
-        else:
-            save_button.connect("clicked", button_callback)
+        save_button.connect("clicked", button_callback)
         hbox.pack_start(save_button, True, True, 0)
         self.action_area.pack_start(hbox, True, True, 0)
 
@@ -318,13 +360,12 @@ class GameDialogCommon:
 
         if runner_index == 0:
             self.runner_name = None
-            self.lutris_config = LutrisConfig()
+            self.lutris_config = None
         else:
             self.runner_name = widget.get_model()[runner_index][1]
             self.lutris_config = LutrisConfig(
                 runner_slug=self.runner_name,
-                game_config_id=self.game_config_id,
-                level="game",
+                level="game"
             )
 
         self._rebuild_tabs()
@@ -345,11 +386,10 @@ class GameDialogCommon:
         self.destroy()
 
     def is_valid(self):
-        name = self.name_entry.get_text()
         if not self.runner_name:
             ErrorDialog("Runner not provided")
             return False
-        if not name:
+        if not self.name_entry.get_text():
             ErrorDialog("Please fill in the name")
             return False
         if (
@@ -360,7 +400,7 @@ class GameDialogCommon:
             return False
         return True
 
-    def on_save(self, _button, callback=None):
+    def on_save(self, _button):
         """Save game info and destroy widget. Return True if success."""
         if not self.is_valid():
             return False
@@ -376,39 +416,30 @@ class GameDialogCommon:
         if self.year_entry.get_text():
             year = int(self.year_entry.get_text())
 
-        if self.lutris_config.game_config_id == TEMP_CONFIG:
-            self.lutris_config.game_config_id = self.get_config_id()
+        if not self.lutris_config.game_config_id:
+            self.lutris_config.game_config_id = make_game_config_id(self.slug)
 
-        # Delete the old copy of the game if the runner changes
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
-        if self.game.id and self.game.platform != runner.get_platform():
-            self.game.remove()
+
         self.game.runner_name = self.runner_name
 
         self.game.name = name
         self.game.slug = self.slug
         self.game.year = year
-        self.game.config = self.lutris_config
-
-        fps_limit = self.game.config.system_config.get("fps_limit", None)
-        if fps_limit:
-            try:
-                int(fps_limit)
-            except ValueError:
-                ErrorDialog("Fps limit only accept numbers")
-                return
-
+        self.game.game_config_id = self.lutris_config.game_config_id
+        self.game.runner_name = self.runner_name
         self.game.directory = runner.game_path
         self.game.is_installed = True
         if self.runner_name in ("steam", "winesteam"):
             self.game.steamid = self.lutris_config.game_config["appid"]
+
         self.game.set_platform_from_runner()
+        self.game.config = self.lutris_config
         self.game.save()
         self.destroy()
         self.saved = True
-        if callback:
-            callback()
+        self.game.emit("game-updated")
 
     def on_custom_image_select(self, widget, image_type):
         dialog = Gtk.FileChooserDialog(
@@ -433,12 +464,12 @@ class GameDialogCommon:
             image_path = dialog.get_filename()
             if image_type == "banner":
                 self.game.has_custom_banner = True
-                dest_path = datapath.get_banner_path(self.game.slug)
+                dest_path = resources.get_banner_path(self.game.slug)
                 size = BANNER_SIZE
                 file_format = "jpeg"
             else:
                 self.game.has_custom_icon = True
-                dest_path = datapath.get_icon_path(self.game.slug)
+                dest_path = resources.get_icon_path(self.game.slug)
                 size = ICON_SIZE
                 file_format = "png"
             pixbuf = get_pixbuf(image_path, size)
@@ -446,17 +477,17 @@ class GameDialogCommon:
             self._set_image(image_type)
 
             if image_type == "icon":
-                resources.udpate_desktop_icons()
+                resources.update_desktop_icons()
 
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, widget, image_type):
         if image_type == "banner":
             self.game.has_custom_banner = False
-            dest_path = datapath.get_banner_path(self.game.slug)
+            dest_path = resources.get_banner_path(self.game.slug)
         elif image_type == "icon":
             self.game.has_custom_icon = False
-            dest_path = datapath.get_icon_path(self.game.slug)
+            dest_path = resources.get_icon_path(self.game.slug)
         else:
             raise ValueError("Unsupported image type %s", image_type)
         os.remove(dest_path)

@@ -21,8 +21,9 @@ from lutris.util.wine.wine import get_wine_version_exe, get_system_wine_version
 
 from lutris.config import LutrisConfig, make_game_config_id
 
-from lutris.installer.errors import ScriptingError
+from lutris.installer.errors import ScriptingError, FileNotAvailable, MissingGameDependency
 from lutris.installer.commands import CommandsMixin
+from lutris.installer.installer_file import InstallerFile
 
 from lutris.services import UnavailableGame
 from lutris.services.gog import (
@@ -140,7 +141,11 @@ class ScriptInterpreter(CommandsMixin):
                 "Invalid script: \n{}".format("\n".join(self.errors)), self.script
             )
 
-        self.files = self.script.get("files", [])
+        self.files = [
+            InstallerFile(self.game_slug, file_id, file_meta)
+            for file_desc in self.script.get("files", [])
+            for file_id, file_meta in file_desc.items()
+        ]
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
 
@@ -259,19 +264,24 @@ class ScriptInterpreter(CommandsMixin):
         error_message = "You need to install {} before"
         for index, dependency in enumerate(dependencies):
             if isinstance(dependency, tuple):
-                dependency_choices = [
-                    self._get_installed_dependency(dep) for dep in dependency
+                installed_games = [
+                    dep for dep in [
+                        self._get_installed_dependency(dep) for dep in dependency
+                    ]
+                    if dep
                 ]
-                installed_games = [dep for dep in dependency_choices if dep]
                 if not installed_games:
-                    raise ScriptingError(error_message.format(" or ".join(dependency)))
+                    if len(dependency) == 1:
+                        raise MissingGameDependency(slug=dependency)
+                    else:
+                        raise ScriptingError(error_message.format(" or ".join(dependency)))
                 if index == 0:
                     self.target_path = installed_games[0]["directory"]
                     self.requires = installed_games[0]["installer_slug"]
             else:
                 game = self._get_installed_dependency(dependency)
                 if not game:
-                    raise ScriptingError(error_message.format(dependency))
+                    raise MissingGameDependency(slug=dependency)
                 if index == 0:
                     self.target_path = game["directory"]
                     self.requires = game["installer_slug"]
@@ -287,20 +297,11 @@ class ScriptInterpreter(CommandsMixin):
         installer_file_id = None
         if links:
             for index, file in enumerate(self.files):
-                file_id = list(file.keys())[0]
-                file_meta = file[file_id]
-                if (
-                        (
-                            isinstance(file_meta, str)
-                            and file_meta.startswith("N/A")
-                        ) or (
-                            isinstance(file_meta, dict)
-                            and file_meta.get('url', '').startswith('N/A')
-                        )
-                ):
-                    logger.debug("Removing file %s", file_id)
+                file_id = file.id
+                if file.url.startswith("N/A"):
+                    logger.debug("Removing file %s", file.id)
                     self.files.pop(index)
-                    installer_file_id = file_id
+                    installer_file_id = file.id
                     break
 
         if not installer_file_id:
@@ -316,13 +317,12 @@ class ScriptInterpreter(CommandsMixin):
                 file_id = "gog_file_%s" % index
 
             logger.debug("Adding GOG file %s as %s", filename, file_id)
-
-            self.files.append({
-                file_id: {
+            self.files.append(
+                InstallerFile(self.game_slug, file_id, {
                     "url": link,
                     "filename": filename,
-                }
-            })
+                })
+            )
 
     def prepare_game_files(self):
         """Gathers necessary files before iterating through them."""
@@ -337,10 +337,6 @@ class ScriptInterpreter(CommandsMixin):
     def iter_game_files(self):
         """Iterate through game files, downloading them or querying them from the user"""
         if self.files:
-            # Create cache dir if needed
-            if not os.path.exists(self.cache_path):
-                os.mkdir(self.cache_path)
-
             if (
                     self.target_path
                     and not system.path_exists(self.target_path)
@@ -371,10 +367,8 @@ class ScriptInterpreter(CommandsMixin):
             self.current_command = 0
             self._prepare_commands()
 
-    def _download_file(self, game_file):
+    def _download_file(self, installer_file):
         """Download a file referenced in the installer script.
-
-        KILL IT WITH FIRE!!! This method is a mess.
 
         Game files can be either a string, containing the location of the
         file to fetch or a dict with the following keys:
@@ -383,93 +377,26 @@ class ScriptInterpreter(CommandsMixin):
         - filename : force destination filename when url is present or path
                      of local file.
         """
-        if not isinstance(game_file, dict):
-            raise ScriptingError("Invalid file, check the installer script", game_file)
-        # Setup file_id, file_uri and local filename
-        file_id = list(game_file.keys())[0]
-        file_meta = game_file[file_id]
-        if isinstance(file_meta, dict):
-            for field in ("url", "filename"):
-                if field not in file_meta:
-                    raise ScriptingError(
-                        "missing field `%s` for file `%s`" % (field, file_id)
-                    )
-            file_uri = file_meta["url"]
-            filename = file_meta["filename"]
-            referer = file_meta.get("referer")
-            checksum = file_meta.get("checksum")
-        else:
-            file_uri = file_meta
-            filename = os.path.basename(file_uri)
-            referer = None
-            checksum = None
-
-        if file_uri.startswith("/"):
-            file_uri = "file://" + file_uri
-        elif file_uri.startswith(("$WINESTEAM", "$STEAM")):
-            # Download Steam data
-            self._download_steam_data(file_uri, file_id)
-            return
-
-        if not filename:
-            raise ScriptingError(
-                "No filename provided, please provide 'url' and 'filename' parameters in the script"
-            )
-
-        # Check for file availability in PGA
-        pga_uri = pga.check_for_file(self.game_slug, file_id)
-        if pga_uri:
-            file_uri = pga_uri
-
-        # Setup destination path
-        dest_file = os.path.join(self.cache_path, filename)
-
-        logger.debug("Downloading [%s]: %s to %s", file_id, file_uri, dest_file)
-
-        if file_uri.startswith("N/A"):
-            # Ask the user where the file is located
-            parts = file_uri.split(":", 1)
-            if len(parts) == 2:
-                message = parts[1]
-            else:
-                message = "Please select file '%s'" % file_id
-            self.current_file_id = file_id
-            self.parent.ask_user_for_file(message)
-            return
-
-        if os.path.exists(dest_file):
-            os.remove(dest_file)
-
-        # Change parent's status
-        self.parent.set_status("")
-        self.game_files[file_id] = dest_file
-
-        if checksum:
-            self.parent.start_download(
-                file_uri,
-                dest_file,
-                lambda *args: self.check_hash(checksum, dest_file, file_uri),
-                referer=referer
-            )
-        else:
-            self.parent.start_download(file_uri, dest_file, referer=referer)
-
-    def check_hash(self, checksum, dest_file, dest_file_uri):
-        """Checks the checksum of `file` and compare it to `value`
-
-        Args:
-            checksum (str): The checksum to look for (type:hash)
-            dest_file (str): The path to the destination file
-            dest_file_uri (str): The uri for the destination file
-        """
-
         try:
-            hash_type, expected_hash = checksum.split(':', 1)
-        except ValueError:
-            raise ScriptingError("Invalid checksum, expected format (type:hash) ", dest_file_uri)
-
-        if system.get_file_checksum(dest_file, hash_type) != expected_hash:
-            raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", dest_file_uri)
+            self.game_files[installer_file.id] = installer_file.get_download_info()
+        except FileNotAvailable:
+            if installer_file.url.startswith(("$WINESTEAM", "$STEAM")):
+                # Download Steam data
+                self._download_steam_data(installer_file.url, installer_file.id)
+                return
+            if installer_file.url.startswith("N/A"):
+                # Ask the user where the file is located
+                parts = installer_file.url.split(":", 1)
+                if len(parts) == 2:
+                    message = parts[1]
+                else:
+                    message = "Please select file '%s'" % installer_file.id
+                self.current_file_id = installer_file.id
+                self.parent.ask_user_for_file(message)
+                return
+        is_downloading = installer_file.download(self.parent.start_download)
+        if not is_downloading:
+            self.iter_game_files()
 
     def check_runner_install(self):
         """Check if the runner is installed before starting the installation
@@ -991,7 +918,10 @@ class ScriptInterpreter(CommandsMixin):
         gog_installers = self.get_gog_installers(gog_service)
         if len(gog_installers) > 1:
             raise ScriptingError("Don't know how to deal with multiple installers yet.")
-        installer = gog_installers[0]
+        try:
+            installer = gog_installers[0]
+        except IndexError:
+            raise UnavailableGame
         download_links = []
         for game_file in installer.get('files', []):
             downlink = game_file.get("downlink")

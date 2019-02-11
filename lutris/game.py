@@ -39,6 +39,7 @@ class Game(GObject.Object):
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
+        "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, game_id=None):
@@ -54,12 +55,11 @@ class Game(GObject.Object):
         self.directory = game_data.get("directory") or ""
         self.name = game_data.get("name") or ""
 
-        self.is_installed = bool(game_data.get("installed"))
+        self.game_config_id = game_data.get("configpath") or ""
+        self.is_installed = bool(game_data.get("installed")) and self.game_config_id
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
-        self.playtime = game_data.get("playtime") or 0.0
-        self.game_config_id = game_data.get("configpath") or ""
         self.steamid = game_data.get("steamid") or ""
         self.has_custom_banner = bool(game_data.get("has_custom_banner"))
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
@@ -67,8 +67,10 @@ class Game(GObject.Object):
             self.playtime = float(game_data.get("playtime") or 0.0)
         except ValueError:
             logger.error("Invalid playtime value %s", game_data.get("playtime"))
+            self.playtime = 0.0
 
-        self.load_config()
+        if self.game_config_id:
+            self.load_config()
         self.game_thread = None
         self.prelaunch_executor = None
         self.heartbeat = None
@@ -100,6 +102,10 @@ class Game(GObject.Object):
         """Return a human readable formatted play time"""
         return strings.get_formatted_playtime(self.playtime)
 
+    @property
+    def is_search_result(self):
+        return self.id < 0
+
     @staticmethod
     def show_error_message(message):
         """Display an error message based on the runner's output."""
@@ -127,24 +133,24 @@ class Game(GObject.Object):
         """Return the path to open with the Browse Files action."""
         return self.runner.browse_dir
 
-    def load_config(self):
-        """Load the game's configuration."""
-        self.config = LutrisConfig(
-            runner_slug=self.runner_name, game_config_id=self.game_config_id
-        )
-        if not self.is_installed:
-            return
-        if not self.runner_name:
-            logger.error("Incomplete data for %s", self.slug)
-            return
+    def _get_runner(self):
+        """Return the runner instance for this game's configuration"""
         try:
             runner_class = import_runner(self.runner_name)
+            return runner_class(self.config)
         except InvalidRunner:
             logger.error(
                 "Unable to import runner %s for %s", self.runner_name, self.slug
             )
-        else:
-            self.runner = runner_class(self.config)
+
+    def load_config(self):
+        """Load the game's configuration."""
+        if not self.is_installed:
+            return
+        self.config = LutrisConfig(
+            runner_slug=self.runner_name, game_config_id=self.game_config_id
+        )
+        self.runner = self._get_runner()
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
@@ -173,7 +179,8 @@ class Game(GObject.Object):
             pga.delete_game(self.id)
         else:
             pga.set_uninstalled(self.id)
-        self.config.remove()
+        if self.config:
+            self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         self.emit("game-removed", self.id)
         return from_library
@@ -505,7 +512,7 @@ class Game(GObject.Object):
         self.emit('game-stop')
         if not self.timer.finished:
             self.timer.end()
-            self.playtime = self.timer.duration / 3600
+            self.playtime += self.timer.duration / 3600
 
     def xboxdrv_start(self, config):
         command = [
@@ -552,7 +559,6 @@ class Game(GObject.Object):
             self.on_game_quit()
             return False
         return True
-
 
     def stop(self):
         """Stops the game"""

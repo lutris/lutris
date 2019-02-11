@@ -494,7 +494,7 @@
         </child>
         <child>
           <object class="GtkBox">
-            <property name="visible" bind-source="main_box" bind-property="visible" bind-flags="sync-create"/>
+            <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="spacing">6</property>
             <child>
@@ -688,7 +688,7 @@
                             <property name="label" translatable="yes">No Games Found</property>
                             <attributes>
                               <attribute name="weight" value="bold"/>
-                              <attribute name="scale" value="1.4399999999999999"/>
+                              <attribute name="scale" value="1.44"/>
                             </attributes>
                           </object>
                           <packing>

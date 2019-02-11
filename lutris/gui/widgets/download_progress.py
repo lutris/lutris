@@ -65,7 +65,7 @@ class DownloadProgressBox(Gtk.Box):
                 self.emit("cancel", {})
                 return None
 
-        timer_id = GLib.timeout_add(100, self._progress)
+        timer_id = GLib.timeout_add(500, self._progress)
         self.cancel_button.set_sensitive(True)
         if not self.downloader.state == self.downloader.DOWNLOADING:
             self.downloader.start()

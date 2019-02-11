@@ -11,8 +11,6 @@ EXCLUDED_PROCESSES = [
     "lutris",
     "python",
     "python3",
-    "bash",
-    "sh",
     "tee",
     "tr",
     "zenity",
@@ -90,7 +88,7 @@ class ProcessMonitor:
         if added:
             logger.debug("New %s processes: %s", label, ', '.join(map(str, added)))
         if removed:
-            logger.debug("New %s processes: %s", label, ', '.join(map(str, removed)))
+            logger.debug("Dead %s processes: %s", label, ', '.join(map(str, removed)))
 
     def refresh_process_status(self):
         """Return status of a process"""

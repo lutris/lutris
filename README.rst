@@ -122,7 +122,7 @@ pre-releases, or simply chat with the developers?
 
 You can always reach us on:
 
-* Discord: #lutris_support and #lutris_dev on the LGG server: https://discord.gg/C3uJjRD
+* Discord: https://discordapp.com/invite/Pnt5CuY
 * IRC: #lutris on the Freenode servers
 * Github: https://github.com/lutris
 * Twitter: https://twitter.com/LutrisGaming

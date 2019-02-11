@@ -6,12 +6,12 @@ from lutris import pga
 from lutris.command import MonitoredCommand
 from lutris.game import Game
 from lutris.gui import dialogs
-from lutris.gui.util import open_uri
+from lutris.gui.widgets.utils import open_uri
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
-from lutris.gui.dialogs.log import LogDialog
+from lutris.gui.dialogs.log import LogWindow
 from lutris.util.system import path_exists
 from lutris.util.log import logger
 from lutris.util import xdgshortcuts
@@ -148,13 +148,13 @@ class GameActions:
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
         return {
-            "add": not self.game.is_installed,
+            "add": not self.game.is_installed and not self.game.is_search_result,
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "stop": self.is_game_running,
             "show_logs": self.game.is_installed,
             "configure": bool(self.game.is_installed),
-            "install_more": self.game.is_installed,
+            "install_more": self.game.is_installed and not self.game.is_search_result,
             "execute-script": bool(
                 self.game.is_installed
                 and self.game.runner.system_config.get("manual_command")
@@ -176,7 +176,7 @@ class GameActions:
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
             "browse": self.game.is_installed and self.game.runner_name != "browser",
-            "remove": True,
+            "remove": not self.game.is_search_result,
             "view": True,
             "hide": not GameActions.is_game_hidden(self.game),
             "unhide": GameActions.is_game_hidden(self.game)
@@ -190,34 +190,35 @@ class GameActions:
 
     def on_game_run(self, *_args):
         """Launch a game"""
-        logger.debug("Lauching %s", self.game)
         self.application.launch(self.game)
+
+    def get_running_game(self):
+        for i in range(self.application.running_games.get_n_items()):
+            game = self.application.running_games.get_item(i)
+            if game == self.game:
+                return game
 
     def on_stop(self, caller):
         """Stops the game"""
-        try:
-            game = self.application.running_games[
-                self.application.running_games.index(self.game)
-            ]
-        except ValueError:
+
+        matched_game = self.get_running_game()
+        if not matched_game:
             logger.warning("%s not in running game list", self.game_id)
             return
 
         try:
-            os.kill(game.game_thread.game_process.pid, signal.SIGTERM)
+            os.kill(matched_game.game_thread.game_process.pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
         logger.debug("Removed game with ID %s from running games", self.game_id)
 
     def on_show_logs(self, _widget):
-        """Display game log in a LogDialog"""
-        log_window = LogDialog(
+        """Display game log"""
+        return LogWindow(
             title="Log for {}".format(self.game),
             buffer=self.game.log_buffer,
-            parent=self.window
+            application=self.application
         )
-        log_window.run()
-        log_window.destroy()
 
     def on_install_clicked(self, *_args):
         """Install a game"""
@@ -230,29 +231,11 @@ class GameActions:
 
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""
-
-        def on_game_added(game):
-            self.window.game_store.update(game)
-            self.window.sidebar_listbox.update()
-
-        AddGameDialog(
-            self.window,
-            game=self.game,
-            runner=self.game.runner_name,
-            callback=lambda: on_game_added(self.game),
-        )
+        AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
-
-        def on_dialog_saved():
-            game_id = dialog.game.id
-            self.window.game_store.remove_game(game_id)
-            self.window.game_store.add_game_by_id(game_id)
-            self.window.view.set_selected_game(game_id)
-            self.window.sidebar_listbox.update()
-
-        dialog = EditGameConfigDialog(self.window, self.game, on_dialog_saved)
+        EditGameConfigDialog(self.window, self.game)
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""

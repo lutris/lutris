@@ -22,6 +22,7 @@ from lutris.runners.commands.wine import ( # noqa pylint: disable=unused-import
     winetricks,
     winecfg,
     winekill,
+    install_cab_component,
 )
 
 STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
@@ -460,7 +461,8 @@ class winesteam(wine.wine):
         )
         shutdown_command.start()
 
-    def stop(self):
+    def on_game_stop(self):
+        """TODO: Call this once it is possible to monitor Steam games"""
         if bool(self.runner_config.get("quit_steam_on_exit")):
             logger.debug("Game configured to stop Steam on exit")
             self.shutdown()

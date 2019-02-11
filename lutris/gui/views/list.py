@@ -3,7 +3,6 @@ from gi.repository import Gtk, Pango
 from lutris import settings
 from lutris.gui.views.base import GameView
 from lutris.gui.views import (
-    COL_ID,
     COL_NAME,
     COL_ICON,
     COL_YEAR,
@@ -108,31 +107,39 @@ class GameListView(Gtk.TreeView, GameView):
 
         self.model.set_sort_func(col, sort_func)
 
-    def get_selected_game(self):
+    def get_selected_item(self):
         """Return the currently selected game's id."""
         selection = self.get_selection()
         if not selection:
             return None
         model, select_iter = selection.get_selected()
-        if not select_iter:
-            return None
-        return model.get_value(select_iter, COL_ID)
+        if select_iter:
+            return select_iter
 
     def select(self):
         self.set_cursor(self.current_path[0])
 
     def set_selected_game(self, game_id):
-        row = self.get_row_by_id(game_id, filtered=True)
+        row = self.game_store.get_row_by_id(game_id, filtered=True)
         if row:
             self.set_cursor(row.path)
 
-    def on_cursor_changed(self, widget, line=None, column=None):
-        self.selected_game = self.get_selected_game()
-        self.emit("game-selected")
-
     def on_row_activated(self, widget, line=None, column=None):
-        self.selected_game = self.get_selected_game()
-        self.emit("game-activated")
+        """Handles double clicks"""
+        selected_item = self.get_selected_item()
+        if selected_item:
+            selected_game = self.get_selected_game(selected_item)
+        else:
+            selected_game = None
+        self.emit("game-activated", selected_game)
+
+    def on_cursor_changed(self, widget, line=None, column=None):
+        selected_item = self.get_selected_item()
+        if selected_item:
+            self.selected_game = self.get_selected_game(selected_item)
+        else:
+            self.selected_game = None
+        self.emit("game-selected", self.selected_game)
 
     @staticmethod
     def on_column_width_changed(col, *args):
