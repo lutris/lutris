@@ -13,6 +13,8 @@ def get_optirun_choices():
         choices.append(("primusrun", "primusrun"))
     if system.find_executable("optirun"):
         choices.append(("optirun/virtualgl", "optirun"))
+    if system.find_executable("pvkrun"):
+        choices.append(("primus vk", "pvkrun"))
     return choices
 
 
@@ -129,6 +131,7 @@ system_options = [  # pylint: disable=invalid-name
             "activating your NVIDIA graphic chip for high 3D "
             "performance. primusrun normally has better performance, but"
             "optirun/virtualgl works better for more games."
+            "Primus VK provide vulkan support under bumblebee."
         ),
     },
     {
