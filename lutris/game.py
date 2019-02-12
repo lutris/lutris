@@ -356,6 +356,8 @@ class Game(GObject.Object):
             launch_arguments.insert(0, "virtualgl")
             launch_arguments.insert(0, "-b")
             launch_arguments.insert(0, "optirun")
+        elif optimus == "pvkrun" and system.find_executable("pvkrun"):
+            launch_arguments.insert(0, "pvkrun")
 
         xephyr = system_config.get("xephyr") or "off"
         if xephyr != "off":

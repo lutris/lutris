@@ -17,6 +17,7 @@ SYSTEM_COMPONENTS = {
         "vulkaninfo",
         "optirun",
         "primusrun",
+        "pvkrun",
         "xboxdrv",
         "pulseaudio",
         "lsi-steam",
