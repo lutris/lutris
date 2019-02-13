@@ -464,8 +464,6 @@ class InstallerWindow(Gtk.ApplicationWindow):
     # ----------------
 
     def on_install_finished(self):
-        """Actual game installation."""
-        self.notify_install_success()
         self.clean_widgets()
 
         # Shortcut checkboxes
@@ -494,16 +492,6 @@ class InstallerWindow(Gtk.ApplicationWindow):
         if not self.is_active():
             self.set_urgency_hint(True)  # Blink in taskbar
             self.connect("focus-in-event", self.on_window_focus)
-
-    def notify_install_success(self, game_id=None):
-
-        # Nothing to notify in case of extends scripts
-        if self.interpreter.extends:
-            return
-
-        game_id = game_id or self.interpreter.game_id
-        if self.parent:
-            self.parent.view.emit("game-installed", game_id)
 
     def on_window_focus(self, widget, *args):
         self.set_urgency_hint(False)

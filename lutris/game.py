@@ -38,8 +38,9 @@ class Game(GObject.Object):
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
-        "game-removed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
+        "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, game_id=None):
@@ -56,7 +57,7 @@ class Game(GObject.Object):
         self.name = game_data.get("name") or ""
 
         self.game_config_id = game_data.get("configpath") or ""
-        self.is_installed = bool(game_data.get("installed")) and self.game_config_id
+        self.is_installed = bool(game_data.get("installed") and self.game_config_id)
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
@@ -182,7 +183,8 @@ class Game(GObject.Object):
         if self.config:
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
-        self.emit("game-removed", self.id)
+        self.is_installed = False
+        self.emit("game-removed")
         return from_library
 
     def set_platform_from_runner(self):

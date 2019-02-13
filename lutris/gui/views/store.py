@@ -238,10 +238,16 @@ class GameStore(GObject.Object):
         else:
             logger.warning("Can't find game %s in game list", game_id)
         row = self.get_row_by_id(game_id)
-        self.store.remove(row.iter)
+        if row:
+            self.store.remove(row.iter)
 
     def update_game_by_id(self, game_id):
-        return self.update(pga.get_game_by_field(game_id, "id"))
+        pga_game = pga.get_game_by_field(game_id, "id")
+        if pga_game:
+            return self.update(pga_game)
+        else:
+            return self.remove_game(game_id)
+
 
     def update(self, pga_game):
         """Update game informations."""

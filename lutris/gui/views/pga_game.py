@@ -12,6 +12,8 @@ class PgaGame:
     TODO: Fix overlap with Game class
     """
     def __init__(self, pga_data):
+        if not pga_data:
+            raise RuntimeError("No game data provided")
         self._pga_data = pga_data
         self.runner_names = {
             runner: runners.import_runner(runner).human_name
@@ -28,6 +30,7 @@ class PgaGame:
     def id(self):  # pylint: disable=invalid-name
         """Game internal ID"""
         return self._pga_data["id"]
+
 
     @property
     def slug(self):
