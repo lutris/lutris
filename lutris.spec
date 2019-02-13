@@ -22,7 +22,7 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  python3-devel
 
 %if 0%{?fedora}
-BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
+BuildRequires:  python3-gobject, python3-wheel, python3-setuptools
 Requires:       python3-gobject, python3-PyYAML, cabextract
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
 Requires:       python3-requests
