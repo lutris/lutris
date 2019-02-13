@@ -26,7 +26,7 @@ BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobj
 Requires:       python3-gobject, python3-PyYAML, cabextract
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
 Requires:       python3-requests
-Requires:	gnome-desktop3
+Requires:       gnome-desktop3
 Recommends:     wine-core
 %endif
 
@@ -49,7 +49,7 @@ Requires:       fluid-soundfont-gm, python3-Pillow, python3-requests
 %endif
 
 %if 0%{?fedora} || 0%{?suse_version}
-BuildRequires: fdupes
+BuildRequires:  fdupes
 
 %ifarch x86_64
 Requires:       mesa-vulkan-drivers(x86-32)
