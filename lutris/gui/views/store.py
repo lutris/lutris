@@ -241,14 +241,15 @@ class GameStore(GObject.Object):
         self.store.remove(row.iter)
 
     def update_game_by_id(self, game_id):
-        return self.update(
-            pga.get_game_by_field(game_id, "id")
-        )
+        return self.update(pga.get_game_by_field(game_id, "id"))
 
     def update(self, pga_game):
         """Update game informations."""
         game = PgaGame(pga_game)
-        row = self.get_row_by_id(game.id)
+        if self.search_mode:
+            row = self.get_row_by_slug(game.slug)
+        else:
+            row = self.get_row_by_id(game.id)
         if not row:
             raise ValueError("No existing row for game %s" % game.slug)
         row[COL_ID] = game.id
