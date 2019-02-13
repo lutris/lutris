@@ -218,6 +218,7 @@ class Game(GObject.Object):
             id=self.id,
             playtime=self.playtime,
         )
+        self.emit("game-updated")
 
     def prelaunch(self):
         """Verify that the current game can be launched."""

@@ -439,7 +439,6 @@ class GameDialogCommon:
         self.game.save()
         self.destroy()
         self.saved = True
-        self.game.emit("game-updated")
 
     def on_custom_image_select(self, widget, image_type):
         dialog = Gtk.FileChooserDialog(
