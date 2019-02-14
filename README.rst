@@ -2,6 +2,10 @@
 Lutris
 ******
 
+|LiberaPayBadge|_
+
+
+
 Lutris is an open source gaming platform that makes gaming on Linux easier by
 managing, installing and providing optimal settings for games.
 
@@ -126,4 +130,7 @@ You can always reach us on:
 * IRC: #lutris on the Freenode servers
 * Github: https://github.com/lutris
 * Twitter: https://twitter.com/LutrisGaming
-* Google+: https://plus.google.com/+LutrisNet
+
+
+.. |LiberaPayBadge| image:: http://img.shields.io/liberapay/receives/Lutris.svg?logo=liberapay
+.. _LiberaPayBadge: https://liberapay.com/Lutris/
