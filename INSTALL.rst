@@ -4,10 +4,11 @@ Installing Lutris
 Requirements
 ------------
 
-Lutris should work on any Gnome system, the following depencies should be
-installed:
+Lutris should work on any up to date Linux system. It is based on Python and
+Gtk but will run on any desktop environment. The following dependencies should
+be installed:
 
-    * python > 3.4
+    * Python > 3.4
     * PyGObject
     * PyGObject bindings for: Gtk, Gdk, GnomeDesktop, Webkit2, Notify
     * python3-requests
@@ -52,7 +53,7 @@ version without you having to go through /usr/local and manually delete lutris
 related files. The setup.py script is used by packaging tools to build the
 actual packages.
 
-Prefer installing Lutris through distribution packages or run it directly 
+Prefer installing Lutris through distribution packages or run it directly
 from the source directory::
 
     git clone https://github.com/lutris/lutris
