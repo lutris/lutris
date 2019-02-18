@@ -151,7 +151,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "dri_prime",
         "type": "bool",
-        "default": False,
+        "default": display.USE_DRI_PRIME,
         "condition": display.USE_DRI_PRIME,
         "label": "Use PRIME (hybrid graphics on laptops)",
         "advanced": True,
