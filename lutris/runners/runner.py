@@ -141,7 +141,8 @@ class Runner:
         system_env = self.system_config.get("env") or {}
         env.update(system_env)
 
-        env["DRI_PRIME"] = "1" if self.system_config.get("dri_prime") else "0"
+        if self.system_config.get("dri_prime"):
+            env["DRI_PRIME"] = "1"
 
         runtime_ld_library_path = None
 
