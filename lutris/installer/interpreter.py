@@ -102,6 +102,7 @@ class ScriptInterpreter(CommandsMixin):
     """
 
     def __init__(self, installer, parent):
+        self.launch_time = int(time.time() * 1000)
         self.error = None
         self.errors = []
         self.target_path = None
@@ -142,7 +143,7 @@ class ScriptInterpreter(CommandsMixin):
             )
 
         self.files = [
-            InstallerFile(self.game_slug, file_id, file_meta)
+            InstallerFile(self.game_slug, file_id, file_meta, self.launch_time)
             for file_desc in self.script.get("files", [])
             for file_id, file_meta in file_desc.items()
         ]
@@ -171,7 +172,7 @@ class ScriptInterpreter(CommandsMixin):
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        return os.path.join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
+        return os.path.join(settings.CACHE_DIR, "installer/%s-%d" % (self.game_slug, self.launch_time))
 
     @property
     def creates_game_folder(self):
@@ -321,7 +322,7 @@ class ScriptInterpreter(CommandsMixin):
                 InstallerFile(self.game_slug, file_id, {
                     "url": link,
                     "filename": filename,
-                })
+                }, self.launch_time)
             )
 
     def prepare_game_files(self):

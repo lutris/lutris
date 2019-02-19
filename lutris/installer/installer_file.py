@@ -9,7 +9,8 @@ from lutris.util import system
 
 class InstallerFile:
     """Representation of a file in the `files` sections of an installer"""
-    def __init__(self, game_slug, file_id, file_meta):
+    def __init__(self, game_slug, file_id, file_meta, launch_time):
+        self.launch_time = launch_time
         self.game_slug = game_slug
         self.id = file_id  # pylint: disable=invalid-name
         self.dest_file = None
@@ -67,7 +68,7 @@ class InstallerFile:
             else:
                 folder = self.id
             return os.path.join(settings.read_setting("pga_cache_path"), self.game_slug, folder)
-        return os.path.join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
+        return os.path.join(settings.CACHE_DIR, "installer/%s-%d" % (self.game_slug, self.launch_time))
 
     def get_download_info(self):
         """Retrieve the file locally"""
