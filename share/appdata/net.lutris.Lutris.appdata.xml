@@ -26,6 +26,6 @@
   <project_license>GPL-3.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
   <releases>
-    <release version="0.5.0" date="2019-02-02"/>
+    <release version="0.5.0.1" date="2019-02-03"/>
   </releases>
 </application>
