@@ -17,6 +17,9 @@ def gather_system_info():
     system_info["gpus"] = [drivers.get_gpu_info(gpu) for gpu in drivers.get_gpus()]
     system_info["env"] = dict(os.environ)
     system_info["missing_libs"] = LINUX_SYSTEM.get_missing_libs()
+    system_info["cpus"] = LINUX_SYSTEM.get_cpus()
+    system_info["drives"] = LINUX_SYSTEM.get_drives()
+    system_info["ram"] = LINUX_SYSTEM.get_ram_info()
     return system_info
 
 
