@@ -1,4 +1,5 @@
 """Store object for a list of games"""
+# pylint: disable=not-an-iterable
 import concurrent.futures
 from gi.repository import Gtk, GObject, GLib
 from gi.repository.GdkPixbuf import Pixbuf
@@ -142,7 +143,10 @@ class GameStore(GObject.Object):
         }
 
         # Remove duplicate slugs
-        missing_media_slugs = (unavailable_banners - self.banner_misses) | (unavailable_icons - self.icon_misses)
+        missing_media_slugs = (
+            (unavailable_banners - self.banner_misses)
+            | (unavailable_icons - self.icon_misses)
+        )
         if not missing_media_slugs:
             return
         if len(missing_media_slugs) > 10:
@@ -170,7 +174,7 @@ class GameStore(GObject.Object):
         self.media_loaded = True
         self.emit("media-loaded")
 
-    def filter_view(self, model, _iter, filter_data=None):
+    def filter_view(self, model, _iter, _filter_data=None):
         """Filter function for the game model"""
         if self.filter_installed:
             installed = model.get_value(_iter, COL_INSTALLED)
@@ -248,7 +252,6 @@ class GameStore(GObject.Object):
         else:
             return self.remove_game(game_id)
 
-
     def update(self, pga_game):
         """Update game informations."""
         game = PgaGame(pga_game)
@@ -308,7 +311,7 @@ class GameStore(GObject.Object):
                 download_media(url, get_icon_path(slug, media_type))
                 self.emit("icon-loaded", slug, media_type)
 
-    def on_media_loaded(self, response):
+    def on_media_loaded(self, _response):
         """Callback to handle a response from the API with the new media"""
         if not self.medias:
             return

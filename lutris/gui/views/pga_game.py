@@ -31,7 +31,6 @@ class PgaGame:
         """Game internal ID"""
         return self._pga_data["id"]
 
-
     @property
     def slug(self):
         """Slug identifier"""
