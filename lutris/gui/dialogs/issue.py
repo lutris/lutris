@@ -23,7 +23,7 @@ def gather_system_info():
     return system_info
 
 
-class IssueReportWindow(Gtk.ApplicationWindow):
+class BaseApplicationWindow(Gtk.ApplicationWindow):
     """Window used to guide the user through a issue reporting process"""
     def __init__(self, application):
         Gtk.ApplicationWindow.__init__(self, icon_name="lutris", application=application)
@@ -32,6 +32,29 @@ class IssueReportWindow(Gtk.ApplicationWindow):
         self.set_size_request(420, 420)
         self.set_default_size(600, 480)
         self.set_position(Gtk.WindowPosition.CENTER)
+
+
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.vbox.set_margin_top(18)
+        self.vbox.set_margin_bottom(18)
+        self.vbox.set_margin_right(18)
+        self.vbox.set_margin_left(18)
+        self.add(self.vbox)
+
+
+class IssueReportWindow(BaseApplicationWindow):
+    def __init__(self, application):
+        super().__init__(application)
         self.system_info = gather_system_info()
         print(json.dumps(self.system_info, indent=2))
+
+        # Title label
+        self.title_label = Gtk.Label()
+        self.vbox.add(self.title_label)
+
+        self.status_label = Gtk.Label()
+        self.status_label.set_max_width_chars(80)
+        self.status_label.set_property("wrap", True)
+        self.status_label.set_selectable(True)
+        self.vbox.add(self.status_label)
         self.show_all()
