@@ -222,7 +222,7 @@ class LinuxSystem:
         """Return a list of sets of missing libraries for each supported architecture"""
         required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])
         return [
-            required_libs - set(self._cache["LIBRARIES"][arch][req])
+            list(required_libs - set(self._cache["LIBRARIES"][arch][req]))
             for arch in self.runtime_architectures
         ]
 

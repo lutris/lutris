@@ -40,6 +40,10 @@ class InstallerWindow(Gtk.ApplicationWindow):
         Gtk.ApplicationWindow.__init__(self, icon_name="lutris", application=application)
         self.application = application
         self.set_show_menubar(False)
+        self.set_size_request(420, 420)
+        self.set_default_size(600, 480)
+        self.set_position(Gtk.WindowPosition.CENTER)
+
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
         self.parent = parent
@@ -49,11 +53,6 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
         self.log_buffer = None
         self.log_textview = None
-
-        # Dialog properties
-        self.set_size_request(420, 420)
-        self.set_default_size(600, 480)
-        self.set_position(Gtk.WindowPosition.CENTER)
 
         self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.vbox.set_margin_top(18)
