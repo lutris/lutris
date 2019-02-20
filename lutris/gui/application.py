@@ -34,6 +34,7 @@ from lutris import pga
 from lutris.game import Game
 from lutris import settings
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
+from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.migrations import migrate
 from lutris.command import exec_command
@@ -139,6 +140,10 @@ class Application(Gtk.Application):
         self.add_main_option(
             "reinstall", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
             _("Reinstall game"), None,
+        )
+        self.add_main_option(
+            "submit-issue", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+            _("Submit an issue"), None
         )
         self.add_main_option(
             GLib.OPTION_REMAINING, 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING_ARRAY,
@@ -248,6 +253,10 @@ class Application(Gtk.Application):
         elif options.contains("exec"):
             command = options.lookup_value("exec").get_string()
             self.execute_command(command)
+            return 0
+
+        elif options.contains("submit-issue"):
+            IssueReportWindow(application=self)
             return 0
 
         try:
@@ -369,7 +378,7 @@ class Application(Gtk.Application):
             url = url.get_strv()
 
         if url:
-            url = url[0]  # TODO: Support multiple
+            url = url[0]
             installer_info = parse_installer_url(url)
             if installer_info is False:
                 raise ValueError
