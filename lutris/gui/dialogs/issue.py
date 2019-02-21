@@ -3,6 +3,7 @@ import os
 import json
 from gi.repository import Gtk
 from lutris.util.graphics import drivers
+from lutris.util.graphics.glxinfo import GlxInfo
 from lutris.util.linux import LINUX_SYSTEM
 
 def gather_system_info():
@@ -20,6 +21,8 @@ def gather_system_info():
     system_info["cpus"] = LINUX_SYSTEM.get_cpus()
     system_info["drives"] = LINUX_SYSTEM.get_drives()
     system_info["ram"] = LINUX_SYSTEM.get_ram_info()
+    system_info["dist"] = LINUX_SYSTEM.get_dist_info()
+    system_info["glxinfo"] = GlxInfo().as_dict()
     return system_info
 
 
