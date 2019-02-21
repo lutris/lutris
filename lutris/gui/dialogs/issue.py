@@ -37,12 +37,30 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         self.set_position(Gtk.WindowPosition.CENTER)
 
 
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.vbox = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=12,
+            visible=True
+        )
         self.vbox.set_margin_top(18)
         self.vbox.set_margin_bottom(18)
         self.vbox.set_margin_right(18)
         self.vbox.set_margin_left(18)
         self.add(self.vbox)
+        self.action_buttons = Gtk.Box(spacing=6)
+        self.vbox.pack_end(self.action_buttons, False, False, 0)
+
+    def get_action_button(self, label, handler=None, tooltip=None):
+        """Returns a button that can be used for the action bar"""
+        button = Gtk.Button.new_with_mnemonic(label)
+        if handler:
+            button.connect("clicked", handler)
+        if tooltip:
+            button.set_tooltip_text(tooltip)
+        return button
+
+    def on_destroy(self, _widget=None):
+        self.destroy()
 
 
 class IssueReportWindow(BaseApplicationWindow):
@@ -52,12 +70,33 @@ class IssueReportWindow(BaseApplicationWindow):
         print(json.dumps(self.system_info, indent=2))
 
         # Title label
-        self.title_label = Gtk.Label()
+        self.title_label = Gtk.Label(visible=True)
         self.vbox.add(self.title_label)
 
-        self.status_label = Gtk.Label()
-        self.status_label.set_max_width_chars(80)
-        self.status_label.set_property("wrap", True)
-        self.status_label.set_selectable(True)
-        self.vbox.add(self.status_label)
+        title_label = Gtk.Label()
+        title_label.set_markup("<b>Submit an issue</b>")
+        self.vbox.add(title_label)
+        self.vbox.add(Gtk.HSeparator())
+
+        issue_entry_label = Gtk.Label("Describe the problem you're having. ")
+        self.vbox.add(issue_entry_label)
+
+        self.textview = Gtk.TextView()
+        self.textview.set_pixels_above_lines(12)
+        self.textview.set_pixels_below_lines(12)
+        self.textview.set_left_margin(12)
+        self.textview.set_right_margin(12)
+        self.vbox.pack_start(self.textview, True, True, 0)
+
+        self.action_buttons = Gtk.Box(spacing=6)
+        action_buttons_alignment = Gtk.Alignment.new(1, 0, 0, 0)
+        action_buttons_alignment.add(self.action_buttons)
+        self.vbox.pack_start(action_buttons_alignment, False, True, 0)
+
+        cancel_button = self.get_action_button(
+            "C_ancel",
+            handler=self.on_destroy
+        )
+        self.action_buttons.add(cancel_button)
+
         self.show_all()
