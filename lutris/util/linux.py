@@ -181,6 +181,25 @@ class LinuxSystem:
         return meminfo
 
     @staticmethod
+    def get_dist_info():
+        """Return distribution information"""
+        try:
+            output = subprocess.check_output(
+                ["lsb_release", "-a"],
+                stderr=subprocess.DEVNULL
+            ).decode().split("\n")
+        except subprocess.CalledProcessError as ex:
+            logger.error("Failed to get distribution information: %s", ex)
+            return None
+        mem_info = {}
+        for line in output:
+            if not line.strip():
+                continue
+            key, value = line.split(":", 1)
+            mem_info[key] = value.strip()
+        return mem_info
+
+    @staticmethod
     def get_arch():
         """Return the system architecture only if compatible
         with the supported architectures from the Lutris API
