@@ -535,10 +535,19 @@ class Game(GObject.Object):
         self.xboxdrv_thread.start()
 
     @staticmethod
-    def xboxdrv_stop():
-        os.system("pkexec xboxdrvctl --shutdown")
+    def reload_xpad():
+        """Reloads the xpads module.
+        The path is hardcoded because this script is allowed to be executed as
+        root with a PolicyKit rule put in place by the packages.
+        Note to packagers: I you don't intent to create a PolicyKit rule for
+        this script then don't package it as calling it will fail.
+        """
         if system.path_exists("/usr/share/lutris/bin/resetxpad"):
             os.system("pkexec /usr/share/lutris/bin/resetxpad")
+
+    def xboxdrv_stop(self):
+        os.system("pkexec xboxdrvctl --shutdown")
+        self.reload_xpad()
 
     def prelaunch_beat(self):
         """Watch the prelaunch command"""
