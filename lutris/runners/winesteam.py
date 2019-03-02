@@ -2,7 +2,6 @@
 import os
 import time
 import shlex
-import subprocess
 
 from lutris import settings
 from lutris.runners import wine
@@ -377,14 +376,18 @@ class winesteam(wine.wine):
     def install_game(self, appid, generate_acf=False):
         if not appid:
             raise ValueError("Missing appid in winesteam.install_game")
-        command = self.launch_args + ["steam://install/%s" % appid]
-        subprocess.Popen(command, env=self.get_env())
+        system.execute(
+            self.launch_args + ["steam://install/%s" % appid],
+            env=self.get_env()
+        )
 
     def validate_game(self, appid):
         if not appid:
             raise ValueError("Missing appid in winesteam.validate_game")
-        command = self.launch_args + ["steam://validate/%s" % appid]
-        subprocess.Popen(command, env=self.get_env())
+        system.execute(
+            self.launch_args + ["steam://validate/%s" % appid],
+            env=self.get_env()
+        )
 
     def force_shutdown(self):
         """Forces a Steam shutdown, double checking its exit status and raising
