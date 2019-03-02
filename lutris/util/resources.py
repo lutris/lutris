@@ -3,7 +3,7 @@ import os
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.util.http import Request
+from lutris.util.http import Request, HTTPError
 
 from lutris.util import system
 
@@ -44,6 +44,9 @@ def download_media(url, dest, overwrite=False):
             os.remove(dest)
         else:
             return dest
-    request = Request(url).get()
+    try:
+        request = Request(url).get()
+    except HTTPError:
+        return
     request.write_to_file(dest)
     return dest
