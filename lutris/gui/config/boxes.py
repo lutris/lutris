@@ -181,7 +181,7 @@ class ConfigBox(VBox):
                 raise ValueError("Option %s has no label" % option)
             self.generate_entry(option_key, option["label"], value, option_size)
         elif option_type == "directory_chooser":
-            self.generate_directory_chooser(option_key, option["label"], value)
+            self.generate_directory_chooser(option, value)
         elif option_type == "file":
             self.generate_file_chooser(option, value)
         elif option_type == "multiple":
@@ -402,13 +402,14 @@ class ConfigBox(VBox):
         self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Directory chooser
-    def generate_directory_chooser(self, option_name, label_text, value=None):
+    def generate_directory_chooser(self, option, path=None):
         """Generate a file chooser button to select a directory."""
-        label = Label(label_text)
+        label = Label(option["label"])
+        option_name = option["option"]
         directory_chooser = FileChooserEntry(
             title="Select folder",
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            default_path=reverse_expanduser(value),
+            default_path=reverse_expanduser(path),
         )
         directory_chooser.entry.connect(
             "changed", self._on_chooser_dir_set, option_name
