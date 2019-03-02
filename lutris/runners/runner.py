@@ -105,7 +105,7 @@ class Runner:
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        return os.path.expanduser("~/")
+        return self.game_path or os.path.expanduser("~/")
 
     def get_platform(self):
         return self.platforms[0]
