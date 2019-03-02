@@ -47,27 +47,18 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
 
     # Piping stderr can cause slowness in the programs, use carefully
     # (especially when using regedit with wine)
-    if log_errors:
-        stderr_handler = subprocess.PIPE
-        stderr_needs_closing = False
-    else:
-        stderr_handler = open(os.devnull, "w")
-        stderr_needs_closing = True
     try:
         stdout, stderr = subprocess.Popen(
             command,
             shell=shell,
             stdout=subprocess.PIPE,
-            stderr=stderr_handler,
+            stderr=subprocess.PIPE if log_errors else subprocess.DEVNULL,
             env=existing_env,
             cwd=cwd,
         ).communicate()
     except (OSError, TypeError) as ex:
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
         return
-    finally:
-        if stderr_needs_closing:
-            stderr_handler.close()
     if stderr and log_errors:
         logger.error(stderr)
     return stdout.decode(errors="replace").strip()
