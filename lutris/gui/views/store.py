@@ -284,7 +284,7 @@ class GameStore(GObject.Object):
 
     def on_icon_loaded(self, _store, game_slug, media_type):
         if not self.has_icon(game_slug):
-            logger.warning("%s has not icon", game_slug)
+            logger.debug("%s has no %s", game_slug, media_type)
             return
         if media_type != self.icon_type:
             return
