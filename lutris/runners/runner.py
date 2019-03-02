@@ -30,7 +30,6 @@ class Runner:
     def __init__(self, config=None):
         """Initialize runner."""
         self.arch = system.LINUX_SYSTEM.arch
-        self.logger = logger
         self.config = config
         self.game_data = {}
         if config:

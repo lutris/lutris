@@ -295,10 +295,11 @@ class GameDialogCommon:
     def _build_game_tab(self):
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
-            try:
-                self.game.runner = runners.import_runner(self.runner_name)()
-            except runners.InvalidRunner:
-                pass
+            if not self.game.runner or self.game.runner.name != self.runner_name:
+                try:
+                    self.game.runner = runners.import_runner(self.runner_name)()
+                except runners.InvalidRunner:
+                    pass
             self.game_box = GameBox(self.lutris_config, self.game)
             game_sw = self.build_scrolled_window(self.game_box)
         elif self.runner_name:
