@@ -58,8 +58,8 @@ class GenericPanel(Gtk.Fixed):
         style.add_class(Gtk.STYLE_CLASS_VIEW)
         bg_provider = Gtk.CssProvider()
         bg_provider.load_from_data(
-            b'.game-scrolled { background-image: url("%s"); '
-            b"background-repeat: no-repeat; }" % bg_path.encode("utf-8")
+            ('.game-scrolled { background-image: url("%s"); '
+             "background-repeat: no-repeat; }" % bg_path).encode("utf-8")
         )
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(),
