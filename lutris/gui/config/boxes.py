@@ -370,10 +370,12 @@ class ConfigBox(VBox):
         file_chooser = FileChooserEntry(
             title="Select file",
             action=Gtk.FileChooserAction.OPEN,
-            default_path=path,  # reverse_expanduser(path)
+            path=path,
+            default_path=option.get("default_path")
         )
         file_chooser.set_size_request(200, 30)
 
+        # WTF?
         if "default_path" in option:
             config_key = option["default_path"]
             default_path = self.lutris_config.system_config.get(config_key)
@@ -406,10 +408,14 @@ class ConfigBox(VBox):
         """Generate a file chooser button to select a directory."""
         label = Label(option["label"])
         option_name = option["option"]
+        default_path = None
+        if not path and self.game:
+            default_path = self.game.runner.working_dir
         directory_chooser = FileChooserEntry(
             title="Select folder",
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            default_path=reverse_expanduser(path),
+            path=path,
+            default_path=default_path
         )
         directory_chooser.entry.connect(
             "changed", self._on_chooser_dir_set, option_name
@@ -611,8 +617,9 @@ class GameBox(ConfigBox):
 
 
 class RunnerBox(ConfigBox):
-    def __init__(self, lutris_config):
-        ConfigBox.__init__(self)
+    """Configuration box for runner specific options"""
+    def __init__(self, lutris_config, game=None):
+        ConfigBox.__init__(self, game)
         self.lutris_config = lutris_config
         try:
             runner = import_runner(self.lutris_config.runner_slug)()

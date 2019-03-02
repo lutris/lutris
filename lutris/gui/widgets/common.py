@@ -33,14 +33,16 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
 
 class FileChooserEntry(Gtk.Box):
     def __init__(
-        self, title="Select file", action=Gtk.FileChooserAction.OPEN, default_path=None
+        self, title="Select file", action=Gtk.FileChooserAction.OPEN, path=None, default_path=None
     ):
         """Widget with text entry and button to select file or folder."""
         super().__init__(spacing=6)
+        self.path = os.path.expanduser(path) if path else None
+        self.default_path = os.path.expanduser(default_path) if default_path else path
 
         self.entry = Gtk.Entry()
-        if default_path:
-            self.entry.set_text(default_path)
+        if path:
+            self.entry.set_text(path)
         self.pack_start(self.entry, True, True, 0)
 
         self.path_completion = Gtk.ListStore(str)
@@ -60,17 +62,11 @@ class FileChooserEntry(Gtk.Box):
         )
 
         self.file_chooser_dlg.set_create_folders(True)
-
-        if default_path:
-            if not os.path.isdir(default_path):
-                default_folder = os.path.dirname(default_path)
-            else:
-                default_folder = default_path
-            self.file_chooser_dlg.set_current_folder(os.path.expanduser(default_folder))
+        self.file_chooser_dlg.set_current_folder(self.get_default_folder())
 
         button = Gtk.Button()
         button.set_label("Browse...")
-        button.connect("clicked", self.on_browse_clicked, default_path)
+        button.connect("clicked", self.on_browse_clicked)
         self.add(button)
 
     def get_text(self):
@@ -79,17 +75,19 @@ class FileChooserEntry(Gtk.Box):
     def get_filename(self):
         return self.entry.get_text()
 
-    def get_default_folder(self, default=None):
-        if not default:
+    def get_default_folder(self):
+        """Return the default folder for the file picker"""
+        default_path = self.path or self.default_path or ""
+        if not default_path or not system.path_exists(default_path):
             current_entry = self.get_text()
-            if os.path.isfile(current_entry):
-                current_entry = os.path.dirname(current_entry)
             if system.path_exists(current_entry):
-                default = current_entry
-        return os.path.expanduser(default or "~")
+                default_path = current_entry
+        if not os.path.isdir(default_path):
+            default_path = os.path.dirname(default_path)
+        return os.path.expanduser(default_path or "~")
 
-    def on_browse_clicked(self, _widget, default_path):
-        default_folder = self.get_default_folder(default_path)
+    def on_browse_clicked(self, _widget):
+        default_folder = self.get_default_folder()
         if default_folder:
             self.file_chooser_dlg.set_current_folder(default_folder)
         self.file_chooser_dlg.connect("response", self._select_file)

@@ -112,7 +112,7 @@ class GameDialogCommon:
         path_chooser = FileChooserEntry(
             title="Set the folder for the cache path",
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            default_path=cache_path
+            path=cache_path
         )
         path_chooser.entry.connect("changed", self._on_cache_path_set)
         box.pack_start(path_chooser, True, True, 0)
@@ -313,7 +313,7 @@ class GameDialogCommon:
 
     def _build_runner_tab(self, _config_level):
         if self.runner_name:
-            self.runner_box = RunnerBox(self.lutris_config)
+            self.runner_box = RunnerBox(self.lutris_config, self.game)
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)

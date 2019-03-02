@@ -341,7 +341,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
         if self.location_entry:
             self.location_entry.destroy()
-        self.location_entry = FileChooserEntry(title, action, default_path)
+        self.location_entry = FileChooserEntry(title, action, default_path=default_path)
         self.location_entry.show_all()
         if callback_on_changed:
             self.location_entry.entry.connect("changed", callback_on_changed, action)
