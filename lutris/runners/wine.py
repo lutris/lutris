@@ -124,14 +124,6 @@ class wine(Runner):
     def __init__(self, config=None):
         super(wine, self).__init__(config)
         self.dll_overrides = {}
-        self.context_menu_entries = [
-            ("wineexec", "Run EXE inside wine prefix", self.run_wineexec),
-            ("winecfg", "Wine configuration", self.run_winecfg),
-            ("wine-regedit", "Wine registry", self.run_regedit),
-            ("winekill", "Kill all wine processes", self.run_winekill),
-            ("winetricks", "Winetricks", self.run_winetricks),
-            ("joycpl", "Joystick Control Panel", self.run_joycpl),
-        ]
 
         def get_wine_version_choices():
             version_choices = [("Custom (select executable below)", "custom")]
@@ -443,6 +435,21 @@ class wine(Runner):
                 "advanced": True,
             },
         ]
+
+    @property
+    def context_menu_entries(self):
+        menu_entries = [
+            ("wineexec", "Run EXE inside wine prefix", self.run_wineexec)
+        ]
+        if "Proton" not in self.get_version():
+            menu_entries.append(("winecfg", "Wine configuration", self.run_winecfg))
+        menu_entries += [
+            ("wine-regedit", "Wine registry", self.run_regedit),
+            ("winekill", "Kill all wine processes", self.run_winekill),
+            ("winetricks", "Winetricks", self.run_winetricks),
+            ("joycpl", "Joystick Control Panel", self.run_joycpl),
+        ]
+        return menu_entries
 
     @property
     def prefix_path(self):
