@@ -134,7 +134,7 @@ class LutrisConfig:
             self.runner_config.clear()
             self.runner_config.update(self.get_defaults("runner"))
             self.runner_config.update(self.runner_level.get(self.runner_slug))
-            self.system_config.update(self.runner_level.get("system"))
+            self.merge_to_system_config(self.runner_level.get("system"))
 
         if self.level == "game" and self.runner_slug:
             if self.game_level.get("game") is None:
@@ -147,7 +147,19 @@ class LutrisConfig:
             self.game_config.update(self.get_defaults("game"))
             self.game_config.update(self.game_level.get("game"))
             self.runner_config.update(self.game_level.get(self.runner_slug))
-            self.system_config.update(self.game_level.get("system"))
+            self.merge_to_system_config(self.game_level.get("system"))
+
+    def merge_to_system_config(self, config):
+        """Merge a configuration to the system configuation"""
+        if not config:
+            return
+        existing_env = None
+        if self.system_config.get("env") and "env" in config:
+            existing_env = self.system_config["env"]
+        self.system_config.update(config)
+        if existing_env:
+            self.system_config["env"] = existing_env
+            self.system_config["env"].update(config["env"])
 
     def update_raw_config(self):
         # Select the right level of config
