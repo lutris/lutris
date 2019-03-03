@@ -5,6 +5,7 @@ from lutris import settings
 from lutris.installer.errors import ScriptingError, FileNotAvailable
 from lutris.util.log import logger
 from lutris.util import system
+from lutris.cache import get_cache_path
 
 
 class InstallerFile:
@@ -43,7 +44,7 @@ class InstallerFile:
         return "%s/%s" % (self.game_slug, self.id)
 
     def uses_pga_cache(self, create=False):
-        cache_path = settings.read_setting("pga_cache_path")
+        cache_path = get_cache_path()
         if not cache_path:
             return False
         if not system.path_exists(cache_path):
@@ -61,12 +62,13 @@ class InstallerFile:
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        if settings.read_setting("pga_cache_path"):
+        _cache_path = get_cache_path()
+        if _cache_path:
             if "cdn.gog.com" in self.url or "cdn-hw.gog.com" in self.url:
                 folder = "gog"
             else:
                 folder = self.id
-            return os.path.join(settings.read_setting("pga_cache_path"), self.game_slug, folder)
+            return os.path.join(_cache_path, self.game_slug, folder)
         return os.path.join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
 
     def get_download_info(self):

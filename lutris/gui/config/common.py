@@ -6,6 +6,7 @@ from lutris.game import Game
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris import runners
 from lutris import settings
+from lutris.cache import get_cache_path, save_cache_path
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog
@@ -108,7 +109,7 @@ class GameDialogCommon:
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
         label = Label("Cache path")
         box.pack_start(label, False, False, 0)
-        cache_path = settings.read_setting("pga_cache_path")
+        cache_path = get_cache_path()
         path_chooser = FileChooserEntry(
             title="Set the folder for the cache path",
             action=Gtk.FileChooserAction.SELECT_FOLDER,
@@ -124,7 +125,7 @@ class GameDialogCommon:
         self.timer_id = GLib.timeout_add(1000, self.save_cache_setting, entry.get_text())
 
     def save_cache_setting(self, value):
-        settings.write_setting("pga_cache_path", value)
+        save_cache_path(value)
         GLib.source_remove(self.timer_id)
         self.timer_id = None
         return False

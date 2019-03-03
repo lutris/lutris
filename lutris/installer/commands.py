@@ -11,7 +11,7 @@ from gi.repository import GLib
 from lutris.installer.errors import ScriptingError
 
 from lutris import runtime
-from lutris import settings
+from lutris.cache import get_cache_path
 from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
@@ -66,7 +66,7 @@ class CommandsMixin:
 
     def _is_cached_file(self, file_path):
         """Return whether a file referenced by file_id is stored in the cache"""
-        pga_cache_path = settings.read_setting("pga_cache_path")
+        pga_cache_path = get_cache_path()
         if not pga_cache_path:
             return False
         return file_path.startswith(pga_cache_path)
