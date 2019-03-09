@@ -614,6 +614,10 @@
                             <property name="can_focus">True</property>
                             <property name="halign">center</property>
                             <property name="valign">center</property>
+                            <property name="margin_left">5</property>
+                            <property name="margin_right">5</property>
+                            <property name="margin_top">5</property>
+                            <property name="margin_bottom">5</property>
                             <property name="hexpand">True</property>
                             <property name="width_chars">50</property>
                             <property name="placeholder_text" translatable="yes">Filter the list of games</property>
