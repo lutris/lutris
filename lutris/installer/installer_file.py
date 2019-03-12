@@ -35,7 +35,7 @@ class InstallerFile:
 
         if not self.filename:
             raise ScriptingError(
-                "No filename provided, please provide 'url' and 'filename' parameters in the script"
+                "No filename provided for %s, please provide 'url' and 'filename' parameters in the script" % file_id
             )
         if self.uses_pga_cache(create=True):
             logger.debug("Using cache path %s", self.cache_path)
