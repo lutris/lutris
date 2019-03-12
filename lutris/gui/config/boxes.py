@@ -7,7 +7,6 @@ from lutris import settings, sysoptions
 from lutris.gui.widgets.common import VBox, Label, FileChooserEntry, EditableGrid
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
-from lutris.util.system import reverse_expanduser
 from lutris.util.jobs import AsyncCall
 
 
@@ -409,7 +408,7 @@ class ConfigBox(VBox):
         label = Label(option["label"])
         option_name = option["option"]
         default_path = None
-        if not path and self.game:
+        if not path and self.game and self.game.runner:
             default_path = self.game.runner.working_dir
         directory_chooser = FileChooserEntry(
             title="Select folder",
