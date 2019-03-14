@@ -465,7 +465,7 @@ class WineNotInstalledWarning(DontShowAgainDialog):
             secondary_message="Having Wine installed on your system guarantees that "
             "Wine builds from Lutris will have all required dependencies.\n\nPlease "
             "follow the instructions given in the <a "
-            "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
+            "href='https://github.com/lutris/lutris/wiki/Wine-Dependencies'>Lutris Wiki</a> to "
             "install Wine.",
             parent=parent,
         )
