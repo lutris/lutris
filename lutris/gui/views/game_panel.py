@@ -111,7 +111,7 @@ class GamePanel(GenericPanel):
             # "play": "media-playback-start-symbolic",
             "configure": "preferences-system-symbolic",
             "browse": "system-file-manager-symbolic",
-            "show_logs": "utilities-system-monitor-symbolic",
+            "show_logs": "utilities-terminal-symbolic",
             "remove": "user-trash-symbolic",
         }
         buttons = {}
