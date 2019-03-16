@@ -56,7 +56,7 @@ class Process:
         try:
             with open(children_path) as children_file:
                 children_content = children_file.read()
-        except FileNotFoundError:
+        except (FileNotFoundError, ProcessLookupError):
             children_content = ""
         return children_content.strip().split()
 
