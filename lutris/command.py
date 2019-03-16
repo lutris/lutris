@@ -3,6 +3,7 @@
 import io
 import os
 import sys
+import fcntl
 import shlex
 import subprocess
 import contextlib
@@ -132,6 +133,14 @@ class MonitoredCommand:
 
         register_handler(self.game_process.pid, self.on_stop)
 
+        # make stdout nonblocking.
+        fileno = self.game_process.stdout.fileno()
+        fcntl.fcntl(
+            fileno,
+            fcntl.F_SETFL,
+            fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK
+        )
+
         self.stdout_monitor = GLib.io_add_watch(
             self.game_process.stdout,
             GLib.IO_IN | GLib.IO_HUP,
@@ -173,7 +182,7 @@ class MonitoredCommand:
         if not self.is_running:
             return False
         try:
-            line = stdout.readline().decode("utf-8", errors="ignore")
+            line = stdout.read(262144).decode("utf-8", errors="ignore")
         except ValueError:
             # file_desc might be closed
             return True
