@@ -151,7 +151,8 @@ class WineRegistry:
         prefix_path = os.path.dirname(path)
         if not os.path.isdir(prefix_path):
             raise OSError("Invalid Wine prefix path %s, make sure to "
-                          "create the prefix before saving to a registry")
+                          "create the prefix before saving to a registry"
+                          % prefix_path)
         with open(path, "w") as registry_file:
             registry_file.write(self.render())
 
