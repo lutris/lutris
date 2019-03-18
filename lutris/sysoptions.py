@@ -353,6 +353,14 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "help": "Open Xephyr in fullscreen (at the desktop resolution)",
     },
+    {
+        "option": "use_xdg_utils",
+        "type": "bool",
+        "label": "Use xdg utils",
+        "default": False,
+        "advanced": True,
+        "help": "Use xdg-open instead of Gtk.show_uri for browsing, and other xdg utils",
+    },
 ]
 
 

@@ -1,6 +1,7 @@
 """Handle game specific actions"""
 import os
 import signal
+import subprocess
 from gi.repository import Gio
 from lutris.command import MonitoredCommand
 from lutris.game import Game
@@ -217,7 +218,10 @@ class GameActions:
         if not path:
             dialogs.NoticeDialog("This game has no installation directory")
         elif path_exists(path):
-            open_uri("file://%s" % path)
+            if self.game.runner.system_config.get("use_xdg_utils"):
+                subprocess.run(["xdg-open", path])
+            else:
+                open_uri("file://%s" % path)
         else:
             dialogs.NoticeDialog("Can't open %s \nThe folder doesn't exist." % path)
 
