@@ -44,7 +44,6 @@ class MonitoredCommand:
         # the wrappper script.
         self.env['PYTHONPATH'] = ':'.join(sys.path)
 
-        self.original_env = {}
         self.command = command
         self.runner = runner
         self.stop_func = lambda: True
@@ -52,7 +51,6 @@ class MonitoredCommand:
         self.return_code = None
         self.terminal = system.find_executable(term)
         self.is_running = True
-        self.daemon = True
         self.error = None
         self.log_handlers = [
             self.log_handler_stdout,
@@ -60,7 +58,6 @@ class MonitoredCommand:
         ]
         self.set_log_buffer(log_buffer)
         self.stdout_monitor = None
-        self.watch_children_running = False
         self.include_processes = include_processes or []
         self.exclude_processes = exclude_processes or []
 
@@ -97,19 +94,8 @@ class MonitoredCommand:
             cwd = self.runner.working_dir if self.runner else "/tmp"
         return os.path.expanduser(cwd)
 
-    def apply_environment(self):
-        """Applies the environment variables to the system's environment."""
-        # Store provided environment variables so they can be used by future
-        # processes.
-        for key, value in self.env.items():
-            self.original_env[key] = os.environ.get(key)
-            os.environ[key.strip("=")] = str(value)
-
-        # Reset library paths if they were not provided
-        if not any([key in self.env for key in ("LD_LIBRARY_PATH", "LD_PRELOAD")]):
-            system.reset_library_preloads()
-
-        # Copy the resulting environment to what will be passed to the process
+    def _get_environment(self):
+        """Returns the calculated environment for the child process."""
         env = os.environ.copy()
         env.update(self.env)
         return env
@@ -124,7 +110,7 @@ class MonitoredCommand:
         if self.terminal:
             self.game_process = self.run_in_terminal()
         else:
-            env = self.apply_environment()
+            env = self._get_environment()
             self.game_process = self.execute_process(self.wrapper_command, env)
 
         if not self.game_process:
@@ -235,19 +221,6 @@ class MonitoredCommand:
             logger.exception("Failed to execute %s: %s", " ".join(command), ex)
             self.error = ex.strerror
 
-    def restore_environment(self):
-        """Restore the environment to its original state"""
-        logger.debug("Restoring environment")
-        for key in self.original_env:
-            if self.original_env[key] is None:
-                try:
-                    del os.environ[key]
-                except KeyError:
-                    pass
-            else:
-                os.environ[key] = self.original_env[key]
-        self.original_env = {}
-
     def stop(self):
         """Stops the current game process and cleans up the instance"""
         try:
@@ -269,10 +242,10 @@ class MonitoredCommand:
         if self.stdout_monitor:
             logger.debug("Detaching logger")
             GLib.source_remove(self.stdout_monitor)
+            self.stdout_monitor = None
         else:
             logger.debug("logger already detached")
 
-        self.restore_environment()
         self.is_running = False
         self.ready_state = False
         return True
