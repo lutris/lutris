@@ -22,6 +22,10 @@ Output = namedtuple(
 )
 
 
+class NoScreenDetected(Exception):
+    """Raise this when unable to detect screens"""
+
+
 def get_outputs():
     """Return list of namedtuples containing output 'name', 'geometry',
     'rotation' and whether it is the 'primary' display."""
@@ -216,9 +220,12 @@ class LegacyDisplayManager:
     get_resolutions = staticmethod(get_resolutions)
 
 
-class DisplayManager(object):
+class DisplayManager:
+    """Get display and resolution using GnomeDesktop"""
     def __init__(self):
         screen = Gdk.Screen.get_default()
+        if not screen:
+            raise NoScreenDetected
         self.rr_screen = GnomeDesktop.RRScreen.new(screen)
         self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
         self.rr_config.load_current()
@@ -240,7 +247,7 @@ class DisplayManager(object):
 
 try:
     DISPLAY_MANAGER = DisplayManager()
-except GLib.Error:
+except (GLib.Error, NoScreenDetected):
     DISPLAY_MANAGER = LegacyDisplayManager()
 
 USE_DRI_PRIME = len(_get_graphics_adapters()) > 1

@@ -84,10 +84,18 @@ class Game(GObject.Object):
         self.compositor_disabled = False
         self.stop_compositor = self.start_compositor = ""
         self.original_outputs = None
-        self.log_buffer = Gtk.TextBuffer()
-        self.log_buffer.create_tag("warning", foreground="red")
-
+        self._log_buffer = None
         self.timer = Timer()
+
+    @property
+    def log_buffer(self):
+        if self._log_buffer is None:
+            self._log_buffer = Gtk.TextBuffer()
+            self._log_buffer.create_tag("warning", foreground="red")
+            if self.game_thread:
+                self.game_thread.set_log_buffer(self._log_buffer)
+                self._log_buffer.set_text(self.game_thread.stdout)
+        return self._log_buffer
 
     def __repr__(self):
         return self.__unicode__()
@@ -500,7 +508,7 @@ class Game(GObject.Object):
             runner=self.runner,
             env=self.game_runtime_config["env"],
             term=self.game_runtime_config["terminal"],
-            log_buffer=self.log_buffer,
+            log_buffer=self._log_buffer,
             include_processes=self.game_runtime_config["include_processes"],
             exclude_processes=self.game_runtime_config["exclude_processes"],
         )

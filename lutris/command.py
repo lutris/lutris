@@ -1,7 +1,9 @@
 """Threading module, used to launch games while monitoring them."""
 
+import io
 import os
 import sys
+import fcntl
 import shlex
 import subprocess
 import contextlib
@@ -49,7 +51,6 @@ class MonitoredCommand:
         self.return_code = None
         self.terminal = system.find_executable(term)
         self.is_running = True
-        self.stdout = ""
         self.error = None
         self.log_handlers = [
             self.log_handler_stdout,
@@ -62,6 +63,12 @@ class MonitoredCommand:
 
         # Keep a copy of previously running processes
         self.cwd = self.get_cwd(cwd)
+
+        self._stdout = io.StringIO()
+
+    @property
+    def stdout(self):
+        return self._stdout.getvalue()
 
     @property
     def wrapper_command(self):
@@ -112,6 +119,14 @@ class MonitoredCommand:
 
         register_handler(self.game_process.pid, self.on_stop)
 
+        # make stdout nonblocking.
+        fileno = self.game_process.stdout.fileno()
+        fcntl.fcntl(
+            fileno,
+            fcntl.F_SETFL,
+            fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK
+        )
+
         self.stdout_monitor = GLib.io_add_watch(
             self.game_process.stdout,
             GLib.IO_IN | GLib.IO_HUP,
@@ -120,7 +135,7 @@ class MonitoredCommand:
 
     def log_handler_stdout(self, line):
         """Add the line to this command's stdout attribute"""
-        self.stdout += line
+        self._stdout.write(line)
 
     def log_handler_buffer(self, line):
         """Add the line to the associated LogBuffer object"""
@@ -153,7 +168,7 @@ class MonitoredCommand:
         if not self.is_running:
             return False
         try:
-            line = stdout.readline().decode("utf-8", errors="ignore")
+            line = stdout.read(262144).decode("utf-8", errors="ignore")
         except ValueError:
             # file_desc might be closed
             return True
