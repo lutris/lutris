@@ -375,27 +375,26 @@ class GameDialogCommon:
 
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed."""
-
         new_runner_index = widget.get_active()
-        if not self.runner_index:
-            self.runner_index = new_runner_index
-            self._switch_runner_tab(widget)
-        elif new_runner_index != self.runner_index:
+        if self.runner_index and new_runner_index != self.runner_index:
             dlg = QuestionDialog(
                 {
-                    "question": "Are you sure you want to change the runner for this game ?"
-                                " This will erase any configuration in the Game, Runner"
-                                " and System options tabs.",
-                    "title": "CONFIRM RUNNER CHANGE",
+                    "question": "Are you sure you want to change the runner for this game ? "
+                                "This will reset the full configuration for this game and "
+                                "is not reversible.",
+                    "title": "Confirm runner change",
                 }
             )
 
             if dlg.result == Gtk.ResponseType.YES:
                 self.runner_index = new_runner_index
-                self._switch_runner_tab(widget)
+                self._switch_runner(widget)
             else:
-                # Reverting the dropdown menu to the previously selected runner
+                # Revert the dropdown menu to the previously selected runner
                 widget.set_active(self.runner_index)
+        else:
+            self.runner_index = new_runner_index
+            self._switch_runner(widget)
 
     def _switch_runner(self, widget):
         """Rebuilds the UI on runner change"""
