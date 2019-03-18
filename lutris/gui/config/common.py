@@ -377,9 +377,10 @@ class GameDialogCommon:
         """Action called when runner drop down is changed."""
 
         new_runner_index = widget.get_active()
-
-        if new_runner_index != self.runner_index:
-
+        if not self.runner_index:
+            self.runner_index = new_runner_index
+            self._switch_runner_tab(widget)
+        elif new_runner_index != self.runner_index:
             dlg = QuestionDialog(
                 {
                     "question": "Are you sure you want to change the runner for this game ?"
@@ -390,27 +391,26 @@ class GameDialogCommon:
             )
 
             if dlg.result == Gtk.ResponseType.YES:
-
                 self.runner_index = new_runner_index
-                current_page = self.notebook.get_current_page()
-
-                if self.runner_index == 0:
-                    self.runner_name = None
-                    self.lutris_config = None
-                else:
-                    self.runner_name = widget.get_model()[self.runner_index][1]
-                    self.lutris_config = LutrisConfig(
-                        runner_slug=self.runner_name,
-                        level="game"
-                    )
-
-                self._rebuild_tabs()
-                self.notebook.set_current_page(current_page)
-
+                self._switch_runner_tab(widget)
             else:
-
                 # Reverting the dropdown menu to the previously selected runner
                 widget.set_active(self.runner_index)
+
+    def _switch_runner(self, widget):
+        """Rebuilds the UI on runner change"""
+        current_page = self.notebook.get_current_page()
+        if self.runner_index == 0:
+            self.runner_name = None
+            self.lutris_config = None
+        else:
+            self.runner_name = widget.get_model()[self.runner_index][1]
+            self.lutris_config = LutrisConfig(
+                runner_slug=self.runner_name,
+                level="game"
+            )
+        self._rebuild_tabs()
+        self.notebook.set_current_page(current_page)
 
     def _rebuild_tabs(self):
         for i in range(self.notebook.get_n_pages(), 1, -1):
