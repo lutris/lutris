@@ -85,8 +85,9 @@ def check_driver():
                 setting,
                 "Your Nvidia driver is outdated.",
                 secondary_message="You are currently running driver %s which does not "
-                "fully support all features for Vulkan games.\n"
-                "Please upgrade your driver if you experience issues."
+                "fully support all features for Vulkan and DXVK games.\n"
+                "Please upgrade your driver as described here if issues occur:\n"
+                "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
                 % driver_info["nvrm"]["version"]
             )
 
