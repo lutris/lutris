@@ -30,6 +30,27 @@ from . import (
 )
 
 
+def sort_func(model, row1, row2, sort_col):
+    """Sorting function for the GameStore"""
+    value1 = model.get_value(row1, sort_col)
+    value2 = model.get_value(row2, sort_col)
+    if value1 is None and value2 is None:
+        value1 = value2 = 0
+    elif value1 is None:
+        value1 = type(value2)()
+    elif value2 is None:
+        value2 = type(value1)()
+    diff = -1 if value1 < value2 else 0 if value1 == value2 else 1
+    if diff == 0:
+        value1 = model.get_value(row1, COL_NAME)
+        value2 = model.get_value(row2, COL_NAME)
+        diff = -1 if value1 < value2 else 0 if value1 == value2 else 1
+    if diff == 0:
+        value1 = model.get_value(row1, COL_RUNNER_HUMAN_NAME)
+        value2 = model.get_value(row2, COL_RUNNER_HUMAN_NAME)
+    return -1 if value1 < value2 else 0 if value1 == value2 else 1
+
+
 class GameStore(GObject.Object):
     __gsignals__ = {
         "media-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -84,15 +105,18 @@ class GameStore(GObject.Object):
             str,
             str,
         )
+        sort_col = COL_NAME
         if show_installed_first:
-            self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
+            sort_col = COL_INSTALLED
+            self.store.set_sort_column_id(sort_col, Gtk.SortType.DESCENDING)
         else:
-            self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+            self.store.set_sort_column_id(sort_col, Gtk.SortType.ASCENDING)
         self.prevent_sort_update = False  # prevent recursion with signals
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
         self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
+        self.modelsort.set_sort_func(sort_col, sort_func, sort_col)
         self.sort_view(sort_key, sort_ascending)
         self.medias = {"banner": {}, "icon": {}}
         self.banner_misses = set()

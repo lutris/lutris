@@ -1,6 +1,7 @@
 # pylint: disable=no-member
 from gi.repository import Gtk, Pango
 from lutris import settings
+from lutris.gui.views.store import sort_func
 from lutris.gui.views.base import GameView
 from lutris.gui.views import (
     COL_NAME,
@@ -82,38 +83,11 @@ class GameListView(Gtk.TreeView, GameView):
 
     def set_column_sort(self, col):
         """Sort a column and fallback to sorting by name and runner."""
-
-        def sort_func(model, row1, row2, user_data):
-            v1 = model.get_value(row1, col)
-            v2 = model.get_value(row2, col)
-            diff = -1 if v1 < v2 else 0 if v1 == v2 else 1
-            if diff is 0:
-                v1 = model.get_value(row1, COL_NAME)
-                v2 = model.get_value(row2, COL_NAME)
-                diff = -1 if v1 < v2 else 0 if v1 == v2 else 1
-            if diff is 0:
-                v1 = model.get_value(row1, COL_RUNNER_HUMAN_NAME)
-                v2 = model.get_value(row2, COL_RUNNER_HUMAN_NAME)
-                diff = -1 if v1 < v2 else 0 if v1 == v2 else 1
-            return diff
-
-        self.model.set_sort_func(col, sort_func)
+        self.model.set_sort_func(col, sort_func, col)
 
     def set_sort_with_column(self, col, sort_col):
-        """Set to sort a column by using another column"""
-
-        def sort_func(model, row1, row2, _user_data):
-            value1 = model.get_value(row1, sort_col)
-            value2 = model.get_value(row2, sort_col)
-            if value1 is None and value2 is None:
-                return 0
-            if value1 is None:
-                return -1
-            if value2 is None:
-                return 1
-            return -1 if value1 < value2 else 0 if value1 == value2 else 1
-
-        self.model.set_sort_func(col, sort_func)
+        """Sort a column by using another column's data"""
+        self.model.set_sort_func(col, sort_func, sort_col)
 
     def get_selected_item(self):
         """Return the currently selected game's id."""
