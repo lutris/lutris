@@ -44,32 +44,39 @@ class InstallerFile:
         return "%s/%s" % (self.game_slug, self.id)
 
     def uses_pga_cache(self, create=False):
+        """Determines whether the installer files are stored in a PGA cache
+
+        Params:
+            create (bool): If a cache is active, auto create directories if needed
+        Returns:
+            bool
+        """
         cache_path = get_cache_path()
         if not cache_path:
             return False
-        if not system.path_exists(cache_path):
-            if create:
-                try:
-                    os.makedirs(self.cache_path)
-                except OSError as ex:
-                    logger.error("Failed to created cache path: %s", ex)
-                    return False
-                return True
-            logger.warning("Cache path %s does not exist", cache_path)
-            return False
-        return True
+        if system.path_exists(cache_path):
+            return True
+        if create:
+            try:
+                os.makedirs(self.cache_path)
+            except OSError as ex:
+                logger.error("Failed to created cache path: %s", ex)
+                return False
+            return True
+        logger.warning("Cache path %s does not exist", cache_path)
+        return False
 
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
         _cache_path = get_cache_path()
-        if _cache_path:
-            if "cdn.gog.com" in self.url or "cdn-hw.gog.com" in self.url:
-                folder = "gog"
-            else:
-                folder = self.id
-            return os.path.join(_cache_path, self.game_slug, folder)
-        return os.path.join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
+        if not _cache_path:
+            _cache_path = os.path.join(settings.CACHE_DIR, "installer")
+        if "cdn.gog.com" in self.url or "cdn-hw.gog.com" in self.url:
+            folder = "gog"
+        else:
+            folder = self.id
+        return os.path.join(_cache_path, self.game_slug, folder)
 
     def get_download_info(self):
         """Retrieve the file locally"""
