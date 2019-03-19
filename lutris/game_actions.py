@@ -148,7 +148,7 @@ class GameActions:
     def get_disabled_entries(self):
         """Return a dictionary of actions that should be disabled for a game"""
         return {
-            "show_logs": not self.is_game_running,
+            "show_logs": not bool(self.game.game_thread),
         }
 
     def on_game_run(self, *_args):
