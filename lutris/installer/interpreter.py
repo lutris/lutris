@@ -890,6 +890,9 @@ class ScriptInterpreter(CommandsMixin):
         """Return available installers for a GOG game"""
 
         self.gog_data = gog_service.get_game_details(self.gogid)
+        if not self.gog_data:
+            logger.warning("Unable to get GOG data for game %s", self.gogid)
+            return []
 
         # Filter out Mac installers
         gog_installers = [
@@ -921,6 +924,8 @@ class ScriptInterpreter(CommandsMixin):
         if not gog_service.is_available():
             logger.info("You are not connected to GOG")
             connect_gog()
+        if not gog_service.is_available():
+            raise UnavailableGame
         gog_installers = self.get_gog_installers(gog_service)
         if len(gog_installers) > 1:
             raise ScriptingError("Don't know how to deal with multiple installers yet.")
