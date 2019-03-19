@@ -475,6 +475,8 @@ class mednafen(Runner):
         options = [
             "-fs",
             fullscreen,
+            "-force_module",
+            machine,
             "-" + machine + ".xres",
             xres,
             "-" + machine + ".yres",
