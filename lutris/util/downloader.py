@@ -86,8 +86,9 @@ class Downloader:
             logger.error("Download failed: %s", error)
             self.state = self.ERROR
             self.error = error
-            self.file_pointer.close()
-            self.file_pointer = None
+            if self.file_pointer:
+                self.file_pointer.close()
+                self.file_pointer = None
             return
 
         if self.state == self.CANCELLED:
