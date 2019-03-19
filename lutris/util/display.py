@@ -70,11 +70,6 @@ def get_outputs():
     return outputs
 
 
-def get_output_names():
-    """Return output names from XrandR"""
-    return [output.name for output in get_outputs()]
-
-
 def turn_off_except(display):
     """Use XrandR to turn off displays except the one referenced by `display`"""
     if not display:
@@ -139,10 +134,10 @@ def change_resolution(resolution):
             logger.debug("Switching to %s on %s", display.mode, display.name)
 
             if display.rotation is not None and display.rotation in (
-                "normal",
-                "left",
-                "right",
-                "inverted",
+                    "normal",
+                    "left",
+                    "right",
+                    "inverted",
             ):
                 rotation = display.rotation
             else:
@@ -215,8 +210,15 @@ def _get_graphics_adapters():
     ]
 
 
-class LegacyDisplayManager:
-    get_display_names = staticmethod(get_output_names)
+class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
+    """Legacy XrandR based display manager.
+    Does not work on Wayland.
+    """
+    @staticmethod
+    def get_display_names():
+        """Return output names from XrandR"""
+        return [output.name for output in get_outputs()]
+
     get_resolutions = staticmethod(get_resolutions)
 
 
@@ -231,12 +233,14 @@ class DisplayManager:
         self.rr_config.load_current()
 
     def get_display_names(self):
+        """Return names of connected displays"""
         return [
             output_info.get_display_name()
             for output_info in self.rr_config.get_outputs()
         ]
 
     def get_resolutions(self):
+        """Return available resolutions"""
         resolutions = []
         for mode in self.rr_screen.list_modes():
             resolutions.append("%sx%s" % (mode.get_width(), mode.get_height()))
@@ -298,11 +302,11 @@ def get_compositor_commands():
             "qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume"
         )
     elif (
-        desktop_session == "mate"
-        and system.execute(
-            "gsettings get org.mate.Marco.general compositing-manager", shell=True
-        )
-        == "true"
+            desktop_session == "mate"
+            and system.execute(
+                "gsettings get org.mate.Marco.general compositing-manager", shell=True
+            )
+            == "true"
     ):
         stop_compositor = (
             "gsettings set org.mate.Marco.general compositing-manager false"
@@ -311,12 +315,12 @@ def get_compositor_commands():
             "gsettings set org.mate.Marco.general compositing-manager true"
         )
     elif (
-        desktop_session == "xfce"
-        and system.execute(
-            "xfconf-query --channel=xfwm4 --property=/general/use_compositing",
-            shell=True,
-        )
-        == "true"
+            desktop_session == "xfce"
+            and system.execute(
+                "xfconf-query --channel=xfwm4 --property=/general/use_compositing",
+                shell=True,
+            )
+            == "true"
     ):
         stop_compositor = (
             "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false"
@@ -325,13 +329,13 @@ def get_compositor_commands():
             "xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true"
         )
     elif (
-        desktop_session == "deepin"
-        and system.execute(
-            "dbus-send --session --dest=com.deepin.WMSwitcher --type=method_call "
-            "--print-reply=literal /com/deepin/WMSwitcher com.deepin.WMSwitcher.CurrentWM",
-            shell=True,
-        )
-        == "deepin wm"
+            desktop_session == "deepin"
+            and system.execute(
+                "dbus-send --session --dest=com.deepin.WMSwitcher --type=method_call "
+                "--print-reply=literal /com/deepin/WMSwitcher com.deepin.WMSwitcher.CurrentWM",
+                shell=True,
+            )
+            == "deepin wm"
     ):
         start_compositor, stop_compositor = (
             "dbus-send --session --dest=com.deepin.WMSwitcher --type=method_call "
