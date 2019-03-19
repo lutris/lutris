@@ -566,10 +566,10 @@ class ScriptInterpreter(CommandsMixin):
         path = None
         if launcher_value:
             path = self._substitute(launcher_value)
-            if not os.path.isabs(path):
+            if not os.path.isabs(path) and self.target_path:
                 path = os.path.join(self.target_path, path)
         self._write_config()
-        if path and not os.path.isfile(path):
+        if path and not os.path.isfile(path) and self.runner not in ("web", "browser"):
             self.parent.set_status(
                 "The executable at path %s can't be found, please check the destination folder.\n"
                 "Check the destination folder, "
