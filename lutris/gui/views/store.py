@@ -45,7 +45,7 @@ class GameStore(GObject.Object):
         "platform": COL_PLATFORM,
         "lastplayed": COL_LASTPLAYED,
         "installed_at": COL_INSTALLED_AT,
-        "playtime": COL_PLAYTIME,
+        "playtime": COL_PLAYTIME_TEXT,
     }
 
     def __init__(
@@ -207,6 +207,8 @@ class GameStore(GObject.Object):
         key = next((c for c, k in self.sort_columns.items() if k == col), None)
         ascending = direction == Gtk.SortType.ASCENDING
         self.prevent_sort_update = True
+        if not key:
+            raise ValueError("Invalid sort key for col %s" % col)
         self.sort_view(key, ascending)
         self.prevent_sort_update = False
         self.emit("sorting-changed", key, ascending)

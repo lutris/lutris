@@ -12,6 +12,7 @@ from lutris.gui.views import (
     COL_LASTPLAYED_TEXT,
     COL_INSTALLED_AT,
     COL_INSTALLED_AT_TEXT,
+    COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
     COLUMN_NAMES
 )
@@ -49,6 +50,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_column(default_text_cell, "Installed At", COL_INSTALLED_AT_TEXT, 120)
         self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
         self.set_column(default_text_cell, "Play Time", COL_PLAYTIME_TEXT, 100)
+        self.set_sort_with_column(COL_PLAYTIME_TEXT, COL_PLAYTIME)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
@@ -103,6 +105,12 @@ class GameListView(Gtk.TreeView, GameView):
         def sort_func(model, row1, row2, _user_data):
             value1 = model.get_value(row1, sort_col)
             value2 = model.get_value(row2, sort_col)
+            if value1 is None and value2 is None:
+                return 0
+            if value1 is None:
+                return -1
+            if value2 is None:
+                return 1
             return -1 if value1 < value2 else 0 if value1 == value2 else 1
 
         self.model.set_sort_func(col, sort_func)
