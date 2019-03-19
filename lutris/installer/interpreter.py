@@ -672,6 +672,10 @@ class ScriptInterpreter(CommandsMixin):
             if not isinstance(key, str):
                 raise ScriptingError("Game config key must be a string", key)
             value = script_config[key]
+            if str(value).lower() == 'true':
+                value = True
+            if str(value).lower() == 'false':
+                value = False
             if isinstance(value, list):
                 config[key] = [self._substitute(i) for i in value]
             elif isinstance(value, dict):
