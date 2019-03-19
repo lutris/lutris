@@ -9,6 +9,7 @@ from lutris.util.system import create_folder
 from lutris.util.graphics import drivers
 from lutris.util.graphics import vkquery
 from lutris.util.linux import LINUX_SYSTEM
+from lutris.gui.dialogs import DontShowAgainDialog
 
 
 def init_dirs():
@@ -46,6 +47,7 @@ def init_lutris():
 
 def check_driver():
     """Report on the currently running driver"""
+    driver_info = {}
     if drivers.is_nvidia():
         driver_info = drivers.get_nvidia_driver_info()
         # pylint: disable=logging-format-interpolation
@@ -75,6 +77,18 @@ def check_driver():
             )
         except KeyError:
             logger.error("Unable to get GPU information from '%s'", card)
+
+    if drivers.is_outdated():
+        setting = "hide-outdated-nvidia-driver-warning"
+        if settings.read_setting(setting) != "True":
+            DontShowAgainDialog(
+                setting,
+                "Your Nvidia driver is outdated.",
+                secondary_message="You are currently running driver %s which does not "
+                "fully support all features for Vulkan games.\n"
+                "Please upgrade your driver if you experience issues."
+                % driver_info["nvrm"]["version"]
+            )
 
 
 def check_libs(all_components=False):

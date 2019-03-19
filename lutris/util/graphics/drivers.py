@@ -6,6 +6,8 @@ import os
 import re
 from lutris.util.log import logger
 
+MIN_RECOMMENDED_NVIDIA_DRIVER = 415
+
 
 def get_nvidia_driver_info():
     """Return information about NVidia drivers"""
@@ -87,3 +89,15 @@ def check_driver():
         logger.info(
             "GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} driver".format(**get_gpu_info(card))
         )
+
+
+def is_outdated():
+    if not is_nvidia():
+        return False
+    driver_info = get_nvidia_driver_info()
+    driver_version = driver_info["nvrm"]["version"]
+    if not driver_version:
+        logger.error("Failed to get Nvidia version")
+        return True
+    major_version = int(driver_version.split(".")[0])
+    return major_version < MIN_RECOMMENDED_NVIDIA_DRIVER
