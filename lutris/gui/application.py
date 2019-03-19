@@ -44,7 +44,7 @@ from lutris.util import log
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.api import parse_installer_url
-from lutris.startup import run_all_checks
+from lutris.startup import init_lutris, run_all_checks
 from lutris.util.wine.dxvk import init_dxvk_versions
 
 from .lutriswindow import LutrisWindow
@@ -57,6 +57,7 @@ class Application(Gtk.Application):
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         )
+        init_lutris()
         gettext.bindtextdomain("lutris", "/usr/share/locale")
         gettext.textdomain("lutris")
 

@@ -5,7 +5,7 @@ gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk
 from lutris.game import Game
-from lutris.startup import check_config
+from lutris.startup import init_lutris
 # from lutris import settings
 from lutris import pga
 from lutris.gui.config.common import GameDialogCommon
@@ -29,7 +29,7 @@ class TestGameDialogCommon(TestCase):
 
 class TestGameDialog(TestCase):
     def setUp(self):
-        check_config()
+        init_lutris()
         lutris_application = Application()
         lutris_window = lutris_application.window
         self.dlg = AddGameDialog(lutris_window)

@@ -11,8 +11,8 @@ from lutris.util.graphics import vkquery
 from lutris.util.linux import LINUX_SYSTEM
 
 
-def check_config():
-    """Check if initial configuration is correct."""
+def init_dirs():
+    """Creates Lutris directories"""
     directories = [
         settings.CONFIG_DIR,
         os.path.join(settings.CONFIG_DIR, "runners"),
@@ -32,7 +32,16 @@ def check_config():
     for directory in directories:
         create_folder(directory)
 
+
+def init_db():
+    """Initialize the SQLite DB"""
     pga.syncdb()
+
+
+def init_lutris():
+    """Run full initialization of Lutris"""
+    init_dirs()
+    init_db()
 
 
 def check_driver():
@@ -106,7 +115,6 @@ def fill_missing_platforms():
 
 def run_all_checks():
     """Run all startup checks"""
-    check_config()
     check_driver()
     check_libs()
     check_vulkan()
