@@ -84,7 +84,11 @@ def get_library():
         return []
     url = settings.SITE_URL + "/api/games/library/%s" % credentials["username"]
     request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
-    response = request.get()
+    try:
+        response = request.get()
+    except http.HTTPError as ex:
+        logger.error("Unable to load library: %s", ex)
+        return []
     response_data = response.json
     if response_data:
         return response_data["games"]
