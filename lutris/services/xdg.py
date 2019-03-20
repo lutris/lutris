@@ -116,8 +116,8 @@ class XDGSyncer:
             if cls.is_importable(app):
                 yield app
 
-    @classmethod
-    def iter_lutris_games(cls):
+    @property
+    def lutris_games(self):
         """Iterates through Lutris games imported from XDG"""
         for game in pga.get_games_where(runner=XDGGame.runner,
                                         installer_slug=XDGGame.installer_slug,
@@ -161,8 +161,7 @@ class XDGSyncer:
             for app in cls.iter_xdg_games()
         ]
 
-    @classmethod
-    def sync(cls, games, full=False):
+    def sync(self, games, full=False):
         """Sync the given games to the lutris library
 
         Params:
@@ -171,7 +170,7 @@ class XDGSyncer:
         Return:
             tuple: 2-tuple of added and removed game ID lists
         """
-        installed_games = {game["slug"]: game for game in cls.iter_lutris_games()}
+        installed_games = {game["slug"]: game for game in self.lutris_games}
         available_games = set()
         added_games = []
         removed_games = []

@@ -275,8 +275,7 @@ class GameStore(GObject.Object):
         pga_game = pga.get_game_by_field(game_id, "id")
         if pga_game:
             return self.update(pga_game)
-        else:
-            return self.remove_game(game_id)
+        return self.remove_game(game_id)
 
     def update(self, pga_game):
         """Update game informations."""

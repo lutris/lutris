@@ -99,7 +99,10 @@ class SteamSyncer:
     @property
     def lutris_games(self):
         if not self._lutris_games:
-            self._lutris_games = pga.get_games_where(steamid__isnull=False, steamid__not="")
+            self._lutris_games = pga.get_games_where(
+                steamid__isnull=False,
+                steamid__not=""
+            )
         return self._lutris_games
 
     @property

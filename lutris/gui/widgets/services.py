@@ -176,7 +176,8 @@ class ServiceSyncBox(Gtk.Box):
                 "%s game%s imported to Lutris" %
                 (len(games), "s were" if len(games) > 1 else " was")
             )
-            window.game_store.add_games_by_ids(games)
+            for game_id in games:
+                window.game_store.add_or_update(game_id)
 
     def on_switch_changed(self, switch, _data):
         write_setting("sync_at_startup", switch.get_active(), self.identifier)
