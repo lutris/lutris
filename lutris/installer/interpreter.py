@@ -421,18 +421,26 @@ class ScriptInterpreter(CommandsMixin):
                 if runner_name not in runner_names:
                     required_runners.append(self.get_runner_class(runner_name)())
 
+        logger.debug("Required runners: %s", required_runners)
         for runner in required_runners:
             params = {}
             if self.runner == "libretro":
                 params["core"] = self.script["game"]["core"]
             if self.runner.startswith("wine"):
+                # Force the wine version to be installed
+                params["fallback"] = False
                 params["min_version"] = wine.MIN_SAFE_VERSION
                 version = self._get_runner_version()
                 if version:
                     params["version"] = version
-                    # Force the wine version to be installed
-                    params["fallback"] = False
+                elif runner.get_version(use_default=False) != "system":
+                    # Looking up default wine version
+                    default_wine = runner.get_runner_version()
+                    logger.debug("Default wine version is %s", default_wine["version"])
+                    params["version"] = default_wine["version"] + "-" + default_wine["architecture"]
+
             if not runner.is_installed(**params):
+                logger.debug("Runner %s needs to be installed")
                 self.runners_to_install.append(runner)
 
         if self.runner.startswith("wine") and not get_system_wine_version():

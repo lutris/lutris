@@ -246,40 +246,44 @@ class Runner:
         """Return whether the runner is installed"""
         return system.path_exists(self.get_executable())
 
-    def get_runner_info(self, version=None):
-        runner_api_url = "{}/api/runners/{}".format(settings.SITE_URL, self.name)
+    def get_runner_info(self):
+        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
+        return request.get().json
+
+    def get_runner_version(self, version=None):
         logger.info(
             "Getting runner information for %s%s",
             self.name,
             "(version: %s)" % version if version else "",
         )
-        request = Request(runner_api_url)
-        response = request.get()
-        response_content = response.json
+        runner_info = self.get_runner_info()
+        if not runner_info:
+            logger.error("Failed to get runner information")
+            return
 
-        if response_content:
-            versions = response_content.get("versions") or []
-            arch = self.arch
-            if version:
-                if version.endswith("-i386") or version.endswith("-x86_64"):
-                    version, arch = version.rsplit("-", 1)
-                versions = [v for v in versions if v["version"] == version]
-            versions_for_arch = [v for v in versions if v["architecture"] == arch]
-            if len(versions_for_arch) == 1:
-                return versions_for_arch[0]
-            elif len(versions_for_arch) > 1:
-                default_version = [v for v in versions_for_arch if v["default"] is True]
-                if default_version:
-                    return default_version[0]
-            elif len(versions) == 1 and system.LINUX_SYSTEM.is_64_bit:
-                return versions[0]
-            elif len(versions) > 1 and system.LINUX_SYSTEM.is_64_bit:
-                default_version = [v for v in versions if v["default"] is True]
-                if default_version:
-                    return default_version[0]
-            # If we didn't find a proper version yet, return the first available.
-            if len(versions_for_arch) >= 1:
-                return versions_for_arch[0]
+        versions = runner_info.get("versions") or []
+        arch = self.arch
+        if version:
+            if version.endswith("-i386") or version.endswith("-x86_64"):
+                version, arch = version.rsplit("-", 1)
+            versions = [v for v in versions if v["version"] == version]
+        versions_for_arch = [v for v in versions if v["architecture"] == arch]
+        if len(versions_for_arch) == 1:
+            return versions_for_arch[0]
+
+        if len(versions_for_arch) > 1:
+            default_version = [v for v in versions_for_arch if v["default"] is True]
+            if default_version:
+                return default_version[0]
+        elif len(versions) == 1 and system.LINUX_SYSTEM.is_64_bit:
+            return versions[0]
+        elif len(versions) > 1 and system.LINUX_SYSTEM.is_64_bit:
+            default_version = [v for v in versions if v["default"] is True]
+            if default_version:
+                return default_version[0]
+        # If we didn't find a proper version yet, return the first available.
+        if len(versions_for_arch) >= 1:
+            return versions_for_arch[0]
 
     def install(self, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""
@@ -290,8 +294,8 @@ class Runner:
             downloader,
             callback,
         )
-        runner_info = self.get_runner_info(version)
-        if not runner_info:
+        runner = self.get_runner_version(version)
+        if not runner:
             raise RunnerInstallationError(
                 "{} is not available for the {} architecture".format(
                     self.name, self.arch
@@ -308,13 +312,13 @@ class Runner:
             opts["dest"] = os.path.join(
                 settings.RUNNER_DIR,
                 self.name,
-                "{}-{}".format(runner_info["version"], runner_info["architecture"])
+                "{}-{}".format(runner["version"], runner["architecture"])
             )
 
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
-        self.download_and_extract(runner_info["url"], **opts)
+        self.download_and_extract(runner["url"], **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
         downloader = opts["downloader"]
