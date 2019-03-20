@@ -174,11 +174,10 @@ class GamePanel(GenericPanel):
             if action_id == "remove":
                 position = (icon_start + icon_offset * 3 + icon_width * 3,
                             base_height + icons_y_offset)
-            if action_id == "execute-script":
-                position = (50,
-                            base_height + 82)
 
             current_y = base_height + 150
+            if action_id == "execute-script":
+                position = (buttons_x_offset, current_y)
             if action_id in ("add", "install_more"):
                 position = (buttons_x_offset, current_y + 40)
             if action_id == "view":
