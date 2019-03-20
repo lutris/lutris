@@ -6,6 +6,7 @@ from lutris.game import Game
 from lutris import runners
 from lutris.game_actions import GameActions
 from lutris.gui.views import COL_ID
+from lutris.util.log import logger
 
 
 class ContextualMenu(Gtk.Menu):
@@ -34,7 +35,8 @@ class ContextualMenu(Gtk.Menu):
             game = Game(game_row[COL_ID])
 
         if not game:
-            raise ValueError("Missing game")
+            logger.error("No game provided, can't open pop-up menu")
+            return
 
         # Clear existing menu
         for item in self.get_children():
