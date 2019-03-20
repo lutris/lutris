@@ -66,7 +66,7 @@ class GameStore(GObject.Object):
         "platform": COL_PLATFORM,
         "lastplayed": COL_LASTPLAYED,
         "installed_at": COL_INSTALLED_AT,
-        "playtime": COL_PLAYTIME_TEXT,
+        "playtime": COL_PLAYTIME,
     }
 
     def __init__(
