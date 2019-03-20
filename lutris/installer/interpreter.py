@@ -582,8 +582,7 @@ class ScriptInterpreter(CommandsMixin):
         if path and not os.path.isfile(path) and self.runner not in ("web", "browser"):
             self.parent.set_status(
                 "The executable at path %s can't be found, please check the destination folder.\n"
-                "Check the destination folder, "
-                "some parts of the installation process may have not completed successfully." % path
+                "Some parts of the installation process may have not completed successfully." % path
             )
             logger.warning("No executable found at specified location %s", path)
         else:
