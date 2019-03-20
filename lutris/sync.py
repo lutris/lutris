@@ -66,10 +66,10 @@ def sync_game_details(remote_library):
         updated.add(game_id)
 
         if not local_game.get("has_custom_banner") and remote_game["banner_url"]:
-            path = resources.get_icon_path(slug, resources.BANNER)
+            path = resources.get_banner_path(slug)
             resources.download_media(remote_game["banner_url"], path, overwrite=True)
         if not local_game.get("has_custom_icon") and remote_game["icon_url"]:
-            path = resources.get_icon_path(slug, resources.ICON)
+            path = resources.get_icon_path(slug)
             resources.download_media(remote_game["icon_url"], path, overwrite=True)
 
     if updated:

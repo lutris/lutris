@@ -7,22 +7,19 @@ from lutris.util.http import Request, HTTPError
 
 from lutris.util import system
 
-BANNER = "banner"
-ICON = "icon"
 
-
-def get_icon_path(game_slug, icon_type=ICON):
+def get_icon_path(game_slug, icon_type="icon"):
     """Return the absolute path for a game_slug icon"""
-    if icon_type == BANNER:
+    if icon_type.startswith("banner"):
         return os.path.join(settings.BANNER_PATH, "%s.jpg" % game_slug)
-    if icon_type == ICON:
+    if icon_type.startswith("icon"):
         return os.path.join(settings.ICON_PATH, "lutris_%s.png" % game_slug)
     raise ValueError("Invalid icon type %s" % icon_type)
 
 
 def get_banner_path(game_slug):
     """Return the absolute path for a game_slug banner"""
-    return get_icon_path(game_slug, BANNER)
+    return get_icon_path(game_slug, "banner")
 
 
 def update_desktop_icons():
