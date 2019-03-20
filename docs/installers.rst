@@ -149,6 +149,15 @@ add-on "The reckoning" for Quake 2, you should add: ``requires: quake-2``
 You can also add complex requirements following the same syntax as the
 ``require-binaries`` directive described above.
 
+Accessing the current display mode
+----------------------------------
+
+It is often useful to have access to the current screen resolution to set
+launch parameters or write config files. You can access those in scripts with
+the `$RESOLUTION`, `$RESOLUTION_WIDTH` and `$RESOLUTION_HEIGHT` variables.
+
+Note that it is not necessary to specify the resolution for Wine virtual
+desktop as Lutris will automatically set it to the current one.
 
 Writing the installation script
 ===============================

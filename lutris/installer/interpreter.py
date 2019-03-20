@@ -12,6 +12,7 @@ from lutris import settings
 from lutris.game import Game
 from lutris.gui.dialogs import WineNotInstalledWarning
 from lutris.util import system
+from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.strings import unpack_dependencies
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -149,6 +150,7 @@ class ScriptInterpreter(CommandsMixin):
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
 
+        self.current_resolution = DISPLAY_MANAGER.get_current_resolution()
         self._check_binary_dependencies()
         self._check_dependency()
         if self.creates_game_folder:
@@ -725,6 +727,10 @@ class ScriptInterpreter(CommandsMixin):
             "USER": os.getenv("USER"),
             "INPUT": self._get_last_user_input(),
             "VERSION": self.version,
+            "RESOLUTION": "x".join(self.current_resolution),
+            "RESOLUTION_WIDTH": self.current_resolution[0],
+            "RESOLUTION_HEIGHT": self.current_resolution[1],
+
         }
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:
