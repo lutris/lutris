@@ -740,7 +740,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_game_installed(self, game):
         """Callback to handle newly installed games"""
-        self.game_store.add_or_update(game.id)
         self.game_selection_changed(None, game)
 
     def update_game(self, slug):
