@@ -608,20 +608,50 @@
                       <object class="GtkBox">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="halign">center</property>
+                        <property name="hexpand">False</property>
+                        <property name="orientation">vertical</property>
                         <child>
-                          <object class="GtkSearchEntry" id="search_entry">
+                          <object class="GtkBox">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="halign">center</property>
-                            <property name="valign">center</property>
-                            <property name="margin_left">5</property>
-                            <property name="margin_right">5</property>
-                            <property name="margin_top">5</property>
-                            <property name="margin_bottom">5</property>
-                            <property name="hexpand">True</property>
-                            <property name="width_chars">50</property>
-                            <property name="placeholder_text" translatable="yes">Filter the list of games</property>
-                            <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+                            <property name="can_focus">False</property>
+                            <child>
+                              <object class="GtkSearchEntry" id="search_entry">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="halign">center</property>
+                                <property name="valign">center</property>
+                                <property name="margin_left">5</property>
+                                <property name="margin_right">5</property>
+                                <property name="margin_top">5</property>
+                                <property name="margin_bottom">5</property>
+                                <property name="width_chars">50</property>
+                                <property name="placeholder_text" translatable="yes">Filter the list of games</property>
+                                <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkToggleButton" id="website_search_toggle">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="always_show_image">True</property>
+                                <signal name="toggled" handler="on_website_search_toggle_toggled" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <style>
+                              <class name="searchbar"/>
+                            </style>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -629,9 +659,6 @@
                             <property name="position">0</property>
                           </packing>
                         </child>
-                        <style>
-                          <class name="searchbar"/>
-                        </style>
                       </object>
                     </child>
                   </object>
