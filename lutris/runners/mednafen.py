@@ -1,6 +1,6 @@
 import subprocess
 from lutris.runners.runner import Runner
-from lutris.util.display import get_current_resolution
+from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.log import logger
 from lutris.util.joypad import get_controller_mappings
 from lutris.util import system
@@ -468,10 +468,7 @@ class mednafen(Runner):
         stretch = self.runner_config.get("stretch") or "0"
         scaler = self.runner_config.get("scaler") or "hq4x"
 
-        resolution = get_current_resolution()
-        (resolutionx, resolutiony) = resolution.split("x")
-        xres = str(resolutionx)
-        yres = str(resolutiony)
+        xres, yres = DISPLAY_MANAGER.get_current_resolution()
         options = [
             "-fs",
             fullscreen,

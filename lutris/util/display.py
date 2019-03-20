@@ -99,19 +99,6 @@ def get_unique_resolutions():
     )
 
 
-def get_current_resolution(monitor=0):
-    """Return the current resolution for the desktop."""
-    resolution = list()
-    for line in _get_vidmodes():
-        if line.startswith("  ") and "*" in line:
-            resolution_match = re.match(r".*?(\d+x\d+).*", line)
-            if resolution_match:
-                resolution.append(resolution_match.groups()[0])
-    if monitor == "all":
-        return resolution
-    return resolution[monitor]
-
-
 def change_resolution(resolution):
     """Change display resolution.
 
@@ -219,7 +206,18 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
         """Return output names from XrandR"""
         return [output.name for output in get_outputs()]
 
-    get_resolutions = staticmethod(get_resolutions)
+    @staticmethod
+    def get_resolutions():
+        return get_resolutions()
+
+    @staticmethod
+    def get_current_resolution():
+        """Return the current resolution for the desktop"""
+        for line in _get_vidmodes():
+            if line.startswith("  ") and "*" in line:
+                resolution_match = re.match(r".*?(\d+x\d+).*", line)
+                if resolution_match:
+                    return resolution_match.groups()[0].split("x")
 
 
 class DisplayManager:
@@ -247,6 +245,21 @@ class DisplayManager:
         return sorted(
             set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True
         )
+
+    def get_primary_output(self):
+        """Return the RROutput used as a primary display"""
+        for output in self.rr_screen.list_outputs():
+            if output.get_is_primary():
+                return output
+
+    def get_current_resolution(self):
+        """Return the current resolution for the primary display"""
+        output = self.get_primary_output()
+        if not output:
+            logger.error("Failed to get a default output")
+            return
+        current_mode = output.get_current_mode()
+        return current_mode.get_width(), current_mode.get_height()
 
 
 try:

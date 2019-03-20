@@ -102,8 +102,9 @@ class zdoom(Runner):
         resolution = self.runner_config.get("resolution")
         if resolution:
             if resolution == "desktop":
-                resolution = display.get_current_resolution()
-            width, height = resolution.split("x")
+                width, height = display.DISPLAY_MANAGER.get_current_resolution()
+            else:
+                width, height = resolution.split("x")
             command.append("-width")
             command.append(width)
             command.append("-height")

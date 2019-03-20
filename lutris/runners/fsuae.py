@@ -1,6 +1,6 @@
 import os
 from lutris.runners.runner import Runner
-from lutris.util.display import get_current_resolution
+from lutris.util.display import DISPLAY_MANAGER
 
 
 class fsuae(Runner):
@@ -274,7 +274,7 @@ class fsuae(Runner):
         if grafixmemory:
             params.append("--graphics_memory=%s" % grafixmemory)
         if self.runner_config.get("gfx_fullscreen_amiga"):
-            width = int(get_current_resolution().split("x")[0])
+            width = int(DISPLAY_MANAGER.get_current_resolution()[0])
             params.append("--fullscreen")
             # params.append("--fullscreen_mode=fullscreen-window")
             params.append("--fullscreen_mode=fullscreen")
