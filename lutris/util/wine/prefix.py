@@ -3,6 +3,7 @@ import os
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.log import logger
 from lutris.util import joypad, system
+from lutris.util.display import DISPLAY_MANAGER
 
 DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
 
@@ -118,11 +119,16 @@ class WinePrefixManager:
         The Lutris virtual desktop is refered to as 'WineDesktop', in Wine the
         virtual desktop name is 'default'.
         """
-        logger.debug("Virtual desktop: %s", enabled)
-
         path = self.hkcu_prefix + "/Software/Wine/Explorer"
         if enabled:
             self.set_registry_key(path, "Desktop", "WineDesktop")
+            default_resolution = "x".join(DISPLAY_MANAGER.get_current_resolution())
+            logger.debug("Enabling wine virtual desktop with default resolution of %s", default_resolution)
+            self.set_registry_key(
+                self.hkcu_prefix + "/Software/Wine/Explorer/Desktops",
+                "WineDesktop",
+                default_resolution
+            )
         else:
             self.clear_registry_key(path)
 

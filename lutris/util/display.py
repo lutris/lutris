@@ -218,6 +218,7 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
                 resolution_match = re.match(r".*?(\d+x\d+).*", line)
                 if resolution_match:
                     return resolution_match.groups()[0].split("x")
+        return ("", "")
 
 
 class DisplayManager:
@@ -257,9 +258,9 @@ class DisplayManager:
         output = self.get_primary_output()
         if not output:
             logger.error("Failed to get a default output")
-            return
+            return ("", "")
         current_mode = output.get_current_mode()
-        return current_mode.get_width(), current_mode.get_height()
+        return str(current_mode.get_width()), str(current_mode.get_height())
 
 
 try:
