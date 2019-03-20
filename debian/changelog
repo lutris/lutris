@@ -1,4 +1,22 @@
-lutris (0.5.0.1) UNRELEASED; urgency=medium
+lutris (0.5.1) cosmic; urgency=medium
+
+  * Download the default Lutris Wine version when not available
+  * Prevent duplicates when importing games from 3rd party services
+  * Fix some sorting issues in the view
+  * Add issue reporting feature with the --submit-issue flag. The issue can
+    only be saved locally, API integration will be implemented at a later stage.
+  * Add support for CD-ROM images for non CD32/CDTV Amiga models
+  * Remove website search from sidebar and merge it with the main search entry
+  * Display a warning message if the installed Nvidia driver is too old
+  * Fix GOG games not being installable without being connected to GOG
+  * Improve performance of log handling
+  * Remove winecfg if Proton is used
+  * Enable Prime by default for compatible systems
+  * Various fixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 20 Mar 2019 00:24:27 -0700
+
+lutris (0.5.0.1ubuntu1) cosmic; urgency=medium
 
   * Bullshit my way out of Gtk+ fuckery (Closes #1697)
   * Initialize playtime attribute when invalid playtime found (Closes #1698)
