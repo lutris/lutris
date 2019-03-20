@@ -9,8 +9,8 @@ build
 .pydevproject
 .settings
 .ropeproject
+.idea
 tags
-.ropeproject
 *.pyc
 *.pyo
 PYSMELLTAGS
