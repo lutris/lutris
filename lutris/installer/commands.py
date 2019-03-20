@@ -5,6 +5,7 @@ import stat
 import shutil
 import shlex
 import json
+import glob
 
 from gi.repository import GLib
 
@@ -172,13 +173,35 @@ class CommandsMixin:
             extract.extract_archive, filename, dest_path, merge_single, extractor
         )
 
+    def file_glob(self, data):
+        """Find one or more files from a glob pattern."""
+        self._check_required_params("filespec", data, "file_glob")
+        identifier = data.get("id")
+        alias = "GLOB_%s" % identifier if identifier else None
+        filespec = data["filespec"]
+        files = glob.glob(filespec)
+        if len(files) == 0:
+            missing = data.get("missing")
+            if missing == "blank":
+                result = ""
+            elif missing == "raw":
+                result = filespec
+            else:
+                raise ScriptingError("No matches for file glob %s" % filespec)
+        elif data.get("multiple"):
+            result = data.get("delimiter", " ").join(files)
+        else:
+            result = files[0]
+        # user_inputs -> file_globs
+        self.file_globs.append({"alias": alias, "value": result})
+
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
         self._check_required_params("options", data, "input_menu")
         identifier = data.get("id")
         alias = "INPUT_%s" % identifier if identifier else None
         has_entry = data.get("entry")
-        options = data["options"]
+        options = [{self._substitute(next(iter(option))): self._substitute(next(iter(option.values())))} for option in data["options"]]
         preselect = self._substitute(data.get("preselect", ""))
         GLib.idle_add(
             self.parent.input_menu,

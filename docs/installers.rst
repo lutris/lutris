@@ -616,6 +616,39 @@ selected is French, the "$INPUT_LANG" alias would be available in
 following directives and would correspond to "fr". "$INPUT" would work as well,
 up until the next input directive.
 
+Finding one or more files with wildcards
+----------------------------------------
+
+Files can be searched for with the ``file_glob`` directive.
+The ``filespec`` parameter holds a file path including wildcards as follows:
+
+- ? matches any single character (file? matches file1 and fileX)
+- \* matches zero or more characters (file\* matches file1 and fileXYZ)
+- \*\* matches zero or more levels of directory nesting (dir/\*\*/file matches dir/file and dir/dir2/dir3/file)
+- [abc] matches a single a, b, or c
+- [!abc] matches a single character that is not a, b, or c
+
+Zero matches are an error by default, set the ``missing`` parameter to ``blank`` to yield an empty string or ``raw`` to yield the filespec itself.
+By default the first match will be returned, set the ``multiple`` parameter to get a list. By default the list will be separated by spaces, use the ``delimiter`` parameter to specify an alternative.
+
+The result of the last file_glob directive is available with the ``$GLOB`` alias.
+If need be, you can add an ``id`` parameter to the directive which will make the
+selected value available with ``$GLOB_<id>``. The id must contain only numbers, letters and underscores.
+
+Example:
+
+::
+
+    - file_glob:
+        filespec: "/usr/share/**/*Mono*.ttf"
+        id: MONOFONTS
+        multiple: true
+        delimiter: ","
+
+This example will find some semblance of all of the fonts with "Mono" in their name
+and put them in the "$GLOB_MONOFONTS" alias for following directives. If there are more
+than one result, they will be separated by commas.
+
 
 Trying the installer locally
 ============================

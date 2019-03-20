@@ -113,6 +113,7 @@ class ScriptInterpreter(CommandsMixin):
         self.cancelled = False
         self.abort_current_task = None
         self.user_inputs = []
+        self.file_globs = []
         self.steam_data = {}
         self.gog_data = {}
         self.script = installer.get("script")
@@ -733,6 +734,7 @@ class ScriptInterpreter(CommandsMixin):
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,
             "DISC": self.game_disc,
             "USER": os.getenv("USER"),
+            "GLOB": self._get_last_file_glob(),
             "INPUT": self._get_last_user_input(),
             "VERSION": self.version,
             "RESOLUTION": "x".join(self.current_resolution),
@@ -741,7 +743,8 @@ class ScriptInterpreter(CommandsMixin):
 
         }
         # Add 'INPUT_<id>' replacements for user inputs with an id
-        for input_data in self.user_inputs:
+        # and 'GLOB_<id>' replacements for file globs with an id
+        for input_data in self.user_inputs + self.file_globs:
             alias = input_data["alias"]
             if alias:
                 replacements[alias] = input_data["value"]
@@ -751,6 +754,9 @@ class ScriptInterpreter(CommandsMixin):
 
     def _get_last_user_input(self):
         return self.user_inputs[-1]["value"] if self.user_inputs else ""
+
+    def _get_last_file_glob(self):
+        return self.file_globs[-1]["value"] if self.file_globs else ""
 
     def eject_wine_disc(self):
         """Use Wine to eject a CD, otherwise Wine can have problems detecting disc changes"""
