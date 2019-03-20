@@ -36,4 +36,5 @@
   <releases>
     <release date="2019-03-20" version="0.5.1" />
   </releases>
+  <content_rating type="oars-1.1" />
 </component>
