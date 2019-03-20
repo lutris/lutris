@@ -21,7 +21,11 @@ class WinePrefixManager:
     def setup_defaults(self):
         """Sets the defaults for newly created prefixes"""
         self.override_dll("winemenubuilder.exe", "")
-        self.desktop_integration()
+        try:
+            self.desktop_integration()
+        except OSError as ex:
+            logger.error("Failed to setup desktop integration, the prefix may not be valid.")
+            logger.exception(ex)
 
     def get_registry_path(self, key):
         """Matches registry keys to a registry file
