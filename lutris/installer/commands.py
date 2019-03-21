@@ -158,8 +158,8 @@ class CommandsMixin:
 
         filenames = glob.glob(filespec)
 
-        if len(filenames) == 0:
-            raise ScriptingError("%s does not exist" % filename)
+        if not filenames:
+            raise ScriptingError("%s does not exist" % filespec)
         if "dst" in data:
             dest_path = self._substitute(data["dst"])
         else:
