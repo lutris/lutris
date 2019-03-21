@@ -216,9 +216,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "use-dark-theme": Action(
                 self.on_dark_theme_state_change, type="b", default=self.use_dark_theme
             ),
-            "show-tray-icon": Action(
-                self.on_tray_icon_toggle, type="b", default=self.show_tray_icon
-            ),
             "show-side-bar": Action(
                 self.on_sidebar_state_change,
                 type="b",
@@ -273,10 +270,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @property
     def show_installed_first(self):
         return settings.read_setting("show_installed_first") == "true"
-
-    @property
-    def show_tray_icon(self):
-        return settings.read_setting("show_tray_icon", default="false").lower() == "true"
 
     @property
     def view_sorting(self):
@@ -817,12 +810,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.set_selected_filter(row.id, None)
         else:
             self.set_selected_filter(None, row.id)
-
-    def on_tray_icon_toggle(self, action, value):
-        """Callback for handling tray icon toggle"""
-        action.set_state(value)
-        settings.write_setting("show_tray_icon", value)
-        self.application.set_tray_icon()
 
     def set_selected_filter(self, runner, platform):
         """Filter the view to a given runner and platform"""
