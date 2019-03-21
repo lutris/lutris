@@ -665,7 +665,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if toggle_button.props.active:
             self.search_mode = "website"
             self.search_entry.set_placeholder_text("Search on Lutris.net")
-            self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "network-workgroup-symbolic")
+            self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "folder-download-symbolic")
             self.game_store.search_mode = True
             self.search_games(self.search_terms)
         else:
