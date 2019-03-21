@@ -210,6 +210,30 @@ https://github.com/mupen64plus/mupen64plus-ui-console/blob/master/data/icons/sca
 License is shared with the main project; GPLv2:
 http://www.gnu.org/licenses/gpl-2.0.html
 
+nintendods-symbolic.svg
+---------
+
+Modified version of that found at Wikimedia Commons:
+https://commons.wikimedia.org/wiki/File:Nintendo_DS_Logo.svg
+
+The Wikimedia page claims that the image "does not meet the threshold of originality needed for copyright protection, and is therefore in the public domain". I find this claim questionable, but the use of an obvious proprietary trademark is probably a bigger issue.
+
+nintendo3ds-symbolic.svg
+---------
+
+Modified version of that found at Wikimedia Commons:
+https://commons.wikimedia.org/wiki/File:Nintendo_3DS_(logo).svg
+
+The Wikimedia page claims that the image "does not meet the threshold of originality needed for copyright protection, and is therefore in the public domain". I find this claim questionable, but the use of an obvious proprietary trademark is probably a bigger issue.
+
+nintendogamecube-symbolic.svg
+---------
+
+Created by: https://www.flaticon.com/authors/freepik
+
+Licensed under Flaticon Basic License:
+https://file000.flaticon.com/downloads/license/license.pdf
+
 
 nulldc-symbolic.svg
 -------------------
@@ -291,6 +315,11 @@ https://github.com/residualvm/residualvm/tree/master/icons
 License is shared with the main project; GPLv2 or later:
 https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
 
+rpcs3.svg
+---------
+
+License is Creative Commons
+
 
 scummvm.svg & scummvm-symbolic.svg
 ----------------------------------
@@ -309,6 +338,38 @@ Created for Lutris by Romlok: https://github.com/romlok/
 
 License is Creative Commons Zero 1.0:
 https://creativecommons.org/publicdomain/zero/1.0/
+
+sonyplaystation-symbolic.svg
+---------
+
+Modified version of that found at Wikimedia Commons:
+https://commons.wikimedia.org/wiki/File:PlayStation_logo.svg
+
+The Wikimedia page claims that the image "does not meet the threshold of originality needed for copyright protection, and is therefore in the public domain". I find this claim questionable, but the use of an obvious proprietary trademark is probably a bigger issue.
+
+sonyplaystation2-symbolic.svg
+---------
+
+Modified version of that found at Wikimedia Commons:
+https://commons.wikimedia.org/wiki/File:PlayStation_2_logo.svg
+
+The Wikimedia page claims that the image "does not meet the threshold of originality needed for copyright protection, and is therefore in the public domain". I find this claim questionable, but the use of an obvious proprietary trademark is probably a bigger issue.
+
+sonyplaystation3-symbolic.svg
+---------
+
+Modified version of that found at Wikimedia Commons:
+https://commons.wikimedia.org/wiki/File:PlayStation_3_Logo.svg
+
+The Wikimedia page claims that the image "does not meet the threshold of originality needed for copyright protection, and is therefore in the public domain". I find this claim questionable, but the use of an obvious proprietary trademark is probably a bigger issue.
+
+sonyplaystationportable-symbolic.svg
+---------
+
+Modified version of that found at Wikimedia Commons:
+https://commons.wikimedia.org/wiki/File:PSP_Logo.svg
+
+The Wikimedia page claims that the image "does not meet the threshold of originality needed for copyright protection, and is therefore in the public domain". I find this claim questionable, but the use of an obvious proprietary trademark is probably a bigger issue.
 
 
 steam.svg
