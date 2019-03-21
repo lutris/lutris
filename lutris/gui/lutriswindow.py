@@ -122,8 +122,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Add additional widgets
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
-        lutris_icon.set_margin_right(10)
-        lutris_icon.set_margin_left(10)
+        lutris_icon.set_margin_right(6)
+        lutris_icon.set_margin_left(6)
         self.website_search_toggle.set_image(lutris_icon)
         self.website_search_toggle.set_tooltip_text("Search on Lutris.net")
         self.sidebar_listbox = SidebarListBox()
