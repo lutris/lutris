@@ -5,6 +5,7 @@ import stat
 import shutil
 import shlex
 import json
+import glob
 
 from gi.repository import GLib
 
@@ -153,24 +154,26 @@ class CommandsMixin:
         """Extract a file, guessing the compression method."""
         self._check_required_params([("file", "src")], data, "extract")
         src_param = data.get("file") or data.get("src")
-        filename = self._get_file(src_param)
+        filespec = self._get_file(src_param)
 
-        if not os.path.exists(filename):
-            raise ScriptingError("%s does not exists" % filename)
+        filenames = glob.glob(filespec)
+
+        if len(filenames) == 0:
+            raise ScriptingError("%s does not exist" % filename)
         if "dst" in data:
             dest_path = self._substitute(data["dst"])
         else:
             dest_path = self.target_path
-        msg = "Extracting %s" % os.path.basename(filename)
-        logger.debug(msg)
-        GLib.idle_add(self.parent.set_status, msg)
-        merge_single = "nomerge" not in data
-        extractor = data.get("format")
-        logger.debug("extracting file %s to %s", filename, dest_path)
-
-        self._killable_process(
-            extract.extract_archive, filename, dest_path, merge_single, extractor
-        )
+        for filename in filenames:
+            msg = "Extracting %s" % os.path.basename(filename)
+            logger.debug(msg)
+            GLib.idle_add(self.parent.set_status, msg)
+            merge_single = "nomerge" not in data
+            extractor = data.get("format")
+            logger.debug("extracting file %s to %s", filename, dest_path)
+            self._killable_process(
+                extract.extract_archive, filename, dest_path, merge_single, extractor
+            )
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
