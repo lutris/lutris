@@ -76,9 +76,13 @@ def main():
 
     def hard_sig_handler(signum, _frame):
         log("Caught another signal, sending SIGKILL.")
-        monitor.refresh_process_status()
-        for child in monitor.children:
-            os.kill(child.pid, signal.SIGKILL)
+        for _ in range(3):  # just in case we race a new process.
+            monitor.refresh_process_status()
+            children = monitor.children + monitor.ignored_children
+            if not children:
+                break
+            for child in children:
+                os.kill(child.pid, signal.SIGKILL)
         log("--killed processes--")
 
     def sig_handler(signum, _frame):
