@@ -270,7 +270,6 @@ class Application(Gtk.Application):
 
         # Graphical commands
         self.activate()
-        self.set_tray_icon()
 
         db_game = None
         if game_slug:
