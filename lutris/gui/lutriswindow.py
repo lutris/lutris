@@ -121,11 +121,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Add additional widgets
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
-        lutris_icon.set_margin_right(6)
-        lutris_icon.set_margin_left(6)
+        lutris_icon.set_margin_right(3)
         self.website_search_toggle.set_image(lutris_icon)
-        self.website_search_toggle.set_label("Search on Lutris.net")
-        self.website_search_toggle.set_tooltip_text("Search on Lutris.net")
+        self.website_search_toggle.set_label("Search Lutris.net")
+        self.website_search_toggle.set_tooltip_text("Search Lutris.net")
         self.sidebar_listbox = SidebarListBox()
         self.sidebar_listbox.set_size_request(250, -1)
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
@@ -664,7 +663,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.search_terms = self.search_entry.props.text
         if toggle_button.props.active:
             self.search_mode = "website"
-            self.search_entry.set_placeholder_text("Search on Lutris.net")
+            self.search_entry.set_placeholder_text("Search Lutris.net")
             self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "folder-download-symbolic")
             self.game_store.search_mode = True
             self.search_games(self.search_terms)
