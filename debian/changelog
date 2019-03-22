@@ -12,6 +12,7 @@ lutris (0.5.1) cosmic; urgency=medium
   * Improve performance of log handling
   * Remove winecfg if Proton is used
   * Use discrete graphics by default with compatible systems
+  * Increase game icon size from 32x32 to 128x128
   * Various fixes
 
  -- Mathieu Comandon <strycore@gmail.com>  Wed, 20 Mar 2019 00:24:27 -0700
