@@ -9,6 +9,7 @@ from lutris.util.system import create_folder
 from lutris.util.graphics import drivers
 from lutris.util.graphics import vkquery
 from lutris.util.linux import LINUX_SYSTEM
+from lutris.gui.widgets.utils import open_uri
 from lutris.gui.dialogs import DontShowAgainDialog
 
 
@@ -114,6 +115,22 @@ def check_vulkan():
         logger.info("Vulkan is not available or your system isn't Vulkan capable")
 
 
+def check_donate():
+    setting = "dont-support-lutris"
+    if settings.read_setting(setting) != "True":
+        open_uri("https://lutris.net/donate")
+        DontShowAgainDialog(
+            setting,
+            "Please support Lutris!",
+            secondary_message="Lutris is entirely funded by its community and will "
+            "remain an independent gaming platform.\n"
+            "For Lutris to survive and grow, the project needs your help.\n"
+            "Please consider making a donation if you can, this will greatly help "
+            "covering the costs of hosting the project and funding new features "
+            " like cloud saves or a full-screen interface for the TV!\n"
+            "<a href='https://lutris.net/donate'>SUPPORT US! https://lutris.net/donate</a>"
+        )
+
 def fill_missing_platforms():
     """Sets the platform on games where it's missing.
     This should never happen.
@@ -134,4 +151,5 @@ def run_all_checks():
     check_driver()
     check_libs()
     check_vulkan()
+    check_donate()
     fill_missing_platforms()
