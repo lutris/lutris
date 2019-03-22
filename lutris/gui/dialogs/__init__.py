@@ -18,6 +18,7 @@ class Dialog(Gtk.Dialog):
     def __init__(self, title=None, parent=None, flags=0, buttons=None):
         super().__init__(title, parent, flags, buttons)
         self.set_border_width(10)
+        self.connect("delete-event", lambda *x: x[0].destroy())
         self.set_destroy_with_parent(True)
 
 
