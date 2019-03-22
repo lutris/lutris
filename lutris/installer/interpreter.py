@@ -629,7 +629,6 @@ class ScriptInterpreter(CommandsMixin):
         )
 
         game = Game(self.game_id)
-        game.set_platform_from_runner()
         game.save()
 
         logger.debug("Saved game entry %s (%d)", self.game_slug, self.game_id)
@@ -671,8 +670,6 @@ class ScriptInterpreter(CommandsMixin):
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         with open(config_filename, "w") as config_file:
             config_file.write(yaml_config)
-        if not self.extends:
-            game.emit("game-installed")
 
     def _substitute_config(self, script_config):
         """Substitute values such as $GAMEDIR in a config dict."""

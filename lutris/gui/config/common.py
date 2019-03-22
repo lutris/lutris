@@ -4,6 +4,7 @@ import os
 from gi.repository import Gtk, Pango, GLib
 from lutris.game import Game
 from lutris.config import LutrisConfig, make_game_config_id
+from lutris.util.log import logger
 from lutris import runners
 from lutris import settings
 from lutris.cache import get_cache_path, save_cache_path
@@ -445,6 +446,7 @@ class GameDialogCommon:
     def on_save(self, _button):
         """Save game info and destroy widget. Return True if success."""
         if not self.is_valid():
+            logger.warning("Current configuration is not valid, ignoring save request")
             return False
         name = self.name_entry.get_text()
 
@@ -464,19 +466,17 @@ class GameDialogCommon:
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
 
-        self.game.runner_name = self.runner_name
-
         self.game.name = name
         self.game.slug = self.slug
         self.game.year = year
         self.game.game_config_id = self.lutris_config.game_config_id
+        self.game.runner = runner
         self.game.runner_name = self.runner_name
         self.game.directory = runner.game_path
         self.game.is_installed = True
         if self.runner_name in ("steam", "winesteam"):
             self.game.steamid = self.lutris_config.game_config["appid"]
 
-        self.game.set_platform_from_runner()
         self.game.config = self.lutris_config
         self.game.save()
         self.destroy()

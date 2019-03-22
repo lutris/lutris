@@ -40,7 +40,6 @@ class Game(GObject.Object):
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, game_id=None):
@@ -198,6 +197,7 @@ class Game(GObject.Object):
     def set_platform_from_runner(self):
         """Set the game's platform from the runner"""
         if not self.runner:
+            logger.warning("Game has no runner, can't set platform")
             return
         self.platform = self.runner.get_platform()
         if not self.platform:
@@ -212,6 +212,7 @@ class Game(GObject.Object):
         logger.debug("Saving %s", self)
         if not metadata_only:
             self.config.save()
+        self.set_platform_from_runner()
         self.id = pga.add_or_update(
             name=self.name,
             runner=self.runner_name,

@@ -102,7 +102,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
-        GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
         GObject.add_emission_hook(GenericPanel,
                                   "running-game-selected",
                                   self.game_selection_changed)
@@ -686,7 +685,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_game_updated(self, game):
         """Callback to refresh the view when a game is updated"""
-        # logger.debug("Updating game %s", game)
+        logger.debug("Updating game %s", game)
         game.load_config()
         try:
             self.game_store.update_game_by_id(game.id)
@@ -695,7 +694,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         self.view.set_selected_game(game.id)
         self.game_selection_changed(None, game)
-        self.sidebar_listbox.update()
         return True
 
     def on_search_games_fire(self, value):
@@ -734,10 +732,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_panel_closed(self, panel):
         self.game_selection_changed(panel, None)
-
-    def on_game_installed(self, game):
-        """Callback to handle newly installed games"""
-        self.game_selection_changed(None, game)
 
     def update_game(self, slug):
         for pga_game in pga.get_games_where(slug=slug):
