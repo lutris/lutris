@@ -608,7 +608,7 @@
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
                                 <property name="margin">5</property>
-                                <property name="width_chars">50</property>
+                                <property name="width_chars">30</property>
                                 <property name="placeholder_text" translatable="yes">Filter the list of games</property>
                                 <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
                               </object>
