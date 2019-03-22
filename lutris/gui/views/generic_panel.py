@@ -70,7 +70,7 @@ class GenericPanel(Gtk.Fixed):
         self.put(self.get_preferences_button(), 12, 12)
         self.put(self.get_user_info_box(), 48, 16)
 
-        self.put(self.get_lutris_links(), 40, 92)
+        self.put(self.get_lutris_links(), 40, 80)
 
         application = Gio.Application.get_default()
         if application.running_games.get_n_items():
@@ -153,14 +153,14 @@ class GenericPanel(Gtk.Fixed):
     def get_lutris_links(self):
         box = Gtk.VBox(spacing=6, visible=True)
 
-        donate_button = get_link_button("Support the project")
+        donate_button = get_link_button("Support Lutris!")
         donate_button.connect("clicked", lambda *x: open_uri(LINKS["donate"]))
         box.add(donate_button)
 
         help_label = Gtk.Label(visible=True)
         help_label.set_markup("<b>Help:</b>")
         help_label.set_alignment(0, 0.5)
-        help_label.set_margin_top(12)
+        help_label.set_margin_top(136)
         box.add(help_label)
 
         help_box = Gtk.Box(spacing=6, visible=True)

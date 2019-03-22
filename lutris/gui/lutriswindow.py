@@ -221,6 +221,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 default=self.sidebar_visible,
                 accel="F9",
             ),
+            "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
+            "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
+            "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
         }
 
         self.actions = {}
