@@ -120,7 +120,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{_bindir}/%{name}
 %{_bindir}/lutris-wrapper
 %{_datadir}/%{name}/
-%{_datadir}/appdata/%{appid}.appdata.xml
+%{_datadir}/metainfo/%{appid}.appdata.xml
 %{_datadir}/applications/%{appid}.desktop
 %{_datadir}/icons/hicolor/16x16/apps/lutris.png
 %{_datadir}/icons/hicolor/22x22/apps/lutris.png
