@@ -7,7 +7,7 @@ from lutris import pga, settings, runtime
 from lutris.config import LutrisConfig
 from lutris.gui import dialogs
 from lutris.command import MonitoredCommand
-from lutris.util.extract import extract_archive
+from lutris.util.extract import extract_archive, ExtractFailure
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.http import Request
@@ -340,9 +340,9 @@ class Runner:
             raise RunnerInstallationError("Failed to extract {}".format(archive))
         try:
             extract_archive(archive, dest, merge_single=merge_single)
-        except EOFError:
+        except ExtractFailure as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
-            return
+            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex))
         os.remove(archive)
 
         if self.name == "wine":

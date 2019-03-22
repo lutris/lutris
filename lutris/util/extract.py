@@ -115,7 +115,11 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
                     os.remove(destination_path)
                     shutil.move(source_path, destination_path)
                 elif os.path.isdir(destination_path):
-                    system.merge_folders(source_path, destination_path)
+                    try:
+                        system.merge_folders(source_path, destination_path)
+                    except OSError as ex:
+                        logger.error("Failed to merge to destination %s: %s", destination_path, ex)
+                        raise ExtractFailure(str(ex))
             else:
                 shutil.move(source_path, destination_path)
         system.remove_folder(temp_dir)
