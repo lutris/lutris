@@ -124,6 +124,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         lutris_icon.set_margin_right(6)
         lutris_icon.set_margin_left(6)
         self.website_search_toggle.set_image(lutris_icon)
+        self.website_search_toggle.set_label("Search on Lutris.net")
         self.website_search_toggle.set_tooltip_text("Search on Lutris.net")
         self.sidebar_listbox = SidebarListBox()
         self.sidebar_listbox.set_size_request(250, -1)
