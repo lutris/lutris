@@ -17,7 +17,7 @@ from lutris.util.strings import unpack_dependencies
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam.log import get_app_state_log
-from lutris.util.http import Request
+from lutris.util.http import Request, HTTPError
 from lutris.util.wine.wine import get_wine_version_exe, get_system_wine_version
 
 from lutris.config import LutrisConfig, make_game_config_id
@@ -295,7 +295,10 @@ class ScriptInterpreter(CommandsMixin):
     def swap_gog_game_files(self):
         if not self.gogid:
             raise UnavailableGame("The installer has no GOG ID!")
-        links = self.get_gog_download_links()
+        try:
+            links = self.get_gog_download_links()
+        except HTTPError:
+            raise UnavailableGame("Couldn't load the download links for this game")
         installer_file_id = None
         if links:
             for index, file in enumerate(self.files):
@@ -332,8 +335,8 @@ class ScriptInterpreter(CommandsMixin):
         if self.version.startswith("GOG"):
             try:
                 self.swap_gog_game_files()
-            except UnavailableGame:
-                logger.warning("Unable to get the game from GOG")
+            except UnavailableGame as ex:
+                logger.error("Unable to get the game from GOG: %s", ex)
         self.iter_game_files()
 
     def iter_game_files(self):
