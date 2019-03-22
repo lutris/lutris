@@ -174,6 +174,7 @@ class Application(Gtk.Application):
             Gtk.StyleContext.add_provider_for_screen(
                 screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
             )
+        self.window.present()  # EXPLAIN YOURSELF BEFORE MESSING WITH THAT LINE
 
     @staticmethod
     def _print(command_line, string):
