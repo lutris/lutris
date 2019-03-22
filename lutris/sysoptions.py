@@ -156,7 +156,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "default": display.USE_DRI_PRIME,
         "condition": display.USE_DRI_PRIME,
-        "label": "Use PRIME (hybrid graphics on laptops)",
+        "label": "Use discrete graphics",
         "advanced": True,
         "help": (
             "If you have open source graphic drivers (Mesa), selecting this "

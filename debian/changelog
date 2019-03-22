@@ -11,7 +11,7 @@ lutris (0.5.1) cosmic; urgency=medium
   * Fix GOG games not being installable without being connected to GOG
   * Improve performance of log handling
   * Remove winecfg if Proton is used
-  * Enable Prime by default for compatible systems
+  * Use discrete graphics by default with compatible systems
   * Various fixes
 
  -- Mathieu Comandon <strycore@gmail.com>  Wed, 20 Mar 2019 00:24:27 -0700
