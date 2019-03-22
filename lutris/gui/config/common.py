@@ -323,6 +323,8 @@ class GameDialogCommon:
         self._add_notebook_tab(runner_sw, "Runner options")
 
     def _build_system_tab(self, _config_level):
+        if not self.lutris_config:
+            raise RuntimeError("Lutris config not loaded yet")
         self.system_box = SystemBox(self.lutris_config)
         self.system_sw = self.build_scrolled_window(self.system_box)
         self._add_notebook_tab(self.system_sw, "System options")
