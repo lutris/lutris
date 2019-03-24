@@ -125,9 +125,9 @@ def check_donate():
             secondary_message="Lutris is entirely funded by its community and will "
             "remain an independent gaming platform.\n"
             "For Lutris to survive and grow, the project needs your help.\n"
-            "Please consider making a donation if you can, this will greatly help "
-            "covering the costs of hosting the project and funding new features "
-            " like cloud saves or a full-screen interface for the TV!\n"
+            "Please consider making a donation if you can. This will greatly help "
+            "cover the costs of hosting the project and fund new features "
+            "like cloud saves or a full-screen interface for the TV!\n"
             "<a href='https://lutris.net/donate'>SUPPORT US! https://lutris.net/donate</a>"
         )
 
