@@ -33,6 +33,16 @@ def get_proton():
                     return path
     return None
 
+def get_proton_custom():
+    """Get the Folder that contains all the Proton versions. Can probably be improved"""
+    for path in [os.path.join(p, "") for p in steam().get_steamapps_dirs()]:
+        if os.path.isdir(path):
+            proton_versions = [p for p in os.listdir(path) if "Proton" in p]
+            for version in proton_versions:
+                if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
+                    return path
+    return None
+
 
 def get_playonlinux():
     """Return the folder containing PoL config files"""
@@ -43,6 +53,7 @@ def get_playonlinux():
 
 
 PROTON_PATH = get_proton()
+PROTON_PATH_CUSTOM = get_proton_custom()
 POL_PATH = get_playonlinux()
 
 
@@ -147,6 +158,14 @@ def get_wine_versions():
             proton_path = os.path.join(PROTON_PATH, version, "dist/bin/wine")
             if os.path.isfile(proton_path):
                 versions.append(version)
+
+    if PROTON_PATH_CUSTOM:
+        proton_versions = [p for p in os.listdir(PROTON_PATH_CUSTOM) if "Proton" in p]
+        for version in proton_versions:
+            proton_path = os.path.join(PROTON_PATH_CUSTOM, version, "dist/bin/wine")
+            if os.path.isfile(proton_path):
+                versions.append(version)
+
     if POL_PATH:
         for arch in ['x86', 'amd64']:
             builds_path = os.path.join(POL_PATH, "wine/linux-%s" % arch)

@@ -234,6 +234,11 @@ class steam(Runner):
             main_dir = system.fix_path_case(main_dir)
             if main_dir and os.path.isdir(main_dir):
                 dirs.append(main_dir)
+        if self.steam_data_dir:
+            ct_dir = os.path.join(self.steam_data_dir, "compatibilitytools.d")
+            ct_dir = system.fix_path_case(ct_dir)
+            if ct_dir and os.path.isdir(ct_dir):
+                dirs.append(ct_dir)
         # Custom dirs
         steam_config = self.get_steam_config()
         if steam_config:
