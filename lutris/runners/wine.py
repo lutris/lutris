@@ -740,20 +740,21 @@ class wine(Runner):
         for entry in PROTON_PATH:
              if entry in wine_path:
                  wine_root = os.path.dirname(os.path.dirname(wine_path))
+             else:
+                 break
+        if WINE_DIR:
+            wine_root = os.path.dirname(os.path.dirname(wine_path))
         else:
-            if WINE_DIR:
-                wine_root = os.path.dirname(os.path.dirname(wine_path))
+            wine_root = None
+            if "-4." in wine_path or "/4." in wine_path:
+                version = "Ubuntu-18.04"
             else:
-                wine_root = None
-                if "-4." in wine_path or "/4." in wine_path:
-                    version = "Ubuntu-18.04"
-                else:
-                    version = "legacy"
-                    return runtime.get_env(
-                        version=version,
-                        prefer_system_libs=self.system_config.get("prefer_system_libs", True),
-                        wine_path=wine_root
-                    )
+                version = "legacy"
+                return runtime.get_env(
+                    version=version,
+                    prefer_system_libs=self.system_config.get("prefer_system_libs", True),
+                    wine_path=wine_root
+                )
 
     def get_pids(self, wine_path=None):
         """Return a list of pids of processes using the current wine exe."""
