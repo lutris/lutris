@@ -39,7 +39,10 @@ def get_main_window(widget):
 def open_uri(uri):
     """Opens a local or remote URI with the default application"""
     system.reset_library_preloads()
-    Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
+    try:
+        Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
+    except GLib.Error as ex:
+        logger.exception("Failed to open URI %s: %s", uri, ex)
 
 
 def get_pixbuf(image, size, fallback=None):
