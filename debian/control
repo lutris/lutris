@@ -40,7 +40,8 @@ Depends: ${misc:Depends},
  curl,
  fluid-soundfont-gs,
  x11-xserver-utils,
- mesa-utils
+ mesa-utils,
+ gvfs-backends
 Recommends: python3-evdev,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]
