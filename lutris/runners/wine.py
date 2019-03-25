@@ -500,12 +500,13 @@ class wine(Runner):
             return get_default_version()
 
     def get_path_for_version(self, version):
+        # logger.debug("Getting path for Wine %s", version)
         if version in WINE_PATHS.keys():
             return system.find_executable(WINE_PATHS[version])
         if "Proton" in version:
             for entry in PROTON_PATH:
-                if os.path.isdir(os.path.join(entry, version, "dist/bin/wine")):
-                    return os.path.join(proton, version, "dist/bin/wine")
+                if os.path.isfile(os.path.join(entry, version, "dist/bin/wine")):
+                    return os.path.join(entry, version, "dist/bin/wine")
         if version.startswith("PlayOnLinux"):
             version, arch = version.split()[1].rsplit("-", 1)
             return os.path.join(POL_PATH, "wine", "linux-" + arch, version, "bin/wine")
@@ -633,8 +634,7 @@ class wine(Runner):
 
     def set_regedit_keys(self):
         """Reset regedit keys according to config."""
-        prefix = self.prefix_path
-        prefix_manager = WinePrefixManager(prefix)
+        prefix_manager = WinePrefixManager(self.prefix_path)
         # Those options are directly changed with the prefix manager and skip
         # any calls to regedit.
         managed_keys = {
@@ -737,24 +737,21 @@ class wine(Runner):
     def get_runtime_env(self):
         """Return runtime environment variables with path to wine for Lutris builds"""
         wine_path = self.get_executable()
-        for entry in PROTON_PATH:
-             if entry in wine_path:
-                 wine_root = os.path.dirname(os.path.dirname(wine_path))
-             else:
-                 break
+        wine_root = None
         if WINE_DIR:
             wine_root = os.path.dirname(os.path.dirname(wine_path))
+        for entry in PROTON_PATH:
+            if entry in wine_path:
+                wine_root = os.path.dirname(os.path.dirname(wine_path))
+        if "-4." in wine_path or "/4." in wine_path:
+            version = "Ubuntu-18.04"
         else:
-            wine_root = None
-            if "-4." in wine_path or "/4." in wine_path:
-                version = "Ubuntu-18.04"
-            else:
-                version = "legacy"
-                return runtime.get_env(
-                    version=version,
-                    prefer_system_libs=self.system_config.get("prefer_system_libs", True),
-                    wine_path=wine_root
-                )
+            version = "legacy"
+        return runtime.get_env(
+            version=version,
+            prefer_system_libs=self.system_config.get("prefer_system_libs", True),
+            wine_path=wine_root
+        )
 
     def get_pids(self, wine_path=None):
         """Return a list of pids of processes using the current wine exe."""
