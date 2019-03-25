@@ -240,6 +240,7 @@ def is_connected():
 
 def connect(parent=None):
     """Connect to GOG"""
+    logger.debug("Connecting to GOG")
     dialog = WebConnectDialog(GOG_SERVICE, parent)
     dialog.run()
 

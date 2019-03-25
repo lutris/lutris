@@ -491,7 +491,7 @@ class ScriptInterpreter(CommandsMixin):
         if not file_path or not os.path.exists(file_path):
             raise ScriptingError("Can't continue installation without file", file_id)
         self.game_files[file_id] = file_path
-        self.prepare_game_files()
+        self.iter_game_files()
 
     # ---------------
     # "Commands" stage
@@ -863,7 +863,7 @@ class ScriptInterpreter(CommandsMixin):
         self.game_files[self.steam_data["file_id"]] = os.path.abspath(
             os.path.join(data_path, self.steam_data["steam_rel_path"])
         )
-        self.prepare_game_files()
+        self.iter_game_files()
 
     def _download_steam_data(self, file_uri, file_id):
         """Download the game files from Steam to use them outside of Steam.
