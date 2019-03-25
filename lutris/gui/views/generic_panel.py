@@ -1,6 +1,6 @@
 """Side panel when no game is selected"""
 import json
-from gi.repository import Gtk, Gdk, Gio, Pango, GLib, GObject
+from gi.repository import Gtk, Gdk, Gio, Pango, GObject
 from lutris import api
 from lutris.game import Game
 from lutris.util import system

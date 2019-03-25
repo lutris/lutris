@@ -7,6 +7,7 @@ from lutris.util.graphics import drivers
 from lutris.util.graphics.glxinfo import GlxInfo
 from lutris.util.linux import LINUX_SYSTEM
 
+
 def gather_system_info():
     """Get all system information in a single data structure"""
     system_info = {}
@@ -37,7 +38,6 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         self.set_default_size(600, 480)
         self.set_position(Gtk.WindowPosition.CENTER)
 
-
         self.vbox = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
             spacing=12,
@@ -67,7 +67,6 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
 class IssueReportWindow(BaseApplicationWindow):
     def __init__(self, application):
         super().__init__(application)
-
 
         # Title label
         self.title_label = Gtk.Label(visible=True)

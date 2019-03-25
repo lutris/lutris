@@ -131,6 +131,7 @@ def check_donate():
             "<a href='https://lutris.net/donate'>SUPPORT US! https://lutris.net/donate</a>"
         )
 
+
 def fill_missing_platforms():
     """Sets the platform on games where it's missing.
     This should never happen.

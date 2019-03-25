@@ -33,6 +33,7 @@ def get_proton():
                     return path
     return None
 
+
 def get_proton_custom():
     for path in [os.path.join(p, "") for p in steam().get_steamapps_dirs()]:
         if os.path.isdir(path):
@@ -51,7 +52,7 @@ def get_playonlinux():
     return None
 
 
-PROTON_PATH = [get_proton(),get_proton_custom()]
+PROTON_PATH = [get_proton(), get_proton_custom()]
 POL_PATH = get_playonlinux()
 
 

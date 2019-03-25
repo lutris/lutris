@@ -21,7 +21,6 @@ class GlxInfo:
         self._attrs = set()  # Keep a reference of the created attributes
         self.parse()
 
-
     @staticmethod
     def get_glxinfo_output():
         """Return the glxinfo -B output"""

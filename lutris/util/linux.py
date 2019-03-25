@@ -165,7 +165,10 @@ class LinuxSystem:
         except subprocess.CalledProcessError as ex:
             logger.error("Failed to get drive information: %s", ex)
             return None
-        return [drive for drive in json.loads(output)["blockdevices"] if drive["fstype"] != "squashfs"]
+        return [
+            drive for drive in json.loads(output)["blockdevices"]
+            if drive["fstype"] != "squashfs"
+        ]
 
     @staticmethod
     def get_ram_info():
