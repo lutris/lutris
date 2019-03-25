@@ -23,27 +23,6 @@ WINE_PATHS = {
 ESYNC_LIMIT_CHECK = os.environ.get("ESYNC_LIMIT_CHECK", "").lower()
 
 
-def get_proton():
-    """Get the Folder that contains all the Proton versions. Can probably be improved"""
-    for path in [os.path.join(p, "common") for p in steam().get_steamapps_dirs()]:
-        if os.path.isdir(path):
-            proton_versions = [p for p in os.listdir(path) if "Proton" in p]
-            for version in proton_versions:
-                if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
-                    return path
-    return None
-
-
-def get_proton_custom():
-    for path in [os.path.join(p, "") for p in steam().get_steamapps_dirs()]:
-        if os.path.isdir(path):
-            proton_versions = [p for p in os.listdir(path) if "Proton" in p]
-            for version in proton_versions:
-                if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
-                    return path
-    return None
-
-
 def get_playonlinux():
     """Return the folder containing PoL config files"""
     pol_path = os.path.expanduser("~/.PlayOnLinux")
@@ -52,7 +31,27 @@ def get_playonlinux():
     return None
 
 
-PROTON_PATH = [get_proton(), get_proton_custom()]
+def _iter_proton_locations():
+    """Iterate through all existing Proton locations"""
+    for path in [os.path.join(p, "common") for p in steam().get_steamapps_dirs()]:
+        if os.path.isdir(path):
+            yield path
+    for path in [os.path.join(p, "") for p in steam().get_steamapps_dirs()]:
+        if os.path.isdir(path):
+            yield path
+
+
+def get_proton_paths():
+    """Get the Folder that contains all the Proton versions. Can probably be improved"""
+    paths = []
+    for path in _iter_proton_locations():
+        proton_versions = [p for p in os.listdir(path) if "Proton" in p]
+        for version in proton_versions:
+            if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
+                paths.append(path)
+    return paths
+
+
 POL_PATH = get_playonlinux()
 
 
@@ -151,13 +150,12 @@ def get_wine_versions():
             if is_version_installed(dirname):
                 versions.append(dirname)
 
-    if PROTON_PATH:
-        for entry in PROTON_PATH:
-            proton_versions = [p for p in os.listdir(entry) if "Proton" in p]
-            for version in proton_versions:
-                proton_path = os.path.join(entry, version, "dist/bin/wine")
-                if os.path.isfile(proton_path):
-                    versions.append(version)
+    for proton_path in get_proton_paths():
+        proton_versions = [p for p in os.listdir(proton_path) if "Proton" in p]
+        for version in proton_versions:
+            proton_path = os.path.join(proton_path, version, "dist/bin/wine")
+            if os.path.isfile(proton_path):
+                versions.append(version)
 
     if POL_PATH:
         for arch in ['x86', 'amd64']:
