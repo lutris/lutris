@@ -1,3 +1,16 @@
+lutris (0.5.1.1) cosmic; urgency=medium
+
+  * Fixed a crash when trying to open webpages on system without GVFS
+    installed
+  * Fixed GOG login dialog being displayed multiple times during the install
+  * Add mesa-utils as dependency for glxinfo
+  * Add gvfs-backends as dependency to fix the open_uri issue
+  * Add detection of custom proton builds in compatibilitytools.d folder, as
+    documented here: https://github.com/valvesoftware/proton#install-proton-locally
+   (by @GloriousEggroll)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 24 Mar 2019 23:39:18 -0700
+
 lutris (0.5.1) cosmic; urgency=medium
 
   * Download the default Lutris Wine version when not available
