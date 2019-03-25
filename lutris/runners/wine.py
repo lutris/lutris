@@ -741,7 +741,7 @@ class wine(Runner):
         if WINE_DIR:
             wine_root = os.path.dirname(os.path.dirname(wine_path))
         for entry in PROTON_PATH:
-            if entry in wine_path:
+            if entry is not None and entry in wine_path:
                 wine_root = os.path.dirname(os.path.dirname(wine_path))
         if "-4." in wine_path or "/4." in wine_path:
             version = "Ubuntu-18.04"
