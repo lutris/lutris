@@ -174,7 +174,6 @@ class Application(Gtk.Application):
             Gtk.StyleContext.add_provider_for_screen(
                 screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
             )
-        self.window.present()  # EXPLAIN YOURSELF BEFORE MESSING WITH THAT LINE
 
     @staticmethod
     def _print(command_line, string):
@@ -310,6 +309,7 @@ class Application(Gtk.Application):
                 action = "install"
 
         if action == "install":
+            self.window.present()
             InstallerWindow(
                 game_slug=game_slug,
                 installer_file=installer_file,
