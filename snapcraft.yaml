@@ -12,6 +12,26 @@ grade: devel
 confinement: devmode
 base: core18
 
+plugs:
+  gnome-3-28-1804:
+    interface: content
+    target: $SNAP/gnome-platform
+    default-provider: gnome-3-28-1804
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
+
+slots:
+  lutris:
+    interface: dbus
+    bus: session
+    name: net.lutris.Lutris
+
 parts:
   lutris:
     plugin: python
@@ -26,9 +46,14 @@ parts:
       - gir1.2-gnomedesktop-3.0
       - gir1.2-webkit2-4.0
       - gir1.2-notify-0.7
-
 apps:
   lutris:
-    command: bin/lutris
+    command: desktop-launch $SNAP/bin/lutris
+    plugs:
+      - desktop
+      - gsettings
+      - home
+    slots: [ lutris ]
+    desktop: usr/share/applications/net.lutris.Lutris.desktop
   lutris-wrapper:
     command: bin/lutris-wrapper
