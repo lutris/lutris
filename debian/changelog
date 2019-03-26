@@ -1,3 +1,9 @@
+lutris (0.5.1.3) cosmic; urgency=critical
+
+  * Fake release to work around Launchpad / OBS publishing issues.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 25 Mar 2019 17:38:55 -0700
+
 lutris (0.5.1.2) cosmic; urgency=high
 
   * Fix issue with custom Proton detection preventing Wine game from running
