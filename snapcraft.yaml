@@ -48,12 +48,12 @@ parts:
       - gir1.2-notify-0.7
 apps:
   lutris:
-    command: desktop-launch $SNAP/bin/lutris
+    command: bin/lutris
     plugs:
       - desktop
       - gsettings
       - home
     slots: [ lutris ]
-    desktop: usr/share/applications/net.lutris.Lutris.desktop
+    desktop: share/applications/net.lutris.Lutris.desktop
   lutris-wrapper:
     command: bin/lutris-wrapper
