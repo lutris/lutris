@@ -10,13 +10,12 @@ class InvalidPid(Exception):
 
 class Process:
     """Python abstraction a Linux process"""
-    def __init__(self, pid, parent=None):
+    def __init__(self, pid):
         try:
             self.pid = int(pid)
         except ValueError:
             raise InvalidPid("'%s' is not a valid pid" % pid)
         self.children = []
-        self.parent = None
         self.get_children()
 
     def __repr__(self):
@@ -64,7 +63,7 @@ class Process:
         self.children = []
         for tid in self.get_thread_ids():
             for child_pid in self.get_children_pids_of_thread(tid):
-                self.children.append(Process(child_pid, parent=self))
+                self.children.append(Process(child_pid))
 
     @property
     def name(self):
