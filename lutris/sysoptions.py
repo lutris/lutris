@@ -1,5 +1,6 @@
 """Options list for system config."""
 import os
+import glob
 from collections import OrderedDict
 
 from lutris import runners
@@ -15,6 +16,21 @@ def get_optirun_choices():
         choices.append(("optirun/virtualgl", "optirun"))
     if system.find_executable("pvkrun"):
         choices.append(("primus vk", "pvkrun"))
+    return choices
+
+
+def get_vk_icd_choices():
+    """Return available Vulkan ICD loaders"""
+    choices = [("None", "")]
+
+    # Add loaders from standard location
+    for loader in glob.glob("/usr/share/vulkan/icd.d/*.json"):
+        choices.append((os.path.basename(loader), loader))
+
+    # Also add loaders for the AMD GPU Pro driver
+    # https://github.com/Tk-Glitch/PKGBUILDS/tree/master/amdgpu-pro-vulkan-only
+    for loader in glob.glob("/opt/amdgpu-pro/etc/vulkan/icd.d/*.json"):
+        choices.append((os.path.basename(loader), loader))
     return choices
 
 
@@ -133,6 +149,20 @@ system_options = [  # pylint: disable=invalid-name
             "optirun/virtualgl works better for more games."
             "Primus VK provide vulkan support under bumblebee."
         ),
+    },
+    {
+        "option": "vk_icd",
+        "type": "choice",
+        "default": "",
+        "choices": get_vk_icd_choices,
+        "label": "Vulkan ICD loader",
+        "advanced": True,
+        "help": (
+            "The ICD loader is a library that is placed between a Vulkan "
+            "application and any number of Vulkan drivers, in order to support "
+            "multiple drivers and the instance-level functionality that works "
+            "across these drivers."
+        )
     },
     {
         "option": "fps_limit",

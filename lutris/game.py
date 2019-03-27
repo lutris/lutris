@@ -408,6 +408,10 @@ class Game(GObject.Object):
         if pulse_latency:
             env["PULSE_LATENCY_MSEC"] = "60"
 
+        vk_icd = system_config.get("vk_icd")
+        if vk_icd and vk_icd != "off" and system.path_exists(vk_icd):
+            env["VK_ICD_FILENAMES"] = vk_icd
+
         fps_limit = system_config.get("fps_limit") or ""
         if fps_limit:
             strangle_cmd = system.find_executable("strangle")
