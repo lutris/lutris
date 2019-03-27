@@ -206,7 +206,14 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.title_label.set_markup("<b>Install %s</b>" % base_script["name"])
         installer_picker = InstallerPicker(self.scripts)
         installer_picker.connect("installer-selected", self.on_installer_selected)
-        self.widget_box.pack_start(installer_picker, False, False, 0)
+        scrolledwindow = Gtk.ScrolledWindow(
+            hexpand=True, vexpand=True, child=installer_picker
+        )
+        scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        self.widget_box.pack_end(scrolledwindow, True, True, 10)
+        scrolledwindow.show()
+
+        self.widget_box.pack_start(scrolledwindow, False, False, 0)
 
     def on_installer_selected(self, widget, installer_slug):
         self.clean_widgets()

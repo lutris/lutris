@@ -84,12 +84,7 @@ class InstallerScriptBox(Gtk.VBox):
         notes_label.set_margin_bottom(12)
         notes_label.set_margin_right(12)
         notes_label.set_margin_left(12)
-
-        notes_scrolled_area = Gtk.ScrolledWindow()
-        notes_scrolled_area.set_min_content_height(100)
-        notes_scrolled_area.set_overlay_scrolling(False)
-        notes_scrolled_area.add(notes_label)
-        return notes_scrolled_area
+        return notes_label
 
     def reveal(self, reveal=True):
         """Show or hide the information in the revealer"""
@@ -104,7 +99,9 @@ class InstallerScriptBox(Gtk.VBox):
 class InstallerPicker(Gtk.ListBox):
     """List box to pick between several installers"""
 
-    __gsignals__ = {"installer-selected": (GObject.SIGNAL_RUN_FIRST, None, (str, ))}
+    __gsignals__ = {
+        "installer-selected": (GObject.SIGNAL_RUN_FIRST, None, (str, ))
+    }
 
     def __init__(self, scripts):
         super().__init__()
