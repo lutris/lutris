@@ -11,7 +11,7 @@ from lutris.util.linux import LINUX_SYSTEM
 def gather_system_info():
     """Get all system information in a single data structure"""
     system_info = {}
-    if drivers.is_nvidia:
+    if drivers.is_nvidia():
         system_info["nvidia_driver"] = drivers.get_nvidia_driver_info()
         system_info["nvidia_gpus"] = [
             drivers.get_nvidia_gpu_info(gpu_id)

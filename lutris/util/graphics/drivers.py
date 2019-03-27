@@ -11,7 +11,10 @@ MIN_RECOMMENDED_NVIDIA_DRIVER = 415
 
 def get_nvidia_driver_info():
     """Return information about NVidia drivers"""
-    with open("/proc/driver/nvidia/version") as version_file:
+    version_file_path = "/proc/driver/nvidia/version"
+    if not os.path.exists(version_file_path):
+        return
+    with open(version_file_path) as version_file:
         content = version_file.readlines()
     nvrm_version = content[0].split(': ')[1].strip().split()
     return {
