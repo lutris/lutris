@@ -143,3 +143,4 @@ class IssueReportWindow(BaseApplicationWindow):
             json.dump(issue_info, issue_file, indent=2)
         dialog.destroy()
         NoticeDialog("Issue saved in %s" % issue_path)
+        self.destroy()
