@@ -1,5 +1,6 @@
 import os
 import configparser
+from lutris.util.log import logger
 
 
 class SettingsIO:
@@ -9,7 +10,10 @@ class SettingsIO:
         self.config_file = config_file
         self.config = configparser.ConfigParser()
         if os.path.exists(self.config_file):
-            self.config.read([self.config_file])
+            try:
+                self.config.read([self.config_file])
+            except configparser.ParsingError as ex:
+                logger.error("Failed to readconfig file %s: %s", self.config_file, ex)
 
     def read_setting(self, key, section="lutris", default=None):
         """Read a setting from the config file
