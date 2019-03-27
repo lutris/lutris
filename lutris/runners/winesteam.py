@@ -279,6 +279,13 @@ class winesteam(wine.wine):
 
         def on_steam_downloaded(*_args):
             prefix = self.get_or_create_default_prefix()
+
+            # Install CJK fonts in the Steam prefix before Steam
+            winetricks(
+                "cjkfonts",
+                prefix=prefix,
+                wine_path=self.get_executable()
+            )
             self.msi_exec(
                 installer_path,
                 quiet=True,
