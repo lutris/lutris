@@ -44,6 +44,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.set_default_size(600, 480)
         self.set_position(Gtk.WindowPosition.CENTER)
 
+        self.install_in_progress = False
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
         self.parent = parent
@@ -62,7 +63,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.add(self.vbox)
 
         # Default signals
-        self.connect("destroy", self.on_destroy)
+        self.connect("delete-event", self.on_destroy)
 
         # GUI Setup
 
@@ -95,7 +96,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
         self.cancel_button = Gtk.Button.new_with_mnemonic("C_ancel")
         self.cancel_button.set_tooltip_text("Abort and revert the " "installation")
-        self.cancel_button.connect("clicked", self.on_cancel_clicked)
+        self.cancel_button.connect("clicked", self.cancel_installation)
         self.action_buttons.add(self.cancel_button)
 
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
@@ -103,7 +104,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
         self.play_button = self.add_button("_Launch game", self.launch_game)
-        self.close_button = self.add_button("_Close", self.close)
+        self.close_button = self.add_button("_Close", self.on_destroy)
 
         self.continue_handler = None
 
@@ -154,6 +155,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.source_button.hide()
         self.eject_button.hide()
         self.continue_button.hide()
+        self.install_in_progress = True
 
         self.choose_installer()
 
@@ -471,7 +473,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
 
     def on_install_finished(self):
         self.clean_widgets()
-
+        self.install_in_progress = False
         # Shortcut checkboxes
         self.desktop_shortcut_box = Gtk.CheckButton("Create desktop shortcut")
         self.menu_shortcut_box = Gtk.CheckButton("Create application menu " "shortcut")
@@ -484,7 +486,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         if settings.read_setting("create_menu_shortcut") == "True":
             self.menu_shortcut_box.set_active(True)
 
-        self.connect("destroy", self.create_shortcuts)
+        self.connect("delete-event", self.create_shortcuts)
 
         # Buttons
         self.eject_button.hide()
@@ -514,17 +516,19 @@ class InstallerWindow(Gtk.ApplicationWindow):
     def launch_game(self, widget, _data=None):
         """Launch a game after it's been installed."""
         widget.set_sensitive(False)
-        self.close(widget)
+        self.on_destroy(widget)
         self.application.launch(Game(self.interpreter.game_id))
 
-    def close(self, _widget):
-        self.destroy()
-
-    def on_destroy(self, widget):
+    def on_destroy(self, _widget, _data=None):
         """destroy event handler"""
-        if self.interpreter:
-            self.interpreter.cleanup()
-        self.destroy()
+        if self.install_in_progress:
+            abort_close = self.cancel_installation()
+            if abort_close:
+                return True
+        else:
+            if self.interpreter:
+                self.interpreter.cleanup()
+            self.destroy()
 
     def create_shortcuts(self, *args):
         """Create desktop and global menu shortcuts."""
@@ -542,13 +546,19 @@ class InstallerWindow(Gtk.ApplicationWindow):
         settings.write_setting("create_desktop_shortcut", create_desktop_shortcut)
         settings.write_setting("create_menu_shortcut", create_menu_shortcut)
 
-    # --------------
-    # Cancel install
-    # --------------
-
-    def on_cancel_clicked(self, _button):
+    def cancel_installation(self, widget=None):
+        """Ask a confirmation before cancelling the install"""
+        confirm_cancel_dialog = QuestionDialog(
+            {
+                "question": "Are you sure you want to cancel the installation?",
+                "title": "Cancel installation?",
+            }
+        )
+        if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
+            return True
         if self.interpreter:
             self.interpreter.revert()
+            self.interpreter.cleanup()
         self.destroy()
 
     # -------------
