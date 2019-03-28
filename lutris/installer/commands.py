@@ -102,11 +102,16 @@ class CommandsMixin:
             if not data.get("disable_runtime", False):
                 # Possibly need to handle prefer_system_libs here
                 env.update(runtime.get_env())
-            userenv = data.get("env") or {}
-            for key in userenv:
-                env_value = userenv[key]
-                userenv[key] = self._get_file(env_value)
-            env.update(userenv)
+
+            # Loading environment variables set in the script
+            env.update(self.script_env)
+
+            # Environment variables can also be passed to the execute command
+            local_env = data.get("env") or {}
+            env.update({
+                key: self._substitute(value)
+                for key, value in local_env.items()
+            })
             include_processes = shlex.split(data.get("include_processes", ""))
             exclude_processes = shlex.split(data.get("exclude_processes", ""))
         elif isinstance(data, str):
@@ -285,7 +290,8 @@ class CommandsMixin:
             if os.path.dirname(src) == dst:
                 logger.info("Source file is the same as destination, skipping")
                 return
-            elif os.path.exists(os.path.join(dst, os.path.basename(src))):
+
+            if os.path.exists(os.path.join(dst, os.path.basename(src))):
                 # May not be the best choice, but it's the safest.
                 # Maybe should display confirmation dialog (Overwrite / Skip) ?
                 logger.info("Destination file exists, skipping")
@@ -384,6 +390,8 @@ class CommandsMixin:
             data["arch"] = data.get("arch") \
                 or self.script.get("game", {}).get("arch") \
                 or WINE_DEFAULT_ARCH
+            if task_name == "wineexec" and self.script_env:
+                data["env"] = self.script_env
 
         for key in data:
             value = data[key]

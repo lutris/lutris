@@ -191,6 +191,17 @@ class ScriptInterpreter(CommandsMixin):
             return True
         return False
 
+    @property
+    def script_env(self):
+        """Return the script's own environment variable with values
+        susbtituted. This value can be used to provide the same environment
+        variable as set for the game during the install process.
+        """
+        return {
+            key: self._substitute(value) for key, value in
+            self.script.get('system', {}).get('env', {}).items()
+        }
+
     # --------------------------
     # "Initial validation" stage
     # --------------------------
