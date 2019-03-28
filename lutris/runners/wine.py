@@ -38,7 +38,6 @@ from lutris.runners.commands.wine import (  # noqa pylint: disable=unused-import
     create_prefix,
     delete_registry_key,
     eject_disc,
-    joycpl,
     set_regedit,
     set_regedit_file,
     winecfg,
@@ -447,7 +446,7 @@ class wine(Runner):
             ("wine-regedit", "Wine registry", self.run_regedit),
             ("winekill", "Kill all wine processes", self.run_winekill),
             ("winetricks", "Winetricks", self.run_winetricks),
-            ("joycpl", "Joystick Control Panel", self.run_joycpl),
+            ("winecpl", "Wine Control Panel", self.run_winecpl),
         ]
         return menu_entries
 
@@ -617,9 +616,15 @@ class wine(Runner):
             "", prefix=self.prefix_path, wine_path=self.get_executable(), config=self
         )
 
-    def run_joycpl(self, *args):
+    def run_winecpl(self, *args):
+        """Execute Wine control panel."""
         self.prelaunch()
-        joycpl(prefix=self.prefix_path, wine_path=self.get_executable(), config=self)
+        wineexec(
+            "control",
+            prefix=self.prefix_path,
+            wine_path=self.get_executable()
+        )
+
 
     def run_winekill(self, *args):
         """Runs wineserver -k."""

@@ -385,13 +385,6 @@ def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None):
     )
 
 
-def joycpl(wine_path=None, prefix=None, config=None):
-    """Execute Joystick control panel."""
-    logger.debug("What is config and why do we need it? %s", config)
-    arch = detect_arch(prefix, wine_path)
-    wineexec("control", prefix=prefix, wine_path=wine_path, arch=arch, args="joy.cpl")
-
-
 def eject_disc(wine_path, prefix):
     """Use Wine to eject a drive"""
     wineexec("eject", prefix=prefix, wine_path=wine_path, args="-a")
