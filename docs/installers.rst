@@ -455,32 +455,6 @@ Currently, the following tasks are implemented:
             prefix: $GAMEDIR
             app: nt40
 
-*   wine / winesteam: ``winecfg`` runs execute winecfg in your ``prefix`` argument. Parameters are
-    ``prefix`` (optional wineprefix path), ``arch`` (optional WINEARCH, required when you created win64 prefix),
-    ``config`` (dunno what is is).
-
-    example:
-
-    ::
-
-        - task:
-            name: winecfg
-            prefix: $GAMEDIR
-            config: config-file
-            arch: win64
-
-*   wine / winesteam: ``joycpl`` runs joycpl in your ``prefix`` argument. Parameters are
-    ``prefix`` (optional wineprefix path), ``arch`` (optional WINEARCH, required when you created win64 prefix).
-
-    example:
-
-    ::
-
-        - task:
-            name: joypl
-            prefix: $GAMEDIR
-            arch: win64
-
 *   wine / winesteam: ``eject_disk`` runs eject_disk in your ``prefix`` argument. parameters are
     ``prefix`` (optional wineprefix path).
 
@@ -491,18 +465,6 @@ Currently, the following tasks are implemented:
         - task:
             name: eject_disc
             prefix: $GAMEDIR
-
-*   wine / winesteam: ``disable_desktop_integration`` remove links to user directories in a ``prefix`` argument. parameters are
-    ``prefix`` (wineprefix path).
-
-    example:
-
-    ::
-
-        - task:
-            name: eject_disc
-            prefix: $GAMEDIR
-
 
 *   wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
     are ``path`` (the registry path, use backslashes), ``key``, ``value``,
