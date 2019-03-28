@@ -57,7 +57,7 @@ def check_driver():
         for gpu_id in gpus:
             gpu_info = drivers.get_nvidia_gpu_info(gpu_id)
             logger.info("GPU: %s", gpu_info.get("Model"))
-    elif hasattr(LINUX_SYSTEM, "glxinfo"):
+    elif LINUX_SYSTEM.glxinfo:
         logger.info("Using %s", LINUX_SYSTEM.glxinfo.opengl_vendor)
         if hasattr(LINUX_SYSTEM.glxinfo, "GLX_MESA_query_renderer"):
             logger.info(

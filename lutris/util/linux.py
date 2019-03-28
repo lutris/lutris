@@ -121,10 +121,7 @@ class LinuxSystem:
         self.populate_libraries()
         self.populate_sound_fonts()
         self.soft_limit, self.hard_limit = self.get_file_limits()
-        if self.get("glxinfo"):
-            self.glxinfo = glxinfo.GlxInfo()
-            if not hasattr(self.glxinfo, "display"):
-                self.glxinfo = None
+        self.glxinfo = self.get_glxinfo()
 
     @staticmethod
     def get_sbin_path(command):
@@ -216,6 +213,16 @@ class LinuxSystem:
     @property
     def critical_requirements(self):
         return self.get_requirements(include_optional=False)
+
+    def get_glxinfo(self):
+        """Return a GlxInfo instance if the gfxinfo tool is available"""
+        if not self.get("glxinfo"):
+            return
+        _glxinfo = glxinfo.GlxInfo()
+        if not hasattr(_glxinfo, "display"):
+            logger.warning("Invalid glxinfo received")
+            return
+        return _glxinfo
 
     def get_requirements(self, include_optional=True):
         """Return used system requirements"""
