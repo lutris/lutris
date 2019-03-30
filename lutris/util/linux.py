@@ -87,14 +87,6 @@ class LinuxSystem:
     """Global cache for system commands"""
     _cache = {}
 
-    #lib_folders = [
-    #    ('/lib', '/lib64'),
-    #    ('/lib32', '/lib64'),
-    #    ('/usr/lib', '/usr/lib64'),
-    #    ('/usr/lib32', '/usr/lib64'),
-    #    ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
-    #    ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
-    #]
     soundfont_folders = [
         '/usr/share/sounds/sf2',
         '/usr/share/soundfonts',
@@ -219,6 +211,7 @@ class LinuxSystem:
         return self.get_lib_folders()
 
     def get_lib_folders(self):
+        # Use ldconfig to locate the correct locations for system libs.
         _paths32 = []
         _paths64 = []
         _candidates = (subprocess.Popen(['ldconfig', '-p'], stdout=subprocess.PIPE, text=True)).communicate()[0].split('\n')
@@ -273,7 +266,6 @@ class LinuxSystem:
             if self.arch != 'x86_64':
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
-            #if all([os.path.exists(path) for path in lib_paths]):
             yield lib_paths
 
     def populate_libraries(self):
