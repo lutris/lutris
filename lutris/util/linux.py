@@ -273,14 +273,12 @@ class LinuxSystem:
         for arch in self.runtime_architectures:
             self._cache["LIBRARIES"][arch] = defaultdict(list)
         for lib_paths in self.iter_lib_folders():
-            print(lib_paths)
             for path in lib_paths:
                 for req in self.requirements:
                     for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
                         for index, arch in enumerate(self.runtime_architectures):
                             if os.path.exists(os.path.join(path, lib)):
                                 self._cache["LIBRARIES"][arch][req].append(lib)
-                                print (self._cache["LIBRARIES"])
 
     def populate_sound_fonts(self):
         """Populates the soundfont cache"""
