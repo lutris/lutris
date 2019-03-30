@@ -214,7 +214,7 @@ class LinuxSystem:
         # Use ldconfig to locate the correct locations for system libs.
         _paths32 = []
         _paths64 = []
-        _candidates = (subprocess.Popen(['ldconfig', '-p'], stdout=subprocess.PIPE, text=True)).communicate()[0].split('\n')
+        _candidates = (subprocess.Popen([self.get("ldconfig"), '-p'], stdout=subprocess.PIPE, text=True)).communicate()[0].split('\n')
         for req in self.requirements:
             for candidate in _candidates:
                 for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
