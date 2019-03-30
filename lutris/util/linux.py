@@ -87,14 +87,14 @@ class LinuxSystem:
     """Global cache for system commands"""
     _cache = {}
 
-    lib_folders = [
-        ('/lib', '/lib64'),
-        ('/lib32', '/lib64'),
-        ('/usr/lib', '/usr/lib64'),
-        ('/usr/lib32', '/usr/lib64'),
-        ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
-        ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
-    ]
+    #lib_folders = [
+    #    ('/lib', '/lib64'),
+    #    ('/lib32', '/lib64'),
+    #    ('/usr/lib', '/usr/lib64'),
+    #    ('/usr/lib32', '/usr/lib64'),
+    #    ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
+    #    ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
+    #]
     soundfont_folders = [
         '/usr/share/sounds/sf2',
         '/usr/share/soundfonts',
@@ -214,6 +214,27 @@ class LinuxSystem:
     def critical_requirements(self):
         return self.get_requirements(include_optional=False)
 
+    @property
+    def lib_folders(self):
+        return self.get_lib_folders()
+
+    def get_lib_folders(self):
+        _paths32 = []
+        _paths64 = []
+        for candidate in (subprocess.Popen(['ldconfig', '-p'], stdout=subprocess.PIPE, text=True)).communicate()[0].split('\n'):
+            for req in self.requirements:
+                for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
+                    if lib in candidate:
+                        if 'x86-64' in candidate:
+                            candidate = candidate.split(' => ')[1].split(lib)[0]
+                            if candidate not in _paths64:
+                                _paths64.append(candidate)
+                        else:
+                            candidate = candidate.split(' => ')[1].split(lib)[0]
+                            if candidate not in _paths32:
+                                _paths32.append(candidate)
+        return (sorted(_paths32, key = len, reverse = True), sorted(_paths64, key = len, reverse = True))
+
     def get_glxinfo(self):
         """Return a GlxInfo instance if the gfxinfo tool is available"""
         if not self.get("glxinfo"):
@@ -251,8 +272,9 @@ class LinuxSystem:
             if self.arch != 'x86_64':
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
-            if all([os.path.exists(path) for path in lib_paths]):
-                yield lib_paths
+            #if all([os.path.exists(path) for path in lib_paths]):
+            print(lib_paths)
+            yield lib_paths
 
     def populate_libraries(self):
         """Populates the LIBRARIES cache with what is found on the system"""
@@ -260,11 +282,12 @@ class LinuxSystem:
         for arch in self.runtime_architectures:
             self._cache["LIBRARIES"][arch] = defaultdict(list)
         for lib_paths in self.iter_lib_folders():
-            for req in self.requirements:
-                for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
-                    for index, arch in enumerate(self.runtime_architectures):
-                        if os.path.exists(os.path.join(lib_paths[index], lib)):
-                            self._cache["LIBRARIES"][arch][req].append(lib)
+            for path in lib_paths:
+                for req in self.requirements:
+                    for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
+                        for index, arch in enumerate(self.runtime_architectures):
+                            if os.path.exists(os.path.join(lib_paths[index], lib)):
+                                self._cache["LIBRARIES"][arch][req].append(lib)
 
     def populate_sound_fonts(self):
         """Populates the soundfont cache"""
