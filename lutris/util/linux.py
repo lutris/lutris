@@ -212,22 +212,21 @@ class LinuxSystem:
 
     def get_lib_folders(self):
         # Use ldconfig to locate the correct locations for system libs.
-        _paths32 = []
-        _paths64 = []
-        _candidates = (subprocess.Popen([self.get("ldconfig"), '-p'], stdout=subprocess.PIPE, text=True)).communicate()[0].split('\n')
+        _paths = [[], []]
+        _candidates = (subprocess.Popen([self.get("ldconfig"), '-p'], stdout=subprocess.PIPE, encoding="utf-8")).communicate()[0].split('\n')
         for req in self.requirements:
             for candidate in _candidates:
                 for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
                     if lib in candidate:
                         if 'x86-64' in candidate:
                             candidate = candidate.split(' => ')[1].split(lib)[0]
-                            if candidate not in _paths64:
-                                _paths64.append(candidate)
+                            if candidate not in _paths[1]:
+                                _paths[1].append(candidate)
                         else:
                             candidate = candidate.split(' => ')[1].split(lib)[0]
-                            if candidate not in _paths32:
-                                _paths32.append(candidate)
-        return (_paths32, _paths64)
+                            if candidate not in _paths[0]:
+                                _paths[0].append(candidate)
+        return _paths
 
     def get_glxinfo(self):
         """Return a GlxInfo instance if the gfxinfo tool is available"""
@@ -274,12 +273,14 @@ class LinuxSystem:
         for arch in self.runtime_architectures:
             self._cache["LIBRARIES"][arch] = defaultdict(list)
         for lib_paths in self.iter_lib_folders():
+            print(lib_paths)
             for path in lib_paths:
                 for req in self.requirements:
                     for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
                         for index, arch in enumerate(self.runtime_architectures):
-                            if os.path.exists(os.path.join(lib_paths[index], lib)):
+                            if os.path.exists(os.path.join(path, lib)):
                                 self._cache["LIBRARIES"][arch][req].append(lib)
+                                print (self._cache["LIBRARIES"])
 
     def populate_sound_fonts(self):
         """Populates the soundfont cache"""
