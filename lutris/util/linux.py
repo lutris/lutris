@@ -221,8 +221,9 @@ class LinuxSystem:
     def get_lib_folders(self):
         _paths32 = []
         _paths64 = []
-        for candidate in (subprocess.Popen(['ldconfig', '-p'], stdout=subprocess.PIPE, text=True)).communicate()[0].split('\n'):
-            for req in self.requirements:
+        _candidates = (subprocess.Popen(['ldconfig', '-p'], stdout=subprocess.PIPE, text=True)).communicate()[0].split('\n')
+        for req in self.requirements:
+            for candidate in _candidates:
                 for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
                     if lib in candidate:
                         if 'x86-64' in candidate:
@@ -233,7 +234,7 @@ class LinuxSystem:
                             candidate = candidate.split(' => ')[1].split(lib)[0]
                             if candidate not in _paths32:
                                 _paths32.append(candidate)
-        return (sorted(_paths32, key = len, reverse = True), sorted(_paths64, key = len, reverse = True))
+        return (_paths32, _paths64)
 
     def get_glxinfo(self):
         """Return a GlxInfo instance if the gfxinfo tool is available"""
