@@ -273,7 +273,6 @@ class LinuxSystem:
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
             #if all([os.path.exists(path) for path in lib_paths]):
-            print(lib_paths)
             yield lib_paths
 
     def populate_libraries(self):
