@@ -175,7 +175,12 @@ class steam(Runner):
     @property
     def steam_data_dir(self):
         """Return dir where Steam files lie."""
-        candidates = ("~/.steam", "~/.local/share/steam", "~/.steam/steam")
+        candidates = (
+            "~/.steam",
+            "~/.local/share/steam",
+            "~/.steam/steam",
+            "~/.var/app/com.valvesoftware.Steam/data/steam",
+        )
         for candidate in candidates:
             path = system.fix_path_case(
                 os.path.join(os.path.expanduser(candidate), "SteamApps")
