@@ -1,7 +1,6 @@
 """Class to manipulate a process"""
 import os
 from lutris.util.log import logger
-from lutris.util.system import path_exists
 
 
 class InvalidPid(Exception):

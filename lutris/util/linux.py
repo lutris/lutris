@@ -213,7 +213,11 @@ class LinuxSystem:
     def get_lib_folders(self):
         # Use ldconfig to locate the correct locations for system libs.
         _paths = [[], []]
-        _candidates = (subprocess.Popen([self.get("ldconfig"), '-p'], stdout=subprocess.PIPE, universal_newlines=True)).communicate()[0].split('\n')
+        _candidates = (
+            subprocess.Popen([self.get("ldconfig"), '-p'],
+                             stdout=subprocess.PIPE,
+                             universal_newlines=True)
+        ).communicate()[0].split('\n')
         for req in self.requirements:
             for candidate in _candidates:
                 for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
