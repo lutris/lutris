@@ -1,3 +1,6 @@
+"""Filesystem utilities"""
+import os
+import subprocess
 from gi.repository import Gio
 from lutris.util.log import logger
 
@@ -7,10 +10,10 @@ def get_mounted_discs():
 
     :rtype: list of Gio.Mount
     """
-    vm = Gio.VolumeMonitor.get()
+    volumes = Gio.VolumeMonitor.get()
     drives = []
 
-    for mount in vm.get_mounts():
+    for mount in volumes.get_mounts():
         if mount.get_volume():
             device = mount.get_volume().get_identifier("unix-device")
             if not device:
@@ -21,3 +24,28 @@ def get_mounted_discs():
             if "/dev/sr" in device or "/dev/loop" in device:
                 drives.append(mount.get_root().get_path())
     return drives
+
+
+def find_mount_point(path):
+    """Return the mount point a file is located on"""
+    path = os.path.abspath(path)
+    while not os.path.ismount(path):
+        path = os.path.dirname(path)
+    return path
+
+
+def get_mountpoint_drives():
+    """Return a mapping of mount points with their corresponding drives"""
+    mounts = subprocess.check_output(["mount", "-v"]).decode("utf-8").split("\n")
+    mount_map = []
+    for mount in mounts:
+        mount_parts = mount.split()
+        if len(mount_parts) < 3:
+            continue
+        mount_map.append((mount_parts[2], mount_parts[0]))
+    return dict(mount_map)
+
+
+def get_drive_for_path(path):
+    """Return the physical drive a file is located on"""
+    return get_mountpoint_drives().get(find_mount_point(path))
