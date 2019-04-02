@@ -213,7 +213,7 @@ class LinuxSystem:
     def get_lib_folders(self):
         # Use ldconfig to locate the correct locations for system libs. Sorting is done to preserve ordering for the distros that care.
         _cand_dict = {}
-        for candidate in subprocess.run(["ldconfig", '-p'], stdout=subprocess.PIPE, universal_newlines=True).stdout.split('\n'):
+        for candidate in subprocess.run([self.get("ldconfig"), '-p'], stdout=subprocess.PIPE, universal_newlines=True).stdout.split('\n'):
             if '=>' in candidate:
                 candidate = candidate.split(' => ')
                 if candidate[0] not in _cand_dict:
