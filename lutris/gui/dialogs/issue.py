@@ -3,29 +3,7 @@ import os
 import json
 from gi.repository import Gtk
 from lutris.gui.dialogs import NoticeDialog
-from lutris.util.graphics import drivers
-from lutris.util.graphics.glxinfo import GlxInfo
-from lutris.util.linux import LINUX_SYSTEM
-
-
-def gather_system_info():
-    """Get all system information in a single data structure"""
-    system_info = {}
-    if drivers.is_nvidia():
-        system_info["nvidia_driver"] = drivers.get_nvidia_driver_info()
-        system_info["nvidia_gpus"] = [
-            drivers.get_nvidia_gpu_info(gpu_id)
-            for gpu_id in drivers.get_nvidia_gpu_ids()
-        ]
-    system_info["gpus"] = [drivers.get_gpu_info(gpu) for gpu in drivers.get_gpus()]
-    system_info["env"] = dict(os.environ)
-    system_info["missing_libs"] = LINUX_SYSTEM.get_missing_libs()
-    system_info["cpus"] = LINUX_SYSTEM.get_cpus()
-    system_info["drives"] = LINUX_SYSTEM.get_drives()
-    system_info["ram"] = LINUX_SYSTEM.get_ram_info()
-    system_info["dist"] = LINUX_SYSTEM.get_dist_info()
-    system_info["glxinfo"] = GlxInfo().as_dict()
-    return system_info
+from lutris.util.linux import gather_system_info
 
 
 class BaseApplicationWindow(Gtk.ApplicationWindow):

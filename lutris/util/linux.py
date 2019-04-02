@@ -11,6 +11,7 @@ from lutris.vendor.distro import linux_distribution
 from lutris.util.graphics import drivers
 from lutris.util.graphics import glxinfo
 from lutris.util.log import logger
+from lutris.util.disks import get_drive_for_path
 
 SYSTEM_COMPONENTS = {
     "COMMANDS": [
@@ -210,6 +211,14 @@ class LinuxSystem:
     def lib_folders(self):
         return self.get_lib_folders()
 
+    def get_fs_type_for_path(self, path):
+        """Return the filesystem type a given path uses"""
+        path_drive = get_drive_for_path(path)
+        for drive in self.get_drives():
+            for partition in drive.get("children", []):
+                if "/dev/%s" % partition["name"] == path_drive:
+                    return partition["fstype"]
+
     def get_lib_folders(self):
         # Use ldconfig to locate the correct locations for system libs.
         _paths = [[], []]
@@ -314,3 +323,23 @@ class LinuxSystem:
 
 
 LINUX_SYSTEM = LinuxSystem()
+
+
+def gather_system_info():
+    """Get all system information in a single data structure"""
+    system_info = {}
+    if drivers.is_nvidia():
+        system_info["nvidia_driver"] = drivers.get_nvidia_driver_info()
+        system_info["nvidia_gpus"] = [
+            drivers.get_nvidia_gpu_info(gpu_id)
+            for gpu_id in drivers.get_nvidia_gpu_ids()
+        ]
+    system_info["gpus"] = [drivers.get_gpu_info(gpu) for gpu in drivers.get_gpus()]
+    system_info["env"] = dict(os.environ)
+    system_info["missing_libs"] = LINUX_SYSTEM.get_missing_libs()
+    system_info["cpus"] = LINUX_SYSTEM.get_cpus()
+    system_info["drives"] = LINUX_SYSTEM.get_drives()
+    system_info["ram"] = LINUX_SYSTEM.get_ram_info()
+    system_info["dist"] = LINUX_SYSTEM.get_dist_info()
+    system_info["glxinfo"] = glxinfo.GlxInfo().as_dict()
+    return system_info
