@@ -211,22 +211,25 @@ class LinuxSystem:
         return self.get_lib_folders()
 
     def get_lib_folders(self):
-        # Use ldconfig to locate the correct locations for system libs.
-        _paths = [[], []]
-        _candidates = (subprocess.Popen([self.get("ldconfig"), '-p'], stdout=subprocess.PIPE, universal_newlines=True)).communicate()[0].split('\n')
-        for req in self.requirements:
-            for candidate in _candidates:
-                for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
-                    if lib in candidate:
-                        if 'x86-64' in candidate:
-                            candidate = candidate.split(' => ')[1].split(lib)[0]
-                            if candidate not in _paths[1]:
-                                _paths[1].append(candidate)
-                        else:
-                            candidate = candidate.split(' => ')[1].split(lib)[0]
-                            if candidate not in _paths[0]:
-                                _paths[0].append(candidate)
+        # Use ldconfig to locate the correct locations for system libs. Sorting is done to preserve ordering for the distros that care.
+        _cand_dict = {}
+        for candidate in subprocess.run(["ldconfig", '-p'], stdout=subprocess.PIPE, universal_newlines=True).stdout.split('\n'):
+            if '=>' in candidate:
+                candidate = candidate.split(' => ')
+                if candidate[0] not in _cand_dict:
+                    _cand_dict.update({candidate[0]: [candidate[1].rsplit('/', 1)[0]]})
+                else:
+                    _cand_dict[candidate[0]].append(candidate[1].rsplit('/', 1)[0])
+        _paths = [[],[]]
+        for candidate, path in sorted(_cand_dict.items(), key = lambda cand: len(cand[1]), reverse = True):
+            if 'x86-64' in candidate:
+                if  path[0] not in _paths[1]:
+                    _paths[1].append(path[0])
+            elif 'libc' in candidate:
+                if path[0] not in _paths[0]:
+                    _paths[0].append(path[0])
         return _paths
+
 
     def get_glxinfo(self):
         """Return a GlxInfo instance if the gfxinfo tool is available"""
