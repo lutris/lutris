@@ -96,10 +96,6 @@ class InstallerWindow(BaseApplicationWindow):
         self.action_buttons.add(button)
         return button
 
-    # ---------------------------
-    # "Get installer" stage
-    # ---------------------------
-
     def get_scripts(self):
         if system.path_exists(self.installer_file):
             # local script
@@ -161,9 +157,6 @@ class InstallerWindow(BaseApplicationWindow):
         elif dlg.result == dlg.NEW_INSTALLER:
             webbrowser.open(settings.GAME_URL % self.game_slug)
 
-    # ---------------------------
-    # "Choose installer" stage
-    # ---------------------------
     def validate_scripts(self):
         """Auto-fixes some script aspects and checks for mandatory fields"""
         for script in self.scripts:
@@ -227,10 +220,6 @@ class InstallerWindow(BaseApplicationWindow):
         )
         self.select_install_folder()
 
-    # --------------------------
-    # "Select install dir" stage
-    # --------------------------
-
     def select_install_folder(self):
         """Stage where we select the install directory."""
         if self.interpreter.creates_game_folder:
@@ -271,10 +260,6 @@ class InstallerWindow(BaseApplicationWindow):
             self.non_empty_label.show()
         else:
             self.non_empty_label.hide()
-
-    # ---------------------
-    # "Get the files" stage
-    # ---------------------
 
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
@@ -365,10 +350,6 @@ class InstallerWindow(BaseApplicationWindow):
         self.interpreter.abort_current_task = None
         self.interpreter.iter_game_files()
 
-    # ----------------
-    # "Commands" stage
-    # ----------------
-
     def ask_for_disc(self, message, callback, requires):
         """Ask the user to do insert a CD-ROM."""
         time.sleep(0.3)
@@ -440,10 +421,6 @@ class InstallerWindow(BaseApplicationWindow):
         # Enable continue button if a non-empty choice is selected
         self.continue_button.set_sensitive(bool(widget.get_active_id()))
 
-    # ----------------
-    # "Finalize" stage
-    # ----------------
-
     def on_install_finished(self):
         self.clean_widgets()
         self.install_in_progress = False
@@ -481,10 +458,6 @@ class InstallerWindow(BaseApplicationWindow):
         self.set_status(message)
         self.clean_widgets()
         self.cancel_button.grab_focus()
-
-    # --------------------
-    # "Afer the end" stage
-    # --------------------
 
     def launch_game(self, widget, _data=None):
         """Launch a game after it's been installed."""
@@ -534,18 +507,10 @@ class InstallerWindow(BaseApplicationWindow):
             self.interpreter.cleanup()
         self.destroy()
 
-    # -------------
-    # View Source
-    # -------------
-
     def on_source_clicked(self, _button):
         InstallerSourceDialog(
             self.interpreter.script_pretty, self.interpreter.game_name, self
         )
-
-    # -------------
-    # Utility stuff
-    # -------------
 
     def clean_widgets(self):
         """Cleanup before displaying the next stage."""
