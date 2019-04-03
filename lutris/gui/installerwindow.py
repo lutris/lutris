@@ -16,6 +16,8 @@ from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.installer import InstallerPicker
 from lutris.gui.widgets.log_text_view import LogTextView
+from lutris.gui.widgets.window import BaseApplicationWindow
+
 from lutris.util import jobs
 from lutris.util import system
 from lutris.util import xdgshortcuts
@@ -23,7 +25,7 @@ from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, escape_gtk_label
 
 
-class InstallerWindow(Gtk.ApplicationWindow):
+class InstallerWindow(BaseApplicationWindow):
     """GUI for the install process."""
 
     def __init__(
@@ -34,12 +36,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
             parent=None,
             application=None,
     ):
-        Gtk.ApplicationWindow.__init__(self, icon_name="lutris", application=application)
-        self.application = application
-        self.set_show_menubar(False)
-        self.set_size_request(420, 420)
-        self.set_default_size(600, 480)
-        self.set_position(Gtk.WindowPosition.CENTER)
+        super().__init__(application=application)
 
         self.download_progress = None
         self.install_in_progress = False
@@ -53,19 +50,6 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.log_buffer = None
         self.log_textview = None
 
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        self.vbox.set_margin_top(18)
-        self.vbox.set_margin_bottom(18)
-        self.vbox.set_margin_right(18)
-        self.vbox.set_margin_left(18)
-        self.add(self.vbox)
-
-        # Default signals
-        self.connect("delete-event", self.on_destroy)
-
-        # GUI Setup
-
-        # Title label
         self.title_label = Gtk.Label()
         self.vbox.add(self.title_label)
 
@@ -75,19 +59,14 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.status_label.set_selectable(True)
         self.vbox.add(self.status_label)
 
-        # Main widget box
         self.widget_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.vbox.pack_start(self.widget_box, True, True, 0)
 
         self.location_entry = None
 
-        # Separator
         self.vbox.add(Gtk.HSeparator())
 
-        # Buttons
-
         self.action_buttons = Gtk.Box(spacing=6)
-        # self.action_buttons.set_margin_top(18)
         action_buttons_alignment = Gtk.Alignment.new(1, 0, 0, 0)
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 0)
