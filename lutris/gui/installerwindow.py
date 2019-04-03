@@ -26,9 +26,6 @@ from lutris.util.strings import add_url_tags, escape_gtk_label
 class InstallerWindow(Gtk.ApplicationWindow):
     """GUI for the install process."""
 
-    game_dir = None
-    download_progress = None
-
     def __init__(
             self,
             game_slug=None,
@@ -44,6 +41,7 @@ class InstallerWindow(Gtk.ApplicationWindow):
         self.set_default_size(600, 480)
         self.set_position(Gtk.WindowPosition.CENTER)
 
+        self.download_progress = None
         self.install_in_progress = False
         self.interpreter = None
         self.selected_directory = None  # Latest directory chosen by user
