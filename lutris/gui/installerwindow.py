@@ -27,7 +27,6 @@ from lutris.util.strings import add_url_tags, escape_gtk_label
 
 class InstallerWindow(BaseApplicationWindow):
     """GUI for the install process."""
-
     def __init__(
             self,
             game_slug=None,
@@ -418,13 +417,13 @@ class InstallerWindow(BaseApplicationWindow):
         self.on_input_menu_changed(combobox)
 
     def on_input_menu_changed(self, widget):
-        # Enable continue button if a non-empty choice is selected
+        """Enable continue button if a non-empty choice is selected"""
         self.continue_button.set_sensitive(bool(widget.get_active_id()))
 
     def on_install_finished(self):
         self.clean_widgets()
         self.install_in_progress = False
-        # Shortcut checkboxes
+
         self.desktop_shortcut_box = Gtk.CheckButton("Create desktop shortcut")
         self.menu_shortcut_box = Gtk.CheckButton("Create application menu " "shortcut")
         self.widget_box.pack_start(self.desktop_shortcut_box, False, False, 5)
@@ -438,7 +437,6 @@ class InstallerWindow(BaseApplicationWindow):
 
         self.connect("delete-event", self.create_shortcuts)
 
-        # Buttons
         self.eject_button.hide()
         self.cancel_button.hide()
         self.continue_button.hide()
