@@ -37,3 +37,10 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
     def on_destroy(self, _widget=None):
         """Destroy callback"""
         self.destroy()
+
+    def present(self):
+        """The base implementation doesn't always work, this one does."""
+        self.set_keep_above(True)
+        super().present()
+        self.set_keep_above(False)
+        super().present()

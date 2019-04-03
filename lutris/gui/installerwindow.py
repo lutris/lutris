@@ -87,10 +87,6 @@ class InstallerWindow(BaseApplicationWindow):
 
         self.get_scripts()
 
-        # l33t haxx to make Window.present() actually work.
-        self.set_keep_above(True)
-        self.present()
-        self.set_keep_above(False)
         self.present()
 
     def add_button(self, label, handler=None):
