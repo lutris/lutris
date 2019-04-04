@@ -34,6 +34,10 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
 
 class FileChooserEntry(Gtk.Box):
     """Editable entry with a file picker button"""
+
+    max_completion_items = 15  # Maximum number of items to display in the
+                               # autocompletion dropdown.
+
     def __init__(
             self,
             title="Select file",
@@ -63,7 +67,7 @@ class FileChooserEntry(Gtk.Box):
         completion.set_model(self.path_completion)
         completion.set_text_column(0)
         self.entry.set_completion(completion)
-        self.entry.connect("changed", self._entry_changed)
+        self.entry.connect("changed", self.on_entry_changed)
 
         browse_button = Gtk.Button("Browse...", visible=True)
         browse_button.connect("clicked", self.on_browse_clicked)
@@ -74,6 +78,7 @@ class FileChooserEntry(Gtk.Box):
         return self.entry.get_text()
 
     def get_filename(self):
+        """Deprecated"""
         logger.warning("Just use get_text")
         return self.get_text()
 
@@ -88,7 +93,7 @@ class FileChooserEntry(Gtk.Box):
         )
         dialog.set_create_folders(True)
         dialog.set_current_folder(self.get_default_folder())
-        dialog.connect("response", self._select_file)
+        dialog.connect("response", self.on_select_file)
         return dialog
 
     def get_default_folder(self):
@@ -103,18 +108,23 @@ class FileChooserEntry(Gtk.Box):
         return os.path.expanduser(default_path or "~")
 
     def on_browse_clicked(self, _widget):
+        """Browse button click callback"""
         file_chooser_dialog = self.get_filechooser_dialog()
         file_chooser_dialog.run()
 
-    def _entry_changed(self, widget):
+    def on_entry_changed(self, widget):
+        """Entry changed callback"""
+        self.update_completion(widget.get_text() or "/")
+
+    def update_completion(self, current_path):
+        """Update the auto-completion widget with the current path"""
         self.path_completion.clear()
-        current_path = widget.get_text()
-        if not current_path:
-            current_path = "/"
+
         if not os.path.exists(current_path):
             current_path, filefilter = os.path.split(current_path)
         else:
             filefilter = None
+
         if os.path.isdir(current_path):
             index = 0
             for filename in sorted(os.listdir(current_path)):
@@ -124,10 +134,11 @@ class FileChooserEntry(Gtk.Box):
                     continue
                 self.path_completion.append([os.path.join(current_path, filename)])
                 index += 1
-                if index > 15:
+                if index > self.max_completion_items:
                     break
 
-    def _select_file(self, dialog, response):
+    def on_select_file(self, dialog, response):
+        """FileChooserDialog response callback"""
         if response == Gtk.ResponseType.OK:
             target_path = dialog.get_filename()
             if target_path:
