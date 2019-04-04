@@ -88,6 +88,15 @@ class LinuxSystem:
     """Global cache for system commands"""
     _cache = {}
 
+    lib_folders = [
+        ('/lib', '/lib64'),
+        ('/lib32', '/lib64'),
+        ('/usr/lib', '/usr/lib64'),
+        ('/usr/lib32', '/usr/lib64'),
+        ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
+        ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
+    ]
+
     soundfont_folders = [
         '/usr/share/sounds/sf2',
         '/usr/share/soundfonts',
@@ -207,10 +216,6 @@ class LinuxSystem:
     def critical_requirements(self):
         return self.get_requirements(include_optional=False)
 
-    @property
-    def lib_folders(self):
-        return self.get_lib_folders()
-
     def get_fs_type_for_path(self, path):
         """Return the filesystem type a given path uses"""
         path_drive = get_drive_for_path(path)
@@ -218,27 +223,6 @@ class LinuxSystem:
             for partition in drive.get("children", []):
                 if "/dev/%s" % partition["name"] == path_drive:
                     return partition["fstype"]
-
-    def get_lib_folders(self):
-        # Use ldconfig to locate the correct locations for system libs. Sorting is done to preserve ordering for the distros that care.
-        _cand_dict = {}
-        for candidate in subprocess.run([self.get("ldconfig"), '-p'], stdout=subprocess.PIPE, universal_newlines=True).stdout.split('\n'):
-            if '=>' in candidate:
-                candidate = candidate.split(' => ')
-                if candidate[0] not in _cand_dict:
-                    _cand_dict.update({candidate[0]: [candidate[1].rsplit('/', 1)[0]]})
-                else:
-                    _cand_dict[candidate[0]].append(candidate[1].rsplit('/', 1)[0])
-        _paths = [[],[]]
-        for candidate, path in sorted(_cand_dict.items(), key = lambda cand: len(cand[1]), reverse = True):
-            if 'x86-64' in candidate:
-                if  path[0] not in _paths[1]:
-                    _paths[1].append(path[0])
-            elif 'libc' in candidate:
-                if path[0] not in _paths[0]:
-                    _paths[0].append(path[0])
-        return _paths
-
 
     def get_glxinfo(self):
         """Return a GlxInfo instance if the gfxinfo tool is available"""
@@ -277,7 +261,8 @@ class LinuxSystem:
             if self.arch != 'x86_64':
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
-            yield lib_paths
+            if all([os.path.exists(path) for path in lib_paths]):
+                yield lib_paths
 
     def populate_libraries(self):
         """Populates the LIBRARIES cache with what is found on the system"""
@@ -285,12 +270,11 @@ class LinuxSystem:
         for arch in self.runtime_architectures:
             self._cache["LIBRARIES"][arch] = defaultdict(list)
         for lib_paths in self.iter_lib_folders():
-            for path in lib_paths:
-                for req in self.requirements:
-                    for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
-                        for index, arch in enumerate(self.runtime_architectures):
-                            if os.path.exists(os.path.join(path, lib)):
-                                self._cache["LIBRARIES"][arch][req].append(lib)
+            for req in self.requirements:
+                for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
+                    for index, arch in enumerate(self.runtime_architectures):
+                        if os.path.exists(os.path.join(lib_paths[index], lib)):
+                            self._cache["LIBRARIES"][arch][req].append(lib)
 
     def populate_sound_fonts(self):
         """Populates the soundfont cache"""
