@@ -51,4 +51,4 @@ upload-staging: clean
 	gbp buildpackage -S --git-debian-branch=master
 	mkdir -p build
 	mv ../lutris_0* build
-	dput ppa:lutris-team/lutris-staging build/lutris_${VERSION}_source.change
+	dput --force ppa:lutris-team/lutris-staging build/lutris_${VERSION}_source.changes
