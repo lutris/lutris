@@ -35,14 +35,7 @@ class MonitoredCommand:
             log_buffer=None,
     ):
         self.ready_state = True
-        if env is None:
-            self.env = {}
-        else:
-            self.env = env
-
-        # not clear why this needs to be added, the path is already added in
-        # the wrappper script.
-        self.env['PYTHONPATH'] = ':'.join(sys.path)
+        self.env = self.get_environment(env)
 
         self.command = command
         self.runner = runner
@@ -94,7 +87,20 @@ class MonitoredCommand:
             cwd = self.runner.working_dir if self.runner else "/tmp"
         return os.path.expanduser(cwd)
 
-    def _get_environment(self):
+    @staticmethod
+    def get_environment(user_env):
+        """Process the user provided environment variables for use as self.env"""
+        env = user_env or {}
+        # not clear why this needs to be added, the path is already added in
+        # the wrappper script.
+        env['PYTHONPATH'] = ':'.join(sys.path)
+        # Drop bad values of environment keys, those will confuse the Python
+        # interpreter.
+        return {
+            key: value for key, value in env.iteritems() if "=" not in key
+        }
+
+    def get_child_environment(self):
         """Returns the calculated environment for the child process."""
         env = os.environ.copy()
         env.update(self.env)
@@ -110,7 +116,7 @@ class MonitoredCommand:
         if self.terminal:
             self.game_process = self.run_in_terminal()
         else:
-            env = self._get_environment()
+            env = self.get_child_environment()
             self.game_process = self.execute_process(self.wrapper_command, env)
 
         if not self.game_process:
