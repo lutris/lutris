@@ -182,11 +182,6 @@ class InstallerWindow(BaseApplicationWindow):
 
         self.widget_box.pack_start(scrolledwindow, False, False, 0)
 
-    def on_installer_selected(self, widget, installer_slug):
-        self.clean_widgets()
-        self.prepare_install(installer_slug)
-        self.show_non_empty_warning()
-
     def prepare_install(self, script_slug):
         install_script = None
         for script in self.scripts:
@@ -240,10 +235,14 @@ class InstallerWindow(BaseApplicationWindow):
         self.install_button.grab_focus()
         self.install_button.show()
 
-    def on_target_changed(self, text_entry, _):
+    def on_installer_selected(self, widget, installer_slug):
+        self.clean_widgets()
+        self.prepare_install(installer_slug)
+        self.show_non_empty_warning()
+
+    def on_target_changed(self, text_entry, _data):
         """Set the installation target for the game."""
-        path = text_entry.get_text()
-        self.interpreter.target_path = os.path.expanduser(path)
+        self.interpreter.target_path = os.path.expanduser(text_entry.get_text())
         self.show_non_empty_warning()
 
     def show_non_empty_warning(self):

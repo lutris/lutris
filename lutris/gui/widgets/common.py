@@ -3,6 +3,7 @@ import os
 
 from gi.repository import Gtk, GObject, Pango
 
+from lutris.util.log import logger
 from lutris.util import system
 
 
@@ -32,18 +33,30 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
 
 
 class FileChooserEntry(Gtk.Box):
+    """Editable entry with a file picker button"""
     def __init__(
-        self, title="Select file", action=Gtk.FileChooserAction.OPEN, path=None, default_path=None, visible=True
+            self,
+            title="Select file",
+            action=Gtk.FileChooserAction.OPEN,
+            path=None,
+            default_path=None
     ):
-        """Widget with text entry and button to select file or folder."""
-        super().__init__(spacing=6, visible=visible)
+        super().__init__(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=12,
+            visible=True
+        )
+        self.title = title
+        self.action = action
+        self.box = Gtk.Box(spacing=6, visible=True)
+        self.add(self.box)
         self.path = os.path.expanduser(path) if path else None
         self.default_path = os.path.expanduser(default_path) if default_path else path
 
-        self.entry = Gtk.Entry(visible=visible)
+        self.entry = Gtk.Entry(visible=True)
         if path:
             self.entry.set_text(path)
-        self.pack_start(self.entry, True, True, 0)
+        self.box.pack_start(self.entry, True, True, 0)
 
         self.path_completion = Gtk.ListStore(str)
         completion = Gtk.EntryCompletion()
@@ -52,28 +65,31 @@ class FileChooserEntry(Gtk.Box):
         self.entry.set_completion(completion)
         self.entry.connect("changed", self._entry_changed)
 
-        self.file_chooser_dlg = Gtk.FileChooserDialog(
-            title=title, transient_for=None, action=action
-        )
-
-        self.file_chooser_dlg.add_buttons(
-            "_Cancel", Gtk.ResponseType.CLOSE,
-            "_OK", Gtk.ResponseType.OK
-        )
-
-        self.file_chooser_dlg.set_create_folders(True)
-        self.file_chooser_dlg.set_current_folder(self.get_default_folder())
-
-        button = Gtk.Button(visible=visible)
-        button.set_label("Browse...")
-        button.connect("clicked", self.on_browse_clicked)
-        self.add(button)
+        browse_button = Gtk.Button("Browse...", visible=True)
+        browse_button.connect("clicked", self.on_browse_clicked)
+        self.box.add(browse_button)
 
     def get_text(self):
+        """Return the entry's text"""
         return self.entry.get_text()
 
     def get_filename(self):
-        return self.entry.get_text()
+        logger.warning("Just use get_text")
+        return self.get_text()
+
+    def get_filechooser_dialog(self):
+        """Return an instance of a FileChooserDialog configured for this widget"""
+        dialog = Gtk.FileChooserDialog(
+            title=self.title, transient_for=None, action=self.action
+        )
+        dialog.add_buttons(
+            "_Cancel", Gtk.ResponseType.CLOSE,
+            "_OK", Gtk.ResponseType.OK
+        )
+        dialog.set_create_folders(True)
+        dialog.set_current_folder(self.get_default_folder())
+        dialog.connect("response", self._select_file)
+        return dialog
 
     def get_default_folder(self):
         """Return the default folder for the file picker"""
@@ -87,9 +103,8 @@ class FileChooserEntry(Gtk.Box):
         return os.path.expanduser(default_path or "~")
 
     def on_browse_clicked(self, _widget):
-        self.file_chooser_dlg.set_current_folder(self.get_default_folder())
-        self.file_chooser_dlg.connect("response", self._select_file)
-        self.file_chooser_dlg.run()
+        file_chooser_dialog = self.get_filechooser_dialog()
+        file_chooser_dialog.run()
 
     def _entry_changed(self, widget):
         self.path_completion.clear()
@@ -116,7 +131,7 @@ class FileChooserEntry(Gtk.Box):
         if response == Gtk.ResponseType.OK:
             target_path = dialog.get_filename()
             if target_path:
-                self.file_chooser_dlg.set_current_folder(target_path)
+                dialog.set_current_folder(target_path)
                 self.entry.set_text(system.reverse_expanduser(target_path))
         dialog.hide()
 
