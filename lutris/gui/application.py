@@ -177,6 +177,10 @@ class Application(Gtk.Application):
             )
         if not self.run_in_background:
             self.window.present()
+        else:
+            # Reset run in background to False. Future calls will set it
+            # accordingly
+            self.run_in_background = False
 
     @staticmethod
     def _print(command_line, string):
