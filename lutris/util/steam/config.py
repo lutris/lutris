@@ -32,12 +32,12 @@ def read_config(steam_data_dir):
     with open(config_filename, "r") as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
-        config = config["InstallConfigStore"]["Software"]["Valve"]["Steam"]
-    except KeyError as ex:
-        logger.error("Steam config %s is empty: %s", config_filename, ex)
-        return None
-    else:
-        return config
+        return config["InstallConfigStore"]["Software"]["Valve"]["Steam"]
+    except KeyError:
+        try:
+            return config["InstallConfigStore"]["Software"]["valve"]["Steam"]
+        except KeyError as ex:
+            logger.error("Steam config %s is empty: %s", config_filename, ex)
 
 
 def get_steamapps_paths_for_platform(platform_name):
