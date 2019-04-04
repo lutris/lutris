@@ -287,7 +287,8 @@ class InstallerWindow(BaseApplicationWindow):
             title,
             action,
             path=default_path,
-            warn_if_non_empty=True
+            warn_if_non_empty=True,
+            warn_if_ntfs=True
         )
         self.location_entry.entry.connect("changed", callback_on_changed, action)
         self.widget_box.pack_start(self.location_entry, False, False, 0)
