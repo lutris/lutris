@@ -35,8 +35,7 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
 class FileChooserEntry(Gtk.Box):
     """Editable entry with a file picker button"""
 
-    max_completion_items = 15  # Maximum number of items to display in the
-                               # autocompletion dropdown.
+    max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
 
     def __init__(
             self,
@@ -52,26 +51,24 @@ class FileChooserEntry(Gtk.Box):
         )
         self.title = title
         self.action = action
-        self.box = Gtk.Box(spacing=6, visible=True)
-        self.add(self.box)
         self.path = os.path.expanduser(path) if path else None
         self.default_path = os.path.expanduser(default_path) if default_path else path
 
+        self.path_completion = Gtk.ListStore(str)
+
         self.entry = Gtk.Entry(visible=True)
+        self.entry.set_completion(self.get_completion())
+        self.entry.connect("changed", self.on_entry_changed)
         if path:
             self.entry.set_text(path)
-        self.box.pack_start(self.entry, True, True, 0)
-
-        self.path_completion = Gtk.ListStore(str)
-        completion = Gtk.EntryCompletion()
-        completion.set_model(self.path_completion)
-        completion.set_text_column(0)
-        self.entry.set_completion(completion)
-        self.entry.connect("changed", self.on_entry_changed)
 
         browse_button = Gtk.Button("Browse...", visible=True)
         browse_button.connect("clicked", self.on_browse_clicked)
-        self.box.add(browse_button)
+
+        box = Gtk.Box(spacing=6, visible=True)
+        box.pack_start(self.entry, True, True, 0)
+        box.add(browse_button)
+        self.add(box)
 
     def get_text(self):
         """Return the entry's text"""
@@ -81,6 +78,13 @@ class FileChooserEntry(Gtk.Box):
         """Deprecated"""
         logger.warning("Just use get_text")
         return self.get_text()
+
+    def get_completion(self):
+        """Return an EntryCompletion widget"""
+        completion = Gtk.EntryCompletion()
+        completion.set_model(self.path_completion)
+        completion.set_text_column(0)
+        return completion
 
     def get_filechooser_dialog(self):
         """Return an instance of a FileChooserDialog configured for this widget"""
@@ -115,6 +119,16 @@ class FileChooserEntry(Gtk.Box):
     def on_entry_changed(self, widget):
         """Entry changed callback"""
         self.update_completion(widget.get_text() or "/")
+        self.clear_warnings()
+
+    def on_select_file(self, dialog, response):
+        """FileChooserDialog response callback"""
+        if response == Gtk.ResponseType.OK:
+            target_path = dialog.get_filename()
+            if target_path:
+                dialog.set_current_folder(target_path)
+                self.entry.set_text(system.reverse_expanduser(target_path))
+        dialog.hide()
 
     def update_completion(self, current_path):
         """Update the auto-completion widget with the current path"""
@@ -137,14 +151,11 @@ class FileChooserEntry(Gtk.Box):
                 if index > self.max_completion_items:
                     break
 
-    def on_select_file(self, dialog, response):
-        """FileChooserDialog response callback"""
-        if response == Gtk.ResponseType.OK:
-            target_path = dialog.get_filename()
-            if target_path:
-                dialog.set_current_folder(target_path)
-                self.entry.set_text(system.reverse_expanduser(target_path))
-        dialog.hide()
+    def clear_warnings(self):
+        """Delete all the warning labels from the container"""
+        for child in self.get_children():
+            if isinstance(child, Gtk.Label):
+                child.destroy()
 
 
 class Label(Gtk.Label):
