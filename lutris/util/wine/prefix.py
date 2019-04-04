@@ -21,6 +21,7 @@ class WinePrefixManager:
     def setup_defaults(self):
         """Sets the defaults for newly created prefixes"""
         self.override_dll("winemenubuilder.exe", "")
+        self.override_dll("steamwebhelper.exe", "")
         try:
             self.desktop_integration()
         except OSError as ex:
