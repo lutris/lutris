@@ -38,7 +38,7 @@ class RunnerInstallDialog(Dialog):
         scrolled_window = Gtk.ScrolledWindow()
         self.treeview = self.get_treeview(self.runner_store)
         self.installing = {}
-        self.connect("response", self.on_response)
+        self.connect("response", self.on_destroy)
 
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
@@ -206,7 +206,10 @@ class RunnerInstallDialog(Dialog):
             from lutris.util.wine.wine import get_wine_versions
             get_wine_versions.cache_clear()
 
-    def on_response(self, _dialog, _response):
+    def on_destroy(self, _dialog, _data=None):
+        """Override delete handler to prevent closing while downloads are active"""
+        if self.installing:
+            return True
         self.destroy()
 
 

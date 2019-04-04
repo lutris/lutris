@@ -18,8 +18,11 @@ class Dialog(Gtk.Dialog):
     def __init__(self, title=None, parent=None, flags=0, buttons=None):
         super().__init__(title, parent, flags, buttons)
         self.set_border_width(10)
-        self.connect("delete-event", lambda *x: x[0].destroy())
+        self.connect("delete-event", self.on_destroy)
         self.set_destroy_with_parent(True)
+
+    def on_destroy(self, _widget, _data=None):
+        self.destroy()
 
 
 class GtkBuilderDialog(GObject.Object):
