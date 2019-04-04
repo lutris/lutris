@@ -66,6 +66,7 @@ class Application(Gtk.Application):
         self.window = None
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
+        self.run_in_background = False
 
         if os.geteuid() == 0:
             ErrorDialog(
@@ -174,7 +175,8 @@ class Application(Gtk.Application):
             Gtk.StyleContext.add_provider_for_screen(
                 screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
             )
-        self.window.present()  # EXPLAIN YOURSELF BEFORE MESSING WITH THAT LINE
+        if not self.run_in_background:
+            self.window.present()
 
     @staticmethod
     def _print(command_line, string):
@@ -269,23 +271,22 @@ class Application(Gtk.Application):
                 self._print(command_line, "No such file: %s" % installer_file)
                 return 1
 
-        # Graphical commands
-        self.activate()
-
         db_game = None
         if game_slug:
             if action == "rungameid":
                 # Force db_game to use game id
+                self.run_in_background = True
                 db_game = pga.get_game_by_field(game_slug, "id")
             elif action == "rungame":
                 # Force db_game to use game slug
+                self.run_in_background = True
                 db_game = pga.get_game_by_field(game_slug, "slug")
             elif action == "install":
                 # Installers can use game or installer slugs
+                self.run_in_background = True
                 db_game = pga.get_game_by_field(
                     game_slug, "slug"
                 ) or pga.get_game_by_field(game_slug, "installer_slug")
-
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (
@@ -293,6 +294,9 @@ class Application(Gtk.Application):
                     or pga.get_game_by_field(game_slug, "slug")
                     or pga.get_game_by_field(game_slug, "installer_slug")
                 )
+
+        # Graphical commands
+        self.activate()
 
         if not action:
             if db_game and db_game["installed"]:
@@ -323,22 +327,12 @@ class Application(Gtk.Application):
                 if not self.window.is_visible():
                     self.do_shutdown()
                 return 0
-
-            logger.info("Launching %s", db_game["name"])
-
-            # If game is not installed, show the GUI before running. Otherwise leave the GUI closed.
-            if not db_game["installed"]:
-                self.window.present()
             self.launch(Game(db_game["id"]))
-
-        else:
-            self.window.present()
-
         return 0
 
     def launch(self, game):
         """Launch a Lutris game"""
-        logger.debug("Adding game %s (%s) to running games", game, id(game))
+        logger.debug("Launching %s (%s)", game, id(game))
         self.running_games.append(game)
         game.connect("game-stop", self.on_game_stop)
         game.play()
