@@ -118,7 +118,6 @@ def check_vulkan():
 def check_donate():
     setting = "dont-support-lutris"
     if settings.read_setting(setting) != "True":
-        open_uri("https://lutris.net/donate")
         DontShowAgainDialog(
             setting,
             "Please support Lutris!",
