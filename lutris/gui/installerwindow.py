@@ -269,30 +269,29 @@ class InstallerWindow(BaseApplicationWindow):
     def ask_user_for_file(self, message):
         self.clean_widgets()
         self.set_message(message)
-        if self.selected_directory:
-            path = self.selected_directory
-        else:
-            path = os.path.expanduser("~")
-        self.set_path_chooser(self.continue_guard, "file", default_path=path)
+        path = self.selected_directory or os.path.expanduser("~")
+        self.set_path_chooser(
+            self.continue_guard,
+            "file",
+            default_path=path
+        )
 
     def continue_guard(self, _, action):
-
-        loc = self.location_entry.get_text()
-        loc = os.path.expanduser(loc)
-        if (action == Gtk.FileChooserAction.OPEN and os.path.isfile(loc)) or (
-            action == Gtk.FileChooserAction.SELECT_FOLDER and os.path.isdir(loc)
+        """This is weird and needs to be explained."""
+        path = os.path.expanduser(self.location_entry.get_text())
+        if (
+                action == Gtk.FileChooserAction.OPEN and os.path.isfile(path)
+        ) or (
+                action == Gtk.FileChooserAction.SELECT_FOLDER and os.path.isdir(path)
         ):
-
             self.continue_button.set_sensitive(True)
             self.continue_button.connect("clicked", self.on_file_selected)
             self.continue_button.grab_focus()
-
         else:
             self.continue_button.set_sensitive(False)
 
     def set_path_chooser(self, callback_on_changed, action=None, default_path=None):
         """Display a file/folder chooser."""
-
         self.install_button.set_visible(False)
         self.continue_button.show()
         self.continue_button.set_sensitive(False)
@@ -307,10 +306,7 @@ class InstallerWindow(BaseApplicationWindow):
         if self.location_entry:
             self.location_entry.destroy()
         self.location_entry = FileChooserEntry(title, action, path=default_path)
-        self.location_entry.show_all()
-        if callback_on_changed:
-            self.location_entry.entry.connect("changed", callback_on_changed, action)
-
+        self.location_entry.entry.connect("changed", callback_on_changed, action)
         self.widget_box.pack_start(self.location_entry, False, False, 0)
 
     def on_file_selected(self, widget):
