@@ -200,6 +200,8 @@ class GameStore(GObject.Object):
 
     def filter_view(self, model, _iter, _filter_data=None):
         """Filter function for the game model"""
+        if self.search_mode:
+            return True
         if self.filter_installed:
             installed = model.get_value(_iter, COL_INSTALLED)
             if not installed and not self.search_mode:
