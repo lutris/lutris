@@ -42,7 +42,8 @@ class FileChooserEntry(Gtk.Box):
             title="Select file",
             action=Gtk.FileChooserAction.OPEN,
             path=None,
-            default_path=None
+            default_path=None,
+            warn_if_non_empty=False
     ):
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
@@ -53,6 +54,7 @@ class FileChooserEntry(Gtk.Box):
         self.action = action
         self.path = os.path.expanduser(path) if path else None
         self.default_path = os.path.expanduser(default_path) if default_path else path
+        self.warn_if_non_empty = warn_if_non_empty
 
         self.path_completion = Gtk.ListStore(str)
 
@@ -118,8 +120,19 @@ class FileChooserEntry(Gtk.Box):
 
     def on_entry_changed(self, widget):
         """Entry changed callback"""
-        self.update_completion(widget.get_text() or "/")
         self.clear_warnings()
+        path = widget.get_text()
+        if not path:
+            return
+        path = os.path.expanduser(path)
+        self.update_completion(path)
+        if self.warn_if_non_empty and os.path.exists(path) and os.listdir(path):
+            non_empty_label = Gtk.Label(visible=True)
+            non_empty_label.set_markup(
+                "<b>Warning!</b> The selected path "
+                "contains files, installation might not work properly."
+            )
+            self.pack_end(non_empty_label, False, False, 10)
 
     def on_select_file(self, dialog, response):
         """FileChooserDialog response callback"""

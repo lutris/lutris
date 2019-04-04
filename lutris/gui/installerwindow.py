@@ -220,12 +220,7 @@ class InstallerWindow(BaseApplicationWindow):
             self.set_message("Select installation directory")
             default_path = self.interpreter.get_default_target()
             self.set_path_chooser(self.on_target_changed, "folder", default_path)
-            self.non_empty_label = Gtk.Label()
-            self.non_empty_label.set_markup(
-                "<b>Warning!</b> The selected path "
-                "contains files, installation might not work properly."
-            )
-            self.widget_box.pack_start(self.non_empty_label, False, False, 10)
+
         else:
             self.set_message("Click install to continue")
         if self.continue_handler:
@@ -238,26 +233,10 @@ class InstallerWindow(BaseApplicationWindow):
     def on_installer_selected(self, widget, installer_slug):
         self.clean_widgets()
         self.prepare_install(installer_slug)
-        self.show_non_empty_warning()
 
     def on_target_changed(self, text_entry, _data):
         """Set the installation target for the game."""
         self.interpreter.target_path = os.path.expanduser(text_entry.get_text())
-        self.show_non_empty_warning()
-
-    def show_non_empty_warning(self):
-        """Display a warning if destination folder is not empty."""
-        if not self.location_entry:
-            return
-        path = self.location_entry.get_text()
-
-        # replace ~ with full path so os.path.exists and os.listdir work correctly
-        path = os.path.expanduser(path)
-
-        if os.path.exists(path) and os.listdir(path):
-            self.non_empty_label.show()
-        else:
-            self.non_empty_label.hide()
 
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
@@ -304,7 +283,12 @@ class InstallerWindow(BaseApplicationWindow):
 
         if self.location_entry:
             self.location_entry.destroy()
-        self.location_entry = FileChooserEntry(title, action, path=default_path)
+        self.location_entry = FileChooserEntry(
+            title,
+            action,
+            path=default_path,
+            warn_if_non_empty=True
+        )
         self.location_entry.entry.connect("changed", callback_on_changed, action)
         self.widget_box.pack_start(self.location_entry, False, False, 0)
 
