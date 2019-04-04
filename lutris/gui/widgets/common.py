@@ -3,7 +3,9 @@ import os
 
 from gi.repository import Gtk, GObject, Pango
 
+from lutris.util.log import logger
 from lutris.util import system
+from lutris.util.linux import LINUX_SYSTEM
 
 
 class SlugEntry(Gtk.Entry, Gtk.Editable):
@@ -32,48 +34,76 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
 
 
 class FileChooserEntry(Gtk.Box):
+    """Editable entry with a file picker button"""
+
+    max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
+
     def __init__(
-        self, title="Select file", action=Gtk.FileChooserAction.OPEN, path=None, default_path=None
+            self,
+            title="Select file",
+            action=Gtk.FileChooserAction.OPEN,
+            path=None,
+            default_path=None,
+            warn_if_non_empty=False,
+            warn_if_ntfs=False
     ):
-        """Widget with text entry and button to select file or folder."""
-        super().__init__(spacing=6)
+        super().__init__(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=12,
+            visible=True
+        )
+        self.title = title
+        self.action = action
         self.path = os.path.expanduser(path) if path else None
         self.default_path = os.path.expanduser(default_path) if default_path else path
-
-        self.entry = Gtk.Entry()
-        if path:
-            self.entry.set_text(path)
-        self.pack_start(self.entry, True, True, 0)
+        self.warn_if_non_empty = warn_if_non_empty
+        self.warn_if_ntfs = warn_if_ntfs
 
         self.path_completion = Gtk.ListStore(str)
-        completion = Gtk.EntryCompletion()
-        completion.set_model(self.path_completion)
-        completion.set_text_column(0)
-        self.entry.set_completion(completion)
-        self.entry.connect("changed", self._entry_changed)
 
-        self.file_chooser_dlg = Gtk.FileChooserDialog(
-            title=title, transient_for=None, action=action
-        )
+        self.entry = Gtk.Entry(visible=True)
+        self.entry.set_completion(self.get_completion())
+        self.entry.connect("changed", self.on_entry_changed)
+        if path:
+            self.entry.set_text(path)
 
-        self.file_chooser_dlg.add_buttons(
-            "_Cancel", Gtk.ResponseType.CLOSE,
-            "_OK", Gtk.ResponseType.OK
-        )
+        browse_button = Gtk.Button("Browse...", visible=True)
+        browse_button.connect("clicked", self.on_browse_clicked)
 
-        self.file_chooser_dlg.set_create_folders(True)
-        self.file_chooser_dlg.set_current_folder(self.get_default_folder())
-
-        button = Gtk.Button()
-        button.set_label("Browse...")
-        button.connect("clicked", self.on_browse_clicked)
-        self.add(button)
+        box = Gtk.Box(spacing=6, visible=True)
+        box.pack_start(self.entry, True, True, 0)
+        box.add(browse_button)
+        self.add(box)
 
     def get_text(self):
+        """Return the entry's text"""
         return self.entry.get_text()
 
     def get_filename(self):
-        return self.entry.get_text()
+        """Deprecated"""
+        logger.warning("Just use get_text")
+        return self.get_text()
+
+    def get_completion(self):
+        """Return an EntryCompletion widget"""
+        completion = Gtk.EntryCompletion()
+        completion.set_model(self.path_completion)
+        completion.set_text_column(0)
+        return completion
+
+    def get_filechooser_dialog(self):
+        """Return an instance of a FileChooserDialog configured for this widget"""
+        dialog = Gtk.FileChooserDialog(
+            title=self.title, transient_for=None, action=self.action
+        )
+        dialog.add_buttons(
+            "_Cancel", Gtk.ResponseType.CLOSE,
+            "_OK", Gtk.ResponseType.OK
+        )
+        dialog.set_create_folders(True)
+        dialog.set_current_folder(self.get_default_folder())
+        dialog.connect("response", self.on_select_file)
+        return dialog
 
     def get_default_folder(self):
         """Return the default folder for the file picker"""
@@ -87,19 +117,51 @@ class FileChooserEntry(Gtk.Box):
         return os.path.expanduser(default_path or "~")
 
     def on_browse_clicked(self, _widget):
-        self.file_chooser_dlg.set_current_folder(self.get_default_folder())
-        self.file_chooser_dlg.connect("response", self._select_file)
-        self.file_chooser_dlg.run()
+        """Browse button click callback"""
+        file_chooser_dialog = self.get_filechooser_dialog()
+        file_chooser_dialog.run()
 
-    def _entry_changed(self, widget):
+    def on_entry_changed(self, widget):
+        """Entry changed callback"""
+        self.clear_warnings()
+        path = widget.get_text()
+        if not path:
+            return
+        path = os.path.expanduser(path)
+        self.update_completion(path)
+        if self.warn_if_ntfs and LINUX_SYSTEM.get_fs_type_for_path(path) == "ntfs":
+            ntfs_label = Gtk.Label(visible=True)
+            ntfs_label.set_markup(
+                "<b>Warning!</b> The selected path is located on a NTFS drive.\n"
+                "Installing games on NTFS partitions is known to cause issues."
+            )
+            self.pack_end(ntfs_label, False, False, 10)
+        if self.warn_if_non_empty and os.path.exists(path) and os.listdir(path):
+            non_empty_label = Gtk.Label(visible=True)
+            non_empty_label.set_markup(
+                "<b>Warning!</b> The selected path "
+                "contains files, installation might not work properly."
+            )
+            self.pack_end(non_empty_label, False, False, 10)
+
+    def on_select_file(self, dialog, response):
+        """FileChooserDialog response callback"""
+        if response == Gtk.ResponseType.OK:
+            target_path = dialog.get_filename()
+            if target_path:
+                dialog.set_current_folder(target_path)
+                self.entry.set_text(system.reverse_expanduser(target_path))
+        dialog.hide()
+
+    def update_completion(self, current_path):
+        """Update the auto-completion widget with the current path"""
         self.path_completion.clear()
-        current_path = widget.get_text()
-        if not current_path:
-            current_path = "/"
+
         if not os.path.exists(current_path):
             current_path, filefilter = os.path.split(current_path)
         else:
             filefilter = None
+
         if os.path.isdir(current_path):
             index = 0
             for filename in sorted(os.listdir(current_path)):
@@ -109,16 +171,14 @@ class FileChooserEntry(Gtk.Box):
                     continue
                 self.path_completion.append([os.path.join(current_path, filename)])
                 index += 1
-                if index > 15:
+                if index > self.max_completion_items:
                     break
 
-    def _select_file(self, dialog, response):
-        if response == Gtk.ResponseType.OK:
-            target_path = dialog.get_filename()
-            if target_path:
-                self.file_chooser_dlg.set_current_folder(target_path)
-                self.entry.set_text(system.reverse_expanduser(target_path))
-        dialog.hide()
+    def clear_warnings(self):
+        """Delete all the warning labels from the container"""
+        for child in self.get_children():
+            if isinstance(child, Gtk.Label):
+                child.destroy()
 
 
 class Label(Gtk.Label):

@@ -92,7 +92,7 @@ class TestGameDialog(TestCase):
         test_exe = os.path.abspath(__file__)
         exe_field = exe_box.get_children()[1]
         exe_field.entry.set_text(test_exe)
-        self.assertEqual(exe_field.get_filename(), test_exe)
+        self.assertEqual(exe_field.get_text(), test_exe)
 
         add_button = self.get_buttons().get_children()[1]
         add_button.clicked()

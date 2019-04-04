@@ -625,7 +625,6 @@ class wine(Runner):
             wine_path=self.get_executable()
         )
 
-
     def run_winekill(self, *args):
         """Runs wineserver -k."""
         winekill(

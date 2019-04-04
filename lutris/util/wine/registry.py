@@ -260,7 +260,11 @@ class WineRegistryKey:
             self.subkeys["default"] = value
 
     def add_to_last(self, line):
-        last_subkey = next(reversed(self.subkeys))
+        try:
+            last_subkey = next(reversed(self.subkeys))
+        except StopIteration:
+            logger.warning("Should this be happening?")
+            return
         self.subkeys[last_subkey] += "\n{}".format(line)
 
     def render(self):
