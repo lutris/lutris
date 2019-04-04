@@ -1,3 +1,16 @@
+lutris (0.5.2) cosmic; urgency=medium
+
+  * Avoid a crash if the lutris config file is corrupted
+  * Install Asian fonts by default on Wine prefix creation
+  * Add Vulkan ICD loaders in system options
+  * Replace joystick panel with Wine config panel (which contains the joypad panel)
+  * Display warning when installing games on NTFS drives
+  * Use ldconfig to determine library paths
+  * Disable steamwebhelper in Wine Steam to prevent spamming logs with errors
+  * Various bug fixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 04 Apr 2019 02:47:30 -0700
+
 lutris (0.5.1.3) cosmic; urgency=critical
 
   * Fake release to work around Launchpad / OBS publishing issues.
