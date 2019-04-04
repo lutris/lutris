@@ -88,7 +88,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
     try:
         _do_extract(path, temp_path, opener, mode, extractor)
-    except (OSError, zlib.error) as ex:
+    except (OSError, zlib.error, tarfile.ReadError) as ex:
         logger.exception("Extraction failed: %s", ex)
         raise ExtractFailure(str(ex))
     if merge_single:
