@@ -97,7 +97,7 @@ class MonitoredCommand:
         # Drop bad values of environment keys, those will confuse the Python
         # interpreter.
         return {
-            key: value for key, value in env.iteritems() if "=" not in key
+            key: value for key, value in env.items() if "=" not in key
         }
 
     def get_child_environment(self):
