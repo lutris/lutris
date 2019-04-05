@@ -310,6 +310,7 @@ def path_exists(path, check_symlinks=False):
     if os.path.islink(path):
         logger.warning("%s is a broken link", path)
         return not check_symlinks
+    return False
 
 
 def reset_library_preloads():
