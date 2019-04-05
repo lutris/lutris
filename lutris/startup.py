@@ -9,7 +9,6 @@ from lutris.util.system import create_folder
 from lutris.util.graphics import drivers
 from lutris.util.graphics import vkquery
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.gui.widgets.utils import open_uri
 from lutris.gui.dialogs import DontShowAgainDialog
 
 

@@ -170,7 +170,7 @@ class InstallerWindow(BaseApplicationWindow):
         """Stage where we choose an install script."""
         self.validate_scripts()
         base_script = self.scripts[0]
-        self.title_label.set_markup("<b>Install %s</b>" % base_script["name"])
+        self.title_label.set_markup("<b>Install %s</b>" % escape_gtk_label(base_script["name"]))
         installer_picker = InstallerPicker(self.scripts)
         installer_picker.connect("installer-selected", self.on_installer_selected)
         scrolledwindow = Gtk.ScrolledWindow(
@@ -179,8 +179,6 @@ class InstallerWindow(BaseApplicationWindow):
         scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
         scrolledwindow.show()
-
-        self.widget_box.pack_start(scrolledwindow, False, False, 0)
 
     def prepare_install(self, script_slug):
         install_script = None
