@@ -137,6 +137,7 @@ class SidebarListBox(Gtk.ListBox):
         self.active_platforms = pga.get_used_platforms()
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(platforms.__all__)
+        self.sidebar_categories = dict()  # We have to keep track on the elements somewhere
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
         GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
@@ -177,6 +178,10 @@ class SidebarListBox(Gtk.ListBox):
             if row.id is None:
                 return True  # 'All'
             return row.id in self.installed_runners
+        elif row.type == "categories":
+            if len(self.sidebar_categories) < 1:
+                return False  # Hide useless filter
+            return True
         else:
             if len(self.active_platforms) <= 1:
                 return False  # Hide useless filter
@@ -192,8 +197,28 @@ class SidebarListBox(Gtk.ListBox):
             row.set_header(SidebarHeader("Runners"))
         elif before.type == "runner" and row.type == "platform":
             row.set_header(SidebarHeader("Platforms"))
+        elif before.type == "platform" and row.type == "categories":
+            row.set_header(SidebarHeader("Categories"))
+
+    def add_category_entries(self):
+        pga.delete_categories_without_games()
+        categories = pga.get_categories()
+        for category in pga.get_categories():
+            if category not in self.sidebar_categories.keys():
+                temp = SidebarRow(category, "categories", category, None)
+                self.sidebar_categories[category] = temp
+                self.add(temp)
+        removalbe_categories = []
+        for sidebar_category in self.sidebar_categories.keys():
+            if sidebar_category not in categories:
+                self.remove(self.sidebar_categories[sidebar_category])
+                removalbe_categories.append(sidebar_category)
+        for rem_category in removalbe_categories:
+            del self.sidebar_categories[rem_category]
+        self.show_all()
 
     def update(self, *args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
+        self.add_category_entries()
         self.invalidate_filter()
