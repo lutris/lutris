@@ -56,7 +56,7 @@ class DXVKManager:
 
     base_url = "https://github.com/doitsujin/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
     base_dir = os.path.join(RUNTIME_DIR, "dxvk")
-    dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d10_1", "d3d10")
+    dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d10_1", "d3d10", "d3d9")
     latest_version = DXVK_LATEST
 
     def __init__(self, prefix, arch="win64", version=None):
@@ -95,6 +95,11 @@ class DXVKManager:
     def is_available(self):
         """Return whether DXVK is cached locally"""
         return system.path_exists(self.dxvk_path)
+
+    def dxvk_dll_exists(self, dll_name):
+        """Check if the dll exists as a DXVK variant"""
+        return system.path_exists(os.path.join(self.dxvk_path, "x64", dll_name+".dll")) \
+               and system.path_exists(os.path.join(self.dxvk_path, "x32", dll_name+".dll"))
 
     def download(self):
         """Download DXVK to the local cache"""
