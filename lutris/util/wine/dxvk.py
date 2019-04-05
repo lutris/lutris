@@ -99,7 +99,7 @@ class DXVKManager:
     def dxvk_dll_exists(self, dll_name):
         """Check if the dll exists as a DXVK variant"""
         return system.path_exists(os.path.join(self.dxvk_path, "x64", dll_name+".dll")) \
-               and system.path_exists(os.path.join(self.dxvk_path, "x32", dll_name+".dll"))
+            and system.path_exists(os.path.join(self.dxvk_path, "x32", dll_name+".dll"))
 
     def download(self):
         """Download DXVK to the local cache"""
