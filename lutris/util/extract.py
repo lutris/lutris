@@ -67,23 +67,42 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
     mode = None
     logger.debug("Extracting %s to %s", path, to_directory)
 
-    if path.endswith(".tar.gz") or path.endswith(".tgz") or extractor == "tgz":
+    if extractor is None:
+        if path.endswith(".tar.gz") or path.endswith(".tgz"):
+            extractor = "tgz"
+        elif path.endswith(".tar.xz") or path.endswith(".txz"):
+            extractor = "txz"
+        elif path.endswith(".tar"):
+            extractor = "tar"
+        elif path.endswith(".tar.bz2") or path.endswith(".tbz"):
+            extractor = "bz2"
+        elif path.endswith(".gz"):
+            extractor = "gzip"
+        elif is_7zip_supported(path, None):
+            extractor = None
+        else:
+            raise RuntimeError(
+                "Could not extract `%s` - no appropriate extractor found" % path
+            )
+
+    if extractor == "tgz":
         opener, mode = tarfile.open, "r:gz"
-    elif path.endswith(".tar.xz") or path.endswith(".txz") or extractor == "txz":
+    elif extractor == "txz":
         opener, mode = tarfile.open, "r:xz"
-    elif path.endswith(".tar") or extractor == "tar":
+    elif extractor == "tar":
         opener, mode = tarfile.open, "r:"
-    elif path.endswith(".gz") or extractor == "gzip":
+    elif extractor == "bz2":
+        opener, mode = tarfile.open, "r:bz2"
+    elif extractor == "gzip":
         decompress_gz(path, to_directory)
         return
-    elif path.endswith(".tar.bz2") or path.endswith(".tbz") or extractor == "bz2":
-        opener, mode = tarfile.open, "r:bz2"
-    elif is_7zip_supported(path, extractor):
+    elif extractor is None or is_7zip_supported(path, extractor):
         opener = "7zip"
     else:
         raise RuntimeError(
-            "Could not extract `%s` as no appropriate extractor is found" % path
+            "Could not extract `%s` - unknown format specified" % path
         )
+
     temp_name = ".extract-" + str(uuid.uuid4())[:8]
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
     try:
