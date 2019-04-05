@@ -677,7 +677,9 @@ class wine(Runner):
 
         if enable:
             for dll in dxvk_manager.dxvk_dlls:
-                self.dll_overrides[dll] = "n"
+                # We have to make sure that the dll exists before setting it to native
+                if dxvk_manager.dxvk_dll_exists(dll):
+                    self.dll_overrides[dll] = "n"
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
