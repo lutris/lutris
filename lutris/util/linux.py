@@ -1,5 +1,6 @@
 """Linux specific platform code"""
 import os
+import re
 import shutil
 import sys
 import json
@@ -13,6 +14,7 @@ from lutris.util.graphics import glxinfo
 from lutris.util.log import logger
 from lutris.util.disks import get_drive_for_path
 
+# Linux components used by lutris
 SYSTEM_COMPONENTS = {
     "COMMANDS": [
         "xrandr",
@@ -119,7 +121,7 @@ class LinuxSystem:
         # Detect if system is 64bit capable
         self.is_64_bit = sys.maxsize > 2 ** 32
         self.arch = self.get_arch()
-
+        self.shared_libraries = self.get_shared_libraries()
         self.populate_libraries()
         self.populate_sound_fonts()
         self.soft_limit, self.hard_limit = self.get_file_limits()
@@ -204,6 +206,7 @@ class LinuxSystem:
 
     @property
     def runtime_architectures(self):
+        """Return the architectures supported on this machine"""
         if self.arch == "x86_64":
             return ["i386", "x86_64"]
         return ["i386"]
@@ -264,17 +267,37 @@ class LinuxSystem:
             if all([os.path.exists(path) for path in lib_paths]):
                 yield lib_paths
 
+    @staticmethod
+    def get_ldconfig_libs():
+        """Return a list of available libraries, as returned by `ldconfig -p`."""
+        try:
+            output = subprocess.check_output(["ldconfig", "-p"]).decode("utf-8").split("\n")
+        except subprocess.CalledProcessError as ex:
+            logger.error("Failed to get libraries from ldconfig: %s", ex)
+            return []
+        return [line.strip("\t") for line in output if line.startswith("\t")]
+
+    def get_shared_libraries(self):
+        """Loads all available libraries on the system as SharedLibrary instances
+        The libraries are stored in a defaultdict keyed by library name.
+        """
+        shared_libraries = defaultdict(list)
+        for lib_line in self.get_ldconfig_libs():
+            lib = SharedLibrary.new_from_ldconfig(lib_line)
+            if lib.arch not in self.runtime_architectures:
+                continue
+            shared_libraries[lib.name].append(lib)
+        return shared_libraries
+
     def populate_libraries(self):
         """Populates the LIBRARIES cache with what is found on the system"""
         self._cache["LIBRARIES"] = {}
         for arch in self.runtime_architectures:
             self._cache["LIBRARIES"][arch] = defaultdict(list)
-        for lib_paths in self.iter_lib_folders():
-            for req in self.requirements:
-                for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
-                    for index, arch in enumerate(self.runtime_architectures):
-                        if os.path.exists(os.path.join(lib_paths[index], lib)):
-                            self._cache["LIBRARIES"][arch][req].append(lib)
+        for req in self.requirements:
+            for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
+                for shared_lib in self.shared_libraries[lib]:
+                    self._cache["LIBRARIES"][shared_lib.arch][req].append(lib)
 
     def populate_sound_fonts(self):
         """Populates the soundfont cache"""
@@ -303,6 +326,46 @@ class LinuxSystem:
     def is_feature_supported(self, feature):
         """Return whether the system has the necessary libs to support a feature"""
         return not self.get_missing_requirement_libs(feature)[0]
+
+
+class SharedLibrary:
+    """Representation of a Linux shared library"""
+    default_arch = "i386"
+
+    def __init__(self, name, flags, path):
+        self.name = name
+        self.flags = [flag.strip() for flag in flags.split(",")]
+        self.path = path
+
+    @classmethod
+    def new_from_ldconfig(cls, ldconfig_line):
+        """Create a SharedLibrary instance from an output line from ldconfig"""
+        lib_match = re.match(r"^(.*) \((.*)\) => (.*)$", ldconfig_line)
+        if not lib_match:
+            raise ValueError("Received incorrect value for ldconfig line: %s" % ldconfig_line)
+        return cls(lib_match.group(1), lib_match.group(2), lib_match.group(3))
+
+    @property
+    def arch(self):
+        """Return the architecture for a shared library"""
+        detected_arch = ["x86-64", "x32"]
+        for arch in detected_arch:
+            if arch in self.flags:
+                return arch.replace("-", "_")
+        return self.default_arch
+
+    @property
+    def basename(self):
+        """Return the name of the library without an extention"""
+        return self.name.split(".so")[0]
+
+    @property
+    def dirname(self):
+        """Return the directory where the lib resides"""
+        return os.path.dirname(self.path)
+
+    def __str__(self):
+        return "%s (%s)" % (self.name, self.arch)
 
 
 LINUX_SYSTEM = LinuxSystem()
