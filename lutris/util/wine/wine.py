@@ -43,13 +43,13 @@ def _iter_proton_locations():
 
 def get_proton_paths():
     """Get the Folder that contains all the Proton versions. Can probably be improved"""
-    paths = []
+    paths = set()
     for path in _iter_proton_locations():
         proton_versions = [p for p in os.listdir(path) if "Proton" in p]
         for version in proton_versions:
             if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
-                paths.append(path)
-    return paths
+                paths.add(path)
+    return list(paths)
 
 
 POL_PATH = get_playonlinux()
