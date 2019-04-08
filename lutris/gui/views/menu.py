@@ -14,14 +14,22 @@ class ContextualMenu(Gtk.Menu):
         super().__init__()
         self.main_entries = main_entries
 
-    def add_menuitems(self, entries):
-        for entry in entries:
-            name, label, callback = entry
-            action = Gtk.Action(name=name, label=label)
-            action.connect("activate", callback)
-            menuitem = action.create_menu_item()
-            menuitem.action_id = name
-            self.append(menuitem)
+    def add_menuitem(self, entry):
+        """Add a menu item to the current menu
+
+        Params:
+            entry (tuple): tuple containing name, label and callback
+
+        Returns:
+            Gtk.MenuItem
+        """
+        name, label, callback = entry
+        action = Gtk.Action(name=name, label=label)
+        action.connect("activate", callback)
+        menu_item = action.create_menu_item()
+        menu_item.action_id = name
+        self.append(menu_item)
+        return menu_item
 
     def get_runner_entries(self, game):
         try:
@@ -32,6 +40,8 @@ class ContextualMenu(Gtk.Menu):
 
     def popup(self, event, game_row=None, game=None):
         if game_row:
+            # FIXME a new game instance is created here, without taking into
+            # account running games.
             game = Game(game_row[COL_ID])
 
         if not game:
@@ -43,13 +53,16 @@ class ContextualMenu(Gtk.Menu):
             self.remove(item)
 
         # Main items
-        self.add_menuitems(self.main_entries)
+        for entry in self.main_entries:
+            self.add_menuitem(entry)
+
         # Runner specific items
         if game.runner_name and game.is_installed:
             runner_entries = self.get_runner_entries(game)
             if runner_entries:
                 self.append(Gtk.SeparatorMenuItem())
-                self.add_menuitems(runner_entries)
+                for entry in runner_entries:
+                    self.add_menuitem(entry)
         self.show_all()
 
         game_actions = GameActions()
