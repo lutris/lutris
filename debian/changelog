@@ -1,10 +1,12 @@
-lutris (0.5.2ubuntu2) cosmic; urgency=medium
+lutris (0.5.2ubuntu3) cosmic; urgency=medium
 
   * Avoid a crash if the lutris config file is corrupted
   * Install Asian fonts by default on Wine prefix creation
   * Add Vulkan ICD loaders in system options
+  * Add SampleCount option to Wine (allows enabling antialiasing in old games)
   * Replace joystick panel with Wine config panel (which contains the joypad panel)
   * Display warning when installing games on NTFS drives
+  * Display warning if Vulkan is not fully installed
   * Use ldconfig to determine library paths
   * Disable steamwebhelper in Wine Steam to prevent spamming logs with errors
   * Various bug fixes
