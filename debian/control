@@ -42,7 +42,8 @@ Depends: ${misc:Depends},
  fluid-soundfont-gs,
  x11-xserver-utils,
  mesa-utils,
- gvfs-backends
+ gvfs-backends,
+ libc-bin
 Recommends: python3-evdev,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]
