@@ -100,10 +100,27 @@ def check_libs(all_components=False):
         components = LINUX_SYSTEM.requirements
     else:
         components = LINUX_SYSTEM.critical_requirements
+    missing_vulkan_libs = []
     for req in components:
         for index, arch in enumerate(LINUX_SYSTEM.runtime_architectures):
             for lib in missing_libs[req][index]:
+                if req == "VULKAN":
+                    missing_vulkan_libs.append(arch)
                 logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
+
+    if missing_vulkan_libs:
+        setting = "dismiss-missing-vulkan-library-warning"
+        if settings.read_setting(setting) != "True":
+            DontShowAgainDialog(
+                setting,
+                "Missing vulkan libraries",
+                secondary_message="The Vulkan library for %s has not been found. "
+                "This will prevent games using Vulkan (such as DXVK games) from running. "
+                "To install it, please follow "
+                "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
+                "the instructions on our Wiki</a>"
+                % " and ".join(missing_vulkan_libs)
+            )
 
 
 def check_vulkan():
