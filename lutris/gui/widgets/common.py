@@ -8,6 +8,7 @@ from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.gui.widgets.utils import get_stock_icon
 
+
 class SlugEntry(Gtk.Entry, Gtk.Editable):
     def __init__(self):
         super(SlugEntry, self).__init__()
