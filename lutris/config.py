@@ -84,17 +84,7 @@ class LutrisConfig:
                 self.level = "runner"
             else:
                 self.level = "system"
-
-        # Init and load config files
-        self.game_level = {"system": {}, self.runner_slug: {}, "game": {}}
-        self.runner_level = {"system": {}, self.runner_slug: {}}
-        self.system_level = {"system": {}}
-        self.game_level.update(read_yaml_from_file(self.game_config_path))
-        self.runner_level.update(read_yaml_from_file(self.runner_config_path))
-        self.system_level.update(read_yaml_from_file(self.system_config_path))
-
-        self.update_cascaded_config()
-        self.update_raw_config()
+        self.initialize_config()
 
     def __repr__(self):
         return "LutrisConfig(level=%s, game_config_id=%s, runner=%s)" % (
@@ -118,6 +108,18 @@ class LutrisConfig:
         if not self.game_config_id:
             return None
         return os.path.join(settings.CONFIG_DIR, "games/%s.yml" % self.game_config_id)
+
+    def initialize_config(self):
+        """Init and load config files"""
+        self.game_level = {"system": {}, self.runner_slug: {}, "game": {}}
+        self.runner_level = {"system": {}, self.runner_slug: {}}
+        self.system_level = {"system": {}}
+        self.game_level.update(read_yaml_from_file(self.game_config_path))
+        self.runner_level.update(read_yaml_from_file(self.runner_config_path))
+        self.system_level.update(read_yaml_from_file(self.system_config_path))
+
+        self.update_cascaded_config()
+        self.update_raw_config()
 
     def update_cascaded_config(self):
         if self.system_level.get("system") is None:
@@ -191,7 +193,6 @@ class LutrisConfig:
 
     def save(self):
         """Save configuration file according to its type"""
-        # logger.debug("Saving config %s", self.__repr__())
         if self.level == "system":
             config = self.system_level
             config_path = self.system_config_path
@@ -203,8 +204,10 @@ class LutrisConfig:
             config_path = self.game_config_path
         else:
             raise ValueError("Invalid config level '%s'" % self.level)
+
+        logger.debug("Saving %s config to %s", self, config_path)
         write_yaml_to_file(config_path, config)
-        self.update_cascaded_config()
+        self.initialize_config()
 
     def get_defaults(self, options_type):
         """Return a dict of options' default value."""
