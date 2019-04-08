@@ -1,4 +1,4 @@
-lutris (0.5.2ubuntu3) cosmic; urgency=medium
+lutris (0.5.2) cosmic; urgency=medium
 
   * Avoid a crash if the lutris config file is corrupted
   * Install Asian fonts by default on Wine prefix creation
