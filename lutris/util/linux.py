@@ -105,8 +105,8 @@ class LinuxSystem:
     ]
 
     recommended_no_file_open = 524288
-    required_components = ["OPENGL"]
-    optional_components = ["VULKAN", "WINE", "GAMEMODE"]
+    required_components = ["OPENGL", "VULKAN"]
+    optional_components = ["WINE", "GAMEMODE"]
 
     def __init__(self):
         for key in ("COMMANDS", "TERMINALS"):
