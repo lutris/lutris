@@ -6,7 +6,7 @@ from gi.repository import Gtk, GObject, Pango
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
-
+from lutris.gui.widgets.utils import get_stock_icon
 
 class SlugEntry(Gtk.Entry, Gtk.Editable):
     def __init__(self):
@@ -130,12 +130,17 @@ class FileChooserEntry(Gtk.Box):
         path = os.path.expanduser(path)
         self.update_completion(path)
         if self.warn_if_ntfs and LINUX_SYSTEM.get_fs_type_for_path(path) == "ntfs":
+            ntfs_box = Gtk.Box(spacing=6, visible=True)
+            warning_image = Gtk.Image(visible=True)
+            warning_image.set_from_pixbuf(get_stock_icon("dialog-warning", 32))
+            ntfs_box.add(warning_image)
             ntfs_label = Gtk.Label(visible=True)
             ntfs_label.set_markup(
                 "<b>Warning!</b> The selected path is located on a NTFS drive.\n"
                 "Installing games on NTFS partitions is known to cause issues."
             )
-            self.pack_end(ntfs_label, False, False, 10)
+            ntfs_box.add(ntfs_label)
+            self.pack_end(ntfs_box, False, False, 10)
         if self.warn_if_non_empty and os.path.exists(path) and os.listdir(path):
             non_empty_label = Gtk.Label(visible=True)
             non_empty_label.set_markup(
@@ -176,8 +181,8 @@ class FileChooserEntry(Gtk.Box):
 
     def clear_warnings(self):
         """Delete all the warning labels from the container"""
-        for child in self.get_children():
-            if isinstance(child, Gtk.Label):
+        for index, child in enumerate(self.get_children()):
+            if index > 0:
                 child.destroy()
 
 
