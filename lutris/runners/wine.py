@@ -351,19 +351,21 @@ class wine(Runner):
                 "label": "Anti-aliasing Sample Count",
                 "type": "choice",
                 "choices": [
-                            ("0", "0 (disabled)"),
-                            ("2", "2"),
-                            ("4", "4"),
-                            ("8", "8"),
-                            ("16", "16")],
+                    ("0", "0 (disabled)"),
+                    ("2", "2"),
+                    ("4", "4"),
+                    ("8", "8"),
+                    ("16", "16")
+                ],
                 "default": "0",
                 "advanced": True,
                 "help": (
                     "Override swapchain sample count. It can be used to force enable multisampling "
-                    "with applications that otherwise don't support it, like the similar control panel setting "
-                    "available with some GPU drivers. This one might work in more cases than the driver setting though. "
-                    " Not all applications are compatible with all sample counts. "
-                   )
+                    "with applications that otherwise don't support it, like the similar control "
+                    "panel setting available with some GPU drivers. This one might work in more "
+                    "cases than the driver setting though. "
+                    "Not all applications are compatible with all sample counts. "
+                )
             },
             {
                 "option": "UseXVidMode",
@@ -457,6 +459,7 @@ class wine(Runner):
 
     @property
     def context_menu_entries(self):
+        """Return the contexual menu entries for wine"""
         menu_entries = [
             ("wineexec", "Run EXE inside wine prefix", self.run_wineexec)
         ]
@@ -472,10 +475,13 @@ class wine(Runner):
 
     @property
     def prefix_path(self):
-        prefix_path = self.game_config.get("prefix")
-        if not prefix_path:
-            prefix_path = os.environ.get("WINEPREFIX") or "~/.wine"
-        return os.path.expanduser(prefix_path)
+        """Return the absolute path of the Wine prefix"""
+        _prefix_path = self.game_config.get("prefix")
+        if not _prefix_path:
+            logger.warning("Wine prefix not provided, defaulting to $WINEPREFIX then ~/.wine."
+                           " This is probably not the intended behavior.")
+            _prefix_path = os.environ.get("WINEPREFIX") or "~/.wine"
+        return os.path.expanduser(_prefix_path)
 
     @property
     def game_exe(self):
@@ -522,6 +528,7 @@ class wine(Runner):
             return get_default_version()
 
     def get_path_for_version(self, version):
+        """Return the absolute path of a wine executable for a given version"""
         # logger.debug("Getting path for Wine %s", version)
         if version in WINE_PATHS.keys():
             return system.find_executable(WINE_PATHS[version])
