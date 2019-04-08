@@ -99,7 +99,11 @@ def main():
     old_sigint_handler = signal.signal(signal.SIGINT, sig_handler)
 
     log("Running %s" % " ".join(args))
-    returncode = subprocess.run(args).returncode
+    try:
+        returncode = subprocess.run(args).returncode
+    except FileNotFoundError:
+        log("Failed to execute process. Check that the file exists")
+        return
     try:
         while True:
             log("Waiting on children")
