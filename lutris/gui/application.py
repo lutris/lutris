@@ -339,6 +339,7 @@ class Application(Gtk.Application):
         logger.debug("Launching %s (%s)", game, id(game))
         self.running_games.append(game)
         game.connect("game-stop", self.on_game_stop)
+        game.load_config()  # Reload the config before launching it.
         game.play()
 
     def get_game_by_id(self, game_id):
