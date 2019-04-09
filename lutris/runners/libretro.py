@@ -12,6 +12,7 @@ from lutris import settings
 LIBRETRO_CORES = [
     ("4do (3DO)", "4do", "3DO"),
     ("atari800 (Atari 800/5200)", "atari800", "Atari 800/5200"),
+    ("BlastEm (Sega Genesis)", "blastem", "Sega Genesis"),
     ("blueMSX (MSX/MSX2/MSX2+)", "bluemsx", "MSX/MSX2/MSX2+"),
     ("Caprice32 (Amstrad CPC)", "cap32", "Amstrad CPC"),
     ("ChaiLove", "chailove", "ChaiLove"),
