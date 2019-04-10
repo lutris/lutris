@@ -96,7 +96,12 @@ class GogService:
         params.update(extra_params)
         url = "https://auth.gog.com/token?" + urlencode(params)
         request = Request(url)
-        request.get()
+        try:
+            request.get()
+        except HTTPError as ex:
+            logger.error("Failed to get token, check your GOG credentials")
+            return
+
         token = request.json
         with open(self.token_path, "w") as token_file:
             token_file.write(json.dumps(token))
@@ -140,6 +145,11 @@ class GogService:
         if self.get_token_age() > 2600:
             self.request_token(refresh_token=token["refresh_token"])
             token = self.load_token()
+            if not token:
+                logger.warning(
+                    "Request to %s cancelled because the GOG token could not be acquired", url
+                )
+                return
         headers = {"Authorization": "Bearer " + token["access_token"]}
         request = Request(url, headers=headers, cookies=self.load_cookies())
         request.get()
