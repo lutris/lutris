@@ -105,7 +105,6 @@ class GamePanel(GenericPanel):
 
     def get_buttons(self):
         displayed = self.game_actions.get_displayed_entries()
-        disabled_entries = self.game_actions.get_disabled_entries()
         icon_map = {
             # "stop": "media-playback-stop-symbolic",
             # "play": "media-playback-start-symbolic",
@@ -135,8 +134,6 @@ class GamePanel(GenericPanel):
                 button.show()
             else:
                 button.hide()
-            if disabled_entries.get(action_id):
-                button.set_sensitive(False)
             buttons[action_id] = button
 
         if self.game.runner_name and self.game.is_installed:
@@ -202,13 +199,11 @@ class GamePanel(GenericPanel):
         self.buttons["play"].hide()
         self.buttons["play"].set_label("Play")
         self.buttons["play"].set_sensitive(True)
-        self.buttons["show_logs"].set_sensitive(True)
 
     def on_game_stop(self, widget, game_id=None):
         for child in self.get_children():
             child.destroy()
         self.place_content()
-        self.buttons["show_logs"].set_sensitive(True)
 
     def on_close(self, _widget):
         self.emit("panel-closed")

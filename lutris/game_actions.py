@@ -145,12 +145,6 @@ class GameActions:
             "view": True
         }
 
-    def get_disabled_entries(self):
-        """Return a dictionary of actions that should be disabled for a game"""
-        return {
-            "show_logs": not self.is_game_running,
-        }
-
     def on_game_run(self, *_args):
         """Launch a game"""
         self.application.launch(self.game)

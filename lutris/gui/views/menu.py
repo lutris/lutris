@@ -69,11 +69,9 @@ class ContextualMenu(Gtk.Menu):
         game_actions.set_game(game=game)
 
         displayed = game_actions.get_displayed_entries()
-        disabled_entries = game_actions.get_disabled_entries()
         for menuitem in self.get_children():
             if not isinstance(menuitem, Gtk.ImageMenuItem):
                 continue
             menuitem.set_visible(displayed.get(menuitem.action_id, True))
-            menuitem.set_sensitive(not disabled_entries.get(menuitem.action_id))
 
         super().popup(None, None, None, None, event.button, event.time)
