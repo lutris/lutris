@@ -306,6 +306,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             """Callback to update the view on sync complete"""
             if errors:
                 logger.error("Sync failed: %s", errors)
+                return
             added_games, removed_games = response
 
             for game_id in added_games:
