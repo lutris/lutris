@@ -1,3 +1,12 @@
+lutris (0.5.2.1) cosmic; urgency=high
+
+  * Handle distributions where ldconfig is not in $PATH, like Debian
+  * Fix a crash when GOG credential have changed
+  * Leave "Show logs" button always enabled
+  * Add BlastEm to libretro cores
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 09 Apr 2019 19:46:02 -0700
+
 lutris (0.5.2) cosmic; urgency=medium
 
   * Avoid a crash if the lutris config file is corrupted
