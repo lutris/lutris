@@ -41,7 +41,6 @@ class steam(Runner):
     human_name = "Steam"
     platforms = ["Linux"]
     runner_executable = "steam"
-    runnable_alone = True
     game_options = [
         {
             "option": "appid",
@@ -142,6 +141,10 @@ class steam(Runner):
         self.own_game_remove_method = "Remove game data (through Steam)"
         self.no_game_remove_warning = True
         self.original_steampid = None
+
+    @property
+    def runnable_alone(self):
+        return not system.LINUX_SYSTEM.is_flatpak
 
     @property
     def appid(self):
