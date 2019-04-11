@@ -124,18 +124,20 @@ class DXVKManager:
 
     def enable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Copies DXVK dlls to the appropriate destination"""
-        wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
-        logger.info("Replacing %s/%s with DXVK version", system_dir, dll)
-        if not self.is_dxvk_dll(wine_dll_path):
-            # Backing up original version (may not be needed)
-            if system.path_exists(wine_dll_path):
-                shutil.move(wine_dll_path, wine_dll_path + ".orig")
         # Copying DXVK's version
         dxvk_dll_path = os.path.join(self.dxvk_path, dxvk_arch, "%s.dll" % dll)
         if system.path_exists(dxvk_dll_path):
+            wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
+            logger.info("Replacing %s/%s with DXVK version", system_dir, dll)
+            if not self.is_dxvk_dll(wine_dll_path):
+                # Backing up original version (may not be needed)
+                if system.path_exists(wine_dll_path):
+                    shutil.move(wine_dll_path, wine_dll_path + ".orig")
             if system.path_exists(wine_dll_path):
                 os.remove(wine_dll_path)
             os.symlink(dxvk_dll_path, wine_dll_path)
+        else:
+            self.disable_dxvk_dll(system_dir, dxvk_arch, dll)
 
     def disable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Remove DXVK DLL from Wine prefix"""
