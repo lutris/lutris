@@ -318,27 +318,22 @@ class steam(Runner):
                 return {"error": "FILE_NOT_FOUND", "file": binary_path}
             self.original_steampid = None
             command = [binary_path]
-            if game_args:
-                for arg in shlex.split(game_args):
-                    command.append(arg)
         else:
             # Start through steam
 
             # Get current steam pid to act as the root pid instead of lutris
             self.original_steampid = get_steam_pid()
             command = self.launch_args
-            if game_args:
-                for arg in shlex.split(game_args):
-                    command.append(arg)
 
             if self.runner_config.get("start_in_big_picture") or not game_args:
                 command.append("steam://rungameid/%s" % self.appid)
             else:
                 command.append("-applaunch")
                 command.append(self.appid)
-                if game_args:
-                    for arg in shlex.split(game_args):
-                        command.append(arg)
+        
+        if game_args:
+            for arg in shlex.split(game_args):
+                command.append(arg)
 
         return {
             "command": command,
