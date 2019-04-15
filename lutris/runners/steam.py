@@ -78,7 +78,7 @@ class steam(Runner):
             "type": "file",
             "label": "Game binary path",
             "advanced": True,
-            "help": "Path to the game executable (Required by DRM free mode)"
+            "help": "Path to the game executable (Required by DRM free mode)",
         },
     ]
     runner_options = [
@@ -234,17 +234,15 @@ class steam(Runner):
     def get_steamapps_dirs(self):
         """Return a list of the Steam library main + custom folders."""
         dirs = []
-        # Main steamapps dir
+
+        # Main steamapps dir and compatibilitytools.d dir
         if self.steam_data_dir:
-            main_dir = os.path.join(self.steam_data_dir, "SteamApps")
-            main_dir = system.fix_path_case(main_dir)
-            if main_dir and os.path.isdir(main_dir):
-                dirs.append(main_dir)
-        if self.steam_data_dir:
-            ct_dir = os.path.join(self.steam_data_dir, "compatibilitytools.d")
-            ct_dir = system.fix_path_case(ct_dir)
-            if ct_dir and os.path.isdir(ct_dir):
-                dirs.append(ct_dir)
+            for _dir in ["SteamApps", "compatibilitytools.d"]:
+                abs_dir = os.path.join(self.steam_data_dir, _dir)
+                abs_dir = system.fix_path_case(abs_dir)
+                if abs_dir and os.path.isdir(abs_dir):
+                    dirs.append(abs_dir)
+
         # Custom dirs
         steam_config = self.get_steam_config()
         if steam_config:
@@ -357,6 +355,6 @@ class steam(Runner):
         command = MonitoredCommand(
             [self.get_executable(), "steam://uninstall/%s" % (appid or self.appid)],
             runner=self,
-            env=self.get_env()
+            env=self.get_env(),
         )
         command.start()
