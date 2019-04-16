@@ -192,7 +192,7 @@ class InstallerWindow(BaseApplicationWindow):
         except MissingGameDependency as ex:
             dlg = QuestionDialog(
                 {
-                    "question": "This game requires %s, do you want to install it?" % ex.slug,
+                    "question": "This game requires %s. Do you want to install it?" % ex.slug,
                     "title": "Missing dependency",
                 }
             )

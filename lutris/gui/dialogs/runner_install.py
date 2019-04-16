@@ -28,7 +28,7 @@ class RunnerInstallDialog(Dialog):
         self.runner_info = api.get_runners(self.runner)
         if not self.runner_info:
             ErrorDialog(
-                "Unable to get runner versions, check your internet connection",
+                "Unable to get runner versions. Check your internet connection.",
                 parent=parent,
             )
             return
