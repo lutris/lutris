@@ -84,7 +84,7 @@ class Application(Gtk.Application):
             self.add_arguments()
         else:
             ErrorDialog(
-                "Your Linux distribution is too old, Lutris won't function properly"
+                "Your Linux distribution is too old. Lutris won't function properly."
             )
 
     def add_arguments(self):

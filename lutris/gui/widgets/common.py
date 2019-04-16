@@ -146,7 +146,7 @@ class FileChooserEntry(Gtk.Box):
             non_empty_label = Gtk.Label(visible=True)
             non_empty_label.set_markup(
                 "<b>Warning!</b> The selected path "
-                "contains files, installation might not work properly."
+                "contains files. Installation might not work properly."
             )
             self.pack_end(non_empty_label, False, False, 10)
 

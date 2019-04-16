@@ -577,8 +577,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if self.application.running_games.get_n_items():
             dlg = dialogs.QuestionDialog(
                 {
-                    "question": ("Some games are still running, "
-                                 "are you sure you want to quit Lutris?"),
+                    "question": ("Some games are still running. "
+                                 "Are you sure you want to quit Lutris?"),
                     "title": "Quit Lutris?",
                 }
             )
@@ -824,8 +824,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.invalidate_game_filter()
 
     def show_invalid_credential_warning(self):
-        dialogs.ErrorDialog("Could not connect to your Lutris account, please sign-in again.")
+        dialogs.ErrorDialog("Could not connect to your Lutris account. Please sign in again.")
 
     def show_library_sync_error(self):
-        dialogs.ErrorDialog("Failed to retrieve game library, "
-                            "there might be some problems contacting lutris.net")
+        dialogs.ErrorDialog("Failed to retrieve game library. "
+                            "There might be some problems contacting lutris.net")
