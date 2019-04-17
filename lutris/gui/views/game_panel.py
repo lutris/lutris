@@ -128,13 +128,17 @@ class GamePanel(GenericPanel):
                     button.set_size_request(146, 42)
                 else:
                     button = get_link_button(label)
-            button.connect("clicked", callback)
 
             if displayed.get(action_id):
                 button.show()
             else:
                 button.hide()
             buttons[action_id] = button
+
+            if action_id in ('desktop-shortcut', 'rm-desktop-shortcut', 'menu-shortcut', 'rm-menu-shortcut'):
+                callback = self.shortcut_button_refresh(action_id, callback)
+
+            button.connect("clicked", callback)
 
         if self.game.runner_name and self.game.is_installed:
             for entry in self.get_runner_entries(self.game):
@@ -144,6 +148,20 @@ class GamePanel(GenericPanel):
                 button.connect("clicked", callback)
                 buttons[name] = button
         return buttons
+
+    def shortcut_button_refresh(self, action_id, callback):
+        """Decorates callback to enable visibility toggling of shortcut buttons"""
+        def refresh_wrapper(*_args):
+            if action_id[0:2] == 'rm':
+                self.buttons[action_id].hide()
+                self.buttons[action_id[3:]].show()
+            else:
+                self.buttons[action_id].hide()
+                self.buttons['rm-' + action_id].show()
+
+            callback()
+
+        return refresh_wrapper
 
     def place_buttons(self, base_height):
         play_x_offset = 87
