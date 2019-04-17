@@ -165,12 +165,9 @@ class steam(Runner):
 
     @property
     def game_path(self):
-        if self.appid:
-            for apps_path in self.get_steamapps_dirs():
-                game_path = get_path_from_appmanifest(apps_path, self.appid)
-                if game_path:
-                    return game_path
-            logger.info("Data path for SteamApp %s not found.", self.appid)
+        if not self.appid:
+            return None
+        return self.get_game_path_from_appid(self.appid)
 
     @property
     def steam_data_dir(self):
