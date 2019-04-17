@@ -737,6 +737,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_actions.set_game(game=game)
             self.game_panel = GamePanel(self.game_actions)
             self.game_panel.connect("panel-closed", self.on_panel_closed)
+            self.view.contextual_menu.connect("shortcut-edited", self.game_panel.on_shortcut_edited)
         self.game_scrolled.add(self.game_panel)
         return True
 
