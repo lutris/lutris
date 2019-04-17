@@ -116,10 +116,6 @@ class Application(Gtk.Application):
             _("Install a game from a yml file"), None,
         )
         self.add_main_option(
-            "remote_install", ord("r"), GLib.OptionFlags.NONE, GLib.OptionArg.STRING,
-            _("Install a game from a remote yml file"), None,
-        )
-        self.add_main_option(
             "exec", ord("e"), GLib.OptionFlags.NONE, GLib.OptionArg.STRING,
             _("Execute a program with the lutris runtime"), None,
         )
@@ -272,32 +268,34 @@ class Application(Gtk.Application):
         action = installer_info["action"]
         revision = installer_info["revision"]
 
-        installer_file = None
+        installer_file  = None
         if options.contains("install"):
             installer_file = options.lookup_value("install").get_string()
-            installer_file = os.path.abspath(installer_file)
-            action = "install"
-            if not os.path.isfile(installer_file):
-                self._print(command_line, "No such file: %s" % installer_file)
-                return 1
-        elif options.contains("remote_install"):
-            installer_file = options.lookup_value("remote_install").get_string()
-            self._print(command_line, "try to download %s started" % installer_file)
             try:
-                filename_ = os.path.join(tempfile.gettempdir(),os.path.basename(installer_file))
                 with requests.get(installer_file, stream=True,allow_redirects=True) as r_:
                     r_.raise_for_status()
+                    try:
+                        filename_ = os.path.join(tempfile.gettempdir(),r_.headers["Content-Disposition"].split("=",1)[-1])
+                    except:
+                        filename_ = os.path.join(tempfile.gettempdir(),os.path.basename(r_.url))
+                    self._print(command_line, "download %s to %s started" %(installer_file,filename_))
                     with open(filename_, 'wb') as f_:
-                        for chunk in r_.iter_content(chunk_size=8192):
-                            if chunk:
-                                f_.write(chunk)
-            except Exception as e:
-                self._print(command_line, str(e))
-                self._print(command_line, "No such file: %s\nDownload file %s failed" %(filename_,installer_file))
-                return 1
-            else:
+                        for chunk_ in r_.iter_content(chunk_size=8192):
+                            if chunk_:
+                                f_.write(chunk_)
+                
                 installer_file = filename_
                 action = "install"
+            except requests.exceptions.MissingSchema:
+                installer_file = os.path.abspath(installer_file)
+                action = "install"
+                if not os.path.isfile(installer_file):
+                    self._print(command_line, "No such file: %s" % installer_file)
+                    return 1
+            except Exception as e:
+                self._print(command_line, str(e))
+                self._print(command_line, "Download file %s failed" %installer_file)
+                return 1
 
         db_game = None
         if game_slug:
