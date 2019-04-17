@@ -34,7 +34,7 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
             button.set_tooltip_text(tooltip)
         return button
 
-    def on_destroy(self, _widget=None):
+    def on_destroy(self, _widget=None, _data=None):
         """Destroy callback"""
         self.destroy()
 
