@@ -575,17 +575,18 @@ class wine(Runner):
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
-        if not version:
-            wine_versions = get_wine_versions()
-            if min_version:
-                min_version_list, _, _ = parse_version(min_version)
-                for version in wine_versions:
-                    version_list, _, _ = parse_version(version)
-                    if version_list > min_version_list:
-                        return True
-                logger.warning("Wine %s or higher not found", min_version)
-            return bool(wine_versions)
-        return system.path_exists(self.get_executable(version, fallback))
+        if version:
+            return system.path_exists(self.get_executable(version, fallback))
+
+        wine_versions = get_wine_versions()
+        if min_version:
+            min_version_list, _, _ = parse_version(min_version)
+            for version in wine_versions:
+                version_list, _, _ = parse_version(version)
+                if version_list > min_version_list:
+                    return True
+            logger.warning("Wine %s or higher not found", min_version)
+        return bool(wine_versions)
 
     @classmethod
     def msi_exec(
