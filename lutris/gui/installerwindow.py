@@ -275,9 +275,13 @@ class InstallerWindow(BaseApplicationWindow):
         if action == "file":
             title = "Select file"
             action = Gtk.FileChooserAction.OPEN
+            enable_warnings = False
         elif action == "folder":
             title = "Select folder"
             action = Gtk.FileChooserAction.SELECT_FOLDER
+            enable_warnings = True
+        else:
+            raise ValueError("Invalid action %s", action)
 
         if self.location_entry:
             self.location_entry.destroy()
@@ -285,8 +289,8 @@ class InstallerWindow(BaseApplicationWindow):
             title,
             action,
             path=default_path,
-            warn_if_non_empty=True,
-            warn_if_ntfs=True
+            warn_if_non_empty=enable_warnings,
+            warn_if_ntfs=enable_warnings
         )
         self.location_entry.entry.connect("changed", callback_on_changed, action)
         self.widget_box.pack_start(self.location_entry, False, False, 0)
