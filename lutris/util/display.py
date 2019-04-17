@@ -41,10 +41,16 @@ def get_outputs():
     for line in vid_modes:
         if "connected" in line:
             primary = "primary" in line
-            if primary:
-                name, _, _, geometry, rotate, *_ = line.split()
-            else:
-                name, _, geometry, rotate, *_ = line.split()
+            try:
+                if primary:
+                    name, _, _, geometry, rotate, *_ = line.split()
+                else:
+                    name, _, geometry, rotate, *_ = line.split()
+            except ValueError as ex:
+                logger.error("Unhandled xrandr line %s, error: %s. "
+                             "Please send your xrandr output to the dev team",
+                             line, ex)
+                continue
             if geometry.startswith("("):  # Screen turned off, no geometry
                 continue
             if rotate.startswith("("):  # Screen not rotated, no need to include
