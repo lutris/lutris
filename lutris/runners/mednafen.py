@@ -35,7 +35,7 @@ class mednafen(Runner):
         ("Master System", "sms"),
         ("Neo Geo Pocket (Color)", "gnp"),
         ("NES", "nes"),
-        ("PC Engine", "pce"),
+        ("PC Engine", "pce_fast"),
         ("PC-FX", "pcfx"),
         ("PlayStation", "psx"),
         ("Saturn", "ss"),
