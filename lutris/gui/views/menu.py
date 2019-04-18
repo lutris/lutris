@@ -32,7 +32,7 @@ class ContextualMenu(Gtk.Menu):
         action.connect("activate", callback)
 
         if name in ("desktop-shortcut", "rm-desktop-shortcut", "menu-shortcut", "rm-menu-shortcut"):
-            action.connect("activate", lambda a: self.emit('shortcut-edited', name))
+            action.connect("activate", self.on_shortcut_edited)
 
         menu_item = action.create_menu_item()
         menu_item.action_id = name
@@ -83,3 +83,6 @@ class ContextualMenu(Gtk.Menu):
             menuitem.set_visible(displayed.get(menuitem.action_id, True))
 
         super().popup(None, None, None, None, event.button, event.time)
+
+    def on_shortcut_edited(self, action):
+        self.emit('shortcut-edited', action.get_name())

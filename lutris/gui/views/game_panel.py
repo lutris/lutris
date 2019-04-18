@@ -149,13 +149,6 @@ class GamePanel(GenericPanel):
                 buttons[name] = button
         return buttons
 
-    def on_shortcut_edited(self, widget, action_id):
-        self.buttons[action_id].hide()
-        if 'rm' == action_id[0:2]:
-            self.buttons[action_id[3:]].show()
-        else:
-            self.buttons['rm-' + action_id].show()
-
     def place_buttons(self, base_height):
         play_x_offset = 87
         icon_offset = 6
@@ -200,6 +193,13 @@ class GamePanel(GenericPanel):
                 extra_button_index += 1
 
             self.put(button, position[0], position[1])
+
+    def on_shortcut_edited(self, widget, action_id):
+        self.buttons[action_id].hide()
+        if 'rm' == action_id[0:2]:
+            self.buttons[action_id[3:]].show()
+        else:
+            self.buttons['rm-' + action_id].show()
 
     def on_game_start(self, widget):
         self.buttons["play"].set_label("Launching...")
