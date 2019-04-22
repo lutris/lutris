@@ -455,6 +455,7 @@ class Game(GObject.Object):
         # Env vars
         game_env = gameplay_info.get("env") or self.runner.get_env()
         env.update(game_env)
+        env["game_name"] = self.name
 
         # LD_PRELOAD
         ld_preload = gameplay_info.get("ld_preload")
@@ -507,6 +508,7 @@ class Game(GObject.Object):
             self.prelaunch_executor = MonitoredCommand(
                 [prelaunch_command],
                 include_processes=[os.path.basename(prelaunch_command)],
+                env=self.game_runtime_config["env"],
                 cwd=self.directory,
             )
             self.prelaunch_executor.start()
@@ -633,6 +635,7 @@ class Game(GObject.Object):
             postexit_thread = MonitoredCommand(
                 [postexit_command],
                 include_processes=[os.path.basename(postexit_command)],
+                env=self.game_runtime_config["env"],
                 cwd=self.directory,
             )
             postexit_thread.start()
