@@ -172,7 +172,7 @@ class LinuxSystem:
         ]
 
     @staticmethod
-    def get_ram_info():
+    def get_ram_info_old():
         """Return RAM information"""
         try:
             output = subprocess.check_output(["free"]).decode().split("\n")
@@ -184,6 +184,16 @@ class LinuxSystem:
         for parts in [line.split() for line in output[1:] if line]:
             meminfo[parts[0].strip(":").lower()] = dict(zip(columns, parts[1:]))
         return meminfo
+    
+    @staticmethod
+    def get_ram_info():
+        """Parse the output of /proc/meminfo"""
+        mem = {}
+        with open("/proc/meminfo") as meminfo:
+            for line in meminfo.readlines():
+                key, value = line.split(":", 1)
+                mem[key.strip()] = value.strip('kB \n')
+        return mem
 
     @staticmethod
     def get_dist_info():
@@ -204,6 +214,13 @@ class LinuxSystem:
             return "armv7"
         logger.warning("Unsupported architecture %s", machine)
 
+    @staticmethod
+    def get_kernel_version():
+        """Get kernel info from /proc/version"""
+        with open("/proc/version") as kernel_info:
+            info = kernel_info.readlines()[0]
+            version = info.split(" ")[2]
+        return version
     @property
     def runtime_architectures(self):
         """Return the architectures supported on this machine"""
@@ -390,5 +407,32 @@ def gather_system_info():
     system_info["drives"] = LINUX_SYSTEM.get_drives()
     system_info["ram"] = LINUX_SYSTEM.get_ram_info()
     system_info["dist"] = LINUX_SYSTEM.get_dist_info()
+    system_info["arch"] = LINUX_SYSTEM.get_arch()
+    system_info["kernel"] = LINUX_SYSTEM.get_kernel_version()
     system_info["glxinfo"] = glxinfo.GlxInfo().as_dict()
     return system_info
+
+def gather_system_info_str():
+    """Get all relevant system information already formatted as a string"""
+    system_info = gather_system_info()
+    output = ''
+    #Add system information
+    output += 'System\n'
+    output += 'OS:\t{}\n'.format(' '.join(system_info["dist"]))
+    output += 'Arch:\t{}\n'.format(system_info["arch"])
+    output += 'Kernel:\t{}\n'.format(system_info["kernel"])
+    output += 'Desktop:\t{}\n'.format(system_info["env"]["XDG_CURRENT_DESKTOP"])
+    output += 'Display Server:\t{}\n'.format(system_info["env"]["XDG_SESSION_TYPE"])
+    #Add CPU information
+    output += '\nCPU\n'
+    output += 'Vendor:\t{}\n'.format(system_info["cpus"][0]["vendor_id"])
+    output += 'Model:\t{}\n'.format(system_info["cpus"][0]["model name"])
+    output += 'Physical cores:\t{}\n'.format(system_info["cpus"][0]["cpu cores"])
+    output += 'Logical cores:\t{}\n'.format(system_info["cpus"][0]["siblings"])
+    #Add RAM information
+    output += '\nMemory\n'
+    output += 'RAM:\t{} Kb\n'.format(system_info["ram"]["MemTotal"])
+    output += 'Swap:\t{} Kb\n'.format(system_info["ram"]["SwapTotal"])
+    #Add graphics information
+    output += '\nGraphics\n'
+    return output

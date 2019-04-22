@@ -19,6 +19,7 @@ from lutris.gui.widgets.utils import (
 )
 from lutris.util.strings import slugify
 from lutris.util import resources
+from lutris.util.linux import gather_system_info_str
 
 
 # pylint: disable=too-many-instance-attributes
@@ -70,6 +71,7 @@ class GameDialogCommon:
             self._build_runner_tab(config_level)
         if config_level == "system":
             self._build_prefs_tab()
+            self._build_sysinfo_tab()
         self._build_system_tab(config_level)
 
     def _build_info_tab(self):
@@ -106,6 +108,17 @@ class GameDialogCommon:
 
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, "Lutris preferences")
+
+    def _build_sysinfo_tab(self):
+        sysinfo_view = Gtk.TextView()
+        sysinfo_view.set_editable(False)
+        sysinfo_view.set_cursor_visible(False)
+
+        text_buffer = sysinfo_view.get_buffer()
+        text_buffer.set_text(gather_system_info_str())
+
+        info_sw = self.build_scrolled_window(sysinfo_view)
+        self._add_notebook_tab(info_sw, "System Information")
 
     def _get_game_cache_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
