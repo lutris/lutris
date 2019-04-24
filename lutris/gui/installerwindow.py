@@ -79,7 +79,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
-        self.play_button = self.add_button("_Launch game", self.launch_game)
+        self.play_button = self.add_button("_Launch", self.launch_game)
         self.close_button = self.add_button("_Close", self.on_destroy)
 
         self.continue_handler = None
