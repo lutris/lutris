@@ -21,7 +21,7 @@ def get_optirun_choices():
 
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
-    choices = [("None", "")]
+    choices = [("Auto", "")]
 
     # Add loaders from standard location
     for loader in glob.glob("/usr/share/vulkan/icd.d/*.json"):
