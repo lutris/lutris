@@ -17,6 +17,7 @@ from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.x360ce import X360ce
 from lutris.util.wine import dxvk
+from lutris.util.wine import nine
 from lutris.util.wine.wine import (
     POL_PATH,
     WINE_DIR,
@@ -222,6 +223,19 @@ class wine(Runner):
                 "callback": esync_limit_callback,
                 "callback_on": True,
                 "active": True,
+            },
+            {
+                "option": "gallium_nine",
+                "label": "Enable Gallium Nine",
+                "type": "bool",
+                "default": False,
+                "condition": nine.NineManager.is_available(),
+                "advanced": True,
+                "help": (
+                    "Gallium Nine allows to run any Direct3D 9 application with nearly "
+                    "no CPU overhead. Make sure your active graphics card supports "
+                    "Gallium Nine state tracker before enabling this options."
+                ),
             },
             {
                 "option": "x360ce-path",
@@ -725,6 +739,7 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
+        self.setup_nine(self.runner_config.get("gallium_nine"))
         try:
             dxvk_version = self.runner_config.get("dxvk_version")
             self.toggle_dxvk(
@@ -850,6 +865,17 @@ class wine(Runner):
             self.dll_overrides["xinput9_1_0"] = "native"
         if self.runner_config.get("x360ce-dinput"):
             self.dll_overrides["dinput8"] = "native"
+
+    def setup_nine(self, enable):
+        nine_manager = nine.NineManager(
+            self.prefix_path,
+            self.wine_arch,
+        )
+
+        if enable:
+            nine_manager.enable()
+        else:
+            nine_manager.disable()
 
     def sandbox(self, wine_prefix):
         if self.runner_config.get("sandbox", True):
