@@ -264,6 +264,10 @@ class LinuxSystem:
             if self.arch != 'x86_64':
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
+            else:
+                # Ignore paths where 64-bit path is link to supposed 32-bit path
+                if os.path.realpath(lib_paths[0]) == os.path.realpath(lib_paths[1]):
+                    continue
             if all([os.path.exists(path) for path in lib_paths]):
                 yield lib_paths
 
