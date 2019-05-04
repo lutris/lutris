@@ -332,14 +332,15 @@ class steam(Runner):
         else:
             # Start through steam
 
-            command = self.launch_args
             if system.LINUX_SYSTEM.is_flatpak:
                 return {
-                    "command": command + ["steam://rungameid/%s" % self.appid],
+                    "command": self.launch_args + ["steam://rungameid/%s" % self.appid],
                     "env": self.get_env(),
                 }
+
             # Get current steam pid to act as the root pid instead of lutris
             self.original_steampid = get_steam_pid()
+            command = self.launch_args
             if game_args:
                 for arg in shlex.split(game_args):
                     command.append(arg)
