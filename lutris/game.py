@@ -18,6 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.command import MonitoredCommand
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
+from lutris.util.linux import LINUX_SYSTEM
 
 
 HEARTBEAT_DELAY = 2000
@@ -243,7 +244,7 @@ class Game(GObject.Object):
                 dialogs.ErrorDialog(
                     "Runtime currently updating", "Game might not work as expected"
                 )
-        if "wine" in self.runner_name and not wine.get_system_wine_version():
+        if "wine" in self.runner_name and not wine.get_system_wine_version() and not LINUX_SYSTEM.is_flatpak:
 
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
