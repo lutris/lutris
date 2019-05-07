@@ -351,13 +351,14 @@ class wine(Runner):
                 "label": "Anti-aliasing Sample Count",
                 "type": "choice",
                 "choices": [
-                    ("0", "0 (disabled)"),
+                    ("Auto", "auto"),
+                    ("0", "0"),
                     ("2", "2"),
                     ("4", "4"),
                     ("8", "8"),
                     ("16", "16")
                 ],
-                "default": "0",
+                "default": "auto",
                 "advanced": True,
                 "help": (
                     "Override swapchain sample count. It can be used to force enable multisampling "
