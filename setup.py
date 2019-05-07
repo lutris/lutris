@@ -1,8 +1,8 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import os
 import sys
 from setuptools import setup
-from lutris.settings import VERSION
+from lutris import __version__ as VERSION
 
 if sys.version_info < (3, 4):
     sys.exit('Python 3.4 is required to run Lutris')
@@ -25,16 +25,32 @@ setup(
     license='GPL-3',
     author='Mathieu Comandon',
     author_email='strider@strycore.com',
-    packages=['lutris', 'lutris.gui', 'lutris.gui.widgets', 'lutris.util',
-              'lutris.runners', 'lutris.services', 'lutris.installer',
-              'lutris.migrations'],
-    scripts=['bin/lutris'],
+    packages=[
+        'lutris',
+        'lutris.gui',
+        'lutris.gui.config',
+        'lutris.gui.dialogs',
+        'lutris.gui.views',
+        'lutris.gui.widgets',
+        'lutris.installer',
+        'lutris.migrations',
+        'lutris.runners',
+        'lutris.runners.commands',
+        'lutris.services',
+        'lutris.util',
+        'lutris.util.graphics',
+        'lutris.util.steam',
+        'lutris.util.wine',
+        'lutris.vendor'
+    ],
+    scripts=['bin/lutris', 'bin/lutris-wrapper'],
     data_files=data_files,
     zip_safe=False,
     install_requires=[
         'PyYAML',
         'PyGObject',
-        'evdev'
+        'evdev',
+        'requests'
     ],
     url='https://lutris.net',
     description='Install and play any video game on Linux',

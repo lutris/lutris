@@ -86,7 +86,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="margin_bottom">15</property>
-                <property name="label" translatable="yes">This action will mark {game} as uninstalled.</property>
+                <property name="label" translatable="yes">Are you sure you want to uninstall {game}?</property>
                 <property name="use_markup">True</property>
                 <property name="wrap">True</property>
                 <property name="xalign">0</property>

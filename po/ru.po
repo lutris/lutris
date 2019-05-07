@@ -1,0 +1,206 @@
+# Russian Lutris translation.
+# Copyright (C) 2018
+# This file is distributed under the same license as the lutris package.
+# Alexandr Oleynikov <sashok.olen@gmail.com>, 2018.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-11-09 21:49+0100\n"
+"PO-Revision-Date: 2018-09-03 23:53+0300\n"
+"Last-Translator: Alexandr Oleynikov <sashok.olen@gmail.com>\n"
+"Language-Team: \n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../data/ui/AboutDialog.ui.h:1
+msgid "About Lutris"
+msgstr "О программе"
+
+#: ../data/ui/AboutDialog.ui.h:2
+msgid "© 2010, 2012 Mathieu Comandon"
+msgstr "© 2010, 2012 Mathieu Comandon"
+
+#: ../data/ui/AboutDialog.ui.h:3
+msgid "Open Source Gaming Platform"
+msgstr "Свободная платформа для игр"
+
+#: ../data/ui/AboutDialog.ui.h:4
+msgid "http://lutris.net"
+msgstr "http://lutris.net"
+
+#: ../data/ui/AboutDialog.ui.h:5
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"Эта программа бесплатна: вы можете распространять и/или модифицировать\n"
+"её под условиями 3 версии Универсальной общественной лицензии GNU,\n"
+"опубликованной Фондом свободного программного обеспечения,\n"
+"либо под более поздней версией (на ваше усмотрение).\n"
+"\n"
+"Эта программа распространяется с надеждой, что она будет полезной,\n"
+"но БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ; даже без подразумеваемой гарантии\n"
+"ПРИГОДНОСТИ К КОММЕРЧЕСКОМУ РАСПРОСТРАНЕНИЮ или КАКИХ-ЛИБО ДРУГИХ ЦЕЛЕЙ.\n"
+"Для деталей прочтите Универсальную общественную лицензию GNU.\n"
+"\n"
+"Вместе с этой программой вы должны были получить копию Универсальной\n"
+"общественной лицензии GNU. Если это не так, посетите <http://www.gnu.org/licenses/>.\n"
+
+#: ../data/ui/LutrisWindow3.ui.h:1 ../data/ui/LutrisWindow.ui.h:1
+msgid "Lutris"
+msgstr "Lutris"
+
+#: ../data/ui/LutrisWindow3.ui.h:2
+msgid "_File"
+msgstr "_Файл"
+
+#: ../data/ui/LutrisWindow3.ui.h:3 ../data/ui/LutrisWindow.ui.h:9
+msgid "_Edit"
+msgstr "_Отредактировать"
+
+#: ../data/ui/LutrisWindow3.ui.h:4 ../data/ui/LutrisWindow.ui.h:11
+msgid "_View"
+msgstr "_Просмотреть"
+
+#: ../data/ui/LutrisWindow3.ui.h:5 ../data/ui/LutrisWindow.ui.h:16
+msgid "_Help"
+msgstr "_Помощь"
+
+#: ../data/ui/LutrisWindow3.ui.h:6 ../data/ui/LutrisWindow.ui.h:21
+msgid "Add game"
+msgstr "Добавить игру"
+
+#: ../data/ui/LutrisWindow3.ui.h:7 ../data/ui/LutrisWindow.ui.h:18
+msgid "Play"
+msgstr "Запустить"
+
+#: ../data/ui/LutrisWindow3.ui.h:8 ../data/ui/LutrisWindow.ui.h:20
+msgid "Stop"
+msgstr "Остановить"
+
+#: ../data/ui/LutrisWindow3.ui.h:9 ../data/ui/LutrisWindow.ui.h:24
+msgid "Remove"
+msgstr "Удалить"
+
+#: ../data/ui/LutrisWindow.ui.h:2
+msgid "_Lutris"
+msgstr "_Lutris"
+
+#: ../data/ui/LutrisWindow.ui.h:3
+msgid "Connect"
+msgstr "Подключиться"
+
+#: ../data/ui/LutrisWindow.ui.h:4
+msgid "Install and configure runners"
+msgstr "Установить и настроить запускатели"
+
+#: ../data/ui/LutrisWindow.ui.h:5
+msgid "Manage runners"
+msgstr "Управление запускателями"
+
+#: ../data/ui/LutrisWindow.ui.h:6
+msgid "Import"
+msgstr "Параметры импорта игр"
+
+#: ../data/ui/LutrisWindow.ui.h:7
+msgid "Import games from ScummVM"
+msgstr "Импортировать игры из ScummVM"
+
+#: ../data/ui/LutrisWindow.ui.h:8
+msgid "ScummVM"
+msgstr "ScummVM"
+
+#: ../data/ui/LutrisWindow.ui.h:10
+msgid "configure the default options"
+msgstr "настроить опции по-умолчанию"
+
+#: ../data/ui/LutrisWindow.ui.h:12
+msgid "Icons"
+msgstr "Иконки"
+
+#: ../data/ui/LutrisWindow.ui.h:13
+msgid "List"
+msgstr "Отобразить"
+
+#: ../data/ui/LutrisWindow.ui.h:14
+msgid "_Game"
+msgstr "_Игра"
+
+#: ../data/ui/LutrisWindow.ui.h:15
+msgid "Start"
+msgstr "Запустить"
+
+#: ../data/ui/LutrisWindow.ui.h:17
+msgid "Play game"
+msgstr "Запустить игру"
+
+#: ../data/ui/LutrisWindow.ui.h:19
+msgid "Stop game"
+msgstr "Остановить игру"
+
+#: ../data/ui/LutrisWindow.ui.h:22
+msgid "Add Game"
+msgstr "Добавить игру"
+
+#: ../data/ui/LutrisWindow.ui.h:23
+msgid "Remove game from library"
+msgstr "Удалить игру из библиотеки"
+
+#: ../data/ui/LutrisWindow.ui.h:25
+msgid "Filter the list of games"
+msgstr "Отфилитровать список игр"
+
+#: ../data/ui/AboutLutrisDialog.ui.h:1
+msgid ""
+"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
+"# This program is free software: you can redistribute it and/or modify it\n"
+"# under the terms of the GNU General Public License version 3, as published\n"
+"# by the Free Software Foundation.\n"
+"#\n"
+"# This program is distributed in the hope that it will be useful, but\n"
+"# WITHOUT ANY WARRANTY; without even the implied warranties of\n"
+"# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR\n"
+"# PURPOSE.  See the GNU General Public License for more details.\n"
+"#\n"
+"# You should have received a copy of the GNU General Public License along\n"
+"# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"# Эта программа бесплатна: вы можете распространять и/или модифицировать\n"
+"# её под условиями 3 версии Универсальной общественной лицензии GNU,\n"
+"# опубликованной Фондом свободного программного обеспечения,\n"
+"# либо под более поздней версией (на ваше усмотрение).\n"
+"#\n"
+"# Эта программа распространяется с надеждой, что она будет полезной,\n"
+"# но БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ; даже без подразумеваемой гарантии\n"
+"# ПРИГОДНОСТИ К КОММЕРЧЕСКОМУ РАСПРОСТРАНЕНИЮ или КАКИХ-ЛИБО ДРУГИХ ЦЕЛЕЙ.\n"
+"# Для деталей прочтите Универсальную общественную лицензию GNU.\n"
+"#\n"
+"# Вместе с этой программой вы должны были получить копию Универсальной\n"
+"# общественной лицензии GNU. Если это не так, посетите <http://www.gnu.org/licenses/>.\n"
+
+#: ../data/ui/AboutLutrisDialog.ui.h:14
+msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
+msgstr ""
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:1
+msgid "gtk-cancel"
+msgstr ""
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:2
+msgid "gtk-ok"
+msgstr ""

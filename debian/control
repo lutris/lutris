@@ -3,12 +3,19 @@ Section: games
 Priority: optional
 Build-Depends: debhelper,
  python3,
+ python3-yaml,
  python3-setuptools,
+ python3-requests,
+ python3-pil,
+ python3-gi,
  dh-python,
  gir1.2-gtk-3.0,
  gir1.2-glib-2.0,
- python3-gi,
- libgirepository1.0-dev
+ gir1.2-gnomedesktop-3.0,
+ gir1.2-webkit2-4.0,
+ gir1.2-notify-0.7,
+ libgirepository1.0-dev,
+ libc-bin
 Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
 Vcs-Git: https://github.com/lutris/lutris
@@ -20,10 +27,23 @@ Architecture: any
 Depends: ${misc:Depends},
  ${python3:Depends},
  python3-yaml,
+ python3-requests,
+ python3-pil,
  python3-gi,
  gir1.2-gtk-3.0,
+ gir1.2-gnomedesktop-3.0,
+ gir1.2-webkit2-4.0,
+ gir1.2-notify-0.7,
  psmisc,
- cabextract
+ cabextract,
+ unzip,
+ p7zip,
+ curl,
+ fluid-soundfont-gs,
+ x11-xserver-utils,
+ mesa-utils,
+ gvfs-backends,
+ libc-bin
 Recommends: python3-evdev,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]

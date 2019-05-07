@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Name=Lutris
+Comment=Open gaming platform
+Comment[pl]=Otwarta platforma dla graczy
+Comment[pt-BR]=Plataforma de jogos de código aberto
+Comment[es]=Plataforma de juegos de código abierto
+Comment[id]=Platform permainan terbuka
+Categories=Game;
+Exec=lutris %U
+Icon=lutris
+Terminal=false
+Type=Application
+MimeType=x-scheme-handler/lutris;

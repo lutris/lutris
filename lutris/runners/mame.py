@@ -1,13 +1,14 @@
 import os
 import subprocess
 from lutris.runners.runner import Runner
+from lutris.util import system
 
 
 class mame(Runner):
     human_name = "MAME"
     description = "Arcade game emulator"
     platforms = ["Arcade"]
-    runner_executable = 'mame/mame'
+    runner_executable = "mame/mame"
     game_options = [
         {
             "option": "main_file",
@@ -18,11 +19,16 @@ class mame(Runner):
     ]
 
     runner_options = [
+        {"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": True},
         {
-            "option": "fullscreen",
+            "option": "waitvsync",
             "type": "bool",
-            "label": "Fullscreen",
-            'default': True,
+            "label": "Wait for VSync",
+            "help": (
+                "Enable waiting for  the  start  of  VBLANK  before "
+                "flipping  screens; reduces tearing effects."
+            ),
+            "default": False
         }
     ]
 
@@ -35,24 +41,37 @@ class mame(Runner):
         return self.config_dir
 
     def prelaunch(self):
-        if not os.path.exists(os.path.join(self.config_dir, "mame.ini")):
+        if not system.path_exists(os.path.join(self.config_dir, "mame.ini")):
             try:
                 os.makedirs(self.config_dir)
             except OSError:
                 pass
-            subprocess.Popen([self.get_executable(), "-createconfig"],
-                             stdout=subprocess.PIPE)
+            subprocess.Popen(
+                [self.get_executable(), "-createconfig"], stdout=subprocess.PIPE
+            )
         return True
 
     def play(self):
         options = []
-        rompath = os.path.dirname(self.game_config.get('main_file'))
-        rom = os.path.basename(self.game_config.get('main_file'))
-        if not self.runner_config.get('fullscreen'):
+        rompath = os.path.dirname(self.game_config.get("main_file"))
+        rom = os.path.basename(self.game_config.get("main_file"))
+        if not self.runner_config.get("fullscreen"):
             options.append("-window")
-        return {'command': [self.get_executable(),
-                            "-inipath", self.config_dir,
-                            "-video", "opengl",
-                            "-skip_gameinfo",
-                            "-rompath", rompath,
-                            rom] + options}
+
+        if self.runner_config.get("waitvsync"):
+            options.append("-waitvsync")
+
+        return {
+            "command": [
+                self.get_executable(),
+                "-inipath",
+                self.config_dir,
+                "-video",
+                "opengl",
+                "-skip_gameinfo",
+                "-rompath",
+                rompath,
+                rom,
+            ]
+            + options
+        }

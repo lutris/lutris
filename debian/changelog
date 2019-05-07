@@ -1,3 +1,188 @@
+lutris (0.5.2.1) cosmic; urgency=high
+
+  * Handle distributions where ldconfig is not in $PATH, like Debian
+  * Fix a crash when GOG credential have changed
+  * Leave "Show logs" button always enabled
+  * Add BlastEm to libretro cores
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 09 Apr 2019 19:46:02 -0700
+
+lutris (0.5.2) cosmic; urgency=medium
+
+  * Avoid a crash if the lutris config file is corrupted
+  * Install Asian fonts by default on Wine prefix creation
+  * Add Vulkan ICD loaders in system options
+  * Add SampleCount option to Wine (allows enabling antialiasing in old games)
+  * Replace joystick panel with Wine config panel (which contains the joypad panel)
+  * Display warning when installing games on NTFS drives
+  * Display warning if Vulkan is not fully installed
+  * Use ldconfig to determine library paths
+  * Disable steamwebhelper in Wine Steam to prevent spamming logs with errors
+  * Various bug fixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 04 Apr 2019 02:47:30 -0700
+
+lutris (0.5.1.3) cosmic; urgency=critical
+
+  * Fake release to work around Launchpad / OBS publishing issues.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 25 Mar 2019 17:38:55 -0700
+
+lutris (0.5.1.2) cosmic; urgency=high
+
+  * Fix issue with custom Proton detection preventing Wine game from running
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 25 Mar 2019 14:24:38 -0700
+
+lutris (0.5.1.1) cosmic; urgency=medium
+
+  * Fixed a crash when trying to open webpages on system without GVFS
+    installed
+  * Fixed GOG login dialog being displayed multiple times during the install
+  * Add mesa-utils as dependency for glxinfo
+  * Add gvfs-backends as dependency to fix the open_uri issue
+  * Add detection of custom proton builds in compatibilitytools.d folder, as
+    documented here: https://github.com/valvesoftware/proton#install-proton-locally
+   (by @GloriousEggroll)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 24 Mar 2019 23:39:18 -0700
+
+lutris (0.5.1) cosmic; urgency=medium
+
+  * Download the default Lutris Wine version when not available
+  * Prevent duplicates when importing games from 3rd party services
+  * Fix some sorting issues in the view
+  * Add issue reporting feature with the --submit-issue flag. The issue can
+    only be saved locally, API integration will be implemented at a later stage.
+  * Add support for CD-ROM images for non CD32/CDTV Amiga models
+  * Remove website search from sidebar and merge it with the main search entry
+  * Display a warning message if the installed Nvidia driver is too old
+  * Fix GOG games not being installable without being connected to GOG
+  * Improve performance of log handling
+  * Remove winecfg if Proton is used
+  * Use discrete graphics by default with compatible systems
+  * Increase game icon size from 32x32 to 128x128
+  * Various fixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 20 Mar 2019 00:24:27 -0700
+
+lutris (0.5.0.1ubuntu1) cosmic; urgency=medium
+
+  * Bullshit my way out of Gtk+ fuckery (Closes #1697)
+  * Initialize playtime attribute when invalid playtime found (Closes #1698)
+  * Strip equal signs from envvars (Closes #1699)
+  * If the Fedora shit breaks the SUSE shit, I just delete it, OK? (Closes #1700)
+  * Add application attribute on GenericPanel (Closes #1702)
+  * Avoid crashing on weird GPU configs (Closes #1706)
+  * Remove get_config_id (Closes #1708)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 03 Feb 2019 00:21:32 -0800
+
+lutris (0.5.0) cosmic; urgency=medium
+
+  * Modernize the Gtk UI, thanks to the improvements made by @TingPing
+  * Add GOG support, allowing users to sign-in their account, import games and
+    download game files automatically during install.
+  * Add finer game import options, allowing imports from different 3rd party
+    such as Steam, GOG and locally installed games.
+  * Re-architecture the process monitor. This fixes issues with games exiting
+    prematurely. Many thanks to @AaronOpfer for his patches!
+  * Multiple games can now be launched at the same time without losing control
+    over the first game.
+  * Game information and actions are now displayed in a panel on the right side.
+    Coverart fetching for the panel will be added in a future release, until then
+    cover art files can be placed in ~/.local/share/lutris/coverart/[game-identifier].jpg
+  * Games from lutris.net can be searched and installed from the client itself.
+  * New install_cab_component installer command for Media Foundation based games.
+  * Add a download cache to re-use files between installations.
+  * Print graphics drivers and GPU on startup
+  * Re-design installer selection picker.
+  * Add a button to show installer scripts before installing.
+  * Add a FPS limiter option when libstrangle is available (https://gitlab.com/torkel104/libstrangle)
+  * Re-architecturing of several parts of the application (views, linux
+    feature detection, main game class, ...)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Fri, 01 Feb 2019 07:26:25 -0800
+
+lutris (0.4.23) bionic; urgency=medium
+
+  * Prevent monitor from quitting games that open a 2nd process
+  * Run on-demand scripts from game directory
+  * Tell the user what executable is expected after a failed install
+  * Fix a circular import causing issues on some distributions
+  * Add missing dependency for openSUSE Tumbleweed
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 06 Nov 2018 19:10:19 -0800
+
+lutris (0.4.22) bionic; urgency=medium
+
+  * Use lspci instead of xrandr to detect video cards
+  * Detect if Vulkan is supported by the system for DXVK games
+  * Add experimental playtime support
+  * Detect Proton and add it to Wine versions
+  * Fix runtime being downloaded when not needed
+  * Add experimental tray icon with last games played
+  * Add support for Feral Gamemode
+  * Prevent process monitor to quit games prematurely
+  * Code cleanup
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 03 Nov 2018 00:01:19 -0700
+
+lutris (0.4.21.1) bionic; urgency=medium
+
+  * Fix detection of libvulkan
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 23 Oct 2018 19:31:14 -0700
+
+lutris (0.4.21) bionic; urgency=medium
+
+  * Added an Esync toggle for wine builds with esync patches and a check for limits if the toggle was activated.
+  * Added a warning for wine games if wine is not installed on the system (to avoid issues with dependencies).
+  * Added a check for Vulkan loaders when using DXVK (forbids from launching the game if it can't detect them)
+  * Added check for the presence of executable after the installation finished.
+  * Added an option to sort installed games first
+  * Added a discouraging warning if Lutris was launched as root.
+  * Added a "--version" command line option.
+  * Added an error message if requested DXVK version does not exist.
+  * Improved behavior of Lutris' background process.
+  * Improved UI when changing game's identifier.
+  * Wine's own Virtual Desktop configuration is now respected.
+  * Merge command now has a 'copy' alias.
+  * Executable selection how has a text field.
+  * Blacklisted Proton and SteamWorks from showing up as games.
+  * Sidebar now shows number of installed games per runner and platform.
+  * Visual improvements to wine download dialog
+  * Fixed an issue when DXVK versions didn't get updated if dxvk directory wasn't present.
+  * Fixed an issue when the watcher would sync Steam games even if the feature was disabled.
+  * Fixed missing warning for existing prefix during installation process if the path contained "~".
+  * Prevent Steam games from being synced from the AppManifest watcher if Steam sync if off
+  * Games load properly when launching Lutris for the first time
+  * Minor improvements to wording in some menus.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sat, 20 Oct 2018 17:39:31 -0700
+
+lutris (0.4.20) bionic; urgency=medium
+
+  * Fix detection of winetricks path
+  * Improve visual feedback on wine download dialog
+  * Add skill and command-line arguments for Zdoom
+  * Add option to disable joypad auto-configuration
+  * Restore refresh rate on monitor reset
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 24 Sep 2018 20:46:46 -0700
+
+lutris (0.4.19) bionic; urgency=medium
+
+  * Prioritize winetricks from the runtime
+  * Populate DXVK versions with github releases
+  * Add support for DirectX 10 with DXVK
+  * Fix detection of xgamma
+  * Add 24BPP option for Xephyr
+  * Restore Alsa option for Wine
+  * Prepend additional system paths to runtime
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 04 Sep 2018 18:48:52 -0700
+
 lutris (0.4.18) bionic; urgency=medium
 
   * Fix 'execute' command arguments

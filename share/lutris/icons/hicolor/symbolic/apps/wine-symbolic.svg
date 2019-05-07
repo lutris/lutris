@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="root"
+   sodipodi:docname="wine-symbolic.svg"
+   inkscape:version="0.92.1 r15371">
+  <defs
+     id="defs873" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.5827039"
+     inkscape:cx="118.84588"
+     inkscape:cy="139.39183"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer4"
+     showgrid="true"
+     units="px"
+     inkscape:window-width="1243"
+     inkscape:window-height="769"
+     inkscape:window-x="198"
+     inkscape:window-y="184"
+     inkscape:window-maximized="0"
+     inkscape:snap-grids="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-midpoints="false"
+     inkscape:snap-object-midpoints="false"
+     inkscape:snap-center="true"
+     inkscape:lockguides="false"
+     showguides="true"
+     inkscape:measure-start="48,204"
+     inkscape:measure-end="148,204">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2086"
+       empspacing="4" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata876">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="Stem"
+     style="display:inline">
+    <path
+       style="display:inline;opacity:1;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.23613441px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 98.320039,142.20403 c 11.856411,11.4641 20.009021,20.99496 21.712811,26.39231 l 8.78461,32.78461 c 1.37094,5.11639 -0.47256,14.25528 -5.52071,22.99184 -22.38921,7.87876 -30.871593,16.04148 -29.407491,21.50558 1.464101,5.4641 25.118461,7.81188 55.452501,-0.3161 30.33405,-8.12798 49.82953,-22.03773 48.36543,-27.50183 -1.4641,-5.4641 -12.97564,-8.24228 -36.23116,-3.90203 -8.80164,-5.02261 -14.89443,-12.05 -16.26626,-17.16977 l -8.78461,-32.78461 c -1.03366,-5.98077 3.07179,-21.32051 7.60769,-37.17691 -4.5359,15.8564 -18,31.17691 -18,31.17691 0,0 -15.8564,-4.5359 -27.712811,-16 z"
+       id="path4514"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccczzzcccccc" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="Lip"
+     style="display:inline">
+    <path
+       style="display:inline;opacity:1;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.23613441px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 54.721163,32.082784 c -0.979585,1.82215 -1.383613,3.671883 -0.821729,5.4389 l 10.99498,34.577231 c 11.856406,11.464101 35.176916,11.071796 43.712816,-11.712813 8.53589,-22.78461 17.4641,-22.248712 27.8564,-16.248712 l -7.5252,-26.72377 C 124.08013,0.16065072 64.190441,14.468554 54.721163,32.082784 Z"
+       id="path4520"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="csczcsc" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Wine"
+     style="display:inline">
+    <path
+       style="display:inline;opacity:0.6;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1.23613441px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 64.894414,72.098915 c 10.343705,26.024136 21.569219,58.641015 33.425625,70.105115 11.856411,11.4641 22.248711,17.4641 27.712811,16 5.4641,-1.4641 13.4641,-15.32051 18,-31.17691 4.5359,-15.85641 -1.16254,-56.860863 -7.56922,-82.88973 -10.3923,-6 -19.32051,-6.535898 -27.8564,16.248712 -8.5359,22.784609 -31.85641,23.176914 -43.712816,11.712813 z"
+       id="path4535"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="czzzczc" />
+  </g>
+</svg>

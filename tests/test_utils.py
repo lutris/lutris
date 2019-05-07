@@ -2,7 +2,7 @@ import os
 from collections import OrderedDict
 from unittest import TestCase
 from lutris.util import system
-from lutris.util import steam
+from lutris.util.steam import vdf
 from lutris.util import strings
 from lutris.util import fileio
 
@@ -57,7 +57,7 @@ class TestSteamUtils(TestCase):
 \t"StateFlags"\t\t"4"
 \t"appID"\t\t"13240"
 }"""
-        vdf_data = steam.to_vdf(dict_data)
+        vdf_data = vdf.to_vdf(dict_data)
         self.assertEqual(vdf_data.strip(), expected_vdf.strip())
 
 
@@ -79,6 +79,13 @@ class TestStringUtils(TestCase):
         )
         self.assertEqual(strings.add_url_tags(text), expected)
 
+    def test_get_formatted_playtime(self):
+        self.assertEqual(strings.get_formatted_playtime(None), "No play time recorded")
+        self.assertEqual(strings.get_formatted_playtime(1.0), "1 hour")
+        self.assertEqual(strings.get_formatted_playtime(2.0), "2 hours")
+        self.assertEqual(strings.get_formatted_playtime(0.5), "30 minutes")
+        self.assertEqual(strings.get_formatted_playtime(1.5), "1 hour and 30 minutes")
+        self.assertEqual(strings.get_formatted_playtime(45.90), "45 hours and 53 minutes")
 
 class TestVersionSort(TestCase):
     def test_parse_version(self):

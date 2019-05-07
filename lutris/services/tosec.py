@@ -31,7 +31,7 @@ STANDARD_CODES = {
     "[T+]": "NewerTranslation",
     "(-)": "Unknown Year",
     "[!]": "Verified Good Dump",
-    "(\d+)": "(# of Languages)",
+    r"(\d+)": "(# of Languages)",
     "(??k)": "ROM Size",
     "(Unl)": "Unlicensed",
     "[b]": "Bad Dump",
@@ -40,31 +40,37 @@ STANDARD_CODES = {
     "[o]": "Overdump",
     "(M#)": "Multilanguage",
     "(###)": "Checksum",
-    "ZZZ_": "Unclassified"
+    "ZZZ_": "Unclassified",
 }
 
 
 class TOSEC:
     """A class to ease the use of TOSEC data files as a SQLite database."""
+
     def __init__(self, directory):
         self.path = os.path.join(directory, "tosec.db")
 
         # Init the database
         self.db = sqlite3.connect(self.path)
-        self.db.execute('''CREATE TABLE IF NOT EXISTS systems
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS systems
                           (
                             id TEXT PRIMARY KEY,
                             version TEXT
-                          )''')
-        self.db.execute('''CREATE TABLE IF NOT EXISTS games
+                          )"""
+        )
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS games
                           (
                             id INTEGER PRIMARY KEY,
                             title TEXT,
                             flags TEXT,
                             system TEXT,
                             UNIQUE (title, flags, system)
-                          )''')
-        self.db.execute('''CREATE TABLE IF NOT EXISTS roms
+                          )"""
+        )
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS roms
                           (
                             id INTEGER PRIMARY KEY,
                             flags TEXT,
@@ -74,14 +80,15 @@ class TOSEC:
                             sha1 TEXT,
                             game INTEGER,
                             FOREIGN KEY(game) REFERENCES game(id)
-                          )''')
+                          )"""
+        )
 
     def __enter__(self):
-        print('enter')
+        print("enter")
         return self
 
     def __exit__(self, type, value, traceback):
-        print('exit')
+        print("exit")
         self.db.close()
 
     def __del__(self):
@@ -98,30 +105,32 @@ class TOSEC:
 
         # If the info don't have a version, it is not valid and the file
         # shouldn't be added
-        if 'version' not in info:
+        if "version" not in info:
             return False
 
         new_version = info["version"]
 
         # Check the version actually in the database
         actual_version = None
-        for row in self.db.execute('SELECT version FROM systems WHERE id = ?',
-                                   [system]):
+        for row in self.db.execute(
+            "SELECT version FROM systems WHERE id = ?", [system]
+        ):
             actual_version = row[0]
 
         # If the old version is more recent thab the new one, the new one
         # shouldn't be added
-        if(actual_version and
-           datefromiso(actual_version) >= datefromiso(new_version)):
+        if actual_version and datefromiso(actual_version) >= datefromiso(new_version):
             return False
 
         # What if we have to update the version instead of adding it ?
         if actual_version:
-            self.db.execute('UPDATE systems SET version = ? WHERE id = ?',
-                            [new_version, system])
+            self.db.execute(
+                "UPDATE systems SET version = ? WHERE id = ?", [new_version, system]
+            )
         else:
-            self.db.execute('INSERT INTO systems (id, version) VALUES (?, ?)',
-                            [system, new_version])
+            self.db.execute(
+                "INSERT INTO systems (id, version) VALUES (?, ?)", [system, new_version]
+            )
 
         for game in games:
             rom = game["rom"]
@@ -132,42 +141,35 @@ class TOSEC:
             # Adding game
             game_info = [title, game_flags, system]
             rows = self.db.execute(
-                'SELECT id FROM games '
-                'WHERE title = ? AND flags = ? AND system = ?',
-                game_info
+                "SELECT id FROM games " "WHERE title = ? AND flags = ? AND system = ?",
+                game_info,
             )
             for row in rows:
                 game_id = row[0]
             if not game_id:
                 self.db.execute(
-                    'INSERT INTO games(id, title, flags, system) '
-                    'VALUES (NULL, ?, ?, ?)',
-                    game_info
+                    "INSERT INTO games(id, title, flags, system) "
+                    "VALUES (NULL, ?, ?, ?)",
+                    game_info,
                 )
                 new_rows = self.db.execute(
-                    'SELECT id FROM games '
-                    'WHERE title = ? AND flags = ? AND system = ?',
-                    game_info
+                    "SELECT id FROM games "
+                    "WHERE title = ? AND flags = ? AND system = ?",
+                    game_info,
                 )
                 for row in new_rows:
                     game_id = row[0]
 
             # Adding rom
-            rom_info = [
-                rom_flags,
-                rom["size"],
-                rom["crc"],
-                rom["md5"],
-                rom["sha1"],
-            ]
+            rom_info = [rom_flags, rom["size"], rom["crc"], rom["md5"], rom["sha1"]]
             rom_exists = False
             rom_rows = self.db.execute(
-                'SELECT id FROM roms '
-                'WHERE flags = ? AND size = ? AND crc = ? '
-                'AND md5 = ? AND sha1 = ?',
-                rom_info
+                "SELECT id FROM roms "
+                "WHERE flags = ? AND size = ? AND crc = ? "
+                "AND md5 = ? AND sha1 = ?",
+                rom_info,
             )
-            for row in rom_rows:
+            for _ in rom_rows:
                 rom_exists = True
             if not rom_exists:
                 rom_info.append(game_id)
@@ -177,27 +179,26 @@ class TOSEC:
                     rom["crc"],
                     rom["md5"],
                     rom["sha1"],
-                    game_id
+                    game_id,
                 ]
                 self.db.execute(
-                    'INSERT INTO roms(id, flags, size, crc, md5, sha1, game) '
-                    'VALUES (NULL, ?, ?, ?, ?, ?, ?)',
-                    rom_info
+                    "INSERT INTO roms(id, flags, size, crc, md5, sha1, game) "
+                    "VALUES (NULL, ?, ?, ?, ?, ?, ?)",
+                    rom_info,
                 )
 
         self.db.commit()
         return True
 
     def get_rom_id(self, rom):
-        input = open(rom, "rb")
-        data = input.read()
+        opened_rom = open(rom, "rb")
+        data = opened_rom.read()
 
         md5 = hashlib.md5(data).hexdigest()
         sha1 = hashlib.sha1(data).hexdigest()
 
         rom_rows = self.db.execute(
-            'SELECT id FROM roms WHERE md5 = ? AND sha1 = ?',
-            [md5, sha1]
+            "SELECT id FROM roms WHERE md5 = ? AND sha1 = ?", [md5, sha1]
         )
         for row in rom_rows:
             return row[0]
@@ -208,9 +209,9 @@ class TOSEC:
 
         if rom_id:
             title_rows = self.db.execute(
-                'SELECT title FROM games, roms '
-                'WHERE roms.game = games.id AND roms.id = ?',
-                [rom_id]
+                "SELECT title FROM games, roms "
+                "WHERE roms.game = games.id AND roms.id = ?",
+                [rom_id],
             )
             for row in title_rows:
                 return row[0]
@@ -220,7 +221,7 @@ class TOSEC:
 def tosec_to_words(file):
     input_file = open(file, "r")
     data = input_file.read()
-    result = re.split(r'''((?:[^ \n\r\t"]|"[^"]*")+)''', data)
+    result = re.split(r"""((?:[^ \n\r\t"]|"[^"]*")+)""", data)
     return result[1::2]
 
 
@@ -238,9 +239,9 @@ def get_games_from_words(words):
     tag = None
     for word in words:
         if last_path != "" and path == "":
-            if 'game' in game:
+            if game.get("game"):
                 games.append(game["game"])
-            elif 'clrmamepro' in game:
+            elif game.get("clrmamepro"):
                 clrmamepro = game["clrmamepro"]
             game = {}
         else:
@@ -260,23 +261,23 @@ def get_games_from_words(words):
         else:
             if word == "(":
                 # Add a new depth in the dictionaries tree
-                dict = game
+                dict_game = game
                 for element in path.split(" "):
                     if element != "":
-                        dict = dict[element]
-                dict[tag] = {}
+                        dict_game = dict_game[element]
+                dict_game[tag] = {}
                 if path == "":
                     path = tag
                 else:
                     path = path + " " + tag
             else:
-                dict = game
+                dict_game = game
                 for element in path.split(" "):
-                    dict = dict[element]
-                dict[tag] = word
+                    dict_game = dict_game[element]
+                dict_game[tag] = word
             tag = None
 
-    return (clrmamepro, games)
+    return clrmamepro, games
 
 
 def split_game_title(game):
@@ -287,16 +288,15 @@ def split_game_title(game):
     game_flags = ""
     rom_flags = ""
     result = re.match(
-        r'''^"([^\(\)\[\]]+) .*?(\(?[^\[\]]*\)?)(\[?[^\(\)]*\]?)"''',
-        game
+        r'''^"([^\(\)\[\]]+) .*?(\(?[^\[\]]*\)?)(\[?[^\(\)]*\]?)"''', game
     )
     if result:
         title = result.group(1)
         game_flags = result.group(2)
         rom_flags = result.group(3)
-    return (title, game_flags, rom_flags)
+    return title, game_flags, rom_flags
 
 
 def datefromiso(isoformat):
-    date = isoformat.split('-')
+    date = isoformat.split("-")
     return datetime.date(int(date[0]), int(date[1]), int(date[2]))

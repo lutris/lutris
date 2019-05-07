@@ -3,9 +3,11 @@
 %{!?py3_build: %global py3_build CFLAGS="%{optflags}" %{__python3} setup.py build}
 %{!?py3_install: %global py3_install %{__python3} setup.py install --skip-build --root %{buildroot}}
 
+%global appid net.lutris.Lutris
+
 Name:           lutris
-Version:        0.4.18
-Release:        2%{?dist}
+Version:        0.5.2.1
+Release:        7%{?dist}
 Summary:        Install and play any video game easily
 
 License:        GPL-3.0+
@@ -20,15 +22,19 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  python3-devel
 
 %if 0%{?fedora}
-BuildRequires:  python3-gobject, python3-wheel, python3-setuptools, python3-gobject
+BuildRequires:  python3-gobject, python3-wheel, python3-setuptools
 Requires:       python3-gobject, python3-PyYAML, cabextract
 Requires:       gtk3, psmisc, xorg-x11-server-Xephyr, xorg-x11-server-utils
-Recommends:     wine
+Requires:       python3-requests
+Requires:       gnome-desktop3
+Recommends:     wine-core
 %endif
+
 %if 0%{?rhel} || 0%{?centos}
 BuildRequires:  python3-gobject
 Requires:       python3-gobject, python3-PyYAML, cabextract
 %endif
+
 %if 0%{?suse_version}
 BuildRequires:  python3-gobject, python3-setuptools, typelib-1_0-Gtk-3_0
 BuildRequires:  update-desktop-files
@@ -36,16 +42,31 @@ BuildRequires:  update-desktop-files
 BuildRequires:  hicolor-icon-theme
 BuildRequires:  polkit
 BuildRequires:  python3-setuptools
-Requires:       python3-gobject, python3-PyYAML, cabextract
-%endif
-
-# Add Gdk dependency for Tumbleweed (package unavailable for other releases)
-%if 0%{?suse_version} > 1500
-Requires: python3-gobject-Gdk
+Requires:       (python3-gobject-Gdk or python3-gobject)
+Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
+Requires:       typelib-1_0-GnomeDesktop-3_0, typelib-1_0-WebKit2-4_0, typelib-1_0-Notify-0_7
+Requires:       fluid-soundfont-gm, python3-Pillow, python3-requests
 %endif
 
 %if 0%{?fedora} || 0%{?suse_version}
-BuildRequires: fdupes
+BuildRequires:  fdupes
+
+%ifarch x86_64
+Requires:       mesa-vulkan-drivers(x86-32)
+Requires:       vulkan-loader(x86-32)
+%endif
+
+Requires:       mesa-vulkan-drivers
+Requires:       vulkan-loader
+Recommends:     wine-core
+BuildRequires:  fdupes
+%endif
+
+%if 0%{?fedora}
+%ifarch x86_64
+Requires:       mesa-libGL(x86-32)
+Requires:       mesa-libGL
+%endif
 %endif
 
 #!BuildIgnore: rpmlint-mini
@@ -74,12 +95,12 @@ on Linux.
 
 #desktop icon
 %if 0%{?suse_version}
-%suse_update_desktop_file -r -i %{name} Network FileTransfer
+%suse_update_desktop_file -r -i %{appid} Network FileTransfer
 %endif
 
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
-desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{name}.desktop
-desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
+desktop-file-install --dir=%{buildroot}%{_datadir}/applications share/applications/%{appid}.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %endif
 
 %if 0%{?suse_version} >= 1140
@@ -97,18 +118,38 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
 %files
 %{_bindir}/%{name}
+%{_bindir}/lutris-wrapper
 %{_datadir}/%{name}/
-%{_datadir}/applications/%{name}.desktop
-%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
-%{_datadir}/icons/hicolor/48x48/apps/%{name}.png
+%{_datadir}/metainfo/%{appid}.appdata.xml
+%{_datadir}/applications/%{appid}.desktop
+%{_datadir}/icons/hicolor/16x16/apps/lutris.png
+%{_datadir}/icons/hicolor/22x22/apps/lutris.png
+%{_datadir}/icons/hicolor/24x24/apps/lutris.png
+%{_datadir}/icons/hicolor/32x32/apps/lutris.png
+%{_datadir}/icons/hicolor/48x48/apps/lutris.png
+%{_datadir}/icons/hicolor/scalable/apps/lutris.svg
 %{_datadir}/polkit-1/actions/*
 %{python3_sitelib}/%{name}-*.egg-info
 %{python3_sitelib}/%{name}/
 
-%dir
-%{_datadir}/appdata/
-
 %changelog
+* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com 0.5.0.1-6
+- Readability cleanup.
+
+* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com 0.5.0.1-6
+- Original problem with gnome-desktop3 was a typo from previously.  Correct spelling fixes the problem.
+
+* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com 0.5.0.1-5
+- Made changes specific to removing packages that are only for fedora and not suse to a fedora specific section (mesa-libGL)
+
+* Wed Feb 06 2019 Andrew Schott <andrew@schotty.com. 0.5.0.1-4
+- Fixed typo in package name for fedora - gnome-desktop3
+- Changed Source0 file extension from tar.gz to tar.xz
+
+* Mon Feb 04 2019 Andrew Schott <andrew@schotty.com> - 0.5.0.1-3
+- Moved fedora dependency of "gnome-desktop3" to recommends to resolve a snafu with the way it was packaged.
+- Fixed the .desktop file registration (was using %{name}, needed %{appid})
+
 * Tue Nov 29 2016 Mathieu Comandon <strycore@gmail.com> - 0.4.3
 - Ensure correct Python3 dependencies
 - Set up Python macros for building (Thanks to Pharaoh_Atem on #opensuse-buildservice)

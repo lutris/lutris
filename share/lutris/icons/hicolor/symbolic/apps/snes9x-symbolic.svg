@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="root"
+   inkscape:version="0.92.1 r15371"
+   sodipodi:docname="snes9x-symbolic.svg">
+  <defs
+     id="defs4517" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.5078125"
+     inkscape:cx="134.77882"
+     inkscape:cy="121.61994"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     units="px"
+     inkscape:pagecheckerboard="true"
+     inkscape:window-width="1428"
+     inkscape:window-height="855"
+     inkscape:window-x="275"
+     inkscape:window-y="212"
+     inkscape:window-maximized="0"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-nodes="true"
+     inkscape:measure-start="156,0"
+     inkscape:measure-end="156,44">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4482"
+       empspacing="4" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata4520">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-229.26666)">
+    <ellipse
+       style="opacity:1;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:24.71783257;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+       id="ellipse4508"
+       cx="153.82973"
+       cy="415.26666"
+       rx="54"
+       ry="21.999996" />
+    <path
+       style="opacity:1;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:19.09568787;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+       d="m 203.95241,312.22253 a 50,42.592593 0 0 0 -50,42.59259 50,42.592593 0 0 0 0.37796,4.78697 38.888889,31.481481 0 0 1 16.28871,-2.93512 38.888889,31.481481 0 0 1 38.88889,31.48149 38.888889,31.481481 0 0 1 -1.67825,9.1182 50,42.592593 0 0 0 46.12269,-42.45154 50,42.592593 0 0 0 -50,-42.59259 z"
+       id="path4513"
+       inkscape:connector-curvature="0" />
+    <ellipse
+       ry="21.999996"
+       rx="54"
+       cy="379.26666"
+       cx="58"
+       id="ellipse4525"
+       style="opacity:1;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:24.71783257;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4527"
+       d="m 108.17028,277.26666 a 49.386125,42.069662 0 0 0 -49.38612,42.06966 49.386125,42.069662 0 0 0 0.373323,4.72819 38.41143,31.094967 0 0 1 16.088719,-2.89907 38.41143,31.094967 0 0 1 38.411428,31.09497 38.41143,31.094967 0 0 1 -1.65763,9.00625 49.386125,42.069662 0 0 0 45.55641,-41.93034 49.386125,42.069662 0 0 0 -49.38613,-42.06966 z"
+       style="opacity:1;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:18.86124039;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal" />
+  </g>
+</svg>

@@ -3,12 +3,13 @@ import gi
 
 gi.require_version('Gtk', '3.0')
 
-from gi.repository import Gio, Gtk
+from gi.repository import Gtk
 from lutris.game import Game
-from lutris.config import check_config
+from lutris.startup import init_lutris
 # from lutris import settings
 from lutris import pga
-from lutris.gui import config_dialogs
+from lutris.gui.config.common import GameDialogCommon
+from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.application import Application
 from unittest import TestCase
 from lutris import runners
@@ -18,7 +19,7 @@ TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
 
 class TestGameDialogCommon(TestCase):
     def test_get_runner_liststore(self):
-        dlg = config_dialogs.GameDialogCommon()
+        dlg = GameDialogCommon()
         list_store = dlg._get_runner_liststore()
         self.assertTrue(
             list_store[1][0].startswith(runners.get_installed()[0].human_name)
@@ -28,16 +29,22 @@ class TestGameDialogCommon(TestCase):
 
 class TestGameDialog(TestCase):
     def setUp(self):
-        check_config()
+        init_lutris()
         lutris_application = Application()
         lutris_window = lutris_application.window
-        self.dlg = config_dialogs.AddGameDialog(lutris_window)
+        self.dlg = AddGameDialog(lutris_window)
 
     def get_notebook(self):
         return self.dlg.vbox.get_children()[0]
 
     def get_viewport(self, index):
-        scrolled_window = self.get_notebook().get_children()[index]
+        children = self.get_notebook().get_children()
+        try:
+            scrolled_window = children[index]
+        except IndexError:
+            print("No viewport for index %s" % index)
+            print(children)
+            raise
         viewport = scrolled_window.get_children()[0]
         return viewport.get_children()[0]
 
@@ -46,13 +53,12 @@ class TestGameDialog(TestCase):
 
     def get_buttons(self):
         notebook = self.dlg.vbox.get_children()[1]
-        # For some reason, there isn't a ButtonBox on Ubuntu 14.4, weird.
         button_box = notebook.get_children()[0]
         if button_box.__class__ == Gtk.CheckButton:
             button_hbox = notebook.get_children()[1]
         else:
             button_hbox = button_box.get_children()[1]
-        self.assertEqual(button_hbox.__class__, Gtk.HBox)
+        self.assertEqual(button_hbox.__class__, Gtk.Box)
         return button_hbox
 
     def test_dialog(self):
@@ -72,7 +78,7 @@ class TestGameDialog(TestCase):
         self.assertEqual(game_box.game.runner_name, 'linux')
         exe_box = game_box.get_children()[0].get_children()[0]
         exe_field = exe_box.get_children()[1]
-        self.assertEqual(exe_field.__class__.__name__, 'FileChooserButton')
+        self.assertEqual(exe_field.__class__.__name__, 'FileChooserEntry')
 
     def test_can_add_game(self):
         name_entry = self.dlg.name_entry
@@ -85,9 +91,8 @@ class TestGameDialog(TestCase):
         self.assertEqual(exe_label.get_text(), "Executable")
         test_exe = os.path.abspath(__file__)
         exe_field = exe_box.get_children()[1]
-        exe_field.set_file(Gio.File.new_for_path(test_exe))
-        exe_field.emit('file-set')
-        self.assertEqual(exe_field.get_filename(), test_exe)
+        exe_field.entry.set_text(test_exe)
+        self.assertEqual(exe_field.get_text(), test_exe)
 
         add_button = self.get_buttons().get_children()[1]
         add_button.clicked()

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from lutris.util.resources import parse_installer_url
+from lutris.api import parse_installer_url
 
 
 class TestInstallerUrls(TestCase):

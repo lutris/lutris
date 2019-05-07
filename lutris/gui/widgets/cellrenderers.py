@@ -3,6 +3,7 @@ from gi.repository import Gtk, Pango, GObject
 
 class GridViewCellRendererText(Gtk.CellRendererText):
     """CellRendererText adjusted for grid view display, removes extra padding"""
+
     def __init__(self, width, *args, **kwargs):
         super(GridViewCellRendererText, self).__init__(*args, **kwargs)
         self.props.alignment = Pango.Alignment.CENTER
@@ -16,21 +17,27 @@ class GridViewCellRendererText(Gtk.CellRendererText):
 class CellRendererButton(Gtk.CellRenderer):
     value = GObject.Property(
         type=str,
-        nick='value',
-        blurb='what data to render',
-        flags=(GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT))
+        nick="value",
+        blurb="what data to render",
+        flags=(GObject.PARAM_READWRITE | GObject.PARAM_CONSTRUCT),
+    )
 
     def __init__(self, layout):
         Gtk.CellRenderer.__init__(self)
         self.layout = layout
 
-    def do_get_size(self, widget, cell_area=None):
+    @staticmethod
+    def do_get_size(widget, cell_area=None):
         height = 20
         max_width = 100
         if cell_area:
-            return (cell_area.x, cell_area.y,
-                    max(cell_area.width, max_width), cell_area.height)
-        return (0, 0, max_width, height)
+            return (
+                cell_area.x,
+                cell_area.y,
+                max(cell_area.width, max_width),
+                cell_area.height,
+            )
+        return 0, 0, max_width, height
 
     def do_render(self, cr, widget, bg_area, cell_area, flags):
         context = widget.get_style_context()

@@ -26,10 +26,10 @@ Examples:
 ::
 
     files:
-    - file1: http://site.com/gamesetup.exe
+    - file1: https://example.com/gamesetup.exe
     - file2: "N/A:Select the game's setup file"
     - file3:
-        url: http://site.com/url-that-doesnt-resolve-to-a-proper-filename
+        url: https://example.com/url-that-doesnt-resolve-to-a-proper-filename
         filename: actual_local_filename.zip
         referer: www.mywebsite.com
 
@@ -149,6 +149,15 @@ add-on "The reckoning" for Quake 2, you should add: ``requires: quake-2``
 You can also add complex requirements following the same syntax as the
 ``require-binaries`` directive described above.
 
+Accessing the current display mode
+----------------------------------
+
+It is often useful to have access to the current screen resolution to set
+launch parameters or write config files. You can access those in scripts with
+the `$RESOLUTION`, `$RESOLUTION_WIDTH` and `$RESOLUTION_HEIGHT` variables.
+
+Note that it is not necessary to specify the resolution for Wine virtual
+desktop as Lutris will automatically set it to the current one.
 
 Writing the installation script
 ===============================
@@ -206,13 +215,14 @@ Example:
 ::
 
     - move:
-        src: $game-file-id
+        src: game_file_id
         dst: $GAMEDIR/location
 
 Copying and merging directories
 -------------------------------
 
-Both merging and copying actions are done with the ``merge`` directive.
+Both merging and copying actions are done with the ``merge`` or the ``copy`` directive.
+It is not important which of these directives is used because ``copy`` is just an alias for ``merge``.
 Whether the action does a merge or copy depends on the existence of the
 destination directory. When merging into an existing directory, original files
 with the same name as the ones present in the merged directory will be
@@ -227,16 +237,16 @@ Example:
 ::
 
     - merge:
-        src: $game-file-id
+        src: game_file_id
         dst: $GAMEDIR/location
 
 Extracting archives
 -------------------
 
 Extracting archives is done with the ``extract`` directive, the ``file``
-argument is a ``file id`` or a file path. If the archive should be extracted
-in some other location than the ``$GAMEDIR``, you can specify a ``dst``
-argument.
+argument is a ``file id`` or a file path with optional wildcards. If the archive(s)
+should be extracted in some other location than the ``$GAMEDIR``, you can specify a
+``dst`` argument.
 
 You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
@@ -247,7 +257,7 @@ Example:
 ::
 
     - extract:
-        file: $game-archive
+        file: game_archive
         dst: $GAMEDIR/datadir/
 
 Making a file executable
@@ -276,7 +286,7 @@ Example:
 
     - execute:
         args: --argh
-        file: $great-id
+        file: great_id
         terminal: true
         env:
           key: value
@@ -321,9 +331,10 @@ Writing into an INI type config file
 Modify or create a config file with the ``write_config`` directive. A config file
 is a text file composed of key=value (or key: value) lines grouped under
 [sections]. Use the ``file`` (an absolute path or a ``file id``), ``section``,
-``key`` and ``value`` parameters. Note that the file is entirely rewritten and
-comments are left out; Make sure to compare the initial and resulting file
-to spot any potential parsing issues.
+``key`` and ``value`` parameters or the ``data`` parameter. Set ``merge: false``
+to first truncate the file. Note that the file is entirely rewritten and
+comments are left out; Make sure to compare the initial and resulting file to
+spot any potential parsing issues.
 
 Example:
 
@@ -334,6 +345,16 @@ Example:
         section: Engine
         key: Renderer
         value: OpenGL
+
+::
+
+    - write_config:
+        file: $GAMEDIR/myfile.ini
+        data:
+          General:
+            iNumHWThreads: 2
+            bUseThreadedAI: 1
+
 
 Writing into a JSON type file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -434,32 +455,6 @@ Currently, the following tasks are implemented:
             prefix: $GAMEDIR
             app: nt40
 
-*   wine / winesteam: ``winecfg`` runs execute winecfg in your ``prefix`` argument. Parameters are
-    ``prefix`` (optional wineprefix path), ``arch`` (optional WINEARCH, required when you created win64 prefix),
-    ``config`` (dunno what is is).
-
-    example:
-
-    ::
-
-        - task:
-            name: winecfg
-            prefix: $GAMEDIR
-            config: config-file
-            arch: win64
-
-*   wine / winesteam: ``joycpl`` runs joycpl in your ``prefix`` argument. Parameters are
-    ``prefix`` (optional wineprefix path), ``arch`` (optional WINEARCH, required when you created win64 prefix).
-
-    example:
-
-    ::
-
-        - task:
-            name: joypl
-            prefix: $GAMEDIR
-            arch: win64
-
 *   wine / winesteam: ``eject_disk`` runs eject_disk in your ``prefix`` argument. parameters are
     ``prefix`` (optional wineprefix path).
 
@@ -470,18 +465,6 @@ Currently, the following tasks are implemented:
         - task:
             name: eject_disc
             prefix: $GAMEDIR
-
-*   wine / winesteam: ``disable_desktop_integration`` remove links to user directories in a ``prefix`` argument. parameters are
-    ``prefix`` (wineprefix path).
-
-    example:
-
-    ::
-
-        - task:
-            name: eject_disc
-            prefix: $GAMEDIR
-
 
 *   wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
     are ``path`` (the registry path, use backslashes), ``key``, ``value``,
@@ -558,7 +541,7 @@ Currently, the following tasks are implemented:
 
         - task:
             name: dosexec
-            executable: $file_id
+            executable: file_id
             config: $GAMEDIR/game_install.conf
             args: -scaler normal3x -conf more_conf.conf
 
@@ -586,13 +569,13 @@ Example:
         id: LANG
         options:
         - en: English
-        - bf: Brainfuck
+        - fr: French
         - "value and": "label can be anything, surround them with quotes to avoid issues"
-        preselect: bf
+        preselect: fr
 
 In this example, English would be preselected. If the option eventually
-selected is Brainfuck, the "$INPUT_LANG" alias would be available in
-following directives and would correspond to "bf". "$INPUT" would work as well,
+selected is French, the "$INPUT_LANG" alias would be available in
+following directives and would correspond to "fr". "$INPUT" would work as well,
 up until the next input directive.
 
 
@@ -625,7 +608,7 @@ Example Linux game:
         working_dir: $GAMEDIR
 
       files:
-      - myfile: http://example.com/mygame.zip
+      - myfile: https://example.com/mygame.zip
 
       installer:
       - chmodx: $GAMEDIR/mygame
@@ -655,10 +638,10 @@ Example wine game:
       - installer: "N/A:Select the game's setup file"
       installer:
       - task:
-        executable: installer
-        name: wineexec
-        prefix: $GAMEDIR/prefix
-        arch: win64
+          executable: installer
+          name: wineexec
+          prefix: $GAMEDIR/prefix
+          arch: win64
       wine:
         Desktop: true
         WineDesktop: 1024x768
@@ -670,7 +653,11 @@ Example wine game:
           WINEDLLOVERRIDES: d3d11=
           SOMEENV: true
 
-Example gog wine game, some installer crash with with /SILENT or /VERYSILENT option (Cuphead and Star Wars: Battlefront II for example), (most options can be found here http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline, there is undocumented gog option ``/nogui``, you need to use it when you use ``/silent`` and ``/suppressmsgboxes`` parameters):
+Example gog wine game, some installer crash with with /SILENT or /VERYSILENT
+option (Cuphead and Star Wars: Battlefront II for example), (most options can
+be found here http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline,
+there is undocumented gog option ``/NOGUI``, you need to use it when you use
+``/SILENT`` and ``/SUPPRESSMSGBOXES`` parameters):
 
 ::
 
@@ -691,11 +678,11 @@ Example gog wine game, some installer crash with with /SILENT or /VERYSILENT opt
       - installer: "N/A:Select the game's setup file"
       installer:
       - task:
-        args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
-        executable: installer
-        name: wineexec
-        prefix: $GAMEDIR/prefix
-        arch: win64
+          args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
+          executable: installer
+          name: wineexec
+          prefix: $GAMEDIR/prefix
+          arch: win64
       wine:
         Desktop: true
         WineDesktop: 1024x768
@@ -729,7 +716,7 @@ Example gog wine game, alternative (requires innoextract):
       - installer: "N/A:Select the game's setup file"
       installer:
       - execute:
-          args: --gog -d "$CACHE" "$setup"
+          args: --gog -d "$CACHE" setup
           description: Extracting game data
           file: innoextract
       - move:
@@ -768,13 +755,13 @@ Example gog linux game (mojosetup options found here https://www.reddit.com/r/li
       installer:
       - chmodx: installer
       - execute:
-        executable: installer
-        description: Installing game, it will take a while...
-        args: -- --i-agree-to-all-licenses --noreadme --nooptions --noprompt --destination=$GAMEDIR
+          file: installer
+          description: Installing game, it will take a while...
+          args: -- --i-agree-to-all-licenses --noreadme --nooptions --noprompt --destination=$GAMEDIR
       system:
         terminal: true
 
-Example gog linux game, alternative (requires unzip):
+Example gog linux game, alternative:
 
 ::
 
@@ -785,20 +772,19 @@ Example gog linux game, alternative (requires unzip):
     runner: linux
 
     script:
-      game:
-        exe: Game/start.sh
-        args: --some-arg
-        working_dir: $GAMEDIR
       files:
-      - installer: "N/A:Select the game's setup file"
+      - goginstaller: N/A:Please select the GOG.com Linux installer
+      game:
+        args: --some-arg
+        exe: start.sh
       installer:
-      - execute:
-        args: $installer -d "$GAMEDIR" "data/noarch/*"
-        description: Extracting game data, it will take a while...
-        file: unzip
-      - rename:
-        dst: $GAMEDIR/Game
-        src: $GAMEDIR/data/noarch
+      - extract:
+          dst: $CACHE/GOG
+          file: goginstaller
+          format: zip
+      - merge:
+          dst: $GAMEDIR
+          src: $CACHE/GOG/data/noarch/
       system:
         terminal: true
 
@@ -821,10 +807,10 @@ Example winesteam game:
         arch: win64
       installer:
       - task:
-        description: Setting up wine prefix
-        name: create_prefix
-        prefix: $GAMEDIR/prefix
-        arch: win64
+          description: Setting up wine prefix
+          name: create_prefix
+          prefix: $GAMEDIR/prefix
+          arch: win64
       winesteam:
         Desktop: true
         WineDesktop: 1024x768
@@ -866,7 +852,7 @@ When submitting the installer script to lutris.net, only copy the script part. R
       args: --some-arg
 
     files:
-    - myfile: http://example.com
+    - myfile: https://example.com
 
     installer:
     - chmodx: $GAMEDIR/mygame
@@ -922,37 +908,15 @@ Sysoptions
 
 ``version`` (example: ``staging-2.21-x86_64``)
 
-``custom_wine_path`` (example: ``/usr/local/bin/wine``)
-
-``x360ce-path`` (example: ``$GAMEDIR``)
-
-``x360ce-dinput`` (example: ``true``)
-
-``x360ce-xinput9`` (example: ``true``)
-
-``dumbxinputemu`` (example: ``true``)
-
-``xinput-arch`` (example: ``win32`` or ``win64``)
-
 ``Desktop`` (example: ``true``)
 
 ``WineDesktop`` (example: ``1024x768``)
 
 ``MouseWarpOverride`` (example: ``enable``, ``disable`` or ``force``)
 
-``OffscreenRenderingMode`` (example: ``fbo`` or ``backbuffer``)
-
-``StrictDrawOrdering`` (example: ``enabled`` or ``disabled``)
-
-``UseGLSL`` (example: ``enabled`` or ``disabled``)
-
-``RenderTargetLockMode`` (example: ``disabled``, ``readtex`` or ``readdraw``)
-
 ``Audio`` (example: ``auto``, ``alsa``, ``oss`` or ``jack``)
 
 ``ShowCrashDialog`` (example: ``true``)
-
-``show_debug`` (example: empty value, ``-all`` or ``+all``)
 
 ``overrides`` (example: described above)
 
@@ -962,23 +926,15 @@ Sysoptions
 
 ``quit_steam_on_exit`` (example: ``true``)
 
-``steamless_binary64`` (example: fallout64-nosteam)
-
 ``steamless_binary`` (example: fallout-nosteam)
 
 ``run_without_steam`` (example: ``true``)
 
 **steam section:**
 
-``steamless_binary64`` (example: fallout64-nosteam)
-
 ``steamless_binary`` (example: fallout-nosteam)
 
 ``run_without_steam`` (example: ``true``)
-
-``quit_steam_on_exit`` (example: ``true``)
-
-``start_in_big_picture`` (example: ``true``)
 
 ``steam_native_runtime`` (example: ``false``)
 
@@ -1005,8 +961,6 @@ Sysoptions
 ``single_cpu`` (example: ``true``)
 
 ``disable_runtime`` (example: ``true``)
-
-``disable_monitoring`` (example: ``true``)
 
 ``disable_compositor`` (example: ``true``)
 

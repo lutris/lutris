@@ -1,4 +1,5 @@
-VERSION=`grep "VERSION" lutris/settings.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
+.PHONY: snap
+VERSION=`grep "__version__" lutris/__init__.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
 
 cover:
 	rm tests/fixtures/pga.db -f
@@ -8,14 +9,15 @@ cover:
 test:
 	rm tests/fixtures/pga.db -f
 	nosetests
+	flake8 lutris
 
 deb-source: clean
-	gbp buildpackage -S
+	gbp buildpackage -S --git-debian-branch=${GITBRANCH}
 	mkdir -p build
 	mv ../lutris_0* build
 
 deb: clean
-	gbp buildpackage
+	gbp buildpackage --git-debian-branch=${GITBRANCH}
 	mkdir -p build
 	mv ../lutris_0* build
 
@@ -40,3 +42,13 @@ pgp-renew:
 
 winetricks:
 	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks -O share/lutris/bin/winetricks
+
+snap:
+	snapcraft clean lutris -s pull
+	snapcraft
+
+upload-staging:
+	gbp buildpackage -S --git-debian-branch=master
+	mkdir -p build
+	mv ../lutris_0* build
+	dput --force ppa:lutris-team/lutris-staging build/lutris_${VERSION}*_source.changes

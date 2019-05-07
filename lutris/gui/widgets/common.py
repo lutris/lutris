@@ -1,10 +1,12 @@
-# -*- coding: utf-8 -*-
 """Misc widgets used in the GUI."""
 import os
 
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, GObject, Pango
 
-from lutris.util.system import reverse_expanduser
+from lutris.util.log import logger
+from lutris.util import system
+from lutris.util.linux import LINUX_SYSTEM
+from lutris.gui.widgets.utils import get_stock_icon
 
 
 class SlugEntry(Gtk.Entry, Gtk.Editable):
@@ -13,7 +15,7 @@ class SlugEntry(Gtk.Entry, Gtk.Editable):
 
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept alphanumeric and dashes"""
-        new_text = ''.join([c for c in new_text if c.isalnum() or c == '-']).lower()
+        new_text = "".join([c for c in new_text if c.isalnum() or c == "-"]).lower()
         length = len(new_text)
         self.get_buffer().insert_text(position, new_text, length)
         return position + length
@@ -25,7 +27,7 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
 
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept numbers"""
-        new_text = ''.join([c for c in new_text if c.isnumeric()])
+        new_text = "".join([c for c in new_text if c.isnumeric()])
         if new_text:
             self.get_buffer().insert_text(position, new_text, length)
             return position + length
@@ -33,114 +35,183 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
 
 
 class FileChooserEntry(Gtk.Box):
-    def __init__(self, title='Select file', action=Gtk.FileChooserAction.OPEN,
-                 default_path=None):
-        """Widget with text entry and button to select file or folder."""
-        super(FileChooserEntry, self).__init__()
+    """Editable entry with a file picker button"""
 
-        self.entry = Gtk.Entry()
-        if default_path:
-            self.entry.set_text(default_path)
-        self.pack_start(self.entry, True, True, 0)
+    max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
+
+    def __init__(
+            self,
+            title="Select file",
+            action=Gtk.FileChooserAction.OPEN,
+            path=None,
+            default_path=None,
+            warn_if_non_empty=False,
+            warn_if_ntfs=False
+    ):
+        super().__init__(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=12,
+            visible=True
+        )
+        self.title = title
+        self.action = action
+        self.path = os.path.expanduser(path) if path else None
+        self.default_path = os.path.expanduser(default_path) if default_path else path
+        self.warn_if_non_empty = warn_if_non_empty
+        self.warn_if_ntfs = warn_if_ntfs
 
         self.path_completion = Gtk.ListStore(str)
+
+        self.entry = Gtk.Entry(visible=True)
+        self.entry.set_completion(self.get_completion())
+        self.entry.connect("changed", self.on_entry_changed)
+        if path:
+            self.entry.set_text(path)
+
+        browse_button = Gtk.Button("Browse...", visible=True)
+        browse_button.connect("clicked", self.on_browse_clicked)
+
+        box = Gtk.Box(spacing=6, visible=True)
+        box.pack_start(self.entry, True, True, 0)
+        box.add(browse_button)
+        self.add(box)
+
+    def get_text(self):
+        """Return the entry's text"""
+        return self.entry.get_text()
+
+    def get_filename(self):
+        """Deprecated"""
+        logger.warning("Just use get_text")
+        return self.get_text()
+
+    def get_completion(self):
+        """Return an EntryCompletion widget"""
         completion = Gtk.EntryCompletion()
         completion.set_model(self.path_completion)
         completion.set_text_column(0)
-        self.entry.set_completion(completion)
-        self.entry.connect("changed", self._entry_changed)
+        return completion
 
-        self.file_chooser_dlg = Gtk.FileChooserDialog(
-            title=title,
-            transient_for=None,
-            action=action
+    def get_filechooser_dialog(self):
+        """Return an instance of a FileChooserDialog configured for this widget"""
+        dialog = Gtk.FileChooserDialog(
+            title=self.title, transient_for=None, action=self.action
         )
-
-        self.file_chooser_dlg.add_buttons(
-            '_Cancel', Gtk.ResponseType.CLOSE,
-            '_OK', Gtk.ResponseType.OK
+        dialog.add_buttons(
+            "_Cancel", Gtk.ResponseType.CLOSE,
+            "_OK", Gtk.ResponseType.OK
         )
+        dialog.set_create_folders(True)
+        dialog.set_current_folder(self.get_default_folder())
+        dialog.connect("response", self.on_select_file)
+        return dialog
 
-        self.file_chooser_dlg.set_create_folders(True)
+    def get_default_folder(self):
+        """Return the default folder for the file picker"""
+        default_path = self.path or self.default_path or ""
+        if not default_path or not system.path_exists(default_path):
+            current_entry = self.get_text()
+            if system.path_exists(current_entry):
+                default_path = current_entry
+        if not os.path.isdir(default_path):
+            default_path = os.path.dirname(default_path)
+        return os.path.expanduser(default_path or "~")
 
-        if default_path:
-            self.file_chooser_dlg.set_current_folder(
-                os.path.expanduser(default_path)
+    def on_browse_clicked(self, _widget):
+        """Browse button click callback"""
+        file_chooser_dialog = self.get_filechooser_dialog()
+        file_chooser_dialog.run()
+
+    def on_entry_changed(self, widget):
+        """Entry changed callback"""
+        self.clear_warnings()
+        path = widget.get_text()
+        if not path:
+            return
+        path = os.path.expanduser(path)
+        self.update_completion(path)
+        if self.warn_if_ntfs and LINUX_SYSTEM.get_fs_type_for_path(path) == "ntfs":
+            ntfs_box = Gtk.Box(spacing=6, visible=True)
+            warning_image = Gtk.Image(visible=True)
+            warning_image.set_from_pixbuf(get_stock_icon("dialog-warning", 32))
+            ntfs_box.add(warning_image)
+            ntfs_label = Gtk.Label(visible=True)
+            ntfs_label.set_markup(
+                "<b>Warning!</b> The selected path is located on a NTFS drive.\n"
+                "Installing games on NTFS partitions is known to cause issues."
             )
-
-        button = Gtk.Button()
-        button.set_label("Browse...")
-        button.connect('clicked', self._open_filechooser, default_path)
-        self.add(button)
-
-    def get_text(self):
-        return self.entry.get_text()
-
-    def _open_filechooser(self, widget, default_path):
-        if default_path:
-            self.file_chooser_dlg.set_current_folder(
-                os.path.expanduser(default_path)
+            ntfs_box.add(ntfs_label)
+            self.pack_end(ntfs_box, False, False, 10)
+        if self.warn_if_non_empty and os.path.exists(path) and os.listdir(path):
+            non_empty_label = Gtk.Label(visible=True)
+            non_empty_label.set_markup(
+                "<b>Warning!</b> The selected path "
+                "contains files. Installation might not work properly."
             )
-        self.file_chooser_dlg.connect('response', self._select_file)
-        self.file_chooser_dlg.run()
+            self.pack_end(non_empty_label, False, False, 10)
 
-    def _entry_changed(self, widget):
+    def on_select_file(self, dialog, response):
+        """FileChooserDialog response callback"""
+        if response == Gtk.ResponseType.OK:
+            target_path = dialog.get_filename()
+            if target_path:
+                dialog.set_current_folder(target_path)
+                self.entry.set_text(system.reverse_expanduser(target_path))
+        dialog.hide()
+
+    def update_completion(self, current_path):
+        """Update the auto-completion widget with the current path"""
         self.path_completion.clear()
-        current_path = widget.get_text()
-        if not current_path:
-            current_path = "/"
+
         if not os.path.exists(current_path):
             current_path, filefilter = os.path.split(current_path)
         else:
             filefilter = None
+
         if os.path.isdir(current_path):
             index = 0
             for filename in sorted(os.listdir(current_path)):
                 if filename.startswith("."):
                     continue
-                if filefilter is not None \
-                        and not filename.startswith(filefilter):
+                if filefilter is not None and not filename.startswith(filefilter):
                     continue
-                self.path_completion.append(
-                    [os.path.join(current_path, filename)]
-                )
+                self.path_completion.append([os.path.join(current_path, filename)])
                 index += 1
-                if index > 15:
+                if index > self.max_completion_items:
                     break
 
-    def _select_file(self, dialog, response):
-        if response == Gtk.ResponseType.OK:
-            target_path = dialog.get_filename()
-            if target_path:
-                self.file_chooser_dlg.set_current_folder(target_path)
-                self.entry.set_text(reverse_expanduser(target_path))
-        dialog.hide()
+    def clear_warnings(self):
+        """Delete all the warning labels from the container"""
+        for index, child in enumerate(self.get_children()):
+            if index > 0:
+                child.destroy()
 
 
 class Label(Gtk.Label):
     """Standardised label for config vboxes."""
+
     def __init__(self, message=None):
         """Custom init of label."""
-        super(Label, self).__init__(label=message)
-        self.set_alignment(0.1, 0.0)
-        self.set_padding(5, 0)
+        super().__init__(label=message)
         self.set_line_wrap(True)
+        self.set_max_width_chars(22)
+        self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        self.set_size_request(230, -1)
+        self.set_alignment(0, 0.5)
+        self.set_justify(Gtk.Justification.LEFT)
 
 
-class VBox(Gtk.VBox):
-    def __init__(self):
-        GObject.GObject.__init__(self)
-        self.set_margin_top(20)
+class VBox(Gtk.Box):
+    def __init__(self, **kwargs):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=18, **kwargs)
 
 
 class EditableGrid(Gtk.Grid):
-    __gsignals__ = {
-        "changed": (GObject.SIGNAL_RUN_FIRST, None, ())
-    }
+    __gsignals__ = {"changed": (GObject.SIGNAL_RUN_FIRST, None, ())}
 
     def __init__(self, data, columns):
         self.columns = columns
-        super(EditableGrid, self).__init__()
+        super().__init__()
         self.set_column_homogeneous(True)
         self.set_row_homogeneous(True)
         self.set_row_spacing(10)
@@ -148,7 +219,7 @@ class EditableGrid(Gtk.Grid):
 
         self.liststore = Gtk.ListStore(str, str)
         for item in data:
-            self.liststore.append(list(item))
+            self.liststore.append([str(value) for value in item])
 
         self.treeview = Gtk.TreeView.new_with_model(self.liststore)
         self.treeview.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
@@ -184,17 +255,17 @@ class EditableGrid(Gtk.Grid):
 
     def on_add(self, widget):
         self.liststore.append(["", ""])
-        self.emit('changed')
+        self.emit("changed")
 
     def on_delete(self, widget):
         selection = self.treeview.get_selection()
         liststore, iter = selection.get_selected()
         self.liststore.remove(iter)
-        self.emit('changed')
+        self.emit("changed")
 
     def on_text_edited(self, widget, path, text, field):
         self.liststore[path][field] = text
-        self.emit('changed')
+        self.emit("changed")
 
     def get_data(self):
         model_data = []

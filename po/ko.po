@@ -1,0 +1,182 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-11-09 21:49+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../data/ui/AboutDialog.ui.h:1
+msgid "About Lutris"
+msgstr "루트리스에 관해서"
+
+#: ../data/ui/AboutDialog.ui.h:2
+msgid "© 2010, 2012 Mathieu Comandon"
+msgstr ""
+
+#: ../data/ui/AboutDialog.ui.h:3
+msgid "Open Source Gaming Platform"
+msgstr "오픈 소스 게이밍 플랫폼"
+
+#: ../data/ui/AboutDialog.ui.h:4
+msgid "http://lutris.net"
+msgstr ""
+
+#: ../data/ui/AboutDialog.ui.h:5
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+
+#: ../data/ui/LutrisWindow3.ui.h:1 ../data/ui/LutrisWindow.ui.h:1
+msgid "Lutris"
+msgstr "루트리스"
+
+#: ../data/ui/LutrisWindow3.ui.h:2
+msgid "_File"
+msgstr "_파일"
+
+#: ../data/ui/LutrisWindow3.ui.h:3 ../data/ui/LutrisWindow.ui.h:9
+msgid "_Edit"
+msgstr "_편집"
+
+#: ../data/ui/LutrisWindow3.ui.h:4 ../data/ui/LutrisWindow.ui.h:11
+msgid "_View"
+msgstr "_보기"
+
+#: ../data/ui/LutrisWindow3.ui.h:5 ../data/ui/LutrisWindow.ui.h:16
+msgid "_Help"
+msgstr "_도움말"
+
+#: ../data/ui/LutrisWindow3.ui.h:6 ../data/ui/LutrisWindow.ui.h:21
+msgid "Add game"
+msgstr "게임 추가"
+
+#: ../data/ui/LutrisWindow3.ui.h:7 ../data/ui/LutrisWindow.ui.h:18
+msgid "Play"
+msgstr "플레이"
+
+#: ../data/ui/LutrisWindow3.ui.h:8 ../data/ui/LutrisWindow.ui.h:20
+msgid "Stop"
+msgstr "중지"
+
+#: ../data/ui/LutrisWindow3.ui.h:9 ../data/ui/LutrisWindow.ui.h:24
+msgid "Remove"
+msgstr "제거"
+
+#: ../data/ui/LutrisWindow.ui.h:2
+msgid "_Lutris"
+msgstr "_루트리스"
+
+#: ../data/ui/LutrisWindow.ui.h:3
+msgid "Connect"
+msgstr "연결"
+
+#: ../data/ui/LutrisWindow.ui.h:4
+msgid "Install and configure runners"
+msgstr "러너 설치 및 설정"
+
+#: ../data/ui/LutrisWindow.ui.h:5
+msgid "Manage runners"
+msgstr "러너 관리"
+
+#: ../data/ui/LutrisWindow.ui.h:6
+msgid "Import"
+msgstr "가져오기"
+
+#: ../data/ui/LutrisWindow.ui.h:7
+msgid "Import games from ScummVM"
+msgstr "ScummVM에서 게임 가져오기"
+
+#: ../data/ui/LutrisWindow.ui.h:8
+msgid "ScummVM"
+msgstr "ScummVM"
+
+#: ../data/ui/LutrisWindow.ui.h:10
+msgid "configure the default options"
+msgstr "기본 옵션 설정"
+
+#: ../data/ui/LutrisWindow.ui.h:12
+msgid "Icons"
+msgstr "아이콘"
+
+#: ../data/ui/LutrisWindow.ui.h:13
+msgid "List"
+msgstr "목록"
+
+#: ../data/ui/LutrisWindow.ui.h:14
+msgid "_Game"
+msgstr "_게임"
+
+#: ../data/ui/LutrisWindow.ui.h:15
+msgid "Start"
+msgstr "시작"
+
+#: ../data/ui/LutrisWindow.ui.h:17
+msgid "Play game"
+msgstr "게임 플레이"
+
+#: ../data/ui/LutrisWindow.ui.h:19
+msgid "Stop game"
+msgstr "게임 중지"
+
+#: ../data/ui/LutrisWindow.ui.h:22
+msgid "Add Game"
+msgstr "게임 추가"
+
+#: ../data/ui/LutrisWindow.ui.h:23
+msgid "Remove game from library"
+msgstr "라이브러리에서 게임 제거"
+
+#: ../data/ui/LutrisWindow.ui.h:25
+msgid "Filter the list of games"
+msgstr "게임 목록 필터"
+
+#: ../data/ui/AboutLutrisDialog.ui.h:1
+msgid ""
+"# Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>\n"
+"# This program is free software: you can redistribute it and/or modify it\n"
+"# under the terms of the GNU General Public License version 3, as published\n"
+"# by the Free Software Foundation.\n"
+"#\n"
+"# This program is distributed in the hope that it will be useful, but\n"
+"# WITHOUT ANY WARRANTY; without even the implied warranties of\n"
+"# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR\n"
+"# PURPOSE.  See the GNU General Public License for more details.\n"
+"#\n"
+"# You should have received a copy of the GNU General Public License along\n"
+"# with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+
+#: ../data/ui/AboutLutrisDialog.ui.h:14
+msgid "Copyright (C) 2010 Mathieu Comandon <strycore@gmail.com>"
+msgstr ""
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:1
+msgid "gtk-cancel"
+msgstr ""
+
+#: ../data/ui/PreferencesLutrisDialog.ui.h:2
+msgid "gtk-ok"
+msgstr ""

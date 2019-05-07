@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="root"
+   sodipodi:docname="web-symbolic.svg"
+   width="512"
+   height="512"
+   inkscape:version="0.92.1 r15371">
+  <metadata
+     id="metadata18">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>HTML5 Logo Badge</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs16" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1411"
+     inkscape:window-height="872"
+     id="namedview14"
+     showgrid="false"
+     inkscape:zoom="1.3203125"
+     inkscape:cx="256"
+     inkscape:cy="256"
+     inkscape:window-x="247"
+     inkscape:window-y="150"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer2" />
+  <title
+     id="title2">HTML5 Logo Badge</title>
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="Shield"
+     style="display:inline">
+    <path
+       style=""
+       d="M 30 0 L 71 460 L 255 512 L 440 460 L 481 0 L 30 0 z M 256 37 L 440 37 L 405 431 L 256 472 L 256 414 L 255 414 L 139 382 L 132 293 L 158 293 L 188 293 L 192 338 L 255 355 L 256 354.73047 L 256 265 L 255 265 L 129 265 L 115 109 L 114 94 L 255 94 L 256 94 L 256 37 z M 176 150 L 181 208 L 255 208 L 256 208 L 256 150 L 255 150 L 176 150 z "
+       id="path4" />
+    <path
+       style="opacity:0.8;"
+       d="M 256 37 L 256 94 L 397 94 L 396 109 L 393 138 L 392 150 L 256 150 L 256 208 L 371 208 L 387 208 L 385 223 L 372 372 L 371 382 L 256 413.72461 L 256 414 L 256 472 L 405 431 L 440 37 L 256 37 z M 256 265 L 256 354.73047 L 318 338 L 325 265 L 256 265 z "
+       id="path6" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Five"
+     style="display:inline">
+    <path
+       style="opacity:0.5"
+       d="m 256,208 h -75 l -5,-58 h 80 V 94 h -1 -141 l 1,15 14,156 h 127 z m 0,147 h -1 l -63,-17 -4,-45 h -30 -26 l 7,89 116,32 h 1 z"
+       id="path8"
+       inkscape:connector-curvature="0" />
+    <path
+       style="opacity:0.3"
+       d="m 255,208 v 57 h 70 l -7,73 -63,17 v 59 l 116,-32 1,-10 13,-149 2,-15 h -16 z m 0,-114 v 35 21 0 h 137 v 0 0 l 1,-12 3,-29 1,-15 z"
+       id="path10"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>

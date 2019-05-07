@@ -1,0 +1,59 @@
+name: lutris
+version: v0.5.1.3
+summary: Lutris
+description: |
+  Lutris is a gaming platform for GNU/Linux. Its goal is to make
+  gaming on Linux as easy as possible by taking care of installing
+  and setting up the game for the user. The only thing you have to
+  do is play the game. It aims to support every game that is playable
+  on Linux.
+
+grade: devel
+confinement: devmode
+base: core18
+
+plugs:
+  gnome-3-28-1804:
+    interface: content
+    target: $SNAP/gnome-platform
+    default-provider: gnome-3-28-1804
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
+
+slots:
+  lutris:
+    interface: dbus
+    bus: session
+    name: net.lutris.Lutris
+
+parts:
+  lutris:
+    plugin: python
+    source: .
+    stage-packages:
+      - libc6
+      - python3-distutils
+      - python3-gi
+      - gir1.2-gtk-3.0
+      - gir1.2-glib-2.0
+      - gir1.2-gdkpixbuf-2.0
+      - gir1.2-gnomedesktop-3.0
+      - gir1.2-webkit2-4.0
+      - gir1.2-notify-0.7
+apps:
+  lutris:
+    command: bin/lutris
+    plugs:
+      - desktop
+      - gsettings
+      - home
+    slots: [ lutris ]
+    desktop: share/applications/net.lutris.Lutris.desktop
+  lutris-wrapper:
+    command: bin/lutris-wrapper
