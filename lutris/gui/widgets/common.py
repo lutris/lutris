@@ -255,6 +255,9 @@ class EditableGrid(Gtk.Grid):
 
     def on_add(self, widget):
         self.liststore.append(["", ""])
+        row_position = len(self.liststore)-1
+        self.treeview.set_cursor(row_position, None, False)
+        self.treeview.scroll_to_cell(row_position, None, False, 0.0, 0.0)
         self.emit("changed")
 
     def on_delete(self, widget):
@@ -264,7 +267,7 @@ class EditableGrid(Gtk.Grid):
         self.emit("changed")
 
     def on_text_edited(self, widget, path, text, field):
-        self.liststore[path][field] = text
+        self.liststore[path][field] = text.strip()
         self.emit("changed")
 
     def get_data(self):
