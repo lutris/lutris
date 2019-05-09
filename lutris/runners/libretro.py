@@ -62,6 +62,7 @@ LIBRETRO_CORES = [
     ("Portable SHARP X68000 Emulator (SHARP X68000)", "px68k", "Sharp X68000"),
     ("PPSSPP (PlayStation Portable)", "ppsspp", "Sony PlayStation Portable"),
     ("ProSystem (Atari 7800)", "prosystem", "Atari 7800"),
+    ("QUASI88 (NEC PC-8801)", "quasi88", "NEC PC-8801"),
     ("Redream (Sega Dreamcast)", "redream", "Sega Dreamcast"),
     ("Reicast (Sega Dreamcast)", "reicast", "Sega Dreamcast"),
     ("Reicast WinCE (Sega Dreamcast)", "reicast_wince", "Sega Dreamcast"),
