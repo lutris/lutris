@@ -18,6 +18,11 @@ from lutris.config import LutrisConfig
 from lutris.command import MonitoredCommand
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
+from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
+
+from pypresence import Presence
+from pypresence.exceptions import PyPresenceException
+import asyncio
 
 
 HEARTBEAT_DELAY = 2000
@@ -63,6 +68,15 @@ class Game(GObject.Object):
         self.steamid = game_data.get("steamid") or ""
         self.has_custom_banner = bool(game_data.get("has_custom_banner"))
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
+        self.discord_client_id = game_data.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
+        self.discord_custom_game_name = game_data.get("discord_custom_game_name") or ""
+        self.discord_show_runner = game_data.get("discord_show_runner") or 1
+        self.discord_custom_runner_name = game_data.get("discord_custom_runner_name") or ""
+        self.discord_rpc_enabled = True
+        self.discord_last_rpc = 0
+        self.discord_rpc_interval = 15
+        self.discord_presence_connected = False
+        self.discord_rpc_client = None
         try:
             self.playtime = float(game_data.get("playtime") or 0.0)
         except ValueError:
@@ -85,6 +99,10 @@ class Game(GObject.Object):
         self.original_outputs = None
         self._log_buffer = None
         self.timer = Timer()
+        if self.name == "Overwatch":
+            self.discord_client_id = '576203922667077635'
+        self.discord_rpc_client = Presence(self.discord_client_id)
+
 
     @property
     def log_buffer(self):
@@ -585,6 +603,9 @@ class Game(GObject.Object):
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
+        if int(time.time()) - self.discord_rpc_interval > self.discord_last_rpc:
+            self.discord_last_rpc = int(time.time())
+            self.update_discord_rich_presence()
         return True
 
     def stop(self):
@@ -623,6 +644,7 @@ class Game(GObject.Object):
                 cwd=self.directory,
             )
             postexit_thread.start()
+        self.clear_discord_rich_presence()
 
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
@@ -680,3 +702,77 @@ class Game(GObject.Object):
                 appmanifest.steamid,
             )
             self.game_thread.ready_state = False
+
+    def ensure_discord_connected(self):
+        logger.debug("Ensuring connected.")
+        if self.discord_presence_connected:
+            logger.debug("Already connected!")
+        else:
+            logger.debug("Creating Presence object.")
+            self.discord_rpc_client = Presence(self.discord_client_id)
+            try:
+                logger.debug("Attempting to connect.")
+                self.discord_rpc_client.connect()
+                self.discord_presence_connected = True
+            except Exception as e:
+                logger.info(f"Unable to reach Discord.  Skipping update: {e}")
+                self.ensure_discord_disconnected()
+        return self.discord_presence_connected
+
+    def ensure_discord_disconnected(self):
+        logger.debug("Ensuring disconnected.")
+        if self.discord_rpc_client is not None:
+            try:
+                self.discord_rpc_client.close()
+            except Exception as e:
+                logger.info(f"Unable to close Discord RPC connection: {e}")
+            if self.discord_rpc_client.sock_writer is not None:
+                try:
+                    logger.debug("Forcefully closing sock writer.")
+                    self.discord_rpc_client.sock_writer.close()
+                except Exception as e:
+                    logger.debug("Sock writer could not be closed.")
+            try:
+                logger.debug("Forcefully closing event loop.")
+                self.discord_rpc_client.loop.close()
+            except Exception as e:
+                logger.debug("Could not close event loop.")
+            try:
+                logger.debug("Forcefully replacing event loop.")
+                self.discord_rpc_client.loop = None
+                asyncio.set_event_loop(asyncio.new_event_loop())
+            except Exception as e:
+                logger.debug(f"Could not replace event loop: {e}")
+            try:
+                logger.debug("Forcefully deleting RPC client.")
+                del self.discord_rpc_client
+            except Exception:
+                pass
+        self.discord_rpc_client = None
+        self.discord_presence_connected = False
+
+    def update_discord_rich_presence(self):
+        if self.discord_rpc_enabled:
+            connected = self.ensure_discord_connected()
+            if not connected:
+                return
+            try:
+                if self.runner_name != "":
+                    state_text = f"via {self.runner_name}"
+                else:
+                    state_text = ""
+                logger.info(f"Attempting to update Discord status: {self.name}, {state_text}")
+                self.discord_rpc_client.update(details=f"Playing {self.name}", state=state_text)
+            except PyPresenceException as e:
+                logger.info(f"Unable to update Discord: {e}")
+
+    def clear_discord_rich_presence(self):
+        if self.discord_rpc_enabled:
+            connected = self.ensure_discord_connected()
+            if connected:
+                try:
+                    logger.info('Attempting to clear Discord status.')
+                    self.discord_rpc_client.clear()
+                except PyPresenceException as e:
+                    logger.info(f"Unable to clear Discord: {e}")
+            self.ensure_discord_disconnected()
