@@ -41,7 +41,7 @@ LIBRETRO_CORES = [
     ("MAME (Arcade)", "mame", "Arcade"),
     ("Mednafen GBA (Game Boy Advance)", "mednafen_gba", "Nintendo Game Boy Advance"),
     ("Mednafen NGP (SNK Neo Geo Pocket)", "mednafen_ngp", "SNK Neo Geo Pocket"),
-    ("Mednafen PCE (TurboGrafx-16)", "mednafen_pce", "NEC PC Engine (TurboGrafx-16)"), 
+    ("Mednafen PCE (TurboGrafx-16)", "mednafen_pce", "NEC PC Engine (TurboGrafx-16)"),
     ("Mednafen PCE FAST (TurboGrafx-16)", "mednafen_pce_fast", "NEC PC Engine (TurboGrafx-16)"),
     ("Mednafen PCFX (NEC PC-FX)", "mednafen_pcfx", "NEC PC-FX"),
     ("Mednafen Saturn (Sega Saturn)", "mednafen_saturn", "Sega Saturn"),

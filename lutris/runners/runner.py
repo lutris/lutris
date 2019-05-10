@@ -399,3 +399,28 @@ class Runner:
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
+
+    @property
+    def discord_rpc_enabled(self):
+        if self.game_data.get("discord_rpc_enabled"):
+            return self.game_data.get("discord_rpc_enabled")
+
+    @property
+    def discord_show_runner(self):
+        if self.game_data.get("discord_show_runner"):
+            return self.game_data.get("discord_show_runner")
+
+    @property
+    def discord_custom_game_name(self):
+        if self.game_data.get("discord_custom_game_name"):
+            return self.game_data.get("discord_custom_game_name")
+
+    @property
+    def discord_custom_runner_name(self):
+        if self.game_data.get("discord_custom_runner_name"):
+            return self.game_data.get("discord_custom_runner_name")
+
+    @property
+    def discord_client_id(self):
+        if self.game_data.get("discord_client_id"):
+            return self.game_data.get("discord_client_id")
