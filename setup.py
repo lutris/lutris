@@ -50,6 +50,7 @@ setup(
         'PyYAML',
         'PyGObject',
         'evdev',
+        'pypresence',
         'requests'
     ],
     url='https://lutris.net',

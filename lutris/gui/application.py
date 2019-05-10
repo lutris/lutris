@@ -25,10 +25,6 @@ from gettext import gettext as _
 
 import gi
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
-gi.require_version("GnomeDesktop", "3.0")
-
 from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris.game import Game
@@ -50,6 +46,10 @@ from lutris.util.wine.dxvk import init_dxvk_versions
 
 from .lutriswindow import LutrisWindow
 
+
+gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
+gi.require_version("GnomeDesktop", "3.0")
 
 class Application(Gtk.Application):
     def __init__(self):
