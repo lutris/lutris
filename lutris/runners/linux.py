@@ -58,6 +58,9 @@ class linux(Runner):
     def __init__(self, config=None):
         super(linux, self).__init__(config)
         self.ld_preload = None
+        for item in self.common_options:
+            if item not in self.game_options:
+                self.game_options.append(item)
 
     @property
     def game_exe(self):

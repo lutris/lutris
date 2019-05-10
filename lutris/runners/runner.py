@@ -26,6 +26,40 @@ class Runner:
     context_menu_entries = []
     depends_on = None
     runner_executable = None
+    common_options = [
+        {
+            "option": "discord_rpc_enabled",
+            "type": "bool",
+            "label": "Discord Rich Presence",
+            "default": True,
+            "help": "Enable notification to Discord of this game being played",
+        },
+        {
+            "option": "discord_show_runner",
+            "type": "bool",
+            "label": "Discord Show Runner",
+            "default": True,
+            "help": "Embed the runner name in the Discord notification",
+        },
+        {
+            "option": "discord_custom_game_name",
+            "type": "string",
+            "label": "Discord Custom Game Name",
+            "help": "Custom name to override with and send to Discord",
+        },
+        {
+            "option": "discord_custom_runner_name",
+            "type": "string",
+            "label": "Discord Custom Runner Name",
+            "help": "Custom runner name to override with and send to Discord",
+        },
+        {
+            "option": "discord_client_id",
+            "type": "string",
+            "label": "Discord Client ID",
+            "help": "Custom Discord Client ID for sending notifications",
+        },
+    ]
 
     def __init__(self, config=None):
         """Initialize runner."""

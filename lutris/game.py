@@ -70,11 +70,11 @@ class Game(GObject.Object):
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
         self.discord_client_id = game_data.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
         self.discord_custom_game_name = game_data.get("discord_custom_game_name") or ""
-        self.discord_show_runner = game_data.get("discord_show_runner") or 1
+        self.discord_show_runner = bool(game_data.get("discord_show_runner"))
         self.discord_custom_runner_name = game_data.get("discord_custom_runner_name") or ""
-        self.discord_rpc_enabled = True
+        self.discord_rpc_enabled = bool(game_data.get("discord_rpc_enabled"))
         self.discord_last_rpc = 0
-        self.discord_rpc_interval = 15
+        self.discord_rpc_interval = 60
         self.discord_presence_connected = False
         self.discord_rpc_client = None
         try:
@@ -753,18 +753,34 @@ class Game(GObject.Object):
 
     def update_discord_rich_presence(self):
         if self.discord_rpc_enabled:
+            logger.info("RPC is enabled")
             connected = self.ensure_discord_connected()
             if not connected:
                 return
             try:
-                if self.runner_name != "":
-                    state_text = f"via {self.runner_name}"
+                if self.discord_custom_game_name != "":
+                    logger.info(f"Got custom game name: {self.discord_custom_game_name}")
+                    game_name = self.discord_custom_game_name
+                else:
+                    logger.info("Using default name")
+                    game_name = self.name
+                if self.discord_show_runner:
+                    if self.discord_custom_runner_name != "":
+                        logger.info(f"Got custom runner name: {self.discord_custom_runner_name}")
+                        runner_name = self.discord_custom_runner_name
+                    else:
+                        logger.info("Using default runner name")
+                        runner_name = self.runner_name
+                    if runner_name != "":
+                        state_text = f"via {self.runner_name}"
                 else:
                     state_text = ""
-                logger.info(f"Attempting to update Discord status: {self.name}, {state_text}")
-                self.discord_rpc_client.update(details=f"Playing {self.name}", state=state_text)
+                logger.info(f"Attempting to update Discord status: {game_name}, {state_text}")
+                self.discord_rpc_client.update(details=f"Playing {game_name}", state=state_text)
             except PyPresenceException as e:
                 logger.info(f"Unable to update Discord: {e}")
+        else:
+            logger.info("RPC disabled")
 
     def clear_discord_rich_presence(self):
         if self.discord_rpc_enabled:
