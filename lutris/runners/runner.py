@@ -26,6 +26,40 @@ class Runner:
     context_menu_entries = []
     depends_on = None
     runner_executable = None
+    common_game_options = [
+        {
+            "option": "discord_rpc_enabled",
+            "type": "bool",
+            "label": "Discord Rich Presence",
+            "default": True,
+            "help": "Enable notification to Discord of this game being played",
+        },
+        {
+            "option": "discord_show_runner",
+            "type": "bool",
+            "label": "Discord Show Runner",
+            "default": True,
+            "help": "Embed the runner name in the Discord notification",
+        },
+        {
+            "option": "discord_custom_game_name",
+            "type": "string",
+            "label": "Discord Custom Game Name",
+            "help": "Custom name to override with and send to Discord",
+        },
+        {
+            "option": "discord_custom_runner_name",
+            "type": "string",
+            "label": "Discord Custom Runner Name",
+            "help": "Custom runner name to override with and send to Discord",
+        },
+        {
+            "option": "discord_client_id",
+            "type": "string",
+            "label": "Discord Client ID",
+            "help": "Custom Discord Client ID for sending notifications",
+        },
+    ]
 
     def __init__(self, config=None):
         """Initialize runner."""
@@ -36,6 +70,7 @@ class Runner:
             self.game_data = pga.get_game_by_field(
                 self.config.game_config_id, "configpath"
             )
+        self.inject_common_game_options()
 
     def __lt__(self, other):
         return self.name < other.name
@@ -105,6 +140,31 @@ class Runner:
     def working_dir(self):
         """Return the working directory to use when running the game."""
         return self.game_path or os.path.expanduser("~/")
+
+    @property
+    def discord_rpc_enabled(self):
+        if self.game_data.get("discord_rpc_enabled"):
+            return self.game_data.get("discord_rpc_enabled")
+
+    @property
+    def discord_show_runner(self):
+        if self.game_data.get("discord_show_runner"):
+            return self.game_data.get("discord_show_runner")
+
+    @property
+    def discord_custom_game_name(self):
+        if self.game_data.get("discord_custom_game_name"):
+            return self.game_data.get("discord_custom_game_name")
+
+    @property
+    def discord_custom_runner_name(self):
+        if self.game_data.get("discord_custom_runner_name"):
+            return self.game_data.get("discord_custom_runner_name")
+
+    @property
+    def discord_client_id(self):
+        if self.game_data.get("discord_client_id"):
+            return self.game_data.get("discord_client_id")
 
     def get_platform(self):
         return self.platforms[0]
@@ -365,3 +425,9 @@ class Runner:
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
+
+    def inject_common_game_options(self):
+        """Dynamically add all the common game options to all runner classes"""
+        for item in self.common_game_options:
+            if item not in self.game_options:
+                self.game_options.append(item)

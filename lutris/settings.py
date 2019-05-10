@@ -37,5 +37,7 @@ ICON_URL = SITE_URL + "/games/icon/%s.png"
 BANNER_URL = SITE_URL + "/games/banner/%s.jpg"
 RUNTIME_URL = "https://lutris.net/api/runtime"
 
+DEFAULT_DISCORD_CLIENT_ID = "576189919748161556"
+
 read_setting = sio.read_setting
 write_setting = sio.write_setting
