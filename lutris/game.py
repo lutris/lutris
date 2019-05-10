@@ -713,7 +713,7 @@ class Game(GObject.Object):
                 self.discord_rpc_client.connect()
                 self.discord_presence_connected = True
             except Exception as e:
-                logger.error(f"Unable to reach Discord.  Skipping update: {e}")
+                logger.error("Unable to reach Discord.  Skipping update: %s", e)
                 self.ensure_discord_disconnected()
         return self.discord_presence_connected
 
@@ -724,7 +724,7 @@ class Game(GObject.Object):
             try:
                 self.discord_rpc_client.close()
             except Exception as e:
-                logger.error(f"Unable to close Discord RPC connection: {e}")
+                logger.error("Unable to close Discord RPC connection: %s", e)
             if self.discord_rpc_client.sock_writer is not None:
                 try:
                     logger.debug("Forcefully closing sock writer.")
@@ -741,7 +741,7 @@ class Game(GObject.Object):
                 self.discord_rpc_client.loop = None
                 asyncio.set_event_loop(asyncio.new_event_loop())
             except Exception as e:
-                logger.debug(f"Could not replace event loop: {e}")
+                logger.debug("Could not replace event loop: %s", e)
             try:
                 logger.debug("Forcefully deleting RPC client.")
                 del self.discord_rpc_client
@@ -759,26 +759,26 @@ class Game(GObject.Object):
                 return
             try:
                 if self.discord_custom_game_name != "":
-                    logger.debug(f"Got custom game name: {self.discord_custom_game_name}")
+                    logger.debug("Got custom game name: %s", self.discord_custom_game_name)
                     game_name = self.discord_custom_game_name
                 else:
                     logger.debug("Using default name")
                     game_name = self.name
                 if self.discord_show_runner:
                     if self.discord_custom_runner_name != "":
-                        logger.debug(f"Got custom runner name: {self.discord_custom_runner_name}")
+                        logger.debug("Got custom runner name: %s", self.discord_custom_runner_name)
                         runner_name = self.discord_custom_runner_name
                     else:
                         logger.debug("Using default runner name")
                         runner_name = self.runner_name
                     if runner_name != "":
-                        state_text = f"via {runner_name}"
+                        state_text = "via {}".format(runner_name)
                 else:
                     state_text = "  "
-                logger.info(f"Attempting to update Discord status: {game_name}, {state_text}")
-                self.discord_rpc_client.update(details=f"Playing {game_name}", state=state_text)
+                logger.info("Attempting to update Discord status: %s, %s", game_name, state_text)
+                self.discord_rpc_client.update(details="Playing {}".format(game_name), state=state_text)
             except PyPresenceException as e:
-                logger.error(f"Unable to update Discord: {e}")
+                logger.error("Unable to update Discord: %s", e)
         else:
             logger.debug("RPC disabled")
 
@@ -791,5 +791,5 @@ class Game(GObject.Object):
                     logger.info('Attempting to clear Discord status.')
                     self.discord_rpc_client.clear()
                 except PyPresenceException as e:
-                    logger.error(f"Unable to clear Discord: {e}")
-            self.ensure_discord_disconnected()
+                    logger.error("Unable to clear Discord: %s", e)
+                    self.ensure_discord_disconnected()
