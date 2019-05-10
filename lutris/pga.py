@@ -34,11 +34,6 @@ DATABASE = {
         {"name": "has_custom_banner", "type": "INTEGER"},
         {"name": "has_custom_icon", "type": "INTEGER"},
         {"name": "playtime", "type": "TEXT"},
-        {"name": "discord_client_id", "type": "TEXT"},
-        {"name": "discord_custom_game_name", "type": "TEXT"},
-        {"name": "discord_show_runner", "type": "INTEGER"},
-        {"name": "discord_custom_runner_name", "type": "TEXT"},
-        {"name": "discord_rpc_enabled", "type": "INTEGER"},
     ],
     "store_games": [
         {"name": "id", "type": "INTEGER", "indexed": True},
