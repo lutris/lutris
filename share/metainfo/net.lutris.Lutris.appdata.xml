@@ -18,6 +18,9 @@
       <image>https://lutris.net/static/images/screenshots/main-window.png</image>
     </screenshot>
   </screenshots>
+  <metadata>
+    <value key="GnomeSoftware::popular-background">https://raw.githubusercontent.com/lutris/lutris/master/share/metainfo/net.lutris.Lutris-thumb.png</value>
+  </metadata>
   <description>
     <p>Lutris helps you install and manage your games in a unified interface. Our goal is to support every game which runs on Linux, from native to Windows games (via Wine) to emulators and browser games. The desktop application and the website are libre software, your contributions are welcome!</p>
   </description>
