@@ -33,6 +33,8 @@
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <project_license>GPL-3.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
+  <translation type="gettext">Lutris</translation>
+  <update_contact>strider@lutris.net</update_contact>
   <releases>
     <release date="2019-04-04" version="0.5.2" />
   </releases>
