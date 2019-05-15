@@ -20,8 +20,10 @@ class Presence(object):
 
     def __init__(self):
         if PyPresence is not None:
+            logger.debug('Discord Rich Presence not available due to lack of pypresence')
             self.rich_presence_available = True
         else:
+            logger.debug('Discord Rich Presence enabled')
             self.rich_presence_available = False
         self.last_rpc = 0
         self.rpc_interval = 60
