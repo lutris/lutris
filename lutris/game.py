@@ -593,7 +593,10 @@ class Game(GObject.Object):
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
-        self.discord_presence.update_discord_rich_presence()
+
+        if self.discord_presence.available():
+            self.discord_presence.update_discord_rich_presence()
+
         return True
 
     def stop(self):
@@ -632,7 +635,9 @@ class Game(GObject.Object):
                 cwd=self.directory,
             )
             postexit_thread.start()
-        self.discord_presence.clear_discord_rich_presence()
+
+        if self.discord_presence.available():
+            self.discord_presence.clear_discord_rich_presence()
 
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
