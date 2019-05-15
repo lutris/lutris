@@ -50,9 +50,11 @@ setup(
         'PyYAML',
         'PyGObject',
         'evdev',
-        'pypresence~=3.3.2',
         'requests'
     ],
+    extras_require={
+        'Discord': ['pypresence~=3.3.2']
+    },
     url='https://lutris.net',
     description='Install and play any video game on Linux',
     long_description="""Lutris is a gaming platform for GNU/Linux. It's goal is
