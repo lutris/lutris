@@ -12,6 +12,7 @@ from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.http import Request
 from lutris.runners import RunnerInstallationError
+from lutris.discord import Presence
 
 
 class Runner:
@@ -26,7 +27,8 @@ class Runner:
     context_menu_entries = []
     depends_on = None
     runner_executable = None
-    common_game_options = [
+    common_game_options = []
+    discord_presence_options = [
         {
             "option": "discord_rpc_enabled",
             "type": "bool",
@@ -70,6 +72,9 @@ class Runner:
             self.game_data = pga.get_game_by_field(
                 self.config.game_config_id, "configpath"
             )
+        self.discord_presence = Presence()
+        if self.discord_presence.available():
+            self.common_game_options = self.common_game_options + self.discord_presence_options
         self.inject_common_game_options()
 
     def __lt__(self, other):

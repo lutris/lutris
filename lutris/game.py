@@ -18,11 +18,8 @@ from lutris.config import LutrisConfig
 from lutris.command import MonitoredCommand
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
+from lutris.discord import Presence
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
-
-from pypresence import Presence
-from pypresence.exceptions import PyPresenceException
-import asyncio
 
 HEARTBEAT_DELAY = 2000
 
@@ -67,11 +64,7 @@ class Game(GObject.Object):
         self.steamid = game_data.get("steamid") or ""
         self.has_custom_banner = bool(game_data.get("has_custom_banner"))
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
-        self.discord_last_rpc = 0
-        self.discord_rpc_interval = 60
-        self.discord_presence_connected = False
-        self.discord_rpc_client = None
-        self.discord_client_id = None
+        self.discord_presence = Presence()
         try:
             self.playtime = float(game_data.get("playtime") or 0.0)
         except ValueError:
@@ -94,7 +87,6 @@ class Game(GObject.Object):
         self.original_outputs = None
         self._log_buffer = None
         self.timer = Timer()
-        self.discord_rpc_client = Presence(self.discord_client_id)
 
     @property
     def log_buffer(self):
@@ -169,11 +161,12 @@ class Game(GObject.Object):
             runner_slug=self.runner_name, game_config_id=self.game_config_id
         )
         self.runner = self._get_runner()
-        self.discord_client_id = self.config.game_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
-        self.discord_custom_game_name = self.config.game_config.get("discord_custom_game_name") or ""
-        self.discord_show_runner = self.config.game_config.get("discord_show_runner", True)
-        self.discord_custom_runner_name = self.config.game_config.get("discord_custom_runner_name") or ""
-        self.discord_rpc_enabled = self.config.game_config.get("discord_rpc_enabled", True)
+        if self.discord_presence.available():
+            self.discord_presence.client_id = self.config.game_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
+            self.discord_presence.game_name = self.config.game_config.get("discord_custom_game_name") or self.name
+            self.discord_presence.show_runner = self.config.game_config.get("discord_show_runner", True)
+            self.discord_presence.runner_name = self.config.game_config.get("discord_custom_runner_name") or self.runner_name
+            self.discord_presence.rpc_enabled = self.config.game_config.get("discord_rpc_enabled", True)
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
@@ -600,9 +593,7 @@ class Game(GObject.Object):
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
-        if int(time.time()) - self.discord_rpc_interval > self.discord_last_rpc:
-            self.discord_last_rpc = int(time.time())
-            self.update_discord_rich_presence()
+        self.discord_presence.update_discord_rich_presence()
         return True
 
     def stop(self):
@@ -641,7 +632,7 @@ class Game(GObject.Object):
                 cwd=self.directory,
             )
             postexit_thread.start()
-        self.clear_discord_rich_presence()
+        self.discord_presence.clear_discord_rich_presence()
 
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
@@ -699,97 +690,3 @@ class Game(GObject.Object):
                 appmanifest.steamid,
             )
             self.game_thread.ready_state = False
-
-    def ensure_discord_connected(self):
-        """Make sure we are actually connected before trying to send requests"""
-        logger.debug("Ensuring connected.")
-        if self.discord_presence_connected:
-            logger.debug("Already connected!")
-        else:
-            logger.debug("Creating Presence object.")
-            self.discord_rpc_client = Presence(self.discord_client_id)
-            try:
-                logger.debug("Attempting to connect.")
-                self.discord_rpc_client.connect()
-                self.discord_presence_connected = True
-            except Exception as e:
-                logger.error("Unable to reach Discord.  Skipping update: %s", e)
-                self.ensure_discord_disconnected()
-        return self.discord_presence_connected
-
-    def ensure_discord_disconnected(self):
-        """Ensure we are definitely disconnected and fix broken event loop from pypresence"""
-        logger.debug("Ensuring disconnected.")
-        if self.discord_rpc_client is not None:
-            try:
-                self.discord_rpc_client.close()
-            except Exception as e:
-                logger.error("Unable to close Discord RPC connection: %s", e)
-            if self.discord_rpc_client.sock_writer is not None:
-                try:
-                    logger.debug("Forcefully closing sock writer.")
-                    self.discord_rpc_client.sock_writer.close()
-                except Exception:
-                    logger.debug("Sock writer could not be closed.")
-            try:
-                logger.debug("Forcefully closing event loop.")
-                self.discord_rpc_client.loop.close()
-            except Exception:
-                logger.debug("Could not close event loop.")
-            try:
-                logger.debug("Forcefully replacing event loop.")
-                self.discord_rpc_client.loop = None
-                asyncio.set_event_loop(asyncio.new_event_loop())
-            except Exception as e:
-                logger.debug("Could not replace event loop: %s", e)
-            try:
-                logger.debug("Forcefully deleting RPC client.")
-                del self.discord_rpc_client
-            except Exception:
-                pass
-        self.discord_rpc_client = None
-        self.discord_presence_connected = False
-
-    def update_discord_rich_presence(self):
-        """Dispatch a request to Discord to update presence"""
-        if self.discord_rpc_enabled:
-            logger.debug("RPC is enabled")
-            connected = self.ensure_discord_connected()
-            if not connected:
-                return
-            try:
-                if self.discord_custom_game_name != "":
-                    logger.debug("Got custom game name: %s", self.discord_custom_game_name)
-                    game_name = self.discord_custom_game_name
-                else:
-                    logger.debug("Using default name")
-                    game_name = self.name
-                if self.discord_show_runner:
-                    if self.discord_custom_runner_name != "":
-                        logger.debug("Got custom runner name: %s", self.discord_custom_runner_name)
-                        runner_name = self.discord_custom_runner_name
-                    else:
-                        logger.debug("Using default runner name")
-                        runner_name = self.runner_name
-                    if runner_name != "":
-                        state_text = "via {}".format(runner_name)
-                else:
-                    state_text = "  "
-                logger.info("Attempting to update Discord status: %s, %s", game_name, state_text)
-                self.discord_rpc_client.update(details="Playing {}".format(game_name), state=state_text)
-            except PyPresenceException as e:
-                logger.error("Unable to update Discord: %s", e)
-        else:
-            logger.debug("RPC disabled")
-
-    def clear_discord_rich_presence(self):
-        """Dispatch a request to Discord to clear presence"""
-        if self.discord_rpc_enabled:
-            connected = self.ensure_discord_connected()
-            if connected:
-                try:
-                    logger.info('Attempting to clear Discord status.')
-                    self.discord_rpc_client.clear()
-                except PyPresenceException as e:
-                    logger.error("Unable to clear Discord: %s", e)
-                    self.ensure_discord_disconnected()
