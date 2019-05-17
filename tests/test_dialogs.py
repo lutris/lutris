@@ -146,7 +146,7 @@ class TestSort(TestCase):
         row2 = self.FakeRow({'name': 1})
         model = self.FakeModel([row1, row2])
         with self.assertRaises(TypeError):
-            sort_func(model, 0, 1, 'name') == -1
+            assert sort_func(model, 0, 1, 'name') == -1
 
     def test_both_none(self):
         row1 = self.FakeRow({})
