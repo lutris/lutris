@@ -482,7 +482,7 @@ class InstallerWindow(BaseApplicationWindow):
             }
         )
         if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
-            Popen(['wineserver', '-k9'])
+            Popen(['/usr/bin/wineserver', '-k9'])
             return True
         if self.interpreter:
             self.interpreter.revert()
