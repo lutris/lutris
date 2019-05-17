@@ -20,12 +20,12 @@ class LutrisConfig:
 
     Description
     ===========
-    Lutris' configuration uses a cascading mecanism where
+    Lutris' configuration uses a cascading mechanism where
     each higher, more specific level overrides the lower ones
 
     The levels are (highest to lowest): `game`, `runner` and `system`.
     Each level has its own set of options (config section), available to and
-    overriden by upper levels:
+    overridden by upper levels:
     ```
      level | Config sections
     -------|----------------------

@@ -325,7 +325,7 @@ class steam(Runner):
             else:
                 command.append("-applaunch")
                 command.append(self.appid)
-        
+
         if game_args:
             for arg in shlex.split(game_args):
                 command.append(arg)
