@@ -306,6 +306,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             """Callback to update the view on sync complete"""
             if errors:
                 logger.error("Sync failed: %s", errors)
+                return
             added_games, removed_games = response
 
             for game_id in added_games:
@@ -576,8 +577,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if self.application.running_games.get_n_items():
             dlg = dialogs.QuestionDialog(
                 {
-                    "question": ("Some games are still running, "
-                                 "are you sure you want to quit Lutris?"),
+                    "question": ("Some games are still running. "
+                                 "Are you sure you want to quit Lutris?"),
                     "title": "Quit Lutris?",
                 }
             )
@@ -736,6 +737,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_actions.set_game(game=game)
             self.game_panel = GamePanel(self.game_actions)
             self.game_panel.connect("panel-closed", self.on_panel_closed)
+            self.view.contextual_menu.connect("shortcut-edited", self.game_panel.on_shortcut_edited)
         self.game_scrolled.add(self.game_panel)
         return True
 
@@ -823,8 +825,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.invalidate_game_filter()
 
     def show_invalid_credential_warning(self):
-        dialogs.ErrorDialog("Could not connect to your Lutris account, please sign-in again.")
+        dialogs.ErrorDialog("Could not connect to your Lutris account. Please sign in again.")
 
     def show_library_sync_error(self):
-        dialogs.ErrorDialog("Failed to retrieve game library, "
-                            "there might be some problems contacting lutris.net")
+        dialogs.ErrorDialog("Failed to retrieve game library. "
+                            "There might be some problems contacting lutris.net")

@@ -162,7 +162,8 @@ class web(Runner):
     def get_env(self, os_env=True):
         env = super(web, self).get_env(os_env)
 
-        env['ENABLE_FLASH_PLAYER'] = '1' if self.runner_config.get('enable_flash') else '0'
+        enable_flash_player = self.runner_config.get("enable_flash")
+        env["ENABLE_FLASH_PLAYER"] = "1" if enable_flash_player else "0"
 
         return env
 
@@ -198,8 +199,7 @@ class web(Runner):
             browser = self.runner_config.get("custom_browser_executable") or "xdg-open"
 
             args = self.runner_config.get("custom_browser_args")
-            if args == "":
-                args = '"$GAME"'
+            args = args or '"$GAME"'
             arguments = string.Template(args).safe_substitute({"GAME": url, "URL": url})
 
             command = [browser]
@@ -223,38 +223,24 @@ class web(Runner):
             icon,
         ]
 
-        if self.runner_config.get("fullscreen"):
-            command.append("--fullscreen")
-
-        if self.runner_config.get("frameless"):
-            command.append("--frameless")
-
-        if self.runner_config.get("disable_resizing"):
-            command.append("--disable-resizing")
-
-        if self.runner_config.get("disable_menu_bar"):
-            command.append("--disable-menu-bar")
+        for key in [
+            "fullscreen",
+            "frameless",
+            "devtools",
+            "disable_resizing",
+            "disable_menu_bar",
+            "maximize_window",
+            "disable_scrolling",
+            "hide_cursor",
+            "open_links",
+            "remove_margin",
+        ]:
+            if self.runner_config.get(key):
+                converted_opt_name = key.replace("_", "-")
+                command.append("--{option}".format(option=converted_opt_name))
 
         if self.runner_config.get("window_size"):
             command.append("--window-size")
             command.append(self.runner_config.get("window_size"))
-
-        if self.runner_config.get("maximize_window"):
-            command.append("--maximize-window")
-
-        if self.runner_config.get("disable_scrolling"):
-            command.append("--disable-scrolling")
-
-        if self.runner_config.get("hide_cursor"):
-            command.append("--hide-cursor")
-
-        if self.runner_config.get("open_links"):
-            command.append("--open-links")
-
-        if self.runner_config.get("remove_margin"):
-            command.append("--remove-margin")
-
-        if self.runner_config.get("devtools"):
-            command.append("--devtools")
 
         return {"command": command, "env": self.get_env(False)}

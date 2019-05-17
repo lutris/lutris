@@ -351,13 +351,14 @@ class wine(Runner):
                 "label": "Anti-aliasing Sample Count",
                 "type": "choice",
                 "choices": [
-                    ("0", "0 (disabled)"),
+                    ("Auto", "auto"),
+                    ("0", "0"),
                     ("2", "2"),
                     ("4", "4"),
                     ("8", "8"),
                     ("16", "16")
                 ],
-                "default": "0",
+                "default": "auto",
                 "advanced": True,
                 "help": (
                     "Override swapchain sample count. It can be used to force enable multisampling "
@@ -575,17 +576,18 @@ class wine(Runner):
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
-        if not version:
-            wine_versions = get_wine_versions()
-            if min_version:
-                min_version_list, _, _ = parse_version(min_version)
-                for version in wine_versions:
-                    version_list, _, _ = parse_version(version)
-                    if version_list > min_version_list:
-                        return True
-                logger.warning("Wine %s or higher not found", min_version)
-            return bool(wine_versions)
-        return system.path_exists(self.get_executable(version, fallback))
+        if version:
+            return system.path_exists(self.get_executable(version, fallback))
+
+        wine_versions = get_wine_versions()
+        if min_version:
+            min_version_list, _, _ = parse_version(min_version)
+            for version in wine_versions:
+                version_list, _, _ = parse_version(version)
+                if version_list > min_version_list:
+                    return True
+            logger.warning("Wine %s or higher not found", min_version)
+        return bool(wine_versions)
 
     @classmethod
     def msi_exec(
@@ -681,7 +683,7 @@ class wine(Runner):
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or "auto"
             if not value or value == "auto" and key not in managed_keys.keys():
-                prefix_manager.clear_registry_key(path)
+                prefix_manager.clear_registry_subkeys(path, key)
             elif key in self.runner_config:
                 if key in managed_keys.keys():
                     # Do not pass fallback 'auto' value to managed keys

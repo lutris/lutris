@@ -105,7 +105,6 @@ class GamePanel(GenericPanel):
 
     def get_buttons(self):
         displayed = self.game_actions.get_displayed_entries()
-        disabled_entries = self.game_actions.get_disabled_entries()
         icon_map = {
             # "stop": "media-playback-stop-symbolic",
             # "play": "media-playback-start-symbolic",
@@ -129,15 +128,17 @@ class GamePanel(GenericPanel):
                     button.set_size_request(146, 42)
                 else:
                     button = get_link_button(label)
-            button.connect("clicked", callback)
 
             if displayed.get(action_id):
                 button.show()
             else:
                 button.hide()
-            if disabled_entries.get(action_id):
-                button.set_sensitive(False)
             buttons[action_id] = button
+
+            if action_id in ('desktop-shortcut', 'rm-desktop-shortcut', 'menu-shortcut', 'rm-menu-shortcut'):
+                button.connect("clicked", self.on_shortcut_edited, action_id)
+
+            button.connect("clicked", callback)
 
         if self.game.runner_name and self.game.is_installed:
             for entry in self.get_runner_entries(self.game):
@@ -193,6 +194,13 @@ class GamePanel(GenericPanel):
 
             self.put(button, position[0], position[1])
 
+    def on_shortcut_edited(self, widget, action_id):
+        self.buttons[action_id].hide()
+        if 'rm' == action_id[0:2]:
+            self.buttons[action_id[3:]].show()
+        else:
+            self.buttons['rm-' + action_id].show()
+
     def on_game_start(self, widget):
         self.buttons["play"].set_label("Launching...")
         self.buttons["play"].set_sensitive(False)
@@ -202,13 +210,11 @@ class GamePanel(GenericPanel):
         self.buttons["play"].hide()
         self.buttons["play"].set_label("Play")
         self.buttons["play"].set_sensitive(True)
-        self.buttons["show_logs"].set_sensitive(True)
 
     def on_game_stop(self, widget, game_id=None):
         for child in self.get_children():
             child.destroy()
         self.place_content()
-        self.buttons["show_logs"].set_sensitive(True)
 
     def on_close(self, _widget):
         self.emit("panel-closed")

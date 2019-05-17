@@ -85,7 +85,7 @@ def _register_template(cls, template_bytes):
 
     if not hasattr(cls, "set_template"):
         ErrorDialog(
-            "Your Linux distribution is too old, Lutris won't function properly"
+            "Your Linux distribution is too old. Lutris won't function properly."
         )
         raise TypeError("Requires PyGObject 3.13.2 or greater")
 

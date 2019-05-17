@@ -77,7 +77,7 @@ class steam(Runner):
             "type": "file",
             "label": "Game binary path",
             "advanced": True,
-            "help": "Path to the game executable (Required by DRM free mode)"
+            "help": "Path to the game executable (Required by DRM free mode)",
         },
     ]
     runner_options = [
@@ -168,12 +168,9 @@ class steam(Runner):
 
     @property
     def game_path(self):
-        if self.appid:
-            for apps_path in self.get_steamapps_dirs():
-                game_path = get_path_from_appmanifest(apps_path, self.appid)
-                if game_path:
-                    return game_path
-            logger.info("Data path for SteamApp %s not found.", self.appid)
+        if not self.appid:
+            return None
+        return self.get_game_path_from_appid(self.appid)
 
     @property
     def steam_data_dir(self):
@@ -242,17 +239,15 @@ class steam(Runner):
     def get_steamapps_dirs(self):
         """Return a list of the Steam library main + custom folders."""
         dirs = []
-        # Main steamapps dir
+
+        # Main steamapps dir and compatibilitytools.d dir
         if self.steam_data_dir:
-            main_dir = os.path.join(self.steam_data_dir, "SteamApps")
-            main_dir = system.fix_path_case(main_dir)
-            if main_dir and os.path.isdir(main_dir):
-                dirs.append(main_dir)
-        if self.steam_data_dir:
-            ct_dir = os.path.join(self.steam_data_dir, "compatibilitytools.d")
-            ct_dir = system.fix_path_case(ct_dir)
-            if ct_dir and os.path.isdir(ct_dir):
-                dirs.append(ct_dir)
+            for _dir in ["SteamApps", "compatibilitytools.d"]:
+                abs_dir = os.path.join(self.steam_data_dir, _dir)
+                abs_dir = system.fix_path_case(abs_dir)
+                if abs_dir and os.path.isdir(abs_dir):
+                    dirs.append(abs_dir)
+
         # Custom dirs
         steam_config = self.get_steam_config()
         if steam_config:
@@ -326,9 +321,6 @@ class steam(Runner):
                 return {"error": "FILE_NOT_FOUND", "file": binary_path}
             self.original_steampid = None
             command = [binary_path]
-            if game_args:
-                for arg in shlex.split(game_args):
-                    command.append(arg)
         else:
             # Start through steam
 
@@ -341,18 +333,16 @@ class steam(Runner):
             # Get current steam pid to act as the root pid instead of lutris
             self.original_steampid = get_steam_pid()
             command = self.launch_args
-            if game_args:
-                for arg in shlex.split(game_args):
-                    command.append(arg)
 
             if self.runner_config.get("start_in_big_picture") or not game_args:
                 command.append("steam://rungameid/%s" % self.appid)
             else:
                 command.append("-applaunch")
                 command.append(self.appid)
-                if game_args:
-                    for arg in shlex.split(game_args):
-                        command.append(arg)
+
+        if game_args:
+            for arg in shlex.split(game_args):
+                command.append(arg)
 
         return {
             "command": command,
@@ -371,6 +361,6 @@ class steam(Runner):
         command = MonitoredCommand(
             [self.get_executable(), "steam://uninstall/%s" % (appid or self.appid)],
             runner=self,
-            env=self.get_env()
+            env=self.get_env(),
         )
         command.start()

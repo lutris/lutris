@@ -15,7 +15,6 @@ from lutris import settings
 from lutris import runtime
 from lutris.util.log import logger
 from lutris.util import system
-from lutris.util.signals import PID_HANDLERS, register_handler
 
 WRAPPER_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "lutris-wrapper")
 
@@ -41,6 +40,7 @@ class MonitoredCommand:
         self.runner = runner
         self.stop_func = lambda: True
         self.game_process = None
+        self.prevent_on_stop = False
         self.return_code = None
         self.terminal = system.find_executable(term)
         self.is_running = True
@@ -123,7 +123,7 @@ class MonitoredCommand:
             logger.warning("No game process available")
             return
 
-        register_handler(self.game_process.pid, self.on_stop)
+        GLib.child_watch_add(self.game_process.pid, self.on_stop)
 
         # make stdout nonblocking.
         fileno = self.game_process.stdout.fileno()
@@ -153,8 +153,11 @@ class MonitoredCommand:
             sys.stdout.write(line)
             sys.stdout.flush()
 
-    def on_stop(self, returncode):
-        """Callback registered on the SIGCHLD handler"""
+    def on_stop(self, _pid, returncode):
+        """Callback registered on game process termination"""
+        if self.prevent_on_stop:  # stop() already in progress
+            return False
+
         logger.debug("The process has terminated with code %s", returncode)
         self.is_running = False
         self.return_code = returncode
@@ -229,11 +232,8 @@ class MonitoredCommand:
 
     def stop(self):
         """Stops the current game process and cleans up the instance"""
-        try:
-            PID_HANDLERS.pop(self.game_process.pid)
-        except KeyError:
-            # This game has no stop handler
-            pass
+        # Prevent stop() being called again by the process exiting
+        self.prevent_on_stop = True
 
         try:
             self.game_process.terminate()

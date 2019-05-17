@@ -274,11 +274,14 @@ class LinuxSystem:
             if all([os.path.exists(path) for path in lib_paths]):
                 yield lib_paths
 
-    @staticmethod
-    def get_ldconfig_libs():
+    def get_ldconfig_libs(self):
         """Return a list of available libraries, as returned by `ldconfig -p`."""
+        ldconfig = self.get("ldconfig")
+        if not ldconfig:
+            logger.error("Could not detect ldconfig on this system")
+            return []
         try:
-            output = subprocess.check_output(["ldconfig", "-p"]).decode("utf-8").split("\n")
+            output = subprocess.check_output([ldconfig, "-p"]).decode("utf-8").split("\n")
         except subprocess.CalledProcessError as ex:
             logger.error("Failed to get libraries from ldconfig: %s", ex)
             return []

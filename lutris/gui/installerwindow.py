@@ -79,7 +79,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
-        self.play_button = self.add_button("_Launch game", self.launch_game)
+        self.play_button = self.add_button("_Launch", self.launch_game)
         self.close_button = self.add_button("_Close", self.on_destroy)
 
         self.continue_handler = None
@@ -192,7 +192,7 @@ class InstallerWindow(BaseApplicationWindow):
         except MissingGameDependency as ex:
             dlg = QuestionDialog(
                 {
-                    "question": "This game requires %s, do you want to install it?" % ex.slug,
+                    "question": "This game requires %s. Do you want to install it?" % ex.slug,
                     "title": "Missing dependency",
                 }
             )
@@ -275,9 +275,13 @@ class InstallerWindow(BaseApplicationWindow):
         if action == "file":
             title = "Select file"
             action = Gtk.FileChooserAction.OPEN
+            enable_warnings = False
         elif action == "folder":
             title = "Select folder"
             action = Gtk.FileChooserAction.SELECT_FOLDER
+            enable_warnings = True
+        else:
+            raise ValueError("Invalid action %s", action)
 
         if self.location_entry:
             self.location_entry.destroy()
@@ -285,8 +289,8 @@ class InstallerWindow(BaseApplicationWindow):
             title,
             action,
             path=default_path,
-            warn_if_non_empty=True,
-            warn_if_ntfs=True
+            warn_if_non_empty=enable_warnings,
+            warn_if_ntfs=enable_warnings
         )
         self.location_entry.entry.connect("changed", callback_on_changed, action)
         self.widget_box.pack_start(self.location_entry, False, False, 0)

@@ -45,8 +45,7 @@ Configuration files
 
 * ``~/.config/lutris``: The client, runners, and game configuration files
 
-   * There is be no need to manually edit these files as everything should
-be done from the client.
+   There is be no need to manually edit these files as everything should be done from the client.
 
 * ``lutris.conf``: Preferences for the client's UI
 
@@ -56,20 +55,19 @@ be done from the client.
 
 * ``games/*.yml``: Game-specific configurations
 
-Game-specific configurations supersede runner-specific configurations, which in
-turn supersede the system configuration.
+Game-specific configurations overwrite runner-specific configurations, which in
+turn overwrite the system configuration.
 
 Runners and the game database
 =============================
 
 ``~/.local/share/lutris``: All data necessary to manage Lutris' library and games, including:
 
-* ``pga.db``: An SQLite database tracking the game library, game installation
-status, various file locations, and some additional metadata
+* ``pga.db``: An SQLite database tracking the game library, game installation status, various file locations, and some additional metadata
 
-``runners/*``: Runners downloaded from `lutris.net <https://lutris.net>`_
+* ``runners/*``: Runners downloaded from `lutris.net <https://lutris.net>`_
 
-``icons/*.png`` and ``banners/*.jpg``: Game banners and icons
+* ``icons/*.png`` and ``banners/*.jpg``: Game banners and icons
 
 Command line options
 ====================
