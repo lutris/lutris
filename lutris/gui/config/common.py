@@ -458,7 +458,7 @@ class GameDialogCommon:
                         logger.debug("{} validated successfully: {}".format(k, res))
                     except Exception:
                         invalid_fields.append(option.get("label"))
-        if len(invalid_fields) > 0:
+        if invalid_fields:
             ErrorDialog("The following fields have invalid values: " + ", ".join(invalid_fields))
             return False
         return True
