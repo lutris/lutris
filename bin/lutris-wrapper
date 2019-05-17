@@ -82,7 +82,10 @@ def main():
             if not children:
                 break
             for child in children:
-                os.kill(child.pid, signal.SIGKILL)
+                try:
+                    os.kill(child.pid, signal.SIGKILL)
+                except ProcessLookupError:  # process already dead
+                    pass
         log("--killed processes--")
 
     def sig_handler(signum, _frame):
@@ -92,7 +95,10 @@ def main():
         monitor.refresh_process_status()
         for child in monitor.children:
             log("passing along signal to PID %s" % child.pid)
-            os.kill(child.pid, signum)
+            try:
+                os.kill(child.pid, signum)
+            except ProcessLookupError:  # process already dead
+                pass
         log("--terminated processes--")
 
     old_sigterm_handler = signal.signal(signal.SIGTERM, sig_handler)
