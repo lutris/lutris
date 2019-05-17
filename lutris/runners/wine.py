@@ -66,7 +66,8 @@ class wine(Runner):
             "option": "args",
             "type": "string",
             "label": "Arguments",
-            "help": "Windows command line arguments used when launching the game"
+            "help": "Windows command line arguments used when launching the game",
+            "validator": shlex.split
         },
         {
             "option": "working_dir",

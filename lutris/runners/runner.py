@@ -436,3 +436,14 @@ class Runner:
         for item in self.common_game_options:
             if item not in self.game_options:
                 self.game_options.append(item)
+
+    def find_option(self, options_group, option_name):
+        """Retrieve an option dict if it exists in the group"""
+        if options_group not in ['game_options', 'runner_options']:
+            return None
+        output = None
+        for item in getattr(self, options_group):
+            if item["option"] == option_name:
+                output = item
+                break
+        return output
