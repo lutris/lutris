@@ -162,11 +162,11 @@ class Game(GObject.Object):
         )
         self.runner = self._get_runner()
         if self.discord_presence.available:
-            self.discord_presence.client_id = self.config.game_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
-            self.discord_presence.game_name = self.config.game_config.get("discord_custom_game_name") or self.name
-            self.discord_presence.show_runner = self.config.game_config.get("discord_show_runner", True)
-            self.discord_presence.runner_name = self.config.game_config.get("discord_custom_runner_name") or self.runner_name
-            self.discord_presence.rpc_enabled = self.config.game_config.get("discord_rpc_enabled", True)
+            self.discord_presence.client_id = self.config.system_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
+            self.discord_presence.game_name = self.config.system_config.get("discord_custom_game_name") or self.name
+            self.discord_presence.show_runner = self.config.system_config.get("discord_show_runner", True)
+            self.discord_presence.runner_name = self.config.system_config.get("discord_custom_runner_name") or self.runner_name
+            self.discord_presence.rpc_enabled = self.config.system_config.get("discord_rpc_enabled", True)
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
