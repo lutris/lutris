@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.command import MonitoredCommand
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
-from lutris.discord import Presence
+from lutris.discord import DiscordPresence
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 
 HEARTBEAT_DELAY = 2000
@@ -64,7 +64,7 @@ class Game(GObject.Object):
         self.steamid = game_data.get("steamid") or ""
         self.has_custom_banner = bool(game_data.get("has_custom_banner"))
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
-        self.discord_presence = Presence()
+        self.discord_presence = DiscordPresence()
         try:
             self.playtime = float(game_data.get("playtime") or 0.0)
         except ValueError:
@@ -161,7 +161,7 @@ class Game(GObject.Object):
             runner_slug=self.runner_name, game_config_id=self.game_config_id
         )
         self.runner = self._get_runner()
-        if self.discord_presence.available():
+        if self.discord_presence.available:
             self.discord_presence.client_id = self.config.game_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
             self.discord_presence.game_name = self.config.game_config.get("discord_custom_game_name") or self.name
             self.discord_presence.show_runner = self.config.game_config.get("discord_show_runner", True)
@@ -594,7 +594,7 @@ class Game(GObject.Object):
             self.on_game_quit()
             return False
 
-        if self.discord_presence.available():
+        if self.discord_presence.available:
             self.discord_presence.update_discord_rich_presence()
 
         return True
@@ -636,7 +636,7 @@ class Game(GObject.Object):
             )
             postexit_thread.start()
 
-        if self.discord_presence.available():
+        if self.discord_presence.available:
             self.discord_presence.clear_discord_rich_presence()
 
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())

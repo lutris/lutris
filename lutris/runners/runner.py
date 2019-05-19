@@ -12,7 +12,7 @@ from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.http import Request
 from lutris.runners import RunnerInstallationError
-from lutris.discord import Presence
+from lutris.discord import DiscordPresence
 
 
 class Runner:
@@ -72,8 +72,8 @@ class Runner:
             self.game_data = pga.get_game_by_field(
                 self.config.game_config_id, "configpath"
             )
-        self.discord_presence = Presence()
-        if self.discord_presence.available():
+        self.discord_presence = DiscordPresence()
+        if self.discord_presence.available:
             self.common_game_options = self.common_game_options + self.discord_presence_options
         self.inject_common_game_options()
 
