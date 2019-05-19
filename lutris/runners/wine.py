@@ -739,7 +739,10 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
-        self.setup_nine(self.runner_config.get("gallium_nine"))
+        try:
+            self.setup_nine(self.runner_config.get("gallium_nine"))
+        except nine.NineUnavailable as e:
+            raise GameConfigError("Unable to configure GalliumNine: " + str(e))
         try:
             dxvk_version = self.runner_config.get("dxvk_version")
             self.toggle_dxvk(

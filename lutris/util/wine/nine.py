@@ -5,6 +5,9 @@ import shutil
 from lutris.util import system
 from lutris.runners.commands.wine import wineexec
 
+class NineUnavailable(RuntimeError):
+    """Exception raised when Gallium Nine is not available"""
+
 class NineManager:
     """Utility class to install and manage Gallium Nine to a Wine prefix"""
 
@@ -95,6 +98,10 @@ class NineManager:
                         shutil.copy(nine_file_64, self.get_system_path("x64"))
 
     def enable(self):
+        if not self.nine_is_supported():
+            raise NineUnavailable("Nine is not supported on this system")
+        if not self.nine_is_installed():
+            raise NineUnavailable("Nine Standalone is not installed")
         if not self.is_prefix_prepared():
             self.prepare_prefix()
 
@@ -113,4 +120,3 @@ class NineManager:
                 prefix=self.prefix,
                 blocking=True,
             )
-
