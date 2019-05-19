@@ -35,6 +35,8 @@ def get_vk_icd_choices():
     return choices
 
 
+discord_presence = DiscordPresence()
+
 system_options = [  # pylint: disable=invalid-name
     {
         "option": "game_path",
@@ -384,46 +386,44 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "help": "Open Xephyr in fullscreen (at the desktop resolution)",
     },
-]
-
-discord_options = [
     {
         "option": "discord_rpc_enabled",
         "type": "bool",
         "label": "Discord Rich Presence",
         "default": False,
-        "help": "Enable notification to Discord of this game being played",
+        "condition": discord_presence.available,
+        "help": "Enable status to Discord of this game being played",
     },
     {
         "option": "discord_show_runner",
         "type": "bool",
         "label": "Discord Show Runner",
         "default": True,
-        "help": "Embed the runner name in the Discord notification",
+        "condition": discord_presence.available,
+        "help": "Embed the runner name in the Discord status",
     },
     {
         "option": "discord_custom_game_name",
         "type": "string",
         "label": "Discord Custom Game Name",
-        "help": "Custom name to override with and send to Discord",
+        "condition": discord_presence.available,
+        "help": "Custom name to override with and pass to Discord",
     },
     {
         "option": "discord_custom_runner_name",
         "type": "string",
         "label": "Discord Custom Runner Name",
-        "help": "Custom runner name to override with and send to Discord",
+        "condition": discord_presence.available,
+        "help": "Custom runner name to override with and pass to Discord",
     },
     {
         "option": "discord_client_id",
         "type": "string",
         "label": "Discord Client ID",
-        "help": "Custom Discord Client ID for sending notifications",
+        "condition": discord_presence.available,
+        "help": "Custom Discord Client ID for passing status",
     },
 ]
-
-discord_presence = DiscordPresence()
-if discord_presence.available:
-    system_options = system_options + discord_options
 
 
 def with_runner_overrides(runner_slug):
