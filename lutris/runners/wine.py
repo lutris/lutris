@@ -143,14 +143,20 @@ class wine(Runner):
                 version_choices.append((label, version))
             return version_choices
 
-        def get_dxvk_choices():
+        def dxvk_choices(manager_class):
             version_choices = [
                 ("Manual", "manual"),
-                (dxvk.DXVK_LATEST, dxvk.DXVK_LATEST),
+                (manager_class.DXVK_LATEST, manager_class.DXVK_LATEST),
             ]
-            for version in dxvk.DXVK_PAST_RELEASES:
+            for version in manager_class.DXVK_PAST_RELEASES:
                 version_choices.append((version, version))
             return version_choices
+
+        def get_dxvk_choices():
+            return dxvk_choices(dxvk.DXVKManager)
+
+        def get_d9vk_choices():
+            return dxvk_choices(dxvk.D9VKManager)
 
         def esync_limit_callback(widget, option, config):
             limits_set = is_esync_limit_set()
@@ -212,7 +218,24 @@ class wine(Runner):
                 "advanced": True,
                 "type": "choice_with_entry",
                 "choices": get_dxvk_choices,
-                "default": dxvk.DXVK_LATEST,
+                "default": dxvk.DXVKManager.DXVK_LATEST,
+            },
+            {
+                "option": "d9vk",
+                "label": "Enable D9VK",
+                "type": "extended_bool",
+                "help": "Use D9VK to translate DirectX 9 calls to Vulkan",
+                "callback": dxvk_vulkan_callback,
+                "callback_on": True,
+                "active": True,
+            },
+            {
+                "option": "d9vk_version",
+                "label": "D9VK version",
+                "advanced": True,
+                "type": "choice_with_entry",
+                "choices": get_d9vk_choices,
+                "default": dxvk.D9VKManager.DXVK_LATEST,
             },
             {
                 "option": "esync",
@@ -697,11 +720,7 @@ class wine(Runner):
 
                 prefix_manager.set_registry_key(path, key, value)
 
-    def toggle_dxvk(self, enable, version=None):
-        dxvk_manager = dxvk.DXVKManager(
-            self.prefix_path, arch=self.wine_arch, version=version
-        )
-
+    def toggle_dxvk(self, enable, version=None, dxvk_manager: dxvk.DXVKManager = None):
         # manual version only sets the dlls to native
         if version.lower() != "manual":
             if enable:
@@ -717,6 +736,18 @@ class wine(Runner):
                 if dxvk_manager.dxvk_dll_exists(dll):
                     self.dll_overrides[dll] = "n"
 
+    def setup_dxvk(self, base_name, dxvk_manager: dxvk.DXVKManager = None):
+        if not dxvk_manager:
+            return
+        try:
+            self.toggle_dxvk(
+                bool(self.runner_config.get(base_name)),
+                version=dxvk_manager.version,
+                dxvk_manager=dxvk_manager,
+            )
+        except dxvk.UnavailableDXVKVersion:
+            raise GameConfigError("Unable to get "+base_name.upper()+" %s" % dxvk_manager.version)
+
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
             create_prefix(self.prefix_path, arch=self.wine_arch)
@@ -726,14 +757,15 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
-        try:
-            dxvk_version = self.runner_config.get("dxvk_version")
-            self.toggle_dxvk(
-                bool(self.runner_config.get("dxvk")),
-                version=dxvk_version,
-            )
-        except dxvk.UnavailableDXVKVersion:
-            raise GameConfigError("Unable to get DXVK %s" % dxvk_version)
+        self.setup_dxvk("dxvk", dxvk_manager=dxvk.DXVKManager(
+                    self.prefix_path, arch=self.wine_arch, version=self.runner_config.get("dxvk_version")
+                ),)
+
+        # we don't want d9vk to restore d3d9.dll, because dxvk could set it already
+        if bool(self.runner_config.get("d9vk")):
+            self.setup_dxvk("d9vk", dxvk_manager=dxvk.D9VKManager(
+                        self.prefix_path, arch=self.wine_arch, version=self.runner_config.get("d9vk_version")
+                    ),)
         return True
 
     def get_dll_overrides(self):
@@ -861,7 +893,7 @@ class wine(Runner):
     def play(self):
         game_exe = self.game_exe
         arguments = self.game_config.get("args", "")
-        using_dxvk = self.runner_config.get("dxvk")
+        using_dxvk = self.runner_config.get("dxvk") or self.runner_config.get("d9vk")
 
         if using_dxvk:
             if not is_vulkan_supported():
