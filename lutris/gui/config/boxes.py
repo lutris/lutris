@@ -134,7 +134,7 @@ class ConfigBox(VBox):
             # Grey out option if condition unmet
             if "condition" in option and not option["condition"]:
                 hbox.set_sensitive(False)
-                if option.get("hide_when_disabled", False):
+                if option.get("hide_when_disabled"):
                     hbox.set_no_show_all(True)
                     hbox.hide()
 
