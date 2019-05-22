@@ -402,10 +402,6 @@ def gather_system_info():
 def gather_system_info_str():
     """Get all relevant system information already formatted as a string"""
     system_info = gather_system_info()
-    print("Gpus:")
-    print(system_info["gpus"])
-    print("GLX:")
-    print(system_info["glxinfo"])
     system_info_readable = {}
     #Add system information
     system_dict = {}
@@ -425,7 +421,7 @@ def gather_system_info_str():
     #Add memory information
     ram_dict = {}
     ram_dict["RAM"] = system_info["ram"]["MemTotal"] + " kB"
-    ram_dict["Swap"] = system_info["ram"]["SwapTotal"] + "kB"
+    ram_dict["Swap"] = system_info["ram"]["SwapTotal"] + " kB"
     system_info_readable["Memory"] = ram_dict
     #Add graphics information
     graphics_dict = {}
