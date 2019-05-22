@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 from lutris import runners
 from lutris.util import display, system
+from lutris.discord import DiscordPresence
 
 
 def get_optirun_choices():
@@ -33,6 +34,8 @@ def get_vk_icd_choices():
         choices.append((os.path.basename(loader), loader))
     return choices
 
+
+discord_presence = DiscordPresence()
 
 system_options = [  # pylint: disable=invalid-name
     {
@@ -382,6 +385,43 @@ system_options = [  # pylint: disable=invalid-name
         "default": True,
         "advanced": True,
         "help": "Open Xephyr in fullscreen (at the desktop resolution)",
+    },
+    {
+        "option": "discord_rpc_enabled",
+        "type": "bool",
+        "label": "Discord Rich Presence",
+        "default": False,
+        "condition": discord_presence.available,
+        "help": "Enable status to Discord of this game being played",
+    },
+    {
+        "option": "discord_show_runner",
+        "type": "bool",
+        "label": "Discord Show Runner",
+        "default": True,
+        "condition": discord_presence.available,
+        "help": "Embed the runner name in the Discord status",
+    },
+    {
+        "option": "discord_custom_game_name",
+        "type": "string",
+        "label": "Discord Custom Game Name",
+        "condition": discord_presence.available,
+        "help": "Custom name to override with and pass to Discord",
+    },
+    {
+        "option": "discord_custom_runner_name",
+        "type": "string",
+        "label": "Discord Custom Runner Name",
+        "condition": discord_presence.available,
+        "help": "Custom runner name to override with and pass to Discord",
+    },
+    {
+        "option": "discord_client_id",
+        "type": "string",
+        "label": "Discord Client ID",
+        "condition": discord_presence.available,
+        "help": "Custom Discord Client ID for passing status",
     },
 ]
 

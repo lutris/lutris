@@ -25,6 +25,7 @@ LIBRETRO_CORES = [
     ("Dolphin (Nintendo Wii/Gamecube)", "dolphin", "Nintendo Wii/Gamecube"),
     ("EightyOne (Sinclair ZX81)", "81", "Sinclair ZX81"),
     ("FB Alpha (Arcade)", "fbalpha", "Arcade"),
+    ("FBNeo (Arcade)", "fbneo", "Arcade"),
     ("FCEUmm (Nintendo Entertainment System)", "fceumm", "Nintendo NES"),
     ("fMSX (MSX/MSX2/MSX2+)", "fmsx", "MSX/MSX2/MSX2+"),
     ("FreeJ2ME (J2ME)", "freej2me", "J2ME"),
