@@ -53,15 +53,8 @@ class ConfigBox(VBox):
             return
 
         # Select config section.
-        if config_section == "game":
-            self.config = self.lutris_config.game_config
-            self.raw_config = self.lutris_config.raw_game_config
-        elif config_section == "runner":
-            self.config = self.lutris_config.runner_config
-            self.raw_config = self.lutris_config.raw_runner_config
-        elif config_section == "system":
-            self.config = self.lutris_config.system_config
-            self.raw_config = self.lutris_config.raw_system_config
+        self.config = getattr(self.lutris_config, config_section + "_config")
+        self.raw_config = getattr(self.lutris_config, "raw_" + config_section + "_config")
 
         # Go thru all options.
         for option in self.options:
@@ -110,7 +103,7 @@ class ConfigBox(VBox):
             placeholder.pack_start(reset_btn, False, False, 0)
 
             # Tooltip
-            helptext = self._generate_option_tooltip(option, option_key)
+            helptext = self._generate_option_tooltip(option, option_key, value, default)
             if helptext:
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
@@ -121,9 +114,7 @@ class ConfigBox(VBox):
             # Grey out option if condition unmet
             if "condition" in option and not option["condition"]:
                 hbox.set_sensitive(False)
-                if option.get("hide_when_disabled"):
-                    hbox.set_no_show_all(True)
-                    hbox.hide()
+                hbox.set_no_show_all(option.get("hide_when_disabled", False))
 
             # Hide if advanced
             if option.get("advanced"):
