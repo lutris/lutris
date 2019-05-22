@@ -11,6 +11,7 @@ from collections import defaultdict
 from lutris.vendor.distro import linux_distribution
 from lutris.util.graphics import drivers
 from lutris.util.graphics import glxinfo
+from lutris.util.graphics import vkquery
 from lutris.util.log import logger
 from lutris.util.disks import get_drive_for_path
 
@@ -187,7 +188,7 @@ class LinuxSystem:
     
     @staticmethod
     def get_ram_info():
-        """Parse the output of /proc/meminfo"""
+        """Parse the output of /proc/meminfo and return RAM information in kB"""
         mem = {}
         with open("/proc/meminfo") as meminfo:
             for line in meminfo.readlines():
@@ -415,24 +416,62 @@ def gather_system_info():
 def gather_system_info_str():
     """Get all relevant system information already formatted as a string"""
     system_info = gather_system_info()
-    output = ''
+    print("Gpus:")
+    print(system_info["gpus"])
+    print("GLX:")
+    print(system_info["glxinfo"])
+    system_info_readable = {}
     #Add system information
-    output += 'System\n'
-    output += 'OS:\t{}\n'.format(' '.join(system_info["dist"]))
-    output += 'Arch:\t{}\n'.format(system_info["arch"])
-    output += 'Kernel:\t{}\n'.format(system_info["kernel"])
-    output += 'Desktop:\t{}\n'.format(system_info["env"]["XDG_CURRENT_DESKTOP"])
-    output += 'Display Server:\t{}\n'.format(system_info["env"]["XDG_SESSION_TYPE"])
+    system_dict = {}
+    system_dict["OS"] = ' '.join(system_info["dist"])
+    system_dict["Arch"] = system_info["arch"]
+    system_dict["Kernel"] = system_info["kernel"]
+    system_dict["Desktop"] = system_info["env"]["XDG_CURRENT_DESKTOP"]
+    system_dict["Display Server"] = system_info["env"]["XDG_SESSION_TYPE"]
+    system_info_readable["System"] = system_dict
     #Add CPU information
-    output += '\nCPU\n'
-    output += 'Vendor:\t{}\n'.format(system_info["cpus"][0]["vendor_id"])
-    output += 'Model:\t{}\n'.format(system_info["cpus"][0]["model name"])
-    output += 'Physical cores:\t{}\n'.format(system_info["cpus"][0]["cpu cores"])
-    output += 'Logical cores:\t{}\n'.format(system_info["cpus"][0]["siblings"])
-    #Add RAM information
-    output += '\nMemory\n'
-    output += 'RAM:\t{} Kb\n'.format(system_info["ram"]["MemTotal"])
-    output += 'Swap:\t{} Kb\n'.format(system_info["ram"]["SwapTotal"])
+    cpu_dict = {}
+    cpu_dict["Vendor"] = system_info["cpus"][0]["vendor_id"]
+    cpu_dict["Model"] = system_info["cpus"][0]["model name"]
+    cpu_dict["Physical cores"] = system_info["cpus"][0]["cpu cores"]
+    cpu_dict["Logical cores"] = system_info["cpus"][0]["siblings"]
+    system_info_readable["CPU"] = cpu_dict
+    #Add memory information
+    ram_dict = {}
+    ram_dict["RAM"] = system_info["ram"]["MemTotal"] + " kB"
+    ram_dict["Swap"] = system_info["ram"]["SwapTotal"] + "kB"
+    system_info_readable["Memory"] = ram_dict
     #Add graphics information
-    output += '\nGraphics\n'
+    graphics_dict = {}
+    if drivers.is_nvidia():
+        graphics_dict["Vendor"] = "nVidia"
+        logger.info("nVidia info not yet implemnted")
+    elif LINUX_SYSTEM.glxinfo:
+        graphics_dict["Vendor"] = system_info["glxinfo"]["opengl_vendor"]
+        graphics_dict["OpenGL Renderer"] = system_info["glxinfo"]["opengl_renderer"]
+        graphics_dict["OpenGL Version"] = system_info["glxinfo"]["opengl_version"]
+        graphics_dict["OpenGL Core"] = system_info["glxinfo"]["opengl_core_profile_version"]
+        graphics_dict["OpenGL ES"] = system_info["glxinfo"]["opengl_es_profile_version"]
+    else:
+        graphics_dict["Vendor"] = "Unable to detect driver"
+    #check Vulkan support
+    if vkquery.is_vulkan_supported():
+        graphics_dict["Vulkan"] = "Supported"
+    else:
+        graphics_dict["Vulkan"] = "Not Supported"
+    system_info_readable["Graphics"] = graphics_dict
+    #format output
+    def number_of_tab(str, maxt=5):
+        if int(len(str)/4) > maxt:
+            return 0
+        else:
+            return maxt-int(len(str)/4)
+    output = ''
+    for section in system_info_readable:
+        output += '{}:\n'.format(section)
+        dictionary = system_info_readable[section]
+        for key in dictionary:
+            tabs = "\t"*number_of_tab(key+":")
+            output += '{}{}{}\n'.format(key + ":", tabs, dictionary[key])
+        output += '\n'
     return output
