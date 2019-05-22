@@ -24,6 +24,8 @@ from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, escape_gtk_label
 
+from subprocess import Popen
+from shutil import which
 
 class InstallerWindow(BaseApplicationWindow):
     """GUI for the install process."""
@@ -481,6 +483,8 @@ class InstallerWindow(BaseApplicationWindow):
             }
         )
         if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
+            ws_path = which('wineserver')
+            Popen([ws_path, '-k9'])
             return True
         if self.interpreter:
             self.interpreter.revert()
