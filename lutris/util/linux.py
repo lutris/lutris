@@ -461,11 +461,10 @@ def gather_system_info_str():
         graphics_dict["Vulkan"] = "Not Supported"
     system_info_readable["Graphics"] = graphics_dict
     #format output
-    def number_of_tab(str, maxt=5):
-        if int(len(str)/4) > maxt:
+    def number_of_tab(string, maxt=5):
+        if int(len(string)/4) > maxt:
             return 0
-        else:
-            return maxt-int(len(str)/4)
+        return maxt-int(len(str)/4)
     output = ''
     for section in system_info_readable:
         output += '{}:\n'.format(section)
