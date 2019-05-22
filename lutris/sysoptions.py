@@ -116,7 +116,6 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "condition": system.find_executable("pulseaudio"),
         "help": "Restart PulseAudio before launching the game.",
-        "disabled_help": "Feature disabled.  Install pulseaudio to enable.",
     },
     {
         "option": "pulse_latency",
@@ -129,7 +128,6 @@ system_options = [  # pylint: disable=invalid-name
             "Set the environment variable PULSE_LATENCY_MSEC=60 "
             "to improve audio quality on some games"
         ),
-        "disabled_help": "Feature disabled.  Install pulseaudio to enable.",
     },
     {
         "option": "use_us_layout",
@@ -177,7 +175,6 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "condition": bool(system.find_executable("strangle")),
         "help": "Limit the game's fps to desired number",
-        "disabled_help": "Feature disabled.  Install strangle to enable.",
     },
     {
         "option": "gamemode",
@@ -186,7 +183,6 @@ system_options = [  # pylint: disable=invalid-name
         "condition": system.LINUX_SYSTEM.is_feature_supported("GAMEMODE"),
         "label": "Enable Feral gamemode",
         "help": "Request a set of optimisations be temporarily applied to the host OS",
-        "disabled_help": "Feature disabled.  Ensure libgamemodeauto.so is available on your system.",
     },
     {
         "option": "dri_prime",
@@ -201,7 +197,6 @@ system_options = [  # pylint: disable=invalid-name
             "activating your discrete graphic chip for high 3D "
             "performance."
         ),
-        "disabled_help": "Feature disabled.  Requires multiple graphics adapters.",
     },
     {
         "option": "sdl_video_fullscreen",
@@ -351,7 +346,6 @@ system_options = [  # pylint: disable=invalid-name
             "Command line options for xboxdrv, a driver for XBOX 360 "
             "controllers. Requires the xboxdrv package installed."
         ),
-        "disabled_help": "Feature disabled.  Install xboxdrv to enable.",
     },
     {
         "option": "sdl_gamecontrollerconfig",
@@ -392,6 +386,9 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "help": "Open Xephyr in fullscreen (at the desktop resolution)",
     },
+]
+
+discord_options = [
     {
         "option": "discord_rpc_enabled",
         "type": "bool",
@@ -399,8 +396,6 @@ system_options = [  # pylint: disable=invalid-name
         "default": False,
         "condition": discord_presence.available,
         "help": "Enable status to Discord of this game being played",
-        "disabled_help": "Feature disabled.  Install pypresence~=3.3.2 to enable.",
-        "hide_when_disabled": True,
     },
     {
         "option": "discord_show_runner",
@@ -409,8 +404,6 @@ system_options = [  # pylint: disable=invalid-name
         "default": True,
         "condition": discord_presence.available,
         "help": "Embed the runner name in the Discord status",
-        "disabled_help": "Feature disabled.  Install pypresence~=3.3.2 to enable.",
-        "hide_when_disabled": True,
     },
     {
         "option": "discord_custom_game_name",
@@ -418,8 +411,6 @@ system_options = [  # pylint: disable=invalid-name
         "label": "Discord Custom Game Name",
         "condition": discord_presence.available,
         "help": "Custom name to override with and pass to Discord",
-        "disabled_help": "Feature disabled.  Install pypresence~=3.3.2 to enable.",
-        "hide_when_disabled": True,
     },
     {
         "option": "discord_custom_runner_name",
@@ -427,8 +418,6 @@ system_options = [  # pylint: disable=invalid-name
         "label": "Discord Custom Runner Name",
         "condition": discord_presence.available,
         "help": "Custom runner name to override with and pass to Discord",
-        "disabled_help": "Feature disabled.  Install pypresence~=3.3.2 to enable.",
-        "hide_when_disabled": True,
     },
     {
         "option": "discord_client_id",
@@ -436,10 +425,11 @@ system_options = [  # pylint: disable=invalid-name
         "label": "Discord Client ID",
         "condition": discord_presence.available,
         "help": "Custom Discord Client ID for passing status",
-        "disabled_help": "Feature disabled.  Install pypresence~=3.3.2 to enable.",
-        "hide_when_disabled": True,
     },
 ]
+
+if discord_presence.available:
+    system_options += discord_options
 
 
 def with_runner_overrides(runner_slug):

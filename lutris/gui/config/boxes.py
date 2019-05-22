@@ -53,8 +53,15 @@ class ConfigBox(VBox):
             return
 
         # Select config section.
-        self.config = getattr(self.lutris_config, config_section + "_config")
-        self.raw_config = getattr(self.lutris_config, "raw_" + config_section + "_config")
+        if config_section == "game":
+            self.config = self.lutris_config.game_config
+            self.raw_config = self.lutris_config.raw_game_config
+        elif config_section == "runner":
+            self.config = self.lutris_config.runner_config
+            self.raw_config = self.lutris_config.raw_runner_config
+        elif config_section == "system":
+            self.config = self.lutris_config.system_config
+            self.raw_config = self.lutris_config.raw_system_config
 
         # Go thru all options.
         for option in self.options:
@@ -103,7 +110,16 @@ class ConfigBox(VBox):
             placeholder.pack_start(reset_btn, False, False, 0)
 
             # Tooltip
-            helptext = self._generate_option_tooltip(option, option_key, value, default)
+            helptext = option.get("help")
+            if isinstance(self.tooltip_default, str):
+                helptext = helptext + "\n\n" if helptext else ""
+                helptext += "<b>Default</b>: " + self.tooltip_default
+            if value != default and option_key not in self.raw_config:
+                helptext = helptext + "\n\n" if helptext else ""
+                helptext += (
+                    "<i>(Italic indicates that this option is "
+                    "modified in a lower configuration level.)</i>"
+                )
             if helptext:
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
@@ -114,7 +130,6 @@ class ConfigBox(VBox):
             # Grey out option if condition unmet
             if "condition" in option and not option["condition"]:
                 hbox.set_sensitive(False)
-                hbox.set_no_show_all(option.get("hide_when_disabled", False))
 
             # Hide if advanced
             if option.get("advanced"):
@@ -124,23 +139,6 @@ class ConfigBox(VBox):
                     hbox.set_no_show_all(True)
             hbox.pack_start(self.wrapper, True, True, 0)
             self.pack_start(hbox, False, False, 0)
-
-    def _generate_option_tooltip(self, option, option_key, value, default):
-        helptext = option.get("help")
-        if "condition" in option and not option["condition"]:
-            disabled_help = option.get("disabled_help")
-            if disabled_help:
-                helptext = disabled_help + "\n\n" + helptext if helptext else disabled_help
-        if isinstance(self.tooltip_default, str):
-            helptext = helptext + "\n\n" if helptext else ""
-            helptext += "<b>Default</b>: " + self.tooltip_default
-        if value != default and option_key not in self.raw_config:
-            helptext = helptext + "\n\n" if helptext else ""
-            helptext += (
-                "<i>(Italic indicates that this option is "
-                "modified in a lower configuration level.)</i>"
-            )
-        return helptext
 
     def call_widget_generator(self, option, option_key, value, default):
         """Call the right generation method depending on option type."""
