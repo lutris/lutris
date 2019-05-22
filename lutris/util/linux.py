@@ -171,20 +171,6 @@ class LinuxSystem:
             drive for drive in json.loads(output)["blockdevices"]
             if drive["fstype"] != "squashfs"
         ]
-
-    @staticmethod
-    def get_ram_info_old():
-        """Return RAM information"""
-        try:
-            output = subprocess.check_output(["free"]).decode().split("\n")
-        except subprocess.CalledProcessError as ex:
-            logger.error("Failed to get RAM information: %s", ex)
-            return None
-        columns = output[0].split()
-        meminfo = {}
-        for parts in [line.split() for line in output[1:] if line]:
-            meminfo[parts[0].strip(":").lower()] = dict(zip(columns, parts[1:]))
-        return meminfo
     
     @staticmethod
     def get_ram_info():
@@ -443,17 +429,14 @@ def gather_system_info_str():
     system_info_readable["Memory"] = ram_dict
     #Add graphics information
     graphics_dict = {}
-    if drivers.is_nvidia():
-        graphics_dict["Vendor"] = "nVidia"
-        logger.info("nVidia info not yet implemnted")
-    elif LINUX_SYSTEM.glxinfo:
+    if LINUX_SYSTEM.glxinfo:
         graphics_dict["Vendor"] = system_info["glxinfo"]["opengl_vendor"]
         graphics_dict["OpenGL Renderer"] = system_info["glxinfo"]["opengl_renderer"]
         graphics_dict["OpenGL Version"] = system_info["glxinfo"]["opengl_version"]
         graphics_dict["OpenGL Core"] = system_info["glxinfo"]["opengl_core_profile_version"]
         graphics_dict["OpenGL ES"] = system_info["glxinfo"]["opengl_es_profile_version"]
     else:
-        graphics_dict["Vendor"] = "Unable to detect driver"
+        graphics_dict["Vendor"] = "Unable to obtain glxinfo"
     #check Vulkan support
     if vkquery.is_vulkan_supported():
         graphics_dict["Vulkan"] = "Supported"
@@ -464,7 +447,7 @@ def gather_system_info_str():
     def number_of_tab(string, maxt=5):
         if int(len(string)/4) > maxt:
             return 0
-        return maxt-int(len(str)/4)
+        return maxt-int(len(string)/4)
     output = ''
     for section in system_info_readable:
         output += '{}:\n'.format(section)
