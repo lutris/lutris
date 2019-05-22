@@ -111,6 +111,10 @@ class ConfigBox(VBox):
 
             # Tooltip
             helptext = option.get("help")
+            if "condition" in option and not option["condition"]:
+                disabled_help = option.get("disabled_help")
+                if disabled_help:
+                    helptext = disabled_help + "\n\n" + helptext if helptext else disabled_help
             if isinstance(self.tooltip_default, str):
                 helptext = helptext + "\n\n" if helptext else ""
                 helptext += "<b>Default</b>: " + self.tooltip_default
@@ -130,6 +134,9 @@ class ConfigBox(VBox):
             # Grey out option if condition unmet
             if "condition" in option and not option["condition"]:
                 hbox.set_sensitive(False)
+                if option.get("hide_when_disabled", False):
+                    hbox.set_no_show_all(True)
+                    hbox.hide()
 
             # Hide if advanced
             if option.get("advanced"):
