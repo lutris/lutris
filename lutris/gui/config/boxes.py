@@ -110,20 +110,7 @@ class ConfigBox(VBox):
             placeholder.pack_start(reset_btn, False, False, 0)
 
             # Tooltip
-            helptext = option.get("help")
-            if "condition" in option and not option["condition"]:
-                disabled_help = option.get("disabled_help")
-                if disabled_help:
-                    helptext = disabled_help + "\n\n" + helptext if helptext else disabled_help
-            if isinstance(self.tooltip_default, str):
-                helptext = helptext + "\n\n" if helptext else ""
-                helptext += "<b>Default</b>: " + self.tooltip_default
-            if value != default and option_key not in self.raw_config:
-                helptext = helptext + "\n\n" if helptext else ""
-                helptext += (
-                    "<i>(Italic indicates that this option is "
-                    "modified in a lower configuration level.)</i>"
-                )
+            helptext = self._generate_option_tooltip(option, option_key)
             if helptext:
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
@@ -146,6 +133,23 @@ class ConfigBox(VBox):
                     hbox.set_no_show_all(True)
             hbox.pack_start(self.wrapper, True, True, 0)
             self.pack_start(hbox, False, False, 0)
+
+    def _generate_option_tooltip(self, option, option_key, value, default):
+        helptext = option.get("help")
+        if "condition" in option and not option["condition"]:
+            disabled_help = option.get("disabled_help")
+            if disabled_help:
+                helptext = disabled_help + "\n\n" + helptext if helptext else disabled_help
+        if isinstance(self.tooltip_default, str):
+            helptext = helptext + "\n\n" if helptext else ""
+            helptext += "<b>Default</b>: " + self.tooltip_default
+        if value != default and option_key not in self.raw_config:
+            helptext = helptext + "\n\n" if helptext else ""
+            helptext += (
+                "<i>(Italic indicates that this option is "
+                "modified in a lower configuration level.)</i>"
+            )
+        return helptext
 
     def call_widget_generator(self, option, option_key, value, default):
         """Call the right generation method depending on option type."""
