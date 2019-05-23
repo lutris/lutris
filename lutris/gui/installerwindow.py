@@ -481,6 +481,9 @@ class InstallerWindow(BaseApplicationWindow):
             }
         )
         if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
+            logger.warning("Attempting to terminate with the system wineserver. "
+                           "This is most likely to fail or to have no effect.")
+            system.execute([system.find_executable("wineserver"), "-k9"])
             return True
         if self.interpreter:
             self.interpreter.revert()

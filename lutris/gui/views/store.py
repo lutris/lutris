@@ -30,6 +30,14 @@ from . import (
 )
 
 
+def try_lower(value):
+    try:
+        out = value.lower()
+    except AttributeError:
+        out = value
+    return out
+
+
 def sort_func(model, row1, row2, sort_col):
     """Sorting function for the GameStore"""
     value1 = model.get_value(row1, sort_col)
@@ -40,15 +48,23 @@ def sort_func(model, row1, row2, sort_col):
         value1 = type(value2)()
     elif value2 is None:
         value2 = type(value1)()
+    value1 = try_lower(value1)
+    value2 = try_lower(value2)
     diff = -1 if value1 < value2 else 0 if value1 == value2 else 1
     if diff == 0:
-        value1 = model.get_value(row1, COL_NAME)
-        value2 = model.get_value(row2, COL_NAME)
-        diff = -1 if value1 < value2 else 0 if value1 == value2 else 1
+        value1 = try_lower(model.get_value(row1, COL_NAME))
+        value2 = try_lower(model.get_value(row2, COL_NAME))
+        try:
+            diff = -1 if value1 < value2 else 0 if value1 == value2 else 1
+        except TypeError:
+            diff = 0
     if diff == 0:
-        value1 = model.get_value(row1, COL_RUNNER_HUMAN_NAME)
-        value2 = model.get_value(row2, COL_RUNNER_HUMAN_NAME)
-    return -1 if value1 < value2 else 0 if value1 == value2 else 1
+        value1 = try_lower(model.get_value(row1, COL_RUNNER_HUMAN_NAME))
+        value2 = try_lower(model.get_value(row2, COL_RUNNER_HUMAN_NAME))
+    try:
+        return -1 if value1 < value2 else 0 if value1 == value2 else 1
+    except TypeError:
+        return 0
 
 
 class GameStore(GObject.Object):
