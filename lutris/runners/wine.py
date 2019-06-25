@@ -490,6 +490,7 @@ class wine(Runner):
         if "Proton" not in self.get_version():
             menu_entries.append(("winecfg", "Wine configuration", self.run_winecfg))
         menu_entries += [
+            ("wineconsole", "Wine console", self.run_wineconsole),
             ("wine-regedit", "Wine registry", self.run_regedit),
             ("winekill", "Kill all wine processes", self.run_winekill),
             ("winetricks", "Winetricks", self.run_winetricks),
@@ -646,6 +647,11 @@ class wine(Runner):
             prefix=self.prefix_path,
             config=self,
         )
+
+    def run_wineconsole(self, *args):
+        """Runs wineconsole in wine prefix."""
+        wineexec('wineconsole', wine_path=self.get_executable(), prefix=self.prefix_path, working_dir=self.prefix_path)
+        return True
 
     def run_winecfg(self, *args):
         self.prelaunch()
