@@ -649,9 +649,8 @@ class wine(Runner):
         )
 
     def run_wineconsole(self, *args):
-        """Runs wineconsole in wine prefix."""
+        """Runs wineconsole inside wine prefix."""
         wineexec('wineconsole', wine_path=self.get_executable(), prefix=self.prefix_path, working_dir=self.prefix_path)
-        return True
 
     def run_winecfg(self, *args):
         self.prelaunch()
