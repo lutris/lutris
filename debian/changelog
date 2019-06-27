@@ -1,3 +1,9 @@
+lutris (0.5.2.2) disco; urgency=medium
+
+  *
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 26 Jun 2019 21:20:13 -0700
+
 lutris (0.5.2.1) cosmic; urgency=high
 
   * Handle distributions where ldconfig is not in $PATH, like Debian
