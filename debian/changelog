@@ -1,6 +1,7 @@
-lutris (0.5.2.2) disco; urgency=medium
+lutris (0.5.2.2) disco; urgency=high
 
-  *
+  * Fix installation of Wine Steam runner
+  * Restore and preserve original d3d .dll files when DXVK option is not active
 
  -- Mathieu Comandon <strycore@gmail.com>  Wed, 26 Jun 2019 21:20:13 -0700
 
