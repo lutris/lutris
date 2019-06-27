@@ -24,7 +24,7 @@ from lutris.runners.commands.wine import ( # noqa pylint: disable=unused-import
     install_cab_component,
 )
 
-STEAM_INSTALLER_URL = "http://lutris.net/files/runners/SteamInstall.msi"
+STEAM_INSTALLER_URL = "https://lutris.nyc3.cdn.digitaloceanspaces.com/runners/winesteam/SteamSetup.exe"
 
 
 def is_running():
@@ -275,7 +275,7 @@ class winesteam(wine.wine):
             return system.fix_path_case(registry.get_unix_path(steam_path))
 
     def install(self, version=None, downloader=None, callback=None):
-        installer_path = os.path.join(settings.TMP_PATH, "SteamInstall.msi")
+        installer_path = os.path.join(settings.TMP_PATH, "SteamSetup.exe")
 
         def on_steam_downloaded(*_args):
             prefix = self.get_or_create_default_prefix()
@@ -286,13 +286,11 @@ class winesteam(wine.wine):
                 prefix=prefix,
                 wine_path=self.get_executable()
             )
-            self.msi_exec(
+            wineexec(
                 installer_path,
-                quiet=True,
+                args="/S",
                 prefix=prefix,
                 wine_path=self.get_executable(),
-                working_dir="/tmp",
-                blocking=True,
             )
             if callback:
                 callback()
