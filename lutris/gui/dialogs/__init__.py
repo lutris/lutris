@@ -99,6 +99,9 @@ class QuestionDialog(Gtk.MessageDialog):
         )
         self.set_markup(dialog_settings["question"])
         self.set_title(dialog_settings["title"])
+        if "widgets" in dialog_settings:
+            for widget in dialog_settings["widgets"]:
+                self.get_message_area().add(widget)
         self.result = self.run()
         self.destroy()
 
