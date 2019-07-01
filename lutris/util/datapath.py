@@ -13,6 +13,8 @@ def get():
         data_path = "/usr/share/lutris"
     elif system.path_exists(os.path.normpath(os.path.join(sys.path[0], "share"))):
         data_path = os.path.normpath(os.path.join(sys.path[0], "share/lutris"))
+    elif system.path_exists(os.path.normpath(os.path.join(launch_path, "../../share/lutris"))):
+        data_path = os.path.normpath(os.path.join(launch_path, "../../share/lutris"))
     else:
         import lutris
 
