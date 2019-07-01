@@ -17,10 +17,12 @@ import locale
 from os.path import realpath, dirname, normpath
 
 LAUNCH_PATH = dirname(realpath(__file__))
-if not LAUNCH_PATH.startswith("/usr"):
+if os.path.isdir(os.path.join(LAUNCH_PATH,"../lutris")):
     sys.dont_write_bytecode = True
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
+else:
+    sys.path.insert(0, os.path.normpath(os.path.join(LAUNCH_PATH, "../lib/lutris")))
 
 try:
     locale_name = locale.getlocale()

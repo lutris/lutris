@@ -127,10 +127,12 @@ def main():
 
 if __name__ == "__main__":
     LAUNCH_PATH = os.path.dirname(os.path.realpath(__file__))
-    if not LAUNCH_PATH.startswith("/usr"):
+    if os.path.isdir(os.path.join(LAUNCH_PATH,"../lutris")):
         logger.setLevel(logging.DEBUG)
         sys.dont_write_bytecode = True
         SOURCE_PATH = os.path.normpath(os.path.join(LAUNCH_PATH, '..'))
         sys.path.insert(0, SOURCE_PATH)
+    else:
+        sys.path.insert(0, os.path.normpath(os.path.join(LAUNCH_PATH, "../lib/lutris")))
 
     main()
