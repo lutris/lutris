@@ -325,8 +325,12 @@ class steam(Runner):
             # Start through steam
 
             if system.LINUX_SYSTEM.is_flatpak:
+                if game_args:
+                    steam_uri = "steam://run/%s//%s/" % (self.appid, game_args)
+                else:
+                    steam_uri = "steam://rungameid/%s" % self.appid
                 return {
-                    "command": self.launch_args + ["steam://rungameid/%s" % self.appid],
+                    "command": self.launch_args + [steam_uri],
                     "env": self.get_env(),
                 }
 
