@@ -1,4 +1,5 @@
 import os
+import errno
 import uuid
 import shutil
 import tarfile
@@ -155,9 +156,9 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
 def _do_extract(archive, dest, opener, mode=None, extractor=None):
     if opener == "7zip":
         extract_7zip(archive, dest, archive_type=extractor)
-    if opener == "exe":
+    elif opener == "exe":
         extract_exe(archive, dest)
-    if opener == "innoextract":
+    elif opener == "innoextract":
         extract_gog(archive, dest)
     else:
         handler = opener(archive, mode)
@@ -211,6 +212,15 @@ def decompress_gog(file_path, destination_path):
         _innoextract_path = system.find_executable("innoextract")
     if not system.path_exists(_innoextract_path):
         raise OSError("innoextract is not found in the lutris runtime or on the system")
+    #innoextract cannot do mkdir -p, so we have to do it here:
+    try:
+        os.makedirs(destination_path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise OSError("cannot make output directory for extracting setup file")
+        else:
+            pass
+    
     command = [_innoextract_path, "-g", "-d", destination_path, "-e", file_path]
     return_code = subprocess.call(command)
     if not return_code == 0:
