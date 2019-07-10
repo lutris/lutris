@@ -47,6 +47,9 @@ snap:
 	snapcraft clean lutris -s pull
 	snapcraft
 
+upload-ppa:
+	dput ppa:lutris-team/lutris build/lutris_${VERSION}*_source.changes
+
 upload-staging:
 	gbp buildpackage -S --git-debian-branch=master
 	mkdir -p build
