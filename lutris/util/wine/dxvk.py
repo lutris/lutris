@@ -40,7 +40,7 @@ def init_dxvk_versions():
                     dxvk_versions.append(version_name)
         if not dxvk_versions:  # We don't want to set manager.DXVK_VERSIONS, if the list is empty
             raise IndexError
-        return dxvk_versions
+        return sorted(dxvk_versions, reverse=True)
 
     def init_versions(manager):
         try:
