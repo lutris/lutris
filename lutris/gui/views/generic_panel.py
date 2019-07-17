@@ -51,6 +51,8 @@ class GenericPanel(Gtk.Fixed):
     def set_background(self):
         """Return the background image for the panel"""
         bg_path = get_pixbuf_for_panel(self.background_id)
+        if not bg_path:
+            return
 
         style = Gtk.StyleContext()
         style.add_class(Gtk.STYLE_CLASS_VIEW)

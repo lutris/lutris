@@ -1,7 +1,10 @@
 """Various utilities using the GObject framework"""
 import os
 import array
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 from gi.repository import GdkPixbuf, GLib, Gtk, Gio, Gdk
 
 from lutris.util.log import logger
@@ -180,6 +183,9 @@ def image2pixbuf(image):
 
 def get_pixbuf_for_panel(game_slug):
     """Return the pixbuf for the game panel background"""
+    if Image is None:
+        # PIL is not available
+        return
     source_path = os.path.join(settings.COVERART_PATH, "%s.jpg" % game_slug)
     if not os.path.exists(source_path):
         source_path = os.path.join(datapath.get(), "media/generic-panel-bg.png")
