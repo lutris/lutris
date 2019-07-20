@@ -200,10 +200,9 @@ def check_inno_exe(path):
         return False #Can't find innoextract
     command = [_innoextract_path, "-i", path]
     return_code = subprocess.call(command)
-    if not return_code == 0:
+    if return_code != 0:
         return False
-    else:
-        return True
+    return True
 
 
 def decompress_gog(file_path, destination_path):
@@ -218,12 +217,9 @@ def decompress_gog(file_path, destination_path):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise OSError("cannot make output directory for extracting setup file")
-        else:
-            pass
-    
     command = [_innoextract_path, "-g", "-d", destination_path, "-e", file_path]
     return_code = subprocess.call(command)
-    if not return_code == 0:
+    if return_code != 0:
         raise RuntimeError("innoextract failed to extract GOG setup file")
 
 
