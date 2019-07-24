@@ -574,7 +574,8 @@ class Game(GObject.Object):
         """Watch the prelaunch command"""
         if self.prelaunch_executor.is_running:
             return True
-        self.start_game()
+        if self.prelaunch_executor.return_code == 0:
+            self.start_game()
         return False
 
     def beat(self):
