@@ -53,6 +53,7 @@ LIBRETRO_CORES = [
     ("Mednafen PSX (Sony Playstation)", "mednafen_psx", "Sony PlayStation"),
     ("Mednafen PSX OpenGL (Sony Playstation)", "mednafen_psx_hw", "Sony PlayStation"),
     ("Mesen (Nintendo Entertainment System)", "mesen", "Nintendo NES"),
+    ("Mesen-S (Super Nintendo)", "mesen-s", "Nintendo SNES"),
     ("mGBA (Game Boy Advance)", "mgba", "Nintendo Game Boy Advance"),
     ("Mupen64Plus (Nintendo 64)", "mupen64plus", "Nintendo N64"),
     ("Nestopia (Nintendo Entertainment System)", "nestopia", "Nintendo NES"),
