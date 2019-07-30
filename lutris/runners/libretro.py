@@ -25,6 +25,10 @@ LIBRETRO_CORES = [
     ("Dolphin (Nintendo Wii/Gamecube)", "dolphin", "Nintendo Wii/Gamecube"),
     ("EightyOne (Sinclair ZX81)", "81", "Sinclair ZX81"),
     ("FB Alpha (Arcade)", "fbalpha", "Arcade"),
+    ("FB Alpha (Capcom Play System 1)", "fbalpha2012_cps1", "Arcade"),
+    ("FB Alpha (Capcom Play System 2)", "fbalpha2012_cps2", "Arcade"),
+    ("FB Alpha (Capcom Play System 3)", "fbalpha2012_cps3", "Arcade"),
+    ("FB Alpha (SNK Neo Geo)", "fbalpha2012_neogeo", "Arcade"),
     ("FBNeo (Arcade)", "fbneo", "Arcade"),
     ("FCEUmm (Nintendo Entertainment System)", "fceumm", "Nintendo NES"),
     ('Flycast (Sega Dreamcast)', 'flycast', 'Sega Dreamcast'),
@@ -82,10 +86,12 @@ LIBRETRO_CORES = [
     ("Yabause (Sega Saturn)", "yabause", "Sega Saturn"),
     ("VBA Next (Game Boy Advance)", "vba_next", "Nintendo Game Boy Advance"),
     ("VBA-M (Game Boy Advance)", "vbam", "Nintendo Game Boy Advance"),
-    ("Virtual Jaguar (Atari Jaguar)", "virtualjaguar", "Atari Jaguar"),
+    ("Virtual Jaguar (Atari Jaguar)", "virtualjaguar", "Atari Jaguar")
     ("VICE (Commodore 128)", "vice_x128", "Commodore 128"),
+    ("VICE (Commodore Pet)", "vice_xpet", "Commodore Pet"),
     ("VICE (Commodore 16/Plus/4)", "vice_xplus4", "Commodore 16/Plus/4"),
     ("VICE (Commodore 64)", "vice_x64", "Commodore 64"),
+    ("VICE (Commodore 64)(Cycle-Exact)", "vice_x64sc", "Commodore 64"),
     ("VICE (Commodore VIC-20)", "vice_xvic", "Commodore VIC-20"),
 ]
 
