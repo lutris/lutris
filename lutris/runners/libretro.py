@@ -86,7 +86,7 @@ LIBRETRO_CORES = [
     ("Yabause (Sega Saturn)", "yabause", "Sega Saturn"),
     ("VBA Next (Game Boy Advance)", "vba_next", "Nintendo Game Boy Advance"),
     ("VBA-M (Game Boy Advance)", "vbam", "Nintendo Game Boy Advance"),
-    ("Virtual Jaguar (Atari Jaguar)", "virtualjaguar", "Atari Jaguar")
+    ("Virtual Jaguar (Atari Jaguar)", "virtualjaguar", "Atari Jaguar"),
     ("VICE (Commodore 128)", "vice_x128", "Commodore 128"),
     ("VICE (Commodore Pet)", "vice_xpet", "Commodore Pet"),
     ("VICE (Commodore 16/Plus/4)", "vice_xplus4", "Commodore 16/Plus/4"),
