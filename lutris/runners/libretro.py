@@ -88,6 +88,7 @@ LIBRETRO_CORES = [
     ("VBA-M (Game Boy Advance)", "vbam", "Nintendo Game Boy Advance"),
     ("Virtual Jaguar (Atari Jaguar)", "virtualjaguar", "Atari Jaguar"),
     ("VICE (Commodore 128)", "vice_x128", "Commodore 128"),
+    ("VICE (Commodore CBM-II)", "vice_xcbm2", "Commodore CBM-II"),
     ("VICE (Commodore Pet)", "vice_xpet", "Commodore Pet"),
     ("VICE (Commodore 16/Plus/4)", "vice_xplus4", "Commodore 16/Plus/4"),
     ("VICE (Commodore 64)", "vice_x64", "Commodore 64"),
