@@ -23,25 +23,31 @@ def init_dxvk_versions():
         if not os.path.isdir(dxvk_path):
             os.mkdir(dxvk_path)
         versions_path = os.path.join(dxvk_path, base_name+"_versions.json")
-
-        urllib.request.urlretrieve(tags_url, versions_path)
-
+        internet_available = True
+        try:
+            urllib.request.urlretrieve(tags_url, versions_path)
+        except Exception as ex:  # pylint: disable= broad-except
+            logger.error(ex)
+            internet_available = False
+        dxvk_versions = list()
         with open(versions_path, "r") as dxvk_tags:
             dxvk_json = json.load(dxvk_tags)
-            dxvk_versions = list()
             for x in dxvk_json:
                 version_name = x["name"].replace("v", "")
                 if version_name.startswith('m'):  # ignore master snapshots of d9vk
                     continue
-                dxvk_versions.append(version_name)
-        return dxvk_versions
+                if internet_available or version_name in os.listdir(dxvk_path):
+                    dxvk_versions.append(version_name)
+        if not dxvk_versions:  # We don't want to set manager.DXVK_VERSIONS, if the list is empty
+            raise IndexError
+        return sorted(dxvk_versions, reverse=True)
 
     def init_versions(manager):
         try:
             manager.DXVK_VERSIONS \
                 = get_dxvk_versions(manager.base_name, manager.DXVK_TAGS_URL)
-        except Exception as ex:  # pylint: disable= broad-except
-            logger.error(ex)
+        except (IndexError, FileNotFoundError):
+            pass
         manager.DXVK_LATEST, manager.DXVK_PAST_RELEASES = manager.DXVK_VERSIONS[0], manager.DXVK_VERSIONS[1:9]
 
     init_versions(DXVKManager)
@@ -150,11 +156,9 @@ class DXVKManager:
     def disable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Remove DXVK DLL from Wine prefix"""
         wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
-        if self.is_dxvk_dll(wine_dll_path):
+        if self.is_dxvk_dll(wine_dll_path) and system.path_exists(wine_dll_path + ".orig"):
             logger.info("Removing "+self.base_name.upper()+" dll %s/%s", system_dir, dll)
             os.remove(wine_dll_path)
-        # Restoring original version (may not be needed)
-        if system.path_exists(wine_dll_path + ".orig"):
             shutil.move(wine_dll_path + ".orig", wine_dll_path)
 
     def _iter_dxvk_dlls(self):
