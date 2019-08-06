@@ -474,10 +474,15 @@ class InstallerWindow(BaseApplicationWindow):
 
     def cancel_installation(self, widget=None):
         """Ask a confirmation before cancelling the install"""
+        remove_checkbox = Gtk.CheckButton.new_with_label("Remove game files")
+        if self.interpreter:
+            remove_checkbox.set_active(self.interpreter.game_dir_created)
+            remove_checkbox.show()
         confirm_cancel_dialog = QuestionDialog(
             {
                 "question": "Are you sure you want to cancel the installation?",
                 "title": "Cancel installation?",
+                "widgets": [remove_checkbox]
             }
         )
         if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
@@ -486,6 +491,7 @@ class InstallerWindow(BaseApplicationWindow):
             system.execute([system.find_executable("wineserver"), "-k9"])
             return True
         if self.interpreter:
+            self.interpreter.game_dir_created = remove_checkbox.get_active()
             self.interpreter.revert()
             self.interpreter.cleanup()
         self.destroy()
