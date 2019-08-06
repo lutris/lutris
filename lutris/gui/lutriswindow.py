@@ -141,7 +141,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.panel_revealer = Gtk.Revealer(visible=True)
         self.panel_revealer.set_transition_duration(300)
         self.panel_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
-        self.panel_revealer.set_reveal_child(True)
         self.panel_revealer.add(self.game_scrolled)
 
         self.main_box.pack_end(self.panel_revealer, False, False, 0)
@@ -152,9 +151,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Contextual menu
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
 
-        # Sidebar
-        self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
+        # Left/Right Sidebar visibility
+        self.sidebar_revealer.set_reveal_child(self.left_side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
+        self.panel_revealer.set_reveal_child(self.right_side_panel_visible)
+        self.panel_revealer.set_transition_duration(300)
         self.update_runtime()
 
         # Connect account and/or sync
@@ -215,11 +216,17 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "use-dark-theme": Action(
                 self.on_dark_theme_state_change, type="b", default=self.use_dark_theme
             ),
-            "show-side-bar": Action(
-                self.on_sidebar_state_change,
+            "show-left-side-panel": Action(
+                self.on_left_side_panel_state_change,
                 type="b",
-                default=self.sidebar_visible,
+                default=self.left_side_panel_visible,
                 accel="F9",
+            ),
+            "show-right-side-panel": Action(
+                self.on_right_side_panel_state_change,
+                type="b",
+                default=self.right_side_panel_visible,
+                accel="F10",
             ),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
@@ -258,7 +265,18 @@ class LutrisWindow(Gtk.ApplicationWindow):
         return settings.read_setting("filter_installed") == "true"
 
     @property
+    def left_side_panel_visible(self):
+        value = settings.read_setting("left_side_panel_visible")
+        return value == "true" if value is not None else self.sidebar_visible
+        
+    @property
+    def right_side_panel_visible(self):
+        value = settings.read_setting("right_side_panel_visible")
+        return value == "true" if value is not None else self.sidebar_visible
+        
+    @property
     def sidebar_visible(self):
+        """Deprecated: For compability only"""
         return settings.read_setting("sidebar_visible") in [
             "true",
             None,
@@ -798,14 +816,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.actions["view-sorting-ascending"].set_state(GLib.Variant.new_boolean(ascending))
         settings.write_setting("view_sorting_ascending", "true" if ascending else "false")
 
-    def on_sidebar_state_change(self, action, value):
-        """Callback to handle siderbar toggle"""
+    def on_left_side_panel_state_change(self, action, value):
+        """Callback to handle left side panel toggle"""
         action.set_state(value)
-        sidebar_visible = value.get_boolean()
-        settings.write_setting("sidebar_visible", "true" if sidebar_visible else "false")
-        self.sidebar_revealer.set_reveal_child(sidebar_visible)
-        self.panel_revealer.set_reveal_child(sidebar_visible)
-        self.game_scrolled.set_visible(sidebar_visible)
+        left_side_panel_visible = value.get_boolean()
+        settings.write_setting("left_side_panel_visible", "true" if left_side_panel_visible else "false")
+        self.sidebar_revealer.set_reveal_child(left_side_panel_visible)
+
+    def on_right_side_panel_state_change(self, action, value):
+        """Callback to handle right side panel toggle"""
+        action.set_state(value)
+        right_side_panel_visible = value.get_boolean()
+        settings.write_setting("right_side_panel_visible", "true" if right_side_panel_visible else "false")
+        self.panel_revealer.set_reveal_child(right_side_panel_visible)
+        self.game_scrolled.set_visible(right_side_panel_visible)
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
