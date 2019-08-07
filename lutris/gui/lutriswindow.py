@@ -722,6 +722,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         self.view.set_selected_game(game.id)
         self.game_selection_changed(None, game)
+        if not game.is_installed:
+            self.game_selection_changed(None, None)
         return True
 
     def on_search_games_fire(self, value):
