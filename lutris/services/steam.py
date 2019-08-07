@@ -14,7 +14,7 @@ ONLINE = False
 
 
 class SteamGame(ServiceGame):
-    """SericeGame for Steam games"""
+    """ServiceGame for Steam games"""
     store = "steam"
     installer_slug = "steam"
     excluded_appids = [
@@ -139,10 +139,15 @@ class SteamSyncer:
         for game in games:
             steamid = game.appid
             available_ids.add(steamid)
+            # if game is on disk... and not shown as installed in Lutris...
+            pga_game = self.get_pga_game(game)
+            if pga_game:
+                if steamid in self.lutris_steamids and pga_game["installed"] != 1 and pga_game["installed"]:
+                    added_games.append(game.install())
+
             if steamid not in self.lutris_steamids:
                 added_games.append(game.install())
             else:
-                pga_game = self.get_pga_game(game)
                 if pga_game:
                     added_games.append(game.install(pga_game))
 
