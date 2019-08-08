@@ -714,6 +714,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_game_updated(self, game):
         """Callback to refresh the view when a game is updated"""
         logger.debug("Updating game %s", game)
+        if not game.is_installed:
+            game = Game(game_id=game.id)
+            self.game_selection_changed(None, None)
         game.load_config()
         try:
             self.game_store.update_game_by_id(game.id)
@@ -721,9 +724,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.add_game_by_id(game.id)
 
         self.view.set_selected_game(game.id)
-        self.game_selection_changed(None, game)
-        if not game.is_installed:
-            self.game_selection_changed(None, None)
+        if game.is_installed:
+            self.game_selection_changed(None, game)
         return True
 
     def on_search_games_fire(self, value):
