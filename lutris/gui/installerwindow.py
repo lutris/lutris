@@ -426,7 +426,10 @@ class InstallerWindow(BaseApplicationWindow):
         self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
+        game_data = pga.get_game_by_field(self.game_slug, "slug")
 
+        game = Game(game_data["id"])
+        game.save(metadata_only=True)
         if not self.is_active():
             self.set_urgency_hint(True)  # Blink in taskbar
             self.connect("focus-in-event", self.on_window_focus)
