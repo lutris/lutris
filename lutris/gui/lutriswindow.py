@@ -196,6 +196,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 default=self.filter_installed,
                 accel="<Primary>h",
             ),
+            "auto-hide-launcher": Action(
+                self.on_auto_hide_launcher,
+                type="b",
+                default=self.auto_hide_launcher,
+            ),
             "show-installed-first": Action(
                 self.on_show_installed_first_state_change,
                 type="b",
@@ -290,6 +295,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @property
     def show_installed_first(self):
         return settings.read_setting("show_installed_first") == "true"
+
+    @property
+    def auto_hide_launcher(self):
+        return settings.read_setting("auto_hide_launcher", default="false").lower() == "true"
 
     @property
     def view_sorting(self):
@@ -638,6 +647,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         action.set_state(value)
         self.set_show_installed_first_state(value.get_boolean())
 
+    def on_auto_hide_launcher(self, action, value):
+        """Hide launcher on game startup"""
+        action.set_state(value)
+        settings.write_setting("auto_hide_launcher", "true" if value.get_boolean() else "false")
+    
     def set_show_installed_first_state(self, show_installed_first):
         """Shows the installed games first in the view"""
         settings.write_setting("show_installed_first", "true" if show_installed_first else "false")
