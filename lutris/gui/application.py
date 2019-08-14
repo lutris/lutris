@@ -343,7 +343,7 @@ class Application(Gtk.Application):
         game.play()
 
         if settings.read_setting("auto_hide_launcher").lower() == "true":
-            self.window.hide();  # Hide launcher window
+            self.window.hide()  # Hide launcher window
 
     def get_game_by_id(self, game_id):
         for i in range(self.running_games.get_n_items()):
@@ -365,7 +365,7 @@ class Application(Gtk.Application):
         game.emit("game-stopped", game.id)
         
         if settings.read_setting("auto_hide_launcher").lower() == "true":
-            self.window.show();  # Show launcher window
+            self.window.show()  # Show launcher window
 
     @staticmethod
     def get_lutris_action(url):
