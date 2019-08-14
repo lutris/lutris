@@ -197,7 +197,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 accel="<Primary>h",
             ),
             "auto-hide-launcher": Action(
-                self.on_play_hide_launcher,
+                self.on_auto_hide_launcher,
                 type="b",
                 default=self.auto_hide_launcher,
             ),
@@ -647,7 +647,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         action.set_state(value)
         self.set_show_installed_first_state(value.get_boolean())
 
-    def on_play_hide_launcher(self, action, value):
+    def on_auto_hide_launcher(self, action, value):
         """Hide launcher on game startup"""
         action.set_state(value)
         settings.write_setting("auto_hide_launcher", "true" if value.get_boolean() else "false")
