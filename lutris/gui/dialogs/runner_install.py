@@ -25,8 +25,7 @@ class RunnerInstallDialog(Dialog):
         self.set_default_size(width, height)
 
         self.runner = runner
-        self.runner_info = None
-
+        
         self.label = Gtk.Label("Waiting for response from %s" % (settings.SITE_URL))
         self.vbox.pack_start(self.label, False, False, 18)
         
