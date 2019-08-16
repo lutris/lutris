@@ -86,6 +86,11 @@ class InstallerWindow(BaseApplicationWindow):
 
         self.get_scripts()
 
+        self.set_status("Waiting for response from %s" % (settings.SITE_URL))
+        self.add_spinner()
+        self.widget_box.show()
+        self.status_label.show()
+
         self.present()
 
     def add_button(self, label, handler=None):
@@ -115,8 +120,10 @@ class InstallerWindow(BaseApplicationWindow):
 
         if not isinstance(scripts, list):
             scripts = [scripts]
+        self.clean_widgets()
         self.scripts = scripts
         self.show_all()
+        self.status_label.hide()
         self.close_button.hide()
         self.play_button.hide()
         self.install_button.hide()
