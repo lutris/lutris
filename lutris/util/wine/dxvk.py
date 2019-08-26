@@ -33,14 +33,12 @@ def init_dxvk_versions():
         with open(versions_path, "r") as dxvk_tags:
             dxvk_json = json.load(dxvk_tags)
             for x in dxvk_json:
-                version_name = x["name"].replace("v", "")
-                if version_name.startswith('m'):  # ignore master snapshots of d9vk
-                    continue
+                version_name = x["tag_name"].replace("v", "")
                 if internet_available or version_name in os.listdir(dxvk_path):
                     dxvk_versions.append(version_name)
         if not dxvk_versions:  # We don't want to set manager.DXVK_VERSIONS, if the list is empty
             raise IndexError
-        return sorted(dxvk_versions, reverse=True)
+        return dxvk_versions
 
     def init_versions(manager):
         try:
@@ -61,7 +59,7 @@ class UnavailableDXVKVersion(RuntimeError):
 class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
 
-    DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/tags"
+    DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/releases"
     DXVK_VERSIONS = [
         "0.94",
     ]
@@ -190,7 +188,7 @@ class DXVKManager:
 
 
 class D9VKManager(DXVKManager):
-    DXVK_TAGS_URL = "https://api.github.com/repos/Joshua-Ashton/d9vk/tags"
+    DXVK_TAGS_URL = "https://api.github.com/repos/Joshua-Ashton/d9vk/releases"
     DXVK_VERSIONS = [
         "0.10",
     ]
