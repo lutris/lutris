@@ -40,6 +40,8 @@ def get_outputs():
         return []
     for line in vid_modes:
         if "connected" in line:
+            if "disconnected" in line:
+                continue
             primary = "primary" in line
             try:
                 if primary:
