@@ -45,7 +45,7 @@ def get_proton_paths():
     """Get the Folder that contains all the Proton versions. Can probably be improved"""
     paths = set()
     for path in _iter_proton_locations():
-        proton_versions = [p for p in os.listdir(path) if "Proton" in p]
+        proton_versions = [p for p in os.listdir(path) if "Proton" or "proton" in p]
         for version in proton_versions:
             if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
                 paths.add(path)
@@ -151,7 +151,7 @@ def get_wine_versions():
                 versions.append(dirname)
 
     for proton_path in get_proton_paths():
-        proton_versions = [p for p in os.listdir(proton_path) if "Proton" in p]
+        proton_versions = [p for p in os.listdir(proton_path) if "Proton" or "proton" in p]
         for version in proton_versions:
             path = os.path.join(proton_path, version, "dist/bin/wine")
             if os.path.isfile(path):
