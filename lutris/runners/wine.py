@@ -635,24 +635,31 @@ class wine(Runner):
             blocking=blocking,
         )
 
+    def _run_executable(self, executable):
+        """Runs a Windows executable using this game's configuration"""
+        wineexec(
+            executable,
+            wine_path=self.get_executable(),
+            prefix=self.prefix_path,
+            config=self,
+            env=self.get_env(os_env=True)
+        )
+
     def run_wineexec(self, *args):
+        """Ask the user for an arbitrary exe file to run in the game's prefix"""
         dlg = FileDialog("Select an EXE or MSI file", default_path=self.game_path)
         filename = dlg.filename
         if not filename:
             return
         self.prelaunch()
-        wineexec(
-            filename,
-            wine_path=self.get_executable(),
-            prefix=self.prefix_path,
-            config=self,
-        )
+        self._run_executable(filename)
 
     def run_wineconsole(self, *args):
         """Runs wineconsole inside wine prefix."""
-        wineexec('wineconsole', wine_path=self.get_executable(), prefix=self.prefix_path, working_dir=self.prefix_path)
+        self._run_executable("wineconsole")
 
     def run_winecfg(self, *args):
+        """Run winecfg in the current context"""
         self.prelaunch()
         winecfg(
             wine_path=self.get_executable(),
@@ -662,15 +669,12 @@ class wine(Runner):
         )
 
     def run_regedit(self, *args):
+        """Run regedit in the current context"""
         self.prelaunch()
-        wineexec(
-            "regedit",
-            wine_path=self.get_executable(),
-            prefix=self.prefix_path,
-            config=self,
-        )
+        self._run_executable("wineconsole")
 
     def run_winetricks(self, *args):
+        """Run winetricks in the current context"""
         self.prelaunch()
         winetricks(
             "", prefix=self.prefix_path, wine_path=self.get_executable(), config=self
@@ -679,11 +683,7 @@ class wine(Runner):
     def run_winecpl(self, *args):
         """Execute Wine control panel."""
         self.prelaunch()
-        wineexec(
-            "control",
-            prefix=self.prefix_path,
-            wine_path=self.get_executable()
-        )
+        self._run_executable("control")
 
     def run_winekill(self, *args):
         """Runs wineserver -k."""
