@@ -272,7 +272,8 @@ class LinuxSystem:
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
             if all([os.path.exists(path) for path in lib_paths]):
-                yield lib_paths
+                yield lib_paths[0]
+                yield lib_paths[1]
 
     def get_ldconfig_libs(self):
         """Return a list of available libraries, as returned by `ldconfig -p`."""

@@ -236,8 +236,7 @@ def get_system_paths():
     # This prioritizes system libraries over
     # the Lutris and Steam runtimes.
     for lib_paths in LINUX_SYSTEM.iter_lib_folders():
-        for path in lib_paths:
-            paths.append(path)
+        paths.append(lib_paths)
     return paths
 
 
