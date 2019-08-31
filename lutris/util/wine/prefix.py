@@ -2,10 +2,13 @@
 import os
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.log import logger
-from lutris.util import joypad, system
+from lutris.util import joypad, system, i18n
 from lutris.util.display import DISPLAY_MANAGER
 
-DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
+DESKTOP_FOLDERS = {
+    "en": ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"],
+    "fr": ["Bureau", "Mes documents", "Ma musique", "Mes vidéos", "Mes images"],
+}
 
 
 class WinePrefixManager:
@@ -74,6 +77,14 @@ class WinePrefixManager:
         user = os.getenv("USER")
         user_dir = os.path.join(self.path, "drive_c/users/", user)
 
+        lang = i18n.get_lang()
+        if lang not in DESKTOP_FOLDERS.keys():
+            logger.warning(
+                "Language %s is not supported for proper desktop "
+                "integration, please provide folder names for your locale", lang
+            )
+            lang = "en"
+
         if not desktop_dir:
             desktop_dir = user_dir
         else:
@@ -81,7 +92,7 @@ class WinePrefixManager:
 
         if system.path_exists(user_dir):
             # Replace desktop integration symlinks
-            for item in DESKTOP_FOLDERS:
+            for item in DESKTOP_FOLDERS[lang]:
                 path = os.path.join(user_dir, item)
                 old_path = path + ".winecfg"
 
@@ -107,7 +118,7 @@ class WinePrefixManager:
 
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
-                if item not in DESKTOP_FOLDERS and os.path.islink(path):
+                if item not in DESKTOP_FOLDERS[lang] and os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)
 
