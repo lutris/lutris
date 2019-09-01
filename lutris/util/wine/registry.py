@@ -316,7 +316,7 @@ class WineRegistryKey:
             return None
         value = self.subkeys[name]
         if value.startswith('"') and value.endswith('"'):
-            return value[1:-1]
+            return value.encode().decode('unicode_escape')[1:-1]
         if value.startswith("dword:"):
             return int(value[6:], 16)
         raise ValueError("Handle %s" % value)
