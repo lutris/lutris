@@ -141,12 +141,12 @@ class DXVKManager:
         if system.path_exists(dxvk_dll_path):
             wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
             logger.info("Replacing %s/%s with "+self.base_name.upper()+" version", system_dir, dll)
-            if not self.is_dxvk_dll(wine_dll_path):
-                # Backing up original version (may not be needed)
-                if system.path_exists(wine_dll_path):
-                    shutil.move(wine_dll_path, wine_dll_path + ".orig")
             if system.path_exists(wine_dll_path):
-                os.remove(wine_dll_path)
+                if not self.is_dxvk_dll(wine_dll_path) and not os.path.islink(wine_dll_path):
+                    # Backing up original version (may not be needed)
+                    shutil.move(wine_dll_path, wine_dll_path + ".orig")
+                else:
+                    os.remove(wine_dll_path)
             os.symlink(dxvk_dll_path, wine_dll_path)
         else:
             self.disable_dxvk_dll(system_dir, dxvk_arch, dll)
@@ -154,9 +154,10 @@ class DXVKManager:
     def disable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Remove DXVK DLL from Wine prefix"""
         wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
-        if self.is_dxvk_dll(wine_dll_path) and system.path_exists(wine_dll_path + ".orig"):
-            logger.info("Removing "+self.base_name.upper()+" dll %s/%s", system_dir, dll)
-            os.remove(wine_dll_path)
+        if system.path_exists(wine_dll_path + ".orig"):
+            if system.path_exists(wine_dll_path):
+                logger.info("Removing "+self.base_name.upper()+" dll %s/%s", system_dir, dll)
+                os.remove(wine_dll_path)
             shutil.move(wine_dll_path + ".orig", wine_dll_path)
 
     def _iter_dxvk_dlls(self):
