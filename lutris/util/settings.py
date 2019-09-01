@@ -21,7 +21,7 @@ class SettingsIO:
                     ex
                 )
 
-    def read_setting(self, key, section="lutris", default=None):
+    def read_setting(self, key, section="lutris", default=""):
         """Read a setting from the config file
 
         Params:

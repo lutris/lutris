@@ -267,18 +267,18 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def filter_installed(self):
-        return settings.read_setting("filter_installed") == "true"
+        return settings.read_setting("filter_installed").lower() == "true"
 
     @property
     def left_side_panel_visible(self):
-        value = settings.read_setting("left_side_panel_visible")
-        return value == "true" if value is not None else self.sidebar_visible
-        
+        show_left_panel = settings.read_setting("left_side_panel_visible").lower() == "true"
+        return show_left_panel or self.sidebar_visible
+
     @property
     def right_side_panel_visible(self):
-        value = settings.read_setting("right_side_panel_visible")
-        return value == "true" if value is not None else self.sidebar_visible
-        
+        show_right_panel = settings.read_setting("right_side_panel_visible").lower() == "true"
+        return show_right_panel or self.sidebar_visible
+
     @property
     def sidebar_visible(self):
         """Deprecated: For compability only"""
@@ -294,7 +294,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def show_installed_first(self):
-        return settings.read_setting("show_installed_first") == "true"
+        return settings.read_setting("show_installed_first", default="false").lower() == "true"
 
     @property
     def auto_hide_launcher(self):
@@ -306,7 +306,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def view_sorting_ascending(self):
-        return settings.read_setting("view_sorting_ascending") != "false"
+        return settings.read_setting("view_sorting_ascending").lower() != "false"
 
     def get_store(self, games=None):
         """Return an instance of GameStore"""
@@ -535,7 +535,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
         action.set_state(value)
-        settings.write_setting("dark_theme", "true" if value.get_boolean() else "false")
+        settings.write_setting("dark_theme", value.get_boolean())
         self.set_dark_theme()
 
     @GtkTemplate.Callback
@@ -650,11 +650,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_auto_hide_launcher(self, action, value):
         """Hide launcher on game startup"""
         action.set_state(value)
-        settings.write_setting("auto_hide_launcher", "true" if value.get_boolean() else "false")
-    
+        settings.write_setting("auto_hide_launcher", value.get_boolean())
+
     def set_show_installed_first_state(self, show_installed_first):
         """Shows the installed games first in the view"""
-        settings.write_setting("show_installed_first", "true" if show_installed_first else "false")
+        settings.write_setting("show_installed_first", bool(show_installed_first))
         self.game_store.sort_view(show_installed_first)
         self.game_store.modelfilter.refilter()
 
@@ -665,7 +665,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""
-        settings.write_setting("filter_installed", "true" if filter_installed else "false")
+        settings.write_setting("filter_installed", bool(filter_installed))
         self.game_store.filter_installed = filter_installed
         self.invalidate_game_filter()
 
@@ -832,20 +832,20 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting("view_sorting", key)
 
         self.actions["view-sorting-ascending"].set_state(GLib.Variant.new_boolean(ascending))
-        settings.write_setting("view_sorting_ascending", "true" if ascending else "false")
+        settings.write_setting("view_sorting_ascending", bool(ascending))
 
     def on_left_side_panel_state_change(self, action, value):
         """Callback to handle left side panel toggle"""
         action.set_state(value)
         left_side_panel_visible = value.get_boolean()
-        settings.write_setting("left_side_panel_visible", "true" if left_side_panel_visible else "false")
+        settings.write_setting("left_side_panel_visible", bool(left_side_panel_visible))
         self.sidebar_revealer.set_reveal_child(left_side_panel_visible)
 
     def on_right_side_panel_state_change(self, action, value):
         """Callback to handle right side panel toggle"""
         action.set_state(value)
         right_side_panel_visible = value.get_boolean()
-        settings.write_setting("right_side_panel_visible", "true" if right_side_panel_visible else "false")
+        settings.write_setting("right_side_panel_visible", bool(right_side_panel_visible))
         self.panel_revealer.set_reveal_child(right_side_panel_visible)
         self.game_scrolled.set_visible(right_side_panel_visible)
 
