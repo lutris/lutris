@@ -342,7 +342,7 @@ class Application(Gtk.Application):
         game.load_config()  # Reload the config before launching it.
         game.play()
 
-        if settings.read_setting("auto_hide_launcher") == "True":
+        if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.hide()  # Hide launcher window
 
     def get_game_by_id(self, game_id):
@@ -364,7 +364,7 @@ class Application(Gtk.Application):
             self.running_games.remove(game_index)
         game.emit("game-stopped", game.id)
 
-        if settings.read_setting("auto_hide_launcher") == "True":
+        if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.show()  # Show launcher window
 
     @staticmethod

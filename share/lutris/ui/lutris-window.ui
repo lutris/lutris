@@ -299,8 +299,8 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>
-            <property name="action_name">win.auto-hide-launcher</property>
-            <property name="text" translatable="yes">Auto _Hide Launcher</property>
+            <property name="action_name">win.show-right-side-panel</property>
+            <property name="text" translatable="yes">Show _Right Side Panel</property>
             <accelerator key="0xffffff" signal="clicked"/>
           </object>
           <packing>
@@ -314,8 +314,8 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>
-            <property name="action_name">win.show-right-side-panel</property>
-            <property name="text" translatable="yes">Show _Right Side Panel</property>
+            <property name="action_name">win.hide-client-on-game-start</property>
+            <property name="text" translatable="yes">_Hide when game starts</property>
             <accelerator key="0xffffff" signal="clicked"/>
           </object>
           <packing>
