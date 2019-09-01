@@ -898,17 +898,18 @@ class wine(Runner):
     def play(self):
         game_exe = self.game_exe
         arguments = self.game_config.get("args", "")
+        launch_info = {"env": self.get_env(os_env=False)}
         using_dxvk = self.runner_config.get("dxvk") or self.runner_config.get("d9vk")
 
         if using_dxvk:
+            # Set this to 1 to enable access to more RAM for 32bit applications
+            launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
             if not is_vulkan_supported():
                 if not display_vulkan_error(True):
                     return {"error": "VULKAN_NOT_FOUND"}
 
         if not system.path_exists(game_exe):
             return {"error": "FILE_NOT_FOUND", "file": game_exe}
-
-        launch_info = {"env": self.get_env(os_env=False)}
 
         if launch_info["env"].get("WINEESYNC") == "1":
             limit_set = is_esync_limit_set()
