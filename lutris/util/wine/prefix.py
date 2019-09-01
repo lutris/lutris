@@ -81,7 +81,7 @@ class WinePrefixManager:
 
         for key in DESKTOP_KEYS:
             folder = self.get_registry_key(self.hkcu_prefix+"/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",key)
-            DESKTOP_FOLDERS.append(folder[folder.rfind("\\\\")+2:]) 
+            DESKTOP_FOLDERS.append(folder[folder.rfind("\\")+1:]) 
 
         if not desktop_dir:
             desktop_dir = user_dir
