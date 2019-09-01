@@ -61,7 +61,7 @@ class DXVKManager:
 
     DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/releases"
     DXVK_VERSIONS = [
-        "0.94",
+        "1.3.3",
     ]
     DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:9]
 
