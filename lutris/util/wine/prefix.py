@@ -8,6 +8,7 @@ from lutris.util.display import DISPLAY_MANAGER
 DESKTOP_FOLDERS = {
     "en": ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"],
     "fr": ["Bureau", "Mes documents", "Ma musique", "Mes vidéos", "Mes images"],
+    "de": ["Desktop", "Meine Dokumente", "Eigene Musik", "Eigene Videos", "Eigene Bilder"],
 }
 
 
