@@ -5,10 +5,7 @@ from lutris.util.log import logger
 from lutris.util import joypad, system, i18n
 from lutris.util.display import DISPLAY_MANAGER
 
-DESKTOP_FOLDERS = {
-    "en": ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"],
-    "fr": ["Bureau", "Mes documents", "Ma musique", "Mes vidéos", "Mes images"],
-}
+DESKTOP_KEYS = ["Desktop", "My Music", "My Pictures", "My Videos", "Personal"]
 
 
 class WinePrefixManager:
@@ -47,6 +44,10 @@ class WinePrefixManager:
             "The key {} is currently not supported by WinePrefixManager".format(key)
         )
 
+    def get_registry_key(self,key,subkey):
+        registry = WineRegistry(self.get_registry_path(key))
+        return registry.query(self.get_key_path(key),subkey)
+
     def set_registry_key(self, key, subkey, value):
         registry = WineRegistry(self.get_registry_path(key))
         registry.set_value(self.get_key_path(key), subkey, value)
@@ -73,17 +74,14 @@ class WinePrefixManager:
 
     def desktop_integration(self, desktop_dir=None):
         """Overwrite desktop integration"""
+        DESKTOP_FOLDERS = []
 
         user = os.getenv("USER")
         user_dir = os.path.join(self.path, "drive_c/users/", user)
 
-        lang = i18n.get_lang()
-        if lang not in DESKTOP_FOLDERS.keys():
-            logger.warning(
-                "Language %s is not supported for proper desktop "
-                "integration, please provide folder names for your locale", lang
-            )
-            lang = "en"
+        for key in DESKTOP_KEYS:
+            folder = self.get_registry_key(self.hkcu_prefix+"/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",key)
+            DESKTOP_FOLDERS.append(folder[folder.rfind("\\\\")+2:]) 
 
         if not desktop_dir:
             desktop_dir = user_dir
@@ -92,7 +90,7 @@ class WinePrefixManager:
 
         if system.path_exists(user_dir):
             # Replace desktop integration symlinks
-            for item in DESKTOP_FOLDERS[lang]:
+            for item in DESKTOP_FOLDERS:
                 path = os.path.join(user_dir, item)
                 old_path = path + ".winecfg"
 
@@ -118,7 +116,7 @@ class WinePrefixManager:
 
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
-                if item not in DESKTOP_FOLDERS[lang] and os.path.islink(item):
+                if item not in DESKTOP_FOLDERS and os.path.islink(item):
                     path = os.path.join(user_dir, item)
                     os.unlink(path)
                     os.makedirs(path)
