@@ -153,7 +153,7 @@ def get_api_games(game_slugs=None, page="1", query_type="games", inject_aliases=
             logger.error("No page found in %s", response_data["next"])
             break
         response_data = get_game_api_page(game_slugs, page=next_page, query_type=query_type)
-        if not response_data.get("results"):
+        if not response_data:
             logger.warning("Unable to get response for page %s", next_page)
             break
         else:
