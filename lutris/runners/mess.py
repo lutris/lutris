@@ -237,7 +237,7 @@ class mess(Runner):
         device = self.game_config.get("device")
         command = [self.get_executable()]
         if self.runner_config.get("uimodekey"):
-            command += ["-uimodekey", self.runner["uimodekey"]]
+            command += ["-uimodekey", self.runner_config["uimodekey"]]
 
         command += ["-rompath", rompath, machine]
         if device:
