@@ -160,9 +160,11 @@ class GameActions:
 
         matched_game = self.get_running_game()
         if not matched_game:
-            logger.warning("%s not in running game list", self.game_id)
+            logger.warning("Game %s not in running game list", self.game_id)
             return
-
+        if not matched_game.game_thread:
+            logger.warning("Game %s doesn't appear to be running, not killing it", self.game_id)
+            return
         try:
             os.kill(matched_game.game_thread.game_process.pid, signal.SIGTERM)
         except ProcessLookupError:
