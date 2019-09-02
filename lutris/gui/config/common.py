@@ -104,6 +104,8 @@ class GameDialogCommon:
         )
         prefs_box.pack_start(cache_help_label, False, False, 6)
 
+        prefs_box.pack_start(self._get_hide_on_game_launch_box(), False, False, 6)
+
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, "Lutris preferences")
 
@@ -120,6 +122,19 @@ class GameDialogCommon:
         path_chooser.entry.connect("changed", self._on_cache_path_set)
         box.pack_start(path_chooser, True, True, 0)
         return box
+
+    def _get_hide_on_game_launch_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        checkbox = Gtk.CheckButton(label="Minimize client when a game is launched")
+        if settings.read_setting("hide_client_on_game_start") == "True":
+            checkbox.set_active(True)
+        checkbox.connect("toggled", self._on_hide_client_change)
+        box.pack_start(checkbox, True, True, 0)
+        return box
+
+    def _on_hide_client_change(self, widget):
+        """Save setting for hiding the game on game launch"""
+        settings.write_setting("hide_client_on_game_start", widget.get_active())
 
     def _on_cache_path_set(self, entry):
         if self.timer_id:
@@ -338,9 +353,8 @@ class GameDialogCommon:
 
         # Advanced settings checkbox
         checkbox = Gtk.CheckButton(label="Show advanced options")
-        value = settings.read_setting("show_advanced_options")
-        if value == "True":
-            checkbox.set_active(value)
+        if settings.read_setting("show_advanced_options") == "True":
+            checkbox.set_active(True)
         checkbox.connect("toggled", self.on_show_advanced_options_toggled)
         self.action_area.pack_start(checkbox, False, False, 5)
 

@@ -310,21 +310,6 @@
           </packing>
         </child>
         <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.hide-client-on-game-start</property>
-            <property name="text" translatable="yes">_Hide when game starts</property>
-            <accelerator key="0xffffff" signal="clicked"/>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">5</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkSeparator">
             <property name="visible">True</property>
             <property name="can_focus">False</property>

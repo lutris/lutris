@@ -196,11 +196,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 default=self.filter_installed,
                 accel="<Primary>h",
             ),
-            "hide-client-on-game-start": Action(
-                self.on_hide_client_on_game_start,
-                type="b",
-                default=self.hide_client_on_game_start,
-            ),
             "show-installed-first": Action(
                 self.on_show_installed_first_state_change,
                 type="b",
@@ -295,11 +290,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @property
     def show_installed_first(self):
         return settings.read_setting("show_installed_first", default="false").lower() == "true"
-
-    @property
-    def hide_client_on_game_start(self):
-        """Return whether the Lutris UI should minimize itself when a game is launched"""
-        return settings.read_setting("hide_client_on_game_start").lower() == "true"
 
     @property
     def view_sorting(self):
@@ -647,11 +637,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Callback to handle installed games first toggle"""
         action.set_state(value)
         self.set_show_installed_first_state(value.get_boolean())
-
-    def on_hide_client_on_game_start(self, action, value):
-        """Hide launcher on game startup"""
-        action.set_state(value)
-        settings.write_setting("hide_client_on_game_start", value.get_boolean())
 
     def set_show_installed_first_state(self, show_installed_first):
         """Shows the installed games first in the view"""
