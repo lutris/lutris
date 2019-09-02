@@ -61,13 +61,17 @@ def get_gpus():
 
 def get_gpu_info(card):
     """Return information about a GPU"""
-    with open("/sys/class/drm/%s/device/uevent" % card) as card_uevent:
-        content = card_uevent.readlines()
     infos = {
         "DRIVER": "",
         "PCI_ID": "",
         "PCI_SUBSYS_ID": ""
     }
+    try:
+        with open("/sys/class/drm/%s/device/uevent" % card) as card_uevent:
+            content = card_uevent.readlines()
+    except FileNotFoundError:
+        logger.error("Unable to read driver information for card %s", card)
+        return infos
     for line in content:
         key, value = line.split("=", 1)
         infos[key] = value.strip()
