@@ -46,15 +46,14 @@ class DiscordPresence(object):
                 logger.debug("Attempting to connect.")
                 self.rpc_client.connect()
                 self.presence_connected = True
-            except Exception as ex:
-                logger.exception("Unable to reach Discord.  Skipping update: %s", ex)
-                self.ensure_discord_disconnected()
+            except ConnectionError:
+                logger.error("Could not connect to Discord")
         return self.presence_connected
 
     def ensure_discord_disconnected(self):
         """Ensure we are definitely disconnected and fix broken event loop from pypresence"""
-        logger.debug("Ensuring disconnected.")
-        if self.rpc_client is not None:
+        logger.debug("Disconnecting from Discord")
+        if self.rpc_client:
             try:
                 self.rpc_client.close()
             except Exception as e:
