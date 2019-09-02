@@ -186,7 +186,7 @@ class WineRegistry:
             key.subkeys.pop(subkey)
 
     def get_unix_path(self, windows_path):
-        windows_path = windows_path.replace("\\\\", "/")
+        windows_path = windows_path.replace("\\", "/")
         if not self.prefix_path:
             return
         drives_path = os.path.join(self.prefix_path, "dosdevices")
