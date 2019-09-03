@@ -496,9 +496,7 @@ class InstallerWindow(BaseApplicationWindow):
             }
         )
         if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
-            logger.warning("Attempting to terminate with the system wineserver. "
-                           "This is most likely to fail or to have no effect.")
-            system.execute([system.find_executable("wineserver"), "-k9"])
+            logger.debug("User cancelled installation")
             return True
         if self.interpreter:
             self.interpreter.game_dir_created = remove_checkbox.get_active()
