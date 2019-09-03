@@ -322,8 +322,8 @@ class Runner:
         runner = self.get_runner_version(version)
         if not runner:
             raise RunnerInstallationError(
-                "{} is not available for the {} architecture".format(
-                    self.name, self.arch
+                "Unable to install runner {} {}".format(
+                    self.name, version
                 )
             )
         if not downloader:
