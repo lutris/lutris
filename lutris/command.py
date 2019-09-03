@@ -84,8 +84,8 @@ class MonitoredCommand:
     def get_cwd(self, cwd):
         """Return the current working dir of the game"""
         if not cwd:
-            cwd = self.runner.working_dir if self.runner else "/tmp"
-        return os.path.expanduser(cwd)
+            cwd = self.runner.working_dir if self.runner else None
+        return os.path.expanduser(cwd or "~")
 
     @staticmethod
     def get_environment(user_env):
