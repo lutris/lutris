@@ -1,3 +1,43 @@
+lutris (0.5.3) disco; urgency=medium
+
+  * Added D9VK option.
+  * Added options to hide right and left panels.
+  * Added support for Discord Rich Presence (option is only available if you 
+    have python-pypresence installed).
+  * Added option to launch Wine console.
+  * Added option to hide Lutris on game launch.
+  * Added lazy loading for some UI components that fetch data from Lutris.
+  * WINE_LARGE_ADDRESS_AWARE is now set to 1 when DXVK or D9VK is enabled 
+    (only works with lutris-provided builds) to workaround crashes in 32-bit games.
+  * Lutris should now be minimized when launching games from shortcuts.
+  * An error is now displayed when Lutris fails to install a runner.
+  * Added Ubuntu's AMDVLK path to Vulkan ICD loader search.
+  * State of right panel is now refreshed after adding/removing shortcuts.
+  * Working directory no longer defaults to /tmp
+  * Switched PC-Engine module from pce to pce_fast.
+  * Fixed crash due to invalid GOG credentials.
+  * Fixed UI bug that would sometimes result in “No File Provided” error messages.
+  * Fixed bug that would lead to path warnings when prompted to select files.
+  * Fixed crashes due to unexpected data from xrandr.
+  * Fixed bug that could make antialiasing not function in some games.
+  * Fixed sorting for games that start with a lowercase letter.
+  * Fixed bug that would cause user session to end when launching games on Linux Mint.
+  * Fixed bug with process monitor that could cause games to not launch.
+  * Fixed bug that would not let user execute some options and launch external 
+    executables when a game is still running and ESYNC is enabled.
+  * Fixed issues with restoration of original .dll files when disabling DXVK/D9VK.
+  * Fixed crashes due to inability to read GPU driver information.
+  * Fixed crash when working directory isn’t defined.
+  * Fixed stuck game importing due to failure to load icons.
+  * Fixed library loading issues on Gentoo.
+  * Fixed various issues with locales.
+  * Made various changes and improvements for libretro runner.
+  * Made various changes and improvements for future Flatpak support.
+  * Made minor changes to wording in UI.
+  * Updated Zdoom icon
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 02 Sep 2019 20:50:01 -0700
+
 lutris (0.5.2.1) cosmic; urgency=high
 
   * Handle distributions where ldconfig is not in $PATH, like Debian
