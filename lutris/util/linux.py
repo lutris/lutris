@@ -277,19 +277,20 @@ class LinuxSystem:
     def iter_lib_folders(self):
         """Loop over existing 32/64 bit library folders"""
         exported_lib_folders = set()
+        for lib_folder in self.get_lib_folders():
+            exported_lib_folders.add(lib_folder)
+            yield lib_folder
         for lib_paths in self.multiarch_lib_folders:
             if self.arch != 'x86_64':
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
             if all([os.path.exists(path) for path in lib_paths]):
-                exported_lib_folders.add(lib_paths[0])
-                yield lib_paths[0]
-                exported_lib_folders.add(lib_paths[1])
-                yield lib_paths[1]
-        for lib_folder in self.get_lib_folders():
-            if lib_folder not in exported_lib_folders:
-                yield lib_folder
-
+                if lib_paths[0] not in exported_lib_folders:
+                        yield lib_paths[0]
+                if len(lib_paths) != 1:
+                    if lib_paths[1] not in exported_lib_folders:
+                        yield lib_paths[1]
+    
     def get_ldconfig_libs(self):
         """Return a list of available libraries, as returned by `ldconfig -p`."""
         ldconfig = self.get("ldconfig")
