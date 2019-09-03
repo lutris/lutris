@@ -137,7 +137,7 @@ class FileChooserEntry(Gtk.Box):
             ntfs_box.add(warning_image)
             ntfs_label = Gtk.Label(visible=True)
             ntfs_label.set_markup(
-                "<b>Warning!</b> The selected folder is located on a drive formatted by Windows.\n"
+                "<b>Warning!</b> The selected path is located on a drive formatted by Windows.\n"
                 "Games and programs installed on Windows drives usually <b>don't work</b>."
             )
             ntfs_box.add(ntfs_label)
