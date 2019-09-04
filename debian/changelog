@@ -30,6 +30,7 @@ lutris (0.5.3) disco; urgency=medium
   * Fixed crash when working directory isn’t defined.
   * Fixed stuck game importing due to failure to load icons.
   * Fixed library loading issues on Gentoo.
+  * Fixed wine sandboxing on non-english systems.
   * Fixed various issues with locales.
   * Made various changes and improvements for libretro runner.
   * Made various changes and improvements for future Flatpak support.
