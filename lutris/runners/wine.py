@@ -923,6 +923,8 @@ class wine(Runner):
             wine_prefix.desktop_integration(
                 desktop_dir=self.runner_config.get("sandbox_dir")
             )
+        else:
+            wine_prefix.desktop_integration(restore=True)
 
     def play(self):
         game_exe = self.game_exe
