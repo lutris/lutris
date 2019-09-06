@@ -186,7 +186,7 @@ class WineRegistry:
             key.subkeys.pop(subkey)
 
     def get_unix_path(self, windows_path):
-        windows_path = windows_path.replace("\\", "/")
+        windows_path = windows_path.replace("\\\\", "/")
         if not self.prefix_path:
             return
         drives_path = os.path.join(self.prefix_path, "dosdevices")
@@ -316,7 +316,7 @@ class WineRegistryKey:
             return None
         value = self.subkeys[name]
         if value.startswith('"') and value.endswith('"'):
-            return value.encode().decode('unicode_escape')[1:-1]
+            return value[1:-1]
         if value.startswith("dword:"):
             return int(value[6:], 16)
         raise ValueError("Handle %s" % value)
