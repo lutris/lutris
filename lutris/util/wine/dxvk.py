@@ -18,11 +18,11 @@ CACHE_MAX_AGE = 86400  # Re-download DXVK versions every day
 def init_dxvk_versions():
     def get_dxvk_versions(base_name, tags_url):
         """Get DXVK versions from GitHub"""
-        logger.info("Updating "+base_name.upper()+" versions")
+        logger.info("Updating %s versions", base_name.upper())
         dxvk_path = os.path.join(RUNTIME_DIR, base_name)
         if not os.path.isdir(dxvk_path):
             os.mkdir(dxvk_path)
-        versions_path = os.path.join(dxvk_path, base_name+"_versions.json")
+        versions_path = os.path.join(dxvk_path, base_name + "_versions.json")
         internet_available = True
         try:
             urllib.request.urlretrieve(tags_url, versions_path)
@@ -117,7 +117,7 @@ class DXVKManager:
         """Download DXVK to the local cache"""
         dxvk_url = self.base_url.format(self.version, self.version)
         if self.is_available():
-            logger.warning(self.base_name.upper()+" already available at %s", self.dxvk_path)
+            logger.warning("%s already available at %s", self.base_name.upper(), self.dxvk_path)
 
         dxvk_archive_path = os.path.join(self.base_dir, os.path.basename(dxvk_url))
 
@@ -126,13 +126,13 @@ class DXVKManager:
         while downloader.check_progress() < 1 and downloader.state != downloader.ERROR:
             time.sleep(0.3)
         if not system.path_exists(dxvk_archive_path):
-            raise UnavailableDXVKVersion("Failed to download "+self.base_name.upper()+" %s" % self.version)
+            raise UnavailableDXVKVersion("Failed to download %s %s" % (self.base_name.upper(), self.version))
         if os.stat(dxvk_archive_path).st_size:
             extract_archive(dxvk_archive_path, self.dxvk_path, merge_single=True)
             os.remove(dxvk_archive_path)
         else:
             os.remove(dxvk_archive_path)
-            raise UnavailableDXVKVersion("Failed to download "+self.base_name.upper()+" %s" % self.version)
+            raise UnavailableDXVKVersion("Failed to download %s %s" % (self.base_name.upper(), self.version))
 
     def enable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Copies DXVK dlls to the appropriate destination"""
@@ -140,7 +140,7 @@ class DXVKManager:
         dxvk_dll_path = os.path.join(self.dxvk_path, dxvk_arch, "%s.dll" % dll)
         if system.path_exists(dxvk_dll_path):
             wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
-            logger.info("Replacing %s/%s with "+self.base_name.upper()+" version", system_dir, dll)
+            logger.info("Replacing %s/%s with %s version", system_dir, dll, self.base_name.upper())
             if system.path_exists(wine_dll_path):
                 if not self.is_dxvk_dll(wine_dll_path) and not os.path.islink(wine_dll_path):
                     # Backing up original version (may not be needed)
@@ -156,7 +156,7 @@ class DXVKManager:
         wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
         if system.path_exists(wine_dll_path + ".orig"):
             if system.path_exists(wine_dll_path):
-                logger.info("Removing "+self.base_name.upper()+" dll %s/%s", system_dir, dll)
+                logger.info("Removing %s dll %s/%s", self.base_name.upper(), system_dir, dll)
                 os.remove(wine_dll_path)
             shutil.move(wine_dll_path + ".orig", wine_dll_path)
 
@@ -177,7 +177,7 @@ class DXVKManager:
     def enable(self):
         """Enable DXVK for the current prefix"""
         if not system.path_exists(self.dxvk_path):
-            logger.error(self.base_name.upper()+" %s is not available locally", self.version)
+            logger.error("%s %s is not available locally", self.base_name.upper(), self.version)
             return
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():
             self.enable_dxvk_dll(system_dir, dxvk_arch, dll)
