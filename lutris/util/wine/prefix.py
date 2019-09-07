@@ -5,7 +5,7 @@ from lutris.util.log import logger
 from lutris.util import joypad, system
 from lutris.util.display import DISPLAY_MANAGER
 
-DESKTOP_FOLDERS = ["Desktop", "My Music", "My Pictures", "My Videos", "Personal"]
+DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
 
 
 class WinePrefixManager:
