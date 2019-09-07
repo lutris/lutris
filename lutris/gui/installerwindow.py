@@ -79,12 +79,17 @@ class InstallerWindow(BaseApplicationWindow):
         self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
         self.continue_button = self.add_button("_Continue")
-        self.play_button = self.add_button("_Launch game", self.launch_game)
+        self.play_button = self.add_button("_Launch", self.launch_game)
         self.close_button = self.add_button("_Close", self.on_destroy)
 
         self.continue_handler = None
 
         self.get_scripts()
+
+        self.title_label.set_markup("Waiting for response from %s" % (settings.SITE_URL))
+        self.add_spinner()
+        self.widget_box.show()
+        self.title_label.show()
 
         self.present()
 
@@ -115,6 +120,7 @@ class InstallerWindow(BaseApplicationWindow):
 
         if not isinstance(scripts, list):
             scripts = [scripts]
+        self.clean_widgets()
         self.scripts = scripts
         self.show_all()
         self.close_button.hide()
@@ -426,7 +432,10 @@ class InstallerWindow(BaseApplicationWindow):
         self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
+        game_data = pga.get_game_by_field(self.game_slug, "slug")
 
+        game = Game(game_data["id"])
+        game.save(metadata_only=True)
         if not self.is_active():
             self.set_urgency_hint(True)  # Blink in taskbar
             self.connect("focus-in-event", self.on_window_focus)
@@ -474,15 +483,22 @@ class InstallerWindow(BaseApplicationWindow):
 
     def cancel_installation(self, widget=None):
         """Ask a confirmation before cancelling the install"""
+        remove_checkbox = Gtk.CheckButton.new_with_label("Remove game files")
+        if self.interpreter:
+            remove_checkbox.set_active(self.interpreter.game_dir_created)
+            remove_checkbox.show()
         confirm_cancel_dialog = QuestionDialog(
             {
                 "question": "Are you sure you want to cancel the installation?",
                 "title": "Cancel installation?",
+                "widgets": [remove_checkbox]
             }
         )
         if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
+            logger.debug("User cancelled installation")
             return True
         if self.interpreter:
+            self.interpreter.game_dir_created = remove_checkbox.get_active()
             self.interpreter.revert()
             self.interpreter.cleanup()
         self.destroy()

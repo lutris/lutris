@@ -230,17 +230,6 @@ def get_winelib_paths(wine_path):
     return paths
 
 
-def get_system_paths():
-    """Return paths of system libraries"""
-    paths = []
-    # This prioritizes system libraries over
-    # the Lutris and Steam runtimes.
-    for lib_paths in LINUX_SYSTEM.iter_lib_folders():
-        for path in lib_paths:
-            paths.append(path)
-    return paths
-
-
 def get_runtime_paths(version=None, prefer_system_libs=True, wine_path=None):
     """Return Lutris runtime paths"""
     version = version or DEFAULT_RUNTIME
@@ -276,7 +265,7 @@ def get_runtime_paths(version=None, prefer_system_libs=True, wine_path=None):
     if prefer_system_libs:
         if wine_path:
             paths += get_winelib_paths(wine_path)
-        paths += get_system_paths()
+        paths += list(LINUX_SYSTEM.iter_lib_folders())
     # Then resolve absolute paths for the runtime
     paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
     return paths

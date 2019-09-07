@@ -25,13 +25,36 @@ class RunnerInstallDialog(Dialog):
         self.set_default_size(width, height)
 
         self.runner = runner
-        self.runner_info = api.get_runners(self.runner)
+        
+        self.label = Gtk.Label("Waiting for response from %s" % (settings.SITE_URL))
+        self.vbox.pack_start(self.label, False, False, 18)
+        
+        # Display a wait icon.
+        self.spinner = Gtk.Spinner()        
+        self.vbox.pack_start(self.spinner, False, False, 18)
+        self.spinner.show()
+        self.spinner.start()
+
+        self.show_all()
+
+        jobs.AsyncCall(api.get_runners, self.display_all_versions, self.runner)
+
+    def display_all_versions(self, runner_info, error):
+        """Clear the box and display versions from runner_info"""
+        if error:
+            logger.error(error)
+
+        self.runner_info = runner_info
         if not self.runner_info:
             ErrorDialog(
-                "Unable to get runner versions. Check your internet connection.",
-                parent=parent,
+                "Unable to get runner versions. Check your internet connection."
             )
             return
+
+        for child_widget in self.vbox.get_children():
+            if child_widget.get_name() not in "GtkBox":
+                child_widget.destroy()
+            
         label = Gtk.Label("%s version management" % self.runner_info["name"])
         self.vbox.add(label)
         self.runner_store = self.get_store()

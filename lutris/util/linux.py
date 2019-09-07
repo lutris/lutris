@@ -7,7 +7,7 @@ import json
 import platform
 import resource
 import subprocess
-from collections import defaultdict
+from collections import defaultdict, Counter
 from lutris.vendor.distro import linux_distribution
 from lutris.util.graphics import drivers
 from lutris.util.graphics import glxinfo
@@ -90,7 +90,7 @@ class LinuxSystem:
     """Global cache for system commands"""
     _cache = {}
 
-    lib_folders = [
+    multiarch_lib_folders = [
         ('/lib', '/lib64'),
         ('/lib32', '/lib64'),
         ('/usr/lib', '/usr/lib64'),
@@ -107,6 +107,8 @@ class LinuxSystem:
     recommended_no_file_open = 524288
     required_components = ["OPENGL", "VULKAN"]
     optional_components = ["WINE", "GAMEMODE"]
+
+    flatpak_info_path="/.flatpak-info"
 
     def __init__(self):
         for key in ("COMMANDS", "TERMINALS"):
@@ -205,6 +207,11 @@ class LinuxSystem:
         logger.warning("Unsupported architecture %s", machine)
 
     @property
+    def is_flatpak(self):
+        """Check is we are running inside Flatpak sandbox"""
+        return os.path.exists(self.flatpak_info_path)
+
+    @property
     def runtime_architectures(self):
         """Return the architectures supported on this machine"""
         if self.arch == "x86_64":
@@ -258,15 +265,32 @@ class LinuxSystem:
         """Return path of available soundfonts"""
         return self._cache["SOUNDFONTS"]
 
+    def get_lib_folders(self):
+        """Return shared library folders, sorted by most used to least used"""
+        lib_folder_counter = Counter(
+            lib.dirname
+            for lib_list in self.shared_libraries.values()
+            for lib in lib_list
+        )
+        return [path[0] for path in reversed(lib_folder_counter.most_common())]
+
     def iter_lib_folders(self):
         """Loop over existing 32/64 bit library folders"""
-        for lib_paths in self.lib_folders:
+        exported_lib_folders = set()
+        for lib_folder in self.get_lib_folders():
+            exported_lib_folders.add(lib_folder)
+            yield lib_folder
+        for lib_paths in self.multiarch_lib_folders:
             if self.arch != 'x86_64':
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
             if all([os.path.exists(path) for path in lib_paths]):
-                yield lib_paths
-
+                if lib_paths[0] not in exported_lib_folders:
+                        yield lib_paths[0]
+                if len(lib_paths) != 1:
+                    if lib_paths[1] not in exported_lib_folders:
+                        yield lib_paths[1]
+    
     def get_ldconfig_libs(self):
         """Return a list of available libraries, as returned by `ldconfig -p`."""
         ldconfig = self.get("ldconfig")

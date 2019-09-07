@@ -250,7 +250,7 @@ should be extracted in some other location than the ``$GAMEDIR``, you can specif
 
 You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
-be. Accepted values for ``format`` are: zip, tgz, gzip and bz2.
+be. Accepted values for ``format`` are: zip, tgz, gzip, bz2, and gog (innoextract).
 
 Example:
 
@@ -454,6 +454,8 @@ Currently, the following tasks are implemented:
             name: winetricks
             prefix: $GAMEDIR
             app: nt40
+            
+    For a full list of available ``winetricks`` see here: https://github.com/Winetricks/winetricks/tree/master/files/verbs
 
 *   wine / winesteam: ``eject_disk`` runs eject_disk in your ``prefix`` argument. parameters are
     ``prefix`` (optional wineprefix path).

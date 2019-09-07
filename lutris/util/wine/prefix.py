@@ -5,7 +5,7 @@ from lutris.util.log import logger
 from lutris.util import joypad, system
 from lutris.util.display import DISPLAY_MANAGER
 
-DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
+DESKTOP_FOLDERS = ["Desktop", "My Music", "My Pictures", "My Videos", "Personal"]
 
 
 class WinePrefixManager:
@@ -43,6 +43,10 @@ class WinePrefixManager:
         raise ValueError(
             "The key {} is currently not supported by WinePrefixManager".format(key)
         )
+
+    def get_registry_key(self, key, subkey):
+        registry = WineRegistry(self.get_registry_path(key))
+        return registry.query(self.get_key_path(key), subkey)
 
     def set_registry_key(self, key, subkey, value):
         registry = WineRegistry(self.get_registry_path(key))
@@ -107,6 +111,7 @@ class WinePrefixManager:
 
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
+                path = os.path.join(user_dir, item)
                 if item not in DESKTOP_FOLDERS and os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)

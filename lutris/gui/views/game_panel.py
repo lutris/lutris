@@ -128,13 +128,17 @@ class GamePanel(GenericPanel):
                     button.set_size_request(146, 42)
                 else:
                     button = get_link_button(label)
-            button.connect("clicked", callback)
 
             if displayed.get(action_id):
                 button.show()
             else:
                 button.hide()
             buttons[action_id] = button
+
+            if action_id in ('desktop-shortcut', 'rm-desktop-shortcut', 'menu-shortcut', 'rm-menu-shortcut'):
+                button.connect("clicked", self.on_shortcut_edited, action_id)
+
+            button.connect("clicked", callback)
 
         if self.game.runner_name and self.game.is_installed:
             for entry in self.get_runner_entries(self.game):
@@ -189,6 +193,13 @@ class GamePanel(GenericPanel):
                 extra_button_index += 1
 
             self.put(button, position[0], position[1])
+
+    def on_shortcut_edited(self, widget, action_id):
+        self.buttons[action_id].hide()
+        if 'rm' == action_id[0:2]:
+            self.buttons[action_id[3:]].show()
+        else:
+            self.buttons['rm-' + action_id].show()
 
     def on_game_start(self, widget):
         self.buttons["play"].set_label("Launching...")

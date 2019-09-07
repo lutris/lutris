@@ -11,6 +11,7 @@ from lutris import pga
 from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.application import Application
+from lutris.gui.views.store import sort_func
 from unittest import TestCase
 from lutris import runners
 
@@ -102,3 +103,59 @@ class TestGameDialog(TestCase):
         game = Game(pga_game['id'])
         self.assertEqual(game.name, 'Test game')
         game.remove(from_library=True)
+
+
+class TestSort(TestCase):
+    class FakeModel(object):
+        def __init__(self, rows):
+            self.rows = rows
+
+        def get_value(self, row_index, col_name):
+            return self.rows[row_index].cols.get(col_name)
+
+    class FakeRow(object):
+        def __init__(self, coldict):
+            self.cols = coldict
+
+    def test_sort_strings_with_caps(self):
+        row1 = self.FakeRow({'name': 'Abc'})
+        row2 = self.FakeRow({'name': 'Def'})
+        model = self.FakeModel([row1, row2])
+        assert sort_func(model, 0, 1, 'name') == -1
+
+    def test_sort_strings_with_one_caps(self):
+        row1 = self.FakeRow({'name': 'abc'})
+        row2 = self.FakeRow({'name': 'Def'})
+        model = self.FakeModel([row1, row2])
+        assert sort_func(model, 0, 1, 'name') == -1
+
+    def test_sort_strings_with_no_caps(self):
+        row1 = self.FakeRow({'name': 'abc'})
+        row2 = self.FakeRow({'name': 'def'})
+        model = self.FakeModel([row1, row2])
+        assert sort_func(model, 0, 1, 'name') == -1
+
+    def test_sort_int(self):
+        row1 = self.FakeRow({'name': 1})
+        row2 = self.FakeRow({'name': 2})
+        model = self.FakeModel([row1, row2])
+        assert sort_func(model, 0, 1, 'name') == -1
+
+    def test_sort_mismatched_types(self):
+        row1 = self.FakeRow({'name': 'abc'})
+        row2 = self.FakeRow({'name': 1})
+        model = self.FakeModel([row1, row2])
+        with self.assertRaises(TypeError):
+            assert sort_func(model, 0, 1, 'name') == -1
+
+    def test_both_none(self):
+        row1 = self.FakeRow({})
+        row2 = self.FakeRow({})
+        model = self.FakeModel([row1, row2])
+        assert sort_func(model, 0, 1, 'name') == 0
+
+    def test_one_none(self):
+        row1 = self.FakeRow({})
+        row2 = self.FakeRow({'name': 'abc'})
+        model = self.FakeModel([row1, row2])
+        assert sort_func(model, 0, 1, 'name') == -1

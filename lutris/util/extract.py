@@ -1,4 +1,5 @@
 import os
+import errno
 import uuid
 import shutil
 import tarfile
@@ -78,6 +79,8 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
             extractor = "bz2"
         elif path.endswith(".gz"):
             extractor = "gzip"
+        elif path.endswith(".exe"):
+            extractor = "exe"
         elif is_7zip_supported(path, None):
             extractor = None
         else:
@@ -96,6 +99,10 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
     elif extractor == "gzip":
         decompress_gz(path, to_directory)
         return
+    elif extractor == "gog":
+        opener = "innoextract"
+    elif extractor == "exe":
+        opener = "exe"
     elif extractor is None or is_7zip_supported(path, extractor):
         opener = "7zip"
     else:
@@ -149,10 +156,71 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
 def _do_extract(archive, dest, opener, mode=None, extractor=None):
     if opener == "7zip":
         extract_7zip(archive, dest, archive_type=extractor)
+    elif opener == "exe":
+        extract_exe(archive, dest)
+    elif opener == "innoextract":
+        extract_gog(archive, dest)
     else:
         handler = opener(archive, mode)
         handler.extractall(dest)
         handler.close()
+
+
+def extract_exe(path, dest):
+    if check_inno_exe(path):
+        decompress_gog(path, dest)
+    else:
+        #use 7za to check if exe is an archive
+        _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7za")
+        if not system.path_exists(_7zip_path):
+            _7zip_path = system.find_executable("7za")
+        if not system.path_exists(_7zip_path):
+            raise OSError("7zip is not found in the lutris runtime or on the system")
+        command = [_7zip_path, "t", path]
+        return_code = subprocess.call(command)
+        if return_code == 0:
+            extract_7zip(path, dest)
+        else:
+            raise RuntimeError("specified exe is not an archive or GOG setup file")
+
+
+def extract_gog(path, dest):
+    if check_inno_exe(path):
+        decompress_gog(path, dest)
+    else:
+        raise RuntimeError("specified exe is not a GOG setup file")
+
+
+#Check if exe is in fact an inno setup file
+def check_inno_exe(path):
+    _innoextract_path = os.path.join(settings.RUNTIME_DIR, "innoextract/innoextract")
+    if not system.path_exists(_innoextract_path):
+        _innoextract_path = system.find_executable("innoextract")
+    if not system.path_exists(_innoextract_path):
+        return False #Can't find innoextract
+    command = [_innoextract_path, "-i", path]
+    return_code = subprocess.call(command)
+    if return_code != 0:
+        return False
+    return True
+
+
+def decompress_gog(file_path, destination_path):
+    _innoextract_path = os.path.join(settings.RUNTIME_DIR, "innoextract/innoextract")
+    if not system.path_exists(_innoextract_path):
+        _innoextract_path = system.find_executable("innoextract")
+    if not system.path_exists(_innoextract_path):
+        raise OSError("innoextract is not found in the lutris runtime or on the system")
+    #innoextract cannot do mkdir -p, so we have to do it here:
+    try:
+        os.makedirs(destination_path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise OSError("cannot make output directory for extracting setup file")
+    command = [_innoextract_path, "-g", "-d", destination_path, "-e", file_path]
+    return_code = subprocess.call(command)
+    if return_code != 0:
+        raise RuntimeError("innoextract failed to extract GOG setup file")
 
 
 def decompress_gz(file_path, dest_path=None):

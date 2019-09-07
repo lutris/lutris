@@ -197,6 +197,26 @@ class fsuae(Runner):
             "default": False,
         },
         {
+            "option": "gamemode",
+            "label": "Feral GameMode",
+            "type": "bool",
+            "default": False,
+            "help": (
+                "Automatically uses Feral GameMode daemon if available."
+                "set to true to disable the feature."
+            )
+        },
+        {
+            "option": "govwarning",
+            "label": "CPU governor warning",
+            "type": "bool",
+            "default": False,
+            "help": (
+                "Warn if running with a CPU governor other than performance."
+                "set to true to disable the warning."
+            )
+        },
+        {
             "option": "bsdsocket",
             "label": "UAE bsdsocket.library",
             "type": "bool",
@@ -277,9 +297,9 @@ class fsuae(Runner):
         if fmemory:
             params.append("--fast_memory=%s" % fmemory)
         if fdvolume:
-            params.append("--floppy_drive_volume_empty=%s" % fdvolume)
+            params.append("--floppy_drive_volume=%s" % fdvolume)
         if fdspeed:
-            params.append("--floppy_drive_volume_empty=%s" % fdspeed)
+            params.append("--floppy_drive_speed=%s" % fdspeed)
         if grafixcard:
             params.append("--graphics_card=%s" % grafixcard)
         if grafixmemory:
@@ -292,8 +312,12 @@ class fsuae(Runner):
             params.append("--fullscreen_width=%d" % width)
         if self.runner_config.get("jitcompiler"):
             params.append("--jit_compiler=1")
-        if self.runner_config.get("jitcompiler"):
+        if self.runner_config.get("bsdsocket"):
             params.append("--bsdsocket_library=1")
+        if self.runner_config.get("gamemode"):
+            params.append("--game_mode=0")
+        if self.runner_config.get("govwarning"):
+            params.append("--governor_warning=0")
         if self.runner_config.get("scanlines"):
             params.append("--scanlines=1")
         return params

@@ -1,5 +1,5 @@
 # pylint: disable=no-member
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from lutris.game import Game
 
@@ -10,6 +10,10 @@ from lutris.util.log import logger
 
 
 class ContextualMenu(Gtk.Menu):
+    __gsignals__ = {
+        "shortcut-edited": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+    }
+
     def __init__(self, main_entries):
         super().__init__()
         self.main_entries = main_entries
@@ -26,6 +30,10 @@ class ContextualMenu(Gtk.Menu):
         name, label, callback = entry
         action = Gtk.Action(name=name, label=label)
         action.connect("activate", callback)
+
+        if name in ("desktop-shortcut", "rm-desktop-shortcut", "menu-shortcut", "rm-menu-shortcut"):
+            action.connect("activate", self.on_shortcut_edited)
+
         menu_item = action.create_menu_item()
         menu_item.action_id = name
         self.append(menu_item)
@@ -75,3 +83,6 @@ class ContextualMenu(Gtk.Menu):
             menuitem.set_visible(displayed.get(menuitem.action_id, True))
 
         super().popup(None, None, None, None, event.button, event.time)
+
+    def on_shortcut_edited(self, action):
+        self.emit('shortcut-edited', action.get_name())

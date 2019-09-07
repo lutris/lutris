@@ -106,6 +106,31 @@ class Runner:
         """Return the working directory to use when running the game."""
         return self.game_path or os.path.expanduser("~/")
 
+    @property
+    def discord_rpc_enabled(self):
+        if self.game_data.get("discord_rpc_enabled"):
+            return self.game_data.get("discord_rpc_enabled")
+
+    @property
+    def discord_show_runner(self):
+        if self.game_data.get("discord_show_runner"):
+            return self.game_data.get("discord_show_runner")
+
+    @property
+    def discord_custom_game_name(self):
+        if self.game_data.get("discord_custom_game_name"):
+            return self.game_data.get("discord_custom_game_name")
+
+    @property
+    def discord_custom_runner_name(self):
+        if self.game_data.get("discord_custom_runner_name"):
+            return self.game_data.get("discord_custom_runner_name")
+
+    @property
+    def discord_client_id(self):
+        if self.game_data.get("discord_client_id"):
+            return self.game_data.get("discord_client_id")
+
     def get_platform(self):
         return self.platforms[0]
 
@@ -234,11 +259,16 @@ class Runner:
         if Gtk.ResponseType.YES == dialog.result:
 
             from lutris.gui.dialogs.runners import simple_downloader
-            if hasattr(self, "get_version"):
-                self.install(downloader=simple_downloader,
-                             version=self.get_version(use_default=False))
-            else:
-                self.install(downloader=simple_downloader)
+            from lutris.gui.dialogs import ErrorDialog
+            try:
+                if hasattr(self, "get_version"):
+                    self.install(downloader=simple_downloader,
+                                 version=self.get_version(use_default=False))
+                else:
+                    self.install(downloader=simple_downloader)
+            except RunnerInstallationError as ex:
+                ErrorDialog(ex.message)
+
             return self.is_installed()
         return False
 
@@ -297,8 +327,8 @@ class Runner:
         runner = self.get_runner_version(version)
         if not runner:
             raise RunnerInstallationError(
-                "{} is not available for the {} architecture".format(
-                    self.name, self.arch
+                "Failed to retrieve {} ({}) information".format(
+                    self.name, version
                 )
             )
         if not downloader:

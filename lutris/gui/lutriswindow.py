@@ -141,7 +141,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.panel_revealer = Gtk.Revealer(visible=True)
         self.panel_revealer.set_transition_duration(300)
         self.panel_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
-        self.panel_revealer.set_reveal_child(True)
         self.panel_revealer.add(self.game_scrolled)
 
         self.main_box.pack_end(self.panel_revealer, False, False, 0)
@@ -152,9 +151,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         # Contextual menu
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
 
-        # Sidebar
-        self.sidebar_revealer.set_reveal_child(self.sidebar_visible)
+        # Left/Right Sidebar visibility
+        self.sidebar_revealer.set_reveal_child(self.left_side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
+        self.panel_revealer.set_reveal_child(self.right_side_panel_visible)
+        self.panel_revealer.set_transition_duration(300)
         self.update_runtime()
 
         # Connect account and/or sync
@@ -215,11 +216,17 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "use-dark-theme": Action(
                 self.on_dark_theme_state_change, type="b", default=self.use_dark_theme
             ),
-            "show-side-bar": Action(
-                self.on_sidebar_state_change,
+            "show-left-side-panel": Action(
+                self.on_left_side_panel_state_change,
                 type="b",
-                default=self.sidebar_visible,
+                default=self.left_side_panel_visible,
                 accel="F9",
+            ),
+            "show-right-side-panel": Action(
+                self.on_right_side_panel_state_change,
+                type="b",
+                default=self.right_side_panel_visible,
+                accel="F10",
             ),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
@@ -255,10 +262,21 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def filter_installed(self):
-        return settings.read_setting("filter_installed") == "true"
+        return settings.read_setting("filter_installed").lower() == "true"
+
+    @property
+    def left_side_panel_visible(self):
+        show_left_panel = settings.read_setting("left_side_panel_visible").lower() == "true"
+        return show_left_panel or self.sidebar_visible
+
+    @property
+    def right_side_panel_visible(self):
+        show_right_panel = settings.read_setting("right_side_panel_visible").lower() == "true"
+        return show_right_panel or self.sidebar_visible
 
     @property
     def sidebar_visible(self):
+        """Deprecated: For compability only"""
         return settings.read_setting("sidebar_visible") in [
             "true",
             None,
@@ -271,7 +289,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def show_installed_first(self):
-        return settings.read_setting("show_installed_first") == "true"
+        return settings.read_setting("show_installed_first", default="false").lower() == "true"
 
     @property
     def view_sorting(self):
@@ -279,7 +297,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def view_sorting_ascending(self):
-        return settings.read_setting("view_sorting_ascending") != "false"
+        return settings.read_setting("view_sorting_ascending").lower() != "false"
 
     def get_store(self, games=None):
         """Return an instance of GameStore"""
@@ -508,7 +526,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
         action.set_state(value)
-        settings.write_setting("dark_theme", "true" if value.get_boolean() else "false")
+        settings.write_setting("dark_theme", value.get_boolean())
         self.set_dark_theme()
 
     @GtkTemplate.Callback
@@ -622,7 +640,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def set_show_installed_first_state(self, show_installed_first):
         """Shows the installed games first in the view"""
-        settings.write_setting("show_installed_first", "true" if show_installed_first else "false")
+        settings.write_setting("show_installed_first", bool(show_installed_first))
         self.game_store.sort_view(show_installed_first)
         self.game_store.modelfilter.refilter()
 
@@ -633,7 +651,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""
-        settings.write_setting("filter_installed", "true" if filter_installed else "false")
+        settings.write_setting("filter_installed", bool(filter_installed))
         self.game_store.filter_installed = filter_installed
         self.invalidate_game_filter()
 
@@ -696,6 +714,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_game_updated(self, game):
         """Callback to refresh the view when a game is updated"""
         logger.debug("Updating game %s", game)
+        if not game.is_installed:
+            game = Game(game_id=game.id)
+            self.game_selection_changed(None, None)
         game.load_config()
         try:
             self.game_store.update_game_by_id(game.id)
@@ -703,7 +724,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.add_game_by_id(game.id)
 
         self.view.set_selected_game(game.id)
-        self.game_selection_changed(None, game)
+        if game.is_installed:
+            self.game_selection_changed(None, game)
         return True
 
     def on_search_games_fire(self, value):
@@ -737,6 +759,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_actions.set_game(game=game)
             self.game_panel = GamePanel(self.game_actions)
             self.game_panel.connect("panel-closed", self.on_panel_closed)
+            self.view.contextual_menu.connect("shortcut-edited", self.game_panel.on_shortcut_edited)
         self.game_scrolled.add(self.game_panel)
         return True
 
@@ -795,16 +818,22 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting("view_sorting", key)
 
         self.actions["view-sorting-ascending"].set_state(GLib.Variant.new_boolean(ascending))
-        settings.write_setting("view_sorting_ascending", "true" if ascending else "false")
+        settings.write_setting("view_sorting_ascending", bool(ascending))
 
-    def on_sidebar_state_change(self, action, value):
-        """Callback to handle siderbar toggle"""
+    def on_left_side_panel_state_change(self, action, value):
+        """Callback to handle left side panel toggle"""
         action.set_state(value)
-        sidebar_visible = value.get_boolean()
-        settings.write_setting("sidebar_visible", "true" if sidebar_visible else "false")
-        self.sidebar_revealer.set_reveal_child(sidebar_visible)
-        self.panel_revealer.set_reveal_child(sidebar_visible)
-        self.game_scrolled.set_visible(sidebar_visible)
+        left_side_panel_visible = value.get_boolean()
+        settings.write_setting("left_side_panel_visible", bool(left_side_panel_visible))
+        self.sidebar_revealer.set_reveal_child(left_side_panel_visible)
+
+    def on_right_side_panel_state_change(self, action, value):
+        """Callback to handle right side panel toggle"""
+        action.set_state(value)
+        right_side_panel_visible = value.get_boolean()
+        settings.write_setting("right_side_panel_visible", bool(right_side_panel_visible))
+        self.panel_revealer.set_reveal_child(right_side_panel_visible)
+        self.game_scrolled.set_visible(right_side_panel_visible)
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()

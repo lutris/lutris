@@ -18,7 +18,9 @@ from lutris.config import LutrisConfig
 from lutris.command import MonitoredCommand
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
-
+from lutris.util.linux import LINUX_SYSTEM
+from lutris.discord import DiscordPresence
+from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 
 HEARTBEAT_DELAY = 2000
 
@@ -63,6 +65,7 @@ class Game(GObject.Object):
         self.steamid = game_data.get("steamid") or ""
         self.has_custom_banner = bool(game_data.get("has_custom_banner"))
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
+        self.discord_presence = DiscordPresence()
         try:
             self.playtime = float(game_data.get("playtime") or 0.0)
         except ValueError:
@@ -159,6 +162,12 @@ class Game(GObject.Object):
             runner_slug=self.runner_name, game_config_id=self.game_config_id
         )
         self.runner = self._get_runner()
+        if self.discord_presence.available:
+            self.discord_presence.client_id = self.config.system_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
+            self.discord_presence.game_name = self.config.system_config.get("discord_custom_game_name") or self.name
+            self.discord_presence.show_runner = self.config.system_config.get("discord_show_runner", True)
+            self.discord_presence.runner_name = self.config.system_config.get("discord_custom_runner_name") or self.runner_name
+            self.discord_presence.rpc_enabled = self.config.system_config.get("discord_rpc_enabled", True)
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
@@ -243,7 +252,7 @@ class Game(GObject.Object):
                 dialogs.ErrorDialog(
                     "Runtime currently updating", "Game might not work as expected"
                 )
-        if "wine" in self.runner_name and not wine.get_system_wine_version():
+        if "wine" in self.runner_name and not wine.get_system_wine_version() and not LINUX_SYSTEM.is_flatpak:
 
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
@@ -446,6 +455,7 @@ class Game(GObject.Object):
         # Env vars
         game_env = gameplay_info.get("env") or self.runner.get_env()
         env.update(game_env)
+        env["game_name"] = self.name
 
         # LD_PRELOAD
         ld_preload = gameplay_info.get("ld_preload")
@@ -498,6 +508,7 @@ class Game(GObject.Object):
             self.prelaunch_executor = MonitoredCommand(
                 [prelaunch_command],
                 include_processes=[os.path.basename(prelaunch_command)],
+                env=self.game_runtime_config["env"],
                 cwd=self.directory,
             )
             self.prelaunch_executor.start()
@@ -585,6 +596,10 @@ class Game(GObject.Object):
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
+
+        if self.discord_presence.available:
+            self.discord_presence.update_discord_rich_presence()
+
         return True
 
     def stop(self):
@@ -620,9 +635,13 @@ class Game(GObject.Object):
             postexit_thread = MonitoredCommand(
                 [postexit_command],
                 include_processes=[os.path.basename(postexit_command)],
+                env=self.game_runtime_config["env"],
                 cwd=self.directory,
             )
             postexit_thread.start()
+
+        if self.discord_presence.available:
+            self.discord_presence.clear_discord_rich_presence()
 
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
