@@ -685,7 +685,7 @@ class wine(Runner):
     def run_regedit(self, *args):
         """Run regedit in the current context"""
         self.prelaunch()
-        self._run_executable("wineconsole")
+        self._run_executable("regedit")
 
     def run_winetricks(self, *args):
         """Run winetricks in the current context"""
