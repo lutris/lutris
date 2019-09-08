@@ -457,10 +457,10 @@ Currently, the following tasks are implemented:
             
     For a full list of available ``winetricks`` see here: https://github.com/Winetricks/winetricks/tree/master/files/verbs
 
-*   wine / winesteam: ``eject_disk`` runs eject_disk in your ``prefix`` argument. parameters are
+*   wine / winesteam: ``eject_disk`` runs eject_disk in your ``prefix`` argument. Parameters are
     ``prefix`` (optional wineprefix path).
 
-    example:
+    Example:
 
     ::
 
@@ -585,7 +585,7 @@ Trying the installer locally
 ============================
 
 If needed (i.e. you didn't download the installer first from the website), add
-the ``name`` (if name contains : character surrond name with quotes), ``game_slug``, ``slug``, ``version`` and ``runner`` directives.
+the ``name`` (if it contains the ``:`` character, surround the name with quotes), ``game_slug``, ``slug``, ``version`` and ``runner`` directives.
 The value for ``runner`` must be the slug name for the runner.
 (E.g. winesteam for Steam Windows.)
 Under ``script``, add ``files``, ``installer``, ``game`` and other installer
@@ -824,7 +824,7 @@ Example winesteam game:
           WINEDLLOVERRIDES: d3d11=
           SOMEENV: true
 
-Example steam linux game:
+Example steam Linux game:
 
 ::
 
