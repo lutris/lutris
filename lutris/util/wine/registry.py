@@ -5,6 +5,7 @@ from datetime import datetime
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
+
 (
     REG_NONE,
     REG_SZ,
