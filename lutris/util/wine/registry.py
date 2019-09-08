@@ -5,7 +5,6 @@ from datetime import datetime
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
-
 (
     REG_NONE,
     REG_SZ,
@@ -186,7 +185,7 @@ class WineRegistry:
             key.subkeys.pop(subkey)
 
     def get_unix_path(self, windows_path):
-        windows_path = windows_path.replace("\\\\", "/")
+        windows_path = windows_path.replace("\\", "/")
         if not self.prefix_path:
             return
         drives_path = os.path.join(self.prefix_path, "dosdevices")
@@ -290,6 +289,21 @@ class WineRegistryKey:
             return '"{}"'.format(value)
         raise NotImplementedError("TODO")
 
+    def decode_unicode(self,string):
+        chunks = string.split('\\x')
+        out = chunks.pop(0).encode().decode('unicode_escape')
+        for chunk in chunks:
+            #We have seen file with unicode characters escaped on 1 byte (\xfa), 1.5 bytes (\x444) and 2 bytes (\x00ed)
+            #So we try 0 padding, 1 and 2 (python wants its escaped sequence to be exactly on 4 characters).
+            #The exception let us know if it worked or not
+            for i in [0,1,2]:
+                try:
+                    out += '\\u{}{}'.format('0'*i,chunk).encode().decode('unicode_escape')
+                    break
+                except UnicodeDecodeError:
+                    pass
+        return out
+
     def add_meta(self, meta_line):
         if not meta_line.startswith("#"):
             raise ValueError("Key metas should start with '#'")
@@ -316,7 +330,7 @@ class WineRegistryKey:
             return None
         value = self.subkeys[name]
         if value.startswith('"') and value.endswith('"'):
-            return value[1:-1]
+            return self.decode_unicode(value[1:-1])
         if value.startswith("dword:"):
             return int(value[6:], 16)
         raise ValueError("Handle %s" % value)
