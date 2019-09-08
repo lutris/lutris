@@ -47,7 +47,7 @@ the following command::
 
       sudo python3 setup.py install
 
-Altought this is the standard way of installing Python packages we STRONGLY
+Although this is the standard way of installing Python packages we STRONGLY
 advice against using it. You won't be able to easily remove the installed
 version without you having to go through /usr/local and manually delete lutris
 related files. The setup.py script is used by packaging tools to build the

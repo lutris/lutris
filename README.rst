@@ -11,7 +11,7 @@ managing, installing and providing optimal settings for games.
 
 Lutris does not sell games. For commercial games, you must own a copy to install
 the game on Lutris.
-The platform uses programs referered to as 'runners' to launch games,
+The platform uses programs referred to as 'runners' to launch games,
 Those runners (with the exception of Steam and web browsers) are provided and
 managed by Lutris, so you don't need to install them with your package manager.
 
