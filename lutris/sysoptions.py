@@ -33,13 +33,11 @@ def get_optirun_choices():
 
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
-    loader_paths = []
-    for data_dir in VULKAN_DATA_DIRS:
-        loader_paths.append(os.path.join(data_dir, "icd.d", "*.json"))
     choices = [("Auto", "")]
 
     # Add loaders
-    for path in loader_paths:
+    for data_dir in VULKAN_DATA_DIRS:
+        path = os.path.join(data_dir, "icd.d", "*.json")
         for loader in glob.glob(path):
             choices.append((os.path.basename(loader), loader))
 
