@@ -23,6 +23,8 @@ def get_optirun_choices():
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
     loader_paths = ["/usr/share/vulkan/icd.d/*.json",  # standard location
+                    "/usr/lib/x86_64-linux-gnu/GL/vulkan/icd.d/*.json", # Flatpak GL extension
+                    "/usr/lib/i386-linux-gnu/GL/vulkan/icd.d/*.json", # Flatpak GL32 extension
                     "/opt/amdgpu-pro/etc/vulkan/icd.d/*.json",  # AMD GPU Pro - TkG
                     "/etc/vulkan/icd.d/*.json"]  # AMDVLK - Ubuntu
     choices = [("Auto", "")]
