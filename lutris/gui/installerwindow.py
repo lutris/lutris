@@ -84,12 +84,15 @@ class InstallerWindow(BaseApplicationWindow):
 
         self.continue_handler = None
 
-        self.get_scripts()
-
-        self.title_label.set_markup("Waiting for response from %s" % (settings.SITE_URL))
-        self.add_spinner()
-        self.widget_box.show()
-        self.title_label.show()
+        # check if installer is local or online
+        if system.path_exists(self.installer_file):
+            self.get_scripts(local_script=True)
+        else:
+            self.title_label.set_markup("Waiting for response from %s" % (settings.SITE_URL))
+            self.add_spinner()
+            self.widget_box.show()
+            self.title_label.show()
+            self.get_scripts(local_script=False)
 
         self.present()
 
@@ -100,9 +103,8 @@ class InstallerWindow(BaseApplicationWindow):
         self.action_buttons.add(button)
         return button
 
-    def get_scripts(self):
-        if system.path_exists(self.installer_file):
-            # local script
+    def get_scripts(self, local_script=False):
+        if local_script:
             self.on_scripts_obtained(interpreter.read_script(self.installer_file))
         else:
             jobs.AsyncCall(
