@@ -191,6 +191,15 @@ License is Creative Commons Zero 1.0:
 https://creativecommons.org/publicdomain/zero/1.0/
 
 
+msx_msx2_msx2+-symbolic.svg
+------------------
+
+Created by: https://www.flaticon.com/authors/creaticca-creative-agency
+
+Licensed under Flaticon Basic License:
+https://file000.flaticon.com/downloads/license/license.pdf
+
+
 mupen64plus.svg
 ---------------
 
@@ -226,7 +235,45 @@ https://commons.wikimedia.org/wiki/File:Nintendo_3DS_(logo).svg
 
 The Wikimedia page claims that the image "does not meet the threshold of originality needed for copyright protection, and is therefore in the public domain". I find this claim questionable, but the use of an obvious proprietary trademark is probably a bigger issue.
 
+
+nintendogameboy-symbolic.svg
+---------
+
+Created by: https://www.flaticon.com/authors/xnimrodx
+
+Licensed under Flaticon Basic License:
+https://file000.flaticon.com/downloads/license/license.pdf
+
+
+nintendogameboycolor-symbolic.svg
+---------
+
+Created by: https://www.flaticon.com/authors/creaticca-creative-agency
+
+Licensed under Flaticon Basic License:
+https://file000.flaticon.com/downloads/license/license.pdf
+
+
 nintendogamecube-symbolic.svg
+---------
+
+Created by: https://www.flaticon.com/authors/freepik
+
+Licensed under Flaticon Basic License:
+https://file000.flaticon.com/downloads/license/license.pdf
+
+
+nintendones-symbolic.svg
+---------
+
+Created by: https://www.flaticon.com/authors/freepik
+
+Licensed under Flaticon Basic License:
+https://file000.flaticon.com/downloads/license/license.pdf
+
+
+
+nintendosnes-symbolic.svg
 ---------
 
 Created by: https://www.flaticon.com/authors/freepik
@@ -329,6 +376,15 @@ https://github.com/scummvm/scummvm/blob/master/icons/scummvm.svg
 
 License is shared with the main project; GPLv2 or later:
 http://www.gnu.org/licenses/gpl-2.0.html
+
+
+segadreamcast-symbolic.svg
+---------
+
+Created by: https://www.flaticon.com/authors/freepik
+
+Licensed under Flaticon Basic License:
+https://file000.flaticon.com/downloads/license/license.pdf
 
 
 snes9x-symbolic.svg
