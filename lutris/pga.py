@@ -36,6 +36,12 @@ DATABASE = {
         {"name": "has_custom_icon", "type": "INTEGER"},
         {"name": "playtime", "type": "TEXT"},
     ],
+    "sessions": [
+        {"name": "id", "type": "INTEGER", "indexed": True},
+        {"name": "gameid", "type": "INTEGER"},
+        {"name": "date", "type": "INTEGER"},
+        {"name": "playtime", "type": "TEXT"}
+    ],
     "store_games": [
         {"name": "id", "type": "INTEGER", "indexed": True},
         {"name": "store", "type": "TEXT"},
@@ -254,6 +260,9 @@ def add_game(name, **game_data):
         game_data["slug"] = slugify(name)
     return sql.db_insert(PGA_DB, "games", game_data)
 
+def add_session(gameid, date, playtime):
+    """Add a session to the PGA database."""
+    sql.db_insert(PGA_DB, "sessions", { "gameid": gameid, "date": date, "playtime": playtime })
 
 def add_games_bulk(games):
     """
