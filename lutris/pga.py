@@ -40,7 +40,7 @@ DATABASE = {
         {"name": "id", "type": "INTEGER", "indexed": True},
         {"name": "gameid", "type": "INTEGER"},
         {"name": "date", "type": "INTEGER"},
-        {"name": "playtime", "type": "TEXT"}
+        {"name": "playtime", "type": "INTEGER"}
     ],
     "store_games": [
         {"name": "id", "type": "INTEGER", "indexed": True},
