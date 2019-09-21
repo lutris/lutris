@@ -251,6 +251,10 @@ def get_game_by_field(value, field="slug"):
 def get_games_by_slug(slug):
     return sql.db_select(PGA_DB, "games", condition=("slug", slug))
 
+def get_session(session_id):
+    """Returns the requested session."""
+    query = "SELECT * FROM sessions WHERE id = ?"
+    return sql.db_query(PGA_DB, query, tuple([session_id]))
 
 def add_game(name, **game_data):
     """Add a game to the PGA database."""
