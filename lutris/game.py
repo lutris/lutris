@@ -470,7 +470,7 @@ class Game(GObject.Object):
                     path
                     for path in [
                         env.get("LD_PRELOAD"),
-                        "/usr/$LIB/libgamemodeauto.so",
+                        "libgamemodeauto.so",
                     ]
                     if path
                 ]
@@ -575,7 +575,7 @@ class Game(GObject.Object):
 
     def prelaunch_beat(self):
         """Watch the prelaunch command"""
-        if self.prelaunch_executor.is_running:
+        if self.prelaunch_executor and self.prelaunch_executor.is_running:
             return True
         self.start_game()
         return False

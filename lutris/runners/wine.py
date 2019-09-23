@@ -17,6 +17,7 @@ from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.x360ce import X360ce
 from lutris.util.wine import dxvk
+from lutris.util.wine import nine
 from lutris.util.wine.wine import (
     POL_PATH,
     WINE_DIR,
@@ -245,6 +246,19 @@ class wine(Runner):
                 "callback": esync_limit_callback,
                 "callback_on": True,
                 "active": True,
+            },
+            {
+                "option": "gallium_nine",
+                "label": "Enable Gallium Nine",
+                "type": "bool",
+                "default": False,
+                "condition": nine.NineManager.is_available(),
+                "advanced": True,
+                "help": (
+                    "Gallium Nine allows to run any Direct3D 9 application with nearly "
+                    "no CPU overhead. Make sure your active graphics card supports "
+                    "Gallium Nine state tracker before enabling this options."
+                ),
             },
             {
                 "option": "x360ce-path",
@@ -771,6 +785,10 @@ class wine(Runner):
             self.setup_dxvk("d9vk", dxvk_manager=dxvk.D9VKManager(
                         self.prefix_path, arch=self.wine_arch, version=self.runner_config.get("d9vk_version")
                     ),)
+        try:
+            self.setup_nine(self.runner_config.get("gallium_nine"))
+        except nine.NineUnavailable as ex:
+            raise GameConfigError("Unable to configure GalliumNine: %s" % ex)
         return True
 
     def get_dll_overrides(self):
@@ -889,11 +907,24 @@ class wine(Runner):
         if self.runner_config.get("x360ce-dinput"):
             self.dll_overrides["dinput8"] = "native"
 
+    def setup_nine(self, enable):
+        nine_manager = nine.NineManager(
+            self.prefix_path,
+            self.wine_arch,
+        )
+
+        if enable:
+            nine_manager.enable()
+        else:
+            nine_manager.disable()
+
     def sandbox(self, wine_prefix):
         if self.runner_config.get("sandbox", True):
             wine_prefix.desktop_integration(
                 desktop_dir=self.runner_config.get("sandbox_dir")
             )
+        else:
+            wine_prefix.desktop_integration(restore=True)
 
     def play(self):
         game_exe = self.game_exe
