@@ -4,6 +4,7 @@ import shutil
 
 from lutris.util import system
 from lutris.runners.commands.wine import wineexec
+from lutris.util.wine.cabinstall import CabInstaller
 
 class NineUnavailable(RuntimeError):
     """Exception raised when Gallium Nine is not available"""
@@ -26,14 +27,9 @@ class NineManager:
         of system library directory
         """
         for mesa_file in NineManager.mesa_files:
-            if not any([os.path.exists(os.path.join(lib[0], "d3d", mesa_file))
+            if not any([os.path.exists(os.path.join(lib, "d3d", mesa_file))
             for lib in system.LINUX_SYSTEM.iter_lib_folders()]):
                 return False
-
-            if system.LINUX_SYSTEM.is_64_bit:
-                if not any([os.path.exists(os.path.join(lib[1], "d3d", mesa_file))
-                for lib in system.LINUX_SYSTEM.iter_lib_folders()]):
-                    return False
 
         return True
 
@@ -44,14 +40,9 @@ class NineManager:
         check 'wine/fakedlls' subdirectory of system library directory for Nine binaries
         """
         for nine_file in NineManager.nine_files:
-            if not any([os.path.exists(os.path.join(lib[0], "wine/fakedlls", nine_file))
+            if not any([os.path.exists(os.path.join(lib, "wine/fakedlls", nine_file))
             for lib in system.LINUX_SYSTEM.iter_lib_folders()]):
                 return False
-
-            if system.LINUX_SYSTEM.is_64_bit:
-                if not any([os.path.exists(os.path.join(lib[1], "wine/fakedlls", nine_file))
-                for lib in system.LINUX_SYSTEM.iter_lib_folders()]):
-                    return False
 
         return True
 
@@ -88,14 +79,23 @@ class NineManager:
     def prepare_prefix(self):
         for nine_file in NineManager.nine_files:
             for lib in system.LINUX_SYSTEM.iter_lib_folders():
-                nine_file_32 = os.path.join(lib[0], "wine/fakedlls", nine_file)
-                if os.path.exists(nine_file_32):
-                    shutil.copy(nine_file_32, self.get_system_path("x32"))
+                nine_file_path = os.path.join(lib, "wine/fakedlls", nine_file)
+
+                if (os.path.exists(nine_file_path) and
+                CabInstaller.get_arch_from_dll(nine_file_path) == "win32"):
+                    shutil.copy(nine_file_path, self.get_system_path("x32"))
 
                 if self.wine_arch == "win64":
-                    nine_file_64 = os.path.join(lib[1], "wine/fakedlls", nine_file)
-                    if os.path.exists(nine_file_64):
+                    if (os.path.exists(nine_file_path) and
+                    CabInstaller.get_arch_from_dll(nine_file_path) == "win64"):
                         shutil.copy(nine_file_64, self.get_system_path("x64"))
+
+            if not os.path.exists(os.path.join(self.get_system_path("x32"), nine_file)):
+                raise NineUnavailable("could not install " + nine_file + " (x32)")
+
+            if self.wine_arch == "win64":
+                if not os.path.exists(os.path.join(self.get_system_path("x64"), nine_file)):
+                    raise NineUnavailable("could not install " + nine_file + " (x64)")
 
     def enable(self):
         if not self.nine_is_supported():
