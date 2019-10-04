@@ -65,6 +65,7 @@ SYSTEM_COMPONENTS = {
         "kitty",
         "yuakuake",
         "qterminal",
+        "alacritty",
     ],
     "LIBRARIES": {
         "OPENGL": [
