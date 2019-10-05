@@ -73,6 +73,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         super().__init__(
             default_width=width,
             default_height=height,
+            window_position=Gtk.WindowPosition.NONE,
             icon_name="lutris",
             application=application,
             **kwargs
@@ -108,6 +109,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.connect("delete-event", self.on_window_delete)
         if self.maximized:
             self.maximize()
+        else:
+            #If we can't retrieve the window coordinates from the config file, the window will stay at the center of the screen
+            try:
+                x,y = [int(i) for i in settings.read_setting("window_position").split(',')]
+                self.move(x,y)
+            except ValueError:
+                pass
+
         self.init_template()
         self._init_actions()
         self._bind_zoom_adjustment()
@@ -592,6 +601,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.window_size = widget.get_size()
 
     def on_window_delete(self, *_args):
+
+
         if self.application.running_games.get_n_items():
             dlg = dialogs.QuestionDialog(
                 {
@@ -602,6 +613,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
             )
             if dlg.result != Gtk.ResponseType.YES:
                 return True
+
+        self.set_gravity(Gdk.Gravity.STATIC)
+        settings.write_setting("window_position","{},{}".format(self.get_position().root_x,self.get_position().root_y))
 
     @GtkTemplate.Callback
     def on_destroy(self, *_args):
