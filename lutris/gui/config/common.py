@@ -106,6 +106,8 @@ class GameDialogCommon:
 
         prefs_box.pack_start(self._get_hide_on_game_launch_box(), False, False, 6)
 
+        prefs_box.pack_start(self._get_window_position(), False, False, 6)
+
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, "Lutris preferences")
 
@@ -135,6 +137,19 @@ class GameDialogCommon:
     def _on_hide_client_change(self, widget):
         """Save setting for hiding the game on game launch"""
         settings.write_setting("hide_client_on_game_start", widget.get_active())
+
+    def _get_window_position(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        checkbox = Gtk.CheckButton(label="Remember the window position between launch")
+        if settings.read_setting("window_default_position") == "False":
+            checkbox.set_active(True)
+        checkbox.connect("toggled", self._on_switch_default_window_position)
+        box.pack_start(checkbox, True, True, 0)
+        return box
+
+    def _on_switch_default_window_position(self, widget):
+        """Save setting for restoring the window position on next launch"""
+        settings.write_setting("window_default_position", not widget.get_active())
 
     def _on_cache_path_set(self, entry):
         if self.timer_id:
