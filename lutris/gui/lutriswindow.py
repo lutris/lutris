@@ -266,12 +266,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def left_side_panel_visible(self):
-        show_left_panel = settings.read_setting("left_side_panel_visible").lower() == "true"
+        show_left_panel = settings.read_setting("left_side_panel_visible").lower() != "false"
         return show_left_panel or self.sidebar_visible
 
     @property
     def right_side_panel_visible(self):
-        show_right_panel = settings.read_setting("right_side_panel_visible").lower() == "true"
+        show_right_panel = settings.read_setting("right_side_panel_visible").lower() != "false"
         return show_right_panel or self.sidebar_visible
 
     @property
