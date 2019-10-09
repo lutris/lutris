@@ -24,7 +24,11 @@ if os.path.isdir(os.path.join(LAUNCH_PATH,"../lutris")):
 else:
     sys.path.insert(0, os.path.normpath(os.path.join(LAUNCH_PATH, "../lib/lutris")))
 
-locale.setlocale(locale.LC_ALL, "")
+try:
+    locale.setlocale(locale.LC_ALL, "")
+except locale.Error:
+    sys.stderr.write("Unsupported locale setting. Using 'C' as fallback locale.\n")
+    locale.setlocale(locale.LC_ALL, "C")
 
 from lutris.gui.application import Application
 
