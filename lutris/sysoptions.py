@@ -195,6 +195,19 @@ system_options = [  # pylint: disable=invalid-name
         "help": "Request a set of optimisations be temporarily applied to the host OS",
     },
     {
+        "option": "prime",
+        "type": "bool",
+        "default": False,
+        "condition": True,
+        "label": "Enable NVIDIA Prime render offload",
+        "help": (
+            "If you have the latest NVIDIA driver and the properly patched xorg-server "
+            "(see https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html), "
+            "you can launch a game on your NVIDIA GPU by toggling this switch (this will apply "
+            "__NV_PRIME_RENDER_OFFLOAD=1 and __GLX_VENDOR_LIBRARY_NAME=nvidia environment variables)"
+        )
+    },
+    {
         "option": "dri_prime",
         "type": "bool",
         "default": display.USE_DRI_PRIME,
