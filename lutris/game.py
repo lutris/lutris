@@ -457,6 +457,12 @@ class Game(GObject.Object):
         env.update(game_env)
         env["game_name"] = self.name
 
+        # Prime vars
+        prime = system_config.get("prime")
+        if prime:
+            env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
+            env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
+
         # LD_PRELOAD
         ld_preload = gameplay_info.get("ld_preload")
         if ld_preload:
