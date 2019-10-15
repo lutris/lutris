@@ -527,7 +527,7 @@ class wine(Runner):
         """Return the game's executable's path."""
         exe = self.game_config.get("exe")
         if not exe:
-            logger.warning("The game doesn't have an executabe")
+            logger.warning("The game doesn't have an executable")
             return
         if exe and os.path.isabs(exe):
             return exe
