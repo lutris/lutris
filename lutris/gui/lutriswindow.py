@@ -831,6 +831,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         left_side_panel_visible = value.get_boolean()
         settings.write_setting("left_side_panel_visible", bool(left_side_panel_visible))
         self.sidebar_revealer.set_reveal_child(left_side_panel_visible)
+        #Retrocompatibility with sidebar_visible : if we change the new attribute, we must set the old one to false
+        if self.sidebar_visible:
+            settings.write_setting("sidebar_visible","false")
 
     def on_right_side_panel_state_change(self, action, value):
         """Callback to handle right side panel toggle"""
@@ -839,6 +842,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting("right_side_panel_visible", bool(right_side_panel_visible))
         self.panel_revealer.set_reveal_child(right_side_panel_visible)
         self.game_scrolled.set_visible(right_side_panel_visible)
+        #Retrocompatibility with sidebar_visible : if we change the new attribute, we must set the old one to false
+        if self.sidebar_visible:
+            settings.write_setting("sidebar_visible","false")
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
