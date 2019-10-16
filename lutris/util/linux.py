@@ -303,7 +303,7 @@ class LinuxSystem:
             logger.error("Could not detect ldconfig on this system")
             return []
         try:
-            output = subprocess.check_output([ldconfig, "-p"]).decode("utf-8").split("\n")
+            output = subprocess.check_output([ldconfig, "-p"]).decode("utf-8", errors="ignore").split("\n")
         except subprocess.CalledProcessError as ex:
             logger.error("Failed to get libraries from ldconfig: %s", ex)
             return []
