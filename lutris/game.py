@@ -424,7 +424,10 @@ class Game(GObject.Object):
         fps_limit = system_config.get("fps_limit") or ""
         if fps_limit:
             strangle_cmd = system.find_executable("strangle")
-            launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
+            if strangle_cmd:
+                launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
+            else:
+                logger.warning("libstrangle is not available on this system, FPS limiter disabled")
 
         prefix_command = system_config.get("prefix_command") or ""
         if prefix_command:
