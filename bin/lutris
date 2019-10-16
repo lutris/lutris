@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Main entry point for Lutris"""
 import sys
 import locale
 import os
@@ -32,5 +33,5 @@ except locale.Error:
 
 from lutris.gui.application import Application
 
-app = Application()
+app = Application()  # pylint: disable=invalid-name
 sys.exit(app.run(sys.argv))

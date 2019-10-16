@@ -1,4 +1,5 @@
 """Options list for system config."""
+# pylint: disable=invalid-name
 import os
 import glob
 from collections import OrderedDict
