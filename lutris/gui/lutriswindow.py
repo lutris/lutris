@@ -102,6 +102,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
+        GObject.add_emission_hook(Game, "game-started", self.on_game_started)
         GObject.add_emission_hook(GenericPanel,
                                   "running-game-selected",
                                   self.game_selection_changed)
@@ -710,6 +711,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Called when a game has sent the 'game-error' signal"""
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
+
+    def on_game_started(self, game):
+        self.game_panel.refresh()
+        return True
 
     def on_game_updated(self, game):
         """Callback to refresh the view when a game is updated"""

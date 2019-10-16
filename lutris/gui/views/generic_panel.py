@@ -81,6 +81,9 @@ class GenericPanel(Gtk.Fixed):
             self.put(running_label, 12, 355)
             self.put(self.get_running_games(), 12, 377)
 
+    def refresh(self):
+        self.place_content()
+
     def get_preferences_button(self):
         preferences_button = Gtk.Button.new_from_icon_name(
             "preferences-system-symbolic", Gtk.IconSize.MENU
