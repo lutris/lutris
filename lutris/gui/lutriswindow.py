@@ -602,17 +602,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def on_window_delete(self, *_args):
         if self.application.running_games.get_n_items():
-            dlg = dialogs.QuestionDialog(
-                {
-                    "question": (
-                        "Some games are still running. "
-                        "Are you sure you want to quit Lutris?"
-                    ),
-                    "title": "Quit Lutris?",
-                }
-            )
-            if dlg.result != Gtk.ResponseType.YES:
-                return True
+            self.hide()
+            return True
 
     @GtkTemplate.Callback
     def on_destroy(self, *_args):
