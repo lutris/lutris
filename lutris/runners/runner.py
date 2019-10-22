@@ -259,11 +259,16 @@ class Runner:
         if Gtk.ResponseType.YES == dialog.result:
 
             from lutris.gui.dialogs.runners import simple_downloader
-            if hasattr(self, "get_version"):
-                self.install(downloader=simple_downloader,
-                             version=self.get_version(use_default=False))
-            else:
-                self.install(downloader=simple_downloader)
+            from lutris.gui.dialogs import ErrorDialog
+            try:
+                if hasattr(self, "get_version"):
+                    self.install(downloader=simple_downloader,
+                                 version=self.get_version(use_default=False))
+                else:
+                    self.install(downloader=simple_downloader)
+            except RunnerInstallationError as ex:
+                ErrorDialog(ex.message)
+
             return self.is_installed()
         return False
 
@@ -322,8 +327,8 @@ class Runner:
         runner = self.get_runner_version(version)
         if not runner:
             raise RunnerInstallationError(
-                "{} is not available for the {} architecture".format(
-                    self.name, self.arch
+                "Failed to retrieve {} ({}) information".format(
+                    self.name, version
                 )
             )
         if not downloader:

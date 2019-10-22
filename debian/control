@@ -20,7 +20,7 @@ Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
 Vcs-Git: https://github.com/lutris/lutris
 Homepage: https://lutris.net
-X-Python-Version: >= 3.4
+X-Python3-Version: >= 3.4
 
 Package: lutris
 Architecture: any

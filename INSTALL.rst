@@ -38,6 +38,11 @@ To install all those dependencies on Ubuntu based systems, you can run::
       gir1.2-notify-0.7 psmisc cabextract unzip p7zip curl fluid-soundfont-gs \
       x11-xserver-utils python3-evdev libc6-i386 lib32gcc1 libgirepository1.0-dev
 
+Note :
+If you use OpenSUSE, some dependencies are missing. You need to install python3-gobject-Gdk and typelib-1_0-Gtk-3_0
+
+``sudo apt install python3-gobject-Gdk typelib-1_0-Gtk-3_0``
+
 Installation
 ------------
 
@@ -47,7 +52,7 @@ the following command::
 
       sudo python3 setup.py install
 
-Altought this is the standard way of installing Python packages we STRONGLY
+Although this is the standard way of installing Python packages we STRONGLY
 advice against using it. You won't be able to easily remove the installed
 version without you having to go through /usr/local and manually delete lutris
 related files. The setup.py script is used by packaging tools to build the

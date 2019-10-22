@@ -1,6 +1,5 @@
 import json
 import socket
-import platform
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -60,9 +59,7 @@ class Request:
 
     @property
     def user_agent(self):
-        return "{}/{} ({} {})".format(
-            PROJECT, VERSION, " ".join(platform.dist()), platform.machine()
-        )
+        return "{} {}".format(PROJECT, VERSION)
 
     def get(self, data=None):
         logger.debug("GET %s", self.url)

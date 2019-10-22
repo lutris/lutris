@@ -2,10 +2,12 @@
 import os
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.log import logger
-from lutris.util import joypad, system
+from lutris.util import joypad, system, xdgshortcuts
 from lutris.util.display import DISPLAY_MANAGER
 
+DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
 DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
+DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES"]
 
 
 class WinePrefixManager:
@@ -44,6 +46,10 @@ class WinePrefixManager:
             "The key {} is currently not supported by WinePrefixManager".format(key)
         )
 
+    def get_registry_key(self, key, subkey):
+        registry = WineRegistry(self.get_registry_path(key))
+        return registry.query(self.get_key_path(key), subkey)
+
     def set_registry_key(self, key, subkey, value):
         registry = WineRegistry(self.get_registry_path(key))
         registry.set_value(self.get_key_path(key), subkey, value)
@@ -68,11 +74,16 @@ class WinePrefixManager:
             return
         self.set_registry_key(key, dll, mode)
 
-    def desktop_integration(self, desktop_dir=None):
+    def desktop_integration(self, desktop_dir=None, restore=False):
         """Overwrite desktop integration"""
+        DESKTOP_FOLDERS = []
 
         user = os.getenv("USER")
         user_dir = os.path.join(self.path, "drive_c/users/", user)
+
+        for key in DESKTOP_KEYS:
+            folder = self.get_registry_key(self.hkcu_prefix+"/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",key)
+            DESKTOP_FOLDERS.append(folder[folder.rfind("\\")+1:])
 
         if not desktop_dir:
             desktop_dir = user_dir
@@ -80,19 +91,25 @@ class WinePrefixManager:
             desktop_dir = os.path.expanduser(desktop_dir)
 
         if system.path_exists(user_dir):
-            # Replace desktop integration symlinks
-            for item in DESKTOP_FOLDERS:
+            # Replace or restore desktop integration symlinks
+            for i,item in enumerate(DESKTOP_FOLDERS):
                 path = os.path.join(user_dir, item)
                 old_path = path + ".winecfg"
 
                 if os.path.islink(path):
-                    os.unlink(path)
+                    if not restore:
+                        os.unlink(path)
                 elif os.path.isdir(path):
                     try:
                         os.rmdir(path)
                     # We can't delete nonempty dir, so we rename as wine do.
                     except OSError:
                         os.rename(path, old_path)
+
+                if restore and not os.path.isdir(path):
+                    os.symlink(xdgshortcuts.get_xdg_entry(DESKTOP_XDG[i]),path)
+                    # We don't need all the others process of the loop
+                    continue
 
                 if desktop_dir != user_dir:
                     src_path = os.path.join(desktop_dir, item)
@@ -107,6 +124,7 @@ class WinePrefixManager:
 
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
+                path = os.path.join(user_dir, item)
                 if item not in DESKTOP_FOLDERS and os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)

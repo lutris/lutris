@@ -7,7 +7,7 @@ import json
 import platform
 import resource
 import subprocess
-from collections import defaultdict
+from collections import defaultdict, Counter
 from lutris.vendor.distro import linux_distribution
 from lutris.util.graphics import drivers
 from lutris.util.graphics import glxinfo
@@ -65,6 +65,7 @@ SYSTEM_COMPONENTS = {
         "kitty",
         "yuakuake",
         "qterminal",
+        "alacritty",
     ],
     "LIBRARIES": {
         "OPENGL": [
@@ -90,7 +91,7 @@ class LinuxSystem:
     """Global cache for system commands"""
     _cache = {}
 
-    lib_folders = [
+    multiarch_lib_folders = [
         ('/lib', '/lib64'),
         ('/lib32', '/lib64'),
         ('/usr/lib', '/usr/lib64'),
@@ -265,15 +266,36 @@ class LinuxSystem:
         """Return path of available soundfonts"""
         return self._cache["SOUNDFONTS"]
 
+    def get_lib_folders(self):
+        """Return shared library folders, sorted by most used to least used"""
+        lib_folder_counter = Counter(
+            lib.dirname
+            for lib_list in self.shared_libraries.values()
+            for lib in lib_list
+        )
+        return [path[0] for path in reversed(lib_folder_counter.most_common())]
+
     def iter_lib_folders(self):
         """Loop over existing 32/64 bit library folders"""
-        for lib_paths in self.lib_folders:
+        exported_lib_folders = set()
+        for lib_folder in self.get_lib_folders():
+            exported_lib_folders.add(lib_folder)
+            yield lib_folder
+        for lib_paths in self.multiarch_lib_folders:
             if self.arch != 'x86_64':
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
+            else:
+                # Ignore paths where 64-bit path is link to supposed 32-bit path
+                if os.path.realpath(lib_paths[0]) == os.path.realpath(lib_paths[1]):
+                    continue
             if all([os.path.exists(path) for path in lib_paths]):
-                yield lib_paths
-
+                if lib_paths[0] not in exported_lib_folders:
+                        yield lib_paths[0]
+                if len(lib_paths) != 1:
+                    if lib_paths[1] not in exported_lib_folders:
+                        yield lib_paths[1]
+    
     def get_ldconfig_libs(self):
         """Return a list of available libraries, as returned by `ldconfig -p`."""
         ldconfig = self.get("ldconfig")
@@ -281,7 +303,7 @@ class LinuxSystem:
             logger.error("Could not detect ldconfig on this system")
             return []
         try:
-            output = subprocess.check_output([ldconfig, "-p"]).decode("utf-8").split("\n")
+            output = subprocess.check_output([ldconfig, "-p"]).decode("utf-8", errors="ignore").split("\n")
         except subprocess.CalledProcessError as ex:
             logger.error("Failed to get libraries from ldconfig: %s", ex)
             return []

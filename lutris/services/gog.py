@@ -152,6 +152,14 @@ class GogService:
                 return
         headers = {"Authorization": "Bearer " + token["access_token"]}
         request = Request(url, headers=headers, cookies=self.load_cookies())
+        try:
+            request.get()
+        except HTTPError:
+            logger.error(
+                "Failed to request %s, check your GOG credentials and internet connectivity",
+                url
+            )
+            return
         request.get()
         return request.json
 

@@ -8,7 +8,7 @@ If you are looking for issues to work on, have a look at the
 [milestones](https://github.com/lutris/lutris/milestones) and see which one is
 the closest to release then look at the tickets targeted at this release.
 
-Don't forget that lutris is not only a desktop client, there are also a lot of
+Don't forget that Lutris is not only a desktop client, there are also a lot of
 issues to work on [on the website](https://github.com/lutris/website/issues)
 and also in the [build scripts repository](https://github.com/lutris/buildbot)
 where you can submit bash scripts for various open source games and engines we
@@ -29,7 +29,7 @@ agreeing on a design first with the development team. You can submit such pull
 requests but they will have to be updated with necessary changes from code
 reviews of the development team. This is not only about writing good code but
 also about providing good design for the overall product. Make sure to post all
-the revelant information in a ticket or on the pull request. New features must
+the relevant information in a ticket or on the pull request. New features must
 at all times have a valid use case based on an actual game, be very specific
 about why you are implementing a feature otherwise it will get rejected.
 Avoid adding options in the GUI or introducing new installer directives for
@@ -115,7 +115,7 @@ Submitting your changes
 -----------------------
 
 Make a new git branch based of `master` in most cases, or `next` if you want to
-target a future release. Send a pull request through Github describing what
+target a future release. Send a pull request through GitHub describing what
 issue the patch solves. If the PR is related to and existing bug report, you
 can add `(Closes #nnn)` or `(Fixes #nnn)` to your PR title or message, where
 `nnn` is the ticket number you're fixing. If you have been fixing your PR with

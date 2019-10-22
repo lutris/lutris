@@ -36,6 +36,9 @@ class GamePanel(GenericPanel):
         self.buttons = self.get_buttons()
         self.place_buttons(145)
 
+    def refresh(self):
+        self.place_content()
+
     @property
     def background_id(self):
         return self.game.slug

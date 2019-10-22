@@ -92,7 +92,7 @@ class pico8(Runner):
 
     @property
     def is_native(self):
-        return self.runner_config.get("runner_executable", "") is not ""
+        return self.runner_config.get("runner_executable", "") != ""
 
     @property
     def engine_path(self):
@@ -126,7 +126,7 @@ class pico8(Runner):
                 args.append("-splore")
 
             size = self.runner_config.get("window_size").split("x")
-            if len(size) is 2:
+            if len(size) == 2:
                 args.append("-width")
                 args.append(size[0])
                 args.append("-height")

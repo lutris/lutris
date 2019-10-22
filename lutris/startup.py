@@ -114,11 +114,11 @@ def check_libs(all_components=False):
             DontShowAgainDialog(
                 setting,
                 "Missing vulkan libraries",
-                secondary_message="The Vulkan library for %s has not been found. "
-                "This will prevent games using Vulkan (such as DXVK games) from running. "
-                "To install it, please follow "
+                secondary_message="Lutris was unable to detect Vulkan support for the %s architecture.\n"
+                "This will prevent many games and programs from working.\n"
+                "To install it, please use the following guide: "
                 "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
-                "the instructions on our Wiki</a>"
+                "Installing Graphics Drivers</a>"
                 % " and ".join(missing_vulkan_libs)
             )
 
