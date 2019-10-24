@@ -359,6 +359,7 @@ class Application(Gtk.Application):
 
     def on_game_stop(self, game):
         """Callback to remove the game from the running games"""
+        game.disconnect_by_func(self.on_game_stop)
         game_index = self.get_game_index(game.id)
         if game_index is not None:
             self.running_games.remove(game_index)
