@@ -190,14 +190,22 @@ def merge_folders(source, destination):
 
 
 def remove_folder(path):
-    """Delete a folder specified by path"""
+    """Delete a folder specified by path
+    Returns true if the folder was successfully removed.
+    """
     if not os.path.exists(path):
         logger.warning("Non existent path: %s", path)
         return
     logger.debug("Removing folder %s", path)
     if os.path.samefile(os.path.expanduser("~"), path):
         raise RuntimeError("Lutris tried to erase home directory!")
-    shutil.rmtree(path)
+    try:
+        shutil.rmtree(path)
+    except OSError as ex:
+        errno, message = ex.args
+        logger.error("Failed to remove folder %s: %s (Error code %s)", path, message, errno)
+        return False
+    return True
 
 
 def create_folder(path):
