@@ -68,8 +68,8 @@ SYSTEM_COMPONENTS = {
         "alacritty",
     ],
     "LIBRARIES": {
-        "OPENGL": ["libGL.so.1",],
-        "VULKAN": ["libvulkan.so.1",],
+        "OPENGL": ["libGL.so.1"],
+        "VULKAN": ["libvulkan.so.1"],
         "WINE": ["libsqlite3.so.0"],
         "RADEON": ["libvulkan_radeon.so"],
         "GAMEMODE": ["libgamemodeauto.so"],

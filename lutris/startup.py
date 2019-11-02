@@ -117,7 +117,8 @@ def check_libs(all_components=False):
             DontShowAgainDialog(
                 setting,
                 "Missing vulkan libraries",
-                secondary_message="Lutris was unable to detect Vulkan support for the %s architecture.\n"
+                secondary_message="Lutris was unable to detect Vulkan support for "
+                "the %s architecture.\n"
                 "This will prevent many games and programs from working.\n"
                 "To install it, please use the following guide: "
                 "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"

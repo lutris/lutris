@@ -106,7 +106,7 @@ class NineManager:
                         os.path.exists(nine_file_path)
                         and CabInstaller.get_arch_from_dll(nine_file_path) == "win64"
                     ):
-                        shutil.copy(nine_file_64, self.get_system_path("x64"))
+                        shutil.copy(nine_file_path, self.get_system_path("x64"))
 
             if not os.path.exists(os.path.join(self.get_system_path("x32"), nine_file)):
                 raise NineUnavailable("could not install " + nine_file + " (x32)")

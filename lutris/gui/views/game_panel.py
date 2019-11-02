@@ -45,7 +45,9 @@ class GamePanel(GenericPanel):
 
     def get_close_button(self):
         """Return the close button"""
-        button = Gtk.Button.new_from_icon_name("window-close-symbolic", Gtk.IconSize.MENU)
+        button = Gtk.Button.new_from_icon_name(
+            "window-close-symbolic", Gtk.IconSize.MENU
+        )
         button.set_tooltip_text("Close")
         button.set_size_request(32, 32)
         button.connect("clicked", self.on_close)
@@ -61,7 +63,9 @@ class GamePanel(GenericPanel):
     def get_title_label(self):
         """Return the label with the game's title"""
         title_label = Gtk.Label()
-        title_label.set_markup("<span font_desc='16'>%s</span>" % gtk_safe(self.game.name))
+        title_label.set_markup(
+            "<span font_desc='16'>%s</span>" % gtk_safe(self.game.name)
+        )
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
         title_label.set_size_request(226, -1)
         title_label.set_alignment(0, 0.5)
@@ -72,7 +76,8 @@ class GamePanel(GenericPanel):
     def get_runner_label(self):
         """Return the label containing the runner info"""
         runner_icon = Gtk.Image.new_from_icon_name(
-            self.game.runner.name.lower().replace(" ", "") + "-symbolic", Gtk.IconSize.MENU
+            self.game.runner.name.lower().replace(" ", "") + "-symbolic",
+            Gtk.IconSize.MENU,
         )
         runner_icon.show()
         runner_label = Gtk.Label()
@@ -88,7 +93,9 @@ class GamePanel(GenericPanel):
         """Return the label containing the playtime info"""
         playtime_label = Gtk.Label()
         playtime_label.show()
-        playtime_label.set_markup("Time played: <b>%s</b>" % self.game.formatted_playtime)
+        playtime_label.set_markup(
+            "Time played: <b>%s</b>" % self.game.formatted_playtime
+        )
         return playtime_label
 
     def get_last_played_label(self):
@@ -96,7 +103,9 @@ class GamePanel(GenericPanel):
         last_played_label = Gtk.Label()
         last_played_label.show()
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
-        last_played_label.set_markup("Last played: <b>%s</b>" % lastplayed.strftime("%x"))
+        last_played_label.set_markup(
+            "Last played: <b>%s</b>" % lastplayed.strftime("%x")
+        )
         return last_played_label
 
     def get_runner_entries(self, game):
@@ -138,7 +147,12 @@ class GamePanel(GenericPanel):
                 button.hide()
             buttons[action_id] = button
 
-            if action_id in ('desktop-shortcut', 'rm-desktop-shortcut', 'menu-shortcut', 'rm-menu-shortcut'):
+            if action_id in (
+                "desktop-shortcut",
+                "rm-desktop-shortcut",
+                "menu-shortcut",
+                "rm-menu-shortcut",
+            ):
                 button.connect("clicked", self.on_shortcut_edited, action_id)
 
             button.connect("clicked", callback)
@@ -164,20 +178,24 @@ class GamePanel(GenericPanel):
         for action_id, button in self.buttons.items():
             position = None
             if action_id in ("play", "stop", "install"):
-                position = (play_x_offset,
-                            base_height)
+                position = (play_x_offset, base_height)
             if action_id == "configure":
-                position = (icon_start,
-                            base_height + icons_y_offset)
+                position = (icon_start, base_height + icons_y_offset)
             if action_id == "browse":
-                position = (icon_start + icon_offset + icon_width,
-                            base_height + icons_y_offset)
+                position = (
+                    icon_start + icon_offset + icon_width,
+                    base_height + icons_y_offset,
+                )
             if action_id == "show_logs":
-                position = (icon_start + icon_offset * 2 + icon_width * 2,
-                            base_height + icons_y_offset)
+                position = (
+                    icon_start + icon_offset * 2 + icon_width * 2,
+                    base_height + icons_y_offset,
+                )
             if action_id == "remove":
-                position = (icon_start + icon_offset * 3 + icon_width * 3,
-                            base_height + icons_y_offset)
+                position = (
+                    icon_start + icon_offset * 3 + icon_width * 3,
+                    base_height + icons_y_offset,
+                )
 
             current_y = base_height + 150
             if action_id == "execute-script":
@@ -192,17 +210,20 @@ class GamePanel(GenericPanel):
                 position = (buttons_x_offset, current_y + 160)
 
             if not position:
-                position = (buttons_x_offset, extra_button_start + extra_button_index * 40)
+                position = (
+                    buttons_x_offset,
+                    extra_button_start + extra_button_index * 40,
+                )
                 extra_button_index += 1
 
             self.put(button, position[0], position[1])
 
     def on_shortcut_edited(self, widget, action_id):
         self.buttons[action_id].hide()
-        if 'rm' == action_id[0:2]:
+        if "rm" == action_id[0:2]:
             self.buttons[action_id[3:]].show()
         else:
-            self.buttons['rm-' + action_id].show()
+            self.buttons["rm-" + action_id].show()
 
     def on_game_start(self, widget):
         self.buttons["play"].set_label("Launching...")

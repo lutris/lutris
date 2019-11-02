@@ -490,7 +490,7 @@ class Game(GObject.Object):
             env["LD_PRELOAD"] = ":".join(
                 [
                     path
-                    for path in [env.get("LD_PRELOAD"), "libgamemodeauto.so",]
+                    for path in [env.get("LD_PRELOAD"), "libgamemodeauto.so", ]
                     if path
                 ]
             )

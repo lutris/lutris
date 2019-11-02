@@ -570,7 +570,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_disconnect(self, *_args):
         """Callback from user disconnect"""
         dlg = dialogs.QuestionDialog(
-            {"question": "Do you want to log out from Lutris?", "title": "Log out?",}
+            {"question": "Do you want to log out from Lutris?", "title": "Log out?", }
         )
         if dlg.result != Gtk.ResponseType.YES:
             return
@@ -843,7 +843,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         left_side_panel_visible = value.get_boolean()
         settings.write_setting("left_side_panel_visible", bool(left_side_panel_visible))
         self.sidebar_revealer.set_reveal_child(left_side_panel_visible)
-        # Retrocompatibility with sidebar_visible : if we change the new attribute, we must set the old one to false
+        # Retrocompatibility with sidebar_visible :
+        # if we change the new attribute, we must set the old one to false
         if self.sidebar_visible:
             settings.write_setting("sidebar_visible", "false")
 
@@ -856,7 +857,8 @@ class LutrisWindow(Gtk.ApplicationWindow):
         )
         self.panel_revealer.set_reveal_child(right_side_panel_visible)
         self.game_scrolled.set_visible(right_side_panel_visible)
-        # Retrocompatibility with sidebar_visible : if we change the new attribute, we must set the old one to false
+        # Retrocompatibility with sidebar_visible :
+        # if we change the new attribute, we must set the old one to false
         if self.sidebar_visible:
             settings.write_setting("sidebar_visible", "false")
 

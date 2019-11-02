@@ -43,7 +43,7 @@ class WinePrefixManager:
 
     def get_key_path(self, key):
         if key.startswith(self.hkcu_prefix):
-            return key[len(self.hkcu_prefix) + 1 :]
+            return key[len(self.hkcu_prefix) + 1:]
         raise ValueError(
             "The key {} is currently not supported by WinePrefixManager".format(key)
         )
@@ -89,7 +89,7 @@ class WinePrefixManager:
                 + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
                 key,
             )
-            DESKTOP_FOLDERS.append(folder[folder.rfind("\\") + 1 :])
+            DESKTOP_FOLDERS.append(folder[folder.rfind("\\") + 1:])
 
         if not desktop_dir:
             desktop_dir = user_dir

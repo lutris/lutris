@@ -98,7 +98,7 @@ class GogService:
         request = Request(url)
         try:
             request.get()
-        except HTTPError as ex:
+        except HTTPError:
             logger.error("Failed to get token, check your GOG credentials")
             return
 
