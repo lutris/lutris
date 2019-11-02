@@ -27,7 +27,9 @@ class WinePrefixManager:
         try:
             self.desktop_integration()
         except OSError as ex:
-            logger.error("Failed to setup desktop integration, the prefix may not be valid.")
+            logger.error(
+                "Failed to setup desktop integration, the prefix may not be valid."
+            )
             logger.exception(ex)
 
     def get_registry_path(self, key):
@@ -41,7 +43,7 @@ class WinePrefixManager:
 
     def get_key_path(self, key):
         if key.startswith(self.hkcu_prefix):
-            return key[len(self.hkcu_prefix) + 1:]
+            return key[len(self.hkcu_prefix) + 1 :]
         raise ValueError(
             "The key {} is currently not supported by WinePrefixManager".format(key)
         )
@@ -82,8 +84,12 @@ class WinePrefixManager:
         user_dir = os.path.join(self.path, "drive_c/users/", user)
 
         for key in DESKTOP_KEYS:
-            folder = self.get_registry_key(self.hkcu_prefix+"/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",key)
-            DESKTOP_FOLDERS.append(folder[folder.rfind("\\")+1:])
+            folder = self.get_registry_key(
+                self.hkcu_prefix
+                + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
+                key,
+            )
+            DESKTOP_FOLDERS.append(folder[folder.rfind("\\") + 1 :])
 
         if not desktop_dir:
             desktop_dir = user_dir
@@ -92,7 +98,7 @@ class WinePrefixManager:
 
         if system.path_exists(user_dir):
             # Replace or restore desktop integration symlinks
-            for i,item in enumerate(DESKTOP_FOLDERS):
+            for i, item in enumerate(DESKTOP_FOLDERS):
                 path = os.path.join(user_dir, item)
                 old_path = path + ".winecfg"
 
@@ -107,7 +113,7 @@ class WinePrefixManager:
                         os.rename(path, old_path)
 
                 if restore and not os.path.isdir(path):
-                    os.symlink(xdgshortcuts.get_xdg_entry(DESKTOP_XDG[i]),path)
+                    os.symlink(xdgshortcuts.get_xdg_entry(DESKTOP_XDG[i]), path)
                     # We don't need all the others process of the loop
                     continue
 
@@ -146,12 +152,14 @@ class WinePrefixManager:
         if enabled:
             self.set_registry_key(path, "Desktop", "WineDesktop")
             default_resolution = "x".join(DISPLAY_MANAGER.get_current_resolution())
-            logger.debug("Enabling wine virtual desktop with default resolution of %s",
-                         default_resolution)
+            logger.debug(
+                "Enabling wine virtual desktop with default resolution of %s",
+                default_resolution,
+            )
             self.set_registry_key(
                 self.hkcu_prefix + "/Software/Wine/Explorer/Desktops",
                 "WineDesktop",
-                default_resolution
+                default_resolution,
             )
         else:
             self.clear_registry_key(path)

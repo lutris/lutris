@@ -51,7 +51,9 @@ def check_driver():
     if drivers.is_nvidia():
         driver_info = drivers.get_nvidia_driver_info()
         # pylint: disable=logging-format-interpolation
-        logger.info("Using {vendor} drivers {version} for {arch}".format(**driver_info["nvrm"]))
+        logger.info(
+            "Using {vendor} drivers {version} for {arch}".format(**driver_info["nvrm"])
+        )
         gpus = drivers.get_nvidia_gpu_ids()
         for gpu_id in gpus:
             gpu_info = drivers.get_nvidia_gpu_info(gpu_id)
@@ -65,7 +67,9 @@ def check_driver():
                 LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device,
             )
     else:
-        logger.warning("glxinfo is not available on your system, unable to detect driver version")
+        logger.warning(
+            "glxinfo is not available on your system, unable to detect driver version"
+        )
 
     for card in drivers.get_gpus():
         # pylint: disable=logging-format-interpolation
@@ -88,8 +92,7 @@ def check_driver():
                 "fully support all features for Vulkan and DXVK games.\n"
                 "Please upgrade your driver as described in our "
                 "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
-                "installation guide</a>"
-                % driver_info["nvrm"]["version"]
+                "installation guide</a>" % driver_info["nvrm"]["version"],
             )
 
 
@@ -118,8 +121,7 @@ def check_libs(all_components=False):
                 "This will prevent many games and programs from working.\n"
                 "To install it, please use the following guide: "
                 "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
-                "Installing Graphics Drivers</a>"
-                % " and ".join(missing_vulkan_libs)
+                "Installing Graphics Drivers</a>" % " and ".join(missing_vulkan_libs),
             )
 
 
@@ -143,7 +145,7 @@ def check_donate():
             "Please consider making a donation if you can. This will greatly help "
             "cover the costs of hosting the project and fund new features "
             "like cloud saves or a full-screen interface for the TV!\n"
-            "<a href='https://lutris.net/donate'>SUPPORT US! https://lutris.net/donate</a>"
+            "<a href='https://lutris.net/donate'>SUPPORT US! https://lutris.net/donate</a>",
         )
 
 

@@ -17,6 +17,7 @@ from lutris.util.jobs import AsyncCall
 
 from lutris.util import http
 from lutris.util import datapath
+
 # from lutris.util.steam.watcher import SteamWatcher
 
 from lutris.services import get_services_synced_at_startup, steam
@@ -103,9 +104,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-started", self.on_game_started)
-        GObject.add_emission_hook(GenericPanel,
-                                  "running-game-selected",
-                                  self.game_selection_changed)
+        GObject.add_emission_hook(
+            GenericPanel, "running-game-selected", self.game_selection_changed
+        )
         self.connect("delete-event", self.on_window_delete)
         if self.maximized:
             self.maximize()
@@ -267,12 +268,16 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def left_side_panel_visible(self):
-        show_left_panel = settings.read_setting("left_side_panel_visible").lower() != "false"
+        show_left_panel = (
+            settings.read_setting("left_side_panel_visible").lower() != "false"
+        )
         return show_left_panel or self.sidebar_visible
 
     @property
     def right_side_panel_visible(self):
-        show_right_panel = settings.read_setting("right_side_panel_visible").lower() != "false"
+        show_right_panel = (
+            settings.read_setting("right_side_panel_visible").lower() != "false"
+        )
         return show_right_panel or self.sidebar_visible
 
     @property
@@ -290,7 +295,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @property
     def show_installed_first(self):
-        return settings.read_setting("show_installed_first", default="false").lower() == "true"
+        return (
+            settings.read_setting("show_installed_first", default="false").lower()
+            == "true"
+        )
 
     @property
     def view_sorting(self):
@@ -316,6 +324,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     def sync_services(self):
         """Sync local lutris library with current Steam games and desktop games"""
+
         def full_sync(syncer_cls):
             syncer = syncer_cls()
             games = syncer.load()
@@ -374,7 +383,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def set_dark_theme(self):
         """Enables or disbales dark theme"""
         gtksettings = Gtk.Settings.get_default()
-        gtksettings.set_property("gtk-application-prefer-dark-theme", self.use_dark_theme)
+        gtksettings.set_property(
+            "gtk-application-prefer-dark-theme", self.use_dark_theme
+        )
 
     def get_view(self, view_type):
         """Return the appropriate widget for the current view"""
@@ -477,7 +488,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
-        self.zoom_adjustment.props.value = list(IMAGE_SIZES.keys()).index(self.icon_type)
+        self.zoom_adjustment.props.value = list(IMAGE_SIZES.keys()).index(
+            self.icon_type
+        )
 
         self.set_viewtype_icon(view_type)
         settings.write_setting("view_type", view_type)
@@ -485,7 +498,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name(
             "view-%s-symbolic" % ("list" if view_type == "grid" else "grid"),
-            Gtk.IconSize.BUTTON
+            Gtk.IconSize.BUTTON,
         )
 
     def sync_library(self):
@@ -550,19 +563,14 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.application.launch(game)
         else:
             InstallerWindow(
-                parent=self,
-                game_slug=game.slug,
-                application=self.application,
+                parent=self, game_slug=game.slug, application=self.application,
             )
 
     @GtkTemplate.Callback
     def on_disconnect(self, *_args):
         """Callback from user disconnect"""
         dlg = dialogs.QuestionDialog(
-            {
-                "question": "Do you want to log out from Lutris?",
-                "title": "Log out?",
-            }
+            {"question": "Do you want to log out from Lutris?", "title": "Log out?",}
         )
         if dlg.result != Gtk.ResponseType.YES:
             return
@@ -596,8 +604,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if self.application.running_games.get_n_items():
             dlg = dialogs.QuestionDialog(
                 {
-                    "question": ("Some games are still running. "
-                                 "Are you sure you want to quit Lutris?"),
+                    "question": (
+                        "Some games are still running. "
+                        "Are you sure you want to quit Lutris?"
+                    ),
                     "title": "Quit Lutris?",
                 }
             )
@@ -688,8 +698,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.search_mode = "website"
             self.search_entry.set_placeholder_text("Search Lutris.net")
             self.search_entry.set_icon_from_icon_name(
-                Gtk.EntryIconPosition.PRIMARY,
-                "folder-download-symbolic"
+                Gtk.EntryIconPosition.PRIMARY, "folder-download-symbolic"
             )
             self.game_store.search_mode = True
             self.search_games(self.search_terms)
@@ -697,8 +706,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.search_mode = "local"
             self.search_entry.set_placeholder_text("Filter the list of games")
             self.search_entry.set_icon_from_icon_name(
-                Gtk.EntryIconPosition.PRIMARY,
-                "system-search-symbolic"
+                Gtk.EntryIconPosition.PRIMARY, "system-search-symbolic"
             )
             self.search_games("")
 
@@ -764,7 +772,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_actions.set_game(game=game)
             self.game_panel = GamePanel(self.game_actions)
             self.game_panel.connect("panel-closed", self.on_panel_closed)
-            self.view.contextual_menu.connect("shortcut-edited", self.game_panel.on_shortcut_edited)
+            self.view.contextual_menu.connect(
+                "shortcut-edited", self.game_panel.on_shortcut_edited
+            )
         self.game_scrolled.add(self.game_panel)
         return True
 
@@ -822,7 +832,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.actions["view-sorting"].set_state(GLib.Variant.new_string(key))
         settings.write_setting("view_sorting", key)
 
-        self.actions["view-sorting-ascending"].set_state(GLib.Variant.new_boolean(ascending))
+        self.actions["view-sorting-ascending"].set_state(
+            GLib.Variant.new_boolean(ascending)
+        )
         settings.write_setting("view_sorting_ascending", bool(ascending))
 
     def on_left_side_panel_state_change(self, action, value):
@@ -831,20 +843,22 @@ class LutrisWindow(Gtk.ApplicationWindow):
         left_side_panel_visible = value.get_boolean()
         settings.write_setting("left_side_panel_visible", bool(left_side_panel_visible))
         self.sidebar_revealer.set_reveal_child(left_side_panel_visible)
-        #Retrocompatibility with sidebar_visible : if we change the new attribute, we must set the old one to false
+        # Retrocompatibility with sidebar_visible : if we change the new attribute, we must set the old one to false
         if self.sidebar_visible:
-            settings.write_setting("sidebar_visible","false")
+            settings.write_setting("sidebar_visible", "false")
 
     def on_right_side_panel_state_change(self, action, value):
         """Callback to handle right side panel toggle"""
         action.set_state(value)
         right_side_panel_visible = value.get_boolean()
-        settings.write_setting("right_side_panel_visible", bool(right_side_panel_visible))
+        settings.write_setting(
+            "right_side_panel_visible", bool(right_side_panel_visible)
+        )
         self.panel_revealer.set_reveal_child(right_side_panel_visible)
         self.game_scrolled.set_visible(right_side_panel_visible)
-        #Retrocompatibility with sidebar_visible : if we change the new attribute, we must set the old one to false
+        # Retrocompatibility with sidebar_visible : if we change the new attribute, we must set the old one to false
         if self.sidebar_visible:
-            settings.write_setting("sidebar_visible","false")
+            settings.write_setting("sidebar_visible", "false")
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
@@ -864,8 +878,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.invalidate_game_filter()
 
     def show_invalid_credential_warning(self):
-        dialogs.ErrorDialog("Could not connect to your Lutris account. Please sign in again.")
+        dialogs.ErrorDialog(
+            "Could not connect to your Lutris account. Please sign in again."
+        )
 
     def show_library_sync_error(self):
-        dialogs.ErrorDialog("Failed to retrieve game library. "
-                            "There might be some problems contacting lutris.net")
+        dialogs.ErrorDialog(
+            "Failed to retrieve game library. "
+            "There might be some problems contacting lutris.net"
+        )

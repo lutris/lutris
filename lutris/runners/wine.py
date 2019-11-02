@@ -67,7 +67,7 @@ class wine(Runner):
             "option": "args",
             "type": "string",
             "label": "Arguments",
-            "help": "Windows command line arguments used when launching the game"
+            "help": "Windows command line arguments used when launching the game",
         },
         {
             "option": "working_dir",
@@ -95,7 +95,7 @@ class wine(Runner):
             "label": "Prefix architecture",
             "choices": [("Auto", "auto"), ("32-bit", "win32"), ("64-bit", "win64")],
             "default": "auto",
-            "help": "The architecture of the Windows environment"
+            "help": "The architecture of the Windows environment",
         },
     ]
 
@@ -393,7 +393,7 @@ class wine(Runner):
                     ("2", "2"),
                     ("4", "4"),
                     ("8", "8"),
-                    ("16", "16")
+                    ("16", "16"),
                 ],
                 "default": "auto",
                 "advanced": True,
@@ -403,7 +403,7 @@ class wine(Runner):
                     "panel setting available with some GPU drivers. This one might work in more "
                     "cases than the driver setting though. "
                     "Not all applications are compatible with all sample counts. "
-                )
+                ),
             },
             {
                 "option": "UseXVidMode",
@@ -498,9 +498,7 @@ class wine(Runner):
     @property
     def context_menu_entries(self):
         """Return the contexual menu entries for wine"""
-        menu_entries = [
-            ("wineexec", "Run EXE inside wine prefix", self.run_wineexec)
-        ]
+        menu_entries = [("wineexec", "Run EXE inside wine prefix", self.run_wineexec)]
         if "Proton" not in self.get_version():
             menu_entries.append(("winecfg", "Wine configuration", self.run_winecfg))
         menu_entries += [
@@ -517,8 +515,10 @@ class wine(Runner):
         """Return the absolute path of the Wine prefix"""
         _prefix_path = self.game_config.get("prefix")
         if not _prefix_path:
-            logger.warning("Wine prefix not provided, defaulting to $WINEPREFIX then ~/.wine."
-                           " This is probably not the intended behavior.")
+            logger.warning(
+                "Wine prefix not provided, defaulting to $WINEPREFIX then ~/.wine."
+                " This is probably not the intended behavior."
+            )
             _prefix_path = os.environ.get("WINEPREFIX") or "~/.wine"
         return os.path.expanduser(_prefix_path)
 
@@ -629,13 +629,13 @@ class wine(Runner):
 
     @classmethod
     def msi_exec(
-            cls,
-            msi_file,
-            quiet=False,
-            prefix=None,
-            wine_path=None,
-            working_dir=None,
-            blocking=False,
+        cls,
+        msi_file,
+        quiet=False,
+        prefix=None,
+        wine_path=None,
+        working_dir=None,
+        blocking=False,
     ):
         msi_args = "/i %s" % msi_file
         if quiet:
@@ -656,7 +656,7 @@ class wine(Runner):
             wine_path=self.get_executable(),
             prefix=self.prefix_path,
             config=self,
-            env=self.get_env(os_env=True)
+            env=self.get_env(os_env=True),
         )
 
     def run_wineexec(self, *args):
@@ -765,7 +765,9 @@ class wine(Runner):
                 dxvk_manager=dxvk_manager,
             )
         except dxvk.UnavailableDXVKVersion:
-            raise GameConfigError("Unable to get "+base_name.upper()+" %s" % dxvk_manager.version)
+            raise GameConfigError(
+                "Unable to get " + base_name.upper() + " %s" % dxvk_manager.version
+            )
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
@@ -776,15 +778,25 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
-        self.setup_dxvk("dxvk", dxvk_manager=dxvk.DXVKManager(
-                    self.prefix_path, arch=self.wine_arch, version=self.runner_config.get("dxvk_version")
-                ),)
+        self.setup_dxvk(
+            "dxvk",
+            dxvk_manager=dxvk.DXVKManager(
+                self.prefix_path,
+                arch=self.wine_arch,
+                version=self.runner_config.get("dxvk_version"),
+            ),
+        )
 
         # we don't want d9vk to restore d3d9.dll, because dxvk could set it already
         if bool(self.runner_config.get("d9vk")):
-            self.setup_dxvk("d9vk", dxvk_manager=dxvk.D9VKManager(
-                        self.prefix_path, arch=self.wine_arch, version=self.runner_config.get("d9vk_version")
-                    ),)
+            self.setup_dxvk(
+                "d9vk",
+                dxvk_manager=dxvk.D9VKManager(
+                    self.prefix_path,
+                    arch=self.wine_arch,
+                    version=self.runner_config.get("d9vk_version"),
+                ),
+            )
         try:
             self.setup_nine(self.runner_config.get("gallium_nine"))
         except nine.NineUnavailable as ex:
@@ -794,7 +806,7 @@ class wine(Runner):
     def get_dll_overrides(self):
         """Return the DLLs overriden at runtime"""
         try:
-            overrides = self.runner_config['overrides']
+            overrides = self.runner_config["overrides"]
         except KeyError:
             overrides = {}
         else:
@@ -847,7 +859,7 @@ class wine(Runner):
         return runtime.get_env(
             version=version,
             prefer_system_libs=self.system_config.get("prefer_system_libs", True),
-            wine_path=wine_root
+            wine_path=wine_root,
         )
 
     def get_pids(self, wine_path=None):
@@ -908,10 +920,7 @@ class wine(Runner):
             self.dll_overrides["dinput8"] = "native"
 
     def setup_nine(self, enable):
-        nine_manager = nine.NineManager(
-            self.prefix_path,
-            self.wine_arch,
-        )
+        nine_manager = nine.NineManager(self.prefix_path, self.wine_arch,)
 
         if enable:
             nine_manager.enable()

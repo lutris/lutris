@@ -106,9 +106,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
     elif extractor is None or is_7zip_supported(path, extractor):
         opener = "7zip"
     else:
-        raise RuntimeError(
-            "Could not extract `%s` - unknown format specified" % path
-        )
+        raise RuntimeError("Could not extract `%s` - unknown format specified" % path)
 
     temp_name = ".extract-" + str(uuid.uuid4())[:8]
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
@@ -144,7 +142,11 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
                     try:
                         system.merge_folders(source_path, destination_path)
                     except OSError as ex:
-                        logger.error("Failed to merge to destination %s: %s", destination_path, ex)
+                        logger.error(
+                            "Failed to merge to destination %s: %s",
+                            destination_path,
+                            ex,
+                        )
                         raise ExtractFailure(str(ex))
             else:
                 shutil.move(source_path, destination_path)
@@ -170,7 +172,7 @@ def extract_exe(path, dest):
     if check_inno_exe(path):
         decompress_gog(path, dest)
     else:
-        #use 7za to check if exe is an archive
+        # use 7za to check if exe is an archive
         _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7za")
         if not system.path_exists(_7zip_path):
             _7zip_path = system.find_executable("7za")
@@ -191,13 +193,13 @@ def extract_gog(path, dest):
         raise RuntimeError("specified exe is not a GOG setup file")
 
 
-#Check if exe is in fact an inno setup file
+# Check if exe is in fact an inno setup file
 def check_inno_exe(path):
     _innoextract_path = os.path.join(settings.RUNTIME_DIR, "innoextract/innoextract")
     if not system.path_exists(_innoextract_path):
         _innoextract_path = system.find_executable("innoextract")
     if not system.path_exists(_innoextract_path):
-        return False #Can't find innoextract
+        return False  # Can't find innoextract
     command = [_innoextract_path, "-i", path]
     return_code = subprocess.call(command)
     if return_code != 0:
@@ -211,7 +213,7 @@ def decompress_gog(file_path, destination_path):
         _innoextract_path = system.find_executable("innoextract")
     if not system.path_exists(_innoextract_path):
         raise OSError("innoextract is not found in the lutris runtime or on the system")
-    #innoextract cannot do mkdir -p, so we have to do it here:
+    # innoextract cannot do mkdir -p, so we have to do it here:
     try:
         os.makedirs(destination_path)
     except OSError as e:

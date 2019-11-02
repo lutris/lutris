@@ -25,12 +25,12 @@ class RunnerInstallDialog(Dialog):
         self.set_default_size(width, height)
 
         self.runner = runner
-        
+
         self.label = Gtk.Label("Waiting for response from %s" % (settings.SITE_URL))
         self.vbox.pack_start(self.label, False, False, 18)
-        
+
         # Display a wait icon.
-        self.spinner = Gtk.Spinner()        
+        self.spinner = Gtk.Spinner()
         self.vbox.pack_start(self.spinner, False, False, 18)
         self.spinner.show()
         self.spinner.start()
@@ -54,7 +54,7 @@ class RunnerInstallDialog(Dialog):
         for child_widget in self.vbox.get_children():
             if child_widget.get_name() not in "GtkBox":
                 child_widget.destroy()
-            
+
         label = Gtk.Label("%s version management" % self.runner_info["name"])
         self.vbox.add(label)
         self.runner_store = self.get_store()
@@ -166,6 +166,7 @@ class RunnerInstallDialog(Dialog):
         if self.runner == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
+
             get_wine_versions.cache_clear()
 
     def install_runner(self, row):
@@ -227,6 +228,7 @@ class RunnerInstallDialog(Dialog):
         if self.runner == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
+
             get_wine_versions.cache_clear()
 
     def on_destroy(self, _dialog, _data=None):

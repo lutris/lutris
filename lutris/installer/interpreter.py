@@ -729,7 +729,7 @@ class ScriptInterpreter(CommandsMixin):
 
     def revert(self):
         """Revert installation in case of an error"""
-        logger.debug("Install cancelled")
+        logger.info("Cancelling installation of %s", self.game_name)
         self.cancelled = True
 
         if self.abort_current_task:

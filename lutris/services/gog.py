@@ -147,7 +147,8 @@ class GogService:
             token = self.load_token()
             if not token:
                 logger.warning(
-                    "Request to %s cancelled because the GOG token could not be acquired", url
+                    "Request to %s cancelled because the GOG token could not be acquired",
+                    url,
                 )
                 return
         headers = {"Authorization": "Bearer " + token["access_token"]}
@@ -157,7 +158,7 @@ class GogService:
         except HTTPError:
             logger.error(
                 "Failed to request %s, check your GOG credentials and internet connectivity",
-                url
+                url,
             )
             return
         request.get()
@@ -173,7 +174,7 @@ class GogService:
 
         if system.path_exists(self.cache_path) and not force_reload:
             logger.debug("Returning cached GOG library")
-            with open(self.cache_path, 'r') as gog_cache:
+            with open(self.cache_path, "r") as gog_cache:
                 return json.load(gog_cache)
 
         total_pages = 1
@@ -184,7 +185,7 @@ class GogService:
             page += 1
             total_pages = products_response["totalPages"]
             games += products_response["products"]
-        with open(self.cache_path, 'w') as gog_cache:
+        with open(self.cache_path, "w") as gog_cache:
             json.dump(games, gog_cache)
         return games
 
@@ -226,9 +227,9 @@ class GOGGame(ServiceGame):
     def new_from_gog_game(cls, gog_game):
         """Return a GOG game instance from the API info"""
         service_game = GOGGame()
-        service_game.appid = str(gog_game['id'])
+        service_game.appid = str(gog_game["id"])
         service_game.icon = cls.get_banner(gog_game)
-        service_game.name = gog_game['title']
+        service_game.name = gog_game["title"]
         service_game.details = json.dumps(gog_game)
         return service_game
 
@@ -237,8 +238,8 @@ class GOGGame(ServiceGame):
         """Return the path to the game banner.
         Downloads the banner if not present.
         """
-        image_url = "https:%s_prof_game_100x60.jpg" % gog_game['image']
-        image_hash = gog_game['image'].split("/")[-1]
+        image_url = "https:%s_prof_game_100x60.jpg" % gog_game["image"]
+        image_hash = gog_game["image"].split("/")[-1]
         cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")
         if not system.path_exists(cache_dir):
             os.makedirs(cache_dir)
@@ -293,7 +294,9 @@ class GOGSyncer:
                 "slug": game["slug"],
                 "year": game["year"],
                 "updated": game["updated"],
-                "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
+                "gogid": game.get(
+                    "gogid"
+                ),  # GOG IDs will be added at a later stage in the API
             }
             added_games.append(pga.add_or_update(**game_data))
         if not full:
