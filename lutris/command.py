@@ -22,6 +22,8 @@ WRAPPER_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "lu
 class MonitoredCommand:
     """Exexcutes a commmand while keeping track of its state"""
 
+    fallback_cwd = "/tmp"
+
     def __init__(
             self,
             command,
@@ -32,7 +34,7 @@ class MonitoredCommand:
             include_processes=None,
             exclude_processes=None,
             log_buffer=None,
-    ):
+    ):  # pylint: disable=too-many-arguments
         self.ready_state = True
         self.env = self.get_environment(env)
 
@@ -111,7 +113,6 @@ class MonitoredCommand:
         logger.debug("Running %s", " ".join(self.wrapper_command))
         for key, value in self.env.items():
             logger.debug("ENV: %s=\"%s\"", key, value)
-            pass
 
         if self.terminal:
             self.game_process = self.run_in_terminal()
@@ -214,9 +215,14 @@ class MonitoredCommand:
 
     def execute_process(self, command, env=None):
         """Execute and return a subprocess"""
-        try:
-            if self.cwd and not system.path_exists(self.cwd):
+        if self.cwd and not system.path_exists(self.cwd):
+            try:
                 os.makedirs(self.cwd)
+            except OSError:
+                logger.error("Failed to create working directory, falling back to %s",
+                             self.fallback_cwd)
+                self.cwd = "/tmp"
+        try:
 
             return subprocess.Popen(
                 command,
