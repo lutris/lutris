@@ -75,7 +75,7 @@ class mednafen(Runner):
                 ("Integer scale", "aspect_int"),
                 ("Multiple of 2 scale", "aspect_mult2"),
             ),
-            "default": "0",
+            "default": "aspect_int",
         },
         {
             "option": "scaler",
