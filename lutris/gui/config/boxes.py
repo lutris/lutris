@@ -386,7 +386,7 @@ class ConfigBox(VBox):
             if not os.path.isabs(path):
                 path = os.path.expanduser(path)
                 if not os.path.isabs(path):
-                    if self.game:
+                    if self.game and self.game.directory:
                         path = os.path.join(self.game.directory, path)
             file_chooser.entry.set_text(path)
 
