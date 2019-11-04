@@ -160,7 +160,7 @@ class SteamSyncer:
                     added_games.append(game.install(pga_game))
 
         if not full:
-            return added_games
+            return added_games, games
 
         removed_games = []
         unavailable_ids = self.lutris_steamids.difference(available_ids)

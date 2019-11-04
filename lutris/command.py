@@ -56,7 +56,6 @@ class MonitoredCommand:
         self.include_processes = include_processes or []
         self.exclude_processes = exclude_processes or []
 
-        # Keep a copy of previously running processes
         self.cwd = self.get_cwd(cwd)
 
         self._stdout = io.StringIO()

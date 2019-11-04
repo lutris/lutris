@@ -300,7 +300,7 @@ class GOGSyncer:
             }
             added_games.append(pga.add_or_update(**game_data))
         if not full:
-            return added_games
+            return added_games, games
         return added_games, []
 
 

@@ -33,6 +33,7 @@ def get_appid(app):
 
 class XDGGame(ServiceGame):
     """XDG game (Linux game with a desktop launcher)"""
+
     store = "xdg"
     runner = "linux"
     installer_slug = "desktopapp"
@@ -56,11 +57,13 @@ class XDGGame(ServiceGame):
     def create_config(self):
         """Create a Lutris config for the current game"""
         config = LutrisConfig(runner_slug=self.runner, game_config_id=self.config_id)
-        config.raw_game_config.update({
-            "appid": self.appid,
-            "exe": self.details["exe"],
-            "args": self.details["args"]
-        })
+        config.raw_game_config.update(
+            {
+                "appid": self.appid,
+                "exe": self.details["exe"],
+                "args": self.details["args"],
+            }
+        )
         config.raw_system_config.update({"disable_runtime": True})
         config.save()
 
@@ -69,7 +72,9 @@ class XDGGame(ServiceGame):
         """Return a tuple with absolute command path and an argument string"""
         command = shlex.split(app.get_commandline())
         # remove %U etc. and change %% to % in arguments
-        args = list(map(lambda arg: re.sub("%[^%]", "", arg).replace("%%", "%"), command[1:]))
+        args = list(
+            map(lambda arg: re.sub("%[^%]", "", arg).replace("%%", "%"), command[1:])
+        )
         exe = command[0]
         if not exe.startswith("/"):
             exe = system.find_executable(exe)
@@ -83,6 +88,7 @@ class XDGGame(ServiceGame):
 
 class XDGSyncer:
     """Sync games available in a XDG compliant menu to Lutris"""
+
     ignored_games = (
         "lutris",
         "mame",
@@ -119,53 +125,55 @@ class XDGSyncer:
     @property
     def lutris_games(self):
         """Iterates through Lutris games imported from XDG"""
-        for game in pga.get_games_where(runner=XDGGame.runner,
-                                        installer_slug=XDGGame.installer_slug,
-                                        installed=1):
+        for game in pga.get_games_where(
+            runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1
+        ):
             yield game
 
     @classmethod
     def is_importable(cls, app):
         """Returns whether a XDG game is importable to Lutris"""
         appid = get_appid(app)
-        executable = app.get_executable() or ''
-        if any([
+        executable = app.get_executable() or ""
+        if any(
+            [
                 app.get_nodisplay() or app.get_is_hidden(),  # App is hidden
                 not executable,  # Check app has an executable
                 appid.startswith("net.lutris"),  # Skip lutris created shortcuts
                 appid.lower() in map(str.lower, cls.ignored_games),  # game blacklisted
                 executable.lower() in cls.ignored_executables,  # exe blacklisted
-        ]):
+            ]
+        ):
             return False
 
         # must be in Game category
-        categories = app.get_categories() or ''
+        categories = app.get_categories() or ""
         categories = list(filter(None, categories.lower().split(";")))
         if "game" not in categories:
             return False
 
         # contains a blacklisted category
-        if bool([
+        if bool(
+            [
                 category
                 for category in categories
                 if category in map(str.lower, cls.ignored_categories)
-        ]):
+            ]
+        ):
             return False
         return True
 
     @classmethod
     def load(cls, force_reload=False):
         """Return the list of games stored in the XDG menu."""
-        return [
-            XDGGame.new_from_xdg_app(app)
-            for app in cls.iter_xdg_games()
-        ]
+        return [XDGGame.new_from_xdg_app(app) for app in cls.iter_xdg_games()]
 
     def sync(self, games, full=False):
         """Sync the given games to the lutris library
 
         Params:
             games (list): List of ServiceGames to sync
+            full (bool): Run a full sync, removes games not found from the lutris library
 
         Return:
             tuple: 2-tuple of added and removed game ID lists
@@ -181,7 +189,7 @@ class XDGSyncer:
                 added_games.append(game_id)
 
         if not full:
-            return added_games
+            return added_games, games
 
         for slug in set(installed_games.keys()).difference(available_games):
             game_id = installed_games[slug]["id"]
