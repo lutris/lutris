@@ -130,9 +130,9 @@ class SteamSyncer:
         """Return a PGA game if one is found"""
         for pga_game in self.lutris_games:
             if (
-                str(pga_game["steamid"]) == game.appid
-                and pga_game["runner"] == self.runner
-                and not pga_game["installed"]
+                    str(pga_game["steamid"]) == game.appid
+                    and (pga_game["runner"] == self.runner or not pga_game["runner"])
+                    and not pga_game["installed"]
             ):
                 return pga_game
 
