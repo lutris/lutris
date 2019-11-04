@@ -1,7 +1,6 @@
 """Wine runner"""
 # pylint: disable=too-many-arguments
 import os
-import shlex
 import shutil
 
 from lutris import runtime
@@ -12,7 +11,7 @@ from lutris.runners.runner import Runner
 from lutris.util.jobs import thread_safe_call
 from lutris.util import display, system
 from lutris.util.log import logger
-from lutris.util.strings import parse_version
+from lutris.util.strings import parse_version, split_arguments
 from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.x360ce import X360ce
@@ -974,7 +973,7 @@ class wine(Runner):
             command = command + args
 
         if arguments:
-            for arg in shlex.split(arguments):
+            for arg in split_arguments(arguments):
                 command.append(arg)
         launch_info["command"] = command
         return launch_info

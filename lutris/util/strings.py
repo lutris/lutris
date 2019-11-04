@@ -1,6 +1,10 @@
+"""String utilities"""
 import unicodedata
 import re
 import math
+import shlex
+
+from lutris.util.log import logger
 
 
 def slugify(value):
@@ -131,3 +135,14 @@ def get_formatted_playtime(playtime):
     if seconds:
         return "%d seconds" % seconds
     return "No play time recorded"
+
+
+def split_arguments(args):
+    """Wrapper around shlex.split that is more tolerant of errors"""
+    try:
+        return shlex.split(args)
+    except ValueError as ex:
+        message = ex.args[0]
+        if message == "No closing quotation":
+            return split_arguments(args + "\"")
+        logger.error(message)

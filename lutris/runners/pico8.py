@@ -8,6 +8,7 @@ from time import sleep
 
 from lutris import pga, settings
 from lutris.util import system, datapath, downloader
+from lutris.util.strings import split_arguments
 from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
@@ -131,8 +132,8 @@ class pico8(Runner):
                 args.append(size[0])
                 args.append("-height")
                 args.append(size[1])
-            extraArgs = self.runner_config.get("args", "")
-            for arg in shlex.split(extraArgs):
+            extra_args = self.runner_config.get("args", "")
+            for arg in split_arguments(extra_args):
                 args.append(arg)
         else:
             args = [
@@ -144,9 +145,10 @@ class pico8(Runner):
         return args
 
     def get_run_data(self):
-        env = self.get_env(os_env=False)
-
-        return {"command": self.launch_args, "env": env}
+        return {
+            "command": self.launch_args,
+            "env": self.get_env(os_env=False)
+        }
 
     def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if pico8 runner is installed and if the pico8 executable available.

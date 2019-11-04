@@ -1,13 +1,13 @@
 """Steam for Windows runner"""
 import os
 import time
-import shlex
 
 from lutris import settings
 from lutris.runners import wine
 from lutris.command import MonitoredCommand
 from lutris.util import system
 from lutris.util.log import logger
+from lutris.util.strings import split_arguments
 from lutris.util.steam.config import read_config
 from lutris.util.steam.appmanifest import get_path_from_appmanifest
 from lutris.util.wine.registry import WineRegistry
@@ -211,7 +211,7 @@ class winesteam(wine.wine):
             self.get_steam_path(),
             "-no-cef-sandbox",
             "-console",
-        ] + shlex.split(self.runner_config.get("args") or "")
+        ] + split_arguments(self.runner_config.get("args") or "")
 
     @staticmethod
     def get_open_command(registry):
@@ -432,7 +432,7 @@ class winesteam(wine.wine):
             if not system.path_exists(game_binary):
                 raise FileNotFoundError(2, "Game binary not found", game_binary)
             command = [self.get_executable(), game_binary]
-            for arg in shlex.split(game_args):
+            for arg in split_arguments(game_args):
                 command.append(arg)
         else:
             # Start through steam
@@ -444,7 +444,7 @@ class winesteam(wine.wine):
             else:
                 command.append("-applaunch")
                 command.append(self.appid)
-                for arg in shlex.split(game_args):
+                for arg in split_arguments(game_args):
                     command.append(arg)
         return command
 
