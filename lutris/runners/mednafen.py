@@ -466,7 +466,7 @@ class mednafen(Runner):
             fullscreen = "0"
 
         stretch = self.runner_config.get("stretch") or "0"
-        scaler = self.runner_config.get("scaler") or "hq4x"
+        scaler = self.runner_config.get("scaler") or "nn4x"
 
         xres, yres = DISPLAY_MANAGER.get_current_resolution()
         options = [
