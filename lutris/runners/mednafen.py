@@ -99,7 +99,7 @@ class mednafen(Runner):
                 ("nny3x", "nny3x"),
                 ("nny4x", "nny4x"),
             ),
-            "default": "hq4x",
+            "default": "nn4x",
         },
         {
             "option": "dont_map_controllers",
