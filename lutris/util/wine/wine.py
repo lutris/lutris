@@ -234,7 +234,11 @@ def is_version_esync(path):
     Returns:
         bool: True is the build is Esync capable
     """
-    version = path.lower()
+    try:
+        version = path.split("/")[-2].lower()
+    except IndexError:
+        logger.error("Invalid path %s", path)
+        return False
     if "esync" in version or "lutris" in version or "proton" in version:
         return True
 
