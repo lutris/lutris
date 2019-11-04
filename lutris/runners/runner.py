@@ -395,3 +395,14 @@ class Runner:
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
+
+    def find_option(self, options_group, option_name):
+        """Retrieve an option dict if it exists in the group"""
+        if options_group not in ['game_options', 'runner_options']:
+            return None
+        output = None
+        for item in getattr(self, options_group):
+            if item["option"] == option_name:
+                output = item
+                break
+        return output

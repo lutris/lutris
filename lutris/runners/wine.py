@@ -1,6 +1,7 @@
 """Wine runner"""
 # pylint: disable=too-many-arguments
 import os
+import shlex
 import shutil
 
 from lutris import runtime
@@ -67,6 +68,7 @@ class wine(Runner):
             "type": "string",
             "label": "Arguments",
             "help": "Windows command line arguments used when launching the game",
+            "validator": shlex.split
         },
         {
             "option": "working_dir",
@@ -602,9 +604,9 @@ class wine(Runner):
                 # Update the version in the config
                 if version == self.runner_config.get("version"):
                     self.runner_config["version"] = default_version
-                    # TODO: runner_config is a dict so we have to instanciate a
+                    # TODO: runner_config is a dict so we have to instanciate a #  pylint: disable=fixme
                     # LutrisConfig object to save it.
-                    # XXX: The version key could be either in the game specific
+                    # XXX: The version key could be either in the game specific #  pylint: disable=fixme
                     # config or the runner specific config. We need to know
                     # which one to get the correct LutrisConfig object.
             return wine_path
@@ -619,8 +621,8 @@ class wine(Runner):
         wine_versions = get_wine_versions()
         if min_version:
             min_version_list, _, _ = parse_version(min_version)
-            for version in wine_versions:
-                version_list, _, _ = parse_version(version)
+            for wine_version in wine_versions:
+                version_list, _, _ = parse_version(wine_version)
                 if version_list > min_version_list:
                     return True
             logger.warning("Wine %s or higher not found", min_version)
