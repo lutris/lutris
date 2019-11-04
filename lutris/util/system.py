@@ -72,7 +72,7 @@ def get_md5_hash(filename):
             for chunk in iter(lambda: _file.read(8192), b""):
                 md5.update(chunk)
     except IOError:
-        print("Error reading %s" % filename)
+        logger.warning("Error reading %s", filename)
         return False
     return md5.hexdigest()
 
