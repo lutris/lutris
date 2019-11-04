@@ -74,6 +74,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         super().__init__(
             default_width=width,
             default_height=height,
+            window_position=Gtk.WindowPosition.NONE,
             icon_name="lutris",
             application=application,
             **kwargs
