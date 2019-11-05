@@ -8,6 +8,7 @@ from time import sleep
 
 from lutris import pga, settings
 from lutris.util import system, datapath, downloader
+from lutris.util.strings import split_arguments
 from lutris.util.log import logger
 from lutris.runners.runner import Runner
 
@@ -92,7 +93,7 @@ class pico8(Runner):
 
     @property
     def is_native(self):
-        return self.runner_config.get("runner_executable", "") is not ""
+        return self.runner_config.get("runner_executable", "") != ""
 
     @property
     def engine_path(self):
@@ -126,13 +127,13 @@ class pico8(Runner):
                 args.append("-splore")
 
             size = self.runner_config.get("window_size").split("x")
-            if len(size) is 2:
+            if len(size) == 2:
                 args.append("-width")
                 args.append(size[0])
                 args.append("-height")
                 args.append(size[1])
-            extraArgs = self.runner_config.get("args", "")
-            for arg in shlex.split(extraArgs):
+            extra_args = self.runner_config.get("args", "")
+            for arg in split_arguments(extra_args):
                 args.append(arg)
         else:
             args = [
@@ -144,9 +145,10 @@ class pico8(Runner):
         return args
 
     def get_run_data(self):
-        env = self.get_env(os_env=False)
-
-        return {"command": self.launch_args, "env": env}
+        return {
+            "command": self.launch_args,
+            "env": self.get_env(os_env=False)
+        }
 
     def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if pico8 runner is installed and if the pico8 executable available.

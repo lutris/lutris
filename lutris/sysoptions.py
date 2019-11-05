@@ -1,4 +1,5 @@
 """Options list for system config."""
+# pylint: disable=invalid-name
 import os
 import glob
 from collections import OrderedDict
@@ -6,6 +7,17 @@ from collections import OrderedDict
 from lutris import runners
 from lutris.util import display, system
 from lutris.discord import DiscordPresence
+
+
+VULKAN_DATA_DIRS = [
+    "/usr/local/etc/vulkan",  # standard site-local location
+    "/usr/local/share/vulkan",  # standard site-local location
+    "/etc/vulkan",  # standard location
+    "/usr/share/vulkan",  # standard location
+    "/usr/lib/x86_64-linux-gnu/GL/vulkan",  # Flatpak GL extension
+    "/usr/lib/i386-linux-gnu/GL/vulkan",  # Flatpak GL32 extension
+    "/opt/amdgpu-pro/etc/vulkan"  # AMD GPU Pro - TkG
+]
 
 
 def get_optirun_choices():
@@ -22,13 +34,11 @@ def get_optirun_choices():
 
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
-    loader_paths = ["/usr/share/vulkan/icd.d/*.json",  # standard location
-                    "/opt/amdgpu-pro/etc/vulkan/icd.d/*.json",  # AMD GPU Pro - TkG
-                    "/etc/vulkan/icd.d/*.json"]  # AMDVLK - Ubuntu
     choices = [("Auto", "")]
 
     # Add loaders
-    for path in loader_paths:
+    for data_dir in VULKAN_DATA_DIRS:
+        path = os.path.join(data_dir, "icd.d", "*.json")
         for loader in glob.glob(path):
             choices.append((os.path.basename(loader), loader))
 
@@ -183,6 +193,19 @@ system_options = [  # pylint: disable=invalid-name
         "condition": system.LINUX_SYSTEM.is_feature_supported("GAMEMODE"),
         "label": "Enable Feral gamemode",
         "help": "Request a set of optimisations be temporarily applied to the host OS",
+    },
+    {
+        "option": "prime",
+        "type": "bool",
+        "default": False,
+        "condition": True,
+        "label": "Enable NVIDIA Prime render offload",
+        "help": (
+            "If you have the latest NVIDIA driver and the properly patched xorg-server "
+            "(see https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html), "
+            "you can launch a game on your NVIDIA GPU by toggling this switch (this will apply "
+            "__NV_PRIME_RENDER_OFFLOAD=1 and __GLX_VENDOR_LIBRARY_NAME=nvidia environment variables)"
+        )
     },
     {
         "option": "dri_prime",

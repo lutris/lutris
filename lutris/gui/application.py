@@ -359,6 +359,7 @@ class Application(Gtk.Application):
 
     def on_game_stop(self, game):
         """Callback to remove the game from the running games"""
+        game.disconnect_by_func(self.on_game_stop)
         game_index = self.get_game_index(game.id)
         if game_index is not None:
             self.running_games.remove(game_index)
@@ -366,6 +367,9 @@ class Application(Gtk.Application):
 
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.show()  # Show launcher window
+        elif not self.window.is_visible():
+            if self.running_games.get_n_items() == 0:
+                self.quit()
 
     @staticmethod
     def get_lutris_action(url):

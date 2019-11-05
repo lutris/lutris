@@ -19,7 +19,6 @@ __all__ = (
     "residualvm",
     "libretro",
     "ags",
-    "higan",
     # Commdore
     "fsuae",
     "vice",
@@ -34,7 +33,6 @@ __all__ = (
     "dolphin",
     "desmume",
     "citra",
-    "melonds",
     # Sony
     "ppsspp",
     "pcsx2",
@@ -43,7 +41,6 @@ __all__ = (
     "osmose",
     "dgen",
     "reicast",
-    "redream",
     # Fantasy consoles
     "pico8",
     # Misc legacy systems
@@ -51,7 +48,6 @@ __all__ = (
     "jzintv",
     "o2em",
     "zdoom",
-    "tic80",
 )
 
 

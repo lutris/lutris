@@ -1,5 +1,6 @@
 """Shared config dialog stuff"""
 # pylint: disable=no-member,not-an-iterable
+import importlib
 import os
 from gi.repository import Gtk, Pango, GLib
 from lutris.game import Game
@@ -454,6 +455,25 @@ class GameDialogCommon:
                 and self.lutris_config.game_config.get("appid") is None
         ):
             ErrorDialog("Steam AppId not provided")
+            return False
+        invalid_fields = []
+        runner_module = importlib.import_module("lutris.runners." + self.runner_name)
+        runner_class = getattr(runner_module, self.runner_name)
+        runner_instance = runner_class()
+        for config in ["game", "runner"]:
+            for k, v in getattr(self.lutris_config, config + "_config").items():
+                option = runner_instance.find_option(config + "_options", k)
+                if option is None:
+                    continue
+                validator = option.get("validator")
+                if validator is not None:
+                    try:
+                        res = validator(v)
+                        logger.debug("{} validated successfully: {}".format(k, res))
+                    except Exception:
+                        invalid_fields.append(option.get("label"))
+        if invalid_fields:
+            ErrorDialog("The following fields have invalid values: " + ", ".join(invalid_fields))
             return False
         return True
 

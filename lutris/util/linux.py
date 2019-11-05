@@ -65,50 +65,42 @@ SYSTEM_COMPONENTS = {
         "kitty",
         "yuakuake",
         "qterminal",
+        "alacritty",
     ],
     "LIBRARIES": {
-        "OPENGL": [
-            "libGL.so.1",
-        ],
-        "VULKAN": [
-            "libvulkan.so.1",
-        ],
-        "WINE": [
-            "libsqlite3.so.0"
-        ],
-        "RADEON": [
-            "libvulkan_radeon.so"
-        ],
-        "GAMEMODE": [
-            "libgamemodeauto.so"
-        ]
-    }
+        "OPENGL": ["libGL.so.1"],
+        "VULKAN": ["libvulkan.so.1"],
+        "WINE": ["libsqlite3.so.0"],
+        "RADEON": ["libvulkan_radeon.so"],
+        "GAMEMODE": ["libgamemodeauto.so"],
+    },
 }
 
 
 class LinuxSystem:
     """Global cache for system commands"""
+
     _cache = {}
 
     multiarch_lib_folders = [
-        ('/lib', '/lib64'),
-        ('/lib32', '/lib64'),
-        ('/usr/lib', '/usr/lib64'),
-        ('/usr/lib32', '/usr/lib64'),
-        ('/lib/i386-linux-gnu', '/lib/x86_64-linux-gnu'),
-        ('/usr/lib/i386-linux-gnu', '/usr/lib/x86_64-linux-gnu'),
+        ("/lib", "/lib64"),
+        ("/lib32", "/lib64"),
+        ("/usr/lib", "/usr/lib64"),
+        ("/usr/lib32", "/usr/lib64"),
+        ("/lib/i386-linux-gnu", "/lib/x86_64-linux-gnu"),
+        ("/usr/lib/i386-linux-gnu", "/usr/lib/x86_64-linux-gnu"),
     ]
 
     soundfont_folders = [
-        '/usr/share/sounds/sf2',
-        '/usr/share/soundfonts',
+        "/usr/share/sounds/sf2",
+        "/usr/share/soundfonts",
     ]
 
     recommended_no_file_open = 524288
     required_components = ["OPENGL", "VULKAN"]
     optional_components = ["WINE", "GAMEMODE"]
 
-    flatpak_info_path="/.flatpak-info"
+    flatpak_info_path = "/.flatpak-info"
 
     def __init__(self):
         for key in ("COMMANDS", "TERMINALS"):
@@ -169,7 +161,8 @@ class LinuxSystem:
             logger.error("Failed to get drive information: %s", ex)
             return None
         return [
-            drive for drive in json.loads(output)["blockdevices"]
+            drive
+            for drive in json.loads(output)["blockdevices"]
             if drive["fstype"] != "squashfs"
         ]
 
@@ -281,7 +274,7 @@ class LinuxSystem:
             exported_lib_folders.add(lib_folder)
             yield lib_folder
         for lib_paths in self.multiarch_lib_folders:
-            if self.arch != 'x86_64':
+            if self.arch != "x86_64":
                 # On non amd64 setups, only the first element is relevant
                 lib_paths = [lib_paths[0]]
             else:
@@ -290,11 +283,11 @@ class LinuxSystem:
                     continue
             if all([os.path.exists(path) for path in lib_paths]):
                 if lib_paths[0] not in exported_lib_folders:
-                        yield lib_paths[0]
+                    yield lib_paths[0]
                 if len(lib_paths) != 1:
                     if lib_paths[1] not in exported_lib_folders:
                         yield lib_paths[1]
-    
+
     def get_ldconfig_libs(self):
         """Return a list of available libraries, as returned by `ldconfig -p`."""
         ldconfig = self.get("ldconfig")
@@ -302,7 +295,11 @@ class LinuxSystem:
             logger.error("Could not detect ldconfig on this system")
             return []
         try:
-            output = subprocess.check_output([ldconfig, "-p"]).decode("utf-8").split("\n")
+            output = (
+                subprocess.check_output([ldconfig, "-p"])
+                .decode("utf-8", errors="ignore")
+                .split("\n")
+            )
         except subprocess.CalledProcessError as ex:
             logger.error("Failed to get libraries from ldconfig: %s", ex)
             return []
@@ -350,8 +347,7 @@ class LinuxSystem:
     def get_missing_libs(self):
         """Return a dictionary of missing libraries"""
         return {
-            req: self.get_missing_requirement_libs(req)
-            for req in self.requirements
+            req: self.get_missing_requirement_libs(req) for req in self.requirements
         }
 
     def is_feature_supported(self, feature):
@@ -361,6 +357,7 @@ class LinuxSystem:
 
 class SharedLibrary:
     """Representation of a Linux shared library"""
+
     default_arch = "i386"
 
     def __init__(self, name, flags, path):
@@ -373,7 +370,9 @@ class SharedLibrary:
         """Create a SharedLibrary instance from an output line from ldconfig"""
         lib_match = re.match(r"^(.*) \((.*)\) => (.*)$", ldconfig_line)
         if not lib_match:
-            raise ValueError("Received incorrect value for ldconfig line: %s" % ldconfig_line)
+            raise ValueError(
+                "Received incorrect value for ldconfig line: %s" % ldconfig_line
+            )
         return cls(lib_match.group(1), lib_match.group(2), lib_match.group(3))
 
     @property

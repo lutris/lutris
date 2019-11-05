@@ -1,8 +1,9 @@
+"""Runner for Linux games"""
 import os
-import shlex
 import stat
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.strings import split_arguments
 
 
 class linux(Runner):
@@ -63,12 +64,13 @@ class linux(Runner):
     def game_exe(self):
         """Return the game's executable's path."""
         exe = self.game_config.get("exe")
-        if exe:
-            if os.path.isabs(exe):
-                exe_path = exe
-            else:
-                exe_path = os.path.join(self.game_path, exe)
-            return exe_path
+        if not exe:
+            return
+        if os.path.isabs(exe):
+            return exe
+        if self.game_path:
+            return os.path.join(self.game_path, exe)
+        return system.find_executable(exe)
 
     def get_relative_exe(self):
         """Return a relative path if a working dir is set in the options
@@ -122,7 +124,7 @@ class linux(Runner):
         command = [self.get_relative_exe()]
 
         args = self.game_config.get("args") or ""
-        for arg in shlex.split(args):
+        for arg in split_arguments(args):
             command.append(arg)
         launch_info["command"] = command
         return launch_info

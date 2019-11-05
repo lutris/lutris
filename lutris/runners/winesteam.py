@@ -1,18 +1,18 @@
 """Steam for Windows runner"""
 import os
 import time
-import shlex
 
 from lutris import settings
 from lutris.runners import wine
 from lutris.command import MonitoredCommand
 from lutris.util import system
 from lutris.util.log import logger
+from lutris.util.strings import split_arguments
 from lutris.util.steam.config import read_config
 from lutris.util.steam.appmanifest import get_path_from_appmanifest
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
-from lutris.runners.commands.wine import ( # noqa pylint: disable=unused-import
+from lutris.runners.commands.wine import (  # noqa pylint: disable=unused-import
     set_regedit,
     set_regedit_file,
     delete_registry_key,
@@ -24,7 +24,9 @@ from lutris.runners.commands.wine import ( # noqa pylint: disable=unused-import
     install_cab_component,
 )
 
-STEAM_INSTALLER_URL = "https://lutris.nyc3.cdn.digitaloceanspaces.com/runners/winesteam/SteamSetup.exe"
+STEAM_INSTALLER_URL = (
+    "https://lutris.nyc3.cdn.digitaloceanspaces.com/runners/winesteam/SteamSetup.exe"
+)
 
 
 def is_running():
@@ -109,8 +111,8 @@ class winesteam(wine.wine):
             "type": "file",
             "label": "Game binary path",
             "advanced": True,
-            "help": "Path to the game executable (Required by DRM free mode)"
-        }
+            "help": "Path to the game executable (Required by DRM free mode)",
+        },
     ]
 
     def __init__(self, config=None):
@@ -209,7 +211,7 @@ class winesteam(wine.wine):
             self.get_steam_path(),
             "-no-cef-sandbox",
             "-console",
-        ] + shlex.split(self.runner_config.get("args") or "")
+        ] + split_arguments(self.runner_config.get("args") or "")
 
     @staticmethod
     def get_open_command(registry):
@@ -255,8 +257,8 @@ class winesteam(wine.wine):
         for prefix in candidates:
             # Try the default install path
             for default_path in [
-                    "drive_c/Program Files (x86)/Steam/Steam.exe",
-                    "drive_c/Program Files/Steam/Steam.exe",
+                "drive_c/Program Files (x86)/Steam/Steam.exe",
+                "drive_c/Program Files/Steam/Steam.exe",
             ]:
                 steam_path = os.path.join(prefix, default_path)
                 if system.path_exists(steam_path):
@@ -281,11 +283,7 @@ class winesteam(wine.wine):
             prefix = self.get_or_create_default_prefix()
 
             # Install CJK fonts in the Steam prefix before Steam
-            winetricks(
-                "cjkfonts",
-                prefix=prefix,
-                wine_path=self.get_executable()
-            )
+            winetricks("cjkfonts", prefix=prefix, wine_path=self.get_executable())
             wineexec(
                 installer_path,
                 args="/S",
@@ -294,11 +292,14 @@ class winesteam(wine.wine):
             )
             if callback:
                 callback()
+
         downloader(STEAM_INSTALLER_URL, installer_path, on_steam_downloaded)
 
     def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if wine is installed and if the steam executable is on the drive"""
-        if not super().is_installed(version=version, fallback=fallback, min_version=min_version):
+        if not super().is_installed(
+            version=version, fallback=fallback, min_version=min_version
+        ):
             return False
         if not system.path_exists(self.get_default_prefix(arch=self.default_arch)):
             return False
@@ -382,21 +383,20 @@ class winesteam(wine.wine):
         if not appid:
             raise ValueError("Missing appid in winesteam.install_game")
         system.execute(
-            self.launch_args + ["steam://install/%s" % appid],
-            env=self.get_env()
+            self.launch_args + ["steam://install/%s" % appid], env=self.get_env()
         )
 
     def validate_game(self, appid):
         if not appid:
             raise ValueError("Missing appid in winesteam.validate_game")
         system.execute(
-            self.launch_args + ["steam://validate/%s" % appid],
-            env=self.get_env()
+            self.launch_args + ["steam://validate/%s" % appid], env=self.get_env()
         )
 
     def force_shutdown(self):
         """Forces a Steam shutdown, double checking its exit status and raising
         an error if it cannot be killed"""
+
         def has_steam_shutdown(times=10):
             for _ in range(1, times + 1):
                 time.sleep(1)
@@ -432,7 +432,7 @@ class winesteam(wine.wine):
             if not system.path_exists(game_binary):
                 raise FileNotFoundError(2, "Game binary not found", game_binary)
             command = [self.get_executable(), game_binary]
-            for arg in shlex.split(game_args):
+            for arg in split_arguments(game_args):
                 command.append(arg)
         else:
             # Start through steam
@@ -444,7 +444,7 @@ class winesteam(wine.wine):
             else:
                 command.append("-applaunch")
                 command.append(self.appid)
-                for arg in shlex.split(game_args):
+                for arg in split_arguments(game_args):
                     command.append(arg)
         return command
 
@@ -452,10 +452,7 @@ class winesteam(wine.wine):
         if self.runner_config.get("x360ce-path"):
             self.setup_x360ce(self.runner_config["x360ce-path"])
         try:
-            return {
-                "env": self.get_env(os_env=False),
-                "command": self.get_command()
-            }
+            return {"env": self.get_env(os_env=False), "command": self.get_command()}
         except FileNotFoundError as ex:
             return {"error": "FILE_NOT_FOUND", "file": ex.filename}
 
@@ -465,7 +462,7 @@ class winesteam(wine.wine):
         shutdown_command = MonitoredCommand(
             (self.launch_args + ["-shutdown"]),
             runner=self,
-            env=self.get_env(os_env=False)
+            env=self.get_env(os_env=False),
         )
         shutdown_command.start()
 
@@ -485,6 +482,6 @@ class winesteam(wine.wine):
         uninstall_command = MonitoredCommand(
             (self.launch_args + ["steam://uninstall/%s" % (appid or self.appid)]),
             runner=self,
-            env=self.get_env(os_env=False)
+            env=self.get_env(os_env=False),
         )
         uninstall_command.start()

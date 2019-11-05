@@ -9,6 +9,9 @@ from lutris.util.log import logger
 
 if NOTIFY_SUPPORT:
     Notify.init("lutris")
+else:
+    logger.warning("Notifications are disabled, please install"
+                   " GObject bindings for 'Notify' to enable them.")
 
 
 def send_notification(title, text, file_path_to_icon=""):

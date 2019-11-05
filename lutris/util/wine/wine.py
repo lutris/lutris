@@ -8,7 +8,7 @@ from lutris import runtime, settings
 from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.strings import version_sort
+from lutris.util.strings import version_sort, parse_version
 from lutris.runners.steam import steam
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -234,9 +234,21 @@ def is_version_esync(path):
     Returns:
         bool: True is the build is Esync capable
     """
-    version = path.lower()
-    if "esync" in version or "lutris" in version or "proton" in version:
-        return True
+    try:
+        version = path.split("/")[-3].lower()
+    except IndexError:
+        logger.error("Invalid path '%s'", path)
+        return False
+    version_number, version_prefix, version_suffix = parse_version(version)
+    esync_compatible_versions = ["esync", "lutris", "tkg", "ge", "proton"]
+    for esync_version in esync_compatible_versions:
+        if esync_version in version_prefix or esync_version in version_suffix:
+            return True
+
+    if "staging" in version_prefix or esync_version in version_suffix:
+        # Support for esync was merged in Wine Staging 4.16
+        if version_number[0] >= 4 and version_number[1] >= 6:
+            return True
 
     wine_ver = str(subprocess.check_output([path, "--version"]))
     return "esync" in wine_ver.lower()

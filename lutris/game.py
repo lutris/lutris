@@ -163,20 +163,33 @@ class Game(GObject.Object):
         )
         self.runner = self._get_runner()
         if self.discord_presence.available:
-            self.discord_presence.client_id = self.config.system_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
-            self.discord_presence.game_name = self.config.system_config.get("discord_custom_game_name") or self.name
-            self.discord_presence.show_runner = self.config.system_config.get("discord_show_runner", True)
-            self.discord_presence.runner_name = self.config.system_config.get("discord_custom_runner_name") or self.runner_name
-            self.discord_presence.rpc_enabled = self.config.system_config.get("discord_rpc_enabled", True)
+            self.discord_presence.client_id = (
+                self.config.system_config.get("discord_client_id")
+                or DEFAULT_DISCORD_CLIENT_ID
+            )
+            self.discord_presence.game_name = (
+                self.config.system_config.get("discord_custom_game_name") or self.name
+            )
+            self.discord_presence.show_runner = self.config.system_config.get(
+                "discord_show_runner", True
+            )
+            self.discord_presence.runner_name = (
+                self.config.system_config.get("discord_custom_runner_name")
+                or self.runner_name
+            )
+            self.discord_presence.rpc_enabled = self.config.system_config.get(
+                "discord_rpc_enabled", True
+            )
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
         if enable:
             system.execute(self.start_compositor, shell=True)
         else:
-            self.start_compositor, self.stop_compositor = (
-                display.get_compositor_commands()
-            )
+            (
+                self.start_compositor,
+                self.stop_compositor,
+            ) = display.get_compositor_commands()
             if not (self.compositor_disabled or not self.stop_compositor):
                 system.execute(self.stop_compositor, shell=True)
                 self.compositor_disabled = True
@@ -252,7 +265,11 @@ class Game(GObject.Object):
                 dialogs.ErrorDialog(
                     "Runtime currently updating", "Game might not work as expected"
                 )
-        if "wine" in self.runner_name and not wine.get_system_wine_version() and not LINUX_SYSTEM.is_flatpak:
+        if (
+            "wine" in self.runner_name
+            and not wine.get_system_wine_version()
+            and not LINUX_SYSTEM.is_flatpak
+        ):
 
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
@@ -265,12 +282,12 @@ class Game(GObject.Object):
         if not self.runner:
             dialogs.ErrorDialog("Invalid game configuration: Missing runner")
             self.state = self.STATE_STOPPED
-            self.emit('game-stop')
+            self.emit("game-stop")
             return
 
         if not self.prelaunch():
             self.state = self.STATE_STOPPED
-            self.emit('game-stop')
+            self.emit("game-stop")
             return
 
         self.emit("game-start")
@@ -298,7 +315,7 @@ class Game(GObject.Object):
             logger.error("Game prelaunch unsuccessful")
             dialogs.ErrorDialog("An error prevented the game from running")
             self.state = self.STATE_STOPPED
-            self.emit('game-stop')
+            self.emit("game-stop")
             return
         system_config = self.runner.system_config
         self.original_outputs = sorted(
@@ -309,7 +326,7 @@ class Game(GObject.Object):
         if "error" in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
-            self.emit('game-stop')
+            self.emit("game-stop")
             return
         logger.debug("Launching %s: %s", self.name, gameplay_info)
         logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
@@ -394,7 +411,7 @@ class Game(GObject.Object):
                 xephyr_resolution + "x" + xephyr_depth,
                 "-glamor",
                 "-reset",
-                "-terminate"
+                "-terminate",
             ]
             if system_config.get("xephyr_fullscreen"):
                 xephyr_command.append("-fullscreen")
@@ -424,7 +441,12 @@ class Game(GObject.Object):
         fps_limit = system_config.get("fps_limit") or ""
         if fps_limit:
             strangle_cmd = system.find_executable("strangle")
-            launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
+            if strangle_cmd:
+                launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
+            else:
+                logger.warning(
+                    "libstrangle is not available on this system, FPS limiter disabled"
+                )
 
         prefix_command = system_config.get("prefix_command") or ""
         if prefix_command:
@@ -449,13 +471,19 @@ class Game(GObject.Object):
                     "%s" % terminal
                 )
                 self.state = self.STATE_STOPPED
-                self.emit('game-stop')
+                self.emit("game-stop")
                 return
 
         # Env vars
         game_env = gameplay_info.get("env") or self.runner.get_env()
         env.update(game_env)
         env["game_name"] = self.name
+
+        # Prime vars
+        prime = system_config.get("prime")
+        if prime:
+            env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
+            env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
 
         # LD_PRELOAD
         ld_preload = gameplay_info.get("ld_preload")
@@ -468,10 +496,7 @@ class Game(GObject.Object):
             env["LD_PRELOAD"] = ":".join(
                 [
                     path
-                    for path in [
-                        env.get("LD_PRELOAD"),
-                        "libgamemodeauto.so",
-                    ]
+                    for path in [env.get("LD_PRELOAD"), "libgamemodeauto.so", ]
                     if path
                 ]
             )
@@ -492,7 +517,7 @@ class Game(GObject.Object):
             "env": env,
             "terminal": terminal,
             "include_processes": include_processes,
-            "exclude_processes": exclude_processes
+            "exclude_processes": exclude_processes,
         }
 
         if system_config.get("disable_compositor"):
@@ -538,7 +563,7 @@ class Game(GObject.Object):
 
     def stop_game(self):
         self.state = self.STATE_STOPPED
-        self.emit('game-stop')
+        self.emit("game-stop")
         if not self.timer.finished:
             self.timer.end()
             self.playtime += self.timer.duration / 3600

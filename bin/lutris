@@ -11,22 +11,27 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
+"""Main entry point for Lutris"""
 import sys
 import locale
+import os
 from os.path import realpath, dirname, normpath
 
 LAUNCH_PATH = dirname(realpath(__file__))
-if os.path.isdir(os.path.join(LAUNCH_PATH,"../lutris")):
+
+if os.path.isdir(os.path.join(LAUNCH_PATH, "../lutris")):
     sys.dont_write_bytecode = True
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, '..'))
     sys.path.insert(0, SOURCE_PATH)
 else:
     sys.path.insert(0, os.path.normpath(os.path.join(LAUNCH_PATH, "../lib/lutris")))
 
-locale.setlocale(locale.LC_ALL, "")
+try:
+    locale.setlocale(locale.LC_ALL, "")
+except locale.Error:
+    sys.stderr.write("Unsupported locale setting. Fix your locales\n")
 
 from lutris.gui.application import Application
 
-app = Application()
+app = Application()  # pylint: disable=invalid-name
 sys.exit(app.run(sys.argv))
