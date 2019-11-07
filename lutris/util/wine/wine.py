@@ -313,9 +313,9 @@ def esync_display_version_warning(on_launch=False):
     DontShowAgainDialog(
         setting,
         "Incompatible Wine version detected",
-        secondary_message="The wine build you have selected "
-        "does not seem to support Esync.\n"
-        "Please switch to an esync-capable version such as wine-tkg.",
+        secondary_message="The Wine build you have selected "
+        "does not support Esync.\n"
+        "Please switch to an esync-capable version.",
         checkbox_message=checkbox_message,
     )
     return settings.read_setting(setting) == "True"
