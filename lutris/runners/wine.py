@@ -209,10 +209,14 @@ class wine(Runner):
                 "option": "dxvk",
                 "label": "Enable DXVK",
                 "type": "extended_bool",
-                "help": "Use DXVK to translate DirectX 11 calls to Vulkan",
                 "callback": dxvk_vulkan_callback,
                 "callback_on": True,
                 "active": True,
+                "help": (
+                    "Use DXVK to increase compatibility and performance "
+                    "in Direct3D 11 and 10 applications by translating "
+                    "their calls to Vulkan."
+                ),
             },
             {
                 "option": "dxvk_version",
@@ -226,10 +230,13 @@ class wine(Runner):
                 "option": "d9vk",
                 "label": "Enable D9VK",
                 "type": "extended_bool",
-                "help": "Use D9VK to translate DirectX 9 calls to Vulkan",
                 "callback": dxvk_vulkan_callback,
                 "callback_on": True,
                 "active": True,
+                "help": (
+                    "Use D9VK to increase performance in Direct3D 9 "
+                    "applications by translating their calls to Vulkan."
+                ),
             },
             {
                 "option": "d9vk_version",
@@ -243,10 +250,14 @@ class wine(Runner):
                 "option": "esync",
                 "label": "Enable Esync",
                 "type": "extended_bool",
-                "help": "Enable eventfd-based synchronization (esync)",
                 "callback": esync_limit_callback,
                 "callback_on": True,
                 "active": True,
+                "help": (
+                    "Enable eventfd-based synchronization (esync). "
+                    "This will increase performance in applications "
+                    "that take advantage of multi-core processors."
+                ),
             },
             {
                 "option": "gallium_nine",
@@ -256,9 +267,10 @@ class wine(Runner):
                 "condition": nine.NineManager.is_available(),
                 "advanced": True,
                 "help": (
-                    "Gallium Nine allows to run any Direct3D 9 application with nearly "
-                    "no CPU overhead. Make sure your active graphics card supports "
-                    "Gallium Nine state tracker before enabling this options."
+                    "Gallium Nine allows to run Direct3D 9 applications faster.\n"
+                    "Make sure your active graphics card supports Gallium Nine state "
+                    "tracker before enabling this option.\n"
+                    "Note: This feature is not supported by proprietary Nvidia driver."
                 ),
             },
             {
