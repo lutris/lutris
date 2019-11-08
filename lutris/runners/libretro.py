@@ -46,6 +46,7 @@ LIBRETRO_CORES = [
     ("higan balanced(Super Nintendo)", "higan_sfc_balanced", "Nintendo SNES"),
     ("Kronos (Sega Saturn)", "kronos", "Sega Saturn"),
     ("MAME (Arcade)", "mame", "Arcade"),
+    ("MAME 2003-Plus (Arcade)", "mame2003_plus", "Arcade"),
     ("Mednafen GBA (Game Boy Advance)", "mednafen_gba", "Nintendo Game Boy Advance"),
     ("Mednafen NGP (SNK Neo Geo Pocket)", "mednafen_ngp", "SNK Neo Geo Pocket"),
     ("Mednafen PCE (TurboGrafx-16)", "mednafen_pce", "NEC PC Engine (TurboGrafx-16)"),
