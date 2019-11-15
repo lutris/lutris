@@ -245,13 +245,16 @@ def is_version_esync(path):
         if esync_version in version_prefix or esync_version in version_suffix:
             return True
 
-    if "staging" in version_prefix or esync_version in version_suffix:
-        # Support for esync was merged in Wine Staging 4.16
-        if version_number[0] >= 4 and version_number[1] >= 6:
-            return True
+    wine_ver = str(subprocess.check_output([path, "--version"])).lower()
+    version, *_ = wine_ver.split()
+    version_number, version_prefix, version_suffix = parse_version(version)
 
-    wine_ver = str(subprocess.check_output([path, "--version"]))
-    return "esync" in wine_ver.lower()
+    if "esync" in wine_ver:
+        return True
+    if "staging" in wine_ver and version_number[0] >= 4 and version_number[1] >= 6:
+        # Support for esync was merged in Wine Staging 4.6
+        return True
+    return False
 
 
 def get_real_executable(windows_executable, working_dir=None):
