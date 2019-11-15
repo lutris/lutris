@@ -297,21 +297,21 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "manual_command",
         "type": "file",
-        "label": "Manual command",
+        "label": "Manual script",
         "advanced": True,
         "help": ("Script to execute from the game's contextual menu"),
     },
     {
         "option": "prelaunch_command",
         "type": "file",
-        "label": "Pre-launch command",
+        "label": "Pre-launch script",
         "advanced": True,
         "help": "Script to execute before the game starts",
     },
     {
         "option": "prelaunch_wait",
         "type": "bool",
-        "label": "Wait for pre-launch command completion",
+        "label": "Wait for pre-launch script completion",
         "advanced": True,
         "default": False,
         "help": "Run the game only once the pre-launch command has exited",
@@ -319,7 +319,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "postexit_command",
         "type": "file",
-        "label": "Post-exit command",
+        "label": "Post-exit script",
         "advanced": True,
         "help": "Script to execute when the game exits",
     },
