@@ -727,10 +727,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.update_game_by_id(game.id)
         except ValueError:
             self.game_store.add_game_by_id(game.id)
-
-        self.view.set_selected_game(game.id)
-        if game.is_installed:
-            self.game_selection_changed(None, game)
         return True
 
     def on_search_games_fire(self, value):

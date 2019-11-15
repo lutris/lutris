@@ -1,3 +1,4 @@
+"""Grid view for the main window"""
 # pylint: disable=no-member
 from gi.repository import Gtk
 from lutris.gui.views.base import GameView
@@ -44,6 +45,7 @@ class GameGridView(Gtk.IconView, GameView):
         return self.get_model().get_iter(self.current_path)
 
     def set_selected_game(self, game_id):
+        """Select a game referenced by its ID in the view"""
         row = self.game_store.get_row_by_id(game_id, filtered=True)
         if row:
             self.select_path(row.path)
