@@ -932,7 +932,7 @@ class ScriptInterpreter(CommandsMixin):
             for installer in self.gog_data["downloads"]["installers"]
             if installer["os"] != "mac"
         ]
-        available_platforms = set([installer["os"] for installer in gog_installers])
+        available_platforms = {installer["os"] for installer in gog_installers}
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
             gog_installers = [
