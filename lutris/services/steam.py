@@ -20,6 +20,7 @@ class SteamGame(ServiceGame):
     installer_slug = "steam"
     excluded_appids = [
         "228980",  # Steamworks Common Redistributables
+        "1070560", # Steam Linux Runtime
     ]
 
     @classmethod
