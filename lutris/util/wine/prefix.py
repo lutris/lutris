@@ -75,20 +75,29 @@ class WinePrefixManager:
             return
         self.set_registry_key(key, dll, mode)
 
-    def desktop_integration(self, desktop_dir=None, restore=False):
-        """Overwrite desktop integration"""
-        DESKTOP_FOLDERS = []
-
-        user = os.getenv("USER")
-        user_dir = os.path.join(self.path, "drive_c/users/", user)
-
+    def get_desktop_folders(self):
+        """Return the list of desktop folder names loaded from the Windows registry"""
+        desktop_folders = []
         for key in DESKTOP_KEYS:
             folder = self.get_registry_key(
                 self.hkcu_prefix
                 + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
                 key,
             )
-            DESKTOP_FOLDERS.append(folder[folder.rfind("\\") + 1:])
+            if not folder:
+                logger.warning("Couldn't load shell folder name for %s", key)
+                continue
+            desktop_folders.append(folder[folder.rfind("\\") + 1:])
+        return desktop_folders
+
+
+    def desktop_integration(self, desktop_dir=None, restore=False):
+        """Overwrite desktop integration"""
+        user = os.getenv("USER")
+        user_dir = os.path.join(self.path, "drive_c/users/", user)
+        _desktop_folders = self.get_desktop_folders()
+        if _desktop_folders:
+            DESKTOP_FOLDERS = _desktop_folders  # pylint: disable=invalid-name
 
         if not desktop_dir:
             desktop_dir = user_dir
