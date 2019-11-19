@@ -20,7 +20,7 @@ class GamePanel(GenericPanel):
         super().__init__()
         self.game.connect("game-start", self.on_game_start)
         self.game.connect("game-started", self.on_game_started)
-        self.game.connect("game-stopped", self.on_game_stop)
+        self.game.connect("game-stopped", self.refresh)
 
     def place_content(self):
         self.put(self.get_close_button(), 276, 16)
@@ -37,6 +37,9 @@ class GamePanel(GenericPanel):
         self.place_buttons(145)
 
     def refresh(self):
+        """Redraw the panel"""
+        for child in self.get_children():
+            child.destroy()
         self.place_content()
 
     @property
@@ -225,7 +228,7 @@ class GamePanel(GenericPanel):
         else:
             self.buttons["rm-" + action_id].show()
 
-    def on_game_start(self, widget):
+    def on_game_start(self, _widget):
         self.buttons["play"].set_label("Launching...")
         self.buttons["play"].set_sensitive(False)
 
@@ -234,11 +237,6 @@ class GamePanel(GenericPanel):
         self.buttons["play"].hide()
         self.buttons["play"].set_label("Play")
         self.buttons["play"].set_sensitive(True)
-
-    def on_game_stop(self, widget, game_id=None):
-        for child in self.get_children():
-            child.destroy()
-        self.place_content()
 
     def on_close(self, _widget):
         self.emit("panel-closed")
