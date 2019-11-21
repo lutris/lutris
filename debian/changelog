@@ -1,3 +1,31 @@
+lutris (0.5.4) eoan; urgency=medium
+
+  * Added support for Python 3.8.
+  * Added config validation
+  * Added support for Nvidia PRIME off-load.
+  * Added a popup after a successful game import.
+  * Added alacritty as a terminal option.
+  * Provide a fallback for when Lutris can't create a working directory.
+  * Update libretro runners list.
+  * Removed runners that have no binary builds
+  * Esync can now be enabled for Wine Staging >= 4.6
+  * Default scaling option for Mednafen is now nn4x.
+  * steamwebhelper.exe is no longer disabled to avoid issues with the new Steam UI.
+  * Fixed a bug with side panels hidden by default on first start
+  * Fixed an issue that would not allow user to unselect a game in right panel by clicking on an empty space in the library if that game was no longer installed.
+  * Fixed an issue that allowed user to change the configuration of a game that was already removed.
+  * Fixed an issue that made games imported from native Steam to not appear as installed.
+  * Fixed a bug that opened Wine Console instead of Wine Registry.
+  * Fixed warnings that occurred when Gamemode was enabled.
+  * Fixed various locale issues.
+  * Fixed a bug preventing Lutris to find Gallium Nine libraries.
+  * Fixed issues with positioning of the Lutris window.
+  * Fixed game panel updates on game quit
+  * Fixed game loading error in cases when libstrangle is missing but was previously enabled
+  * Ignore special symbols when generating identifiers for games
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 20 Nov 2019 17:51:16 -0800
+
 lutris (0.5.3) disco; urgency=medium
 
   * Added D9VK option.
