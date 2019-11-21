@@ -935,10 +935,14 @@ class ScriptInterpreter(CommandsMixin):
         available_platforms = {installer["os"] for installer in gog_installers}
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
+            if self.runner == "linux":
+                filter_os = "windows"
+            else:
+                filter_os = "linux"
             gog_installers = [
                 installer
                 for installer in gog_installers
-                if installer["os"] != "windows"
+                if installer["os"] != filter_os
             ]
 
         # Keep only the english installer until we have locale detection
