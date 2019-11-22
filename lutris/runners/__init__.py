@@ -10,6 +10,7 @@ __all__ = (
     # Microsoft based
     "wine",
     "winesteam",
+    "wineegs",
     "dosbox",
     # Multi-system
     "mame",
@@ -71,7 +72,8 @@ def get_runner_module(runner_name):
     if runner_name not in __all__:
         raise InvalidRunner("Invalid runner name '%s'" % runner_name)
     return __import__(
-        "lutris.runners.%s" % runner_name, globals(), locals(), [runner_name], 0
+        "lutris.runners.%s" % runner_name, globals(), locals(), [
+            runner_name], 0
     )
 
 
