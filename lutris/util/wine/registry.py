@@ -292,8 +292,9 @@ class WineRegistryKey:
             return '"{}"'.format(value)
         raise NotImplementedError("TODO")
 
-    def decode_unicode(self, string):
-        chunks = string.split("\\x")
+    @staticmethod
+    def decode_unicode(string):
+        chunks = re.split(r"[^\\]\\x", string)
         out = chunks.pop(0).encode().decode("unicode_escape")
         for chunk in chunks:
             # We have seen file with unicode characters escaped on 1 byte (\xfa),
