@@ -276,17 +276,22 @@ class Runner:
         """Return whether the runner is installed"""
         return system.path_exists(self.get_executable())
 
-    def get_runner_info(self):
-        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
-        return request.get().json
-
     def get_runner_version(self, version=None):
+        """Get the appropriate version for a runner
+
+        Params:
+            version (str): Optional version to lookup, will return this one if found
+
+        Returns:
+            dict: Dict containing version, architecture and url for the runner
+        """
         logger.info(
             "Getting runner information for %s%s",
             self.name,
-            "(version: %s)" % version if version else "",
+            " (version: %s)" % version if version else "",
         )
-        runner_info = self.get_runner_info()
+        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
+        runner_info = request.get().json
         if not runner_info:
             logger.error("Failed to get runner information")
             return

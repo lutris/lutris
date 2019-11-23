@@ -31,11 +31,9 @@ class CommandsMixin:
             raise RuntimeError("This class is a mixin")
 
     def _get_runner_version(self):
-        if self.runner in ("wine", "winesteam"):
-            if self.script.get(self.runner):
-                wine_version = self.script[self.runner].get("version")
-                logger.debug("Install script uses Wine %s", wine_version)
-                return wine_version
+        """Return the version of the runner used for the installer"""
+        if self.runner in ("wine", "winesteam") and self.script.get(self.runner):
+            return self.script[self.runner].get("version")
         if self.runner == "libretro":
             return self.script["game"]["core"]
         return None
