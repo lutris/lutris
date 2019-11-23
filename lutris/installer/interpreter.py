@@ -453,7 +453,7 @@ class ScriptInterpreter(CommandsMixin):
                 version = self._get_runner_version()
                 if version:
                     params["version"] = version
-                elif runner.get_version(use_default=False) != "system":
+                else:
                     # Looking up default wine version
                     default_wine = runner.get_runner_version() or {}
                     if "version" in default_wine:
