@@ -465,6 +465,8 @@ class ScriptInterpreter(CommandsMixin):
                         # Set the version to both the is_installed params and
                         # the script itself so the version gets saved at the
                         # end of the install.
+                        if self.runner not in self.script:
+                            self.script[self.runner] = {}
                         params["version"] = self.script[self.runner]["version"] = "{}-{}".format(
                             default_wine["version"],
                             default_wine["architecture"]
