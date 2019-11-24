@@ -458,7 +458,10 @@ class ScriptInterpreter(CommandsMixin):
                     default_wine = runner.get_runner_version() or {}
                     if "version" in default_wine:
                         logger.debug("Default wine version is %s", default_wine["version"])
-                        params["version"] = "{}-{}".format(
+                        # Set the version to both the is_installed params and
+                        # the script itself so the version gets saved at the
+                        # end of the install.
+                        params["version"] = self.script[self.runner]["version"] = "{}-{}".format(
                             default_wine["version"],
                             default_wine["architecture"]
                         )
