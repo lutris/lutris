@@ -496,7 +496,6 @@ class InstallerWindow(BaseApplicationWindow):
             logger.debug("User cancelled installation")
             return True
         if self.interpreter:
-            self.interpreter.game_dir_created = remove_checkbox.get_active()
             self.interpreter.revert()
             self.interpreter.cleanup()
         self.destroy()
