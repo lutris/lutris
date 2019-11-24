@@ -418,10 +418,16 @@ class GameDialogCommon:
         """Rebuilds the UI on runner change"""
         current_page = self.notebook.get_current_page()
         if self.runner_index == 0:
+            logger.info("No runner selected, resetting configuration")
             self.runner_name = None
             self.lutris_config = None
         else:
-            self.runner_name = widget.get_model()[self.runner_index][1]
+            runner_name = widget.get_model()[self.runner_index][1]
+            if runner_name == self.runner_name:
+                logger.debug("Runner unchanged, not creating a new config")
+                return
+            logger.info("Creating new configuration with runner %s", runner_name)
+            self.runner_name = runner_name
             self.lutris_config = LutrisConfig(
                 runner_slug=self.runner_name,
                 level="game"
