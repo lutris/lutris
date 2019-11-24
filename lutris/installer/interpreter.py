@@ -228,6 +228,11 @@ class ScriptInterpreter(CommandsMixin):
             if "game" not in self.script or "core" not in self.script["game"]:
                 self.errors.append("Missing libretro core in game section")
 
+        # Check that Steam games have an AppID
+        if self.runner in ("steam", "winesteam"):
+            if not self.script.get("game", {}).get("appid"):
+                self.errors.append("Missing appid for Steam game")
+
         # Check that installers don't contain both 'requires' and 'extends'
         if self.script.get("requires") and self.script.get("extends"):
             self.errors.append("Scripts can't have both extends and requires")
@@ -290,8 +295,7 @@ class ScriptInterpreter(CommandsMixin):
                 if not installed_games:
                     if len(dependency) == 1:
                         raise MissingGameDependency(slug=dependency)
-                    else:
-                        raise ScriptingError(error_message.format(" or ".join(dependency)))
+                    raise ScriptingError(error_message.format(" or ".join(dependency)))
                 if index == 0:
                     self.target_path = installed_games[0]["directory"]
                     self.requires = installed_games[0]["installer_slug"]
@@ -527,11 +531,6 @@ class ScriptInterpreter(CommandsMixin):
 
         # Add steam installation to commands if it's a Steam game
         if self.runner in ("steam", "winesteam"):
-            try:
-                self.steam_data["appid"] = self.script["game"]["appid"]
-            except KeyError:
-                raise ScriptingError("Missing appid for steam game")
-
             if "arch" in self.script["game"]:
                 self.steam_data["arch"] = self.script["game"]["arch"]
 
