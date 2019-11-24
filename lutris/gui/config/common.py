@@ -305,9 +305,10 @@ class GameDialogCommon:
         """Messed up callback requiring an import in the method to avoid a circular dependency"""
         from lutris.gui.dialogs.runners import RunnersDialog
         runners_dialog = RunnersDialog()
-        runners_dialog.connect("runner-installed", self._update_runner_dropdown)
+        runners_dialog.connect("runner-installed", self.on_runner_installed)
 
-    def _update_runner_dropdown(self, _widget):
+    def on_runner_installed(self, _dialog):
+        """Callback triggered when new runners are installed"""
         active_id = self.runner_dropdown.get_active_id()
         self.runner_dropdown.set_model(self._get_runner_liststore())
         self.runner_dropdown.set_active_id(active_id)
