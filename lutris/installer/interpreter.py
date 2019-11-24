@@ -533,6 +533,7 @@ class ScriptInterpreter(CommandsMixin):
 
         # Add steam installation to commands if it's a Steam game
         if self.runner in ("steam", "winesteam"):
+            self.steam_data["appid"] = self.script["game"]["appid"]
             if "arch" in self.script["game"]:
                 self.steam_data["arch"] = self.script["game"]["arch"]
 
