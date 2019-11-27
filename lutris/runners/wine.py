@@ -207,6 +207,14 @@ class wine(Runner):
                 ),
             },
             {
+                "option": "system_winetricks",
+                "label": "Use system winetricks",
+                "type": "bool",
+                "default": False,
+                "advanced": True,
+                "help": "Switch on to use /usr/bin/winetricks for winetricks.",
+            },
+            {
                 "option": "dxvk",
                 "label": "Enable DXVK",
                 "type": "extended_bool",
