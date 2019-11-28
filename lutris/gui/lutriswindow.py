@@ -64,6 +64,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     sync_button = GtkTemplate.Child()
     sync_label = GtkTemplate.Child()
     sync_spinner = GtkTemplate.Child()
+    search_spinner = GtkTemplate.Child()
     add_popover = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
     website_search_toggle = GtkTemplate.Child()
@@ -713,6 +714,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.filter_text = entry.get_text()
             self.invalidate_game_filter()
         elif self.search_mode == "website":
+            self.search_spinner.props.active = True
             if self.search_timer_id:
                 GLib.source_remove(self.search_timer_id)
             self.search_timer_id = GLib.timeout_add(
@@ -749,6 +751,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 Gtk.EntryIconPosition.PRIMARY, "system-search-symbolic"
             )
             self.search_games("")
+            self.search_spinner.props.active = False
 
     @GtkTemplate.Callback
     def on_about_clicked(self, *_args):
