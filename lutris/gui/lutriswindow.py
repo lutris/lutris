@@ -84,6 +84,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.threads_stoppers = []
         self.selected_runner = None
         self.selected_platform = None
+        self.selected_category = None
         self.icon_type = None
 
         # Load settings
@@ -485,7 +486,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             child = scrollwindow_children[0]
             child.destroy()
         self.games_scrollwindow.add(self.view)
-        self.set_selected_filter(self.selected_runner, self.selected_platform)
+        self.set_selected_filter(self.selected_runner, self.selected_platform, self.selected_category)
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
@@ -665,11 +666,13 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.filter_text = entry.get_text()
             self.invalidate_game_filter()
         elif self.search_mode == "website":
+            self.search_spinner.props.active = True
             if self.search_timer_id:
                 GLib.source_remove(self.search_timer_id)
             self.search_timer_id = GLib.timeout_add(
                 750, self.on_search_games_fire, entry.get_text().lower().strip()
             )
+
         else:
             raise ValueError("Unsupported search mode %s" % self.search_mode)
 
@@ -677,7 +680,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_search_toggle(self, button):
         """Called when search bar is shown / hidden"""
         active = button.props.active
-        self.search_revealer.set_reveal_child(active)
         if active:
             self.search_entry.grab_focus()
         else:
@@ -855,18 +857,23 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
         if row is None:
-            self.set_selected_filter(None, None)
+            self.set_selected_filter(None, None, None)
         elif row.type == "runner":
-            self.set_selected_filter(row.id, None)
+            self.set_selected_filter(row.id, None, None)
+        elif row.type == "favorite":
+            self.set_selected_filter(None, None, row.id)
         else:
-            self.set_selected_filter(None, row.id)
+            self.set_selected_filter(None, row.id, None)
 
-    def set_selected_filter(self, runner, platform):
+
+    def set_selected_filter(self, runner, platform, category):
         """Filter the view to a given runner and platform"""
         self.selected_runner = runner
         self.selected_platform = platform
+        self.selected_category = category
         self.game_store.filter_runner = self.selected_runner
         self.game_store.filter_platform = self.selected_platform
+        self.game_store.filter_category = self.selected_category
         self.invalidate_game_filter()
 
     def show_invalid_credential_warning(self):
