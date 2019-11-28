@@ -433,6 +433,18 @@ def get_used_platforms_game_count():
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}
 
+def get_categories(select="*"):
+    """Get the list of every category in database."""
+    query = "select " + select + " from categories"
+    params = []
+
+    query += " ORDER BY category"
+
+    return_categories = []
+    for category in sql.db_query(PGA_DB, query, tuple(params)):
+        return_categories.append(category["category"])
+
+    return return_categories
 
 def get_games_in_categories(category="*"):
     """Get the ids of games in database."""
