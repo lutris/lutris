@@ -1,6 +1,8 @@
 """Handle game specific actions"""
 import os
 import signal
+
+from lutris import pga
 from gi.repository import Gio
 from lutris.command import MonitoredCommand
 from lutris.game import Game
@@ -8,6 +10,8 @@ from lutris.gui import dialogs
 from lutris.gui.widgets.utils import open_uri
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
+from lutris.gui.config.add_favorite_games import AddFavoriteGamesDialog
+from lutris.gui.config.delete_favorite_games import DeleteFavoriteGamesDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
 from lutris.gui.dialogs.log import LogWindow
@@ -15,6 +19,12 @@ from lutris.util.system import path_exists
 from lutris.util.log import logger
 from lutris.util import xdgshortcuts
 
+def game_in_favorite(game_id):
+    categories = pga.get_categories_in_game(game_id)
+    for category in categories :
+        if category == "favorite":
+            return True
+    return False
 
 class GameActions:
     """Regroup a list of callbacks for a game"""
@@ -73,6 +83,14 @@ class GameActions:
                 self.on_edit_game_configuration
             ),
             (
+                "favorite", "Add to Favorite Games",
+                self.on_add_favorite_game
+            ),
+            (
+                "deletefavorite", "Delete to Favorite Games",
+                self.on_delete_favorite_game
+            ),
+            (
                 "execute-script", "Execute script",
                 self.on_execute_script_clicked
             ),
@@ -119,6 +137,14 @@ class GameActions:
             "stop": self.is_game_running,
             "show_logs": self.game.is_installed,
             "configure": bool(self.game.is_installed),
+            "favorite": (
+                bool(self.game.is_installed)
+                and bool(not game_in_favorite(self.game_id))
+            ),
+            "deletefavorite": (
+                bool(self.game.is_installed)
+                and bool(game_in_favorite(self.game_id))
+            ),
             "install_more": self.game.is_installed and not self.game.is_search_result,
             "execute-script": bool(
                 self.game.is_installed
@@ -195,6 +221,14 @@ class GameActions:
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
         EditGameConfigDialog(self.window, self.game)
+
+    def on_add_favorite_game(self, _widget):
+        """Add to favorite Games list"""
+        AddFavoriteGamesDialog(self.window, self.game)
+
+    def on_delete_favorite_game(self, _widget):
+        """delete to favorite Games list"""
+        DeleteFavoriteGamesDialog(self.window, self.game)
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""
