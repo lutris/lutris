@@ -33,6 +33,7 @@ __all__ = (
     "dolphin",
     "desmume",
     "citra",
+    "yuzu",
     # Sony
     "ppsspp",
     "pcsx2",
