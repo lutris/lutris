@@ -666,7 +666,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.filter_text = entry.get_text()
             self.invalidate_game_filter()
         elif self.search_mode == "website":
-            self.search_spinner.props.active = True
             if self.search_timer_id:
                 GLib.source_remove(self.search_timer_id)
             self.search_timer_id = GLib.timeout_add(
@@ -680,6 +679,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def on_search_toggle(self, button):
         """Called when search bar is shown / hidden"""
         active = button.props.active
+        self.search_revealer.set_reveal_child(active)
         if active:
             self.search_entry.grab_focus()
         else:
