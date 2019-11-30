@@ -365,4 +365,14 @@ class MutterDisplayManager:
 
     def set_resolution(self, resolution):
         """Change the current resolution"""
-        raise NotImplementedError
+        if isinstance(resolution, str):
+            mode = self.display_config.get_mode_for_resolution(resolution)
+            output = self.display_config.get_primary_output()
+            self.display_config.apply_monitors_config(output.display_name, mode)
+        else:
+            for display in resolution:
+                mode = self.display_config.get_mode_for_resolution(display.mode)
+                self.display_config.apply_monitors_config(display.name, mode)
+
+        # Load a fresh config since the current one has changed
+        self.display_config = MutterDisplayConfig()
