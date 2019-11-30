@@ -27,7 +27,6 @@ class Process:
             with open(stat_filename) as stat_file:
                 _stat = stat_file.readline()
         except (ProcessLookupError, FileNotFoundError):
-            logger.warning("Unable to read stat for process %s", self.pid)
             return None
         if parsed:
             return _stat[_stat.rfind(")") + 1:].split()
