@@ -14,8 +14,6 @@ class Process:
             self.pid = int(pid)
         except ValueError:
             raise InvalidPid("'%s' is not a valid pid" % pid)
-        self.children = []
-        self.get_children()
 
     def __repr__(self):
         return "Process {}".format(self.pid)
@@ -56,12 +54,6 @@ class Process:
             children_content = ""
         return children_content.strip().split()
 
-    def get_children(self):
-        self.children = []
-        for tid in self.get_thread_ids():
-            for child_pid in self.get_children_pids_of_thread(tid):
-                self.children.append(Process(child_pid))
-
     @property
     def name(self):
         """Filename of the executable."""
@@ -95,3 +87,12 @@ class Process:
         """Return current working dir of process"""
         cwd_path = "/proc/%d/cwd" % int(self.pid)
         return os.readlink(cwd_path)
+
+    @property
+    def children(self):
+        """Return the child processes of this process"""
+        _children = []
+        for tid in self.get_thread_ids():
+            for child_pid in self.get_children_pids_of_thread(tid):
+                _children.append(Process(child_pid))
+        return _children
