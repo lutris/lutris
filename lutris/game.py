@@ -12,7 +12,8 @@ from lutris import runtime
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.util import xdgshortcuts
 from lutris.runners import import_runner, InvalidRunner, wine
-from lutris.util import audio, display, jobs, system, strings
+from lutris.util import audio, jobs, system, strings
+from lutris.util.display import DISPLAY_MANAGER, get_compositor_commands, restore_gamma
 from lutris.util.log import logger
 from lutris.config import LutrisConfig
 from lutris.command import MonitoredCommand
@@ -190,7 +191,7 @@ class Game(GObject.Object):
             (
                 self.start_compositor,
                 self.stop_compositor,
-            ) = display.get_compositor_commands()
+            ) = get_compositor_commands()
             if not (self.compositor_disabled or not self.stop_compositor):
                 system.execute(self.stop_compositor, shell=True)
                 self.compositor_disabled = True
@@ -370,7 +371,7 @@ class Game(GObject.Object):
 
         resolution = system_config.get("resolution")
         if resolution != "off":
-            display.change_resolution(resolution)
+            DISPLAY_MANAGER.set_resolution(resolution)
             time.sleep(3)
             self.resolution_changed = True
 
@@ -678,7 +679,7 @@ class Game(GObject.Object):
         os.chdir(os.path.expanduser("~"))
 
         if self.resolution_changed or self.runner.system_config.get("reset_desktop"):
-            display.change_resolution(self.original_outputs)
+            DISPLAY_MANAGER.set_resolution(self.original_outputs)
 
         if self.compositor_disabled:
             self.set_desktop_compositing(True)
@@ -687,7 +688,7 @@ class Game(GObject.Object):
             subprocess.Popen(["setxkbmap"], env=os.environ).communicate()
 
         if self.runner.system_config.get("restore_gamma"):
-            display.restore_gamma()
+            restore_gamma()
 
         self.process_return_codes()
         if self.exit_main_loop:
