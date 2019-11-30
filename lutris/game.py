@@ -19,6 +19,7 @@ from lutris.command import MonitoredCommand
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
 from lutris.util.linux import LINUX_SYSTEM
+from lutris.util.graphics.xrandr import get_outputs, turn_off_except
 from lutris.discord import DiscordPresence
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 
@@ -319,7 +320,7 @@ class Game(GObject.Object):
             return
         system_config = self.runner.system_config
         self.original_outputs = sorted(
-            display.get_outputs(), key=lambda e: e.name == system_config.get("display")
+            get_outputs(), key=lambda e: e.name == system_config.get("display")
         )
 
         gameplay_info = self.runner.play()
@@ -363,7 +364,7 @@ class Game(GObject.Object):
                     logger.warning("Selected display %s not found", restrict_to_display)
                     restrict_to_display = None
             if restrict_to_display:
-                display.turn_off_except(restrict_to_display)
+                turn_off_except(restrict_to_display)
                 time.sleep(3)
                 self.resolution_changed = True
 

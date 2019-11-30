@@ -334,3 +334,35 @@ class MutterDisplayConfig():
             monitors,
             {}
         )
+
+
+class MutterDisplayManager:
+    """Manage displays using the DBus Mutter interface"""
+
+    def __init__(self):
+        self.display_config = MutterDisplayConfig()
+
+    def get_display_names(self):
+        """Return display names of connected displays"""
+        return [
+            output.display_name for output in self.display_config.get_outputs()
+        ]
+
+    def get_resolutions(self):
+        """Return available resolutions"""
+        resolutions = [
+            "%sx%s" % (mode.width, mode.height)
+            for mode in self.display_config.get_modes()
+        ]
+        return sorted(
+            set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True
+        )
+
+    def get_current_resolution(self):
+        """Return the current resolution for the primary display"""
+        current_mode = self.display_config.get_current_mode()
+        return current_mode.width, current_mode.height
+
+    def set_resolution(self, resolution):
+        """Change the current resolution"""
+        raise NotImplementedError

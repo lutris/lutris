@@ -10,9 +10,10 @@ from lutris.exceptions import GameConfigError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.runner import Runner
 from lutris.util.jobs import thread_safe_call
-from lutris.util import display, system
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, split_arguments
+from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.x360ce import X360ce
@@ -331,7 +332,7 @@ class wine(Runner):
                 "option": "WineDesktop",
                 "label": "Virtual desktop resolution",
                 "type": "choice_with_entry",
-                "choices": display.get_unique_resolutions,
+                "choices": DISPLAY_MANAGER.get_resolutions,
                 "help": "The size of the virtual desktop in pixels.",
             },
             {
