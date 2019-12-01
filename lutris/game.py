@@ -20,7 +20,7 @@ from lutris.command import MonitoredCommand
 from lutris.gui import dialogs
 from lutris.util.timer import Timer
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.util.graphics.xrandr import get_outputs, turn_off_except
+from lutris.util.graphics.xrandr import turn_off_except
 from lutris.discord import DiscordPresence
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 
@@ -320,9 +320,7 @@ class Game(GObject.Object):
             self.emit("game-stop")
             return
         system_config = self.runner.system_config
-        self.original_outputs = sorted(
-            get_outputs(), key=lambda e: e.name == system_config.get("display")
-        )
+        self.original_outputs = DISPLAY_MANAGER.get_config()
 
         gameplay_info = self.runner.play()
         if "error" in gameplay_info:

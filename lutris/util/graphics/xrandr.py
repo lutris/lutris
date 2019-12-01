@@ -175,3 +175,8 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
     def set_resolution(resolution):
         """Change the current resolution"""
         change_resolution(resolution)
+
+    @staticmethod
+    def get_config():
+        """Return the current display configuration"""
+        return get_outputs()

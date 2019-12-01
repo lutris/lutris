@@ -6,7 +6,7 @@ from gi.repository import Gdk, GnomeDesktop, GLib
 
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution
+from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs
 from lutris.util.graphics.displayconfig import MutterDisplayManager
 
 
@@ -88,8 +88,22 @@ class DisplayManager:
         current_mode = output.get_current_mode()
         return str(current_mode.get_width()), str(current_mode.get_height())
 
-    def set_resolution(self, resolution):
-        change_resolution(resolution)
+    @staticmethod
+    def set_resolution(resolution):
+        """Set the resolution of one or more displays.
+        The resolution can either be a string, which will be applied to the
+        primary display or a list of configurations as returned by `get_config`.
+        This method uses XrandR and will not work on Wayland.
+        """
+        return change_resolution(resolution)
+
+    @staticmethod
+    def get_config():
+        """Return the current display resolution
+        This method uses XrandR and will not work on wayland
+        The output can be fed in `set_resolution`
+        """
+        return get_outputs()
 
 
 try:
