@@ -98,6 +98,8 @@ class WinePrefixManager:
         _desktop_folders = self.get_desktop_folders()
         if _desktop_folders:
             DESKTOP_FOLDERS = _desktop_folders  # pylint: disable=invalid-name
+        else
+            DESKTOP_FOLDERS = []
 
         if not desktop_dir:
             desktop_dir = user_dir
