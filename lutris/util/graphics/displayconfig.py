@@ -4,7 +4,7 @@ import dbus
 
 DisplayConfig = namedtuple(
     "DisplayConfig",
-    ("monitors", "position", "rotation", "primary", "scale")
+    ("monitors", "position", "transform", "primary", "scale")
 )
 
 
@@ -209,12 +209,12 @@ class MonitorMode(DisplayMode):
     @property
     def width(self):
         """width in physical pixels"""
-        return self.mode_info[1]
+        return int(self.mode_info[1])
 
     @property
     def height(self):
         """height in physical pixels"""
-        return self.mode_info[2]
+        return int(self.mode_info[2])
 
     @property
     def frequency(self):
@@ -224,7 +224,7 @@ class MonitorMode(DisplayMode):
     @property
     def scale(self):
         """scale preferred as per calculations"""
-        return self.mode_info[4]
+        return float(self.mode_info[4])
 
     @property
     def supported_scale(self):
@@ -256,6 +256,13 @@ class Monitor:
     def get_modes(self):
         """Return available modes"""
         return [MonitorMode(mode) for mode in self._monitor[1]]
+
+    def get_mode_for_resolution(self, resolution):
+        """Return an appropriate mode for a given resolution"""
+        width, height = [int(i) for i in resolution.split("x")]
+        for mode in self.get_modes():
+            if mode.width == width and mode.height == height:
+                return mode
 
     @property
     def name(self):
@@ -556,8 +563,8 @@ class MutterDisplayConfig():
 
     def get_primary_output(self):
         """Return the primary output"""
-        for output in self.outputs:
-            if output.is_primary:
+        for output in self.current_state.logical_monitors:
+            if output.primary:
                 return output
 
     def apply_monitors_config(self, display_configs):
@@ -576,7 +583,12 @@ class MutterDisplayConfig():
             ]
             for config in display_configs
         ]
-        self.interface.ApplyMonitorsConfig(self.current_state.serial, self.TEMPORARY_METHOD, monitors_config, {})
+        self.interface.ApplyMonitorsConfig(
+            self.current_state.serial,
+            self.TEMPORARY_METHOD,
+            monitors_config,
+            {}
+        )
 
 
 class MutterDisplayManager:
@@ -588,7 +600,7 @@ class MutterDisplayManager:
     def get_config(self):
         """Return the current configuration for each logical monitor"""
         return [
-            logical_monitor.get_display_config()
+            logical_monitor.get_config()
             for logical_monitor in self.display_config.current_state.logical_monitors
         ]
 
@@ -616,19 +628,18 @@ class MutterDisplayManager:
     def set_resolution(self, resolution):
         """Change the current resolution"""
         if isinstance(resolution, str):
-            mode = self.display_config.get_mode_for_resolution(resolution)
             output = self.display_config.get_primary_output()
-            config = DisplayConfig(
-                [output.name, mode.id],
+            mode = output.monitors[0].get_mode_for_resolution(resolution)
+            config = [DisplayConfig(
+                [(output.monitors[0].name, mode.id)],
                 (0, 0),
                 0,
                 True,
                 1.0
-            )
+            )]
             self.display_config.apply_monitors_config(config)
         else:
-            for config in resolution:
-                self.display_config.apply_monitors_config(config)
+            self.display_config.apply_monitors_config(resolution)
 
         # Load a fresh config since the current one has changed
         self.display_config = MutterDisplayConfig()
