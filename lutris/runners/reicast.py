@@ -1,7 +1,7 @@
 import re
 import os
 import shutil
-from configparser import ConfigParser
+from configparser import RawConfigParser
 from collections import Counter
 from lutris import settings
 from lutris.runners.runner import Runner
@@ -106,12 +106,16 @@ class reicast(Runner):
 
     @staticmethod
     def write_config(config):
-        parser = ConfigParser()
+        # use RawConfigParser to preserve case-sensitive configs written by Reicast
+        # otherwise, Reicast will write with mixed-case and Lutris will overwrite with all lowercase
+        #   which will confuse Reicast
+        parser = RawConfigParser()
+        parser.optionxform = lambda option: option
 
         config_path = os.path.expanduser("~/.reicast/emu.cfg")
         if system.path_exists(config_path):
             with open(config_path, "r") as config_file:
-                parser.read(config_file)
+                parser.read_file(config_file)
 
         for section in config:
             if not parser.has_section(section):
