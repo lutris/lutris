@@ -623,7 +623,7 @@ class MutterDisplayManager:
     def get_current_resolution(self):
         """Return the current resolution for the primary display"""
         current_mode = self.display_config.current_state.get_current_mode()
-        return current_mode.width, current_mode.height
+        return str(current_mode.width), str(current_mode.height)
 
     def set_resolution(self, resolution):
         """Change the current resolution"""
