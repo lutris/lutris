@@ -225,7 +225,6 @@ class MonitoredCommand:
 
             return subprocess.Popen(
                 command,
-                bufsize=1,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 cwd=self.cwd,
