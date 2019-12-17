@@ -381,15 +381,15 @@ class wineegs(wine.wine):
         # Start without EGS
         if self.game_config.get("run_without_egs"):
             return super(wineegs, self).play()
+
         # Start through EGS
-        else:
-            try:            
-                return {
-                    "env": self.get_env(os_env=False),
-                    "command": self.get_egs_command()
-                }
-            except FileNotFoundError as ex:
-                return {"error": "FILE_NOT_FOUND", "file": ex.filename}
+        try:            
+            return {
+                "env": self.get_env(os_env=False),
+                "command": self.get_egs_command()
+            }
+        except FileNotFoundError as ex:
+            return {"error": "FILE_NOT_FOUND", "file": ex.filename}
 
     def shutdown(self):
         """Orders EGS to shutdown"""
