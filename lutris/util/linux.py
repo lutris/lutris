@@ -203,6 +203,7 @@ class LinuxSystem:
             info = kernel_info.readlines()[0]
             version = info.split(" ")[2]
         return version
+
     @property
     def is_flatpak(self):
         """Check is we are running inside Flatpak sandbox"""
@@ -426,11 +427,12 @@ def gather_system_info():
     system_info["glxinfo"] = glxinfo.GlxInfo().as_dict()
     return system_info
 
+
 def gather_system_info_str():
     """Get all relevant system information already formatted as a string"""
     system_info = gather_system_info()
     system_info_readable = {}
-    #Add system information
+    # Add system information
     system_dict = {}
     system_dict["OS"] = ' '.join(system_info["dist"])
     system_dict["Arch"] = system_info["arch"]
@@ -438,19 +440,19 @@ def gather_system_info_str():
     system_dict["Desktop"] = system_info["env"].get("XDG_CURRENT_DESKTOP", "Not found")
     system_dict["Display Server"] = system_info["env"].get("XDG_SESSION_TYPE", "Not found")
     system_info_readable["System"] = system_dict
-    #Add CPU information
+    # Add CPU information
     cpu_dict = {}
     cpu_dict["Vendor"] = system_info["cpus"][0]["vendor_id"]
     cpu_dict["Model"] = system_info["cpus"][0]["model name"]
     cpu_dict["Physical cores"] = system_info["cpus"][0]["cpu cores"]
     cpu_dict["Logical cores"] = system_info["cpus"][0]["siblings"]
     system_info_readable["CPU"] = cpu_dict
-    #Add memory information
+    # Add memory information
     ram_dict = {}
     ram_dict["RAM"] = system_info["ram"]["MemTotal"] + " kB"
     ram_dict["Swap"] = system_info["ram"]["SwapTotal"] + " kB"
     system_info_readable["Memory"] = ram_dict
-    #Add graphics information
+    # Add graphics information
     graphics_dict = {}
     if LINUX_SYSTEM.glxinfo:
         graphics_dict["Vendor"] = system_info["glxinfo"]["opengl_vendor"]
@@ -460,23 +462,19 @@ def gather_system_info_str():
         graphics_dict["OpenGL ES"] = system_info["glxinfo"]["opengl_es_profile_version"]
     else:
         graphics_dict["Vendor"] = "Unable to obtain glxinfo"
-    #check Vulkan support
+    # check Vulkan support
     if vkquery.is_vulkan_supported():
         graphics_dict["Vulkan"] = "Supported"
     else:
         graphics_dict["Vulkan"] = "Not Supported"
     system_info_readable["Graphics"] = graphics_dict
-    #format output
-    def number_of_tab(string, maxt=5):
-        if int(len(string)/4) > maxt:
-            return 0
-        return maxt-int(len(string)/4)
+
     output = ''
     for section in system_info_readable:
-        output += '{}:\n'.format(section)
+        output += '[{}]\n'.format(section)
         dictionary = system_info_readable[section]
         for key in dictionary:
-            tabs = "\t"*number_of_tab(key+":")
+            tabs = " " * (16 - len(key))
             output += '{}{}{}\n'.format(key + ":", tabs, dictionary[key])
         output += '\n'
     return output

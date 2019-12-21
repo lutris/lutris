@@ -12,6 +12,7 @@ from lutris.cache import get_cache_path, save_cache_path
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
+from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.utils import (
     get_pixbuf_for_game,
     get_pixbuf,
@@ -115,9 +116,8 @@ class GameDialogCommon:
         self._add_notebook_tab(info_sw, "Lutris preferences")
 
     def _build_sysinfo_tab(self):
-        sysinfo_grid = Gtk.Grid()
-        sysinfo_view = Gtk.TextView()
-        sysinfo_view.set_editable(False)
+        sysinfo_box = Gtk.VBox()
+        sysinfo_view = LogTextView()
         sysinfo_view.set_cursor_visible(False)
         sysinfo_str = gather_system_info_str()
 
@@ -129,9 +129,9 @@ class GameDialogCommon:
         button_copy = Gtk.Button("Copy System Info")
         button_copy.connect("clicked", self._copy_text)
 
-        sysinfo_grid.add(sysinfo_view)
-        sysinfo_grid.attach_next_to(button_copy, sysinfo_view, Gtk.PositionType.BOTTOM, 1, 1)
-        info_sw = self.build_scrolled_window(sysinfo_grid)
+        sysinfo_box.add(sysinfo_view)
+        sysinfo_box.add(button_copy)
+        info_sw = self.build_scrolled_window(sysinfo_box)
         self._add_notebook_tab(info_sw, "System Information")
 
     def _copy_text(self, widget):
