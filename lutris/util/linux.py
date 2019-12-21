@@ -449,8 +449,8 @@ def gather_system_info_str():
     system_info_readable["CPU"] = cpu_dict
     # Add memory information
     ram_dict = {}
-    ram_dict["RAM"] = system_info["ram"]["MemTotal"] + " kB"
-    ram_dict["Swap"] = system_info["ram"]["SwapTotal"] + " kB"
+    ram_dict["RAM"] = "%0.1f GB" % (float(system_info["ram"]["MemTotal"]) / 1024 / 1024)
+    ram_dict["Swap"] = "%0.1f GB" % (float(system_info["ram"]["SwapTotal"]) / 1024 / 1024)
     system_info_readable["Memory"] = ram_dict
     # Add graphics information
     graphics_dict = {}
