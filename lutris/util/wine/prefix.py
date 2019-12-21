@@ -97,10 +97,10 @@ class WinePrefixManager:
         user_dir = os.path.join(self.path, "drive_c/users/", user)
         desktop_folders = self.get_desktop_folders()
 
-        if not desktop_dir:
-            desktop_dir = user_dir
-        else:
+        if desktop_dir:
             desktop_dir = os.path.expanduser(desktop_dir)
+        else:
+            desktop_dir = user_dir
 
         if system.path_exists(user_dir):
             # Replace or restore desktop integration symlinks
