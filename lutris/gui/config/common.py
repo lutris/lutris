@@ -2,7 +2,7 @@
 # pylint: disable=no-member,not-an-iterable
 import importlib
 import os
-from gi.repository import Gtk, Pango, GLib
+from gi.repository import Gtk, Gdk, Pango, GLib
 from lutris.game import Game
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.util.log import logger
@@ -20,6 +20,7 @@ from lutris.gui.widgets.utils import (
 )
 from lutris.util.strings import slugify
 from lutris.util import resources
+from lutris.util.linux import gather_system_info_str
 
 
 # pylint: disable=too-many-instance-attributes
@@ -49,6 +50,8 @@ class GameDialogCommon:
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
+        self.clipboard = None
+        self._clipboard_buffer = None
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -71,6 +74,7 @@ class GameDialogCommon:
             self._build_runner_tab(config_level)
         if config_level == "system":
             self._build_prefs_tab()
+            self._build_sysinfo_tab()
         self._build_system_tab(config_level)
 
     def _build_info_tab(self):
@@ -109,6 +113,29 @@ class GameDialogCommon:
 
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, "Lutris preferences")
+
+    def _build_sysinfo_tab(self):
+        sysinfo_grid = Gtk.Grid()
+        sysinfo_view = Gtk.TextView()
+        sysinfo_view.set_editable(False)
+        sysinfo_view.set_cursor_visible(False)
+        sysinfo_str = gather_system_info_str()
+
+        text_buffer = sysinfo_view.get_buffer()
+        text_buffer.set_text(sysinfo_str)
+        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        self._clipboard_buffer = sysinfo_str
+
+        button_copy = Gtk.Button("Copy System Info")
+        button_copy.connect("clicked", self._copy_text)
+
+        sysinfo_grid.add(sysinfo_view)
+        sysinfo_grid.attach_next_to(button_copy, sysinfo_view, Gtk.PositionType.BOTTOM, 1, 1)
+        info_sw = self.build_scrolled_window(sysinfo_grid)
+        self._add_notebook_tab(info_sw, "System Information")
+
+    def _copy_text(self, widget):
+        self.clipboard.set_text(self._clipboard_buffer, -1)
 
     def _get_game_cache_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
