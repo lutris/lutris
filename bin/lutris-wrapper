@@ -47,7 +47,11 @@ def log(line):
     """Generic log function that can be adjusted for any log output method
     (stdout, file, logging, t2s, Discord, ...)
     """
-    sys.stdout.write(line + "\n")
+    try:
+        sys.stdout.write(line + "\n")
+        sys.stdout.flush()
+    except BrokenPipeError:
+        pass
 
     # File output example
     # with open(os.path.expanduser("~/lutris.log"), "a") as logfile:
@@ -70,20 +74,42 @@ def main():
         del os.environ["PYTHONPATH"]
     monitor = ProcessMonitor(include_procs, exclude_procs)
 
+    def hard_sig_handler(signum, _frame):
+        log("Caught another signal, sending SIGKILL.")
+        for _ in range(3):  # just in case we race a new process.
+            monitor.refresh_process_status()
+            children = monitor.children + monitor.ignored_children
+            if not children:
+                break
+            for child in children:
+                try:
+                    os.kill(child.pid, signal.SIGKILL)
+                except ProcessLookupError:  # process already dead
+                    pass
+        log("--killed processes--")
+
     def sig_handler(signum, _frame):
         log("Caught signal %s" % signum)
-        signal.signal(signal.SIGTERM, old_sigterm_handler)
-        signal.signal(signal.SIGINT, old_sigint_handler)
+        signal.signal(signal.SIGTERM, hard_sig_handler)
+        signal.signal(signal.SIGINT, hard_sig_handler)
         monitor.refresh_process_status()
         for child in monitor.children:
-            log("Killing PID %s" % child.pid)
-            os.kill(child.pid, signum)
+            log("passing along signal to PID %s" % child.pid)
+            try:
+                os.kill(child.pid, signum)
+            except ProcessLookupError:  # process already dead
+                pass
+        log("--terminated processes--")
 
     old_sigterm_handler = signal.signal(signal.SIGTERM, sig_handler)
     old_sigint_handler = signal.signal(signal.SIGINT, sig_handler)
 
     log("Running %s" % " ".join(args))
-    returncode = subprocess.run(args).returncode
+    try:
+        returncode = subprocess.run(args).returncode
+    except FileNotFoundError:
+        log("Failed to execute process. Check that the file exists")
+        return
     try:
         while True:
             log("Waiting on children")
@@ -101,10 +127,12 @@ def main():
 
 if __name__ == "__main__":
     LAUNCH_PATH = os.path.dirname(os.path.realpath(__file__))
-    if not LAUNCH_PATH.startswith("/usr"):
+    if os.path.isdir(os.path.join(LAUNCH_PATH,"../lutris")):
         logger.setLevel(logging.DEBUG)
         sys.dont_write_bytecode = True
         SOURCE_PATH = os.path.normpath(os.path.join(LAUNCH_PATH, '..'))
         sys.path.insert(0, SOURCE_PATH)
+    else:
+        sys.path.insert(0, os.path.normpath(os.path.join(LAUNCH_PATH, "../lib/lutris")))
 
     main()

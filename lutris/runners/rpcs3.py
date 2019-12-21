@@ -2,7 +2,7 @@ from lutris.runners.runner import Runner
 
 
 class rpcs3(Runner):
-    human_name = "rpcs3"
+    human_name = "RPCS3"
     description = "PlayStation 3 emulator"
     platforms = ["Sony PlayStation 3"]
     runnable_alone = True

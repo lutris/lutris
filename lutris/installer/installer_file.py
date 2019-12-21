@@ -5,6 +5,7 @@ from lutris import settings
 from lutris.installer.errors import ScriptingError, FileNotAvailable
 from lutris.util.log import logger
 from lutris.util import system
+from lutris.cache import get_cache_path
 
 
 class InstallerFile:
@@ -29,12 +30,17 @@ class InstallerFile:
             self.referer = None
             self.checksum = None
 
+        if self.url.startswith(("$STEAM", "$WINESTEAM")):
+            self.filename = self.url
+
         if self.url.startswith("/"):
             self.url = "file://" + self.url
 
         if not self.filename:
+            logger.error("Couldn't find a filename for file %s in %s", file_id, file_meta)
             raise ScriptingError(
-                "No filename provided, please provide 'url' and 'filename' parameters in the script"
+                "No filename provided for %s, please provide 'url' "
+                "and 'filename' parameters in the script" % file_id
             )
         if self.uses_pga_cache(create=True):
             logger.debug("Using cache path %s", self.cache_path)
@@ -43,31 +49,39 @@ class InstallerFile:
         return "%s/%s" % (self.game_slug, self.id)
 
     def uses_pga_cache(self, create=False):
-        cache_path = settings.read_setting("pga_cache_path")
+        """Determines whether the installer files are stored in a PGA cache
+
+        Params:
+            create (bool): If a cache is active, auto create directories if needed
+        Returns:
+            bool
+        """
+        cache_path = get_cache_path()
         if not cache_path:
             return False
-        if not system.path_exists(cache_path):
-            if create:
-                try:
-                    os.makedirs(self.cache_path)
-                except OSError as ex:
-                    logger.error("Failed to created cache path: %s", ex)
-                    return False
-                return True
-            logger.warning("Cache path %s does not exist", cache_path)
-            return False
-        return True
+        if system.path_exists(cache_path):
+            return True
+        if create:
+            try:
+                os.makedirs(self.cache_path)
+            except OSError as ex:
+                logger.error("Failed to created cache path: %s", ex)
+                return False
+            return True
+        logger.warning("Cache path %s does not exist", cache_path)
+        return False
 
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        if settings.read_setting("pga_cache_path"):
-            if "cdn.gog.com" in self.url or "cdn-hw.gog.com" in self.url:
-                folder = "gog"
-            else:
-                folder = self.id
-            return os.path.join(settings.read_setting("pga_cache_path"), self.game_slug, folder)
-        return os.path.join(settings.CACHE_DIR, "installer/%s" % self.game_slug)
+        _cache_path = get_cache_path()
+        if not _cache_path:
+            _cache_path = os.path.join(settings.CACHE_DIR, "installer")
+        if "cdn.gog.com" in self.url or "cdn-hw.gog.com" in self.url:
+            folder = "gog"
+        else:
+            folder = self.id
+        return os.path.join(_cache_path, self.game_slug, folder)
 
     def get_download_info(self):
         """Retrieve the file locally"""
@@ -105,6 +119,7 @@ class InstallerFile:
             raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", self.checksum)
 
     def download(self, downloader):
+        """Download a file with a given downloader"""
         if self.uses_pga_cache() and system.path_exists(self.dest_file):
             logger.info("File %s already cached", self)
             return False

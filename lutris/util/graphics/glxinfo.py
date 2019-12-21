@@ -18,6 +18,7 @@ class GlxInfo:
         """
         self._output = output or self.get_glxinfo_output()
         self._section = None
+        self._attrs = set()  # Keep a reference of the created attributes
         self.parse()
 
     @staticmethod
@@ -28,6 +29,9 @@ class GlxInfo:
         except subprocess.CalledProcessError as ex:
             logger.error("glxinfo call failed: %s", ex)
             return ""
+
+    def as_dict(self):
+        return {attr: getattr(self, attr) for attr in self._attrs}
 
     def parse(self):
         """Converts the glxinfo output to class attributes"""
@@ -55,4 +59,5 @@ class GlxInfo:
                 else:
                     setattr(getattr(self, self._section), key.strip("_").lower(), value)
                     continue
+            self._attrs.add(key.lower())
             setattr(self, key.lower(), value)

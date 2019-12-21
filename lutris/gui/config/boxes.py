@@ -7,7 +7,6 @@ from lutris import settings, sysoptions
 from lutris.gui.widgets.common import VBox, Label, FileChooserEntry, EditableGrid
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
-from lutris.util.system import reverse_expanduser
 from lutris.util.jobs import AsyncCall
 
 
@@ -181,7 +180,7 @@ class ConfigBox(VBox):
                 raise ValueError("Option %s has no label" % option)
             self.generate_entry(option_key, option["label"], value, option_size)
         elif option_type == "directory_chooser":
-            self.generate_directory_chooser(option_key, option["label"], value)
+            self.generate_directory_chooser(option, value)
         elif option_type == "file":
             self.generate_file_chooser(option, value)
         elif option_type == "multiple":
@@ -370,10 +369,12 @@ class ConfigBox(VBox):
         file_chooser = FileChooserEntry(
             title="Select file",
             action=Gtk.FileChooserAction.OPEN,
-            default_path=path,  # reverse_expanduser(path)
+            path=path,
+            default_path=option.get("default_path")
         )
         file_chooser.set_size_request(200, 30)
 
+        # WTF?
         if "default_path" in option:
             config_key = option["default_path"]
             default_path = self.lutris_config.system_config.get(config_key)
@@ -385,7 +386,7 @@ class ConfigBox(VBox):
             if not os.path.isabs(path):
                 path = os.path.expanduser(path)
                 if not os.path.isabs(path):
-                    if self.game:
+                    if self.game and self.game.directory:
                         path = os.path.join(self.game.directory, path)
             file_chooser.entry.set_text(path)
 
@@ -402,13 +403,18 @@ class ConfigBox(VBox):
         self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Directory chooser
-    def generate_directory_chooser(self, option_name, label_text, value=None):
+    def generate_directory_chooser(self, option, path=None):
         """Generate a file chooser button to select a directory."""
-        label = Label(label_text)
+        label = Label(option["label"])
+        option_name = option["option"]
+        default_path = None
+        if not path and self.game and self.game.runner:
+            default_path = self.game.runner.working_dir
         directory_chooser = FileChooserEntry(
             title="Select folder",
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            default_path=reverse_expanduser(value),
+            path=path,
+            default_path=default_path
         )
         directory_chooser.entry.connect(
             "changed", self._on_chooser_dir_set, option_name
@@ -610,8 +616,9 @@ class GameBox(ConfigBox):
 
 
 class RunnerBox(ConfigBox):
-    def __init__(self, lutris_config):
-        ConfigBox.__init__(self)
+    """Configuration box for runner specific options"""
+    def __init__(self, lutris_config, game=None):
+        ConfigBox.__init__(self, game)
         self.lutris_config = lutris_config
         try:
             runner = import_runner(self.lutris_config.runner_slug)()

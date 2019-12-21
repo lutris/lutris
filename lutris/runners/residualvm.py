@@ -41,7 +41,7 @@ class residualvm(Runner):
                 ("OpenGL shaders", "opengl_shaders"),
                 ("Software", "software"),
             ),
-            "default": "OpenGL",
+            "default": "opengl",
         },
         {
             "option": "show-fps",

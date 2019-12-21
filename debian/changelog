@@ -1,4 +1,149 @@
-lutris (0.5.0.1) UNRELEASED; urgency=medium
+lutris (0.5.4) eoan; urgency=medium
+
+  * Added support for Python 3.8.
+  * Added config validation.
+  * Added support for Nvidia PRIME off-load.
+  * Added a popup after a successful game import.
+  * Added alacritty as a terminal option.
+  * Newly installed games that don't specify wine version will now default to the version used during installation.
+  * Provide a fallback for when Lutris can't create a working directory.
+  * Update libretro runners list.
+  * Removed runners that have no binary builds.
+  * Esync can now be enabled for Wine Staging >= 4.6.
+  * Default scaling option for Mednafen is now nn4x.
+  * steamwebhelper.exe is no longer disabled to avoid issues with the new Steam UI.
+  * Ignore special symbols when generating identifiers for games.
+  * Wine processes are now killed if installation is cancelled.
+  * Fixed installation issues for users whose username begin with "x".
+  * Fixed a bug with side panels hidden by default on first start.
+  * Fixed an issue that would not allow user to unselect a game in right panel by clicking on an empty space in the library if that game was no longer installed.
+  * Fixed an issue that allowed user to change the configuration of a game that was already removed.
+  * Fixed an issue that made games imported from native Steam to appear as uninstalled.
+  * Fixed a bug that opened Wine Console instead of Wine Registry.
+  * Fixed warnings that occurred when Gamemode was enabled.
+  * Fixed various locale issues.
+  * Fixed a bug preventing Lutris to find Gallium Nine libraries.
+  * Fixed issues with positioning of the Lutris window.
+  * Fixed game panel updates on game quit.
+  * Fixed game loading error in cases when libstrangle is missing but was previously enabled.
+  * Fixed a bug that made Lutris download Linux version of a GOG game even when the runner was set to Wine.
+  * Fixed installation of the local install scripts.
+  * Fixed installation issues for wine installers that don't have a "files" section.
+  * Further fixed issues with wine sandboxing on non-english systems.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 20 Nov 2019 17:51:16 -0800
+
+lutris (0.5.3) disco; urgency=medium
+
+  * Added D9VK option.
+  * Added options to hide right and left panels.
+  * Added support for Discord Rich Presence (option is only available if you
+    have python-pypresence installed).
+  * Added option to launch Wine console.
+  * Added option to hide Lutris on game launch.
+  * Added lazy loading for some UI components that fetch data from Lutris.
+  * WINE_LARGE_ADDRESS_AWARE is now set to 1 when DXVK or D9VK is enabled
+    (only works with lutris-provided builds) to workaround crashes in 32-bit games.
+  * Lutris should now be minimized when launching games from shortcuts.
+  * An error is now displayed when Lutris fails to install a runner.
+  * Added Ubuntu's AMDVLK path to Vulkan ICD loader search.
+  * State of right panel is now refreshed after adding/removing shortcuts.
+  * Working directory no longer defaults to /tmp
+  * Switched PC-Engine module from pce to pce_fast.
+  * Fixed crash due to invalid GOG credentials.
+  * Fixed UI bug that would sometimes result in “No File Provided” error messages.
+  * Fixed bug that would lead to path warnings when prompted to select files.
+  * Fixed crashes due to unexpected data from xrandr.
+  * Fixed bug that could make antialiasing not function in some games.
+  * Fixed sorting for games that start with a lowercase letter.
+  * Fixed bug that would cause user session to end when launching games on Linux Mint.
+  * Fixed bug with process monitor that could cause games to not launch.
+  * Fixed bug that would not let user execute some options and launch external
+    executables when a game is still running and ESYNC is enabled.
+  * Fixed issues with restoration of original .dll files when disabling DXVK/D9VK.
+  * Fixed crashes due to inability to read GPU driver information.
+  * Fixed crash when working directory isn’t defined.
+  * Fixed stuck game importing due to failure to load icons.
+  * Fixed library loading issues on Gentoo.
+  * Fixed wine sandboxing on non-english systems.
+  * Fixed various issues with locales.
+  * Made various changes and improvements for libretro runner.
+  * Made various changes and improvements for future Flatpak support.
+  * Made minor changes to wording in UI.
+  * Updated Zdoom icon
+  * Updated Lutris logo (improvements by @Scout339)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 02 Sep 2019 20:50:01 -0700
+
+lutris (0.5.2.1) cosmic; urgency=high
+
+  * Handle distributions where ldconfig is not in $PATH, like Debian
+  * Fix a crash when GOG credential have changed
+  * Leave "Show logs" button always enabled
+  * Add BlastEm to libretro cores
+
+ -- Mathieu Comandon <strycore@gmail.com>  Tue, 09 Apr 2019 19:46:02 -0700
+
+lutris (0.5.2) cosmic; urgency=medium
+
+  * Avoid a crash if the lutris config file is corrupted
+  * Install Asian fonts by default on Wine prefix creation
+  * Add Vulkan ICD loaders in system options
+  * Add SampleCount option to Wine (allows enabling antialiasing in old games)
+  * Replace joystick panel with Wine config panel (which contains the joypad panel)
+  * Display warning when installing games on NTFS drives
+  * Display warning if Vulkan is not fully installed
+  * Use ldconfig to determine library paths
+  * Disable steamwebhelper in Wine Steam to prevent spamming logs with errors
+  * Various bug fixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 04 Apr 2019 02:47:30 -0700
+
+lutris (0.5.1.3) cosmic; urgency=critical
+
+  * Fake release to work around Launchpad / OBS publishing issues.
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 25 Mar 2019 17:38:55 -0700
+
+lutris (0.5.1.2) cosmic; urgency=high
+
+  * Fix issue with custom Proton detection preventing Wine game from running
+
+ -- Mathieu Comandon <strycore@gmail.com>  Mon, 25 Mar 2019 14:24:38 -0700
+
+lutris (0.5.1.1) cosmic; urgency=medium
+
+  * Fixed a crash when trying to open webpages on system without GVFS
+    installed
+  * Fixed GOG login dialog being displayed multiple times during the install
+  * Add mesa-utils as dependency for glxinfo
+  * Add gvfs-backends as dependency to fix the open_uri issue
+  * Add detection of custom proton builds in compatibilitytools.d folder, as
+    documented here: https://github.com/valvesoftware/proton#install-proton-locally
+   (by @GloriousEggroll)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 24 Mar 2019 23:39:18 -0700
+
+lutris (0.5.1) cosmic; urgency=medium
+
+  * Download the default Lutris Wine version when not available
+  * Prevent duplicates when importing games from 3rd party services
+  * Fix some sorting issues in the view
+  * Add issue reporting feature with the --submit-issue flag. The issue can
+    only be saved locally, API integration will be implemented at a later stage.
+  * Add support for CD-ROM images for non CD32/CDTV Amiga models
+  * Remove website search from sidebar and merge it with the main search entry
+  * Display a warning message if the installed Nvidia driver is too old
+  * Fix GOG games not being installable without being connected to GOG
+  * Improve performance of log handling
+  * Remove winecfg if Proton is used
+  * Use discrete graphics by default with compatible systems
+  * Increase game icon size from 32x32 to 128x128
+  * Various fixes
+
+ -- Mathieu Comandon <strycore@gmail.com>  Wed, 20 Mar 2019 00:24:27 -0700
+
+lutris (0.5.0.1ubuntu1) cosmic; urgency=medium
 
   * Bullshit my way out of Gtk+ fuckery (Closes #1697)
   * Initialize playtime attribute when invalid playtime found (Closes #1698)

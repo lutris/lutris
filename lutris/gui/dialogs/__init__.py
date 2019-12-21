@@ -18,7 +18,11 @@ class Dialog(Gtk.Dialog):
     def __init__(self, title=None, parent=None, flags=0, buttons=None):
         super().__init__(title, parent, flags, buttons)
         self.set_border_width(10)
+        self.connect("delete-event", self.on_destroy)
         self.set_destroy_with_parent(True)
+
+    def on_destroy(self, _widget, _data=None):
+        self.destroy()
 
 
 class GtkBuilderDialog(GObject.Object):
@@ -95,6 +99,9 @@ class QuestionDialog(Gtk.MessageDialog):
         )
         self.set_markup(dialog_settings["question"])
         self.set_title(dialog_settings["title"])
+        if "widgets" in dialog_settings:
+            for widget in dialog_settings["widgets"]:
+                self.get_message_area().add(widget)
         self.result = self.run()
         self.destroy()
 
@@ -465,7 +472,7 @@ class WineNotInstalledWarning(DontShowAgainDialog):
             secondary_message="Having Wine installed on your system guarantees that "
             "Wine builds from Lutris will have all required dependencies.\n\nPlease "
             "follow the instructions given in the <a "
-            "href='https://github.com/lutris/lutris/wiki/Wine'>Lutris Wiki</a> to "
+            "href='https://github.com/lutris/lutris/wiki/Wine-Dependencies'>Lutris Wiki</a> to "
             "install Wine.",
             parent=parent,
         )

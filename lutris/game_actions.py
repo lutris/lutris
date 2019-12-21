@@ -183,12 +183,6 @@ class GameActions:
             "unhide": GameActions.is_game_hidden(self.game)
         }
 
-    def get_disabled_entries(self):
-        """Return a dictionary of actions that should be disabled for a game"""
-        return {
-            "show_logs": not self.is_game_running,
-        }
-
     def on_game_run(self, *_args):
         """Launch a game"""
         self.application.launch(self.game)
@@ -204,9 +198,11 @@ class GameActions:
 
         matched_game = self.get_running_game()
         if not matched_game:
-            logger.warning("%s not in running game list", self.game_id)
+            logger.warning("Game %s not in running game list", self.game_id)
             return
-
+        if not matched_game.game_thread:
+            logger.warning("Game %s doesn't appear to be running, not killing it", self.game_id)
+            return
         try:
             os.kill(matched_game.game_thread.game_process.pid, signal.SIGTERM)
         except ProcessLookupError:

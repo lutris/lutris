@@ -28,7 +28,7 @@ class DownloadDialog(Gtk.Dialog):
         self.response(Gtk.ResponseType.CANCEL)
         self.destroy()
 
-    def on_response(self, dialog, response):
+    def on_response(self, _dialog, response):
         if response == Gtk.ResponseType.DELETE_EVENT:
             self.download_box.downloader.cancel()
             self.destroy()

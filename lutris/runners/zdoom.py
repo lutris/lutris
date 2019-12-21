@@ -1,7 +1,7 @@
 import os
-import shlex
 from lutris.util.log import logger
 from lutris.util import display, system
+from lutris.util.strings import split_arguments
 from lutris.runners.runner import Runner
 
 
@@ -102,8 +102,9 @@ class zdoom(Runner):
         resolution = self.runner_config.get("resolution")
         if resolution:
             if resolution == "desktop":
-                resolution = display.get_current_resolution()
-            width, height = resolution.split("x")
+                width, height = display.DISPLAY_MANAGER.get_current_resolution()
+            else:
+                width, height = resolution.split("x")
             command.append("-width")
             command.append(width)
             command.append("-height")
@@ -166,7 +167,7 @@ class zdoom(Runner):
 
         # Append additional arguments, if provided.
         args = self.game_config.get("args") or ""
-        for arg in shlex.split(args):
+        for arg in split_arguments(args):
             command.append(arg)
 
         return {"command": command}

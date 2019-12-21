@@ -61,13 +61,13 @@ class ServiceSyncBox(Gtk.Box):
         actions = Gtk.Box(spacing=6)
         self.pack_start(actions, False, False, 0)
 
-        self.sync_button = Gtk.Button("Import games")
-        self.sync_button.set_sensitive(False)
-        self.sync_button.set_tooltip_text("Sync now")
-        self.sync_button.connect(
+        self.import_button = Gtk.Button("Import games")
+        self.import_button.set_sensitive(False)
+        self.import_button.set_tooltip_text("Sync now")
+        self.import_button.connect(
             "clicked", self.on_sync_button_clicked, service.SYNCER.sync
         )
-        actions.pack_start(self.sync_button, False, False, 0)
+        actions.pack_start(self.import_button, False, False, 0)
 
         self.sync_switch = Gtk.Switch()
         self.sync_switch.props.valign = Gtk.Align.CENTER
@@ -81,7 +81,7 @@ class ServiceSyncBox(Gtk.Box):
 
         if service.ONLINE and not service.is_connected():
             self.sync_switch.set_sensitive(False)
-            self.sync_button.set_sensitive(False)
+            self.import_button.set_sensitive(False)
 
     def get_content_widget(self):
         center_alignment = Gtk.Alignment()
@@ -124,7 +124,7 @@ class ServiceSyncBox(Gtk.Box):
     def on_connect_clicked(self, _button):
         if self.service.is_connected():
             self.unload_games()
-            self.sync_button.set_sensitive(False)
+            self.import_button.set_sensitive(False)
             self.sync_switch.set_sensitive(False)
             # Disable sync on disconnect
             if self.sync_switch and self.sync_switch.get_active():
@@ -136,7 +136,7 @@ class ServiceSyncBox(Gtk.Box):
             self.service.connect()
             self._connect_button_toggle()
             self.sync_switch.set_sensitive(True)
-            self.sync_button.set_sensitive(True)
+            self.import_button.set_sensitive(True)
             self.load_games()
         return False
 
@@ -164,19 +164,34 @@ class ServiceSyncBox(Gtk.Box):
             self.get_imported_games()
         )
 
-    def on_service_synced(self, games, _extra):
+    def on_service_synced(self, sync_results, _extra):
         """Called when games are imported"""
         window = get_main_window(self)
         if not window:
             logger.warning("Unable to get main window")
             return
-        if games:
-            send_notification(
-                "Games imported",
-                "%s game%s imported to Lutris" %
-                (len(games), "s were" if len(games) > 1 else " was")
+        added_games, original_games = sync_results
+
+        skipped_import = len(original_games) - len(added_games)
+        if added_games:
+            added_message = "%s game%s imported. " % (
+                len(added_games),
+                "s were" if len(added_games) > 1 else " was"
             )
-            window.game_store.add_games_by_ids(games)
+        else:
+            added_message = "No games were added. "
+
+        if skipped_import:
+            skipped_message = "%s game%s already in the library" % (
+                skipped_import,
+                "s are" if skipped_import > 1 else " is"
+            )
+        else:
+            skipped_message = ""
+
+        send_notification("Games imported", added_message + skipped_message)
+        for game_id in added_games:
+            window.game_store.add_or_update(game_id)
 
     def on_switch_changed(self, switch, _data):
         write_setting("sync_at_startup", switch.get_active(), self.identifier)
@@ -211,7 +226,7 @@ class ServiceSyncBox(Gtk.Box):
             self.num_selected += 1
         else:
             self.num_selected -= 1
-        self.sync_button.set_sensitive(bool(self.num_selected))
+        self.import_button.set_sensitive(bool(self.num_selected))
         self.store_filter[game_index][col] = new_state
 
     def on_select_all(self, widget):
@@ -220,7 +235,7 @@ class ServiceSyncBox(Gtk.Box):
             if widget.get_active():
                 self.num_selected += 1
             game[self.COL_SELECTED] = widget.get_active()
-        self.sync_button.set_sensitive(bool(self.num_selected))
+        self.import_button.set_sensitive(bool(self.num_selected))
 
     def get_store(self):
         """Return a ListStore for the games to import"""

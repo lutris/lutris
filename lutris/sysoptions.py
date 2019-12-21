@@ -1,9 +1,56 @@
 """Options list for system config."""
+# pylint: disable=invalid-name
 import os
+import glob
 from collections import OrderedDict
 
 from lutris import runners
-from lutris.util import display, system
+from lutris.util import system
+from lutris.util.display import USE_DRI_PRIME, DISPLAY_MANAGER
+from lutris.discord import DiscordPresence
+
+
+VULKAN_DATA_DIRS = [
+    "/usr/local/etc/vulkan",  # standard site-local location
+    "/usr/local/share/vulkan",  # standard site-local location
+    "/etc/vulkan",  # standard location
+    "/usr/share/vulkan",  # standard location
+    "/usr/lib/x86_64-linux-gnu/GL/vulkan",  # Flatpak GL extension
+    "/usr/lib/i386-linux-gnu/GL/vulkan",  # Flatpak GL32 extension
+    "/opt/amdgpu-pro/etc/vulkan"  # AMD GPU Pro - TkG
+]
+
+
+def get_resolution_choices():
+    """Return list of available resolutions as label, value tuples
+    suitable for inclusion in drop-downs.
+    """
+    resolutions = DISPLAY_MANAGER.get_resolutions()
+    resolution_choices = list(zip(resolutions, resolutions))
+    resolution_choices.insert(0, ("Keep current", "off"))
+    return resolution_choices
+
+
+def get_output_choices():
+    """Return list of outputs for drop-downs"""
+    displays = DISPLAY_MANAGER.get_display_names()
+    output_choices = list(zip(displays, displays))
+    output_choices.insert(0, ("Off", "off"))
+    output_choices.insert(1, ("Primary", "primary"))
+    return output_choices
+
+
+def get_output_list():
+    """Return a list of output with their index.
+    This is used to indicate to SDL 1.2 which monitor to use.
+    """
+    choices = [("Off", "off")]
+    displays = DISPLAY_MANAGER.get_display_names()
+    for index, output in enumerate(displays):
+        # Display name can't be used because they might not be in the right order
+        # Using DISPLAYS to get the number of connected monitors
+        choices.append((output, str(index)))
+    return choices
 
 
 def get_optirun_choices():
@@ -13,8 +60,25 @@ def get_optirun_choices():
         choices.append(("primusrun", "primusrun"))
     if system.find_executable("optirun"):
         choices.append(("optirun/virtualgl", "optirun"))
+    if system.find_executable("pvkrun"):
+        choices.append(("primus vk", "pvkrun"))
     return choices
 
+
+def get_vk_icd_choices():
+    """Return available Vulkan ICD loaders"""
+    choices = [("Auto", "")]
+
+    # Add loaders
+    for data_dir in VULKAN_DATA_DIRS:
+        path = os.path.join(data_dir, "icd.d", "*.json")
+        for loader in glob.glob(path):
+            choices.append((os.path.basename(loader), loader))
+
+    return choices
+
+
+discord_presence = DiscordPresence()
 
 system_options = [  # pylint: disable=invalid-name
     {
@@ -129,7 +193,22 @@ system_options = [  # pylint: disable=invalid-name
             "activating your NVIDIA graphic chip for high 3D "
             "performance. primusrun normally has better performance, but"
             "optirun/virtualgl works better for more games."
+            "Primus VK provide vulkan support under bumblebee."
         ),
+    },
+    {
+        "option": "vk_icd",
+        "type": "choice",
+        "default": "",
+        "choices": get_vk_icd_choices,
+        "label": "Vulkan ICD loader",
+        "advanced": True,
+        "help": (
+            "The ICD loader is a library that is placed between a Vulkan "
+            "application and any number of Vulkan drivers, in order to support "
+            "multiple drivers and the instance-level functionality that works "
+            "across these drivers."
+        )
     },
     {
         "option": "fps_limit",
@@ -149,11 +228,25 @@ system_options = [  # pylint: disable=invalid-name
         "help": "Request a set of optimisations be temporarily applied to the host OS",
     },
     {
-        "option": "dri_prime",
+        "option": "prime",
         "type": "bool",
         "default": False,
-        "condition": display.USE_DRI_PRIME,
-        "label": "Use PRIME (hybrid graphics on laptops)",
+        "condition": True,
+        "label": "Enable NVIDIA Prime render offload",
+        "help": (
+            "If you have the latest NVIDIA driver and the properly patched xorg-server (see "
+            "https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html"
+            "), you can launch a game on your NVIDIA GPU by toggling this switch. This will apply "
+            "__NV_PRIME_RENDER_OFFLOAD=1 and "
+            "__GLX_VENDOR_LIBRARY_NAME=nvidia environment variables."
+        )
+    },
+    {
+        "option": "dri_prime",
+        "type": "bool",
+        "default": USE_DRI_PRIME,
+        "condition": USE_DRI_PRIME,
+        "label": "Use discrete graphics",
         "advanced": True,
         "help": (
             "If you have open source graphic drivers (Mesa), selecting this "
@@ -166,7 +259,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "sdl_video_fullscreen",
         "type": "choice",
         "label": "SDL 1.2 Fullscreen Monitor",
-        "choices": display.get_output_list,
+        "choices": get_output_list,
         "default": "off",
         "advanced": True,
         "help": (
@@ -179,7 +272,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "display",
         "type": "choice",
         "label": "Turn off monitors except",
-        "choices": display.get_output_choices,
+        "choices": get_output_choices,
         "default": "off",
         "advanced": True,
         "help": (
@@ -193,7 +286,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "resolution",
         "type": "choice",
         "label": "Switch resolution to",
-        "choices": display.get_resolution_choices,
+        "choices": get_resolution_choices,
         "default": "off",
         "help": "Switch to this screen resolution while the game is running.",
     },
@@ -238,29 +331,29 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "manual_command",
         "type": "file",
-        "label": "Manual command",
+        "label": "Manual script",
         "advanced": True,
         "help": ("Script to execute from the game's contextual menu"),
     },
     {
         "option": "prelaunch_command",
         "type": "file",
-        "label": "Pre-launch command",
+        "label": "Pre-launch script",
         "advanced": True,
         "help": "Script to execute before the game starts",
     },
     {
         "option": "prelaunch_wait",
         "type": "bool",
-        "label": "Wait for pre-launch command completion",
+        "label": "Wait for pre-launch script completion",
         "advanced": True,
         "default": False,
-        "help": "Run the game only once the pre-launch command has exited",
+        "help": "Run the game only once the pre-launch script has exited",
     },
     {
         "option": "postexit_command",
         "type": "file",
-        "label": "Post-exit command",
+        "label": "Post-exit script",
         "advanced": True,
         "help": "Script to execute when the game exits",
     },
@@ -351,6 +444,49 @@ system_options = [  # pylint: disable=invalid-name
         "help": "Open Xephyr in fullscreen (at the desktop resolution)",
     },
 ]
+
+discord_options = [
+    {
+        "option": "discord_rpc_enabled",
+        "type": "bool",
+        "label": "Discord Rich Presence",
+        "default": False,
+        "condition": discord_presence.available,
+        "help": "Enable status to Discord of this game being played",
+    },
+    {
+        "option": "discord_show_runner",
+        "type": "bool",
+        "label": "Discord Show Runner",
+        "default": True,
+        "condition": discord_presence.available,
+        "help": "Embed the runner name in the Discord status",
+    },
+    {
+        "option": "discord_custom_game_name",
+        "type": "string",
+        "label": "Discord Custom Game Name",
+        "condition": discord_presence.available,
+        "help": "Custom name to override with and pass to Discord",
+    },
+    {
+        "option": "discord_custom_runner_name",
+        "type": "string",
+        "label": "Discord Custom Runner Name",
+        "condition": discord_presence.available,
+        "help": "Custom runner name to override with and pass to Discord",
+    },
+    {
+        "option": "discord_client_id",
+        "type": "string",
+        "label": "Discord Client ID",
+        "condition": discord_presence.available,
+        "help": "Custom Discord Client ID for passing status",
+    },
+]
+
+if discord_presence.available:
+    system_options += discord_options
 
 
 def with_runner_overrides(runner_slug):

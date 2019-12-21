@@ -13,7 +13,6 @@ class GameView:
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Game, )),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (Game, )),
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
     selected_game = None

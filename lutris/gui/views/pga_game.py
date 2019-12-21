@@ -12,6 +12,8 @@ class PgaGame:
     TODO: Fix overlap with Game class
     """
     def __init__(self, pga_data):
+        if not pga_data:
+            raise RuntimeError("No game data provided")
         self._pga_data = pga_data
         self.runner_names = {
             runner: runners.import_runner(runner).human_name
@@ -60,11 +62,12 @@ class PgaGame:
         _platform = self._pga_data["platform"]
         if not _platform and self.installed:
             game_inst = Game(self._pga_data["id"])
-            _platform = game_inst.platform
-            if not _platform:
+            if game_inst.platform:
+                _platform = game_inst.platform
+            else:
+                logger.debug("Game %s has no platform", self)
                 game_inst.set_platform_from_runner()
                 _platform = game_inst.platform
-                logger.debug("Setting platform for %s: %s", self, _platform)
         return _platform
 
     @property

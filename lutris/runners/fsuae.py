@@ -1,6 +1,6 @@
 import os
 from lutris.runners.runner import Runner
-from lutris.util.display import get_current_resolution
+from lutris.util.display import DISPLAY_MANAGER
 
 
 class fsuae(Runner):
@@ -84,7 +84,8 @@ class fsuae(Runner):
                 "FS-UAE supports floppy images in multiple file formats: "
                 "ADF, IPF, DMS are the most common. ADZ (compressed ADF) "
                 "and ADFs in zip files are a also supported.\n"
-                "Files ending in .hdf will be mounted as hard drives."
+                "Files ending in .hdf will be mounted as hard drives and "
+                "ISOs can be used for Amiga CD32 and CDTV models."
             ),
         },
         {
@@ -94,6 +95,12 @@ class fsuae(Runner):
             "default_path": "game_path",
             "help": "The additional floppy disk image(s).",
         },
+        {
+            "option": "cdrom_image",
+            "label": "CD-Rom image",
+            "type": "file",
+            "help": "CD-ROM image to use on non CD32/CDTV models"
+        }
     ]
 
     runner_options = [
@@ -190,6 +197,26 @@ class fsuae(Runner):
             "default": False,
         },
         {
+            "option": "gamemode",
+            "label": "Feral GameMode",
+            "type": "bool",
+            "default": False,
+            "help": (
+                "Automatically uses Feral GameMode daemon if available."
+                "set to true to disable the feature."
+            )
+        },
+        {
+            "option": "govwarning",
+            "label": "CPU governor warning",
+            "type": "bool",
+            "default": False,
+            "help": (
+                "Warn if running with a CPU governor other than performance."
+                "set to true to disable the warning."
+            )
+        },
+        {
             "option": "bsdsocket",
             "label": "UAE bsdsocket.library",
             "type": "bool",
@@ -215,6 +242,10 @@ class fsuae(Runner):
                     return self.platforms[index]
         return ""
 
+    def get_absolute_path(self, path):
+        """Return the absolute path for a file"""
+        return path if os.path.isabs(path) else os.path.join(self.game_path, path)
+
     def insert_floppies(self):
         disks = []
         main_disk = self.game_config.get("main_file")
@@ -226,10 +257,7 @@ class fsuae(Runner):
             if disk not in disks:
                 disks.append(disk)
         # Make all paths absolute
-        disks = [
-            disk if os.path.isabs(disk) else os.path.join(self.game_path, disk)
-            for disk in disks
-        ]
+        disks = [self.get_absolute_path(disk) for disk in disks]
         drives = []
         floppy_images = []
         for drive, disk_path in enumerate(disks):
@@ -237,6 +265,9 @@ class fsuae(Runner):
             drives.append("--%s_%d=%s" % (disk_param, drive, disk_path))
             if disk_param == "floppy_drive":
                 floppy_images.append("--floppy_image_%d=%s" % (drive, disk_path))
+        cdrom_image = self.game_config.get("cdrom_image")
+        if cdrom_image:
+            drives.append("--cdrom_drive_0=%s" % self.get_absolute_path(cdrom_image))
         return drives + floppy_images
 
     def get_disk_param(self, disk_path):
@@ -266,33 +297,30 @@ class fsuae(Runner):
         if fmemory:
             params.append("--fast_memory=%s" % fmemory)
         if fdvolume:
-            params.append("--floppy_drive_volume_empty=%s" % fdvolume)
+            params.append("--floppy_drive_volume=%s" % fdvolume)
         if fdspeed:
-            params.append("--floppy_drive_volume_empty=%s" % fdspeed)
+            params.append("--floppy_drive_speed=%s" % fdspeed)
         if grafixcard:
             params.append("--graphics_card=%s" % grafixcard)
         if grafixmemory:
             params.append("--graphics_memory=%s" % grafixmemory)
         if self.runner_config.get("gfx_fullscreen_amiga"):
-            width = int(get_current_resolution().split("x")[0])
+            width = int(DISPLAY_MANAGER.get_current_resolution()[0])
             params.append("--fullscreen")
             # params.append("--fullscreen_mode=fullscreen-window")
             params.append("--fullscreen_mode=fullscreen")
             params.append("--fullscreen_width=%d" % width)
         if self.runner_config.get("jitcompiler"):
             params.append("--jit_compiler=1")
-        if self.runner_config.get("jitcompiler"):
+        if self.runner_config.get("bsdsocket"):
             params.append("--bsdsocket_library=1")
+        if self.runner_config.get("gamemode"):
+            params.append("--game_mode=0")
+        if self.runner_config.get("govwarning"):
+            params.append("--governor_warning=0")
         if self.runner_config.get("scanlines"):
             params.append("--scanlines=1")
         return params
 
     def play(self):
-        params = self.get_params()
-        disks = self.insert_floppies()
-        command = [self.get_executable()]
-        for param in params:
-            command.append(param)
-        for disk in disks:
-            command.append(disk)
-        return {"command": command}
+        return {"command": [self.get_executable()] + self.get_params() + self.insert_floppies()}

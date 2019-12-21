@@ -7,7 +7,7 @@ from lutris import pga, settings, runtime
 from lutris.config import LutrisConfig
 from lutris.gui import dialogs
 from lutris.command import MonitoredCommand
-from lutris.util.extract import extract_archive
+from lutris.util.extract import extract_archive, ExtractFailure
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.http import Request
@@ -30,7 +30,6 @@ class Runner:
     def __init__(self, config=None):
         """Initialize runner."""
         self.arch = system.LINUX_SYSTEM.arch
-        self.logger = logger
         self.config = config
         self.game_data = {}
         if config:
@@ -92,20 +91,42 @@ class Runner:
                 if not os.path.isabs(path):
                     path = os.path.join(self.game_path, path)
                 return path
-
-        if self.game_data.get("directory"):
-            return self.game_data.get("directory")
+        return self.game_path
 
     @property
     def game_path(self):
         """Return the directory where the game is installed."""
-        if self.game_data.get("directory"):
-            return self.game_data.get("directory")
+        return self.game_data.get("directory")
 
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
-        return os.path.expanduser("~/")
+        return self.game_path or os.path.expanduser("~/")
+
+    @property
+    def discord_rpc_enabled(self):
+        if self.game_data.get("discord_rpc_enabled"):
+            return self.game_data.get("discord_rpc_enabled")
+
+    @property
+    def discord_show_runner(self):
+        if self.game_data.get("discord_show_runner"):
+            return self.game_data.get("discord_show_runner")
+
+    @property
+    def discord_custom_game_name(self):
+        if self.game_data.get("discord_custom_game_name"):
+            return self.game_data.get("discord_custom_game_name")
+
+    @property
+    def discord_custom_runner_name(self):
+        if self.game_data.get("discord_custom_runner_name"):
+            return self.game_data.get("discord_custom_runner_name")
+
+    @property
+    def discord_client_id(self):
+        if self.game_data.get("discord_client_id"):
+            return self.game_data.get("discord_client_id")
 
     def get_platform(self):
         return self.platforms[0]
@@ -141,7 +162,8 @@ class Runner:
         system_env = self.system_config.get("env") or {}
         env.update(system_env)
 
-        env["DRI_PRIME"] = "1" if self.system_config.get("dri_prime") else "0"
+        if self.system_config.get("dri_prime"):
+            env["DRI_PRIME"] = "1"
 
         runtime_ld_library_path = None
 
@@ -234,11 +256,16 @@ class Runner:
         if Gtk.ResponseType.YES == dialog.result:
 
             from lutris.gui.dialogs.runners import simple_downloader
-            if hasattr(self, "get_version"):
-                self.install(downloader=simple_downloader,
-                             version=self.get_version(use_default=False))
-            else:
-                self.install(downloader=simple_downloader)
+            from lutris.gui.dialogs import ErrorDialog
+            try:
+                if hasattr(self, "get_version"):
+                    self.install(downloader=simple_downloader,
+                                 version=self.get_version(use_default=False))
+                else:
+                    self.install(downloader=simple_downloader)
+            except RunnerInstallationError as ex:
+                ErrorDialog(ex.message)
+
             return self.is_installed()
         return False
 
@@ -246,40 +273,49 @@ class Runner:
         """Return whether the runner is installed"""
         return system.path_exists(self.get_executable())
 
-    def get_runner_info(self, version=None):
-        runner_api_url = "{}/api/runners/{}".format(settings.SITE_URL, self.name)
+    def get_runner_version(self, version=None):
+        """Get the appropriate version for a runner
+
+        Params:
+            version (str): Optional version to lookup, will return this one if found
+
+        Returns:
+            dict: Dict containing version, architecture and url for the runner
+        """
         logger.info(
             "Getting runner information for %s%s",
             self.name,
-            "(version: %s)" % version if version else "",
+            " (version: %s)" % version if version else "",
         )
-        request = Request(runner_api_url)
-        response = request.get()
-        response_content = response.json
+        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
+        runner_info = request.get().json
+        if not runner_info:
+            logger.error("Failed to get runner information")
+            return
 
-        if response_content:
-            versions = response_content.get("versions") or []
-            arch = self.arch
-            if version:
-                if version.endswith("-i386") or version.endswith("-x86_64"):
-                    version, arch = version.rsplit("-", 1)
-                versions = [v for v in versions if v["version"] == version]
-            versions_for_arch = [v for v in versions if v["architecture"] == arch]
-            if len(versions_for_arch) == 1:
-                return versions_for_arch[0]
-            elif len(versions_for_arch) > 1:
-                default_version = [v for v in versions_for_arch if v["default"] is True]
-                if default_version:
-                    return default_version[0]
-            elif len(versions) == 1 and system.LINUX_SYSTEM.is_64_bit:
-                return versions[0]
-            elif len(versions) > 1 and system.LINUX_SYSTEM.is_64_bit:
-                default_version = [v for v in versions if v["default"] is True]
-                if default_version:
-                    return default_version[0]
-            # If we didn't find a proper version yet, return the first available.
-            if len(versions_for_arch) >= 1:
-                return versions_for_arch[0]
+        versions = runner_info.get("versions") or []
+        arch = self.arch
+        if version:
+            if version.endswith("-i386") or version.endswith("-x86_64"):
+                version, arch = version.rsplit("-", 1)
+            versions = [v for v in versions if v["version"] == version]
+        versions_for_arch = [v for v in versions if v["architecture"] == arch]
+        if len(versions_for_arch) == 1:
+            return versions_for_arch[0]
+
+        if len(versions_for_arch) > 1:
+            default_version = [v for v in versions_for_arch if v["default"] is True]
+            if default_version:
+                return default_version[0]
+        elif len(versions) == 1 and system.LINUX_SYSTEM.is_64_bit:
+            return versions[0]
+        elif len(versions) > 1 and system.LINUX_SYSTEM.is_64_bit:
+            default_version = [v for v in versions if v["default"] is True]
+            if default_version:
+                return default_version[0]
+        # If we didn't find a proper version yet, return the first available.
+        if len(versions_for_arch) >= 1:
+            return versions_for_arch[0]
 
     def install(self, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""
@@ -290,11 +326,11 @@ class Runner:
             downloader,
             callback,
         )
-        runner_info = self.get_runner_info(version)
-        if not runner_info:
+        runner = self.get_runner_version(version)
+        if not runner:
             raise RunnerInstallationError(
-                "{} is not available for the {} architecture".format(
-                    self.name, self.arch
+                "Failed to retrieve {} ({}) information".format(
+                    self.name, version
                 )
             )
         if not downloader:
@@ -308,13 +344,13 @@ class Runner:
             opts["dest"] = os.path.join(
                 settings.RUNNER_DIR,
                 self.name,
-                "{}-{}".format(runner_info["version"], runner_info["architecture"])
+                "{}-{}".format(runner["version"], runner["architecture"])
             )
 
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
-        self.download_and_extract(runner_info["url"], **opts)
+        self.download_and_extract(runner["url"], **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
         downloader = opts["downloader"]
@@ -336,9 +372,9 @@ class Runner:
             raise RunnerInstallationError("Failed to extract {}".format(archive))
         try:
             extract_archive(archive, dest, merge_single=merge_single)
-        except EOFError:
+        except ExtractFailure as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
-            return
+            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex))
         os.remove(archive)
 
         if self.name == "wine":
@@ -361,3 +397,14 @@ class Runner:
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
+
+    def find_option(self, options_group, option_name):
+        """Retrieve an option dict if it exists in the group"""
+        if options_group not in ['game_options', 'runner_options']:
+            return None
+        output = None
+        for item in getattr(self, options_group):
+            if item["option"] == option_name:
+                output = item
+                break
+        return output

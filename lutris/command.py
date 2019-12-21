@@ -1,7 +1,9 @@
 """Threading module, used to launch games while monitoring them."""
 
+import io
 import os
 import sys
+import fcntl
 import shlex
 import subprocess
 import contextlib
@@ -13,13 +15,14 @@ from lutris import settings
 from lutris import runtime
 from lutris.util.log import logger
 from lutris.util import system
-from lutris.util.signals import PID_HANDLERS, register_handler
 
 WRAPPER_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "lutris-wrapper")
 
 
 class MonitoredCommand:
     """Exexcutes a commmand while keeping track of its state"""
+
+    fallback_cwd = "/tmp"
 
     def __init__(
             self,
@@ -31,27 +34,18 @@ class MonitoredCommand:
             include_processes=None,
             exclude_processes=None,
             log_buffer=None,
-    ):
+    ):  # pylint: disable=too-many-arguments
         self.ready_state = True
-        if env is None:
-            self.env = {}
-        else:
-            self.env = env
+        self.env = self.get_environment(env)
 
-        # not clear why this needs to be added, the path is already added in
-        # the wrappper script.
-        self.env['PYTHONPATH'] = ':'.join(sys.path)
-
-        self.original_env = {}
         self.command = command
         self.runner = runner
         self.stop_func = lambda: True
         self.game_process = None
+        self.prevent_on_stop = False
         self.return_code = None
         self.terminal = system.find_executable(term)
         self.is_running = True
-        self.stdout = ""
-        self.daemon = True
         self.error = None
         self.log_handlers = [
             self.log_handler_stdout,
@@ -59,12 +53,16 @@ class MonitoredCommand:
         ]
         self.set_log_buffer(log_buffer)
         self.stdout_monitor = None
-        self.watch_children_running = False
         self.include_processes = include_processes or []
         self.exclude_processes = exclude_processes or []
 
-        # Keep a copy of previously running processes
         self.cwd = self.get_cwd(cwd)
+
+        self._stdout = io.StringIO()
+
+    @property
+    def stdout(self):
+        return self._stdout.getvalue()
 
     @property
     def wrapper_command(self):
@@ -87,22 +85,24 @@ class MonitoredCommand:
     def get_cwd(self, cwd):
         """Return the current working dir of the game"""
         if not cwd:
-            cwd = self.runner.working_dir if self.runner else "/tmp"
-        return os.path.expanduser(cwd)
+            cwd = self.runner.working_dir if self.runner else None
+        return os.path.expanduser(cwd or "~")
 
-    def apply_environment(self):
-        """Applies the environment variables to the system's environment."""
-        # Store provided environment variables so they can be used by future
-        # processes.
-        for key, value in self.env.items():
-            self.original_env[key] = os.environ.get(key)
-            os.environ[key.strip("=")] = str(value)
+    @staticmethod
+    def get_environment(user_env):
+        """Process the user provided environment variables for use as self.env"""
+        env = user_env or {}
+        # not clear why this needs to be added, the path is already added in
+        # the wrappper script.
+        env['PYTHONPATH'] = ':'.join(sys.path)
+        # Drop bad values of environment keys, those will confuse the Python
+        # interpreter.
+        return {
+            key: value for key, value in env.items() if "=" not in key
+        }
 
-        # Reset library paths if they were not provided
-        if not any([key in self.env for key in ("LD_LIBRARY_PATH", "LD_PRELOAD")]):
-            system.reset_library_preloads()
-
-        # Copy the resulting environment to what will be passed to the process
+    def get_child_environment(self):
+        """Returns the calculated environment for the child process."""
         env = os.environ.copy()
         env.update(self.env)
         return env
@@ -112,19 +112,26 @@ class MonitoredCommand:
         logger.debug("Running %s", " ".join(self.wrapper_command))
         for key, value in self.env.items():
             logger.debug("ENV: %s=\"%s\"", key, value)
-            pass
 
         if self.terminal:
             self.game_process = self.run_in_terminal()
         else:
-            env = self.apply_environment()
+            env = self.get_child_environment()
             self.game_process = self.execute_process(self.wrapper_command, env)
 
         if not self.game_process:
             logger.warning("No game process available")
             return
 
-        register_handler(self.game_process.pid, self.on_stop)
+        GLib.child_watch_add(self.game_process.pid, self.on_stop)
+
+        # make stdout nonblocking.
+        fileno = self.game_process.stdout.fileno()
+        fcntl.fcntl(
+            fileno,
+            fcntl.F_SETFL,
+            fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK
+        )
 
         self.stdout_monitor = GLib.io_add_watch(
             self.game_process.stdout,
@@ -134,7 +141,7 @@ class MonitoredCommand:
 
     def log_handler_stdout(self, line):
         """Add the line to this command's stdout attribute"""
-        self.stdout += line
+        self._stdout.write(line)
 
     def log_handler_buffer(self, line):
         """Add the line to the associated LogBuffer object"""
@@ -146,8 +153,11 @@ class MonitoredCommand:
             sys.stdout.write(line)
             sys.stdout.flush()
 
-    def on_stop(self, returncode):
-        """Callback registered on the SIGCHLD handler"""
+    def on_stop(self, _pid, returncode):
+        """Callback registered on game process termination"""
+        if self.prevent_on_stop:  # stop() already in progress
+            return False
+
         logger.debug("The process has terminated with code %s", returncode)
         self.is_running = False
         self.return_code = returncode
@@ -167,7 +177,7 @@ class MonitoredCommand:
         if not self.is_running:
             return False
         try:
-            line = stdout.readline().decode("utf-8", errors="ignore")
+            line = stdout.read(262144).decode("utf-8", errors="ignore")
         except ValueError:
             # file_desc might be closed
             return True
@@ -204,9 +214,14 @@ class MonitoredCommand:
 
     def execute_process(self, command, env=None):
         """Execute and return a subprocess"""
-        try:
-            if self.cwd and not system.path_exists(self.cwd):
+        if self.cwd and not system.path_exists(self.cwd):
+            try:
                 os.makedirs(self.cwd)
+            except OSError:
+                logger.error("Failed to create working directory, falling back to %s",
+                             self.fallback_cwd)
+                self.cwd = "/tmp"
+        try:
 
             return subprocess.Popen(
                 command,
@@ -220,26 +235,10 @@ class MonitoredCommand:
             logger.exception("Failed to execute %s: %s", " ".join(command), ex)
             self.error = ex.strerror
 
-    def restore_environment(self):
-        """Restore the environment to its original state"""
-        logger.debug("Restoring environment")
-        for key in self.original_env:
-            if self.original_env[key] is None:
-                try:
-                    del os.environ[key]
-                except KeyError:
-                    pass
-            else:
-                os.environ[key] = self.original_env[key]
-        self.original_env = {}
-
     def stop(self):
         """Stops the current game process and cleans up the instance"""
-        try:
-            PID_HANDLERS.pop(self.game_process.pid)
-        except KeyError:
-            # This game has no stop handler
-            pass
+        # Prevent stop() being called again by the process exiting
+        self.prevent_on_stop = True
 
         try:
             self.game_process.terminate()
@@ -254,10 +253,10 @@ class MonitoredCommand:
         if self.stdout_monitor:
             logger.debug("Detaching logger")
             GLib.source_remove(self.stdout_monitor)
+            self.stdout_monitor = None
         else:
             logger.debug("logger already detached")
 
-        self.restore_environment()
         self.is_running = False
         self.ready_state = False
         return True

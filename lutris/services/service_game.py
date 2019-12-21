@@ -4,6 +4,7 @@ from lutris import pga
 
 class ServiceGame:
     """Representation of a game from a 3rd party service"""
+
     store = NotImplemented
     installer_slug = NotImplemented
 

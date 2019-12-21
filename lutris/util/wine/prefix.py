@@ -2,9 +2,12 @@
 import os
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.log import logger
-from lutris.util import joypad, system
+from lutris.util import joypad, system, xdgshortcuts
+from lutris.util.display import DISPLAY_MANAGER
 
-DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
+DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
+DEFAULT_DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
+DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES"]
 
 
 class WinePrefixManager:
@@ -20,7 +23,13 @@ class WinePrefixManager:
     def setup_defaults(self):
         """Sets the defaults for newly created prefixes"""
         self.override_dll("winemenubuilder.exe", "")
-        self.desktop_integration()
+        try:
+            self.desktop_integration()
+        except OSError as ex:
+            logger.error(
+                "Failed to setup desktop integration, the prefix may not be valid."
+            )
+            logger.exception(ex)
 
     def get_registry_path(self, key):
         """Matches registry keys to a registry file
@@ -37,6 +46,10 @@ class WinePrefixManager:
         raise ValueError(
             "The key {} is currently not supported by WinePrefixManager".format(key)
         )
+
+    def get_registry_key(self, key, subkey):
+        registry = WineRegistry(self.get_registry_path(key))
+        return registry.query(self.get_key_path(key), subkey)
 
     def set_registry_key(self, key, subkey, value):
         registry = WineRegistry(self.get_registry_path(key))
@@ -62,31 +75,52 @@ class WinePrefixManager:
             return
         self.set_registry_key(key, dll, mode)
 
-    def desktop_integration(self, desktop_dir=None):
-        """Overwrite desktop integration"""
+    def get_desktop_folders(self):
+        """Return the list of desktop folder names loaded from the Windows registry"""
+        desktop_folders = []
+        for key in DESKTOP_KEYS:
+            folder = self.get_registry_key(
+                self.hkcu_prefix
+                + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
+                key,
+            )
+            if not folder:
+                logger.warning("Couldn't load shell folder name for %s", key)
+                continue
+            desktop_folders.append(folder[folder.rfind("\\") + 1:])
+        return desktop_folders or DEFAULT_DESKTOP_FOLDERS
 
+    def desktop_integration(self, desktop_dir=None, restore=False):
+        """Overwrite desktop integration"""
         user = os.getenv("USER")
         user_dir = os.path.join(self.path, "drive_c/users/", user)
+        desktop_folders = self.get_desktop_folders()
 
-        if not desktop_dir:
-            desktop_dir = user_dir
-        else:
+        if desktop_dir:
             desktop_dir = os.path.expanduser(desktop_dir)
+        else:
+            desktop_dir = user_dir
 
         if system.path_exists(user_dir):
-            # Replace desktop integration symlinks
-            for item in DESKTOP_FOLDERS:
+            # Replace or restore desktop integration symlinks
+            for i, item in enumerate(desktop_folders):
                 path = os.path.join(user_dir, item)
                 old_path = path + ".winecfg"
 
                 if os.path.islink(path):
-                    os.unlink(path)
+                    if not restore:
+                        os.unlink(path)
                 elif os.path.isdir(path):
                     try:
                         os.rmdir(path)
                     # We can't delete nonempty dir, so we rename as wine do.
                     except OSError:
                         os.rename(path, old_path)
+
+                if restore and not os.path.isdir(path):
+                    os.symlink(xdgshortcuts.get_xdg_entry(DESKTOP_XDG[i]), path)
+                    # We don't need all the others process of the loop
+                    continue
 
                 if desktop_dir != user_dir:
                     src_path = os.path.join(desktop_dir, item)
@@ -101,7 +135,8 @@ class WinePrefixManager:
 
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
-                if item not in DESKTOP_FOLDERS and os.path.islink(path):
+                path = os.path.join(user_dir, item)
+                if item not in DEFAULT_DESKTOP_FOLDERS and os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)
 
@@ -118,11 +153,19 @@ class WinePrefixManager:
         The Lutris virtual desktop is refered to as 'WineDesktop', in Wine the
         virtual desktop name is 'default'.
         """
-        logger.debug("Virtual desktop: %s", enabled)
-
         path = self.hkcu_prefix + "/Software/Wine/Explorer"
         if enabled:
             self.set_registry_key(path, "Desktop", "WineDesktop")
+            default_resolution = "x".join(DISPLAY_MANAGER.get_current_resolution())
+            logger.debug(
+                "Enabling wine virtual desktop with default resolution of %s",
+                default_resolution,
+            )
+            self.set_registry_key(
+                self.hkcu_prefix + "/Software/Wine/Explorer/Desktops",
+                "WineDesktop",
+                default_resolution,
+            )
         else:
             self.clear_registry_key(path)
 

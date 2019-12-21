@@ -1,4 +1,5 @@
 """Store object for a list of games"""
+# pylint: disable=not-an-iterable
 import concurrent.futures
 from gi.repository import Gtk, GObject, GLib
 from gi.repository.GdkPixbuf import Pixbuf
@@ -27,6 +28,43 @@ from . import (
     COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
 )
+
+
+def try_lower(value):
+    try:
+        out = value.lower()
+    except AttributeError:
+        out = value
+    return out
+
+
+def sort_func(model, row1, row2, sort_col):
+    """Sorting function for the GameStore"""
+    value1 = model.get_value(row1, sort_col)
+    value2 = model.get_value(row2, sort_col)
+    if value1 is None and value2 is None:
+        value1 = value2 = 0
+    elif value1 is None:
+        value1 = type(value2)()
+    elif value2 is None:
+        value2 = type(value1)()
+    value1 = try_lower(value1)
+    value2 = try_lower(value2)
+    diff = -1 if value1 < value2 else 0 if value1 == value2 else 1
+    if diff == 0:
+        value1 = try_lower(model.get_value(row1, COL_NAME))
+        value2 = try_lower(model.get_value(row2, COL_NAME))
+        try:
+            diff = -1 if value1 < value2 else 0 if value1 == value2 else 1
+        except TypeError:
+            diff = 0
+    if diff == 0:
+        value1 = try_lower(model.get_value(row1, COL_RUNNER_HUMAN_NAME))
+        value2 = try_lower(model.get_value(row2, COL_RUNNER_HUMAN_NAME))
+    try:
+        return -1 if value1 < value2 else 0 if value1 == value2 else 1
+    except TypeError:
+        return 0
 
 
 class GameStore(GObject.Object):
@@ -93,15 +131,18 @@ class GameStore(GObject.Object):
             str,
             str,
         )
+        sort_col = COL_NAME
         if show_installed_first:
-            self.store.set_sort_column_id(COL_INSTALLED, Gtk.SortType.DESCENDING)
+            sort_col = COL_INSTALLED
+            self.store.set_sort_column_id(sort_col, Gtk.SortType.DESCENDING)
         else:
-            self.store.set_sort_column_id(COL_NAME, Gtk.SortType.ASCENDING)
+            self.store.set_sort_column_id(sort_col, Gtk.SortType.ASCENDING)
         self.prevent_sort_update = False  # prevent recursion with signals
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
         self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
+        self.modelsort.set_sort_func(sort_col, sort_func, sort_col)
         self.sort_view(sort_key, sort_ascending)
         self.medias = {"banner": {}, "icon": {}}
         self.banner_misses = set()
@@ -152,7 +193,10 @@ class GameStore(GObject.Object):
         }
 
         # Remove duplicate slugs
-        missing_media_slugs = (unavailable_banners - self.banner_misses) | (unavailable_icons - self.icon_misses)
+        missing_media_slugs = (
+            (unavailable_banners - self.banner_misses)
+            | (unavailable_icons - self.icon_misses)
+        )
         if not missing_media_slugs:
             return
         if len(missing_media_slugs) > 10:
@@ -180,8 +224,10 @@ class GameStore(GObject.Object):
         self.media_loaded = True
         self.emit("media-loaded")
 
-    def filter_view(self, model, _iter, filter_data=None):
+    def filter_view(self, model, _iter, _filter_data=None):
         """Filter function for the game model"""
+        if self.search_mode:
+            return True
         if self.filter_installed:
             installed = model.get_value(_iter, COL_INSTALLED)
             if not installed and not self.search_mode:
@@ -201,8 +247,14 @@ class GameStore(GObject.Object):
         return True
 
     def sort_view(self, key="name", ascending=True):
+        """Sort the model on a given column name"""
+        try:
+            sort_column = self.sort_columns[key]
+        except KeyError:
+            logger.error("Invalid column name '%s'", key)
+            sort_column = COL_NAME
         self.modelsort.set_sort_column_id(
-            self.sort_columns[key],
+            sort_column,
             Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING,
         )
 
@@ -213,6 +265,8 @@ class GameStore(GObject.Object):
         key = next((c for c, k in self.sort_columns.items() if k == col), None)
         ascending = direction == Gtk.SortType.ASCENDING
         self.prevent_sort_update = True
+        if not key:
+            raise ValueError("Invalid sort key for col %s" % col)
         self.sort_view(key, ascending)
         self.prevent_sort_update = False
         self.emit("sorting-changed", key, ascending)
@@ -248,17 +302,22 @@ class GameStore(GObject.Object):
         else:
             logger.warning("Can't find game %s in game list", game_id)
         row = self.get_row_by_id(game_id)
-        self.store.remove(row.iter)
+        if row:
+            self.store.remove(row.iter)
 
     def update_game_by_id(self, game_id):
-        return self.update(
-            pga.get_game_by_field(game_id, "id")
-        )
+        pga_game = pga.get_game_by_field(game_id, "id")
+        if pga_game:
+            return self.update(pga_game)
+        return self.remove_game(game_id)
 
     def update(self, pga_game):
         """Update game informations."""
         game = PgaGame(pga_game)
-        row = self.get_row_by_id(game.id)
+        if self.search_mode:
+            row = self.get_row_by_slug(game.slug)
+        else:
+            row = self.get_row_by_id(game.id)
         if not row:
             raise ValueError("No existing row for game %s" % game.slug)
         row[COL_ID] = game.id
@@ -284,7 +343,7 @@ class GameStore(GObject.Object):
 
     def on_icon_loaded(self, _store, game_slug, media_type):
         if not self.has_icon(game_slug):
-            logger.warning("%s has not icon", game_slug)
+            logger.debug("%s has no %s", game_slug, media_type)
             return
         if media_type != self.icon_type:
             return
@@ -311,7 +370,7 @@ class GameStore(GObject.Object):
                 download_media(url, get_icon_path(slug, media_type))
                 self.emit("icon-loaded", slug, media_type)
 
-    def on_media_loaded(self, response):
+    def on_media_loaded(self, _response):
         """Callback to handle a response from the API with the new media"""
         if not self.medias:
             return

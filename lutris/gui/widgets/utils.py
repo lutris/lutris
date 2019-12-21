@@ -1,7 +1,10 @@
 """Various utilities using the GObject framework"""
 import os
 import array
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 from gi.repository import GdkPixbuf, GLib, Gtk, Gio, Gdk
 
 from lutris.util.log import logger
@@ -39,7 +42,10 @@ def get_main_window(widget):
 def open_uri(uri):
     """Opens a local or remote URI with the default application"""
     system.reset_library_preloads()
-    Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
+    try:
+        Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
+    except GLib.Error as ex:
+        logger.exception("Failed to open URI %s: %s", uri, ex)
 
 
 def get_pixbuf(image, size, fallback=None):
@@ -60,7 +66,11 @@ def get_pixbuf(image, size, fallback=None):
 def get_stock_icon(name, size):
     """Return a picxbuf from a stock icon name"""
     theme = Gtk.IconTheme.get_default()
-    return theme.load_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK)
+    try:
+        return theme.load_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK)
+    except GLib.GError:
+        logger.error("Failed to read icon %s", name)
+        return None
 
 
 def get_icon(icon_name, format="image", size=None, icon_type="runner"):
@@ -177,6 +187,9 @@ def image2pixbuf(image):
 
 def get_pixbuf_for_panel(game_slug):
     """Return the pixbuf for the game panel background"""
+    if Image is None:
+        # PIL is not available
+        return
     source_path = os.path.join(settings.COVERART_PATH, "%s.jpg" % game_slug)
     if not os.path.exists(source_path):
         source_path = os.path.join(datapath.get(), "media/generic-panel-bg.png")

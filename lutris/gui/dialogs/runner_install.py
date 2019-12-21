@@ -25,20 +25,43 @@ class RunnerInstallDialog(Dialog):
         self.set_default_size(width, height)
 
         self.runner = runner
-        self.runner_info = api.get_runners(self.runner)
+
+        self.label = Gtk.Label("Waiting for response from %s" % (settings.SITE_URL))
+        self.vbox.pack_start(self.label, False, False, 18)
+
+        # Display a wait icon.
+        self.spinner = Gtk.Spinner()
+        self.vbox.pack_start(self.spinner, False, False, 18)
+        self.spinner.show()
+        self.spinner.start()
+
+        self.show_all()
+
+        jobs.AsyncCall(api.get_runners, self.display_all_versions, self.runner)
+
+    def display_all_versions(self, runner_info, error):
+        """Clear the box and display versions from runner_info"""
+        if error:
+            logger.error(error)
+
+        self.runner_info = runner_info
         if not self.runner_info:
             ErrorDialog(
-                "Unable to get runner versions, check your internet connection",
-                parent=parent,
+                "Unable to get runner versions. Check your internet connection."
             )
             return
+
+        for child_widget in self.vbox.get_children():
+            if child_widget.get_name() not in "GtkBox":
+                child_widget.destroy()
+
         label = Gtk.Label("%s version management" % self.runner_info["name"])
         self.vbox.add(label)
         self.runner_store = self.get_store()
         scrolled_window = Gtk.ScrolledWindow()
         self.treeview = self.get_treeview(self.runner_store)
         self.installing = {}
-        self.connect("response", self.on_response)
+        self.connect("response", self.on_destroy)
 
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
@@ -143,6 +166,7 @@ class RunnerInstallDialog(Dialog):
         if self.runner == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
+
             get_wine_versions.cache_clear()
 
     def install_runner(self, row):
@@ -204,9 +228,13 @@ class RunnerInstallDialog(Dialog):
         if self.runner == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
+
             get_wine_versions.cache_clear()
 
-    def on_response(self, _dialog, _response):
+    def on_destroy(self, _dialog, _data=None):
+        """Override delete handler to prevent closing while downloads are active"""
+        if self.installing:
+            return True
         self.destroy()
 
 

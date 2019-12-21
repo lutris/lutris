@@ -77,7 +77,6 @@ class GameFlowBox(FlowBox):
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 

@@ -1,6 +1,6 @@
 import subprocess
 from lutris.runners.runner import Runner
-from lutris.util.display import get_current_resolution
+from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.log import logger
 from lutris.util.joypad import get_controller_mappings
 from lutris.util import system
@@ -35,7 +35,7 @@ class mednafen(Runner):
         ("Master System", "sms"),
         ("Neo Geo Pocket (Color)", "gnp"),
         ("NES", "nes"),
-        ("PC Engine", "pce"),
+        ("PC Engine", "pce_fast"),
         ("PC-FX", "pcfx"),
         ("PlayStation", "psx"),
         ("Saturn", "ss"),
@@ -75,7 +75,7 @@ class mednafen(Runner):
                 ("Integer scale", "aspect_int"),
                 ("Multiple of 2 scale", "aspect_mult2"),
             ),
-            "default": "0",
+            "default": "aspect_int",
         },
         {
             "option": "scaler",
@@ -99,7 +99,7 @@ class mednafen(Runner):
                 ("nny3x", "nny3x"),
                 ("nny4x", "nny4x"),
             ),
-            "default": "hq4x",
+            "default": "nn4x",
         },
         {
             "option": "dont_map_controllers",
@@ -466,15 +466,14 @@ class mednafen(Runner):
             fullscreen = "0"
 
         stretch = self.runner_config.get("stretch") or "0"
-        scaler = self.runner_config.get("scaler") or "hq4x"
+        scaler = self.runner_config.get("scaler") or "nn4x"
 
-        resolution = get_current_resolution()
-        (resolutionx, resolutiony) = resolution.split("x")
-        xres = str(resolutionx)
-        yres = str(resolutiony)
+        xres, yres = DISPLAY_MANAGER.get_current_resolution()
         options = [
             "-fs",
             fullscreen,
+            "-force_module",
+            machine,
             "-" + machine + ".xres",
             xres,
             "-" + machine + ".yres",

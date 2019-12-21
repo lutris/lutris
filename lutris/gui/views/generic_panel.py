@@ -1,6 +1,6 @@
 """Side panel when no game is selected"""
 import json
-from gi.repository import Gtk, Gdk, Gio, Pango, GLib, GObject
+from gi.repository import Gtk, Gdk, Gio, Pango, GObject
 from lutris import api
 from lutris.game import Game
 from lutris.util import system
@@ -32,14 +32,12 @@ class GenericPanel(Gtk.Fixed):
 
     __gtype_name__ = "LutrisPanel"
     __gsignals__ = {
-        "game-searched": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
         "running-game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Game, ))
     }
 
-    def __init__(self, search_terms=None, application=None):
+    def __init__(self, application=None):
         super().__init__(visible=True)
         self.application = application
-        self.search_terms = search_terms or ""
         self.set_size_request(320, -1)
         self.get_style_context().add_class("game-panel")
         self.set_background()
@@ -53,13 +51,15 @@ class GenericPanel(Gtk.Fixed):
     def set_background(self):
         """Return the background image for the panel"""
         bg_path = get_pixbuf_for_panel(self.background_id)
+        if not bg_path:
+            return
 
         style = Gtk.StyleContext()
         style.add_class(Gtk.STYLE_CLASS_VIEW)
         bg_provider = Gtk.CssProvider()
         bg_provider.load_from_data(
-            b'.game-scrolled { background-image: url("%s"); '
-            b"background-repeat: no-repeat; }" % bg_path.encode("utf-8")
+            ('.game-scrolled { background-image: url("%s"); '
+             "background-repeat: no-repeat; }" % bg_path).encode("utf-8")
         )
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(),
@@ -72,7 +72,7 @@ class GenericPanel(Gtk.Fixed):
         self.put(self.get_preferences_button(), 12, 12)
         self.put(self.get_user_info_box(), 48, 16)
 
-        self.put(self.get_lutris_links(), 40, 92)
+        self.put(self.get_lutris_links(), 40, 80)
 
         application = Gio.Application.get_default()
         if application.running_games.get_n_items():
@@ -80,6 +80,9 @@ class GenericPanel(Gtk.Fixed):
             running_label.set_markup("<b>Playing:</b>")
             self.put(running_label, 12, 355)
             self.put(self.get_running_games(), 12, 377)
+
+    def refresh(self):
+        self.place_content()
 
     def get_preferences_button(self):
         preferences_button = Gtk.Button.new_from_icon_name(
@@ -153,35 +156,16 @@ class GenericPanel(Gtk.Fixed):
         return user_box
 
     def get_lutris_links(self):
-        search_entry = Gtk.SearchEntry(visible=True)
         box = Gtk.VBox(spacing=6, visible=True)
-        floss_button = get_link_button("Browse Open Source games")
-        floss_button.connect("clicked", lambda *x: search_entry.set_text("open source games"))
-        box.add(floss_button)
 
-        f2p_button = get_link_button("Browse Free to Play games")
-        f2p_button.connect("clicked", lambda *x: search_entry.set_text("free to play games"))
-        box.add(f2p_button)
-
-        donate_button = get_link_button("Support the project")
+        donate_button = get_link_button("Support Lutris!")
         donate_button.connect("clicked", lambda *x: open_uri(LINKS["donate"]))
         box.add(donate_button)
-
-        search_label = Gtk.Label(visible=True)
-        search_label.set_markup("<b>Search games on Lutris.net:</b>")
-        search_label.set_alignment(0, 0.5)
-        search_label.set_margin_top(12)
-        box.add(search_label)
-
-        search_entry = Gtk.SearchEntry(visible=True)
-        search_entry.set_text(self.search_terms)
-        search_entry.connect("changed", self.on_search_entry_changed)
-        box.add(search_entry)
 
         help_label = Gtk.Label(visible=True)
         help_label.set_markup("<b>Help:</b>")
         help_label.set_alignment(0, 0.5)
-        help_label.set_margin_top(12)
+        help_label.set_margin_top(136)
         box.add(help_label)
 
         help_box = Gtk.Box(spacing=6, visible=True)
@@ -214,16 +198,3 @@ class GenericPanel(Gtk.Fixed):
         else:
             game = row.get_children()[0].game
         self.emit("running-game-selected", game)
-
-    def on_search_entry_changed(self, entry):
-        if self.timer_id:
-            GLib.source_remove(self.timer_id)
-        self.timer_id = GLib.timeout_add(
-            750, self.search_games, entry.get_text().lower().strip()
-        )
-
-    def search_games(self, value):
-        self.emit("game-searched", value)
-        GLib.source_remove(self.timer_id)
-        self.timer_id = None
-        return False

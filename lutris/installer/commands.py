@@ -5,13 +5,14 @@ import stat
 import shutil
 import shlex
 import json
+import glob
 
 from gi.repository import GLib
 
 from lutris.installer.errors import ScriptingError
 
 from lutris import runtime
-from lutris import settings
+from lutris.cache import get_cache_path
 from lutris.util import extract, disks, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
@@ -30,11 +31,9 @@ class CommandsMixin:
             raise RuntimeError("This class is a mixin")
 
     def _get_runner_version(self):
-        if self.runner in ("wine", "winesteam"):
-            if self.script.get(self.runner):
-                wine_version = self.script[self.runner].get("version")
-                logger.debug("Install script uses Wine %s", wine_version)
-                return wine_version
+        """Return the version of the runner used for the installer"""
+        if self.runner in ("wine", "winesteam") and self.script.get(self.runner):
+            return self.script[self.runner].get("version")
         if self.runner == "libretro":
             return self.script["game"]["core"]
         return None
@@ -64,9 +63,10 @@ class CommandsMixin:
                         command_data,
                     )
 
-    def _is_cached_file(self, file_path):
+    @staticmethod
+    def _is_cached_file(file_path):
         """Return whether a file referenced by file_id is stored in the cache"""
-        pga_cache_path = settings.read_setting("pga_cache_path")
+        pga_cache_path = get_cache_path()
         if not pga_cache_path:
             return False
         return file_path.startswith(pga_cache_path)
@@ -98,14 +98,19 @@ class CommandsMixin:
                 args.append(self._substitute(arg))
             terminal = data.get("terminal")
             working_dir = data.get("working_dir")
-            if not data.get("disable_runtime", False):
+            if not data.get("disable_runtime"):
                 # Possibly need to handle prefer_system_libs here
                 env.update(runtime.get_env())
-            userenv = data.get("env") or {}
-            for key in userenv:
-                env_value = userenv[key]
-                userenv[key] = self._get_file(env_value)
-            env.update(userenv)
+
+            # Loading environment variables set in the script
+            env.update(self.script_env)
+
+            # Environment variables can also be passed to the execute command
+            local_env = data.get("env") or {}
+            env.update({
+                key: self._substitute(value)
+                for key, value in local_env.items()
+            })
             include_processes = shlex.split(data.get("include_processes", ""))
             exclude_processes = shlex.split(data.get("exclude_processes", ""))
         elif isinstance(data, str):
@@ -153,24 +158,26 @@ class CommandsMixin:
         """Extract a file, guessing the compression method."""
         self._check_required_params([("file", "src")], data, "extract")
         src_param = data.get("file") or data.get("src")
-        filename = self._get_file(src_param)
+        filespec = self._get_file(src_param)
 
-        if not os.path.exists(filename):
-            raise ScriptingError("%s does not exists" % filename)
+        filenames = glob.glob(filespec)
+
+        if not filenames:
+            raise ScriptingError("%s does not exist" % filespec)
         if "dst" in data:
             dest_path = self._substitute(data["dst"])
         else:
             dest_path = self.target_path
-        msg = "Extracting %s" % os.path.basename(filename)
-        logger.debug(msg)
-        GLib.idle_add(self.parent.set_status, msg)
-        merge_single = "nomerge" not in data
-        extractor = data.get("format")
-        logger.debug("extracting file %s to %s", filename, dest_path)
-
-        self._killable_process(
-            extract.extract_archive, filename, dest_path, merge_single, extractor
-        )
+        for filename in filenames:
+            msg = "Extracting %s" % os.path.basename(filename)
+            logger.debug(msg)
+            GLib.idle_add(self.parent.set_status, msg)
+            merge_single = "nomerge" not in data
+            extractor = data.get("format")
+            logger.debug("extracting file %s to %s", filename, dest_path)
+            self._killable_process(
+                extract.extract_archive, filename, dest_path, merge_single, extractor
+            )
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
@@ -282,7 +289,8 @@ class CommandsMixin:
             if os.path.dirname(src) == dst:
                 logger.info("Source file is the same as destination, skipping")
                 return
-            elif os.path.exists(os.path.join(dst, os.path.basename(src))):
+
+            if os.path.exists(os.path.join(dst, os.path.basename(src))):
                 # May not be the best choice, but it's the safest.
                 # Maybe should display confirmation dialog (Overwrite / Skip) ?
                 logger.info("Destination file exists, skipping")
@@ -381,6 +389,8 @@ class CommandsMixin:
             data["arch"] = data.get("arch") \
                 or self.script.get("game", {}).get("arch") \
                 or WINE_DEFAULT_ARCH
+            if task_name == "wineexec" and self.script_env:
+                data["env"] = self.script_env
 
         for key in data:
             value = data[key]

@@ -1,3 +1,4 @@
+.PHONY: snap
 VERSION=`grep "__version__" lutris/__init__.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
 
 cover:
@@ -41,3 +42,16 @@ pgp-renew:
 
 winetricks:
 	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks -O share/lutris/bin/winetricks
+
+snap:
+	snapcraft clean lutris -s pull
+	snapcraft
+
+upload-ppa:
+	dput ppa:lutris-team/lutris build/lutris_${VERSION}*_source.changes
+
+upload-staging:
+	gbp buildpackage -S --git-debian-branch=master
+	mkdir -p build
+	mv ../lutris_0* build
+	dput --force ppa:lutris-team/lutris-staging build/lutris_${VERSION}*_source.changes

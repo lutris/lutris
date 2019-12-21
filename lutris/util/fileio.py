@@ -1,9 +1,37 @@
+import re
 from collections import OrderedDict
 from configparser import RawConfigParser
 
 
 class EvilConfigParser(RawConfigParser):
     """ConfigParser with support for evil INIs using duplicate keys."""
+
+    _SECT_TMPL = r"""
+        \[                                 # [
+        (?P<header>[^]]+)                  # very permissive!
+        \]                                 # ]
+        """
+    _OPT_TMPL = r"""
+        (?P<option>.*?)                    # very permissive!
+        \s*(?P<vi>{delim})\s*              # any number of space/tab,
+                                           # followed by any of the
+                                           # allowed delimiters,
+                                           # followed by any space/tab
+        (?P<value>.*)$                     # everything up to eol
+        """
+    _OPT_NV_TMPL = r"""
+        (?P<option>.*?)                    # very permissive!
+        \s*(?:                             # any number of space/tab,
+        (?P<vi>{delim})\s*                 # optionally followed by
+                                           # any of the allowed
+                                           # delimiters, followed by any
+                                           # space/tab
+        (?P<value>.*))?$                   # everything up to eol
+        """
+
+    # Remove colon from separators since it will mess with some config files
+    OPTCRE = re.compile(_OPT_TMPL.format(delim="="), re.VERBOSE)
+    OPTCRE_NV = re.compile(_OPT_NV_TMPL.format(delim="="), re.VERBOSE)
 
     def write(self, fp):
         for section in self._sections:

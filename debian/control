@@ -14,12 +14,13 @@ Build-Depends: debhelper,
  gir1.2-gnomedesktop-3.0,
  gir1.2-webkit2-4.0,
  gir1.2-notify-0.7,
- libgirepository1.0-dev
+ libgirepository1.0-dev,
+ libc-bin
 Maintainer: Mathieu Comandon <strider@strycore.com>
 Standards-Version: 3.9.5
 Vcs-Git: https://github.com/lutris/lutris
 Homepage: https://lutris.net
-X-Python-Version: >= 3.4
+X-Python3-Version: >= 3.4
 
 Package: lutris
 Architecture: any
@@ -39,7 +40,10 @@ Depends: ${misc:Depends},
  p7zip,
  curl,
  fluid-soundfont-gs,
- x11-xserver-utils
+ x11-xserver-utils,
+ mesa-utils,
+ gvfs-backends,
+ libc-bin
 Recommends: python3-evdev,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]

@@ -2,9 +2,9 @@ import os
 import time
 import requests
 
+from lutris import __version__
 from lutris.util import jobs
 from lutris.util.log import logger
-
 
 # `time.time` can skip ahead or even go backwards if the current
 # system time is changed between invocations. Use `time.monotonic`
@@ -86,8 +86,9 @@ class Downloader:
             logger.error("Download failed: %s", error)
             self.state = self.ERROR
             self.error = error
-            self.file_pointer.close()
-            self.file_pointer = None
+            if self.file_pointer:
+                self.file_pointer.close()
+                self.file_pointer = None
             return
 
         if self.state == self.CANCELLED:
@@ -107,7 +108,8 @@ class Downloader:
             self.callback()
 
     def async_download(self, stop_request=None):
-        headers = {}
+        headers = requests.utils.default_headers()
+        headers["User-Agent"] = "Lutris/%s" % __version__
         if self.referer:
             headers["Referer"] = self.referer
         response = requests.get(self.url, headers=headers, stream=True)

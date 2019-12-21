@@ -140,6 +140,7 @@ class SidebarListBox(Gtk.ListBox):
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
         GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
+        GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
 
         # TODO: This should be in a more logical location
@@ -160,7 +161,9 @@ class SidebarListBox(Gtk.ListBox):
 
         self.add(SidebarRow(None, "platform", "All", None))
         for platform in self.platforms:
-            icon_name = platform.lower().replace(" ", "") + "-symbolic"
+            icon_name = (
+                platform.lower().replace(" ", "").replace("/", "_") + "-symbolic"
+            )
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             self.add(SidebarRow(platform, "platform", platform, icon))
 

@@ -1,7 +1,5 @@
 """Class to manipulate a process"""
 import os
-from lutris.util.log import logger
-from lutris.util.system import path_exists
 
 
 class InvalidPid(Exception):
@@ -10,14 +8,11 @@ class InvalidPid(Exception):
 
 class Process:
     """Python abstraction a Linux process"""
-    def __init__(self, pid, parent=None):
+    def __init__(self, pid):
         try:
             self.pid = int(pid)
         except ValueError:
             raise InvalidPid("'%s' is not a valid pid" % pid)
-        self.children = []
-        self.parent = None
-        self.get_children()
 
     def __repr__(self):
         return "Process {}".format(self.pid)
@@ -27,14 +22,11 @@ class Process:
 
     def get_stat(self, parsed=True):
         stat_filename = "/proc/{}/stat".format(self.pid)
-        if not path_exists(stat_filename):
-            return None
-        with open(stat_filename) as stat_file:
-            try:
+        try:
+            with open(stat_filename) as stat_file:
                 _stat = stat_file.readline()
-            except (ProcessLookupError, FileNotFoundError):
-                logger.warning("Unable to read stat for process %s", self.pid)
-                return None
+        except (ProcessLookupError, FileNotFoundError):
+            return None
         if parsed:
             return _stat[_stat.rfind(")") + 1:].split()
         return _stat
@@ -56,15 +48,9 @@ class Process:
         try:
             with open(children_path) as children_file:
                 children_content = children_file.read()
-        except FileNotFoundError:
+        except (FileNotFoundError, ProcessLookupError):
             children_content = ""
         return children_content.strip().split()
-
-    def get_children(self):
-        self.children = []
-        for tid in self.get_thread_ids():
-            for child_pid in self.get_children_pids_of_thread(tid):
-                self.children.append(Process(child_pid, parent=self))
 
     @property
     def name(self):
@@ -99,3 +85,12 @@ class Process:
         """Return current working dir of process"""
         cwd_path = "/proc/%d/cwd" % int(self.pid)
         return os.readlink(cwd_path)
+
+    @property
+    def children(self):
+        """Return the child processes of this process"""
+        _children = []
+        for tid in self.get_thread_ids():
+            for child_pid in self.get_children_pids_of_thread(tid):
+                _children.append(Process(child_pid))
+        return _children

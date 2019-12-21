@@ -8,7 +8,7 @@ from lutris import runtime, settings
 from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.strings import version_sort
+from lutris.util.strings import version_sort, parse_version
 from lutris.runners.steam import steam
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -23,17 +23,6 @@ WINE_PATHS = {
 ESYNC_LIMIT_CHECK = os.environ.get("ESYNC_LIMIT_CHECK", "").lower()
 
 
-def get_proton():
-    """Get the Folder that contains all the Proton versions. Can probably be improved"""
-    for path in [os.path.join(p, "common") for p in steam().get_steamapps_dirs()]:
-        if os.path.isdir(path):
-            proton_versions = [p for p in os.listdir(path) if "Proton" in p]
-            for version in proton_versions:
-                if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
-                    return path
-    return None
-
-
 def get_playonlinux():
     """Return the folder containing PoL config files"""
     pol_path = os.path.expanduser("~/.PlayOnLinux")
@@ -42,7 +31,27 @@ def get_playonlinux():
     return None
 
 
-PROTON_PATH = get_proton()
+def _iter_proton_locations():
+    """Iterate through all existing Proton locations"""
+    for path in [os.path.join(p, "common") for p in steam().get_steamapps_dirs()]:
+        if os.path.isdir(path):
+            yield path
+    for path in [os.path.join(p, "") for p in steam().get_steamapps_dirs()]:
+        if os.path.isdir(path):
+            yield path
+
+
+def get_proton_paths():
+    """Get the Folder that contains all the Proton versions. Can probably be improved"""
+    paths = set()
+    for path in _iter_proton_locations():
+        proton_versions = [p for p in os.listdir(path) if "Proton" in p]
+        for version in proton_versions:
+            if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
+                paths.add(path)
+    return list(paths)
+
+
 POL_PATH = get_playonlinux()
 
 
@@ -114,6 +123,8 @@ def is_installed_systemwide():
     """Return whether Wine is installed outside of Lutris"""
     for build in WINE_PATHS.values():
         if system.find_executable(build):
+            # if wine64 is installed but not wine32, don't consider it
+            # a system-wide installation.
             if (
                 build == "wine"
                 and system.path_exists("/usr/lib/wine/wine64")
@@ -141,12 +152,13 @@ def get_wine_versions():
             if is_version_installed(dirname):
                 versions.append(dirname)
 
-    if PROTON_PATH:
-        proton_versions = [p for p in os.listdir(PROTON_PATH) if "Proton" in p]
+    for proton_path in get_proton_paths():
+        proton_versions = [p for p in os.listdir(proton_path) if "Proton" in p]
         for version in proton_versions:
-            proton_path = os.path.join(PROTON_PATH, version, "dist/bin/wine")
-            if os.path.isfile(proton_path):
+            path = os.path.join(proton_path, version, "dist/bin/wine")
+            if os.path.isfile(path):
                 versions.append(version)
+
     if POL_PATH:
         for arch in ['x86', 'amd64']:
             builds_path = os.path.join(POL_PATH, "wine/linux-%s" % arch)
@@ -222,12 +234,27 @@ def is_version_esync(path):
     Returns:
         bool: True is the build is Esync capable
     """
-    version = path.lower()
-    if "esync" in version or "tkg" in version or "proton" in version:
-        return True
+    try:
+        version = path.split("/")[-3].lower()
+    except IndexError:
+        logger.error("Invalid path '%s'", path)
+        return False
+    version_number, version_prefix, version_suffix = parse_version(version)
+    esync_compatible_versions = ["esync", "lutris", "tkg", "ge", "proton"]
+    for esync_version in esync_compatible_versions:
+        if esync_version in version_prefix or esync_version in version_suffix:
+            return True
 
-    wine_ver = str(subprocess.check_output([path, "--version"]))
-    return "esync" in wine_ver.lower()
+    wine_ver = str(subprocess.check_output([path, "--version"])).lower()
+    version, *_ = wine_ver.split()
+    version_number, version_prefix, version_suffix = parse_version(version)
+
+    if "esync" in wine_ver:
+        return True
+    if "staging" in wine_ver and version_number[0] >= 4 and version_number[1] >= 6:
+        # Support for esync was merged in Wine Staging 4.6
+        return True
+    return False
 
 
 def get_real_executable(windows_executable, working_dir=None):
@@ -289,9 +316,9 @@ def esync_display_version_warning(on_launch=False):
     DontShowAgainDialog(
         setting,
         "Incompatible Wine version detected",
-        secondary_message="The wine build you have selected "
-        "does not seem to support Esync.\n"
-        "Please switch to an esync-capable version such as wine-tkg.",
+        secondary_message="The Wine build you have selected "
+        "does not support Esync.\n"
+        "Please switch to an esync-capable version.",
         checkbox_message=checkbox_message,
     )
     return settings.read_setting(setting) == "True"

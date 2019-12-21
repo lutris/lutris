@@ -47,27 +47,18 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
 
     # Piping stderr can cause slowness in the programs, use carefully
     # (especially when using regedit with wine)
-    if log_errors:
-        stderr_handler = subprocess.PIPE
-        stderr_needs_closing = False
-    else:
-        stderr_handler = open(os.devnull, "w")
-        stderr_needs_closing = True
     try:
         stdout, stderr = subprocess.Popen(
             command,
             shell=shell,
             stdout=subprocess.PIPE,
-            stderr=stderr_handler,
+            stderr=subprocess.PIPE if log_errors else subprocess.DEVNULL,
             env=existing_env,
             cwd=cwd,
         ).communicate()
     except (OSError, TypeError) as ex:
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
         return
-    finally:
-        if stderr_needs_closing:
-            stderr_handler.close()
     if stderr and log_errors:
         logger.error(stderr)
     return stdout.decode(errors="replace").strip()
@@ -81,7 +72,7 @@ def get_md5_hash(filename):
             for chunk in iter(lambda: _file.read(8192), b""):
                 md5.update(chunk)
     except IOError:
-        print("Error reading %s" % filename)
+        logger.warning("Error reading %s", filename)
         return False
     return md5.hexdigest()
 
@@ -199,14 +190,22 @@ def merge_folders(source, destination):
 
 
 def remove_folder(path):
-    """Delete a folder specified by path"""
+    """Delete a folder specified by path
+    Returns true if the folder was successfully removed.
+    """
     if not os.path.exists(path):
         logger.warning("Non existent path: %s", path)
         return
     logger.debug("Removing folder %s", path)
     if os.path.samefile(os.path.expanduser("~"), path):
         raise RuntimeError("Lutris tried to erase home directory!")
-    shutil.rmtree(path)
+    try:
+        shutil.rmtree(path)
+    except OSError as ex:
+        errno, message = ex.args
+        logger.error("Failed to remove folder %s: %s (Error code %s)", path, message, errno)
+        return False
+    return True
 
 
 def create_folder(path):
@@ -242,7 +241,8 @@ def is_removeable(path, excludes=None):
 
 def fix_path_case(path):
     """Do a case insensitive check, return the real path with correct case."""
-    if os.path.exists(path):
+    if not path or os.path.exists(path):
+        # If a path isn't provided or it exists as is, return it.
         return path
     parts = path.strip("/").split("/")
     current_path = "/"
@@ -319,6 +319,7 @@ def path_exists(path, check_symlinks=False):
     if os.path.islink(path):
         logger.warning("%s is a broken link", path)
         return not check_symlinks
+    return False
 
 
 def reset_library_preloads():

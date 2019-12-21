@@ -12,11 +12,12 @@ from lutris import settings
 from lutris.game import Game
 from lutris.gui.dialogs import WineNotInstalledWarning
 from lutris.util import system
+from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.strings import unpack_dependencies
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam.log import get_app_state_log
-from lutris.util.http import Request
+from lutris.util.http import Request, HTTPError
 from lutris.util.wine.wine import get_wine_version_exe, get_system_wine_version
 
 from lutris.config import LutrisConfig, make_game_config_id
@@ -149,6 +150,7 @@ class ScriptInterpreter(CommandsMixin):
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
 
+        self.current_resolution = DISPLAY_MANAGER.get_current_resolution()
         self._check_binary_dependencies()
         self._check_dependency()
         if self.creates_game_folder:
@@ -182,12 +184,27 @@ class ScriptInterpreter(CommandsMixin):
         if self.runner in ("steam", "winesteam"):
             # Steam games installs in their steamapps directory
             return False
-        if self.files or self.script.get("game", {}).get("gog"):
+        if (
+                self.files
+                or self.script.get("game", {}).get("gog")
+                or self.script.get("game", {}).get("prefix")
+        ):
             return True
         command_names = [list(c.keys())[0] for c in self.script.get("installer", [])]
         if "insert-disc" in command_names:
             return True
         return False
+
+    @property
+    def script_env(self):
+        """Return the script's own environment variable with values
+        susbtituted. This value can be used to provide the same environment
+        variable as set for the game during the install process.
+        """
+        return {
+            key: self._substitute(value) for key, value in
+            self.script.get('system', {}).get('env', {}).items()
+        }
 
     # --------------------------
     # "Initial validation" stage
@@ -210,6 +227,11 @@ class ScriptInterpreter(CommandsMixin):
         if self.runner == "libretro":
             if "game" not in self.script or "core" not in self.script["game"]:
                 self.errors.append("Missing libretro core in game section")
+
+        # Check that Steam games have an AppID
+        if self.runner in ("steam", "winesteam"):
+            if not self.script.get("game", {}).get("appid"):
+                self.errors.append("Missing appid for Steam game")
 
         # Check that installers don't contain both 'requires' and 'extends'
         if self.script.get("requires") and self.script.get("extends"):
@@ -273,8 +295,7 @@ class ScriptInterpreter(CommandsMixin):
                 if not installed_games:
                     if len(dependency) == 1:
                         raise MissingGameDependency(slug=dependency)
-                    else:
-                        raise ScriptingError(error_message.format(" or ".join(dependency)))
+                    raise ScriptingError(error_message.format(" or ".join(dependency)))
                 if index == 0:
                     self.target_path = installed_games[0]["directory"]
                     self.requires = installed_games[0]["installer_slug"]
@@ -293,7 +314,10 @@ class ScriptInterpreter(CommandsMixin):
     def swap_gog_game_files(self):
         if not self.gogid:
             raise UnavailableGame("The installer has no GOG ID!")
-        links = self.get_gog_download_links()
+        try:
+            links = self.get_gog_download_links()
+        except HTTPError:
+            raise UnavailableGame("Couldn't load the download links for this game")
         installer_file_id = None
         if links:
             for index, file in enumerate(self.files):
@@ -307,12 +331,14 @@ class ScriptInterpreter(CommandsMixin):
         if not installer_file_id:
             raise ScriptingError("Could not match a GOG installer file in the files")
 
+        file_id_provided = False  # Only assign installer_file_id once
         for index, link in enumerate(links):
 
             filename = link.split("?")[0].split("/")[-1]
 
-            if filename.lower().endswith((".exe", ".sh")):
+            if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
                 file_id = installer_file_id
+                file_id_provided = True
             else:
                 file_id = "gog_file_%s" % index
 
@@ -330,8 +356,8 @@ class ScriptInterpreter(CommandsMixin):
         if self.version.startswith("GOG"):
             try:
                 self.swap_gog_game_files()
-            except UnavailableGame:
-                logger.warning("Unable to get the game from GOG")
+            except UnavailableGame as ex:
+                logger.error("Unable to get the game from GOG: %s", ex)
         self.iter_game_files()
 
     def iter_game_files(self):
@@ -419,18 +445,37 @@ class ScriptInterpreter(CommandsMixin):
                 if runner_name not in runner_names:
                     required_runners.append(self.get_runner_class(runner_name)())
 
+        logger.debug("Required runners: %s", required_runners)
         for runner in required_runners:
             params = {}
             if self.runner == "libretro":
                 params["core"] = self.script["game"]["core"]
             if self.runner.startswith("wine"):
+                # Force the wine version to be installed
+                params["fallback"] = False
                 params["min_version"] = wine.MIN_SAFE_VERSION
                 version = self._get_runner_version()
                 if version:
                     params["version"] = version
-                    # Force the wine version to be installed
-                    params["fallback"] = False
+                else:
+                    # Looking up default wine version
+                    default_wine = runner.get_runner_version() or {}
+                    if "version" in default_wine:
+                        logger.debug("Default wine version is %s", default_wine["version"])
+                        # Set the version to both the is_installed params and
+                        # the script itself so the version gets saved at the
+                        # end of the install.
+                        if self.runner not in self.script:
+                            self.script[self.runner] = {}
+                        params["version"] = self.script[self.runner]["version"] = "{}-{}".format(
+                            default_wine["version"],
+                            default_wine["architecture"]
+                        )
+                    else:
+                        logger.error("Failed to get default wine version (got %s)", default_wine)
+
             if not runner.is_installed(**params):
+                logger.info("Runner %s needs to be installed")
                 self.runners_to_install.append(runner)
 
         if self.runner.startswith("wine") and not get_system_wine_version():
@@ -472,7 +517,7 @@ class ScriptInterpreter(CommandsMixin):
         if not file_path or not os.path.exists(file_path):
             raise ScriptingError("Can't continue installation without file", file_id)
         self.game_files[file_id] = file_path
-        self.prepare_game_files()
+        self.iter_game_files()
 
     # ---------------
     # "Commands" stage
@@ -488,11 +533,7 @@ class ScriptInterpreter(CommandsMixin):
 
         # Add steam installation to commands if it's a Steam game
         if self.runner in ("steam", "winesteam"):
-            try:
-                self.steam_data["appid"] = self.script["game"]["appid"]
-            except KeyError:
-                raise ScriptingError("Missing appid for steam game")
-
+            self.steam_data["appid"] = self.script["game"]["appid"]
             if "arch" in self.script["game"]:
                 self.steam_data["arch"] = self.script["game"]["arch"]
 
@@ -566,14 +607,13 @@ class ScriptInterpreter(CommandsMixin):
         path = None
         if launcher_value:
             path = self._substitute(launcher_value)
-            if not os.path.isabs(path):
+            if not os.path.isabs(path) and self.target_path:
                 path = os.path.join(self.target_path, path)
         self._write_config()
-        if path and not os.path.isfile(path):
+        if path and not os.path.isfile(path) and self.runner not in ("web", "browser"):
             self.parent.set_status(
                 "The executable at path %s can't be found, please check the destination folder.\n"
-                "Check the destination folder, "
-                "some parts of the installation process may have not completed successfully." % path
+                "Some parts of the installation process may have not completed successfully." % path
             )
             logger.warning("No executable found at specified location %s", path)
         else:
@@ -620,7 +660,6 @@ class ScriptInterpreter(CommandsMixin):
         )
 
         game = Game(self.game_id)
-        game.set_platform_from_runner()
         game.save()
 
         logger.debug("Saved game entry %s (%d)", self.game_slug, self.game_id)
@@ -670,6 +709,10 @@ class ScriptInterpreter(CommandsMixin):
             if not isinstance(key, str):
                 raise ScriptingError("Game config key must be a string", key)
             value = script_config[key]
+            if str(value).lower() == 'true':
+                value = True
+            if str(value).lower() == 'false':
+                value = False
             if isinstance(value, list):
                 config[key] = [self._substitute(i) for i in value]
             elif isinstance(value, dict):
@@ -695,7 +738,10 @@ class ScriptInterpreter(CommandsMixin):
 
     def revert(self):
         """Revert installation in case of an error"""
-        logger.debug("Install cancelled")
+        logger.info("Cancelling installation of %s", self.game_name)
+        if self.runner.startswith("wine"):
+            self.task({"name": "winekill"})
+
         self.cancelled = True
 
         if self.abort_current_task:
@@ -719,6 +765,10 @@ class ScriptInterpreter(CommandsMixin):
             "USER": os.getenv("USER"),
             "INPUT": self._get_last_user_input(),
             "VERSION": self.version,
+            "RESOLUTION": "x".join(self.current_resolution),
+            "RESOLUTION_WIDTH": self.current_resolution[0],
+            "RESOLUTION_HEIGHT": self.current_resolution[1],
+
         }
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:
@@ -838,7 +888,7 @@ class ScriptInterpreter(CommandsMixin):
         self.game_files[self.steam_data["file_id"]] = os.path.abspath(
             os.path.join(data_path, self.steam_data["steam_rel_path"])
         )
-        self.prepare_game_files()
+        self.iter_game_files()
 
     def _download_steam_data(self, file_uri, file_id):
         """Download the game files from Steam to use them outside of Steam.
@@ -884,6 +934,9 @@ class ScriptInterpreter(CommandsMixin):
         """Return available installers for a GOG game"""
 
         self.gog_data = gog_service.get_game_details(self.gogid)
+        if not self.gog_data:
+            logger.warning("Unable to get GOG data for game %s", self.gogid)
+            return []
 
         # Filter out Mac installers
         gog_installers = [
@@ -891,13 +944,17 @@ class ScriptInterpreter(CommandsMixin):
             for installer in self.gog_data["downloads"]["installers"]
             if installer["os"] != "mac"
         ]
-        available_platforms = set([installer["os"] for installer in gog_installers])
+        available_platforms = {installer["os"] for installer in gog_installers}
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
+            if self.runner == "linux":
+                filter_os = "windows"
+            else:
+                filter_os = "linux"
             gog_installers = [
                 installer
                 for installer in gog_installers
-                if installer["os"] != "windows"
+                if installer["os"] != filter_os
             ]
 
         # Keep only the english installer until we have locale detection
@@ -915,6 +972,8 @@ class ScriptInterpreter(CommandsMixin):
         if not gog_service.is_available():
             logger.info("You are not connected to GOG")
             connect_gog()
+        if not gog_service.is_available():
+            raise UnavailableGame
         gog_installers = self.get_gog_installers(gog_service)
         if len(gog_installers) > 1:
             raise ScriptingError("Don't know how to deal with multiple installers yet.")
