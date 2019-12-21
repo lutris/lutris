@@ -161,9 +161,6 @@ class Application(Gtk.Application):
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
 
-        menubar = builder.get_object("menubar")
-        self.set_menubar(menubar)
-
     def do_activate(self):
         if not self.window:
             self.window = LutrisWindow(application=self)
