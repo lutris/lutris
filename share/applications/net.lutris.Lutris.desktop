@@ -7,6 +7,7 @@ Comment[pt-BR]=Plataforma de jogos de código aberto
 Comment[es]=Plataforma de juegos de código abierto
 Comment[id]=Platform permainan terbuka
 Categories=Game;
+Keywords=gaming;wine;emulator;
 Exec=lutris %U
 Icon=lutris
 Terminal=false
