@@ -462,6 +462,13 @@
             <property name="position">16</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="action_name">win.show-hidden-games</property>
+            <property name="text">Show Hidden Games</property>
+          </object>
+        </child>
       </object>
     </child>
   </object>
