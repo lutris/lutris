@@ -121,7 +121,6 @@ class GameActions:
 
     def on_hide_game(self, _widget):
         """Add a game to the list of hidden games"""
-        print(self.window.view.selected_game.id)
         game = Game(self.window.view.selected_game.id)
 
         # Append the new hidden ID and save it

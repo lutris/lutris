@@ -72,8 +72,7 @@ class Request:
         except (urllib.error.HTTPError, CertificateError) as error:
             if error.code == 401:
                 raise UnauthorizedAccess("Access to %s denied" % self.url)
-            else:
-                raise HTTPError("Request to %s failed: %s" % (self.url, error))
+            raise HTTPError("Request to %s failed: %s" % (self.url, error))
         except (socket.timeout, urllib.error.URLError) as error:
             raise HTTPError("Unable to connect to server %s: %s" % (self.url, error))
         if request.getcode() > 200:

@@ -355,7 +355,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     @property
     def show_hidden_games(self):
         return settings.read_setting("show_hidden_games").lower() == "true"
-    
+
     def get_store(self, games=None):
         """Return an instance of GameStore"""
         games = games or pga.get_games(show_installed_first=self.show_installed_first)

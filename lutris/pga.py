@@ -416,6 +416,7 @@ def get_used_platforms_game_count():
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}
 
+
 def get_hidden_ids():
     """Return a list of game IDs to be excluded from the library view"""
     # Load the ignore string and filter out empty strings to prevent issues
@@ -426,6 +427,7 @@ def get_hidden_ids():
 
     # Turn the strings into integers
     return [int(game_id) for game_id in ignores]
+
 
 def set_hidden_ids(games):
     """Writes a list of game IDs that are to be hidden into the config file"""
