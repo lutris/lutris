@@ -90,7 +90,6 @@ class WinePrefixManager:
             desktop_folders.append(folder[folder.rfind("\\") + 1:])
         return desktop_folders or DEFAULT_DESKTOP_FOLDERS
 
-
     def desktop_integration(self, desktop_dir=None, restore=False):
         """Overwrite desktop integration"""
         user = os.getenv("USER")

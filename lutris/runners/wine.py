@@ -617,9 +617,9 @@ class wine(Runner):
                 # Update the version in the config
                 if version == self.runner_config.get("version"):
                     self.runner_config["version"] = default_version
-                    # TODO: runner_config is a dict so we have to instanciate a #  pylint: disable=fixme
+                    # TODO: runner_config is a dict so we have to instanciate a
                     # LutrisConfig object to save it.
-                    # XXX: The version key could be either in the game specific #  pylint: disable=fixme
+                    # XXX: The version key could be either in the game specific
                     # config or the runner specific config. We need to know
                     # which one to get the correct LutrisConfig object.
             return wine_path
