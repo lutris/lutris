@@ -91,8 +91,18 @@ class Game(GObject.Object):
         self._log_buffer = None
         self.timer = Timer()
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        value = self.name
+        if self.runner_name:
+            value += " (%s)" % self.runner_name
+        return value
+
     @property
     def log_buffer(self):
+        """Access the log buffer object, creating it if necessary"""
         if self._log_buffer is None:
             self._log_buffer = Gtk.TextBuffer()
             self._log_buffer.create_tag("warning", foreground="red")
@@ -101,15 +111,6 @@ class Game(GObject.Object):
                 self._log_buffer.set_text(self.game_thread.stdout)
         return self._log_buffer
 
-    def __repr__(self):
-        return self.__unicode__()
-
-    def __unicode__(self):
-        value = self.name
-        if self.runner_name:
-            value += " (%s)" % self.runner_name
-        return value
-
     @property
     def formatted_playtime(self):
         """Return a human readable formatted play time"""
@@ -117,6 +118,9 @@ class Game(GObject.Object):
 
     @property
     def is_search_result(self):
+        """Return whether or not the game is a remote game from search results.
+        This is bad, find another way to do this.
+        """
         return self.id < 0
 
     @staticmethod
@@ -197,6 +201,16 @@ class Game(GObject.Object):
                 self.compositor_disabled = True
 
     def remove(self, from_library=False, from_disk=False):
+        """Uninstall a game
+
+        Params:
+            from_library (bool): Completely remove the game from library, do
+                                 not set it as uninstalled
+            from_disk (bool): Delete the game files
+
+        Return:
+            bool: Updated value for from_library
+        """
         if from_disk and self.runner:
             logger.debug("Removing game %s from disk", self.id)
             self.runner.remove_game_data(game_path=self.directory)
@@ -268,9 +282,9 @@ class Game(GObject.Object):
                     "Runtime currently updating", "Game might not work as expected"
                 )
         if (
-            "wine" in self.runner_name
-            and not wine.get_system_wine_version()
-            and not LINUX_SYSTEM.is_flatpak
+                "wine" in self.runner_name
+                and not wine.get_system_wine_version()
+                and not LINUX_SYSTEM.is_flatpak
         ):
 
             # TODO find a reference to the root window or better yet a way not
@@ -545,6 +559,7 @@ class Game(GObject.Object):
             self.start_game()
 
     def start_game(self):
+        """Run a background command to lauch the game"""
         self.game_thread = MonitoredCommand(
             self.game_runtime_config["args"],
             runner=self.runner,
@@ -563,6 +578,7 @@ class Game(GObject.Object):
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def stop_game(self):
+        """Cleanup after a game as stopped"""
         self.state = self.STATE_STOPPED
         self.emit("game-stop")
         if not self.timer.finished:
@@ -570,6 +586,7 @@ class Game(GObject.Object):
             self.playtime += self.timer.duration / 3600
 
     def xboxdrv_start(self, config):
+        """Start xboxdrv in a background command"""
         command = [
             "pkexec",
             "xboxdrv",
@@ -596,6 +613,7 @@ class Game(GObject.Object):
             os.system("pkexec /usr/share/lutris/bin/resetxpad")
 
     def xboxdrv_stop(self):
+        """Stop xboxdrv"""
         os.system("pkexec xboxdrvctl --shutdown")
         self.reload_xpad()
 

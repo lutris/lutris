@@ -119,6 +119,7 @@ class InstallerFile:
             raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", self.checksum)
 
     def download(self, downloader):
+        """Download a file with a given downloader"""
         if self.uses_pga_cache() and system.path_exists(self.dest_file):
             logger.info("File %s already cached", self)
             return False
