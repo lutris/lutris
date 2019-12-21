@@ -34,6 +34,7 @@ APP_STATE_FLAGS = [
 
 
 class AppManifest:
+    """Representation of an AppManifest file from Steam"""
     def __init__(self, appmanifest_path):
         self.appmanifest_path = appmanifest_path
         self.steamapps_path, filename = os.path.split(appmanifest_path)
@@ -51,14 +52,17 @@ class AppManifest:
 
     @property
     def app_state(self):
+        """State of the app (dictionary containing game specific info)"""
         return self.appmanifest_data.get("AppState") or {}
 
     @property
     def user_config(self):
+        """Return the user configuration part"""
         return self.app_state.get("UserConfig") or {}
 
     @property
     def name(self):
+        """Return the game name from either the state or the user config"""
         _name = self.app_state.get("name")
         if not _name:
             _name = self.user_config.get("name")
@@ -66,10 +70,12 @@ class AppManifest:
 
     @property
     def slug(self):
+        """Return a slugified version of the name"""
         return slugify(self.name)
 
     @property
     def installdir(self):
+        """Path where the game is installed"""
         return self.app_state.get("installdir")
 
     @property
@@ -84,9 +90,11 @@ class AppManifest:
         return states
 
     def is_installed(self):
+        """True if the game is fully installed"""
         return "Fully Installed" in self.states
 
     def get_install_path(self):
+        """Absolute path of the installation directory"""
         if not self.installdir:
             return None
         install_path = fix_path_case(
@@ -98,22 +106,19 @@ class AppManifest:
         return None
 
     def get_platform(self):
+        """Platform the game uses (linux or windows)"""
         steamapps_paths = get_steamapps_paths()
         if self.steamapps_path in steamapps_paths["linux"]:
             return "linux"
-        elif self.steamapps_path in steamapps_paths["windows"]:
+        if self.steamapps_path in steamapps_paths["windows"]:
             return "windows"
-        else:
-            raise ValueError(
-                "Can't find %s in %s" % (self.steamapps_path, steamapps_paths)
-            )
+        raise ValueError(
+            "Can't find %s in %s" % (self.steamapps_path, steamapps_paths)
+        )
 
     def get_runner_name(self):
-        platform = self.get_platform()
-        if platform == "linux":
-            return "steam"
-        else:
-            return "winesteam"
+        """Runner used by the Steam game"""
+        return "steam" if self.get_platform() == "linux" else "winesteam"
 
 
 def get_appmanifest_from_appid(steamapps_path, appid):

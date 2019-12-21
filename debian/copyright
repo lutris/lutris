@@ -1,10 +1,298 @@
-Format-Specification: http://wiki.debian.org/Proposals/CopyrightFormat
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: lutris
-Upstream-Maintainer: Mathieu Comandon <strycore@gmail.com>
+Upstream-Contact: Mathieu Comandon <strycore@gmail.com>
 Upstream-Source: https://github.com/lutris
 
 Files: *
-Copyright: (C) 2009, 2016 Mathieu Comandon <strycore@gmail.com>
+Copyright: 2009-2019 Mathieu Comandon <strycore@gmail.com>
 License: GPL-3
- The full text of the GPL is distributed in
- /usr/share/common-licenses/GPL-3 on Debian systems.
+
+Files: lutris/gui/application.py
+Copyright: 2016 Patrick Griffis <tingping@tingping.se>
+License: GPL-3
+
+Files: lutris/vendor/distro.py
+Copyright: 2015-2017 Nir Cohen
+License: Apache-2.0
+
+Files: lutris/vendor/gi_composites.py
+Copyright: 2015 Dustin Spicuzza <dustin@virtualroadside.com>
+License: LGPL-2.1
+
+Files: lutris/services/tosec.py
+Copyright: 2013 Adrien Plazas
+License: GPL-3
+
+Files: share/lutris/bin/winetricks
+Copyright: 2007-2014 Dan Kegel <dank@kegel.com>
+ 2008-2017 Austin English <austinenglish@gmail.com>
+ 2010-2011 Phil Blankenship <phillip.e.blankenship@gmail.com>
+ 2010-2015 Shannon VanWagner <shannon.vanwagner@gmail.com>
+ 2010 Belhorma Bendebiche <amro256@gmail.com>
+ 2010 Eleazar Galano <eg.galano@gmail.com>
+ 2010 Travis Athougies <iammisc@gmail.com>
+ 2010 Andrew Nguyen
+ 2010 Detlef Riekenberg
+ 2010 Maarten Lankhorst
+ 2010 Rico Schüller
+ 2011 Scott Jackson <sjackson2@gmx.com>
+ 2011 Trevor Johnson
+ 2011 Franco Junio
+ 2011 Craig Sanders
+ 2011 Matthew Bauer
+ 2011 Giuseppe Dia
+ 2011 Łukasz Wojniłowicz
+ 2011 Matthew Bozarth
+ 2013-2017 Andrey Gusev <andrey.goosev@gmail.com>
+ 2013-2017 Hillwood Yang <hillwood@opensuse.org>
+ 2013,2016 André Hentschel <nerv@dawncrow.de>
+License: LGPL-2.1
+
+Files: share/metainfo/net.lutris.Lutris.metainfo.xml
+Copyright: Lutris Team <strider@lutris.net>
+License: CC0-1.0
+
+Files: share/lutris/icons/hicolor/symbolic/apps/ags-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/amiga-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/atari800-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/citra-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/desmume-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/dgen-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/dosbox-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/frotz-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/gens-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/gog-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/jzintv-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/mednafen-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/nulldc-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/o2em-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/openmsx-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/osmose-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/pcsx2-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/reicast-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/snes9x-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/steam-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/stella-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/vice-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/virtualjaguar-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/wine-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/winesteam-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/zdoom-symbolic.svg
+Copyright: Romlok <https://github.com/romlok>
+License: CC0-1.0
+
+Files: share/lutris/icons/hicolor/symbolic/apps/browser-symbolic.svg
+Copyright: The GNOME Project <https://www.gnome.org/>
+License: CC-BY-SA-3.0
+Comment: from the GNOME icon theme symbolic
+
+Files: share/lutris/icons/hicolor/symbolic/apps/dolphin-symbolic.svg
+Copyright: Dolphin Emulator Project <https://dolphin-emu.org/>
+License: GPL-2
+
+Files: share/lutris/icons/hicolor/symbolic/apps/hatari-symbolic.svg
+Copyright: Hatari project <http://hatari.tuxfamily.org/>
+License: GPL-2
+
+Files: share/lutris/icons/hicolor/symbolic/apps/libretro-symbolic.svg
+Copyright: RetroArch project <http://www.retroarch.com/>
+License: GPL-3
+
+Files: share/lutris/icons/hicolor/symbolic/apps/linux-symbolic.svg
+Copyright: Larry Ewing <lewing@isc.tamu.edu>
+ Sergey Smith <https://www.deviantart.com/foxyriot>
+License: tux-attribution
+
+Files: share/lutris/icons/hicolor/symbolic/apps/mame-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/mess-symbolic.svg
+Copyright: RetroPie project <https://retropie.org.uk/>
+License: CC-BY-NC-SA-2.0
+
+Files: share/lutris/icons/hicolor/symbolic/apps/mednafen-symbolic.svg
+Copyright: Mednafen project <https://mednafen.github.io/>
+License: GPL-2
+Comment: from <http://forum.fobby.net/index.php?t=msg&&th=214#msg_1743>
+
+Files: share/lutris/icons/hicolor/symbolic/apps/ms-dos-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/necpc-98-symbolic.svg
+Copyright: matoro <https://github.com/matoro>
+License: CC0-1.0
+
+Files: share/lutris/icons/hicolor/symbolic/apps/msx_msx2_msx2+-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/nintendogameboycolor-symbolic.svg
+Copyright: Creaticca Ltd <https://www.flaticon.com/authors/creaticca-creative-agency>
+License: Flaticon
+
+Files: share/lutris/icons/hicolor/symbolic/apps/mupen64plus-symbolic.svg
+Copyright: Mupen64Plus project <http://www.mupen64plus.org/>
+License: GPL-2
+
+Files: share/lutris/icons/hicolor/symbolic/apps/nintendods-symbolic.svg
+Copyright: Nintendo
+License: none-wikipedia
+Comment: from <https://commons.wikimedia.org/wiki/File:Nintendo_DS_Logo.svg>
+
+Files: share/lutris/icons/hicolor/symbolic/apps/nintendo3ds-symbolic.svg
+Copyright: Nintendo
+License: none-wikipedia
+Comment: from <https://commons.wikimedia.org/wiki/File:Nintendo_3DS_(logo).svg>
+
+Files: share/lutris/icons/hicolor/symbolic/apps/nintendogameboy-symbolic.svg
+Copyright: xnimrodx <https://www.flaticon.com/authors/xnimrodx>
+License: Flaticon
+
+Files: share/lutris/icons/hicolor/symbolic/apps/nintendogamecube-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/nintendones-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/nintendosnes-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/segadreamcast-symbolic.svg
+Copyright: freepik <https://www.flaticon.com/authors/freepik>
+License: Flaticon
+
+Files: share/lutris/icons/hicolor/symbolic/apps/pico8-symbolic.svg
+Copyright: djazz <https://github.com/daniel-j>
+License: CC0-1.0
+
+Files: share/lutris/icons/hicolor/symbolic/apps/ppsspp-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/ppsspp-symbolic.svg
+Copyright: PPSSPP project <http://www.ppsspp.org/>
+License: GPL-2
+
+Files: share/lutris/icons/hicolor/symbolic/apps/residualvm-symbolic.svg
+Copyright: ResidualVM project <https://www.residualvm.org/>
+License: GPL-2
+
+Files: share/lutris/icons/hicolor/symbolic/apps/rpcs3-symbolic.svg
+Copyright: RPCS3 project <https://rpcs3.net/>
+License: none-wikipedia
+Comment: from <https://en.wikipedia.org/wiki/File:RPCS3_vector_logo.svg>
+
+Files: share/lutris/icons/hicolor/symbolic/apps/scummvm-symbolic.svg
+Copyright: ScummVM project <https://www.scummvm.org/>
+License: GPL-2
+
+Files: share/lutris/icons/hicolor/symbolic/apps/sonyplaystation-symbolic.svg
+Copyright: Sony Interactive Entertainment
+License: none-wikipedia
+Comment: from <https://commons.wikimedia.org/wiki/File:PlayStation_logo.svg>
+
+Files: share/lutris/icons/hicolor/symbolic/apps/sonyplaystation2-symbolic.svg
+Copyright: Sony Interactive Entertainment
+License: none-wikipedia
+Comment: from <https://commons.wikimedia.org/wiki/File:PlayStation_2_logo.svg>
+
+Files: share/lutris/icons/hicolor/symbolic/apps/sonyplaystation3-symbolic.svg
+Copyright: Sony Interactive Entertainment
+License: none-wikipedia
+Comment: from <https://commons.wikimedia.org/wiki/File:PlayStation_3_Logo.svg>
+
+Files: share/lutris/icons/hicolor/symbolic/apps/sonyplaystationportable-symbolic.svg
+Copyright: Sony Interactive Entertainment
+License: none-wikipedia
+Comment: from <https://commons.wikimedia.org/wiki/File:PSP_Logo.svg>
+
+Files: share/lutris/icons/hicolor/symbolic/apps/steam-symbolic.svg
+Copyright: Valve Corporation
+License: none-wikipedia
+Comment: from <https://commons.wikimedia.org/wiki/File:Steam_icon_logo.svg>
+
+Files: share/lutris/icons/hicolor/symbolic/apps/web-symbolic.svg
+Copyright: W3C <https://www.w3.org/>
+License: CC-BY-3.0
+
+Files: share/lutris/icons/hicolor/symbolic/apps/windows-symbolic.svg
+Copyright: Mathieu Comandon <strycore@gmail.com>
+License: CC0-1.0
+
+Files: share/lutris/icons/hicolor/symbolic/apps/wine-symbolic.svg
+Copyright: Wine project <https://www.winehq.org/>
+License: LGPL-2.1
+
+Files: share/lutris/icons/hicolor/symbolic/apps/xdg-symbolic.svg
+Copyright: freedesktop.org project <https://www.freedesktop.org/wiki/>
+License: GPL-2
+Comment: from <https://commons.wikimedia.org/wiki/File:Freedesktop-logo.svg>
+
+License: GPL-3
+ On Debian systems, the complete text of the General Public License version 3
+ can be found in "/usr/share/common-licenses/GPL-3".
+
+License: Apache-2.0
+ On Debian systems, the complete text of the Apache license version 2.0 can be
+ found in "/usr/share/common-licenses/Apache-2.0".
+
+License: LGPL-2.1
+ On Debian systems, the complete text of the Lesser General Public License
+ version 2.1 can be found in "/usr/share/common-licenses/LGPL-2.1".
+
+License: CC0-1.0
+ On Debian systems, the complete text of the Create Commons Universal license
+ version 1.0 can be found in "/usr/share/common-licenses/CC0-1.0".
+
+License: GPL-2
+ On Debian systems, the complete text of the General Public License version 2
+ can be found in "/usr/share/common-licenses/GPL-2".
+
+License: CC-BY-SA-3.0
+ Can be found online at <https://creativecommons.org/licenses/by-sa/3.0/>.
+
+License: tux-attribution
+ The copyright holder of this file allows anyone to use it for any purpose,
+ provided that the copyright holder is properly attributed. Redistribution,
+ derivative work, commercial use, and all other use is permitted.
+ Attribution: Larry Ewing and GIMP
+
+License: CC-BY-NC-SA-2.0
+ Can be found online at <https://creativecommons.org/licenses/by-nc-sa/2.0/>.
+
+License: Flaticon
+ From <https://profile.flaticon.com/license/free>:
+ .
+ FREE LICENSE (WITH ATTRIBUTION)
+ This license allows you to use for free any of Flaticon's contents for your
+ projects as long as they are attributed to their author in the definitive
+ project.
+ .
+ How to attribute contents?
+ .
+ -For web usage: By placing a link with the text "designed by from Flaticon" in
+  a visible spot, so 's authorship is noticeable.
+ -Uses different to web: If possible, the text "designed by from Flaticon" must
+  be written next to Flaticon Contents, if it's not possible, the attribution
+  must be placed in the credits or acknowledgements section.
+ .
+ Where you can use Flaticon's contents:
+ .
+ -Website
+ -Software, applications, mobile, Multimedia
+ -Printed and digital media (magazines, newspapers, books, cards, labels, CD,
+  television, video, e-mail)
+ -Advertisement and promotional items
+ -Presentation of products and public events
+ .
+ What you CAN DO:
+ .
+ -You have the non-exclusive, non-transferable, non-sublicensable right to use
+  the licensed material an unlimited number of times in any and all media for
+  the commercial or personal purposes listed above.
+ -You may alter and create derivative works.
+ -You can use Flaticon's Contents during the rights period world wide.
+ .
+ What you CANNOT DO:
+ .
+ -Sublicense, sell or rent any contents (or a modified version of them).
+ -Distribute Flaticon's Contents unless it has been expressly authorized by
+  Flaticon.
+ -Include Flaticon's Contents in an online or offline database or file.
+ -Offering Flaticon's Contents designs (or modified Flaticon Contents versions)
+  for download.
+ .
+ The complete content of licenses can be consulted in the Terms of Use, that
+ will prevail over the content of this document.
+
+License: none-wikipedia
+ This image consists only of simple geometric shapes or text. It does not meet
+ the threshold of originality needed for copyright protection, and is therefore
+ in the public domain.
+
+License: CC-BY-3.0
+ Can be found online at <https://creativecommons.org/licenses/by/3.0/>.

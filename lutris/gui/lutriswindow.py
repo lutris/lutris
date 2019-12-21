@@ -64,6 +64,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     sync_button = GtkTemplate.Child()
     sync_label = GtkTemplate.Child()
     sync_spinner = GtkTemplate.Child()
+    search_spinner = GtkTemplate.Child()
     add_popover = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
     website_search_toggle = GtkTemplate.Child()
@@ -95,7 +96,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
-
         self.search_terms = None
         self.search_timer_id = None
         self.search_mode = "local"
@@ -225,6 +225,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 default=self.left_side_panel_visible,
                 accel="F9",
             ),
+            "show-hidden-games": Action(
+                self.hidden_state_change,
+                type="b",
+                default=self.show_hidden_games,
+            ),
             "show-right-side-panel": Action(
                 self.on_right_side_panel_state_change,
                 type="b",
@@ -257,6 +262,45 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.add_action(action)
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
+
+    def on_hide_game(self, _widget):
+        """Add a game to the list of hidden games"""
+        game = Game(self.view.selected_game)
+
+        # Append the new hidden ID and save it
+        ignores = pga.get_hidden_ids() + [game.id]
+        pga.set_hidden_ids(ignores)
+
+        # Update the GUI
+        if not self.show_hidden_games:
+            self.view.remove_game(game.id)
+
+    def on_unhide_game(self, _widget):
+        """Removes a game from the list of hidden games"""
+        game = Game(self.view.selected_game)
+
+        # Remove the ID to unhide and save it
+        ignores = pga.get_hidden_ids()
+        ignores.remove(game.id)
+        pga.set_hidden_ids(ignores)
+
+    def hidden_state_change(self, action, value):
+        """Hides or shows the hidden games"""
+        action.set_state(value)
+
+        # Add or remove hidden games
+        ignores = pga.get_hidden_ids()
+        settings.write_setting("show_hidden_games",
+                               str(self.show_hidden_games).lower(),
+                               section="lutris")
+
+        # If we have to show the hidden games now, we need to add them back to
+        # the view. If we need to hide them, we just remove them from the view
+        if value:
+            self.game_store.add_games_by_ids(ignores)
+        else:
+            for game_id in ignores:
+                self.game_store.remove_game(game_id)
 
     @property
     def current_view_type(self):
@@ -309,6 +353,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def view_sorting_ascending(self):
         return settings.read_setting("view_sorting_ascending").lower() != "false"
 
+    @property
+    def show_hidden_games(self):
+        return settings.read_setting("show_hidden_games").lower() == "true"
+
     def get_store(self, games=None):
         """Return an instance of GameStore"""
         games = games or pga.get_games(show_installed_first=self.show_installed_first)
@@ -318,6 +366,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.filter_installed,
             self.view_sorting,
             self.view_sorting_ascending,
+            self.show_hidden_games,
             self.show_installed_first,
         )
         game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
@@ -665,6 +714,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.filter_text = entry.get_text()
             self.invalidate_game_filter()
         elif self.search_mode == "website":
+            self.search_spinner.props.active = True
             if self.search_timer_id:
                 GLib.source_remove(self.search_timer_id)
             self.search_timer_id = GLib.timeout_add(
@@ -701,6 +751,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
                 Gtk.EntryIconPosition.PRIMARY, "system-search-symbolic"
             )
             self.search_games("")
+            self.search_spinner.props.active = False
 
     @GtkTemplate.Callback
     def on_about_clicked(self, *_args):

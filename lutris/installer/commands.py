@@ -63,7 +63,8 @@ class CommandsMixin:
                         command_data,
                     )
 
-    def _is_cached_file(self, file_path):
+    @staticmethod
+    def _is_cached_file(file_path):
         """Return whether a file referenced by file_id is stored in the cache"""
         pga_cache_path = get_cache_path()
         if not pga_cache_path:

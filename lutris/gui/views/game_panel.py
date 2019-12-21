@@ -20,7 +20,7 @@ class GamePanel(GenericPanel):
         super().__init__()
         self.game.connect("game-start", self.on_game_start)
         self.game.connect("game-started", self.on_game_started)
-        self.game.connect("game-stopped", self.refresh)
+        self.game.connect("game-stopped", self.on_game_stop)
 
     def place_content(self):
         self.put(self.get_close_button(), 276, 16)
@@ -111,7 +111,9 @@ class GamePanel(GenericPanel):
         )
         return last_played_label
 
-    def get_runner_entries(self, game):
+    @staticmethod
+    def get_runner_entries(game):
+        """Return runner specific contextual actions"""
         try:
             runner = runners.import_runner(game.runner_name)(game.config)
         except runners.InvalidRunner:
@@ -119,10 +121,9 @@ class GamePanel(GenericPanel):
         return runner.context_menu_entries
 
     def get_buttons(self):
+        """Return a dictionary of buttons to use in the panel"""
         displayed = self.game_actions.get_displayed_entries()
         icon_map = {
-            # "stop": "media-playback-stop-symbolic",
-            # "play": "media-playback-start-symbolic",
             "configure": "preferences-system-symbolic",
             "browse": "system-file-manager-symbolic",
             "show_logs": "utilities-terminal-symbolic",
@@ -151,10 +152,10 @@ class GamePanel(GenericPanel):
             buttons[action_id] = button
 
             if action_id in (
-                "desktop-shortcut",
-                "rm-desktop-shortcut",
-                "menu-shortcut",
-                "rm-menu-shortcut",
+                    "desktop-shortcut",
+                    "rm-desktop-shortcut",
+                    "menu-shortcut",
+                    "rm-menu-shortcut",
             ):
                 button.connect("clicked", self.on_shortcut_edited, action_id)
 
@@ -170,6 +171,7 @@ class GamePanel(GenericPanel):
         return buttons
 
     def place_buttons(self, base_height):
+        """Places all appropriate buttons in the panel"""
         play_x_offset = 87
         icon_offset = 6
         icon_width = 32
@@ -221,22 +223,30 @@ class GamePanel(GenericPanel):
 
             self.put(button, position[0], position[1])
 
-    def on_shortcut_edited(self, widget, action_id):
+    def on_shortcut_edited(self, _widget, action_id):
+        """Callback for shortcut buttons"""
         self.buttons[action_id].hide()
-        if "rm" == action_id[0:2]:
+        if action_id[0:2] == "rm":
             self.buttons[action_id[3:]].show()
         else:
             self.buttons["rm-" + action_id].show()
 
     def on_game_start(self, _widget):
+        """Callback for the `game-start` signal"""
         self.buttons["play"].set_label("Launching...")
         self.buttons["play"].set_sensitive(False)
 
-    def on_game_started(self, widget):
+    def on_game_started(self, _widget):
+        """Callback for the `game-started` signal"""
         self.buttons["stop"].show()
         self.buttons["play"].hide()
         self.buttons["play"].set_label("Play")
         self.buttons["play"].set_sensitive(True)
 
+    def on_game_stop(self, _widget, _game_id=None):
+        """Called when a game is stopped (`game-stopped` signal)"""
+        self.refresh()
+
     def on_close(self, _widget):
+        """Callback for the clone panel button"""
         self.emit("panel-closed")

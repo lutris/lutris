@@ -6,7 +6,7 @@ from lutris.util import joypad, system, xdgshortcuts
 from lutris.util.display import DISPLAY_MANAGER
 
 DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
-DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
+DEFAULT_DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
 DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES"]
 
 
@@ -88,25 +88,22 @@ class WinePrefixManager:
                 logger.warning("Couldn't load shell folder name for %s", key)
                 continue
             desktop_folders.append(folder[folder.rfind("\\") + 1:])
-        return desktop_folders
-
+        return desktop_folders or DEFAULT_DESKTOP_FOLDERS
 
     def desktop_integration(self, desktop_dir=None, restore=False):
         """Overwrite desktop integration"""
         user = os.getenv("USER")
         user_dir = os.path.join(self.path, "drive_c/users/", user)
-        _desktop_folders = self.get_desktop_folders()
-        if _desktop_folders:
-            DESKTOP_FOLDERS = _desktop_folders  # pylint: disable=invalid-name
+        desktop_folders = self.get_desktop_folders()
 
-        if not desktop_dir:
-            desktop_dir = user_dir
-        else:
+        if desktop_dir:
             desktop_dir = os.path.expanduser(desktop_dir)
+        else:
+            desktop_dir = user_dir
 
         if system.path_exists(user_dir):
             # Replace or restore desktop integration symlinks
-            for i, item in enumerate(DESKTOP_FOLDERS):
+            for i, item in enumerate(desktop_folders):
                 path = os.path.join(user_dir, item)
                 old_path = path + ".winecfg"
 
@@ -139,7 +136,7 @@ class WinePrefixManager:
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
                 path = os.path.join(user_dir, item)
-                if item not in DESKTOP_FOLDERS and os.path.islink(path):
+                if item not in DEFAULT_DESKTOP_FOLDERS and os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)
 

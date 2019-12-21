@@ -535,6 +535,18 @@
             <property name="position">21</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="action_name">win.show-hidden-games</property>
+            <property name="text">Show Hidden Games</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">22</property>
+          </packing>
+        </child>
       </object>
     </child>
   </object>
@@ -753,6 +765,17 @@
                                 <property name="receives_default">True</property>
                                 <property name="always_show_image">True</property>
                                 <signal name="toggled" handler="on_website_search_toggle_toggled" swapped="no"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkSpinner" id="search_spinner">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

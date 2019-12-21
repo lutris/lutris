@@ -1,6 +1,7 @@
 """Module to deal with various aspects of displays"""
 import os
 import subprocess
+from dbus.exceptions import DBusException
 
 from gi.repository import Gdk, GnomeDesktop, GLib
 
@@ -106,17 +107,25 @@ class DisplayManager:
         return get_outputs()
 
 
-try:
-    DISPLAY_MANAGER = MutterDisplayManager()
-except Exception as ex:
-    logger.exception(
-        "Failed to instanciate MutterDisplayConfig. Please report with exception: %s", ex
-    )
+def get_display_manager():
+    """Return the appropriate display manager instance.
+    Defaults to Mutter if available. This is the only one to support Wayland.
+    """
     try:
-        DISPLAY_MANAGER = DisplayManager()
+        return MutterDisplayManager()
+    except DBusException as ex:
+        logger.debug("Mutter DBus service not reachable: %s", ex)
+    except Exception as ex:  # pylint: disable=broad-except
+        logger.exception(
+            "Failed to instanciate MutterDisplayConfig. Please report with exception: %s", ex
+        )
+    try:
+        return DisplayManager()
     except (GLib.Error, NoScreenDetected):
-        DISPLAY_MANAGER = LegacyDisplayManager()
+        return LegacyDisplayManager()
 
+
+DISPLAY_MANAGER = get_display_manager()
 USE_DRI_PRIME = len(_get_graphics_adapters()) > 1
 
 
