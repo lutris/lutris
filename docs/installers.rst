@@ -887,7 +887,7 @@ Overrides format for ``create_prefix``, ``wineexec`` commands and for ``wine`` o
 
       overrides:
         ddraw.dll: n
-        d3d9: disable
+        d3d9: disabled
         winegstreamer: builtin
 
 
