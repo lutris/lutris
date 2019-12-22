@@ -38,6 +38,7 @@ class LutrisStatusIcon:
         return self.icon.is_visible()
 
     def set_visible(self, value):
+        """Set the visibility of the icon"""
         if APP_INDICATOR_SUPPORTED:
             if value:
                 visible = AppIndicator.IndicatorStatus.ACTIVE
