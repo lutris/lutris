@@ -219,6 +219,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
             "use-dark-theme": Action(
                 self.on_dark_theme_state_change, type="b", default=self.use_dark_theme
             ),
+            "show-tray-icon": Action(
+                self.on_tray_icon_toggle, type="b", default=self.show_tray_icon
+            ),
             "show-left-side-panel": Action(
                 self.on_left_side_panel_state_change,
                 type="b",
@@ -344,6 +347,18 @@ class LutrisWindow(Gtk.ApplicationWindow):
             settings.read_setting("show_installed_first", default="false").lower()
             == "true"
         )
+
+    def on_tray_icon_toggle(self, action, value):
+        """Callback for handling tray icon toggle"""
+        action.set_state(value)
+        settings.write_setting('show_tray_icon', value)
+        self.application.set_tray_icon()
+
+
+    @property
+    def show_tray_icon(self):
+        """Setting to hide or show status icon"""
+        return settings.read_setting("show_tray_icon", default="false").lower() == "true"
 
     @property
     def view_sorting(self):
