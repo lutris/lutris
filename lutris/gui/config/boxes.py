@@ -1,7 +1,7 @@
 """Widget generators and their signal handlers"""
 # pylint: disable=no-member
 import os
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, Handy
 
 from lutris import settings, sysoptions
 from lutris.gui.widgets.common import VBox, Label, FileChooserEntry, EditableGrid
@@ -21,6 +21,8 @@ class ConfigBox(VBox):
         self.raw_config = None
         self.option_widget = None
         self.wrapper = None
+        self.listbox = Gtk.ListBox()
+        self.listbox.get_style_context().add_class("frame")
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -29,7 +31,7 @@ class ConfigBox(VBox):
         help_box.set_margin_right(15)
         help_box.set_margin_bottom(5)
 
-        icon = Gtk.Image.new_from_icon_name("dialog-information", Gtk.IconSize.MENU)
+        icon = Gtk.Image.new_from_icon_name("dialog-information-symbolic", Gtk.IconSize.MENU)
         help_box.pack_start(icon, False, False, 5)
 
         title_label = Gtk.Label("<i>%s</i>" % text)
@@ -77,9 +79,7 @@ class ConfigBox(VBox):
             if callable(option.get("condition")):
                 option["condition"] = option["condition"]()
 
-            self.wrapper = Gtk.Box()
-            self.wrapper.set_spacing(12)
-            self.wrapper.set_margin_bottom(6)
+            self.wrapper = Handy.ActionRow()
 
             # Set tooltip's "Default" part
             default = option.get("default")
@@ -89,25 +89,8 @@ class ConfigBox(VBox):
             self.option_widget = None
             self.call_widget_generator(option, option_key, value, default)
 
-            # Reset button
-            reset_btn = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
-            reset_btn.set_relief(Gtk.ReliefStyle.NONE)
-            reset_btn.set_tooltip_text("Reset option to global or " "default config")
-            reset_btn.connect(
-                "clicked",
-                self.on_reset_button_clicked,
-                option,
-                self.option_widget,
-                self.wrapper,
-            )
-
             placeholder = Gtk.Box()
             placeholder.set_size_request(32, 32)
-
-            if option_key not in self.raw_config:
-                reset_btn.set_visible(False)
-                reset_btn.set_no_show_all(True)
-            placeholder.pack_start(reset_btn, False, False, 0)
 
             # Tooltip
             helptext = option.get("help")
@@ -124,21 +107,17 @@ class ConfigBox(VBox):
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
 
-            hbox = Gtk.Box()
-            hbox.set_margin_left(18)
-            hbox.pack_end(placeholder, False, False, 5)
             # Grey out option if condition unmet
             if "condition" in option and not option["condition"]:
-                hbox.set_sensitive(False)
+                self.wrapper.set_sensitive(False)
 
             # Hide if advanced
             if option.get("advanced"):
-                hbox.get_style_context().add_class("advanced")
+                self.wrapper.get_style_context().add_class("advanced")
                 show_advanced = settings.read_setting("show_advanced_options")
                 if not show_advanced == "True":
-                    hbox.set_no_show_all(True)
-            hbox.pack_start(self.wrapper, True, True, 0)
-            self.pack_start(hbox, False, False, 0)
+                    self.wrapper.set_no_show_all(True)
+            self.listbox.add(self.wrapper)
 
     def call_widget_generator(self, option, option_key, value, default):
         """Call the right generation method depending on option type."""
@@ -199,21 +178,21 @@ class ConfigBox(VBox):
         label.set_use_markup(True)
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(label, True, True, 0)
+        self.wrapper.add_prefix(label)
 
     # Checkbox
     def generate_checkbox(self, option, value=None):
         """Generate a checkbox."""
 
         label = Label(option["label"])
-        self.wrapper.pack_start(label, False, False, 0)
+        self.wrapper.add_prefix(label)
 
         switch = Gtk.Switch()
         if value is True:
             switch.set_active(value)
         switch.connect("notify::active", self.checkbox_toggle, option["option"])
         switch.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(switch, False, False, 0)
+        self.wrapper.add_action(switch)
         self.option_widget = switch
 
     # Checkbox with callback
@@ -221,7 +200,7 @@ class ConfigBox(VBox):
         """Generate a checkbox. With callback"""
 
         label = Label(option["label"])
-        self.wrapper.pack_start(label, False, False, 0)
+        self.wrapper.add_prefix(label)
 
         checkbox = Gtk.Switch()
         checkbox.set_sensitive(option["active"] is True)
@@ -234,7 +213,7 @@ class ConfigBox(VBox):
             option
         )
         checkbox.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(checkbox, False, False, 0)
+        self.wrapper.add_action(checkbox)
         self.option_widget = checkbox
 
     def checkbox_toggle(self, widget, _gparam, option_name):
@@ -263,14 +242,15 @@ class ConfigBox(VBox):
     def generate_entry(self, option_name, label, value=None, option_size=None):
         """Generate an entry box."""
         label = Label(label)
-        self.wrapper.pack_start(label, False, False, 0)
+        self.wrapper.add_prefix(label)
 
         entry = Gtk.Entry()
+        entry.set_valign(Gtk.Align.CENTER)
         if value:
             entry.set_text(value)
         entry.connect("changed", self.entry_changed, option_name)
         expand = option_size != "small"
-        self.wrapper.pack_start(entry, expand, expand, 0)
+        self.wrapper.add_action(entry)
         self.option_widget = entry
 
     def entry_changed(self, entry, option_name):
@@ -317,8 +297,8 @@ class ConfigBox(VBox):
         combobox.connect("scroll-event", self.on_combobox_scroll)
         label = Label(label)
         combobox.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(combobox, True, True, 0)
+        self.wrapper.add_prefix(label)
+        self.wrapper.add_action(combobox)
         self.option_widget = combobox
 
     @staticmethod
@@ -352,8 +332,8 @@ class ConfigBox(VBox):
             spin_button.set_value(value)
         spin_button.connect("changed", self.on_spin_button_changed, option_name)
         label = Label(label)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(spin_button, True, True, 0)
+        self.wrapper.add_prefix(label)
+        self.wrapper.add_action(spin_button)
         self.option_widget = spin_button
 
     def on_spin_button_changed(self, spin_button, option):
@@ -391,8 +371,8 @@ class ConfigBox(VBox):
             file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(file_chooser, True, True, 0)
+        self.wrapper.add_prefix(label)
+        self.wrapper.add_action(file_chooser)
         self.option_widget = file_chooser
         file_chooser.entry.connect("changed", self._on_chooser_file_set, option_name)
 
@@ -420,8 +400,8 @@ class ConfigBox(VBox):
             "changed", self._on_chooser_dir_set, option_name
         )
         directory_chooser.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(directory_chooser, True, True, 0)
+        self.wrapper.add_prefix(label)
+        self.wrapper.add_action(directory_chooser)
         self.option_widget = directory_chooser
 
     def _on_chooser_dir_set(self, entry, option):
@@ -436,8 +416,13 @@ class ConfigBox(VBox):
 
         grid = EditableGrid(value, columns=["Key", "Value"])
         grid.connect("changed", self.on_grid_changed, option_name)
-        self.wrapper.pack_start(label, False, False, 0)
-        self.wrapper.pack_start(grid, True, True, 0)
+        pop = Gtk.Popover()
+        pop.add(grid)
+        men = Gtk.MenuButton()
+        men.set_popover(pop)
+        men.set_valign(Gtk.Align.CENTER)
+        self.wrapper.add_prefix(label)
+        self.wrapper.add_action(men)
         self.option_widget = grid
 
     def on_grid_changed(self, grid, option):
@@ -481,7 +466,7 @@ class ConfigBox(VBox):
         treeview_scroll.add(files_treeview)
 
         vbox.pack_start(treeview_scroll, True, True, 0)
-        self.wrapper.pack_start(vbox, True, True, 0)
+        self.wrapper.add_prefix(vbox)
         self.option_widget = self.files_list_store
 
     def on_add_files_clicked(self, widget, option_name, value):
@@ -551,12 +536,7 @@ class ConfigBox(VBox):
         self.config[option_name] = value
 
         wrapper = widget.get_parent()
-        hbox = wrapper.get_parent()
 
-        # Dirty way to get the reset btn. I tried passing it through the
-        # methods but got some strange unreliable behavior.
-        reset_btn = hbox.get_children()[1].get_children()[0]
-        reset_btn.set_visible(True)
         self.set_style_property("font-weight", "bold", wrapper)
 
     def on_reset_button_clicked(self, btn, option, widget, wrapper):
@@ -632,6 +612,7 @@ class RunnerBox(ConfigBox):
                 "If modified, these options supersede the same options from "
                 "the base runner configuration."
             )
+        self.pack_start(self.listbox, False, False, 0)
         self.generate_widgets("runner")
 
 
@@ -658,4 +639,5 @@ class SystemBox(ConfigBox):
                 "the global preferences."
             )
 
+        self.pack_start(self.listbox, False, False, 0)
         self.generate_widgets("system")

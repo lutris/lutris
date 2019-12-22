@@ -29,4 +29,7 @@ class AddGameDialog(Dialog, GameDialogCommon):
         self.build_action_area(self.on_save)
         self.name_entry.grab_focus()
         self.connect("delete-event", self.on_cancel_clicked)
+        self.build_headerbar()
+        self.viewswitcher.set_stack(self.stack)
+        self.set_titlebar(self.header)
         self.show_all()

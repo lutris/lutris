@@ -17,6 +17,9 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
         self.build_notebook()
         self.build_tabs("system")
         self.build_action_area(self.on_save)
+        self.build_headerbar()
+        self.viewswitcher.set_stack(self.stack)
+        self.set_titlebar(self.header)
         self.show_all()
 
     def on_save(self, _widget):

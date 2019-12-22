@@ -34,7 +34,7 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
         return position
 
 
-class FileChooserEntry(Gtk.Box):
+class FileChooserEntry(Gtk.Bin):
     """Editable entry with a file picker button"""
 
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
@@ -49,8 +49,7 @@ class FileChooserEntry(Gtk.Box):
             warn_if_ntfs=False
     ):
         super().__init__(
-            orientation=Gtk.Orientation.VERTICAL,
-            spacing=12,
+            valign=Gtk.Align.CENTER,
             visible=True
         )
         self.title = title

@@ -2,7 +2,7 @@
 # pylint: disable=no-member,not-an-iterable
 import importlib
 import os
-from gi.repository import Gtk, Gdk, Pango, GLib
+from gi.repository import Gtk, Gdk, Pango, GLib, Handy
 from lutris.game import Game
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.util.log import logger
@@ -30,10 +30,12 @@ class GameDialogCommon:
     no_runner_label = "Select a runner in the Game Info tab"
 
     def __init__(self):
-        self.notebook = None
+        self.stack = None
         self.vbox = None
         self.name_entry = None
         self.runner_box = None
+        self.header = None
+        self.viewswitcher = None
 
         self.timer_id = None
         self.game = None
@@ -57,14 +59,24 @@ class GameDialogCommon:
     @staticmethod
     def build_scrolled_window(widget):
         """Return a scrolled window for containing config widgets"""
+        col = Handy.Column()
+        col.set_maximum_width(600)
+        col.set_linear_growth_width(500)
+
         scrolled_window = Gtk.ScrolledWindow()
-        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scrolled_window.add(widget)
+        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        col.add(widget)
+        scrolled_window.add(col)
         return scrolled_window
 
+    def build_headerbar(self):
+        self.header = Handy.HeaderBar()
+        self.viewswitcher = Handy.ViewSwitcher()
+        self.header.set_custom_title(self.viewswitcher)
+
     def build_notebook(self):
-        self.notebook = Gtk.Notebook()
-        self.vbox.pack_start(self.notebook, True, True, 10)
+        self.stack = Gtk.Stack()
+        self.vbox.pack_start(self.stack, True, True, 10)
 
     def build_tabs(self, config_level):
         self.timer_id = None
@@ -95,25 +107,29 @@ class GameDialogCommon:
         info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
 
         info_sw = self.build_scrolled_window(info_box)
-        self._add_notebook_tab(info_sw, "Game info")
+        self.stack.add_titled(info_sw, "game", "Game info")
+        self.stack.child_set_property(info_sw, "icon-name", "applications-games-symbolic")
 
     def _build_prefs_tab(self):
         prefs_box = VBox()
-        prefs_box.pack_start(self._get_game_cache_box(), False, False, 6)
+        listbox = Gtk.ListBox()
+        listbox.get_style_context().add_class("frame")
+        listbox.add(self._get_hide_on_game_launch_box())
+        listbox.add(self._get_game_cache_box())
+        prefs_box.pack_start(listbox, False, False, 6)
 
         cache_help_label = Gtk.Label(visible=True)
-        cache_help_label.set_size_request(400, -1)
+        cache_help_label.set_line_wrap(True)
         cache_help_label.set_markup(
             "If provided, this location will be used by installers to cache "
-            "downloaded files locally for future re-use. \nIf left empty, the "
+            "downloaded files locally for future re-use. If left empty, the "
             "installer files are discarded after the install completion."
         )
         prefs_box.pack_start(cache_help_label, False, False, 6)
 
-        prefs_box.pack_start(self._get_hide_on_game_launch_box(), False, False, 6)
-
         info_sw = self.build_scrolled_window(prefs_box)
-        self._add_notebook_tab(info_sw, "Lutris preferences")
+        self.stack.add_titled(info_sw, "prefs", "Lutris preferences")
+        self.stack.child_set_property(info_sw, "icon-name", "preferences-other-symbolic")
 
     def _build_sysinfo_tab(self):
         sysinfo_box = Gtk.VBox()
@@ -132,15 +148,15 @@ class GameDialogCommon:
         sysinfo_box.add(sysinfo_view)
         sysinfo_box.add(button_copy)
         info_sw = self.build_scrolled_window(sysinfo_box)
-        self._add_notebook_tab(info_sw, "System Information")
+        self.stack.add_titled(info_sw, "sysinfo", "System Information")
+        self.stack.child_set_property(info_sw, "icon-name", "dialog-information-symbolic")
 
     def _copy_text(self, widget):
         self.clipboard.set_text(self._clipboard_buffer, -1)
 
     def _get_game_cache_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        label = Label("Cache path")
-        box.pack_start(label, False, False, 0)
+        row = Handy.ActionRow()
+        row.set_title("Cache path")
         cache_path = get_cache_path()
         path_chooser = FileChooserEntry(
             title="Set the folder for the cache path",
@@ -148,17 +164,20 @@ class GameDialogCommon:
             path=cache_path
         )
         path_chooser.entry.connect("changed", self._on_cache_path_set)
-        box.pack_start(path_chooser, True, True, 0)
-        return box
+        row.add_action(path_chooser)
+        return row
 
     def _get_hide_on_game_launch_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        checkbox = Gtk.CheckButton(label="Minimize client when a game is launched")
+        row = Handy.ActionRow()
+        row.set_title("Minimize client when a game is launched")
+        checkbox = Gtk.Switch()
+        checkbox.set_valign(Gtk.Align.CENTER)
         if settings.read_setting("hide_client_on_game_start") == "True":
             checkbox.set_active(True)
-        checkbox.connect("toggled", self._on_hide_client_change)
-        box.pack_start(checkbox, True, True, 0)
-        return box
+        checkbox.connect("activate", self._on_hide_client_change)
+        row.add_action(checkbox)
+        row.set_activatable_widget(checkbox)
+        return row
 
     def _on_hide_client_change(self, widget):
         """Save setting for hiding the game on game launch"""
@@ -357,7 +376,8 @@ class GameDialogCommon:
             game_sw = self.build_scrolled_window(self.game_box)
         else:
             game_sw = Gtk.Label(label=self.no_runner_label)
-        self._add_notebook_tab(game_sw, "Game options")
+        self.stack.add_titled(game_sw, "options", "Game options")
+        self.stack.child_set_property(game_sw, "icon-name", "applications-games-symbolic")
 
     def _build_runner_tab(self, _config_level):
         if self.runner_name:
@@ -365,20 +385,20 @@ class GameDialogCommon:
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)
-        self._add_notebook_tab(runner_sw, "Runner options")
+        self.stack.add_titled(runner_sw, "runner", "Runner options")
+        self.stack.child_set_property(runner_sw, "icon-name", "preferences-other-symbolic")
 
     def _build_system_tab(self, _config_level):
         if not self.lutris_config:
             raise RuntimeError("Lutris config not loaded yet")
         self.system_box = SystemBox(self.lutris_config)
         self.system_sw = self.build_scrolled_window(self.system_box)
-        self._add_notebook_tab(self.system_sw, "System options")
-
-    def _add_notebook_tab(self, widget, label):
-        self.notebook.append_page(widget, Gtk.Label(label=label))
+        self.stack.add_titled(self.system_sw, "system", "System options")
+        self.stack.child_set_property(self.system_sw, "icon-name", "preferences-system-symbolic")
 
     def build_action_area(self, button_callback):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
+        self.action_area.set_border_width(10)
 
         # Advanced settings checkbox
         checkbox = Gtk.CheckButton(label="Show advanced options")
@@ -406,11 +426,11 @@ class GameDialogCommon:
 
     def _set_advanced_options_visible(self, value):
         """Change visibility of advanced options across all config tabs."""
-        widgets = self.system_box.get_children()
+        widgets = self.system_box.listbox.get_children()
         if self.runner_name:
-            widgets += self.runner_box.get_children()
+            widgets += self.runner_box.listbox.get_children()
         if self.game:
-            widgets += self.game_box.get_children()
+            widgets += self.game_box.listbox.get_children()
 
         for widget in widgets:
             if widget.get_style_context().has_class("advanced"):
