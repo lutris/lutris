@@ -478,7 +478,8 @@ class GameDialogCommon:
                 for ii in i.get_children()[0].get_children():
                     if Gtk.Buildable.get_name(ii) == "pages_stack":
                         for iii in ii.get_children():
-                            if not ii.get_visible_child() == iii: ii.remove(iii)
+                            if not ii.get_visible_child() == iii:
+                                ii.remove(iii)
 
         self._build_game_tab()
         self._build_runner_tab("game")

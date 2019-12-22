@@ -593,8 +593,10 @@ class GameBox(ConfigBox):
             logger.warning("No runner in game supplied to GameBox")
         self.generate_widgets("game")
         print(len(self.basic.get_children()))
-        len(self.basic.get_children()) >= 1 and self.add(self.basic)
-        len(self.advanced.get_children()) >= 1 and self.add(self.advanced)
+        if len(self.basic.get_children()) >= 1:
+            self.add(self.basic)
+        if len(self.advanced.get_children()) >= 1:
+            self.add(self.advanced)
 
 
 class RunnerBox(ConfigBox):
@@ -615,8 +617,10 @@ class RunnerBox(ConfigBox):
                 "the base runner configuration."
             )
         self.generate_widgets("runner")
-        len(self.basic.get_children()) >= 1 and self.add(self.basic)
-        len(self.advanced.get_children()) >= 1 and self.add(self.advanced)
+        if len(self.basic.get_children()) >= 1:
+            self.add(self.basic)
+        if len(self.advanced.get_children()) >= 1:
+            self.add(self.advanced)
 
 
 class SystemBox(ConfigBox):
@@ -643,5 +647,7 @@ class SystemBox(ConfigBox):
             )
 
         self.generate_widgets("system")
-        len(self.basic.get_children()) >= 1 and self.add(self.basic)
-        len(self.advanced.get_children()) >= 1 and self.add(self.advanced)
+        if len(self.basic.get_children()) >= 1:
+            self.add(self.basic)
+        if len(self.advanced.get_children()) >= 1:
+            self.add(self.advanced)
