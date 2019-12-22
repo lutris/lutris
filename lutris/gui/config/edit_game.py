@@ -15,11 +15,7 @@ class EditGameConfigDialog(Dialog, GameDialogCommon):
 
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
-        self.build_notebook()
         self.build_tabs("game")
         self.build_action_area(self.on_save)
         self.connect("delete-event", self.on_cancel_clicked)
-        self.build_headerbar()
-        self.viewswitcher.set_stack(self.stack)
-        self.set_titlebar(self.header)
         self.show_all()

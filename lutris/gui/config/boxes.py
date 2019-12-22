@@ -10,7 +10,7 @@ from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
 
 
-class ConfigBox(VBox):
+class ConfigBox(Handy.PreferencesPage):
     """Dynamically generate a vbox built upon on a python dict."""
 
     def __init__(self, game=None):
@@ -21,8 +21,13 @@ class ConfigBox(VBox):
         self.raw_config = None
         self.option_widget = None
         self.wrapper = None
-        self.listbox = Gtk.ListBox()
-        self.listbox.get_style_context().add_class("frame")
+
+        self.basic = Handy.PreferencesGroup()
+        self.basic.set_title("Basic Preferences")
+
+        self.advanced = Handy.PreferencesGroup()
+        self.advanced.set_title("Advanced Preferences")
+        self.advanced.get_style_context().add_class("advanced")
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -40,8 +45,10 @@ class ConfigBox(VBox):
         title_label.set_use_markup(True)
         help_box.pack_start(title_label, False, False, 5)
 
-        self.pack_start(help_box, False, False, 0)
-        self.pack_start(Gtk.HSeparator(), False, False, 12)
+        pg = Handy.PreferencesGroup()
+        pg.add(help_box)
+        pg.add(Gtk.HSeparator())
+        self.add(pg)
 
         help_box.show_all()
 
@@ -51,7 +58,9 @@ class ConfigBox(VBox):
             no_options_label = Label("No options available")
             no_options_label.set_halign(Gtk.Align.CENTER)
             no_options_label.set_valign(Gtk.Align.CENTER)
-            self.pack_start(no_options_label, True, True, 0)
+            basic = Handy.PreferencesGroup()
+            basic.add(no_options_label)
+            self.add(basic)
             return
 
         # Select config section.
@@ -115,11 +124,9 @@ class ConfigBox(VBox):
 
             # Hide if advanced
             if option.get("advanced"):
-                self.wrapper.get_style_context().add_class("advanced")
-                show_advanced = settings.read_setting("show_advanced_options")
-                if not show_advanced == "True":
-                    self.wrapper.set_no_show_all(True)
-            self.listbox.add(self.wrapper)
+                self.advanced.add(self.wrapper)
+            else:
+                self.basic.add(self.wrapper)
 
     def call_widget_generator(self, option, option_key, value, default):
         """Call the right generation method depending on option type."""
@@ -176,18 +183,13 @@ class ConfigBox(VBox):
     # Label
     def generate_label(self, text):
         """Generate a simple label."""
-        label = Label(text)
-        label.set_use_markup(True)
-        label.set_halign(Gtk.Align.START)
-        label.set_valign(Gtk.Align.CENTER)
-        self.wrapper.add_prefix(label)
+        self.wrapper.set_title(text)
 
     # Checkbox
     def generate_checkbox(self, option, value=None):
         """Generate a checkbox."""
 
-        label = Label(option["label"])
-        self.wrapper.add_prefix(label)
+        self.wrapper.set_title(option["label"])
 
         switch = Gtk.Switch()
         if value is True:
@@ -201,8 +203,7 @@ class ConfigBox(VBox):
     def generate_checkbox_with_callback(self, option, value=None):
         """Generate a checkbox. With callback"""
 
-        label = Label(option["label"])
-        self.wrapper.add_prefix(label)
+        self.wrapper.set_title(option["label"])
 
         checkbox = Gtk.Switch()
         checkbox.set_sensitive(option["active"] is True)
@@ -243,10 +244,10 @@ class ConfigBox(VBox):
     # Entry
     def generate_entry(self, option_name, label, value=None, option_size=None):
         """Generate an entry box."""
-        label = Label(label)
-        self.wrapper.add_prefix(label)
+        self.wrapper.set_title(label)
 
         entry = Gtk.Entry()
+        entry.set_hexpand(True)
         entry.set_valign(Gtk.Align.CENTER)
         if value:
             entry.set_text(value)
@@ -297,9 +298,8 @@ class ConfigBox(VBox):
 
         combobox.connect("changed", self.on_combobox_change, option_name)
         combobox.connect("scroll-event", self.on_combobox_scroll)
-        label = Label(label)
         combobox.set_valign(Gtk.Align.CENTER)
-        self.wrapper.add_prefix(label)
+        self.wrapper.set_title(label)
         self.wrapper.add_action(combobox)
         self.option_widget = combobox
 
@@ -333,8 +333,7 @@ class ConfigBox(VBox):
         if value:
             spin_button.set_value(value)
         spin_button.connect("changed", self.on_spin_button_changed, option_name)
-        label = Label(label)
-        self.wrapper.add_prefix(label)
+        self.wrapper.set_title(label)
         self.wrapper.add_action(spin_button)
         self.option_widget = spin_button
 
@@ -347,7 +346,6 @@ class ConfigBox(VBox):
     def generate_file_chooser(self, option, path=None):
         """Generate a file chooser button to select a file."""
         option_name = option["option"]
-        label = Label(option["label"])
         file_chooser = FileChooserEntry(
             title="Select file",
             action=Gtk.FileChooserAction.OPEN,
@@ -373,7 +371,7 @@ class ConfigBox(VBox):
             file_chooser.entry.set_text(path)
 
         file_chooser.set_valign(Gtk.Align.CENTER)
-        self.wrapper.add_prefix(label)
+        self.wrapper.set_title(option["label"])
         self.wrapper.add_action(file_chooser)
         self.option_widget = file_chooser
         file_chooser.entry.connect("changed", self._on_chooser_file_set, option_name)
@@ -387,7 +385,6 @@ class ConfigBox(VBox):
     # Directory chooser
     def generate_directory_chooser(self, option, path=None):
         """Generate a file chooser button to select a directory."""
-        label = Label(option["label"])
         option_name = option["option"]
         default_path = None
         if not path and self.game and self.game.runner:
@@ -398,11 +395,12 @@ class ConfigBox(VBox):
             path=path,
             default_path=default_path
         )
+        directory_chooser.entry.set_hexpand(True)
         directory_chooser.entry.connect(
             "changed", self._on_chooser_dir_set, option_name
         )
         directory_chooser.set_valign(Gtk.Align.CENTER)
-        self.wrapper.add_prefix(label)
+        self.wrapper.set_title(option["label"])
         self.wrapper.add_action(directory_chooser)
         self.option_widget = directory_chooser
 
@@ -414,7 +412,6 @@ class ConfigBox(VBox):
     def generate_editable_grid(self, option_name, label, value=None):
         value = value or {}
         value = list(value.items())
-        label = Label(label)
 
         grid = EditableGrid(value, columns=["Key", "Value"])
         grid.connect("changed", self.on_grid_changed, option_name)
@@ -423,7 +420,7 @@ class ConfigBox(VBox):
         men = Gtk.MenuButton()
         men.set_popover(pop)
         men.set_valign(Gtk.Align.CENTER)
-        self.wrapper.add_prefix(label)
+        self.wrapper.set_title(label)
         self.wrapper.add_action(men)
         self.option_widget = grid
 
@@ -595,6 +592,9 @@ class GameBox(ConfigBox):
         else:
             logger.warning("No runner in game supplied to GameBox")
         self.generate_widgets("game")
+        print(len(self.basic.get_children()))
+        len(self.basic.get_children()) >= 1 and self.add(self.basic)
+        len(self.advanced.get_children()) >= 1 and self.add(self.advanced)
 
 
 class RunnerBox(ConfigBox):
@@ -614,8 +614,9 @@ class RunnerBox(ConfigBox):
                 "If modified, these options supersede the same options from "
                 "the base runner configuration."
             )
-        self.pack_start(self.listbox, False, False, 0)
         self.generate_widgets("runner")
+        len(self.basic.get_children()) >= 1 and self.add(self.basic)
+        len(self.advanced.get_children()) >= 1 and self.add(self.advanced)
 
 
 class SystemBox(ConfigBox):
@@ -641,5 +642,6 @@ class SystemBox(ConfigBox):
                 "the global preferences."
             )
 
-        self.pack_start(self.listbox, False, False, 0)
         self.generate_widgets("system")
+        len(self.basic.get_children()) >= 1 and self.add(self.basic)
+        len(self.advanced.get_children()) >= 1 and self.add(self.advanced)

@@ -11,12 +11,12 @@ from lutris.util.log import logger
 import gi
 gi.require_version("WebKit2", "4.0")
 
-from gi.repository import GLib, GObject, Gtk, WebKit2
+from gi.repository import GLib, GObject, Gtk, WebKit2, Handy
 
 
-class Dialog(Gtk.Dialog):
+class Dialog(Handy.PreferencesWindow):
     def __init__(self, title=None, parent=None, flags=0, buttons=None):
-        super().__init__(title, parent, flags, buttons)
+        super().__init__()
         self.connect("delete-event", self.on_destroy)
         self.set_destroy_with_parent(True)
 

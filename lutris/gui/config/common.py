@@ -74,10 +74,6 @@ class GameDialogCommon:
         self.viewswitcher = Handy.ViewSwitcher()
         self.header.set_custom_title(self.viewswitcher)
 
-    def build_notebook(self):
-        self.stack = Gtk.Stack()
-        self.vbox.pack_start(self.stack, True, True, 10)
-
     def build_tabs(self, config_level):
         self.timer_id = None
         if config_level == "game":
@@ -91,32 +87,31 @@ class GameDialogCommon:
         self._build_system_tab(config_level)
 
     def _build_info_tab(self):
-        info_box = VBox()
+        info_box = Handy.PreferencesPage()
+        info_group = Handy.PreferencesGroup()
 
         if self.game:
-            info_box.pack_start(self._get_banner_box(), False, False, 6)  # Banner
+            info_group.add(self._get_banner_box())  # Banner
+            info_group.add(self._get_icon_box())  # Icon
 
-        info_box.pack_start(self._get_name_box(), False, False, 6)  # Game name
+        info_group.add(self._get_name_box())  # Game name
 
         if self.game:
-            info_box.pack_start(self._get_slug_box(), False, False, 6)  # Game id
+            info_group.add(self._get_slug_box())  # Game id
 
         self.runner_box = self._get_runner_box()
-        info_box.pack_start(self.runner_box, False, False, 6)  # Runner
+        info_group.add(self.runner_box)  # Runner
 
-        info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
+        info_group.add(self._get_year_box())  # Year
 
-        info_sw = self.build_scrolled_window(info_box)
-        self.stack.add_titled(info_sw, "game", "Game info")
-        self.stack.child_set_property(info_sw, "icon-name", "applications-games-symbolic")
+        info_box.add(info_group)
+        info_box.set_title("Game")
+        info_box.set_icon_name("applications-games-symbolic")
+        self.add(info_box)
 
     def _build_prefs_tab(self):
-        prefs_box = VBox()
-        listbox = Gtk.ListBox()
-        listbox.get_style_context().add_class("frame")
-        listbox.add(self._get_hide_on_game_launch_box())
-        listbox.add(self._get_game_cache_box())
-        prefs_box.pack_start(listbox, False, False, 6)
+        prefs_box = Handy.PreferencesPage()
+        group = Handy.PreferencesGroup()
 
         cache_help_label = Gtk.Label(visible=True)
         cache_help_label.set_line_wrap(True)
@@ -125,14 +120,24 @@ class GameDialogCommon:
             "downloaded files locally for future re-use. If left empty, the "
             "installer files are discarded after the install completion."
         )
-        prefs_box.pack_start(cache_help_label, False, False, 6)
+        cache_help_label.set_margin_top(10)
+        group.add(cache_help_label)
+        
+        group.add(self._get_hide_on_game_launch_box())
+        group.add(self._get_game_cache_box())
 
-        info_sw = self.build_scrolled_window(prefs_box)
-        self.stack.add_titled(info_sw, "prefs", "Lutris preferences")
-        self.stack.child_set_property(info_sw, "icon-name", "preferences-other-symbolic")
+        prefs_box.add(group)
+
+        prefs_box.set_title("Lutris Preferences")
+        prefs_box.set_icon_name("preferences-other-symbolic")
+
+        self.add(prefs_box)
 
     def _build_sysinfo_tab(self):
-        sysinfo_box = Gtk.VBox()
+        sysinfo_page = Handy.PreferencesPage()
+        copy_group = Handy.PreferencesGroup()
+        sysinfo_group = Handy.PreferencesGroup()
+
         sysinfo_view = LogTextView()
         sysinfo_view.set_cursor_visible(False)
         sysinfo_str = gather_system_info_str()
@@ -145,11 +150,15 @@ class GameDialogCommon:
         button_copy = Gtk.Button("Copy System Info")
         button_copy.connect("clicked", self._copy_text)
 
-        sysinfo_box.add(sysinfo_view)
-        sysinfo_box.add(button_copy)
-        info_sw = self.build_scrolled_window(sysinfo_box)
-        self.stack.add_titled(info_sw, "sysinfo", "System Information")
-        self.stack.child_set_property(info_sw, "icon-name", "dialog-information-symbolic")
+        copy_group.add(button_copy)
+        sysinfo_group.add(sysinfo_view)
+
+        sysinfo_page.add(copy_group)
+        sysinfo_page.add(sysinfo_group)
+
+        sysinfo_page.set_title("System Information")
+        sysinfo_page.set_icon_name("dialog-information-symbolic")
+        self.add(sysinfo_page)
 
     def _copy_text(self, widget):
         self.clipboard.set_text(self._clipboard_buffer, -1)
@@ -195,96 +204,105 @@ class GameDialogCommon:
         return False
 
     def _get_name_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        label = Label("Name")
-        box.pack_start(label, False, False, 0)
+        row = Handy.ActionRow()
+        row.set_title("Name")
         self.name_entry = Gtk.Entry()
+        self.name_entry.set_valign(Gtk.Align.CENTER)
         if self.game:
             self.name_entry.set_text(self.game.name)
-        box.pack_start(self.name_entry, True, True, 0)
-        return box
+        row.add_action(self.name_entry)
+        return row
 
     def _get_slug_box(self):
-        slug_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        row = Handy.ActionRow()
 
-        label = Label("Identifier")
-        slug_box.pack_start(label, False, False, 0)
+        row.set_title("Identifier")
+
+        self.slug_change_button = Gtk.Button("Change")
+        self.slug_change_button.set_valign(Gtk.Align.CENTER)
+        self.slug_change_button.connect("clicked", self.on_slug_change_clicked)
+        row.add_action(self.slug_change_button)
 
         self.slug_entry = SlugEntry()
         self.slug_entry.set_text(self.game.slug)
         self.slug_entry.set_sensitive(False)
+        self.slug_entry.set_valign(Gtk.Align.CENTER)
         self.slug_entry.connect("activate", self.on_slug_entry_activate)
-        slug_box.pack_start(self.slug_entry, True, True, 0)
+        row.add_action(self.slug_entry)
 
-        self.slug_change_button = Gtk.Button("Change")
-        self.slug_change_button.connect("clicked", self.on_slug_change_clicked)
-        slug_box.pack_start(self.slug_change_button, False, False, 0)
-
-        return slug_box
+        return row
 
     def _get_runner_box(self):
-        runner_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        row = Handy.ActionRow()
 
-        runner_label = Label("Runner")
-        runner_box.pack_start(runner_label, False, False, 0)
+        row.set_title("Runner")
 
         self.runner_dropdown = self._get_runner_dropdown()
-        runner_box.pack_start(self.runner_dropdown, True, True, 0)
+        self.runner_dropdown.set_valign(Gtk.Align.CENTER)
 
         install_runners_btn = Gtk.Button("Install runners")
+        install_runners_btn.set_valign(Gtk.Align.CENTER)
         install_runners_btn.connect("clicked", self.on_install_runners_clicked)
-        runner_box.pack_start(install_runners_btn, True, True, 0)
+        
+        row.add_action(install_runners_btn)
+        row.add_action(self.runner_dropdown)
 
-        return runner_box
+        return row
 
     def _get_banner_box(self):
-        banner_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        row = Handy.ActionRow()
 
-        label = Label("")
-        banner_box.pack_start(label, False, False, 0)
+        row.set_title("Banner")
 
         self.banner_button = Gtk.Button()
         self._set_image("banner")
         self.banner_button.connect("clicked", self.on_custom_image_select, "banner")
-        banner_box.pack_start(self.banner_button, False, False, 0)
+        row.add_action(self.banner_button)
 
         reset_banner_button = Gtk.Button.new_from_icon_name(
-            "edit-clear", Gtk.IconSize.MENU
+            "view-refresh-symbolic", Gtk.IconSize.MENU
         )
         reset_banner_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_banner_button.set_tooltip_text("Remove custom banner")
         reset_banner_button.connect(
             "clicked", self.on_custom_image_reset_clicked, "banner"
         )
-        banner_box.pack_start(reset_banner_button, False, False, 0)
+        row.add_action(reset_banner_button)
+
+        return row
+
+    def _get_icon_box(self):
+        row = Handy.ActionRow()
+
+        row.set_title("Icon")
 
         self.icon_button = Gtk.Button()
         self._set_image("icon")
         self.icon_button.connect("clicked", self.on_custom_image_select, "icon")
-        banner_box.pack_start(self.icon_button, False, False, 0)
+        row.add_action(self.icon_button)
 
         reset_icon_button = Gtk.Button.new_from_icon_name(
-            "edit-clear", Gtk.IconSize.MENU
+            "view-refresh-symbolic", Gtk.IconSize.MENU
         )
         reset_icon_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_icon_button.set_tooltip_text("Remove custom icon")
         reset_icon_button.connect("clicked", self.on_custom_image_reset_clicked, "icon")
-        banner_box.pack_start(reset_icon_button, False, False, 0)
+        row.add_action(reset_icon_button)
 
-        return banner_box
+        return row
 
     def _get_year_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        row = Handy.ActionRow()
 
-        label = Label("Release year")
-        box.pack_start(label, False, False, 0)
+        row.set_title("Release Year")
 
         self.year_entry = NumberEntry()
+        self.year_entry.set_valign(Gtk.Align.CENTER)
         if self.game:
             self.year_entry.set_text(str(self.game.year or ""))
-        box.pack_start(self.year_entry, True, True, 0)
+        row.add_action(self.year_entry)
 
-        return box
+        return row
 
     def _set_image(self, image_format):
         image = Gtk.Image()
@@ -368,76 +386,49 @@ class GameDialogCommon:
                 except runners.InvalidRunner:
                     pass
             self.game_box = GameBox(self.lutris_config, self.game)
-            game_sw = self.build_scrolled_window(self.game_box)
+            game_sw = self.game_box
         elif self.runner_name:
             game = Game(None)
             game.runner_name = self.runner_name
             self.game_box = GameBox(self.lutris_config, game)
-            game_sw = self.build_scrolled_window(self.game_box)
+            game_sw = self.game_box
         else:
-            game_sw = Gtk.Label(label=self.no_runner_label)
-        self.stack.add_titled(game_sw, "options", "Game options")
-        self.stack.child_set_property(game_sw, "icon-name", "applications-games-symbolic")
+            prefpage = Handy.PreferencesPage()
+            pregroup = Handy.PreferencesGroup()
+            pregroup.add(Gtk.Label(label=self.no_runner_label))
+            prefpage.add(pregroup)
+            game_sw = prefpage
+        game_sw.set_title("Game Options")
+        game_sw.set_icon_name("applications-games-symbolic")
+        self.add(game_sw)
 
     def _build_runner_tab(self, _config_level):
         if self.runner_name:
             self.runner_box = RunnerBox(self.lutris_config, self.game)
-            runner_sw = self.build_scrolled_window(self.runner_box)
+            runner_sw = self.runner_box
         else:
-            runner_sw = Gtk.Label(label=self.no_runner_label)
-        self.stack.add_titled(runner_sw, "runner", "Runner options")
-        self.stack.child_set_property(runner_sw, "icon-name", "preferences-other-symbolic")
+            prefpage = Handy.PreferencesPage()
+            pregroup = Handy.PreferencesGroup()
+            pregroup.add(Gtk.Label(label=self.no_runner_label))
+            prefpage.add(pregroup)
+            runner_sw = prefpage
+        runner_sw.set_title("Runner Options")
+        runner_sw.set_icon_name("preferences-system-symbolic")
+        self.add(runner_sw)
 
     def _build_system_tab(self, _config_level):
         if not self.lutris_config:
             raise RuntimeError("Lutris config not loaded yet")
         self.system_box = SystemBox(self.lutris_config)
-        self.system_sw = self.build_scrolled_window(self.system_box)
-        self.stack.add_titled(self.system_sw, "system", "System options")
-        self.stack.child_set_property(self.system_sw, "icon-name", "preferences-system-symbolic")
+        self.system_box.set_title("System Preferences")
+        self.system_box.set_icon_name("preferences-system-symbolic")
+        self.add(self.system_box)
 
     def build_action_area(self, button_callback):
-        self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
-        self.action_area.set_border_width(10)
-
-        # Advanced settings checkbox
-        checkbox = Gtk.CheckButton(label="Show advanced options")
-        if settings.read_setting("show_advanced_options") == "True":
-            checkbox.set_active(True)
-        checkbox.connect("toggled", self.on_show_advanced_options_toggled)
-        self.action_area.pack_start(checkbox, False, False, 5)
-
-        # Buttons
-        hbox = Gtk.Box()
-        cancel_button = Gtk.Button(label="Cancel")
-        cancel_button.connect("clicked", self.on_cancel_clicked)
-        hbox.pack_start(cancel_button, True, True, 10)
-
         save_button = Gtk.Button(label="Save")
+        save_button.get_style_context().add_class("suggested-action")
         save_button.connect("clicked", button_callback)
-        hbox.pack_start(save_button, True, True, 0)
-        self.action_area.pack_start(hbox, True, True, 0)
-
-    def on_show_advanced_options_toggled(self, checkbox):
-        value = True if checkbox.get_active() else False
-        settings.write_setting("show_advanced_options", value)
-
-        self._set_advanced_options_visible(value)
-
-    def _set_advanced_options_visible(self, value):
-        """Change visibility of advanced options across all config tabs."""
-        widgets = self.system_box.listbox.get_children()
-        if self.runner_name:
-            widgets += self.runner_box.listbox.get_children()
-        if self.game:
-            widgets += self.game_box.listbox.get_children()
-
-        for widget in widgets:
-            if widget.get_style_context().has_class("advanced"):
-                widget.set_visible(value)
-                if value:
-                    widget.set_no_show_all(not value)
-                    widget.show_all()
+        self.get_titlebar().pack_end(save_button)
 
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed."""
@@ -464,7 +455,6 @@ class GameDialogCommon:
 
     def _switch_runner(self, widget):
         """Rebuilds the UI on runner change"""
-        current_page = self.notebook.get_current_page()
         if self.runner_index == 0:
             logger.info("No runner selected, resetting configuration")
             self.runner_name = None
@@ -481,11 +471,15 @@ class GameDialogCommon:
                 level="game"
             )
         self._rebuild_tabs()
-        self.notebook.set_current_page(current_page)
 
     def _rebuild_tabs(self):
-        for i in range(self.notebook.get_n_pages(), 1, -1):
-            self.notebook.remove_page(i - 1)
+        for i in self.get_children():
+            if Gtk.Buildable.get_name(i) == "content_stack":
+                for ii in i.get_children()[0].get_children():
+                    if Gtk.Buildable.get_name(ii) == "pages_stack":
+                        for iii in ii.get_children():
+                            if not ii.get_visible_child() == iii: ii.remove(iii)
+
         self._build_game_tab()
         self._build_runner_tab("game")
         self._build_system_tab("game")
