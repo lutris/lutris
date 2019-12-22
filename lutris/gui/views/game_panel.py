@@ -178,7 +178,7 @@ class GamePanel(GenericPanel):
         icon_start = 84
         icons_y_offset = 60
         buttons_x_offset = 28
-        extra_button_start = 520  # Y position for runner actions
+        extra_button_start = 540  # Y position for runner actions
         extra_button_index = 0
         for action_id, button in self.buttons.items():
             position = None
@@ -213,6 +213,8 @@ class GamePanel(GenericPanel):
                 position = (buttons_x_offset, current_y + 120)
             if action_id in ("menu-shortcut", "rm-menu-shortcut"):
                 position = (buttons_x_offset, current_y + 160)
+            if action_id in ("hide", "unhide"):
+                position = (buttons_x_offset, current_y + 200)
 
             if not position:
                 position = (

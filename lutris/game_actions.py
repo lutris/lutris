@@ -110,11 +110,11 @@ class GameActions:
                 self.on_view_game
             ),
             (
-                "hide", "Hide game from list",
+                "hide", "Hide game from library",
                 self.on_hide_game
             ),
             (
-                "unhide", "Unhide game",
+                "unhide", "Unhide game from library",
                 self.on_unhide_game
             ),
         ]
