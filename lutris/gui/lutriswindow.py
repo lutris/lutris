@@ -354,7 +354,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
         settings.write_setting('show_tray_icon', value)
         self.application.set_tray_icon()
 
-
     @property
     def show_tray_icon(self):
         """Setting to hide or show status icon"""

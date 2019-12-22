@@ -97,6 +97,7 @@ class LutrisStatusIcon:
     def on_game_selected(self, _widget, game_id):
         self.application.launch(Game(game_id))
 
+
 class LutrisTray(Gtk.StatusIcon):
     """Lutris tray icon"""
 
@@ -106,6 +107,3 @@ class LutrisTray(Gtk.StatusIcon):
         self.set_visible(True)
         self.application = application
         self.set_from_icon_name("lutris")
-
-        self.menu = self.get_menu()
-
