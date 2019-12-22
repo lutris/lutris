@@ -352,6 +352,7 @@
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
+            <property name="action-target">'name'</property>
             <property name="text" translatable="yes">_Name</property>
           </object>
           <packing>
@@ -366,6 +367,7 @@
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
+            <property name="action-target">'year'</property>
             <property name="text" translatable="yes">_Year</property>
           </object>
           <packing>
@@ -380,6 +382,7 @@
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
+            <property name="action-target">'lastplayed'</property>
             <property name="text" translatable="yes">Last _Played</property>
           </object>
           <packing>
@@ -394,6 +397,7 @@
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
+            <property name="action-target">'installed_at'</property>
             <property name="text" translatable="yes">In_stalled at</property>
           </object>
           <packing>
@@ -408,6 +412,7 @@
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
+            <property name="action-target">'playtime'</property>
             <property name="text" translatable="yes">Play _time</property>
           </object>
           <packing>
