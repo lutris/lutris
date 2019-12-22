@@ -37,6 +37,7 @@ from lutris import settings
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
+from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
 from lutris.command import exec_command
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -313,6 +314,7 @@ class Application(Gtk.Application):
 
         # Graphical commands
         self.activate()
+        self.set_tray_icon()
 
         if not action:
             if db_game and db_game["installed"]:
@@ -463,3 +465,11 @@ class Application(Gtk.Application):
         Gtk.Application.do_shutdown(self)
         if self.window:
             self.window.destroy()
+
+    def set_tray_icon(self):
+        """Creates or destroys a tray icon for the application"""
+        active = settings.read_setting("show_tray_icon", default="false") == "true"
+        if active and not self.tray:
+            self.tray = LutrisStatusIcon(application=self)
+        if self.tray:
+            self.tray.set_visible(active)
