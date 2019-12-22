@@ -337,7 +337,7 @@ def winetricks(
         disable_runtime=False,
 ):
     """Execute winetricks."""
-    wine_config = config or LutrisConfig(runner_slug="wine")
+    wine_config = config or LutrisConfig(runner_slug="wine").runner_config
     system_winetricks = wine_config.get("system_winetricks")
     if system_winetricks:
         winetricks_path = "usr/bin/winetricks"
