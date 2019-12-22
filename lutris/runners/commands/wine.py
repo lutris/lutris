@@ -340,7 +340,7 @@ def winetricks(
     wine_config = config or LutrisConfig(runner_slug="wine").runner_config
     system_winetricks = wine_config.get("system_winetricks")
     if system_winetricks:
-        winetricks_path = "usr/bin/winetricks"
+        winetricks_path = "/usr/bin/winetricks"
     else:
         winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
         if not system.path_exists(winetricks_path):

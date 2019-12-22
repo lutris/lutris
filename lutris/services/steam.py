@@ -148,9 +148,9 @@ class SteamSyncer:
 
             if pga_game:
                 if (
-                    steamid in self.lutris_steamids
-                    and pga_game["installed"] != 1
-                    and pga_game["installed"]
+                        steamid in self.lutris_steamids
+                        and pga_game["installed"] != 1
+                        and pga_game["installed"]
                 ):
                     added_games.append(game.install())
 
@@ -168,9 +168,9 @@ class SteamSyncer:
         for steamid in unavailable_ids:
             for pga_game in self.lutris_games:
                 if (
-                    str(pga_game["steamid"]) == steamid
-                    and pga_game["installed"]
-                    and pga_game["runner"] == self.runner
+                        str(pga_game["steamid"]) == steamid
+                        and pga_game["installed"]
+                        and pga_game["runner"] == self.runner
                 ):
                     game = SteamGame.new_from_lutris_id(pga_game["id"])
                     game.uninstall()
