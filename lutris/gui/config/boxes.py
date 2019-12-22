@@ -89,6 +89,8 @@ class ConfigBox(VBox):
             self.option_widget = None
             self.call_widget_generator(option, option_key, value, default)
 
+            self.wrapper.set_activatable_widget(self.option_widget)
+
             placeholder = Gtk.Box()
             placeholder.set_size_request(32, 32)
 
