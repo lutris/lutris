@@ -41,6 +41,8 @@ def read_config(steam_data_dir):
 
 
 def get_steamapps_paths_for_platform(platform_name):
+    """
+    """
     from lutris.runners import winesteam, steam
 
     runners = {"linux": steam.steam, "windows": winesteam.winesteam}
