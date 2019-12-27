@@ -34,6 +34,7 @@ class MonitoredCommand:
             include_processes=None,
             exclude_processes=None,
             log_buffer=None,
+            title=None,
     ):  # pylint: disable=too-many-arguments
         self.ready_state = True
         self.env = self.get_environment(env)
@@ -60,6 +61,8 @@ class MonitoredCommand:
 
         self._stdout = io.StringIO()
 
+        self._title = title if title else command
+
     @property
     def stdout(self):
         return self._stdout.getvalue()
@@ -70,6 +73,7 @@ class MonitoredCommand:
 
         return [
             WRAPPER_SCRIPT,
+            self._title,
             str(len(self.include_processes)),
             str(len(self.exclude_processes)),
         ] + self.include_processes + self.exclude_processes + self.command

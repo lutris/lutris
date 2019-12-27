@@ -23,6 +23,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
             [
                 sys.executable,
                 lutris_wrapper_bin,
+                'title',
                 '0',
                 '0',
                 'bash',
