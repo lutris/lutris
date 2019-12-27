@@ -9,6 +9,11 @@ from ctypes.util import find_library
 from lutris.util.monitor import ProcessMonitor
 from lutris.util.log import logger
 
+try:
+    from setproctitle import setproctitle
+except ImportError:
+    setproctitle = print
+
 
 PR_SET_CHILD_SUBREAPER = 36
 
@@ -62,7 +67,9 @@ def log(line):
 def main():
     """Runs a command independently from the Lutris client"""
     set_child_subreaper()
-    _, include_proc_count, exclude_proc_count, *args = sys.argv
+    _, proc_title, include_proc_count, exclude_proc_count, *args = sys.argv
+
+    setproctitle("lutris-wrapper: " + proc_title)
 
     # So I'm too lazy to implement real argument parsing... sorry.
     include_proc_count = int(include_proc_count)

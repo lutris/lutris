@@ -562,6 +562,7 @@ class Game(GObject.Object):
         """Run a background command to lauch the game"""
         self.game_thread = MonitoredCommand(
             self.game_runtime_config["args"],
+            title=self.name,
             runner=self.runner,
             env=self.game_runtime_config["env"],
             term=self.game_runtime_config["terminal"],
