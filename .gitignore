@@ -15,3 +15,15 @@ pga.db
 tests/coverage/*
 /dist
 /lutris.egg-info
+
+#dpkg build files
+.pybuild/
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/licence-test
+debian/lutris.postinst.debhelper
+debian/lutris.prerm.debhelper
+debian/lutris.substvars
+debian/lutris/
+
