@@ -94,3 +94,9 @@ class Process:
             for child_pid in self.get_children_pids_of_thread(tid):
                 _children.append(Process(child_pid))
         return _children
+
+    def iter_children(self):
+        """Iterator that yields all the children of a process"""
+        for child in self.children:
+            yield child
+            yield from child.iter_children()

@@ -2,7 +2,6 @@
 import os
 import shlex
 
-from lutris.util.log import logger
 from lutris.util.process import Process
 
 
@@ -57,9 +56,6 @@ class ProcessMonitor:
         self.exclude_processes = [
             x[0:15] for x in EXCLUDED_PROCESSES + self.parse_process_list(exclude_processes)
         ]
-        # Keep a copy of the monitored processes to allow comparisons
-        self.children = []
-        self.ignored_children = []
 
     @staticmethod
     def parse_process_list(process_list):
@@ -70,38 +66,9 @@ class ProcessMonitor:
             return shlex.split(process_list)
         return process_list
 
-    def iter_children(self, process, topdown=True):
-        """Iterator that yields all the children of a process"""
-        for child in process.children:
-            if topdown:
-                yield child
-            yield from self.iter_children(child, topdown=topdown)
-            if not topdown:
-                yield child
-
-    @staticmethod
-    def _log_changes(label, old, new):
-        newpids = {p.pid for p in new}
-        oldpids = {p.pid for p in old}
-        added = [p for p in new if p.pid not in oldpids]
-        removed = [p for p in old if p.pid not in newpids]
-        if added:
-            logger.debug("New %s processes: %s", label, ', '.join(map(str, added)))
-        if removed:
-            logger.debug("Dead %s processes: %s", label, ', '.join(map(str, removed)))
-
-    def refresh_process_status(self):
-        """Return status of a process"""
-        old_children, self.children = self.children, []
-        old_ignored_children, self.ignored_children = self.ignored_children, []
-
-        for child in self.iter_children(Process(os.getpid())):
-            if child.state == 'Z':  # should never happen anymore...
-                logger.debug("Unexpected zombie process %s", child)
-                try:
-                    os.wait3(os.WNOHANG)
-                except ChildProcessError:
-                    pass
+    def iterate_monitored_processes(self):
+        for child in Process(os.getpid()).iter_children():
+            if child.state == 'Z':
                 continue
 
             if (
@@ -109,11 +76,15 @@ class ProcessMonitor:
                     and child.name in self.exclude_processes
                     and child.name not in self.include_processes
             ):
-                self.ignored_children.append(child)
+                pass
             else:
-                self.children.append(child)
+                yield child
 
-        self._log_changes('ignored', old_ignored_children, self.ignored_children)
-        self._log_changes('monitored', old_children, self.children)
+    def iterate_all_processes(self):
+        return Process(os.getpid()).iter_children()
 
-        return len(self.children) > 0
+    def is_game_alive(self):
+        "Returns whether at least one nonexcluded process exists"
+        for child in self.iterate_monitored_processes():
+            return True
+        return False

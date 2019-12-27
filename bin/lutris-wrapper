@@ -84,11 +84,9 @@ def main():
     def hard_sig_handler(signum, _frame):
         log("Caught another signal, sending SIGKILL.")
         for _ in range(3):  # just in case we race a new process.
-            monitor.refresh_process_status()
-            children = monitor.children + monitor.ignored_children
             if not children:
                 break
-            for child in children:
+            for child in monitor.iterate_all_processes():
                 try:
                     os.kill(child.pid, signal.SIGKILL)
                 except ProcessLookupError:  # process already dead
@@ -99,8 +97,7 @@ def main():
         log("Caught signal %s" % signum)
         signal.signal(signal.SIGTERM, hard_sig_handler)
         signal.signal(signal.SIGINT, hard_sig_handler)
-        monitor.refresh_process_status()
-        for child in monitor.children:
+        for child in monitor.iterate_monitored_processes():
             log("passing along signal to PID %s" % child.pid)
             try:
                 os.kill(child.pid, signum)
@@ -108,26 +105,46 @@ def main():
                 pass
         log("--terminated processes--")
 
-    old_sigterm_handler = signal.signal(signal.SIGTERM, sig_handler)
-    old_sigint_handler = signal.signal(signal.SIGINT, sig_handler)
+    signal.signal(signal.SIGTERM, sig_handler)
+    signal.signal(signal.SIGINT, sig_handler)
 
     log("Running %s" % " ".join(args))
+    returncode = None
     try:
-        returncode = subprocess.run(args).returncode
+        initial_pid = subprocess.Popen(args).pid
     except FileNotFoundError:
         log("Failed to execute process. Check that the file exists")
         return
-    try:
+
+    log("Initial process has started with pid %d" % initial_pid)
+
+    while monitor.is_game_alive():
+        # Wait for a process to die.
+        try:
+            dead_pid, dead_returncode, _ = os.wait3(0)
+        except ChildProcessError:
+            # No processes remain. No need to check monitor.
+            break
+
         while True:
-            log("Waiting on children")
-            os.wait3(0)
-            if not monitor.refresh_process_status():
-                log("All children gone")
+            # Reap as many children as possible before checking
+            # our monitor list.
+            if dead_pid == initial_pid:
+                log("Initial process has died.")
+                returncode = dead_returncode
+
+            try:
+                dead_pid, dead_returncode, _ = os.wait3(os.WNOHANG)
+            except ChildProcessError:
+                # No processes remain.
+                break 
+
+            if dead_pid == 0:  # No more children to reap
                 break
-    except ChildProcessError:
-        # If the game itself has quit then
-        # this process has no children
-        pass
+
+    if returncode is None:
+        returncode = 0
+        log("Never found the initial process' return code. Weird?")
     log("Exit with returncode %s" % returncode)
     sys.exit(returncode)
 
