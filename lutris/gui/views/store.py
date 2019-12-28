@@ -92,10 +92,20 @@ class GameStore(GObject.Object):
             filter_installed,
             sort_key,
             sort_ascending,
+            show_hidden_games,
             show_installed_first=False,
     ):
         super(GameStore, self).__init__()
-        self.games = games or []
+
+        games_raw = pga.get_games(show_installed_first=show_installed_first)
+        if show_hidden_games:
+            self.games = games_raw
+        else:
+            # Check if the PGA contains game IDs that the user does not
+            # want to see
+            ignores = pga.get_hidden_ids()
+            self.games = [game for game in games_raw if game["id"] not in ignores]
+
         self.search_mode = False
         self.games_to_refresh = set()
         self.icon_type = icon_type
@@ -237,8 +247,14 @@ class GameStore(GObject.Object):
         return True
 
     def sort_view(self, key="name", ascending=True):
+        """Sort the model on a given column name"""
+        try:
+            sort_column = self.sort_columns[key]
+        except KeyError:
+            logger.error("Invalid column name '%s'", key)
+            sort_column = COL_NAME
         self.modelsort.set_sort_column_id(
-            self.sort_columns[key],
+            sort_column,
             Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING,
         )
 

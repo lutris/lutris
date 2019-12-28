@@ -1,10 +1,11 @@
+"""Run web based games"""
 import os
 import string
-import shlex
 from urllib.parse import urlparse
 
 from lutris.runners.runner import Runner
 from lutris.util import datapath, system, resources
+from lutris.util.strings import split_arguments
 from lutris import pga, settings
 
 DEFAULT_ICON = os.path.join(datapath.get(), "media/default_icon.png")
@@ -204,7 +205,7 @@ class web(Runner):
 
             command = [browser]
 
-            for arg in shlex.split(arguments):
+            for arg in split_arguments(arguments):
                 command.append(arg)
 
             return {"command": command}

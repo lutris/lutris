@@ -573,7 +573,7 @@ Example:
         - en: English
         - fr: French
         - "value and": "label can be anything, surround them with quotes to avoid issues"
-        preselect: fr
+        preselect: en
 
 In this example, English would be preselected. If the option eventually
 selected is French, the "$INPUT_LANG" alias would be available in
@@ -887,7 +887,7 @@ Overrides format for ``create_prefix``, ``wineexec`` commands and for ``wine`` o
 
       overrides:
         ddraw.dll: n
-        d3d9: disable
+        d3d9: disabled
         winegstreamer: builtin
 
 

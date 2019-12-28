@@ -2,10 +2,11 @@ from gi.repository import Gtk
 
 
 class LogTextView(Gtk.TextView):
-    def __init__(self, buffer, autoscroll=True):
+    def __init__(self, buffer=None, autoscroll=True):
         super().__init__()
 
-        self.set_buffer(buffer)
+        if buffer:
+            self.set_buffer(buffer)
         self.set_editable(False)
         self.set_cursor_visible(False)
         self.set_monospace(True)

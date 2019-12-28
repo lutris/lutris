@@ -1,6 +1,10 @@
+"""String utilities"""
 import unicodedata
 import re
 import math
+import shlex
+
+from lutris.util.log import logger
 
 
 def slugify(value):
@@ -10,7 +14,12 @@ def slugify(value):
     and converts spaces to hyphens.
     """
     value = str(value)
-    value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore")
+    # This differs from the Lutris website implementation which uses the Django
+    # version of `slugify` and uses the "NFKD" normalization method instead of
+    # "NFD". This creates some inconsistencies in titles containing a trademark
+    # symbols or some other special characters. The website version of slugify
+    # will likely get updated to use the same normalization method.
+    value = unicodedata.normalize("NFD", value).encode("ascii", "ignore")
     value = value.decode("utf-8")
     value = str(re.sub(r"[^\w\s-]", "", value)).strip().lower()
     return re.sub(r"[-\s]+", "-", value)
@@ -131,3 +140,14 @@ def get_formatted_playtime(playtime):
     if seconds:
         return "%d seconds" % seconds
     return "No play time recorded"
+
+
+def split_arguments(args):
+    """Wrapper around shlex.split that is more tolerant of errors"""
+    try:
+        return shlex.split(args)
+    except ValueError as ex:
+        message = ex.args[0]
+        if message == "No closing quotation":
+            return split_arguments(args + "\"")
+        logger.error(message)

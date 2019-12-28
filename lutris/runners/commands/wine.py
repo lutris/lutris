@@ -9,6 +9,7 @@ from lutris.config import LutrisConfig
 from lutris.runners import import_runner
 from lutris.command import MonitoredCommand
 from lutris.util import datapath, system
+from lutris.util.strings import split_arguments
 from lutris.util.log import logger
 from lutris.util.wine.wine import (
     WINE_DIR,
@@ -310,7 +311,7 @@ def wineexec(
     command_parameters = [wine_path]
     if executable:
         command_parameters.append(executable)
-    command_parameters += shlex.split(args)
+    command_parameters += split_arguments(args)
     if blocking:
         return system.execute(command_parameters, env=wineenv, cwd=working_dir)
     wine = import_runner("wine")
@@ -336,12 +337,17 @@ def winetricks(
         disable_runtime=False,
 ):
     """Execute winetricks."""
-    winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
-    if not system.path_exists(winetricks_path):
-        logger.warning(
-            "Could not find local winetricks install, falling back to bundled version"
-        )
-        winetricks_path = os.path.join(datapath.get(), "bin/winetricks")
+    wine_config = config or LutrisConfig(runner_slug="wine")
+    system_winetricks = wine_config.runner_config.get("system_winetricks")
+    if system_winetricks:
+        winetricks_path = "/usr/bin/winetricks"
+    else:
+        winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
+        if not system.path_exists(winetricks_path):
+            logger.warning(
+                "Could not find local winetricks install, falling back to bundled version"
+            )
+            winetricks_path = os.path.join(datapath.get(), "bin/winetricks")
     if wine_path:
         winetricks_wine = wine_path
     else:

@@ -91,15 +91,12 @@ class Runner:
                 if not os.path.isabs(path):
                     path = os.path.join(self.game_path, path)
                 return path
-
-        if self.game_data.get("directory"):
-            return self.game_data.get("directory")
+        return self.game_path
 
     @property
     def game_path(self):
         """Return the directory where the game is installed."""
-        if self.game_data.get("directory"):
-            return self.game_data.get("directory")
+        return self.game_data.get("directory")
 
     @property
     def working_dir(self):
@@ -276,17 +273,22 @@ class Runner:
         """Return whether the runner is installed"""
         return system.path_exists(self.get_executable())
 
-    def get_runner_info(self):
-        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
-        return request.get().json
-
     def get_runner_version(self, version=None):
+        """Get the appropriate version for a runner
+
+        Params:
+            version (str): Optional version to lookup, will return this one if found
+
+        Returns:
+            dict: Dict containing version, architecture and url for the runner
+        """
         logger.info(
             "Getting runner information for %s%s",
             self.name,
-            "(version: %s)" % version if version else "",
+            " (version: %s)" % version if version else "",
         )
-        runner_info = self.get_runner_info()
+        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
+        runner_info = request.get().json
         if not runner_info:
             logger.error("Failed to get runner information")
             return
@@ -395,3 +397,14 @@ class Runner:
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
+
+    def find_option(self, options_group, option_name):
+        """Retrieve an option dict if it exists in the group"""
+        if options_group not in ['game_options', 'runner_options']:
+            return None
+        output = None
+        for item in getattr(self, options_group):
+            if item["option"] == option_name:
+                output = item
+                break
+        return output

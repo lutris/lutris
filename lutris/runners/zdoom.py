@@ -1,7 +1,7 @@
 import os
-import shlex
 from lutris.util.log import logger
 from lutris.util import display, system
+from lutris.util.strings import split_arguments
 from lutris.runners.runner import Runner
 
 
@@ -167,7 +167,7 @@ class zdoom(Runner):
 
         # Append additional arguments, if provided.
         args = self.game_config.get("args") or ""
-        for arg in shlex.split(args):
+        for arg in split_arguments(args):
             command.append(arg)
 
         return {"command": command}

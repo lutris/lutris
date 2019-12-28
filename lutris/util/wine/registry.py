@@ -1,3 +1,4 @@
+"""Manipulate Wine registry files"""
 import os
 import re
 from collections import OrderedDict
@@ -100,7 +101,7 @@ class WineRegistry:
             except Exception:  # pylint: disable=broad-except
                 logger.exception(
                     "Failed to registry read %s, please send attach this file in a bug report",
-                    reg_filename
+                    reg_filename,
                 )
                 registry_content = []
         return registry_content
@@ -121,7 +122,7 @@ class WineRegistry:
                     additional_values.append(line)
                 elif not add_next_to_value:
                     if additional_values:
-                        additional_values = '\n'.join(additional_values)
+                        additional_values = "\n".join(additional_values)
                         current_key.add_to_last(additional_values)
                         additional_values = []
                     current_key.parse(line)
@@ -150,9 +151,10 @@ class WineRegistry:
             raise OSError("No filename provided")
         prefix_path = os.path.dirname(path)
         if not os.path.isdir(prefix_path):
-            raise OSError("Invalid Wine prefix path %s, make sure to "
-                          "create the prefix before saving to a registry"
-                          % prefix_path)
+            raise OSError(
+                "Invalid Wine prefix path %s, make sure to "
+                "create the prefix before saving to a registry" % prefix_path
+            )
         with open(path, "w") as registry_file:
             registry_file.write(self.render())
 
@@ -290,16 +292,22 @@ class WineRegistryKey:
             return '"{}"'.format(value)
         raise NotImplementedError("TODO")
 
-    def decode_unicode(self,string):
-        chunks = string.split('\\x')
-        out = chunks.pop(0).encode().decode('unicode_escape')
+    @staticmethod
+    def decode_unicode(string):
+        chunks = re.split(r"[^\\]\\x", string)
+        out = chunks.pop(0).encode().decode("unicode_escape")
         for chunk in chunks:
-            #We have seen file with unicode characters escaped on 1 byte (\xfa), 1.5 bytes (\x444) and 2 bytes (\x00ed)
-            #So we try 0 padding, 1 and 2 (python wants its escaped sequence to be exactly on 4 characters).
-            #The exception let us know if it worked or not
-            for i in [0,1,2]:
+            # We have seen file with unicode characters escaped on 1 byte (\xfa),
+            # 1.5 bytes (\x444) and 2 bytes (\x00ed). So we try 0 padding, 1 and 2
+            # (python wants its escaped sequence to be exactly on 4 characters).
+            # The exception let us know if it worked or not
+            for i in [0, 1, 2]:
                 try:
-                    out += '\\u{}{}'.format('0'*i,chunk).encode().decode('unicode_escape')
+                    out += (
+                        "\\u{}{}".format("0" * i, chunk)
+                        .encode()
+                        .decode("unicode_escape")
+                    )
                     break
                 except UnicodeDecodeError:
                     pass

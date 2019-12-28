@@ -1,3 +1,4 @@
+"""Window used for game installers"""
 import os
 import time
 import webbrowser
@@ -13,7 +14,7 @@ from lutris.gui.dialogs import (
     NoInstallerDialog, DirectoryDialog, InstallerSourceDialog, QuestionDialog
 )
 from lutris.gui.widgets.download_progress import DownloadProgressBox
-from lutris.gui.widgets.common import FileChooserEntry
+from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
 from lutris.gui.widgets.installer import InstallerPicker
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
@@ -49,10 +50,10 @@ class InstallerWindow(BaseApplicationWindow):
         self.log_buffer = None
         self.log_textview = None
 
-        self.title_label = Gtk.Label()
+        self.title_label = InstallerLabel()
         self.vbox.add(self.title_label)
 
-        self.status_label = Gtk.Label()
+        self.status_label = InstallerLabel()
         self.status_label.set_max_width_chars(80)
         self.status_label.set_property("wrap", True)
         self.status_label.set_selectable(True)
@@ -71,7 +72,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.vbox.pack_start(action_buttons_alignment, False, True, 0)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic("C_ancel")
-        self.cancel_button.set_tooltip_text("Abort and revert the " "installation")
+        self.cancel_button.set_tooltip_text("Abort and revert the installation")
         self.cancel_button.connect("clicked", self.cancel_installation)
         self.action_buttons.add(self.cancel_button)
 
@@ -289,7 +290,7 @@ class InstallerWindow(BaseApplicationWindow):
             action = Gtk.FileChooserAction.SELECT_FOLDER
             enable_warnings = True
         else:
-            raise ValueError("Invalid action %s", action)
+            raise ValueError("Invalid action %s" % action)
 
         if self.location_entry:
             self.location_entry.destroy()
@@ -303,7 +304,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.location_entry.entry.connect("changed", callback_on_changed, action)
         self.widget_box.pack_start(self.location_entry, False, False, 0)
 
-    def on_file_selected(self, widget):
+    def on_file_selected(self, _widget):
         file_path = os.path.expanduser(self.location_entry.get_text())
         if os.path.isfile(file_path):
             self.selected_directory = os.path.dirname(file_path)
@@ -343,10 +344,9 @@ class InstallerWindow(BaseApplicationWindow):
         """Ask the user to do insert a CD-ROM."""
         time.sleep(0.3)
         self.clean_widgets()
-        label = Gtk.Label(label=message)
-        label.set_use_markup(True)
-        self.widget_box.add(label)
+        label = InstallerLabel(message)
         label.show()
+        self.widget_box.add(label)
 
         buttons_box = Gtk.Box()
         buttons_box.show()
@@ -434,10 +434,6 @@ class InstallerWindow(BaseApplicationWindow):
         self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
-        game_data = pga.get_game_by_field(self.game_slug, "slug")
-
-        game = Game(game_data["id"])
-        game.save(metadata_only=True)
         if not self.is_active():
             self.set_urgency_hint(True)  # Blink in taskbar
             self.connect("focus-in-event", self.on_window_focus)
@@ -500,7 +496,6 @@ class InstallerWindow(BaseApplicationWindow):
             logger.debug("User cancelled installation")
             return True
         if self.interpreter:
-            self.interpreter.game_dir_created = remove_checkbox.get_active()
             self.interpreter.revert()
             self.interpreter.cleanup()
         self.destroy()
@@ -521,11 +516,8 @@ class InstallerWindow(BaseApplicationWindow):
 
     def set_message(self, message):
         """Display a message."""
-        label = Gtk.Label()
+        label = InstallerLabel()
         label.set_markup("<b>%s</b>" % add_url_tags(message))
-        label.set_max_width_chars(80)
-        label.set_property("wrap", True)
-        label.set_alignment(0, 0)
         label.show()
         self.widget_box.pack_start(label, False, False, 18)
 

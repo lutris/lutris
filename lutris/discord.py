@@ -1,3 +1,4 @@
+"""Discord integration"""
 import asyncio
 import time
 
@@ -12,9 +13,7 @@ from lutris.util.log import logger
 
 
 class DiscordPresence(object):
-    """This class provides rich presence integration
-       with Discord for games.
-    """
+    """Provide rich presence integration with Discord for games"""
 
     def __init__(self):
         self.available = bool(PyPresence)
@@ -29,10 +28,6 @@ class DiscordPresence(object):
         self.show_runner = True
         self.custom_runner_name = ''
         self.rpc_enabled = True
-
-    def load_from_config(self, config):
-        """Loads
-        """
 
     def connect(self):
         """Make sure we are actually connected before trying to send requests"""

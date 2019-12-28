@@ -1,7 +1,8 @@
 """Shared config dialog stuff"""
 # pylint: disable=no-member,not-an-iterable
+import importlib
 import os
-from gi.repository import Gtk, Pango, GLib
+from gi.repository import Gtk, Gdk, Pango, GLib
 from lutris.game import Game
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.util.log import logger
@@ -11,6 +12,7 @@ from lutris.cache import get_cache_path, save_cache_path
 from lutris.gui.widgets.common import VBox, SlugEntry, NumberEntry, Label, FileChooserEntry
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
+from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.utils import (
     get_pixbuf_for_game,
     get_pixbuf,
@@ -19,6 +21,7 @@ from lutris.gui.widgets.utils import (
 )
 from lutris.util.strings import slugify
 from lutris.util import resources
+from lutris.util.linux import gather_system_info_str
 
 
 # pylint: disable=too-many-instance-attributes
@@ -48,6 +51,8 @@ class GameDialogCommon:
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
+        self.clipboard = None
+        self._clipboard_buffer = None
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -70,6 +75,7 @@ class GameDialogCommon:
             self._build_runner_tab(config_level)
         if config_level == "system":
             self._build_prefs_tab()
+            self._build_sysinfo_tab()
         self._build_system_tab(config_level)
 
     def _build_info_tab(self):
@@ -108,6 +114,28 @@ class GameDialogCommon:
 
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, "Lutris preferences")
+
+    def _build_sysinfo_tab(self):
+        sysinfo_box = Gtk.VBox()
+        sysinfo_view = LogTextView()
+        sysinfo_view.set_cursor_visible(False)
+        sysinfo_str = gather_system_info_str()
+
+        text_buffer = sysinfo_view.get_buffer()
+        text_buffer.set_text(sysinfo_str)
+        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        self._clipboard_buffer = sysinfo_str
+
+        button_copy = Gtk.Button("Copy System Info")
+        button_copy.connect("clicked", self._copy_text)
+
+        sysinfo_box.add(sysinfo_view)
+        sysinfo_box.add(button_copy)
+        info_sw = self.build_scrolled_window(sysinfo_box)
+        self._add_notebook_tab(info_sw, "System Information")
+
+    def _copy_text(self, widget):
+        self.clipboard.set_text(self._clipboard_buffer, -1)
 
     def _get_game_cache_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
@@ -304,9 +332,10 @@ class GameDialogCommon:
         """Messed up callback requiring an import in the method to avoid a circular dependency"""
         from lutris.gui.dialogs.runners import RunnersDialog
         runners_dialog = RunnersDialog()
-        runners_dialog.connect("runner-installed", self._update_runner_dropdown)
+        runners_dialog.connect("runner-installed", self.on_runner_installed)
 
-    def _update_runner_dropdown(self, _widget):
+    def on_runner_installed(self, _dialog):
+        """Callback triggered when new runners are installed"""
         active_id = self.runner_dropdown.get_active_id()
         self.runner_dropdown.set_model(self._get_runner_liststore())
         self.runner_dropdown.set_active_id(active_id)
@@ -417,10 +446,16 @@ class GameDialogCommon:
         """Rebuilds the UI on runner change"""
         current_page = self.notebook.get_current_page()
         if self.runner_index == 0:
+            logger.info("No runner selected, resetting configuration")
             self.runner_name = None
             self.lutris_config = None
         else:
-            self.runner_name = widget.get_model()[self.runner_index][1]
+            runner_name = widget.get_model()[self.runner_index][1]
+            if runner_name == self.runner_name:
+                logger.debug("Runner unchanged, not creating a new config")
+                return
+            logger.info("Creating new configuration with runner %s", runner_name)
+            self.runner_name = runner_name
             self.lutris_config = LutrisConfig(
                 runner_slug=self.runner_name,
                 level="game"
@@ -454,6 +489,25 @@ class GameDialogCommon:
                 and self.lutris_config.game_config.get("appid") is None
         ):
             ErrorDialog("Steam AppId not provided")
+            return False
+        invalid_fields = []
+        runner_module = importlib.import_module("lutris.runners." + self.runner_name)
+        runner_class = getattr(runner_module, self.runner_name)
+        runner_instance = runner_class()
+        for config in ["game", "runner"]:
+            for k, v in getattr(self.lutris_config, config + "_config").items():
+                option = runner_instance.find_option(config + "_options", k)
+                if option is None:
+                    continue
+                validator = option.get("validator")
+                if validator is not None:
+                    try:
+                        res = validator(v)
+                        logger.debug("{} validated successfully: {}".format(k, res))
+                    except Exception:
+                        invalid_fields.append(option.get("label"))
+        if invalid_fields:
+            ErrorDialog("The following fields have invalid values: " + ", ".join(invalid_fields))
             return False
         return True
 

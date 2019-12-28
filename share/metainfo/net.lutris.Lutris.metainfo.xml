@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
   <id>net.lutris.Lutris</id>
+  <project_license>GPL-3.0</project_license>
+  <metadata_license>CC0-1.0</metadata_license>
+  <translation type="gettext">Lutris</translation>
+  <developer_name>Lutris Team</developer_name>
+  <update_contact>strider@lutris.net</update_contact>
   <name>Lutris</name>
   <summary>Lutris is an open source gaming platform</summary>
   <summary xml:lang="pt_BR">Lutris é uma plataforma de jogos de código aberto</summary>
   <summary xml:lang="es">Lutris es una plataforma de juegos de código abierto</summary>
   <summary xml:lang="id">Lutris merupakan platform permainan sumber terbuka</summary>
-  <developer_name>Lutris Team</developer_name>
-  <url type="homepage">https://lutris.net</url>
-  <url type="donation">https://lutris.net/donate</url>
-  <url type="help">https://forums.lutris.net</url>
-  <url type="faq">https://lutris.net/faq</url>
-  <url type="translate">https://github.com/lutris/lutris/tree/master/po</url>
-  <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <screenshots>
     <screenshot type="default">
       <image>https://lutris.net/static/images/screenshots/main-window.png</image>
@@ -30,13 +28,15 @@
   <description xml:lang="id">
     <p>Lutris membantu Anda memasang dan mengelola permainan Anda dalam antarmuka terpadu. Tujuan kami adalah untuk mendukung setiap permainan yang berjalan di Linux, dari permainan native ke Windows (melalui Wine) ke emulator dan peramban permainan. Aplikasi destop dan situs web adalah perangkat lunak libre, kontribusi Anda diterima!</p>
   </description>
+  <url type="homepage">https://lutris.net</url>
+  <url type="donation">https://lutris.net/donate</url>
+  <url type="help">https://forums.lutris.net</url>
+  <url type="faq">https://lutris.net/faq</url>
+  <url type="translate">https://github.com/lutris/lutris/tree/master/po</url>
+  <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
-  <project_license>GPL-3.0</project_license>
-  <metadata_license>CC0-1.0</metadata_license>
-  <translation type="gettext">Lutris</translation>
-  <update_contact>strider@lutris.net</update_contact>
   <releases>
-    <release date="2019-04-04" version="0.5.2" />
+    <release date="2019-11-23" version="0.5.4" />
   </releases>
   <content_rating type="oars-1.1" />
 </component>

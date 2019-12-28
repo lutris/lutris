@@ -6,7 +6,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.3
+Version:        0.5.4
 Release:        7%{?dist}
 Summary:        Install and play any video game easily
 
@@ -120,7 +120,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{_bindir}/%{name}
 %{_bindir}/lutris-wrapper
 %{_datadir}/%{name}/
-%{_datadir}/metainfo/%{appid}.appdata.xml
+%{_datadir}/metainfo/%{appid}.metainfo.xml
 %{_datadir}/applications/%{appid}.desktop
 %{_datadir}/icons/hicolor/16x16/apps/lutris.png
 %{_datadir}/icons/hicolor/22x22/apps/lutris.png

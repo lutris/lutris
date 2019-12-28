@@ -6,6 +6,7 @@ class pcsx2(Runner):
     human_name = "PCSX2"
     description = "PlayStation 2 emulator"
     platforms = ["Sony PlayStation 2"]
+    runnable_alone = True
     runner_executable = "pcsx2/PCSX2"
     game_options = [
         {

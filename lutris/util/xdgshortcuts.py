@@ -10,16 +10,19 @@ from gi.repository import GLib
 from lutris.util import system
 from lutris.settings import CACHE_DIR
 
+
 def get_xdg_entry(directory):
     """Return the path for specific user folders"""
-    special_dir = { "DESKTOP":  GLib.UserDirectory.DIRECTORY_DESKTOP,
-                    "MUSIC":    GLib.UserDirectory.DIRECTORY_MUSIC,
-                    "PICTURES": GLib.UserDirectory.DIRECTORY_PICTURES,
-                    "VIDEOS":   GLib.UserDirectory.DIRECTORY_VIDEOS,
-                    "DOCUMENTS":GLib.UserDirectory.DIRECTORY_DOCUMENTS }
+    special_dir = {
+        "DESKTOP": GLib.UserDirectory.DIRECTORY_DESKTOP,
+        "MUSIC": GLib.UserDirectory.DIRECTORY_MUSIC,
+        "PICTURES": GLib.UserDirectory.DIRECTORY_PICTURES,
+        "VIDEOS": GLib.UserDirectory.DIRECTORY_VIDEOS,
+        "DOCUMENTS": GLib.UserDirectory.DIRECTORY_DOCUMENTS,
+    }
     directory = directory.upper()
     if directory not in special_dir.keys():
-        raise ValueError("Only those folders are supported "+special_dir.keys())
+        raise ValueError("Only those folders are supported " + special_dir.keys())
     return GLib.get_user_special_dir(special_dir[directory])
 
 
@@ -29,9 +32,9 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
         # When base dir is provided, lookup possible combinations
         # and return the first match
         for path in [
-                "{}.desktop".format(game_slug),
-                "{}-{}.desktop".format(game_slug, game_id),
-                "net.lutris.{}-{}.desktop".format(game_slug, game_id),
+            "{}.desktop".format(game_slug),
+            "{}-{}.desktop".format(game_slug, game_id),
+            "net.lutris.{}-{}.desktop".format(game_slug, game_id),
         ]:
             if system.path_exists(os.path.join(base_dir, path)):
                 return path
@@ -98,6 +101,7 @@ def get_menu_launcher_path(game_slug, game_id):
     return os.path.join(
         menu_dir, get_xdg_basename(game_slug, game_id, base_dir=menu_dir)
     )
+
 
 def desktop_launcher_exists(game_slug, game_id):
     return system.path_exists(get_launcher_path(game_slug, game_id))

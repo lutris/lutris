@@ -184,7 +184,11 @@ class ScriptInterpreter(CommandsMixin):
         if self.runner in ("steam", "winesteam"):
             # Steam games installs in their steamapps directory
             return False
-        if self.files or self.script.get("game", {}).get("gog"):
+        if (
+                self.files
+                or self.script.get("game", {}).get("gog")
+                or self.script.get("game", {}).get("prefix")
+        ):
             return True
         command_names = [list(c.keys())[0] for c in self.script.get("installer", [])]
         if "insert-disc" in command_names:
@@ -223,6 +227,11 @@ class ScriptInterpreter(CommandsMixin):
         if self.runner == "libretro":
             if "game" not in self.script or "core" not in self.script["game"]:
                 self.errors.append("Missing libretro core in game section")
+
+        # Check that Steam games have an AppID
+        if self.runner in ("steam", "winesteam"):
+            if not self.script.get("game", {}).get("appid"):
+                self.errors.append("Missing appid for Steam game")
 
         # Check that installers don't contain both 'requires' and 'extends'
         if self.script.get("requires") and self.script.get("extends"):
@@ -286,8 +295,7 @@ class ScriptInterpreter(CommandsMixin):
                 if not installed_games:
                     if len(dependency) == 1:
                         raise MissingGameDependency(slug=dependency)
-                    else:
-                        raise ScriptingError(error_message.format(" or ".join(dependency)))
+                    raise ScriptingError(error_message.format(" or ".join(dependency)))
                 if index == 0:
                     self.target_path = installed_games[0]["directory"]
                     self.requires = installed_games[0]["installer_slug"]
@@ -449,12 +457,17 @@ class ScriptInterpreter(CommandsMixin):
                 version = self._get_runner_version()
                 if version:
                     params["version"] = version
-                elif runner.get_version(use_default=False) != "system":
+                else:
                     # Looking up default wine version
                     default_wine = runner.get_runner_version() or {}
                     if "version" in default_wine:
                         logger.debug("Default wine version is %s", default_wine["version"])
-                        params["version"] = "{}-{}".format(
+                        # Set the version to both the is_installed params and
+                        # the script itself so the version gets saved at the
+                        # end of the install.
+                        if self.runner not in self.script:
+                            self.script[self.runner] = {}
+                        params["version"] = self.script[self.runner]["version"] = "{}-{}".format(
                             default_wine["version"],
                             default_wine["architecture"]
                         )
@@ -462,7 +475,7 @@ class ScriptInterpreter(CommandsMixin):
                         logger.error("Failed to get default wine version (got %s)", default_wine)
 
             if not runner.is_installed(**params):
-                logger.debug("Runner %s needs to be installed")
+                logger.info("Runner %s needs to be installed")
                 self.runners_to_install.append(runner)
 
         if self.runner.startswith("wine") and not get_system_wine_version():
@@ -520,11 +533,7 @@ class ScriptInterpreter(CommandsMixin):
 
         # Add steam installation to commands if it's a Steam game
         if self.runner in ("steam", "winesteam"):
-            try:
-                self.steam_data["appid"] = self.script["game"]["appid"]
-            except KeyError:
-                raise ScriptingError("Missing appid for steam game")
-
+            self.steam_data["appid"] = self.script["game"]["appid"]
             if "arch" in self.script["game"]:
                 self.steam_data["arch"] = self.script["game"]["arch"]
 
@@ -729,7 +738,10 @@ class ScriptInterpreter(CommandsMixin):
 
     def revert(self):
         """Revert installation in case of an error"""
-        logger.debug("Install cancelled")
+        logger.info("Cancelling installation of %s", self.game_name)
+        if self.runner.startswith("wine"):
+            self.task({"name": "winekill"})
+
         self.cancelled = True
 
         if self.abort_current_task:
@@ -932,13 +944,17 @@ class ScriptInterpreter(CommandsMixin):
             for installer in self.gog_data["downloads"]["installers"]
             if installer["os"] != "mac"
         ]
-        available_platforms = set([installer["os"] for installer in gog_installers])
+        available_platforms = {installer["os"] for installer in gog_installers}
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
+            if self.runner == "linux":
+                filter_os = "windows"
+            else:
+                filter_os = "linux"
             gog_installers = [
                 installer
                 for installer in gog_installers
-                if installer["os"] != "windows"
+                if installer["os"] != filter_os
             ]
 
         # Keep only the english installer until we have locale detection

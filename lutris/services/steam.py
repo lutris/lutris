@@ -15,10 +15,12 @@ ONLINE = False
 
 class SteamGame(ServiceGame):
     """ServiceGame for Steam games"""
+
     store = "steam"
     installer_slug = "steam"
     excluded_appids = [
         "228980",  # Steamworks Common Redistributables
+        "1070560",  # Steam Linux Runtime
     ]
 
     @classmethod
@@ -80,7 +82,9 @@ class SteamGame(ServiceGame):
 
     def create_config(self):
         """Create the game configuration for a Steam game"""
-        game_config = LutrisConfig(runner_slug=self.runner, game_config_id=self.config_id)
+        game_config = LutrisConfig(
+            runner_slug=self.runner, game_config_id=self.config_id
+        )
         game_config.raw_game_config.update({"appid": self.appid})
         game_config.save()
 
@@ -100,8 +104,7 @@ class SteamSyncer:
     def lutris_games(self):
         if not self._lutris_games:
             self._lutris_games = pga.get_games_where(
-                steamid__isnull=False,
-                steamid__not=""
+                steamid__isnull=False, steamid__not=""
             )
         return self._lutris_games
 
@@ -117,7 +120,9 @@ class SteamSyncer:
         steamapps_paths = get_steamapps_paths()
         for steamapps_path in steamapps_paths[self.platform]:
             for appmanifest_file in get_appmanifests(steamapps_path):
-                app_manifest = AppManifest(os.path.join(steamapps_path, appmanifest_file))
+                app_manifest = AppManifest(
+                    os.path.join(steamapps_path, appmanifest_file)
+                )
                 if SteamGame.is_importable(app_manifest):
                     games.append(SteamGame.new_from_steam_game(app_manifest))
         return games
@@ -127,7 +132,7 @@ class SteamSyncer:
         for pga_game in self.lutris_games:
             if (
                     str(pga_game["steamid"]) == game.appid
-                    and pga_game["runner"] == self.runner
+                    and (pga_game["runner"] == self.runner or not pga_game["runner"])
                     and not pga_game["installed"]
             ):
                 return pga_game
@@ -142,7 +147,11 @@ class SteamSyncer:
             pga_game = self.get_pga_game(game)
 
             if pga_game:
-                if steamid in self.lutris_steamids and pga_game["installed"] != 1 and pga_game["installed"]:
+                if (
+                        steamid in self.lutris_steamids
+                        and pga_game["installed"] != 1
+                        and pga_game["installed"]
+                ):
                     added_games.append(game.install())
 
             if steamid not in self.lutris_steamids:
@@ -152,7 +161,7 @@ class SteamSyncer:
                     added_games.append(game.install(pga_game))
 
         if not full:
-            return added_games
+            return added_games, games
 
         removed_games = []
         unavailable_ids = self.lutris_steamids.difference(available_ids)

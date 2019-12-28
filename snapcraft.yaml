@@ -86,7 +86,7 @@ parts:
 
   lutris-runtime:
     plugin: nil
-    stage-packages: [python3, python3-yaml, python3-requests, python3-pil, python3-gi, dh-python, curl, cabextract, psmisc, gvfs-backends, unzip, p7zip, mesa-utils, fluid-soundfont-gs, libgnutls30, x11-xserver-utils, on amd64: ['libxrandr-dev:i386', 'libgnutls30:i386', 'x11-xserver-utils:i386', 'libc6-i386', 'lib32gcc1'] ]
+    stage-packages: [python3, python3-setproctitle, python3-yaml, python3-requests, python3-pil, python3-gi, dh-python, curl, cabextract, psmisc, gvfs-backends, unzip, p7zip, mesa-utils, fluid-soundfont-gs, libgnutls30, x11-xserver-utils, on amd64: ['libxrandr-dev:i386', 'libgnutls30:i386', 'x11-xserver-utils:i386', 'libc6-i386', 'lib32gcc1'] ]
     stage: [-lib/ld-linux.so.2, -usr/bin/cpp-7, -usr/share/doc/cpp/README.Debian, -usr/share/man/man1/cpp-7.1.gz]
     after: [enable-i386]
 
