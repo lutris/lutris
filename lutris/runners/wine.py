@@ -158,9 +158,6 @@ class wine(Runner):
         def get_dxvk_choices():
             return dxvk_choices(dxvk.DXVKManager)
 
-        def get_d9vk_choices():
-            return dxvk_choices(dxvk.D9VKManager)
-
         def esync_limit_callback(widget, option, config):
             limits_set = is_esync_limit_set()
             wine_path = self.get_path_for_version(config["version"])
@@ -234,26 +231,6 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": get_dxvk_choices,
                 "default": dxvk.DXVKManager.DXVK_LATEST,
-            },
-            {
-                "option": "d9vk",
-                "label": "Enable D9VK",
-                "type": "extended_bool",
-                "callback": dxvk_vulkan_callback,
-                "callback_on": True,
-                "active": True,
-                "help": (
-                    "Use D9VK to increase performance in Direct3D 9 "
-                    "applications by translating their calls to Vulkan."
-                ),
-            },
-            {
-                "option": "d9vk_version",
-                "label": "D9VK version",
-                "advanced": True,
-                "type": "choice_with_entry",
-                "choices": get_d9vk_choices,
-                "default": dxvk.D9VKManager.DXVK_LATEST,
             },
             {
                 "option": "esync",
@@ -809,16 +786,6 @@ class wine(Runner):
             ),
         )
 
-        # we don't want d9vk to restore d3d9.dll, because dxvk could set it already
-        if bool(self.runner_config.get("d9vk")):
-            self.setup_dxvk(
-                "d9vk",
-                dxvk_manager=dxvk.D9VKManager(
-                    self.prefix_path,
-                    arch=self.wine_arch,
-                    version=self.runner_config.get("d9vk_version"),
-                ),
-            )
         try:
             self.setup_nine(self.runner_config.get("gallium_nine"))
         except nine.NineUnavailable as ex:
@@ -961,7 +928,7 @@ class wine(Runner):
         game_exe = self.game_exe
         arguments = self.game_config.get("args", "")
         launch_info = {"env": self.get_env(os_env=False)}
-        using_dxvk = self.runner_config.get("dxvk") or self.runner_config.get("d9vk")
+        using_dxvk = self.runner_config.get("dxvk")
 
         if using_dxvk:
             # Set this to 1 to enable access to more RAM for 32bit applications

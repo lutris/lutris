@@ -55,7 +55,6 @@ def init_dxvk_versions():
         )
 
     init_versions(DXVKManager)
-    init_versions(D9VKManager)
 
 
 class UnavailableDXVKVersion(RuntimeError):
@@ -210,19 +209,3 @@ class DXVKManager:
         """Disable DXVK for the current prefix"""
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():
             self.disable_dxvk_dll(system_dir, dxvk_arch, dll)
-
-
-class D9VKManager(DXVKManager):
-    DXVK_TAGS_URL = "https://api.github.com/repos/Joshua-Ashton/d9vk/releases"
-    DXVK_VERSIONS = [
-        "0.10",
-    ]
-    DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:9]
-
-    base_url = (
-        "https://github.com/Joshua-Ashton/d9vk/releases/download/{}/d9vk-{}.tar.gz"
-    )
-    base_name = "d9vk"
-    base_dir = os.path.join(RUNTIME_DIR, base_name)
-    dxvk_dlls = ("d3d9",)
-    latest_version = DXVK_LATEST
