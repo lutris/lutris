@@ -45,7 +45,8 @@ def open_uri(uri):
     try:
         Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
     except GLib.Error as ex:
-        logger.exception("Failed to open URI %s: %s", uri, ex)
+        logger.exception("Failed to open URI %s: %s, falling back to xdg-open", uri, ex)
+        system.execute(["xdg-open", uri])
 
 
 def get_pixbuf(image, size, fallback=None):

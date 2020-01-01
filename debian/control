@@ -42,9 +42,9 @@ Depends: ${misc:Depends},
  curl,
  fluid-soundfont-gs,
  x11-xserver-utils,
- mesa-utils,
- gvfs-backends
+ mesa-utils
 Recommends: python3-evdev,
+ gvfs-backends,
  libwine-development,
  libc6-i386 [amd64],
  lib32gcc1 [amd64]
