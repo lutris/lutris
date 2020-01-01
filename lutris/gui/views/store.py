@@ -140,7 +140,11 @@ class GameStore(GObject.Object):
         self.prevent_sort_update = False  # prevent recursion with signals
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
-        self.modelsort = Gtk.TreeModelSort.new_with_model(self.modelfilter)
+        try:
+            self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
+        except AttributeError:
+            # Apparently some API breaking changes on GTK minor versions.
+            self.modelsort = Gtk.TreeModelSort.new_with_model(self.modelfilter)
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
         self.modelsort.set_sort_func(sort_col, sort_func, sort_col)
         self.sort_view(sort_key, sort_ascending)
