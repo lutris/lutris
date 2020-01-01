@@ -5,7 +5,10 @@ import shlex
 from lutris.util.process import Process
 
 
-# List of process names that are ignored by the process monitoring
+# List of process names that are not considered game processes. A game
+# is not "running" until a process that isn't one of the following
+# (or a system process; see below) belongs in its process tree.
+# Processes in this list will be sent SIGTERM when the game has exited
 EXCLUDED_PROCESSES = [
     "lutris",
     "python",
@@ -25,16 +28,26 @@ EXCLUDED_PROCESSES = [
     "steamwebhelper.",
     "PnkBstrA.exe",
     "control",
-    "wineserver",
-    "services.exe",
-    "winedevice.exe",
-    "plugplay.exe",
     "explorer.exe",
     "winecfg.exe",
     "wdfmgr.exe",
     "wineconsole",
     "winedbg",
 ]
+
+# Processes that are considered sufficiently self-managing by the
+# monitoring system. These are not considered game processes for the
+# purpose of determining if a game is still running (just like the
+# EXCLUDED_PROCESSES above) and Lutris will never attempt to send
+# signals to these processes.
+# This is mostly a minor UX improvement where wine games will exit
+# faster if we let the wine processes tear themselves down.
+SYSTEM_PROCESSES = {
+    "wineserver",
+    "services.exe",
+    "winedevice.exe",
+    "plugplay.exe",
+}
 
 
 class ProcessMonitor:
@@ -50,12 +63,13 @@ class ProcessMonitor:
             include_processes (str or list): list of process that should be forced to be monitored
         """
         # process names from /proc only contain 15 characters
-        self.include_processes = [
+        include_processes = {
             x[0:15] for x in self.parse_process_list(include_processes)
-        ]
-        self.exclude_processes = [
+        }
+        self.exclude_processes = {
             x[0:15] for x in EXCLUDED_PROCESSES + self.parse_process_list(exclude_processes)
-        ]
+        }
+        self.nongame_processes = (self.exclude_processes | SYSTEM_PROCESSES) - include_processes
 
     @staticmethod
     def parse_process_list(process_list):
@@ -66,18 +80,20 @@ class ProcessMonitor:
             return shlex.split(process_list)
         return process_list
 
-    def iterate_monitored_processes(self):
-        for child in Process(os.getpid()).iter_children():
+    def iterate_game_processes(self):
+        for child in self.iterate_all_processes():
             if child.state == 'Z':
                 continue
 
-            if (
-                    child.name
-                    and child.name in self.exclude_processes
-                    and child.name not in self.include_processes
-            ):
-                pass
-            else:
+            if child.name and child.name not in self.nongame_processes:
+                yield child
+
+    def iterate_monitored_processes(self):
+        for child in self.iterate_all_processes():
+            if child.state == 'Z':
+                continue
+
+            if child.name not in SYSTEM_PROCESSES:
                 yield child
 
     def iterate_all_processes(self):
@@ -85,6 +101,11 @@ class ProcessMonitor:
 
     def is_game_alive(self):
         "Returns whether at least one nonexcluded process exists"
+        for child in self.iterate_game_processes():
+            return True
+        return False
+
+    def are_monitored_processes_alive(self):
         for child in self.iterate_monitored_processes():
             return True
         return False

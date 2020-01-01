@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
+"""
+Starts a game in a contained process tree, waits for the game to start,
+gently tries to close other game processes when the main game has exited.
+"""
+
 import os
 import sys
+import time
 import subprocess
 import signal
 import logging
@@ -84,8 +90,6 @@ def main():
     def hard_sig_handler(signum, _frame):
         log("Caught another signal, sending SIGKILL.")
         for _ in range(3):  # just in case we race a new process.
-            if not children:
-                break
             for child in monitor.iterate_all_processes():
                 try:
                     os.kill(child.pid, signal.SIGKILL)
@@ -97,7 +101,7 @@ def main():
         log("Caught signal %s" % signum)
         signal.signal(signal.SIGTERM, hard_sig_handler)
         signal.signal(signal.SIGINT, hard_sig_handler)
-        for child in monitor.iterate_monitored_processes():
+        for child in monitor.iterate_game_processes():
             log("passing along signal to PID %s" % child.pid)
             try:
                 os.kill(child.pid, signum)
@@ -118,29 +122,98 @@ def main():
 
     log("Initial process has started with pid %d" % initial_pid)
 
-    while monitor.is_game_alive():
-        # Wait for a process to die.
-        try:
-            dead_pid, dead_returncode, _ = os.wait3(0)
-        except ChildProcessError:
-            # No processes remain. No need to check monitor.
-            break
+    class NoMoreChildren(Exception):
+        "Raised when async_reap_children finds no children left"
+
+    def async_reap_children():
+        """
+        Attempts to reap zombie child processes. Thanks to setting
+        ourselves as a subreaper, we are assigned zombie processes
+        that our children orphan and so we are responsible for
+        clearing them.
+
+        This is also how we determine what our main process' exit
+        code was so that we can forward it to our caller.
+        """
+        nonlocal returncode
 
         while True:
-            # Reap as many children as possible before checking
-            # our monitor list.
-            if dead_pid == initial_pid:
-                log("Initial process has died.")
-                returncode = dead_returncode
-
             try:
                 dead_pid, dead_returncode, _ = os.wait3(os.WNOHANG)
             except ChildProcessError:
-                # No processes remain.
-                break 
+                # No processes remain. No need to check monitor.
+                raise NoMoreChildren from None
 
-            if dead_pid == 0:  # No more children to reap
+            if dead_pid == 0:
                 break
+
+            if returncode is None and dead_pid == initial_pid:
+                log("Initial process has exited.")
+                returncode = dead_returncode
+
+    try:
+        # While we are inside this try..except, if at the time of any
+        # call to async_reap_children there are no children left, we
+        # will skip the rest of our cleanup logic, since with no
+        # children remaining, there's nothing left to wait for.
+        #
+        # This behavior doesn't help with ignoring "system processes",
+        # so its more of a shortcut out of this code than it is
+        # essential for correctness.
+
+        # The initial wait loop:
+        #  the initial process may have been excluded. Wait for the game
+        #  to be considered "started".
+        if not monitor.is_game_alive():
+            log("Waiting for game to be considered started (first non-excluded process started)")
+            while not monitor.is_game_alive():
+                async_reap_children()
+                time.sleep(0.1)
+
+        # The main wait loop:
+        #  The game is running. Our process is now just waiting around
+        #  for processes to exit, waiting up every .1s to reap child
+        #  processes.
+        log("Game is considered started.")
+        while monitor.is_game_alive():
+            async_reap_children()
+            time.sleep(0.1)
+
+        log("Game is considered exited.")
+        async_reap_children()
+
+
+        # The exit wait loop:
+        #  The game is no longer running. We ask monitored processes
+        #  to exit and wait 30 seconds before sending more SIGTERMs.
+        while monitor.are_monitored_processes_alive():
+            async_reap_children()
+            child = None
+            for child in monitor.iterate_monitored_processes():
+                log("Sending SIGTERM to PID %s (pid %s)" % (child.name, child.pid))
+                try:
+                    os.kill(child.pid, signal.SIGTERM)
+                except ProcessLookupError:  # process already dead
+                    pass
+
+
+            # Spend 60 seconds waiting for processes to clean up.
+            async_reap_children()
+            for _ in range(600):
+                if not monitor.are_monitored_processes_alive():
+                    break
+
+                if _ == 0:
+                    log("Waiting up to 30sec for processes to exit.")
+
+                async_reap_children()
+                time.sleep(0.1)
+
+        async_reap_children()
+        log("All monitored processes have exited.")
+
+    except NoMoreChildren:
+        log("All children have exited.")
 
     if returncode is None:
         returncode = 0
