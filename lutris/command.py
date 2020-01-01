@@ -61,7 +61,7 @@ class MonitoredCommand:
 
         self._stdout = io.StringIO()
 
-        self._title = title if title else command
+        self._title = title if title else command[0]
 
     @property
     def stdout(self):
