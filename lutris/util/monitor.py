@@ -9,7 +9,10 @@ from lutris.util.process import Process
 # is not "running" until a process that isn't one of the following
 # (or a system process; see below) belongs in its process tree.
 # Processes in this list will be sent SIGTERM when the game has exited
-EXCLUDED_PROCESSES = [
+
+# FIXME don't ignore any process, makes launching Steam possible
+EXCLUDED_PROCESSES = []
+_EXCLUDED_PROCESSES = [
     "lutris",
     "python",
     "python3",
