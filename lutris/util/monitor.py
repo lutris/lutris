@@ -30,13 +30,9 @@ class ProcessMonitor:
             exclude_processes (str or list): list of processes that shouldn't be monitored
             include_processes (str or list): list of process that should be forced to be monitored
         """
-        # process names from /proc only contain 15 characters
-        include_processes = {
-            x[0:15] for x in self.parse_process_list(include_processes)
-        }
-        exclude_processes = {
-            x[0:15] for x in self.parse_process_list(exclude_processes)
-        }
+        include_processes = self.parse_process_list(include_processes)
+        exclude_processes = self.parse_process_list(exclude_processes)
+
         self.nongame_processes = (exclude_processes | SYSTEM_PROCESSES) - include_processes
 
     @staticmethod
@@ -46,6 +42,7 @@ class ProcessMonitor:
             return set()
         if isinstance(process_list, str):
             process_list = shlex.split(process_list)
+        # process names from /proc only contain 15 characters
         return {p[0:15] for p in process_list}
 
     def iterate_game_processes(self):
