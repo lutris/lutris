@@ -17,9 +17,10 @@ class LutrisStatusIcon:
         self.application = application
         self.icon = self.create()
         self.menu = self.get_menu()
-        self.icon.set_menu(self.menu)
         self.set_visible(True)
-        if not APP_INDICATOR_SUPPORTED:
+        if APP_INDICATOR_SUPPORTED:
+            self.icon.set_menu(self.menu)
+        else:
             self.icon.connect("activate", self.on_activate)
             self.icon.connect("popup-menu", self.on_menu_popup)
 
