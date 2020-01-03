@@ -81,7 +81,6 @@ class Game(GObject.Object):
         self.heartbeat = None
         self.killswitch = None
         self.state = self.STATE_IDLE
-        self.exit_main_loop = False
         self.xboxdrv_thread = None
         self.game_runtime_config = {}
         self.resolution_changed = False
@@ -708,8 +707,6 @@ class Game(GObject.Object):
             restore_gamma()
 
         self.process_return_codes()
-        if self.exit_main_loop:
-            exit()
 
     def process_return_codes(self):
         """Do things depending on how the game quitted."""
