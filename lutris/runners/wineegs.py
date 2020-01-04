@@ -27,10 +27,8 @@ from lutris.runners.commands.wine import (  # noqa pylint: disable=unused-import
     install_cab_component,
 )
 
+
 EPICGAMES_INSTALLER_URL = "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi"
-DX_2010_ARCHIVE_URL = "https://lutris.net/files/tools/directx-2010.tar.gz"
-# Manifest files: HKEY_LOCAL_MACHINE/Software\Wow6432Node\Epic Games\EpicGamesLauncher -> AppDataPath
-# -> drive_c/ProgramData/Epic/EpicGamesLauncher/Data/
 
 
 def is_running():
@@ -60,7 +58,7 @@ class wineegs(wine.wine):
                 "after creating a shortcut from within the launcher."
                 "app name for <i>Celeste</i> is: <b>Salt</b>"
             ),
-        },
+        },        
         {
             "option": "run_without_egs",
             "label": "DRM free mode (Do not launch EGS)",
@@ -171,7 +169,7 @@ class wineegs(wine.wine):
     def game_path(self):
         """Return the game directory"""
         if not self.appid:
-            return None
+            return None        
         game_path = get_path_from_appmanifest(self.prefix_path, self.egs_data_path, self.appid)        
         if game_path:
             logger.debug("Game found in %s", game_path)
@@ -204,6 +202,7 @@ class wineegs(wine.wine):
             self.get_executable(),
             self.get_egs_path(),
             "-opengl",
+            "-SkipBuildPatchPrereq",
         ] + shlex.split(self.runner_config.get("args") or "")
 
     @staticmethod
@@ -270,27 +269,29 @@ class wineegs(wine.wine):
     def install(self, version=None, downloader=None, callback=None):
         installer_path = os.path.join(
             settings.TMP_PATH, "EpicGamesLauncherInstaller.msi")
-
-        def on_egs_downloaded(*_args):
+       
+        
+        def on_egs_downloaded(*_args):         
             prefix = self.get_or_create_default_prefix()
-            # Install dependencies
-            winetricks(
-                "cjkfonts arial dotnet48 d3dx9",
-                prefix=prefix,
-                wine_path=self.get_executable()
-            )
+
+            # Install dependencies            
+            # TODO: mfinstaller?
+            winetricks("cjkfonts arial dotnet48 d3dx9", prefix=prefix, wine_path=self.get_executable())   
+            
+            # TODO: is winetricks async? EGS isntaller is called before dotnet is installed
+            # Install EGS
             wineexec(
                 "msiexec",
-                args=f"/i {installer_path} /q",
+                args="/i {path} /q".format(path=installer_path),
                 prefix=prefix,
                 wine_path=self.get_executable(),
-                exclude_processes=["EpicGamesLauncher.exe"]
+                exclude_processes=["EpicGamesLauncher.exe"],
             )
+            
             if callback:
                 callback()
 
-        downloader(EPICGAMES_INSTALLER_URL,
-                   installer_path, on_egs_downloaded)
+        downloader(EPICGAMES_INSTALLER_URL, installer_path, on_egs_downloaded)
 
     def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if wine is installed and if the epic games launcher executable is on the drive"""
@@ -326,7 +327,7 @@ class wineegs(wine.wine):
             self.create_default_prefix(prefix, arch=arch)
         return prefix
 
-    def install_game(self, appid, generate_acf=False):
+    def install_game(self, appid):
         raise NotImplementedError("Cannot install EGS games yet.")
 
     def validate_game(self, appid):
