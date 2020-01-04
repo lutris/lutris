@@ -367,6 +367,7 @@ def winetricks(
         args=args,
         config=config,
         disable_runtime=disable_runtime,
+        blocking=True
     )
 
 
