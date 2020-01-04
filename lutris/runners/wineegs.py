@@ -9,7 +9,10 @@ from lutris.command import MonitoredCommand
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.egs.config import get_egs_data_path
-from lutris.util.egs.appmanifest import get_appmanifest_from_appid
+from lutris.util.egs.appmanifest import (
+    get_appmanifest_from_appid, 
+    get_path_from_appmanifest,
+    )
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 from lutris.runners.commands.wine import (  # noqa pylint: disable=unused-import
@@ -59,21 +62,22 @@ class wineegs(wine.wine):
             ),
         },
         {
-            "option": "args",
-            "type": "string",
-            "label": "Arguments",
-            "help": "Command line arguments used when launching the game",
-        },
-        {
             "option": "run_without_egs",
             "label": "DRM free mode (Do not launch EGS)",
             "type": "bool",
             "default": False,
             "advanced": True,
             "help": (
-                "Run the game directly without EGS. Requires executable to be set."
+                "Run the game directly without EGS."
             ),
-        }
+        },
+        {
+            "option": "args",
+            "type": "string",
+            "label": "Arguments",
+            "advanced": True,
+            "help": "Command line arguments used when launching the game without EGS",
+        },
     ]
 
     def __init__(self, config=None):
@@ -168,9 +172,7 @@ class wineegs(wine.wine):
         """Return the game directory"""
         if not self.appid:
             return None
-        #TODO: using registry is taking a long time when opening settings
-        game_path = self.system_registry.get_unix_path(self.game_manifest.installdir)
-        game_path = os.path.abspath(system.fix_path_case(game_path))
+        game_path = get_path_from_appmanifest(self.prefix_path, self.egs_data_path, self.appid)        
         if game_path:
             logger.debug("Game found in %s", game_path)
             return game_path
