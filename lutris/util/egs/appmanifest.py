@@ -67,7 +67,7 @@ def get_path_from_appmanifest(prefix_path, egs_data_path, appid):
 def get_appmanifests(egs_data_path):
     """Return the list for all appmanifest files in a EGS library folder"""
     metadata_dir = os.path.join(egs_data_path, 'Manifests')
-    return glob.glob(f"{metadata_dir}/*.item")
+    return glob.glob("{dir}/*.item".format(dir=metadata_dir))
 
 
 def get_unix_path(prefix_path, windows_path):
