@@ -10,8 +10,6 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.egs.config import get_egs_data_path
 from lutris.util.egs.appmanifest import get_appmanifest_from_appid
-from lutris.util.steam.config import read_config
-from lutris.util.steam.appmanifest import get_path_from_appmanifest
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 from lutris.runners.commands.wine import (  # noqa pylint: disable=unused-import
@@ -328,12 +326,6 @@ class wineegs(wine.wine):
 
     def install_game(self, appid, generate_acf=False):
         raise NotImplementedError("Cannot install EGS games yet.")
-        # if not appid:
-        #     raise ValueError("Missing appid in wineegs.install_game")
-        # system.execute(
-        #     # self.launch_args + ["steam://install/%s" % appid],
-        #     env=self.get_env()
-        # )
 
     def validate_game(self, appid):
         raise(NotImplementedError("Not supported by EGS"))
@@ -394,13 +386,3 @@ class wineegs(wine.wine):
     def shutdown(self):
         """Orders EGS to shutdown"""
         raise(NotImplementedError("Not supported by EGS"))
-        # logger.info("Shutting down Steam")
-        # shutdown_command = MonitoredCommand(
-        #     (self.launch_args + ["-shutdown"]),
-        #     runner=self,
-        #     env=self.get_env(os_env=False)
-        # )
-        # shutdown_command.start()
-
-    # def remove_game_data(self, appid=None, **kwargs):
-    #     raise(NotImplementedError("Not supported by EGS"))
