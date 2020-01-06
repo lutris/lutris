@@ -338,16 +338,14 @@ def winetricks(
 ):
     """Execute winetricks."""
     wine_config = config or LutrisConfig(runner_slug="wine")
-    system_winetricks = wine_config.runner_config.get("system_winetricks")
-    if system_winetricks:
-        winetricks_path = "/usr/bin/winetricks"
-    else:
-        winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
-        if not system.path_exists(winetricks_path):
-            logger.warning(
-                "Could not find local winetricks install, falling back to bundled version"
-            )
-            winetricks_path = os.path.join(datapath.get(), "bin/winetricks")
+    winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
+    if (
+            wine_config.runner_config.get("system_winetricks")
+            or not system.path_exists(winetricks_path)
+    ):
+        winetricks_path = system.find_executable("winetricks")
+        if not winetricks_path:
+            raise RuntimeError("No installation of winetricks found")
     if wine_path:
         winetricks_wine = wine_path
     else:

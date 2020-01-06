@@ -25,9 +25,6 @@ pgp-renew:
 	osc signkey --extend home:strycore
 	osc rebuildpac home:strycore --all
 
-update-winetricks:
-	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks -O share/lutris/bin/winetricks
-
 changelog-add:
 	dch -i
 

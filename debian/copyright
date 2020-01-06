@@ -23,31 +23,6 @@ Files: lutris/services/tosec.py
 Copyright: 2013 Adrien Plazas
 License: GPL-3
 
-Files: share/lutris/bin/winetricks
-Copyright: 2007-2014 Dan Kegel <dank@kegel.com>
-           2008-2019 Austin English <austinenglish@gmail.com>
-           2010-2011 Phil Blankenship <phillip.e.blankenship@gmail.com>
-           2010-2015 Shannon VanWagner <shannon.vanwagner@gmail.com>
-           2010 Belhorma Bendebiche <amro256@gmail.com>
-           2010 Eleazar Galano <eg.galano@gmail.com>
-           2010 Travis Athougies <iammisc@gmail.com>
-           2010 Andrew Nguyen
-           2010 Detlef Riekenberg
-           2010 Maarten Lankhorst
-           2010 Rico Schüller
-           2011 Scott Jackson <sjackson2@gmx.com>
-           2011 Trevor Johnson
-           2011 Franco Junio
-           2011 Craig Sanders
-           2011 Matthew Bauer <mjbauer95@gmail.com>
-           2011 Giuseppe Dia
-           2011 Łukasz Wojniłowicz
-           2011 Matthew Bozarth
-           2013-2017 Andrey Gusev <andrey.goosev@gmail.com>
-           2013-2017 Hillwood Yang <hillwood@opensuse.org>
-           2013,2016 André Hentschel <nerv@dawncrow.de>
-License: LGPL-2.1
-
 Files: share/metainfo/net.lutris.Lutris.metainfo.xml
 Copyright: Lutris Team <strider@lutris.net>
 License: CC0-1.0
