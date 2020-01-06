@@ -8,7 +8,7 @@ import platform
 import resource
 import subprocess
 from collections import defaultdict, Counter
-from lutris.vendor.distro import linux_distribution
+from distro import linux_distribution
 from lutris.util.graphics import drivers
 from lutris.util.graphics import glxinfo
 from lutris.util.graphics import vkquery
