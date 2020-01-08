@@ -14,7 +14,7 @@ else:
                    " GObject bindings for 'Notify' to enable them.")
 
 
-def send_notification(title, text, file_path_to_icon=""):
+def send_notification(title, text, file_path_to_icon="lutris"):
     if NOTIFY_SUPPORT:
         notification = Notify.Notification.new(title, text, file_path_to_icon)
         notification.show()
