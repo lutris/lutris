@@ -135,7 +135,7 @@ class ScriptInterpreter(CommandsMixin):
         self.game_name = self.script.get("custom-name") or installer["name"]
         self.game_slug = installer["game_slug"]
         self.steamid = installer.get("steamid")
-        self.gogid = installer.get("gogid")
+        self.gogid = self.script["game"]["gogid"] or installer.get("gogid")
 
         if not self.is_valid():
             raise ScriptingError(
