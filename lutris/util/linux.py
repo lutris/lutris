@@ -8,11 +8,17 @@ import platform
 import resource
 import subprocess
 from collections import defaultdict, Counter
-from distro import linux_distribution
+
+from lutris.util.log import logger
+
+try:
+    from distro import linux_distribution
+except ImportError:
+    logger.warning("Package 'distro' unavailable. Unable to read Linux distribution")
+    linux_distribution = None
 from lutris.util.graphics import drivers
 from lutris.util.graphics import glxinfo
 from lutris.util.graphics import vkquery
-from lutris.util.log import logger
 from lutris.util.disks import get_drive_for_path
 
 # Linux components used by lutris
@@ -180,7 +186,9 @@ class LinuxSystem:
     @staticmethod
     def get_dist_info():
         """Return distribution information"""
-        return linux_distribution()
+        if linux_distribution:
+            return linux_distribution()
+        return "unknown"
 
     @staticmethod
     def get_arch():

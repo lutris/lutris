@@ -11,10 +11,6 @@ Files: lutris/gui/application.py
 Copyright: 2016 Patrick Griffis <tingping@tingping.se>
 License: GPL-3
 
-Files: lutris/vendor/distro.py
-Copyright: 2015-2017 Nir Cohen
-License: Apache-2.0
-
 Files: lutris/vendor/gi_composites.py
 Copyright: 2015 Dustin Spicuzza <dustin@virtualroadside.com>
 License: LGPL-2.1
