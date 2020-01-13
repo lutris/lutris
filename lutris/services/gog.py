@@ -10,10 +10,10 @@ from lutris.services import AuthenticationError, UnavailableGame
 from lutris.util.http import Request, HTTPError
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.cookies import WebkitCookieJar
 from lutris.util.resources import download_media
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.services.service_game import ServiceGame
+from lutris.services.base import OnlineService
 
 
 NAME = "GOG"
@@ -21,7 +21,7 @@ ICON = "gog"
 ONLINE = True
 
 
-class GogService:
+class GogService(OnlineService):
     """Service class for GOG"""
 
     name = "GOG"
@@ -51,17 +51,6 @@ class GogService:
     @property
     def credential_files(self):
         return [self.cookies_path, self.token_path]
-
-    def disconnect(self):
-        """Disconnect from GOG by removing all credentials"""
-        for auth_file in self.credential_files + [self.cache_path]:
-            try:
-                os.remove(auth_file)
-            except OSError:
-                logger.warning("Unable to remove %s", auth_file)
-
-    def is_authenticated(self):
-        return all([os.path.exists(path) for path in self.credential_files])
 
     def is_available(self):
         """Return whether the user is authenticated and if the service is available"""
@@ -105,16 +94,6 @@ class GogService:
         token = request.json
         with open(self.token_path, "w") as token_file:
             token_file.write(json.dumps(token))
-
-    def load_cookies(self):
-        """Load cookies from disk"""
-        logger.debug("Loading cookies from %s", self.cookies_path)
-        if not os.path.exists(self.cookies_path):
-            logger.debug("No cookies found, please authenticate first")
-            return
-        cookiejar = WebkitCookieJar(self.cookies_path)
-        cookiejar.load()
-        return cookiejar
 
     def load_token(self):
         """Load token from disk"""
@@ -164,15 +143,20 @@ class GogService:
         request.get()
         return request.json
 
+    def wipe_game_cache(self):
+        """Wipe the game cache, allowing it to be reloaded"""
+        if os.path.exists(self.cache_path):
+            os.remove(self.cache_path)
+
     def get_user_data(self):
         """Return GOG profile information"""
         url = "https://embed.gog.com/userData.json"
         return self.make_api_request(url)
 
-    def get_library(self, force_reload=False):
+    def get_library(self):
         """Return the user's library of GOG games"""
 
-        if system.path_exists(self.cache_path) and not force_reload:
+        if system.path_exists(self.cache_path):
             logger.debug("Returning cached GOG library")
             with open(self.cache_path, "r") as gog_cache:
                 return json.load(gog_cache)
@@ -190,6 +174,7 @@ class GogService:
         return games
 
     def get_products_page(self, page=1, search=None):
+        """Return a single page of games"""
         if not self.is_authenticated():
             raise RuntimeError("User is not logged in")
         params = {"mediaType": "1"}
@@ -221,6 +206,7 @@ class GogService:
 
 
 class GOGGame(ServiceGame):
+    """Representation of a GOG game"""
     store = "gog"
 
     @classmethod
@@ -249,35 +235,35 @@ class GOGGame(ServiceGame):
         return cache_path
 
 
-GOG_SERVICE = GogService()
+SERVICE = GogService()
 
 
 def is_connected():
     """Return True if user is connected to GOG"""
-    return GOG_SERVICE.is_available()
+    return SERVICE.is_available()
 
 
 def connect(parent=None):
     """Connect to GOG"""
     logger.debug("Connecting to GOG")
-    dialog = WebConnectDialog(GOG_SERVICE, parent)
+    dialog = WebConnectDialog(SERVICE, parent)
     dialog.run()
 
 
 def disconnect():
     """Disconnect from GOG"""
-    GOG_SERVICE.disconnect()
+    SERVICE.disconnect()
 
 
 class GOGSyncer:
     """Sync GOG games to Lutris"""
 
     @classmethod
-    def load(cls, force_reload=False):
+    def load(cls):
         """Load the user game library from the GOG API"""
         return [
             GOGGame.new_from_gog_game(game)
-            for game in GOG_SERVICE.get_library(force_reload=force_reload)
+            for game in SERVICE.get_library()
         ]
 
     @classmethod

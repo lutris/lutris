@@ -15,7 +15,7 @@ Files: lutris/vendor/gi_composites.py
 Copyright: 2015 Dustin Spicuzza <dustin@virtualroadside.com>
 License: LGPL-2.1
 
-Files: lutris/services/tosec.py
+Files: lutris/vendor/tosec.py
 Copyright: 2013 Adrien Plazas
 License: GPL-3
 
