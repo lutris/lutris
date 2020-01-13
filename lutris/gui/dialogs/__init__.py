@@ -318,15 +318,6 @@ class ClientLoginDialog(GtkBuilderDialog):
             self.dialog.destroy()
 
 
-class ClientUpdateDialog(GtkBuilderDialog):
-    glade_file = "dialog-client-update.ui"
-    dialog_object = "client_update_dialog"
-
-    @staticmethod
-    def on_open_downloads_clicked(_widget):
-        open_uri("http://lutris.net")
-
-
 class NoInstallerDialog(Gtk.MessageDialog):
     MANUAL_CONF = 1
     NEW_INSTALLER = 2

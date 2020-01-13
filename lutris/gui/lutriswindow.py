@@ -475,20 +475,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             lambda adj: self._set_icon_type(image_sizes[int(adj.props.value)]),
         )
 
-    @staticmethod
-    def check_update():
-        """Verify availability of client update."""
-        version_request = http.Request("https://lutris.net/version")
-        version_request.get()
-        version = version_request.content
-        if version:
-            latest_version = settings.read_setting("latest_version")
-            if version > (latest_version or settings.VERSION):
-                dialogs.ClientUpdateDialog()
-                # Store latest version seen to avoid showing
-                # the dialog more than once.
-                settings.write_setting("latest_version", version)
-
     def get_view_type(self):
         """Return the type of view saved by the user"""
         view_type = settings.read_setting("view_type")
