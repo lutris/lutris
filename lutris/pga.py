@@ -30,6 +30,7 @@ DATABASE = {
         {"name": "year", "type": "INTEGER"},
         {"name": "steamid", "type": "INTEGER"},
         {"name": "gogid", "type": "INTEGER"},
+        {"name": "humblestoreid", "type": "TEXT"},
         {"name": "configpath", "type": "TEXT"},
         {"name": "has_custom_banner", "type": "INTEGER"},
         {"name": "has_custom_icon", "type": "INTEGER"},
@@ -131,11 +132,11 @@ def syncdb():
 
 
 def get_games(
-    name_filter=None,
-    filter_installed=False,
-    filter_runner=None,
-    select="*",
-    show_installed_first=False,
+        name_filter=None,
+        filter_installed=False,
+        filter_runner=None,
+        select="*",
+        show_installed_first=False,
 ):
     """Get the list of every game in database."""
     query = "select " + select + " from games"
@@ -150,7 +151,7 @@ def get_games(
         params.append(filter_runner)
         filters.append("runner = ?")
     if filters:
-        query += " WHERE " + " AND ".join([f for f in filters])
+        query += " WHERE " + " AND ".join(filters)
     if show_installed_first:
         query += " ORDER BY installed DESC, slug"
     else:
@@ -211,8 +212,8 @@ def get_games_where(**conditions):
     if condition:
         query = " WHERE ".join((query, condition))
     else:
-        # FIXME: Inspect and document why we should return an empty list when
-        # no condition is present.
+        # FIXME: Inspect and document why we should return
+        # an empty list when no condition is present.
         return []
     return sql.db_query(PGA_DB, query, tuple(condition_values))
 
