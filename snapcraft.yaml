@@ -112,9 +112,6 @@ apps:
     plugs: [home, daemon-notify, network, network-bind, network-manager, desktop, desktop-legacy, unity7, wayland, opengl, pulseaudio, gsettings, x11, screen-inhibit-control, kvm, libvirt, removable-media, joystick, io-ports-control, hardware-observe, mount-observe]
     slots: [ lutris ]
     desktop: share/applications/net.lutris.Lutris.desktop
-  
-  lutris-wrapper:
-    command: bin/desktop-launch $SNAP/bin/lutris-wrapper
 
   wine:
     command: bin/desktop-launch $SNAP/bin/wine
