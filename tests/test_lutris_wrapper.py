@@ -5,8 +5,8 @@ import unittest
 import subprocess
 
 
-if os.path.isfile('bin/lutris-wrapper'):
-    lutris_wrapper_bin = 'bin/lutris-wrapper'
+if os.path.isfile('share/lutris/bin/lutris-wrapper'):
+    lutris_wrapper_bin = 'share/lutris/bin/lutris-wrapper'
 else:
     lutris_wrapper_bin = 'lutris-wrapper'
 
