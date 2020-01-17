@@ -16,7 +16,7 @@ from lutris import runtime
 from lutris.util.log import logger
 from lutris.util import system
 
-WRAPPER_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "lutris-wrapper")
+WRAPPER_SCRIPT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "../share/lutris/bin/lutris-wrapper"))
 
 
 class MonitoredCommand:
