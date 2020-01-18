@@ -18,7 +18,7 @@ class RunnerConfigDialog(Dialog, GameDialogCommon):
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
         self.build_tabs("runner")
-        self.build_action_area(self.on_save)
+        self.connect("delete-event", self.on_save)
         self.show_all()
 
     def on_save(self, wigdet, data=None):

@@ -1,5 +1,5 @@
 """Window for importing games from third party services"""
-from gi.repository import Gtk
+from gi.repository import Gtk, Handy
 from gi.repository.GdkPixbuf import Pixbuf
 from lutris.gui.widgets.utils import get_icon, get_pixbuf, get_main_window
 from lutris.gui.widgets.notifications import send_notification
@@ -35,9 +35,6 @@ class ServiceSyncBox(Gtk.Box):
         self.games_loaded = False
 
         title_box = Gtk.Box()
-        label = Gtk.Label()
-        label.set_markup("<b>{}</b>".format(self.name))
-        title_box.pack_start(label, True, True, 0)
 
         self.connect_button = Gtk.Button()
         self.connect_button.connect("clicked", self.on_connect_clicked)
@@ -58,8 +55,14 @@ class ServiceSyncBox(Gtk.Box):
         self.content_widget = self.get_content_widget()
         self.pack_start(self.content_widget, True, True, 0)
 
+        col = Handy.Column()
+        col.set_maximum_width(600)
+        col.set_linear_growth_width(500)
+
         actions = Gtk.Box(spacing=6)
-        self.pack_start(actions, False, False, 0)
+        
+        col.add(actions)
+        self.pack_start(col, False, False, 0)
 
         self.import_button = Gtk.Button("Import games")
         self.import_button.set_sensitive(False)
@@ -67,7 +70,6 @@ class ServiceSyncBox(Gtk.Box):
         self.import_button.connect(
             "clicked", self.on_sync_button_clicked, service.SYNCER.sync
         )
-        actions.pack_start(self.import_button, False, False, 0)
 
         self.sync_switch = Gtk.Switch()
         self.sync_switch.props.valign = Gtk.Align.CENTER
@@ -75,9 +77,13 @@ class ServiceSyncBox(Gtk.Box):
 
         if read_setting("sync_at_startup", self.identifier) == "True":
             self.sync_switch.set_state(True)
-        actions.pack_start(Gtk.Alignment(), True, True, 0)
+
         actions.pack_start(self.sync_switch, False, False, 0)
         actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 0)
+
+        actions.pack_start(Gtk.Alignment(), True, True, 0)
+        
+        actions.pack_start(self.import_button, False, False, 0)
 
         if service.ONLINE and not service.is_connected():
             self.sync_switch.set_sensitive(False)
@@ -259,17 +265,25 @@ class ServiceSyncBox(Gtk.Box):
         return liststore
 
     def get_game_list_widget(self):
+        col = Handy.Column()
+        col.set_maximum_width(600)
+        col.set_linear_growth_width(500)
+        
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+
+        col.add(content)
+
+        self.search_entry = Gtk.SearchEntry()
+        self.search_entry.set_placeholder_text("Filter games...")
+        self.search_entry.connect("changed", self.on_search_entry_changed)
+
+        content.pack_start(self.search_entry, False, False, 0)
+
         filter_box = Gtk.Box(spacing=6)
         select_all_button = Gtk.CheckButton.new_with_label("Select all")
         select_all_button.connect("toggled", self.on_select_all)
         filter_box.add(select_all_button)
 
-        search_entry = Gtk.Entry()
-        search_entry.connect("changed", self.on_search_entry_changed)
-        filter_box.pack_start(Gtk.Alignment(), True, True, 0)
-        filter_box.add(Gtk.Label("Filter:"))
-        filter_box.add(search_entry)
         content.pack_start(filter_box, False, False, 0)
 
         scrolled_window = Gtk.ScrolledWindow()
@@ -277,8 +291,12 @@ class ServiceSyncBox(Gtk.Box):
         scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
         scrolled_window.add(self.get_treeview(self.store_filter))
         content.pack_start(scrolled_window, True, True, 0)
-        content.show_all()
-        return content
+
+        col.show_all()
+        return col
+
+    def focus_search(self):
+        self.search_entry.grab_focus_without_selecting()
 
     def load_games(self, force_reload=False):
         """Load the list of games in a treeview"""
@@ -298,6 +316,8 @@ class ServiceSyncBox(Gtk.Box):
         self.store_filter.set_visible_func(self.store_filter_func)
         self.swap_content(self.get_game_list_widget())
         self.games_loaded = True
+
+        self.focus_search()
 
     def unload_games(self):
         self.games = []
@@ -333,22 +353,30 @@ class SyncServiceWindow(Gtk.ApplicationWindow):
         self.set_show_menubar(False)
         self.connect("delete-event", lambda *x: self.destroy())
 
-        self.set_border_width(10)
         self.set_size_request(640, 480)
 
-        notebook = Gtk.Notebook()
-        notebook.set_tab_pos(Gtk.PositionType.LEFT)
-        self.add(notebook)
+        hb = Handy.HeaderBar()
+        hb.set_show_close_button(True)
+
+        vs = Handy.ViewSwitcher()
+        hb.set_custom_title(vs)
+
+        self.set_titlebar(hb)
+
+        self.stack = Gtk.Stack()
+        vs.set_stack(self.stack)
+
+        self.add(self.stack)
 
         for service in get_services():
             sync_row = ServiceSyncBox(service, self)
-            notebook.append_page(sync_row, sync_row.get_icon())
-        notebook.connect("switch-page", self.on_page_change)
+            self.stack.add_titled(sync_row, sync_row.name, sync_row.name)
+            self.stack.child_set_property(sync_row, 'icon-name', sync_row.icon_name)
+
+        self.stack.connect("notify::visible-child", self.on_page_change)
+        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         self.show_all()
 
-    def on_page_change(self, notebook, child, page_index):
+    def on_page_change(self, property, spec):
         """Event handler to trigger game load"""
-        current_page = notebook.get_current_page()
-        if current_page == -1 and page_index > 0:
-            return
-        child.load_games()
+        self.stack.get_visible_child().load_games()

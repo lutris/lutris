@@ -15,7 +15,7 @@ class SystemConfigDialog(Dialog, GameDialogCommon):
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
 
         self.build_tabs("system")
-        self.build_action_area(self.on_save)
+        self.connect("delete-event", self.on_save)
         self.show_all()
 
     def on_save(self, _widget):

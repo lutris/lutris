@@ -22,7 +22,7 @@ from lutris.gui.widgets.utils import (
 from lutris.util.strings import slugify
 from lutris.util import resources
 from lutris.util.linux import gather_system_info_str
-
+from lutris.util import datapath
 
 # pylint: disable=too-many-instance-attributes
 class GameDialogCommon:
@@ -147,6 +147,8 @@ class GameDialogCommon:
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         self._clipboard_buffer = sysinfo_str
 
+        build = Gtk.Builder()
+        build.add_from_file(os.path.join(datapath.get(), "ui", "copy-button.ui"))
         button_copy = Gtk.Button("Copy System Info")
         button_copy.connect("clicked", self._copy_text)
 
@@ -562,7 +564,6 @@ class GameDialogCommon:
 
         self.game.config = self.lutris_config
         self.game.save()
-        self.destroy()
         self.saved = True
 
     def on_custom_image_select(self, _widget, image_type):

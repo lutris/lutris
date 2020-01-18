@@ -2,7 +2,7 @@
 import os
 import random
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib, Gtk, Handy
 from lutris import api, settings
 from lutris.gui.dialogs import Dialog, ErrorDialog, QuestionDialog
 from lutris.util import jobs, system
@@ -26,15 +26,6 @@ class RunnerInstallDialog(Dialog):
 
         self.runner = runner
 
-        self.label = Gtk.Label("Waiting for response from %s" % (settings.SITE_URL))
-        self.vbox.pack_start(self.label, False, False, 18)
-
-        # Display a wait icon.
-        self.spinner = Gtk.Spinner()
-        self.vbox.pack_start(self.spinner, False, False, 18)
-        self.spinner.show()
-        self.spinner.start()
-
         self.show_all()
 
         jobs.AsyncCall(api.get_runners, self.display_all_versions, self.runner)
@@ -51,23 +42,22 @@ class RunnerInstallDialog(Dialog):
             )
             return
 
-        for child_widget in self.vbox.get_children():
-            if child_widget.get_name() not in "GtkBox":
-                child_widget.destroy()
+        page = Handy.PreferencesPage()
+        group = Handy.PreferencesGroup()
 
-        label = Gtk.Label("%s version management" % self.runner_info["name"])
-        self.vbox.add(label)
         self.runner_store = self.get_store()
         scrolled_window = Gtk.ScrolledWindow()
         self.treeview = self.get_treeview(self.runner_store)
         self.installing = {}
-        self.connect("response", self.on_destroy)
 
-        scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scrolled_window.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        scrolled_window.add(self.treeview)
+        page.set_title("%s Version Management" % self.runner_info["name"])
+        page.set_icon_name("system-software-install-symbolic")
+        
+        group.add(self.treeview)
 
-        self.vbox.pack_start(scrolled_window, True, True, 14)
+        page.add(group)
+
+        self.add(page)
         self.show_all()
 
     def get_treeview(self, model):
