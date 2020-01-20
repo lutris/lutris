@@ -30,9 +30,9 @@ class OnlineService:
 
     def load_cookies(self):
         """Load cookies from disk"""
-        logger.debug("Loading cookies from %s", self.cookies_path)
+        # logger.debug("Loading cookies from %s", self.cookies_path)
         if not os.path.exists(self.cookies_path):
-            logger.debug("No cookies found, please authenticate first")
+            logger.warning("No cookies found in %s, please authenticate first", self.cookies_path)
             return
         cookiejar = WebkitCookieJar(self.cookies_path)
         cookiejar.load()

@@ -21,6 +21,11 @@ ICON = "gog"
 ONLINE = True
 
 
+class MultipleInstallerError(BaseException):
+    """Current implementation doesn't know how to deal with multiple installers
+    Raise this if a game returns more than 1 installer."""
+
+
 class GogService(OnlineService):
     """Service class for GOG"""
 
@@ -140,7 +145,6 @@ class GogService(OnlineService):
                 url,
             )
             return
-        request.get()
         return request.json
 
     def wipe_game_cache(self):
@@ -204,6 +208,42 @@ class GogService(OnlineService):
             response[field + "_filename"] = os.path.basename(parsed.path)
         return response
 
+    def get_installers(self, gogid, runner, language="en"):
+        """Return available installers for a GOG game"""
+
+        gog_data = self.get_game_details(gogid)
+        if not gog_data:
+            logger.warning("Unable to get GOG data for game %s", gogid)
+            return []
+
+        # Filter out Mac installers
+        gog_installers = [
+            installer
+            for installer in gog_data["downloads"]["installers"]
+            if installer["os"] != "mac"
+        ]
+        available_platforms = {installer["os"] for installer in gog_installers}
+        # If it's a Linux game, also filter out Windows games
+        if "linux" in available_platforms:
+            if runner == "linux":
+                filter_os = "windows"
+            else:
+                filter_os = "linux"
+            gog_installers = [
+                installer
+                for installer in gog_installers
+                if installer["os"] != filter_os
+            ]
+
+        # Keep only the english installer until we have locale detection
+        # and / or language selection implemented
+        gog_installers = [
+            installer
+            for installer in gog_installers
+            if installer["language"] == language
+        ]
+        return gog_installers
+
 
 class GOGGame(ServiceGame):
     """Representation of a GOG game"""
@@ -253,6 +293,35 @@ def connect(parent=None):
 def disconnect():
     """Disconnect from GOG"""
     SERVICE.disconnect()
+
+
+def get_gog_download_links(gogid, runner):
+    """Return a list of downloadable links for a GOG game"""
+    gog_service = GogService()
+    if not gog_service.is_available():
+        logger.info("You are not connected to GOG")
+        connect()
+    if not gog_service.is_available():
+        raise UnavailableGame
+    gog_installers = gog_service.get_installers(gogid, runner)
+    if len(gog_installers) > 1:
+        raise MultipleInstallerError("Don't know how to deal with multiple installers yet.")
+    try:
+        installer = gog_installers[0]
+    except IndexError:
+        raise UnavailableGame
+    download_links = []
+    for game_file in installer.get('files', []):
+        downlink = game_file.get("downlink")
+        if not downlink:
+            logger.error("No download information for %s", installer)
+            continue
+        download_info = gog_service.get_download_info(downlink)
+        for field in ('checksum', 'downlink'):
+            url = download_info[field]
+            logger.info("Adding %s to download links", url)
+            download_links.append(download_info[field])
+    return download_links
 
 
 class GOGSyncer:

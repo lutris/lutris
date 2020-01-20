@@ -126,10 +126,10 @@ class Request:
                         self.url, self.status_code, self.text[:80]
                     )
                 )
-        return None
+        return {}
 
     @property
     def text(self):
         if self.content:
             return self.content.decode()
-        return None
+        return ""
