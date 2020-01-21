@@ -229,7 +229,7 @@ def get_games_where(**conditions):
     if condition:
         query = " WHERE ".join((query, condition))
     else:
-        # FIXME: Inspect and document why we should return
+        # Inspect and document why we should return
         # an empty list when no condition is present.
         return []
     return sql.db_query(PGA_DB, query, tuple(condition_values))
