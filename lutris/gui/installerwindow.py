@@ -290,7 +290,7 @@ class InstallerWindow(BaseApplicationWindow):
             action = Gtk.FileChooserAction.SELECT_FOLDER
             enable_warnings = True
         else:
-            raise ValueError("Invalid action %s", action)
+            raise ValueError("Invalid action %s" % action)
 
         if self.location_entry:
             self.location_entry.destroy()
@@ -304,7 +304,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.location_entry.entry.connect("changed", callback_on_changed, action)
         self.widget_box.pack_start(self.location_entry, False, False, 0)
 
-    def on_file_selected(self, widget):
+    def on_file_selected(self, _widget):
         file_path = os.path.expanduser(self.location_entry.get_text())
         if os.path.isfile(file_path):
             self.selected_directory = os.path.dirname(file_path)

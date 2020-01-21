@@ -22,6 +22,7 @@ import signal
 import sys
 import gettext
 from gettext import gettext as _
+import tempfile
 
 import gi
 
@@ -36,6 +37,7 @@ from lutris import settings
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
+from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
 from lutris.command import exec_command
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -44,6 +46,7 @@ from lutris.util import datapath
 from lutris.util import log
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.http import Request, HTTPError
 from lutris.api import parse_installer_url
 from lutris.startup import init_lutris, run_all_checks
 from lutris.util.wine.dxvk import init_dxvk_versions
@@ -159,15 +162,6 @@ class Application(Gtk.Application):
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
 
-        builder = Gtk.Builder.new_from_file(
-            os.path.join(datapath.get(), "ui", "menus.ui")
-        )
-        appmenu = builder.get_object("app-menu")
-        self.set_app_menu(appmenu)
-
-        menubar = builder.get_object("menubar")
-        self.set_menubar(menubar)
-
     def do_activate(self):
         if not self.window:
             self.window = LutrisWindow(application=self)
@@ -269,8 +263,27 @@ class Application(Gtk.Application):
         installer_file = None
         if options.contains("install"):
             installer_file = options.lookup_value("install").get_string()
-            installer_file = os.path.abspath(installer_file)
-            action = "install"
+            if installer_file.startswith(("http:", "https:")):
+                try:
+                    request = Request(installer_file).get()
+                except HTTPError:
+                    self._print(command_line, "Failed to download %s" % installer_file)
+                    return 1
+                try:
+                    headers = dict(request.response_headers)
+                    file_name = headers["Content-Disposition"].split("=", 1)[-1]
+                except (KeyError, IndexError):
+                    file_name = os.path.basename(installer_file)
+                file_path = os.path.join(tempfile.gettempdir(), file_name)
+                self._print(command_line, "download %s to %s started" % (installer_file, file_path))
+                with open(file_path, 'wb') as dest_file:
+                    dest_file.write(request.content)
+                installer_file = file_path
+                action = "install"
+            else:
+                installer_file = os.path.abspath(installer_file)
+                action = "install"
+
             if not os.path.isfile(installer_file):
                 self._print(command_line, "No such file: %s" % installer_file)
                 return 1
@@ -301,6 +314,7 @@ class Application(Gtk.Application):
 
         # Graphical commands
         self.activate()
+        self.set_tray_icon()
 
         if not action:
             if db_game and db_game["installed"]:
@@ -451,3 +465,11 @@ class Application(Gtk.Application):
         Gtk.Application.do_shutdown(self)
         if self.window:
             self.window.destroy()
+
+    def set_tray_icon(self):
+        """Creates or destroys a tray icon for the application"""
+        active = settings.read_setting("show_tray_icon", default="false") == "true"
+        if active and not self.tray:
+            self.tray = LutrisStatusIcon(application=self)
+        if self.tray:
+            self.tray.set_visible(active)

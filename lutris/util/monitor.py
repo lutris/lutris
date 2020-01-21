@@ -2,40 +2,20 @@
 import os
 import shlex
 
-from lutris.util.log import logger
 from lutris.util.process import Process
 
-
-# List of process names that are ignored by the process monitoring
-EXCLUDED_PROCESSES = [
-    "lutris",
-    "python",
-    "python3",
-    "tee",
-    "tr",
-    "zenity",
-    "xkbcomp",
-    "xboxdrv",
-    "steam",
-    "Steam.exe",
-    "steamer",
-    "steamerrorrepor",
-    "gameoverlayui",
-    "SteamService.ex",
-    "steamwebhelper",
-    "steamwebhelper.",
-    "PnkBstrA.exe",
-    "control",
+# Processes that are considered sufficiently self-managing by the
+# monitoring system. These are not considered game processes for
+# the purpose of determining if a game is still running and Lutris
+# will never attempt to send signals to these processes.
+# This is mostly a minor UX improvement where wine games will exit
+# faster if we let the wine processes tear themselves down.
+SYSTEM_PROCESSES = {
     "wineserver",
     "services.exe",
     "winedevice.exe",
     "plugplay.exe",
-    "explorer.exe",
-    "winecfg.exe",
-    "wdfmgr.exe",
-    "wineconsole",
-    "winedbg",
-]
+}
 
 
 class ProcessMonitor:
@@ -44,76 +24,53 @@ class ProcessMonitor:
     def __init__(self, include_processes, exclude_processes):
         """Creates a process monitor
 
-        All arguments accept process names like the ones in EXCLUDED_PROCESSES
+        All arguments accept a list of process names
 
         Args:
             exclude_processes (str or list): list of processes that shouldn't be monitored
             include_processes (str or list): list of process that should be forced to be monitored
         """
-        # process names from /proc only contain 15 characters
-        self.include_processes = [
-            x[0:15] for x in self.parse_process_list(include_processes)
-        ]
-        self.exclude_processes = [
-            x[0:15] for x in EXCLUDED_PROCESSES + self.parse_process_list(exclude_processes)
-        ]
-        # Keep a copy of the monitored processes to allow comparisons
-        self.children = []
-        self.ignored_children = []
+        include_processes = self.parse_process_list(include_processes)
+        exclude_processes = self.parse_process_list(exclude_processes)
+
+        self.nongame_processes = (exclude_processes | SYSTEM_PROCESSES) - include_processes
 
     @staticmethod
     def parse_process_list(process_list):
         """Parse a process list that may be given as a string"""
         if not process_list:
-            return []
+            return set()
         if isinstance(process_list, str):
-            return shlex.split(process_list)
-        return process_list
+            process_list = shlex.split(process_list)
+        # process names from /proc only contain 15 characters
+        return {p[0:15] for p in process_list}
 
-    def iter_children(self, process, topdown=True):
-        """Iterator that yields all the children of a process"""
-        for child in process.children:
-            if topdown:
-                yield child
-            yield from self.iter_children(child, topdown=topdown)
-            if not topdown:
-                yield child
-
-    @staticmethod
-    def _log_changes(label, old, new):
-        newpids = {p.pid for p in new}
-        oldpids = {p.pid for p in old}
-        added = [p for p in new if p.pid not in oldpids]
-        removed = [p for p in old if p.pid not in newpids]
-        if added:
-            logger.debug("New %s processes: %s", label, ', '.join(map(str, added)))
-        if removed:
-            logger.debug("Dead %s processes: %s", label, ', '.join(map(str, removed)))
-
-    def refresh_process_status(self):
-        """Return status of a process"""
-        old_children, self.children = self.children, []
-        old_ignored_children, self.ignored_children = self.ignored_children, []
-
-        for child in self.iter_children(Process(os.getpid())):
-            if child.state == 'Z':  # should never happen anymore...
-                logger.debug("Unexpected zombie process %s", child)
-                try:
-                    os.wait3(os.WNOHANG)
-                except ChildProcessError:
-                    pass
+    def iterate_game_processes(self):
+        for child in self.iterate_all_processes():
+            if child.state == 'Z':
                 continue
 
-            if (
-                    child.name
-                    and child.name in self.exclude_processes
-                    and child.name not in self.include_processes
-            ):
-                self.ignored_children.append(child)
-            else:
-                self.children.append(child)
+            if child.name and child.name not in self.nongame_processes:
+                yield child
 
-        self._log_changes('ignored', old_ignored_children, self.ignored_children)
-        self._log_changes('monitored', old_children, self.children)
+    def iterate_monitored_processes(self):
+        for child in self.iterate_all_processes():
+            if child.state == 'Z':
+                continue
 
-        return len(self.children) > 0
+            if child.name not in SYSTEM_PROCESSES:
+                yield child
+
+    def iterate_all_processes(self):
+        return Process(os.getpid()).iter_children()
+
+    def is_game_alive(self):
+        "Returns whether at least one nonexcluded process exists"
+        for child in self.iterate_game_processes():
+            return True
+        return False
+
+    def are_monitored_processes_alive(self):
+        for child in self.iterate_monitored_processes():
+            return True
+        return False

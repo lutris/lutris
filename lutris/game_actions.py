@@ -4,6 +4,7 @@ import signal
 
 from lutris import pga
 from gi.repository import Gio
+from lutris import pga
 from lutris.command import MonitoredCommand
 from lutris.game import Game
 from lutris.gui import dialogs
@@ -126,7 +127,41 @@ class GameActions:
                 "view", "View on Lutris.net",
                 self.on_view_game
             ),
+            (
+                "hide", "Hide game from library",
+                self.on_hide_game
+            ),
+            (
+                "unhide", "Unhide game from library",
+                self.on_unhide_game
+            ),
         ]
+
+    def on_hide_game(self, _widget):
+        """Add a game to the list of hidden games"""
+        game = Game(self.window.view.selected_game.id)
+
+        # Append the new hidden ID and save it
+        ignores = pga.get_hidden_ids() + [game.id]
+        pga.set_hidden_ids(ignores)
+
+        # Update the GUI
+        if not self.window.show_hidden_games:
+            self.window.game_store.remove_game(game.id)
+
+    def on_unhide_game(self, _widget):
+        """Removes a game from the list of hidden games"""
+        game = Game(self.window.view.selected_game.id)
+
+        # Remove the ID to unhide and save it
+        ignores = pga.get_hidden_ids()
+        ignores.remove(game.id)
+        pga.set_hidden_ids(ignores)
+
+    @staticmethod
+    def is_game_hidden(game):
+        """Returns whether a game is on the list of hidden games"""
+        return game.id in pga.get_hidden_ids()
 
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
@@ -168,7 +203,9 @@ class GameActions:
             ),
             "browse": self.game.is_installed and self.game.runner_name != "browser",
             "remove": not self.game.is_search_result,
-            "view": True
+            "view": True,
+            "hide": not GameActions.is_game_hidden(self.game),
+            "unhide": GameActions.is_game_hidden(self.game)
         }
 
     def on_game_run(self, *_args):

@@ -287,7 +287,9 @@ class ServiceSyncBox(Gtk.Box):
         if self.service.ONLINE and not self.service.is_connected():
             return
         syncer = self.service.SYNCER()
-        AsyncCall(syncer.load, self.on_games_loaded, force_reload)
+        if force_reload:
+            self.service.SERVICE.wipe_game_cache()
+        AsyncCall(syncer.load, self.on_games_loaded)
 
     def on_games_loaded(self, result, _error):
         self.games = result

@@ -30,6 +30,7 @@ DATABASE = {
         {"name": "year", "type": "INTEGER"},
         {"name": "steamid", "type": "INTEGER"},
         {"name": "gogid", "type": "INTEGER"},
+        {"name": "humblestoreid", "type": "TEXT"},
         {"name": "configpath", "type": "TEXT"},
         {"name": "has_custom_banner", "type": "INTEGER"},
         {"name": "has_custom_icon", "type": "INTEGER"},
@@ -148,11 +149,11 @@ def syncdb():
 
 
 def get_games(
-    name_filter=None,
-    filter_installed=False,
-    filter_runner=None,
-    select="*",
-    show_installed_first=False,
+        name_filter=None,
+        filter_installed=False,
+        filter_runner=None,
+        select="*",
+        show_installed_first=False,
 ):
     """Get the list of every game in database."""
     query = "select " + select + " from games"
@@ -167,7 +168,7 @@ def get_games(
         params.append(filter_runner)
         filters.append("runner = ?")
     if filters:
-        query += " WHERE " + " AND ".join([f for f in filters])
+        query += " WHERE " + " AND ".join(filters)
     if show_installed_first:
         query += " ORDER BY installed DESC, slug"
     else:
@@ -228,8 +229,8 @@ def get_games_where(**conditions):
     if condition:
         query = " WHERE ".join((query, condition))
     else:
-        # FIXME: Inspect and document why we should return an empty list when
-        # no condition is present.
+        # FIXME: Inspect and document why we should return
+        # an empty list when no condition is present.
         return []
     return sql.db_query(PGA_DB, query, tuple(condition_values))
 
@@ -431,6 +432,26 @@ def get_used_platforms_game_count():
         rows = cursor.execute(query)
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}
+
+  
+def get_hidden_ids():
+    """Return a list of game IDs to be excluded from the library view"""
+    # Load the ignore string and filter out empty strings to prevent issues
+    ignores_raw = settings.read_setting("library_ignores",
+                                        section="lutris",
+                                        default="").split(",")
+    ignores = [ignore for ignore in ignores_raw if not ignore == ""]
+
+    # Turn the strings into integers
+    return [int(game_id) for game_id in ignores]
+
+
+def set_hidden_ids(games):
+    """Writes a list of game IDs that are to be hidden into the config file"""
+    ignores_str = [str(game_id) for game_id in games]
+    settings.write_setting("library_ignores",
+                           ','.join(ignores_str),
+                           section="lutris")
 
 def get_categories(select="*"):
     """Get the list of every category in database."""

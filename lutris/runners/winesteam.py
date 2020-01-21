@@ -30,10 +30,12 @@ STEAM_INSTALLER_URL = (
 
 
 def is_running():
+    """Return whether Steam is running"""
     return bool(system.get_pid("Steam.exe$"))
 
 
 def kill():
+    """Force kills Steam"""
     system.kill_pid(system.get_pid("Steam.exe$"))
 
 
@@ -170,6 +172,7 @@ class winesteam(wine.wine):
 
     @property
     def appid(self):
+        """Steam AppID used to uniquely identify games"""
         return self.game_config.get("appid") or ""
 
     @property
@@ -257,8 +260,8 @@ class winesteam(wine.wine):
         for prefix in candidates:
             # Try the default install path
             for default_path in [
-                "drive_c/Program Files (x86)/Steam/Steam.exe",
-                "drive_c/Program Files/Steam/Steam.exe",
+                    "drive_c/Program Files (x86)/Steam/Steam.exe",
+                    "drive_c/Program Files/Steam/Steam.exe",
             ]:
                 steam_path = os.path.join(prefix, default_path)
                 if system.path_exists(steam_path):
@@ -298,7 +301,9 @@ class winesteam(wine.wine):
     def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if wine is installed and if the steam executable is on the drive"""
         if not super().is_installed(
-            version=version, fallback=fallback, min_version=min_version
+                version=version,
+                fallback=fallback,
+                min_version=min_version
         ):
             return False
         if not system.path_exists(self.get_default_prefix(arch=self.default_arch)):
@@ -346,6 +351,7 @@ class winesteam(wine.wine):
         return dirs
 
     def get_default_steamapps_path(self):
+        """Return the default path used for storing Steam games"""
         steamapps_paths = self.get_steamapps_dirs()
         if steamapps_paths:
             return steamapps_paths[0]
@@ -380,6 +386,7 @@ class winesteam(wine.wine):
         return prefix
 
     def install_game(self, appid, generate_acf=False):
+        """Install a game with Steam"""
         if not appid:
             raise ValueError("Missing appid in winesteam.install_game")
         system.execute(
@@ -387,6 +394,7 @@ class winesteam(wine.wine):
         )
 
     def validate_game(self, appid):
+        """Validate game files with Steam"""
         if not appid:
             raise ValueError("Missing appid in winesteam.validate_game")
         system.execute(
@@ -425,6 +433,7 @@ class winesteam(wine.wine):
         return {"command": self.launch_args, "env": self.get_env(os_env=False)}
 
     def get_command(self):
+        """Return the command used to launch a Steam game"""
         game_args = self.game_config.get("args") or ""
         game_binary = self.game_config.get("steamless_binary")
         if self.game_config.get("run_without_steam") and game_binary:
@@ -449,6 +458,7 @@ class winesteam(wine.wine):
         return command
 
     def play(self):
+        """Run a game"""
         if self.runner_config.get("x360ce-path"):
             self.setup_x360ce(self.runner_config["x360ce-path"])
         try:
@@ -475,6 +485,7 @@ class winesteam(wine.wine):
         return False
 
     def remove_game_data(self, appid=None, **kwargs):
+        """Uninstall a game from Steam"""
         if not self.is_installed():
             logger.warning("Trying to remove a winesteam game but it's not installed.")
             return False

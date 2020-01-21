@@ -66,7 +66,8 @@ class PgaGame:
                 _platform = game_inst.platform
             else:
                 logger.debug("Game %s has no platform", self)
-                game_inst.set_platform_from_runner()
+                # Save the game, which will call `set_platform_from_runner`
+                game_inst.save()
                 _platform = game_inst.platform
         return _platform
 

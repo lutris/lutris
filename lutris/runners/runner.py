@@ -91,15 +91,12 @@ class Runner:
                 if not os.path.isabs(path):
                     path = os.path.join(self.game_path, path)
                 return path
-
-        if self.game_data.get("directory"):
-            return self.game_data.get("directory")
+        return self.game_path
 
     @property
     def game_path(self):
         """Return the directory where the game is installed."""
-        if self.game_data.get("directory"):
-            return self.game_data.get("directory")
+        return self.game_data.get("directory")
 
     @property
     def working_dir(self):
