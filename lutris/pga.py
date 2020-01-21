@@ -102,8 +102,7 @@ def field_to_string(
         if indexed:
             field_query += " PRIMARY KEY"
         return field_query
-    else:
-        return "FOREIGN KEY (%s) REFERENCES %s(%s)" % (name, name, referenced)
+    return "FOREIGN KEY (%s) REFERENCES %s(%s)" % (name, name, referenced)
 
 
 def create_table(name, schema):
@@ -435,7 +434,7 @@ def get_used_platforms_game_count():
 
 def get_categories(select="*"):
     """Get the list of every category in database."""
-    query = "select " + select + " from categories"
+    query = "select %s from categories" % (select)
     params = []
 
     query += " ORDER BY category"
@@ -451,11 +450,11 @@ def get_games_in_categories(category="*"):
     query = "select games.id from games " \
             "JOIN games2categories ON games.id = games2categories.games " \
             "JOIN categories ON categories.id = games2categories.categories " \
-            "WHERE categories.category = \"" + category + "\""
+            "WHERE categories.category = %s" % (category)
     params = []
     return_ids = []
-    for category in sql.db_query(PGA_DB, query, tuple(params)):
-        return_ids.append(category["id"])
+    for game in sql.db_query(PGA_DB, query, tuple(params)):
+        return_ids.append(game["id"])
 
     return return_ids
 
@@ -479,7 +478,7 @@ def add_category_favorite():
     try:
         return sql.db_insert(PGA_DB, "categories", {"category": "favorite"})
     except Exception as e:
-        pass
+        print("")
 
 def add_game_to_category(game_id=-1, category=None):
     """Add a m2m reference from game2category to the PGA database."""
