@@ -2,7 +2,6 @@
 import os
 import signal
 
-from lutris import pga
 from gi.repository import Gio
 from lutris import pga
 from lutris.command import MonitoredCommand
