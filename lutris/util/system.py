@@ -339,3 +339,10 @@ def run_once(function):
             first_run = False
             return function(*args)
     return fn_wrapper
+
+
+def get_existing_parent(path):
+    """Return the 1st existing parent for a folder (or itself if the path exists)"""
+    if os.path.exists(path):
+        return path
+    return get_existing_parent(os.path.dirname(path))

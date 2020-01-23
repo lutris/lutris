@@ -149,6 +149,14 @@ class FileChooserEntry(Gtk.Box):
                 "contains files. Installation might not work properly."
             )
             self.pack_end(non_empty_label, False, False, 10)
+        parent = system.get_existing_parent(path)
+        if not os.access(parent, os.W_OK):
+            non_writable_destination_label = Gtk.Label(visible=True)
+            non_writable_destination_label.set_markup(
+                "<b>Warning</b> The destination folder "
+                "is not writable by the current user."
+            )
+            self.pack_end(non_writable_destination_label, False, False, 10)
 
     def on_select_file(self, dialog, response):
         """FileChooserDialog response callback"""
