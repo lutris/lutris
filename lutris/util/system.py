@@ -35,7 +35,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
         return
 
     if not quiet:
-        logger.debug("Executing %s", " ".join(command))
+        logger.debug("Executing %s", " ".join([str(i) for i in command]))
 
     # Set up environment
     existing_env = os.environ.copy()
