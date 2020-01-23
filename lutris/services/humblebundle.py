@@ -156,6 +156,11 @@ def connect(parent=None):
     dialog.run()
 
 
+def disconnect(self):
+    """Disconnect from Humble Bundle"""
+    return SERVICE.disconnect()
+
+
 def get_humble_download_link(humbleid, runner):
     """Return a download link for a given humbleid and runner"""
     platform = runner if runner != "wine" else "windows"
