@@ -342,7 +342,8 @@ def run_once(function):
 
 
 def get_existing_parent(path):
-    """Return the 1st existing parent for a folder (or itself if the path exists)"""
-    if os.path.exists(path):
+    """Return the 1st existing parent for a folder (or itself if the path
+    exists and is a directory)"""
+    if os.path.exists(path) and not os.path.isfile(path):
         return path
     return get_existing_parent(os.path.dirname(path))
