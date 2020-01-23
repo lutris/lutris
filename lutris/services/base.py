@@ -30,7 +30,8 @@ class OnlineService:
 
     def disconnect(self):
         """Disconnect from the service by removing all credentials"""
-        for auth_file in self.credential_files + [self.cache_path]:
+        self.wipe_game_cache()
+        for auth_file in self.credential_files:
             try:
                 os.remove(auth_file)
             except OSError:
