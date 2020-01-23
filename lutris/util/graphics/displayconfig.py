@@ -372,8 +372,12 @@ class LogicalMonitor:
 
 class DisplayState:
     """Snapshot of a display configuration at a given time"""
-    def __init__(self, current_state):
-        self._state = current_state
+    def __init__(self, interface):
+        self.interface = interface
+        self._state = self.load_state()
+
+    def load_state(self):
+        return self.interface.GetCurrentState()
 
     @property
     def serial(self):
@@ -415,7 +419,7 @@ class MutterDisplayConfig():
         proxy_obj = session_bus.get_object(self.namespace, self.dbus_path)
         self.interface = dbus.Interface(proxy_obj, dbus_interface=self.namespace)
         self.resources = self.interface.GetResources()
-        self.current_state = DisplayState(self.interface.GetCurrentState())
+        self.current_state = DisplayState(self.interface)
 
     @property
     def serial(self):
@@ -569,6 +573,9 @@ class MutterDisplayConfig():
 
     def apply_monitors_config(self, display_configs):
         """Set the selected display to the desired resolution"""
+        # Reload resources
+        self.resources = self.interface.GetResources()
+        self.current_state = DisplayState(self.interface)
         monitors_config = [
             [
                 config.position[0],
