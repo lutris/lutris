@@ -33,7 +33,7 @@ class ProcessMonitor:
         include_processes = self.parse_process_list(include_processes)
         exclude_processes = self.parse_process_list(exclude_processes)
 
-        self.nongame_processes = (exclude_processes | SYSTEM_PROCESSES) - include_processes
+        self.unmonitored_processes = (exclude_processes | SYSTEM_PROCESSES) - include_processes
 
     @staticmethod
     def parse_process_list(process_list):
@@ -50,7 +50,7 @@ class ProcessMonitor:
             if child.state == 'Z':
                 continue
 
-            if child.name and child.name not in self.nongame_processes:
+            if child.name and child.name not in self.unmonitored_processes:
                 yield child
 
     def iterate_monitored_processes(self):
@@ -58,7 +58,7 @@ class ProcessMonitor:
             if child.state == 'Z':
                 continue
 
-            if child.name not in SYSTEM_PROCESSES:
+            if child.name not in self.unmonitored_processes:
                 yield child
 
     def iterate_all_processes(self):
@@ -66,11 +66,11 @@ class ProcessMonitor:
 
     def is_game_alive(self):
         "Returns whether at least one nonexcluded process exists"
-        for child in self.iterate_game_processes():
+        for _child in self.iterate_game_processes():
             return True
         return False
 
     def are_monitored_processes_alive(self):
-        for child in self.iterate_monitored_processes():
+        for _child in self.iterate_monitored_processes():
             return True
         return False
