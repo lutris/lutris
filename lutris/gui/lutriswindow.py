@@ -612,6 +612,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if game.is_installed:
             self.application.launch(game)
         else:
+            self.application.show_window(InstallerWindow, parent=self, game_slug=game.slug)
             InstallerWindow(
                 parent=self, game_slug=game.slug, application=self.application,
             )
@@ -676,7 +677,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_manage_runners(self, *args):
-        return RunnersDialog(transient_for=self)
+        self.application.show_window(RunnersDialog, transient_for=self)
 
     def invalidate_game_filter(self):
         """Refilter the game view based on current filters"""

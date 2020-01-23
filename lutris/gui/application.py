@@ -34,7 +34,7 @@ from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris.game import Game
 from lutris import settings
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
+from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, GtkBuilderDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
@@ -177,20 +177,21 @@ class Application(Gtk.Application):
             # accordingly
             self.run_in_background = False
 
-    def show_window(self, window_class):
+    def show_window(self, window_class, **kwargs):
         """Instanciate a window keeping 1 instance max"""
-        window_key = str(window_class)
+        window_key = str(window_class) + str(kwargs)
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
         else:
-            window_inst = window_class(application=self)
-            window_inst.connect("destroy", self.on_app_window_destroyed)
+            window_inst = window_class(application=self, **kwargs)
+            window_inst.connect("destroy", self.on_app_window_destroyed, str(kwargs))
             self.app_windows[window_key] = window_inst
 
-    def on_app_window_destroyed(self, app_window):
+    def on_app_window_destroyed(self, app_window, kwargs_str):
         """Remove the reference to the window when it has been destroyed"""
-        window_key = str(app_window.__class__)
+        window_key = str(app_window.__class__) + kwargs_str
         del self.app_windows[window_key]
+        return True
 
     @staticmethod
     def _print(command_line, string):
@@ -348,12 +349,12 @@ class Application(Gtk.Application):
                 action = "install"
 
         if action == "install":
-            InstallerWindow(
+            self.show_window(
+                InstallerWindow,
+                parent=self.window,
                 game_slug=game_slug,
                 installer_file=installer_file,
                 revision=revision,
-                parent=self.window,
-                application=self,
             )
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
