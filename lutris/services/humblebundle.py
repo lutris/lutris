@@ -156,7 +156,7 @@ def connect(parent=None):
     dialog.run()
 
 
-def disconnect(self):
+def disconnect():
     """Disconnect from Humble Bundle"""
     return SERVICE.disconnect()
 
