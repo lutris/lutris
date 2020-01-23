@@ -67,6 +67,7 @@ class Application(Gtk.Application):
         GLib.set_application_name(_("Lutris"))
         self.running_games = Gio.ListStore.new(Game)
         self.window = None
+        self.app_windows = {}
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
         self.run_in_background = False
@@ -175,6 +176,21 @@ class Application(Gtk.Application):
             # Reset run in background to False. Future calls will set it
             # accordingly
             self.run_in_background = False
+
+    def show_window(self, window_class):
+        """Instanciate a window keeping 1 instance max"""
+        window_key = str(window_class)
+        if self.app_windows.get(window_key):
+            self.app_windows[window_key].present()
+        else:
+            window_inst = window_class(application=self)
+            window_inst.connect("destroy", self.on_app_window_destroyed)
+            self.app_windows[window_key] = window_inst
+
+    def on_app_window_destroyed(self, app_window):
+        """Remove the reference to the window when it has been destroyed"""
+        window_key = str(app_window.__class__)
+        del self.app_windows[window_key]
 
     @staticmethod
     def _print(command_line, string):

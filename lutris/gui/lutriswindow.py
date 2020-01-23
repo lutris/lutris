@@ -580,7 +580,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def open_sync_dialog(self):
         """Opens the service sync dialog"""
         self.add_popover.hide()
-        SyncServiceWindow(application=self.application)
+        self.application.show_window(SyncServiceWindow)
 
     def update_runtime(self):
         """Check that the runtime is up to date"""
