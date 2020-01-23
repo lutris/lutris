@@ -1,5 +1,6 @@
 """Generic service utilities"""
 import os
+import shutil
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
 
@@ -19,6 +20,13 @@ class OnlineService:
     def is_authenticated(self):
         """Return whether the service is authenticated"""
         return all([os.path.exists(path) for path in self.credential_files])
+
+    def wipe_game_cache(self):
+        """Wipe the game cache, allowing it to be reloaded"""
+        if os.path.isdir(self.cache_path):
+            shutil.rmtree(self.cache_path)
+        elif os.path.exists(self.cache_path):
+            os.remove(self.cache_path)
 
     def disconnect(self):
         """Disconnect from the service by removing all credentials"""

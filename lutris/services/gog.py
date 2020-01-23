@@ -147,11 +147,6 @@ class GogService(OnlineService):
             return
         return request.json
 
-    def wipe_game_cache(self):
-        """Wipe the game cache, allowing it to be reloaded"""
-        if os.path.exists(self.cache_path):
-            os.remove(self.cache_path)
-
     def get_user_data(self):
         """Return GOG profile information"""
         url = "https://embed.gog.com/userData.json"
@@ -305,7 +300,7 @@ def get_gog_download_links(gogid, runner):
         raise UnavailableGame
     gog_installers = gog_service.get_installers(gogid, runner)
     if len(gog_installers) > 1:
-        raise MultipleInstallerError("Don't know how to deal with multiple installers yet.")
+        raise MultipleInstallerError()
     try:
         installer = gog_installers[0]
     except IndexError:
