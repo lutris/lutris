@@ -35,7 +35,7 @@ class ServiceSyncBox(Gtk.Box):
         self.num_selected = 0
         self.games_loaded = False
 
-        title_box = Gtk.Box()
+        title_box = Gtk.Box(spacing=6)
         label = Gtk.Label()
         label.set_markup("<b>{}</b>".format(self.name))
         title_box.pack_start(label, True, True, 0)
