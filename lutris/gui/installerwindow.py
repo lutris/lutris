@@ -84,14 +84,18 @@ class InstallerWindow(BaseApplicationWindow):
 
         # check if installer is local or online
         if system.path_exists(self.installer_file):
-            self.get_scripts(local_script=True)
+            self.on_scripts_obtained(interpreter.read_script(self.installer_file))
         else:
             self.title_label.set_markup("Waiting for response from %s" % (settings.SITE_URL))
             self.add_spinner()
             self.widget_box.show()
             self.title_label.show()
-            self.get_scripts(local_script=False)
-
+            jobs.AsyncCall(
+                interpreter.fetch_script,
+                self.on_scripts_obtained,
+                self.game_slug,
+                self.revision,
+            )
         self.present()
 
     def add_button(self, label, handler=None, tooltip=None):
@@ -104,17 +108,6 @@ class InstallerWindow(BaseApplicationWindow):
 
         self.action_buttons.add(button)
         return button
-
-    def get_scripts(self, local_script=False):
-        if local_script:
-            self.on_scripts_obtained(interpreter.read_script(self.installer_file))
-        else:
-            jobs.AsyncCall(
-                interpreter.fetch_script,
-                self.on_scripts_obtained,
-                self.game_slug,
-                self.revision,
-            )
 
     def on_scripts_obtained(self, scripts, _error=None):
         if not scripts:
