@@ -71,11 +71,8 @@ class InstallerWindow(BaseApplicationWindow):
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 0)
 
-        self.cancel_button = Gtk.Button.new_with_mnemonic("C_ancel")
-        self.cancel_button.set_tooltip_text("Abort and revert the installation")
-        self.cancel_button.connect("clicked", self.cancel_installation)
-        self.action_buttons.add(self.cancel_button)
-
+        self.cancel_button = self.add_button("C_ancel", self.cancel_installation,
+                                             tooltip="Abort and revert the installation")
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
         self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
@@ -97,10 +94,14 @@ class InstallerWindow(BaseApplicationWindow):
 
         self.present()
 
-    def add_button(self, label, handler=None):
+    def add_button(self, label, handler=None, tooltip=None):
+        """Add a button to the action buttons box"""
         button = Gtk.Button.new_with_mnemonic(label)
+        if tooltip:
+            button.set_tooltip_text(tooltip)
         if handler:
             button.connect("clicked", handler)
+
         self.action_buttons.add(button)
         return button
 
