@@ -1,10 +1,11 @@
 """Widgets for the installer window"""
 import os
 from gi.repository import Gtk, GObject, Pango
-from lutris.util.strings import gtk_safe
+from lutris.util.strings import gtk_safe, add_url_tags
 from lutris.util.log import logger
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.utils import get_icon
+from lutris.gui.widgets.common import FileChooserEntry
 from lutris.installer.steam_installer import SteamInstaller
 
 
@@ -52,7 +53,7 @@ class InstallerScriptBox(Gtk.VBox):
         rating_label.set_alignment(1, 0.5)
         title_box.pack_end(rating_label, False, False, 0)
         info_box.add(title_box)
-        info_box.add(InstallerLabel(gtk_safe(self.script["description"])))
+        info_box.add(InstallerLabel(add_url_tags(self.script["description"])))
         return info_box
 
     def get_revealer(self, revealed):
@@ -82,7 +83,7 @@ class InstallerScriptBox(Gtk.VBox):
         notes = self.script["notes"].strip()
         if not notes:
             return Gtk.Alignment()
-        notes_label = InstallerLabel(gtk_safe(notes))
+        notes_label = InstallerLabel(notes)
         notes_label.set_margin_top(12)
         notes_label.set_margin_bottom(12)
         notes_label.set_margin_right(12)
@@ -147,40 +148,62 @@ class InstallerFileBox(Gtk.VBox):
         )
         provider = self.get_provider()
         file_provider_widget = self.get_file_provider_widget(provider)
-        box.add(file_provider_widget)
+        box.pack_start(file_provider_widget, True, True, 0)
         self.add(box)
+
+    def get_download_progress(self):
+        """Return the widget for the download progress bar"""
+        download_progress = DownloadProgressBox({
+            "url": self.installer_file.url,
+            "dest": self.installer_file.dest_file,
+            "referer": self.installer_file.referer
+        }, cancelable=True)
+        download_progress.connect("complete", self.on_download_complete)
+        download_progress.show()
+        if (
+                not self.installer_file.uses_pga_cache()
+                and os.path.exists(self.installer_file.dest_file)
+        ):
+            os.remove(self.installer_file.dest_file)
+        self.start_func = download_progress.start
+        self.abort_func = download_progress.cancel
+
+        return download_progress
 
     def get_file_provider_widget(self, provider):
         """Return the widget used to track progress of file"""
         if provider == "download":
-            download_progress = DownloadProgressBox({
-                "url": self.installer_file.url,
-                "dest": self.installer_file.dest_file,
-                "referer": self.installer_file.referer
-            }, cancelable=True)
-            download_progress.cancel_button.hide()
-            download_progress.connect("complete", self.on_download_complete)
-            download_progress.show()
-            if (
-                    not self.installer_file.uses_pga_cache()
-                    and os.path.exists(self.installer_file.dest_file)
-            ):
-                os.remove(self.installer_file.dest_file)
-            self.start_func = download_progress.start
-            self.abort_func = download_progress.cancel
-
+            download_progress = self.get_download_progress()
             return download_progress
         if provider == "pga":
-            pga_label = Gtk.Label()
-            pga_label.set_markup("URL: <b>%s</b>\nCached in: <b>%s</b>" % (
-                gtk_safe(self.installer_file.url),
-                gtk_safe(self.installer_file.dest_file)
-            ))
-            return pga_label
+            box = Gtk.VBox(spacing=6)
+            url_label = Gtk.Label()
+            url_label.set_markup("URL: <b>%s</b>" % gtk_safe(self.installer_file.url))
+            url_label.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
+            box.add(url_label)
+            file_label = Gtk.Label()
+            file_label.set_markup("Cached in: <b>%s</b>" % gtk_safe(self.installer_file.dest_file))
+            file_label.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
+            box.add(file_label)
+            return box
         if provider == "user":
-            user_label = Gtk.Label()
-            user_label.set_markup(self.get_user_message())
-            return user_label
+            message = self.get_user_message()
+            box = Gtk.VBox(spacing=6)
+            user_label = InstallerLabel(message)
+            box.pack_start(user_label, True, True, 0)
+
+            location_entry = FileChooserEntry(
+                message,
+                Gtk.FileChooserAction.OPEN,
+                path=None
+            )
+            location_entry.entry.connect("changed", self.on_location_changed)
+            location_entry.show()
+            box.add(location_entry)
+            cache_option = Gtk.CheckButton("Cache file for future installations in: %s"
+                                           % self.installer_file.cache_path)
+            box.add(cache_option)
+            return box
         if provider == "steam":
             steam_installer = SteamInstaller(self.installer_file.url,
                                              self.installer_file.id)
@@ -205,6 +228,13 @@ class InstallerFileBox(Gtk.VBox):
             return steam_box
 
         return Gtk.Label(self.installer_file.url)
+
+    def on_location_changed(self, widget):
+        """Open a file picker when the browse button is clicked"""
+        file_path = os.path.expanduser(widget.get_text())
+        selected_directory = os.path.dirname(file_path)
+        logger.debug(selected_directory)
+        self.installer_file.dest_file = file_path
 
     def on_state_changed(self, _widget, state):
         """Update the state label with a new state"""
@@ -234,11 +264,9 @@ class InstallerFileBox(Gtk.VBox):
         provider = self.get_provider()
         self.installer_file.prepare()
         if provider == "pga":
-            logger.info("File is cached!")
             self.emit("file-available", self.installer_file.id)
             return
         if self.start_func:
-            logger.info("Start func: %s", self.start_func)
             self.start_func()
 
     def on_download_cancelled(self):

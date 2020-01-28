@@ -353,6 +353,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
 
         self.continue_button.show()
+        self.continue_button.set_sensitive(True)
         self.continue_handler = self.continue_button.connect(
             "clicked", self.on_files_confirmed, installer_files_box
         )

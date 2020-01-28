@@ -76,7 +76,8 @@ class SteamInstaller(GObject.Object):
             _steam_rel_path = "."
         return _steam_rel_path
 
-    def on_steam_game_installed(self, _data, error):
+    @staticmethod
+    def on_steam_game_installed(_data, error):
         """Callback for Steam game installer, mostly for error handling
         since install progress is handled by _monitor_steam_game_install
         """

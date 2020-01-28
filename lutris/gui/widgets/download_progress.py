@@ -24,7 +24,7 @@ class DownloadProgressBox(Gtk.Box):
         self.main_label.set_alignment(0, 0)
         self.main_label.set_property("wrap", True)
         self.main_label.set_margin_bottom(10)
-        self.main_label.set_max_width_chars(70)
+        # self.main_label.set_max_width_chars(70)
         self.main_label.set_selectable(True)
         self.main_label.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
         self.pack_start(self.main_label, True, True, 0)

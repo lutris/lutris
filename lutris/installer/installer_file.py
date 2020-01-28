@@ -42,8 +42,6 @@ class InstallerFile:
                 "No filename provided for %s, please provide 'url' "
                 "and 'filename' parameters in the script" % file_id
             )
-        if self.uses_pga_cache(create=True):
-            logger.debug("Using cache path %s", self.cache_path)
 
     def __str__(self):
         return "%s/%s" % (self.game_slug, self.id)
@@ -63,6 +61,7 @@ class InstallerFile:
             return True
         if create:
             try:
+                logger.debug("Creating cache path %s", self.cache_path)
                 os.makedirs(self.cache_path)
             except OSError as ex:
                 logger.error("Failed to created cache path: %s", ex)
