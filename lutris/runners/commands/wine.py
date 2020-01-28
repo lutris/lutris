@@ -8,7 +8,7 @@ from lutris import runtime, settings
 from lutris.config import LutrisConfig
 from lutris.runners import import_runner
 from lutris.command import MonitoredCommand
-from lutris.util import datapath, system
+from lutris.util import system
 from lutris.util.strings import split_arguments
 from lutris.util.log import logger
 from lutris.util.wine.wine import (

@@ -34,7 +34,7 @@ from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris.game import Game
 from lutris import settings
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, GtkBuilderDialog
+from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
@@ -318,9 +318,8 @@ class Application(Gtk.Application):
             elif action == "install":
                 # Installers can use game or installer slugs
                 self.run_in_background = True
-                db_game = pga.get_game_by_field(
-                    game_slug, "slug"
-                ) or pga.get_game_by_field(game_slug, "installer_slug")
+                db_game = pga.get_game_by_field(game_slug, "slug") \
+                    or pga.get_game_by_field(game_slug, "installer_slug")
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (
@@ -328,6 +327,10 @@ class Application(Gtk.Application):
                     or pga.get_game_by_field(game_slug, "slug")
                     or pga.get_game_by_field(game_slug, "installer_slug")
                 )
+
+        # If reinstall flag is passed, force the action to install
+        if options.contains("reinstall"):
+            action = "install"
 
         # Graphical commands
         self.activate()

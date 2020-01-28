@@ -3,7 +3,6 @@
 import os
 
 from lutris import api, pga, runtime, settings
-from lutris.gui.widgets.utils import open_uri
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.log import logger

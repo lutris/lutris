@@ -1,6 +1,8 @@
+"""Installer specific exceptions"""
 import sys
 
 from lutris.util.log import logger
+from lutris.util.strings import gtk_safe
 from lutris.gui.dialogs import ErrorDialog
 
 
@@ -33,14 +35,15 @@ class MissingGameDependency(Exception):
         super().__init__()
 
 
-_excepthook = sys.excepthook
+_excepthook = sys.excepthook  # pylint: disable=invalid-name
 
 
 def error_handler(error_type, value, traceback):
+    """Intercept all possible exceptions and raise them as ScriptingErrors"""
     if error_type == ScriptingError:
         message = value.message
         if value.faulty_data:
-            message += "\n<b>" + str(value.faulty_data) + "</b>"
+            message += "\n<b>%s</b>" % gtk_safe(value.faulty_data)
         ErrorDialog(message)
     else:
         _excepthook(error_type, value, traceback)

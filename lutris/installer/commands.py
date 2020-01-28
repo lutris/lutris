@@ -32,10 +32,13 @@ class CommandsMixin:
 
     def _get_runner_version(self):
         """Return the version of the runner used for the installer"""
-        if self.runner in ("wine", "winesteam") and self.script.get(self.runner):
-            return self.script[self.runner].get("version")
-        if self.runner == "libretro":
-            return self.script["game"]["core"]
+        if (
+                self.installer.runner in ("wine", "winesteam")
+                and self.installer.script.get(self.installer.runner)
+        ):
+            return self.installer.script[self.installer.runner].get("version")
+        if self.installer.runner == "libretro":
+            return self.installer.script["game"]["core"]
         return None
 
     @staticmethod
@@ -220,7 +223,7 @@ class CommandsMixin:
             "containing the following file or folder:\n"
             "<i>%s</i>" % requires
         )
-        if self.runner == "wine":
+        if self.installer.runner == "wine":
             GLib.idle_add(self.parent.eject_button.show)
         GLib.idle_add(
             self.parent.ask_for_disc, message, self._find_matching_disc, requires
@@ -363,7 +366,7 @@ class CommandsMixin:
             # than the one for this installer
             runner_name, task_name = task_name.split(".")
         else:
-            runner_name = self.runner
+            runner_name = self.installer.runner
         return runner_name, task_name
 
     def task(self, data):
@@ -384,10 +387,10 @@ class CommandsMixin:
             if wine_version:
                 data["wine_path"] = get_wine_version_exe(wine_version)
             data["prefix"] = data.get("prefix") \
-                or self.script.get("game", {}).get("prefix") \
+                or self.installer.script.get("game", {}).get("prefix") \
                 or "$GAMEDIR"
             data["arch"] = data.get("arch") \
-                or self.script.get("game", {}).get("arch") \
+                or self.installer.script.get("game", {}).get("arch") \
                 or WINE_DEFAULT_ARCH
             if task_name == "wineexec" and self.script_env:
                 data["env"] = self.script_env

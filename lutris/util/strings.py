@@ -103,12 +103,8 @@ def gtk_safe(string):
     """Return a string ready to used in Gtk widgets"""
     if not string:
         string = ""
+    string = str(string)
     return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-
-def escape_gtk_label(string):
-    """Used to escape some characters for display in Gtk labels"""
-    return re.sub("&(?!amp;)", "&amp;", string)
 
 
 def get_formatted_playtime(playtime):

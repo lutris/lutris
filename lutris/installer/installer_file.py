@@ -2,10 +2,10 @@
 import os
 from lutris import pga
 from lutris import settings
-from lutris.installer.errors import ScriptingError, FileNotAvailable
+from lutris.installer.errors import ScriptingError
 from lutris.util.log import logger
 from lutris.util import system
-from lutris.cache import get_cache_path
+from lutris import cache
 
 
 class InstallerFile:
@@ -13,7 +13,6 @@ class InstallerFile:
     def __init__(self, game_slug, file_id, file_meta):
         self.game_slug = game_slug
         self.id = file_id  # pylint: disable=invalid-name
-        self.dest_file = None
         if isinstance(file_meta, dict):
             for field in ("url", "filename"):
                 if field not in file_meta:
@@ -29,6 +28,7 @@ class InstallerFile:
             self.filename = os.path.basename(file_meta)
             self.referer = None
             self.checksum = None
+        self.dest_file = os.path.join(self.cache_path, self.filename)
 
         if self.url.startswith(("$STEAM", "$WINESTEAM")):
             self.filename = self.url
@@ -56,7 +56,7 @@ class InstallerFile:
         Returns:
             bool
         """
-        cache_path = get_cache_path()
+        cache_path = cache.get_cache_path()
         if not cache_path:
             return False
         if system.path_exists(cache_path):
@@ -74,7 +74,7 @@ class InstallerFile:
     @property
     def cache_path(self):
         """Return the directory used as a cache for the duration of the installation"""
-        _cache_path = get_cache_path()
+        _cache_path = cache.get_cache_path()
         if not _cache_path:
             _cache_path = os.path.join(settings.CACHE_DIR, "installer")
         if "cdn.gog.com" in self.url or "cdn-hw.gog.com" in self.url:
@@ -83,22 +83,16 @@ class InstallerFile:
             folder = self.id
         return os.path.join(_cache_path, self.game_slug, folder)
 
-    def get_download_info(self):
-        """Retrieve the file locally"""
-        if self.url.startswith(("$WINESTEAM", "$STEAM", "N/A")):
-            raise FileNotAvailable()
-        # Check for file availability in PGA
-        pga_uri = pga.check_for_file(self.game_slug, self.id)
-        if pga_uri:
-            self.url = pga_uri
+    def prepare(self):
+        """Prepare the file for download"""
+        if not system.path_exists(self.cache_path):
+            os.makedirs(self.cache_path)
 
-        dest_file = os.path.join(self.cache_path, self.filename)
-        logger.debug("Downloading [%s]: %s to %s", self.id, self.url, dest_file)
-
-        if not self.uses_pga_cache() and os.path.exists(dest_file):
-            os.remove(dest_file)
-        self.dest_file = dest_file
-        return self.dest_file
+    def pga_uri(self):
+        """Return the URI of the file stored in the PGA
+        This isn't used yet, it looks in the PGA sources
+        """
+        return pga.check_for_file(self.game_slug, self.id)
 
     def check_hash(self):
         """Checks the checksum of `file` and compare it to `value`
@@ -118,18 +112,7 @@ class InstallerFile:
         if system.get_file_checksum(self.dest_file, hash_type) != expected_hash:
             raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", self.checksum)
 
-    def download(self, downloader):
-        """Download a file with a given downloader"""
-        if self.uses_pga_cache() and system.path_exists(self.dest_file):
-            logger.info("File %s already cached", self)
-            return False
-
-        if not system.path_exists(self.cache_path):
-            os.makedirs(self.cache_path)
-        downloader(
-            self.url,
-            self.dest_file,
-            callback=self.check_hash,
-            referer=self.referer
-        )
-        return True
+    @property
+    def is_cached(self):
+        """Is the file available in the local PGA cache?"""
+        return self.uses_pga_cache() and system.path_exists(self.dest_file)
