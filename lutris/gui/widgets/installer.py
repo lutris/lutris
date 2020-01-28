@@ -145,13 +145,13 @@ class InstallerFileBox(Gtk.VBox):
             margin_top=12,
             margin_bottom=12,
         )
-        file_provider_widget = self.get_file_provider_widget()
+        provider = self.get_provider()
+        file_provider_widget = self.get_file_provider_widget(provider)
         box.add(file_provider_widget)
         self.add(box)
 
-    def get_file_provider_widget(self):
+    def get_file_provider_widget(self, provider):
         """Return the widget used to track progress of file"""
-        provider = self.get_provider()
         if provider == "download":
             download_progress = DownloadProgressBox({
                 "url": self.installer_file.url,
@@ -187,6 +187,17 @@ class InstallerFileBox(Gtk.VBox):
             steam_installer.connect("game-installed", self.on_download_complete)
             self.start_func = steam_installer.install_steam_game
             self.stop_func = steam_installer.stop_func
+
+            steam_box = Gtk.HBox(spacing=6)
+            icon = get_icon("steam", size=(32, 32))
+            icon.set_margin_right(6)
+            steam_box.add(icon)
+            info_box = Gtk.VBox(spacing=6)
+            info_box.add(InstallerLabel("Steam game (appid: <b>%s</b>)" % steam_installer.appid))
+            info_box.add(InstallerLabel("Installing with Steam for %s" % steam_installer.platform))
+            steam_box.add(info_box)
+            return steam_box
+
         return Gtk.Label(self.installer_file.url)
 
     def get_provider(self):
