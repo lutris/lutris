@@ -25,7 +25,8 @@ class InstallerScriptBox(Gtk.VBox):
         self.script = script
         self.parent = parent
         self.revealer = None
-
+        self.set_margin_left(12)
+        self.set_margin_right(12)
         box = Gtk.Box(spacing=12, margin_top=6, margin_bottom=6)
         box.add(self.get_icon())
         box.pack_start(self.get_infobox(), True, True, 0)
@@ -64,7 +65,6 @@ class InstallerScriptBox(Gtk.VBox):
     def get_icon(self):
         """Return the runner icon widget"""
         icon = get_icon(self.script["runner"], size=(32, 32))
-        icon.set_margin_left(6)
         return icon
 
     def get_install_button(self):
@@ -74,7 +74,6 @@ class InstallerScriptBox(Gtk.VBox):
 
         install_button = Gtk.Button("Install")
         install_button.connect("clicked", self.on_install_clicked)
-        install_button.set_margin_right(6)
         align.add(install_button)
         return align
 
@@ -138,12 +137,13 @@ class InstallerFileBox(Gtk.VBox):
         self.installer_file = installer_file
         self.start_func = None
         self.abort_func = None
+        self.state_label = None  # Use this label to display status update
         self.set_margin_left(12)
         self.set_margin_right(12)
         box = Gtk.Box(
             spacing=12,
-            margin_top=12,
-            margin_bottom=12,
+            margin_top=6,
+            margin_bottom=6,
         )
         provider = self.get_provider()
         file_provider_widget = self.get_file_provider_widget(provider)
@@ -185,6 +185,7 @@ class InstallerFileBox(Gtk.VBox):
             steam_installer = SteamInstaller(self.installer_file.url,
                                              self.installer_file.id)
             steam_installer.connect("game-installed", self.on_download_complete)
+            steam_installer.connect("state-changed", self.on_state_changed)
             self.start_func = steam_installer.install_steam_game
             self.stop_func = steam_installer.stop_func
 
@@ -193,12 +194,21 @@ class InstallerFileBox(Gtk.VBox):
             icon.set_margin_right(6)
             steam_box.add(icon)
             info_box = Gtk.VBox(spacing=6)
-            info_box.add(InstallerLabel("Steam game (appid: <b>%s</b>)" % steam_installer.appid))
-            info_box.add(InstallerLabel("Installing with Steam for %s" % steam_installer.platform))
+            steam_label = InstallerLabel("Steam game for %s (appid: <b>%s</b>)" % (
+                steam_installer.platform,
+                steam_installer.appid
+            ))
+            info_box.add(steam_label)
+            self.state_label = InstallerLabel("")
+            info_box.add(self.state_label)
             steam_box.add(info_box)
             return steam_box
 
         return Gtk.Label(self.installer_file.url)
+
+    def on_state_changed(self, _widget, state):
+        """Update the state label with a new state"""
+        self.state_label.set_text(state)
 
     def get_provider(self):
         """Return file provider used"""

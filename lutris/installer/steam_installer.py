@@ -20,6 +20,7 @@ class SteamInstaller(GObject.Object):
 
     __gsignals__ = {
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "state-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
     }
 
     def __init__(self, steam_uri, file_id):
@@ -38,6 +39,7 @@ class SteamInstaller(GObject.Object):
         super().__init__()
         self.steam_poll = None
         self.prev_states = []  # Previous states for the Steam installer
+        self.state = ""
         self.install_start_time = None
         self.steam_uri = steam_uri
         self.stop_func = None
@@ -80,12 +82,11 @@ class SteamInstaller(GObject.Object):
         """
         if error:
             raise ScriptingError(str(error))
-        self.emit("game-installed", self.appid)
 
     def install_steam_game(self):
         """Launch installation of a steam game"""
         if self.runner.get_game_path_from_appid(appid=self.appid):
-            logger.info("Steam game %s is already installed")
+            logger.info("Steam game %s is already installed", self.appid)
             self.emit("game-installed", self.appid)
         else:
             logger.debug("Installing steam game %s", self.appid)
@@ -102,7 +103,8 @@ class SteamInstaller(GObject.Object):
         """Return path of Steam files"""
         data_path = self.runner.get_game_path_from_appid(appid=self.appid)
         if not data_path or not os.path.exists(data_path):
-            raise ScriptingError("Unable to get Steam data for game")
+            logger.info("No path found for Steam game %s", self.appid)
+            return ""
         return os.path.abspath(
             os.path.join(data_path, self.steam_rel_path)
         )
@@ -113,12 +115,13 @@ class SteamInstaller(GObject.Object):
         states = get_app_state_log(
             self.runner.steam_data_dir, self.appid, self.install_start_time
         )
-        if states != self.prev_states:
-            logger.debug("Steam installation status:")
-            logger.debug(states)
+        if states and states != self.prev_states:
+            self.state = states[-1].split(",")[-1]
+            self.emit("state-changed", self.state)  # Broadcast new state to listeners
+            logger.debug("Steam installation status: %s", states)
         self.prev_states = states
-
-        if states and states[-1].startswith("Fully Installed"):
-            logger.debug("Steam game has finished installing")
+        if self.state == "Fully Installed":
+            logger.info("Steam game %s has been installed successfully", self.appid)
+            self.emit("game-installed", self.appid)
             return False
         return True
