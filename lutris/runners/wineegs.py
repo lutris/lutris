@@ -58,7 +58,17 @@ class wineegs(wine.wine):
                 "after creating a shortcut from within the launcher."
                 "app name for <i>Celeste</i> is: <b>Salt</b>"
             ),
-        },        
+        },       
+        {
+            "option": "prefix",
+            "type": "directory_chooser",
+            "label": "Prefix",
+            "help": (
+                'The prefix (also named "bottle") used by Wine.\n'
+                "It's a directory containing a set of files and "
+                "folders making up a confined Windows environment."
+            ),
+        }, 
         {
             "option": "run_without_egs",
             "label": "DRM free mode (Do not launch EGS)",
@@ -107,7 +117,7 @@ class wineegs(wine.wine):
                 "type": "string",
                 "label": "Arguments",
                 "advanced": True,
-                "help": ("Extra command line arguments used when " "launching EGS"),
+                "help": ("Extra command line arguments used when launching EGS"),
             },
             {
                 "option": "default_win32_prefix",
@@ -193,8 +203,8 @@ class wineegs(wine.wine):
         """Return the working directory to use when running the game."""
         if self.game_config.get("run_without_egs"):
              return self.game_path
-        return os.path.expanduser("~/")
-
+        return self.egs_path
+        
     @property
     def launch_args(self):
         """Provide launch arguments for EGS"""
@@ -276,7 +286,7 @@ class wineegs(wine.wine):
 
             # Install dependencies            
             # TODO: mfinstaller?
-            winetricks("cjkfonts arial dotnet48 d3dx9", prefix=prefix, wine_path=self.get_executable())   
+            winetricks("dotnet48", prefix=prefix, wine_path=self.get_executable())   
             
             # TODO: is winetricks async? EGS isntaller is called before dotnet is installed
             # Install EGS

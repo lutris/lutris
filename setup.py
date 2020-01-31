@@ -38,6 +38,7 @@ setup(
         'lutris.runners.commands',
         'lutris.services',
         'lutris.util',
+        'lutris.util.egs',
         'lutris.util.graphics',
         'lutris.util.steam',
         'lutris.util.wine',
