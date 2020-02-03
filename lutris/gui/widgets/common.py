@@ -50,7 +50,7 @@ class FileChooserEntry(Gtk.Box):
     ):
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
-            spacing=12,
+            spacing=0,
             visible=True
         )
         self.title = title
@@ -74,7 +74,7 @@ class FileChooserEntry(Gtk.Box):
         box = Gtk.Box(spacing=6, visible=True)
         box.pack_start(self.entry, True, True, 0)
         box.add(browse_button)
-        self.add(box)
+        self.pack_start(box, False, False, 0)
 
     def get_text(self):
         """Return the entry's text"""

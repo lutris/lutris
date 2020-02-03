@@ -13,6 +13,8 @@ class InstallerFile:
     def __init__(self, game_slug, file_id, file_meta):
         self.game_slug = game_slug
         self.id = file_id  # pylint: disable=invalid-name
+        self.referer = None
+        self.checksum = None
         if isinstance(file_meta, dict):
             for field in ("url", "filename"):
                 if field not in file_meta:
@@ -23,11 +25,14 @@ class InstallerFile:
             self.filename = file_meta["filename"]
             self.referer = file_meta.get("referer")
             self.checksum = file_meta.get("checksum")
+        elif file_meta.startswith("N/A"):
+            self.url = file_meta
+            self.filename = ""
+            if self.uses_pga_cache() and os.path.isdir(self.cache_path):
+                self.filename = self.cached_filename
         else:
             self.url = file_meta
             self.filename = os.path.basename(file_meta)
-            self.referer = None
-            self.checksum = None
         self.dest_file = os.path.join(self.cache_path, self.filename)
 
         if self.url.startswith(("$STEAM", "$WINESTEAM")):
@@ -45,6 +50,25 @@ class InstallerFile:
 
     def __str__(self):
         return "%s/%s" % (self.game_slug, self.id)
+
+    @property
+    def human_url(self):
+        """Return the url in human readable format"""
+        if self.url.startswith("N/A"):
+            # Ask the user where the file is located
+            parts = self.url.split(":", 1)
+            if len(parts) == 2:
+                return parts[1]
+            return "Please select file '%s'" % self.id
+        return self.url
+
+    @property
+    def cached_filename(self):
+        """Return the filename of the first file in the cache path"""
+        cache_files = os.listdir(self.cache_path)
+        if cache_files:
+            return cache_files[0]
+        return ""
 
     def uses_pga_cache(self, create=False):
         """Determines whether the installer files are stored in a PGA cache

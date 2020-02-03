@@ -343,6 +343,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.set_status("Please review the files needed for the installation then click 'Continue'")
         installer_files_box = InstallerFilesBox(self.interpreter.installer.files, self)
         installer_files_box.connect("files-available", self.on_files_available)
+        installer_files_box.connect("files-ready", self.on_files_ready)
         scrolledwindow = Gtk.ScrolledWindow(
             hexpand=True,
             vexpand=True,
@@ -353,10 +354,15 @@ class InstallerWindow(BaseApplicationWindow):
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
 
         self.continue_button.show()
-        self.continue_button.set_sensitive(True)
+        self.continue_button.set_sensitive(installer_files_box.is_ready)
         self.continue_handler = self.continue_button.connect(
             "clicked", self.on_files_confirmed, installer_files_box
         )
+
+    def on_files_ready(self, _widget, is_ready):
+        """Toggle state of continue button based on ready state"""
+        logger.debug("Files are ready: %s", is_ready)
+        self.continue_button.set_sensitive(is_ready)
 
     def on_files_confirmed(self, _button, file_box):
         """Call this when the user confirms the install files
@@ -379,7 +385,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.install_in_progress = False
 
         self.desktop_shortcut_box = Gtk.CheckButton("Create desktop shortcut", visible=True)
-        self.menu_shortcut_box = Gtk.CheckButton("Create application menu " "shortcut", visible=True)
+        self.menu_shortcut_box = Gtk.CheckButton("Create application menu shortcut", visible=True)
         self.widget_box.pack_start(self.desktop_shortcut_box, False, False, 5)
         self.widget_box.pack_start(self.menu_shortcut_box, False, False, 5)
         self.widget_box.show()

@@ -1,8 +1,10 @@
 """Widgets for the installer window"""
 import os
+import shutil
 from gi.repository import Gtk, GObject, Pango
 from lutris.util.strings import gtk_safe, add_url_tags
 from lutris.util.log import logger
+from lutris.util import system
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.utils import get_icon
 from lutris.gui.widgets.common import FileChooserEntry
@@ -11,12 +13,17 @@ from lutris.installer.steam_installer import SteamInstaller
 
 class InstallerLabel(Gtk.Label):
     """A label for installers"""
-    def __init__(self, text):
+    def __init__(self, text, wrap=True):
         super().__init__()
-        self.set_line_wrap(True)
-        self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        if wrap:
+            self.set_line_wrap(True)
+            self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        else:
+            self.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
         self.set_alignment(0, 0.5)
+        self.set_margin_right(12)
         self.set_markup(text)
+        self.set_tooltip_text(text)
 
 
 class InstallerScriptBox(Gtk.VBox):
@@ -130,26 +137,34 @@ class InstallerFileBox(Gtk.VBox):
     """Container for an installer file downloader / selector"""
 
     __gsignals__ = {
-        "file-available": (GObject.SIGNAL_RUN_FIRST, None, (str, ))
+        "file-available": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "file-ready": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "file-unready": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, installer_file):
         super().__init__()
         self.installer_file = installer_file
+        self.cache_to_pga = self.installer_file.uses_pga_cache()
         self.start_func = None
-        self.abort_func = None
+        self.stop_func = None
         self.state_label = None  # Use this label to display status update
         self.set_margin_left(12)
         self.set_margin_right(12)
-        box = Gtk.Box(
-            spacing=12,
-            margin_top=6,
-            margin_bottom=6,
-        )
-        provider = self.get_provider()
-        file_provider_widget = self.get_file_provider_widget(provider)
-        box.pack_start(file_provider_widget, True, True, 0)
-        self.add(box)
+        self.file_provider_widget = None
+        self.provider = self.get_provider()
+        self.popover = self.get_popover()
+        self.add(self.get_widgets())
+
+    @property
+    def is_ready(self):
+        """Whether the file is ready to be downloaded / fetched from its provider"""
+        if (
+                self.provider in ("user", "pga")
+                and not system.path_exists(self.installer_file.dest_file)
+        ):
+            return False
+        return True
 
     def get_download_progress(self):
         """Return the widget for the download progress bar"""
@@ -162,36 +177,38 @@ class InstallerFileBox(Gtk.VBox):
         download_progress.show()
         if (
                 not self.installer_file.uses_pga_cache()
-                and os.path.exists(self.installer_file.dest_file)
+                and system.path_exists(self.installer_file.dest_file)
         ):
             os.remove(self.installer_file.dest_file)
         self.start_func = download_progress.start
-        self.abort_func = download_progress.cancel
-
+        self.stop_func = download_progress.cancel
         return download_progress
 
-    def get_file_provider_widget(self, provider):
+    def get_file_provider_widget(self):
         """Return the widget used to track progress of file"""
-        if provider == "download":
-            download_progress = self.get_download_progress()
-            return download_progress
-        if provider == "pga":
+        if self.provider == "download":
             box = Gtk.VBox(spacing=6)
-            url_label = Gtk.Label()
-            url_label.set_markup("URL: <b>%s</b>" % gtk_safe(self.installer_file.url))
-            url_label.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
-            box.add(url_label)
-            file_label = Gtk.Label()
-            file_label.set_markup("Cached in: <b>%s</b>" % gtk_safe(self.installer_file.dest_file))
-            file_label.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
-            box.add(file_label)
+            download_progress = self.get_download_progress()
+            box.pack_start(download_progress, False, False, 0)
             return box
-        if provider == "user":
-            message = self.get_user_message()
+        if self.provider == "pga":
+            box = Gtk.VBox(spacing=6)
+            url_label = InstallerLabel(
+                "URL: <b>%s</b>" % gtk_safe(self.installer_file.human_url),
+                wrap=False
+            )
+            box.pack_start(url_label, False, False, 0)
+            file_label = InstallerLabel(
+                gtk_safe(self.installer_file.dest_file),
+                wrap=False
+            )
+            box.pack_start(file_label, False, False, 0)
+            return box
+        if self.provider == "user":
+            message = self.installer_file.human_url
             box = Gtk.VBox(spacing=6)
             user_label = InstallerLabel(message)
-            box.pack_start(user_label, True, True, 0)
-
+            box.pack_start(user_label, False, False, 0)
             location_entry = FileChooserEntry(
                 message,
                 Gtk.FileChooserAction.OPEN,
@@ -199,12 +216,14 @@ class InstallerFileBox(Gtk.VBox):
             )
             location_entry.entry.connect("changed", self.on_location_changed)
             location_entry.show()
-            box.add(location_entry)
-            cache_option = Gtk.CheckButton("Cache file for future installations in: %s"
-                                           % self.installer_file.cache_path)
-            box.add(cache_option)
+            box.pack_start(location_entry, False, False, 0)
+            if self.installer_file.uses_pga_cache(create=True):
+                cache_option = Gtk.CheckButton("Cache file for future installations")
+                cache_option.set_active(self.cache_to_pga)
+                cache_option.connect("toggled", self.on_user_file_cached)
+                box.pack_start(cache_option, False, False, 0)
             return box
-        if provider == "steam":
+        if self.provider == "steam":
             steam_installer = SteamInstaller(self.installer_file.url,
                                              self.installer_file.id)
             steam_installer.connect("game-installed", self.on_download_complete)
@@ -229,12 +248,91 @@ class InstallerFileBox(Gtk.VBox):
 
         return Gtk.Label(self.installer_file.url)
 
+    def get_popover(self):
+        """Return the popover widget to select file source"""
+        popover = Gtk.Popover()
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        last_widget = None
+        if self.installer_file.url.startswith("http"):
+            download_button = Gtk.RadioButton.new_with_label_from_widget(last_widget, "Download")
+            download_button.connect("toggled", self.on_source_changed, "download")
+            vbox.pack_start(download_button, False, True, 10)
+            last_widget = download_button
+        if self.installer_file.is_cached:
+            pga_button = Gtk.RadioButton.new_with_label_from_widget(last_widget, "Use cache")
+            pga_button.connect("toggled", self.on_source_changed, "pga")
+            vbox.pack_start(pga_button, False, True, 10)
+            last_widget = pga_button
+        user_button = Gtk.RadioButton.new_with_label_from_widget(last_widget, "Select file")
+        user_button.connect("toggled", self.on_source_changed, "user")
+        vbox.pack_start(user_button, False, True, 10)
+        popover.add(vbox)
+        popover.set_position(Gtk.PositionType.BOTTOM)
+        return popover
+
+    def on_source_changed(self, _button, source):
+        """Change the source to a new provider, emit a new state"""
+        if source == self.provider:
+            return
+        self.provider = source
+        logger.info("New provider: %s", source)
+        self.file_provider_widget.destroy()
+        self.file_provider_widget = self.get_file_provider_widget()
+        widget_box = self.get_children()[0]
+        widget_box.pack_start(self.file_provider_widget, True, True, 0)
+        widget_box.reorder_child(self.file_provider_widget, 0)
+        widget_box.show_all()
+        if self.provider == "user":
+            self.emit("file-unready")
+        else:
+            self.emit("file-ready")
+
+    def get_widgets(self):
+        """Return the widget with the source of the file and a way to change its source"""
+        box = Gtk.HBox(
+            spacing=12,
+            margin_top=6,
+            margin_bottom=6
+        )
+        self.file_provider_widget = self.get_file_provider_widget()
+        box.pack_start(self.file_provider_widget, True, True, 0)
+        source_alignment = Gtk.Alignment()
+        source_alignment.set(0, 0, 0, 0)
+        box.pack_start(source_alignment, False, False, 0)
+        source_box = Gtk.HBox()
+        source_alignment.add(source_box)
+        source_box.pack_start(InstallerLabel("Source:"), False, False, 0)
+        if self.provider == "download":
+            button_label = "Download"
+        elif self.provider == "pga":
+            button_label = "Cached"
+        elif self.provider == "user":
+            button_label = "Local"
+        else:
+            raise ValueError("Unsupported provider %s" % self.provider)
+        button = Gtk.Button.new_with_label(button_label)
+        button.connect("clicked", self.on_file_source_select)
+        source_box.pack_start(button, False, False, 0)
+        return box
+
+    def on_file_source_select(self, button):
+        """Open the popover to switch to a different source"""
+        self.popover.set_relative_to(button)
+        self.popover.show_all()
+        self.popover.popup()
+
     def on_location_changed(self, widget):
         """Open a file picker when the browse button is clicked"""
         file_path = os.path.expanduser(widget.get_text())
-        selected_directory = os.path.dirname(file_path)
-        logger.debug(selected_directory)
         self.installer_file.dest_file = file_path
+        if system.path_exists(file_path):
+            self.emit("file-ready")
+        else:
+            self.emit("file-unready")
+
+    def on_user_file_cached(self, checkbutton):
+        """Enable or disable caching of user provided files"""
+        self.cache_to_pga = checkbutton.get_active()
 
     def on_state_changed(self, _widget, state):
         """Update the state label with a new state"""
@@ -244,30 +342,33 @@ class InstallerFileBox(Gtk.VBox):
         """Return file provider used"""
         if self.installer_file.url.startswith(("$WINESTEAM", "$STEAM")):
             return "steam"
-        if self.installer_file.url.startswith("N/A"):
-            return "user"
         if self.installer_file.is_cached:
             return "pga"
-        return "download"
-
-    def get_user_message(self):
-        """Return the message prompting to provide a file"""
         if self.installer_file.url.startswith("N/A"):
-            # Ask the user where the file is located
-            parts = self.installer_file.url.split(":", 1)
-            if len(parts) == 2:
-                return parts[1]
-            return "Please select file '%s'" % self.installer_file.id
+            return "user"
+        return "download"
 
     def start(self):
         """Starts the download of the file"""
-        provider = self.get_provider()
         self.installer_file.prepare()
-        if provider == "pga":
-            self.emit("file-available", self.installer_file.id)
+        if self.provider in ("pga", "user") and self.is_ready:
+            self.emit("file-available")
+            self.cache_file()
             return
         if self.start_func:
             self.start_func()
+        else:
+            logger.info("No start function provided, this file can't be provided")
+
+    def cache_file(self):
+        """Copy file to the PGA cache"""
+        if self.cache_to_pga:
+            if os.path.dirname(self.installer_file.dest_file) == self.installer_file.cache_path:
+                return
+            shutil.copy(self.installer_file.dest_file, self.installer_file.cache_path)
+            logger.debug("Copied %s to cache %s",
+                         self.installer_file.dest_file,
+                         self.installer_file.cache_path)
 
     def on_download_cancelled(self):
         """Handle cancellation of installers"""
@@ -276,13 +377,15 @@ class InstallerFileBox(Gtk.VBox):
         """Action called on a completed download."""
         if isinstance(widget, SteamInstaller):
             self.installer_file.dest_file = widget.get_steam_data_path()
-        self.emit("file-available", self.installer_file.id)
+        self.emit("file-available")
+        self.cache_file()
 
 
 class InstallerFilesBox(Gtk.ListBox):
     """List box presenting all files needed for an installer"""
 
     __gsignals__ = {
+        "files-ready": (GObject.SIGNAL_RUN_LAST, None, (bool, )),
         "files-available": (GObject.SIGNAL_RUN_LAST, None, ())
     }
 
@@ -290,25 +393,58 @@ class InstallerFilesBox(Gtk.ListBox):
         super().__init__()
         self.parent = parent
         self.installer_files = installer_files
+        self.ready_files = set()
         self.available_files = set()
         self.installer_files_boxes = {}
         for installer_file in installer_files:
             installer_file_box = InstallerFileBox(installer_file)
+            installer_file_box.connect("file-ready", self.on_file_ready)
+            installer_file_box.connect("file-unready", self.on_file_unready)
             installer_file_box.connect("file-available", self.on_file_available)
             self.installer_files_boxes[installer_file.id] = installer_file_box
             self.add(installer_file_box)
+            if installer_file_box.is_ready:
+                self.ready_files.add(installer_file.id)
         self.show_all()
+        self.check_files_ready()
 
     def start_all(self):
         """Start all downloads"""
         for file_id in self.installer_files_boxes:
             self.installer_files_boxes[file_id].start()
 
-    def on_file_available(self, _widget, file_id):
+    @property
+    def is_ready(self):
+        """Return True if all files are ready to be fetched"""
+        return len(self.ready_files) == len(self.installer_files)
+
+    def check_files_ready(self):
+        """Checks if all installer files are ready and emit a signal if so"""
+        logger.debug("Files are ready? %s", self.is_ready)
+        self.emit("files-ready", self.is_ready)
+
+    def on_file_ready(self, widget):
+        """Fired when a file has a valid provider.
+        If the file is user provided, it must set to a valid path.
+        """
+        file_id = widget.installer_file.id
+        self.ready_files.add(file_id)
+        self.check_files_ready()
+
+    def on_file_unready(self, widget):
+        """Fired when a file can't be provided.
+        Blocks the installer from continuing.
+        """
+        file_id = widget.installer_file.id
+        self.ready_files.remove(file_id)
+        self.check_files_ready()
+
+    def on_file_available(self, widget):
         """A new file is available"""
+        file_id = widget.installer_file.id
         self.available_files.add(file_id)
         if len(self.available_files) == len(self.installer_files):
-            logger.info("All files ready")
+            logger.info("All files available")
             self.emit("files-available")
 
     def get_game_files(self):
