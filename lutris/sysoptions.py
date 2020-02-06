@@ -394,17 +394,6 @@ system_options = [  # pylint: disable=invalid-name
         ),
     },
     {
-        "option": "xboxdrv",
-        "type": "string",
-        "label": "xboxdrv config",
-        "advanced": True,
-        "condition": system.find_executable("xboxdrv"),
-        "help": (
-            "Command line options for xboxdrv, a driver for XBOX 360 "
-            "controllers. Requires the xboxdrv package installed."
-        ),
-    },
-    {
         "option": "sdl_gamecontrollerconfig",
         "type": "string",
         "label": "SDL2 gamepad mapping",

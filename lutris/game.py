@@ -81,7 +81,6 @@ class Game(GObject.Object):
         self.heartbeat = None
         self.killswitch = None
         self.state = self.STATE_IDLE
-        self.xboxdrv_thread = None
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
@@ -537,11 +536,6 @@ class Game(GObject.Object):
         if system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
 
-        # xboxdrv setup
-        xboxdrv_config = system_config.get("xboxdrv")
-        if xboxdrv_config:
-            self.xboxdrv_start(xboxdrv_config)
-
         prelaunch_command = system_config.get("prelaunch_command")
         if system.path_exists(prelaunch_command):
             self.prelaunch_executor = MonitoredCommand(
@@ -585,38 +579,6 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
-    def xboxdrv_start(self, config):
-        """Start xboxdrv in a background command"""
-        command = [
-            "pkexec",
-            "xboxdrv",
-            "--daemon",
-            "--detach-kernel-driver",
-            "--dbus",
-            "session",
-            "--silent",
-        ] + shlex.split(config)
-        logger.debug("[xboxdrv] %s", " ".join(command))
-        self.xboxdrv_thread = MonitoredCommand(command, include_processes=["xboxdrv"])
-        self.xboxdrv_thread.stop_func = self.xboxdrv_stop
-        self.xboxdrv_thread.start()
-
-    @staticmethod
-    def reload_xpad():
-        """Reloads the xpads module.
-        The path is hardcoded because this script is allowed to be executed as
-        root with a PolicyKit rule put in place by the packages.
-        Note to packagers: If you don't intend to create a PolicyKit rule for
-        this script then don't package it as calling it will fail.
-        """
-        if system.path_exists("/usr/share/lutris/bin/resetxpad"):
-            os.system("pkexec /usr/share/lutris/bin/resetxpad")
-
-    def xboxdrv_stop(self):
-        """Stop xboxdrv"""
-        os.system("pkexec xboxdrvctl --shutdown")
-        self.reload_xpad()
-
     def prelaunch_beat(self):
         """Watch the prelaunch command"""
         if self.prelaunch_executor and self.prelaunch_executor.is_running:
@@ -653,9 +615,7 @@ class Game(GObject.Object):
             return
 
         logger.info("Stopping %s", self)
-        if self.runner.system_config.get("xboxdrv"):
-            logger.debug("Stopping xboxdrv")
-            self.xboxdrv_thread.stop()
+
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None)
         self.stop_game()

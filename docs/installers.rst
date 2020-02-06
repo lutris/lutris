@@ -454,7 +454,7 @@ Currently, the following tasks are implemented:
             name: winetricks
             prefix: $GAMEDIR
             app: nt40
-            
+
     For a full list of available ``winetricks`` see here: https://github.com/Winetricks/winetricks/tree/master/files/verbs
 
 *   wine / winesteam: ``eject_disk`` runs eject_disk in your ``prefix`` argument. Parameters are
@@ -973,8 +973,6 @@ Sysoptions
 ``use_us_layout`` (example: ``true``)
 
 ``killswitch`` (example: ``/dev/input/js0``)
-
-``xboxdrv`` (example: ``--silent --type xbox360``)
 
 ``sdl_gamecontrollerconfig`` (example: ``$HOME/gamecontrollerdb.txt``)
 

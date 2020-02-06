@@ -31,7 +31,6 @@ SYSTEM_COMPONENTS = {
         "optirun",
         "primusrun",
         "pvkrun",
-        "xboxdrv",
         "pulseaudio",
         "lsi-steam",
         "fuser",
