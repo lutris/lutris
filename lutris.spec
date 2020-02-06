@@ -68,8 +68,6 @@ Requires:       mesa-libGL
 %endif
 %endif
 
-#!BuildIgnore: rpmlint-mini
-
 
 %description
 Lutris is a gaming platform for GNU/Linux. Its goal is to make
