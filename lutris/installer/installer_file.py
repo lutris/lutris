@@ -70,6 +70,37 @@ class InstallerFile:
             return cache_files[0]
         return ""
 
+    @property
+    def provider(self):
+        """Return file provider used"""
+        if self.url.startswith(("$WINESTEAM", "$STEAM")):
+            return "steam"
+        if self.is_cached:
+            return "pga"
+        if self.url.startswith("N/A"):
+            return "user"
+        if self.is_downloadable():
+            return "download"
+        raise ValueError("Unsupported provider for %s" % self.url)
+
+    @property
+    def providers(self):
+        """Return all supported providers"""
+        _providers = set()
+        if self.url.startswith(("$WINESTEAM", "$STEAM")):
+            _providers.add("steam")
+        if self.is_cached:
+            _providers.add("pga")
+        if self.url.startswith("N/A"):
+            _providers.add("user")
+        if self.is_downloadable():
+            _providers.add("download")
+        return _providers
+
+    def is_downloadable(self):
+        """Return True if the file can be downloaded (even from the local filesystem)"""
+        return self.url.startswith(("http", "file"))
+
     def uses_pga_cache(self, create=False):
         """Determines whether the installer files are stored in a PGA cache
 

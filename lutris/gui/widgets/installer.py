@@ -23,6 +23,7 @@ class InstallerLabel(Gtk.Label):
         self.set_alignment(0, 0.5)
         self.set_margin_right(12)
         self.set_markup(text)
+        self.props.can_focus = False
         self.set_tooltip_text(text)
 
 
@@ -146,14 +147,15 @@ class InstallerFileBox(Gtk.VBox):
         super().__init__()
         self.installer_file = installer_file
         self.cache_to_pga = self.installer_file.uses_pga_cache()
+        self.started = False
         self.start_func = None
         self.stop_func = None
         self.state_label = None  # Use this label to display status update
         self.set_margin_left(12)
         self.set_margin_right(12)
-        self.file_provider_widget = None
-        self.provider = self.get_provider()
+        self.provider = self.installer_file.provider
         self.popover = self.get_popover()
+        self.file_provider_widget = None
         self.add(self.get_widgets())
 
     @property
@@ -186,43 +188,21 @@ class InstallerFileBox(Gtk.VBox):
 
     def get_file_provider_widget(self):
         """Return the widget used to track progress of file"""
+        box = Gtk.VBox(spacing=6)
         if self.provider == "download":
-            box = Gtk.VBox(spacing=6)
             download_progress = self.get_download_progress()
             box.pack_start(download_progress, False, False, 0)
             return box
         if self.provider == "pga":
-            box = Gtk.VBox(spacing=6)
             url_label = InstallerLabel(
-                "URL: <b>%s</b>" % gtk_safe(self.installer_file.human_url),
+                "CACHED: %s" % gtk_safe(self.installer_file.human_url),
                 wrap=False
             )
-            box.pack_start(url_label, False, False, 0)
-            file_label = InstallerLabel(
-                gtk_safe(self.installer_file.dest_file),
-                wrap=False
-            )
-            box.pack_start(file_label, False, False, 0)
+            box.pack_start(url_label, False, False, 6)
             return box
         if self.provider == "user":
-            message = self.installer_file.human_url
-            box = Gtk.VBox(spacing=6)
-            user_label = InstallerLabel(message)
+            user_label = InstallerLabel(self.installer_file.human_url)
             box.pack_start(user_label, False, False, 0)
-            location_entry = FileChooserEntry(
-                message,
-                Gtk.FileChooserAction.OPEN,
-                path=None
-            )
-            location_entry.entry.connect("changed", self.on_location_changed)
-            location_entry.show()
-            box.pack_start(location_entry, False, False, 0)
-            if self.installer_file.uses_pga_cache(create=True):
-                cache_option = Gtk.CheckButton("Cache file for future installations")
-                cache_option.set_active(self.cache_to_pga)
-                cache_option.connect("toggled", self.on_user_file_cached)
-                box.pack_start(cache_option, False, False, 0)
-            return box
         if self.provider == "steam":
             steam_installer = SteamInstaller(self.installer_file.url,
                                              self.installer_file.id)
@@ -251,41 +231,93 @@ class InstallerFileBox(Gtk.VBox):
     def get_popover(self):
         """Return the popover widget to select file source"""
         popover = Gtk.Popover()
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        last_widget = None
-        if self.installer_file.url.startswith("http"):
-            download_button = Gtk.RadioButton.new_with_label_from_widget(last_widget, "Download")
-            download_button.connect("toggled", self.on_source_changed, "download")
-            vbox.pack_start(download_button, False, True, 10)
-            last_widget = download_button
-        if self.installer_file.is_cached:
-            pga_button = Gtk.RadioButton.new_with_label_from_widget(last_widget, "Use cache")
-            pga_button.connect("toggled", self.on_source_changed, "pga")
-            vbox.pack_start(pga_button, False, True, 10)
-            last_widget = pga_button
-        user_button = Gtk.RadioButton.new_with_label_from_widget(last_widget, "Select file")
-        user_button.connect("toggled", self.on_source_changed, "user")
-        vbox.pack_start(user_button, False, True, 10)
-        popover.add(vbox)
+        popover.add(self.get_popover_menu())
         popover.set_position(Gtk.PositionType.BOTTOM)
         return popover
 
-    def on_source_changed(self, _button, source):
-        """Change the source to a new provider, emit a new state"""
-        if source == self.provider:
-            return
-        self.provider = source
-        logger.info("New provider: %s", source)
+    def get_source_radiobutton(self, last_widget, label, source):
+        """Return a radio button for the popover menu"""
+        button = Gtk.RadioButton.new_with_label_from_widget(last_widget, label)
+        if self.provider == source:
+            button.set_active(True)
+        button.connect("toggled", self.on_source_changed, source)
+        return button
+
+    def get_popover_menu(self):
+        """Create the menu going into the popover"""
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        last_widget = None
+        if "download" in self.installer_file.providers:
+            download_button = self.get_source_radiobutton(last_widget, "Download", "download")
+            vbox.pack_start(download_button, False, True, 10)
+            last_widget = download_button
+        if "pga" in self.installer_file.providers:
+            pga_button = self.get_source_radiobutton(last_widget, "Use cache", "pga")
+            vbox.pack_start(pga_button, False, True, 10)
+            last_widget = pga_button
+        user_button = self.get_source_radiobutton(last_widget, "Select file", "user")
+        vbox.pack_start(user_button, False, True, 10)
+        return vbox
+
+    def replace_file_provider_widget(self):
+        """Replace the file provider label and the source button with the actual widget"""
         self.file_provider_widget.destroy()
-        self.file_provider_widget = self.get_file_provider_widget()
         widget_box = self.get_children()[0]
+        if self.started:
+            self.file_provider_widget = self.get_file_provider_widget()
+            # Also remove the the source button
+            for child in widget_box.get_children():
+                child.destroy()
+        else:
+            self.file_provider_widget = self.get_file_provider_label()
         widget_box.pack_start(self.file_provider_widget, True, True, 0)
         widget_box.reorder_child(self.file_provider_widget, 0)
         widget_box.show_all()
+
+    def on_source_changed(self, _button, source):
+        """Change the source to a new provider, emit a new state"""
+        if source == self.provider or not hasattr(self, "popover"):
+            return
+        self.provider = source
+        self.replace_file_provider_widget()
+        self.popover.popdown()
+        button = self.popover.get_relative_to()
+        if button:
+            button.set_label(self.get_source_button_label())
         if self.provider == "user":
             self.emit("file-unready")
         else:
             self.emit("file-ready")
+
+    def get_source_button_label(self):
+        """Return the label for the source button"""
+        if self.provider == "download":
+            return "Download"
+        if self.provider == "pga":
+            return "Cache"
+        if self.provider == "user":
+            return "Local"
+        raise ValueError("Unsupported provider %s" % self.provider)
+
+    def get_file_provider_label(self):
+        """Return the label displayed before the download starts"""
+        if self.provider == "user":
+            box = Gtk.VBox(spacing=6)
+            location_entry = FileChooserEntry(
+                self.installer_file.human_url,
+                Gtk.FileChooserAction.OPEN,
+                path=None
+            )
+            location_entry.entry.connect("changed", self.on_location_changed)
+            location_entry.show()
+            box.pack_start(location_entry, False, False, 0)
+            if self.installer_file.uses_pga_cache(create=True):
+                cache_option = Gtk.CheckButton("Cache file for future installations")
+                cache_option.set_active(self.cache_to_pga)
+                cache_option.connect("toggled", self.on_user_file_cached)
+                box.pack_start(cache_option, False, False, 0)
+            return box
+        return InstallerLabel(self.installer_file.human_url)
 
     def get_widgets(self):
         """Return the widget with the source of the file and a way to change its source"""
@@ -294,23 +326,13 @@ class InstallerFileBox(Gtk.VBox):
             margin_top=6,
             margin_bottom=6
         )
-        self.file_provider_widget = self.get_file_provider_widget()
+        self.file_provider_widget = self.get_file_provider_label()
         box.pack_start(self.file_provider_widget, True, True, 0)
-        source_alignment = Gtk.Alignment()
-        source_alignment.set(0, 0, 0, 0)
-        box.pack_start(source_alignment, False, False, 0)
         source_box = Gtk.HBox()
-        source_alignment.add(source_box)
+        source_box.props.valign = Gtk.Align.START
+        box.pack_start(source_box, False, False, 0)
         source_box.pack_start(InstallerLabel("Source:"), False, False, 0)
-        if self.provider == "download":
-            button_label = "Download"
-        elif self.provider == "pga":
-            button_label = "Cached"
-        elif self.provider == "user":
-            button_label = "Local"
-        else:
-            raise ValueError("Unsupported provider %s" % self.provider)
-        button = Gtk.Button.new_with_label(button_label)
+        button = Gtk.Button.new_with_label(self.get_source_button_label())
         button.connect("clicked", self.on_file_source_select)
         source_box.pack_start(button, False, False, 0)
         return box
@@ -338,19 +360,11 @@ class InstallerFileBox(Gtk.VBox):
         """Update the state label with a new state"""
         self.state_label.set_text(state)
 
-    def get_provider(self):
-        """Return file provider used"""
-        if self.installer_file.url.startswith(("$WINESTEAM", "$STEAM")):
-            return "steam"
-        if self.installer_file.is_cached:
-            return "pga"
-        if self.installer_file.url.startswith("N/A"):
-            return "user"
-        return "download"
-
     def start(self):
         """Starts the download of the file"""
+        self.started = True
         self.installer_file.prepare()
+        self.replace_file_provider_widget()
         if self.provider in ("pga", "user") and self.is_ready:
             self.emit("file-available")
             self.cache_file()
