@@ -16,7 +16,16 @@ class dgen(Runner):
         }
     ]
     runner_options = [
-        {"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": True}
+        {"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": True},
+        {"option": "pal", "type": "bool", "label": "PAL", "default": False, "advanced": True},
+        {
+            "option": "region",
+            "type": "choice",
+            "label": "Region",
+            "choices": [("America (NTSC)", "U"), ("Japan (NTSC)", "J"), ("Japan (PAL)", "X"),("Europe (PAL)", "E")],
+            "default": "off",
+            "advanced": True
+        },
     ]
 
     def play(self):
@@ -24,6 +33,10 @@ class dgen(Runner):
         arguments = [self.get_executable()]
         if self.runner_config.get("fullscreen", True):
             arguments.append("-f")
+        if self.runner_config.get("pal", True):
+            arguments.append("-P")
+        if self.runner_config.get("region") != "off":
+            arguments.append("-R" + self.runner_config.get("region"))
         rom = self.game_config.get("main_file") or ""
         if not system.path_exists(rom):
             return {"error": "FILE_NOT_FOUND", "file": rom}
