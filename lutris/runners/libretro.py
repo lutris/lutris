@@ -10,7 +10,6 @@ from lutris import settings
 # Second element is the core identifier
 # Third element is the platform's long name
 LIBRETRO_CORES = [
-    ("4do (3DO)", "4do", "3DO"),
     ("atari800 (Atari 800/5200)", "atari800", "Atari 800/5200"),
     ("bsnes (Super Nintendo)", "bsnes", "Nintendo SNES"),
     ("bsnes-hd beta (Super Nintendo)", "bsnes_hd_beta", "Nintendo SNES"),
@@ -68,6 +67,7 @@ LIBRETRO_CORES = [
     ("Neko Project 2 (NEC PC-98)", "nekop2", "NEC PC-98"),
     ("Neko Project II kai (NEC PC-98)", "np2kai", "NEC PC-98"),
     ("O2EM (Magnavox Odyssey²)", "o2em", "Magnavox Odyssey²"),
+    ("Opera (3DO)", "opera", "3DO"),
     ("ParaLLEl N64 (Nintendo 64)", "parallel_n64", "Nintendo N64"),
     ("PCSX Rearmed (Sony Playstation)", "pcsx_rearmed", "Sony PlayStation"),
     ("PicoDrive (Sega Genesis)", "picodrive", "Sega Genesis"),
