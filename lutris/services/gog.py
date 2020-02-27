@@ -200,7 +200,8 @@ class GogService(OnlineService):
         for field in ("checksum", "downlink"):
             field_url = response[field]
             parsed = urlparse(field_url)
-            response[field + "_filename"] = os.path.basename(parsed.path)
+            query = dict(parse_qsl(parsed.query))
+            response[field + "_filename"] = os.path.basename(query.get("path") or parsed.path)
         return response
 
     def get_installers(self, gogid, runner, language="en"):
@@ -315,7 +316,10 @@ def get_gog_download_links(gogid, runner):
         for field in ('checksum', 'downlink'):
             url = download_info[field]
             logger.info("Adding %s to download links", url)
-            download_links.append(download_info[field])
+            download_links.append({
+                "url": download_info[field],
+                "filename": download_info[field + "_filename"]
+            })
     return download_links
 
 

@@ -339,16 +339,15 @@ class ScriptInterpreter(CommandsMixin):
 
         file_id_provided = False  # Only assign installer_file_id once
         for index, link in enumerate(links):
-            filename = link.split("?")[0].split("/")[-1]
-            if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
+            if link["filename"].lower().endswith((".exe", ".sh")) and not file_id_provided:
                 file_id = installer_file_id
                 file_id_provided = True
             else:
                 file_id = "gog_file_%s" % index
             self.files.append(
                 InstallerFile(self.game_slug, file_id, {
-                    "url": link,
-                    "filename": filename,
+                    "url": link["url"],
+                    "filename": link["filename"],
                 })
             )
 
