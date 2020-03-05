@@ -217,6 +217,7 @@ class wine(Runner):
                 "type": "extended_bool",
                 "callback": dxvk_vulkan_callback,
                 "callback_on": True,
+                "default": True,
                 "active": True,
                 "help": (
                     "Use DXVK to increase compatibility and performance "
