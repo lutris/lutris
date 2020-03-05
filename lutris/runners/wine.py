@@ -679,6 +679,7 @@ class wine(Runner):
             prefix=self.prefix_path,
             arch=self.wine_arch,
             config=self,
+            env=self.get_env(os_env=True),
         )
 
     def run_regedit(self, *args):
@@ -690,7 +691,11 @@ class wine(Runner):
         """Run winetricks in the current context"""
         self.prelaunch()
         winetricks(
-            "", prefix=self.prefix_path, wine_path=self.get_executable(), config=self
+            "",
+            prefix=self.prefix_path,
+            wine_path=self.get_executable(),
+            config=self,
+            env=self.get_env(os_env=True)
         )
 
     def run_winecpl(self, *args):

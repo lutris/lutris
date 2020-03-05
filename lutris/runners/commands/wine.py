@@ -334,6 +334,7 @@ def winetricks(
         silent=True,
         wine_path=None,
         config=None,
+        env=None,
         disable_runtime=False,
 ):
     """Execute winetricks."""
@@ -364,11 +365,12 @@ def winetricks(
         arch=arch,
         args=args,
         config=config,
+        env=env,
         disable_runtime=disable_runtime,
     )
 
 
-def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None):
+def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None):
     """Execute winecfg."""
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")
@@ -385,6 +387,7 @@ def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None):
         wine_path=winecfg_path,
         arch=arch,
         config=config,
+        env=env,
         include_processes=["winecfg.exe"],
     )
 
