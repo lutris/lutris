@@ -2,10 +2,17 @@ import importlib
 from lutris import settings
 from lutris.util.log import logger
 
-MIGRATION_VERSION = 5  # Never decrease this number
+MIGRATION_VERSION = 6  # Never decrease this number
 
-MIGRATIONS = [[], [], [], []]  # Replace deprecated migrations with empty lists
-MIGRATIONS.append(["fix_playtime"])
+# Replace deprecated migrations with empty lists
+MIGRATIONS = [
+    [],
+    [],
+    [],
+    [],
+    ["fix_playtime"],
+    ["d9vk_to_dxvk"]
+]
 
 
 def get_migration_module(migration_name):
