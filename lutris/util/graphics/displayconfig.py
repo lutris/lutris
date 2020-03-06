@@ -1,5 +1,6 @@
 """DBus backed display management for Mutter"""
 from collections import namedtuple
+from lutris.util.log import logger
 import dbus
 
 DisplayConfig = namedtuple(
@@ -637,6 +638,9 @@ class MutterDisplayManager:
         if isinstance(resolution, str):
             output = self.display_config.get_primary_output()
             mode = output.monitors[0].get_mode_for_resolution(resolution)
+            if not mode:
+                logger.error("Could not find  valid mode for %s", resolution)
+                return
             config = [DisplayConfig(
                 [(output.monitors[0].name, mode.id)],
                 (0, 0),
