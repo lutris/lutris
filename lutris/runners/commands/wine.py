@@ -306,7 +306,8 @@ def wineexec(
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    wineenv.update(env)
+    if env:
+        wineenv.update(env)
 
     command_parameters = [wine_path]
     if executable:
