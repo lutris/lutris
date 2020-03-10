@@ -433,7 +433,6 @@ def get_used_platforms_game_count():
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}
 
-  
 def get_hidden_ids():
     """Return a list of game IDs to be excluded from the library view"""
     # Load the ignore string and filter out empty strings to prevent issues
@@ -455,16 +454,23 @@ def set_hidden_ids(games):
 
 def get_categories(select="*"):
     """Get the list of every category in database."""
-    query = "select %s from categories" % (select)
-    params = []
 
-    query += " ORDER BY category"
+    category_result = sql.db_select(PGA_DB, "categories",)
+    if category_result:
+        #print (category_result[0])
+        return category_result[0]
+    return {}
 
-    return_categories = []
-    for category in sql.db_query(PGA_DB, query, tuple(params)):
-        return_categories.append(category["category"])
+    #query = "select %s from categories" % (select)
+    #params = []
 
-    return return_categories
+    #query += " ORDER BY category"
+
+    #return_categories = []
+    #for category in sql.db_query(PGA_DB, query, tuple(params)):
+    #    return_categories.append(category["category"])
+    #print(return_categories)
+    #return return_categories
 
 def get_games_in_categories(category="*"):
     """Get the ids of games in database."""
