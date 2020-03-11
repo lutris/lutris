@@ -49,7 +49,7 @@ from lutris.util.log import logger
 from lutris.util.http import Request, HTTPError
 from lutris.api import parse_installer_url
 from lutris.startup import init_lutris, run_all_checks
-from lutris.util.wine.dxvk import init_dxvk_versions
+from lutris.util.wine.dxvk import init_dxvk_versions, wait_for_dxvk_init
 
 from .lutriswindow import LutrisWindow
 
@@ -370,6 +370,7 @@ class Application(Gtk.Application):
         logger.debug("Launching %s (%s)", game, id(game))
         self.running_games.append(game)
         game.connect("game-stop", self.on_game_stop)
+        wait_for_dxvk_init()
         game.load_config()  # Reload the config before launching it.
         game.play()
 
