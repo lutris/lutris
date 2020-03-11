@@ -1,6 +1,7 @@
 """DXVK helper module"""
 import os
 import json
+import threading
 import time
 import shutil
 import urllib.request
@@ -54,7 +55,20 @@ def init_dxvk_versions():
             manager.DXVK_VERSIONS[1:9],
         )
 
-    init_versions(DXVKManager)
+    # prevent race condition with if statement
+    with DXVKManager.init_lock:
+        # don't start init twice
+        if not DXVKManager.init_started:
+            DXVKManager.init_started = True
+            init_versions(DXVKManager)
+
+
+def wait_for_dxvk_init():
+    # wait for finishing DXVK initialization and prevent race condition with if statement
+    with DXVKManager.init_lock:
+        # in case DXVK init never got started, start it to prevent waiting indefinitely
+        if not DXVKManager.init_started:
+            init_dxvk_versions()
 
 
 class UnavailableDXVKVersion(RuntimeError):
@@ -69,6 +83,9 @@ class DXVKManager:
         "1.5",
     ]
     DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:9]
+
+    init_started = False
+    init_lock = threading.RLock()
 
     base_url = "https://github.com/doitsujin/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
     base_name = "dxvk"
