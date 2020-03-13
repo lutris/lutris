@@ -65,9 +65,11 @@ Runners and the game database
 
 * ``pga.db``: An SQLite database tracking the game library, game installation status, various file locations, and some additional metadata
 
-* ``runners/*``: Runners downloaded from `lutris.net <https://lutris.net>`_
+* ``runners/*``: Runners downloaded from `lutris.net <https://lutris.net>`
 
-* ``icons/*.png`` and ``banners/*.jpg``: Game banners and icons
+* ``banners/*.jpg``: Game banners
+
+``~/.local/share/icons/hicolor/128x128/apps/lutris_*.png``: Game icons
 
 Command line options
 ====================
@@ -109,7 +111,7 @@ Here's what to expect from future versions of Lutris:
 Support the project
 ===================
 
-Lutris is 100% community supported, to ensure a continuous developement on the
+Lutris is 100% community supported, to ensure a continuous development on the
 project, please consider donating to the project.
 Our main platform for supporting Lutris is Patreon: https://www.patreon.com/lutris
 but there are also other options available at https://lutris.net/donate
