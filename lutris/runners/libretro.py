@@ -13,6 +13,7 @@ LIBRETRO_CORES = [
     ("atari800 (Atari 800/5200)", "atari800", "Atari 800/5200"),
     ("bsnes (Super Nintendo)", "bsnes", "Nintendo SNES"),
     ("bsnes-hd beta (Super Nintendo)", "bsnes_hd_beta", "Nintendo SNES"),
+    ("BK (Elektronika BK-0010/BK-0011(M))", "bk", "Elektronika BK-0010/BK-0011"),
     ("BlastEm (Sega Genesis)", "blastem", "Sega Genesis"),
     ("blueMSX (MSX/MSX2/MSX2+)", "bluemsx", "MSX/MSX2/MSX2+"),
     ("Caprice32 (Amstrad CPC)", "cap32", "Amstrad CPC"),
@@ -53,8 +54,7 @@ LIBRETRO_CORES = [
     ("Mednafen PCE FAST (TurboGrafx-16)", "mednafen_pce_fast", "NEC PC Engine (TurboGrafx-16)"),
     ("Mednafen PCFX (NEC PC-FX)", "mednafen_pcfx", "NEC PC-FX"),
     ("Mednafen Saturn (Sega Saturn)", "mednafen_saturn", "Sega Saturn"),
-    ("Mednafen SGX (NEC PC Engine SuperGrafx)", "mednafen_supergrafx",
-     "NEC PC Engine (SuperGrafx)"),
+    ("Mednafen SGX (NEC PC Engine SuperGrafx)", "mednafen_supergrafx", "NEC PC Engine (SuperGrafx)"),
     ("Mednafen WSWAN (Bandai WonderSwan)", "mednafen_wswan", "Bandai WonderSwan"),
     ("Mednafen PSX (Sony Playstation)", "mednafen_psx", "Sony PlayStation"),
     ("Mednafen PSX OpenGL (Sony Playstation)", "mednafen_psx_hw", "Sony PlayStation"),
@@ -66,6 +66,7 @@ LIBRETRO_CORES = [
     ("Nestopia (Nintendo Entertainment System)", "nestopia", "Nintendo NES"),
     ("Neko Project 2 (NEC PC-98)", "nekop2", "NEC PC-98"),
     ("Neko Project II kai (NEC PC-98)", "np2kai", "NEC PC-98"),
+    ("NeoCD (SNK Neo Geo CD)", "neocd", "SNK Neo Geo CD"),
     ("O2EM (Magnavox Odyssey²)", "o2em", "Magnavox Odyssey²"),
     ("Opera (3DO)", "opera", "3DO"),
     ("ParaLLEl N64 (Nintendo 64)", "parallel_n64", "Nintendo N64"),
@@ -76,6 +77,7 @@ LIBRETRO_CORES = [
     ("PPSSPP (PlayStation Portable)", "ppsspp", "Sony PlayStation Portable"),
     ("ProSystem (Atari 7800)", "prosystem", "Atari 7800"),
     ("QUASI88 (NEC PC-8801)", "quasi88", "NEC PC-8801"),
+    ("RACE (SNK Neo Geo Pocket)", "race", "SNK Neo Geo Pocket"),
     ("RPG Maker 2000/2003 (EasyRPG)", "easyrpg", "RPG Maker 2000/2003 Game Engine"),
     ("Snes9x (Super Nintendo)", "snes9x", "Nintendo SNES"),
     ("Snes9x2010 (Super Nintendo)", "snes9x2010", "Nintendo SNES"),
@@ -96,6 +98,8 @@ LIBRETRO_CORES = [
     ("VICE (Commodore 64)", "vice_x64", "Commodore 64"),
     ("VICE (Commodore 64)(Cycle-Exact)", "vice_x64sc", "Commodore 64"),
     ("VICE (Commodore VIC-20)", "vice_xvic", "Commodore VIC-20"),
+    ("vitaQuake 2 (Quake 2)", "vitaquake2", "vitaQuake 2"),
+    ("vitaQuake 3 (Quake 3)", "vitaquake3", "vitaQuake 3"),
 ]
 
 
