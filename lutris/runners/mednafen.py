@@ -5,6 +5,8 @@ from lutris.util.log import logger
 from lutris.util.joypad import get_controller_mappings
 from lutris.util import system
 
+DEFAULT_MEDNAFEN_SCALER = "nn4x"
+
 
 class mednafen(Runner):
     human_name = "Mednafen"
@@ -99,7 +101,7 @@ class mednafen(Runner):
                 ("nny3x", "nny3x"),
                 ("nny4x", "nny4x"),
             ),
-            "default": "nn4x",
+            "default": DEFAULT_MEDNAFEN_SCALER,
         },
         {
             "option": "dont_map_controllers",
@@ -466,7 +468,7 @@ class mednafen(Runner):
             fullscreen = "0"
 
         stretch = self.runner_config.get("stretch") or "0"
-        scaler = self.runner_config.get("scaler") or "nn4x"
+        scaler = self.runner_config.get("scaler") or DEFAULT_MEDNAFEN_SCALER
 
         xres, yres = DISPLAY_MANAGER.get_current_resolution()
         options = [
