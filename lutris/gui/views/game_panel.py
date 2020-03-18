@@ -37,6 +37,9 @@ class GamePanel(GenericPanel):
         if self.game.average_playtime:
             self.put(self.get_average_playtime_label(), labels_x, labels_y)
             labels_y += 22
+        if self.game.longest_playtime:
+            self.put(self.get_longest_playtime_label(), labels_x, labels_y)
+            labels_y += 22
         if self.game.lastplayed:
             self.put(self.get_last_played_label(), labels_x, labels_y)
             labels_y += 22
@@ -114,6 +117,15 @@ class GamePanel(GenericPanel):
         playtime_label.show()
         playtime_label.set_markup(
             "Average session: <b>%s</b>" % self.game.formatted_average_playtime
+        )
+        return playtime_label
+
+    def get_longest_playtime_label(self):
+        """Return the label containing the longest playtime info"""
+        playtime_label = Gtk.Label()
+        playtime_label.show()
+        playtime_label.set_markup(
+            "Longest session: <b>%s</b>" % self.game.formatted_longest_playtime
         )
         return playtime_label
 

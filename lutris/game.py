@@ -133,6 +133,11 @@ class Game(GObject.Object):
         return strings.get_formatted_playtime(self.average_playtime)
 
     @property
+    def formatted_longest_playtime(self):
+        """Return a human readable formatted longest play time"""
+        return strings.get_formatted_playtime(self.longest_playtime)
+
+    @property
     def is_search_result(self):
         """Return whether or not the game is a remote game from search results.
         This is bad, find another way to do this.
@@ -602,10 +607,11 @@ class Game(GObject.Object):
         self.emit("game-stop")
         if not self.timer.finished:
             self.timer.end()
-            self.playtime += self.timer.duration / 3600
+            duration = self.timer.duration / 3600
+            self.playtime += duration
             self.average_playtime = self.playtime / pga.get_session_count(self.id)
-            if self.longest_playtime < self.timer.duration:
-                self.longest_playtime = self.timer.duration
+            if self.longest_playtime < duration:
+                self.longest_playtime = duration
 
     def prelaunch_beat(self):
         """Watch the prelaunch command"""
