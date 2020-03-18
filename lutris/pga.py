@@ -254,6 +254,7 @@ def get_game_by_field(value, field="slug"):
 def get_games_by_slug(slug):
     return sql.db_select(PGA_DB, "games", condition=("slug", slug))
 
+
 def add_game(name, **game_data):
     """Add a game to the PGA database."""
     game_data["name"] = name
@@ -261,6 +262,7 @@ def add_game(name, **game_data):
     if "slug" not in game_data:
         game_data["slug"] = slugify(name)
     return sql.db_insert(PGA_DB, "games", game_data)
+
 
 def add_games_bulk(games):#//todo
     """
@@ -307,8 +309,8 @@ def get_matching_game(params):
                 return game["id"]
         else:
             if (
-                    game["runner"] == params.get("runner")
-                    or not all([params.get("runner"), game["runner"]])
+                game["runner"] == params.get("runner")
+                or not all([params.get("runner"), game["runner"]])
             ):
                 return game["id"]
     return None
@@ -332,7 +334,7 @@ def get_session_count(gameid):
     """Returns the count of sessions per game."""
     query = "SELECT COUNT(*) FROM sessions WHERE gameid = ?"
     result = sql.db_query(PGA_DB, query, tuple([gameid]))
-    return  float(result[0]["COUNT(*)"])
+    return  result[0]["COUNT(*)"]
 
 def add_session(gameid, date, playtime):
     """Add a session to the PGA database."""
