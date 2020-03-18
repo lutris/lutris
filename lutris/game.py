@@ -128,6 +128,11 @@ class Game(GObject.Object):
         return strings.get_formatted_playtime(self.playtime)
 
     @property
+    def formatted_average_playtime(self):
+        """Return a human readable formatted average play time"""
+        return strings.get_formatted_playtime(self.average_playtime)
+
+    @property
     def is_search_result(self):
         """Return whether or not the game is a remote game from search results.
         This is bad, find another way to do this.

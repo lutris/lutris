@@ -27,14 +27,21 @@ class GamePanel(GenericPanel):
         self.put(self.get_icon(), 12, 16)
         self.put(self.get_title_label(), 50, 20)
         labels_x = 50
+        labels_y = 64
         if self.game.is_installed:
-            self.put(self.get_runner_label(), labels_x - 23, 64)
+            self.put(self.get_runner_label(), labels_x - 23, labels_y)
+            labels_y += 22
         if self.game.playtime:
-            self.put(self.get_playtime_label(), labels_x, 86)
+            self.put(self.get_playtime_label(), labels_x, labels_y)
+            labels_y += 22
+        if self.game.average_playtime:
+            self.put(self.get_average_playtime_label(), labels_x, labels_y)
+            labels_y += 22
         if self.game.lastplayed:
-            self.put(self.get_last_played_label(), labels_x, 108)
+            self.put(self.get_last_played_label(), labels_x, labels_y)
+            labels_y += 22
         self.buttons = self.get_buttons()
-        self.place_buttons(145)
+        self.place_buttons(labels_y)
 
     def refresh(self):
         """Redraw the panel"""
@@ -98,6 +105,15 @@ class GamePanel(GenericPanel):
         playtime_label.show()
         playtime_label.set_markup(
             "Time played: <b>%s</b>" % self.game.formatted_playtime
+        )
+        return playtime_label
+
+    def get_average_playtime_label(self):
+        """Return the label containing the average playtime info"""
+        playtime_label = Gtk.Label()
+        playtime_label.show()
+        playtime_label.set_markup(
+            "Average session: <b>%s</b>" % self.game.formatted_average_playtime
         )
         return playtime_label
 
