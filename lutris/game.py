@@ -7,6 +7,8 @@ import subprocess
 
 from gi.repository import GLib, Gtk, GObject
 
+from datetime import datetime
+
 from lutris import pga
 from lutris import runtime
 from lutris.exceptions import GameConfigError, watch_lutris_errors
@@ -73,6 +75,17 @@ class Game(GObject.Object):
         except ValueError:
             logger.error("Invalid playtime value %s", game_data.get("playtime"))
             self.playtime = 0.0
+        try:
+            self.average_playtime = float(game_data.get("average_playtime") or 0.0)
+        except ValueError:
+            logger.error("Invalid average_playtime value %s", game_data.get("average_playtime"))
+            self.average_playtime = 0.0
+        try:
+            self.longest_playtime = float(game_data.get("longest_playtime") or 0.0)
+        except ValueError:
+            logger.error("Invalid longest_playtime value %s", game_data.get("playlongest_playtimetime"))
+            self.longest_playtime = 0.0
+        self.consecutive_days_played = game_data.get("consecutive_days_played") or 0
 
         if self.game_config_id:
             self.load_config()
@@ -262,6 +275,9 @@ class Game(GObject.Object):
             steamid=self.steamid,
             id=self.id,
             playtime=self.playtime,
+            average_playtime=self.average_playtime,
+            longest_playtime=self.longest_playtime,
+            consecutive_days_played=self.consecutive_days_played,
         )
         pga.add_session(self.id, int(time.time()), self.timer.duration)
         self.emit("game-updated")
@@ -306,6 +322,9 @@ class Game(GObject.Object):
             return
 
         self.emit("game-start")
+
+        if datetime.fromtimestamp(self.lastplayed).date() != datetime.today().date():
+            self.consecutive_days_played += 1
         if hasattr(self.runner, "prelaunch"):
             logger.debug("Prelaunching %s", self.runner)
             try:
@@ -579,6 +598,9 @@ class Game(GObject.Object):
         if not self.timer.finished:
             self.timer.end()
             self.playtime += self.timer.duration / 3600
+            self.average_playtime = self.playtime / pga.get_session_count(self.id)
+            if self.longest_playtime < self.timer.duration:
+                self.longest_playtime = self.timer.duration
 
     def prelaunch_beat(self):
         """Watch the prelaunch command"""

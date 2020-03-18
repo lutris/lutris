@@ -35,6 +35,9 @@ DATABASE = {
         {"name": "has_custom_banner", "type": "INTEGER"},
         {"name": "has_custom_icon", "type": "INTEGER"},
         {"name": "playtime", "type": "TEXT"},
+        {"name": "average_playtime", "type": "INTEGER"},
+        {"name": "longest_playtime", "type": "INTEGER"},
+        {"name": "consecutive_days_played", "type": "INTEGER"},
     ],
     "sessions": [
         {"name": "id", "type": "INTEGER", "indexed": True},
@@ -251,11 +254,6 @@ def get_game_by_field(value, field="slug"):
 def get_games_by_slug(slug):
     return sql.db_select(PGA_DB, "games", condition=("slug", slug))
 
-def get_session(session_id):
-    """Returns the requested session."""
-    query = "SELECT * FROM sessions WHERE id = ?"
-    return sql.db_query(PGA_DB, query, tuple([session_id]))
-
 def add_game(name, **game_data):
     """Add a game to the PGA database."""
     game_data["name"] = name
@@ -264,11 +262,7 @@ def add_game(name, **game_data):
         game_data["slug"] = slugify(name)
     return sql.db_insert(PGA_DB, "games", game_data)
 
-def add_session(gameid, date, playtime):
-    """Add a session to the PGA database."""
-    sql.db_insert(PGA_DB, "sessions", { "gameid": gameid, "date": date, "playtime": playtime })
-
-def add_games_bulk(games):
+def add_games_bulk(games):#//todo
     """
         Add a list of games to the PGA database.
         The dicts must have an identical set of keys.
@@ -281,7 +275,7 @@ def add_games_bulk(games):
     return [sql.db_insert(PGA_DB, "games", game) for game in games]
 
 
-def add_or_update(**params):
+def add_or_update(**params):#//todo
     """Add a game to the PGA or update an existing one
 
     If an 'id' is provided in the parameters then it
@@ -328,6 +322,21 @@ def delete_game(game_id):
 def set_uninstalled(game_id):
     sql.db_update(PGA_DB, "games", {"installed": 0, "runner": ""}, ("id", game_id))
 
+
+def get_session(session_id):
+    """Returns the requested session."""
+    query = "SELECT * FROM sessions WHERE id = ?"
+    return sql.db_query(PGA_DB, query, tuple([session_id]))
+
+def get_session_count(gameid):
+    """Returns the count of sessions per game."""
+    query = "SELECT COUNT(*) FROM sessions WHERE gameid = ?"
+    result = sql.db_query(PGA_DB, query, tuple([gameid]))
+    return  float(result[0]["COUNT(*)"])
+
+def add_session(gameid, date, playtime):
+    """Add a session to the PGA database."""
+    sql.db_insert(PGA_DB, "sessions", { "gameid": gameid, "date": date, "playtime": playtime })
 
 def add_source(uri):
     sql.db_insert(PGA_DB, "sources", {"uri": uri})
