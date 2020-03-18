@@ -43,6 +43,9 @@ class GamePanel(GenericPanel):
         if self.game.lastplayed:
             self.put(self.get_last_played_label(), labels_x, labels_y)
             labels_y += 22
+        if self.game.consecutive_days_played:
+            self.put(self.get_longest_streak_label(), labels_x, labels_y)
+            labels_y += 22
         self.buttons = self.get_buttons()
         self.place_buttons(labels_y)
 
@@ -138,6 +141,16 @@ class GamePanel(GenericPanel):
             "Last played: <b>%s</b>" % lastplayed.strftime("%x")
         )
         return last_played_label
+
+    def get_longest_streak_label(self):
+        """Return the label containing the longest streak info"""
+        longest_streak_label = Gtk.Label()
+        longest_streak_label.show()
+        consecutive_days_played = self.game.consecutive_days_played
+        longest_streak_label.set_markup(
+            "Most days in a row: <b>%s</b>" % consecutive_days_played
+        )
+        return longest_streak_label
 
     @staticmethod
     def get_runner_entries(game):
