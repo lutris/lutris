@@ -655,6 +655,7 @@ class wine(Runner):
             executable,
             wine_path=self.get_executable(),
             prefix=self.prefix_path,
+            working_dir=self.prefix_path,
             config=self,
             env=self.get_env(os_env=True),
         )
