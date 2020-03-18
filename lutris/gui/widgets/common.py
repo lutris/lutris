@@ -150,7 +150,7 @@ class FileChooserEntry(Gtk.Box):
             )
             self.pack_end(non_empty_label, False, False, 10)
         parent = system.get_existing_parent(path)
-        if not os.access(parent, os.W_OK):
+        if parent is not None and not os.access(parent, os.W_OK):
             non_writable_destination_label = Gtk.Label(visible=True)
             non_writable_destination_label.set_markup(
                 "<b>Warning</b> The destination folder "
