@@ -104,6 +104,19 @@ class mednafen(Runner):
             "default": DEFAULT_MEDNAFEN_SCALER,
         },
         {
+            "option": "sound_device",
+            "type": "choice",
+            "label": "Sound device",
+            "choices": (
+                ("Mednafen default", "default"),
+                ("ALSA default", "sexyal-literal-default"),
+                ("hw:0", "hw:0,0"),
+                ("hw:1", "hw:1,0"),
+                ("hw:2", "hw:2,0"),
+            ),
+            "default": "sexyal-literal-default"
+        },
+        {
             "option": "dont_map_controllers",
             "type": "bool",
             "label": "Use default Mednafen controller configuration",
@@ -469,6 +482,7 @@ class mednafen(Runner):
 
         stretch = self.runner_config.get("stretch") or "0"
         scaler = self.runner_config.get("scaler") or DEFAULT_MEDNAFEN_SCALER
+        sound_device = self.runner_config.get("sound_device")
 
         xres, yres = DISPLAY_MANAGER.get_current_resolution()
         options = [
@@ -476,6 +490,8 @@ class mednafen(Runner):
             fullscreen,
             "-force_module",
             machine,
+            "-sound.device",
+            sound_device,
             "-" + machine + ".xres",
             xres,
             "-" + machine + ".yres",
