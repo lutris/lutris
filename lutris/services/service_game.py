@@ -34,7 +34,7 @@ class ServiceGame:
         """Return the SteamID, this is a special case since Steam's appid's are
         a field in the game table. Keeping this here allows to reuse the install method.
         """
-        if hasattr(self, "appid"):
+        if hasattr(self, "appid") and hasattr(self, "runner") and "steam" in self.runner:
             return int(self.appid)
         return None
 
