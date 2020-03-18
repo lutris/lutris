@@ -15,6 +15,11 @@ class ExtractFailure(Exception):
     """Exception raised when and archive fails to extract"""
 
 
+def random_id():
+    """Return a random ID"""
+    return str(uuid.uuid4())[:8]
+
+
 def is_7zip_supported(path, extractor):
     supported_extractors = (
         "7z",
@@ -108,7 +113,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
     else:
         raise RuntimeError("Could not extract `%s` - unknown format specified" % path)
 
-    temp_name = ".extract-" + str(uuid.uuid4())[:8]
+    temp_name = ".extract-" + random_id()
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
     try:
         _do_extract(path, temp_path, opener, mode, extractor)
@@ -125,6 +130,9 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
         if os.path.isfile(destination_path):
             logger.warning("Overwrite existing file %s", destination_path)
             os.remove(destination_path)
+        if os.path.isdir(destination_path):
+            os.rename(destination_path, destination_path + random_id())
+
         shutil.move(temp_path, to_directory)
         os.removedirs(temp_dir)
     else:
