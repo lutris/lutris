@@ -71,6 +71,12 @@ class TestPersonnalGameArchive(DatabaseTester):
         self.assertEqual(session['date'], 1569013397)
         self.assertEqual(session['playtime'], 68)
 
+    def test_get_session_count(self):
+        pga.add_session(1,1569013397, 68)
+        pga.add_session(1,1569013397, 68)
+        session_count = pga.get_session_count(1)
+        self.assertEqual(session_count, 2)
+
 
 class TestDbCreator(DatabaseTester):
     def test_can_generate_fields(self):
