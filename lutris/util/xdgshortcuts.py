@@ -22,7 +22,8 @@ def get_xdg_entry(directory):
     }
     directory = directory.upper()
     if directory not in special_dir.keys():
-        raise ValueError("Only those folders are supported " + special_dir.keys())
+        raise ValueError(directory + " not supported. Only those folders are supported: " +
+                         ", ".join(special_dir.keys()))
     return GLib.get_user_special_dir(special_dir[directory])
 
 
