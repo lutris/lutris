@@ -117,7 +117,11 @@ class WinePrefixManager:
                     except OSError:
                         os.rename(path, old_path)
 
-                if restore and not os.path.isdir(path):
+                # if we want to create a symlink and one is already there, just skip to the next item.
+                # this also makes sure the elif doesn't find a dir (isdir only looks at the target of the symlink).
+                if restore and os.path.islink(path):
+                    continue
+                elif restore and not os.path.isdir(path):
                     os.symlink(xdgshortcuts.get_xdg_entry(DESKTOP_XDG[i]), path)
                     # We don't need all the others process of the loop
                     continue
