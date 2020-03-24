@@ -17,6 +17,15 @@ from lutris.util.log import logger
 from lutris.util import system
 
 WRAPPER_SCRIPT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "../share/lutris/bin/lutris-wrapper"))
+if not os.path.isfile(WRAPPER_SCRIPT):
+    usr_path = "/usr/share/lutris/bin/lutris-wrapper"
+    usr_local_path = "/usr/local/share/lutris/bin/lutris-wrapper"
+    if os.path.isfile(usr_path):
+        WRAPPER_SCRIPT = usr_path
+    elif os.path.isfile(usr_local_path):
+        WRAPPER_SCRIPT = usr_local_path
+    else:
+        raise FileNotFoundError("Couldn't find lutris-wrapper script in any of the expected locations")
 
 
 class MonitoredCommand:
