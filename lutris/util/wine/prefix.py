@@ -2,7 +2,8 @@
 import os
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.log import logger
-from lutris.util import joypad, system, xdgshortcuts
+from lutris.util import joypad, system
+from lutris.util.xdgshortcuts import get_xdg_entry
 from lutris.util.display import DISPLAY_MANAGER
 
 DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
@@ -122,7 +123,14 @@ class WinePrefixManager:
                 if restore and os.path.islink(path):
                     continue
                 elif restore and not os.path.isdir(path):
-                    os.symlink(xdgshortcuts.get_xdg_entry(DESKTOP_XDG[i]), path)
+                    src_path = get_xdg_entry(DESKTOP_XDG[i])
+                    if not src_path:
+                        logger.error(
+                            "No XDG entry found for %s, launcher not created",
+                            DESKTOP_XDG[i]
+                        )
+                    else:
+                        os.symlink(src_path, path)
                     # We don't need all the others process of the loop
                     continue
 
