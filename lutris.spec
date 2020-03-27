@@ -6,7 +6,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.4
+Version:        0.5.5
 Release:        7%{?dist}
 Summary:        Install and play any video game easily
 
