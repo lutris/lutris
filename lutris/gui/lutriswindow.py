@@ -717,11 +717,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.filter_text = entry.get_text()
             self.invalidate_game_filter()
         elif self.search_mode == "website":
+            search_terms = entry.get_text().lower().strip()
             self.search_spinner.props.active = True
             if self.search_timer_id:
                 GLib.source_remove(self.search_timer_id)
             self.search_timer_id = GLib.timeout_add(
-                750, self.on_search_games_fire, entry.get_text().lower().strip()
+                750, self.on_search_games_fire, search_terms
             )
         else:
             raise ValueError("Unsupported search mode %s" % self.search_mode)
@@ -803,6 +804,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.set_icon_type(self.icon_type)
         self.game_store.load(from_search=bool(query))
         self.game_store.filter_text = self.search_entry.props.text
+        self.search_spinner.props.active = False
         self.switch_view(self.get_view_type())
         self.invalidate_game_filter()
 
