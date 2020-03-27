@@ -3,7 +3,7 @@ import os
 import time
 import webbrowser
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from lutris import api, pga, settings
 from lutris.installer import interpreter
@@ -28,6 +28,7 @@ from lutris.util.strings import add_url_tags, escape_gtk_label
 
 class InstallerWindow(BaseApplicationWindow):
     """GUI for the install process."""
+
     def __init__(
             self,
             game_slug=None,

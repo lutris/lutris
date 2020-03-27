@@ -638,7 +638,7 @@ class ScriptInterpreter(CommandsMixin):
             path = self._substitute(launcher_value)
             if not os.path.isabs(path) and self.target_path:
                 path = os.path.join(self.target_path, path)
-        self._write_config()
+        self._save_game()
         if path and not os.path.isfile(path) and self.runner not in ("web", "browser"):
             self.parent.set_status(
                 "The executable at path %s can't be found, please check the destination folder.\n"
@@ -650,7 +650,7 @@ class ScriptInterpreter(CommandsMixin):
 
         self.parent.on_install_finished()
 
-    def _write_config(self):
+    def _save_game(self):
         """Write the game configuration in the DB and config file.
 
         This needs to be unfucked
@@ -730,6 +730,7 @@ class ScriptInterpreter(CommandsMixin):
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         with open(config_filename, "w") as config_file:
             config_file.write(yaml_config)
+        game.emit("game-installed")
 
     def _substitute_config(self, script_config):
         """Substitute values such as $GAMEDIR in a config dict."""

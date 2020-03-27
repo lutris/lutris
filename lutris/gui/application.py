@@ -178,7 +178,15 @@ class Application(Gtk.Application):
             self.run_in_background = False
 
     def show_window(self, window_class, **kwargs):
-        """Instanciate a window keeping 1 instance max"""
+        """Instanciate a window keeping 1 instance max
+
+        Params:
+            window_class (Gtk.Window): class to create the instance from
+            kwargs (dict): Additional arguments to pass to the instanciated window
+
+        Returns:
+            Gtk.Window: the existing window instance or a newly created one
+        """
         window_key = str(window_class) + str(kwargs)
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
@@ -186,6 +194,7 @@ class Application(Gtk.Application):
             window_inst = window_class(application=self, **kwargs)
             window_inst.connect("destroy", self.on_app_window_destroyed, str(kwargs))
             self.app_windows[window_key] = window_inst
+        return window_inst
 
     def on_app_window_destroyed(self, app_window, kwargs_str):
         """Remove the reference to the window when it has been destroyed"""

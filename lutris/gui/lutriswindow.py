@@ -105,6 +105,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-started", self.on_game_started)
+        GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
         GObject.add_emission_hook(
             GenericPanel, "running-game-selected", self.game_selection_changed
         )
@@ -612,7 +613,11 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if game.is_installed:
             self.application.launch(game)
         else:
-            self.application.show_window(InstallerWindow, parent=self, game_slug=game.slug)
+            self.application.show_window(
+                InstallerWindow,
+                parent=self,
+                game_slug=game.slug
+            )
 
     @GtkTemplate.Callback
     def on_disconnect(self, *_args):
@@ -760,6 +765,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         """Called when a game has sent the 'game-error' signal"""
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
+
+    def on_game_installed(self, game):
+        self.game_selection_changed(None, game)
 
     def on_game_started(self, game):
         self.game_panel.refresh()
