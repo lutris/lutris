@@ -239,7 +239,7 @@ class wine(Runner):
                 "option": "vkd3d",
                 "label": "Enable VKD3D",
                 "advanced": True,
-                "type": "boolean",
+                "type": "bool",
                 "default": False
             },
             {
