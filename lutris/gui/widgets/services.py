@@ -254,7 +254,7 @@ class ServiceSyncBox(Gtk.Box):
                     False,
                     game.appid,
                     game.name,
-                    get_pixbuf(game.icon, (32, 32)),
+                    get_pixbuf(game.icon, (32, 32)) if game.icon else None,
                     str(game.details),
                 ]
             )

@@ -38,12 +38,20 @@ class XDGGame(ServiceGame):
     runner = "linux"
     installer_slug = "desktopapp"
 
+    @staticmethod
+    def get_app_icon(xdg_app):
+        """Return the name of the icon for an XDG app if one if set"""
+        icon = xdg_app.get_icon()
+        if not icon:
+            return ""
+        return icon.to_string()
+
     @classmethod
     def new_from_xdg_app(cls, xdg_app):
         """Create a service game from a XDG entry"""
         service_game = cls()
         service_game.name = xdg_app.get_display_name()
-        service_game.icon = xdg_app.get_icon().to_string()
+        service_game.icon = cls.get_app_icon(xdg_app)
         service_game.appid = get_appid(xdg_app)
         service_game.slug = cls.get_slug(xdg_app)
         service_game.runner = "linux"
