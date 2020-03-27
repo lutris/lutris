@@ -31,6 +31,7 @@ class GlxInfo:
             return ""
 
     def as_dict(self):
+        """Return the attributes as a dict"""
         return {attr: getattr(self, attr) for attr in self._attrs}
 
     def parse(self):

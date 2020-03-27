@@ -1,7 +1,7 @@
 """DBus backed display management for Mutter"""
 from collections import namedtuple
-from lutris.util.log import logger
 import dbus
+from lutris.util.log import logger
 
 DisplayConfig = namedtuple(
     "DisplayConfig",
@@ -141,7 +141,7 @@ class CRTC():
         return "%s %s %s" % (self.id, self.geometry_str, self.current_mode)
 
     @property
-    def id(self):
+    def id(self):  # pylint: disable=invalid-name
         """The ID in the API of this CRTC"""
         return str(self.crtc_info[0])
 
@@ -378,6 +378,7 @@ class DisplayState:
         self._state = self.load_state()
 
     def load_state(self):
+        """Return current state from dbus interface"""
         return self.interface.GetCurrentState()
 
     @property
