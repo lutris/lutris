@@ -613,9 +613,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.application.launch(game)
         else:
             self.application.show_window(InstallerWindow, parent=self, game_slug=game.slug)
-            InstallerWindow(
-                parent=self, game_slug=game.slug, application=self.application,
-            )
 
     @GtkTemplate.Callback
     def on_disconnect(self, *_args):
