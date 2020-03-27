@@ -236,6 +236,13 @@ class wine(Runner):
                 "default": dxvk.DXVKManager.DXVK_LATEST,
             },
             {
+                "option": "vkd3d",
+                "label": "Enable VKD3D",
+                "advanced": True,
+                "type": "boolean",
+                "default": False
+            },
+            {
                 "option": "esync",
                 "label": "Enable Esync",
                 "type": "extended_bool",
@@ -787,9 +794,13 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
+        if self.runner_config.get("vkd3d"):
+            dxvk_manager = dxvk.VKD3DManager
+        else:
+            dxvk_manager = dxvk.DXVKManager
         self.setup_dxvk(
             "dxvk",
-            dxvk_manager=dxvk.DXVKManager(
+            dxvk_manager=dxvk_manager(
                 self.prefix_path,
                 arch=self.wine_arch,
                 version=self.runner_config.get("dxvk_version"),

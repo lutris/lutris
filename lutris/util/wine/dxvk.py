@@ -79,9 +79,7 @@ class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
 
     DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/releases"
-    DXVK_VERSIONS = [
-        "1.5",
-    ]
+    DXVK_VERSIONS = ["1.6"]
     DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:9]
 
     init_started = False
@@ -226,3 +224,8 @@ class DXVKManager:
         """Disable DXVK for the current prefix"""
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():
             self.disable_dxvk_dll(system_dir, dxvk_arch, dll)
+
+
+class VKD3DManager(DXVKManager):
+    """Modified DXVKManager for supporting VKD3D"""
+    dxvk_dlls = ("d3d11", "d3d10core", "d3d9")
