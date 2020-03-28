@@ -364,6 +364,12 @@ class LinuxSystem:
 
     def is_feature_supported(self, feature):
         """Return whether the system has the necessary libs to support a feature"""
+        if feature == "ACO":
+            try:
+                mesa_version = LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version
+                return mesa_version >= "19.3"
+            except AttributeError:
+                return False
         return not self.get_missing_requirement_libs(feature)[0]
 
 

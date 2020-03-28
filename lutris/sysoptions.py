@@ -220,6 +220,16 @@ system_options = [  # pylint: disable=invalid-name
         "help": "Limit the game's fps to desired number",
     },
     {
+        "option": "aco",
+        "type": "bool",
+        "label": "Enable ACO shader compiler",
+        "condition": system.LINUX_SYSTEM.is_feature_supported("ACO"),
+        "help": (
+            "Enable ACO shader compiler, improving performance in a lot of games. "
+            "Requires Mesa 19.3 or later."
+        )
+    },
+    {
         "option": "gamemode",
         "type": "bool",
         "default": system.LINUX_SYSTEM.is_feature_supported("GAMEMODE"),

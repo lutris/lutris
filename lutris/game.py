@@ -443,6 +443,9 @@ class Game(GObject.Object):
             ).communicate()
             xkbcomp.communicate()
 
+        if system_config.get("aco"):
+            env["RADV_PERFTEST"] = "aco"
+
         pulse_latency = system_config.get("pulse_latency")
         if pulse_latency:
             env["PULSE_LATENCY_MSEC"] = "60"
