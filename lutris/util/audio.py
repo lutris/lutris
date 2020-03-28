@@ -1,12 +1,15 @@
 """Whatever it is we want to do with audio module"""
-import subprocess
 import time
 from lutris.util.log import logger
+from lutris.util import system
 
 
 def reset_pulse():
     """Reset pulseaudio."""
-    subprocess.Popen(["pulseaudio", "--kill"])
+    if not system.find_executable("pulseaudio"):
+        logger.warning("PulseAudio not installed. Nothing to do.")
+        return
+    system.execute(["pulseaudio", "--kill"])
     time.sleep(1)
-    subprocess.Popen(["pulseaudio", "--start"])
+    system.execute(["pulseaudio", "--start"])
     logger.debug("PulseAudio restarted")
