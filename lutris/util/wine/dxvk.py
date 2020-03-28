@@ -228,4 +228,4 @@ class DXVKManager:
 
 class VKD3DManager(DXVKManager):
     """Modified DXVKManager for supporting VKD3D"""
-    dxvk_dlls = ("d3d11", "d3d10core", "d3d9")
+    dxvk_dlls = ("d3d11", "d3d10core", "d3d9", "dxvk_config")
