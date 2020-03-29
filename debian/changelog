@@ -3,7 +3,6 @@ lutris (0.5.5) eoan; urgency=medium
   * Initial support for Humble Bundle
   * Add resolution switching support for Wayland (Mutter only)
   * Add option to enable ACO shader compiler on Mesa >= 19.3
-  * Add initial support for Humble Bundle
   * DXVK is enabled by default
   * Add initial support for VKD3D
   * Migrate D9VK configs to use DXVK
