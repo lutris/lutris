@@ -16,15 +16,31 @@ class dgen(Runner):
         }
     ]
     runner_options = [
-        {"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": True},
-        {"option": "pal", "type": "bool", "label": "PAL", "default": False, "advanced": True},
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": True,
+        },
+        {
+            "option": "pal",
+            "type": "bool",
+            "label": "PAL",
+            "default": False,
+            "advanced": True,
+        },
         {
             "option": "region",
             "type": "choice",
             "label": "Region",
-            "choices": [("America (NTSC)", "U"), ("Japan (NTSC)", "J"), ("Japan (PAL)", "X"),("Europe (PAL)", "E")],
+            "choices": [
+                ("America (NTSC)", "U"),
+                ("Japan (NTSC)", "J"),
+                ("Japan (PAL)", "X"),
+                ("Europe (PAL)", "E"),
+            ],
             "default": "off",
-            "advanced": True
+            "advanced": True,
         },
     ]
 

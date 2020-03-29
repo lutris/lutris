@@ -34,7 +34,7 @@ from gi.repository import Gio, GLib, Gtk
 from lutris import pga
 from lutris.game import Game
 from lutris import settings
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, GtkBuilderDialog
+from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon

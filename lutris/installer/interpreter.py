@@ -1,4 +1,3 @@
-# pylint: disable=E1101, E0611
 """Install a game by following its install script."""
 import os
 import time
@@ -354,7 +353,9 @@ class ScriptInterpreter(CommandsMixin):
     def swap_humble_game_files(self):
         """Replace the user provided file with download links from Humble Bundle"""
         if not self.humbleid:
-            raise UnavailableGame("This installer has no Humble Bundle ID ('humbleid' in the game section)")
+            raise UnavailableGame(
+                "This installer has no Humble Bundle ID ('humbleid' in the game section)"
+            )
         installer_file_id = self.pop_user_provided_file()
         if not installer_file_id:
             raise UnavailableGame("Installer has no user provided file")

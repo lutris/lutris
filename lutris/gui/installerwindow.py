@@ -3,7 +3,7 @@ import os
 import time
 import webbrowser
 
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk
 
 from lutris import api, pga, settings
 from lutris.installer import interpreter

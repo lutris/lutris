@@ -1,3 +1,4 @@
+"""libretro runner"""
 import os
 from lutris.runners.runner import Runner
 from lutris.util.libretro import RetroConfig
@@ -54,7 +55,9 @@ LIBRETRO_CORES = [
     ("Mednafen PCE FAST (TurboGrafx-16)", "mednafen_pce_fast", "NEC PC Engine (TurboGrafx-16)"),
     ("Mednafen PCFX (NEC PC-FX)", "mednafen_pcfx", "NEC PC-FX"),
     ("Mednafen Saturn (Sega Saturn)", "mednafen_saturn", "Sega Saturn"),
-    ("Mednafen SGX (NEC PC Engine SuperGrafx)", "mednafen_supergrafx", "NEC PC Engine (SuperGrafx)"),
+    ("Mednafen SGX (NEC PC Engine SuperGrafx)",
+     "mednafen_supergrafx",
+     "NEC PC Engine (SuperGrafx)"),
     ("Mednafen WSWAN (Bandai WonderSwan)", "mednafen_wswan", "Bandai WonderSwan"),
     ("Mednafen PSX (Sony Playstation)", "mednafen_psx", "Sony PlayStation"),
     ("Mednafen PSX OpenGL (Sony Playstation)", "mednafen_psx_hw", "Sony PlayStation"),

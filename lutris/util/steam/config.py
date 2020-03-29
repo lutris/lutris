@@ -28,7 +28,7 @@ def read_config(steam_data_dir):
     """Read the Steam configuration and return it as an object"""
 
     def get_entry_case_insensitive(config_dict, path):
-        for key, value in config_dict.items():
+        for key, _value in config_dict.items():
             if key.lower() == path[0].lower():
                 if len(path) <= 1:
                     return config_dict[key]
@@ -42,14 +42,15 @@ def read_config(steam_data_dir):
     with open(config_filename, "r") as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
-        return get_entry_case_insensitive(config, ["InstallConfigStore", "Software", "Valve", "Steam"])
+        return get_entry_case_insensitive(
+            config,
+            ["InstallConfigStore", "Software", "Valve", "Steam"]
+        )
     except KeyError as ex:
         logger.error("Steam config %s is empty: %s", config_filename, ex)
 
 
 def get_steamapps_paths_for_platform(platform_name):
-    """
-    """
     from lutris.runners import winesteam, steam
 
     runners = {"linux": steam.steam, "windows": winesteam.winesteam}
