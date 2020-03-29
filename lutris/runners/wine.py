@@ -240,7 +240,10 @@ class wine(Runner):
                 "label": "Enable VKD3D",
                 "advanced": True,
                 "type": "bool",
-                "default": False
+                "default": False,
+                "help": (
+                    "Enable DX12 support with VKD3D. This requires a compatible Wine build."
+                )
             },
             {
                 "option": "esync",
