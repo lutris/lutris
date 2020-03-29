@@ -2,4 +2,4 @@
 export PYBUILD_INSTALL_ARGS_python3=--install-scripts=/usr/games/
 
 %:
-	dh $@ --with python3 --buildsystem=pybuild
+	dh $@ --buildsystem=pybuild

@@ -2,14 +2,14 @@ Source: lutris
 Section: games
 Priority: optional
 Maintainer: Mathieu Comandon <strider@strycore.com>
-Build-Depends: debhelper-compat (= 11),
+Build-Depends: debhelper-compat (= 12),
+ dh-sequence-python3,
  python3,
  python3-yaml,
  python3-setuptools,
  python3-requests,
  python3-pil,
  python3-gi,
- dh-python,
  gir1.2-gtk-3.0,
  gir1.2-glib-2.0,
  gir1.2-gnomedesktop-3.0,
