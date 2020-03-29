@@ -186,10 +186,6 @@ License: GPL-3
  On Debian systems, the complete text of the General Public License version 3
  can be found in "/usr/share/common-licenses/GPL-3".
 
-License: Apache-2.0
- On Debian systems, the complete text of the Apache license version 2.0 can be
- found in "/usr/share/common-licenses/Apache-2.0".
-
 License: LGPL-2.1
  On Debian systems, the complete text of the Lesser General Public License
  version 2.1 can be found in "/usr/share/common-licenses/LGPL-2.1".
