@@ -157,7 +157,7 @@ class WinePrefixManager:
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
                 path = os.path.join(user_dir, item)
-                if item not in DEFAULT_DESKTOP_FOLDERS and os.path.islink(path):
+                if item not in desktop_folders and os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)
 
