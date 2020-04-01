@@ -15,6 +15,12 @@ SYSTEM_PROCESSES = {
     "services.exe",
     "winedevice.exe",
     "plugplay.exe",
+    "explorer.exe",
+    "wineconsole",
+    "svchost.exe",
+    "rpcss.exe",
+    "rundll32.exe",
+    "mscorsvw.exe",
 }
 
 
