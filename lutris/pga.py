@@ -34,7 +34,7 @@ DATABASE = {
         {"name": "configpath", "type": "TEXT"},
         {"name": "has_custom_banner", "type": "INTEGER"},
         {"name": "has_custom_icon", "type": "INTEGER"},
-        {"name": "playtime", "type": "TEXT"},
+        {"name": "playtime", "type": "REAL"},
     ],
     "store_games": [
         {"name": "id", "type": "INTEGER", "indexed": True},
