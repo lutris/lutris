@@ -17,7 +17,7 @@ Build-Depends: debhelper-compat (= 12),
  gir1.2-notify-0.7,
  libgirepository1.0-dev
 Rules-Requires-Root: binary-targets
-Standards-Version: 4.1.4
+Standards-Version: 4.5.0
 Homepage: https://lutris.net
 Vcs-Browser: https://github.com/lutris/lutris
 Vcs-Git: https://github.com/lutris/lutris.git
