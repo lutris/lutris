@@ -126,7 +126,7 @@ class GameStore(GObject.Object):
             bool,
             int,
             str,
-            str,
+            float,
             str,
         )
         sort_col = COL_NAME
