@@ -5,6 +5,7 @@ import threading
 import time
 import shutil
 import urllib.request
+import subprocess
 
 from lutris.settings import RUNTIME_DIR
 from lutris.util.log import logger
@@ -113,16 +114,8 @@ class DXVKManager:
     @staticmethod
     def is_dxvk_dll(dll_path):
         """Check if a given DLL path is provided by DXVK
-
-        Very basic check to see if a dll exists and is over 256K. If this is the
-        case, then consider the DLL to be from DXVK
         """
-        if system.path_exists(dll_path, check_symlinks=True):
-            dll_stats = os.stat(dll_path)
-            dll_size = dll_stats.st_size
-        else:
-            dll_size = 0
-        return dll_size > 1024 * 256
+        return not bool(subprocess.call(['/bin/grep', 'dxvk', dll_path]))  # return value of 0 == dxvk found
 
     def is_available(self):
         """Return whether DXVK is cached locally"""
