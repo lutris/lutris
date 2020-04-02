@@ -114,15 +114,25 @@ class DXVKManager:
     def is_dxvk_dll(dll_path):
         """Check if a given DLL path is provided by DXVK
 
-        Very basic check to see if a dll exists and is over 256K. If this is the
-        case, then consider the DLL to be from DXVK
+        Very basic check to see if a dll contains the string "dxvk".
         """
-        if system.path_exists(dll_path, check_symlinks=True):
-            dll_stats = os.stat(dll_path)
-            dll_size = dll_stats.st_size
-        else:
-            dll_size = 0
-        return dll_size > 1024 * 256
+        try:
+            with open(dll_path, 'rb') as file:
+                prev_block_end = b''
+                while True:
+                    block = file.read(2*1024*1024)  # 2 MiB
+                    if not block:
+                        break
+
+                    if b'dxvk' in (prev_block_end + block[:4]):
+                        return True
+                    if b'dxvk' in block:
+                        return True
+
+                    prev_block_end = block[-4:]
+        except OSError:
+            pass
+        return False
 
     def is_available(self):
         """Return whether DXVK is cached locally"""
