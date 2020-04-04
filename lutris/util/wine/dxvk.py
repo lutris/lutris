@@ -120,7 +120,7 @@ class DXVKManager:
             with open(dll_path, 'rb') as file:
                 prev_block_end = b''
                 while True:
-                    block = file.read(2*1024*1024)  # 2 MiB
+                    block = file.read(2 * 1024 * 1024)  # 2 MiB
                     if not block:
                         break
 

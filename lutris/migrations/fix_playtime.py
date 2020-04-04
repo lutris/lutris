@@ -15,6 +15,7 @@ def fix_playtime(game):
                    game["name"])
     sql.db_update(PGA_DB, "games", {"playtime": playtime}, ("id", game["id"]))
 
+
 def migrate():
     for game in get_games():
         if not game["playtime"]:

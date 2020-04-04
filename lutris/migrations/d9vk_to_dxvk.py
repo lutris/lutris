@@ -1,8 +1,5 @@
-from lutris.pga import PGA_DB, get_games
+from lutris.pga import get_games
 from lutris.game import Game
-from lutris.util import sql
-from lutris.util.log import logger
-
 
 
 def migrate():
@@ -22,4 +19,3 @@ def migrate():
         game.config.runner_config["dxvk"] = True
         game.config.save()
         print("Migrated %s" % game)
-
