@@ -415,6 +415,7 @@ class GameStore(GObject.Object):
         return self.add_games_by_ids([game_id])
 
     def add_game(self, pga_game):
+        """Add a PGA game to the store"""
         game = PgaGame(pga_game)
         self.games.append(pga_game)
         self.store.append(
@@ -446,12 +447,14 @@ class GameStore(GObject.Object):
             self.add_game_by_id(game_id)
 
     def set_icon_type(self, icon_type):
-        if icon_type != self.icon_type:
-            self.icon_type = icon_type
-            for row in self.store:
-                row[COL_ICON] = get_pixbuf_for_game(
-                    row[COL_SLUG],
-                    icon_type,
-                    is_installed=row[COL_INSTALLED] if not self.search_mode else True,
-                )
-            self.emit("icons-changed", icon_type)
+        """Change the icon type"""
+        if icon_type == self.icon_type:
+            return
+        self.icon_type = icon_type
+        for row in self.store:
+            row[COL_ICON] = get_pixbuf_for_game(
+                row[COL_SLUG],
+                icon_type,
+                is_installed=row[COL_INSTALLED] if not self.search_mode else True,
+            )
+        self.emit("icons-changed", icon_type)
