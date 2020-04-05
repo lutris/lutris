@@ -246,7 +246,7 @@ class wine(Runner):
             },
             {
                 "option": "esync",
-                "label": "Enable Esync / Fsync",
+                "label": "Enable Esync",
                 "type": "extended_bool",
                 "callback": esync_limit_callback,
                 "callback_on": True,
@@ -847,16 +847,6 @@ class wine(Runner):
 
         if not ("WINEESYNC" in env and env["WINEESYNC"] == "1"):
             env["WINEESYNC"] = "1" if self.runner_config.get("esync") else "0"
-            # So apparently there's this new hot shit named FSync for Wine
-            # I have no fucking clue what it is or what is does but it's likely
-            # to be a fancy ass version of ESync. Just gonna enable it when
-            # Esync is enabled because what's the worst that can possibly
-            # happen, right?
-            # It's apparently tied to some kernel feature being available but
-            # no clue which one it is and again, if not present, won't do any
-            # harm so whatever, just set the env var and be done with it.
-            # Want to do better? Send a patch.
-            env["WINEFSYNC"] = "1" if self.runner_config.get("esync") else "0"
 
         overrides = self.get_dll_overrides()
         if overrides:
