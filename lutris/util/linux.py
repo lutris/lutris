@@ -323,7 +323,11 @@ class LinuxSystem:
         """
         shared_libraries = defaultdict(list)
         for lib_line in self.get_ldconfig_libs():
-            lib = SharedLibrary.new_from_ldconfig(lib_line)
+            try:
+                lib = SharedLibrary.new_from_ldconfig(lib_line)
+            except ValueError:
+                logger.error("Invalid ldconfig line: %s", lib_line)
+                continue
             if lib.arch not in self.runtime_architectures:
                 continue
             shared_libraries[lib.name].append(lib)
