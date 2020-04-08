@@ -1,0 +1,11 @@
+checks:
+    python:
+        code_rating: true
+        duplicate_code: true
+filter:
+    excluded_paths:
+        - 'tests/*'
+        - 'vdf2json/*'
+tools:
+    external_code_coverage:
+        runs: 9

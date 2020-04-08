@@ -1,0 +1,4 @@
+[submodule "lutris/vendor/vdf"]
+	path = lutris/vendor/vdf
+	url = https://github.com/ValvePython/vdf.git
+	branch = master
