@@ -7,6 +7,7 @@ class citra(Runner):
     platforms = ["Nintendo 3DS"]
     description = "Nintendo 3DS emulator"
     runner_executable = "citra/citra-qt"
+    runnable_alone = True
     game_options = [
         {
             "option": "main_file",
