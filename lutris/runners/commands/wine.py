@@ -8,7 +8,7 @@ from lutris import runtime, settings
 from lutris.config import LutrisConfig
 from lutris.runners import import_runner
 from lutris.command import MonitoredCommand
-from lutris.util import datapath, system
+from lutris.util import system
 from lutris.util.strings import split_arguments
 from lutris.util.log import logger
 from lutris.util.wine.wine import (
@@ -306,7 +306,8 @@ def wineexec(
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    wineenv.update(env)
+    if env:
+        wineenv.update(env)
 
     command_parameters = [wine_path]
     if executable:
@@ -334,20 +335,19 @@ def winetricks(
         silent=True,
         wine_path=None,
         config=None,
+        env=None,
         disable_runtime=False,
 ):
     """Execute winetricks."""
     wine_config = config or LutrisConfig(runner_slug="wine")
-    system_winetricks = wine_config.runner_config.get("system_winetricks")
-    if system_winetricks:
-        winetricks_path = "/usr/bin/winetricks"
-    else:
-        winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
-        if not system.path_exists(winetricks_path):
-            logger.warning(
-                "Could not find local winetricks install, falling back to bundled version"
-            )
-            winetricks_path = os.path.join(datapath.get(), "bin/winetricks")
+    winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
+    if (
+            wine_config.runner_config.get("system_winetricks")
+            or not system.path_exists(winetricks_path)
+    ):
+        winetricks_path = system.find_executable("winetricks")
+        if not winetricks_path:
+            raise RuntimeError("No installation of winetricks found")
     if wine_path:
         winetricks_wine = wine_path
     else:
@@ -366,12 +366,13 @@ def winetricks(
         arch=arch,
         args=args,
         config=config,
+        env=env,
         disable_runtime=disable_runtime,
         blocking=True
     )
 
 
-def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None):
+def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None):
     """Execute winecfg."""
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")
@@ -388,6 +389,7 @@ def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None):
         wine_path=winecfg_path,
         arch=arch,
         config=config,
+        env=env,
         include_processes=["winecfg.exe"],
     )
 

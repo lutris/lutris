@@ -220,6 +220,16 @@ system_options = [  # pylint: disable=invalid-name
         "help": "Limit the game's fps to desired number",
     },
     {
+        "option": "aco",
+        "type": "bool",
+        "label": "Enable ACO shader compiler",
+        "condition": system.LINUX_SYSTEM.is_feature_supported("ACO"),
+        "help": (
+            "Enable ACO shader compiler, improving performance in a lot of games. "
+            "Requires Mesa 19.3 or later."
+        )
+    },
+    {
         "option": "gamemode",
         "type": "bool",
         "default": system.LINUX_SYSTEM.is_feature_supported("GAMEMODE"),
@@ -391,17 +401,6 @@ system_options = [  # pylint: disable=invalid-name
             "Path to a file which will stop the game when deleted \n"
             "(usually /dev/input/js0 to stop the game on joystick "
             "unplugging)"
-        ),
-    },
-    {
-        "option": "xboxdrv",
-        "type": "string",
-        "label": "xboxdrv config",
-        "advanced": True,
-        "condition": system.find_executable("xboxdrv"),
-        "help": (
-            "Command line options for xboxdrv, a driver for XBOX 360 "
-            "controllers. Requires the xboxdrv package installed."
         ),
     },
     {

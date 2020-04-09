@@ -3,7 +3,6 @@
 import os
 
 from lutris import api, pga, runtime, settings
-from lutris.gui.widgets.utils import open_uri
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.log import logger
@@ -26,6 +25,12 @@ class Dialog(Gtk.Dialog):
 
 
 class GtkBuilderDialog(GObject.Object):
+    dialog_object = NotImplemented
+
+    __gsignals__ = {
+        "destroy": (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
+
     def __init__(self, parent=None, **kwargs):
         super().__init__()
         ui_filename = os.path.join(datapath.get(), "ui", self.glade_file)
@@ -40,14 +45,19 @@ class GtkBuilderDialog(GObject.Object):
         if parent:
             self.dialog.set_transient_for(parent)
         self.dialog.show_all()
-        self.dialog.connect("delete-event", lambda *x: x[0].destroy())
+        self.dialog.connect("delete-event", self.on_close)
         self.initialize(**kwargs)
 
     def initialize(self, **kwargs):
-        pass
+        """Implement further customizations in subclasses"""
+
+    def present(self):
+        self.dialog.present()
 
     def on_close(self, *args):
+        """Propagate the destroy event after closing the dialog"""
         self.dialog.destroy()
+        self.emit("destroy")
 
     def on_response(self, widget, response):
         if response == Gtk.ResponseType.DELETE_EVENT:
@@ -316,15 +326,6 @@ class ClientLoginDialog(GtkBuilderDialog):
         else:
             self.emit("connected", username)
             self.dialog.destroy()
-
-
-class ClientUpdateDialog(GtkBuilderDialog):
-    glade_file = "dialog-client-update.ui"
-    dialog_object = "client_update_dialog"
-
-    @staticmethod
-    def on_open_downloads_clicked(_widget):
-        open_uri("http://lutris.net")
 
 
 class NoInstallerDialog(Gtk.MessageDialog):

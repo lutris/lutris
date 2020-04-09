@@ -6,7 +6,8 @@ class yuzu(Runner):
     human_name = "Yuzu"
     platforms = ["Nintendo Switch"]
     description = "Nintendo Switch emulator"
-    runner_executable = "yuzu/yuzu-qt"
+    runnable_alone = True
+    runner_executable = "yuzu/yuzu"
     game_options = [
         {
             "option": "main_file",

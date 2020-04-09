@@ -6,7 +6,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.4
+Version:        0.5.5
 Release:        7%{?dist}
 Summary:        Install and play any video game easily
 
@@ -40,7 +40,6 @@ BuildRequires:  python3-gobject, python3-setuptools, typelib-1_0-Gtk-3_0
 BuildRequires:  update-desktop-files
 # Needed to workaround "directories not owned by a package" issue
 BuildRequires:  hicolor-icon-theme
-BuildRequires:  polkit
 BuildRequires:  python3-setuptools
 Requires:       (python3-gobject-Gdk or python3-gobject)
 Requires:       python3-PyYAML, cabextract, typelib-1_0-Gtk-3_0
@@ -68,8 +67,6 @@ Requires:       mesa-libGL(x86-32)
 Requires:       mesa-libGL
 %endif
 %endif
-
-#!BuildIgnore: rpmlint-mini
 
 
 %description
@@ -128,7 +125,6 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{_datadir}/icons/hicolor/32x32/apps/lutris.png
 %{_datadir}/icons/hicolor/48x48/apps/lutris.png
 %{_datadir}/icons/hicolor/scalable/apps/lutris.svg
-%{_datadir}/polkit-1/actions/*
 %{python3_sitelib}/%{name}-*.egg-info
 %{python3_sitelib}/%{name}/
 

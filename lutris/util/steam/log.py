@@ -10,16 +10,16 @@ def _get_last_content_log(steam_data_dir):
     path = os.path.join(steam_data_dir, "logs/content_log.txt")
     log = []
     try:
-        with open(path, "r") as f:
-            line = f.readline()
+        with open(path, "r") as logfile:
+            line = logfile.readline()
             while line:
                 # Strip old logs
-                if line == "\r\n" and f.readline() == "\r\n":
+                if line == "\r\n" and logfile.readline() == "\r\n":
                     log = []
-                    line = f.readline()
+                    line = logfile.readline()
                 else:
                     log.append(line)
-                    line = f.readline()
+                    line = logfile.readline()
     except IOError:
         return []
     return log

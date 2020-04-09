@@ -49,7 +49,7 @@ from lutris.util.log import logger
 from lutris.util.http import Request, HTTPError
 from lutris.api import parse_installer_url
 from lutris.startup import init_lutris, run_all_checks
-from lutris.util.wine.dxvk import init_dxvk_versions
+from lutris.util.wine.dxvk import init_dxvk_versions, wait_for_dxvk_init
 
 from .lutriswindow import LutrisWindow
 
@@ -67,6 +67,7 @@ class Application(Gtk.Application):
         GLib.set_application_name(_("Lutris"))
         self.running_games = Gio.ListStore.new(Game)
         self.window = None
+        self.app_windows = {}
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
         self.run_in_background = False
@@ -175,6 +176,31 @@ class Application(Gtk.Application):
             # Reset run in background to False. Future calls will set it
             # accordingly
             self.run_in_background = False
+
+    def show_window(self, window_class, **kwargs):
+        """Instanciate a window keeping 1 instance max
+
+        Params:
+            window_class (Gtk.Window): class to create the instance from
+            kwargs (dict): Additional arguments to pass to the instanciated window
+
+        Returns:
+            Gtk.Window: the existing window instance or a newly created one
+        """
+        window_key = str(window_class) + str(kwargs)
+        if self.app_windows.get(window_key):
+            self.app_windows[window_key].present()
+        else:
+            window_inst = window_class(application=self, **kwargs)
+            window_inst.connect("destroy", self.on_app_window_destroyed, str(kwargs))
+            self.app_windows[window_key] = window_inst
+        return window_inst
+
+    def on_app_window_destroyed(self, app_window, kwargs_str):
+        """Remove the reference to the window when it has been destroyed"""
+        window_key = str(app_window.__class__) + kwargs_str
+        del self.app_windows[window_key]
+        return True
 
     @staticmethod
     def _print(command_line, string):
@@ -332,12 +358,12 @@ class Application(Gtk.Application):
                 action = "install"
 
         if action == "install":
-            InstallerWindow(
+            self.show_window(
+                InstallerWindow,
+                parent=self.window,
                 game_slug=game_slug,
                 installer_file=installer_file,
                 revision=revision,
-                parent=self.window,
-                application=self,
             )
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
@@ -353,6 +379,7 @@ class Application(Gtk.Application):
         logger.debug("Launching %s (%s)", game, id(game))
         self.running_games.append(game)
         game.connect("game-stop", self.on_game_stop)
+        wait_for_dxvk_init()
         game.load_config()  # Reload the config before launching it.
         game.play()
 

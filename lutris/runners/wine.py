@@ -126,7 +126,9 @@ class wine(Runner):
 
     def __init__(self, config=None):
         super(wine, self).__init__(config)
-        self.dll_overrides = {}
+        self.dll_overrides = {
+            "winemenubuilder.exe": "d"
+        }
 
         def get_wine_version_choices():
             version_choices = [("Custom (select executable below)", "custom")]
@@ -217,6 +219,7 @@ class wine(Runner):
                 "type": "extended_bool",
                 "callback": dxvk_vulkan_callback,
                 "callback_on": True,
+                "default": True,
                 "active": True,
                 "help": (
                     "Use DXVK to increase compatibility and performance "
@@ -231,6 +234,15 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": get_dxvk_choices,
                 "default": dxvk.DXVKManager.DXVK_LATEST,
+            },
+            {
+                "option": "vkd3d",
+                "label": "Enable VKD3D",
+                "type": "bool",
+                "default": False,
+                "help": (
+                    "Enable DX12 support with VKD3D. This requires a compatible Wine build."
+                )
             },
             {
                 "option": "esync",
@@ -654,6 +666,7 @@ class wine(Runner):
             executable,
             wine_path=self.get_executable(),
             prefix=self.prefix_path,
+            working_dir=self.prefix_path,
             config=self,
             env=self.get_env(os_env=True),
         )
@@ -679,6 +692,7 @@ class wine(Runner):
             prefix=self.prefix_path,
             arch=self.wine_arch,
             config=self,
+            env=self.get_env(os_env=True),
         )
 
     def run_regedit(self, *args):
@@ -690,7 +704,11 @@ class wine(Runner):
         """Run winetricks in the current context"""
         self.prelaunch()
         winetricks(
-            "", prefix=self.prefix_path, wine_path=self.get_executable(), config=self
+            "",
+            prefix=self.prefix_path,
+            wine_path=self.get_executable(),
+            config=self,
+            env=self.get_env(os_env=True)
         )
 
     def run_winecpl(self, *args):
@@ -743,6 +761,7 @@ class wine(Runner):
         if version.lower() != "manual":
             if enable:
                 if not dxvk_manager.is_available():
+                    logger.info("DXVK %s is not available yet, downloading...")
                     dxvk_manager.download()
                 dxvk_manager.enable()
             else:
@@ -777,9 +796,13 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
+        if self.runner_config.get("vkd3d"):
+            dxvk_manager = dxvk.VKD3DManager
+        else:
+            dxvk_manager = dxvk.DXVKManager
         self.setup_dxvk(
             "dxvk",
-            dxvk_manager=dxvk.DXVKManager(
+            dxvk_manager=dxvk_manager(
                 self.prefix_path,
                 arch=self.wine_arch,
                 version=self.runner_config.get("dxvk_version"),
@@ -798,13 +821,11 @@ class wine(Runner):
             overrides = self.runner_config["overrides"]
         except KeyError:
             overrides = {}
-        else:
-            if not isinstance(overrides, dict):
-                logger.warning("DLL overrides is not a mapping: %s", overrides)
-                overrides = {}
-            else:
-                overrides = overrides.copy()
+        if not isinstance(overrides, dict):
+            logger.warning("DLL overrides is not a mapping: %s", overrides)
+            overrides = {}
 
+        overrides = overrides.copy()
         overrides.update(self.dll_overrides)
         return overrides
 

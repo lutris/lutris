@@ -28,7 +28,7 @@ class WebkitCookieJar(MozillaCookieJar):
                 elif sline.startswith("#") or sline == "":
                     continue
 
-                domain, domain_specified, path, secure, expires, name, value = line.split(
+                domain, domain_specified, path, secure, expires, name, value, *_extra = line.split(
                     "\t"
                 )
                 secure = secure == "TRUE"

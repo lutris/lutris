@@ -1,6 +1,7 @@
 """DXVK helper module"""
 import os
 import json
+import threading
 import time
 import shutil
 import urllib.request
@@ -54,7 +55,20 @@ def init_dxvk_versions():
             manager.DXVK_VERSIONS[1:9],
         )
 
-    init_versions(DXVKManager)
+    # prevent race condition with if statement
+    with DXVKManager.init_lock:
+        # don't start init twice
+        if not DXVKManager.init_started:
+            DXVKManager.init_started = True
+            init_versions(DXVKManager)
+
+
+def wait_for_dxvk_init():
+    # wait for finishing DXVK initialization and prevent race condition with if statement
+    with DXVKManager.init_lock:
+        # in case DXVK init never got started, start it to prevent waiting indefinitely
+        if not DXVKManager.init_started:
+            init_dxvk_versions()
 
 
 class UnavailableDXVKVersion(RuntimeError):
@@ -65,15 +79,16 @@ class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
 
     DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/releases"
-    DXVK_VERSIONS = [
-        "1.5",
-    ]
+    DXVK_VERSIONS = ["1.6"]
     DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:9]
+
+    init_started = False
+    init_lock = threading.RLock()
 
     base_url = "https://github.com/doitsujin/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
     base_name = "dxvk"
     base_dir = os.path.join(RUNTIME_DIR, base_name)
-    dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d10_1", "d3d10", "d3d9")
+    dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9")
     latest_version = DXVK_LATEST
 
     def __init__(self, prefix, arch="win64", version=None):
@@ -99,15 +114,25 @@ class DXVKManager:
     def is_dxvk_dll(dll_path):
         """Check if a given DLL path is provided by DXVK
 
-        Very basic check to see if a dll exists and is over 256K. If this is the
-        case, then consider the DLL to be from DXVK
+        Very basic check to see if a dll contains the string "dxvk".
         """
-        if system.path_exists(dll_path, check_symlinks=True):
-            dll_stats = os.stat(dll_path)
-            dll_size = dll_stats.st_size
-        else:
-            dll_size = 0
-        return dll_size > 1024 * 256
+        try:
+            with open(dll_path, 'rb') as file:
+                prev_block_end = b''
+                while True:
+                    block = file.read(2 * 1024 * 1024)  # 2 MiB
+                    if not block:
+                        break
+
+                    if b'dxvk' in (prev_block_end + block[:4]):
+                        return True
+                    if b'dxvk' in block:
+                        return True
+
+                    prev_block_end = block[-4:]
+        except OSError:
+            pass
+        return False
 
     def is_available(self):
         """Return whether DXVK is cached locally"""
@@ -209,3 +234,8 @@ class DXVKManager:
         """Disable DXVK for the current prefix"""
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():
             self.disable_dxvk_dll(system_dir, dxvk_arch, dll)
+
+
+class VKD3DManager(DXVKManager):
+    """Modified DXVKManager for supporting VKD3D"""
+    dxvk_dlls = ("d3d11", "d3d10core", "d3d9", "dxvk_config")

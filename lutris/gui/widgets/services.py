@@ -28,13 +28,14 @@ class ServiceSyncBox(Gtk.Box):
         self.service = service
         self.identifier = service.__name__.split(".")[-1]
         self.icon_name = service.ICON
+        self.is_connnecting = False
         self.name = service.NAME
         self.games = []
         self.store = None
         self.num_selected = 0
         self.games_loaded = False
 
-        title_box = Gtk.Box()
+        title_box = Gtk.Box(spacing=6)
         label = Gtk.Label()
         label.set_markup("<b>{}</b>".format(self.name))
         title_box.pack_start(label, True, True, 0)
@@ -86,22 +87,22 @@ class ServiceSyncBox(Gtk.Box):
     def get_content_widget(self):
         center_alignment = Gtk.Alignment()
         center_alignment.set(0.5, 0.5, 0.1, 0.1)
-        if self.service.ONLINE:
-            gog_logo = self.get_icon(size=(64, 64))
+        if self.service.ONLINE and not self.is_connnecting:
+            service_logo = self.get_icon(size=(64, 64))
 
-            gog_label = Gtk.Label(
-                "Connect to GOG to automatically \ndownload games during installations"
+            service_label = Gtk.Label(
+                "Connect to %s to import your library." % self.name
             )
-            gog_label.set_justify(Gtk.Justification.CENTER)
+            service_label.set_justify(Gtk.Justification.CENTER)
 
-            gog_button = Gtk.Button("Connect your account")
-            gog_button.connect("clicked", self.on_connect_clicked)
+            service_button = Gtk.Button("Connect your account")
+            service_button.connect("clicked", self.on_connect_clicked)
 
-            gog_box = Gtk.VBox()
-            gog_box.add(gog_logo)
-            gog_box.add(gog_label)
-            gog_box.add(gog_button)
-            center_alignment.add(gog_box)
+            service_box = Gtk.VBox()
+            service_box.add(service_logo)
+            service_box.add(service_label)
+            service_box.add(service_button)
+            center_alignment.add(service_box)
         else:
             spinner = Gtk.Spinner()
             spinner.start()
@@ -141,6 +142,7 @@ class ServiceSyncBox(Gtk.Box):
         return False
 
     def _connect_button_toggle(self):
+        self.is_connnecting = False
         if self.service.is_connected():
             icon_name = "system-log-out-symbolic"
             label = "Disconnect"
@@ -252,7 +254,7 @@ class ServiceSyncBox(Gtk.Box):
                     False,
                     game.appid,
                     game.name,
-                    get_pixbuf(game.icon, (32, 32)),
+                    get_pixbuf(game.icon, (32, 32)) if game.icon else None,
                     str(game.details),
                 ]
             )
@@ -287,7 +289,12 @@ class ServiceSyncBox(Gtk.Box):
         if self.service.ONLINE and not self.service.is_connected():
             return
         syncer = self.service.SYNCER()
-        AsyncCall(syncer.load, self.on_games_loaded, force_reload)
+        if force_reload:
+            self.service.SERVICE.wipe_game_cache()
+
+        self.is_connnecting = True
+        self.swap_content(self.get_content_widget())
+        AsyncCall(syncer.load, self.on_games_loaded)
 
     def on_games_loaded(self, result, _error):
         self.games = result

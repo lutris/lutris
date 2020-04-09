@@ -105,6 +105,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-started", self.on_game_started)
+        GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
         GObject.add_emission_hook(
             GenericPanel, "running-game-selected", self.game_selection_changed
         )
@@ -475,20 +476,6 @@ class LutrisWindow(Gtk.ApplicationWindow):
             lambda adj: self._set_icon_type(image_sizes[int(adj.props.value)]),
         )
 
-    @staticmethod
-    def check_update():
-        """Verify availability of client update."""
-        version_request = http.Request("https://lutris.net/version")
-        version_request.get()
-        version = version_request.content
-        if version:
-            latest_version = settings.read_setting("latest_version")
-            if version > (latest_version or settings.VERSION):
-                dialogs.ClientUpdateDialog()
-                # Store latest version seen to avoid showing
-                # the dialog more than once.
-                settings.write_setting("latest_version", version)
-
     def get_view_type(self):
         """Return the type of view saved by the user"""
         view_type = settings.read_setting("view_type")
@@ -594,7 +581,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
     def open_sync_dialog(self):
         """Opens the service sync dialog"""
         self.add_popover.hide()
-        SyncServiceWindow(application=self.application)
+        self.application.show_window(SyncServiceWindow)
 
     def update_runtime(self):
         """Check that the runtime is up to date"""
@@ -626,8 +613,10 @@ class LutrisWindow(Gtk.ApplicationWindow):
         if game.is_installed:
             self.application.launch(game)
         else:
-            InstallerWindow(
-                parent=self, game_slug=game.slug, application=self.application,
+            self.application.show_window(
+                InstallerWindow,
+                parent=self,
+                game_slug=game.slug
             )
 
     @GtkTemplate.Callback
@@ -690,7 +679,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
 
     @GtkTemplate.Callback
     def on_manage_runners(self, *args):
-        return RunnersDialog(transient_for=self)
+        self.application.show_window(RunnersDialog, transient_for=self)
 
     def invalidate_game_filter(self):
         """Refilter the game view based on current filters"""
@@ -728,11 +717,12 @@ class LutrisWindow(Gtk.ApplicationWindow):
             self.game_store.filter_text = entry.get_text()
             self.invalidate_game_filter()
         elif self.search_mode == "website":
+            search_terms = entry.get_text().lower().strip()
             self.search_spinner.props.active = True
             if self.search_timer_id:
                 GLib.source_remove(self.search_timer_id)
             self.search_timer_id = GLib.timeout_add(
-                750, self.on_search_games_fire, entry.get_text().lower().strip()
+                750, self.on_search_games_fire, search_terms
             )
         else:
             raise ValueError("Unsupported search mode %s" % self.search_mode)
@@ -777,6 +767,9 @@ class LutrisWindow(Gtk.ApplicationWindow):
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
 
+    def on_game_installed(self, game):
+        self.game_selection_changed(None, game)
+
     def on_game_started(self, game):
         self.game_panel.refresh()
         return True
@@ -811,6 +804,7 @@ class LutrisWindow(Gtk.ApplicationWindow):
         self.game_store.set_icon_type(self.icon_type)
         self.game_store.load(from_search=bool(query))
         self.game_store.filter_text = self.search_entry.props.text
+        self.search_spinner.props.active = False
         self.switch_view(self.get_view_type())
         self.invalidate_game_filter()
 

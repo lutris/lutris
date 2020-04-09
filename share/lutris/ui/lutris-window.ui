@@ -334,7 +334,7 @@
             <property name="receives_default">False</property>
             <property name="action-target">'installed_at'</property>
             <property name="action_name">win.view-sorting</property>
-            <property name="text" translatable="yes">Installed at</property>
+            <property name="text" translatable="yes">Installed At</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -349,7 +349,7 @@
             <property name="receives_default">False</property>
             <property name="action_name">win.view-sorting</property>
             <property name="action-target">'playtime'</property>
-            <property name="text" translatable="yes">Play time</property>
+            <property name="text" translatable="yes">Play Time</property>
           </object>
           <packing>
             <property name="expand">False</property>

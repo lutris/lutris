@@ -10,10 +10,10 @@ from lutris.services import AuthenticationError, UnavailableGame
 from lutris.util.http import Request, HTTPError
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.cookies import WebkitCookieJar
 from lutris.util.resources import download_media
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.services.service_game import ServiceGame
+from lutris.services.base import OnlineService
 
 
 NAME = "GOG"
@@ -21,7 +21,12 @@ ICON = "gog"
 ONLINE = True
 
 
-class GogService:
+class MultipleInstallerError(BaseException):
+    """Current implementation doesn't know how to deal with multiple installers
+    Raise this if a game returns more than 1 installer."""
+
+
+class GogService(OnlineService):
     """Service class for GOG"""
 
     name = "GOG"
@@ -51,17 +56,6 @@ class GogService:
     @property
     def credential_files(self):
         return [self.cookies_path, self.token_path]
-
-    def disconnect(self):
-        """Disconnect from GOG by removing all credentials"""
-        for auth_file in self.credential_files + [self.cache_path]:
-            try:
-                os.remove(auth_file)
-            except OSError:
-                logger.warning("Unable to remove %s", auth_file)
-
-    def is_authenticated(self):
-        return all([os.path.exists(path) for path in self.credential_files])
 
     def is_available(self):
         """Return whether the user is authenticated and if the service is available"""
@@ -99,22 +93,14 @@ class GogService:
         try:
             request.get()
         except HTTPError:
-            logger.error("Failed to get token, check your GOG credentials")
+            logger.error("Failed to get token, check your GOG credentials.")
+            logger.warning("Clearing existing credentials")
+            self.disconnect()
             return
 
         token = request.json
         with open(self.token_path, "w") as token_file:
             token_file.write(json.dumps(token))
-
-    def load_cookies(self):
-        """Load cookies from disk"""
-        logger.debug("Loading cookies from %s", self.cookies_path)
-        if not os.path.exists(self.cookies_path):
-            logger.debug("No cookies found, please authenticate first")
-            return
-        cookiejar = WebkitCookieJar(self.cookies_path)
-        cookiejar.load()
-        return cookiejar
 
     def load_token(self):
         """Load token from disk"""
@@ -161,7 +147,6 @@ class GogService:
                 url,
             )
             return
-        request.get()
         return request.json
 
     def get_user_data(self):
@@ -169,10 +154,10 @@ class GogService:
         url = "https://embed.gog.com/userData.json"
         return self.make_api_request(url)
 
-    def get_library(self, force_reload=False):
+    def get_library(self):
         """Return the user's library of GOG games"""
 
-        if system.path_exists(self.cache_path) and not force_reload:
+        if system.path_exists(self.cache_path):
             logger.debug("Returning cached GOG library")
             with open(self.cache_path, "r") as gog_cache:
                 return json.load(gog_cache)
@@ -190,6 +175,7 @@ class GogService:
         return games
 
     def get_products_page(self, page=1, search=None):
+        """Return a single page of games"""
         if not self.is_authenticated():
             raise RuntimeError("User is not logged in")
         params = {"mediaType": "1"}
@@ -216,11 +202,49 @@ class GogService:
         for field in ("checksum", "downlink"):
             field_url = response[field]
             parsed = urlparse(field_url)
-            response[field + "_filename"] = os.path.basename(parsed.path)
+            query = dict(parse_qsl(parsed.query))
+            response[field + "_filename"] = os.path.basename(query.get("path") or parsed.path)
         return response
+
+    def get_installers(self, gogid, runner, language="en"):
+        """Return available installers for a GOG game"""
+
+        gog_data = self.get_game_details(gogid)
+        if not gog_data:
+            logger.warning("Unable to get GOG data for game %s", gogid)
+            return []
+
+        # Filter out Mac installers
+        gog_installers = [
+            installer
+            for installer in gog_data["downloads"]["installers"]
+            if installer["os"] != "mac"
+        ]
+        available_platforms = {installer["os"] for installer in gog_installers}
+        # If it's a Linux game, also filter out Windows games
+        if "linux" in available_platforms:
+            if runner == "linux":
+                filter_os = "windows"
+            else:
+                filter_os = "linux"
+            gog_installers = [
+                installer
+                for installer in gog_installers
+                if installer["os"] != filter_os
+            ]
+
+        # Keep only the english installer until we have locale detection
+        # and / or language selection implemented
+        gog_installers = [
+            installer
+            for installer in gog_installers
+            if installer["language"] == language
+        ]
+        return gog_installers
 
 
 class GOGGame(ServiceGame):
+    """Representation of a GOG game"""
     store = "gog"
 
     @classmethod
@@ -249,35 +273,67 @@ class GOGGame(ServiceGame):
         return cache_path
 
 
-GOG_SERVICE = GogService()
+SERVICE = GogService()
 
 
 def is_connected():
     """Return True if user is connected to GOG"""
-    return GOG_SERVICE.is_available()
+    return SERVICE.is_available()
 
 
 def connect(parent=None):
     """Connect to GOG"""
     logger.debug("Connecting to GOG")
-    dialog = WebConnectDialog(GOG_SERVICE, parent)
+    dialog = WebConnectDialog(SERVICE, parent)
     dialog.run()
 
 
 def disconnect():
     """Disconnect from GOG"""
-    GOG_SERVICE.disconnect()
+    SERVICE.disconnect()
+
+
+def get_gog_download_links(gogid, runner):
+    """Return a list of downloadable links for a GOG game"""
+    gog_service = GogService()
+    if not gog_service.is_available():
+        logger.info("You are not connected to GOG")
+        connect()
+    if not gog_service.is_available():
+        raise UnavailableGame
+    gog_installers = gog_service.get_installers(gogid, runner)
+    if len(gog_installers) > 1:
+        raise MultipleInstallerError()
+    try:
+        installer = gog_installers[0]
+    except IndexError:
+        raise UnavailableGame
+    download_links = []
+    for game_file in installer.get('files', []):
+        downlink = game_file.get("downlink")
+        if not downlink:
+            logger.error("No download information for %s", installer)
+            continue
+        download_info = gog_service.get_download_info(downlink)
+        for field in ('checksum', 'downlink'):
+            url = download_info[field]
+            logger.info("Adding %s to download links", url)
+            download_links.append({
+                "url": download_info[field],
+                "filename": download_info[field + "_filename"]
+            })
+    return download_links
 
 
 class GOGSyncer:
     """Sync GOG games to Lutris"""
 
     @classmethod
-    def load(cls, force_reload=False):
+    def load(cls):
         """Load the user game library from the GOG API"""
         return [
             GOGGame.new_from_gog_game(game)
-            for game in GOG_SERVICE.get_library(force_reload=force_reload)
+            for game in SERVICE.get_library()
         ]
 
     @classmethod

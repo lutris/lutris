@@ -430,17 +430,23 @@ class ConfigBox(VBox):
 
     # Editable grid
     def generate_editable_grid(self, option_name, label, value=None):
+        """Adds an editable grid widget"""
         value = value or {}
-        value = list(value.items())
+        try:
+            value = list(value.items())
+        except AttributeError:
+            logger.error("Invalid value of type %s passed to grid widget: %s", type(value), value)
+            value = {}
         label = Label(label)
 
         grid = EditableGrid(value, columns=["Key", "Value"])
-        grid.connect("changed", self.on_grid_changed, option_name)
+        grid.connect("changed", self._on_grid_changed, option_name)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(grid, True, True, 0)
         self.option_widget = grid
+        return grid
 
-    def on_grid_changed(self, grid, option):
+    def _on_grid_changed(self, grid, option):
         values = dict(grid.get_data())
         self.option_changed(grid, option, values)
 

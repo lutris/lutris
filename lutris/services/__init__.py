@@ -3,7 +3,7 @@ from importlib import import_module
 from lutris.settings import read_setting
 
 
-__all__ = ["xdg", "gog", "steam", "winesteam", "wineegs"]
+__all__ = ["xdg", "gog", "humblebundle", "steam", "winesteam", "wineegs"]
 
 
 class AuthenticationError(Exception):

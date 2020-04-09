@@ -1,3 +1,24 @@
+lutris (0.5.5) eoan; urgency=medium
+
+  * Initial support for Humble Bundle
+  * Add resolution switching support for Wayland (Mutter only)
+  * Add option to enable ACO shader compiler on Mesa >= 19.3
+  * DXVK is enabled by default
+  * Add initial support for VKD3D
+  * Migrate D9VK configs to use DXVK
+  * Remove d3d10 and d3d10_1 from dlls handled by DXVK
+  * Fix an API breakage occuring with a Gtk update
+  * Add a System info tab in Preferences
+  * Better handle authentication failure for GOG
+  * Fix case issue with key lookup in Steam VDF files
+  * Add Yuzu runner
+  * Add bsnes-hd beta and smsplus libretro cores
+  * Add sound device option for Mednafen
+  * Remove bundled winetricks
+  * Remove xboxdrv integration
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 26 Mar 2020 22:21:28 -0700
+
 lutris (0.5.4) eoan; urgency=medium
 
   * Added support for Python 3.8.

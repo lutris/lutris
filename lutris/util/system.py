@@ -35,7 +35,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
         return
 
     if not quiet:
-        logger.debug("Executing %s", " ".join(command))
+        logger.debug("Executing %s", " ".join([str(i) for i in command]))
 
     # Set up environment
     existing_env = os.environ.copy()
@@ -339,3 +339,14 @@ def run_once(function):
             first_run = False
             return function(*args)
     return fn_wrapper
+
+
+def get_existing_parent(path):
+    """Return the 1st existing parent for a folder (or itself if the path
+    exists and is a directory). returns None, when none of the parents exists.
+    """
+    if path == "":
+        return None
+    if os.path.exists(path) and not os.path.isfile(path):
+        return path
+    return get_existing_parent(os.path.dirname(path))

@@ -36,7 +36,7 @@
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
-    <release date="2019-11-23" version="0.5.4" />
+    <release date="2019-11-23" version="0.5.5" />
   </releases>
   <content_rating type="oars-1.1" />
 </component>

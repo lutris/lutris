@@ -2,7 +2,8 @@
 import os
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.log import logger
-from lutris.util import joypad, system, xdgshortcuts
+from lutris.util import joypad, system
+from lutris.util.xdgshortcuts import get_xdg_entry
 from lutris.util.display import DISPLAY_MANAGER
 
 DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
@@ -117,13 +118,33 @@ class WinePrefixManager:
                     except OSError:
                         os.rename(path, old_path)
 
+                # if we want to create a symlink and one is already there, just
+                # skip to the next item.  this also makes sure the elif doesn't
+                # find a dir (isdir only looks at the target of the symlink).
+                if restore and os.path.islink(path):
+                    continue
                 if restore and not os.path.isdir(path):
-                    os.symlink(xdgshortcuts.get_xdg_entry(DESKTOP_XDG[i]), path)
+                    src_path = get_xdg_entry(DESKTOP_XDG[i])
+                    if not src_path:
+                        logger.error(
+                            "No XDG entry found for %s, launcher not created",
+                            DESKTOP_XDG[i]
+                        )
+                    else:
+                        os.symlink(src_path, path)
                     # We don't need all the others process of the loop
                     continue
 
                 if desktop_dir != user_dir:
-                    src_path = os.path.join(desktop_dir, item)
+                    try:
+                        src_path = os.path.join(desktop_dir, item)
+                    except TypeError:
+                        # There is supposedly a None value in there
+                        # The current code shouldn't allow that
+                        # Just raise a exception with the values
+                        raise RuntimeError("Missing value desktop_dir=%s or item=%s"
+                                           % (desktop_dir, item))
+
                     os.makedirs(src_path, exist_ok=True)
                     os.symlink(src_path, path)
                 else:
@@ -136,7 +157,7 @@ class WinePrefixManager:
             # Security: Remove other symlinks.
             for item in os.listdir(user_dir):
                 path = os.path.join(user_dir, item)
-                if item not in DEFAULT_DESKTOP_FOLDERS and os.path.islink(path):
+                if item not in desktop_folders and os.path.islink(path):
                     os.unlink(path)
                     os.makedirs(path)
 

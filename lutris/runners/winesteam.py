@@ -209,9 +209,12 @@ class winesteam(wine.wine):
     @property
     def launch_args(self):
         """Provide launch arguments for Steam"""
+        steam_path = self.get_steam_path()
+        if not steam_path:
+            raise RuntimeError("Can't find a Steam executable")
         return [
             self.get_executable(),
-            self.get_steam_path(),
+            steam_path,
             "-no-cef-sandbox",
             "-console",
         ] + split_arguments(self.runner_config.get("args") or "")
@@ -278,6 +281,7 @@ class winesteam(wine.wine):
                 if not steam_path:
                     continue
             return system.fix_path_case(registry.get_unix_path(steam_path))
+        return ""
 
     def install(self, version=None, downloader=None, callback=None):
         installer_path = os.path.join(settings.TMP_PATH, "SteamSetup.exe")

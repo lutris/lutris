@@ -15,6 +15,12 @@ SYSTEM_PROCESSES = {
     "services.exe",
     "winedevice.exe",
     "plugplay.exe",
+    "explorer.exe",
+    "wineconsole",
+    "svchost.exe",
+    "rpcss.exe",
+    "rundll32.exe",
+    "mscorsvw.exe",
 }
 
 
@@ -33,7 +39,7 @@ class ProcessMonitor:
         include_processes = self.parse_process_list(include_processes)
         exclude_processes = self.parse_process_list(exclude_processes)
 
-        self.nongame_processes = (exclude_processes | SYSTEM_PROCESSES) - include_processes
+        self.unmonitored_processes = (exclude_processes | SYSTEM_PROCESSES) - include_processes
 
     @staticmethod
     def parse_process_list(process_list):
@@ -45,12 +51,16 @@ class ProcessMonitor:
         # process names from /proc only contain 15 characters
         return {p[0:15] for p in process_list}
 
+    @staticmethod
+    def iterate_all_processes():
+        return Process(os.getpid()).iter_children()
+
     def iterate_game_processes(self):
         for child in self.iterate_all_processes():
             if child.state == 'Z':
                 continue
 
-            if child.name and child.name not in self.nongame_processes:
+            if child.name and child.name not in self.unmonitored_processes:
                 yield child
 
     def iterate_monitored_processes(self):
@@ -58,19 +68,12 @@ class ProcessMonitor:
             if child.state == 'Z':
                 continue
 
-            if child.name not in SYSTEM_PROCESSES:
+            if child.name not in self.unmonitored_processes:
                 yield child
 
-    def iterate_all_processes(self):
-        return Process(os.getpid()).iter_children()
-
     def is_game_alive(self):
-        "Returns whether at least one nonexcluded process exists"
-        for child in self.iterate_game_processes():
-            return True
-        return False
+        """Returns whether at least one nonexcluded process exists"""
+        return next(self.iterate_game_processes(), None) is not None
 
     def are_monitored_processes_alive(self):
-        for child in self.iterate_monitored_processes():
-            return True
-        return False
+        return next(self.iterate_monitored_processes(), None) is not None

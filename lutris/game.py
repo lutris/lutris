@@ -44,6 +44,7 @@ class Game(GObject.Object):
         "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, game_id=None):
@@ -81,8 +82,6 @@ class Game(GObject.Object):
         self.heartbeat = None
         self.killswitch = None
         self.state = self.STATE_IDLE
-        self.exit_main_loop = False
-        self.xboxdrv_thread = None
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
@@ -267,7 +266,7 @@ class Game(GObject.Object):
         )
         self.emit("game-updated")
 
-    def prelaunch(self):
+    def is_launchable(self):
         """Verify that the current game can be launched."""
         if not self.runner.is_installed():
             installed = self.runner.install_dialog()
@@ -286,7 +285,6 @@ class Game(GObject.Object):
                 and not wine.get_system_wine_version()
                 and not LINUX_SYSTEM.is_flatpak
         ):
-
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
             root_window = None
@@ -301,22 +299,13 @@ class Game(GObject.Object):
             self.emit("game-stop")
             return
 
-        if not self.prelaunch():
+        if not self.is_launchable():
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
 
         self.emit("game-start")
-        if hasattr(self.runner, "prelaunch"):
-            logger.debug("Prelaunching %s", self.runner)
-            try:
-                jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
-            except Exception as ex:
-                logger.error(ex)
-                raise
-
-        else:
-            self.configure_game(True)
+        jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
     @watch_lutris_errors
     def configure_game(self, prelaunched, error=None):
@@ -444,6 +433,9 @@ class Game(GObject.Object):
             ).communicate()
             xkbcomp.communicate()
 
+        if system_config.get("aco"):
+            env["RADV_PERFTEST"] = "aco"
+
         pulse_latency = system_config.get("pulse_latency")
         if pulse_latency:
             env["PULSE_LATENCY_MSEC"] = "60"
@@ -538,11 +530,6 @@ class Game(GObject.Object):
         if system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
 
-        # xboxdrv setup
-        xboxdrv_config = system_config.get("xboxdrv")
-        if xboxdrv_config:
-            self.xboxdrv_start(xboxdrv_config)
-
         prelaunch_command = system_config.get("prelaunch_command")
         if system.path_exists(prelaunch_command):
             self.prelaunch_executor = MonitoredCommand(
@@ -586,38 +573,6 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
-    def xboxdrv_start(self, config):
-        """Start xboxdrv in a background command"""
-        command = [
-            "pkexec",
-            "xboxdrv",
-            "--daemon",
-            "--detach-kernel-driver",
-            "--dbus",
-            "session",
-            "--silent",
-        ] + shlex.split(config)
-        logger.debug("[xboxdrv] %s", " ".join(command))
-        self.xboxdrv_thread = MonitoredCommand(command, include_processes=["xboxdrv"])
-        self.xboxdrv_thread.stop_func = self.xboxdrv_stop
-        self.xboxdrv_thread.start()
-
-    @staticmethod
-    def reload_xpad():
-        """Reloads the xpads module.
-        The path is hardcoded because this script is allowed to be executed as
-        root with a PolicyKit rule put in place by the packages.
-        Note to packagers: If you don't intend to create a PolicyKit rule for
-        this script then don't package it as calling it will fail.
-        """
-        if system.path_exists("/usr/share/lutris/bin/resetxpad"):
-            os.system("pkexec /usr/share/lutris/bin/resetxpad")
-
-    def xboxdrv_stop(self):
-        """Stop xboxdrv"""
-        os.system("pkexec xboxdrvctl --shutdown")
-        self.reload_xpad()
-
     def prelaunch_beat(self):
         """Watch the prelaunch command"""
         if self.prelaunch_executor and self.prelaunch_executor.is_running:
@@ -654,9 +609,7 @@ class Game(GObject.Object):
             return
 
         logger.info("Stopping %s", self)
-        if self.runner.system_config.get("xboxdrv"):
-            logger.debug("Stopping xboxdrv")
-            self.xboxdrv_thread.stop()
+
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None)
         self.stop_game()
@@ -708,8 +661,6 @@ class Game(GObject.Object):
             restore_gamma()
 
         self.process_return_codes()
-        if self.exit_main_loop:
-            exit()
 
     def process_return_codes(self):
         """Do things depending on how the game quitted."""

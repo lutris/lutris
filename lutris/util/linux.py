@@ -8,11 +8,17 @@ import platform
 import resource
 import subprocess
 from collections import defaultdict, Counter
-from lutris.vendor.distro import linux_distribution
+
+from lutris.util.log import logger
+
+try:
+    from distro import linux_distribution
+except ImportError:
+    logger.warning("Package 'distro' unavailable. Unable to read Linux distribution")
+    linux_distribution = None
 from lutris.util.graphics import drivers
 from lutris.util.graphics import glxinfo
 from lutris.util.graphics import vkquery
-from lutris.util.log import logger
 from lutris.util.disks import get_drive_for_path
 
 # Linux components used by lutris
@@ -25,7 +31,6 @@ SYSTEM_COMPONENTS = {
         "optirun",
         "primusrun",
         "pvkrun",
-        "xboxdrv",
         "pulseaudio",
         "lsi-steam",
         "fuser",
@@ -180,7 +185,9 @@ class LinuxSystem:
     @staticmethod
     def get_dist_info():
         """Return distribution information"""
-        return linux_distribution()
+        if linux_distribution:
+            return linux_distribution()
+        return "unknown"
 
     @staticmethod
     def get_arch():
@@ -316,7 +323,11 @@ class LinuxSystem:
         """
         shared_libraries = defaultdict(list)
         for lib_line in self.get_ldconfig_libs():
-            lib = SharedLibrary.new_from_ldconfig(lib_line)
+            try:
+                lib = SharedLibrary.new_from_ldconfig(lib_line)
+            except ValueError:
+                logger.error("Invalid ldconfig line: %s", lib_line)
+                continue
             if lib.arch not in self.runtime_architectures:
                 continue
             shared_libraries[lib.name].append(lib)
@@ -357,6 +368,12 @@ class LinuxSystem:
 
     def is_feature_supported(self, feature):
         """Return whether the system has the necessary libs to support a feature"""
+        if feature == "ACO":
+            try:
+                mesa_version = LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version
+                return mesa_version >= "19.3"
+            except AttributeError:
+                return False
         return not self.get_missing_requirement_libs(feature)[0]
 
 

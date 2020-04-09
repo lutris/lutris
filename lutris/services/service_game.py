@@ -29,13 +29,33 @@ class ServiceGame:
         """Returns the ID to use for the lutris config file"""
         return self.slug + "-" + self.installer_slug
 
-    def install(self):
-        """Add an installed game to the library"""
+    @property
+    def steamid(self):
+        """Return the SteamID, this is a special case since Steam's appid's are
+        a field in the game table. Keeping this here allows to reuse the install method.
+        """
+        if hasattr(self, "appid") and hasattr(self, "runner") and "steam" in self.runner:
+            return int(self.appid)
+        return None
+
+    def install(self, updated_info=None):
+        """Add an installed game to the library
+
+        Params:
+            updated_info (dict): Optional dictonary containing existing data not to overwrite
+        """
+        if updated_info:
+            name = updated_info["name"]
+            slug = updated_info["slug"]
+        else:
+            name = self.name
+            slug = self.slug
         self.game_id = pga.add_or_update(
             id=self.game_id,
-            name=self.name,
+            name=name,
             runner=self.runner,
-            slug=self.slug,
+            slug=slug,
+            steamid=self.steamid,
             installed=1,
             configpath=self.config_id,
             installer_slug=self.installer_slug,
@@ -49,4 +69,3 @@ class ServiceGame:
 
     def create_config(self):
         """Implement this in subclasses to properly create the game config"""
-        raise NotImplementedError

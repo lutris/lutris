@@ -41,7 +41,7 @@ class DiscordPresence(object):
                 logger.debug("Attempting to connect.")
                 self.rpc_client.connect()
                 self.presence_connected = True
-            except ConnectionError:
+            except (ConnectionError, FileNotFoundError):
                 logger.error("Could not connect to Discord")
         return self.presence_connected
 

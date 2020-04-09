@@ -22,7 +22,8 @@ def get_xdg_entry(directory):
     }
     directory = directory.upper()
     if directory not in special_dir.keys():
-        raise ValueError("Only those folders are supported " + special_dir.keys())
+        raise ValueError(directory + " not supported. Only those folders are supported: "
+                         + ", ".join(special_dir.keys()))
     return GLib.get_user_special_dir(special_dir[directory])
 
 
@@ -32,9 +33,9 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
         # When base dir is provided, lookup possible combinations
         # and return the first match
         for path in [
-            "{}.desktop".format(game_slug),
-            "{}-{}.desktop".format(game_slug, game_id),
-            "net.lutris.{}-{}.desktop".format(game_slug, game_id),
+                "{}.desktop".format(game_slug),
+                "{}-{}.desktop".format(game_slug, game_id),
+                "net.lutris.{}-{}.desktop".format(game_slug, game_id),
         ]:
             if system.path_exists(os.path.join(base_dir, path)):
                 return path
@@ -74,9 +75,13 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
     )
 
     if desktop:
+        if not os.path.exists(desktop_dir):
+            os.mkdir(desktop_dir)
         shutil.copy(tmp_launcher_path, os.path.join(desktop_dir, launcher_filename))
     if menu:
         menu_path = os.path.join(GLib.get_user_data_dir(), "applications")
+        if not os.path.exists(menu_path):
+            os.mkdir(menu_path)
         shutil.copy(tmp_launcher_path, os.path.join(menu_path, launcher_filename))
     os.remove(tmp_launcher_path)
 
@@ -104,10 +109,12 @@ def get_menu_launcher_path(game_slug, game_id):
 
 
 def desktop_launcher_exists(game_slug, game_id):
+    """Return True if there is an existing desktop icon for a game"""
     return system.path_exists(get_launcher_path(game_slug, game_id))
 
 
 def menu_launcher_exists(game_slug, game_id):
+    """Return True if there is an existing application menu entry for a game"""
     return system.path_exists(get_menu_launcher_path(game_slug, game_id))
 
 

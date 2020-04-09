@@ -28,6 +28,7 @@ from lutris.util.strings import add_url_tags, escape_gtk_label
 
 class InstallerWindow(BaseApplicationWindow):
     """GUI for the install process."""
+
     def __init__(
             self,
             game_slug=None,
@@ -71,11 +72,8 @@ class InstallerWindow(BaseApplicationWindow):
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 0)
 
-        self.cancel_button = Gtk.Button.new_with_mnemonic("C_ancel")
-        self.cancel_button.set_tooltip_text("Abort and revert the installation")
-        self.cancel_button.connect("clicked", self.cancel_installation)
-        self.action_buttons.add(self.cancel_button)
-
+        self.cancel_button = self.add_button("C_ancel", self.cancel_installation,
+                                             tooltip="Abort and revert the installation")
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
         self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
@@ -87,33 +85,30 @@ class InstallerWindow(BaseApplicationWindow):
 
         # check if installer is local or online
         if system.path_exists(self.installer_file):
-            self.get_scripts(local_script=True)
+            self.on_scripts_obtained(interpreter.read_script(self.installer_file))
         else:
             self.title_label.set_markup("Waiting for response from %s" % (settings.SITE_URL))
             self.add_spinner()
             self.widget_box.show()
             self.title_label.show()
-            self.get_scripts(local_script=False)
-
-        self.present()
-
-    def add_button(self, label, handler=None):
-        button = Gtk.Button.new_with_mnemonic(label)
-        if handler:
-            button.connect("clicked", handler)
-        self.action_buttons.add(button)
-        return button
-
-    def get_scripts(self, local_script=False):
-        if local_script:
-            self.on_scripts_obtained(interpreter.read_script(self.installer_file))
-        else:
             jobs.AsyncCall(
                 interpreter.fetch_script,
                 self.on_scripts_obtained,
                 self.game_slug,
                 self.revision,
             )
+        self.present()
+
+    def add_button(self, label, handler=None, tooltip=None):
+        """Add a button to the action buttons box"""
+        button = Gtk.Button.new_with_mnemonic(label)
+        if tooltip:
+            button.set_tooltip_text(tooltip)
+        if handler:
+            button.connect("clicked", handler)
+
+        self.action_buttons.add(button)
+        return button
 
     def on_scripts_obtained(self, scripts, _error=None):
         if not scripts:

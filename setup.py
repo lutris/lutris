@@ -18,7 +18,6 @@ for directory, _, filenames in os.walk(u'share'):
             files.append(filename)
         data_files.append((os.path.join('share', dest), files))
 
-
 setup(
     name='lutris',
     version=VERSION,
@@ -44,7 +43,7 @@ setup(
         'lutris.util.wine',
         'lutris.vendor'
     ],
-    scripts=['bin/lutris', 'bin/lutris-wrapper'],
+    scripts=['bin/lutris'],
     data_files=data_files,
     zip_safe=False,
     install_requires=[
