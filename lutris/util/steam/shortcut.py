@@ -8,10 +8,10 @@ import lutris.vendor.vdf as vdf
 from lutris import pga
 from lutris.util.log import logger
 
-shortcut_path = os.path.join(Path.home(), ".local/share/Steam/userdata/67626145/config/shortcuts.vdf")
 steam_tag = "Lutris"
 
-def update_shortcuts():
+def update_shortcuts(steamUserId):
+    shortcut_path = os.path.join(Path.home(), f'.local/share/Steam/userdata/{steamUserId}/config/shortcuts.vdf')
     # Get shortcuts for non-steam lutris games
     lutris_shortcuts = generate_shortcuts()
 
@@ -69,4 +69,4 @@ def generate_shortcut(game):
     }
     return shortcut_dict
 
-update_shortcuts()
+# update_shortcuts()
