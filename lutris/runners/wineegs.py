@@ -286,9 +286,10 @@ class wineegs(wine.wine):
 
             # Install dependencies            
             # TODO: mfinstaller?
-            winetricks("dotnet48", prefix=prefix, wine_path=self.get_executable())   
+            winetricks("corefonts", prefix=prefix, wine_path=self.get_executable())   
+            winetricks("win81", prefix=prefix, wine_path=self.get_executable())   
             
-            # TODO: is winetricks async? EGS isntaller is called before dotnet is installed
+            # TODO: is winetricks async? EGS isntaller is called before tricks are installed
             # Install EGS
             wineexec(
                 "msiexec",
