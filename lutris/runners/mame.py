@@ -9,6 +9,7 @@ class mame(Runner):
     description = "Arcade game emulator"
     platforms = ["Arcade"]
     runner_executable = "mame/mame"
+    runnable_alone = True
     game_options = [
         {
             "option": "main_file",
