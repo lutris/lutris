@@ -266,7 +266,7 @@ class Game(GObject.Object):
         )
         self.emit("game-updated")
 
-    def prelaunch(self):
+    def is_launchable(self):
         """Verify that the current game can be launched."""
         if not self.runner.is_installed():
             installed = self.runner.install_dialog()
@@ -285,7 +285,6 @@ class Game(GObject.Object):
                 and not wine.get_system_wine_version()
                 and not LINUX_SYSTEM.is_flatpak
         ):
-
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
             root_window = None
@@ -300,22 +299,13 @@ class Game(GObject.Object):
             self.emit("game-stop")
             return
 
-        if not self.prelaunch():
+        if not self.is_launchable():
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
 
         self.emit("game-start")
-        if hasattr(self.runner, "prelaunch"):
-            logger.debug("Prelaunching %s", self.runner)
-            try:
-                jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
-            except Exception as ex:
-                logger.error(ex)
-                raise
-
-        else:
-            self.configure_game(True)
+        jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
     @watch_lutris_errors
     def configure_game(self, prelaunched, error=None):

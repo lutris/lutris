@@ -16,6 +16,16 @@ class GameConfigError(LutrisError):
     """
 
 
+class UnavailableLibraries(RuntimeError):
+    def __init__(self, libraries):
+        message = (
+            "Some required libraries are not installed on your system, install them "
+            "with your package manager and restart Lutris. Libraries: %s"
+        ) % ", ".join(libraries)
+        super().__init__(message)
+        self.libraries = libraries
+
+
 def watch_lutris_errors(function):
     """Decorator used to catch LutrisError exceptions and send events"""
 

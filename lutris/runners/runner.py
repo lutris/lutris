@@ -19,6 +19,7 @@ class Runner:
 
     multiple_versions = False
     platforms = []
+    require_libs = []
     runnable_alone = False
     game_options = []
     runner_options = []
@@ -197,6 +198,10 @@ class Runner:
         return runtime.get_env(
             prefer_system_libs=self.system_config.get("prefer_system_libs", True)
         )
+
+    def prelaunch(self):
+        """Run actions before running the game, override this method in runners"""
+        return True
 
     def play(self):
         """Dummy method, must be implemented by derived runners."""
