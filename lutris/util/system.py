@@ -326,7 +326,10 @@ def reset_library_preloads():
     """Remove library preloads from environment"""
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
         if os.environ.get(key):
-            del os.environ[key]
+            try:
+                del os.environ[key]
+            except OSError:
+                logger.error("Failed to delete environment variable %s", key)
 
 
 def run_once(function):
