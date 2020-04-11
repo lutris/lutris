@@ -81,8 +81,11 @@ class GameStore(GObject.Object):
         "runner": COL_RUNNER_HUMAN_NAME,
         "platform": COL_PLATFORM,
         "lastplayed": COL_LASTPLAYED,
+        "lastplayed_text": COL_LASTPLAYED_TEXT,
         "installed_at": COL_INSTALLED_AT,
+        "installed_at_text": COL_INSTALLED_AT_TEXT,
         "playtime": COL_PLAYTIME,
+        "playtime_text": COL_PLAYTIME_TEXT,
     }
 
     def __init__(
