@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="root"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="nintendoswitch-symbolic.svg">
+  <defs
+     id="defs4517" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.5195312"
+     inkscape:cx="7.6870967"
+     inkscape:cy="167.63306"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:pagecheckerboard="true"
+     inkscape:window-width="2037"
+     inkscape:window-height="1008"
+     inkscape:window-x="2286"
+     inkscape:window-y="182"
+     inkscape:window-maximized="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4484"
+       empspacing="4" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata4520">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Lines"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-229.26666)">
+    <g
+       style="stroke:none;fill-opacity:1;"
+       transform="matrix(0.0501406,0,0,-0.0501406,-9.6665186,495.40922)"
+       id="g10">
+      <path
+         inkscape:connector-curvature="0"
+         d="M 1365,5154 C 884,5068 497,4712 375,4244 331,4075 328,3976 333,2665 c 3,-1204 4,-1232 24,-1325 111,-501 467,-858 973,-976 66,-15 150,-18 691,-21 560,-4 618,-3 633,12 15,15 16,208 16,2396 0,1622 -3,2386 -10,2400 -10,18 -27,19 -613,18 -476,-1 -619,-4 -682,-15 z M 2270,2754 V 728 l -407,5 c -375,4 -415,6 -490,25 -322,83 -561,331 -628,654 -22,101 -22,2589 -1,2688 60,281 255,514 518,619 132,53 193,59 621,60 l 387,1 z"
+         id="path4"
+         style="fill-opacity:1;" />
+      <path
+         inkscape:connector-curvature="0"
+         d="m 1451,4169 c -63,-12 -159,-60 -210,-105 -105,-91 -157,-220 -149,-372 4,-79 9,-100 41,-164 47,-97 118,-168 215,-216 67,-33 84,-37 171,-40 79,-3 107,0 160,18 217,73 348,284 311,500 -43,257 -287,429 -539,379 z"
+         id="path6"
+         style="fill-opacity:1;" />
+      <path
+         inkscape:connector-curvature="0"
+         d="m 3157,5163 c -4,-3 -7,-1087 -7,-2409 0,-2181 1,-2402 16,-2408 27,-10 803,-6 899,4 406,46 764,293 959,660 25,47 58,126 75,175 63,188 61,138 61,1575 0,1147 -2,1318 -16,1391 -99,521 -496,914 -1018,1004 -70,12 -178,15 -526,15 -240,0 -440,-3 -443,-7 z M 4225,2985 c 156,-41 284,-160 336,-312 33,-94 32,-232 -1,-318 -61,-158 -181,-269 -335,-310 -250,-65 -516,86 -589,334 -22,76 -21,204 4,282 75,245 335,389 585,324 z"
+         id="path8"
+         style="fill-opacity:1;" />
+    </g>
+  </g>
+</svg>
