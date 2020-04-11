@@ -647,7 +647,8 @@ class ScriptInterpreter(CommandsMixin):
             )
             logger.warning("No executable found at specified location %s", path)
         else:
-            self.parent.set_status("Installation finished!")
+            install_complete_text = (self.script.get("install_complete_text") or "Installation completed!")
+            self.parent.set_status(install_complete_text)
 
         self.parent.on_install_finished()
 
