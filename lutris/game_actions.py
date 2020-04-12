@@ -197,7 +197,9 @@ class GameActions:
 
         matched_game = self.get_running_game()
         if not matched_game:
-            logger.warning("Game %s not in running game list", self.game_id)
+            logger.warning("Game %s not in the %s running games",
+                           self.game_id,
+                           self.application.running_games.get_n_items())
             return
         if not matched_game.game_thread:
             logger.warning("Game %s doesn't appear to be running, not killing it", self.game_id)
