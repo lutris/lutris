@@ -26,6 +26,12 @@ class pcsx2(Runner):
         },
         {"option": "full_boot", "type": "bool", "label": "Fullboot", "default": False},
         {"option": "nogui", "type": "bool", "label": "No GUI", "default": False},
+        {
+            "option": "config_file",
+            "type": "file",
+            "label": "Custom config file",
+            "advanced": True,
+        },
     ]
 
     def play(self):
@@ -37,6 +43,8 @@ class pcsx2(Runner):
             arguments.append("--fullboot")
         if self.runner_config.get("nogui"):
             arguments.append("--nogui")
+        if self.runner_config.get("config_file"):
+            arguments.append("--conf=%s", self.runner_config["config_file"])
 
         iso = self.game_config.get("main_file") or ""
         if not system.path_exists(iso):
