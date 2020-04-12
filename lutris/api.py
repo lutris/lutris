@@ -82,7 +82,7 @@ def get_library():
     credentials = read_api_key()
     if not credentials:
         return []
-    url = settings.SITE_URL + "/api/games/library/%s" % credentials["username"]
+    url = settings.SITE_URL + "/api/games/library/%s" % urllib.parse.quote(credentials["username"])
     request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
     try:
         response = request.get()
