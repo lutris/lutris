@@ -1,3 +1,4 @@
+<!-- Copyright 2020 Lutris -->
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
   <id>net.lutris.Lutris</id>
@@ -7,13 +8,16 @@
   <developer_name>Lutris Team</developer_name>
   <update_contact>strider@lutris.net</update_contact>
   <name>Lutris</name>
+  <name xml:lang="pt_BR">Lutris</name>
+  <name xml:lang="es">Lutris</name>
+  <name xml:lang="id">Lutris</name>
   <summary>Lutris is an open source gaming platform</summary>
   <summary xml:lang="pt_BR">Lutris é uma plataforma de jogos de código aberto</summary>
   <summary xml:lang="es">Lutris es una plataforma de juegos de código abierto</summary>
   <summary xml:lang="id">Lutris merupakan platform permainan sumber terbuka</summary>
   <screenshots>
     <screenshot type="default">
-      <image>https://lutris.net/static/images/screenshots/main-window.png</image>
+      <image>https://lutris.net/static/images/lutris-window.png</image>
     </screenshot>
   </screenshots>
   <description>
