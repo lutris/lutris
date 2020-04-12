@@ -153,9 +153,8 @@ class SidebarListBox(Gtk.ListBox):
         self.add(all_row)
         self.select_row(all_row)
         for runner in self.runners:
-            icon = Gtk.Image.new_from_icon_name(
-                runner.lower().replace(" ", "") + "-symbolic", Gtk.IconSize.MENU
-            )
+            icon_name = runner.lower().replace(" ", "") + "-symbolic"
+            icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             name = runners.import_runner(runner).human_name
             self.add(SidebarRow(runner, "runner", name, icon))
 

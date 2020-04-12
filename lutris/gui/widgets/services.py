@@ -27,8 +27,7 @@ class ServiceSyncBox(Gtk.Box):
 
         self.service = service
         self.identifier = service.__name__.split(".")[-1]
-        self.icon_name = service.ICON
-        self.is_connnecting = False
+        self.is_connecting = self.service.ONLINE
         self.name = service.NAME
         self.games = []
         self.store = None
@@ -51,7 +50,6 @@ class ServiceSyncBox(Gtk.Box):
                 Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.MENU)
             )
             title_box.add(self.refresh_button)
-            self._connect_button_toggle()
             title_box.add(self.connect_button)
 
         self.pack_start(title_box, False, False, 12)
@@ -80,14 +78,13 @@ class ServiceSyncBox(Gtk.Box):
         actions.pack_start(self.sync_switch, False, False, 0)
         actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 0)
 
-        if service.ONLINE and not service.is_connected():
-            self.sync_switch.set_sensitive(False)
-            self.import_button.set_sensitive(False)
+        if self.service.ONLINE:
+            AsyncCall(self._connect_button_toggle)
 
     def get_content_widget(self):
         center_alignment = Gtk.Alignment()
         center_alignment.set(0.5, 0.5, 0.1, 0.1)
-        if self.service.ONLINE and not self.is_connnecting:
+        if self.service.ONLINE and not self.is_connecting:
             service_logo = self.get_icon(size=(64, 64))
 
             service_label = Gtk.Label(
@@ -114,7 +111,7 @@ class ServiceSyncBox(Gtk.Box):
         """Return the icon for the service (used in tabs)"""
         if not size:
             size = (24, 24)
-        icon = get_icon(self.icon_name, size=size)
+        icon = get_icon(self.service.ICON, size=size)
         if icon:
             return icon
         return Gtk.Label(self.name)
@@ -136,21 +133,23 @@ class ServiceSyncBox(Gtk.Box):
         else:
             self.service.connect()
             self._connect_button_toggle()
-            self.sync_switch.set_sensitive(True)
-            self.import_button.set_sensitive(True)
             self.load_games()
         return False
 
     def _connect_button_toggle(self):
-        self.is_connnecting = False
+        self.is_connecting = False
         if self.service.is_connected():
             icon_name = "system-log-out-symbolic"
             label = "Disconnect"
             self.refresh_button.show()
+            self.sync_switch.set_sensitive(True)
+            self.import_button.set_sensitive(True)
         else:
             icon_name = "avatar-default-symbolic"
             label = "Connect"
             self.refresh_button.hide()
+            self.sync_switch.set_sensitive(False)
+            self.import_button.set_sensitive(False)
         self.connect_button.set_tooltip_text(label)
         self.connect_button.set_image(Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU))
 
@@ -292,7 +291,7 @@ class ServiceSyncBox(Gtk.Box):
         if force_reload:
             self.service.SERVICE.wipe_game_cache()
 
-        self.is_connnecting = True
+        self.is_connecting = True
         self.swap_content(self.get_content_widget())
         AsyncCall(syncer.load, self.on_games_loaded)
 
