@@ -247,7 +247,7 @@ class ServiceSyncBox(Gtk.Box):
             Pixbuf,  # icon
             str,  # details
         )
-        for game in sorted(self.games, key=lambda x: x.name):
+        for game in sorted(self.games or [], key=lambda x: x.name):
             liststore.append(
                 [
                     False,
