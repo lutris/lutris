@@ -145,7 +145,7 @@ class GameStore(GObject.Object):
             self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
         except AttributeError:
             # Apparently some API breaking changes on GTK minor versions.
-            self.modelsort = Gtk.TreeModelSort.new_with_model(self.modelfilter)  # pylint: disable=no-member
+            self.modelsort = Gtk.TreeModelSort.new_with_model(self.modelfilter)  # pylint: disable=no-member  # NOQA
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
         self.modelsort.set_sort_func(sort_col, sort_func, sort_col)
         self.sort_view(sort_key, sort_ascending)

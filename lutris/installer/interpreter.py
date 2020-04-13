@@ -647,9 +647,11 @@ class ScriptInterpreter(CommandsMixin):
             )
             logger.warning("No executable found at specified location %s", path)
         else:
-            install_complete_text = (self.script.get("install_complete_text") or "Installation completed!")
+            install_complete_text = (
+                self.script.get("install_complete_text")
+                or "Installation completed!"
+            )
             self.parent.set_status(install_complete_text)
-
         self.parent.on_install_finished()
 
     def _save_game(self):
