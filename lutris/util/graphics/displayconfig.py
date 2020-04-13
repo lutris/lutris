@@ -648,6 +648,7 @@ class MutterDisplayManager:
                 return
             config = [DisplayConfig(
                 [(output.monitors[0].name, mode.id)],
+                output.monitors[0].name,
                 (0, 0),
                 0,
                 True,
