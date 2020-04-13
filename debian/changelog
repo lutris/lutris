@@ -1,3 +1,19 @@
+lutris (0.5.6) eoan; urgency=medium
+
+  * Add some wine core processes to be excluded from monitor (Fixes Battle.net
+    and Origin issues)
+  * Convert play time from string to float in the database. Do not downgrade
+    back to older versions or you'll experience issues.
+  * Fix for the wine sandbox on non English systems
+  * Allow Citra and MAME to be launched as standalone programs
+  * Avoid a crash if ldconfig -p returns corrupt data
+  * Allow custom messages to be displayed at the end of install scripts
+  * Add option to provide alternate config file for PCSX2 games
+  * Fix issue with usernames containing accented characters
+  * Fix "Restrict to display" option on Wayland/Mutter
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 12 Apr 2020 19:04:15 -0700
+
 lutris (0.5.5) eoan; urgency=medium
 
   * Initial support for Humble Bundle
