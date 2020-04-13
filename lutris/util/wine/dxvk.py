@@ -78,14 +78,14 @@ class UnavailableDXVKVersion(RuntimeError):
 class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
 
-    DXVK_TAGS_URL = "https://api.github.com/repos/doitsujin/dxvk/releases"
+    DXVK_TAGS_URL = "https://api.github.com/repos/lutris/dxvk/releases"
     DXVK_VERSIONS = ["1.6"]
     DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:9]
 
     init_started = False
     init_lock = threading.RLock()
 
-    base_url = "https://github.com/doitsujin/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
+    base_url = "https://github.com/lutris/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
     base_name = "dxvk"
     base_dir = os.path.join(RUNTIME_DIR, base_name)
     dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9")
