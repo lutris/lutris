@@ -44,6 +44,7 @@ LIBRETRO_CORES = [
     ("Genesis Plus GX (Sega Genesis)", "genesis_plus_gx", "Sega Genesis"),
     ("Handy (Atari Lynx)", "handy", "Atari Lynx"),
     ("Hatari (Atari ST/STE/TT/Falcon)", "hatari", "Atari ST/STE/TT/Falcon"),
+    ("HBMAME (Arcade)", "hbmame", "Arcade"),
     ("higan accuracy(Super Nintendo)", "higan_sfc", "Nintendo SNES"),
     ("higan balanced(Super Nintendo)", "higan_sfc_balanced", "Nintendo SNES"),
     ("Kronos (Sega Saturn)", "kronos", "Sega Saturn"),
