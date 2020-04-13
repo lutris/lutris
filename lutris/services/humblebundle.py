@@ -161,6 +161,22 @@ def disconnect():
     return SERVICE.disconnect()
 
 
+def pick_download_url_from_download_info(download_info):
+    """From a list of downloads in Humble Bundle, pick the most appropriate one
+    for the installer.
+    This needs a way to be explicitely filtered.
+    """
+    if len(download_info["download"]["download_struct"]) > 1:
+        logger.error("There are %s downloads available:")
+        sorted_downloads = []
+        for _download in download_info["download"]["download_struct"]:
+            if "deb" in _download["name"]:
+                sorted_downloads.append(_download)
+            sorted_downloads.insert(0, _download)
+        return sorted_downloads[0]["url"]["web"]
+    return download_info["download"]["download_struct"][0]["url"]["web"]
+
+
 def get_humble_download_link(humbleid, runner):
     """Return a download link for a given humbleid and runner"""
     platform = runner if runner != "wine" else "windows"
@@ -175,9 +191,7 @@ def get_humble_download_link(humbleid, runner):
     order = SERVICE.get_order(download["gamekey"])
     download_info = SERVICE.find_download_in_order(order, humbleid, platform)
     if download_info:
-        if len(download_info["download"]["download_struct"]) > 1:
-            logger.warning("Multiple downloads for %s. This is unhandled", humbleid)
-        return download_info["download"]["download_struct"][0]["url"]["web"]
+        return pick_download_url_from_download_info(download_info)
     logger.warning("Couldn't retrieve any downloads for %s", humbleid)
 
 
