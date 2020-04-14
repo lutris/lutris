@@ -15,3 +15,10 @@ pga.db
 tests/coverage/*
 /dist
 /lutris.egg-info
+
+# meson builddirs
+builddir
+
+# i18n files
+po/lutris.pot
+transl-builddir

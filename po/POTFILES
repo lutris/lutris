@@ -1,0 +1,8 @@
+share/lutris/ui/about-dialog.ui
+share/lutris/ui/dialog-lutris-login.ui
+share/lutris/ui/dialog-pga-sources.ui
+share/lutris/ui/dialog-uninstall-game.ui
+share/lutris/ui/runner-entry.ui
+share/lutris/ui/runner-remove-all-versions-dialog.ui
+share/lutris/ui/runner-remove-confirm-dialog.ui
+share/lutris/ui/runners-dialog.ui

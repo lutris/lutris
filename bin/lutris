@@ -14,6 +14,7 @@
 """Main entry point for Lutris"""
 import sys
 import locale
+import gettext
 import os
 from os.path import realpath, dirname, normpath
 
@@ -25,6 +26,11 @@ if os.path.isdir(os.path.join(LAUNCH_PATH, "../lutris")):
     sys.path.insert(0, SOURCE_PATH)
 else:
     sys.path.insert(0, os.path.normpath(os.path.join(LAUNCH_PATH, "../lib/lutris")))
+
+try:
+    gettext.textdomain('lutris')
+except:
+    sys.stderr.write("Couldn't set gettext domain, translations won't work.")
 
 try:
     locale.setlocale(locale.LC_ALL, "")
