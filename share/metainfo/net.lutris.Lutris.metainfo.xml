@@ -4,7 +4,7 @@
   <id>net.lutris.Lutris</id>
   <project_license>GPL-3.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
-  <translation type="gettext">Lutris</translation>
+  <translation type="gettext">lutris</translation>
   <developer_name>Lutris Team</developer_name>
   <update_contact>strider@lutris.net</update_contact>
   <name>Lutris</name>
