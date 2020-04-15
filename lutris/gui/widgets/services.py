@@ -27,7 +27,7 @@ class ServiceSyncBox(Gtk.Box):
 
         self.service = service
         self.identifier = service.__name__.split(".")[-1]
-        self.is_connecting = self.service.ONLINE
+        self.is_connecting = False
         self.name = service.NAME
         self.games = []
         self.store = None
