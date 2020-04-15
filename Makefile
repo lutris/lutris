@@ -1,4 +1,5 @@
 VERSION=`grep "__version__" lutris/__init__.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
+GITBRANCH ?= master
 
 all:
 	export GITBRANCH=master
@@ -10,6 +11,13 @@ build:
 
 clean:
 	debclean
+
+build-source: clean
+	gbp buildpackage -S --git-debian-branch=${GITBRANCH}
+	mkdir build
+	mv ../lutris_${VERSION}* build
+
+release: build-source upload upload-ppa
 
 test:
 	rm tests/fixtures/pga.db -f
