@@ -19,7 +19,6 @@ CACHE_MAX_AGE = 86400  # Re-download DXVK versions every day
 def init_dxvk_versions():
     def get_dxvk_versions(base_name, tags_url):
         """Get DXVK versions from GitHub"""
-        logger.info("Updating %s versions", base_name.upper())
         dxvk_path = os.path.join(RUNTIME_DIR, base_name)
         if not os.path.isdir(dxvk_path):
             os.mkdir(dxvk_path)
