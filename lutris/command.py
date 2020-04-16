@@ -130,9 +130,9 @@ class MonitoredCommand:
 
     def start(self):
         """Run the thread."""
-        logger.debug("Running %s", " ".join(self.wrapper_command))
         for key, value in self.env.items():
-            logger.debug("ENV: %s=\"%s\"", key, value)
+            logger.debug("%s=\"%s\"", key, value)
+        logger.debug(" ".join(self.wrapper_command))
 
         if self.terminal:
             self.game_process = self.run_in_terminal()
@@ -141,7 +141,7 @@ class MonitoredCommand:
             self.game_process = self.execute_process(self.wrapper_command, env)
 
         if not self.game_process:
-            logger.warning("No game process available")
+            logger.error("No game process available")
             return
 
         GLib.child_watch_add(self.game_process.pid, self.on_stop)
@@ -271,11 +271,8 @@ class MonitoredCommand:
                 return False
 
         if self.stdout_monitor:
-            logger.debug("Detaching logger")
             GLib.source_remove(self.stdout_monitor)
             self.stdout_monitor = None
-        else:
-            logger.debug("logger already detached")
 
         self.is_running = False
         self.ready_state = False

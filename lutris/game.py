@@ -331,8 +331,8 @@ class Game(GObject.Object):
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
-        logger.debug("Launching %s: %s", self.name, gameplay_info)
-        logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
+        logger.debug("Launching %s", self.name)
+        logger.debug(json.dumps(gameplay_info, indent=2))
 
         env = {}
         sdl_gamecontrollerconfig = system_config.get("sdl_gamecontrollerconfig")

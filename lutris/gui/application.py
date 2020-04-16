@@ -376,7 +376,7 @@ class Application(Gtk.Application):
 
     def launch(self, game):
         """Launch a Lutris game"""
-        logger.debug("Launching %s (%s)", game, id(game))
+        logger.debug("Launching %s", game)
         self.running_games.append(game)
         game.connect("game-stop", self.on_game_stop)
         wait_for_dxvk_init()
