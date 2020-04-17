@@ -43,7 +43,7 @@ class atari800(Runner):
     def get_resolutions():
         try:
             screen_resolutions = [
-                (resolution, resolution) for resolution in display.get_resolutions()
+                (resolution, resolution) for resolution in display.DISPLAY_MANAGER.get_resolutions()
             ]
         except OSError:
             screen_resolutions = []
