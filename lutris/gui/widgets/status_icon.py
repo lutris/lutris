@@ -58,6 +58,12 @@ class LutrisStatusIcon:
             menu.append(self._make_menu_item_for_game(game))
         menu.append(Gtk.SeparatorMenuItem())
 
+        present_menu = Gtk.ImageMenuItem()
+        present_menu.set_image(Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU))
+        present_menu.set_label("Show Lutris")
+        present_menu.connect("activate", self.on_activate)
+        menu.append(present_menu)
+
         quit_menu = Gtk.MenuItem()
         quit_menu.set_label("Quit")
         quit_menu.connect("activate", self.on_quit_application)
