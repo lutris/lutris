@@ -39,6 +39,7 @@ class dosbox(Runner):
             "type": "string",
             "label": "Command arguments",
             "help": ("Command line arguments used when launching " "DOSBox"),
+            "validator": shlex.split,
         },
         {
             "option": "working_dir",
