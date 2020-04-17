@@ -27,6 +27,12 @@ class pcsx2(Runner):
         {"option": "full_boot", "type": "bool", "label": "Fullboot", "default": False},
         {"option": "nogui", "type": "bool", "label": "No GUI", "default": False},
         {
+            "option": "config_file",
+            "type": "file",
+            "label": "Custom config file",
+            "advanced": True,
+        },
+        {
             "option": "config_path",
             "type": "directory_chooser",
             "label": "Custom config path",
@@ -43,9 +49,11 @@ class pcsx2(Runner):
             arguments.append("--fullboot")
         if self.runner_config.get("nogui"):
             arguments.append("--nogui")
+        if self.runner_config.get("config_file"):
+            arguments.append("--cfg=%s", self.runner_config["config_file"])
         if self.runner_config.get("config_path"):
             arguments.append("--cfgpath=%s", self.runner_config["config_path"])
-
+            
         iso = self.game_config.get("main_file") or ""
         if not system.path_exists(iso):
             return {"error": "FILE_NOT_FOUND", "file": iso}
