@@ -251,7 +251,6 @@ class InstallerWindow(BaseApplicationWindow):
 
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
-        print('hier')
         button.hide()
         self.source_button.hide()
         self.interpreter.check_runner_install()
