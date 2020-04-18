@@ -51,6 +51,10 @@ Files: share/lutris/icons/hicolor/symbolic/apps/ags-symbolic.svg
 Copyright: Romlok <https://github.com/romlok>
 License: CC0-1.0
 
+Files: share/lutris/icons/hicolor/symbolic/apps/wineegs-symbolic.svg
+Copyright: Viorel-Catalin Rapiteanu <rapiteanu.catalin@gmail.com>
+License: CC0-1.0
+
 Files: share/lutris/icons/hicolor/symbolic/apps/browser-symbolic.svg
 Copyright: The GNOME Project <https://www.gnome.org/>
 License: CC-BY-SA-3.0
