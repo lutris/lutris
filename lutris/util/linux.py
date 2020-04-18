@@ -475,8 +475,10 @@ def gather_system_info_str():
         graphics_dict["Vendor"] = system_info["glxinfo"]["opengl_vendor"]
         graphics_dict["OpenGL Renderer"] = system_info["glxinfo"]["opengl_renderer"]
         graphics_dict["OpenGL Version"] = system_info["glxinfo"]["opengl_version"]
-        graphics_dict["OpenGL Core"] = system_info["glxinfo"]["opengl_core_profile_version"]
-        graphics_dict["OpenGL ES"] = system_info["glxinfo"]["opengl_es_profile_version"]
+        graphics_dict["OpenGL Core"] = system_info["glxinfo"].get("opengl_core_profile_version",
+                                                                  "OpenGL core unavailable")
+        graphics_dict["OpenGL ES"] = system_info["glxinfo"].get("opengl_es_profile_version",
+                                                                "OpenGL ES unavailable")
     else:
         graphics_dict["Vendor"] = "Unable to obtain glxinfo"
     # check Vulkan support
