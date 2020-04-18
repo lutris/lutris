@@ -7,7 +7,10 @@ from lutris.util import system
 class mame(Runner):
     human_name = "MAME"
     description = "Arcade game emulator"
-    platforms = ["Arcade"]
+    platforms = ["Arcade",
+                 "Plug & Play TV games",
+                 "LCD handheld games",
+                 "Game & Watch"]
     runner_executable = "mame/mame"
     runnable_alone = True
     game_options = [
@@ -16,7 +19,17 @@ class mame(Runner):
             "type": "file",
             "label": "ROM file",
             "default_path": "game_path",
-        }
+        },
+        {
+            "option": "platform",
+            "type": "choice",
+            "label": "Platform",
+            "choices": (("Arcade", "0"), 
+                        ("Plug & Play TV games", "1"),
+                        ("LCD handheld games", "2"),
+                        ("Game & Watch", "3"), 
+                        ),
+        },
     ]
 
     runner_options = [
@@ -40,6 +53,14 @@ class mame(Runner):
     @property
     def working_dir(self):
         return self.config_dir
+
+    def get_platform(self):
+        selected_platform = self.game_config.get("platform")
+        if selected_platform:
+            return self.platforms[int(selected_platform)]
+        else:
+            return ("Arcade")
+        return ""
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.config_dir, "mame.ini")):
