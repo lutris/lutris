@@ -4,7 +4,7 @@ Upstream-Contact: Mathieu Comandon <strycore@gmail.com>
 Upstream-Source: https://github.com/lutris
 
 Files: *
-Copyright: 2009-2019 Mathieu Comandon <strycore@gmail.com>
+Copyright: 2009-2020 Mathieu Comandon <strycore@gmail.com>
 License: GPL-3
 
 Files: lutris/gui/application.py

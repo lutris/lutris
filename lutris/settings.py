@@ -6,7 +6,7 @@ from lutris import __version__
 
 PROJECT = "Lutris"
 VERSION = __version__
-COPYRIGHT = "(c) 2010-2019 Lutris Gaming Platform"
+COPYRIGHT = "(c) 2010-2020 Lutris Gaming Platform"
 AUTHORS = [
     "The Lutris team"
 ]
