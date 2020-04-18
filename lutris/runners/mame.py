@@ -58,9 +58,7 @@ class mame(Runner):
         selected_platform = self.game_config.get("platform")
         if selected_platform:
             return self.platforms[int(selected_platform)]
-        else:
-            return ("Arcade")
-        return ""
+        return ("Arcade")
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.config_dir, "mame.ini")):
