@@ -40,7 +40,7 @@ LIBRETRO_CORES = [
     ("Fuse (ZX Spectrum)", "fuse", "Sinclair ZX Spectrum"),
     ("Gambatte (Game Boy Color)", "gambatte", "Nintendo Game Boy Color"),
     ("Gearboy (Game Boy Color)", "gearboy", "Nintendo Game Boy Color"),
-    ("Gearsystem (Sega Maste System/Gamegear)", "gearsystem", "Sega Maste System/Gamegear"),
+    ("Gearsystem (Sega Master System/Gamegear)", "gearsystem", "Sega Master System/Gamegear"),
     ("Genesis Plus GX (Sega Genesis)", "genesis_plus_gx", "Sega Genesis"),
     ("Handy (Atari Lynx)", "handy", "Atari Lynx"),
     ("Hatari (Atari ST/STE/TT/Falcon)", "hatari", "Atari ST/STE/TT/Falcon"),
