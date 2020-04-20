@@ -11,8 +11,8 @@ from lutris.util.egs.config import get_egs_data_path
 
 from lutris.services.service_game import ServiceGame
 
-NAME = "EGS"
-ICON = "egs"  # TODO replace icon
+NAME = "Epic Games Store"
+ICON = "wineegs"
 ONLINE = False
 
 
