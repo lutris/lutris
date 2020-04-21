@@ -21,9 +21,7 @@ def read_yaml_from_file(filename):
     return yaml_content
 
 
-def write_yaml_to_file(filepath, config):
-    if not filepath:
-        raise ValueError("Missing filepath")
+def write_yaml_to_file(config, filepath):
     yaml_config = yaml.dump(config, default_flow_style=False)
     with open(filepath, "w") as filehandler:
         filehandler.write(yaml_config)

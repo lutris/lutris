@@ -13,7 +13,6 @@ __all__ = (
     "dosbox",
     # Multi-system
     "mame",
-    "mess",
     "mednafen",
     "scummvm",
     "residualvm",
