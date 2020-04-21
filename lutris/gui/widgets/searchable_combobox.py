@@ -49,12 +49,16 @@ class SearchableCombobox(Gtk.Bin):
         return False
 
     def search_store(self, _completion, string, _iter):
+        """Return true if any word of a string is present in a row"""
         for word in string.split():
             if word not in self.liststore[_iter][0].lower(): #search is always lower case
                 return False
         return True
 
-    def set_id_from_completion(self, completion, model, _iter):
+    def set_id_from_completion(self, _completion, model, _iter):
+        """Sets the active ID to the appropriate ID column in the model
+        otherwise the value is set to the entry's value.
+        """
         self.combobox.set_active_id(model[_iter][1])
 
     def _populate_combobox_choices(self, choice_func):
@@ -65,7 +69,6 @@ class SearchableCombobox(Gtk.Bin):
             self.liststore.append(choice)
         entry = self.combobox.get_child()
         entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, None)
-        print(self.initial)
         self.combobox.set_active_id(self.initial)
 
     @staticmethod

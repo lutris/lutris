@@ -218,7 +218,7 @@ class mess(Runner):
 
     @property
     def working_dir(self):
-        return os.path.join(os.path.expanduser("~"), ".mame")
+        return os.path.expanduser("~/.mame")
 
     def play(self):
         rompath = self.runner_config.get("rompath") or ""

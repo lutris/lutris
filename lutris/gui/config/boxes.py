@@ -358,7 +358,6 @@ class ConfigBox(VBox):
         list_store = combobox.get_model()
         active = combobox.get_active()
         if active < 0:
-            print("not selected")
             if combobox.get_has_entry():
                 option_value = combobox.get_child().get_text()
             else:
