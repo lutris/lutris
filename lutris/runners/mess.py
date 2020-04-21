@@ -221,7 +221,7 @@ class mess(Runner):
         return os.path.expanduser("~/.mame")
 
     def play(self):
-        rompath = self.runner_config.get("rompath") or ""
+        rompath = self.runner_config.get("rompath")
         if not system.path_exists(rompath):
             logger.warning("BIOS path provided in %s doesn't exist", rompath)
             rompath = os.path.join(settings.RUNNER_DIR, "mess/bios")
