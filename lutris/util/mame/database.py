@@ -1,24 +1,22 @@
 """Utility functions for MAME"""
+import os
+import json
 from xml.etree import ElementTree
 from lutris.util.system import execute
+from lutris.util.log import logger
+from lutris import settings
 
-
-def write_xml(mame_path, xml_path):
-    """Save the output of -listxml to a file"""
-    xml_data = execute([mame_path, "-listxml"])
-    with open(xml_path, "r") as xml_file:
-        xml_file.write(xml_data)
+CACHE_DIR = os.path.join(settings.CACHE_DIR, "mame")
 
 
 def simplify_manufacturer(manufacturer):
     """Give simplified names for some manufacturers"""
-    if manufacturer == "Amstrad plc":
-        return "Amstrad"
-    if manufacturer == "Commodore Business Machines":
-        return "Commodore"
-    if manufacturer == "Apple Computer":
-        return "Apple"
-    return manufacturer
+    manufacturer_map = {
+        "Amstrad plc": "Amstrad",
+        "Apple Computer": "Apple",
+        "Commodore Business Machines": "Commodore",
+    }
+    return manufacturer_map.get(manufacturer, manufacturer)
 
 
 def is_game(machine):
@@ -58,35 +56,55 @@ def is_system(machine):
     return has_software_list(machine)
 
 
-def iter_machines(xml_path, filter_func):
+def iter_machines(xml_path, filter_func=None):
     """Iterate through machine nodes in the MAME XML"""
     root = ElementTree.parse(xml_path).getroot()
     for machine in root:
-        if not filter_func(machine):
+        if filter_func and not filter_func(machine):
             continue
         yield machine
 
 
 def get_machine_info(machine):
     """Return human readable information about a machine node"""
-    _info = {
-        elem.tag: elem.text
-        for elem in machine
-        if elem.tag in ("description", "year", "manufacturer")
+    return {
+        "description": machine.find("description").text,
+        "manufacturer": simplify_manufacturer(machine.find("manufacturer").text),
+        "year": machine.find("year").text,
+        "roms": [rom.attrib for rom in machine.findall("rom")],
+        "devices": [{
+            "info": device.attrib,
+            "name": ''.join([instance.attrib["name"] for instance in device.findall("instance")]),
+            "briefname": ''.join([instance.attrib["briefname"] for instance in device.findall("instance")]),
+            "extensions": [extension.attrib["name"] for extension in device.findall("extension")]
+        } for device in machine.findall("device")],
+        "driver": machine.find("driver").attrib
     }
-    _info["manufacturer"] = simplify_manufacturer(_info["manufacturer"])
-    return _info
 
 
-def get_supported_systems(xml_path):
+def get_supported_systems(xml_path, force=False):
     """Return supported systems (computers and consoles) supported.
     From the full XML list extracted from MAME, filter the systems that are
     runnable, not clones and have the ability to run software.
     """
-    return {
+    systems_cache_path = os.path.join(CACHE_DIR, "systems.json")
+    if os.path.exists(systems_cache_path) and not force:
+        with open(systems_cache_path, "r") as systems_cache_file:
+            try:
+                systems = json.load(systems_cache_file)
+            except json.JSONDecodeError:
+                logger.error("Failed to read systems cache %s", systems_cache_path)
+                systems = None
+        if systems:
+            return systems
+    systems = {
         machine.attrib["name"]: get_machine_info(machine)
         for machine in iter_machines(xml_path, is_system)
     }
+    with open(systems_cache_path, "w") as systems_cache_file:
+        json.dump(systems, systems_cache_file, indent=2)
+    return systems
+
 
 
 def get_games(xml_path):

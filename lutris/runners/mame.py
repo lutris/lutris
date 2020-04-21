@@ -17,7 +17,7 @@ def get_system_choices():
         mame_inst = mame()
         mame_inst.write_xml_list()
     for system_id, info in sorted(
-            get_supported_systems("/home/strider/mame.xml").items(),
+            get_supported_systems(xml_path).items(),
             key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"])
     ):
         if info["description"].startswith(info["manufacturer"]):
