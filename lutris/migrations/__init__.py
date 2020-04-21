@@ -13,7 +13,7 @@ MIGRATIONS = [
     ["fix_playtime"],
     ["d9vk_to_dxvk"],
     ["fix_playtime_type"],
-    ["mame_to_mess"],
+    ["mess_to_mame"],
 ]
 
 
