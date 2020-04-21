@@ -30,7 +30,10 @@ class mame(Runner):
     """MAME runner"""
     human_name = "MAME"
     description = "Arcade game emulator"
-    platforms = ["Arcade"]
+    platforms = ["Arcade",
+                 "Plug & Play TV games",
+                 "LCD handheld games",
+                 "Game & Watch"]
     runner_executable = "mame/mame"
     runnable_alone = True
     game_options = [
@@ -80,6 +83,16 @@ class mame(Runner):
                 ("Punch Tape 2", "ptap2"),
                 ("Print Out", "prin"),
             ],
+        },
+        {
+            "option": "platform",
+            "type": "choice",
+            "label": "Platform",
+            "choices": (("Arcade", "0"), 
+                        ("Plug & Play TV games", "1"),
+                        ("LCD handheld games", "2"),
+                        ("Game & Watch", "3"), 
+                        ),
         },
     ]
 
@@ -160,6 +173,12 @@ class mame(Runner):
             output = system.execute([self.get_executable(), "-listxml"])
             xml_file.write(output)
             logger.info("MAME XML list written to %s", self.xml_path)
+
+    def get_platform(self):
+        selected_platform = self.game_config.get("platform")
+        if selected_platform:
+            return self.platforms[int(selected_platform)]
+        return ("Arcade")
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.config_dir, "mame.ini")):
