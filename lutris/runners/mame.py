@@ -93,6 +93,22 @@ class mame(Runner):
                 ("Game & Watch", "3"),
             ),
         },
+        {
+            "option": "autoboot_command",
+            "type": "string",
+            "label": "Autoboot command",
+            "help": (
+                "Autotype this command when the system has started,"
+                "an enter keypress is automatically added."
+            ),
+        },
+        {
+            "option": "autoboot_delay",
+            "type": "range",
+            "label": "Delay before entering autoboot command",
+            "min": 0,
+            "max": 120,
+        }
     ]
 
     runner_options = [
@@ -105,8 +121,9 @@ class mame(Runner):
         {
             "option": "video",
             "type": "choice",
+            "label": "Video backend",
             "choices": (
-                ("Auto (Default)", ""),
+                ("Auto", ""),
                 ("OpenGL", "opengl"),
                 ("BGFX", "bgfx"),
                 ("SDL2", "accel"),
@@ -151,8 +168,7 @@ class mame(Runner):
     ]
 
     @property
-    @staticmethod
-    def config_dir():
+    def config_dir(self):
         """Directory where MAME configuration is located"""
         return os.path.expanduser("~/.mame")
 
@@ -208,12 +224,20 @@ class mame(Runner):
 
         if self.game_config.get("machine"):
             rompath = self.runner_config.get("rompath")
+            if rompath:
+                command += ["-rompath", rompath]
+            command.append(self.game_config["machine"])
             device = self.game_config["device"]
             rom = self.game_config["main_file"]
-            command += ["-rompath", rompath, "-" + device, rom]
+            command += ["-" + device, rom]
         else:
             rompath = os.path.dirname(self.game_config.get("main_file"))
             rom = os.path.basename(self.game_config.get("main_file"))
             command += ["-rompath", rompath, rom]
+
+        if self.game_config.get("autoboot_command"):
+            command += ["-autoboot_command", self.game_config["autoboot_command"] + "\\n"]
+            if self.game_config.get("autoboot_delay"):
+                command += ["-autoboot_delay", str(self.game_config["autoboot_delay"])]
 
         return {"command": command}

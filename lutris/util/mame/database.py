@@ -46,10 +46,10 @@ def is_system(machine):
     handheld.
     """
     if (
-        machine.attrib.get("runnable") == "no"
-        or machine.attrib.get("isdevice") == "yes"
-        or machine.attrib.get("isbios") == "yes"
-        or machine.attrib.get("cloneof")
+            machine.attrib.get("runnable") == "no"
+            or machine.attrib.get("isdevice") == "yes"
+            or machine.attrib.get("isbios") == "yes"
+            or machine.attrib.get("cloneof")
     ):
         return False
     return has_software_list(machine)
