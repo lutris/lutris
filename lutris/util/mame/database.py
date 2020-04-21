@@ -2,7 +2,6 @@
 import os
 import json
 from xml.etree import ElementTree
-from lutris.util.system import execute
 from lutris.util.log import logger
 from lutris import settings
 
@@ -27,8 +26,8 @@ def is_game(machine):
         machine.attrib["isbios"] == "no"
         and machine.attrib["isdevice"] == "no"
         and machine.attrib["runnable"] == "yes"
-        and not "cloneof" in machine.attrib
-        and not "romof" in machine.attrib
+        and "cloneof" not in machine.attrib
+        and "romof" not in machine.attrib
         and not has_software_list(machine)
     )
 
@@ -47,10 +46,10 @@ def is_system(machine):
     handheld.
     """
     if (
-            machine.attrib.get("runnable") == "no"
-            or machine.attrib.get("isdevice") == "yes"
-            or machine.attrib.get("isbios") == "yes"
-            or machine.attrib.get("cloneof")
+        machine.attrib.get("runnable") == "no"
+        or machine.attrib.get("isdevice") == "yes"
+        or machine.attrib.get("isbios") == "yes"
+        or machine.attrib.get("cloneof")
     ):
         return False
     return has_software_list(machine)
@@ -72,13 +71,26 @@ def get_machine_info(machine):
         "manufacturer": simplify_manufacturer(machine.find("manufacturer").text),
         "year": machine.find("year").text,
         "roms": [rom.attrib for rom in machine.findall("rom")],
-        "devices": [{
-            "info": device.attrib,
-            "name": ''.join([instance.attrib["name"] for instance in device.findall("instance")]),
-            "briefname": ''.join([instance.attrib["briefname"] for instance in device.findall("instance")]),
-            "extensions": [extension.attrib["name"] for extension in device.findall("extension")]
-        } for device in machine.findall("device")],
-        "driver": machine.find("driver").attrib
+        "devices": [
+            {
+                "info": device.attrib,
+                "name": "".join(
+                    [instance.attrib["name"] for instance in device.findall("instance")]
+                ),
+                "briefname": "".join(
+                    [
+                        instance.attrib["briefname"]
+                        for instance in device.findall("instance")
+                    ]
+                ),
+                "extensions": [
+                    extension.attrib["name"]
+                    for extension in device.findall("extension")
+                ],
+            }
+            for device in machine.findall("device")
+        ],
+        "driver": machine.find("driver").attrib,
     }
 
 
@@ -104,7 +116,6 @@ def get_supported_systems(xml_path, force=False):
     with open(systems_cache_path, "w") as systems_cache_file:
         json.dump(systems, systems_cache_file, indent=2)
     return systems
-
 
 
 def get_games(xml_path):

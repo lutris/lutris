@@ -17,8 +17,8 @@ def get_system_choices():
         mame_inst = mame()
         mame_inst.write_xml_list()
     for system_id, info in sorted(
-            get_supported_systems(xml_path).items(),
-            key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"])
+        get_supported_systems(xml_path).items(),
+        key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"]),
     ):
         if info["description"].startswith(info["manufacturer"]):
             yield ("%(description)s (%(year)s)" % info, system_id)
@@ -28,12 +28,10 @@ def get_system_choices():
 
 class mame(Runner):
     """MAME runner"""
+
     human_name = "MAME"
     description = "Arcade game emulator"
-    platforms = ["Arcade",
-                 "Plug & Play TV games",
-                 "LCD handheld games",
-                 "Game & Watch"]
+    platforms = ["Arcade", "Plug & Play TV games", "LCD handheld games", "Game & Watch"]
     runner_executable = "mame/mame"
     runnable_alone = True
     game_options = [
@@ -88,16 +86,22 @@ class mame(Runner):
             "option": "platform",
             "type": "choice",
             "label": "Platform",
-            "choices": (("Arcade", "0"), 
-                        ("Plug & Play TV games", "1"),
-                        ("LCD handheld games", "2"),
-                        ("Game & Watch", "3"), 
-                        ),
+            "choices": (
+                ("Arcade", "0"),
+                ("Plug & Play TV games", "1"),
+                ("LCD handheld games", "2"),
+                ("Game & Watch", "3"),
+            ),
         },
     ]
 
     runner_options = [
-        {"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": True},
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": True,
+        },
         {
             "option": "video",
             "type": "choice",
@@ -119,7 +123,7 @@ class mame(Runner):
                 "flipping  screens; reduces tearing effects."
             ),
             "advanced": True,
-            "default": False
+            "default": False,
         },
         {
             "option": "uimodekey",
@@ -142,7 +146,7 @@ class mame(Runner):
             "help": (
                 "Key to switch between Full Keyboard Mode and "
                 "Partial Keyboard Mode (default: Scroll Lock)"
-            )
+            ),
         },
     ]
 
@@ -178,7 +182,7 @@ class mame(Runner):
         selected_platform = self.game_config.get("platform")
         if selected_platform:
             return self.platforms[int(selected_platform)]
-        return ("Arcade")
+        return "Arcade"
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.config_dir, "mame.ini")):
@@ -212,6 +216,4 @@ class mame(Runner):
             rom = os.path.basename(self.game_config.get("main_file"))
             command += ["-rompath", rompath, rom]
 
-        return {
-            "command": command
-        }
+        return {"command": command}
