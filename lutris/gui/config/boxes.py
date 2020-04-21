@@ -5,6 +5,7 @@ from gi.repository import Gtk, Gdk
 
 from lutris import settings, sysoptions
 from lutris.gui.widgets.common import VBox, Label, FileChooserEntry, EditableGrid
+from lutris.gui.widgets.searchable_combobox import SearchableCombobox
 from lutris.runners import import_runner, InvalidRunner
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
@@ -21,6 +22,7 @@ class ConfigBox(VBox):
         self.raw_config = None
         self.option_widget = None
         self.wrapper = None
+        self.tooltip_default = None
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -72,7 +74,7 @@ class ConfigBox(VBox):
             value = self.config.get(option_key)
             default = option.get("default")
 
-            if callable(option.get("choices")):
+            if callable(option.get("choices")) and option["type"] != "choice_with_search":
                 option["choices"] = option["choices"]()
             if callable(option.get("condition")):
                 option["condition"] = option["condition"]()
@@ -163,6 +165,14 @@ class ConfigBox(VBox):
                 value,
                 default,
                 has_entry=True,
+            )
+        elif option_type == "choice_with_search":
+            self.generate_searchable_combobox(
+                option_key,
+                option["choices"],
+                option["label"],
+                value,
+                default,
             )
 
         elif option_type == "bool":
@@ -277,22 +287,36 @@ class ConfigBox(VBox):
         """Action triggered for entry 'changed' signal."""
         self.option_changed(entry, option_name, entry.get_text())
 
+    def generate_searchable_combobox(
+        self, option_name, choice_func, label, value, default
+    ):
+        """Generate a searchable combo box"""
+        combobox = SearchableCombobox(choice_func, value or default)
+        combobox.connect("changed", self.on_searchable_entry_changed, option_name)
+        self.wrapper.pack_start(Label(label), False, False, 0)
+        self.wrapper.pack_start(combobox, True, True, 0)
+        self.option_widget = combobox
+
+    def on_searchable_entry_changed(self, combobox, value, key):
+        self.option_changed(combobox, key, value)
+
+    def _populate_combobox_choices(self, liststore, choices, default):
+        for choice in choices:
+            if isinstance(choice, str):
+                choice = (choice, choice)
+            if choice[1] == default:
+                liststore.append((choice[0] + "  (default)", choice[1]))
+                self.tooltip_default = choice[0]
+            else:
+                liststore.append(choice)
+
     # ComboBox
     def generate_combobox(
         self, option_name, choices, label, value=None, default=None, has_entry=False
     ):
         """Generate a combobox (drop-down menu)."""
         liststore = Gtk.ListStore(str, str)
-        for choice in choices:
-            if isinstance(choice, str):
-                choice = [choice, choice]
-            if choice[1] == default and not has_entry:
-                # Do not add default label to editable dropdowns since this gets
-                # added to the actual value.
-                liststore.append([choice[0] + "  (default)", default])
-                self.tooltip_default = choice[0]
-            else:
-                liststore.append(choice)
+        self._populate_combobox_choices(liststore, choices, default)
         # With entry ("choice_with_entry" type)
         if has_entry:
             combobox = Gtk.ComboBox.new_with_model_and_entry(liststore)
@@ -314,7 +338,7 @@ class ConfigBox(VBox):
                 combobox.set_active_id(default)
 
         combobox.connect("changed", self.on_combobox_change, option_name)
-        combobox.connect("scroll-event", self.on_combobox_scroll)
+        combobox.connect("scroll-event", self._on_combobox_scroll)
         label = Label(label)
         combobox.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
@@ -322,22 +346,25 @@ class ConfigBox(VBox):
         self.option_widget = combobox
 
     @staticmethod
-    def on_combobox_scroll(combobox, event):
-        """Do not change options when scrolling
-        with cursor inside a ComboBox."""
+    def _on_combobox_scroll(combobox, _event):
+        """Prevents users from accidentally changing configuration values
+        while scrolling down dialogs.
+        """
         combobox.stop_emission_by_name("scroll-event")
         return False
 
     def on_combobox_change(self, combobox, option):
         """Action triggered on combobox 'changed' signal."""
-        if combobox.get_has_entry():
-            option_value = combobox.get_child().get_text()
-        else:
-            model = combobox.get_model()
-            active = combobox.get_active()
-            if active < 0:
+        list_store = combobox.get_model()
+        active = combobox.get_active()
+        if active < 0:
+            print("not selected")
+            if combobox.get_has_entry():
+                option_value = combobox.get_child().get_text()
+            else:
                 return None
-            option_value = model[active][1]
+        else:
+            option_value = list_store[active][1]
         self.option_changed(combobox, option, option_value)
 
     # Range
