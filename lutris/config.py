@@ -206,7 +206,7 @@ class LutrisConfig:
             raise ValueError("Invalid config level '%s'" % self.level)
 
         logger.debug("Saving %s config to %s", self, config_path)
-        write_yaml_to_file(config_path, config)
+        write_yaml_to_file(config, config_path)
         self.initialize_config()
 
     def get_defaults(self, options_type):
