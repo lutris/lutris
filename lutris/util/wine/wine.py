@@ -126,9 +126,9 @@ def is_installed_systemwide():
             # if wine64 is installed but not wine32, don't consider it
             # a system-wide installation.
             if (
-                build == "wine"
-                and system.path_exists("/usr/lib/wine/wine64")
-                and not system.path_exists("/usr/lib/wine/wine")
+                    build == "wine"
+                    and system.path_exists("/usr/lib/wine/wine64")
+                    and not system.path_exists("/usr/lib/wine/wine")
             ):
                 logger.warning("wine32 is missing from system")
                 return False
@@ -136,40 +136,61 @@ def is_installed_systemwide():
     return False
 
 
-@lru_cache(maxsize=8)
-def get_wine_versions():
-    """Return the list of Wine versions installed"""
+def get_system_wine_versions():
+    """Return the list of wine versions installed on the system"""
     versions = []
-
     for build in sorted(WINE_PATHS.keys()):
         version = get_system_wine_version(WINE_PATHS[build])
         if version:
             versions.append(build)
+    return versions
 
+
+def get_lutris_wine_versions():
+    """Return the list of wine versions installed by lutris"""
+    versions = []
     if system.path_exists(WINE_DIR):
         dirs = version_sort(os.listdir(WINE_DIR), reverse=True)
         for dirname in dirs:
             if is_version_installed(dirname):
                 versions.append(dirname)
+    return versions
 
+
+def get_proton_versions():
+    """Return the list of Proton versions installed in Steam"""
+    versions = []
     for proton_path in get_proton_paths():
         proton_versions = [p for p in os.listdir(proton_path) if "Proton" in p]
         for version in proton_versions:
             path = os.path.join(proton_path, version, "dist/bin/wine")
             if os.path.isfile(path):
                 versions.append(version)
+    return versions
 
-    if POL_PATH:
-        for arch in ['x86', 'amd64']:
-            builds_path = os.path.join(POL_PATH, "wine/linux-%s" % arch)
-            if not system.path_exists(builds_path):
-                continue
-            for version in os.listdir(builds_path):
-                if system.path_exists(os.path.join(builds_path, version, "bin/wine")):
-                    logger.debug("Adding PoL version %s", version)
-                    versions.append("PlayOnLinux %s-%s" % (version, arch))
-                else:
-                    logger.warning(os.path.join(builds_path, "bin/wine"))
+def get_pol_wine_versions():
+    """Return the list of wine versions installed by Play on Linux"""
+    if not POL_PATH:
+        return []
+    versions = []
+    for arch in ['x86', 'amd64']:
+        builds_path = os.path.join(POL_PATH, "wine/linux-%s" % arch)
+        if not system.path_exists(builds_path):
+            continue
+        for version in os.listdir(builds_path):
+            if system.path_exists(os.path.join(builds_path, version, "bin/wine")):
+                versions.append("PlayOnLinux %s-%s" % (version, arch))
+    return versions
+
+
+@lru_cache(maxsize=8)
+def get_wine_versions():
+    """Return the list of Wine versions installed"""
+    versions = []
+    versions += get_system_wine_versions()
+    versions += get_lutris_wine_versions()
+    versions += get_proton_versions()
+    versions += get_pol_wine_versions()
     return versions
 
 
