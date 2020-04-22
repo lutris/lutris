@@ -218,7 +218,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             except OSError:
                 pass
             subprocess.Popen(
-                [self.get_executable(), "-createconfig"], stdout=subprocess.PIPE
+                [self.get_executable(), "-createconfig"],
+                stdout=subprocess.PIPE,
+                cwd=self.config_dir
             )
         return True
 
