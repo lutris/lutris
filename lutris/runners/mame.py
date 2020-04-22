@@ -97,8 +97,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "choices": (
                 ("Arcade", "0"),
                 ("Plug & Play TV games", "1"),
-                ("LCD handheld games", "2"),
-                ("Game & Watch", "3"),
+                ("LCD handheld games", "2")
             ),
         },
         {
