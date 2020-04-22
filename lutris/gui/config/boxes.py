@@ -288,7 +288,7 @@ class ConfigBox(VBox):
         self.option_changed(entry, option_name, entry.get_text())
 
     def generate_searchable_combobox(
-        self, option_name, choice_func, label, value, default
+            self, option_name, choice_func, label, value, default
     ):
         """Generate a searchable combo box"""
         combobox = SearchableCombobox(choice_func, value or default)
@@ -516,7 +516,7 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(vbox, True, True, 0)
         self.option_widget = self.files_list_store
 
-    def on_add_files_clicked(self, widget, option_name, value):
+    def on_add_files_clicked(self, _widget, option_name, value):
         """Create and run multi-file chooser dialog."""
         dialog = Gtk.FileChooserDialog(
             title="Select files",
@@ -566,7 +566,7 @@ class ConfigBox(VBox):
                 self.raw_config[option].pop(row_index)
 
     @staticmethod
-    def on_query_tooltip(widget, x, y, keybmode, tooltip, text):
+    def on_query_tooltip(_widget, x, y, keybmode, tooltip, text):
         """Prepare a custom tooltip with a fixed width"""
         label = Label(text)
         label.set_use_markup(True)
@@ -591,7 +591,7 @@ class ConfigBox(VBox):
         reset_btn.set_visible(True)
         self.set_style_property("font-weight", "bold", wrapper)
 
-    def on_reset_button_clicked(self, btn, option, widget, wrapper):
+    def on_reset_button_clicked(self, btn, option, _widget, wrapper):
         """Clear option (remove from config, reset option widget)."""
         option_key = option["option"]
         current_value = self.config[option_key]

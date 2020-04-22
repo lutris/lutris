@@ -159,9 +159,9 @@ def fill_missing_platforms():
         if pga_game.get("platform") or not pga_game["runner"]:
             continue
         game = Game(game_id=pga_game["id"])
-        logger.error("Providing missing platform for game %s", game.slug)
         game.set_platform_from_runner()
         if game.platform:
+            logger.info("Platform for %s set to %s", game.name, game.platform)
             game.save(metadata_only=True)
 
 
