@@ -120,6 +120,16 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     runner_options = [
         {
+            "option": "rompath",
+            "type": "directory_chooser",
+            "label": "ROM/BIOS path",
+            "help": (
+                "Choose the folder containing ROMs and BIOS files.\n"
+                "These files contain code from the original hardware "
+                "necessary to the emulation."
+            ),
+        },
+        {
             "option": "fullscreen",
             "type": "bool",
             "label": "Fullscreen",
