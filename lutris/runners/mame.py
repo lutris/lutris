@@ -186,7 +186,7 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     @property
     def working_dir(self):
-        return self.config_dir
+        return os.path.join(settings.RUNNER_DIR, "mame")
 
     def write_xml_list(self):
         """Write the full game list in XML to disk"""
@@ -218,9 +218,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             except OSError:
                 pass
             subprocess.Popen(
-                [self.get_executable(), "-createconfig"],
+                [self.get_executable(), "-createconfig", "-inipath", self.config_dir],
                 stdout=subprocess.PIPE,
-                cwd=self.config_dir
+                cwd=self.working_dir
             )
         return True
 
