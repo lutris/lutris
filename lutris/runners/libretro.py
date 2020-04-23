@@ -21,28 +21,30 @@ def get_default_config_path(path=""):
 # Second element is the core identifier
 # Third element is the platform's long name
 LIBRETRO_CORES = []
-# Get core identifiers from info dir
-info_path = get_default_config_path("info")
-if not os.path.exists(info_path):
-    req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
-    if req.status_code == requests.codes.ok:
-        open(get_default_config_path('info.zip'), 'wb').write(req.content)
-        with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
-            info_zip.extractall(info_path)
-    else:
-        logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code)
-# Parse info files to fetch display name and platform/system
-if os.path.exists(info_path):
-    with os.scandir(info_path) as it:
-        for entry in it:
-            if entry.is_file():
-                core_identifier = entry.name.replace("_libretro.info", "")
-                core_config = RetroConfig(entry)
-                if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
-                    core_label = core_config["display_name"] or ""
-                    core_system = core_config["systemname"] or ""
-                    LIBRETRO_CORES.append((core_label, core_identifier, core_system))
-        LIBRETRO_CORES.sort(key=itemgetter(0))
+runner_path = get_default_config_path()
+if os.path.exists(runner_path):
+    # Get core identifiers from info dir
+    info_path = get_default_config_path("info")
+    if not os.path.exists(info_path):
+        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
+        if req.status_code == requests.codes.ok:
+            open(get_default_config_path('info.zip'), 'wb').write(req.content)
+            with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
+                info_zip.extractall(info_path)
+        else:
+            logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code)
+    # Parse info files to fetch display name and platform/system
+    if os.path.exists(info_path):
+        with os.scandir(info_path) as it:
+            for entry in it:
+                if entry.is_file():
+                    core_identifier = entry.name.replace("_libretro.info", "")
+                    core_config = RetroConfig(entry)
+                    if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
+                        core_label = core_config["display_name"] or ""
+                        core_system = core_config["systemname"] or ""
+                        LIBRETRO_CORES.append((core_label, core_identifier, core_system))
+            LIBRETRO_CORES.sort(key=itemgetter(0))
 
 
 def get_core_choices():
