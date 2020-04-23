@@ -4,6 +4,7 @@ import subprocess
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.strings import split_arguments
 
 
 class scummvm(Runner):
@@ -20,6 +21,12 @@ class scummvm(Runner):
             "label": "Enable subtitles (if the game has voice)",
             "type": "bool",
             "default": False,
+        },
+        {
+            "option": "args",
+            "type": "string",
+            "label": "Arguments",
+            "help": "Command line arguments used when launching the game",
         },
     ]
     runner_options = [
@@ -110,10 +117,11 @@ class scummvm(Runner):
         if mode:
             command.append("--gfx-mode=%s" % mode)
         # /Options
-
         command.append("--path=%s" % self.game_path)
+        args = self.game_config.get("args") or ""
+        for arg in split_arguments(args):
+            command.append(arg)
         command.append(self.game_config.get("game_id"))
-
         launch_info = {"command": command, "ld_library_path": self.libs_dir}
 
         return launch_info
