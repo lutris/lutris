@@ -5,8 +5,10 @@ Requirements
 ------------
 
 Lutris should work on any up to date Linux system. It is based on Python and
-Gtk but will run on any desktop environment. The following dependencies should
-be installed:
+Gtk but will run on any desktop environment.
+If you installed Lutris from our PPA or some other repository, it should already
+come with all of its essential dependencies. However, if you need to install
+Lutris manually, it requires the following components:
 
     * Python > 3.4
     * PyGObject
@@ -31,9 +33,12 @@ games themselves we recommend you install the following packages:
     screen resolutions on Wayland, the GnomeDesktop library is not directly
     related to the Gnome desktop and is only used as a xrandr replacement.)
   * libc6-i386 and lib32gcc1 for 32bit games support
-  * The 32bit OpenGL driver for your graphics card
+  * The 32bit OpenGL and Vulkan drivers for your graphics card
+  * Wine (not actually needed, but installing it is the easiest way to get all
+    the libraries missing from our runtime).
 
-To install all those dependencies on Ubuntu based systems, you can run::
+To install all those dependencies (except for Wine and graphics drivers)
+on Ubuntu based systems, you can run::
 
     sudo apt install python3-yaml python3-requests python3-pil python3-gi \
       gir1.2-gtk-3.0 gir1.2-gnomedesktop-3.0 gir1.2-webkit2-4.0 \
@@ -49,28 +54,35 @@ If you use OpenSUSE, some dependencies are missing. You need to install python3-
 Installation
 ------------
 
-Lutris uses Python's distutils framework for installation. In order to
-install Lutris, you will need root access. To install Lutris, perform
-the following command::
+To install Lutris, please follow instructions listed on our `Downloads Page <https://lutris.net/downloads/>`_.
+Getting Lutris from a PPA or a repository is the preferred way of installing
+it and we *strongly advise* to use this method if you can.
 
-      sudo python3 setup.py install
-
-Although this is the standard way of installing Python packages we STRONGLY
-advice against using it. You won't be able to easily remove the installed
-version without you having to go through /usr/local and manually delete lutris
-related files. The setup.py script is used by packaging tools to build the
-actual packages.
-
-Prefer installing Lutris through distribution packages or run it directly
-from the source directory::
+However, if the instructions on our Downloads page don't apply to your Linux
+distribution or there's some other reason you can't get it from a package,
+you can run it directly from the source directory::
 
     git clone https://github.com/lutris/lutris
     cd lutris
     ./bin/lutris
+    
+Alternatively you can install Lutris manually with the help of **virtualenv**.
+
+First, install ``python-virtualenv`` from your distribution's 
+repositories, along with dependencies listed in Requirements_.
+Then, create and activate virtual environment for Lutris::
+
+    virtualenv --system-site-packages ~/lutris
+    source ~/lutris/bin/activate
+
+While in the virtual environment, run the installation script::
+
+    python3 setup.py install
 
 Run Lutris
 -----------
 
-If you installed Lutris using a package or the setup.py script, you can launch
-the program by typing "lutris" at the command line. If you want to run Lutris
-without installing it, start "bin/lutris" from within the Lutris directory.
+If you installed Lutris using a package, you can launch the program by typing
+``lutris`` at the command line (same applies to virtualenv method, but you need to
+activate the virtual environment first). And if you want to run Lutris without
+installing it, start ``./bin/lutris`` from within the source directory.
