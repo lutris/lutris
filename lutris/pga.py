@@ -242,7 +242,13 @@ def get_game_by_field(value, field="slug"):
     return {}
 
 
+def get_games_by_runner(runner):
+    """Return all games using a specific runner"""
+    return sql.db_select(PGA_DB, "games", condition=("runner", runner))
+
+
 def get_games_by_slug(slug):
+    """Return all games using a specific slug"""
     return sql.db_select(PGA_DB, "games", condition=("slug", slug))
 
 

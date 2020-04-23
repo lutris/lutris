@@ -2,8 +2,11 @@
 # pylint: disable=no-member
 import os
 import random
+from collections import defaultdict
 
 from gi.repository import GLib, Gtk
+from lutris.pga import get_games_by_runner
+from lutris.game import Game
 from lutris import api, settings
 from lutris.gui.dialogs import Dialog, ErrorDialog, QuestionDialog
 from lutris.util import jobs, system
@@ -19,6 +22,7 @@ class RunnerInstallDialog(Dialog):
     COL_URL = 2
     COL_INSTALLED = 3
     COL_PROGRESS = 4
+    COL_USAGE = 5
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0)
@@ -39,7 +43,7 @@ class RunnerInstallDialog(Dialog):
 
         self.show_all()
 
-        self.runner_store = Gtk.ListStore(str, str, str, bool, int)
+        self.runner_store = Gtk.ListStore(str, str, str, bool, int, str)
         jobs.AsyncCall(api.get_runners, self.display_all_versions, self.runner)
 
     def display_all_versions(self, runner_info, error):
@@ -106,14 +110,37 @@ class RunnerInstallDialog(Dialog):
         progress_column.set_property("resizable", False)
         treeview.append_column(progress_column)
 
+        usage_column = Gtk.TreeViewColumn(None, renderer_text, text=self.COL_USAGE)
+        usage_column.set_property("min-width", 200)
+        treeview.append_column(usage_column)
+
         return treeview
+
+    def get_usage_stats(self):
+        """Return the usage for each version"""
+        runner_games = get_games_by_runner(self.runner)
+        if self.runner == "wine":
+            runner_games += get_games_by_runner("winesteam")
+        version_usage = defaultdict(list)
+        for db_game in runner_games:
+            if not db_game["installed"]:
+                continue
+            game = Game(db_game["id"])
+            version = game.config.runner_config["version"]
+            version_usage[version].append(db_game["id"])
+        return version_usage
 
     def populate_store(self):
         """Return a ListStore populated with the runner versions"""
+        version_usage = self.get_usage_stats()
         for version_info in reversed(self.runner_info["versions"]):
             is_installed = os.path.exists(
                 self.get_runner_path(version_info["version"], version_info["architecture"])
             )
+            games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
+            usage_summary = "In use by %d game%s" % (
+                len(games_using), "s" if len(games_using) > 1 else ""
+            ) if games_using else "Not in use"
             self.runner_store.append(
                 [
                     version_info["version"],
@@ -121,6 +148,7 @@ class RunnerInstallDialog(Dialog):
                     version_info["url"],
                     is_installed,
                     0,
+                    usage_summary if is_installed else ""
                 ]
             )
 
@@ -187,15 +215,15 @@ class RunnerInstallDialog(Dialog):
         downloader.check_progress()
         percent_downloaded = downloader.progress_percentage
         if percent_downloaded >= 1:
-            row[4] = percent_downloaded
+            row[self.COL_PROGRESS] = percent_downloaded
             self.renderer_progress.props.pulse = -1
             self.renderer_progress.props.text = "%d %%" % int(percent_downloaded)
         else:
-            row[4] = 1
+            row[self.COL_PROGRESS] = 1
             self.renderer_progress.props.pulse = random.randint(1, 100)
             self.renderer_progress.props.text = "Downloading…"
         if downloader.state == downloader.COMPLETED:
-            row[4] = 99
+            row[self.COL_PROGRESS] = 99
             self.renderer_progress.props.text = "Extracting…"
             self.on_runner_downloaded(row)
             return False
