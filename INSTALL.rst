@@ -1,6 +1,16 @@
 Installing Lutris
 =================
 
+* Ubuntu
+    ``sudo apt-get install lutris``
+* Arch Linux
+    ``sudo pacman -S lutris``
+* Other distro
+    Find lutris package in your distribution's repositories. Do not use guide bellow, it's for distro maintainers
+
+For distribution maintainers
+============================
+
 Requirements
 ------------
 
