@@ -168,6 +168,7 @@ def get_proton_versions():
                 versions.append(version)
     return versions
 
+
 def get_pol_wine_versions():
     """Return the list of wine versions installed by Play on Linux"""
     if not POL_PATH:
