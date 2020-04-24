@@ -42,7 +42,6 @@ class yuzu(Runner):
         candidates = (
             "~/.local/share/yuzu",
         )
-        print(candidates)
         for candidate in candidates:
             path = system.fix_path_case(
                 os.path.join(os.path.expanduser(candidate), "nand")
