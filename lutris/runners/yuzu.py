@@ -79,7 +79,7 @@ class yuzu(Runner):
             logger.debug("No %s file was set.", key_type)
             return
         if not system.path_exists(key):
-            logger.warning("Keys file %s do not exit!", key)
+            logger.warning("Keys file %s does not exist!", key)
             return
 
         keys_dir = os.path.dirname(key_loc)
