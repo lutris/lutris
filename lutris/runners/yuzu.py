@@ -1,5 +1,11 @@
+import os
+import filecmp
+from pathlib import Path
+from shutil import copyfile
+
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.log import logger
 
 
 class yuzu(Runner):
@@ -16,6 +22,38 @@ class yuzu(Runner):
             "help": "The game data, commonly called a ROM image.",
         }
     ]
+    runner_options = [
+        {
+            "option": "prod_keys",
+            "label": "Ecryption keys",
+            "type": "file",
+            "help": (
+                "File containing the encryption keys."
+            ),
+        },
+        {
+            "option": "title_keys",
+            "label": "Title keys",
+            "type": "file",
+            "help": (
+                "File containing the title keys."
+            ),
+        }
+    ]
+
+    @property
+    def yuzu_data_dir(self):
+        """Return dir where Yuzu files lie."""
+        candidates = (
+            "~/.local/share/yuzu",
+        )
+        print(candidates)
+        for candidate in candidates:
+            path = system.fix_path_case(
+                os.path.join(os.path.expanduser(candidate), "nand")
+            )
+            if path:
+                return path[: -len("nand")]
 
     def play(self):
         """Run the game."""
@@ -25,3 +63,35 @@ class yuzu(Runner):
             return {"error": "FILE_NOT_FOUND", "file": rom}
         arguments.append(rom)
         return {"command": arguments}
+
+    def _update_key(self, key_type):
+        """Update a keys file if set """
+        yuzu_data_dir = self.yuzu_data_dir
+        if key_type == "prod_keys":
+            key_loc = os.path.join(yuzu_data_dir, "keys/prod.keys")
+        elif key_type == "title_keys":
+            key_loc = os.path.join(yuzu_data_dir, "keys/title.keys")
+        else:
+            logger.error("Invalid keys type %s!", key_type)
+            return
+
+        key = self.runner_config.get(key_type)
+        if key and not system.path_exists(key):
+            logger.warning("Keys file %s do not exit!", key)
+            return
+        elif not key:
+            logger.debug("No %s were set.", key_type)
+            return
+
+        keys_dir = os.path.dirname(key_loc)
+        if not os.path.exists(keys_dir):
+            os.makedirs(keys_dir)
+        elif os.path.isfile(key_loc) and filecmp.cmp(key, key_loc):
+            # If the files are identical, don't do anything
+            return
+        copyfile(key, key_loc)
+
+    def prelaunch(self):
+        for key in ["prod_keys", "title_keys"]:
+            self._update_key(key_type=key)
+        return True
