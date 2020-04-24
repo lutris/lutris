@@ -26,17 +26,13 @@ class yuzu(Runner):
             "option": "prod_keys",
             "label": "Ecryption keys",
             "type": "file",
-            "help": (
-                "File containing the encryption keys."
-            ),
+            "help": "File containing the encryption keys.",
         },
         {
             "option": "title_keys",
             "label": "Title keys",
             "type": "file",
-            "help": (
-                "File containing the title keys."
-            ),
+            "help": "File containing the title keys.",
         }
     ]
 
