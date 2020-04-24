@@ -1,6 +1,5 @@
 import os
 import filecmp
-from pathlib import Path
 from shutil import copyfile
 
 from lutris.runners.runner import Runner
@@ -76,11 +75,11 @@ class yuzu(Runner):
             return
 
         key = self.runner_config.get(key_type)
-        if key and not system.path_exists(key):
-            logger.warning("Keys file %s do not exit!", key)
+        if not key:
+            logger.debug("No %s file was set.", key_type)
             return
-        elif not key:
-            logger.debug("No %s were set.", key_type)
+        if not system.path_exists(key):
+            logger.warning("Keys file %s do not exit!", key)
             return
 
         keys_dir = os.path.dirname(key_loc)
