@@ -5,7 +5,9 @@ import json
 
 from lutris import pga
 from lutris.config import make_game_config_id, LutrisConfig
-from lutris.util.egs.appmanifest import AppManifest, get_appmanifests
+from lutris.runners import wineegs
+from lutris.util.log import logger
+from lutris.util.egs.appmanifest import AppManifest, get_appmanifests, get_unix_path
 from lutris.util.egs.config import get_egs_data_path
 # from lutris.util.steam.config import get_steamapps_paths
 
@@ -35,6 +37,12 @@ class EGSGame(ServiceGame):
         egs_game.details = json.dumps(appmanifest.appmanifest_data)
         return egs_game
 
+    def __hash__(self):
+        return hash((self.runner, self.appid))
+
+    def __eq__(self, other):
+        return isinstance(other, EGSGame) and self.runner == other.runner and self.appid == other.appid
+
     @classmethod
     def new_from_lutris_id(cls, game_id):
         egs_game = EGSGame()
@@ -46,11 +54,22 @@ class EGSGame(ServiceGame):
         return make_game_config_id(self.slug)
 
     @classmethod
-    def is_importable(cls, appmanifest):
+    def is_importable(cls, prefix, appmanifest):
         """Return whether a EGS game should be imported"""
+        # Installation still in progress / not started
         if not appmanifest.is_installed():
             return False
-        return True
+
+        # check, if the game directory exists. 
+        # EGS might not clean up manifest files if a game directory is manually deleted.
+        # this could create duplicate manifests when installing the game again
+        try:
+            game_path = get_unix_path(prefix, appmanifest.installdir)
+            dir_exists = os.path.exists(game_path)
+            return dir_exists
+        except Exception:
+            logger.warn("Directory %s not found in prefix %s.", appmanifest.installdir, prefix)
+            return False
 
     def install(self, updated_info=None):
         """Add an installed game to the library
@@ -100,8 +119,7 @@ class EGSSyncer:
 
     @property
     def lutris_games(self):
-        if not self._lutris_games:
-            # TODO: using steamid here until egsid is available in DB or a better solution
+        if not self._lutris_games:            
             self._lutris_games = pga.get_games_where(
                 runner=EGSGame.runner,
                 installer_slug=EGSGame.installer_slug
@@ -112,17 +130,19 @@ class EGSSyncer:
     def lutris_egsids(self):
         if not self._lutris_egsids:
             self._lutris_egsids = {
-                str(game["steamid"]) for game in self.lutris_games}
+                # TODO: using steamid here until egsid is available in DB or a better solution
+                str(game["steamid"]) for game in self.lutris_games} 
         return self._lutris_egsids
 
     def load(self, force_reload=False):
         """Return importable EGS games"""
-        games = []
+        egs_runner = wineegs.wineegs()
+        games = set([])
         egs_data_path = get_egs_data_path()
         for appmanifest_file in get_appmanifests(egs_data_path):
             app_manifest = AppManifest(appmanifest_file)
-            if EGSGame.is_importable(app_manifest):
-                games.append(EGSGame.new_from_egs_game(app_manifest))
+            if EGSGame.is_importable(egs_runner.prefix_path, app_manifest):
+                games.add(EGSGame.new_from_egs_game(app_manifest))
         return games
 
     def get_pga_game(self, game):
