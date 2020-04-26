@@ -26,6 +26,7 @@ addons:
       - gir1.2-gnomedesktop-3.0
       - gir1.2-webkit2-4.0
       - gir1.2-notify-0.7
+      - at-spi2-core
 before_install:
   - "export DISPLAY=:99.0"
   - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
