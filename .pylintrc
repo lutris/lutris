@@ -61,7 +61,23 @@ disable=
     unexpected-keyword-arg,
     ungrouped-imports,
     useless-object-inheritance,
-    bad-continuation
+    bad-continuation,
+    inconsistent-return-statements,
+    unsubscriptable-object,
+    not-an-iterable,
+    no-member,
+    unused-argument,
+    bare-except,
+    too-many-statements,
+    too-many-locals,
+    too-many-branches,
+    too-many-public-methods,
+    arguments-differ,
+    signature-differs,
+    unsupported-membership-test,
+    protected-access,
+    wrong-import-position,
+    import-outside-toplevel
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

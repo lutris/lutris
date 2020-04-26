@@ -112,3 +112,6 @@ pylint:
 # =============
 
 sc: style check
+req: requirements
+styles: style
+checks: check

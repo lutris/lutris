@@ -29,3 +29,4 @@ requests = '>=2.23'
 six = '>=1.14'
 urllib3 = '>=1.25'
 wrapt = '>=1.11'
+keyring = "*"
