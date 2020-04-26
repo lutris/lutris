@@ -1,15 +1,17 @@
 """Utilities for manipulating Wine"""
+# Standard Library
 import os
 import subprocess
-from functools import lru_cache
 from collections import OrderedDict
+from functools import lru_cache
 
+# Lutris Modules
 from lutris import runtime, settings
 from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
+from lutris.runners.steam import steam
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.strings import version_sort, parse_version
-from lutris.runners.steam import steam
+from lutris.util.strings import parse_version, version_sort
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 WINE_DEFAULT_ARCH = "win64" if system.LINUX_SYSTEM.is_64_bit else "win32"
@@ -126,9 +128,8 @@ def is_installed_systemwide():
             # if wine64 is installed but not wine32, don't consider it
             # a system-wide installation.
             if (
-                    build == "wine"
-                    and system.path_exists("/usr/lib/wine/wine64")
-                    and not system.path_exists("/usr/lib/wine/wine")
+                build == "wine" and system.path_exists("/usr/lib/wine/wine64")
+                and not system.path_exists("/usr/lib/wine/wine")
             ):
                 logger.warning("wine32 is missing from system")
                 return False
@@ -223,6 +224,7 @@ def get_default_version():
         return wine64_versions[0]
     if installed_versions:
         return installed_versions[0]
+    return
 
 
 def get_system_wine_version(wine_path="wine"):
@@ -245,6 +247,7 @@ def get_system_wine_version(wine_path="wine"):
         if version.startswith("wine-"):
             version = version[5:]
         return version
+    return
 
 
 def is_version_esync(path):
@@ -353,9 +356,7 @@ def get_overrides_env(overrides):
     """
     if not overrides:
         return ""
-    override_buckets = OrderedDict(
-        [("n,b", []), ("b,n", []), ("b", []), ("n", []), ("d", []), ("", [])]
-    )
+    override_buckets = OrderedDict([("n,b", []), ("b,n", []), ("b", []), ("n", []), ("d", []), ("", [])])
     for dll, value in overrides.items():
         if not value:
             value = ""

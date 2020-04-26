@@ -1,17 +1,21 @@
-import os
+# Standard Library
 import errno
-import uuid
-import shutil
-import tarfile
-import subprocess
 import gzip
+import os
+import shutil
+import subprocess
+import tarfile
+import uuid
 import zlib
+
+# Lutris Modules
+from lutris import settings
 from lutris.util import system
 from lutris.util.log import logger
-from lutris import settings
 
 
 class ExtractFailure(Exception):
+
     """Exception raised when and archive fails to extract"""
 
 
@@ -68,7 +72,9 @@ def is_7zip_supported(path, extractor):
         return ext in supported_extractors
 
 
-def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
+def extract_archive(path, to_directory=".", merge_single=True, extractor=None):  # noqa: C901
+    # pylint: disable=too-many-branches,too-many-statements
+    # TODO: split into multiple methods to reduce complexity (30)
     path = os.path.abspath(path)
     mode = None
     logger.debug("Extracting %s to %s", path, to_directory)
@@ -89,9 +95,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
         elif is_7zip_supported(path, None):
             extractor = None
         else:
-            raise RuntimeError(
-                "Could not extract `%s` - no appropriate extractor found" % path
-            )
+            raise RuntimeError("Could not extract `%s` - no appropriate extractor found" % path)
 
     if extractor == "tgz":
         opener, mode = tarfile.open, "r:gz"

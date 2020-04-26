@@ -1,21 +1,25 @@
 """Gallium Nine helper module"""
+# Standard Library
 import os
 import shutil
 
-from lutris.util import system
+# Lutris Modules
 from lutris.runners.commands.wine import wineexec
+from lutris.util import system
 from lutris.util.wine.cabinstall import CabInstaller
 
 
 class NineUnavailable(RuntimeError):
+
     """Exception raised when Gallium Nine is not available"""
 
 
 class NineManager:
+
     """Utility class to install and manage Gallium Nine to a Wine prefix"""
 
     nine_files = ("d3d9-nine.dll", "ninewinecfg.exe")
-    mesa_files = ("d3dadapter9.so.1",)
+    mesa_files = ("d3dadapter9.so.1", )
 
     def __init__(self, prefix, arch):
         self.prefix = prefix
@@ -30,10 +34,7 @@ class NineManager:
         """
         for mesa_file in NineManager.mesa_files:
             if not any(
-                [
-                    os.path.exists(os.path.join(lib, "d3d", mesa_file))
-                    for lib in system.LINUX_SYSTEM.iter_lib_folders()
-                ]
+                [os.path.exists(os.path.join(lib, "d3d", mesa_file)) for lib in system.LINUX_SYSTEM.iter_lib_folders()]
             ):
                 return False
 
@@ -76,8 +77,7 @@ class NineManager:
 
     def is_prefix_prepared(self):
         if not all(
-            system.path_exists(os.path.join(self.get_system_path("x32"), nine_file))
-            for nine_file in self.nine_files
+            system.path_exists(os.path.join(self.get_system_path("x32"), nine_file)) for nine_file in self.nine_files
         ):
             return False
 
@@ -95,26 +95,18 @@ class NineManager:
             for lib in system.LINUX_SYSTEM.iter_lib_folders():
                 nine_file_path = os.path.join(lib, "wine/fakedlls", nine_file)
 
-                if (
-                    os.path.exists(nine_file_path)
-                    and CabInstaller.get_arch_from_dll(nine_file_path) == "win32"
-                ):
+                if (os.path.exists(nine_file_path) and CabInstaller.get_arch_from_dll(nine_file_path) == "win32"):
                     shutil.copy(nine_file_path, self.get_system_path("x32"))
 
                 if self.wine_arch == "win64":
-                    if (
-                        os.path.exists(nine_file_path)
-                        and CabInstaller.get_arch_from_dll(nine_file_path) == "win64"
-                    ):
+                    if (os.path.exists(nine_file_path) and CabInstaller.get_arch_from_dll(nine_file_path) == "win64"):
                         shutil.copy(nine_file_path, self.get_system_path("x64"))
 
             if not os.path.exists(os.path.join(self.get_system_path("x32"), nine_file)):
                 raise NineUnavailable("could not install " + nine_file + " (x32)")
 
             if self.wine_arch == "win64":
-                if not os.path.exists(
-                    os.path.join(self.get_system_path("x64"), nine_file)
-                ):
+                if not os.path.exists(os.path.join(self.get_system_path("x64"), nine_file)):
                     raise NineUnavailable("could not install " + nine_file + " (x64)")
 
     def enable(self):
@@ -126,11 +118,17 @@ class NineManager:
             self.prepare_prefix()
 
         wineexec(
-            "ninewinecfg", args="-e", prefix=self.prefix, blocking=True,
+            "ninewinecfg",
+            args="-e",
+            prefix=self.prefix,
+            blocking=True,
         )
 
     def disable(self):
         if self.is_prefix_prepared():
             wineexec(
-                "ninewinecfg", args="-d", prefix=self.prefix, blocking=True,
+                "ninewinecfg",
+                args="-d",
+                prefix=self.prefix,
+                blocking=True,
             )

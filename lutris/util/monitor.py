@@ -1,7 +1,9 @@
 """Process monitor management"""
+# Standard Library
 import os
 import shlex
 
+# Lutris Modules
 from lutris.util.process import Process
 
 # Processes that are considered sufficiently self-managing by the
@@ -25,6 +27,7 @@ SYSTEM_PROCESSES = {
 
 
 class ProcessMonitor:
+
     """Class to keep track of a process and its children status"""
 
     def __init__(self, include_processes, exclude_processes):

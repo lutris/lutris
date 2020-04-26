@@ -2,8 +2,11 @@
 
 Everything in this module should rely on /proc or /sys only, no executable calls
 """
+# Standard Library
 import os
 import re
+
+# Lutris Modules
 from lutris.util.log import logger
 
 MIN_RECOMMENDED_NVIDIA_DRIVER = 415
@@ -16,16 +19,17 @@ def get_nvidia_driver_info():
         return
     with open(version_file_path) as version_file:
         content = version_file.readlines()
-    nvrm_version = content[0].split(': ')[1].strip().split()
-    return {
-        'nvrm': {
-            'vendor': nvrm_version[0],
-            'platform': nvrm_version[1],
-            'arch': nvrm_version[2],
-            'version': nvrm_version[5],
-            'date': ' '.join(nvrm_version[6:])
+        nvrm_version = content[0].split(': ')[1].strip().split()
+        return {
+            'nvrm': {
+                'vendor': nvrm_version[0],
+                'platform': nvrm_version[1],
+                'arch': nvrm_version[2],
+                'version': nvrm_version[5],
+                'date': ' '.join(nvrm_version[6:])
+            }
         }
-    }
+    return
 
 
 def get_nvidia_gpu_ids():
@@ -61,11 +65,7 @@ def get_gpus():
 
 def get_gpu_info(card):
     """Return information about a GPU"""
-    infos = {
-        "DRIVER": "",
-        "PCI_ID": "",
-        "PCI_SUBSYS_ID": ""
-    }
+    infos = {"DRIVER": "", "PCI_ID": "", "PCI_SUBSYS_ID": ""}
     try:
         with open("/sys/class/drm/%s/device/uevent" % card) as card_uevent:
             content = card_uevent.readlines()
@@ -83,6 +83,7 @@ def is_amd():
     for card in get_gpus():
         if get_gpu_info(card)["DRIVER"] == "amdgpu":
             return True
+    return False
 
 
 def check_driver():
@@ -97,9 +98,7 @@ def check_driver():
             logger.info("GPU: %s", gpu_info.get("Model"))
     for card in get_gpus():
         # pylint: disable=logging-format-interpolation
-        logger.info(
-            "GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} driver".format(**get_gpu_info(card))
-        )
+        logger.info("GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} driver".format(**get_gpu_info(card)))
 
 
 def is_outdated():
