@@ -5,7 +5,7 @@ python:
 virtualenv:
   system_site_packages: true
 services:
-- xvfb
+  - xvfb
 addons:
   apt:
     packages:
@@ -16,10 +16,13 @@ before_install:
   - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
   - sleep 3 # Give xvfb some time to start
 install:
-  - pip install --upgrade pip pypresence~=3.3.2
+  - pip install --upgrade pip pypresence~=3.3.2 pipenv
   - sudo apt -qq update
   - sudo apt install -y python3-yaml python3-gi python3-pil python3-setproctitle python3-distro gir1.2-gtk-3.0 psmisc gir1.2-glib-2.0 libgirepository1.0-dev gir1.2-gnomedesktop-3.0 gir1.2-webkit2-4.0 gir1.2-notify-0.7
-script: nosetests
+  - pipenv install --dev
+script:
+  - make check
+  - nosetests
 
 # Cache the pip dependencies
 cache: pip
