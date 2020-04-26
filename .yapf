@@ -1,6 +1,6 @@
 [style]
 based_on_style = pep8
-column_limit = 100
+column_limit = 120
 
 align_closing_bracket_with_visual_indent = true
 blank_line_before_class_docstring = true

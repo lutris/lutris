@@ -11,7 +11,7 @@ indent_size = 4
 tab_width = 4
 charset = utf-8
 trim_trailing_whitespace = true
-max_line_length = 100
+max_line_length = 120
 
 [*.rst]
 tab_width = 4
