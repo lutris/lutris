@@ -21,7 +21,7 @@ install:
   - pip install --upgrade pip pypresence~=3.3.2 pipenv
   - sudo apt -qq update
   - sudo apt install -y python3-yaml python3-gi python3-pil python3-setproctitle python3-distro gir1.2-gtk-3.0 psmisc gir1.2-glib-2.0 libgirepository1.0-dev gir1.2-gnomedesktop-3.0 gir1.2-webkit2-4.0 gir1.2-notify-0.7
-  - pipenv install --dev
+  - pipenv install --dev --deploy --ignore-pipfile
 script:
   - make check
   - nosetests
