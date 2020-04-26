@@ -27,16 +27,15 @@ See: https://gitlab.gnome.org/GNOME/pygobject/merge_requests/52
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-from os.path import abspath, join
-
+# Standard Library
 import inspect
 import warnings
+from os.path import abspath, join
 
-from gi.repository import Gio
-from gi.repository import GLib
-from gi.repository import GObject
-from gi.repository import Gtk
+# Third Party Libraries
+from gi.repository import Gio, GLib, GObject, Gtk
 
+# Lutris Modules
 from lutris.gui.dialogs import ErrorDialog
 
 __all__ = ["GtkTemplate"]
@@ -52,7 +51,7 @@ def _connect_func(builder, obj, signal_name, handler_name, connect_object, flags
     if connect_object is None:
         extra = ()
     else:
-        extra = (connect_object,)
+        extra = (connect_object, )
 
     # The handler name refers to an attribute on the template instance,
     # so ask GtkBuilder for the template instance
@@ -61,8 +60,8 @@ def _connect_func(builder, obj, signal_name, handler_name, connect_object, flags
     if template_inst is None:  # This should never happen
         errmsg = (
             "Internal error: cannot find template instance! obj: %s; "
-            "signal: %s; handler: %s; connect_obj: %s; class: %s"
-            % (obj, signal_name, handler_name, connect_object, cls)
+            "signal: %s; handler: %s; connect_obj: %s; class: %s" %
+            (obj, signal_name, handler_name, connect_object, cls)
         )
         warnings.warn(errmsg, GtkTemplateWarning)
         return
@@ -84,9 +83,7 @@ def _register_template(cls, template_bytes):
     # we can't do that anyways due to PyGObject limitations so it's ok
 
     if not hasattr(cls, "set_template"):
-        ErrorDialog(
-            "Your Linux distribution is too old. Lutris won't function properly."
-        )
+        ErrorDialog("Your Linux distribution is too old. Lutris won't function properly.")
         raise TypeError("Requires PyGObject 3.13.2 or greater")
 
     cls.set_template(template_bytes)
@@ -125,10 +122,7 @@ def _init_template(self, cls, base_init_template):
     # TODO: could disallow using a metaclass.. but this is good enough
     # .. if you disagree, feel free to fix it and issue a PR :)
     if self.__class__ is not cls:
-        raise TypeError(
-            "Inheritance from classes with @GtkTemplate decorators "
-            "is not allowed at this time"
-        )
+        raise TypeError("Inheritance from classes with @GtkTemplate decorators " "is not allowed at this time")
 
     connected_signals = set()
     self.__connected_template_signals__ = connected_signals
@@ -148,20 +142,17 @@ def _init_template(self, cls, base_init_template):
             raise AttributeError(
                 "A missing child widget was set using "
                 "GtkTemplate.Child and the entire "
-                "template is now broken (widgets: %s)"
-                % ", ".join(self.__gtemplate_widgets__)
+                "template is now broken (widgets: %s)" % ", ".join(self.__gtemplate_widgets__)
             )
 
     for name in self.__gtemplate_methods__.difference(connected_signals):
-        errmsg = (
-            "Signal '%s' was declared with @GtkTemplate.Callback "
-            + "but was not present in template"
-        ) % name
+        errmsg = ("Signal '%s' was declared with @GtkTemplate.Callback " + "but was not present in template") % name
         warnings.warn(errmsg, GtkTemplateWarning)
 
 
 # TODO: Make it easier for IDE to introspect this
 class _Child:
+
     """
         Assign this to an attribute in your class definition and it will
         be replaced with a widget defined in the UI file when init_template
@@ -183,6 +174,7 @@ class _Child:
 
 
 class _GtkTemplate:
+
     """
         Use this class decorator to signify that a class is a composite
         widget which will receive widgets and connect to signals as
@@ -235,7 +227,7 @@ class _GtkTemplate:
             Decorator that designates a method to be attached to a signal from
             the template
         """
-        f._gtk_callback = True
+        f._gtk_callback = True  # pylint: disable=protected-access
         return f
 
     Child = _Child
@@ -253,7 +245,7 @@ class _GtkTemplate:
             TODO: Alternatively, could wait until first class instantiation
                   before registering templates? Would need a metaclass...
         """
-        _GtkTemplate.__ui_path__ = abspath(join(*path))
+        _GtkTemplate.__ui_path__ = abspath(join(*path))  # pylint: disable=no-value-for-parameter
 
     def __init__(self, ui):
         self.ui = ui
@@ -271,9 +263,7 @@ class _GtkTemplate:
         # - Prefer the resource path first
 
         try:
-            template_bytes = Gio.resources_lookup_data(
-                self.ui, Gio.ResourceLookupFlags.NONE
-            )
+            template_bytes = Gio.resources_lookup_data(self.ui, Gio.ResourceLookupFlags.NONE)
         except GLib.GError:
             ui = self.ui
             if isinstance(ui, (list, tuple)):

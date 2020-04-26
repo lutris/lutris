@@ -17,11 +17,12 @@
 #    Adrien Plazas <kekun.plazas@laposte.net>
 #    Mathieu Comandon <strider@strycore.com>
 
-import re
-import sqlite3
+# Standard Library
+import datetime
 import hashlib
 import os.path
-import datetime
+import re
+import sqlite3
 
 STANDARD_CODES = {
     "[a]": "Alternate",
@@ -45,6 +46,7 @@ STANDARD_CODES = {
 
 
 class TOSEC:
+
     """A class to ease the use of TOSEC data files as a SQLite database."""
 
     def __init__(self, directory):
@@ -87,14 +89,14 @@ class TOSEC:
         print("enter")
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, _type, value, traceback):
         print("exit")
         self.db.close()
 
     def __del__(self):
         self.db.close()
 
-    def parse_file(self, file, system):
+    def parse_file(self, file, system):  # pylint: disable=too-many-locals
         """Add a data file for the given system and update the database if
            this data file's version is newer than the previous one for the
            given system or simply add it if there was no database for this
@@ -112,9 +114,7 @@ class TOSEC:
 
         # Check the version actually in the database
         actual_version = None
-        for row in self.db.execute(
-            "SELECT version FROM systems WHERE id = ?", [system]
-        ):
+        for row in self.db.execute("SELECT version FROM systems WHERE id = ?", [system]):
             actual_version = row[0]
 
         # If the old version is more recent thab the new one, the new one
@@ -124,13 +124,9 @@ class TOSEC:
 
         # What if we have to update the version instead of adding it ?
         if actual_version:
-            self.db.execute(
-                "UPDATE systems SET version = ? WHERE id = ?", [new_version, system]
-            )
+            self.db.execute("UPDATE systems SET version = ? WHERE id = ?", [new_version, system])
         else:
-            self.db.execute(
-                "INSERT INTO systems (id, version) VALUES (?, ?)", [system, new_version]
-            )
+            self.db.execute("INSERT INTO systems (id, version) VALUES (?, ?)", [system, new_version])
 
         for game in games:
             rom = game["rom"]
@@ -141,7 +137,8 @@ class TOSEC:
             # Adding game
             game_info = [title, game_flags, system]
             rows = self.db.execute(
-                "SELECT id FROM games " "WHERE title = ? AND flags = ? AND system = ?",
+                "SELECT id FROM games "
+                "WHERE title = ? AND flags = ? AND system = ?",
                 game_info,
             )
             for row in rows:
@@ -197,9 +194,7 @@ class TOSEC:
         md5 = hashlib.md5(data).hexdigest()
         sha1 = hashlib.sha1(data).hexdigest()
 
-        rom_rows = self.db.execute(
-            "SELECT id FROM roms WHERE md5 = ? AND sha1 = ?", [md5, sha1]
-        )
+        rom_rows = self.db.execute("SELECT id FROM roms WHERE md5 = ? AND sha1 = ?", [md5, sha1])
         for row in rom_rows:
             return row[0]
         return None
@@ -225,7 +220,7 @@ def tosec_to_words(file):
     return result[1::2]
 
 
-def get_games_from_words(words):
+def get_games_from_words(words):  # pylint: disable=too-many-branches
     """Transform a list of words into a tuple containing the clrmamepro object
        and a list of the game objects both as nested dictionnaries having the
        same structure than the original TOSEC file.
@@ -287,9 +282,7 @@ def split_game_title(game):
     title = ""
     game_flags = ""
     rom_flags = ""
-    result = re.match(
-        r'''^"([^\(\)\[\]]+) .*?(\(?[^\[\]]*\)?)(\[?[^\(\)]*\]?)"''', game
-    )
+    result = re.match(r'''^"([^\(\)\[\]]+) .*?(\(?[^\[\]]*\)?)(\[?[^\(\)]*\]?)"''', game)
     if result:
         title = result.group(1)
         game_flags = result.group(2)

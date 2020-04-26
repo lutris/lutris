@@ -1,15 +1,18 @@
 """Internal settings."""
+# Standard Library
 import os
+
+# Third Party Libraries
 from gi.repository import GLib
-from lutris.util.settings import SettingsIO
+
+# Lutris Modules
 from lutris import __version__
+from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
 VERSION = __version__
 COPYRIGHT = "(c) 2010-2020 Lutris Gaming Platform"
-AUTHORS = [
-    "The Lutris team"
-]
+AUTHORS = ["The Lutris team"]
 
 # Paths
 CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "lutris")
