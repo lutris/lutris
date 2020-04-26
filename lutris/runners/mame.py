@@ -1,11 +1,13 @@
 """Runner for MAME"""
+# Standard Library
 import os
 import subprocess
+
+# Lutris Modules
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
-
 from lutris.util.mame.database import get_supported_systems
 
 
@@ -17,8 +19,8 @@ def get_system_choices(include_year=True):
         mame_inst = mame()
         mame_inst.write_xml_list()
     for system_id, info in sorted(
-            get_supported_systems(xml_path).items(),
-            key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"]),
+        get_supported_systems(xml_path).items(),
+        key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"]),
     ):
         if info["description"].startswith(info["manufacturer"]):
             template = ""
@@ -31,6 +33,7 @@ def get_system_choices(include_year=True):
 
 
 class mame(Runner):  # pylint: disable=invalid-name
+
     """MAME runner"""
 
     human_name = "MAME"
@@ -48,18 +51,19 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "file",
             "label": "ROM file",
             "default_path": "game_path",
-        },
-        {
+        }, {
             "option": "machine",
             "type": "choice_with_search",
             "label": "Machine",
             "choices": get_system_choices,
             "help": "The emulated machine."
-        },
-        {
-            "option": "device",
-            "type": "choice_with_entry",
-            "label": "Storage type",
+        }, {
+            "option":
+            "device",
+            "type":
+            "choice_with_entry",
+            "label":
+            "Storage type",
             "choices": [
                 ("Floppy disk", "flop"),
                 ("Floppy drive 1", "flop1"),
@@ -89,27 +93,18 @@ class mame(Runner):  # pylint: disable=invalid-name
                 ("Punch Tape 2", "ptap2"),
                 ("Print Out", "prin"),
             ],
-        },
-        {
+        }, {
             "option": "platform",
             "type": "choice",
             "label": "Platform",
-            "choices": (
-                ("Auto", ""),
-                ("Plug & Play TV games", "1"),
-                ("LCD handheld games", "2")
-            ),
-        },
-        {
+            "choices": (("Auto", ""), ("Plug & Play TV games", "1"), ("LCD handheld games", "2")),
+        }, {
             "option": "autoboot_command",
             "type": "string",
             "label": "Autoboot command",
-            "help": (
-                "Autotype this command when the system has started,"
-                "an enter keypress is automatically added."
-            ),
-        },
-        {
+            "help": ("Autotype this command when the system has started,"
+                     "an enter keypress is automatically added."),
+        }, {
             "option": "autoboot_delay",
             "type": "range",
             "label": "Delay before entering autoboot command",
@@ -120,9 +115,12 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     runner_options = [
         {
-            "option": "rompath",
-            "type": "directory_chooser",
-            "label": "ROM/BIOS path",
+            "option":
+            "rompath",
+            "type":
+            "directory_chooser",
+            "label":
+            "ROM/BIOS path",
             "help": (
                 "Choose the folder containing ROMs and BIOS files.\n"
                 "These files contain code from the original hardware "
@@ -152,17 +150,19 @@ class mame(Runner):  # pylint: disable=invalid-name
             "option": "waitvsync",
             "type": "bool",
             "label": "Wait for VSync",
-            "help": (
-                "Enable waiting for  the  start  of  VBLANK  before "
-                "flipping  screens; reduces tearing effects."
-            ),
+            "help":
+            ("Enable waiting for  the  start  of  VBLANK  before "
+             "flipping  screens; reduces tearing effects."),
             "advanced": True,
             "default": False,
         },
         {
-            "option": "uimodekey",
-            "type": "choice_with_entry",
-            "label": "Menu mode key",
+            "option":
+            "uimodekey",
+            "type":
+            "choice_with_entry",
+            "label":
+            "Menu mode key",
             "choices": [
                 ("Scroll Lock", "SCRLOCK"),
                 ("Num Lock", "NUMLOCK"),
@@ -175,12 +175,12 @@ class mame(Runner):  # pylint: disable=invalid-name
                 ("Right Super", "RWIN"),
                 ("Left Super", "LWIN"),
             ],
-            "default": "SCRLOCK",
-            "advanced": True,
-            "help": (
-                "Key to switch between Full Keyboard Mode and "
-                "Partial Keyboard Mode (default: Scroll Lock)"
-            ),
+            "default":
+            "SCRLOCK",
+            "advanced":
+            True,
+            "help": ("Key to switch between Full Keyboard Mode and "
+                     "Partial Keyboard Mode (default: Scroll Lock)"),
         },
     ]
 
@@ -202,9 +202,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         if selected_platform:
             return self.platforms[int(selected_platform)]
         if self.game_config.get("machine"):
-            machine_mapping = {
-                choice[1]: choice[0] for choice in get_system_choices(include_year=False)
-            }
+            machine_mapping = {choice[1]: choice[0] for choice in get_system_choices(include_year=False)}
             return machine_mapping[self.game_config["machine"]]
         rom_file = os.path.basename(self.game_config.get("main_file", ""))
         if rom_file.startswith("gnw_"):

@@ -1,20 +1,24 @@
 """Base module for runners"""
+# Standard Library
 import os
 
+# Third Party Libraries
 from gi.repository import Gtk
 
-from lutris import pga, settings, runtime
+# Lutris Modules
+from lutris import pga, runtime, settings
+from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.gui import dialogs
-from lutris.command import MonitoredCommand
-from lutris.util.extract import extract_archive, ExtractFailure
-from lutris.util.log import logger
-from lutris.util import system
-from lutris.util.http import Request
 from lutris.runners import RunnerInstallationError
+from lutris.util import system
+from lutris.util.extract import ExtractFailure, extract_archive
+from lutris.util.http import Request
+from lutris.util.log import logger
 
 
-class Runner:
+class Runner:  # pylint: disable=too-many-public-methods
+
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
@@ -34,9 +38,7 @@ class Runner:
         self.config = config
         self.game_data = {}
         if config:
-            self.game_data = pga.get_game_by_field(
-                self.config.game_config_id, "configpath"
-            )
+            self.game_data = pga.get_game_by_field(self.config.game_config_id, "configpath")
 
     def __lt__(self, other):
         return self.name < other.name
@@ -179,9 +181,7 @@ class Runner:
             ld_library_path = env.get("LD_LIBRARY_PATH")
             if not ld_library_path:
                 ld_library_path = "$LD_LIBRARY_PATH"
-            env["LD_LIBRARY_PATH"] = ":".join(
-                [runtime_ld_library_path, ld_library_path]
-            )
+            env["LD_LIBRARY_PATH"] = ":".join([runtime_ld_library_path, ld_library_path])
 
         return env
 
@@ -195,9 +195,7 @@ class Runner:
             dict
 
         """
-        return runtime.get_env(
-            prefer_system_libs=self.system_config.get("prefer_system_libs", True)
-        )
+        return runtime.get_env(prefer_system_libs=self.system_config.get("prefer_system_libs", True))
 
     def prelaunch(self):
         """Run actions before running the game, override this method in runners"""
@@ -211,10 +209,7 @@ class Runner:
         """Return dict with command (exe & args list) and env vars (dict).
 
         Reimplement in derived runner if need be."""
-        return {
-            "command": [self.get_executable()],
-            "env": self.get_env()
-        }
+        return {"command": [self.get_executable()], "env": self.get_env()}
 
     def run(self, *args):
         """Run the runner alone."""
@@ -251,10 +246,8 @@ class Runner:
         """
         dialog = dialogs.QuestionDialog(
             {
-                "question": (
-                    "The required runner is not installed.\n"
-                    "Do you wish to install it now?"
-                ),
+                "question": ("The required runner is not installed.\n"
+                             "Do you wish to install it now?"),
                 "title": "Required runner unavailable",
             }
         )
@@ -264,8 +257,7 @@ class Runner:
             from lutris.gui.dialogs import ErrorDialog
             try:
                 if hasattr(self, "get_version"):
-                    self.install(downloader=simple_downloader,
-                                 version=self.get_version(use_default=False))
+                    self.install(downloader=simple_downloader, version=self.get_version(use_default=False))
                 else:
                     self.install(downloader=simple_downloader)
             except RunnerInstallationError as ex:
@@ -333,23 +325,14 @@ class Runner:
         )
         runner = self.get_runner_version(version)
         if not runner:
-            raise RunnerInstallationError(
-                "Failed to retrieve {} ({}) information".format(
-                    self.name, version
-                )
-            )
+            raise RunnerInstallationError("Failed to retrieve {} ({}) information".format(self.name, version))
         if not downloader:
             raise RuntimeError("Missing mandatory downloader for runner %s" % self)
-        opts = {
-            "downloader": downloader,
-            "callback": callback
-        }
+        opts = {"downloader": downloader, "callback": callback}
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(
-                settings.RUNNER_DIR,
-                self.name,
-                "{}-{}".format(runner["version"], runner["architecture"])
+                settings.RUNNER_DIR, self.name, "{}-{}".format(runner["version"], runner["architecture"])
             )
 
         if self.name == "libretro" and version:
@@ -365,12 +348,14 @@ class Runner:
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
         if not dest:
             dest = settings.RUNNER_DIR
-        downloader(url, runner_archive, self.extract, {
-            "archive": runner_archive,
-            "dest": dest,
-            "merge_single": merge_single,
-            "callback": callback,
-        })
+        downloader(
+            url, runner_archive, self.extract, {
+                "archive": runner_archive,
+                "dest": dest,
+                "merge_single": merge_single,
+                "callback": callback,
+            }
+        )
 
     def extract(self, archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):

@@ -1,3 +1,4 @@
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -7,23 +8,19 @@ class ppsspp(Runner):
     description = "Sony PSP emulator"
     platforms = ["Sony PlayStation Portable"]
     runner_executable = "ppsspp/PPSSPPSDL"
-    game_options = [
-        {
-            "option": "main_file",
-            "type": "file",
-            "label": "ISO file",
-            "default_path": "game_path",
-        }
-    ]
+    game_options = [{
+        "option": "main_file",
+        "type": "file",
+        "label": "ISO file",
+        "default_path": "game_path",
+    }]
 
-    runner_options = [
-        {
-            "option": "fullscreen",
-            "type": "bool",
-            "label": "Fullscreen",
-            "default": False,
-        }
-    ]
+    runner_options = [{
+        "option": "fullscreen",
+        "type": "bool",
+        "label": "Fullscreen",
+        "default": False,
+    }]
 
     def play(self):
         arguments = [self.get_executable()]

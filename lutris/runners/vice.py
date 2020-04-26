@@ -1,8 +1,11 @@
+# Standard Library
 import os
+
+# Lutris Modules
 from lutris import settings
+from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.runners.runner import Runner
 
 
 class vice(Runner):
@@ -26,9 +29,12 @@ class vice(Runner):
     ]
     game_options = [
         {
-            "option": "main_file",
-            "type": "file",
-            "label": "ROM file",
+            "option":
+            "main_file",
+            "type":
+            "file",
+            "label":
+            "ROM file",
             "help": (
                 "The game data, commonly called a ROM image.\n"
                 "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
@@ -38,7 +44,12 @@ class vice(Runner):
     ]
 
     runner_options = [
-        {"option": "joy", "type": "bool", "label": "Use joysticks", "default": False},
+        {
+            "option": "joy",
+            "type": "bool",
+            "label": "Use joysticks",
+            "default": False
+        },
         {
             "option": "fullscreen",
             "type": "bool",
@@ -105,6 +116,7 @@ class vice(Runner):
         return os.path.join(settings.RUNNER_DIR, "vice/bin/%s" % executable)
 
     def install(self, version=None, downloader=None, callback=None):
+
         def on_runner_installed(*args):
             config_path = system.create_folder("~/.vice")
             lib_dir = os.path.join(settings.RUNNER_DIR, "vice/lib/vice")

@@ -1,17 +1,19 @@
 """Steam for Linux runner"""
+# Standard Library
 import os
-import time
 import subprocess
+import time
 
+# Lutris Modules
+from lutris.command import MonitoredCommand
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
-from lutris.command import MonitoredCommand
-from lutris.util.log import logger
 from lutris.util import system
-from lutris.util.strings import split_arguments
+from lutris.util.log import logger
+from lutris.util.steam.appmanifest import get_path_from_appmanifest
 from lutris.util.steam.config import get_default_acf, read_config
 from lutris.util.steam.vdf import to_vdf
-from lutris.util.steam.appmanifest import get_path_from_appmanifest
+from lutris.util.strings import split_arguments
 
 
 def shutdown():
@@ -43,9 +45,12 @@ class steam(Runner):
     runner_executable = "steam"
     game_options = [
         {
-            "option": "appid",
-            "label": "Application ID",
-            "type": "string",
+            "option":
+            "appid",
+            "label":
+            "Application ID",
+            "type":
+            "string",
             "help": (
                 "The application ID can be retrieved from the game's "
                 "page at steampowered.com. Example: 235320 is the "
@@ -54,9 +59,12 @@ class steam(Runner):
             ),
         },
         {
-            "option": "args",
-            "type": "string",
-            "label": "Arguments",
+            "option":
+            "args",
+            "type":
+            "string",
+            "label":
+            "Arguments",
             "help": (
                 "Command line arguments used when launching the game.\n"
                 "Ignored when Steam Big Picture mode is enabled."
@@ -68,9 +76,7 @@ class steam(Runner):
             "type": "bool",
             "default": False,
             "advanced": True,
-            "help": (
-                "Run the game directly without Steam, requires the game binary path to be set"
-            ),
+            "help": ("Run the game directly without Steam, requires the game binary path to be set"),
         },
         {
             "option": "steamless_binary",
@@ -86,16 +92,18 @@ class steam(Runner):
             "label": "Stop Steam after game exits",
             "type": "bool",
             "default": False,
-            "help": (
-                "Shut down Steam after the game has quit\n"
-                "(only if Steam was started by Lutris)"
-            ),
+            "help": ("Shut down Steam after the game has quit\n"
+                     "(only if Steam was started by Lutris)"),
         },
         {
-            "option": "start_in_big_picture",
-            "label": "Start Steam in Big Picture mode",
-            "type": "bool",
-            "default": False,
+            "option":
+            "start_in_big_picture",
+            "label":
+            "Start Steam in Big Picture mode",
+            "type":
+            "bool",
+            "default":
+            False,
             "help": (
                 "Launches Steam in Big Picture mode.\n"
                 "Only works if Steam is not running or "
@@ -104,10 +112,14 @@ class steam(Runner):
             ),
         },
         {
-            "option": "steam_native_runtime",
-            "label": "Disable Steam Runtime (use native libraries)",
-            "type": "bool",
-            "default": False,
+            "option":
+            "steam_native_runtime",
+            "label":
+            "Disable Steam Runtime (use native libraries)",
+            "type":
+            "bool",
+            "default":
+            False,
             "help": (
                 "Launches Steam with STEAM_RUNTIME=0. "
                 "Make sure you disabled Lutris Runtime and "
@@ -115,10 +127,14 @@ class steam(Runner):
             ),
         },
         {
-            "option": "lsi_steam",
-            "label": "Start Steam with LSI",
-            "type": "bool",
-            "default": False,
+            "option":
+            "lsi_steam",
+            "label":
+            "Start Steam with LSI",
+            "type":
+            "bool",
+            "default":
+            False,
             "help": (
                 "Launches steam with LSI patches enabled. "
                 "Make sure Lutris Runtime is disabled and "
@@ -131,7 +147,8 @@ class steam(Runner):
             "type": "string",
             "label": "Arguments",
             "advanced": True,
-            "help": ("Extra command line arguments used when " "launching Steam"),
+            "help": ("Extra command line arguments used when "
+                     "launching Steam"),
         },
     ]
     system_options_override = [{"option": "disable_runtime", "default": True}]
@@ -182,11 +199,9 @@ class steam(Runner):
             "~/.var/app/com.valvesoftware.Steam/data/steam",
         )
         for candidate in candidates:
-            path = system.fix_path_case(
-                os.path.join(os.path.expanduser(candidate), "SteamApps")
-            )
+            path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "SteamApps"))
             if path:
-                return path[: -len("SteamApps")]
+                return path[:-len("SteamApps")]
 
     def get_executable(self):
         if system.LINUX_SYSTEM.is_flatpak:
@@ -221,9 +236,7 @@ class steam(Runner):
     def get_env(self):
         env = super(steam, self).get_env()
 
-        if not self.runner_config.get("lsi_steam") and self.runner_config.get(
-            "steam_native_runtime"
-        ):
+        if not self.runner_config.get("lsi_steam") and self.runner_config.get("steam_native_runtime"):
             env["STEAM_RUNTIME"] = "0"
 
         return env
@@ -291,6 +304,7 @@ class steam(Runner):
         subprocess.Popen(command)
 
     def prelaunch(self):
+
         def has_steam_shutdown(times=10):
             for _ in range(times):
                 time.sleep(1)
