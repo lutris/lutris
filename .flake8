@@ -5,6 +5,6 @@ ignore =
     W503,       # line break before binary operator
     E402,       # module level import not at top of file (gtk stuff)
 max-line-length = 120
-exclude = .venv,venv,.env,env
+exclude = .venv,venv,.env,env,lutris/game.py
 max-complexity = 15
 accept-encodings = utf-8
