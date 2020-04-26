@@ -1,15 +1,19 @@
 """Window for importing games from third party services"""
+# Third Party Libraries
 from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
-from lutris.gui.widgets.utils import get_icon, get_pixbuf, get_main_window
+
+# Lutris Modules
 from lutris.gui.widgets.notifications import send_notification
+from lutris.gui.widgets.utils import get_icon, get_main_window, get_pixbuf
 from lutris.services import get_services
 from lutris.settings import read_setting, write_setting
-from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
 
 
 class ServiceSyncBox(Gtk.Box):
+
     """Display components to import games from a service"""
 
     COL_SELECTED = 0
@@ -33,6 +37,8 @@ class ServiceSyncBox(Gtk.Box):
         self.store = None
         self.num_selected = 0
         self.games_loaded = False
+        self.current_filter = None
+        self.store_filter = None
 
         title_box = Gtk.Box(spacing=6)
         label = Gtk.Label()
@@ -46,9 +52,7 @@ class ServiceSyncBox(Gtk.Box):
             self.refresh_button = Gtk.Button()
             self.refresh_button.connect("clicked", self.on_refresh_clicked)
             self.refresh_button.set_tooltip_text("Reload")
-            self.refresh_button.set_image(
-                Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.MENU)
-            )
+            self.refresh_button.set_image(Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.MENU))
             title_box.add(self.refresh_button)
             title_box.add(self.connect_button)
 
@@ -63,9 +67,7 @@ class ServiceSyncBox(Gtk.Box):
         self.import_button = Gtk.Button("Import games")
         self.import_button.set_sensitive(False)
         self.import_button.set_tooltip_text("Sync now")
-        self.import_button.connect(
-            "clicked", self.on_sync_button_clicked, service.SYNCER.sync
-        )
+        self.import_button.connect("clicked", self.on_sync_button_clicked, service.SYNCER.sync)
         actions.pack_start(self.import_button, False, False, 0)
 
         self.sync_switch = Gtk.Switch()
@@ -79,7 +81,7 @@ class ServiceSyncBox(Gtk.Box):
         actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 0)
 
         if self.service.ONLINE:
-            AsyncCall(self._connect_button_toggle)
+            AsyncCall(self._connect_button_toggle, None)
 
     def get_content_widget(self):
         center_alignment = Gtk.Alignment()
@@ -87,9 +89,7 @@ class ServiceSyncBox(Gtk.Box):
         if self.service.ONLINE and not self.is_connecting:
             service_logo = self.get_icon(size=(64, 64))
 
-            service_label = Gtk.Label(
-                "Connect to %s to import your library." % self.name
-            )
+            service_label = Gtk.Label("Connect to %s to import your library." % self.name)
             service_label.set_justify(Gtk.Justification.CENTER)
 
             service_button = Gtk.Button("Connect your account")
@@ -153,17 +153,13 @@ class ServiceSyncBox(Gtk.Box):
         self.connect_button.set_tooltip_text(label)
         self.connect_button.set_image(Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU))
 
-    def on_sync_button_clicked(self, _button, sync_with_lutris_method):
+    def on_sync_button_clicked(self, _button, sync_with_lutris_method):  # pylint: disable=unused-argument
         """Called when the sync button is clicked.
 
         Launches the import of selected games
         """
         syncer = self.service.SYNCER()
-        AsyncCall(
-            syncer.sync,
-            self.on_service_synced,
-            self.get_imported_games()
-        )
+        AsyncCall(syncer.sync, self.on_service_synced, self.get_imported_games())
 
     def on_service_synced(self, sync_results, _extra):
         """Called when games are imported"""
@@ -175,17 +171,13 @@ class ServiceSyncBox(Gtk.Box):
 
         skipped_import = len(original_games) - len(added_games)
         if added_games:
-            added_message = "%s game%s imported. " % (
-                len(added_games),
-                "s were" if len(added_games) > 1 else " was"
-            )
+            added_message = "%s game%s imported. " % (len(added_games), "s were" if len(added_games) > 1 else " was")
         else:
             added_message = "No games were added. "
 
         if skipped_import:
             skipped_message = "%s game%s already in the library" % (
-                skipped_import,
-                "s are" if skipped_import > 1 else " is"
+                skipped_import, "s are" if skipped_import > 1 else " is"
             )
         else:
             skipped_message = ""
@@ -332,6 +324,7 @@ class ServiceSyncBox(Gtk.Box):
 
 
 class SyncServiceWindow(Gtk.ApplicationWindow):
+
     def __init__(self, application):
         super().__init__(title="Import games", application=application)
         self.set_default_icon_name("lutris")

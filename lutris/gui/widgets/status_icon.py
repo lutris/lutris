@@ -1,18 +1,23 @@
 """AppIndicator based tray icon"""
+# Third Party Libraries
 import gi
 from gi.repository import Gtk
+
+# Lutris Modules
+from lutris import pga
+from lutris.game import Game
+from lutris.gui.widgets.utils import get_pixbuf_for_game
+
 try:
     gi.require_version('AppIndicator3', '0.1')
     from gi.repository import AppIndicator3 as AppIndicator
     APP_INDICATOR_SUPPORTED = True
 except (ImportError, ValueError):
     APP_INDICATOR_SUPPORTED = False
-from lutris import pga
-from lutris.game import Game
-from lutris.gui.widgets.utils import get_pixbuf_for_game
 
 
 class LutrisStatusIcon:
+
     def __init__(self, application):
         self.application = application
         self.icon = self.create()
@@ -27,9 +32,9 @@ class LutrisStatusIcon:
     def create(self):
         """Create an appindicator"""
         if APP_INDICATOR_SUPPORTED:
-            return AppIndicator.Indicator.new("net.lutris.Lutris",
-                                              "lutris",
-                                              AppIndicator.IndicatorCategory.APPLICATION_STATUS)
+            return AppIndicator.Indicator.new(
+                "net.lutris.Lutris", "lutris", AppIndicator.IndicatorCategory.APPLICATION_STATUS
+            )
         return LutrisTray(self.application)
 
     def is_visible(self):
@@ -100,6 +105,7 @@ class LutrisStatusIcon:
 
 
 class LutrisTray(Gtk.StatusIcon):
+
     """Lutris tray icon"""
 
     def __init__(self, application, **_kwargs):

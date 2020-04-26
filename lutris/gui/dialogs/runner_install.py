@@ -1,14 +1,18 @@
 """Dialog used to install versions of a runner"""
+# Standard Library
 # pylint: disable=no-member
 import os
 import random
 from collections import defaultdict
 
+# Third Party Libraries
 from gi.repository import GLib, Gtk
-from lutris.pga import get_games_by_runner
-from lutris.game import Game
+
+# Lutris Modules
 from lutris import api, settings
+from lutris.game import Game
 from lutris.gui.dialogs import Dialog, ErrorDialog, QuestionDialog
+from lutris.pga import get_games_by_runner
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -16,6 +20,7 @@ from lutris.util.log import logger
 
 
 class RunnerInstallDialog(Dialog):
+
     """Dialog displaying available runner version and downloads them"""
     COL_VER = 0
     COL_ARCH = 1
@@ -53,9 +58,7 @@ class RunnerInstallDialog(Dialog):
 
         self.runner_info = runner_info
         if not self.runner_info:
-            ErrorDialog(
-                "Unable to get runner versions. Check your internet connection."
-            )
+            ErrorDialog("Unable to get runner versions. Check your internet connection.")
             return
 
         for child_widget in self.vbox.get_children():
@@ -134,29 +137,21 @@ class RunnerInstallDialog(Dialog):
         """Return a ListStore populated with the runner versions"""
         version_usage = self.get_usage_stats()
         for version_info in reversed(self.runner_info["versions"]):
-            is_installed = os.path.exists(
-                self.get_runner_path(version_info["version"], version_info["architecture"])
-            )
+            is_installed = os.path.exists(self.get_runner_path(version_info["version"], version_info["architecture"]))
             games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
             usage_summary = "In use by %d game%s" % (
                 len(games_using), "s" if len(games_using) > 1 else ""
             ) if games_using else "Not in use"
             self.runner_store.append(
                 [
-                    version_info["version"],
-                    version_info["architecture"],
-                    version_info["url"],
-                    is_installed,
-                    0,
+                    version_info["version"], version_info["architecture"], version_info["url"], is_installed, 0,
                     usage_summary if is_installed else ""
                 ]
             )
 
     def get_runner_path(self, version, arch):
         """Return the local path where the runner is/will be installed"""
-        return os.path.join(
-            settings.RUNNER_DIR, self.runner, "{}-{}".format(version, arch)
-        )
+        return os.path.join(settings.RUNNER_DIR, self.runner, "{}-{}".format(version, arch))
 
     def get_dest_path(self, row):
         """Return temporary path where the runners should be downloaded to"""

@@ -1,17 +1,18 @@
 """Misc widgets used in the GUI."""
+# Standard Library
 import os
 
-from gi.repository import Gtk, GObject, Pango
+# Third Party Libraries
+from gi.repository import GObject, Gtk, Pango
 
-from lutris.util.log import logger
+# Lutris Modules
+from lutris.gui.widgets.utils import get_stock_icon
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.gui.widgets.utils import get_stock_icon
+from lutris.util.log import logger
 
 
 class SlugEntry(Gtk.Entry, Gtk.Editable):
-    def __init__(self):
-        super(SlugEntry, self).__init__()
 
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept alphanumeric and dashes"""
@@ -22,8 +23,6 @@ class SlugEntry(Gtk.Entry, Gtk.Editable):
 
 
 class NumberEntry(Gtk.Entry, Gtk.Editable):
-    def __init__(self):
-        super(NumberEntry, self).__init__()
 
     def do_insert_text(self, new_text, length, position):
         """Filter inserted characters to only accept numbers"""
@@ -35,24 +34,21 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
 
 
 class FileChooserEntry(Gtk.Box):
+
     """Editable entry with a file picker button"""
 
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
 
     def __init__(
-            self,
-            title="Select file",
-            action=Gtk.FileChooserAction.OPEN,
-            path=None,
-            default_path=None,
-            warn_if_non_empty=False,
-            warn_if_ntfs=False
+        self,
+        title="Select file",
+        action=Gtk.FileChooserAction.OPEN,
+        path=None,
+        default_path=None,
+        warn_if_non_empty=False,
+        warn_if_ntfs=False
     ):
-        super().__init__(
-            orientation=Gtk.Orientation.VERTICAL,
-            spacing=12,
-            visible=True
-        )
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12, visible=True)
         self.title = title
         self.action = action
         self.path = os.path.expanduser(path) if path else None
@@ -94,13 +90,8 @@ class FileChooserEntry(Gtk.Box):
 
     def get_filechooser_dialog(self):
         """Return an instance of a FileChooserDialog configured for this widget"""
-        dialog = Gtk.FileChooserDialog(
-            title=self.title, transient_for=None, action=self.action
-        )
-        dialog.add_buttons(
-            "_Cancel", Gtk.ResponseType.CLOSE,
-            "_OK", Gtk.ResponseType.OK
-        )
+        dialog = Gtk.FileChooserDialog(title=self.title, transient_for=None, action=self.action)
+        dialog.add_buttons("_Cancel", Gtk.ResponseType.CLOSE, "_OK", Gtk.ResponseType.OK)
         dialog.set_create_folders(True)
         dialog.set_current_folder(self.get_default_folder())
         dialog.connect("response", self.on_select_file)
@@ -196,6 +187,7 @@ class FileChooserEntry(Gtk.Box):
 
 
 class Label(Gtk.Label):
+
     """Standardised label for config vboxes."""
 
     def __init__(self, message=None):
@@ -210,7 +202,9 @@ class Label(Gtk.Label):
 
 
 class InstallerLabel(Gtk.Label):
+
     """Label for installer window"""
+
     def __init__(self, message=None):
         super().__init__(label=message)
         self.set_max_width_chars(80)
@@ -221,6 +215,7 @@ class InstallerLabel(Gtk.Label):
 
 
 class VBox(Gtk.Box):
+
     def __init__(self, **kwargs):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=18, **kwargs)
 
@@ -272,25 +267,25 @@ class EditableGrid(Gtk.Grid):
             self.attach_next_to(button, self.buttons[i], Gtk.PositionType.RIGHT, 1, 1)
         self.show_all()
 
-    def on_add(self, widget):
+    def on_add(self, widget):  # pylint: disable=unused-argument
         self.liststore.append(["", ""])
         row_position = len(self.liststore) - 1
         self.treeview.set_cursor(row_position, None, False)
         self.treeview.scroll_to_cell(row_position, None, False, 0.0, 0.0)
         self.emit("changed")
 
-    def on_delete(self, widget):
+    def on_delete(self, widget):  # pylint: disable=unused-argument
         selection = self.treeview.get_selection()
-        liststore, iter = selection.get_selected()
-        self.liststore.remove(iter)
+        _, iteration = selection.get_selected()
+        self.liststore.remove(iteration)
         self.emit("changed")
 
-    def on_text_edited(self, widget, path, text, field):
-        self.liststore[path][field] = text.strip()
+    def on_text_edited(self, widget, path, text, field):  # pylint: disable=unused-argument
+        self.liststore[path][field] = text.strip()  # pylint: disable=unsubscriptable-object
         self.emit("changed")
 
-    def get_data(self):
+    def get_data(self):  # pylint: disable=arguments-differ
         model_data = []
-        for row in self.liststore:
-            model_data.append([col for col in row])
+        for row in self.liststore:  # pylint: disable=not-an-iterable
+            model_data.append(row)
         return model_data
