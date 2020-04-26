@@ -1,20 +1,20 @@
 """Module for handling the GOG service"""
+# Standard Library
+import json
 import os
 import time
-import json
-from urllib.parse import urlencode, urlparse, parse_qsl
-from lutris import settings
-from lutris import pga
-from lutris import api
+from urllib.parse import parse_qsl, urlencode, urlparse
+
+# Lutris Modules
+from lutris import api, pga, settings
+from lutris.gui.dialogs import WebConnectDialog
 from lutris.services import AuthenticationError, UnavailableGame
-from lutris.util.http import Request, HTTPError
+from lutris.services.base import OnlineService
+from lutris.services.service_game import ServiceGame
 from lutris.util import system
+from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.resources import download_media
-from lutris.gui.dialogs import WebConnectDialog
-from lutris.services.service_game import ServiceGame
-from lutris.services.base import OnlineService
-
 
 NAME = "GOG"
 ICON = "gog"
@@ -22,11 +22,13 @@ ONLINE = True
 
 
 class MultipleInstallerError(BaseException):
+
     """Current implementation doesn't know how to deal with multiple installers
     Raise this if a game returns more than 1 installer."""
 
 
 class GogService(OnlineService):
+
     """Service class for GOG"""
 
     name = "GOG"
@@ -215,11 +217,7 @@ class GogService(OnlineService):
             return []
 
         # Filter out Mac installers
-        gog_installers = [
-            installer
-            for installer in gog_data["downloads"]["installers"]
-            if installer["os"] != "mac"
-        ]
+        gog_installers = [installer for installer in gog_data["downloads"]["installers"] if installer["os"] != "mac"]
         available_platforms = {installer["os"] for installer in gog_installers}
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
@@ -227,23 +225,16 @@ class GogService(OnlineService):
                 filter_os = "windows"
             else:
                 filter_os = "linux"
-            gog_installers = [
-                installer
-                for installer in gog_installers
-                if installer["os"] != filter_os
-            ]
+            gog_installers = [installer for installer in gog_installers if installer["os"] != filter_os]
 
         # Keep only the english installer until we have locale detection
         # and / or language selection implemented
-        gog_installers = [
-            installer
-            for installer in gog_installers
-            if installer["language"] == language
-        ]
+        gog_installers = [installer for installer in gog_installers if installer["language"] == language]
         return gog_installers
 
 
 class GOGGame(ServiceGame):
+
     """Representation of a GOG game"""
     store = "gog"
 
@@ -318,23 +309,18 @@ def get_gog_download_links(gogid, runner):
         for field in ('checksum', 'downlink'):
             url = download_info[field]
             logger.info("Adding %s to download links", url)
-            download_links.append({
-                "url": download_info[field],
-                "filename": download_info[field + "_filename"]
-            })
+            download_links.append({"url": download_info[field], "filename": download_info[field + "_filename"]})
     return download_links
 
 
 class GOGSyncer:
+
     """Sync GOG games to Lutris"""
 
     @classmethod
     def load(cls):
         """Load the user game library from the GOG API"""
-        return [
-            GOGGame.new_from_gog_game(game)
-            for game in SERVICE.get_library()
-        ]
+        return [GOGGame.new_from_gog_game(game) for game in SERVICE.get_library()]
 
     @classmethod
     def sync(cls, games, full=False):
@@ -350,9 +336,7 @@ class GOGSyncer:
                 "slug": game["slug"],
                 "year": game["year"],
                 "updated": game["updated"],
-                "gogid": game.get(
-                    "gogid"
-                ),  # GOG IDs will be added at a later stage in the API
+                "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
             }
             added_games.append(pga.add_or_update(**game_data))
         if not full:
