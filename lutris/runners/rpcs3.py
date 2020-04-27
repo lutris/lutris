@@ -17,14 +17,7 @@ class rpcs3(Runner):
             "label": "Path to EBOOT.BIN",
         }
     ]
-    runner_options = [
-        {
-            "option": "nogui",
-            "type": "bool",
-            "label": "No GUI",
-            "default": False
-        }
-    ]
+    runner_options = [{"option": "nogui", "type": "bool", "label": "No GUI", "default": False}]
 
     # RPCS3 currently uses an AppImage, no need for the runtime.
     system_options_override = [{"option": "disable_runtime", "default": True}]
