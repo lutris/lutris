@@ -43,7 +43,9 @@ class atari800(Runner):
     @staticmethod
     def get_resolutions():
         try:
-            screen_resolutions = [(resolution, resolution) for resolution in display.get_resolutions()]
+            screen_resolutions = [
+                (resolution, resolution) for resolution in display.DISPLAY_MANAGER.get_resolutions()
+            ]
         except OSError:
             screen_resolutions = []
         screen_resolutions.insert(0, ("Desktop resolution", "desktop"))
