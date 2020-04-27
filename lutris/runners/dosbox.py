@@ -1,7 +1,9 @@
 # Standard Library
 import os
+import shlex
 
-# Lutris Modules
+from lutris.runners.runner import Runner
+
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -45,8 +47,8 @@ class dosbox(Runner):
             "option": "args",
             "type": "string",
             "label": "Command arguments",
-            "help": ("Command line arguments used when launching "
-                     "DOSBox"),
+            "help": "Command line arguments used when launching DOSBox",
+            "validator": shlex.split,
         },
         {
             "option":
@@ -140,7 +142,7 @@ class dosbox(Runner):
         main_file = self.main_file
         if not system.path_exists(main_file):
             return {"error": "FILE_NOT_FOUND", "file": main_file}
-        args = self.game_config.get("args") or ""
+        args = shlex.split(self.game_config.get("args")) or []
 
         command = [self.get_executable()]
 
@@ -166,6 +168,6 @@ class dosbox(Runner):
             command.append("-exit")
 
         if args:
-            command.append(args)
+            command.extend(args)
 
         return {"command": command}
