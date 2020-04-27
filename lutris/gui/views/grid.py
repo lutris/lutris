@@ -1,13 +1,13 @@
 """Grid view for the main window"""
+# Third Party Libraries
 # pylint: disable=no-member
 from gi.repository import Gtk
+
+# Lutris Modules
+from lutris.gui.views import COL_ICON, COL_NAME
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
 from lutris.gui.widgets.utils import BANNER_SIZE, BANNER_SMALL_SIZE
-from lutris.gui.views import (
-    COL_NAME,
-    COL_ICON,
-)
 
 
 class GameGridView(Gtk.IconView, GameView):
@@ -21,9 +21,7 @@ class GameGridView(Gtk.IconView, GameView):
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
         self.set_item_padding(1)
-        self.cell_width = (
-            BANNER_SIZE[0] if store.icon_type == "banner" else BANNER_SMALL_SIZE[0]
-        )
+        self.cell_width = (BANNER_SIZE[0] if store.icon_type == "banner" else BANNER_SMALL_SIZE[0])
         self.cell_renderer = GridViewCellRendererText(self.cell_width)
         self.pack_end(self.cell_renderer, False)
         self.add_attribute(self.cell_renderer, "markup", COL_NAME)

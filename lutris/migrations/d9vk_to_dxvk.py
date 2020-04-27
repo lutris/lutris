@@ -1,5 +1,6 @@
-from lutris.pga import get_games
+# Lutris Modules
 from lutris.game import Game
+from lutris.pga import get_games
 
 
 def migrate():

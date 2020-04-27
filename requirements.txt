@@ -1,0 +1,35 @@
+################################################################################
+# This requirements file has been automatically generated from `Pipfile` with
+# `pipenv-to-requirements`
+#
+#
+# This has been done to maintain backward compatibility with tools and services
+# that do not support `Pipfile` yet.
+#
+# Do NOT edit it directly, use `pipenv install [-d]` to modify `Pipfile` and
+# `Pipfile.lock` and then regenerate `requirements*.txt`.
+################################################################################
+
+astroid==2.3.3
+certifi==2020.4.5.1
+cffi==1.14.0
+chardet==3.0.4
+cryptography==2.9.2
+dbus-python==1.2.16
+entrypoints==0.3
+evdev==1.3.0
+idna==2.9
+jeepney==0.4.3 ; sys_platform == 'linux'
+keyring==21.2.0
+lazy-object-proxy==1.4.3
+mccabe==0.6.1
+pycairo==1.19.1
+pycparser==2.20
+pyflakes==2.2.0
+pygobject==3.36.0
+pyyaml==5.3.1
+requests==2.23.0
+secretstorage==3.1.2 ; sys_platform == 'linux'
+six==1.14.0
+urllib3==1.25.9
+wrapt==1.11.2

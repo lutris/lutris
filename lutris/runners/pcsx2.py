@@ -1,3 +1,4 @@
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -8,14 +9,12 @@ class pcsx2(Runner):
     platforms = ["Sony PlayStation 2"]
     runnable_alone = True
     runner_executable = "pcsx2/PCSX2"
-    game_options = [
-        {
-            "option": "main_file",
-            "type": "file",
-            "label": "ISO file",
-            "default_path": "game_path",
-        }
-    ]
+    game_options = [{
+        "option": "main_file",
+        "type": "file",
+        "label": "ISO file",
+        "default_path": "game_path",
+    }]
 
     runner_options = [
         {
@@ -24,8 +23,18 @@ class pcsx2(Runner):
             "label": "Fullscreen",
             "default": False,
         },
-        {"option": "full_boot", "type": "bool", "label": "Fullboot", "default": False},
-        {"option": "nogui", "type": "bool", "label": "No GUI", "default": False},
+        {
+            "option": "full_boot",
+            "type": "bool",
+            "label": "Fullboot",
+            "default": False
+        },
+        {
+            "option": "nogui",
+            "type": "bool",
+            "label": "No GUI",
+            "default": False
+        },
         {
             "option": "config_file",
             "type": "file",

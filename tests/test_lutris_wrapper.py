@@ -37,7 +37,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
             # Wait for the "Hello World" message that indicates that the process
             # tree has started. This message arrives on stdout.
             for line in wrapper_proc.stdout:
-                if b'Hello World' == line.strip():
+                if line.strip() == b'Hello World':
                     # We found the output we're looking for.
                     break
             else:
@@ -84,7 +84,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
             # Wait for the "Hello World" message that indicates that the process
             # tree has started. This message arrives on stdout.
             for line in wrapper_proc.stdout:
-                if b'Hello World' == line.strip():
+                if line.strip() == b'Hello World':
                     # We found the output we're looking for.
                     break
             else:
@@ -95,7 +95,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
 
             # Wait for confirmation that lutris-wrapper got our signal.
             for line in wrapper_proc.stdout:
-                if b'--terminated processes--' == line.strip():
+                if line.strip() == b'--terminated processes--':
                     break
             else:
                 self.fail("stdout EOF unexpectedly")

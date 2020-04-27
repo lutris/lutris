@@ -1,19 +1,23 @@
 # pylint: disable=missing-docstring
+# Standard Library
 import os
 import re
+import shutil
 import subprocess
 import tempfile
-import shutil
 import xml.etree.ElementTree
 
+# Lutris Modules
 from lutris.util.log import logger
 
 
 class CabInstaller:
+
     """Extract and install contents of cab files
 
     Based on an implementation by tonix64: https://github.com/tonix64/python-installcab
     """
+
     def __init__(self, prefix, arch=None, wine_path=None):
         self.prefix = prefix
         self.winearch = arch or self.get_wineprefix_arch()
@@ -37,7 +41,7 @@ class CabInstaller:
 
     def get_winebin(self, arch):
         wine_path = self.wine_path or "wine"
-        return wine_path if arch in("win32", "wow64") else wine_path + "64"
+        return wine_path if arch in ("win32", "wow64") else wine_path + "64"
 
     @staticmethod
     def get_arch_from_dll(dll_path):
@@ -60,12 +64,8 @@ class CabInstaller:
             value = value.replace("$(runtime.windows)", "C:\\windows")
             value = value.replace("$(runtime.ProgramFiles)", "C:\\windows\\Program Files")
             value = value.replace("$(runtime.programFiles)", "C:\\windows\\Program Files")
-            value = value.replace(
-                "$(runtime.programFilesX86)", "C:\\windows\\Program Files (x86)"
-            )
-            value = value.replace(
-                "$(runtime.system32)", "C:\\windows\\%s" % self.get_system32_realdir(arch)
-            )
+            value = value.replace("$(runtime.programFilesX86)", "C:\\windows\\Program Files (x86)")
+            value = value.replace("$(runtime.system32)", "C:\\windows\\%s" % self.get_system32_realdir(arch))
             value = value.replace(
                 "$(runtime.drivers)",
                 "C:\\windows\\%s\\drivers" % self.get_system32_realdir(arch),
@@ -100,9 +100,7 @@ class CabInstaller:
             value = value.replace("%WinDir%", "C:\\windows")
             value = value.replace("%ResourceDir%", "C:\\windows")
             value = value.replace("%Public%", "C:\\users\\Public")
-            value = value.replace(
-                "%LocalAppData%", "C:\\windows\\Public\\Local Settings\\Application Data"
-            )
+            value = value.replace("%LocalAppData%", "C:\\windows\\Public\\Local Settings\\Application Data")
             value = value.replace("%AllUsersProfile%", "C:\\windows")
             value = value.replace("%UserProfile%", "C:\\windows")
             value = value.replace("%ProgramData%", "C:\\ProgramData")
@@ -129,9 +127,7 @@ class CabInstaller:
             for registry_key in registry_keys[0].getchildren():
                 key = self.process_key(registry_key.attrib["keyName"])
                 out += "[%s]\n" % key
-                for reg_value in registry_key.findall(
-                        "{urn:schemas-microsoft-com:asm.v3}registryValue"
-                ):
+                for reg_value in registry_key.findall("{urn:schemas-microsoft-com:asm.v3}registryValue"):
                     name, value = self.process_value(reg_value, arch)
                     if value is not None:
                         out += "%s=%s\n" % (name, value)
@@ -145,6 +141,7 @@ class CabInstaller:
                     return "win32"
                 if line.startswith("#arch=win64"):
                     return "win64"
+        return "win64"
 
     def get_system32_realdir(self, arch):
         dest_map = {
@@ -188,11 +185,7 @@ class CabInstaller:
 
     def apply_to_registry(self, file_path, arch):
         logger.info("Applying %s to registry", file_path)
-        subprocess.call([
-            self.get_winebin(arch),
-            "regedit",
-            os.path.join(self.tmpdir, file_path)
-        ])
+        subprocess.call([self.get_winebin(arch), "regedit", os.path.join(self.tmpdir, file_path)])
 
     def extract_from_cab(self, cabfile, component):
         """Extracts files matching a `component` name from a `cabfile`
@@ -204,9 +197,7 @@ class CabInstaller:
         Returns:
             list: Files extracted from the cab file
         """
-        subprocess.check_output(
-            ["cabextract", "-F", "*%s*" % component, "-d", self.tmpdir, cabfile]
-        )
+        subprocess.check_output(["cabextract", "-F", "*%s*" % component, "-d", self.tmpdir, cabfile])
         return [os.path.join(r, file) for r, d, f in os.walk(self.tmpdir) for file in f]
 
     def install(self, cabfile, component):

@@ -1,24 +1,26 @@
 """Game representation for views"""
+# Standard Library
 import time
+
+# Lutris Modules
 from lutris import runners
 from lutris.game import Game
-from lutris.util.log import logger
-from lutris.util.strings import gtk_safe, get_formatted_playtime
 from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.util.log import logger
+from lutris.util.strings import get_formatted_playtime, gtk_safe
 
 
 class PgaGame:
+
     """Representation of a game for views
     TODO: Fix overlap with Game class
     """
+
     def __init__(self, pga_data):
         if not pga_data:
             raise RuntimeError("No game data provided")
         self._pga_data = pga_data
-        self.runner_names = {
-            runner: runners.import_runner(runner).human_name
-            for runner in runners.__all__
-        }
+        self.runner_names = {runner: runners.import_runner(runner).human_name for runner in runners.__all__}
 
     def __str__(self):
         return self.name
@@ -77,11 +79,7 @@ class PgaGame:
 
     def get_pixbuf(self, icon_type):
         """Pixbuf varying on icon type"""
-        return get_pixbuf_for_game(
-            self._pga_data["slug"],
-            icon_type,
-            self._pga_data["installed"]
-        )
+        return get_pixbuf_for_game(self._pga_data["slug"], icon_type, self._pga_data["installed"])
 
     @property
     def installed_at(self):
@@ -92,8 +90,8 @@ class PgaGame:
     def installed_at_text(self):
         """Date of install (textual representation)"""
         return gtk_safe(
-            time.strftime("%X %x", time.localtime(self._pga_data["installed_at"]))
-            if self._pga_data["installed_at"] else ""
+            time.strftime("%X %x", time.localtime(self._pga_data["installed_at"])) if self.
+            _pga_data["installed_at"] else ""
         )
 
     @property
@@ -105,8 +103,7 @@ class PgaGame:
     def lastplayed_text(self):
         """Date of last play (textual representation)"""
         return gtk_safe(
-            time.strftime("%X %x", time.localtime(self._pga_data["lastplayed"]))
-            if self._pga_data["lastplayed"] else ""
+            time.strftime("%X %x", time.localtime(self._pga_data["lastplayed"])) if self._pga_data["lastplayed"] else ""
         )
 
     @property

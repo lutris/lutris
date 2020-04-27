@@ -1,7 +1,9 @@
-import os
+# Standard Library
 import filecmp
+import os
 from shutil import copyfile
 
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
@@ -27,8 +29,7 @@ class yuzu(Runner):
             "label": "Ecryption keys",
             "type": "file",
             "help": "File containing the encryption keys.",
-        },
-        {
+        }, {
             "option": "title_keys",
             "label": "Title keys",
             "type": "file",
@@ -39,15 +40,11 @@ class yuzu(Runner):
     @property
     def yuzu_data_dir(self):
         """Return dir where Yuzu files lie."""
-        candidates = (
-            "~/.local/share/yuzu",
-        )
+        candidates = ("~/.local/share/yuzu", )
         for candidate in candidates:
-            path = system.fix_path_case(
-                os.path.join(os.path.expanduser(candidate), "nand")
-            )
+            path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
             if path:
-                return path[: -len("nand")]
+                return path[:-len("nand")]
 
     def play(self):
         """Run the game."""

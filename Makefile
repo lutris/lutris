@@ -1,5 +1,9 @@
 VERSION=`grep "__version__" lutris/__init__.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
 GITBRANCH ?= master
+PIPENV:=pipenv
+PYTHON:=$(shell which python3)
+PIP:=$(PYTHON) -m pip
+PIPENV_LOCK_ARGS:= --deploy --ignore-pipfile
 
 all:
 	export GITBRANCH=master
@@ -51,3 +55,63 @@ upload-staging:
 snap:
 	snapcraft clean lutris -s pull
 	snapcraft
+
+dev:
+	$(PIP) install --user --upgrade pipenv
+	@$(pipenv --venv)
+	# Do not use destructive "--python" or "--three" option if the venv already exists
+	# See https://github.com/pypa/pipenv/issues/349
+	@if [ $$? -eq 0 ]; then \
+		echo "$(PIPENV) install --dev $(PIPENV_LOCK_ARGS)" ; \
+		$(PIPENV) install --dev $(PIPENV_LOCK_ARGS) ; \
+	else \
+		echo "$(PIPENV) install --dev $(PIPENV_LOCK_ARGS) --python $(PYTHON)" ; \
+		$(PIPENV) install --dev $(PIPENV_LOCK_ARGS) --python $(PYTHON) ; \
+	fi
+
+requirements:
+	# Generate new requirements.txt and requirements-dev.txt based on Pipfile.lock
+	# These files are needed by Travis CI
+	$(PIPENV) run pipenv_to_requirements -f
+
+# ============
+# Style checks
+# ============
+
+style: isort autopep8 yapf  ## Format code
+
+isort:
+	$(PIPENV) run isort -y -rc lutris
+
+autopep8:
+	$(PIPENV) run autopep8 --in-place --recursive --ignore E402 setup.py lutris
+
+yapf:
+	$(PIPENV) run yapf --style .yapf --recursive -i lutris
+
+# ===============
+# Static analysis
+# ===============
+
+check: isort-check yapf-check flake8 pylint
+
+isort-check:
+	$(PIPENV) run isort -c -rc lutris
+
+yapf-check:
+	$(PIPENV) run yapf --style .yapf --recursive --diff lutris
+
+flake8:
+	$(PIPENV) run flake8 lutris
+
+pylint:
+	$(PIPENV) run pylint --rcfile=.pylintrc --output-format=colorized lutris
+
+# =============
+# Abbreviations
+# =============
+
+sc: style check
+req: requirements
+styles: style
+checks: check

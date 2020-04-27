@@ -1,4 +1,7 @@
+# Standard Library
 import importlib
+
+# Lutris Modules
 from lutris import settings
 from lutris.util.log import logger
 

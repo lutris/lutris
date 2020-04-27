@@ -1,7 +1,9 @@
 """Utility functions for YAML handling"""
+# Third Party Libraries
 # pylint: disable=no-member
 import yaml
 
+# Lutris Modules
 from lutris.util.log import logger
 from lutris.util.system import path_exists
 

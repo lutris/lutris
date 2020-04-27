@@ -1,17 +1,22 @@
 """Widget generators and their signal handlers"""
-# pylint: disable=no-member
+# Standard Library
+# pylint: disable=no-member,too-many-public-methods
 import os
-from gi.repository import Gtk, Gdk
 
+# Third Party Libraries
+from gi.repository import Gdk, Gtk
+
+# Lutris Modules
 from lutris import settings, sysoptions
-from lutris.gui.widgets.common import VBox, Label, FileChooserEntry, EditableGrid
+from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label, VBox
 from lutris.gui.widgets.searchable_combobox import SearchableCombobox
-from lutris.runners import import_runner, InvalidRunner
-from lutris.util.log import logger
+from lutris.runners import InvalidRunner, import_runner
 from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
 
 
 class ConfigBox(VBox):
+
     """Dynamically generate a vbox built upon on a python dict."""
 
     def __init__(self, game=None):
@@ -23,6 +28,8 @@ class ConfigBox(VBox):
         self.option_widget = None
         self.wrapper = None
         self.tooltip_default = None
+        self.files = []
+        self.files_list_store = None
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -45,7 +52,7 @@ class ConfigBox(VBox):
 
         help_box.show_all()
 
-    def generate_widgets(self, config_section):
+    def generate_widgets(self, config_section):  # noqa: C901 # pylint: disable=too-many-branches,too-many-statements
         """Parse the config dict and generates widget accordingly."""
         if not self.options:
             no_options_label = Label("No options available")
@@ -142,8 +149,9 @@ class ConfigBox(VBox):
             hbox.pack_start(self.wrapper, True, True, 0)
             self.pack_start(hbox, False, False, 0)
 
-    def call_widget_generator(self, option, option_key, value, default):
+    def call_widget_generator(self, option, option_key, value, default):  # noqa: C901
         """Call the right generation method depending on option type."""
+        # pylint: disable=too-many-branches
         option_type = option["type"]
         option_size = option.get("size", None)
 
@@ -153,9 +161,7 @@ class ConfigBox(VBox):
             self.set_style_property("font-style", "italic", self.wrapper)
 
         if option_type == "choice":
-            self.generate_combobox(
-                option_key, option["choices"], option["label"], value, default
-            )
+            self.generate_combobox(option_key, option["choices"], option["label"], value, default)
 
         elif option_type == "choice_with_entry":
             self.generate_combobox(
@@ -182,9 +188,7 @@ class ConfigBox(VBox):
             self.generate_checkbox_with_callback(option, value)
             self.tooltip_default = "Enabled" if default else "Disabled"
         elif option_type == "range":
-            self.generate_range(
-                option_key, option["min"], option["max"], option["label"], value
-            )
+            self.generate_range(option_key, option["min"], option["max"], option["label"], value)
         elif option_type == "string":
             if "label" not in option:
                 raise ValueError("Option %s has no label" % option)
@@ -238,11 +242,7 @@ class ConfigBox(VBox):
         if value is True:
             checkbox.set_active(value)
 
-        checkbox.connect(
-            "notify::active",
-            self._on_toggle_with_callback,
-            option
-        )
+        checkbox.connect("notify::active", self._on_toggle_with_callback, option)
         checkbox.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(checkbox, False, False, 0)
         self.option_widget = checkbox
@@ -287,9 +287,7 @@ class ConfigBox(VBox):
         """Action triggered for entry 'changed' signal."""
         self.option_changed(entry, option_name, entry.get_text())
 
-    def generate_searchable_combobox(
-            self, option_name, choice_func, label, value, default
-    ):
+    def generate_searchable_combobox(self, option_name, choice_func, label, value, default):
         """Generate a searchable combo box"""
         combobox = SearchableCombobox(choice_func, value or default)
         combobox.connect("changed", self.on_searchable_entry_changed, option_name)
@@ -311,9 +309,7 @@ class ConfigBox(VBox):
                 liststore.append(choice)
 
     # ComboBox
-    def generate_combobox(
-        self, option_name, choices, label, value=None, default=None, has_entry=False
-    ):
+    def generate_combobox(self, option_name, choices, label, value=None, default=None, has_entry=False):
         """Generate a combobox (drop-down menu)."""
         liststore = Gtk.ListStore(str, str)
         self._populate_combobox_choices(liststore, choices, default)
@@ -357,21 +353,19 @@ class ConfigBox(VBox):
         """Action triggered on combobox 'changed' signal."""
         list_store = combobox.get_model()
         active = combobox.get_active()
+        option_value = None
         if active < 0:
             if combobox.get_has_entry():
                 option_value = combobox.get_child().get_text()
-            else:
-                return None
         else:
             option_value = list_store[active][1]
-        self.option_changed(combobox, option, option_value)
+        if option_value:
+            self.option_changed(combobox, option, option_value)
 
     # Range
     def generate_range(self, option_name, min_val, max_val, label, value=None):
         """Generate a ranged spin button."""
-        adjustment = Gtk.Adjustment(
-            float(min_val), float(min_val), float(max_val), 1, 0, 0
-        )
+        adjustment = Gtk.Adjustment(float(min_val), float(min_val), float(max_val), 1, 0, 0)
         spin_button = Gtk.SpinButton()
         spin_button.set_adjustment(adjustment)
         if value:
@@ -393,10 +387,7 @@ class ConfigBox(VBox):
         option_name = option["option"]
         label = Label(option["label"])
         file_chooser = FileChooserEntry(
-            title="Select file",
-            action=Gtk.FileChooserAction.OPEN,
-            path=path,
-            default_path=option.get("default_path")
+            title="Select file", action=Gtk.FileChooserAction.OPEN, path=path, default_path=option.get("default_path")
         )
         file_chooser.set_size_request(200, 30)
 
@@ -437,14 +428,9 @@ class ConfigBox(VBox):
         if not path and self.game and self.game.runner:
             default_path = self.game.runner.working_dir
         directory_chooser = FileChooserEntry(
-            title="Select folder",
-            action=Gtk.FileChooserAction.SELECT_FOLDER,
-            path=path,
-            default_path=default_path
+            title="Select folder", action=Gtk.FileChooserAction.SELECT_FOLDER, path=path, default_path=default_path
         )
-        directory_chooser.entry.connect(
-            "changed", self._on_chooser_dir_set, option_name
-        )
+        directory_chooser.entry.connect("changed", self._on_chooser_dir_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(directory_chooser, True, True, 0)
@@ -502,9 +488,7 @@ class ConfigBox(VBox):
         files_treeview = Gtk.TreeView(self.files_list_store)
         files_column = Gtk.TreeViewColumn("Files", cell_renderer, text=0)
         files_treeview.append_column(files_column)
-        files_treeview.connect(
-            "key-press-event", self.on_files_treeview_keypress, option_name
-        )
+        files_treeview.connect("key-press-event", self.on_files_treeview_keypress, option_name)
         treeview_scroll = Gtk.ScrolledWindow()
         treeview_scroll.set_min_content_height(130)
         treeview_scroll.set_margin_left(10)
@@ -533,10 +517,7 @@ class ConfigBox(VBox):
 
         first_file_dir = os.path.dirname(value[0]) if value else None
         dialog.set_current_folder(
-            first_file_dir
-            or self.game.directory
-            or self.config.get("game_path")
-            or os.path.expanduser("~")
+            first_file_dir or self.game.directory or self.config.get("game_path") or os.path.expanduser("~")
         )
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
@@ -566,7 +547,7 @@ class ConfigBox(VBox):
                 self.raw_config[option].pop(row_index)
 
     @staticmethod
-    def on_query_tooltip(_widget, x, y, keybmode, tooltip, text):
+    def on_query_tooltip(_widget, x, y, keybmode, tooltip, text):  # pylint: disable=unused-argument
         """Prepare a custom tooltip with a fixed width"""
         label = Label(text)
         label.set_use_markup(True)
@@ -610,25 +591,20 @@ class ConfigBox(VBox):
         children = wrapper.get_children()
         for child in children:
             child.destroy()
-        self.call_widget_generator(
-            option, option_key, reset_value, option.get("default")
-        )
+        self.call_widget_generator(option, option_key, reset_value, option.get("default"))
         self.wrapper.show_all()
 
     @staticmethod
     def set_style_property(property_, value, wrapper):
         """Add custom style."""
         style_provider = Gtk.CssProvider()
-        style_provider.load_from_data(
-            "GtkHBox {{{}: {};}}".format(property_, value).encode()
-        )
+        style_provider.load_from_data("GtkHBox {{{}: {};}}".format(property_, value).encode())
         style_context = wrapper.get_style_context()
-        style_context.add_provider(
-            style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
+        style_context.add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 
 class GameBox(ConfigBox):
+
     def __init__(self, lutris_config, game):
         ConfigBox.__init__(self, game)
         self.lutris_config = lutris_config
@@ -648,7 +624,9 @@ class GameBox(ConfigBox):
 
 
 class RunnerBox(ConfigBox):
+
     """Configuration box for runner specific options"""
+
     def __init__(self, lutris_config, game=None):
         ConfigBox.__init__(self, game)
         self.lutris_config = lutris_config
@@ -668,6 +646,7 @@ class RunnerBox(ConfigBox):
 
 
 class SystemBox(ConfigBox):
+
     def __init__(self, lutris_config):
         ConfigBox.__init__(self)
         self.lutris_config = lutris_config

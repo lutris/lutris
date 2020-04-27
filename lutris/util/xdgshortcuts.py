@@ -1,14 +1,16 @@
 """XDG shortcuts handling"""
+# Standard Library
 import os
-import stat
 import shutil
-
+import stat
 from textwrap import dedent
 
+# Third Party Libraries
 from gi.repository import GLib
 
-from lutris.util import system
+# Lutris Modules
 from lutris.settings import CACHE_DIR
+from lutris.util import system
 
 
 def get_xdg_entry(directory):
@@ -22,8 +24,9 @@ def get_xdg_entry(directory):
     }
     directory = directory.upper()
     if directory not in special_dir.keys():
-        raise ValueError(directory + " not supported. Only those folders are supported: "
-                         + ", ".join(special_dir.keys()))
+        raise ValueError(
+            directory + " not supported. Only those folders are supported: " + ", ".join(special_dir.keys())
+        )
     return GLib.get_user_special_dir(special_dir[directory])
 
 
@@ -33,9 +36,9 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
         # When base dir is provided, lookup possible combinations
         # and return the first match
         for path in [
-                "{}.desktop".format(game_slug),
-                "{}-{}.desktop".format(game_slug, game_id),
-                "net.lutris.{}-{}.desktop".format(game_slug, game_id),
+            "{}.desktop".format(game_slug),
+            "{}-{}.desktop".format(game_slug, game_id),
+            "net.lutris.{}-{}.desktop".format(game_slug, game_id),
         ]:
             if system.path_exists(os.path.join(base_dir, path)):
                 return path
@@ -54,9 +57,7 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
         Icon={}
         Exec=lutris lutris:rungameid/{}
         Categories=Game
-        """.format(
-            game_name, "lutris_{}".format(game_slug), game_id
-        )
+        """.format(game_name, "lutris_{}".format(game_slug), game_id)
     )
 
     launcher_filename = get_xdg_basename(game_slug, game_id)
@@ -93,9 +94,7 @@ def get_launcher_path(game_slug, game_id):
     """
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
 
-    return os.path.join(
-        desktop_dir, get_xdg_basename(game_slug, game_id, base_dir=desktop_dir)
-    )
+    return os.path.join(desktop_dir, get_xdg_basename(game_slug, game_id, base_dir=desktop_dir))
 
 
 def get_menu_launcher_path(game_slug, game_id):
@@ -103,9 +102,7 @@ def get_menu_launcher_path(game_slug, game_id):
     they exist
     """
     menu_dir = os.path.join(GLib.get_user_data_dir(), "applications")
-    return os.path.join(
-        menu_dir, get_xdg_basename(game_slug, game_id, base_dir=menu_dir)
-    )
+    return os.path.join(menu_dir, get_xdg_basename(game_slug, game_id, base_dir=menu_dir))
 
 
 def desktop_launcher_exists(game_slug, game_id):

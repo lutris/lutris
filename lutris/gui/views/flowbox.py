@@ -1,8 +1,10 @@
 """Unused flowbox view (most code removed)"""
-from gi.repository import Gtk, Gdk, GObject
+# Third Party Libraries
+from gi.repository import Gdk, GObject, Gtk
 
-from lutris.gui.widgets.utils import get_pixbuf_for_game
+# Lutris Modules
 from lutris.game import Game
+from lutris.gui.widgets.utils import get_pixbuf_for_game
 
 try:
     FlowBox = Gtk.FlowBox
@@ -13,6 +15,7 @@ except AttributeError:
 
 
 class GameItem(Gtk.VBox):
+
     def __init__(self, game, parent, icon_type="banner"):
         super(GameItem, self).__init__()
 
@@ -141,10 +144,9 @@ class GameFlowBox(FlowBox):
         game2 = child2.get_children()[0]
         if game1.name.lower() > game2.name.lower():
             return 1
-        elif game1.name.lower() < game2.name.lower():
+        if game1.name.lower() < game2.name.lower():
             return -1
-        else:
-            return 0
+        return 0
 
     def on_child_activated(self, widget, child):
         self.emit("game-activated")

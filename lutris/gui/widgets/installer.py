@@ -1,11 +1,16 @@
 """Widgets for the installer window"""
-from gi.repository import Gtk, GObject, Pango
-from lutris.util.strings import escape_gtk_label
+# Third Party Libraries
+from gi.repository import GObject, Gtk, Pango
+
+# Lutris Modules
 from lutris.gui.widgets.utils import get_icon
+from lutris.util.strings import escape_gtk_label
 
 
 class InstallerLabel(Gtk.Label):
+
     """A label for installers"""
+
     def __init__(self, text):
         super().__init__()
         self.set_line_wrap(True)
@@ -15,7 +20,9 @@ class InstallerLabel(Gtk.Label):
 
 
 class InstallerScriptBox(Gtk.VBox):
+
     """Box displaying the details of a script, with associated action buttons"""
+
     def __init__(self, script, parent=None, revealed=False):
         super().__init__()
         self.script = script
@@ -97,11 +104,10 @@ class InstallerScriptBox(Gtk.VBox):
 
 
 class InstallerPicker(Gtk.ListBox):
+
     """List box to pick between several installers"""
 
-    __gsignals__ = {
-        "installer-selected": (GObject.SIGNAL_RUN_FIRST, None, (str, ))
-    }
+    __gsignals__ = {"installer-selected": (GObject.SIGNAL_RUN_FIRST, None, (str, ))}
 
     def __init__(self, scripts):
         super().__init__()

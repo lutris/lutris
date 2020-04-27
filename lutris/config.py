@@ -1,13 +1,15 @@
 """Handle the game, runner and global system configurations."""
 
+# Standard Library
 import os
 import time
 
+# Lutris Modules
 from lutris import settings, sysoptions
-from lutris.runners import import_runner, InvalidRunner
+from lutris.runners import InvalidRunner, import_runner
+from lutris.util.log import logger
 from lutris.util.system import path_exists
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
-from lutris.util.log import logger
 
 
 def make_game_config_id(game_slug):
@@ -16,6 +18,7 @@ def make_game_config_id(game_slug):
 
 
 class LutrisConfig:
+
     """Class where all the configuration handling happens.
 
     Description
@@ -222,9 +225,7 @@ class LutrisConfig:
         """Convert the option list to a dict with option name as keys"""
         if options_type == "system":
             options = (
-                sysoptions.with_runner_overrides(self.runner_slug)
-                if self.runner_slug
-                else sysoptions.system_options
+                sysoptions.with_runner_overrides(self.runner_slug) if self.runner_slug else sysoptions.system_options
             )
         else:
             if not self.runner_slug:

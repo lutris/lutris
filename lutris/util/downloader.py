@@ -1,7 +1,11 @@
+# Standard Library
 import os
 import time
+
+# Third Party Libraries
 import requests
 
+# Lutris Modules
 from lutris import __version__
 from lutris.util import jobs
 from lutris.util.log import logger
@@ -14,6 +18,7 @@ get_time = time.monotonic
 
 
 class Downloader:
+
     """Non-blocking downloader.
 
     Do start() then check_progress() at regular intervals.
@@ -114,7 +119,7 @@ class Downloader:
             headers["Referer"] = self.referer
         response = requests.get(self.url, headers=headers, stream=True)
         if response.status_code != 200:
-            logger.info("%s returned a %s error" % (self.url, response.status_code))
+            logger.info("%s returned a %s error", self.url, response.status_code)
         response.raise_for_status()
         self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
         for chunk in response.iter_content(chunk_size=1024 * 1024):

@@ -1,3 +1,4 @@
+# Lutris Modules
 from lutris.runners.runner import Runner
 
 
@@ -15,9 +16,12 @@ class browser(Runner):
     ]
     runner_options = [
         {
-            "option": "browser",
-            "type": "file",
-            "label": "Custom web browser",
+            "option":
+            "browser",
+            "type":
+            "file",
+            "label":
+            "Custom web browser",
             "help": (
                 "Select the executable of a browser on your system. \n"
                 "If left blank, Lutris will launch your default browser."
@@ -37,8 +41,7 @@ class browser(Runner):
         if not url:
             return {
                 "error": "CUSTOM",
-                "text": (
-                    "The web address is empty, \n" "verify the game's configuration."
-                ),
+                "text": ("The web address is empty, \n"
+                         "verify the game's configuration."),
             }
         return {"command": [self.get_executable(), url]}

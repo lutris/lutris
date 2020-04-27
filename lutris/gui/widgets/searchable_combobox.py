@@ -1,10 +1,14 @@
 """Extended combobox with search"""
+# Third Party Libraries
 # pylint: disable=unsubscriptable-object
-from gi.repository import Gtk, GObject, GLib
+from gi.repository import GLib, GObject, Gtk
+
+# Lutris Modules
 from lutris.util.jobs import AsyncCall
 
 
 class SearchableCombobox(Gtk.Bin):
+
     """Combox box with autocompletion.
     Well fitted for large lists.
     """

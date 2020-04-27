@@ -1,30 +1,35 @@
+# Standard Library
 import json
 import socket
-import urllib.request
 import urllib.error
 import urllib.parse
+import urllib.request
 from ssl import CertificateError
 
-from lutris.settings import SITE_URL, VERSION, PROJECT
+# Lutris Modules
+from lutris.settings import PROJECT, SITE_URL, VERSION
 from lutris.util.log import logger
 
 
 class HTTPError(Exception):
+
     """Exception raised on request failures"""
 
 
 class UnauthorizedAccess(Exception):
+
     """Exception raised for 401 HTTP errors"""
 
 
 class Request:
+
     def __init__(
-            self,
-            url,
-            timeout=30,
-            stop_request=None,
-            headers=None,
-            cookies=None,
+        self,
+        url,
+        timeout=30,
+        stop_request=None,
+        headers=None,
+        cookies=None,
     ):
 
         if not url:
@@ -46,6 +51,7 @@ class Request:
         self.downloaded_size = 0
         self.headers = {"User-Agent": self.user_agent}
         self.response_headers = None
+        self.info = None
         if headers is None:
             headers = {}
         if not isinstance(headers, dict):
@@ -121,11 +127,7 @@ class Request:
             try:
                 return json.loads(self.text)
             except json.decoder.JSONDecodeError:
-                raise ValueError(
-                    "Invalid response ({}:{}): {}".format(
-                        self.url, self.status_code, self.text[:80]
-                    )
-                )
+                raise ValueError("Invalid response ({}:{}): {}".format(self.url, self.status_code, self.text[:80]))
         return {}
 
     @property
