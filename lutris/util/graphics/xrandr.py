@@ -1,14 +1,13 @@
 """XrandR based display management"""
+# Standard Library
 import re
 import subprocess
 from collections import namedtuple
 
+# Lutris Modules
 from lutris.util.log import logger
 
-
-Output = namedtuple(
-    "Output", ("name", "mode", "position", "rotation", "primary", "rate")
-)
+Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate"))
 
 
 def _get_vidmodes():
@@ -18,7 +17,7 @@ def _get_vidmodes():
     return xrandr_output.decode().split("\n")
 
 
-def get_outputs():
+def get_outputs():  # pylint: disable=too-many-locals
     """Return list of namedtuples containing output 'name', 'geometry',
     'rotation' and whether it is the 'primary' display."""
     outputs = []
@@ -41,9 +40,10 @@ def get_outputs():
                 else:
                     name, _, geometry, rotate, *_ = line.split()
             except ValueError as ex:
-                logger.error("Unhandled xrandr line %s, error: %s. "
-                             "Please send your xrandr output to the dev team",
-                             line, ex)
+                logger.error(
+                    "Unhandled xrandr line %s, error: %s. "
+                    "Please send your xrandr output to the dev team", line, ex
+                )
                 continue
             if geometry.startswith("("):  # Screen turned off, no geometry
                 continue
@@ -94,9 +94,7 @@ def get_resolutions():
 
 def get_unique_resolutions():
     """Return available resolutions, without duplicates and ordered with highest resolution first"""
-    return sorted(
-        set(get_resolutions()), key=lambda x: int(x.split("x")[0]), reverse=True
-    )
+    return sorted(set(get_resolutions()), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 
 def change_resolution(resolution):
@@ -121,10 +119,10 @@ def change_resolution(resolution):
             logger.debug("Switching to %s on %s", display.mode, display.name)
 
             if display.rotation is not None and display.rotation in (
-                    "normal",
-                    "left",
-                    "right",
-                    "inverted",
+                "normal",
+                "left",
+                "right",
+                "inverted",
             ):
                 rotation = display.rotation
             else:
@@ -148,9 +146,11 @@ def change_resolution(resolution):
 
 
 class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
+
     """Legacy XrandR based display manager.
     Does not work on Wayland.
     """
+
     @staticmethod
     def get_display_names():
         """Return output names from XrandR"""

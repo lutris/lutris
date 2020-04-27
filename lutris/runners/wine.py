@@ -1,53 +1,32 @@
 """Wine runner"""
-# pylint: disable=too-many-arguments
+
+# Standard Library
+# pylint: disable=too-many-lines
 import os
 import shlex
 import shutil
 
+# Lutris Modules
 from lutris import runtime
-from lutris.settings import RUNTIME_DIR
 from lutris.exceptions import GameConfigError
 from lutris.gui.dialogs import FileDialog
+from lutris.runners.commands.wine import create_prefix, winecfg, wineexec, winekill, winetricks
 from lutris.runners.runner import Runner
-from lutris.util.jobs import thread_safe_call
+from lutris.settings import RUNTIME_DIR
 from lutris.util import system
-from lutris.util.log import logger
-from lutris.util.strings import parse_version, split_arguments
 from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.graphics.vkquery import is_vulkan_supported
+from lutris.util.jobs import thread_safe_call
+from lutris.util.log import logger
+from lutris.util.strings import parse_version, split_arguments
+from lutris.util.wine import dxvk, nine
 from lutris.util.wine.prefix import WinePrefixManager
-from lutris.util.wine.x360ce import X360ce
-from lutris.util.wine import dxvk
-from lutris.util.wine import nine
 from lutris.util.wine.wine import (
-    POL_PATH,
-    WINE_DIR,
-    WINE_PATHS,
-    detect_arch,
-    display_vulkan_error,
-    esync_display_limit_warning,
-    esync_display_version_warning,
-    get_default_version,
-    get_overrides_env,
-    get_proton_paths,
-    get_real_executable,
-    get_system_wine_version,
-    get_wine_versions,
-    is_esync_limit_set,
-    is_version_esync,
+    POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
+    esync_display_version_warning, get_default_version, get_overrides_env, get_proton_paths, get_real_executable,
+    get_system_wine_version, get_wine_versions, is_esync_limit_set, is_version_esync
 )
-from lutris.runners.commands.wine import (  # noqa pylint: disable=unused-import
-    create_prefix,
-    delete_registry_key,
-    eject_disc,
-    set_regedit,
-    set_regedit_file,
-    winecfg,
-    wineexec,
-    winekill,
-    winetricks,
-    install_cab_component,
-)
+from lutris.util.wine.x360ce import X360ce
 
 MIN_SAFE_VERSION = "4.0"  # Wine installers must run with at least this version
 
@@ -72,9 +51,12 @@ class wine(Runner):
             "validator": shlex.split
         },
         {
-            "option": "working_dir",
-            "type": "directory_chooser",
-            "label": "Working directory",
+            "option":
+            "working_dir",
+            "type":
+            "directory_chooser",
+            "label":
+            "Working directory",
             "help": (
                 "The location where the game is run from.\n"
                 "By default, Lutris uses the directory of the "
@@ -82,9 +64,12 @@ class wine(Runner):
             ),
         },
         {
-            "option": "prefix",
-            "type": "directory_chooser",
-            "label": "Wine prefix",
+            "option":
+            "prefix",
+            "type":
+            "directory_chooser",
+            "label":
+            "Wine prefix",
             "help": (
                 'The prefix (also named "bottle") used by Wine.\n'
                 "It's a directory containing a set of files and "
@@ -126,9 +111,7 @@ class wine(Runner):
 
     def __init__(self, config=None):
         super(wine, self).__init__(config)
-        self.dll_overrides = {
-            "winemenubuilder.exe": "d"
-        }
+        self.dll_overrides = {"winemenubuilder.exe": "d"}
 
         def get_wine_version_choices():
             version_choices = [("Custom (select executable below)", "custom")]
@@ -184,11 +167,16 @@ class wine(Runner):
 
         self.runner_options = [
             {
-                "option": "version",
-                "label": "Wine version",
-                "type": "choice",
-                "choices": get_wine_version_choices,
-                "default": get_default_version(),
+                "option":
+                "version",
+                "label":
+                "Wine version",
+                "type":
+                "choice",
+                "choices":
+                get_wine_version_choices,
+                "default":
+                get_default_version(),
                 "help": (
                     "The version of Wine used to launch the game.\n"
                     "Using the last version is generally recommended, "
@@ -200,10 +188,8 @@ class wine(Runner):
                 "label": "Custom Wine executable",
                 "type": "file",
                 "advanced": True,
-                "help": (
-                    "The Wine executable to be used if you have "
-                    'selected "Custom" as the Wine version.'
-                ),
+                "help": ("The Wine executable to be used if you have "
+                         'selected "Custom" as the Wine version.'),
             },
             {
                 "option": "system_winetricks",
@@ -214,13 +200,20 @@ class wine(Runner):
                 "help": "Switch on to use /usr/bin/winetricks for winetricks.",
             },
             {
-                "option": "dxvk",
-                "label": "Enable DXVK",
-                "type": "extended_bool",
-                "callback": dxvk_vulkan_callback,
-                "callback_on": True,
-                "default": True,
-                "active": True,
+                "option":
+                "dxvk",
+                "label":
+                "Enable DXVK",
+                "type":
+                "extended_bool",
+                "callback":
+                dxvk_vulkan_callback,
+                "callback_on":
+                True,
+                "default":
+                True,
+                "active":
+                True,
                 "help": (
                     "Use DXVK to increase compatibility and performance "
                     "in Direct3D 11 and 10 applications by translating "
@@ -240,17 +233,21 @@ class wine(Runner):
                 "label": "Enable VKD3D",
                 "type": "bool",
                 "default": False,
-                "help": (
-                    "Enable DX12 support with VKD3D. This requires a compatible Wine build."
-                )
+                "help": ("Enable DX12 support with VKD3D. This requires a compatible Wine build.")
             },
             {
-                "option": "esync",
-                "label": "Enable Esync",
-                "type": "extended_bool",
-                "callback": esync_limit_callback,
-                "callback_on": True,
-                "active": True,
+                "option":
+                "esync",
+                "label":
+                "Enable Esync",
+                "type":
+                "extended_bool",
+                "callback":
+                esync_limit_callback,
+                "callback_on":
+                True,
+                "active":
+                True,
                 "help": (
                     "Enable eventfd-based synchronization (esync). "
                     "This will increase performance in applications "
@@ -258,12 +255,18 @@ class wine(Runner):
                 ),
             },
             {
-                "option": "gallium_nine",
-                "label": "Enable Gallium Nine",
-                "type": "bool",
-                "default": False,
-                "condition": nine.NineManager.is_available(),
-                "advanced": True,
+                "option":
+                "gallium_nine",
+                "label":
+                "Enable Gallium Nine",
+                "type":
+                "bool",
+                "default":
+                False,
+                "condition":
+                nine.NineManager.is_available(),
+                "advanced":
+                True,
                 "help": (
                     "Gallium Nine allows to run Direct3D 9 applications faster.\n"
                     "Make sure your active graphics card supports Gallium Nine state "
@@ -315,10 +318,14 @@ class wine(Runner):
                 "advanced": True,
             },
             {
-                "option": "Desktop",
-                "label": "Windowed (virtual desktop)",
-                "type": "bool",
-                "default": False,
+                "option":
+                "Desktop",
+                "label":
+                "Windowed (virtual desktop)",
+                "type":
+                "bool",
+                "default":
+                False,
                 "help": (
                     "Run the whole Windows desktop in a window.\n"
                     "Otherwise, run it fullscreen.\n"
@@ -333,16 +340,21 @@ class wine(Runner):
                 "help": "The size of the virtual desktop in pixels.",
             },
             {
-                "option": "MouseWarpOverride",
-                "label": "Mouse Warp Override",
-                "type": "choice",
+                "option":
+                "MouseWarpOverride",
+                "label":
+                "Mouse Warp Override",
+                "type":
+                "choice",
                 "choices": [
                     ("Enable", "enable"),
                     ("Disable", "disable"),
                     ("Force", "force"),
                 ],
-                "default": "enable",
-                "advanced": True,
+                "default":
+                "enable",
+                "advanced":
+                True,
                 "help": (
                     "Override the default mouse pointer warping behavior\n"
                     "<b>Enable</b>: (Wine default) warp the pointer when the "
@@ -352,12 +364,17 @@ class wine(Runner):
                 ),
             },
             {
-                "option": "OffscreenRenderingMode",
-                "label": "Offscreen Rendering Mode",
-                "type": "choice",
+                "option":
+                "OffscreenRenderingMode",
+                "label":
+                "Offscreen Rendering Mode",
+                "type":
+                "choice",
                 "choices": [("FBO", "fbo"), ("BackBuffer", "backbuffer")],
-                "default": "fbo",
-                "advanced": True,
+                "default":
+                "fbo",
+                "advanced":
+                True,
                 "help": (
                     "Select the offscreen rendering implementation.\n"
                     "<b>FBO</b>: (Wine default) Use framebuffer objects "
@@ -367,12 +384,17 @@ class wine(Runner):
                 ),
             },
             {
-                "option": "StrictDrawOrdering",
-                "label": "Strict Draw Ordering",
-                "type": "choice",
+                "option":
+                "StrictDrawOrdering",
+                "label":
+                "Strict Draw Ordering",
+                "type":
+                "choice",
                 "choices": [("Enabled", "enabled"), ("Disabled", "disabled")],
-                "default": "disabled",
-                "advanced": True,
+                "default":
+                "disabled",
+                "advanced":
+                True,
                 "help": (
                     "This option ensures any pending drawing operations are "
                     "submitted to the driver, but at a significant performance "
@@ -382,12 +404,17 @@ class wine(Runner):
                 ),
             },
             {
-                "option": "UseGLSL",
-                "label": "Use GLSL",
-                "type": "choice",
+                "option":
+                "UseGLSL",
+                "label":
+                "Use GLSL",
+                "type":
+                "choice",
                 "choices": [("Enabled", "enabled"), ("Disabled", "disabled")],
-                "default": "enabled",
-                "advanced": True,
+                "default":
+                "enabled",
+                "advanced":
+                True,
                 "help": (
                     'When set to "disabled", this disables the use of GLSL for shaders. '
                     "In general disabling GLSL is not recommended, "
@@ -395,9 +422,12 @@ class wine(Runner):
                 ),
             },
             {
-                "option": "SampleCount",
-                "label": "Anti-aliasing Sample Count",
-                "type": "choice",
+                "option":
+                "SampleCount",
+                "label":
+                "Anti-aliasing Sample Count",
+                "type":
+                "choice",
                 "choices": [
                     ("Auto", "auto"),
                     ("0", "0"),
@@ -406,8 +436,10 @@ class wine(Runner):
                     ("8", "8"),
                     ("16", "16"),
                 ],
-                "default": "auto",
-                "advanced": True,
+                "default":
+                "auto",
+                "advanced":
+                True,
                 "help": (
                     "Override swapchain sample count. It can be used to force enable multisampling "
                     "with applications that otherwise don't support it, like the similar control "
@@ -422,22 +454,25 @@ class wine(Runner):
                 "type": "bool",
                 "default": False,
                 "advanced": True,
-                "help": (
-                    'Set this to "Y" to allow wine switch the resolution using XVidMode extension.'
-                ),
+                "help": ('Set this to "Y" to allow wine switch the resolution using XVidMode extension.'),
             },
             {
-                "option": "Audio",
-                "label": "Audio driver",
-                "type": "choice",
-                "advanced": True,
+                "option":
+                "Audio",
+                "label":
+                "Audio driver",
+                "type":
+                "choice",
+                "advanced":
+                True,
                 "choices": [
                     ("Auto", "auto"),
                     ("ALSA", "alsa"),
                     ("PulseAudio", "pulse"),
                     ("OSS", "oss"),
                 ],
-                "default": "auto",
+                "default":
+                "auto",
                 "help": (
                     "Which audio backend to use.\n"
                     "By default, Wine automatically picks the right one "
@@ -451,9 +486,12 @@ class wine(Runner):
                 "help": "Sets WINEDLLOVERRIDES when launching the game.",
             },
             {
-                "option": "show_debug",
-                "label": "Output debugging info",
-                "type": "choice",
+                "option":
+                "show_debug",
+                "label":
+                "Output debugging info",
+                "type":
+                "choice",
                 "choices": [
                     ("Disabled", "-all"),
                     ("Enabled", ""),
@@ -461,11 +499,10 @@ class wine(Runner):
                     ("Show FPS", "+fps"),
                     ("Full (CAUTION: Will cause MASSIVE slowdown)", "+all"),
                 ],
-                "default": "-all",
-                "help": (
-                    "Output debugging information in the game log "
-                    "(might affect performance)"
-                ),
+                "default":
+                "-all",
+                "help": ("Output debugging information in the game log "
+                         "(might affect performance)"),
             },
             {
                 "option": "ShowCrashDialog",
@@ -480,17 +517,21 @@ class wine(Runner):
                 "label": "Autoconfigure joypads",
                 "advanced": True,
                 "default": True,
-                "help": (
-                    "Automatically disables one of Wine's detected joypad "
-                    "to avoid having 2 controllers detected"
-                ),
+                "help":
+                ("Automatically disables one of Wine's detected joypad "
+                 "to avoid having 2 controllers detected"),
             },
             {
-                "option": "sandbox",
-                "type": "bool",
-                "label": "Create a sandbox for wine folders",
-                "default": True,
-                "advanced": True,
+                "option":
+                "sandbox",
+                "type":
+                "bool",
+                "label":
+                "Create a sandbox for wine folders",
+                "default":
+                True,
+                "advanced":
+                True,
                 "help": (
                     "Do not use $HOME for desktop integration folders.\n"
                     "By default, it use the directories in the confined "
@@ -704,11 +745,7 @@ class wine(Runner):
         """Run winetricks in the current context"""
         self.prelaunch()
         winetricks(
-            "",
-            prefix=self.prefix_path,
-            wine_path=self.get_executable(),
-            config=self,
-            env=self.get_env(os_env=True)
+            "", prefix=self.prefix_path, wine_path=self.get_executable(), config=self, env=self.get_env(os_env=True)
         )
 
     def run_winecpl(self, *args):
@@ -783,9 +820,7 @@ class wine(Runner):
                 dxvk_manager=dxvk_manager,
             )
         except dxvk.UnavailableDXVKVersion:
-            raise GameConfigError(
-                "Unable to get " + base_name.upper() + " %s" % dxvk_manager.version
-            )
+            raise GameConfigError("Unable to get " + base_name.upper() + " %s" % dxvk_manager.version)
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
@@ -887,9 +922,7 @@ class wine(Runner):
         # Add wineserver PIDs to the mix (at least one occurence of fuser not
         # picking the games's PID from wine/wine64 but from wineserver for some
         # unknown reason.
-        pids = pids | system.get_pids_using_file(
-            os.path.join(os.path.dirname(exe), "wineserver")
-        )
+        pids = pids | system.get_pids_using_file(os.path.join(os.path.dirname(exe), "wineserver"))
         return pids
 
     def setup_x360ce(self, x360ce_path):
@@ -930,7 +963,10 @@ class wine(Runner):
             self.dll_overrides["dinput8"] = "native"
 
     def setup_nine(self, enable):
-        nine_manager = nine.NineManager(self.prefix_path, self.wine_arch,)
+        nine_manager = nine.NineManager(
+            self.prefix_path,
+            self.wine_arch,
+        )
 
         if enable:
             nine_manager.enable()
@@ -939,9 +975,7 @@ class wine(Runner):
 
     def sandbox(self, wine_prefix):
         if self.runner_config.get("sandbox", True):
-            wine_prefix.desktop_integration(
-                desktop_dir=self.runner_config.get("sandbox_dir")
-            )
+            wine_prefix.desktop_integration(desktop_dir=self.runner_config.get("sandbox_dir"))
         else:
             wine_prefix.desktop_integration(restore=True)
 

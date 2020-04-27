@@ -1,11 +1,13 @@
+# Standard Library
 import os
 import subprocess
 import xml.etree.ElementTree as etree
 
-from lutris.util.log import logger
-from lutris.runners.runner import Runner
+# Lutris Modules
 from lutris import settings
+from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.log import logger
 
 SNES9X_DIR = os.path.join(settings.DATA_DIR, "runners/snes9x")
 
@@ -27,12 +29,21 @@ class snes9x(Runner):
     ]
 
     runner_options = [
-        {"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": "1"},
         {
-            "option": "maintain_aspect_ratio",
+            "option": "fullscreen",
             "type": "bool",
-            "label": "Maintain aspect ratio (4:3)",
-            "default": "1",
+            "label": "Fullscreen",
+            "default": "1"
+        },
+        {
+            "option":
+            "maintain_aspect_ratio",
+            "type":
+            "bool",
+            "label":
+            "Maintain aspect ratio (4:3)",
+            "default":
+            "1",
             "help": (
                 "Super Nintendo games were made for 4:3 "
                 "screens with rectangular pixels, but modern screens "

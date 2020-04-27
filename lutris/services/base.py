@@ -1,11 +1,15 @@
 """Generic service utilities"""
+# Standard Library
 import os
 import shutil
+
+# Lutris Modules
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
 
 
 class OnlineService:
+
     """Base class for online gaming services"""
 
     cookies_path = NotImplemented

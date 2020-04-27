@@ -1,8 +1,10 @@
 """Communicates between third party services games and Lutris games"""
+# Lutris Modules
 from lutris import pga
 
 
 class ServiceGame:
+
     """Representation of a game from a 3rd party service"""
 
     store = NotImplemented

@@ -1,12 +1,15 @@
-import re
+# Standard Library
 import os
+import re
 import shutil
-from configparser import RawConfigParser
 from collections import Counter
+from configparser import RawConfigParser
+
+# Lutris Modules
 from lutris import settings
+from lutris.gui.dialogs import NoticeDialog
 from lutris.runners.runner import Runner
 from lutris.util import joypad, system
-from lutris.gui.dialogs import NoticeDialog
 
 
 class reicast(Runner):
@@ -22,7 +25,8 @@ class reicast(Runner):
             "option": "iso",
             "type": "file",
             "label": "Disc image file",
-            "help": ("The game data.\n" "Supported formats: ISO, CDI"),
+            "help": ("The game data.\n"
+                     "Supported formats: ISO, CDI"),
         }
     ]
 
@@ -67,6 +71,7 @@ class reicast(Runner):
         ]
 
     def install(self, version=None, downloader=None, callback=None):
+
         def on_runner_installed(*args):
             mapping_path = system.create_folder("~/.reicast/mappings")
             mapping_source = os.path.join(settings.RUNNER_DIR, "reicast/mappings")
@@ -74,9 +79,7 @@ class reicast(Runner):
                 shutil.copy(os.path.join(mapping_source, mapping_file), mapping_path)
 
             system.create_folder("~/.reicast/data")
-            NoticeDialog(
-                "You have to copy valid BIOS files to ~/.reicast/data " "before playing"
-            )
+            NoticeDialog("You have to copy valid BIOS files to ~/.reicast/data " "before playing")
 
         super(reicast, self).install(version, downloader, on_runner_installed)
 
@@ -129,9 +132,13 @@ class reicast(Runner):
     def play(self):
         fullscreen = "1" if self.runner_config.get("fullscreen") else "0"
         reicast_config = {
-            "x11": {"fullscreen": fullscreen},
+            "x11": {
+                "fullscreen": fullscreen
+            },
             "input": {},
-            "players": {"nb": "1"},
+            "players": {
+                "nb": "1"
+            },
         }
         players = 1
         reicast_config["input"] = {}

@@ -1,41 +1,40 @@
 """Window used for game installers"""
+# Standard Library
 import os
 import time
 import webbrowser
 
+# Third Party Libraries
 from gi.repository import Gtk
 
+# Lutris Modules
 from lutris import api, pga, settings
-from lutris.installer import interpreter
-from lutris.installer.errors import ScriptingError, MissingGameDependency
 from lutris.game import Game
 from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.dialogs import (
-    NoInstallerDialog, DirectoryDialog, InstallerSourceDialog, QuestionDialog
-)
-from lutris.gui.widgets.download_progress import DownloadProgressBox
+from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, NoInstallerDialog, QuestionDialog
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
+from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.gui.widgets.installer import InstallerPicker
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
-
-from lutris.util import jobs
-from lutris.util import system
-from lutris.util import xdgshortcuts
+from lutris.installer import interpreter
+from lutris.installer.errors import MissingGameDependency, ScriptingError
+from lutris.util import jobs, system, xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, escape_gtk_label
 
 
-class InstallerWindow(BaseApplicationWindow):
+class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
+
     """GUI for the install process."""
 
     def __init__(
-            self,
-            game_slug=None,
-            installer_file=None,
-            revision=None,
-            parent=None,
-            application=None,
+        self,
+        game_slug=None,
+        installer_file=None,
+        revision=None,
+        parent=None,
+        application=None,
     ):
         super().__init__(application=application)
 
@@ -47,6 +46,8 @@ class InstallerWindow(BaseApplicationWindow):
         self.game_slug = game_slug
         self.installer_file = installer_file
         self.revision = revision
+        self.desktop_shortcut_box = None
+        self.menu_shortcut_box = None
 
         self.log_buffer = None
         self.log_textview = None
@@ -72,8 +73,9 @@ class InstallerWindow(BaseApplicationWindow):
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 0)
 
-        self.cancel_button = self.add_button("C_ancel", self.cancel_installation,
-                                             tooltip="Abort and revert the installation")
+        self.cancel_button = self.add_button(
+            "C_ancel", self.cancel_installation, tooltip="Abort and revert the installation"
+        )
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
         self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
@@ -177,9 +179,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.title_label.set_markup("<b>Install %s</b>" % escape_gtk_label(base_script["name"]))
         installer_picker = InstallerPicker(self.scripts)
         installer_picker.connect("installer-selected", self.on_installer_selected)
-        scrolledwindow = Gtk.ScrolledWindow(
-            hexpand=True, vexpand=True, child=installer_picker
-        )
+        scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=installer_picker)
         scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
         scrolledwindow.show()
@@ -209,11 +209,7 @@ class InstallerWindow(BaseApplicationWindow):
             self.destroy()
             return
 
-        self.title_label.set_markup(
-            u"<b>Installing {}</b>".format(
-                escape_gtk_label(self.interpreter.game_name)
-            )
-        )
+        self.title_label.set_markup(u"<b>Installing {}</b>".format(escape_gtk_label(self.interpreter.game_name)))
         self.select_install_folder()
 
     def select_install_folder(self):
@@ -250,19 +246,14 @@ class InstallerWindow(BaseApplicationWindow):
         self.clean_widgets()
         self.set_message(message)
         path = self.selected_directory or os.path.expanduser("~")
-        self.set_path_chooser(
-            self.continue_guard,
-            "file",
-            default_path=path
-        )
+        self.set_path_chooser(self.continue_guard, "file", default_path=path)
 
     def continue_guard(self, _, action):
         """This is weird and needs to be explained."""
         path = os.path.expanduser(self.location_entry.get_text())
         if (
-                action == Gtk.FileChooserAction.OPEN and os.path.isfile(path)
-        ) or (
-                action == Gtk.FileChooserAction.SELECT_FOLDER and os.path.isdir(path)
+            (action == Gtk.FileChooserAction.OPEN and os.path.isfile(path))
+            or (action == Gtk.FileChooserAction.SELECT_FOLDER and os.path.isdir(path))
         ):
             self.continue_button.set_sensitive(True)
             self.continue_button.connect("clicked", self.on_file_selected)
@@ -290,11 +281,7 @@ class InstallerWindow(BaseApplicationWindow):
         if self.location_entry:
             self.location_entry.destroy()
         self.location_entry = FileChooserEntry(
-            title,
-            action,
-            path=default_path,
-            warn_if_non_empty=enable_warnings,
-            warn_if_ntfs=enable_warnings
+            title, action, path=default_path, warn_if_non_empty=enable_warnings, warn_if_ntfs=enable_warnings
         )
         self.location_entry.entry.connect("changed", callback_on_changed, action)
         self.widget_box.pack_start(self.location_entry, False, False, 0)
@@ -308,13 +295,15 @@ class InstallerWindow(BaseApplicationWindow):
             return
         self.interpreter.file_selected(file_path)
 
-    def start_download(
-        self, file_uri, dest_file, callback=None, data=None, referer=None
-    ):
+    def start_download(self, file_uri, dest_file, callback=None, data=None, referer=None):
         self.clean_widgets()
         logger.debug("Downloading %s to %s", file_uri, dest_file)
         self.download_progress = DownloadProgressBox(
-            {"url": file_uri, "dest": dest_file, "referer": referer}, cancelable=True
+            {
+                "url": file_uri,
+                "dest": dest_file,
+                "referer": referer
+            }, cancelable=True
         )
         self.download_progress.cancel_button.hide()
         self.download_progress.connect("complete", self.on_download_complete, callback, data)
@@ -362,9 +351,7 @@ class InstallerWindow(BaseApplicationWindow):
         buttons_box.pack_start(browse_button, True, True, 40)
 
     def on_browse_clicked(self, widget, callback_data):
-        dialog = DirectoryDialog(
-            "Select the folder where the disc is mounted", parent=self
-        )
+        dialog = DirectoryDialog("Select the folder where the disc is mounted", parent=self)
         folder = dialog.folder
         callback = callback_data["callback"]
         requires = callback_data["requires"]
@@ -393,9 +380,7 @@ class InstallerWindow(BaseApplicationWindow):
 
         combobox.connect("changed", self.on_input_menu_changed)
         combobox.show()
-        self.continue_handler = self.continue_button.connect(
-            "clicked", callback, alias, combobox
-        )
+        self.continue_handler = self.continue_button.connect("clicked", callback, alias, combobox)
         self.continue_button.grab_focus()
         self.continue_button.show()
 
@@ -496,9 +481,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.destroy()
 
     def on_source_clicked(self, _button):
-        InstallerSourceDialog(
-            self.interpreter.script_pretty, self.interpreter.game_name, self
-        )
+        InstallerSourceDialog(self.interpreter.script_pretty, self.interpreter.game_name, self)
 
     def clean_widgets(self):
         """Cleanup before displaying the next stage."""
@@ -529,9 +512,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.log_buffer = Gtk.TextBuffer()
         command.set_log_buffer(self.log_buffer)
         self.log_textview = LogTextView(self.log_buffer)
-        scrolledwindow = Gtk.ScrolledWindow(
-            hexpand=True, vexpand=True, child=self.log_textview
-        )
+        scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=self.log_textview)
         scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
         scrolledwindow.show()

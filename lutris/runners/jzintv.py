@@ -1,4 +1,7 @@
+# Standard Library
 import os
+
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -10,10 +13,14 @@ class jzintv(Runner):
     runner_executable = "jzintv/bin/jzintv"
     game_options = [
         {
-            "option": "main_file",
-            "type": "file",
-            "label": "ROM file",
-            "default_path": "game_path",
+            "option":
+            "main_file",
+            "type":
+            "file",
+            "label":
+            "ROM file",
+            "default_path":
+            "game_path",
             "help": (
                 "The game data, commonly called a ROM image. \n"
                 "Supported rom formats: .rom, .bin+.cfg, .int, .itv \n"
@@ -23,9 +30,12 @@ class jzintv(Runner):
     ]
     runner_options = [
         {
-            "option": "bios_path",
-            "type": "directory_chooser",
-            "label": "Bios location",
+            "option":
+            "bios_path",
+            "type":
+            "directory_chooser",
+            "label":
+            "Bios location",
             "help": (
                 "Choose the folder containing the Intellivision bios "
                 "files (exec.bin and grom.bin).\n"
@@ -33,11 +43,18 @@ class jzintv(Runner):
                 "necessary to the emulation."
             ),
         },
-        {"option": "fullscreen", "type": "bool", "label": "Fullscreen"},
         {
-            "option": "resolution",
-            "type": "choice",
-            "label": "Resolution",
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen"
+        },
+        {
+            "option":
+            "resolution",
+            "type":
+            "choice",
+            "label":
+            "Resolution",
             "choices": (
                 ("320 x 200 (default)", "0"),
                 ("640 x 480", "1"),

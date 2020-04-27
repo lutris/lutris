@@ -1,26 +1,20 @@
 """TreeView based game list"""
+# Third Party Libraries
 # pylint: disable=no-member
 from gi.repository import Gtk, Pango
+
+# Lutris Modules
 from lutris import settings
-from lutris.gui.views.store import sort_func
-from lutris.gui.views.base import GameView
 from lutris.gui.views import (
-    COL_NAME,
-    COL_ICON,
-    COL_YEAR,
-    COL_RUNNER_HUMAN_NAME,
-    COL_PLATFORM,
-    COL_LASTPLAYED,
-    COL_LASTPLAYED_TEXT,
-    COL_INSTALLED_AT,
-    COL_INSTALLED_AT_TEXT,
-    COL_PLAYTIME,
-    COL_PLAYTIME_TEXT,
-    COLUMN_NAMES
+    COL_ICON, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_NAME, COL_PLATFORM,
+    COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_YEAR, COLUMN_NAMES
 )
+from lutris.gui.views.base import GameView
+from lutris.gui.views.store import sort_func
 
 
 class GameListView(Gtk.TreeView, GameView):
+
     """Show the main list of games."""
 
     __gsignals__ = GameView.__gsignals__
@@ -74,9 +68,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_column_sort(column_id if sort_id is None else sort_id)
         column.set_resizable(True)
         column.set_reorderable(True)
-        width = settings.read_setting(
-            "%s_column_width" % COLUMN_NAMES[column_id], "list view"
-        )
+        width = settings.read_setting("%s_column_width" % COLUMN_NAMES[column_id], "list view")
         column.set_fixed_width(int(width) if width else default_width)
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
