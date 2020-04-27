@@ -1,10 +1,13 @@
+# Standard Library
 import sys
 
-from lutris.util.log import logger
+# Lutris Modules
 from lutris.gui.dialogs import ErrorDialog
+from lutris.util.log import logger
 
 
 class ScriptingError(Exception):
+
     """Custom exception for scripting errors, can be caught by modifying
     excepthook."""
 
@@ -23,11 +26,14 @@ class ScriptingError(Exception):
 
 
 class FileNotAvailable(Exception):
+
     """Raised when a file has to be provided by the user"""
 
 
 class MissingGameDependency(Exception):
+
     """Raise when a game requires another game that isn't installed"""
+
     def __init__(self, slug=None):
         self.slug = slug
         super().__init__()

@@ -1,13 +1,15 @@
-import struct
+# Standard Library
 import binascii
+import struct
+
+# Lutris Modules
+from lutris.util.gamecontrollerdb import GameControllerDB
+from lutris.util.log import logger
 
 try:
     import evdev
 except ImportError:
     evdev = None
-
-from lutris.util.log import logger
-from lutris.util.gamecontrollerdb import GameControllerDB
 
 
 def get_devices():
@@ -33,10 +35,6 @@ def read_button(device):
             sticks = (0, 1, 3, 4)
             if event.code not in sticks or abs(event.value) > 5000:
                 print("axis %s (%s): %s" % (event.code, hex(event.code), event.value))
-
-    # Unreacheable return statement, to return the even, place a 'break' in the
-    # for loop
-    return event
 
 
 def get_sdl_identifier(device_info):

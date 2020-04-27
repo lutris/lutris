@@ -1,4 +1,7 @@
+# Standard Library
 import os
+
+# Lutris Modules
 from lutris.settings import RUNTIME_DIR
 from lutris.util import system
 from lutris.util.log import logger

@@ -1,20 +1,21 @@
 """Legacy ScummVM 'service', has to be ported to the current architecture"""
-import re
+# Standard Library
 import os
+import re
 from configparser import ConfigParser
+
+# Lutris Modules
 from lutris import pga
+from lutris.config import LutrisConfig, make_game_config_id
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.config import make_game_config_id, LutrisConfig
-from lutris.util import system
 
 NAME = "ScummVM"
 ICON = "scummvm"
 ONLINE = False
 INSTALLER_SLUG = "system-scummvm"
-SCUMMVM_CONFIG_FILE = os.path.join(
-    os.path.expanduser("~/.config/scummvm"), "scummvm.ini"
-)
+SCUMMVM_CONFIG_FILE = os.path.join(os.path.expanduser("~/.config/scummvm"), "scummvm.ini")
 
 
 def mark_as_installed(scummvm_id, name, path):
@@ -58,9 +59,7 @@ def sync_with_lutris():
     """Sync the ScummVM games to Lutris"""
     scummvm_games = {
         game["slug"]: game
-        for game in pga.get_games_where(
-            runner="scummvm", installer_slug=INSTALLER_SLUG, installed=1
-        )
+        for game in pga.get_games_where(runner="scummvm", installer_slug=INSTALLER_SLUG, installed=1)
     }
     seen = set()
 

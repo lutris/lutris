@@ -1,3 +1,4 @@
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -7,9 +8,7 @@ class ags(Runner):
     description = "Graphics adventure engine"
     platforms = ["Linux"]
     runner_executable = "ags/ags.sh"
-    game_options = [
-        {"option": "main_file", "type": "file", "label": "Game executable or directory"}
-    ]
+    game_options = [{"option": "main_file", "type": "file", "label": "Game executable or directory"}]
     runner_options = [
         {
             "option": "fullscreen",

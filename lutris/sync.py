@@ -1,4 +1,5 @@
 """Synchronization of the game library with server and local data."""
+# Lutris Modules
 from lutris import api, pga
 from lutris.util import resources
 from lutris.util.log import logger

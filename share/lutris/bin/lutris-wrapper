@@ -72,6 +72,8 @@ def log(line):
 
 def main():
     """Runs a command independently from the Lutris client"""
+    # pylint: disable=too-many-branches,too-many-statements
+    # TODO: refactor
     set_child_subreaper()
     _, proc_title, include_proc_count, exclude_proc_count, *args = sys.argv
 
@@ -224,7 +226,7 @@ def main():
 
 if __name__ == "__main__":
     LAUNCH_PATH = os.path.dirname(os.path.realpath(__file__))
-    if os.path.isdir(os.path.join(LAUNCH_PATH,"../lutris")):
+    if os.path.isdir(os.path.join(LAUNCH_PATH, "../lutris")):
         logger.setLevel(logging.DEBUG)
         sys.dont_write_bytecode = True
         SOURCE_PATH = os.path.normpath(os.path.join(LAUNCH_PATH, '..'))

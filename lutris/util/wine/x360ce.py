@@ -1,9 +1,12 @@
 """Module to setup and interact with X360CE"""
+# Standard Library
 from collections import OrderedDict
 from configparser import RawConfigParser
+
+# Lutris Modules
 from lutris.util import system
-from lutris.util.log import logger
 from lutris.util.joypad import get_controller_mappings
+from lutris.util.log import logger
 
 
 class X360ce:
@@ -165,11 +168,10 @@ class X360ce:
         # Axis
         if sdl_key.startswith("a"):
             return "x{}".format(int(sdl_key[1:]) + 1)
+        return
 
     def load_mappings(self, device, mappings, index=1):
-        product_guid = "{:04x}{:04x}-0000-0000-0000-504944564944".format(
-            device.info.product, device.info.vendor
-        )
+        product_guid = "{:04x}{:04x}-0000-0000-0000-504944564944".format(device.info.product, device.info.vendor)
         instance_guid = "9e573eda-7734-11d{}-8d4a-23903fb6bdf7".format(index + 1)
         section_name = "IG_{}".format(instance_guid.replace("-", ""))
         self.config["Mappings"]["PAD{}".format(index)] = section_name

@@ -1,11 +1,13 @@
 """Citra runner"""
+# Lutris Modules
+from lutris.exceptions import UnavailableLibraries
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.exceptions import UnavailableLibraries
 
 
 class citra(Runner):  # pylint: disable=invalid-name
+
     """Runner for Nintendo 3DS games using Citra"""
     human_name = "Citra"
     platforms = ["Nintendo 3DS"]

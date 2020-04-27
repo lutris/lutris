@@ -1,7 +1,9 @@
-from gi.repository import Gtk, Pango, GObject
+# Third Party Libraries
+from gi.repository import GObject, Gtk, Pango
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
+
     """CellRendererText adjusted for grid view display, removes extra padding"""
 
     def __init__(self, width, *args, **kwargs):
@@ -27,7 +29,7 @@ class CellRendererButton(Gtk.CellRenderer):
         self.layout = layout
 
     @staticmethod
-    def do_get_size(widget, cell_area=None):
+    def do_get_size(widget, cell_area=None):  # pylint: disable=arguments-differ,unused-argument
         height = 20
         max_width = 100
         if cell_area:
@@ -39,7 +41,7 @@ class CellRendererButton(Gtk.CellRenderer):
             )
         return 0, 0, max_width, height
 
-    def do_render(self, cr, widget, bg_area, cell_area, flags):
+    def do_render(self, cr, widget, bg_area, cell_area, flags):  # pylint: disable=arguments-differ,unused-argument
         context = widget.get_style_context()
         context.save()
         context.add_class(Gtk.STYLE_CLASS_BUTTON)

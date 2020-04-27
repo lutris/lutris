@@ -1,5 +1,8 @@
 """Module for handling the PGA cache"""
+# Standard Library
 import os
+
+# Lutris Modules
 from lutris import settings
 
 
@@ -8,6 +11,7 @@ def get_cache_path():
     pga_cache_path = settings.read_setting("pga_cache_path")
     if pga_cache_path:
         return os.path.expanduser(pga_cache_path)
+    return None
 
 
 def save_cache_path(path):
