@@ -1,3 +1,4 @@
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -8,14 +9,12 @@ class pcsx2(Runner):
     platforms = ["Sony PlayStation 2"]
     runnable_alone = True
     runner_executable = "pcsx2/PCSX2"
-    game_options = [
-        {
-            "option": "main_file",
-            "type": "file",
-            "label": "ISO file",
-            "default_path": "game_path",
-        }
-    ]
+    game_options = [{
+        "option": "main_file",
+        "type": "file",
+        "label": "ISO file",
+        "default_path": "game_path",
+    }]
 
     runner_options = [
         {
@@ -24,12 +23,28 @@ class pcsx2(Runner):
             "label": "Fullscreen",
             "default": False,
         },
-        {"option": "full_boot", "type": "bool", "label": "Fullboot", "default": False},
-        {"option": "nogui", "type": "bool", "label": "No GUI", "default": False},
+        {
+            "option": "full_boot",
+            "type": "bool",
+            "label": "Fullboot",
+            "default": False
+        },
+        {
+            "option": "nogui",
+            "type": "bool",
+            "label": "No GUI",
+            "default": False
+        },
         {
             "option": "config_file",
             "type": "file",
             "label": "Custom config file",
+            "advanced": True,
+        },
+        {
+            "option": "config_path",
+            "type": "directory_chooser",
+            "label": "Custom config path",
             "advanced": True,
         },
     ]
@@ -44,8 +59,10 @@ class pcsx2(Runner):
         if self.runner_config.get("nogui"):
             arguments.append("--nogui")
         if self.runner_config.get("config_file"):
-            arguments.append("--conf=%s", self.runner_config["config_file"])
-
+            arguments.append("--cfg=%s", self.runner_config["config_file"])
+        if self.runner_config.get("config_path"):
+            arguments.append("--cfgpath=%s", self.runner_config["config_path"])
+            
         iso = self.game_config.get("main_file") or ""
         if not system.path_exists(iso):
             return {"error": "FILE_NOT_FOUND", "file": iso}

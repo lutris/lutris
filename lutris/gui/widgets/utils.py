@@ -1,24 +1,25 @@
 """Various utilities using the GObject framework"""
-import os
+# Standard Library
 import array
+import os
+
+# Third Party Libraries
+from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
+
+# Lutris Modules
+from lutris import settings
+from lutris.util import datapath, resources, system
+from lutris.util.log import logger
+
 try:
     from PIL import Image
 except ImportError:
     Image = None
-from gi.repository import GdkPixbuf, GLib, Gtk, Gio, Gdk
-
-from lutris.util.log import logger
-from lutris.util import datapath
-from lutris.util import system
-from lutris.util import resources
-from lutris import settings
-
 
 BANNER_SIZE = (184, 69)
 BANNER_SMALL_SIZE = (120, 45)
 ICON_SIZE = (32, 32)
 ICON_SMALL_SIZE = (20, 20)
-
 
 IMAGE_SIZES = {
     "icon_small": ICON_SMALL_SIZE,
@@ -37,6 +38,7 @@ def get_main_window(widget):
     for window in parent.application.get_windows():
         if "LutrisWindow" in window.__class__.__name__:
             return window
+    return
 
 
 def open_uri(uri):
@@ -74,7 +76,7 @@ def get_stock_icon(name, size):
         return None
 
 
-def get_icon(icon_name, format="image", size=None, icon_type="runner"):
+def get_icon(icon_name, icon_format="image", size=None, icon_type="runner"):
     """Return an icon based on the given name, format, size and type.
 
     Keyword arguments:
@@ -88,26 +90,22 @@ def get_icon(icon_name, format="image", size=None, icon_type="runner"):
     if not os.path.exists(icon_path):
         logger.error("Unable to find icon '%s'", icon_path)
         return None
-    if format == "image":
+    if icon_format == "image":
         icon = Gtk.Image()
         if size:
             icon.set_from_pixbuf(get_pixbuf(icon_path, size))
         else:
             icon.set_from_file(icon_path)
         return icon
-    elif format == "pixbuf" and size:
+    if icon_format == "pixbuf" and size:
         return get_pixbuf(icon_path, size)
     raise ValueError("Invalid arguments")
 
 
 def get_overlay(overlay_path, size):
     width, height = size
-    transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
-        overlay_path, width, height
-    )
-    transparent_pixbuf = transparent_pixbuf.scale_simple(
-        width, height, GdkPixbuf.InterpType.NEAREST
-    )
+    transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(overlay_path, width, height)
+    transparent_pixbuf = transparent_pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.NEAREST)
     return transparent_pixbuf
 
 
@@ -181,9 +179,7 @@ def image2pixbuf(image):
     """Converts a PIL Image to a GDK Pixbuf"""
     image_array = array.array('B', image.tobytes())
     width, height = image.size
-    return GdkPixbuf.Pixbuf.new_from_data(
-        image_array, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4
-    )
+    return GdkPixbuf.Pixbuf.new_from_data(image_array, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4)
 
 
 def get_pixbuf_for_panel(game_slug):

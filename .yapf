@@ -1,0 +1,16 @@
+[style]
+based_on_style = pep8
+column_limit = 120
+
+align_closing_bracket_with_visual_indent = true
+blank_line_before_class_docstring = true
+blank_line_before_module_docstring = true
+blank_line_before_nested_class_or_def = true
+coalesce_brackets = false
+dedent_closing_brackets = true
+spaces_around_power_operator = false
+spaces_before_comment = 2
+split_before_first_argument = false
+split_before_logical_operator = true
+split_before_arithmetic_operator = true
+split_penalty_after_opening_bracket = 1000

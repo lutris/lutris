@@ -1,8 +1,11 @@
+# Standard Library
 import os
-from lutris.util.log import logger
-from lutris.util import display, system
-from lutris.util.strings import split_arguments
+
+# Lutris Modules
 from lutris.runners.runner import Runner
+from lutris.util import display, system
+from lutris.util.log import logger
+from lutris.util.strings import split_arguments
 
 
 class zdoom(Runner):
@@ -28,10 +31,8 @@ class zdoom(Runner):
             "option": "files",
             "type": "multiple",
             "label": "PWAD files",
-            "help": (
-                "Used to load one or more PWAD files which generally contain "
-                "user-created levels."
-            ),
+            "help": ("Used to load one or more PWAD files which generally contain "
+                     "user-created levels."),
         },
         {
             "option": "warp",
@@ -47,8 +48,18 @@ class zdoom(Runner):
         },
     ]
     runner_options = [
-        {"option": "2", "label": "Pixel Doubling", "type": "bool", "default": False},
-        {"option": "4", "label": "Pixel Quadrupling", "type": "bool", "default": False},
+        {
+            "option": "2",
+            "label": "Pixel Doubling",
+            "type": "bool",
+            "default": False
+        },
+        {
+            "option": "4",
+            "label": "Pixel Quadrupling",
+            "type": "bool",
+            "default": False
+        },
         {
             "option": "nostartup",
             "label": "Disable Startup Screens",
@@ -70,9 +81,12 @@ class zdoom(Runner):
             },
         },
         {
-            "option": "config",
-            "label": "Config file",
-            "type": "file",
+            "option":
+            "config",
+            "label":
+            "Config file",
+            "type":
+            "file",
             "help": (
                 "Used to load a user-created configuration file. If specified, "
                 "the file must contain the wad directory list or launch will fail."
@@ -96,7 +110,7 @@ class zdoom(Runner):
             logger.warning("FluidSynth is not installed, you might not have any music")
         return True
 
-    def play(self):
+    def play(self):  # noqa: C901
         command = [self.get_executable()]
 
         resolution = self.runner_config.get("resolution")
@@ -149,9 +163,7 @@ class zdoom(Runner):
 
         # Append the pwad files to load, if provided.
         files = self.game_config.get("files") or []
-        pwads = [
-            f for f in files if f.lower().endswith(".wad") or f.lower().endswith(".pk3")
-        ]
+        pwads = [f for f in files if f.lower().endswith(".wad") or f.lower().endswith(".pk3")]
         deh = [f for f in files if f.lower().endswith(".deh")]
         bex = [f for f in files if f.lower().endswith(".bex")]
         if deh:

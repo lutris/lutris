@@ -58,10 +58,9 @@ class TestScriptInterpreter(TestCase):
         self.assertEqual(params, "whatever")
 
     def test_get_command_doesnt_return_private_methods(self):
-        """ """
         interpreter = MockInterpreter(TEST_INSTALLER, None)
         with self.assertRaises(ScriptingError) as ex:
-            command, params = interpreter._map_command(
+            interpreter._map_command(
                 {'_substitute': 'foo'}
             )
         self.assertEqual(ex.exception.message,

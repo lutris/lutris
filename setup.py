@@ -38,6 +38,7 @@ setup(
         'lutris.services',
         'lutris.util',
         'lutris.util.graphics',
+        'lutris.util.mame',
         'lutris.util.steam',
         'lutris.util.wine',
         'lutris.vendor'

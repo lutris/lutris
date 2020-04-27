@@ -1,13 +1,11 @@
+# Third Party Libraries
 from gi.repository import Gdk, GObject
-from lutris.util.log import logger
-from lutris.game import Game
+
+# Lutris Modules
 from lutris import pga
-from lutris.gui.views import (
-    COL_ID,
-    COL_SLUG,
-    COL_NAME,
-    COL_INSTALLED
-)
+from lutris.game import Game
+from lutris.gui.views import COL_ID, COL_INSTALLED, COL_NAME, COL_SLUG
+from lutris.util.log import logger
 
 
 class GameView:
@@ -60,7 +58,7 @@ class GameView:
         """Selects the object pointed by current_path"""
         raise NotImplementedError
 
-    def handle_key_press(self, widget, event):
+    def handle_key_press(self, widget, event):  # pylint: disable=unused-argument
         if not self.selected_game:
             return
         key = event.keyval

@@ -1,39 +1,43 @@
 """Side panel when no game is selected"""
+# Standard Library
 import json
-from gi.repository import Gtk, Gdk, Gio, Pango, GObject
+
+# Third Party Libraries
+from gi.repository import Gdk, Gio, GObject, Gtk, Pango
+
+# Lutris Modules
 from lutris import api
 from lutris.game import Game
-from lutris.util import system
-from lutris.gui.widgets.utils import (
-    get_pixbuf_for_panel,
-    get_pixbuf_for_game,
-    get_pixbuf,
-    get_main_window,
-    open_uri,
-    get_link_button,
-)
 from lutris.gui.config.system import SystemConfigDialog
+from lutris.gui.widgets.utils import (
+    get_link_button, get_main_window, get_pixbuf, get_pixbuf_for_game, get_pixbuf_for_panel, open_uri
+)
+from lutris.util import system
 
 LINKS = {
-    "floss": "https://lutris.net/games/?q=&fully-libre-filter=on&sort-by-popularity=on",
+    "floss":
+    "https://lutris.net/games/?q=&fully-libre-filter=on&sort-by-popularity=on",
     "f2p": (
         "https://lutris.net/games/?q=&all-free=on&free-filter=on&freetoplay-filter=on"
         "&pwyw-filter=on&sort-by-popularity=on"
     ),
-    "donate": "https://lutris.net/donate",
-    "forums": "https://forums.lutris.net/",
-    "discord": "https://discord.gg/Pnt5CuY",
-    "irc": "irc://irc.freenode.org:6667/lutris",
+    "donate":
+    "https://lutris.net/donate",
+    "forums":
+    "https://forums.lutris.net/",
+    "discord":
+    "https://discord.gg/Pnt5CuY",
+    "irc":
+    "irc://irc.freenode.org:6667/lutris",
 }
 
 
 class GenericPanel(Gtk.Fixed):
+
     """Side panel displayed when no game is selected"""
 
     __gtype_name__ = "LutrisPanel"
-    __gsignals__ = {
-        "running-game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Game, ))
-    }
+    __gsignals__ = {"running-game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Game, ))}
 
     def __init__(self, application=None):
         super().__init__(visible=True)
@@ -85,9 +89,7 @@ class GenericPanel(Gtk.Fixed):
         self.place_content()
 
     def get_preferences_button(self):
-        preferences_button = Gtk.Button.new_from_icon_name(
-            "preferences-system-symbolic", Gtk.IconSize.MENU
-        )
+        preferences_button = Gtk.Button.new_from_icon_name("preferences-system-symbolic", Gtk.IconSize.MENU)
         preferences_button.set_tooltip_text("Preferences")
         preferences_button.set_size_request(32, 32)
         preferences_button.props.relief = Gtk.ReliefStyle.NONE
@@ -99,9 +101,7 @@ class GenericPanel(Gtk.Fixed):
         SystemConfigDialog(get_main_window(button))
 
     def create_list_widget(self, game):
-        box = Gtk.Box(
-            spacing=6, margin_top=6, margin_bottom=6, margin_right=6, margin_left=6
-        )
+        box = Gtk.Box(spacing=6, margin_top=6, margin_bottom=6, margin_right=6, margin_left=6)
         box.set_size_request(280, 32)
 
         icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(game.slug, "icon"))
@@ -138,14 +138,10 @@ class GenericPanel(Gtk.Fixed):
         user_info_box.pack_start(user_label, False, False, 0)
         if user_info.get("steamid"):
             steam_button = Gtk.Button(visible=True)
-            steam_button.set_image(
-                Gtk.Image.new_from_icon_name("steam-symbolic", Gtk.IconSize.MENU)
-            )
+            steam_button.set_image(Gtk.Image.new_from_icon_name("steam-symbolic", Gtk.IconSize.MENU))
             steam_button.connect(
                 "clicked",
-                lambda *x: open_uri(
-                    "https://steamcommunity.com/profiles/%s" % user_info["steamid"]
-                ),
+                lambda *x: open_uri("https://steamcommunity.com/profiles/%s" % user_info["steamid"]),
             )
             button_align = Gtk.Alignment(visible=True)
             button_align.set(1, 0, 0, 0)

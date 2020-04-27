@@ -1,16 +1,20 @@
 """Manipulates installer files"""
+# Standard Library
 import os
 from urllib.parse import urlparse
-from lutris import pga
-from lutris import settings
-from lutris.installer.errors import ScriptingError, FileNotAvailable
-from lutris.util.log import logger
-from lutris.util import system
+
+# Lutris Modules
+from lutris import pga, settings
 from lutris.cache import get_cache_path
+from lutris.installer.errors import FileNotAvailable, ScriptingError
+from lutris.util import system
+from lutris.util.log import logger
 
 
 class InstallerFile:
+
     """Representation of a file in the `files` sections of an installer"""
+
     def __init__(self, game_slug, file_id, file_meta):
         self.game_slug = game_slug
         self.id = file_id  # pylint: disable=invalid-name
@@ -18,9 +22,7 @@ class InstallerFile:
         if isinstance(file_meta, dict):
             for field in ("url", "filename"):
                 if field not in file_meta:
-                    raise ScriptingError(
-                        "missing field `%s` for file `%s`" % (field, file_id)
-                    )
+                    raise ScriptingError("missing field `%s` for file `%s`" % (field, file_id))
             self.url = file_meta["url"]
             self.filename = file_meta["filename"]
             self.referer = file_meta.get("referer")
@@ -128,10 +130,5 @@ class InstallerFile:
 
         if not system.path_exists(self.cache_path):
             os.makedirs(self.cache_path)
-        downloader(
-            self.url,
-            self.dest_file,
-            callback=self.check_hash,
-            referer=self.referer
-        )
+        downloader(self.url, self.dest_file, callback=self.check_hash, referer=self.referer)
         return True

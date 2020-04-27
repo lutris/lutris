@@ -1,0 +1,156 @@
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-22 18:56+0200\n"
+"PO-Revision-Date: 2020-04-20 12:40+0200\n"
+"Last-Translator: Stelfux <coles@tuta.io>\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: share/lutris/ui/about-dialog.ui:8
+msgid "About Lutris"
+msgstr "À propos de Lutris"
+
+#: share/lutris/ui/about-dialog.ui:17
+msgid "Open Source Gaming Platform"
+msgstr "Plateforme libre de jeu"
+
+#: share/lutris/ui/about-dialog.ui:20
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"Ce programme est un logiciel libre : vous pouvez le redistribuer\n"
+"et/ou le modifier aux termes de la licence publique générale GNU\n"
+"telle que publiée par la Free Software Foundation, soit la version\n"
+"3 de la licence, ou (à votre choix) toute version ultérieure.\n"
+"\n"
+"Ce programme est distribué dans l'espoir qu'il sera utile, mais SANS\n"
+"AUCUNE GARANTIE ; sans même la garantie implicite de la qualité\n"
+"marchande ou l'adéquation à un usage particulier. Voir le Licence\n"
+"publique générale GNU pour plus de détails.\n"
+"\n"
+"Vous devriez avoir reçu une copie de la licence publique générale de\n"
+"GNU en même temps que ce programme. Si ce n'est pas le cas,\n"
+"voir <http://www.gnu.org/licenses/>.\n"
+
+#: share/lutris/ui/dialog-lutris-login.ui:8
+msgid "Connect to lutris.net"
+msgstr "Se connecter à lutris.net"
+
+#: share/lutris/ui/dialog-lutris-login.ui:26
+msgid "Forgot password?"
+msgstr "Mot de passe oublié ?"
+
+#: share/lutris/ui/dialog-lutris-login.ui:95
+msgid "Password"
+msgstr "Mot de passe"
+
+#: share/lutris/ui/dialog-lutris-login.ui:109
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+#: share/lutris/ui/dialog-pga-sources.ui:79
+msgid "<b>Personnal Game Archives sources</b>"
+msgstr "<b>Sources des archives personnels de jeu</b>"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:22
+msgid "Uninstall game"
+msgstr "Désinstaller le jeu"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:89
+msgid "Are you sure you want to uninstall {game}?"
+msgstr "Êtes-vous sûr de vouloir désinstaller {game} ?"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:102
+msgid ""
+"Remove <b>all data</b> from game folder\n"
+"( <i>{path}</i>)"
+msgstr "Supprimer <b>toutes les données</b> du dossier de jeu (<i>{path}</i>)"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:121
+msgid "Remove from my library"
+msgstr "Supprimer de ma bibliothèque"
+
+#: share/lutris/ui/runner-entry.ui:33
+msgid "name"
+msgstr "nom"
+
+#: share/lutris/ui/runner-entry.ui:52
+msgid "description"
+msgstr "déscription"
+
+#: share/lutris/ui/runner-entry.ui:69
+msgid "platforms"
+msgstr "plateformes"
+
+#: share/lutris/ui/runner-entry.ui:104
+msgid "Manage Versions"
+msgstr "Gérer les versions"
+
+#: share/lutris/ui/runner-entry.ui:127
+msgid "Install Runner"
+msgstr "Installer l'exécuteur"
+
+#: share/lutris/ui/runner-entry.ui:151
+msgid "Configure Runner"
+msgstr "Configurer l'exécuteur"
+
+#: share/lutris/ui/runner-entry.ui:174
+msgid "Remove Runner"
+msgstr "Supprimer l'exécuteur"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:19
+msgid "Remove ALL versions?"
+msgstr "Supprimer TOUTES les versions ?"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:23
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:23
+msgid "Cancel"
+msgstr "Annuler"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:36
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:19
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:36
+msgid "Remove"
+msgstr "Supprimer"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:59
+msgid ""
+"This will remove <b>ALL</b> versions of %s.\n"
+"\n"
+"Use the Manage Versions button if you want to remove just one version."
+msgstr ""
+"Cela supprimera <b>TOUTES</b> les versions de %s.\n"
+"\n"
+"Utiliser le bouton « Gérer les versions » si vous voulez juste supprimer une "
+"version."
+
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:59
+msgid "This will remove <b>%s</b> and all associated data."
+msgstr "Cela supprimera <b>%s</b> et toutes les données associés."
+
+#: share/lutris/ui/runners-dialog.ui:16
+msgid "Manage Runners"
+msgstr "Gérer les exécuteurs"
+
+#: share/lutris/ui/runners-dialog.ui:24
+msgid "Refresh Runners"
+msgstr "Rafraîchir les exécuteurs"
+
+#: share/lutris/ui/runners-dialog.ui:40
+msgid "Open Runners Folder"
+msgstr "Ouvrir le dossier des exécuteurs"

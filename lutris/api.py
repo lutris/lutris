@@ -1,17 +1,17 @@
 """Functions to interact with the Lutris REST API"""
+# Standard Library
+import json
 import os
 import re
-import json
-import urllib.request
-import urllib.parse
-import urllib.error
 import socket
+import urllib.error
+import urllib.parse
+import urllib.request
 
+# Lutris Modules
 from lutris import settings
-from lutris.util import resources
-from lutris.util import http, system
+from lutris.util import http, resources, system
 from lutris.util.log import logger
-
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
@@ -34,9 +34,7 @@ def read_api_key():
 
 def connect(username, password):
     """Connect to the Lutris API"""
-    credentials = urllib.parse.urlencode(
-        {"username": username, "password": password}
-    ).encode("utf-8")
+    credentials = urllib.parse.urlencode({"username": username, "password": password}).encode("utf-8")
     login_url = settings.SITE_URL + "/api/accounts/token"
     try:
         request = urllib.request.urlopen(login_url, credentials, 10)
@@ -64,7 +62,7 @@ def get_user_info():
     """Retrieves the user info to cache it locally"""
     credentials = read_api_key()
     if not credentials:
-        return []
+        return
     url = settings.SITE_URL + "/api/users/me"
     request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
     response = request.get()
@@ -156,8 +154,7 @@ def get_api_games(game_slugs=None, page="1", query_type="games", inject_aliases=
         if not response_data:
             logger.warning("Unable to get response for page %s", next_page)
             break
-        else:
-            results += response_data.get("results")
+        results += response_data.get("results")
     if game_slugs and inject_aliases:
         matched_games = []
         for game in results:

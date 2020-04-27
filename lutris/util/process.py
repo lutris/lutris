@@ -1,13 +1,17 @@
 """Class to manipulate a process"""
+# Standard Library
 import os
 
 
 class InvalidPid(Exception):
+
     """Exception raised when an operation on a non-existent PID is called"""
 
 
 class Process:
+
     """Python abstraction a Linux process"""
+
     def __init__(self, pid):
         try:
             self.pid = int(pid)
@@ -36,7 +40,7 @@ class Process:
         basedir = "/proc/{}/task/".format(self.pid)
         if os.path.isdir(basedir):
             try:
-                return [tid for tid in os.listdir(basedir)]
+                return os.listdir(basedir)
             except FileNotFoundError:
                 return []
         else:

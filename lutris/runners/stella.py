@@ -1,3 +1,4 @@
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -10,9 +11,12 @@ class stella(Runner):
     runner_executable = "stella/bin/stella"
     game_options = [
         {
-            "option": "main_file",
-            "type": "file",
-            "label": "ROM file",
+            "option":
+            "main_file",
+            "type":
+            "file",
+            "label":
+            "ROM file",
             "help": (
                 "The game data, commonly called a ROM image.\n"
                 "Supported formats: A26/BIN/ROM. GZIP and ZIP compressed "

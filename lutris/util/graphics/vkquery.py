@@ -1,17 +1,9 @@
 # pylint: disable=wildcard-import, unused-wildcard-import, invalid-name
 # Vulkan detection by Patryk Obara (@dreamer)
+
 """Query Vulkan capabilities"""
-from ctypes import (
-    c_int32,
-    c_uint32,
-    c_void_p,
-    c_char_p,
-    Structure,
-    POINTER,
-    pointer,
-    CDLL,
-    byref,
-)
+# Standard Library
+from ctypes import CDLL, POINTER, Structure, byref, c_char_p, c_int32, c_uint32, c_void_p, pointer
 
 VkResult = c_int32  # enum (size == 4)
 VK_SUCCESS = 0

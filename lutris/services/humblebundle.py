@@ -1,17 +1,18 @@
 """Manage Humble Bundle libraries"""
-import os
+# Standard Library
 import json
+import os
 from urllib.parse import urlparse
-from lutris import api
-from lutris import pga
-from lutris import settings
+
+# Lutris Modules
+from lutris import api, pga, settings
 from lutris.gui.dialogs import WebConnectDialog
-from lutris.util.http import Request, HTTPError
-from lutris.util.log import logger
-from lutris.util import system
-from lutris.util.resources import download_media
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
+from lutris.util import system
+from lutris.util.http import HTTPError, Request
+from lutris.util.log import logger
+from lutris.util.resources import download_media
 
 NAME = "Humble Bundle"
 ICON = "humblebundle"
@@ -19,6 +20,7 @@ ONLINE = True
 
 
 class HumbleBundleGame(ServiceGame):
+
     """Service game for DRM free Humble Bundle games"""
     store = "humblebundle"
 
@@ -49,6 +51,7 @@ class HumbleBundleGame(ServiceGame):
 
 
 class HumbleBundleService(OnlineService):
+
     """Service for Humble Bundle"""
 
     name = NAME
@@ -89,9 +92,7 @@ class HumbleBundleService(OnlineService):
         if os.path.exists(cache_filename):
             with open(cache_filename) as cache_file:
                 return json.load(cache_file)
-        response = self.make_api_request(
-            self.api_url + "api/v1/order/%s?all_tpkds=true" % gamekey
-        )
+        response = self.make_api_request(self.api_url + "api/v1/order/%s?all_tpkds=true" % gamekey)
         if not os.path.exists(self.cache_path):
             os.makedirs(self.cache_path)
         with open(cache_filename, "w") as cache_file:
@@ -111,10 +112,7 @@ class HumbleBundleService(OnlineService):
     def get_orders(self):
         """Return all orders"""
         gamekeys = self.make_api_request(self.api_url + "api/v1/user/order")
-        return [
-            self.get_order(gamekey["gamekey"])
-            for gamekey in gamekeys
-        ]
+        return [self.get_order(gamekey["gamekey"]) for gamekey in gamekeys]
 
     @staticmethod
     def find_download_in_order(order, humbleid, platform):
@@ -196,6 +194,7 @@ def get_humble_download_link(humbleid, runner):
 
 
 class HumbleBundleSyncer:
+
     """Sync DRM-Free Humble Bundle games to the local library"""
 
     @classmethod
