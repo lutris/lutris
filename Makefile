@@ -58,16 +58,7 @@ snap:
 
 dev:
 	$(PIP) install --user --upgrade pipenv
-	@$(pipenv --venv)
-	# Do not use destructive "--python" or "--three" option if the venv already exists
-	# See https://github.com/pypa/pipenv/issues/349
-	@if [ $$? -eq 0 ]; then \
-		echo "$(PIPENV) install --dev $(PIPENV_LOCK_ARGS)" ; \
-		$(PIPENV) install --dev $(PIPENV_LOCK_ARGS) ; \
-	else \
-		echo "$(PIPENV) install --dev $(PIPENV_LOCK_ARGS) --python $(PYTHON)" ; \
-		$(PIPENV) install --dev $(PIPENV_LOCK_ARGS) --python $(PYTHON) ; \
-	fi
+	$(PIPENV) install --dev $(PIPENV_LOCK_ARGS) --python $(PYTHON)
 
 requirements:
 	# Generate new requirements.txt and requirements-dev.txt based on Pipfile.lock
