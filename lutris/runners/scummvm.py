@@ -1,9 +1,12 @@
+# Standard Library
 import os
 import subprocess
 
+# Lutris Modules
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.strings import split_arguments
 
 
 class scummvm(Runner):
@@ -13,13 +16,27 @@ class scummvm(Runner):
     runnable_alone = True
     runner_executable = "scummvm/bin/scummvm"
     game_options = [
-        {"option": "game_id", "type": "string", "label": "Game identifier"},
-        {"option": "path", "type": "directory_chooser", "label": "Game files location"},
+        {
+            "option": "game_id",
+            "type": "string",
+            "label": "Game identifier"
+        },
+        {
+            "option": "path",
+            "type": "directory_chooser",
+            "label": "Game files location"
+        },
         {
             "option": "subtitles",
             "label": "Enable subtitles (if the game has voice)",
             "type": "bool",
             "default": False,
+        },
+        {
+            "option": "args",
+            "type": "string",
+            "label": "Arguments",
+            "help": "Command line arguments used when launching the game",
         },
     ]
     runner_options = [
@@ -30,10 +47,14 @@ class scummvm(Runner):
             "default": False,
         },
         {
-            "option": "aspect",
-            "label": "Aspect ratio correction",
-            "type": "bool",
-            "default": True,
+            "option":
+            "aspect",
+            "label":
+            "Aspect ratio correction",
+            "type":
+            "bool",
+            "default":
+            True,
             "help": (
                 "Most games supported by ScummVM were made for VGA "
                 "display modes using rectangular pixels. Activating "
@@ -42,10 +63,14 @@ class scummvm(Runner):
             ),
         },
         {
-            "option": "gfx-mode",
-            "label": "Graphic scaler",
-            "type": "choice",
-            "default": "3x",
+            "option":
+            "gfx-mode",
+            "label":
+            "Graphic scaler",
+            "type":
+            "choice",
+            "default":
+            "3x",
             "choices": [
                 ("normal", "normal"),
                 ("2x", "2x"),
@@ -60,10 +85,9 @@ class scummvm(Runner):
                 ("tv2x", "tv2x"),
                 ("dotmatrix", "dotmatrix"),
             ],
-            "help": (
-                "The algorithm used to scale up the game's base "
-                "resolution, resulting in different visual styles. "
-            ),
+            "help":
+            ("The algorithm used to scale up the game's base "
+             "resolution, resulting in different visual styles. "),
         },
     ]
 
@@ -110,19 +134,19 @@ class scummvm(Runner):
         if mode:
             command.append("--gfx-mode=%s" % mode)
         # /Options
-
         command.append("--path=%s" % self.game_path)
+        args = self.game_config.get("args") or ""
+        for arg in split_arguments(args):
+            command.append(arg)
         command.append(self.game_config.get("game_id"))
-
         launch_info = {"command": command, "ld_library_path": self.libs_dir}
 
         return launch_info
 
     def get_game_list(self):
         """Return the entire list of games supported by ScummVM."""
-        scumm_output = subprocess.Popen(
-            [self.get_executable(), "--list-games"], stdout=subprocess.PIPE
-        ).communicate()[0]
+        scumm_output = subprocess.Popen([self.get_executable(), "--list-games"],
+                                        stdout=subprocess.PIPE).communicate()[0]
         game_list = str.split(scumm_output, "\n")
         game_array = []
         game_list_start = False

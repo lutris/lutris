@@ -1,6 +1,9 @@
 """Runner for Linux games"""
+# Standard Library
 import os
 import stat
+
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
@@ -26,9 +29,12 @@ class linux(Runner):
             "help": "Command line arguments used when launching the game",
         },
         {
-            "option": "working_dir",
-            "type": "directory_chooser",
-            "label": "Working directory",
+            "option":
+            "working_dir",
+            "type":
+            "directory_chooser",
+            "label":
+            "Working directory",
             "help": (
                 "The location where the game is run from.\n"
                 "By default, Lutris uses the directory of the "
@@ -43,10 +49,14 @@ class linux(Runner):
             "help": "A library to load before running the game's executable.",
         },
         {
-            "option": "ld_library_path",
-            "type": "directory_chooser",
-            "label": "Add directory to LD_LIBRARY_PATH",
-            "advanced": True,
+            "option":
+            "ld_library_path",
+            "type":
+            "directory_chooser",
+            "label":
+            "Add directory to LD_LIBRARY_PATH",
+            "advanced":
+            True,
             "help": (
                 "A directory where libraries should be searched for "
                 "first, before the standard set of directories; this is "

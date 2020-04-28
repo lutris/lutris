@@ -1,6 +1,11 @@
+# Standard Library
 import os
+import shlex
+
 from lutris.runners.runner import Runner
+
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
+from lutris.runners.runner import Runner
 from lutris.util import system
 
 
@@ -12,9 +17,12 @@ class dosbox(Runner):
     runner_executable = "dosbox/bin/dosbox"
     game_options = [
         {
-            "option": "main_file",
-            "type": "file",
-            "label": "Main file",
+            "option":
+            "main_file",
+            "type":
+            "file",
+            "label":
+            "Main file",
             "help": (
                 "The CONF, EXE, COM or BAT file to launch.\n"
                 "It can be left blank if the launch of the executable is "
@@ -22,9 +30,12 @@ class dosbox(Runner):
             ),
         },
         {
-            "option": "config_file",
-            "type": "file",
-            "label": "Configuration file",
+            "option":
+            "config_file",
+            "type":
+            "file",
+            "label":
+            "Configuration file",
             "help": (
                 "Start Dosbox with the options specified in this file. \n"
                 "It can have a section in which you can put commands "
@@ -36,12 +47,16 @@ class dosbox(Runner):
             "option": "args",
             "type": "string",
             "label": "Command arguments",
-            "help": ("Command line arguments used when launching " "DOSBox"),
+            "help": "Command line arguments used when launching DOSBox",
+            "validator": shlex.split,
         },
         {
-            "option": "working_dir",
-            "type": "directory_chooser",
-            "label": "Working directory",
+            "option":
+            "working_dir",
+            "type":
+            "directory_chooser",
+            "label":
+            "Working directory",
             "help": (
                 "The location where the game is run from.\n"
                 "By default, Lutris uses the directory of the "
@@ -72,15 +87,19 @@ class dosbox(Runner):
     ]
     runner_options = [
         {
-            "option": "scaler",
-            "label": "Graphic scaler",
-            "type": "choice",
-            "choices": scaler_modes,
-            "default": "normal3x",
-            "help": (
-                "The algorithm used to scale up the game's base "
-                "resolution, resulting in different visual styles. "
-            ),
+            "option":
+            "scaler",
+            "label":
+            "Graphic scaler",
+            "type":
+            "choice",
+            "choices":
+            scaler_modes,
+            "default":
+            "normal3x",
+            "help":
+            ("The algorithm used to scale up the game's base "
+             "resolution, resulting in different visual styles. "),
         },
         {
             "option": "exit",
@@ -123,7 +142,7 @@ class dosbox(Runner):
         main_file = self.main_file
         if not system.path_exists(main_file):
             return {"error": "FILE_NOT_FOUND", "file": main_file}
-        args = self.game_config.get("args") or ""
+        args = shlex.split(self.game_config.get("args")) or []
 
         command = [self.get_executable()]
 
@@ -149,6 +168,6 @@ class dosbox(Runner):
             command.append("-exit")
 
         if args:
-            command.append(args)
+            command.extend(args)
 
         return {"command": command}

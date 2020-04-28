@@ -1,9 +1,11 @@
 """String utilities"""
-import unicodedata
-import re
+# Standard Library
 import math
+import re
 import shlex
+import unicodedata
 
+# Lutris Modules
 from lutris.util.log import logger
 
 
@@ -68,6 +70,7 @@ def parse_version(version):
 
 
 def version_sort(versions, reverse=False):
+
     def version_key(version):
         version_list, prefix, suffix = parse_version(version)
         # Normalize the length of sub-versions
@@ -93,9 +96,7 @@ def unpack_dependencies(string):
     dependencies = [dep.strip() for dep in string.split(",") if dep.strip()]
     for index, dependency in enumerate(dependencies):
         if "|" in dependency:
-            dependencies[index] = tuple(
-                [option.strip() for option in dependency.split("|") if option.strip()]
-            )
+            dependencies[index] = tuple([option.strip() for option in dependency.split("|") if option.strip()])
     return [dependency for dependency in dependencies if dependency]
 
 

@@ -1,6 +1,9 @@
 """Utility to get the path of Lutris assets"""
+# Standard Library
 import os
 import sys
+
+# Lutris Modules
 from lutris.util import system
 
 
@@ -19,9 +22,7 @@ def get():
         import lutris
 
         lutris_module = lutris.__file__
-        data_path = os.path.join(
-            os.path.dirname(os.path.dirname(lutris_module)), "share/lutris"
-        )
+        data_path = os.path.join(os.path.dirname(os.path.dirname(lutris_module)), "share/lutris")
     if not system.path_exists(data_path):
         raise IOError("data_path can't be found at : %s" % data_path)
     return data_path

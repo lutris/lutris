@@ -1,18 +1,20 @@
 """Add, remove and configure runners"""
+# Standard Library
 # pylint: disable=too-many-instance-attributes,attribute-defined-outside-init
 import os
 
-from gi.repository import Gtk, GObject
-from lutris.util import datapath
+# Third Party Libraries
+from gi.repository import GObject, Gtk
 
-from lutris import runners
-from lutris import settings
-from lutris.util.log import logger
+# Lutris Modules
+from lutris import runners, settings
+from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import ErrorDialog, GtkBuilderDialog
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
-from lutris.gui.config.runner import RunnerConfigDialog
-from lutris.gui.widgets.utils import get_icon, ICON_SIZE, get_builder_from_file, open_uri
+from lutris.gui.widgets.utils import ICON_SIZE, get_builder_from_file, get_icon, open_uri
+from lutris.util import datapath
+from lutris.util.log import logger
 
 
 def simple_downloader(url, destination, callback, callback_args=None):
@@ -25,6 +27,7 @@ def simple_downloader(url, destination, callback, callback_args=None):
 
 
 class RunnersDialog(GtkBuilderDialog):
+
     """Dialog to manage the runners."""
     glade_file = "runners-dialog.ui"
     dialog_object = "runners_dialog"
@@ -67,7 +70,7 @@ class RunnersDialog(GtkBuilderDialog):
 
         # Icon
         runner_icon = builder.get_object('runner_icon')
-        runner_icon.set_from_pixbuf(get_icon(runner_name, format='pixbuf', size=ICON_SIZE))
+        runner_icon.set_from_pixbuf(get_icon(runner_name, icon_format='pixbuf', size=ICON_SIZE))
 
         # Label
         runner_name = builder.get_object('runner_name')
@@ -133,8 +136,8 @@ class RunnersDialog(GtkBuilderDialog):
         try:
             runner.install(downloader=simple_downloader)
         except (
-                runners.RunnerInstallationError,
-                runners.NonInstallableRunnerError,
+            runners.RunnerInstallationError,
+            runners.NonInstallableRunnerError,
         ) as ex:
             ErrorDialog(ex.message, parent=self)
         if runner.is_installed():
@@ -155,12 +158,7 @@ class RunnersDialog(GtkBuilderDialog):
             builder = get_builder_from_file('runner-remove-all-versions-dialog.ui')
             builder.connect_signals(self)
             remove_confirm_button = builder.get_object('remove_confirm_button')
-            remove_confirm_button.connect(
-                "clicked",
-                self.on_remove_all_clicked,
-                runner,
-                runner_label
-            )
+            remove_confirm_button.connect("clicked", self.on_remove_all_clicked, runner, runner_label)
             all_versions_label = builder.get_object('runner_all_versions_label')
             all_versions_label.set_markup(all_versions_label.get_label() % runner.human_name)
             self.all_versions_dialog = builder.get_object('runner_remove_all_versions_dialog')
@@ -170,12 +168,7 @@ class RunnersDialog(GtkBuilderDialog):
             builder = get_builder_from_file('runner-remove-confirm-dialog.ui')
             builder.connect_signals(self)
             remove_confirm_button = builder.get_object('remove_confirm_button')
-            remove_confirm_button.connect(
-                "clicked",
-                self.on_remove_confirm_clicked,
-                runner,
-                runner_label
-            )
+            remove_confirm_button.connect("clicked", self.on_remove_confirm_clicked, runner, runner_label)
             runner_remove_label = builder.get_object('runner_remove_label')
             runner_remove_label.set_markup(runner_remove_label.get_label() % runner.human_name)
             self.remove_confirm_dialog = builder.get_object('runner_remove_confirm_dialog')

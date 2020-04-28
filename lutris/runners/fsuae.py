@@ -1,4 +1,7 @@
+# Standard Library
 import os
+
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util.display import DISPLAY_MANAGER
 
@@ -75,10 +78,14 @@ class fsuae(Runner):
     runner_executable = "fs-uae/fs-uae"
     game_options = [
         {
-            "option": "main_file",
-            "type": "file",
-            "label": "Boot disk",
-            "default_path": "game_path",
+            "option":
+            "main_file",
+            "type":
+            "file",
+            "label":
+            "Boot disk",
+            "default_path":
+            "game_path",
             "help": (
                 "The main floppy disk file with the game data. \n"
                 "FS-UAE supports floppy images in multiple file formats: "
@@ -87,15 +94,13 @@ class fsuae(Runner):
                 "Files ending in .hdf will be mounted as hard drives and "
                 "ISOs can be used for Amiga CD32 and CDTV models."
             ),
-        },
-        {
+        }, {
             "option": "disks",
             "type": "multiple",
             "label": "Additionnal floppies",
             "default_path": "game_path",
             "help": "The additional floppy disk image(s).",
-        },
-        {
+        }, {
             "option": "cdrom_image",
             "label": "CD-Rom image",
             "type": "file",
@@ -113,9 +118,12 @@ class fsuae(Runner):
             "help": "Specify the Amiga model you want to emulate.",
         },
         {
-            "option": "kickstart_file",
-            "label": "Kickstart ROMs location",
-            "type": "file",
+            "option":
+            "kickstart_file",
+            "label":
+            "Kickstart ROMs location",
+            "type":
+            "file",
             "help": (
                 "Choose the folder containing original Amiga kickstart "
                 "ROMs. Refer to FS-UAE documentation to find how to "
@@ -144,17 +152,20 @@ class fsuae(Runner):
             "type": "choice",
             "choices": flsound_choices,
             "default": "0",
-            "help": (
-                "Set volume to 0 to disable floppy drive clicks "
-                "when the drive is empty. Max volume is 100."
-            )
+            "help": ("Set volume to 0 to disable floppy drive clicks "
+                     "when the drive is empty. Max volume is 100.")
         },
         {
-            "option": "fdspeed",
-            "label": "Floppy Drive Speed",
-            "type": "choice",
-            "choices": flspeed_choices,
-            "default": "100",
+            "option":
+            "fdspeed",
+            "label":
+            "Floppy Drive Speed",
+            "type":
+            "choice",
+            "choices":
+            flspeed_choices,
+            "default":
+            "100",
             "help": (
                 "Set the speed of the emulated floppy drives, in percent. "
                 "For example, you can specify 800 to get an 8x increase in "
@@ -163,22 +174,32 @@ class fsuae(Runner):
             )
         },
         {
-            "option": "grafixcard",
-            "label": "Graphics Card",
-            "type": "choice",
-            "choices": gpucard_choices,
-            "default": "None",
+            "option":
+            "grafixcard",
+            "label":
+            "Graphics Card",
+            "type":
+            "choice",
+            "choices":
+            gpucard_choices,
+            "default":
+            "None",
             "help": (
                 "Use this option to enable a graphics card. This option is none by default, in "
                 "which case only chipset graphics (OCS/ECS/AGA) support is available."
             )
         },
         {
-            "option": "grafixmemory",
-            "label": "Graphics Card RAM",
-            "type": "choice",
-            "choices": gpumem_choices,
-            "default": "0",
+            "option":
+            "grafixmemory",
+            "label":
+            "Graphics Card RAM",
+            "type":
+            "choice",
+            "choices":
+            gpumem_choices,
+            "default":
+            "0",
             "help": (
                 "Override the amount of graphics memory on the graphics card. The 0 MB option is "
                 "not really valid, but exists for user interface reasons."
@@ -201,20 +222,17 @@ class fsuae(Runner):
             "label": "Feral GameMode",
             "type": "bool",
             "default": False,
-            "help": (
-                "Automatically uses Feral GameMode daemon if available."
-                "set to true to disable the feature."
-            )
+            "help": ("Automatically uses Feral GameMode daemon if available."
+                     "set to true to disable the feature.")
         },
         {
             "option": "govwarning",
             "label": "CPU governor warning",
             "type": "bool",
             "default": False,
-            "help": (
-                "Warn if running with a CPU governor other than performance."
-                "set to true to disable the warning."
-            )
+            "help":
+            ("Warn if running with a CPU governor other than performance."
+             "set to true to disable the warning.")
         },
         {
             "option": "bsdsocket",
@@ -227,10 +245,8 @@ class fsuae(Runner):
             "label": "Scanlines display style",
             "type": "bool",
             "default": False,
-            "help": (
-                "Activates a display filter adding scanlines to imitate "
-                "the displays of yesteryear."
-            ),
+            "help": ("Activates a display filter adding scanlines to imitate "
+                     "the displays of yesteryear."),
         },
     ]
 
@@ -274,11 +290,11 @@ class fsuae(Runner):
         amiga_model = self.runner_config.get("model")
         if amiga_model in ("CD32", "CDTV"):
             return "cdrom_drive"
-        elif disk_path.lower().endswith(".hdf"):
+        if disk_path.lower().endswith(".hdf"):
             return "hard_drive"
         return "floppy_drive"
 
-    def get_params(self):
+    def get_params(self):  # pylint: disable=too-many-branches
         params = []
         model = self.runner_config.get("model")
         fmemory = self.runner_config.get("fmemory")

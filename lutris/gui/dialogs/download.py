@@ -1,8 +1,12 @@
+# Third Party Libraries
 from gi.repository import Gtk
+
+# Lutris Modules
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 
 
 class DownloadDialog(Gtk.Dialog):
+
     """Dialog showing a download in progress."""
 
     def __init__(self, url=None, dest=None, title=None, label=None, downloader=None):

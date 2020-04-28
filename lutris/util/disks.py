@@ -1,7 +1,12 @@
 """Filesystem utilities"""
+# Standard Library
 import os
 import subprocess
+
+# Third Party Libraries
 from gi.repository import Gio
+
+# Lutris Modules
 from lutris.util.log import logger
 
 

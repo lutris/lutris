@@ -1,3 +1,4 @@
+# Standard Library
 from mmap import mmap
 
 
@@ -14,7 +15,7 @@ def scan_to_00(mm, start):
     while achar != 0:
         achar = mm[number]
         if achar != 0:
-            buff += bytes((achar,))
+            buff += bytes((achar, ))
         number += 1
     return buff
 

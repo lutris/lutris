@@ -1,7 +1,9 @@
+# Third Party Libraries
 from gi.repository import Gtk
 
 
-class LogTextView(Gtk.TextView):
+class LogTextView(Gtk.TextView):  # pylint: disable=no-member
+
     def __init__(self, buffer=None, autoscroll=True):
         super().__init__()
 
@@ -20,7 +22,7 @@ class LogTextView(Gtk.TextView):
         if autoscroll:
             self.connect("size-allocate", self.autoscroll)
 
-    def autoscroll(self, *args):
+    def autoscroll(self, *args):  # pylint: disable=unused-argument
         adj = self.get_vadjustment()
         if adj.get_value() == self.scroll_max or self.scroll_max == 0:
             adj.set_value(adj.get_upper() - adj.get_page_size())
@@ -29,11 +31,7 @@ class LogTextView(Gtk.TextView):
             self.scroll_max = adj.get_upper() - adj.get_page_size()
 
     def create_new_mark(self, buffer_iter):
-        return self.props.buffer.create_mark(
-            None,
-            buffer_iter,
-            True
-        )
+        return self.props.buffer.create_mark(None, buffer_iter, True)
 
     def reset_search(self):
         self.props.buffer.delete_mark(self.mark)
@@ -47,16 +45,13 @@ class LogTextView(Gtk.TextView):
     def find_next(self, searched_entry):
         buffer_iter = self.props.buffer.get_iter_at_mark(self.mark)
         next_occurence = buffer_iter.forward_search(
-            searched_entry.get_text(),
-            Gtk.TextSearchFlags.CASE_INSENSITIVE,
-            None)
+            searched_entry.get_text(), Gtk.TextSearchFlags.CASE_INSENSITIVE, None
+        )
 
         # Found nothing try from the beginning
         if next_occurence is None:
-            next_occurence = self.props.buffer.get_start_iter().forward_search(
-                searched_entry.get_text(),
-                Gtk.TextSearchFlags.CASE_INSENSITIVE,
-                None)
+            next_occurence = self.props.buffer.get_start_iter(
+            ).forward_search(searched_entry.get_text(), Gtk.TextSearchFlags.CASE_INSENSITIVE, None)
 
         # Highlight if result
         if next_occurence is not None:
@@ -70,16 +65,13 @@ class LogTextView(Gtk.TextView):
         buffer_iter.backward_chars(len(searched_entry.get_text()))
 
         previous_occurence = buffer_iter.backward_search(
-            searched_entry.get_text(),
-            Gtk.TextSearchFlags.CASE_INSENSITIVE,
-            None)
+            searched_entry.get_text(), Gtk.TextSearchFlags.CASE_INSENSITIVE, None
+        )
 
         # Found nothing ? Try from the end
         if previous_occurence is None:
-            previous_occurence = self.props.buffer.get_end_iter().backward_search(
-                searched_entry.get_text(),
-                Gtk.TextSearchFlags.CASE_INSENSITIVE,
-                None)
+            previous_occurence = self.props.buffer.get_end_iter(
+            ).backward_search(searched_entry.get_text(), Gtk.TextSearchFlags.CASE_INSENSITIVE, None)
 
         # Highlight if result
         if previous_occurence is not None:

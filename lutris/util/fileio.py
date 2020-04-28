@@ -1,9 +1,11 @@
+# Standard Library
 import re
 from collections import OrderedDict
 from configparser import RawConfigParser
 
 
-class EvilConfigParser(RawConfigParser):
+class EvilConfigParser(RawConfigParser):  # pylint: disable=too-many-ancestors
+
     """ConfigParser with support for evil INIs using duplicate keys."""
 
     _SECT_TMPL = r"""
@@ -33,7 +35,7 @@ class EvilConfigParser(RawConfigParser):
     OPTCRE = re.compile(_OPT_TMPL.format(delim="="), re.VERBOSE)
     OPTCRE_NV = re.compile(_OPT_NV_TMPL.format(delim="="), re.VERBOSE)
 
-    def write(self, fp):
+    def write(self, fp, space_around_delimiters=True):
         for section in self._sections:
             fp.write("[{}]\n".format(section).encode("utf-8"))
             for (key, value) in list(self._sections[section].items()):
@@ -47,6 +49,7 @@ class EvilConfigParser(RawConfigParser):
 
 
 class MultiOrderedDict(OrderedDict):
+
     """dict_type to use with an EvilConfigParser instance."""
 
     def __setitem__(self, key, value):

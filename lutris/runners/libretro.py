@@ -1,118 +1,57 @@
 """libretro runner"""
+# Standard Library
 import os
-from lutris.runners.runner import Runner
-from lutris.util.libretro import RetroConfig
-from lutris.util import system
-from lutris.util.log import logger
+from operator import itemgetter
+from zipfile import ZipFile
+
+# Third Party Libraries
+import requests
+
+# Lutris Modules
 from lutris import settings
+from lutris.runners.runner import Runner
+from lutris.util import system
+from lutris.util.libretro import RetroConfig
+from lutris.util.log import logger
+
+
+def get_default_config_path(path=""):
+    return os.path.join(settings.RUNNER_DIR, "retroarch", path)
+
 
 # List of supported libretro cores
 # First element is the human readable name for the core with the platform's short name
 # Second element is the core identifier
 # Third element is the platform's long name
-LIBRETRO_CORES = [
-    ("atari800 (Atari 800/5200)", "atari800", "Atari 800/5200"),
-    ("bsnes (Super Nintendo)", "bsnes", "Nintendo SNES"),
-    ("bsnes-hd beta (Super Nintendo)", "bsnes_hd_beta", "Nintendo SNES"),
-    ("BK (Elektronika BK-0010/BK-0011(M))", "bk", "Elektronika BK-0010/BK-0011"),
-    ("BlastEm (Sega Genesis)", "blastem", "Sega Genesis"),
-    ("blueMSX (MSX/MSX2/MSX2+)", "bluemsx", "MSX/MSX2/MSX2+"),
-    ("Caprice32 (Amstrad CPC)", "cap32", "Amstrad CPC"),
-    ("ChaiLove", "chailove", "ChaiLove"),
-    ("Citra (Nintendo 3DS)", "citra", "Nintendo 3DS"),
-    ("Citra Canary (Nintendo 3DS)", "citra_canary", "Nintendo 3DS"),
-    ("CrocoDS (Amstrad CPC)", "crocods", "Amstrad CPC"),
-    ("Daphne (Arcade)", "daphne", "Arcade"),
-    ("DesmuME (Nintendo DS)", "desmume", "Nintendo DS"),
-    ("Dinothawr (Game Engine)", "dinothawr", "Dinothawr"),
-    ("Dolphin (Nintendo Wii/Gamecube)", "dolphin", "Nintendo Wii/Gamecube"),
-    ("EightyOne (Sinclair ZX81)", "81", "Sinclair ZX81"),
-    ("FB Alpha (Arcade)", "fbalpha", "Arcade"),
-    ("FB Alpha (Capcom Play System 1)", "fbalpha2012_cps1", "Arcade"),
-    ("FB Alpha (Capcom Play System 2)", "fbalpha2012_cps2", "Arcade"),
-    ("FB Alpha (Capcom Play System 3)", "fbalpha2012_cps3", "Arcade"),
-    ("FB Alpha (SNK Neo Geo)", "fbalpha2012_neogeo", "Arcade"),
-    ("FBNeo (Arcade)", "fbneo", "Arcade"),
-    ("FCEUmm (Nintendo Entertainment System)", "fceumm", "Nintendo NES"),
-    ('Flycast (Sega Dreamcast)', 'flycast', 'Sega Dreamcast'),
-    ("fMSX (MSX/MSX2/MSX2+)", "fmsx", "MSX/MSX2/MSX2+"),
-    ("FreeJ2ME (J2ME)", "freej2me", "J2ME"),
-    ("Fuse (ZX Spectrum)", "fuse", "Sinclair ZX Spectrum"),
-    ("Gambatte (Game Boy Color)", "gambatte", "Nintendo Game Boy Color"),
-    ("Gearboy (Game Boy Color)", "gearboy", "Nintendo Game Boy Color"),
-    ("Gearsystem (Sega Master System/Gamegear)", "gearsystem", "Sega Master System/Gamegear"),
-    ("Genesis Plus GX (Sega Genesis)", "genesis_plus_gx", "Sega Genesis"),
-    ("Handy (Atari Lynx)", "handy", "Atari Lynx"),
-    ("Hatari (Atari ST/STE/TT/Falcon)", "hatari", "Atari ST/STE/TT/Falcon"),
-    ("HBMAME (Arcade)", "hbmame", "Arcade"),
-    ("higan accuracy(Super Nintendo)", "higan_sfc", "Nintendo SNES"),
-    ("higan balanced(Super Nintendo)", "higan_sfc_balanced", "Nintendo SNES"),
-    ("Kronos (Sega Saturn)", "kronos", "Sega Saturn"),
-    ("MAME (Arcade)", "mame", "Arcade"),
-    ("MAME 2003-Plus (Arcade)", "mame2003_plus", "Arcade"),
-    ("Mednafen GBA (Game Boy Advance)", "mednafen_gba", "Nintendo Game Boy Advance"),
-    ("Mednafen NGP (SNK Neo Geo Pocket)", "mednafen_ngp", "SNK Neo Geo Pocket"),
-    ("Mednafen PCE (TurboGrafx-16)", "mednafen_pce", "NEC PC Engine (TurboGrafx-16)"),
-    ("Mednafen PCE FAST (TurboGrafx-16)", "mednafen_pce_fast", "NEC PC Engine (TurboGrafx-16)"),
-    ("Mednafen PCFX (NEC PC-FX)", "mednafen_pcfx", "NEC PC-FX"),
-    ("Mednafen Saturn (Sega Saturn)", "mednafen_saturn", "Sega Saturn"),
-    ("Mednafen SGX (NEC PC Engine SuperGrafx)",
-     "mednafen_supergrafx",
-     "NEC PC Engine (SuperGrafx)"),
-    ("Mednafen WSWAN (Bandai WonderSwan)", "mednafen_wswan", "Bandai WonderSwan"),
-    ("Mednafen PSX (Sony Playstation)", "mednafen_psx", "Sony PlayStation"),
-    ("Mednafen PSX OpenGL (Sony Playstation)", "mednafen_psx_hw", "Sony PlayStation"),
-    ("Mesen (Nintendo Entertainment System)", "mesen", "Nintendo NES"),
-    ("Mesen-S (Super Nintendo)", "mesen-s", "Nintendo SNES"),
-    ("melonDS (Nintendo DS)", "melonds", "Nintendo DS"),
-    ("mGBA (Game Boy Advance)", "mgba", "Nintendo Game Boy Advance"),
-    ("Mupen64Plus (Nintendo 64)", "mupen64plus", "Nintendo N64"),
-    ("Nestopia (Nintendo Entertainment System)", "nestopia", "Nintendo NES"),
-    ("Neko Project 2 (NEC PC-98)", "nekop2", "NEC PC-98"),
-    ("Neko Project II kai (NEC PC-98)", "np2kai", "NEC PC-98"),
-    ("NeoCD (SNK Neo Geo CD)", "neocd", "SNK Neo Geo CD"),
-    ("O2EM (Magnavox Odyssey²)", "o2em", "Magnavox Odyssey²"),
-    ("Opera (3DO)", "opera", "3DO"),
-    ("ParaLLEl N64 (Nintendo 64)", "parallel_n64", "Nintendo N64"),
-    ("PCSX Rearmed (Sony Playstation)", "pcsx_rearmed", "Sony PlayStation"),
-    ("PicoDrive (Sega Genesis)", "picodrive", "Sega Genesis"),
-    ("Play! (Sony Playstation 2)", "play", "Sony PlayStation 2"),
-    ("Portable SHARP X68000 Emulator (SHARP X68000)", "px68k", "Sharp X68000"),
-    ("PPSSPP (PlayStation Portable)", "ppsspp", "Sony PlayStation Portable"),
-    ("ProSystem (Atari 7800)", "prosystem", "Atari 7800"),
-    ("QUASI88 (NEC PC-8801)", "quasi88", "NEC PC-8801"),
-    ("RACE (SNK Neo Geo Pocket)", "race", "SNK Neo Geo Pocket"),
-    ("RPG Maker 2000/2003 (EasyRPG)", "easyrpg", "RPG Maker 2000/2003 Game Engine"),
-    ("Snes9x (Super Nintendo)", "snes9x", "Nintendo SNES"),
-    ("Snes9x2010 (Super Nintendo)", "snes9x2010", "Nintendo SNES"),
-    ("Stella (Atari 2600)", "stella", "Atari 2600"),
-    ("Stella 2014 (Atari 2600)", "stella2014", "Atari 2600"),
-    ("smsplus (Sega - MS/GG)", "smsplus", "Sega MS/GG"),
-    ("Tic-80 (Tic-80)", "tic80", "TIC-80"),
-    ("Uzem (Uzebox)", "uzem", "Uzebox"),
-    ("VecX (Vectrex)", "vecx", "Vectrex"),
-    ("Yabause (Sega Saturn)", "yabause", "Sega Saturn"),
-    ("VBA Next (Game Boy Advance)", "vba_next", "Nintendo Game Boy Advance"),
-    ("VBA-M (Game Boy Advance)", "vbam", "Nintendo Game Boy Advance"),
-    ("Virtual Jaguar (Atari Jaguar)", "virtualjaguar", "Atari Jaguar"),
-    ("VICE (Commodore 128)", "vice_x128", "Commodore 128"),
-    ("VICE (Commodore CBM-II)", "vice_xcbm2", "Commodore CBM-II"),
-    ("VICE (Commodore Pet)", "vice_xpet", "Commodore Pet"),
-    ("VICE (Commodore 16/Plus/4)", "vice_xplus4", "Commodore 16/Plus/4"),
-    ("VICE (Commodore 64)", "vice_x64", "Commodore 64"),
-    ("VICE (Commodore 64)(Cycle-Exact)", "vice_x64sc", "Commodore 64"),
-    ("VICE (Commodore VIC-20)", "vice_xvic", "Commodore VIC-20"),
-    ("vitaQuake 2 (Quake 2)", "vitaquake2", "vitaQuake 2"),
-    ("vitaQuake 3 (Quake 3)", "vitaquake3", "vitaQuake 3"),
-]
+LIBRETRO_CORES = []
+runner_path = get_default_config_path()
+if os.path.exists(runner_path):
+    # Get core identifiers from info dir
+    info_path = get_default_config_path("info")
+    if not os.path.exists(info_path):
+        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
+        if req.status_code == requests.codes.ok:
+            open(get_default_config_path('info.zip'), 'wb').write(req.content)
+            with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
+                info_zip.extractall(info_path)
+        else:
+            logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
+    # Parse info files to fetch display name and platform/system
+    if os.path.exists(info_path):
+        with os.scandir(info_path) as it:
+            for entry in it:
+                if entry.is_file():
+                    core_identifier = entry.name.replace("_libretro.info", "")
+                    core_config = RetroConfig(entry)
+                    if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
+                        core_label = core_config["display_name"] or ""
+                        core_system = core_config["systemname"] or ""
+                        LIBRETRO_CORES.append((core_label, core_identifier, core_system))
+            LIBRETRO_CORES.sort(key=itemgetter(0))
 
 
 def get_core_choices():
     return [(core[0], core[1]) for core in LIBRETRO_CORES]
-
-
-def get_default_config_path(path=""):
-    return os.path.join(settings.RUNNER_DIR, "retroarch", path)
 
 
 class libretro(Runner):
@@ -122,7 +61,11 @@ class libretro(Runner):
     runner_executable = "retroarch/retroarch"
 
     game_options = [
-        {"option": "main_file", "type": "file", "label": "ROM file"},
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file"
+        },
         {
             "option": "core",
             "type": "choice",
@@ -165,9 +108,7 @@ class libretro(Runner):
         return ""
 
     def get_core_path(self, core):
-        return os.path.join(
-            settings.RUNNER_DIR, "retroarch", "cores", "{}_libretro.so".format(core)
-        )
+        return os.path.join(settings.RUNNER_DIR, "retroarch", "cores", "{}_libretro.so".format(core))
 
     def get_version(self, use_default=True):
         return self.game_config["core"]
@@ -185,6 +126,7 @@ class libretro(Runner):
         return self.is_retroarch_installed() and is_core_installed
 
     def install(self, version=None, downloader=None, callback=None):
+
         def install_core():
             if not version:
                 if callback:
@@ -193,9 +135,7 @@ class libretro(Runner):
                 super(libretro, self).install(version, downloader, callback)
 
         if not self.is_retroarch_installed():
-            super(libretro, self).install(
-                version=None, downloader=downloader, callback=install_core
-            )
+            super(libretro, self).install(version=None, downloader=downloader, callback=install_core)
         else:
             super(libretro, self).install(version, downloader, callback)
 
@@ -206,9 +146,7 @@ class libretro(Runner):
         }
 
     def get_config_file(self):
-        return self.runner_config.get("config_file") or get_default_config_path(
-            "retroarch.cfg"
-        )
+        return self.runner_config.get("config_file") or get_default_config_path("retroarch.cfg")
 
     @staticmethod
     def get_system_directory(retro_config):
@@ -219,8 +157,9 @@ class libretro(Runner):
         return os.path.expanduser(system_directory)
 
     def prelaunch(self):
+        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         config_file = self.get_config_file()
-
+        # TODO: review later
         # Create retroarch.cfg if it doesn't exist.
         if not system.path_exists(config_file):
             f = open(config_file, "w")
@@ -249,17 +188,15 @@ class libretro(Runner):
             retro_config = RetroConfig(config_file)
 
         core = self.game_config.get("core")
-        info_file = os.path.join(
-            get_default_config_path("info"), "{}_libretro.info".format(core)
-        )
+        info_file = os.path.join(get_default_config_path("info"), "{}_libretro.info".format(core))
         if system.path_exists(info_file):
-            core_config = RetroConfig(info_file)
+            retro_config = RetroConfig(info_file)
             try:
-                firmware_count = int(core_config["firmware_count"])
+                firmware_count = int(retro_config["firmware_count"])
             except (ValueError, TypeError):
                 firmware_count = 0
             system_path = self.get_system_directory(retro_config)
-            notes = core_config["notes"] or ""
+            notes = retro_config["notes"] or ""
             checksums = {}
             if notes.startswith("Suggested md5sums:"):
                 parts = notes.split("|")
@@ -267,7 +204,7 @@ class libretro(Runner):
                     checksum, filename = part.split(" = ")
                     checksums[filename] = checksum
             for index in range(firmware_count):
-                firmware_filename = core_config["firmware%d_path" % index]
+                firmware_filename = retro_config["firmware%d_path" % index]
                 firmware_path = os.path.join(system_path, firmware_filename)
                 if system.path_exists(firmware_path):
                     if firmware_filename in checksums:
@@ -278,9 +215,7 @@ class libretro(Runner):
                             checksum_status = "Checksum failed"
                     else:
                         checksum_status = "No checksum info"
-                    logger.info(
-                        "Firmware '%s' found (%s)", firmware_filename, checksum_status
-                    )
+                    logger.info("Firmware '%s' found (%s)", firmware_filename, checksum_status)
                 else:
                     logger.warning("Firmware '%s' not found!", firmware_filename)
 

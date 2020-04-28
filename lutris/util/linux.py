@@ -1,14 +1,18 @@
 """Linux specific platform code"""
-import os
-import re
-import shutil
-import sys
+# Standard Library
 import json
+import os
 import platform
+import re
 import resource
+import shutil
 import subprocess
-from collections import defaultdict, Counter
+import sys
+from collections import Counter, defaultdict
 
+# Lutris Modules
+from lutris.util.disks import get_drive_for_path
+from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
 
 try:
@@ -16,10 +20,6 @@ try:
 except ImportError:
     logger.warning("Package 'distro' unavailable. Unable to read Linux distribution")
     linux_distribution = None
-from lutris.util.graphics import drivers
-from lutris.util.graphics import glxinfo
-from lutris.util.graphics import vkquery
-from lutris.util.disks import get_drive_for_path
 
 # Linux components used by lutris
 SYSTEM_COMPONENTS = {
@@ -83,7 +83,8 @@ SYSTEM_COMPONENTS = {
 }
 
 
-class LinuxSystem:
+class LinuxSystem:  # pylint: disable=too-many-public-methods
+
     """Global cache for system commands"""
 
     _cache = {}
@@ -119,7 +120,7 @@ class LinuxSystem:
                     self._cache[key][command] = command_path
 
         # Detect if system is 64bit capable
-        self.is_64_bit = sys.maxsize > 2 ** 32
+        self.is_64_bit = sys.maxsize > 2**32
         self.arch = self.get_arch()
         self.shared_libraries = self.get_shared_libraries()
         self.populate_libraries()
@@ -166,11 +167,7 @@ class LinuxSystem:
         except subprocess.CalledProcessError as ex:
             logger.error("Failed to get drive information: %s", ex)
             return None
-        return [
-            drive
-            for drive in json.loads(output)["blockdevices"]
-            if drive["fstype"] != "squashfs"
-        ]
+        return [drive for drive in json.loads(output)["blockdevices"] if drive["fstype"] != "squashfs"]
 
     @staticmethod
     def get_ram_info():
@@ -272,11 +269,7 @@ class LinuxSystem:
 
     def get_lib_folders(self):
         """Return shared library folders, sorted by most used to least used"""
-        lib_folder_counter = Counter(
-            lib.dirname
-            for lib_list in self.shared_libraries.values()
-            for lib in lib_list
-        )
+        lib_folder_counter = Counter(lib.dirname for lib_list in self.shared_libraries.values() for lib in lib_list)
         return [path[0] for path in reversed(lib_folder_counter.most_common())]
 
     def iter_lib_folders(self):
@@ -307,11 +300,7 @@ class LinuxSystem:
             logger.error("Could not detect ldconfig on this system")
             return []
         try:
-            output = (
-                subprocess.check_output([ldconfig, "-p"])
-                .decode("utf-8", errors="ignore")
-                .split("\n")
-            )
+            output = (subprocess.check_output([ldconfig, "-p"]).decode("utf-8", errors="ignore").split("\n"))
         except subprocess.CalledProcessError as ex:
             logger.error("Failed to get libraries from ldconfig: %s", ex)
             return []
@@ -355,16 +344,11 @@ class LinuxSystem:
     def get_missing_requirement_libs(self, req):
         """Return a list of sets of missing libraries for each supported architecture"""
         required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])
-        return [
-            list(required_libs - set(self._cache["LIBRARIES"][arch][req]))
-            for arch in self.runtime_architectures
-        ]
+        return [list(required_libs - set(self._cache["LIBRARIES"][arch][req])) for arch in self.runtime_architectures]
 
     def get_missing_libs(self):
         """Return a dictionary of missing libraries"""
-        return {
-            req: self.get_missing_requirement_libs(req) for req in self.requirements
-        }
+        return {req: self.get_missing_requirement_libs(req) for req in self.requirements}
 
     def is_feature_supported(self, feature):
         """Return whether the system has the necessary libs to support a feature"""
@@ -378,6 +362,7 @@ class LinuxSystem:
 
 
 class SharedLibrary:
+
     """Representation of a Linux shared library"""
 
     default_arch = "i386"
@@ -392,9 +377,7 @@ class SharedLibrary:
         """Create a SharedLibrary instance from an output line from ldconfig"""
         lib_match = re.match(r"^(.*) \((.*)\) => (.*)$", ldconfig_line)
         if not lib_match:
-            raise ValueError(
-                "Received incorrect value for ldconfig line: %s" % ldconfig_line
-            )
+            raise ValueError("Received incorrect value for ldconfig line: %s" % ldconfig_line)
         return cls(lib_match.group(1), lib_match.group(2), lib_match.group(3))
 
     @property
@@ -428,10 +411,7 @@ def gather_system_info():
     system_info = {}
     if drivers.is_nvidia():
         system_info["nvidia_driver"] = drivers.get_nvidia_driver_info()
-        system_info["nvidia_gpus"] = [
-            drivers.get_nvidia_gpu_info(gpu_id)
-            for gpu_id in drivers.get_nvidia_gpu_ids()
-        ]
+        system_info["nvidia_gpus"] = [drivers.get_nvidia_gpu_info(gpu_id) for gpu_id in drivers.get_nvidia_gpu_ids()]
     system_info["gpus"] = [drivers.get_gpu_info(gpu) for gpu in drivers.get_gpus()]
     system_info["env"] = dict(os.environ)
     system_info["missing_libs"] = LINUX_SYSTEM.get_missing_libs()
@@ -475,10 +455,10 @@ def gather_system_info_str():
         graphics_dict["Vendor"] = system_info["glxinfo"]["opengl_vendor"]
         graphics_dict["OpenGL Renderer"] = system_info["glxinfo"]["opengl_renderer"]
         graphics_dict["OpenGL Version"] = system_info["glxinfo"]["opengl_version"]
-        graphics_dict["OpenGL Core"] = system_info["glxinfo"].get("opengl_core_profile_version",
-                                                                  "OpenGL core unavailable")
-        graphics_dict["OpenGL ES"] = system_info["glxinfo"].get("opengl_es_profile_version",
-                                                                "OpenGL ES unavailable")
+        graphics_dict["OpenGL Core"] = system_info["glxinfo"].get(
+            "opengl_core_profile_version", "OpenGL core unavailable"
+        )
+        graphics_dict["OpenGL ES"] = system_info["glxinfo"].get("opengl_es_profile_version", "OpenGL ES unavailable")
     else:
         graphics_dict["Vendor"] = "Unable to obtain glxinfo"
     # check Vulkan support

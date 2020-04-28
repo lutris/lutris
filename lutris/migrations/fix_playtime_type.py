@@ -1,6 +1,6 @@
-from lutris.util.sql import cursor_execute, db_cursor
-
+# Lutris Modules
 from lutris.pga import PGA_DB
+from lutris.util.sql import cursor_execute, db_cursor
 
 SQL_STATEMENTS = [
     """
@@ -28,8 +28,7 @@ SQL_STATEMENTS = [
         playtime REAL,
         humblestoreid TEXT
     );
-    """,
-    """
+    """, """
     insert into games_tmp select
         id,
         name,
@@ -53,9 +52,7 @@ SQL_STATEMENTS = [
         playtime,
         humblestoreid
     from games;
-    """,
-    "drop table games;",
-    "alter table games_tmp rename to games;"
+    """, "drop table games;", "alter table games_tmp rename to games;"
 ]
 
 
