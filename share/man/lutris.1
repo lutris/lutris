@@ -1,0 +1,64 @@
+.\" Generated with help2man.
+.TH LUTRIS "1"
+.SH NAME
+lutris \- open source gaming platform
+.SH DESCRIPTION
+.SS "Usage:"
+.IP
+lutris [OPTION] URI
+.PP
+Run a game directly by adding the parameter lutris:rungame/game\-identifier.
+.br
+If several games share the same identifier you can use the numerical ID (displayed when running lutris \fB\-\-list\-games\fR) and add lutris:rungameid/numerical\-id.
+.br
+To install a game, add lutris:install/game\-identifier.
+.SS "Help Options:"
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show help options
+.TP
+\fB\-\-help\-all\fR
+Show all help options
+.TP
+\fB\-\-help\-gapplication\fR
+Show GApplication options
+.TP
+\fB\-\-help\-gtk\fR
+Show GTK+ Options
+.SS "Application Options:"
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+Print the version of Lutris and exit
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Show debug messages
+.TP
+\fB\-i\fR, \fB\-\-install\fR
+Install a game from a yml file
+.TP
+\fB\-e\fR, \fB\-\-exec\fR
+Execute a program with the lutris runtime
+.TP
+\fB\-l\fR, \fB\-\-list\-games\fR
+List all games in database
+.TP
+\fB\-o\fR, \fB\-\-installed\fR
+Only list installed games
+.TP
+\fB\-s\fR, \fB\-\-list\-steam\-games\fR
+List available Steam games
+.TP
+\fB\-\-list\-steam\-folders\fR
+List all known Steam library folders
+.TP
+\fB\-j\fR, \fB\-\-json\fR
+Display the list of games in JSON format
+.TP
+\fB\-\-reinstall\fR
+Reinstall game
+.TP
+\fB\-\-submit\-issue\fR
+Submit an issue
+.TP
+\fB\-\-display\fR=\fI\,DISPLAY\/\fR
+X display to use
