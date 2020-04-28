@@ -70,7 +70,7 @@ class RunnersDialog(GtkBuilderDialog):
 
         # Icon
         runner_icon = builder.get_object('runner_icon')
-        runner_icon.set_from_pixbuf(get_icon(runner_name, format='pixbuf', size=ICON_SIZE))
+        runner_icon.set_from_pixbuf(get_icon(runner_name, icon_format='pixbuf', size=ICON_SIZE))
 
         # Label
         runner_name = builder.get_object('runner_name')
