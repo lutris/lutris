@@ -153,6 +153,13 @@ class steam(Runner):
     ]
     system_options_override = [{"option": "disable_runtime", "default": True}]
 
+    data_dir_candidates = (
+            "~/.steam",
+            "~/.local/share/steam",
+            "~/.steam/steam",
+            "~/.var/app/com.valvesoftware.Steam/data/steam",
+    )
+
     def __init__(self, config=None):
         super(steam, self).__init__(config)
         self.own_game_remove_method = "Remove game data (through Steam)"
@@ -192,13 +199,7 @@ class steam(Runner):
     @property
     def steam_data_dir(self):
         """Return dir where Steam files lie."""
-        candidates = (
-            "~/.steam",
-            "~/.local/share/steam",
-            "~/.steam/steam",
-            "~/.var/app/com.valvesoftware.Steam/data/steam",
-        )
-        for candidate in candidates:
+        for candidate in self.data_dir_candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "SteamApps"))
             if path:
                 return path[:-len("SteamApps")]
@@ -252,11 +253,10 @@ class steam(Runner):
     def get_steamapps_dirs(self):
         """Return a list of the Steam library main + custom folders."""
         dirs = []
-
         # Main steamapps dir and compatibilitytools.d dir
-        if self.steam_data_dir:
+        for data_dir in self.data_dir_candidates:
             for _dir in ["SteamApps", "compatibilitytools.d"]:
-                abs_dir = os.path.join(self.steam_data_dir, _dir)
+                abs_dir = os.path.join(os.path.expanduser(data_dir), _dir)
                 abs_dir = system.fix_path_case(abs_dir)
                 if abs_dir and os.path.isdir(abs_dir):
                     dirs.append(abs_dir)
