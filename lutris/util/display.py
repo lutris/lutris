@@ -129,17 +129,17 @@ def get_compositor_commands():
     start_compositor = None
     stop_compositor = None
     desktop_session = os.environ.get("DESKTOP_SESSION")
-    if desktop_session == "plasma":
+    if desktop_session.endswith("plasma"):
         stop_compositor = ("qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend")
         start_compositor = ("qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume")
     elif (
-        desktop_session == "mate"
+        desktop_session.endswith("mate")
         and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == "true"
     ):
         stop_compositor = ("gsettings set org.mate.Marco.general compositing-manager false")
         start_compositor = ("gsettings set org.mate.Marco.general compositing-manager true")
     elif (
-        desktop_session == "xfce" and system.execute(
+        desktop_session.endswith("xfce") and system.execute(
             "xfconf-query --channel=xfwm4 --property=/general/use_compositing",
             shell=True,
         ) == "true"
@@ -147,7 +147,7 @@ def get_compositor_commands():
         stop_compositor = ("xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false")
         start_compositor = ("xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true")
     elif (
-        desktop_session == "deepin" and system.execute(
+        desktop_session.endswith("deepin") and system.execute(
             "dbus-send --session --dest=com.deepin.WMSwitcher --type=method_call "
             "--print-reply=literal /com/deepin/WMSwitcher com.deepin.WMSwitcher.CurrentWM",
             shell=True,
