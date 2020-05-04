@@ -4,7 +4,9 @@ from lutris.util.system import path_exists
 
 
 class MameIni:
+
     """Looks like an ini file and yet it is not one!"""
+
     def __init__(self, ini_path):
         if not path_exists(ini_path):
             raise OSError("File %s does not exist" % ini_path)
