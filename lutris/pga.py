@@ -234,13 +234,16 @@ def get_games(
     name_filter=None,
     filter_installed=False,
     filter_runner=None,
-    select="*",
+    select=None,
     show_installed_first=False,
 ):
     """Get the list of every game in database."""
-    query = "select " + select + " from games"
+    query = "select * from games"
     params = []
     filters = []
+    if select:
+        query = "select ? from games"
+        params.append(select)
     if name_filter:
         params.append(name_filter)
         filters.append("name LIKE ?")
