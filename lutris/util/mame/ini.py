@@ -1,4 +1,5 @@
 """Manipulate MAME ini files"""
+# Lutris Modules
 from lutris.util.system import path_exists
 
 
