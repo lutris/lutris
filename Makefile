@@ -69,7 +69,7 @@ requirements:
 # Style checks
 # ============
 
-style: isort autopep8 yapf  ## Format code
+style: isort autopep8  ## Format code
 
 isort:
 	$(PIPENV) run isort -y -rc lutris
@@ -77,20 +77,15 @@ isort:
 autopep8:
 	$(PIPENV) run autopep8 --in-place --recursive --ignore E402 setup.py lutris
 
-yapf:
-	$(PIPENV) run yapf --style .yapf --recursive -i lutris
 
 # ===============
 # Static analysis
 # ===============
 
-check: isort-check yapf-check flake8 pylint
+check: isort-check flake8 pylint
 
 isort-check:
 	$(PIPENV) run isort -c -rc lutris
-
-yapf-check:
-	$(PIPENV) run yapf --style .yapf --recursive --diff lutris
 
 flake8:
 	$(PIPENV) run flake8 lutris
