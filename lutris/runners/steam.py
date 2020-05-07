@@ -140,7 +140,7 @@ class steam(Runner):
 
     data_dir_candidates = (
         "/usr/share/steam",
-        "/usr/local/share/steam/",
+        "/usr/local/share/steam",
         "~/.steam",
         "~/.local/share/steam",
         "~/.steam/steam",
