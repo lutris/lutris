@@ -95,6 +95,8 @@ class WinePrefixManager:
         # pylint: disable=too-many-branches
         # TODO: reduce complexity (18)
         user = os.getenv("USER")
+        if not user:
+            user = 'lutrisuser'
         user_dir = os.path.join(self.path, "drive_c/users/", user)
         desktop_folders = self.get_desktop_folders()
 
