@@ -139,6 +139,8 @@ class steam(Runner):
     system_options_override = [{"option": "disable_runtime", "default": True}]
 
     data_dir_candidates = (
+        "/usr/share/steam",
+        "/usr/local/share/steam/",
         "~/.steam",
         "~/.local/share/steam",
         "~/.steam/steam",
@@ -242,6 +244,9 @@ class steam(Runner):
     def get_steamapps_dirs(self):
         """Return a list of the Steam library main + custom folders."""
         dirs = []
+        # Extra colon-separated compatibility tools dirs environment variable
+        if 'STEAM_EXTRA_COMPAT_TOOLS_PATHS' in os.environ:
+            dirs += os.getenv('STEAM_EXTRA_COMPAT_TOOLS_PATHS').split(':')
         # Main steamapps dir and compatibilitytools.d dir
         for data_dir in self.data_dir_candidates:
             for _dir in ["SteamApps", "compatibilitytools.d"]:
