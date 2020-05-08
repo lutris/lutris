@@ -57,7 +57,7 @@ snap:
 	snapcraft
 
 dev:
-	sudo $(PIP) install --upgrade pipenv
+	$(PIP) install --user --upgrade pipenv
 	$(PIPENV) install --dev $(PIPENV_LOCK_ARGS) --python $(PYTHON)
 
 requirements:
