@@ -460,7 +460,7 @@ class ScriptInterpreter(CommandsMixin):
                         logger.error("Failed to get default wine version (got %s)", default_wine)
 
             if not runner.is_installed(**params):
-                logger.info("Runner %s needs to be installed")
+                logger.info("Runner %s needs to be installed", runner)
                 self.runners_to_install.append(runner)
 
         if self.runner.startswith("wine") and not get_system_wine_version():
