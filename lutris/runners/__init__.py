@@ -8,6 +8,7 @@ __all__ = (
     "browser",
     "web",
     # Microsoft based
+    "legendary",
     "wine",
     "winesteam",
     "dosbox",
