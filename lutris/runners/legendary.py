@@ -191,16 +191,18 @@ class legendary(wine.wine):
         install_command.start()
 
     def prelaunch(self):
-        # super().prelaunch()
-        try:
-            self.force_shutdown()
-        except RuntimeError:
-            return False
-        return True
+        # Only do wine prelaunch stuff, if we start a game
+        if self.appid:
+            super().prelaunch()
+        # Do nothing, if we start the runner alone
+        
 
     def get_run_data(self):
         """This is only use to trigger authentication when starting the runner. Do not use this for starting games!"""
-        return {"command": [self.runner_executable ,"auth"]}
+        # This is kind of a hack but there seems to be no other way to have an interactive terminal at this point
+        command_runner = MonitoredCommand([self.runner_executable, "auth"], runner=self, env={}, term=system.get_default_terminal())
+        command_runner.run_in_terminal()
+        return {"command": ["echo" ,"Done."]}
 
     def get_command(self):
         """Return the command used to launch a EGS game"""
