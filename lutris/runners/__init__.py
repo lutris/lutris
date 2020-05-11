@@ -3,12 +3,12 @@
 
 __all__ = (
     # Native
+    "legendary",
     "linux",
     "steam",
     "browser",
     "web",
     # Microsoft based
-    "legendary",
     "wine",
     "winesteam",
     "dosbox",

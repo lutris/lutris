@@ -5,7 +5,7 @@ from importlib import import_module
 # Lutris Modules
 from lutris.settings import read_setting
 
-__all__ = ["xdg", "gog", "humblebundle", "steam", "winesteam"]
+__all__ = ["xdg", "gog", "humblebundle", "legendary", "steam", "winesteam"]
 
 
 class AuthenticationError(Exception):

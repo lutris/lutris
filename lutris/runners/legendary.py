@@ -13,6 +13,7 @@ from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
+from lutris.exceptions import LutrisError
 
 # Using a fixed version for now
 # TODO: get the tagged releases from github and offer multiple versions to install
@@ -162,6 +163,8 @@ class legendary(wine.wine):
             return None
         return self.get_game_path_from_appid(self.appid)
 
+    def get_executable(self):
+        return self.runner_executable
 
     def install(self, version=None, downloader=None, callback=None):
         installer_path = self.runner_executable
@@ -233,3 +236,8 @@ class legendary(wine.wine):
             env=self.get_env(os_env=False),
         )        
         uninstall_command.start()
+
+    def get_available_games(self):
+        """List games available to the connected account"""
+        if not self.is_installed():
+            raise LutrisError("Legendary (Epic Store) runner is required")
