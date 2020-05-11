@@ -36,7 +36,7 @@ class legendary(wine.wine):
     multiple_versions = False
     human_name = "Legendary (Epic Store)"
     platforms = ["Windows"]
-    runnable_alone = True
+    runnable_alone = False
     runner_executable = os.path.join(settings.RUNNER_DIR, "legendary")
     # depends_on = wine.wine
     default_arch = WINE_DEFAULT_ARCH
@@ -158,6 +158,11 @@ class legendary(wine.wine):
         return self.game_path
 
     @property
+    def working_dir(self):
+        """Return the working directory of legendary."""
+        return os.path.dirname(self.runner_executable)
+
+    @property
     def game_path(self):
         if not self.appid:
             return None
@@ -198,14 +203,6 @@ class legendary(wine.wine):
         if self.appid:
             super().prelaunch()
         # Do nothing, if we start the runner alone
-        
-
-    def get_run_data(self):
-        """This is only use to trigger authentication when starting the runner. Do not use this for starting games!"""
-        # This is kind of a hack but there seems to be no other way to have an interactive terminal at this point
-        command_runner = MonitoredCommand([self.runner_executable, "auth"], runner=self, env={}, term=system.get_default_terminal())
-        command_runner.run_in_terminal()
-        return {"command": ["echo" ,"Done."]}
 
     def get_command(self):
         """Return the command used to launch a EGS game"""

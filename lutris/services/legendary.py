@@ -19,6 +19,7 @@ from lutris.runners.legendary import legendary
 import subprocess
 import io
 from lutris.util.strings import slugify
+from lutris.command import MonitoredCommand
 
 NAME = "Legendary (Epic Store)"
 ICON = "legendary"
@@ -39,6 +40,11 @@ class LegendaryService(OnlineService):
     runner = legendary()
 
     cache_path = os.path.join(settings.CACHE_DIR, "egs-games.csv")
+
+    @property
+    def working_dir(self):
+        """Return the working directory of legendary."""
+        return self.runner.working_dir
 
     @property
     def credential_files(self):
@@ -68,6 +74,16 @@ class LegendaryService(OnlineService):
             lines = [line.rstrip() for line in egs_cache]  # strip \n
             return list(lines)[1:] # skip the csv header
 
+    def connect(self):
+        command_runner = MonitoredCommand(
+            [self.runner.runner_executable, "auth"], 
+            runner=self, 
+            env={}, 
+            term=system.get_default_terminal()
+        )
+        command_runner.run_in_terminal()
+
+
 
 class EGSGame(ServiceGame):
 
@@ -96,6 +112,7 @@ def is_connected():
 def connect(parent=None):
     """Authenticate Legendary"""
     logger.debug("Connecting Legendary to EGS")
+    SERVICE.connect()
 
 
 def disconnect():
