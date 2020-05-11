@@ -38,6 +38,8 @@ class LegendaryService(OnlineService):
     name = "Legendary"
     runner = legendary()
 
+    cache_path = os.path.join(settings.CACHE_DIR, "egs-games.csv")
+
     @property
     def credential_files(self):
         return [
@@ -52,12 +54,19 @@ class LegendaryService(OnlineService):
 
     def get_library(self):
         """Return the user's library of Epic Store games"""
-        getcmd = subprocess.Popen(
-            [self.runner.get_executable(), "list-games", "--csv"],
-            stdout=subprocess.PIPE
-        )
-        lines = io.TextIOWrapper(getcmd.stdout, encoding="utf-8").readlines()
-        return list(lines)[1:] # skip the csv header
+        if not system.path_exists(self.cache_path):
+            logger.debug("Downloading EGS library to cache")
+            cache = open(self.cache_path, "w")
+            getcmd = subprocess.Popen(
+                [self.runner.get_executable(), "list-games", "--csv"],
+                stdout=cache
+            )
+            return_code = getcmd.wait()
+        
+        
+        with open(self.cache_path, "r") as egs_cache:        
+            lines = [line.rstrip() for line in egs_cache]  # strip \n
+            return list(lines)[1:] # skip the csv header
 
 
 class EGSGame(ServiceGame):
