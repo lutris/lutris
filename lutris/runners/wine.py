@@ -239,19 +239,27 @@ class wine(Runner):
                 "option":
                 "esync",
                 "label":
-                "Enable Esync",
+                "Use custom synchronization",
                 "type":
-                "extended_bool",
+                "choice",
+                "choices": [
+                    ("Esync", "esync"),
+                    ("Fsync", "fsync"),
+                    ("None", "none"),
+                ],
                 "callback":
                 esync_limit_callback,
                 "callback_on":
-                True,
-                "active":
-                True,
+                "esync",
+                "default":
+                "none",
                 "help": (
-                    "Enable eventfd-based synchronization (esync). "
-                    "This will increase performance in applications "
-                    "that take advantage of multi-core processors."
+                    "Use custom synchronization to improve performance in multi-threaded "
+                    "applications\n"
+                    "<b>Esync</b>: Use eventfd-based synchronization (esync).\n"
+                    "<b>Fsync</b>: Use Valve's extensions to the futex() syscall "
+                    "(requires a custom kernel witht the fsync patchset).\n"
+                    "<b>None</b>: Use the default synchronization mechanism"
                 ),
             },
             {
@@ -880,8 +888,19 @@ class wine(Runner):
         if self.prefix_path:
             env["WINEPREFIX"] = self.prefix_path
 
-        if not ("WINEESYNC" in env and env["WINEESYNC"] == "1"):
-            env["WINEESYNC"] = "1" if self.runner_config.get("esync") else "0"
+        if not ("WINEFSYNC" in env and env["WINEFSYNC"] == "1" and ("WINEESYNC" not in env
+           or env["WINEESYNC"] == "0")):
+            if self.runner_config.get("esync") == "fsync":
+                env["WINEESYNC"] = "0"
+                env["WINEFSYNC"] = "1"
+            else:
+                env["WINEFSYNC"] = "0"
+        elif not ("WINEESYNC" in env and env["WINEESYNC"] == "1"):
+            if self.runner_config.get("esync") == "esync":
+                env["WINEESYNC"] = "1"
+                env["WINEFSYNC"] = "0"
+            else:
+                env["WINEESYNC"] = "0"
 
         overrides = self.get_dll_overrides()
         if overrides:
