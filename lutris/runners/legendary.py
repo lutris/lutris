@@ -14,6 +14,7 @@ from lutris.util.strings import split_arguments
 from lutris.util.wine.registry import WineRegistry
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 from lutris.exceptions import LutrisError
+import subprocess
 
 # Using a fixed version for now
 # TODO: get the tagged releases from github and offer multiple versions to install
@@ -37,7 +38,8 @@ class legendary(wine.wine):
     human_name = "Legendary (Epic Store)"
     platforms = ["Windows"]
     runnable_alone = False
-    runner_executable = os.path.join(settings.RUNNER_DIR, "legendary")
+    base_dir = os.path.join(settings.RUNNER_DIR, "legendary") # directory (might contain version nr. in the future)
+    runner_executable = os.path.join(base_dir, "legendary")   # binary
     # depends_on = wine.wine
     default_arch = WINE_DEFAULT_ARCH
     game_options = [
@@ -54,9 +56,10 @@ class legendary(wine.wine):
         {
             "option": "prefix",
             "type": "directory_chooser",
-            "label": "Prefix",
+            "label": "Game prefix",
+            "default": os.path.join(base_dir, "prefix"),
             "help": (
-                'The prefix (also named "bottle") used by Wine.\n'
+                'The default prefix for games (also named "bottle") used by Wine.\n'
                 "It's a directory containing a set of files and "
                 "folders making up a confined Windows environment."
             ),
@@ -89,7 +92,9 @@ class legendary(wine.wine):
 
 
     def __init__(self, config=None):
-        super(legendary, self).__init__(config)
+        super(legendary, self).__init__(config)        
+        if not os.path.isdir(self.base_dir):
+            os.makedirs(self.base_dir)
         self.own_game_remove_method = "Remove game data"
         self.no_game_remove_warning = True
 
@@ -143,10 +148,32 @@ class legendary(wine.wine):
         """EGS AppID used to uniquely identify games"""
         return self.game_config.get("appid") or ""
 
-    @property
-    def prefix_path(self):
-        _prefix = self.game_config.get("prefix") or self.get_or_create_default_prefix(arch=self.game_config.get("arch"))
-        return os.path.expanduser(_prefix)
+    def create_default_prefix(self, prefix_dir, arch=None):
+        """Create the default prefix for Legendary
+
+        Args:
+            prefix_path (str): Destination of the default prefix
+            arch (str): Optional architecture for the prefix, defaults to win64
+        """
+        logger.debug("Creating default legendary wine prefix")
+        arch = arch or self.default_arch
+
+        if not system.path_exists(os.path.dirname(prefix_dir)):
+            os.makedirs(os.path.dirname(prefix_dir))
+        create_prefix(prefix_dir, arch=arch, wine_path=self.get_executable())
+
+    def get_default_prefix(self, arch):
+        """Return the default prefix' path."""
+        return self.runner_config["default_prefix" % arch]
+
+    def get_or_create_default_prefix(self, arch=None):
+        """Return the default prefix' path. Create it if it doesn't exist"""
+        if not arch or arch == "auto":
+            arch = self.default_arch
+        prefix = self.get_default_prefix(arch=arch)
+        if not system.path_exists(prefix):
+            self.create_default_prefix(prefix, arch=arch)
+        return prefix
 
     @property
     def browse_dir(self):
@@ -191,23 +218,23 @@ class legendary(wine.wine):
         """Install a game with Legendary"""
         if not appid:
             raise ValueError("Missing appid in legendary.install_game")
-        install_command = MonitoredCommand(
-            ([self.runner_executable, "install", appid]),
-            runner=self,
-            env=self.get_env(os_env=False),
-        )        
-        install_command.start()
+        
+        process = subprocess.run(
+            [self.runner_executable, "install", appid],
+            capture_output=True, 
+            text=True, 
+            input="y"
+        )
+        
 
     def prelaunch(self):
-        # Only do wine prelaunch stuff, if we start a game
-        if self.appid:
-            super().prelaunch()
-        # Do nothing, if we start the runner alone
+        logger.info("Setting up the wine environment")
+        return super().prelaunch()        
 
     def get_command(self):
         """Return the command used to launch a EGS game"""
         game_args = self.game_config.get("args") or ""
-        game_id = self.game_config.appid
+        game_id = self.game_config.get("appid")
         command = [self.runner_executable, "launch", game_id]
         for arg in split_arguments(game_args):
             command.append(arg)
@@ -226,7 +253,7 @@ class legendary(wine.wine):
         if not self.is_installed():
             logger.warning("Trying to remove a Legendary (Epic Store) game but it's not installed.")
             return False
-        self.force_shutdown()
+        kill()
         uninstall_command = MonitoredCommand(
             ([self.runner_executable, "uninstall", appid]),
             runner=self,

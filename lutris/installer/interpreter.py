@@ -17,7 +17,7 @@ from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import FileNotAvailable, MissingGameDependency, ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import (
-    InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine, winesteam
+    InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine, winesteam, legendary
 )
 from lutris.services import UnavailableGame
 from lutris.services.gog import MultipleInstallerError, get_gog_download_links
@@ -517,6 +517,12 @@ class ScriptInterpreter(CommandsMixin):
             os.mkdir(self.cache_path)
 
         # Add steam installation to commands if it's a Steam game
+        if self.runner in ("legendary"):
+            commands = self.script.get("installer", [])
+            commands.insert(0, "install_legendary_game")
+            self.script["installer"] = commands
+
+        # Add steam installation to commands if it's a Steam game
         if self.runner in ("steam", "winesteam"):
             self.steam_data["appid"] = self.script["game"]["appid"]
             if "arch" in self.script["game"]:
@@ -765,6 +771,16 @@ class ScriptInterpreter(CommandsMixin):
         """Use Wine to eject a CD, otherwise Wine can have problems detecting disc changes"""
         wine_path = get_wine_version_exe(self._get_runner_version())
         wine.eject_disc(wine_path, self.target_path)
+
+
+    # -----------
+    # Legendary (Epic Store) stuff
+    # -----------
+    def install_legendary_game(self, runner_class=None):
+        runner = legendary.legendary()
+        appid = self.script.get("game", {}).get("appid")
+        logger.debug("Installing EGS game %s", appid)
+        runner.install_game(appid)
 
     # -----------
     # Steam stuff
