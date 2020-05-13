@@ -27,7 +27,8 @@ def is_running():
 
 def kill():
     """Force kills Legendary"""
-    system.kill_pid(system.get_pid("legendary$"))
+    if is_running():
+        system.kill_pid(system.get_pid("legendary$"))
 
 
 # pylint: disable=C0103
@@ -227,6 +228,7 @@ class legendary(wine.wine):
             input="y",
             check=True
         )
+        # Todo: check for failure, report console output
 
     def prelaunch(self):
         logger.info("Setting up the wine environment")
@@ -248,18 +250,18 @@ class legendary(wine.wine):
 
         return {"env": self.get_env(os_env=False), "command": self.get_command()}
 
-    def remove_game_data(self, appid=None, **kwargs):
+    def remove_game_data(self, game_path=None):
         """Uninstall a game from Legendary"""
         if not self.is_installed():
             logger.warning("Trying to remove a Legendary (Epic Store) game but it's not installed.")
             return False
         kill()
-        uninstall_command = MonitoredCommand(
-            ([self.runner_executable, "uninstall", appid]),
-            runner=self,
-            env=self.get_env(os_env=False),
+        subprocess.run(
+            [self.runner_executable, "uninstall", self.appid],
+            input="y",
+            check=True,
         )
-        uninstall_command.start()
+        # Todo: check for failure, report console output
 
     def get_available_games(self):
         """List games available to the connected account"""
