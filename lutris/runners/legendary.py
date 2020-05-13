@@ -15,6 +15,7 @@ from lutris.util.wine.registry import WineRegistry
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 from lutris.exceptions import LutrisError
 import subprocess
+from lutris.gui.dialogs import NoticeDialog
 
 # Using a fixed version for now
 # TODO: get the tagged releases from github and offer multiple versions to install
@@ -202,7 +203,8 @@ class legendary(wine.wine):
         installer_path = self.runner_executable
         def on_downloaded(*_args):
             logger.info("Downloaded legendary runner")
-            os.chmod(installer_path, 0o744)
+            os.chmod(installer_path, 0o744)            
+            NoticeDialog('To use this runner, authenticate it at "Import Games" first.')
             if callback:
                 callback()
 
