@@ -1,21 +1,19 @@
 """Legendary (Epic Store) runner"""
 # Standard Library
 import os
-import time
+import subprocess
 
 # Lutris Modules
 from lutris import settings
 from lutris.command import MonitoredCommand
 from lutris.runners import wine
-from lutris.runners.commands.wine import create_prefix, wineexec, winetricks
+from lutris.runners.commands.wine import create_prefix
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
-from lutris.util.wine.registry import WineRegistry
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 from lutris.exceptions import LutrisError
-import subprocess
-from lutris.gui.dialogs import NoticeDialog
+from lutris.gui.dialogs import ErrorDialog, NoticeDialog
 
 # Using a fixed version for now
 # TODO: get the tagged releases from github and offer multiple versions to install
@@ -39,8 +37,8 @@ class legendary(wine.wine):
     human_name = "Legendary (Epic Store)"
     platforms = ["Windows"]
     runnable_alone = False
-    base_dir = os.path.join(settings.RUNNER_DIR, "legendary") # directory (might contain version nr. in the future)
-    runner_executable = os.path.join(base_dir, "legendary")   # binary
+    base_dir = os.path.join(settings.RUNNER_DIR, "legendary")  # might contain version in the future
+    runner_executable = os.path.join(base_dir, "legendary")
     # depends_on = wine.wine
     default_arch = WINE_DEFAULT_ARCH
     game_options = [
@@ -53,7 +51,7 @@ class legendary(wine.wine):
                 "after creating a shortcut from within the launcher."
                 "app name for <i>Celeste</i> is: <b>Salt</b>"
             ),
-        },       
+        },
         {
             "option": "prefix",
             "type": "directory_chooser",
@@ -64,7 +62,7 @@ class legendary(wine.wine):
                 "It's a directory containing a set of files and "
                 "folders making up a confined Windows environment."
             ),
-        }, 
+        },
         {
             "option": "offline",
             "label": "Launch game without online authentication",
@@ -91,9 +89,8 @@ class legendary(wine.wine):
         },
     ]
 
-
     def __init__(self, config=None):
-        super(legendary, self).__init__(config)        
+        super(legendary, self).__init__(config)
         if not os.path.isdir(self.base_dir):
             os.makedirs(self.base_dir)
         self.own_game_remove_method = "Remove game data"
@@ -126,20 +123,18 @@ class legendary(wine.wine):
                 "label": "Log Level",
                 "type": "choice",
                 "choices": [
-                    ("Critical","critical"), 
-                    ("Error","error"), 
-                    ("Warning","warning"), 
-                    ("Info","info"), 
-                    ("Debug","debug"),
-                    ],
+                    ("Critical", "critical"),
+                    ("Error", "error"),
+                    ("Warning", "warning"),
+                    ("Info", "info"),
+                    ("Debug", "debug"),
+                ],
                 "default": "warning",
-                "advanced": True,                
+                "advanced": True,
             },
         ]
         for option in reversed(legendary_options):
             self.runner_options.insert(0, option)
-
-        
 
     def __repr__(self):
         return "Legendary (Epic Store) runner (%s)" % self.config
@@ -192,18 +187,17 @@ class legendary(wine.wine):
 
     @property
     def game_path(self):
-        if not self.appid:
-            return None
-        return self.get_game_path_from_appid(self.appid)
+        raise NotImplementedError()  # TODO
 
-    def get_executable(self):
+    def get_executable(self, version=None, fallback=True):
         return self.runner_executable
 
     def install(self, version=None, downloader=None, callback=None):
         installer_path = self.runner_executable
+
         def on_downloaded(*_args):
             logger.info("Downloaded legendary runner")
-            os.chmod(installer_path, 0o744)            
+            os.chmod(installer_path, 0o744)
             NoticeDialog('To use this runner, authenticate it at "Import Games" first.')
             if callback:
                 callback()
@@ -216,23 +210,22 @@ class legendary(wine.wine):
         #     return False
         return system.path_exists(self.runner_executable)
 
-
     def install_game(self, appid):
         """Install a game with Legendary"""
         if not appid:
             raise ValueError("Missing appid in legendary.install_game")
-        
+
         process = subprocess.run(
             [self.runner_executable, "install", appid],
-            capture_output=True, 
-            text=True, 
-            input="y"
+            capture_output=True,
+            text=True,
+            input="y",
+            check=True
         )
-        
 
     def prelaunch(self):
         logger.info("Setting up the wine environment")
-        return super().prelaunch()        
+        return super().prelaunch()
 
     def get_command(self):
         """Return the command used to launch a EGS game"""
@@ -250,7 +243,6 @@ class legendary(wine.wine):
 
         return {"env": self.get_env(os_env=False), "command": self.get_command()}
 
-
     def remove_game_data(self, appid=None, **kwargs):
         """Uninstall a game from Legendary"""
         if not self.is_installed():
@@ -261,7 +253,7 @@ class legendary(wine.wine):
             ([self.runner_executable, "uninstall", appid]),
             runner=self,
             env=self.get_env(os_env=False),
-        )        
+        )
         uninstall_command.start()
 
     def get_available_games(self):
