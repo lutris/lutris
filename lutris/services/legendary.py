@@ -7,7 +7,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 
 # Lutris Modules
 from lutris import api, pga, settings
-from lutris.gui.dialogs import WebConnectDialog
+from lutris.gui.dialogs import ErrorDialog, WebConnectDialog
 from lutris.services import AuthenticationError, UnavailableGame
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
@@ -20,6 +20,7 @@ import subprocess
 import io
 from lutris.util.strings import slugify
 from lutris.command import MonitoredCommand
+from lutris.exceptions import LutrisError
 
 NAME = "Legendary (Epic Store)"
 ICON = "legendary"
@@ -75,6 +76,10 @@ class LegendaryService(OnlineService):
             return list(lines)[1:] # skip the csv header
 
     def connect(self):
+        if not (self.runner.is_installed()):
+            ErrorDialog(f'Please install the "{self.runner.name}" runner first.')
+            return False
+
         command_runner = MonitoredCommand(
             [self.runner.runner_executable, "auth"], 
             runner=self, 
