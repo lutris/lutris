@@ -104,16 +104,7 @@ class legendary(wine.wine):
 # max_memory = 1024
 # ; default install directory
 # install_dir = /mnt/tank/games
-        legendary_options = [
-            {
-                "option": "game_install_dir",
-                "type": "directory_chooser",
-                "label": "Default game install directory",
-                "default": os.path.join(os.path.expanduser("~"), "Games"),
-                "help": (
-                    "Choose a folder for games to be installed in"
-                ),
-            },
+        legendary_options = [            
             {
                 "option": "auth_token",
                 "type": "string",
@@ -220,9 +211,13 @@ class legendary(wine.wine):
         """Install a game with Legendary"""
         if not appid:
             raise ValueError("Missing appid in legendary.install_game")
-
+        
         process = subprocess.run(
-            [self.runner_executable, "install", appid],
+            [   
+                self.runner_executable, "install", 
+                "--base-path", self.default_path,
+                appid
+            ],
             capture_output=True,
             text=True,
             input="y",
@@ -258,6 +253,8 @@ class legendary(wine.wine):
         kill()
         subprocess.run(
             [self.runner_executable, "uninstall", self.appid],
+            capture_output=True,
+            text=True,
             input="y",
             check=True,
         )
