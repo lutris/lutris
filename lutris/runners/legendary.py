@@ -91,6 +91,8 @@ class legendary(wine.wine):
 
     def __init__(self, config=None):
         super(legendary, self).__init__(config)
+        if os.path.isfile(self.base_dir):
+            os.remove(self.base_dir)
         if not os.path.isdir(self.base_dir):
             os.makedirs(self.base_dir)
         self.own_game_remove_method = "Remove game data"
@@ -116,7 +118,10 @@ class legendary(wine.wine):
                 "type": "string",
                 "label": "Authentication token",
                 "advanced": True,
-                "help": "Authentication token for Epic Store. Get it by starting the runner or calling `legendary auth`",
+                "help": (
+                    "Authentication token for Epic Store."
+                    "Get it by starting the runner or calling `legendary auth`"
+                ),
             },
             {
                 "option": "log_level",
