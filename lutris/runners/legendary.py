@@ -40,7 +40,7 @@ class legendary(wine.wine):
     runnable_alone = False
     base_dir = os.path.join(settings.RUNNER_DIR, "legendary")  # might contain version in the future
     runner_executable = os.path.join(base_dir, "legendary")
-    # depends_on = wine.wine
+    # depends_on = wine.wine #TODO: do we need this? it seems to install wine, even if i have it already
     default_arch = WINE_DEFAULT_ARCH
     game_options = [
         {
@@ -51,17 +51,6 @@ class legendary(wine.wine):
                 "The application name can be retrieved from epic launcher's logfiles"
                 "after creating a shortcut from within the launcher."
                 "app name for <i>Celeste</i> is: <b>Salt</b>"
-            ),
-        },
-        {
-            "option": "prefix",
-            "type": "directory_chooser",
-            "label": "Game prefix",
-            "default": os.path.join(base_dir, "prefix"),
-            "help": (
-                'The default prefix for games (also named "bottle") used by Wine.\n'
-                "It's a directory containing a set of files and "
-                "folders making up a confined Windows environment."
             ),
         },
         {
@@ -80,14 +69,10 @@ class legendary(wine.wine):
             "type": "bool",
             "default": False,
             "advanced": True
-        },
-        {
-            "option": "args",
-            "type": "string",
-            "label": "Arguments",
-            "advanced": True,
-            "help": "Start parameters to use (in addition to the required ones)",
-        },
+        }
+    ] + [
+        o for o in wine.wine.game_options   # inherit all optins for wine games
+        if o.get("option") != "exe"         #...except the "exe" path.
     ]
 
     def __init__(self, config=None):
@@ -233,7 +218,13 @@ class legendary(wine.wine):
         """Return the command used to launch a EGS game"""
         game_args = self.game_config.get("args") or ""
         game_id = self.game_config.get("appid")
-        command = [self.runner_executable, "launch", game_id]
+        command = [
+            self.runner_executable, "launch", 
+            "--wine", super().get_executable(), # this is the wine executable
+            "--wine-prefix", self.prefix_path,
+            game_id
+        ]
+
         for arg in split_arguments(game_args):
             command.append(arg)
         return command
