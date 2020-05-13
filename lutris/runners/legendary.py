@@ -202,6 +202,7 @@ class legendary(wine.wine):
         installer_path = self.runner_executable
         def on_downloaded(*_args):
             logger.info("Downloaded legendary runner")
+            os.chmod(installer_path, 0o744)
             if callback:
                 callback()
 
