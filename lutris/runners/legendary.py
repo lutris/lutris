@@ -167,10 +167,6 @@ class legendary(wine.wine):
         """Return the working directory of legendary."""
         return os.path.dirname(self.runner_executable)
 
-    @property
-    def game_path(self):
-        raise NotImplementedError()  # TODO
-
     def get_executable(self, version=None, fallback=True):
         return self.runner_executable
 
@@ -266,8 +262,3 @@ class legendary(wine.wine):
             check=True,
         )
         # Todo: check for failure, report console output
-
-    def get_available_games(self):
-        """List games available to the connected account"""
-        if not self.is_installed():
-            raise LutrisError("Legendary (Epic Store) runner is required")
