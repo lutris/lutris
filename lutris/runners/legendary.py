@@ -64,7 +64,7 @@ class legendary(wine.wine):
             ),
         },
         {
-            "option": "skip_update_check",
+            "option": "skip_version_check",
             "label": "Skip checking for updates when launching this game",
             "type": "bool",
             "default": False,
@@ -229,11 +229,21 @@ class legendary(wine.wine):
         """Return the command used to launch a EGS game"""
         game_args = self.game_config.get("args") or ""
         game_id = self.game_config.get("appid")
-        command = [
-            self.runner_executable, "launch",
+
+        launch_args = [
             # TODO: re-enable when legendary 0.0.11 is available
             # "--wine", super().get_executable(), # this is the wine executable
             # "--wine-prefix", self.prefix_path,
+        ]
+        if self.game_config.get("offline") == True:
+            launch_args.append("--offline")
+
+        if self.game_config.get("skip_version_check") == True:
+            launch_args.append("--skip-version-check")
+
+        command = [
+            self.runner_executable, "launch",
+            *launch_args,
             game_id
         ]
 
