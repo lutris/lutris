@@ -142,7 +142,7 @@ class legendary(wine.wine):
 
     def get_default_prefix(self, arch):
         """Return the default prefix' path."""
-        return self.runner_config["default_prefix" % arch]
+        return self.runner_config["default_%s_prefix" % arch]
 
     def get_or_create_default_prefix(self, arch=None):
         """Return the default prefix' path. Create it if it doesn't exist"""
@@ -220,8 +220,9 @@ class legendary(wine.wine):
         game_id = self.game_config.get("appid")
         command = [
             self.runner_executable, "launch", 
-            "--wine", super().get_executable(), # this is the wine executable
-            "--wine-prefix", self.prefix_path,
+            # TODO: re-enable when legendary 0.0.11 is available
+            # "--wine", super().get_executable(), # this is the wine executable
+            # "--wine-prefix", self.prefix_path,
             game_id
         ]
 
