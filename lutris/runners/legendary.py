@@ -5,15 +5,13 @@ import subprocess
 
 # Lutris Modules
 from lutris import settings
-from lutris.command import MonitoredCommand
 from lutris.runners import wine
 from lutris.runners.commands.wine import create_prefix
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
-from lutris.exceptions import LutrisError
-from lutris.gui.dialogs import ErrorDialog, NoticeDialog
+from lutris.gui.dialogs import NoticeDialog
 
 # Using a fixed version for now
 # TODO: get the tagged releases from github and offer multiple versions to install
