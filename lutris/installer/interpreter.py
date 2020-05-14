@@ -780,7 +780,7 @@ class ScriptInterpreter(CommandsMixin):
         runner = legendary.legendary()
         appid = self.script.get("game", {}).get("appid")
         logger.debug("Installing EGS game %s", appid)
-        runner.install_game(appid)
+        runner.install_game(appid, self.target_path)
 
     # -----------
     # Steam stuff

@@ -72,7 +72,7 @@ class legendary(wine.wine):
         }
     ] + [
         o for o in wine.wine.game_options   # inherit all optins for wine games
-        if o.get("option") != "exe"         #...except the "exe" path.
+        if o.get("option") != "exe"  # ...except the "exe" path.
     ]
 
     def __init__(self, config=None):
@@ -89,7 +89,7 @@ class legendary(wine.wine):
 # max_memory = 1024
 # ; default install directory
 # install_dir = /mnt/tank/games
-        legendary_options = [            
+        legendary_options = [
             {
                 "option": "auth_token",
                 "type": "string",
@@ -192,18 +192,17 @@ class legendary(wine.wine):
         #     return False
         return system.path_exists(self.runner_executable)
 
-    def install_game(self, appid):
+    def install_game(self, appid, target_path):
         """Install a game with Legendary"""
         if not appid:
             raise ValueError("Missing appid in legendary.install_game")
-        
+
         process = subprocess.run(
-            [   
-                self.runner_executable, "install", 
-                "--base-path", self.default_path,
+            [
+                self.runner_executable, "install",
+                "--game-folder", target_path,
                 appid
             ],
-            capture_output=True,
             text=True,
             input="y",
             check=True
@@ -219,7 +218,7 @@ class legendary(wine.wine):
         game_args = self.game_config.get("args") or ""
         game_id = self.game_config.get("appid")
         command = [
-            self.runner_executable, "launch", 
+            self.runner_executable, "launch",
             # TODO: re-enable when legendary 0.0.11 is available
             # "--wine", super().get_executable(), # this is the wine executable
             # "--wine-prefix", self.prefix_path,
