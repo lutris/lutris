@@ -64,16 +64,16 @@ class LegendaryService(OnlineService):
         if not system.path_exists(self.cache_path):
             logger.debug("Downloading EGS library to cache")
             cache = open(self.cache_path, "w")
+            # TODO: use subprocess.run, which throws on error
             getcmd = subprocess.Popen(
                 [self.runner.get_executable(), "list-games", "--csv"],
                 stdout=cache
             )
             return_code = getcmd.wait()
-        
-        
-        with open(self.cache_path, "r") as egs_cache:        
+
+        with open(self.cache_path, "r") as egs_cache:
             lines = [line.rstrip() for line in egs_cache]  # strip \n
-            return list(lines)[1:] # skip the csv header
+            return list(lines)[1:]  # skip the csv header
 
     def connect(self):
         if not (self.runner.is_installed()):
@@ -81,13 +81,12 @@ class LegendaryService(OnlineService):
             return False
 
         command_runner = MonitoredCommand(
-            [self.runner.runner_executable, "auth"], 
-            runner=self, 
-            env={}, 
+            [self.runner.runner_executable, "auth"],
+            runner=self,
+            env={},
             term=system.get_default_terminal()
         )
         command_runner.run_in_terminal()
-
 
 
 class EGSGame(ServiceGame):
