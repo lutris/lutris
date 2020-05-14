@@ -192,10 +192,26 @@ class legendary(wine.wine):
         #     return False
         return system.path_exists(self.runner_executable)
 
+    def is_game_installed(self, appid):
+        """Checks if a game is already installed in legendary"""
+        process = subprocess.run(
+            [self.runner_executable, "list-installed", "--csv"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        lines = process.stdout.splitlines()[1:]  # skip the csv header
+        installed_apps = [line.split(",")[0] for line in lines]
+
+        return appid in installed_apps
+
     def install_game(self, appid, target_path):
         """Install a game with Legendary"""
         if not appid:
             raise ValueError("Missing appid in legendary.install_game")
+
+        if self.is_game_installed(appid):
+            raise RuntimeError(f"The game with id:{appid} is already installed.")
 
         process = subprocess.run(
             [
