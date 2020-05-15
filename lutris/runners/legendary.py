@@ -15,7 +15,7 @@ from lutris.gui.dialogs import NoticeDialog
 
 # Using a fixed version for now
 # TODO: get the tagged releases from github and offer multiple versions to install
-LEGENDARY_DOWNLOAD_URL = ("https://github.com/derrod/legendary/releases/download/0.0.10/legendary")
+LEGENDARY_DOWNLOAD_URL = ("https://github.com/derrod/legendary/releases/download/0.0.11/legendary")
 
 
 def is_running():
@@ -229,9 +229,8 @@ class legendary(wine.wine):
         game_id = self.game_config.get("appid")
 
         launch_args = [
-            # TODO: re-enable when legendary 0.0.11 is available
-            # "--wine", super().get_executable(), # this is the wine executable
-            # "--wine-prefix", self.prefix_path,
+            "--wine", super().get_executable(),  # this is the wine executable
+            "--wine-prefix", self.prefix_path,
         ]
         if self.game_config.get("offline") == True:
             launch_args.append("--offline")
