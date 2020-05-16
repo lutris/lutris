@@ -18,10 +18,10 @@ from lutris.util.log import logger
 
 
 class RunnerMeta(type):
-    def __new__(cls, name, bases, body):
+    def __new__(mcs, name, bases, body):
         if name != 'Runner' and not 'play' in body:
             raise TypeError(f"The play method is not implemented in runner {name}!")
-        return super().__new__(cls, name, bases, body)
+        return super().__new__(mcs, name, bases, body)
 
 
 class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
