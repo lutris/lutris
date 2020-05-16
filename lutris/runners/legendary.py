@@ -6,7 +6,7 @@ import subprocess
 # Lutris Modules
 from lutris import settings
 from lutris.runners import wine
-from lutris.runners.commands.wine import create_prefix
+from lutris.runners.commands.wine import create_prefix, winecfg, wineexec, winekill, winetricks
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
