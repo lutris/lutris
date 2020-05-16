@@ -73,6 +73,9 @@ class legendary(wine.wine):
         if o.get("option") != "exe"  # ...except the "exe" path.
     ]
 
+    # Make sure to prioritize Lutris runtime environment since the Wine executable is not built for the user's system libraries.
+    system_options_override = [{"option": "prefer_system_libs", "default": False}]
+
     def __init__(self, config=None):
         super(legendary, self).__init__(config)
         if os.path.isfile(self.base_dir):
