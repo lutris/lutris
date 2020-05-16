@@ -14,8 +14,7 @@ from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 from lutris.gui.dialogs import NoticeDialog
 import requests
 
-# Using a fixed version for now
-# TODO: get the tagged releases from github and offer multiple versions to install
+# TODO: maybe offer multiple versions to install
 LEGENDARY_RELEASES_URL = ("https://api.github.com/repos/derrod/legendary/releases/latest")
 
 
