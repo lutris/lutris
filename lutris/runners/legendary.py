@@ -12,10 +12,11 @@ from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 from lutris.gui.dialogs import NoticeDialog
+import requests
 
 # Using a fixed version for now
 # TODO: get the tagged releases from github and offer multiple versions to install
-LEGENDARY_DOWNLOAD_URL = ("https://github.com/derrod/legendary/releases/download/0.0.11/legendary")
+LEGENDARY_RELEASES_URL = ("https://api.github.com/repos/derrod/legendary/releases/latest")
 
 
 def is_running():
@@ -171,6 +172,13 @@ class legendary(wine.wine):
     def get_executable(self, version=None, fallback=True):
         return self.runner_executable
 
+    def get_latest_release(self):
+        binary_asset_name = 'legendary'
+        r = requests.get(LEGENDARY_RELEASES_URL)
+        release = r.json()
+        latest_binary = next((x for x in release.get('assets') if x.get('name') == binary_asset_name), None)
+        return latest_binary.get('browser_download_url')
+
     def install(self, version=None, downloader=None, callback=None):
         installer_path = self.runner_executable
 
@@ -181,7 +189,7 @@ class legendary(wine.wine):
             if callback:
                 callback()
 
-        downloader(LEGENDARY_DOWNLOAD_URL, installer_path, on_downloaded)
+        downloader(self.get_latest_release(), installer_path, on_downloaded)
 
     def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if Legendary executable is on the drive"""
