@@ -1,13 +1,16 @@
 """Module to deal with various aspects of displays"""
-# Standard Library
+# isort:skip_file
 import os
 import subprocess
 
-# Third Party Libraries
-from dbus.exceptions import DBusException
+try:
+    from dbus.exceptions import DBusException
+    DBUS_AVAILABLE = True
+except ImportError:
+    DBUS_AVAILABLE = False
+
 from gi.repository import Gdk, GLib, GnomeDesktop
 
-# Lutris Modules
 from lutris.util import system
 from lutris.util.graphics.displayconfig import MutterDisplayManager
 from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs
@@ -108,12 +111,15 @@ def get_display_manager():
     """Return the appropriate display manager instance.
     Defaults to Mutter if available. This is the only one to support Wayland.
     """
-    try:
-        return MutterDisplayManager()
-    except DBusException as ex:
-        logger.debug("Mutter DBus service not reachable: %s", ex)
-    except Exception as ex:  # pylint: disable=broad-except
-        logger.exception("Failed to instanciate MutterDisplayConfig. Please report with exception: %s", ex)
+    if DBUS_AVAILABLE:
+        try:
+            return MutterDisplayManager()
+        except DBusException as ex:
+            logger.debug("Mutter DBus service not reachable: %s", ex)
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.exception("Failed to instanciate MutterDisplayConfig. Please report with exception: %s", ex)
+    else:
+        logger.error("DBus is not available, lutris was not properly installed.")
     try:
         return DisplayManager()
     except (GLib.Error, NoScreenDetected):
