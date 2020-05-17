@@ -243,8 +243,10 @@ class mame(Runner):  # pylint: disable=invalid-name
             command += ["-" + device, rom]
         else:
             rompath = os.path.dirname(self.game_config.get("main_file"))
+            if rompath:
+                command += ["-rompath", rompath]
             rom = os.path.basename(self.game_config.get("main_file"))
-            command += ["-rompath", rompath, rom]
+            command += [rom]
 
         if self.game_config.get("autoboot_command"):
             command += ["-autoboot_command", self.game_config["autoboot_command"] + "\\n"]

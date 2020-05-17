@@ -7,7 +7,7 @@ from lutris.util.log import logger
 def fix_playtime(game):
     """Fix a temporary glitch that happened with the playtime implementation"""
     broken_playtime = game["playtime"]
-    if not broken_playtime.endswith(" hrs"):
+    if isinstance(broken_playtime, float) or not broken_playtime.endswith(" hrs"):
         return
     playtime = broken_playtime.split()[0]
     logger.warning("Fixing playtime %s => %s for %s", broken_playtime, playtime, game["name"])

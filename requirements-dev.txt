@@ -34,4 +34,3 @@ six==1.14.0
 virtualenv-clone==0.5.4
 virtualenv==20.0.18
 wrapt==1.11.2
-yapf==0.30.0

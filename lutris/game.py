@@ -180,6 +180,7 @@ class Game(GObject.Object):
         """Enables or disables compositing"""
         if enable:
             system.execute(self.start_compositor, shell=True)
+            self.compositor_disabled = False
         else:
             (
                 self.start_compositor,

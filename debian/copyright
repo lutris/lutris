@@ -89,8 +89,13 @@ License: CC0-1.0
 
 Files: share/lutris/icons/hicolor/symbolic/apps/msx_msx2_msx2+-symbolic.svg
  share/lutris/icons/hicolor/symbolic/apps/nintendogameboy(color)-symbolic.svg
-Copyright: Creaticca Ltd <https://www.flaticon.com/authors/creaticca-creative-agency>
-License: Flaticon
+ share/lutris/icons/hicolor/symbolic/apps/nintendogameboy-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/nintendogamecube-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/nintendones-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/nintendosnes-symbolic.svg
+ share/lutris/icons/hicolor/symbolic/apps/segadreamcast-symbolic.svg
+Copyright: SVG Repo <https://www.svgrepo.com/>
+License: CC0-1.0
 
 Files: share/lutris/icons/hicolor/symbolic/apps/mupen64plus-symbolic.svg
 Copyright: Mupen64Plus project <http://www.mupen64plus.org/>
@@ -105,17 +110,6 @@ Files: share/lutris/icons/hicolor/symbolic/apps/nintendo3ds-symbolic.svg
 Copyright: Nintendo
 License: none-wikipedia
 Comment: from <https://commons.wikimedia.org/wiki/File:Nintendo_3DS_(logo).svg>
-
-Files: share/lutris/icons/hicolor/symbolic/apps/nintendogameboy-symbolic.svg
-Copyright: xnimrodx <https://www.flaticon.com/authors/xnimrodx>
-License: Flaticon
-
-Files: share/lutris/icons/hicolor/symbolic/apps/nintendogamecube-symbolic.svg
- share/lutris/icons/hicolor/symbolic/apps/nintendones-symbolic.svg
- share/lutris/icons/hicolor/symbolic/apps/nintendosnes-symbolic.svg
- share/lutris/icons/hicolor/symbolic/apps/segadreamcast-symbolic.svg
-Copyright: freepik <https://www.flaticon.com/authors/freepik>
-License: Flaticon
 
 Files: share/lutris/icons/hicolor/symbolic/apps/pico8-symbolic.svg
 Copyright: djazz <https://github.com/daniel-j>
@@ -906,51 +900,6 @@ License: CC-BY-NC-SA-2.0
  or otherwise made available upon request from time to time.
  .
  Creative Commons may be contacted at http://creativecommons.org/.
-
-License: Flaticon
- From <https://profile.flaticon.com/license/free>:
- .
- FREE LICENSE (WITH ATTRIBUTION)
- This license allows you to use for free any of Flaticon's contents for your
- projects as long as they are attributed to their author in the definitive
- project.
- .
- How to attribute contents?
- .
- -For web usage: By placing a link with the text "designed by from Flaticon" in
-  a visible spot, so 's authorship is noticeable.
- -Uses different to web: If possible, the text "designed by from Flaticon" must
-  be written next to Flaticon Contents, if it's not possible, the attribution
-  must be placed in the credits or acknowledgements section.
- .
- Where you can use Flaticon's contents:
- .
- -Website
- -Software, applications, mobile, Multimedia
- -Printed and digital media (magazines, newspapers, books, cards, labels, CD,
-  television, video, e-mail)
- -Advertisement and promotional items
- -Presentation of products and public events
- .
- What you CAN DO:
- .
- -You have the non-exclusive, non-transferable, non-sublicensable right to use
-  the licensed material an unlimited number of times in any and all media for
-  the commercial or personal purposes listed above.
- -You may alter and create derivative works.
- -You can use Flaticon's Contents during the rights period world wide.
- .
- What you CANNOT DO:
- .
- -Sublicense, sell or rent any contents (or a modified version of them).
- -Distribute Flaticon's Contents unless it has been expressly authorized by
-  Flaticon.
- -Include Flaticon's Contents in an online or offline database or file.
- -Offering Flaticon's Contents designs (or modified Flaticon Contents versions)
-  for download.
- .
- The complete content of licenses can be consulted in the Terms of Use, that
- will prevail over the content of this document.
 
 License: none-wikipedia
  This image consists only of simple geometric shapes or text. It does not meet

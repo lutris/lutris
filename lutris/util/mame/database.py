@@ -26,8 +26,12 @@ def is_game(machine):
     Clones return False
     """
     return (
-        machine.attrib["isbios"] == "no" and machine.attrib["isdevice"] == "no" and machine.attrib["runnable"] == "yes"
-        and "cloneof" not in machine.attrib and "romof" not in machine.attrib and not has_software_list(machine)
+        machine.attrib["isbios"] == "no"
+        and machine.attrib["isdevice"] == "no"
+        and machine.attrib["runnable"] == "yes"
+        and "romof" not in machine.attrib
+        # FIXME: Filter by the machines that accept coins, but not like that
+        # and "coin" in machine.find("input").attrib
     )
 
 
@@ -45,7 +49,8 @@ def is_system(machine):
     handheld.
     """
     if (
-        machine.attrib.get("runnable") == "no" or machine.attrib.get("isdevice") == "yes"
+        machine.attrib.get("runnable") == "no"
+        or machine.attrib.get("isdevice") == "yes"
         or machine.attrib.get("isbios") == "yes"
     ):
         return False
@@ -64,23 +69,32 @@ def iter_machines(xml_path, filter_func=None):
 def get_machine_info(machine):
     """Return human readable information about a machine node"""
     return {
-        "description":
-        machine.find("description").text,
-        "manufacturer":
-        simplify_manufacturer(machine.find("manufacturer").text),
-        "year":
-        machine.find("year").text,
+        "description": machine.find("description").text,
+        "manufacturer": simplify_manufacturer(machine.find("manufacturer").text),
+        "year": machine.find("year").text,
         "roms": [rom.attrib for rom in machine.findall("rom")],
+        "ports": [port.attrib for port in machine.findall("port")],
         "devices": [
             {
                 "info": device.attrib,
-                "name": "".join([instance.attrib["name"] for instance in device.findall("instance")]),
-                "briefname": "".join([instance.attrib["briefname"] for instance in device.findall("instance")]),
-                "extensions": [extension.attrib["name"] for extension in device.findall("extension")],
-            } for device in machine.findall("device")
+                "name": "".join(
+                    [instance.attrib["name"] for instance in device.findall("instance")]
+                ),
+                "briefname": "".join(
+                    [
+                        instance.attrib["briefname"]
+                        for instance in device.findall("instance")
+                    ]
+                ),
+                "extensions": [
+                    extension.attrib["name"]
+                    for extension in device.findall("extension")
+                ],
+            }
+            for device in machine.findall("device")
         ],
-        "driver":
-        machine.find("driver").attrib,
+        "input": machine.find("input").attrib,
+        "driver": machine.find("driver").attrib,
     }
 
 
@@ -99,7 +113,10 @@ def get_supported_systems(xml_path, force=False):
                 systems = None
         if systems:
             return systems
-    systems = {machine.attrib["name"]: get_machine_info(machine) for machine in iter_machines(xml_path, is_system)}
+    systems = {
+        machine.attrib["name"]: get_machine_info(machine)
+        for machine in iter_machines(xml_path, is_system)
+    }
     with open(systems_cache_path, "w") as systems_cache_file:
         json.dump(systems, systems_cache_file, indent=2)
     return systems
@@ -107,4 +124,7 @@ def get_supported_systems(xml_path, force=False):
 
 def get_games(xml_path):
     """Return a list of all games"""
-    return {machine.attrib["name"]: get_machine_info(machine) for machine in iter_machines(xml_path, is_game)}
+    return {
+        machine.attrib["name"]: get_machine_info(machine)
+        for machine in iter_machines(xml_path, is_game)
+    }

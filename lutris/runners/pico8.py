@@ -154,6 +154,8 @@ class pico8(Runner):
         return system.path_exists(os.path.join(settings.RUNNER_DIR, "pico8/web/player.html"))
 
     def prelaunch(self):
+        if not self.game_config.get("main_file") and self.is_installed():
+            return True
         if os.path.exists(os.path.join(settings.RUNNER_DIR, "pico8/cartridges", "tmp.p8.png")):
             os.remove(os.path.join(settings.RUNNER_DIR, "pico8/cartridges", "tmp.p8.png"))
 

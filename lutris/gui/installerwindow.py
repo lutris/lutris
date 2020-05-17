@@ -74,8 +74,9 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.vbox.pack_start(action_buttons_alignment, False, True, 0)
 
         self.manual_button = self.add_button("Configure m_anually", self.on_manual_clicked)
-        self.cancel_button = self.add_button("C_ancel", self.cancel_installation,
-                                             tooltip="Abort and revert the installation")
+        self.cancel_button = self.add_button(
+            "C_ancel", self.cancel_installation, tooltip="Abort and revert the installation"
+        )
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
         self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)

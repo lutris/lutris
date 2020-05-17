@@ -17,7 +17,14 @@ from lutris.util.http import Request
 from lutris.util.log import logger
 
 
-class Runner:  # pylint: disable=too-many-public-methods
+class RunnerMeta(type):
+    def __new__(mcs, name, bases, body):
+        if name != 'Runner' and 'play' not in body:
+            raise TypeError(f"The play method is not implemented in runner {name}!")
+        return super().__new__(mcs, name, bases, body)
+
+
+class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
 
     """Generic runner (base class for other runners)."""
 
@@ -200,10 +207,6 @@ class Runner:  # pylint: disable=too-many-public-methods
     def prelaunch(self):
         """Run actions before running the game, override this method in runners"""
         return True
-
-    def play(self):
-        """Dummy method, must be implemented by derived runners."""
-        raise NotImplementedError("Implement the play method in your runner")
 
     def get_run_data(self):
         """Return dict with command (exe & args list) and env vars (dict).
