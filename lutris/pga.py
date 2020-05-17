@@ -467,7 +467,7 @@ def check_for_file(game, file_id):
 def get_used_runners():
     """Return a list of the runners in use by installed games."""
     with sql.db_cursor(PGA_DB) as cursor:
-        query = ("select distinct runner from games " "where runner is not null order by runner")
+        query = "select distinct runner from games where runner is not null order by runner"
         rows = cursor.execute(query)
         results = rows.fetchall()
     return [result[0] for result in results if result[0]]
@@ -476,7 +476,7 @@ def get_used_runners():
 def get_used_runners_game_count():
     """Return a dictionary listing for each runner in use, how many games are using it."""
     with sql.db_cursor(PGA_DB) as cursor:
-        query = ("select runner, count(*) from games " "where runner is not null " "group by runner " "order by runner")
+        query = "select runner, count(*) from games where runner is not null group by runner order by runner"
         rows = cursor.execute(query)
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}

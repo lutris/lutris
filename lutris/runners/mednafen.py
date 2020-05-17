@@ -13,7 +13,7 @@ DEFAULT_MEDNAFEN_SCALER = "nn4x"
 
 class mednafen(Runner):
     human_name = "Mednafen"
-    description = "Multi-system emulator including NES, GB(A), PC Engine " "support."
+    description = "Multi-system emulator including NES, GB(A), PC Engine support."
     platforms = [
         "Nintendo Game Boy (Color)",
         "Nintendo Game Boy Advance",
