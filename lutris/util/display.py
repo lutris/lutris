@@ -1,4 +1,5 @@
 """Module to deal with various aspects of displays"""
+# isort:skip_file
 import os
 import subprocess
 
