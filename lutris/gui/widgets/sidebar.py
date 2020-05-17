@@ -190,3 +190,4 @@ class SidebarListBox(Gtk.ListBox):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
         self.invalidate_filter()
+        return True
