@@ -21,7 +21,7 @@ from lutris.gui import dialogs
 from lutris.runners import InvalidRunner, import_runner, wine
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 from lutris.util import audio, jobs, strings, system, xdgshortcuts
-from lutris.util.display import DISPLAY_MANAGER, get_compositor_commands, restore_gamma
+from lutris.util.display import DISPLAY_MANAGER, disable_compositing, enable_compositing, restore_gamma
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -89,7 +89,6 @@ class Game(GObject.Object):
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
-        self.stop_compositor = self.start_compositor = ""
         self.original_outputs = None
         self._log_buffer = None
         self.timer = Timer()
@@ -179,15 +178,12 @@ class Game(GObject.Object):
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
         if enable:
-            system.execute(self.start_compositor, shell=True)
-            self.compositor_disabled = False
+            if self.compositor_disabled:
+                enable_compositing()
+                self.compositor_disabled = False
         else:
-            (
-                self.start_compositor,
-                self.stop_compositor,
-            ) = get_compositor_commands()
-            if not (self.compositor_disabled or not self.stop_compositor):
-                system.execute(self.stop_compositor, shell=True)
+            if not self.compositor_disabled:
+                disable_compositing()
                 self.compositor_disabled = True
 
     def remove(self, from_library=False, from_disk=False):
