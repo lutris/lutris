@@ -131,7 +131,7 @@ DISPLAY_MANAGER = get_display_manager()
 USE_DRI_PRIME = len(_get_graphics_adapters()) > 1
 
 
-class DE(enum.Enum):
+class DesktopEnvironment(enum.Enum):
 
     """Enum of desktop environments."""
 
@@ -144,21 +144,21 @@ class DE(enum.Enum):
 
 def get_desktop_environment():
     """Converts the value of the DESKTOP_SESSION environment variable
-    to one of the constants in the DE class. Returns None if
-    DESKTOP_SESSION is empty or unset.
+    to one of the constants in the DesktopEnvironment class.
+    Returns None if DESKTOP_SESSION is empty or unset.
     """
     desktop_session = os.environ.get("DESKTOP_SESSION", "").lower()
     if not desktop_session:
         return None
     if desktop_session.endswith("plasma"):
-        return DE.PLASMA
+        return DesktopEnvironment.PLASMA
     if desktop_session.endswith("mate"):
-        return DE.MATE
+        return DesktopEnvironment.MATE
     if desktop_session.endswith("xfce"):
-        return DE.XFCE
+        return DesktopEnvironment.XFCE
     if desktop_session.endswith("deepin"):
-        return DE.DEEPIN
-    return DE.UNKNOWN
+        return DesktopEnvironment.DEEPIN
+    return DesktopEnvironment.UNKNOWN
 
 
 def _get_command_output(*command):
@@ -170,17 +170,17 @@ def is_compositing_enabled():
     Returns True for enabled, False for disabled, and None if unknown.
     """
     desktop_environment = get_desktop_environment()
-    if desktop_environment is DE.PLASMA:
+    if desktop_environment is DesktopEnvironment.PLASMA:
         return _get_command_output(
             "qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.active"
         ) == b"true\n"
-    if desktop_environment is DE.MATE:
+    if desktop_environment is DesktopEnvironment.MATE:
         return _get_command_output("gsettings", "get org.mate.Marco.general", "compositing-manager") == b"true\n"
-    if desktop_environment is DE.XFCE:
+    if desktop_environment is DesktopEnvironment.XFCE:
         return _get_command_output(
             "xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing"
         ) == b"true\n"
-    if desktop_environment is DE.DEEPIN:
+    if desktop_environment is DesktopEnvironment.DEEPIN:
         return _get_command_output(
             "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
             "--print-reply=literal", "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.CurrentWM"
@@ -202,16 +202,16 @@ def _get_compositor_commands():
     start_compositor = None
     stop_compositor = None
     desktop_environment = get_desktop_environment()
-    if desktop_environment is DE.PLASMA:
+    if desktop_environment is DesktopEnvironment.PLASMA:
         stop_compositor = ("qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.suspend")
         start_compositor = ("qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.resume")
-    elif desktop_environment is DE.MATE:
+    elif desktop_environment is DesktopEnvironment.MATE:
         stop_compositor = ("gsettings", "set org.mate.Marco.general", "compositing-manager", "false")
         start_compositor = ("gsettings", "set org.mate.Marco.general", "compositing-manager", "true")
-    elif desktop_environment is DE.XFCE:
+    elif desktop_environment is DesktopEnvironment.XFCE:
         stop_compositor = ("xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=false")
         start_compositor = ("xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=true")
-    elif desktop_environment is DE.PLASMA:
+    elif desktop_environment is DesktopEnvironment.PLASMA:
         start_compositor = (
             "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
             "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM",
