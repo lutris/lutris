@@ -130,37 +130,121 @@ DISPLAY_MANAGER = get_display_manager()
 USE_DRI_PRIME = len(_get_graphics_adapters()) > 1
 
 
-def get_compositor_commands():
-    """Nominated for the worst function in lutris"""
+# Pretend this is an enum.
+class DE:
+
+    """Enum of desktop environments."""
+
+    PLASMA = object()
+    MATE = object()
+    XFCE = object()
+    DEEPIN = object()
+    UNKNOWN = object()
+
+
+def get_desktop_environment():
+    """Converts the value of the DESKTOP_SESSION environment variable
+    to one of the constants in the DE class. Returns None if
+    DESKTOP_SESSION is empty or unset.
+    """
+    desktop_session = os.environ.get("DESKTOP_SESSION", "").lower()
+    if not desktop_session:
+        return None
+    if desktop_session.endswith("plasma"):
+        return DE.PLASMA
+    if desktop_session.endswith("mate"):
+        return DE.MATE
+    if desktop_session.endswith("xfce"):
+        return DE.XFCE
+    if desktop_session.endswith("deepin"):
+        return DE.DEEPIN
+    return DE.UNKNOWN
+
+
+def _get_command_output(*command):
+    return subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, close_fds=True).communicate()[0]
+
+
+def is_compositing_enabled():
+    """Checks whether compositing is currently disabled or enabled.
+    Returns True for enabled, False for disabled, and None if unknown.
+    """
+    desktop_environment = get_desktop_environment()
+    if desktop_environment is DE.PLASMA:
+        return _get_command_output(
+            "qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.active"
+        ) == b"true\n"
+    if desktop_environment is DE.MATE:
+        return _get_command_output("gsettings", "get org.mate.Marco.general", "compositing-manager") == b"true\n"
+    if desktop_environment is DE.XFCE:
+        return _get_command_output(
+            "xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing"
+        ) == b"true\n"
+    if desktop_environment is DE.DEEPIN:
+        return _get_command_output(
+            "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
+            "--print-reply=literal", "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.CurrentWM"
+        ) == b"deepin wm\n"
+    return None
+
+
+# One element is appended to this for every invocation of disable_compositing:
+# True if compositing has been disabled, False if not. enable_compositing
+# removes the last element, and only re-enables compositing if that element
+# was True.
+_COMPOSITING_DISABLED_STACK = []
+
+
+def _get_compositor_commands():
+    """Returns the commands to enable/disable compositing on the current
+    desktop environment as a 2-tuple.
+    """
     start_compositor = None
     stop_compositor = None
-    desktop_session = os.environ.get("DESKTOP_SESSION")
-    if desktop_session.endswith("plasma"):
-        stop_compositor = ("qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.suspend")
-        start_compositor = ("qdbus org.kde.KWin /Compositor org.kde.kwin.Compositing.resume")
-    elif (
-        desktop_session.endswith("mate")
-        and system.execute("gsettings get org.mate.Marco.general compositing-manager", shell=True) == "true"
-    ):
-        stop_compositor = ("gsettings set org.mate.Marco.general compositing-manager false")
-        start_compositor = ("gsettings set org.mate.Marco.general compositing-manager true")
-    elif (
-        desktop_session.endswith("xfce") and system.execute(
-            "xfconf-query --channel=xfwm4 --property=/general/use_compositing",
-            shell=True,
-        ) == "true"
-    ):
-        stop_compositor = ("xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=false")
-        start_compositor = ("xfconf-query --channel=xfwm4 --property=/general/use_compositing --set=true")
-    elif (
-        desktop_session.endswith("deepin") and system.execute(
-            "dbus-send --session --dest=com.deepin.WMSwitcher --type=method_call "
-            "--print-reply=literal /com/deepin/WMSwitcher com.deepin.WMSwitcher.CurrentWM",
-            shell=True,
-        ) == "deepin wm"
-    ):
-        start_compositor, stop_compositor = (
-            "dbus-send --session --dest=com.deepin.WMSwitcher --type=method_call "
-            "/com/deepin/WMSwitcher com.deepin.WMSwitcher.RequestSwitchWM",
-        ) * 2
+    desktop_environment = get_desktop_environment()
+    if desktop_environment is DE.PLASMA:
+        stop_compositor = ("qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.suspend")
+        start_compositor = ("qdbus", "org.kde.KWin", "/Compositor", "org.kde.kwin.Compositing.resume")
+    elif desktop_environment is DE.MATE:
+        stop_compositor = ("gsettings", "set org.mate.Marco.general", "compositing-manager", "false")
+        start_compositor = ("gsettings", "set org.mate.Marco.general", "compositing-manager", "true")
+    elif desktop_environment is DE.XFCE:
+        stop_compositor = ("xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=false")
+        start_compositor = ("xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=true")
+    elif desktop_environment is DE.PLASMA:
+        start_compositor = (
+            "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
+            "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM",
+        )
+        stop_compositor = start_compositor
     return start_compositor, stop_compositor
+
+
+def _run_command(*command):
+    return subprocess.Popen(command, stdin=subprocess.DEVNULL, close_fds=True)
+
+
+def disable_compositing():
+    """Disable compositing if not already disabled."""
+    compositing_enabled = is_compositing_enabled()
+    if compositing_enabled is None:
+        compositing_enabled = True
+    if any(_COMPOSITING_DISABLED_STACK):
+        compositing_enabled = False
+    _COMPOSITING_DISABLED_STACK.append(compositing_enabled)
+    if not compositing_enabled:
+        return
+    _, stop_compositor = _get_compositor_commands()
+    if stop_compositor:
+        _run_command(*stop_compositor)
+
+
+def enable_compositing():
+    """Re-enable compositing if the corresponding call to disable_compositing
+    disabled it."""
+    compositing_disabled = _COMPOSITING_DISABLED_STACK.pop()
+    if not compositing_disabled:
+        return
+    start_compositor, _ = _get_compositor_commands()
+    if start_compositor:
+        _run_command(*start_compositor)
