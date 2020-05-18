@@ -1,5 +1,6 @@
 """Module to deal with various aspects of displays"""
 # isort:skip_file
+import enum
 import os
 import subprocess
 
@@ -130,16 +131,15 @@ DISPLAY_MANAGER = get_display_manager()
 USE_DRI_PRIME = len(_get_graphics_adapters()) > 1
 
 
-# Pretend this is an enum.
-class DE:
+class DE(enum.Enum):
 
     """Enum of desktop environments."""
 
-    PLASMA = object()
-    MATE = object()
-    XFCE = object()
-    DEEPIN = object()
-    UNKNOWN = object()
+    PLASMA = enum.auto()
+    MATE = enum.auto()
+    XFCE = enum.auto()
+    DEEPIN = enum.auto()
+    UNKNOWN = enum.auto()
 
 
 def get_desktop_environment():
