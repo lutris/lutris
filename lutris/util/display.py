@@ -211,7 +211,7 @@ def _get_compositor_commands():
     elif desktop_environment is DesktopEnvironment.XFCE:
         stop_compositor = ("xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=false")
         start_compositor = ("xfconf-query", "--channel=xfwm4", "--property=/general/use_compositing", "--set=true")
-    elif desktop_environment is DesktopEnvironment.PLASMA:
+    elif desktop_environment is DesktopEnvironment.DEEPIN:
         start_compositor = (
             "dbus-send", "--session", "--dest=com.deepin.WMSwitcher", "--type=method_call",
             "/com/deepin/WMSwitcher", "com.deepin.WMSwitcher.RequestSwitchWM",
