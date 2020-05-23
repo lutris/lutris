@@ -209,6 +209,8 @@ def _is_futex_wait_multiple_supported():
         futex_wait_multiple_op = _get_futex_wait_multiple_op(futex_syscall)
     except (AttributeError, RuntimeError):
         return False
+    if futex_wait_multiple_op is None:
+        return False
 
     return futex_syscall(
         None,
