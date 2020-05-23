@@ -10,7 +10,8 @@ import requests
 from lutris import settings
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runners import wine
-from lutris.runners.commands.wine import create_prefix, winecfg, wineexec, winekill, winetricks
+# TODO: those imports are unused, but without them the install scripts cannot call e.g. "create_prefix"
+from lutris.runners.commands.wine import create_prefix, winecfg, wineexec, winekill, winetricks  # noqa: F401
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
@@ -219,7 +220,7 @@ class legendary(wine.wine):
         if self.is_game_installed(appid):
             raise RuntimeError(f"The game with id:{appid} is already installed.")
 
-        process = subprocess.run(
+        subprocess.run(
             [
                 self.runner_executable, "install",
                 "--game-folder", target_path,
@@ -244,10 +245,10 @@ class legendary(wine.wine):
             "--wine", super().get_executable(),  # this is the wine executable
             "--wine-prefix", self.prefix_path,
         ]
-        if self.game_config.get("offline") == True:
+        if self.game_config.get("offline") is True:
             launch_args.append("--offline")
 
-        if self.game_config.get("skip_version_check") == True:
+        if self.game_config.get("skip_version_check") is True:
             launch_args.append("--skip-version-check")
 
         command = [

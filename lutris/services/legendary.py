@@ -1,25 +1,17 @@
 """Module for handling the Legendary (Epic Games) service"""
 # Standard Library
-import io
-import json
 import os
 import subprocess
-import time
-from urllib.parse import parse_qsl, urlencode, urlparse
 
 # Lutris Modules
-from lutris import api, pga, settings
+from lutris import pga, settings
 from lutris.command import MonitoredCommand
-from lutris.exceptions import LutrisError
-from lutris.gui.dialogs import ErrorDialog, WebConnectDialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris.runners.legendary import legendary
-from lutris.services import AuthenticationError, UnavailableGame
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.util import system
-from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
-from lutris.util.resources import download_media
 from lutris.util.strings import slugify
 
 NAME = "Legendary (Epic Store)"
@@ -69,7 +61,7 @@ class LegendaryService(OnlineService):
                 [self.runner.get_executable(), "list-games", "--csv"],
                 stdout=cache
             )
-            return_code = getcmd.wait()
+            getcmd.wait()
 
         with open(self.cache_path, "r") as egs_cache:
             lines = [line.rstrip() for line in egs_cache]  # strip \n
