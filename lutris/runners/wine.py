@@ -1018,7 +1018,7 @@ class wine(Runner):
         else:
             wine_prefix.desktop_integration(restore=True)
 
-    def play(self):  # noqa: C901
+    def play(self):  # pylint: disable=too-many-return-statements # noqa: C901
         game_exe = self.game_exe
         arguments = self.game_config.get("args", "")
         launch_info = {"env": self.get_env(os_env=False)}
