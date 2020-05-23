@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
+<!-- Generated with glade 3.22.0 -->
 <interface>
   <requires lib="gtk+" version="3.0"/>
   <object class="GtkAboutDialog" id="about_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">About Lutris</property>
+    <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">lutris</property>
@@ -13,10 +14,10 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="skip_pager_hint">True</property>
     <property name="program_name">Lutris</property>
-    <property name="copyright" translatable="no">© 2010, 2020 Mathieu Comandon</property>
+    <property name="copyright">© 2010, 2020 Mathieu Comandon</property>
     <property name="comments" translatable="yes">Open Source Gaming Platform</property>
     <property name="website">https://lutris.net</property>
-    <property name="website_label" translatable="no">https://lutris.net</property>
+    <property name="website_label">https://lutris.net</property>
     <property name="license" translatable="yes">This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -50,6 +51,9 @@ along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
           </packing>
         </child>
       </object>
+    </child>
+    <child type="titlebar">
+      <placeholder/>
     </child>
   </object>
 </interface>
