@@ -1065,7 +1065,7 @@ class wine(Runner):
                 fsync_display_support_warning()
                 return {"error": "FSYNC_NOT_SUPPORTED"}
             if not wine_ver:
-                if not esync_display_version_warning(True):
+                if not fsync_display_version_warning(True):
                     return {"error": "NON_FSYNC_WINE_VERSION"}
 
         command = [self.get_executable()]
