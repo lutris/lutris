@@ -27,8 +27,9 @@ from lutris.util.wine import dxvk, nine
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.wine import (
     POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
-    esync_display_version_warning, get_default_version, get_overrides_env, get_proton_paths, get_real_executable,
-    get_system_wine_version, get_wine_versions, is_esync_limit_set, is_version_esync
+    fsync_display_support_warning, esync_display_version_warning, fsync_display_version_warning, get_default_version,
+    get_overrides_env, get_proton_paths, get_real_executable, get_system_wine_version, get_wine_versions,
+    is_esync_limit_set, is_fsync_supported, is_version_esync, is_version_fsync
 )
 from lutris.util.wine.x360ce import X360ce
 
@@ -113,7 +114,7 @@ class wine(Runner):
         "wineboot.exe",
     )
 
-    def __init__(self, config=None):
+    def __init__(self, config=None):  # noqa: C901
         super(wine, self).__init__(config)
         self.dll_overrides = {"winemenubuilder.exe": "d"}
 
@@ -158,6 +159,21 @@ class wine(Runner):
 
             if not limits_set:
                 thread_safe_call(esync_display_limit_warning)
+                response = False
+
+            return widget, option, response
+
+        def fsync_support_callback(widget, option, config):
+            fsync_supported = is_fsync_supported()
+            wine_path = self.get_path_for_version(config["version"])
+            wine_ver = is_version_fsync(wine_path)
+            response = True
+
+            if not wine_ver:
+                response = thread_safe_call(fsync_display_version_warning)
+
+            if not fsync_supported:
+                thread_safe_call(fsync_display_support_warning)
                 response = False
 
             return widget, option, response
@@ -256,6 +272,26 @@ class wine(Runner):
                     "Enable eventfd-based synchronization (esync). "
                     "This will increase performance in applications "
                     "that take advantage of multi-core processors."
+                ),
+            },
+            {
+                "option":
+                "fsync",
+                "label":
+                "Enable Fsync",
+                "type":
+                "extended_bool",
+                "callback":
+                fsync_support_callback,
+                "callback_on":
+                True,
+                "active":
+                True,
+                "help": (
+                    "Enable futex-based synchronization (fsync). "
+                    "This will increase performance in applications "
+                    "that take advantage of multi-core processors."
+                    "Requires a custom kernel with the fsync patchset."
                 ),
             },
             {
@@ -887,6 +923,9 @@ class wine(Runner):
         if not ("WINEESYNC" in env and env["WINEESYNC"] == "1"):
             env["WINEESYNC"] = "1" if self.runner_config.get("esync") else "0"
 
+        if not ("WINEFSYNC" in env and env["WINEFSYNC"] == "1"):
+            env["WINEFSYNC"] = "1" if self.runner_config.get("fsync") else "0"
+
         overrides = self.get_dll_overrides()
         if overrides:
             env["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
@@ -983,7 +1022,7 @@ class wine(Runner):
         else:
             wine_prefix.desktop_integration(restore=True)
 
-    def play(self):
+    def play(self):  # noqa: C901
         game_exe = self.game_exe
         arguments = self.game_config.get("args", "")
         launch_info = {"env": self.get_env(os_env=False)}
@@ -1013,6 +1052,21 @@ class wine(Runner):
             if not wine_ver:
                 if not esync_display_version_warning(True):
                     return {"error": "NON_ESYNC_WINE_VERSION"}
+
+        if launch_info["env"].get("WINEFSYNC") == "1":
+            fsync_supported = is_fsync_supported()
+            wine_ver = is_version_fsync(self.get_executable())
+
+            if not fsync_supported and not wine_ver:
+                fsync_display_version_warning(True)
+                fsync_display_support_warning()
+                return {"error": "FSYNC_NOT_SUPPORTED"}
+            if not is_esync_limit_set():
+                fsync_display_support_warning()
+                return {"error": "FSYNC_NOT_SUPPORTED"}
+            if not wine_ver:
+                if not esync_display_version_warning(True):
+                    return {"error": "NON_FSYNC_WINE_VERSION"}
 
         command = [self.get_executable()]
 
