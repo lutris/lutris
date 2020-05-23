@@ -1061,7 +1061,7 @@ class wine(Runner):
                 fsync_display_version_warning(True)
                 fsync_display_support_warning()
                 return {"error": "FSYNC_NOT_SUPPORTED"}
-            if not is_esync_limit_set():
+            if not fsync_supported:
                 fsync_display_support_warning()
                 return {"error": "FSYNC_NOT_SUPPORTED"}
             if not wine_ver:
