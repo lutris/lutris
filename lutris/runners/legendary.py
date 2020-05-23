@@ -3,16 +3,18 @@
 import os
 import subprocess
 
+# Third Party Libraries
+import requests
+
 # Lutris Modules
 from lutris import settings
+from lutris.gui.dialogs import NoticeDialog
 from lutris.runners import wine
 from lutris.runners.commands.wine import create_prefix, winecfg, wineexec, winekill, winetricks
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
-from lutris.gui.dialogs import NoticeDialog
-import requests
 
 # TODO: maybe offer multiple versions to install
 LEGENDARY_RELEASES_URL = ("https://api.github.com/repos/derrod/legendary/releases/latest")

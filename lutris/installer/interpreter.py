@@ -17,7 +17,7 @@ from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import FileNotAvailable, MissingGameDependency, ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import (
-    InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine, winesteam, legendary
+    InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, legendary, steam, wine, winesteam
 )
 from lutris.services import UnavailableGame
 from lutris.services.gog import MultipleInstallerError, get_gog_download_links
@@ -772,10 +772,10 @@ class ScriptInterpreter(CommandsMixin):
         wine_path = get_wine_version_exe(self._get_runner_version())
         wine.eject_disc(wine_path, self.target_path)
 
-
     # -----------
     # Legendary (Epic Store) stuff
     # -----------
+
     def install_legendary_game(self, runner_class=None):
         runner = legendary.legendary()
         appid = self.script.get("game", {}).get("appid")
