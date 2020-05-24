@@ -21,7 +21,8 @@ class NineManager:
     nine_files = ("d3d9-nine.dll", "ninewinecfg.exe")
     mesa_files = ("d3dadapter9.so.1", )
 
-    def __init__(self, prefix, arch):
+    def __init__(self, path, prefix, arch):
+        self.wine_path = path
         self.prefix = prefix
         self.wine_arch = arch
 
@@ -120,6 +121,7 @@ class NineManager:
         wineexec(
             "ninewinecfg",
             args="-e",
+            wine_path=self.wine_path,
             prefix=self.prefix,
             blocking=True,
         )
@@ -129,6 +131,7 @@ class NineManager:
             wineexec(
                 "ninewinecfg",
                 args="-d",
+                wine_path=self.wine_path,
                 prefix=self.prefix,
                 blocking=True,
             )

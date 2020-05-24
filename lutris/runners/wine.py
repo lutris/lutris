@@ -967,6 +967,7 @@ class wine(Runner):
 
     def setup_nine(self, with_nine, with_dxvk):
         nine_manager = nine.NineManager(
+            self.get_executable(),
             self.prefix_path,
             self.wine_arch,
         )
