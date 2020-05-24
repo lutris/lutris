@@ -845,7 +845,10 @@ class wine(Runner):
         )
 
         try:
-            self.setup_nine(self.runner_config.get("gallium_nine"))
+            self.setup_nine(
+                bool(self.runner_config.get("gallium_nine")),
+                bool(self.runner_config.get("dxvk"))
+            )
         except nine.NineUnavailable as ex:
             raise GameConfigError("Unable to configure GalliumNine: %s" % ex)
         return True
@@ -962,15 +965,16 @@ class wine(Runner):
         if self.runner_config.get("x360ce-dinput"):
             self.dll_overrides["dinput8"] = "native"
 
-    def setup_nine(self, enable):
+    def setup_nine(self, with_nine, with_dxvk):
         nine_manager = nine.NineManager(
             self.prefix_path,
             self.wine_arch,
         )
 
-        if enable:
+        # Do not restore D3D9 settings if DXVK is using it
+        if with_nine:
             nine_manager.enable()
-        else:
+        elif not with_dxvk:
             nine_manager.disable()
 
     def sandbox(self, wine_prefix):
