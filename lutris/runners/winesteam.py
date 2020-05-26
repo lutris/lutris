@@ -7,7 +7,10 @@ import time
 from lutris import settings
 from lutris.command import MonitoredCommand
 from lutris.runners import wine
-from lutris.runners.commands.wine import create_prefix, wineexec, winetricks
+from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
+    create_prefix, delete_registry_key, install_cab_component, set_regedit, set_regedit_file, winecfg, wineexec,
+    winekill, winetricks
+)
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import get_path_from_appmanifest
