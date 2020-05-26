@@ -10,7 +10,7 @@ import shutil
 from lutris import runtime
 from lutris.exceptions import GameConfigError
 from lutris.gui.dialogs import FileDialog
-from lutris.runners.commands.wine import create_prefix, winecfg, wineexec, winekill, winetricks
+from lutris.runners.commands.wine import create_prefix, set_regedit, set_regedit_file, winecfg, wineexec, winekill, winetricks
 from lutris.runners.runner import Runner
 from lutris.settings import RUNTIME_DIR
 from lutris.util import system
