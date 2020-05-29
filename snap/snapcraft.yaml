@@ -80,6 +80,8 @@ parts:
       - python3-setproctitle
       - python3-yaml
 
+  
+
   lutris-runtime:
     after: [enable-i386]
     plugin: nil
@@ -185,12 +187,17 @@ apps:
       - x11
     slots:
       - dbus-lutris
+
+
   # wine:
   #   extensions: [gnome-3-28]
   #   command: usr/bin/wine-stable
+  
   # wine64:
   #   extensions: [gnome-3-28]
   #   command: usr/bin/wine64-stable
+  
+
   # winecfg:
   #   extensions: [gnome-3-28]
   #   command: usr/bin/winecfg-stable

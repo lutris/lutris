@@ -64,7 +64,9 @@ it is not possible for pip to install them or use them from a virtualenv. Make
 sure to always use PyGOject from your distribution's package manager. Also
 install the necessary GObject bindings as described in the INSTALL file.
 
-## Set up your development environment
+
+Set up your development environment
+-----------------------------------
 
 To ensure you have the proper dependencies installed run: `make dev`
 This will use pipenv to create a virtual environment installing all necessary
@@ -74,7 +76,10 @@ This project includes .editorconfig so you're good to go if you're using any
 editor/IDE that supports this. Otherwise make sure to configure your max line
 length to 120, indent style to space and always end files with an empty new line.
 
-## Formatting your code
+
+Formatting your code
+--------------------
+
 
 To ensure getting your contributions getting merged faster and to avoid other
 developers from going back and fixing your code, please make sure your code

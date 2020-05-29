@@ -16,6 +16,7 @@ ninja lutris-update-po -C transl-builddir
 rm -Rf transl-builddir
 ```
 
+
 and commit your changes.
 
 ## Creating a translation
@@ -32,6 +33,7 @@ Now edit the `$LANG.po` file, add `$LANG` to the `LINGUAS` file, and run after t
 ninja lutris-update-po -C transl-builddir
 rm -Rf transl-builddir
 ```
+
 
 and commit your changes.
 
