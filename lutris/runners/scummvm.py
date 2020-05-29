@@ -89,6 +89,13 @@ class scummvm(Runner):
             ("The algorithm used to scale up the game's base "
              "resolution, resulting in different visual styles. "),
         },
+        {
+            "option": "datadir",
+            "label": "Data directory",
+            "type": "directory_chooser",
+            "help": "Defaults to share/scummvm if unspecified.",
+            "advanced": True,
+        },
     ]
 
     @property
@@ -108,8 +115,13 @@ class scummvm(Runner):
         ]
 
     def get_scummvm_data_dir(self):
-        root_dir = os.path.dirname(os.path.dirname(self.get_executable()))
-        return os.path.join(root_dir, "share/scummvm")
+        data_dir = self.runner_config.get("datadir")
+
+        if data_dir is None:
+            root_dir = os.path.dirname(os.path.dirname(self.get_executable()))
+            data_dir = os.path.join(root_dir, "share/scummvm")
+
+        return data_dir
 
     def get_run_data(self):
         env = {"LD_LIBRARY_PATH": "%s;$LD_LIBRARY_PATH" % self.libs_dir}
