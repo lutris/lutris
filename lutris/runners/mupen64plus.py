@@ -1,4 +1,7 @@
+# Standard Library
 import os
+
+# Lutris Modules
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -24,7 +27,12 @@ class mupen64plus(Runner):
             "label": "Fullscreen",
             "default": True,
         },
-        {"option": "hideosd", "type": "bool", "label": "Hide OSD", "default": True},
+        {
+            "option": "hideosd",
+            "type": "bool",
+            "label": "Hide OSD",
+            "default": True
+        },
     ]
 
     @property

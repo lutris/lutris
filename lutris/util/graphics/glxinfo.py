@@ -1,14 +1,20 @@
 """Parser for the glxinfo utility"""
+# Standard Library
 import subprocess
+
+# Lutris Modules
 from lutris.util.log import logger
 
 
 class Container:  # pylint: disable=too-few-public-methods
+
     """A dummy container for data"""
 
 
 class GlxInfo:
+
     """Give access to the glxinfo information"""
+
     def __init__(self, output=None):
         """Creates a new GlxInfo object
 
@@ -31,6 +37,7 @@ class GlxInfo:
             return ""
 
     def as_dict(self):
+        """Return the attributes as a dict"""
         return {attr: getattr(self, attr) for attr in self._attrs}
 
     def parse(self):

@@ -1,29 +1,30 @@
 """Commands for installer scripts"""
+# Standard Library
+import glob
+import json
 import multiprocessing
 import os
-import stat
-import shutil
 import shlex
-import json
-import glob
+import shutil
+import stat
 
+# Third Party Libraries
 from gi.repository import GLib
 
-from lutris.installer.errors import ScriptingError
-
+# Lutris Modules
 from lutris import runtime
 from lutris.cache import get_cache_path
-from lutris.util import extract, disks, system
+from lutris.command import MonitoredCommand
+from lutris.installer.errors import ScriptingError
+from lutris.runners import import_task
+from lutris.util import disks, extract, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
-from lutris.util.wine.wine import get_wine_version_exe, WINE_DEFAULT_ARCH
-from lutris.util import selective_merge
-
-from lutris.runners import import_task
-from lutris.command import MonitoredCommand
+from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_version_exe
 
 
 class CommandsMixin:
+
     """The directives for the `installer:` part of the install script."""
 
     def __init__(self):
@@ -51,15 +52,13 @@ class CommandsMixin:
                         param_present = True
                 if not param_present:
                     raise ScriptingError(
-                        "One of %s parameter is mandatory for the %s command"
-                        % (" or ".join(param), command_name),
+                        "One of %s parameter is mandatory for the %s command" % (" or ".join(param), command_name),
                         command_data,
                     )
             else:
                 if param not in command_data:
                     raise ScriptingError(
-                        "The %s parameter is mandatory for the %s command"
-                        % (param, command_name),
+                        "The %s parameter is mandatory for the %s command" % (param, command_name),
                         command_data,
                     )
 
@@ -107,10 +106,7 @@ class CommandsMixin:
 
             # Environment variables can also be passed to the execute command
             local_env = data.get("env") or {}
-            env.update({
-                key: self._substitute(value)
-                for key, value in local_env.items()
-            })
+            env.update({key: self._substitute(value) for key, value in local_env.items()})
             include_processes = shlex.split(data.get("include_processes", ""))
             exclude_processes = shlex.split(data.get("exclude_processes", ""))
         elif isinstance(data, str):
@@ -175,9 +171,7 @@ class CommandsMixin:
             merge_single = "nomerge" not in data
             extractor = data.get("format")
             logger.debug("extracting file %s to %s", filename, dest_path)
-            self._killable_process(
-                extract.extract_archive, filename, dest_path, merge_single, extractor
-            )
+            self._killable_process(extract.extract_archive, filename, dest_path, merge_single, extractor)
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
@@ -222,9 +216,7 @@ class CommandsMixin:
         )
         if self.runner == "wine":
             GLib.idle_add(self.parent.eject_button.show)
-        GLib.idle_add(
-            self.parent.ask_for_disc, message, self._find_matching_disc, requires
-        )
+        GLib.idle_add(self.parent.ask_for_disc, message, self._find_matching_disc, requires)
         return "STOP"
 
     def _find_matching_disc(self, _widget, requires, extra_path=None):
@@ -267,9 +259,7 @@ class CommandsMixin:
             if os.path.dirname(src) != dst:
                 self._killable_process(shutil.copy, src, dst)
             if params["src"] in self.game_files.keys():
-                self.game_files[params["src"]] = os.path.join(
-                    dst, os.path.basename(src)
-                )
+                self.game_files[params["src"]] = os.path.join(dst, os.path.basename(src))
             return
         self._killable_process(system.merge_folders, src, dst)
 
@@ -475,9 +465,7 @@ class CommandsMixin:
         if params.get("data", None):
             self._check_required_params(["file", "data"], params, "write_config")
         else:
-            self._check_required_params(
-                ["file", "section", "key", "value"], params, "write_config"
-            )
+            self._check_required_params(["file", "section", "key", "value"], params, "write_config")
         # Get file
         config_file_path = self._get_file(params["file"])
 
@@ -488,9 +476,7 @@ class CommandsMixin:
 
         merge = params.get("merge", True)
 
-        parser = EvilConfigParser(
-            allow_no_value=True, dict_type=MultiOrderedDict, strict=False
-        )
+        parser = EvilConfigParser(allow_no_value=True, dict_type=MultiOrderedDict, strict=False)
         parser.optionxform = str  # Preserve text case
         if merge:
             parser.read(config_file_path)

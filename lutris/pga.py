@@ -1,54 +1,156 @@
 """Personnal Game Archive module. Handle local database of user's games."""
 
-import os
+# Standard Library
 import math
+import os
 import time
 from itertools import chain
 
-from lutris.util.strings import slugify
-from lutris.util.log import logger
-from lutris.util import sql, system
+# Lutris Modules
 from lutris import settings
+from lutris.util import sql, system
+from lutris.util.log import logger
+from lutris.util.strings import slugify
 
 PGA_DB = settings.PGA_DB
 
 DATABASE = {
     "games": [
-        {"name": "id", "type": "INTEGER", "indexed": True},
-        {"name": "name", "type": "TEXT"},
-        {"name": "slug", "type": "TEXT"},
-        {"name": "installer_slug", "type": "TEXT"},
-        {"name": "parent_slug", "type": "TEXT"},
-        {"name": "platform", "type": "TEXT"},
-        {"name": "runner", "type": "TEXT"},
-        {"name": "executable", "type": "TEXT"},
-        {"name": "directory", "type": "TEXT"},
-        {"name": "updated", "type": "DATETIME"},
-        {"name": "lastplayed", "type": "INTEGER"},
-        {"name": "installed", "type": "INTEGER"},
-        {"name": "installed_at", "type": "INTEGER"},
-        {"name": "year", "type": "INTEGER"},
-        {"name": "steamid", "type": "INTEGER"},
-        {"name": "gogid", "type": "INTEGER"},
-        {"name": "configpath", "type": "TEXT"},
-        {"name": "has_custom_banner", "type": "INTEGER"},
-        {"name": "has_custom_icon", "type": "INTEGER"},
-        {"name": "playtime", "type": "TEXT"},
+        {
+            "name": "id",
+            "type": "INTEGER",
+            "indexed": True
+        },
+        {
+            "name": "name",
+            "type": "TEXT"
+        },
+        {
+            "name": "slug",
+            "type": "TEXT"
+        },
+        {
+            "name": "installer_slug",
+            "type": "TEXT"
+        },
+        {
+            "name": "parent_slug",
+            "type": "TEXT"
+        },
+        {
+            "name": "platform",
+            "type": "TEXT"
+        },
+        {
+            "name": "runner",
+            "type": "TEXT"
+        },
+        {
+            "name": "executable",
+            "type": "TEXT"
+        },
+        {
+            "name": "directory",
+            "type": "TEXT"
+        },
+        {
+            "name": "updated",
+            "type": "DATETIME"
+        },
+        {
+            "name": "lastplayed",
+            "type": "INTEGER"
+        },
+        {
+            "name": "installed",
+            "type": "INTEGER"
+        },
+        {
+            "name": "installed_at",
+            "type": "INTEGER"
+        },
+        {
+            "name": "year",
+            "type": "INTEGER"
+        },
+        {
+            "name": "steamid",
+            "type": "INTEGER"
+        },
+        {
+            "name": "gogid",
+            "type": "INTEGER"
+        },
+        {
+            "name": "humblestoreid",
+            "type": "TEXT"
+        },
+        {
+            "name": "configpath",
+            "type": "TEXT"
+        },
+        {
+            "name": "has_custom_banner",
+            "type": "INTEGER"
+        },
+        {
+            "name": "has_custom_icon",
+            "type": "INTEGER"
+        },
+        {
+            "name": "playtime",
+            "type": "REAL"
+        },
     ],
     "store_games": [
-        {"name": "id", "type": "INTEGER", "indexed": True},
-        {"name": "store", "type": "TEXT"},
-        {"name": "appid", "type": "TEXT"},
-        {"name": "name", "type": "TEXT"},
-        {"name": "slug", "type": "TEXT"},
-        {"name": "logo", "type": "TEXT"},
-        {"name": "url", "type": "TEXT"},
-        {"name": "details", "type": "TEXT"},
-        {"name": "lutris_slug", "type": "TEXT"},
+        {
+            "name": "id",
+            "type": "INTEGER",
+            "indexed": True
+        },
+        {
+            "name": "store",
+            "type": "TEXT"
+        },
+        {
+            "name": "appid",
+            "type": "TEXT"
+        },
+        {
+            "name": "name",
+            "type": "TEXT"
+        },
+        {
+            "name": "slug",
+            "type": "TEXT"
+        },
+        {
+            "name": "logo",
+            "type": "TEXT"
+        },
+        {
+            "name": "url",
+            "type": "TEXT"
+        },
+        {
+            "name": "details",
+            "type": "TEXT"
+        },
+        {
+            "name": "lutris_slug",
+            "type": "TEXT"
+        },
     ],
     "sources": [
-        {"name": "id", "type": "INTEGER", "indexed": True},
-        {"name": "uri", "type": "TEXT UNIQUE"},
+        {
+            "name": "id",
+            "type": "INTEGER",
+            "indexed": True
+        },
+        {
+            "name": "uri",
+            "type": "TEXT UNIQUE"
+        },
     ]
 }
 
@@ -78,9 +180,7 @@ def get_schema(tablename):
     return tables
 
 
-def field_to_string(
-        name="", type="", indexed=False
-):  # pylint: disable=redefined-builtin
+def field_to_string(name="", type="", indexed=False):  # pylint: disable=redefined-builtin
     """Converts a python based table definition to it's SQL statement"""
     field_query = "%s %s" % (name, type)
     if indexed:
@@ -134,13 +234,16 @@ def get_games(
     name_filter=None,
     filter_installed=False,
     filter_runner=None,
-    select="*",
+    select=None,
     show_installed_first=False,
 ):
     """Get the list of every game in database."""
-    query = "select " + select + " from games"
+    query = "select * from games"
     params = []
     filters = []
+    if select:
+        query = "select ? from games"
+        params.append(select)
     if name_filter:
         params.append(name_filter)
         filters.append("name LIKE ?")
@@ -150,7 +253,7 @@ def get_games(
         params.append(filter_runner)
         filters.append("runner = ?")
     if filters:
-        query += " WHERE " + " AND ".join([f for f in filters])
+        query += " WHERE " + " AND ".join(filters)
     if show_installed_first:
         query += " ORDER BY installed DESC, slug"
     else:
@@ -188,9 +291,7 @@ def get_games_where(**conditions):
         if extra_conditions:
             extra_condition = extra_conditions[0]
             if extra_condition == "isnull":
-                condition_fields.append(
-                    "{} is {} null".format(field, "" if value else "not")
-                )
+                condition_fields.append("{} is {} null".format(field, "" if value else "not"))
             if extra_condition == "not":
                 condition_fields.append("{} != ?".format(field))
                 condition_values.append(value)
@@ -200,9 +301,7 @@ def get_games_where(**conditions):
                 if len(value) > 999:
                     raise ValueError("SQLite limnited to a maximum of 999 parameters.")
                 if value:
-                    condition_fields.append(
-                        "{} in ({})".format(field, ", ".join("?" * len(value)) or "")
-                    )
+                    condition_fields.append("{} in ({})".format(field, ", ".join("?" * len(value)) or ""))
                     condition_values = list(chain(condition_values, value))
         else:
             condition_fields.append("{} = ?".format(field))
@@ -211,8 +310,8 @@ def get_games_where(**conditions):
     if condition:
         query = " WHERE ".join((query, condition))
     else:
-        # FIXME: Inspect and document why we should return an empty list when
-        # no condition is present.
+        # FIXME: Inspect and document why we should return
+        # an empty list when no condition is present.
         return []
     return sql.db_query(PGA_DB, query, tuple(condition_values))
 
@@ -221,14 +320,14 @@ def get_games_by_ids(game_ids):
     # sqlite limits the number of query parameters to 999, to
     # bypass that limitation, divide the query in chunks
     size = 999
-    return list(chain.from_iterable(
-        [
-            get_games_where(
-                id__in=list(game_ids)[page * size: page * size + size]
-            )
-            for page in range(math.ceil(len(game_ids) / size))
-        ]
-    ))
+    return list(
+        chain.from_iterable(
+            [
+                get_games_where(id__in=list(game_ids)[page * size:page * size + size])
+                for page in range(math.ceil(len(game_ids) / size))
+            ]
+        )
+    )
 
 
 def get_game_by_field(value, field="slug"):
@@ -241,7 +340,13 @@ def get_game_by_field(value, field="slug"):
     return {}
 
 
+def get_games_by_runner(runner):
+    """Return all games using a specific runner"""
+    return sql.db_select(PGA_DB, "games", condition=("runner", runner))
+
+
 def get_games_by_slug(slug):
+    """Return all games using a specific slug"""
     return sql.db_select(PGA_DB, "games", condition=("slug", slug))
 
 
@@ -298,10 +403,7 @@ def get_matching_game(params):
             if game["configpath"] == params.get("configpath"):
                 return game["id"]
         else:
-            if (
-                    game["runner"] == params.get("runner")
-                    or not all([params.get("runner"), game["runner"]])
-            ):
+            if (game["runner"] == params.get("runner") or not all([params.get("runner"), game["runner"]])):
                 return game["id"]
     return None
 
@@ -365,10 +467,7 @@ def check_for_file(game, file_id):
 def get_used_runners():
     """Return a list of the runners in use by installed games."""
     with sql.db_cursor(PGA_DB) as cursor:
-        query = (
-            "select distinct runner from games "
-            "where runner is not null order by runner"
-        )
+        query = "select distinct runner from games where runner is not null order by runner"
         rows = cursor.execute(query)
         results = rows.fetchall()
     return [result[0] for result in results if result[0]]
@@ -377,12 +476,7 @@ def get_used_runners():
 def get_used_runners_game_count():
     """Return a dictionary listing for each runner in use, how many games are using it."""
     with sql.db_cursor(PGA_DB) as cursor:
-        query = (
-            "select runner, count(*) from games "
-            "where runner is not null "
-            "group by runner "
-            "order by runner"
-        )
+        query = "select runner, count(*) from games where runner is not null group by runner order by runner"
         rows = cursor.execute(query)
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}
@@ -420,9 +514,7 @@ def get_used_platforms_game_count():
 def get_hidden_ids():
     """Return a list of game IDs to be excluded from the library view"""
     # Load the ignore string and filter out empty strings to prevent issues
-    ignores_raw = settings.read_setting("library_ignores",
-                                        section="lutris",
-                                        default="").split(",")
+    ignores_raw = settings.read_setting("library_ignores", section="lutris", default="").split(",")
     ignores = [ignore for ignore in ignores_raw if not ignore == ""]
 
     # Turn the strings into integers
@@ -432,6 +524,4 @@ def get_hidden_ids():
 def set_hidden_ids(games):
     """Writes a list of game IDs that are to be hidden into the config file"""
     ignores_str = [str(game_id) for game_id in games]
-    settings.write_setting("library_ignores",
-                           ','.join(ignores_str),
-                           section="lutris")
+    settings.write_setting("library_ignores", ','.join(ignores_str), section="lutris")

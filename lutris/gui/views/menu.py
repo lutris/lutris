@@ -1,9 +1,10 @@
 # pylint: disable=no-member
-from gi.repository import Gtk, GObject
+# Third Party Libraries
+from gi.repository import GObject, Gtk
 
-from lutris.game import Game
-
+# Lutris Modules
 from lutris import runners
+from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui.views import COL_ID
 from lutris.util.log import logger
@@ -11,7 +12,7 @@ from lutris.util.log import logger
 
 class ContextualMenu(Gtk.Menu):
     __gsignals__ = {
-        "shortcut-edited": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "shortcut-edited": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
     }
 
     def __init__(self, main_entries):

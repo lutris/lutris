@@ -1,6 +1,10 @@
 """Discord integration"""
+# Standard Library
 import asyncio
 import time
+
+# Lutris Modules
+from lutris.util.log import logger
 
 try:
     from pypresence import Presence as PyPresence
@@ -9,10 +13,9 @@ except ImportError:
     PyPresence = None
     PyPresenceException = None
 
-from lutris.util.log import logger
-
 
 class DiscordPresence(object):
+
     """Provide rich presence integration with Discord for games"""
 
     def __init__(self):
@@ -41,7 +44,7 @@ class DiscordPresence(object):
                 logger.debug("Attempting to connect.")
                 self.rpc_client.connect()
                 self.presence_connected = True
-            except ConnectionError:
+            except (ConnectionError, FileNotFoundError):
                 logger.error("Could not connect to Discord")
         return self.presence_connected
 
@@ -91,8 +94,7 @@ class DiscordPresence(object):
                 return
             try:
                 state_text = "via %s" % self.runner_name if self.show_runner else "  "
-                logger.info("Attempting to update Discord status: %s, %s",
-                            self.game_name, state_text)
+                logger.info("Attempting to update Discord status: %s, %s", self.game_name, state_text)
                 self.rpc_client.update(details="Playing %s" % self.game_name, state=state_text)
             except PyPresenceException as ex:
                 logger.error("Unable to update Discord: %s", ex)

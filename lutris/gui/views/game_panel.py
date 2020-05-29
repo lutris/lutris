@@ -1,13 +1,19 @@
 """Game panel"""
+# Standard Library
 from datetime import datetime
-from gi.repository import Gtk, Pango, GObject
+
+# Third Party Libraries
+from gi.repository import GObject, Gtk, Pango
+
+# Lutris Modules
 from lutris import runners
-from lutris.gui.widgets.utils import get_pixbuf_for_game, get_link_button
-from lutris.util.strings import gtk_safe
 from lutris.gui.views.generic_panel import GenericPanel
+from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
+from lutris.util.strings import gtk_safe
 
 
 class GamePanel(GenericPanel):
+
     """Panel allowing users to interact with a game"""
 
     __gsignals__ = {
@@ -20,7 +26,7 @@ class GamePanel(GenericPanel):
         super().__init__()
         self.game.connect("game-start", self.on_game_start)
         self.game.connect("game-started", self.on_game_started)
-        self.game.connect("game-stopped", self.on_game_stop)
+        self.game.connect("game-stopped", self.on_game_state_changed)
 
     def place_content(self):
         self.put(self.get_close_button(), 276, 16)
@@ -48,9 +54,7 @@ class GamePanel(GenericPanel):
 
     def get_close_button(self):
         """Return the close button"""
-        button = Gtk.Button.new_from_icon_name(
-            "window-close-symbolic", Gtk.IconSize.MENU
-        )
+        button = Gtk.Button.new_from_icon_name("window-close-symbolic", Gtk.IconSize.MENU)
         button.set_tooltip_text("Close")
         button.set_size_request(32, 32)
         button.connect("clicked", self.on_close)
@@ -66,9 +70,7 @@ class GamePanel(GenericPanel):
     def get_title_label(self):
         """Return the label with the game's title"""
         title_label = Gtk.Label()
-        title_label.set_markup(
-            "<span font_desc='16'>%s</span>" % gtk_safe(self.game.name)
-        )
+        title_label.set_markup("<span font_desc='16'>%s</span>" % gtk_safe(self.game.name))
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
         title_label.set_size_request(226, -1)
         title_label.set_alignment(0, 0.5)
@@ -96,9 +98,7 @@ class GamePanel(GenericPanel):
         """Return the label containing the playtime info"""
         playtime_label = Gtk.Label()
         playtime_label.show()
-        playtime_label.set_markup(
-            "Time played: <b>%s</b>" % self.game.formatted_playtime
-        )
+        playtime_label.set_markup("Time played: <b>%s</b>" % self.game.formatted_playtime)
         return playtime_label
 
     def get_last_played_label(self):
@@ -106,9 +106,7 @@ class GamePanel(GenericPanel):
         last_played_label = Gtk.Label()
         last_played_label.show()
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
-        last_played_label.set_markup(
-            "Last played: <b>%s</b>" % lastplayed.strftime("%x")
-        )
+        last_played_label.set_markup("Last played: <b>%s</b>" % lastplayed.strftime("%x"))
         return last_played_label
 
     @staticmethod
@@ -133,9 +131,7 @@ class GamePanel(GenericPanel):
         for action in self.game_actions.get_game_actions():
             action_id, label, callback = action
             if action_id in icon_map:
-                button = Gtk.Button.new_from_icon_name(
-                    icon_map[action_id], Gtk.IconSize.MENU
-                )
+                button = Gtk.Button.new_from_icon_name(icon_map[action_id], Gtk.IconSize.MENU)
                 button.set_tooltip_text(label)
                 button.set_size_request(32, 32)
             else:
@@ -152,10 +148,10 @@ class GamePanel(GenericPanel):
             buttons[action_id] = button
 
             if action_id in (
-                    "desktop-shortcut",
-                    "rm-desktop-shortcut",
-                    "menu-shortcut",
-                    "rm-menu-shortcut",
+                "desktop-shortcut",
+                "rm-desktop-shortcut",
+                "menu-shortcut",
+                "rm-menu-shortcut",
             ):
                 button.connect("clicked", self.on_shortcut_edited, action_id)
 
@@ -170,7 +166,7 @@ class GamePanel(GenericPanel):
                 buttons[name] = button
         return buttons
 
-    def place_buttons(self, base_height):
+    def place_buttons(self, base_height):  # pylint: disable=too-many-branches
         """Places all appropriate buttons in the panel"""
         play_x_offset = 87
         icon_offset = 6
@@ -245,8 +241,8 @@ class GamePanel(GenericPanel):
         self.buttons["play"].set_label("Play")
         self.buttons["play"].set_sensitive(True)
 
-    def on_game_stop(self, _widget, _game_id=None):
-        """Called when a game is stopped (`game-stopped` signal)"""
+    def on_game_state_changed(self, _widget, _game_id=None):
+        """Generic callback to trigger a refresh"""
         self.refresh()
 
     def on_close(self, _widget):

@@ -1,46 +1,35 @@
-# pylint: disable=E1101, E0611
 """Install a game by following its install script."""
+# Standard Library
+import json
 import os
 import time
-import json
-import yaml
 
+# Third Party Libraries
+import yaml
 from gi.repository import GLib
 
-from lutris import pga
-from lutris import settings
+# Lutris Modules
+from lutris import pga, settings
+from lutris.config import LutrisConfig, make_game_config_id
 from lutris.game import Game
 from lutris.gui.dialogs import WineNotInstalledWarning
+from lutris.installer.commands import CommandsMixin
+from lutris.installer.errors import FileNotAvailable, MissingGameDependency, ScriptingError
+from lutris.installer.installer_file import InstallerFile
+from lutris.runners import (
+    InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine, winesteam
+)
+from lutris.services import UnavailableGame
+from lutris.services.gog import MultipleInstallerError, get_gog_download_links
+from lutris.services.humblebundle import get_humble_download_link
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
-from lutris.util.strings import unpack_dependencies
+from lutris.util.http import HTTPError, Request
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam.log import get_app_state_log
-from lutris.util.http import Request, HTTPError
-from lutris.util.wine.wine import get_wine_version_exe, get_system_wine_version
-
-from lutris.config import LutrisConfig, make_game_config_id
-
-from lutris.installer.errors import ScriptingError, FileNotAvailable, MissingGameDependency
-from lutris.installer.commands import CommandsMixin
-from lutris.installer.installer_file import InstallerFile
-
-from lutris.services import UnavailableGame
-from lutris.services.gog import (
-    connect as connect_gog,
-    GogService,
-)
-
-from lutris.runners import (
-    wine,
-    winesteam,
-    steam,
-    import_runner,
-    InvalidRunner,
-    NonInstallableRunnerError,
-    RunnerInstallationError,
-)
+from lutris.util.strings import unpack_dependencies
+from lutris.util.wine.wine import get_system_wine_version, get_wine_version_exe
 
 
 def fetch_script(game_slug, revision=None):
@@ -97,12 +86,13 @@ def _get_game_launcher(script):
 
 
 class ScriptInterpreter(CommandsMixin):
+
     """Convert raw installer script data into actions.
 
     Really fucked up class that tries to do way more than it should.
     """
 
-    def __init__(self, installer, parent):
+    def __init__(self, installer, parent):  # pylint: disable=super-init-not-called
         self.error = None
         self.errors = []
         self.target_path = None
@@ -114,7 +104,6 @@ class ScriptInterpreter(CommandsMixin):
         self.abort_current_task = None
         self.user_inputs = []
         self.steam_data = {}
-        self.gog_data = {}
         self.script = installer.get("script")
         if not self.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
@@ -135,16 +124,15 @@ class ScriptInterpreter(CommandsMixin):
         self.game_name = self.script.get("custom-name") or installer["name"]
         self.game_slug = installer["game_slug"]
         self.steamid = installer.get("steamid")
-        self.gogid = installer.get("gogid")
+        game_config = self.script.get("game", {})
+        self.gogid = game_config.get("gogid") or installer.get("gogid")
+        self.humbleid = game_config.get("humbleid") or installer.get("humblestoreid")
 
         if not self.is_valid():
-            raise ScriptingError(
-                "Invalid script: \n{}".format("\n".join(self.errors)), self.script
-            )
+            raise ScriptingError("Invalid script: \n{}".format("\n".join(self.errors)), self.script)
 
         self.files = [
-            InstallerFile(self.game_slug, file_id, file_meta)
-            for file_desc in self.script.get("files", [])
+            InstallerFile(self.game_slug, file_id, file_meta) for file_desc in self.script.get("files", [])
             for file_id, file_meta in file_desc.items()
         ]
         self.requires = self.script.get("requires")
@@ -184,11 +172,7 @@ class ScriptInterpreter(CommandsMixin):
         if self.runner in ("steam", "winesteam"):
             # Steam games installs in their steamapps directory
             return False
-        if (
-                self.files
-                or self.script.get("game", {}).get("gog")
-                or self.script.get("game", {}).get("prefix")
-        ):
+        if (self.files or self.script.get("game", {}).get("gog") or self.script.get("game", {}).get("prefix")):
             return True
         command_names = [list(c.keys())[0] for c in self.script.get("installer", [])]
         if "insert-disc" in command_names:
@@ -201,10 +185,7 @@ class ScriptInterpreter(CommandsMixin):
         susbtituted. This value can be used to provide the same environment
         variable as set for the game during the install process.
         """
-        return {
-            key: self._substitute(value) for key, value in
-            self.script.get('system', {}).get('env', {}).items()
-        }
+        return {key: self._substitute(value) for key, value in self.script.get('system', {}).get('env', {}).items()}
 
     # --------------------------
     # "Initial validation" stage
@@ -262,15 +243,10 @@ class ScriptInterpreter(CommandsMixin):
                     for dependency_option in dependency
                 }
                 if not any(installed_binaries.values()):
-                    raise ScriptingError(
-                        "This installer requires %s on your system"
-                        % " or ".join(dependency)
-                    )
+                    raise ScriptingError("This installer requires %s on your system" % " or ".join(dependency))
             else:
                 if not system.find_executable(dependency):
-                    raise ScriptingError(
-                        "This installer requires %s on your system" % dependency
-                    )
+                    raise ScriptingError("This installer requires %s on your system" % dependency)
 
     def _check_dependency(self):
         """When a game is a mod or an extension of another game, check that the base
@@ -286,12 +262,7 @@ class ScriptInterpreter(CommandsMixin):
         error_message = "You need to install {} before"
         for index, dependency in enumerate(dependencies):
             if isinstance(dependency, tuple):
-                installed_games = [
-                    dep for dep in [
-                        self._get_installed_dependency(dep) for dep in dependency
-                    ]
-                    if dep
-                ]
+                installed_games = [dep for dep in [self._get_installed_dependency(dep) for dep in dependency] if dep]
                 if not installed_games:
                     if len(dependency) == 1:
                         raise MissingGameDependency(slug=dependency)
@@ -310,52 +281,77 @@ class ScriptInterpreter(CommandsMixin):
     # ---------------------
     # "Get the files" stage
     # ---------------------
+    def pop_user_provided_file(self):
+        """Return and remove the first user provided file, which is used for game stores"""
+        installer_file_id = None
+        for index, file in enumerate(self.files):
+            if file.url.startswith("N/A"):
+                logger.debug("File %s detected as user provided, removing from files", file.id)
+                self.files.pop(index)
+                installer_file_id = file.id
+                break
+        return installer_file_id
 
     def swap_gog_game_files(self):
+        """Replace user provided file with downloads from GOG"""
         if not self.gogid:
             raise UnavailableGame("The installer has no GOG ID!")
         try:
-            links = self.get_gog_download_links()
+            links = get_gog_download_links(self.gogid, self.runner)
         except HTTPError:
             raise UnavailableGame("Couldn't load the download links for this game")
-        installer_file_id = None
-        if links:
-            for index, file in enumerate(self.files):
-                file_id = file.id
-                if file.url.startswith("N/A"):
-                    logger.debug("Removing file %s", file.id)
-                    self.files.pop(index)
-                    installer_file_id = file.id
-                    break
+        except MultipleInstallerError:
+            raise UnavailableGame("Don't know how to deal with multiple installers yet.")
+        if not links:
+            raise UnavailableGame("Could not fing GOG game")
 
+        installer_file_id = self.pop_user_provided_file()
         if not installer_file_id:
-            raise ScriptingError("Could not match a GOG installer file in the files")
+            raise UnavailableGame("Installer has no user provided file")
 
         file_id_provided = False  # Only assign installer_file_id once
         for index, link in enumerate(links):
-
-            filename = link.split("?")[0].split("/")[-1]
-
-            if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
+            if link["filename"].lower().endswith((".exe", ".sh")) and not file_id_provided:
                 file_id = installer_file_id
                 file_id_provided = True
             else:
                 file_id = "gog_file_%s" % index
-
-            logger.debug("Adding GOG file %s as %s", filename, file_id)
             self.files.append(
                 InstallerFile(self.game_slug, file_id, {
-                    "url": link,
-                    "filename": filename,
+                    "url": link["url"],
+                    "filename": link["filename"],
                 })
             )
+
+    def swap_humble_game_files(self):
+        """Replace the user provided file with download links from Humble Bundle"""
+        if not self.humbleid:
+            raise UnavailableGame("This installer has no Humble Bundle ID ('humbleid' in the game section)")
+        installer_file_id = self.pop_user_provided_file()
+        if not installer_file_id:
+            raise UnavailableGame("Installer has no user provided file")
+        try:
+            link = get_humble_download_link(self.humbleid, self.runner)
+        except Exception as ex:
+            logger.exception("Failed to get Humble Bundle game: %s", ex)
+            raise UnavailableGame
+        if not link:
+            raise UnavailableGame("No game found on Humble Bundle")
+        filename = link.split("?")[0].split("/")[-1]
+        self.files.append(InstallerFile(self.game_slug, installer_file_id, {"url": link, "filename": filename}))
 
     def prepare_game_files(self):
         """Gathers necessary files before iterating through them."""
         # If this is a GOG installer, download required files.
-        if self.version.startswith("GOG"):
+        version = self.version.lower()
+        if version.startswith("gog"):
             try:
                 self.swap_gog_game_files()
+            except UnavailableGame as ex:
+                logger.error("Unable to get the game from GOG: %s", ex)
+        if version.startswith("humble"):
+            try:
+                self.swap_humble_game_files()
             except UnavailableGame as ex:
                 logger.error("Unable to get the game from GOG: %s", ex)
         self.iter_game_files()
@@ -363,11 +359,7 @@ class ScriptInterpreter(CommandsMixin):
     def iter_game_files(self):
         """Iterate through game files, downloading them or querying them from the user"""
         if self.files:
-            if (
-                    self.target_path
-                    and not system.path_exists(self.target_path)
-                    and self.creates_game_folder
-            ):
+            if (self.target_path and not system.path_exists(self.target_path) and self.creates_game_folder):
                 try:
                     os.makedirs(self.target_path)
                 except PermissionError:
@@ -378,16 +370,12 @@ class ScriptInterpreter(CommandsMixin):
                 self.game_dir_created = True
 
         if len(self.game_files) < len(self.files):
-            logger.info(
-                "Downloading file %d of %d", len(self.game_files) + 1, len(self.files)
-            )
+            logger.info("Downloading file %d of %d", len(self.game_files) + 1, len(self.files))
             file_index = len(self.game_files)
             try:
                 current_file = self.files[file_index]
             except KeyError:
-                raise ScriptingError(
-                    "Error getting file %d in %s" % file_index, self.files
-                )
+                raise ScriptingError("Error getting file %d in %s" % file_index, self.files)
             self._download_file(current_file)
         else:
             self.current_command = 0
@@ -424,7 +412,7 @@ class ScriptInterpreter(CommandsMixin):
         if not is_downloading:
             self.iter_game_files()
 
-    def check_runner_install(self):
+    def check_runner_install(self):  # pylint: disable=too-many-branches
         """Check if the runner is installed before starting the installation
         Install the required runner(s) if necessary. This should handle runner
         dependencies (wine for winesteam) or runners used for installer tasks.
@@ -438,9 +426,7 @@ class ScriptInterpreter(CommandsMixin):
         for command in self.script.get("installer", []):
             command_name, command_params = self._get_command_name_and_params(command)
             if command_name == "task":
-                runner_name, _task_name = self._get_task_runner_and_name(
-                    command_params["name"]
-                )
+                runner_name, _task_name = self._get_task_runner_and_name(command_params["name"])
                 runner_names = [r.name for r in required_runners]
                 if runner_name not in runner_names:
                     required_runners.append(self.get_runner_class(runner_name)())
@@ -468,14 +454,13 @@ class ScriptInterpreter(CommandsMixin):
                         if self.runner not in self.script:
                             self.script[self.runner] = {}
                         params["version"] = self.script[self.runner]["version"] = "{}-{}".format(
-                            default_wine["version"],
-                            default_wine["architecture"]
+                            default_wine["version"], default_wine["architecture"]
                         )
                     else:
                         logger.error("Failed to get default wine version (got %s)", default_wine)
 
             if not runner.is_installed(**params):
-                logger.info("Runner %s needs to be installed")
+                logger.info("Runner %s needs to be installed", runner)
                 self.runners_to_install.append(runner)
 
         if self.runner.startswith("wine") and not get_system_wine_version():
@@ -538,9 +523,7 @@ class ScriptInterpreter(CommandsMixin):
                 self.steam_data["arch"] = self.script["game"]["arch"]
 
             commands = self.script.get("installer", [])
-            self.steam_data["platform"] = (
-                "windows" if self.runner == "winesteam" else "linux"
-            )
+            self.steam_data["platform"] = ("windows" if self.runner == "winesteam" else "linux")
             commands.insert(0, "install_steam_game")
             self.script["installer"] = commands
 
@@ -609,7 +592,7 @@ class ScriptInterpreter(CommandsMixin):
             path = self._substitute(launcher_value)
             if not os.path.isabs(path) and self.target_path:
                 path = os.path.join(self.target_path, path)
-        self._write_config()
+        self._save_game()
         if path and not os.path.isfile(path) and self.runner not in ("web", "browser"):
             self.parent.set_status(
                 "The executable at path %s can't be found, please check the destination folder.\n"
@@ -617,11 +600,11 @@ class ScriptInterpreter(CommandsMixin):
             )
             logger.warning("No executable found at specified location %s", path)
         else:
-            self.parent.set_status("Installation finished!")
-
+            install_complete_text = (self.script.get("install_complete_text") or "Installation completed!")
+            self.parent.set_status(install_complete_text)
         self.parent.on_install_finished()
 
-    def _write_config(self):
+    def _save_game(self):  # pylint: disable=too-many-branches
         """Write the game configuration in the DB and config file.
 
         This needs to be unfucked
@@ -638,9 +621,7 @@ class ScriptInterpreter(CommandsMixin):
         if self.requires:
             # Load the base game config
             required_game = pga.get_game_by_field(self.requires, field="installer_slug")
-            base_config = LutrisConfig(
-                runner_slug=self.runner, game_config_id=required_game["configpath"]
-            )
+            base_config = LutrisConfig(runner_slug=self.runner, game_config_id=required_game["configpath"])
             config = base_config.game_level
         else:
             config = {"game": {}}
@@ -685,9 +666,7 @@ class ScriptInterpreter(CommandsMixin):
         elif launcher_value:
             if launcher_value in self.game_files:
                 launcher_value = self.game_files[launcher_value]
-            elif self.target_path and os.path.exists(
-                    os.path.join(self.target_path, launcher_value)
-            ):
+            elif self.target_path and os.path.exists(os.path.join(self.target_path, launcher_value)):
                 launcher_value = os.path.join(self.target_path, launcher_value)
             config["game"][launcher] = launcher_value
 
@@ -701,6 +680,7 @@ class ScriptInterpreter(CommandsMixin):
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         with open(config_filename, "w") as config_file:
             config_file.write(yaml_config)
+        game.emit("game-installed")
 
     def _substitute_config(self, script_config):
         """Substitute values such as $GAMEDIR in a config dict."""
@@ -768,7 +748,6 @@ class ScriptInterpreter(CommandsMixin):
             "RESOLUTION": "x".join(self.current_resolution),
             "RESOLUTION_WIDTH": self.current_resolution[0],
             "RESOLUTION_HEIGHT": self.current_resolution[1],
-
         }
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:
@@ -823,7 +802,8 @@ class ScriptInterpreter(CommandsMixin):
         else:
             self.target_path = self._get_steam_game_path()
 
-    def on_steam_game_installed(self, _data, error):
+    @staticmethod
+    def on_steam_game_installed(_data, error):
         """Callback for Steam game installer, mostly for error handling since install progress
         is handled by _monitor_steam_game_install"""
         if error:
@@ -847,9 +827,7 @@ class ScriptInterpreter(CommandsMixin):
             return False
         appid = self.steam_data["appid"]
         steam_runner = self._get_steam_runner()
-        states = get_app_state_log(
-            steam_runner.steam_data_dir, appid, self.install_start_time
-        )
+        states = get_app_state_log(steam_runner.steam_data_dir, appid, self.install_start_time)
         if states != self.prev_states:
             logger.debug("Steam installation status:")
             logger.debug(states)
@@ -885,9 +863,8 @@ class ScriptInterpreter(CommandsMixin):
         data_path = self._get_steam_game_path(runner_class)
         if not data_path or not os.path.exists(data_path):
             raise ScriptingError("Unable to get Steam data for game")
-        self.game_files[self.steam_data["file_id"]] = os.path.abspath(
-            os.path.join(data_path, self.steam_data["steam_rel_path"])
-        )
+        self.game_files[self.steam_data["file_id"]
+                        ] = os.path.abspath(os.path.join(data_path, self.steam_data["steam_rel_path"]))
         self.iter_game_files()
 
     def _download_steam_data(self, file_uri, file_id):
@@ -929,67 +906,3 @@ class ScriptInterpreter(CommandsMixin):
             self.parent.set_status("Getting Steam game data")
             self.steam_data["platform"] = "linux"
             self.install_steam_game(steam.steam, is_game_files=True)
-
-    def get_gog_installers(self, gog_service):
-        """Return available installers for a GOG game"""
-
-        self.gog_data = gog_service.get_game_details(self.gogid)
-        if not self.gog_data:
-            logger.warning("Unable to get GOG data for game %s", self.gogid)
-            return []
-
-        # Filter out Mac installers
-        gog_installers = [
-            installer
-            for installer in self.gog_data["downloads"]["installers"]
-            if installer["os"] != "mac"
-        ]
-        available_platforms = {installer["os"] for installer in gog_installers}
-        # If it's a Linux game, also filter out Windows games
-        if "linux" in available_platforms:
-            if self.runner == "linux":
-                filter_os = "windows"
-            else:
-                filter_os = "linux"
-            gog_installers = [
-                installer
-                for installer in gog_installers
-                if installer["os"] != filter_os
-            ]
-
-        # Keep only the english installer until we have locale detection
-        # and / or language selection implemented
-        gog_installers = [
-            installer
-            for installer in gog_installers
-            if installer["language"] == "en"
-        ]
-        return gog_installers
-
-    def get_gog_download_links(self):
-        """Return a list of downloadable links for a GOG game"""
-        gog_service = GogService()
-        if not gog_service.is_available():
-            logger.info("You are not connected to GOG")
-            connect_gog()
-        if not gog_service.is_available():
-            raise UnavailableGame
-        gog_installers = self.get_gog_installers(gog_service)
-        if len(gog_installers) > 1:
-            raise ScriptingError("Don't know how to deal with multiple installers yet.")
-        try:
-            installer = gog_installers[0]
-        except IndexError:
-            raise UnavailableGame
-        download_links = []
-        for game_file in installer.get('files', []):
-            downlink = game_file.get("downlink")
-            if not downlink:
-                logger.error("No download information for %s", installer)
-                continue
-            download_info = gog_service.get_download_info(downlink)
-            for field in ('checksum', 'downlink'):
-                url = download_info[field]
-                logger.info("Adding %s to download links", url)
-                download_links.append(download_info[field])
-        return download_links

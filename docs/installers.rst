@@ -149,6 +149,12 @@ add-on "The reckoning" for Quake 2, you should add: ``requires: quake-2``
 You can also add complex requirements following the same syntax as the
 ``require-binaries`` directive described above.
 
+Customizing the end of install text
+-----------------------------------
+
+You can display a custom message when the installation is completed. To do so,
+use the ``install_complete_text`` key.
+
 Accessing the current display mode
 ----------------------------------
 
@@ -454,7 +460,7 @@ Currently, the following tasks are implemented:
             name: winetricks
             prefix: $GAMEDIR
             app: nt40
-            
+
     For a full list of available ``winetricks`` see here: https://github.com/Winetricks/winetricks/tree/master/files/verbs
 
 *   wine / winesteam: ``eject_disk`` runs eject_disk in your ``prefix`` argument. Parameters are
@@ -973,8 +979,6 @@ Sysoptions
 ``use_us_layout`` (example: ``true``)
 
 ``killswitch`` (example: ``/dev/input/js0``)
-
-``xboxdrv`` (example: ``--silent --type xbox360``)
 
 ``sdl_gamecontrollerconfig`` (example: ``$HOME/gamecontrollerdb.txt``)
 

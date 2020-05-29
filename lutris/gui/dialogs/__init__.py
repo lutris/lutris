@@ -1,20 +1,25 @@
-"""Commonly used dialogs"""
+"""
+    Commonly used dialogs
+    isort:skip_file
+"""
+# Standard Library
 # pylint: disable=no-member
 import os
 
+# Third Party Libraries
+import gi
+gi.require_version("WebKit2", "4.0")
+from gi.repository import GLib, GObject, Gtk, WebKit2
+
+# Lutris Modules
 from lutris import api, pga, runtime, settings
-from lutris.gui.widgets.utils import open_uri
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.log import logger
 
-import gi
-gi.require_version("WebKit2", "4.0")
-
-from gi.repository import GLib, GObject, Gtk, WebKit2
-
 
 class Dialog(Gtk.Dialog):
+
     def __init__(self, title=None, parent=None, flags=0, buttons=None):
         super().__init__(title, parent, flags, buttons)
         self.set_border_width(10)
@@ -26,6 +31,12 @@ class Dialog(Gtk.Dialog):
 
 
 class GtkBuilderDialog(GObject.Object):
+    dialog_object = NotImplemented
+
+    __gsignals__ = {
+        "destroy": (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
+
     def __init__(self, parent=None, **kwargs):
         super().__init__()
         ui_filename = os.path.join(datapath.get(), "ui", self.glade_file)
@@ -40,16 +51,21 @@ class GtkBuilderDialog(GObject.Object):
         if parent:
             self.dialog.set_transient_for(parent)
         self.dialog.show_all()
-        self.dialog.connect("delete-event", lambda *x: x[0].destroy())
+        self.dialog.connect("delete-event", self.on_close)
         self.initialize(**kwargs)
 
     def initialize(self, **kwargs):
-        pass
+        """Implement further customizations in subclasses"""
 
-    def on_close(self, *args):
+    def present(self):
+        self.dialog.present()
+
+    def on_close(self, *args):  # pylint: disable=unused-argument
+        """Propagate the destroy event after closing the dialog"""
         self.dialog.destroy()
+        self.emit("destroy")
 
-    def on_response(self, widget, response):
+    def on_response(self, widget, response):  # pylint: disable=unused-argument
         if response == Gtk.ResponseType.DELETE_EVENT:
             try:
                 self.dialog.hide()
@@ -61,11 +77,12 @@ class AboutDialog(GtkBuilderDialog):
     glade_file = "about-dialog.ui"
     dialog_object = "about_dialog"
 
-    def initialize(self):
+    def initialize(self):  # pylint: disable=arguments-differ
         self.dialog.set_version(settings.VERSION)
 
 
 class NoticeDialog(Gtk.MessageDialog):
+
     """Display a message to the user."""
 
     def __init__(self, message, parent=None):
@@ -76,6 +93,7 @@ class NoticeDialog(Gtk.MessageDialog):
 
 
 class ErrorDialog(Gtk.MessageDialog):
+
     """Display an error message."""
 
     def __init__(self, message, secondary=None, parent=None):
@@ -88,15 +106,14 @@ class ErrorDialog(Gtk.MessageDialog):
 
 
 class QuestionDialog(Gtk.MessageDialog):
+
     """Ask the user a question."""
 
     YES = Gtk.ResponseType.YES
     NO = Gtk.ResponseType.NO
 
     def __init__(self, dialog_settings):
-        super().__init__(
-            message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO
-        )
+        super().__init__(message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO)
         self.set_markup(dialog_settings["question"])
         self.set_title(dialog_settings["title"])
         if "widgets" in dialog_settings:
@@ -107,6 +124,7 @@ class QuestionDialog(Gtk.MessageDialog):
 
 
 class DirectoryDialog(Gtk.FileChooserDialog):
+
     """Ask the user to select a directory."""
 
     def __init__(self, message, parent=None):
@@ -122,6 +140,7 @@ class DirectoryDialog(Gtk.FileChooserDialog):
 
 
 class FileDialog(Gtk.FileChooserDialog):
+
     """Ask the user to select a file."""
 
     def __init__(self, message=None, default_path=None):
@@ -145,6 +164,7 @@ class FileDialog(Gtk.FileChooserDialog):
 
 
 class InstallOrPlayDialog(Gtk.Dialog):
+
     def __init__(self, game_name):
         Gtk.Dialog.__init__(self, "%s is already installed" % game_name)
         self.connect("delete-event", lambda *x: self.destroy())
@@ -172,17 +192,18 @@ class InstallOrPlayDialog(Gtk.Dialog):
         self.show_all()
         self.run()
 
-    def on_button_toggled(self, button, action):
+    def on_button_toggled(self, button, action):  # pylint: disable=unused-argument
         logger.debug("Action set to %s", action)
         self.action = action
 
-    def on_confirm(self, button):
+    def on_confirm(self, button):  # pylint: disable=unused-argument
         logger.debug("Action %s confirmed", self.action)
         self.action_confirmed = True
         self.destroy()
 
 
 class RuntimeUpdateDialog(Gtk.Dialog):
+
     """Dialog showing the progress of ongoing runtime update."""
 
     def __init__(self, parent=None):
@@ -200,7 +221,7 @@ class RuntimeUpdateDialog(Gtk.Dialog):
         GLib.timeout_add(200, self.on_runtime_check)
         self.show_all()
 
-    def on_runtime_check(self, *args, **kwargs):
+    def on_runtime_check(self, *args, **kwargs):  # pylint: disable=unused-argument
         self.progressbar.pulse()
         if not runtime.is_updating():
             self.response(Gtk.ResponseType.OK)
@@ -229,8 +250,8 @@ class PgaSourceDialog(GtkBuilderDialog):
         self.sources_treeview.append_column(uri_column)
         self.sources_treeview.set_model(self.sources_liststore)
         sources = pga.read_sources()
-        for index, source in enumerate(sources):
-            self.sources_liststore.append((source,))
+        for _, source in enumerate(sources):
+            self.sources_liststore.append((source, ))
 
         self.remove_source_button.set_sensitive(False)
         self.dialog.show_all()
@@ -243,7 +264,7 @@ class PgaSourceDialog(GtkBuilderDialog):
         pga.write_sources(self.sources_list)
         self.on_close(widget, data)
 
-    def on_add_source_button_clicked(self, widget, data=None):
+    def on_add_source_button_clicked(self, widget, data=None):  # pylint: disable=unused-argument
         chooser = Gtk.FileChooserDialog(
             "Select directory",
             self.dialog,
@@ -255,19 +276,19 @@ class PgaSourceDialog(GtkBuilderDialog):
         if response == Gtk.ResponseType.OK:
             uri = chooser.get_uri()
             if uri not in self.sources_list:
-                self.sources_liststore.append((uri,))
+                self.sources_liststore.append((uri, ))
         chooser.destroy()
 
-    def on_remove_source_button_clicked(self, widget, data=None):
+    def on_remove_source_button_clicked(self, widget, data=None):  # pylint: disable=unused-argument
         """Remove a source."""
         (model, treeiter) = self.sources_selection.get_selected()
         if treeiter:
             # TODO : Add confirmation
             model.remove(treeiter)
 
-    def on_sources_selection_changed(self, widget, data=None):
-        """Set sentivity of remove source button."""
-        (model, treeiter) = self.sources_selection.get_selected()
+    def on_sources_selection_changed(self, widget, data=None):  # pylint: disable=unused-argument
+        """Set sensitivity of remove source button."""
+        _, treeiter = self.sources_selection.get_selected()
         self.remove_source_button.set_sensitive(treeiter is not None)
 
 
@@ -275,8 +296,8 @@ class ClientLoginDialog(GtkBuilderDialog):
     glade_file = "dialog-lutris-login.ui"
     dialog_object = "lutris-login"
     __gsignals__ = {
-        "connected": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
-        "cancel": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+        "connected": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT, )),
+        "cancel": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT, )),
     }
 
     def __init__(self, parent):
@@ -296,19 +317,19 @@ class ClientLoginDialog(GtkBuilderDialog):
         password = self.password_entry.get_text()
         return username, password
 
-    def on_username_entry_activate(self, widget):
+    def on_username_entry_activate(self, widget):  # pylint: disable=unused-argument
         if all(self.get_credentials()):
             self.on_connect(None)
         else:
             self.password_entry.grab_focus()
 
-    def on_password_entry_activate(self, widget):
+    def on_password_entry_activate(self, widget):  # pylint: disable=unused-argument
         if all(self.get_credentials()):
             self.on_connect(None)
         else:
             self.username_entry.grab_focus()
 
-    def on_connect(self, widget):
+    def on_connect(self, widget):  # pylint: disable=unused-argument
         username, password = self.get_credentials()
         token = api.connect(username, password)
         if not token:
@@ -316,15 +337,6 @@ class ClientLoginDialog(GtkBuilderDialog):
         else:
             self.emit("connected", username)
             self.dialog.destroy()
-
-
-class ClientUpdateDialog(GtkBuilderDialog):
-    glade_file = "dialog-client-update.ui"
-    dialog_object = "client_update_dialog"
-
-    @staticmethod
-    def on_open_downloads_clicked(_widget):
-        open_uri("http://lutris.net")
 
 
 class NoInstallerDialog(Gtk.MessageDialog):
@@ -355,6 +367,7 @@ class NoInstallerDialog(Gtk.MessageDialog):
 
 
 class WebConnectDialog(Dialog):
+
     """Login form for external services"""
 
     def __init__(self, service, parent=None):
@@ -362,9 +375,7 @@ class WebConnectDialog(Dialog):
         self.context = WebKit2.WebContext.new()
         if "http_proxy" in os.environ:
             proxy = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"])
-            self.context.set_network_proxy_settings(
-                WebKit2.NetworkProxyMode.CUSTOM, proxy
-            )
+            self.context.set_network_proxy_settings(WebKit2.NetworkProxyMode.CUSTOM, proxy)
         WebKit2.CookieManager.set_persistent_storage(
             self.context.get_cookie_manager(),
             service.cookies_path,
@@ -392,6 +403,7 @@ class WebConnectDialog(Dialog):
 
 
 class InstallerSourceDialog(Gtk.Dialog):
+
     """Show install script source"""
 
     def __init__(self, code, name, parent):
@@ -417,29 +429,28 @@ class InstallerSourceDialog(Gtk.Dialog):
 
         self.show_all()
 
-    def on_close(self, *args):
+    def on_close(self, *args):  # pylint: disable=unused-argument
         self.destroy()
 
 
 class DontShowAgainDialog(Gtk.MessageDialog):
+
     """Display a message to the user and offer an option not to display this dialog again."""
 
     def __init__(
-            self,
-            setting,
-            message,
-            secondary_message=None,
-            parent=None,
-            checkbox_message=None,
+        self,
+        setting,
+        message,
+        secondary_message=None,
+        parent=None,
+        checkbox_message=None,
     ):
 
         if settings.read_setting(setting) == "True":
             logger.info("Dialog %s dismissed by user", setting)
             return
 
-        super().__init__(
-            type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent
-        )
+        super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
 
         self.set_border_width(12)
         self.set_markup("<b>%s</b>" % message)
@@ -463,6 +474,7 @@ class DontShowAgainDialog(Gtk.MessageDialog):
 
 
 class WineNotInstalledWarning(DontShowAgainDialog):
+
     """Display a warning if Wine is not detected on the system"""
 
     def __init__(self, parent=None):

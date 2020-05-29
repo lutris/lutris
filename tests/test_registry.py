@@ -97,7 +97,7 @@ class TestWineRegistryKey(TestCase):
         key = WineRegistryKey(path='Control Panel/Desktop')
         self.assertEqual(key.name, 'Control Panel/Desktop')
         self.assertEqual(key.raw_name, '[Control Panel\\\\Desktop]')
-        self.assertRegexpMatches(key.raw_timestamp, r'\d+\s\d+')
+        self.assertRegex(key.raw_timestamp, r'\d+\s\d+')
 
     def test_parse_registry_key(self):
         key = WineRegistryKey(path='Control Panel/Desktop')

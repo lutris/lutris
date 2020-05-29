@@ -1,10 +1,12 @@
+# Lutris Modules
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import Dialog
+from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.common import GameDialogCommon
-from lutris.gui.config import DIALOG_WIDTH, DIALOG_HEIGHT
+from lutris.gui.dialogs import Dialog
 
 
 class SystemConfigDialog(Dialog, GameDialogCommon):
+
     def __init__(self, parent=None):
         super().__init__("System preferences", parent=parent)
 

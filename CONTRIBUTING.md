@@ -40,7 +40,7 @@ necessary.
 Contributors are welcome to suggest architectural changes or better code design
 if they feel like the current implementation should be improved but please take
 note that we're trying to stay as lean as possible. Requests introducing complex
-architectural changes for the sake of "modularity", "Unix pureness" or subjective 
+architectural changes for the sake of "modularity", "Unix pureness" or subjective
 aspects might not be received warmly. There are no plans for any rewrite in
 another language or switching to another toolkit.
 
@@ -62,22 +62,33 @@ new dependencies, check in the package configuration files for new packages to
 install. Debian based distros will have their dependencies listed
 in `debian/control` and RPM based ones in `lutris.spec`.
 
-Under NO circumstances should you use a virtualenv or install dependencies with
-pip. The PyGOject introspection libraries are not regular python packages and
+The PyGOject introspection libraries are not regular python packages and
 it is not possible for pip to install them or use them from a virtualenv. Make
 sure to always use PyGOject from your distribution's package manager. Also
 install the necessary GObject bindings as described in the INSTALL file.
+
+Set up your development environment
+-----------------------------------
+
+To ensure you have the proper dependencies installed run: `make dev`
+This will use pipenv to create a virtual environment installing all necessary
+python packages to get you up and running.
+
+This project includes .editorconfig so you're good to go if you're using any
+editor/IDE that supports this. Otherwise make sure to configure your max line
+length to 120, indent style to space and always end files with an empty new line.
 
 Formatting your code
 --------------------
 
 To ensure getting your contributions getting merged faster and to avoid other
 developers from going back and fixing your code, please make sure your code
-passes pylint checks. We highly recommend that you install a pylint plugin in
-your code editor. Once you have pylint set up to check the code, you can
-configure it to use 120 characters max per line instead of 80.
+passes style checks by running `make sc` and fixing any reported issues
+before submitting your code. This runs a series of tools to apply pep8 coding
+style conventions, sorting and grouping imports and checking for formatting issues
+and other code smells.
 
-You can help fixing formatting issues or other code smells by having a look at
+You can help fix formatting issues or other code smells by having a look at
 the CodeFactor page: https://www.codefactor.io/repository/github/lutris/lutris
 
 When writing docstrings, you should follow the Google style

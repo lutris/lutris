@@ -1,11 +1,14 @@
 """Utility module to handle media resources"""
+# Standard Library
 import os
+
+# Third Party Libraries
 from gi.repository import GLib
 
+# Lutris Modules
 from lutris import settings
-from lutris.util.http import Request, HTTPError
-
 from lutris.util import system
+from lutris.util.http import HTTPError, Request
 
 
 def get_icon_path(game_slug, icon_type="icon"):
@@ -28,10 +31,7 @@ def update_desktop_icons():
     """
     gtk_update_icon_cache = system.find_executable("gtk-update-icon-cache")
     if gtk_update_icon_cache:
-        os.system(
-            "gtk-update-icon-cache -tf %s"
-            % os.path.join(GLib.get_user_data_dir(), "icons", "hicolor")
-        )
+        os.system("gtk-update-icon-cache -tf %s" % os.path.join(GLib.get_user_data_dir(), "icons", "hicolor"))
 
 
 def download_media(url, dest, overwrite=False):

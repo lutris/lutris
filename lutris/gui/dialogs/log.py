@@ -1,9 +1,13 @@
 """Window to show game logs"""
-from gi.repository import Gtk, Gdk
+# Third Party Libraries
+from gi.repository import Gdk, Gtk
+
+# Lutris Modules
 from lutris.gui.widgets.log_text_view import LogTextView
 
 
 class LogWindow(Gtk.ApplicationWindow):
+
     def __init__(self, title=None, buffer=None, application=None):
         super().__init__(icon_name="lutris", application=application)
         self.set_title(title)
@@ -16,9 +20,7 @@ class LogWindow(Gtk.ApplicationWindow):
         self.vbox = Gtk.VBox(spacing=6)
         self.add(self.vbox)
 
-        scrolledwindow = Gtk.ScrolledWindow(
-            hexpand=True, vexpand=True, child=self.logtextview
-        )
+        scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=self.logtextview)
         self.vbox.pack_start(scrolledwindow, True, True, 0)
 
         self.search_entry = Gtk.SearchEntry()

@@ -1,3 +1,44 @@
+lutris (0.5.6) eoan; urgency=medium
+
+  * Add some wine core processes to be excluded from monitor (Fixes Battle.net
+    and Origin installation issues)
+  * Convert play time from string to float in the database. Do not downgrade
+    back to older versions or you'll experience issues.
+  * Fix for the wine sandbox on non English systems
+  * Allow Citra and MAME to be launched as standalone programs
+  * Avoid a crash if ldconfig -p returns corrupt data
+  * Allow custom messages to be displayed at the end of install scripts
+  * Add option to provide alternate config file for PCSX2 games
+  * Fix issue with usernames containing accented characters
+  * Fix "Restrict to display" option on Wayland/Mutter
+  * Fix blurry icons on KDE
+  * Remove broken translation files (until internationalization is done properly)
+  * Switch source of DXVK builds to Lutris' own (allows Lutris to delay broken
+    DXVK releases and ship custom ones)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 12 Apr 2020 19:04:15 -0700
+
+lutris (0.5.5) eoan; urgency=medium
+
+  * Initial support for Humble Bundle
+  * Add resolution switching support for Wayland (Mutter only)
+  * Add option to enable ACO shader compiler on Mesa >= 19.3
+  * DXVK is enabled by default
+  * Add initial support for VKD3D
+  * Migrate D9VK configs to use DXVK
+  * Remove d3d10 and d3d10_1 from dlls handled by DXVK
+  * Fix an API breakage occuring with a Gtk update
+  * Add a System info tab in Preferences
+  * Better handle authentication failure for GOG
+  * Fix case issue with key lookup in Steam VDF files
+  * Add Yuzu runner
+  * Add bsnes-hd beta and smsplus libretro cores
+  * Add sound device option for Mednafen
+  * Remove bundled winetricks
+  * Remove xboxdrv integration
+
+ -- Mathieu Comandon <strycore@gmail.com>  Thu, 26 Mar 2020 22:21:28 -0700
+
 lutris (0.5.4) eoan; urgency=medium
 
   * Added support for Python 3.8.

@@ -1,12 +1,11 @@
+# Third Party Libraries
 from gi.repository import Gdk, GObject
-from lutris.game import Game
+
+# Lutris Modules
 from lutris import pga
-from lutris.gui.views import (
-    COL_ID,
-    COL_SLUG,
-    COL_NAME,
-    COL_INSTALLED
-)
+from lutris.game import Game
+from lutris.gui.views import COL_ID, COL_INSTALLED, COL_NAME, COL_SLUG
+from lutris.util.log import logger
 
 
 class GameView:
@@ -32,13 +31,10 @@ class GameView:
             view.current_path = view.get_path_at_pos(event.x, event.y)
             if view.current_path:
                 view.select()
-        except ValueError:
-            (_, path) = view.get_selection().get_selected()
-            view.current_path = path
-
-        if view.current_path:
-            game_row = self.game_store.get_row_by_id(self.selected_game.id)
-            self.contextual_menu.popup(event, game_row)
+                game_row = self.game_store.get_row_by_id(self.selected_game.id)
+                self.contextual_menu.popup(event, game_row)
+        except ValueError as ex:
+            logger.error("Failed to read path: %s", ex)
 
     def get_selected_game(self, selected_item):
         selected_game = None
@@ -62,7 +58,7 @@ class GameView:
         """Selects the object pointed by current_path"""
         raise NotImplementedError
 
-    def handle_key_press(self, widget, event):
+    def handle_key_press(self, widget, event):  # pylint: disable=unused-argument
         if not self.selected_game:
             return
         key = event.keyval

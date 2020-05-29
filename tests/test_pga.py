@@ -64,6 +64,12 @@ class TestPersonnalGameArchive(DatabaseTester):
         game = pga.get_game_by_field("some-game", "slug")
         self.assertEqual(game['directory'], '/foo')
 
+    def test_get_games_is_safe(self):
+        try:
+            pga.get_games(select="; asdf")
+        except OperationalError:
+            self.fail()
+
 
 class TestDbCreator(DatabaseTester):
     def test_can_generate_fields(self):

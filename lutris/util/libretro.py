@@ -1,3 +1,4 @@
+# Lutris Modules
 from lutris.util import system
 
 
@@ -18,12 +19,13 @@ class RetroConfig:
                 line = line.strip()
                 if line == "" or line.startswith('#'):
                     continue
-                key, value = line.split("=", 1)
-                key = key.strip()
-                value = value.strip().strip('"')
-                if not key or not value:
-                    continue
-                self.config.append((key, value))
+                if '=' in line:
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip('"')
+                    if not key or not value:
+                        continue
+                    self.config.append((key, value))
 
     def save(self):
         with open(self.config_path, "w") as config_file:
