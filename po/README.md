@@ -8,11 +8,14 @@ Translations are not implemented yet, see github issue #728. Please read the not
 meson transl-builddir
 ninja lutris-update-po -C transl-builddir
 ```
+
 Now update the `$LANG.po` file, and run after that
+
 ```bash
 ninja lutris-update-po -C transl-builddir
 rm -Rf transl-builddir
 ```
+
 and commit your changes.
 
 ## Creating a translation
@@ -22,11 +25,14 @@ meson transl-builddir
 ninja lutris-pot -C transl-builddir
 mv po/lutris.pot po/$LANG.po
 ```
+
 Now edit the `$LANG.po` file, add `$LANG` to the `LINGUAS` file, and run after that
+
 ```bash
 ninja lutris-update-po -C transl-builddir
 rm -Rf transl-builddir
 ```
+
 and commit your changes.
 
 ## Notes
