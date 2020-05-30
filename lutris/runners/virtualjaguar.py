@@ -1,3 +1,4 @@
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -14,16 +15,12 @@ class virtualjaguar(Runner):
             "type": "file",
             "default_path": "game_path",
             "label": "ROM file",
-            "help": (
-                "The game data, commonly called a ROM image.\n"
-                "Supported formats: J64 and JAG."
-            ),
+            "help": ("The game data, commonly called a ROM image.\n"
+                     "Supported formats: J64 and JAG."),
         }
     ]
 
-    runner_options = [
-        {"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": "1"}
-    ]
+    runner_options = [{"option": "fullscreen", "type": "bool", "label": "Fullscreen", "default": "1"}]
 
     def play(self):
         rom = self.game_config.get("main_file") or ""

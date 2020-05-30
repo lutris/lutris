@@ -1,13 +1,15 @@
 """DOSBox installer commands"""
+# Standard Library
 import os
 
+# Lutris Modules
 from lutris import runtime
 from lutris.runners import import_runner
 from lutris.util import system
 from lutris.util.log import logger
 
 
-def dosexec(config_file=None, executable=None, args=None, exit=True, working_dir=None):
+def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, working_dir=None):
     """Execute Dosbox with given config_file."""
     if config_file:
         run_with = "config {}".format(config_file)
@@ -32,7 +34,7 @@ def dosexec(config_file=None, executable=None, args=None, exit=True, working_dir
         command += [executable]
     if args:
         command += args.split()
-    if exit:
+    if close_on_exit:
         command.append("-exit")
     system.execute(command, cwd=working_dir, env=runtime.get_env())
 

@@ -1,6 +1,8 @@
 """Generic platform functions."""
+# Standard Library
 from collections import defaultdict
 
+# Lutris Modules
 from lutris import runners
 
 # gets populated by _init_platforms()

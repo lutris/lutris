@@ -43,4 +43,4 @@ class TestNvidiaGlxInfo(BaseGlxInfo):
         self.assertEqual(self.glxinfo.opengl_version, "4.6.0 NVIDIA 415.25")
         self.assertEqual(self.glxinfo.opengl_vendor, "NVIDIA Corporation")
         with self.assertRaises(AttributeError):
-            self.glxinfo.GLX_MESA_query_renderer.version
+            self.glxinfo.GLX_MESA_query_renderer.version  # pylint: disable=pointless-statement

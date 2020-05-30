@@ -1,32 +1,24 @@
 """Store object for a list of games"""
+# Standard Library
 # pylint: disable=not-an-iterable
 import concurrent.futures
-from gi.repository import Gtk, GObject, GLib
+
+# Third Party Libraries
+from gi.repository import GLib, GObject, Gtk
 from gi.repository.GdkPixbuf import Pixbuf
-from lutris import pga
-from lutris.gui.widgets.utils import get_pixbuf_for_game
-from lutris.util.resources import get_icon_path, download_media, update_desktop_icons
-from lutris.util.log import logger
-from lutris.util import system
-from lutris import api
-from lutris.util.jobs import AsyncCall
+
+# Lutris Modules
+from lutris import api, pga
 from lutris.gui.views.pga_game import PgaGame
+from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.util import system
+from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
+from lutris.util.resources import download_media, get_icon_path, update_desktop_icons
+
 from . import (
-    COL_ID,
-    COL_SLUG,
-    COL_NAME,
-    COL_ICON,
-    COL_YEAR,
-    COL_RUNNER,
-    COL_RUNNER_HUMAN_NAME,
-    COL_PLATFORM,
-    COL_LASTPLAYED,
-    COL_LASTPLAYED_TEXT,
-    COL_INSTALLED,
-    COL_INSTALLED_AT,
-    COL_INSTALLED_AT_TEXT,
-    COL_PLAYTIME,
-    COL_PLAYTIME_TEXT,
+    COL_ICON, COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT,
+    COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER, COL_RUNNER_HUMAN_NAME, COL_SLUG, COL_YEAR
 )
 
 
@@ -71,7 +63,7 @@ class GameStore(GObject.Object):
     __gsignals__ = {
         "media-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
-        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
         "sorting-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, bool)),
     }
 
@@ -81,30 +73,29 @@ class GameStore(GObject.Object):
         "runner": COL_RUNNER_HUMAN_NAME,
         "platform": COL_PLATFORM,
         "lastplayed": COL_LASTPLAYED,
+        "lastplayed_text": COL_LASTPLAYED_TEXT,
         "installed_at": COL_INSTALLED_AT,
+        "installed_at_text": COL_INSTALLED_AT_TEXT,
         "playtime": COL_PLAYTIME,
+        "playtime_text": COL_PLAYTIME_TEXT,
     }
 
     def __init__(
-            self,
-            games,
-            icon_type,
-            filter_installed,
-            sort_key,
-            sort_ascending,
-            show_hidden_games,
-            show_installed_first=False,
+        self,
+        games,
+        icon_type,
+        filter_installed,
+        sort_key,
+        sort_ascending,
+        show_hidden_games,
+        show_installed_first=False,
     ):
         super(GameStore, self).__init__()
-
-        games_raw = pga.get_games(show_installed_first=show_installed_first)
-        if show_hidden_games:
-            self.games = games_raw
-        else:
+        self.games = games or pga.get_games(show_installed_first=show_installed_first)
+        if not show_hidden_games:
             # Check if the PGA contains game IDs that the user does not
             # want to see
-            ignores = pga.get_hidden_ids()
-            self.games = [game for game in games_raw if game["id"] not in ignores]
+            self.games = [game for game in self.games if game["id"] not in pga.get_hidden_ids()]
 
         self.search_mode = False
         self.games_to_refresh = set()
@@ -128,7 +119,7 @@ class GameStore(GObject.Object):
             bool,
             int,
             str,
-            str,
+            float,
             str,
         )
         sort_col = COL_NAME
@@ -144,7 +135,7 @@ class GameStore(GObject.Object):
             self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
         except AttributeError:
             # Apparently some API breaking changes on GTK minor versions.
-            self.modelsort = Gtk.TreeModelSort.new_with_model(self.modelfilter)
+            self.modelsort = Gtk.TreeModelSort.new_with_model(self.modelfilter)  # pylint: disable=no-member  # NOQA
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
         self.modelsort.set_sort_func(sort_col, sort_func, sort_col)
         self.sort_view(sort_key, sort_ascending)
@@ -187,30 +178,17 @@ class GameStore(GObject.Object):
     def get_missing_media(self, slugs=None):
         """Query the Lutris.net API for missing icons"""
         slugs = slugs or self.game_slugs
-        unavailable_banners = {
-            slug for slug in slugs
-            if not self.has_icon(slug, "banner")
-        }
-        unavailable_icons = {
-            slug for slug in slugs
-            if not self.has_icon(slug, "icon")
-        }
+        unavailable_banners = {slug for slug in slugs if not self.has_icon(slug, "banner")}
+        unavailable_icons = {slug for slug in slugs if not self.has_icon(slug, "icon")}
 
         # Remove duplicate slugs
-        missing_media_slugs = (
-            (unavailable_banners - self.banner_misses)
-            | (unavailable_icons - self.icon_misses)
-        )
+        missing_media_slugs = ((unavailable_banners - self.banner_misses) | (unavailable_icons - self.icon_misses))
         if not missing_media_slugs:
             return
         if len(missing_media_slugs) > 10:
-            logger.debug(
-                "Requesting missing icons from API for %d games", len(missing_media_slugs)
-            )
+            logger.debug("Requesting missing icons from API for %d games", len(missing_media_slugs))
         else:
-            logger.debug(
-                "Requesting missing icons from API for %s", ", ".join(missing_media_slugs)
-            )
+            logger.debug("Requesting missing icons from API for %s", ", ".join(missing_media_slugs))
 
         lutris_media = api.get_api_games(list(missing_media_slugs), inject_aliases=True)
         if not lutris_media:
@@ -379,10 +357,12 @@ class GameStore(GObject.Object):
         if not self.medias:
             return
         for media_type in ("banner", "icon"):
-            self.download_icons([
-                (slug, self.medias[media_type][slug], get_icon_path(slug, media_type))
-                for slug in self.medias[media_type]
-            ], media_type)
+            self.download_icons(
+                [
+                    (slug, self.medias[media_type][slug], get_icon_path(slug, media_type))
+                    for slug in self.medias[media_type]
+                ], media_type
+            )
 
     def download_icons(self, downloads, media_type):
         """Download a list of media files concurrently.
@@ -417,6 +397,7 @@ class GameStore(GObject.Object):
         return self.add_games_by_ids([game_id])
 
     def add_game(self, pga_game):
+        """Add a PGA game to the store"""
         game = PgaGame(pga_game)
         self.games.append(pga_game)
         self.store.append(
@@ -448,12 +429,14 @@ class GameStore(GObject.Object):
             self.add_game_by_id(game_id)
 
     def set_icon_type(self, icon_type):
-        if icon_type != self.icon_type:
-            self.icon_type = icon_type
-            for row in self.store:
-                row[COL_ICON] = get_pixbuf_for_game(
-                    row[COL_SLUG],
-                    icon_type,
-                    is_installed=row[COL_INSTALLED] if not self.search_mode else True,
-                )
-            self.emit("icons-changed", icon_type)
+        """Change the icon type"""
+        if icon_type == self.icon_type:
+            return
+        self.icon_type = icon_type
+        for row in self.store:
+            row[COL_ICON] = get_pixbuf_for_game(
+                row[COL_SLUG],
+                icon_type,
+                is_installed=row[COL_INSTALLED] if not self.search_mode else True,
+            )
+        self.emit("icons-changed", icon_type)

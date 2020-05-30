@@ -12,6 +12,7 @@ from lutris.installer.steam_installer import SteamInstaller
 
 
 class InstallerLabel(Gtk.Label):
+
     """A label for installers"""
     def __init__(self, text, wrap=True):
         super().__init__()
@@ -28,7 +29,9 @@ class InstallerLabel(Gtk.Label):
 
 
 class InstallerScriptBox(Gtk.VBox):
+
     """Box displaying the details of a script, with associated action buttons"""
+
     def __init__(self, script, parent=None, revealed=False):
         super().__init__()
         self.script = script
@@ -109,11 +112,10 @@ class InstallerScriptBox(Gtk.VBox):
 
 
 class InstallerPicker(Gtk.ListBox):
+
     """List box to pick between several installers"""
 
-    __gsignals__ = {
-        "installer-selected": (GObject.SIGNAL_RUN_FIRST, None, (str, ))
-    }
+    __gsignals__ = {"installer-selected": (GObject.SIGNAL_RUN_FIRST, None, (str, ))}
 
     def __init__(self, scripts):
         super().__init__()

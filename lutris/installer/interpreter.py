@@ -6,29 +6,24 @@ from gi.repository import GLib, GObject
 
 from lutris import pga
 from lutris import settings
-from lutris.gui.dialogs import WineNotInstalledWarning
-from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER
-from lutris.util.strings import unpack_dependencies
-from lutris.util.jobs import AsyncCall
-from lutris.util.log import logger
-from lutris.util.http import Request
-from lutris.util.wine.wine import get_wine_version_exe, get_system_wine_version
 
 from lutris.config import LutrisConfig
-
-from lutris.installer.errors import ScriptingError, MissingGameDependency
+from lutris.gui.dialogs import WineNotInstalledWarning
 from lutris.installer.commands import CommandsMixin
+from lutris.installer.errors import MissingGameDependency, ScriptingError
+from lutris.runners import (
+    InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
+)
+from lutris.util import system
+from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.http import Request
+from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
+from lutris.util.wine.wine import get_wine_version_exe, get_system_wine_version
+
 from lutris.installer.installer import LutrisInstaller
 
-from lutris.runners import (
-    wine,
-    steam,
-    import_runner,
-    InvalidRunner,
-    NonInstallableRunnerError,
-    RunnerInstallationError,
-)
+from lutris.util.strings import unpack_dependencies
 
 
 def fetch_script(game_slug, revision=None):
@@ -146,15 +141,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     for dependency_option in dependency
                 }
                 if not any(installed_binaries.values()):
-                    raise ScriptingError(
-                        "This installer requires %s on your system"
-                        % " or ".join(dependency)
-                    )
+                    raise ScriptingError("This installer requires %s on your system" % " or ".join(dependency))
             else:
                 if not system.find_executable(dependency):
-                    raise ScriptingError(
-                        "This installer requires %s on your system" % dependency
-                    )
+                    raise ScriptingError("This installer requires %s on your system" % dependency)
 
     def _check_dependency(self):
         """When a game is a mod or an extension of another game, check that the base
@@ -170,12 +160,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         error_message = "You need to install {} before"
         for index, dependency in enumerate(dependencies):
             if isinstance(dependency, tuple):
-                installed_games = [
-                    dep for dep in [
-                        self._get_installed_dependency(dep) for dep in dependency
-                    ]
-                    if dep
-                ]
+                installed_games = [dep for dep in [self._get_installed_dependency(dep) for dep in dependency] if dep]
                 if not installed_games:
                     if len(dependency) == 1:
                         raise MissingGameDependency(slug=dependency)
@@ -230,9 +215,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         for command in self.installer.script.get("installer", []):
             command_name, command_params = self._get_command_name_and_params(command)
             if command_name == "task":
-                runner_name, _task_name = self._get_task_runner_and_name(
-                    command_params["name"]
-                )
+                runner_name, _task_name = self._get_task_runner_and_name(command_params["name"])
                 runner_names = [r.name for r in required_runners]
                 if runner_name not in runner_names:
                     required_runners.append(self.get_runner_class(runner_name)())
@@ -266,7 +249,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                         logger.error("Failed to get default wine version (got %s)", default_wine)
 
             if not runner.is_installed(**params):
-                logger.info("Runner %s needs to be installed")
+                logger.info("Runner %s needs to be installed", runner)
                 runners_to_install.append(runner)
 
         if self.installer.runner.startswith("wine") and not get_system_wine_version():
@@ -377,8 +360,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             )
             logger.warning("No executable found at specified location %s", path)
         else:
-            self.parent.set_status("Installation finished!")
-
+            install_complete_text = (self.script.get("install_complete_text") or "Installation completed!")
+            self.parent.set_status(install_complete_text)
         self.parent.on_install_finished()
 
     def cleanup(self):
@@ -414,7 +397,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "RESOLUTION": "x".join(self.current_resolution),
             "RESOLUTION_WIDTH": self.current_resolution[0],
             "RESOLUTION_HEIGHT": self.current_resolution[1],
-
         }
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:

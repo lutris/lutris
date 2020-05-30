@@ -1,7 +1,9 @@
 """Process monitor management"""
+# Standard Library
 import os
 import shlex
 
+# Lutris Modules
 from lutris.util.process import Process
 
 # Processes that are considered sufficiently self-managing by the
@@ -15,10 +17,17 @@ SYSTEM_PROCESSES = {
     "services.exe",
     "winedevice.exe",
     "plugplay.exe",
+    "explorer.exe",
+    "wineconsole",
+    "svchost.exe",
+    "rpcss.exe",
+    "rundll32.exe",
+    "mscorsvw.exe",
 }
 
 
 class ProcessMonitor:
+
     """Class to keep track of a process and its children status"""
 
     def __init__(self, include_processes, exclude_processes):
@@ -45,6 +54,10 @@ class ProcessMonitor:
         # process names from /proc only contain 15 characters
         return {p[0:15] for p in process_list}
 
+    @staticmethod
+    def iterate_all_processes():
+        return Process(os.getpid()).iter_children()
+
     def iterate_game_processes(self):
         for child in self.iterate_all_processes():
             if child.state == 'Z':
@@ -61,16 +74,9 @@ class ProcessMonitor:
             if child.name not in self.unmonitored_processes:
                 yield child
 
-    def iterate_all_processes(self):
-        return Process(os.getpid()).iter_children()
-
     def is_game_alive(self):
-        "Returns whether at least one nonexcluded process exists"
-        for _child in self.iterate_game_processes():
-            return True
-        return False
+        """Returns whether at least one nonexcluded process exists"""
+        return next(self.iterate_game_processes(), None) is not None
 
     def are_monitored_processes_alive(self):
-        for _child in self.iterate_monitored_processes():
-            return True
-        return False
+        return next(self.iterate_monitored_processes(), None) is not None

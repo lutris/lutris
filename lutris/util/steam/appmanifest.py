@@ -1,11 +1,14 @@
 """Steam appmanifest file hnadling"""
-import re
+# Standard Library
 import os
+import re
+
+# Lutris Modules
+from lutris.util.log import logger
+from lutris.util.steam.config import get_steamapps_paths
 from lutris.util.steam.vdf import vdf_parse
 from lutris.util.strings import slugify
-from lutris.util.log import logger
 from lutris.util.system import fix_path_case, path_exists
-from lutris.util.steam.config import get_steamapps_paths
 
 APP_STATE_FLAGS = [
     "Invalid",
@@ -34,7 +37,9 @@ APP_STATE_FLAGS = [
 
 
 class AppManifest:
+
     """Representation of an AppManifest file from Steam"""
+
     def __init__(self, appmanifest_path):
         self.appmanifest_path = appmanifest_path
         self.steamapps_path, filename = os.path.split(appmanifest_path)
@@ -97,9 +102,7 @@ class AppManifest:
         """Absolute path of the installation directory"""
         if not self.installdir:
             return None
-        install_path = fix_path_case(
-            os.path.join(self.steamapps_path, "common", self.installdir)
-        )
+        install_path = fix_path_case(os.path.join(self.steamapps_path, "common", self.installdir))
         if install_path:
             return install_path
 
@@ -112,9 +115,7 @@ class AppManifest:
             return "linux"
         if self.steamapps_path in steamapps_paths["windows"]:
             return "windows"
-        raise ValueError(
-            "Can't find %s in %s" % (self.steamapps_path, steamapps_paths)
-        )
+        raise ValueError("Can't find %s in %s" % (self.steamapps_path, steamapps_paths))
 
     def get_runner_name(self):
         """Runner used by the Steam game"""
@@ -145,6 +146,4 @@ def get_path_from_appmanifest(steamapps_path, appid):
 
 def get_appmanifests(steamapps_path):
     """Return the list for all appmanifest files in a Steam library folder"""
-    return [
-        f for f in os.listdir(steamapps_path) if re.match(r"^appmanifest_\d+.acf$", f)
-    ]
+    return [f for f in os.listdir(steamapps_path) if re.match(r"^appmanifest_\d+.acf$", f)]

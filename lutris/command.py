@@ -1,40 +1,60 @@
 """Threading module, used to launch games while monitoring them."""
 
+# Standard Library
+import contextlib
+import fcntl
 import io
 import os
-import sys
-import fcntl
 import shlex
 import subprocess
-import contextlib
+import sys
 from textwrap import dedent
 
+# Third Party Libraries
 from gi.repository import GLib
 
-from lutris import settings
-from lutris import runtime
-from lutris.util.log import logger
+# Lutris Modules
+from lutris import runtime, settings
 from lutris.util import system
+from lutris.util.log import logger
 
-WRAPPER_SCRIPT = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "lutris-wrapper")
+
+def get_wrapper_script_location():
+    """Return absolute path of lutris-wrapper script"""
+    wrapper_relpath = "share/lutris/bin/lutris-wrapper"
+    candidates = [
+        os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "..")),
+        os.path.dirname(os.path.dirname(settings.__file__)),
+        "/usr",
+        "/usr/local",
+    ]
+    for candidate in candidates:
+        wrapper_abspath = os.path.join(candidate, wrapper_relpath)
+        if os.path.isfile(wrapper_abspath):
+            return wrapper_abspath
+    raise FileNotFoundError("Couldn't find lutris-wrapper script in any of the expected locations")
+
+
+WRAPPER_SCRIPT = get_wrapper_script_location()
 
 
 class MonitoredCommand:
+
     """Exexcutes a commmand while keeping track of its state"""
 
     fallback_cwd = "/tmp"
 
     def __init__(
-            self,
-            command,
-            runner=None,
-            env=None,
-            term=None,
-            cwd=None,
-            include_processes=None,
-            exclude_processes=None,
-            log_buffer=None,
-            title=None,
+        self,
+        command,
+        runner=None,
+        env=None,
+        term=None,
+        cwd=None,
+        include_processes=None,
+        exclude_processes=None,
+        log_buffer=None,
+        title=None,
     ):  # pylint: disable=too-many-arguments
         self.ready_state = True
         self.env = self.get_environment(env)
@@ -101,9 +121,7 @@ class MonitoredCommand:
         env['PYTHONPATH'] = ':'.join(sys.path)
         # Drop bad values of environment keys, those will confuse the Python
         # interpreter.
-        return {
-            key: value for key, value in env.items() if "=" not in key
-        }
+        return {key: value for key, value in env.items() if "=" not in key}
 
     def get_child_environment(self):
         """Returns the calculated environment for the child process."""
@@ -113,9 +131,9 @@ class MonitoredCommand:
 
     def start(self):
         """Run the thread."""
-        logger.debug("Running %s", " ".join(self.wrapper_command))
         for key, value in self.env.items():
-            logger.debug("ENV: %s=\"%s\"", key, value)
+            logger.debug("%s=\"%s\"", key, value)
+        logger.debug(" ".join(self.wrapper_command))
 
         if self.terminal:
             self.game_process = self.run_in_terminal()
@@ -124,18 +142,14 @@ class MonitoredCommand:
             self.game_process = self.execute_process(self.wrapper_command, env)
 
         if not self.game_process:
-            logger.warning("No game process available")
+            logger.error("No game process available")
             return
 
         GLib.child_watch_add(self.game_process.pid, self.on_stop)
 
         # make stdout nonblocking.
         fileno = self.game_process.stdout.fileno()
-        fcntl.fcntl(
-            fileno,
-            fcntl.F_SETFL,
-            fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK
-        )
+        fcntl.fcntl(fileno, fcntl.F_SETFL, fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK)
 
         self.stdout_monitor = GLib.io_add_watch(
             self.game_process.stdout,
@@ -200,19 +214,18 @@ class MonitoredCommand:
         game is quit.
         """
         script_path = os.path.join(settings.CACHE_DIR, "run_in_term.sh")
-        exported_environment = "\n".join(
-            'export %s="%s" ' % (key, value)
-            for key, value in self.env.items()
-        )
+        exported_environment = "\n".join('export %s="%s" ' % (key, value) for key, value in self.env.items())
         command = " ".join(['"%s"' % token for token in self.wrapper_command])
         with open(script_path, "w") as script_file:
-            script_file.write(dedent(
-                """#!/bin/sh
+            script_file.write(
+                dedent(
+                    """#!/bin/sh
                 cd "%s"
                 %s
                 exec %s
                 """ % (self.cwd, exported_environment, command)
-            ))
+                )
+            )
             os.chmod(script_path, 0o744)
         return self.execute_process([self.terminal, "-e", script_path])
 
@@ -222,8 +235,7 @@ class MonitoredCommand:
             try:
                 os.makedirs(self.cwd)
             except OSError:
-                logger.error("Failed to create working directory, falling back to %s",
-                             self.fallback_cwd)
+                logger.error("Failed to create working directory, falling back to %s", self.fallback_cwd)
                 self.cwd = "/tmp"
         try:
 
@@ -254,11 +266,8 @@ class MonitoredCommand:
                 return False
 
         if self.stdout_monitor:
-            logger.debug("Detaching logger")
             GLib.source_remove(self.stdout_monitor)
             self.stdout_monitor = None
-        else:
-            logger.debug("logger already detached")
 
         self.is_running = False
         self.ready_state = False

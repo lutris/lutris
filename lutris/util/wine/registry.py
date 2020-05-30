@@ -1,10 +1,13 @@
 """Manipulate Wine registry files"""
+# Standard Library
 import os
 import re
 from collections import OrderedDict
 from datetime import datetime
-from lutris.util.log import logger
+
+# Lutris Modules
 from lutris.util import system
+from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 
 (
@@ -29,6 +32,7 @@ DATA_TYPES = {
 
 
 class WindowsFileTime:
+
     """Utility class to deal with Windows FILETIME structures.
 
     See: https://msdn.microsoft.com/en-us/library/ms724284(v=vs.85).aspx
@@ -88,6 +92,7 @@ class WineRegistry:
         """Return the Wine prefix path (where the .reg files are located)"""
         if self.reg_filename:
             return os.path.dirname(self.reg_filename)
+        return None
 
     @staticmethod
     def get_raw_registry(reg_filename):
@@ -162,6 +167,7 @@ class WineRegistry:
         key = self.keys.get(path)
         if key:
             return key.get_subkey(subkey)
+        return
 
     def set_value(self, path, subkey, value):
         key = self.keys.get(path)
@@ -209,6 +215,7 @@ class WineRegistry:
 
 
 class WineRegistryKey:
+
     def __init__(self, key_def=None, path=None):
 
         self.subkeys = OrderedDict()
@@ -225,9 +232,7 @@ class WineRegistryKey:
             self.metas["time"] = windows_timestamp.to_hex()
         else:
             # Existing key loaded from file
-            self.raw_name, self.raw_timestamp = re.split(
-                re.compile(r"(?<=[^\\]\]) "), key_def, maxsplit=1
-            )
+            self.raw_name, self.raw_timestamp = re.split(re.compile(r"(?<=[^\\]\]) "), key_def, maxsplit=1)
             self.name = self.raw_name.replace("\\\\", "/").strip("[]")
 
         # Parse timestamp either as int or float
@@ -303,11 +308,7 @@ class WineRegistryKey:
             # The exception let us know if it worked or not
             for i in [0, 1, 2]:
                 try:
-                    out += (
-                        "\\u{}{}".format("0" * i, chunk)
-                        .encode()
-                        .decode("unicode_escape")
-                    )
+                    out += ("\\u{}{}".format("0" * i, chunk).encode().decode("unicode_escape"))
                     break
                 except UnicodeDecodeError:
                     pass

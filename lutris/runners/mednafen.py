@@ -1,9 +1,14 @@
+# Standard Library
 import subprocess
+
+# Lutris Modules
 from lutris.runners.runner import Runner
-from lutris.util.display import DISPLAY_MANAGER
-from lutris.util.log import logger
-from lutris.util.joypad import get_controller_mappings
 from lutris.util import system
+from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.joypad import get_controller_mappings
+from lutris.util.log import logger
+
+DEFAULT_MEDNAFEN_SCALER = "nn4x"
 
 
 class mednafen(Runner):
@@ -49,10 +54,9 @@ class mednafen(Runner):
             "option": "main_file",
             "type": "file",
             "label": "ROM file",
-            "help": (
-                "The game data, commonly called a ROM image. \n"
-                "Mednafen supports GZIP and ZIP compressed ROMs."
-            ),
+            "help":
+            ("The game data, commonly called a ROM image. \n"
+             "Mednafen supports GZIP and ZIP compressed ROMs."),
         },
         {
             "option": "machine",
@@ -63,11 +67,19 @@ class mednafen(Runner):
         },
     ]
     runner_options = [
-        {"option": "fs", "type": "bool", "label": "Fullscreen", "default": False},
         {
-            "option": "stretch",
-            "type": "choice",
-            "label": "Aspect ratio",
+            "option": "fs",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": False
+        },
+        {
+            "option":
+            "stretch",
+            "type":
+            "choice",
+            "label":
+            "Aspect ratio",
             "choices": (
                 ("Disabled", "0"),
                 ("Stretched", "full"),
@@ -75,12 +87,16 @@ class mednafen(Runner):
                 ("Integer scale", "aspect_int"),
                 ("Multiple of 2 scale", "aspect_mult2"),
             ),
-            "default": "aspect_int",
+            "default":
+            "aspect_int",
         },
         {
-            "option": "scaler",
-            "type": "choice",
-            "label": "Video scaler",
+            "option":
+            "scaler",
+            "type":
+            "choice",
+            "label":
+            "Video scaler",
             "choices": (
                 ("none", "none"),
                 ("hq2x", "hq2x"),
@@ -99,7 +115,25 @@ class mednafen(Runner):
                 ("nny3x", "nny3x"),
                 ("nny4x", "nny4x"),
             ),
-            "default": "nn4x",
+            "default":
+            DEFAULT_MEDNAFEN_SCALER,
+        },
+        {
+            "option":
+            "sound_device",
+            "type":
+            "choice",
+            "label":
+            "Sound device",
+            "choices": (
+                ("Mednafen default", "default"),
+                ("ALSA default", "sexyal-literal-default"),
+                ("hw:0", "hw:0,0"),
+                ("hw:1", "hw:1,0"),
+                ("hw:2", "hw:2,0"),
+            ),
+            "default":
+            "sexyal-literal-default"
         },
         {
             "option": "dont_map_controllers",
@@ -155,8 +189,7 @@ class mednafen(Runner):
             logger.warning("No controller detected for joysticks %s.", joy_ids)
             return []
 
-        # TODO currently only supports the first controller. Add support for
-        # other controllers.
+        # TODO currently only supports the first controller. Add support for other controllers.
         mapping = controller_mappings[0][1]
 
         # Construct a dictionnary of button codes to parse to mendafen
@@ -466,7 +499,8 @@ class mednafen(Runner):
             fullscreen = "0"
 
         stretch = self.runner_config.get("stretch") or "0"
-        scaler = self.runner_config.get("scaler") or "nn4x"
+        scaler = self.runner_config.get("scaler") or DEFAULT_MEDNAFEN_SCALER
+        sound_device = self.runner_config.get("sound_device")
 
         xres, yres = DISPLAY_MANAGER.get_current_resolution()
         options = [
@@ -474,6 +508,8 @@ class mednafen(Runner):
             fullscreen,
             "-force_module",
             machine,
+            "-sound.device",
+            sound_device,
             "-" + machine + ".xres",
             xres,
             "-" + machine + ".yres",

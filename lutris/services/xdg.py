@@ -1,18 +1,21 @@
 """XDG applications service"""
 
+# Standard Library
 import os
+import re
 import shlex
 import subprocess
-import re
 
+# Third Party Libraries
 from gi.repository import Gio
 
+# Lutris Modules
 from lutris import pga
+from lutris.config import LutrisConfig
+from lutris.services.service_game import ServiceGame
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.config import LutrisConfig
-from lutris.services.service_game import ServiceGame
 
 NAME = "Desktop games"
 ICON = "linux"
@@ -32,18 +35,27 @@ def get_appid(app):
 
 
 class XDGGame(ServiceGame):
+
     """XDG game (Linux game with a desktop launcher)"""
 
     store = "xdg"
     runner = "linux"
     installer_slug = "desktopapp"
 
+    @staticmethod
+    def get_app_icon(xdg_app):
+        """Return the name of the icon for an XDG app if one if set"""
+        icon = xdg_app.get_icon()
+        if not icon:
+            return ""
+        return icon.to_string()
+
     @classmethod
     def new_from_xdg_app(cls, xdg_app):
         """Create a service game from a XDG entry"""
         service_game = cls()
         service_game.name = xdg_app.get_display_name()
-        service_game.icon = xdg_app.get_icon().to_string()
+        service_game.icon = cls.get_app_icon(xdg_app)
         service_game.appid = get_appid(xdg_app)
         service_game.slug = cls.get_slug(xdg_app)
         service_game.runner = "linux"
@@ -72,9 +84,7 @@ class XDGGame(ServiceGame):
         """Return a tuple with absolute command path and an argument string"""
         command = shlex.split(app.get_commandline())
         # remove %U etc. and change %% to % in arguments
-        args = list(
-            map(lambda arg: re.sub("%[^%]", "", arg).replace("%%", "%"), command[1:])
-        )
+        args = list(map(lambda arg: re.sub("%[^%]", "", arg).replace("%%", "%"), command[1:]))
         exe = command[0]
         if not exe.startswith("/"):
             exe = system.find_executable(exe)
@@ -87,6 +97,7 @@ class XDGGame(ServiceGame):
 
 
 class XDGSyncer:
+
     """Sync games available in a XDG compliant menu to Lutris"""
 
     ignored_games = (
@@ -125,9 +136,7 @@ class XDGSyncer:
     @property
     def lutris_games(self):
         """Iterates through Lutris games imported from XDG"""
-        for game in pga.get_games_where(
-                runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1
-        ):
+        for game in pga.get_games_where(runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1):
             yield game
 
     @classmethod
@@ -135,13 +144,15 @@ class XDGSyncer:
         """Returns whether a XDG game is importable to Lutris"""
         appid = get_appid(app)
         executable = app.get_executable() or ""
-        if any([
+        if any(
+            [
                 app.get_nodisplay() or app.get_is_hidden(),  # App is hidden
                 not executable,  # Check app has an executable
                 appid.startswith("net.lutris"),  # Skip lutris created shortcuts
                 appid.lower() in map(str.lower, cls.ignored_games),  # game blacklisted
                 executable.lower() in cls.ignored_executables,  # exe blacklisted
-        ]):
+            ]
+        ):
             return False
 
         # must be in Game category
@@ -151,11 +162,7 @@ class XDGSyncer:
             return False
 
         # contains a blacklisted category
-        if bool([
-                category
-                for category in categories
-                if category in map(str.lower, cls.ignored_categories)
-        ]):
+        if bool([category for category in categories if category in map(str.lower, cls.ignored_categories)]):
             return False
         return True
 

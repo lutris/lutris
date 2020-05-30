@@ -1,8 +1,10 @@
 """Communicates between third party services games and Lutris games"""
+# Lutris Modules
 from lutris import pga
 
 
 class ServiceGame:
+
     """Representation of a game from a 3rd party service"""
 
     store = NotImplemented
@@ -34,7 +36,7 @@ class ServiceGame:
         """Return the SteamID, this is a special case since Steam's appid's are
         a field in the game table. Keeping this here allows to reuse the install method.
         """
-        if hasattr(self, "appid"):
+        if hasattr(self, "appid") and hasattr(self, "runner") and "steam" in self.runner:
             return int(self.appid)
         return None
 

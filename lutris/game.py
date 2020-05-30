@@ -1,33 +1,37 @@
 """Module that actually runs the games."""
-import os
+
+# Standard Library
+# pylint: disable=too-many-public-methods
 import json
-import time
+import os
 import shlex
 import subprocess
+import time
 
-from gi.repository import GLib, Gtk, GObject
+# Third Party Libraries
+from gi.repository import GLib, GObject, Gtk
 
-from lutris import pga
-from lutris import runtime
-from lutris.exceptions import GameConfigError, watch_lutris_errors
-from lutris.util import xdgshortcuts
-from lutris.runners import import_runner, InvalidRunner, wine
-from lutris.util import audio, jobs, system, strings
-from lutris.util.display import DISPLAY_MANAGER, get_compositor_commands, restore_gamma
-from lutris.util.log import logger
-from lutris.config import LutrisConfig
+# Lutris Modules
+from lutris import pga, runtime
 from lutris.command import MonitoredCommand
-from lutris.gui import dialogs
-from lutris.util.timer import Timer
-from lutris.util.linux import LINUX_SYSTEM
-from lutris.util.graphics.xrandr import turn_off_except
+from lutris.config import LutrisConfig
 from lutris.discord import DiscordPresence
+from lutris.exceptions import GameConfigError, watch_lutris_errors
+from lutris.gui import dialogs
+from lutris.runners import InvalidRunner, import_runner, wine
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
+from lutris.util import audio, jobs, strings, system, xdgshortcuts
+from lutris.util.display import DISPLAY_MANAGER, get_compositor_commands, restore_gamma
+from lutris.util.graphics.xrandr import turn_off_except
+from lutris.util.linux import LINUX_SYSTEM
+from lutris.util.log import logger
+from lutris.util.timer import Timer
 
 HEARTBEAT_DELAY = 2000
 
 
 class Game(GObject.Object):
+
     """This class takes cares of loading the configuration for a game
        and running it.
     """
@@ -37,13 +41,14 @@ class Game(GObject.Object):
     STATE_RUNNING = "running"
 
     __gsignals__ = {
-        "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+        "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int,)),
+        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int, )),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, game_id=None):
@@ -81,7 +86,6 @@ class Game(GObject.Object):
         self.heartbeat = None
         self.killswitch = None
         self.state = self.STATE_IDLE
-        self.xboxdrv_thread = None
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
@@ -135,9 +139,7 @@ class Game(GObject.Object):
         elif message["error"] == "FILE_NOT_FOUND":
             filename = message["file"]
             if filename:
-                message_text = "The file {} could not be found".format(
-                    filename.replace("&", "&amp;")
-                )
+                message_text = "The file {} could not be found".format(filename.replace("&", "&amp;"))
             else:
                 message_text = "No file provided"
             dialogs.ErrorDialog(message_text)
@@ -155,41 +157,30 @@ class Game(GObject.Object):
             runner_class = import_runner(self.runner_name)
             return runner_class(self.config)
         except InvalidRunner:
-            logger.error(
-                "Unable to import runner %s for %s", self.runner_name, self.slug
-            )
+            logger.error("Unable to import runner %s for %s", self.runner_name, self.slug)
 
     def load_config(self):
         """Load the game's configuration."""
         if not self.is_installed:
             return
-        self.config = LutrisConfig(
-            runner_slug=self.runner_name, game_config_id=self.game_config_id
-        )
+        self.config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
         self.runner = self._get_runner()
         if self.discord_presence.available:
             self.discord_presence.client_id = (
-                self.config.system_config.get("discord_client_id")
-                or DEFAULT_DISCORD_CLIENT_ID
+                self.config.system_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
             )
-            self.discord_presence.game_name = (
-                self.config.system_config.get("discord_custom_game_name") or self.name
-            )
-            self.discord_presence.show_runner = self.config.system_config.get(
-                "discord_show_runner", True
-            )
+            self.discord_presence.game_name = (self.config.system_config.get("discord_custom_game_name") or self.name)
+            self.discord_presence.show_runner = self.config.system_config.get("discord_show_runner", True)
             self.discord_presence.runner_name = (
-                self.config.system_config.get("discord_custom_runner_name")
-                or self.runner_name
+                self.config.system_config.get("discord_custom_runner_name") or self.runner_name
             )
-            self.discord_presence.rpc_enabled = self.config.system_config.get(
-                "discord_rpc_enabled", True
-            )
+            self.discord_presence.rpc_enabled = self.config.system_config.get("discord_rpc_enabled", True)
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
         if enable:
             system.execute(self.start_compositor, shell=True)
+            self.compositor_disabled = False
         else:
             (
                 self.start_compositor,
@@ -266,7 +257,7 @@ class Game(GObject.Object):
         )
         self.emit("game-updated")
 
-    def prelaunch(self):
+    def is_launchable(self):
         """Verify that the current game can be launched."""
         if not self.runner.is_installed():
             installed = self.runner.install_dialog()
@@ -277,15 +268,8 @@ class Game(GObject.Object):
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
                 logger.warning("Runtime updates: %s", runtime_updater.current_updates)
-                dialogs.ErrorDialog(
-                    "Runtime currently updating", "Game might not work as expected"
-                )
-        if (
-                "wine" in self.runner_name
-                and not wine.get_system_wine_version()
-                and not LINUX_SYSTEM.is_flatpak
-        ):
-
+                dialogs.ErrorDialog("Runtime currently updating", "Game might not work as expected")
+        if ("wine" in self.runner_name and not wine.get_system_wine_version() and not LINUX_SYSTEM.is_flatpak):
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
             root_window = None
@@ -300,29 +284,21 @@ class Game(GObject.Object):
             self.emit("game-stop")
             return
 
-        if not self.prelaunch():
+        if not self.is_launchable():
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
 
         self.emit("game-start")
-        if hasattr(self.runner, "prelaunch"):
-            logger.debug("Prelaunching %s", self.runner)
-            try:
-                jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
-            except Exception as ex:
-                logger.error(ex)
-                raise
-
-        else:
-            self.configure_game(True)
+        jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
     @watch_lutris_errors
-    def configure_game(self, prelaunched, error=None):
+    def configure_game(self, prelaunched, error=None):  # noqa: C901
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
-
+        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+        # TODO: split into multiple methods to reduce complexity (42)
         if error:
             logger.error(error)
             dialogs.ErrorDialog(str(error))
@@ -341,8 +317,8 @@ class Game(GObject.Object):
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
-        logger.debug("Launching %s: %s", self.name, gameplay_info)
-        logger.debug("Game info: %s", json.dumps(gameplay_info, indent=2))
+        logger.debug("Launching %s", self.name)
+        logger.debug(json.dumps(gameplay_info, indent=2))
 
         env = {}
         sdl_gamecontrollerconfig = system_config.get("sdl_gamecontrollerconfig")
@@ -410,9 +386,7 @@ class Game(GObject.Object):
         xephyr = system_config.get("xephyr") or "off"
         if xephyr != "off":
             if not system.find_executable("Xephyr"):
-                raise GameConfigError(
-                    "Unable to find Xephyr, install it or disable the Xephyr option"
-                )
+                raise GameConfigError("Unable to find Xephyr, install it or disable the Xephyr option")
 
             xephyr_depth = "8" if xephyr == "8bpp" else "16"
             xephyr_resolution = system_config.get("xephyr_resolution") or "640x480"
@@ -438,10 +412,11 @@ class Game(GObject.Object):
             setxkbmap_command = ["setxkbmap", "-model", "pc101", "us", "-print"]
             xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
             xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE)
-            subprocess.Popen(
-                setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin
-            ).communicate()
+            subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin).communicate()
             xkbcomp.communicate()
+
+        if system_config.get("aco"):
+            env["RADV_PERFTEST"] = "aco"
 
         pulse_latency = system_config.get("pulse_latency")
         if pulse_latency:
@@ -457,15 +432,11 @@ class Game(GObject.Object):
             if strangle_cmd:
                 launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
             else:
-                logger.warning(
-                    "libstrangle is not available on this system, FPS limiter disabled"
-                )
+                logger.warning("libstrangle is not available on this system, FPS limiter disabled")
 
         prefix_command = system_config.get("prefix_command") or ""
         if prefix_command:
-            launch_arguments = (
-                shlex.split(os.path.expandvars(prefix_command)) + launch_arguments
-            )
+            launch_arguments = (shlex.split(os.path.expandvars(prefix_command)) + launch_arguments)
 
         single_cpu = system_config.get("single_cpu") or False
         if single_cpu:
@@ -478,11 +449,7 @@ class Game(GObject.Object):
         if terminal:
             terminal = system_config.get("terminal_app", system.get_default_terminal())
             if terminal and not system.find_executable(terminal):
-                dialogs.ErrorDialog(
-                    "The selected terminal application "
-                    "could not be launched:\n"
-                    "%s" % terminal
-                )
+                dialogs.ErrorDialog("The selected terminal application " "could not be launched:\n" "%s" % terminal)
                 self.state = self.STATE_STOPPED
                 self.emit("game-stop")
                 return
@@ -507,13 +474,10 @@ class Game(GObject.Object):
         # Feral gamemode
         gamemode = system_config.get("gamemode")
         if gamemode:
-            env["LD_PRELOAD"] = ":".join(
-                [
-                    path
-                    for path in [env.get("LD_PRELOAD"), "libgamemodeauto.so", ]
-                    if path
-                ]
-            )
+            env["LD_PRELOAD"] = ":".join([path for path in [
+                env.get("LD_PRELOAD"),
+                "libgamemodeauto.so",
+            ] if path])
 
         # LD_LIBRARY_PATH
         game_ld_libary_path = gameplay_info.get("ld_library_path")
@@ -536,11 +500,6 @@ class Game(GObject.Object):
 
         if system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
-
-        # xboxdrv setup
-        xboxdrv_config = system_config.get("xboxdrv")
-        if xboxdrv_config:
-            self.xboxdrv_start(xboxdrv_config)
 
         prelaunch_command = system_config.get("prelaunch_command")
         if system.path_exists(prelaunch_command):
@@ -585,38 +544,6 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
-    def xboxdrv_start(self, config):
-        """Start xboxdrv in a background command"""
-        command = [
-            "pkexec",
-            "xboxdrv",
-            "--daemon",
-            "--detach-kernel-driver",
-            "--dbus",
-            "session",
-            "--silent",
-        ] + shlex.split(config)
-        logger.debug("[xboxdrv] %s", " ".join(command))
-        self.xboxdrv_thread = MonitoredCommand(command, include_processes=["xboxdrv"])
-        self.xboxdrv_thread.stop_func = self.xboxdrv_stop
-        self.xboxdrv_thread.start()
-
-    @staticmethod
-    def reload_xpad():
-        """Reloads the xpads module.
-        The path is hardcoded because this script is allowed to be executed as
-        root with a PolicyKit rule put in place by the packages.
-        Note to packagers: If you don't intend to create a PolicyKit rule for
-        this script then don't package it as calling it will fail.
-        """
-        if system.path_exists("/usr/share/lutris/bin/resetxpad"):
-            os.system("pkexec /usr/share/lutris/bin/resetxpad")
-
-    def xboxdrv_stop(self):
-        """Stop xboxdrv"""
-        os.system("pkexec xboxdrvctl --shutdown")
-        self.reload_xpad()
-
     def prelaunch_beat(self):
         """Watch the prelaunch command"""
         if self.prelaunch_executor and self.prelaunch_executor.is_running:
@@ -627,9 +554,7 @@ class Game(GObject.Object):
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
-            dialogs.ErrorDialog(
-                "<b>Error lauching the game:</b>\n" + self.game_thread.error
-            )
+            dialogs.ErrorDialog("<b>Error lauching the game:</b>\n" + self.game_thread.error)
             self.on_game_quit()
             return False
 
@@ -653,9 +578,7 @@ class Game(GObject.Object):
             return
 
         logger.info("Stopping %s", self)
-        if self.runner.system_config.get("xboxdrv"):
-            logger.debug("Stopping xboxdrv")
-            self.xboxdrv_thread.stop()
+
         if self.game_thread:
             jobs.AsyncCall(self.game_thread.stop, None)
         self.stop_game()
@@ -715,18 +638,13 @@ class Game(GObject.Object):
             error = "error while loading shared lib"
             error_line = strings.lookup_string_in_text(error, self.game_thread.stdout)
             if error_line:
-                dialogs.ErrorDialog(
-                    "<b>Error: Missing shared library.</b>" "\n\n%s" % error_line
-                )
+                dialogs.ErrorDialog("<b>Error: Missing shared library.</b>" "\n\n%s" % error_line)
 
         if self.game_thread.return_code == 1:
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
-                dialogs.ErrorDialog(
-                    "<b>Error: A different Wine version is "
-                    "already using the same Wine prefix.</b>"
-                )
+                dialogs.ErrorDialog("<b>Error: A different Wine version is " "already using the same Wine prefix.</b>")
 
     def notify_steam_game_changed(self, appmanifest):
         """Receive updates from Steam games and set the thread's ready state accordingly"""

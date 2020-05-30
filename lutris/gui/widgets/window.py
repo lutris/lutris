@@ -1,8 +1,11 @@
+# Third Party Libraries
 from gi.repository import Gtk
 
 
 class BaseApplicationWindow(Gtk.ApplicationWindow):
+
     """Window used to guide the user through a issue reporting process"""
+
     def __init__(self, application):
         Gtk.ApplicationWindow.__init__(self, icon_name="lutris", application=application)
         self.application = application
@@ -12,11 +15,7 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("delete-event", self.on_destroy)
 
-        self.vbox = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL,
-            spacing=12,
-            visible=True
-        )
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, visible=True)
         self.vbox.set_margin_top(18)
         self.vbox.set_margin_bottom(18)
         self.vbox.set_margin_right(18)
@@ -38,7 +37,7 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         """Destroy callback"""
         self.destroy()
 
-    def present(self):
+    def present(self):  # pylint: disable=arguments-differ
         """The base implementation doesn't always work, this one does."""
         self.set_keep_above(True)
         super().present()

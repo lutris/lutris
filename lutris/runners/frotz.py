@@ -1,5 +1,6 @@
 # It is pitch black. You are likely to be eaten by a grue.
 
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -12,9 +13,12 @@ class frotz(Runner):
 
     game_options = [
         {
-            "option": "story",
-            "type": "file",
-            "label": "Story file",
+            "option":
+            "story",
+            "type":
+            "file",
+            "label":
+            "Story file",
             "help": (
                 "The Z-Machine game file.\n"
                 'Usally ends in ".z*", with "*" being a number from 1 '

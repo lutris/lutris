@@ -146,8 +146,6 @@
           <object class="GtkButton" id="configure_runner">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="has_default">True</property>
-            <property name="receives_default">True</property>
             <property name="tooltip_text" translatable="yes">Configure Runner</property>
             <child>
               <object class="GtkImage">

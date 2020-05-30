@@ -1,18 +1,27 @@
-import os
+# Standard Library
 import errno
-import uuid
-import shutil
-import tarfile
-import subprocess
 import gzip
+import os
+import shutil
+import subprocess
+import tarfile
+import uuid
 import zlib
+
+# Lutris Modules
+from lutris import settings
 from lutris.util import system
 from lutris.util.log import logger
-from lutris import settings
 
 
 class ExtractFailure(Exception):
+
     """Exception raised when and archive fails to extract"""
+
+
+def random_id():
+    """Return a random ID"""
+    return str(uuid.uuid4())[:8]
 
 
 def is_7zip_supported(path, extractor):
@@ -63,7 +72,9 @@ def is_7zip_supported(path, extractor):
         return ext in supported_extractors
 
 
-def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
+def extract_archive(path, to_directory=".", merge_single=True, extractor=None):  # noqa: C901
+    # pylint: disable=too-many-branches,too-many-statements
+    # TODO: split into multiple methods to reduce complexity (30)
     path = os.path.abspath(path)
     mode = None
     logger.debug("Extracting %s to %s", path, to_directory)
@@ -84,9 +95,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
         elif is_7zip_supported(path, None):
             extractor = None
         else:
-            raise RuntimeError(
-                "Could not extract `%s` - no appropriate extractor found" % path
-            )
+            raise RuntimeError("Could not extract `%s` - no appropriate extractor found" % path)
 
     if extractor == "tgz":
         opener, mode = tarfile.open, "r:gz"
@@ -108,7 +117,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
     else:
         raise RuntimeError("Could not extract `%s` - unknown format specified" % path)
 
-    temp_name = ".extract-" + str(uuid.uuid4())[:8]
+    temp_name = ".extract-" + random_id()
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
     try:
         _do_extract(path, temp_path, opener, mode, extractor)
@@ -125,6 +134,9 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
         if os.path.isfile(destination_path):
             logger.warning("Overwrite existing file %s", destination_path)
             os.remove(destination_path)
+        if os.path.isdir(destination_path):
+            os.rename(destination_path, destination_path + random_id())
+
         shutil.move(temp_path, to_directory)
         os.removedirs(temp_dir)
     else:

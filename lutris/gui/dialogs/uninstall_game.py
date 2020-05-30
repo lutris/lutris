@@ -1,9 +1,10 @@
+# Third Party Libraries
 from gi.repository import Gtk, Pango
 
-from lutris.gui.dialogs import GtkBuilderDialog
+# Lutris Modules
 from lutris.game import Game
+from lutris.gui.dialogs import GtkBuilderDialog, QuestionDialog
 from lutris.util.system import is_removeable, reverse_expanduser
-from lutris.gui.dialogs import QuestionDialog
 
 
 class UninstallGameDialog(GtkBuilderDialog):
@@ -28,9 +29,7 @@ class UninstallGameDialog(GtkBuilderDialog):
         self.callback = callback
         runner = self.game.runner
 
-        self.substitute_label(
-            self.builder.get_object("description_label"), "game", self.game.name
-        )
+        self.substitute_label(self.builder.get_object("description_label"), "game", self.game.name)
 
         self.substitute_label(
             self.builder.get_object("remove_from_library_button"),
@@ -72,9 +71,7 @@ class UninstallGameDialog(GtkBuilderDialog):
     def on_apply_button_clicked(self, widget):
         widget.set_sensitive(False)
 
-        remove_from_library_button = self.builder.get_object(
-            "remove_from_library_button"
-        )
+        remove_from_library_button = self.builder.get_object("remove_from_library_button")
         remove_from_library = remove_from_library_button.get_active()
         remove_contents_button = self.builder.get_object("remove_contents_button")
         remove_contents = remove_contents_button.get_active()
@@ -82,9 +79,11 @@ class UninstallGameDialog(GtkBuilderDialog):
             game_dir = self.game.directory.replace("&", "&amp;")
             dlg = QuestionDialog(
                 {
-                    "question": "Are you sure you want to delete EVERYTHING under "
+                    "question":
+                    "Are you sure you want to delete EVERYTHING under "
                     "\n<b>%s</b>?\n (This can't be undone)" % game_dir,
-                    "title": "CONFIRM DANGEROUS OPERATION",
+                    "title":
+                    "CONFIRM DANGEROUS OPERATION",
                 }
             )
             if dlg.result != Gtk.ResponseType.YES:

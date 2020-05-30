@@ -1,13 +1,14 @@
 """Window used for game installers"""
+# Standard Library
 import os
 import time
 import webbrowser
 
+# Third Party Libraries
 from gi.repository import Gtk
 
+# Lutris Modules
 from lutris import api, pga, settings
-from lutris.installer import interpreter
-from lutris.installer.errors import ScriptingError, MissingGameDependency
 from lutris.game import Game
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.dialogs import (
@@ -17,23 +18,24 @@ from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
 from lutris.gui.widgets.installer import InstallerPicker, InstallerFilesBox
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
-
-from lutris.util import jobs
-from lutris.util import system
-from lutris.util import xdgshortcuts
+from lutris.installer import interpreter
+from lutris.installer.errors import MissingGameDependency, ScriptingError
+from lutris.util import jobs, system, xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, gtk_safe
 
 
-class InstallerWindow(BaseApplicationWindow):
+class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
+
     """GUI for the install process."""
+
     def __init__(
-            self,
-            game_slug=None,
-            installer_file=None,
-            revision=None,
-            parent=None,
-            application=None,
+        self,
+        game_slug=None,
+        installer_file=None,
+        revision=None,
+        parent=None,
+        application=None,
     ):
         super().__init__(application=application)
 
@@ -42,6 +44,8 @@ class InstallerWindow(BaseApplicationWindow):
         self.parent = parent
         self.game_slug = game_slug
         self.revision = revision
+        self.desktop_shortcut_box = None
+        self.menu_shortcut_box = None
 
         self.log_buffer = None
         self.log_textview = None
@@ -65,8 +69,10 @@ class InstallerWindow(BaseApplicationWindow):
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 0)
 
-        self.cancel_button = self.add_button("C_ancel", self.cancel_installation,
-                                             tooltip="Abort and revert the installation")
+        self.manual_button = self.add_button("Configure m_anually", self.on_manual_clicked)
+        self.cancel_button = self.add_button(
+            "C_ancel", self.cancel_installation, tooltip="Abort and revert the installation"
+        )
         self.eject_button = self.add_button("_Eject", self.on_eject_clicked)
         self.source_button = self.add_button("_View source", self.on_source_clicked)
         self.install_button = self.add_button("_Install", self.on_install_clicked)
@@ -129,30 +135,37 @@ class InstallerWindow(BaseApplicationWindow):
         """Open dialog for 'no script available' situation."""
         dlg = NoInstallerDialog(self)
         if dlg.result == dlg.MANUAL_CONF:
-            game_data = pga.get_game_by_field(self.game_slug, "slug")
-
-            if game_data and "slug" in game_data:
-                # Game data already exist locally.
-                game = Game(game_data["id"])
-            else:
-                # Try to load game data from remote.
-                games = api.get_api_games([self.game_slug])
-
-                if games and len(games) >= 1:
-                    remote_game = games[0]
-                    game_data = {
-                        "name": remote_game["name"],
-                        "slug": remote_game["slug"],
-                        "year": remote_game["year"],
-                        "updated": remote_game["updated"],
-                        "steamid": remote_game["steamid"],
-                    }
-                    game = Game(pga.add_game(**game_data))
-                else:
-                    game = None
-            AddGameDialog(self.parent, game=game)
+            self.manually_configure_game()
         elif dlg.result == dlg.NEW_INSTALLER:
             webbrowser.open(settings.GAME_URL % self.game_slug)
+
+    def manually_configure_game(self):
+        game_data = pga.get_game_by_field(self.game_slug, "slug")
+
+        if game_data and "slug" in game_data:
+            # Game data already exist locally.
+            game = Game(game_data["id"])
+        else:
+            # Try to load game data from remote.
+            games = api.get_api_games([self.game_slug])
+
+            if games and len(games) >= 1:
+                remote_game = games[0]
+                game_data = {
+                    "name": remote_game["name"],
+                    "slug": remote_game["slug"],
+                    "year": remote_game["year"],
+                    "updated": remote_game["updated"],
+                    "steamid": remote_game["steamid"],
+                }
+                game = Game(pga.add_game(**game_data))
+            else:
+                game = None
+        AddGameDialog(self.parent, game=game)
+
+    def on_manual_clicked(self, widget):
+        self.destroy()
+        self.manually_configure_game()
 
     def validate_scripts(self):
         """Auto-fixes some script aspects and checks for mandatory fields"""
@@ -239,6 +252,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.source_button.show()
         self.install_button.grab_focus()
         self.install_button.show()
+        self.manual_button.hide()
 
     def on_target_changed(self, text_entry, _data=None):
         """Set the installation target for the game."""
@@ -293,9 +307,7 @@ class InstallerWindow(BaseApplicationWindow):
         buttons_box.pack_start(browse_button, True, True, 40)
 
     def on_browse_clicked(self, widget, callback_data):
-        dialog = DirectoryDialog(
-            "Select the folder where the disc is mounted", parent=self
-        )
+        dialog = DirectoryDialog("Select the folder where the disc is mounted", parent=self)
         folder = dialog.folder
         callback = callback_data["callback"]
         requires = callback_data["requires"]
@@ -324,9 +336,7 @@ class InstallerWindow(BaseApplicationWindow):
 
         combobox.connect("changed", self.on_input_menu_changed)
         combobox.show()
-        self.continue_handler = self.continue_button.connect(
-            "clicked", callback, alias, combobox
-        )
+        self.continue_handler = self.continue_button.connect("clicked", callback, alias, combobox)
         self.continue_button.grab_focus()
         self.continue_button.show()
 
@@ -507,9 +517,7 @@ class InstallerWindow(BaseApplicationWindow):
         self.log_buffer = Gtk.TextBuffer()
         command.set_log_buffer(self.log_buffer)
         self.log_textview = LogTextView(self.log_buffer)
-        scrolledwindow = Gtk.ScrolledWindow(
-            hexpand=True, vexpand=True, child=self.log_textview
-        )
+        scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=self.log_textview)
         scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
         scrolledwindow.show()

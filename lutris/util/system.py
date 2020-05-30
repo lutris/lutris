@@ -1,12 +1,14 @@
 """System utilities"""
+# Standard Library
 import hashlib
-import signal
 import os
 import re
 import shutil
+import signal
 import string
 import subprocess
 
+# Lutris Modules
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -156,9 +158,7 @@ def substitute(string_template, variables):
     # Replace the dashes with underscores in the mapping and template
     variables = dict((k.replace("-", "_"), v) for k, v in variables.items())
     for identifier in identifiers:
-        string_template = string_template.replace(
-            "${}".format(identifier), "${}".format(identifier.replace("-", "_"))
-        )
+        string_template = string_template.replace("${}".format(identifier), "${}".format(identifier.replace("-", "_")))
 
     template = string.Template(string_template)
     if string_template in list(variables.keys()):
@@ -184,9 +184,7 @@ def merge_folders(source, destination):
             # logger.debug("Copying %s", filename)
             if not os.path.exists(dst_abspath):
                 os.makedirs(dst_abspath)
-            shutil.copy(
-                os.path.join(dirpath, filename), os.path.join(dst_abspath, filename)
-            )
+            shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename))
 
 
 def remove_folder(path):
@@ -202,8 +200,7 @@ def remove_folder(path):
     try:
         shutil.rmtree(path)
     except OSError as ex:
-        errno, message = ex.args
-        logger.error("Failed to remove folder %s: %s (Error code %s)", path, message, errno)
+        logger.error("Failed to remove folder %s: %s (Error code %s)", path, ex.strerror, ex.errno)
         return False
     return True
 
@@ -326,7 +323,10 @@ def reset_library_preloads():
     """Remove library preloads from environment"""
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
         if os.environ.get(key):
-            del os.environ[key]
+            try:
+                del os.environ[key]
+            except OSError:
+                logger.error("Failed to delete environment variable %s", key)
 
 
 def run_once(function):
@@ -338,12 +338,16 @@ def run_once(function):
         if first_run:
             first_run = False
             return function(*args)
+
     return fn_wrapper
 
 
 def get_existing_parent(path):
     """Return the 1st existing parent for a folder (or itself if the path
-    exists and is a directory)"""
+    exists and is a directory). returns None, when none of the parents exists.
+    """
+    if path == "":
+        return None
     if os.path.exists(path) and not os.path.isfile(path):
         return path
     return get_existing_parent(os.path.dirname(path))
