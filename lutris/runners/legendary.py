@@ -2,12 +2,14 @@
 # Standard Library
 import os
 import subprocess
+from subprocess import CalledProcessError
 
 # Third Party Libraries
 import requests
 
 # Lutris Modules
-from lutris import settings
+from lutris import pga, settings
+from lutris.config import LutrisConfig
 from lutris.gui.dialogs import NoticeDialog
 from lutris.runners import wine
 # TODO: those imports are unused, but without them the install scripts cannot call e.g. "create_prefix"
@@ -89,6 +91,11 @@ class legendary(wine.wine):
         self.own_game_remove_method = "Remove game data"
         self.no_game_remove_warning = True
 
+        def egs_sync_callback(widget, option, config):
+            target_value = widget.get_active()
+            response = self.set_egs_sync(target_value)
+            return widget, option, response
+
 # log_level = debug
 # ; maximum shared memory (in MiB) to use for installation
 # max_memory = 1024
@@ -96,13 +103,15 @@ class legendary(wine.wine):
 # install_dir = /mnt/tank/games
         legendary_options = [
             {
-                "option": "auth_token",
-                "type": "string",
-                "label": "Authentication token",
-                "advanced": True,
+                "option": "egs_sync",
+                "label": "Epic Store sync",
+                "type": "extended_bool",
+                "callback": egs_sync_callback,
+                "default": False,
+                "active": True,
                 "help": (
-                    "Authentication token for Epic Store."
-                    "Get it by starting the runner or calling `legendary auth`"
+                    "If you have installed EGS in Lutris, you can enable "
+                    "this setting to synchronize installed games."
                 ),
             },
             {
@@ -283,3 +292,40 @@ class legendary(wine.wine):
             check=True,
         )
         # Todo: check for failure, report console output
+
+    def set_egs_sync(self, target_state):
+        try:
+            if target_state:
+                self.enable_egs_sync()
+                return True
+            else:
+                self.disable_egs_sync()
+                return False
+        except CalledProcessError:
+            return not target_state
+
+    def enable_egs_sync(self):
+        subprocess.run(
+            [
+                self.runner_executable,
+                "egl-sync", "--yes"
+                "--egl-wine-prefix", self.get_egs_prefix()
+            ],
+            check=True,
+        )
+
+    def disable_egs_sync(self):
+        subprocess.run(
+            [
+                self.runner_executable,
+                "egl-sync", "--unlink"
+            ],
+            check=True
+        )
+
+    def get_egs_prefix(self):
+        egs = pga.get_games_by_slug("epic-games-store")[0]
+        if egs:
+            egs_config = LutrisConfig(runner_slug=egs.get("runner"), game_config_id=egs.get("configpath"))
+            prefix = egs_config.game_config.get("prefix")
+            return os.path.expanduser(prefix)
