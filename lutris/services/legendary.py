@@ -116,7 +116,7 @@ def disconnect():
     SERVICE.disconnect()
 
 
-class GOGSyncer:
+class LegendarySyncer:
 
     """Sync GOG games to Lutris"""
 
@@ -140,4 +140,4 @@ class GOGSyncer:
         return added_games, []
 
 
-SYNCER = GOGSyncer
+SYNCER = LegendarySyncer
