@@ -10,16 +10,16 @@ import requests
 # Lutris Modules
 from lutris import pga, settings
 from lutris.config import LutrisConfig
+from lutris.exceptions import LutrisError
 from lutris.gui.dialogs import ErrorDialog, NoticeDialog
 from lutris.runners import wine
 # TODO: those imports are unused, but without them the install scripts cannot call e.g. "create_prefix"
 from lutris.runners.commands.wine import create_prefix, winecfg, wineexec, winekill, winetricks  # noqa: F401
 from lutris.util import system
+from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
-from lutris.exceptions import LutrisError
-from lutris.util.jobs import thread_safe_call
 
 # TODO: maybe offer multiple versions to install
 LEGENDARY_RELEASES_URL = ("https://api.github.com/repos/derrod/legendary/releases/latest")
@@ -94,15 +94,14 @@ class legendary(wine.wine):
         self.no_game_remove_warning = True
 
         def egs_sync_callback(widget, option, config):
-            target_value = widget.get_active()
-            response = self.set_egs_sync(target_value)
+            # check, if EGS is installed
+            egs_prefix = self.get_egs_prefix()
+            response = True if egs_prefix else False
+            # show an error, if not
+            if response is False:
+                thread_safe_call(lambda: ErrorDialog("Epic store needs to be installed in Lutris first."))
             return widget, option, response
 
-# log_level = debug
-# ; maximum shared memory (in MiB) to use for installation
-# max_memory = 1024
-# ; default install directory
-# install_dir = /mnt/tank/games
         legendary_options = [
             {
                 "option": "egs_sync",
@@ -111,25 +110,26 @@ class legendary(wine.wine):
                 "callback": egs_sync_callback,
                 "default": False,
                 "active": True,
+                "callback_on": True,
                 "help": (
                     "If you have installed EGS in Lutris, you can enable "
                     "this setting to synchronize installed games."
                 ),
             },
-            {
-                "option": "log_level",
-                "label": "Log Level",
-                "type": "choice",
-                "choices": [
-                    ("Critical", "critical"),
-                    ("Error", "error"),
-                    ("Warning", "warning"),
-                    ("Info", "info"),
-                    ("Debug", "debug"),
-                ],
-                "default": "warning",
-                "advanced": True,
-            },
+            # {
+            #     "option": "log_level",
+            #     "label": "Log Level",
+            #     "type": "choice",
+            #     "choices": [
+            #         ("Critical", "critical"),
+            #         ("Error", "error"),
+            #         ("Warning", "warning"),
+            #         ("Info", "info"),
+            #         ("Debug", "debug"),
+            #     ],
+            #     "default": "warning",
+            #     "advanced": True,
+            # },
         ]
         for option in reversed(legendary_options):
             self.runner_options.insert(0, option)
@@ -207,8 +207,6 @@ class legendary(wine.wine):
 
     def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if Legendary executable is on the drive"""
-        # if not super().is_installed(version=version, fallback=fallback, min_version=min_version):
-        #     return False
         return system.path_exists(self.runner_executable)
 
     def is_game_installed(self, appid):
@@ -224,28 +222,9 @@ class legendary(wine.wine):
 
         return appid in installed_apps
 
-    def install_game(self, appid, target_path):
-        """Install a game with Legendary"""
-        if not appid:
-            raise ValueError("Missing appid in legendary.install_game")
-
-        if self.is_game_installed(appid):
-            raise RuntimeError(f"The game with id:{appid} is already installed.")
-
-        subprocess.run(
-            [
-                self.runner_executable, "install",
-                "--game-folder", target_path,
-                appid
-            ],
-            text=True,
-            input="y",
-            check=True
-        )
-        # Todo: check for failure, report console output
-
     def prelaunch(self):
         logger.info("Setting up the wine environment")
+        self.sync_with_egs()
         return super().prelaunch()
 
     def get_command(self):
@@ -280,6 +259,27 @@ class legendary(wine.wine):
 
         return {"env": self.get_env(os_env=False), "command": self.get_command()}
 
+    def install_game(self, appid, target_path):
+        """Install a game with Legendary"""
+        if not appid:
+            raise ValueError("Missing appid in legendary.install_game")
+
+        if self.is_game_installed(appid):
+            raise RuntimeError(f"The game with id:{appid} is already installed.")
+
+        subprocess.run(
+            [
+                self.runner_executable,
+                "--yes",
+                "install",
+                "--game-folder", target_path,
+                appid
+            ],
+            check=True
+        )
+        self.sync_with_egs()
+        # Todo: report progress / console output
+
     def remove_game_data(self, game_path=None):
         """Uninstall a game from Legendary"""
         if not self.is_installed():
@@ -287,56 +287,35 @@ class legendary(wine.wine):
             return False
         kill()
         subprocess.run(
-            [self.runner_executable, "uninstall", self.appid],
-            capture_output=True,
-            text=True,
-            input="y",
-            check=True,
-        )
-        # Todo: check for failure, report console output
-
-    def set_egs_sync(self, target_state):
-        try:
-            if target_state:
-                self.enable_egs_sync()
-                return True
-            else:
-                self.disable_egs_sync()
-                return False
-        except CalledProcessError:
-            return not target_state
-        except LutrisError:
-            return False
-
-    def enable_egs_sync(self):
-        # ./legendary --yes egl-sync --enable-sync --egl-wine-prefix ~/Games/.wine
-        subprocess.run(
             [
                 self.runner_executable,
                 "--yes",
-                "egl-sync",
-                "--enable-sync",
-                "--egl-wine-prefix", self.get_egs_prefix()
+                "uninstall",
+                self.appid
             ],
             check=True,
         )
+        self.sync_with_egs()
+        # Todo: report console output
 
-    def disable_egs_sync(self):
-        subprocess.run(
-            [
-                self.runner_executable,
-                "egl-sync",
-                "--unlink"
-            ],
-            check=True
-        )
+    def sync_with_egs(self):
+        """Sync with EGS, if enabled in settings"""
+        if self.runner_config.get("egs_sync"):
+            subprocess.run(
+                [
+                    self.runner_executable,
+                    "--yes",
+                    "egl-sync",
+                    "--one-shot",
+                    "--egl-wine-prefix", self.get_egs_prefix()
+                ],
+                check=True,
+            )
 
     def get_egs_prefix(self):
         egs_query = pga.get_games_by_slug("epic-games-store")
         if len(egs_query) < 1:
-            error = "Epic store needs to be installed in Lutris first."
-            thread_safe_call(lambda: ErrorDialog(error))
-            raise LutrisError(error)
+            return
 
         egs = egs_query[0]
         egs_config = LutrisConfig(runner_slug=egs.get("runner"), game_config_id=egs.get("configpath"))
