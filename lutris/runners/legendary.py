@@ -309,10 +309,13 @@ class legendary(wine.wine):
             return False
 
     def enable_egs_sync(self):
+        # ./legendary --yes egl-sync --enable-sync --egl-wine-prefix ~/Games/.wine
         subprocess.run(
             [
                 self.runner_executable,
-                "egl-sync", "--yes"
+                "--yes",
+                "egl-sync",
+                "--enable-sync",
                 "--egl-wine-prefix", self.get_egs_prefix()
             ],
             check=True,
@@ -322,7 +325,8 @@ class legendary(wine.wine):
         subprocess.run(
             [
                 self.runner_executable,
-                "egl-sync", "--unlink"
+                "egl-sync",
+                "--unlink"
             ],
             check=True
         )
