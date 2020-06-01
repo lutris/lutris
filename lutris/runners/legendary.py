@@ -10,7 +10,7 @@ import requests
 # Lutris Modules
 from lutris import pga, settings
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import NoticeDialog
+from lutris.gui.dialogs import ErrorDialog, NoticeDialog
 from lutris.runners import wine
 # TODO: those imports are unused, but without them the install scripts cannot call e.g. "create_prefix"
 from lutris.runners.commands.wine import create_prefix, winecfg, wineexec, winekill, winetricks  # noqa: F401
@@ -18,6 +18,8 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
+from lutris.exceptions import LutrisError
+from lutris.util.jobs import thread_safe_call
 
 # TODO: maybe offer multiple versions to install
 LEGENDARY_RELEASES_URL = ("https://api.github.com/repos/derrod/legendary/releases/latest")
@@ -303,6 +305,8 @@ class legendary(wine.wine):
                 return False
         except CalledProcessError:
             return not target_state
+        except LutrisError:
+            return False
 
     def enable_egs_sync(self):
         subprocess.run(
@@ -324,8 +328,13 @@ class legendary(wine.wine):
         )
 
     def get_egs_prefix(self):
-        egs = pga.get_games_by_slug("epic-games-store")[0]
-        if egs:
-            egs_config = LutrisConfig(runner_slug=egs.get("runner"), game_config_id=egs.get("configpath"))
-            prefix = egs_config.game_config.get("prefix")
-            return os.path.expanduser(prefix)
+        egs_query = pga.get_games_by_slug("epic-games-store")
+        if len(egs_query) < 1:
+            error = "Epic store needs to be installed in Lutris first."
+            thread_safe_call(lambda: ErrorDialog(error))
+            raise LutrisError(error)
+
+        egs = egs_query[0]
+        egs_config = LutrisConfig(runner_slug=egs.get("runner"), game_config_id=egs.get("configpath"))
+        prefix = egs_config.game_config.get("prefix")
+        return os.path.expanduser(prefix)
