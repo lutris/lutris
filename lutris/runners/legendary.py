@@ -300,17 +300,25 @@ class legendary(wine.wine):
 
     def sync_with_egs(self):
         """Sync with EGS, if enabled in settings"""
-        if self.runner_config.get("egs_sync"):
-            subprocess.run(
-                [
-                    self.runner_executable,
-                    "--yes",
-                    "egl-sync",
-                    "--one-shot",
-                    "--egl-wine-prefix", self.get_egs_prefix()
-                ],
-                check=True,
-            )
+        if self.runner_config.get("egs_sync") is not True:
+            return
+        # Check for prefix, in case the setting is still enabled
+        # but the user has uninstalled EGS
+        egs_prefix = self.get_egs_prefix()
+        if not egs_prefix:
+            logger.warn("Legendary -> EGS sync is enabled but no EGS installation was found")
+            return
+
+        subprocess.run(
+            [
+                self.runner_executable,
+                "--yes",
+                "egl-sync",
+                "--one-shot",
+                "--egl-wine-prefix", egs_prefix
+            ],
+            check=True,
+        )
 
     def get_egs_prefix(self):
         egs_query = pga.get_games_by_slug("epic-games-store")
