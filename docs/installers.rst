@@ -912,6 +912,20 @@ Example:
 Sysoptions
 ==========
 
+**game section: (Section is incomplete)**
+
+``game_id`` (example: ``kg1``)
+
+* ScummVM runner only. Defines ScummVM Game short Name
+
+``gogid`` (example: 999999999)
+
+* Defined GOG's API Game Id (not package Id). Requires Lutris >= 5.0 and a GOG account with purchased game
+
+``path`` (example: $GAMEDIR)
+
+* Path to find game directory. Needed for ScummVM. Usually just $GAMEDATA
+
 **wine section:**
 
 ``version`` (example: ``staging-2.21-x86_64``)
