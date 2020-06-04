@@ -924,7 +924,7 @@ Sysoptions
 
 ``game_id`` (example: ``kg1``)
 
-* ScummVM runner only. Defines ScummVM Game short Name
+* ScummVM runner only. Defines ScummVM Game Short Name. See https://www.scummvm.org/compatibility/ for valid short names.
 
 ``gogid`` (example: 999999999)
 
