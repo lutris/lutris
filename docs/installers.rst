@@ -928,7 +928,7 @@ Sysoptions
 
 ``gogid`` (example: 999999999)
 
-* Defined GOG's API Game Id (not package Id). Requires Lutris >= 5.0 and a GOG account with purchased game
+* Defines GOG's API Game Id (not package Id). Requires Lutris >= 5.0 and a GOG account with purchased game
 
 ``path`` (example: $GAMEDIR)
 
