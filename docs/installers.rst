@@ -914,6 +914,14 @@ Sysoptions
 
 **game section: (Section is incomplete)**
 
+``args`` (example: -c $GAMEDIR/exult.cfg)
+
+* Applied arguments to a native executable game
+
+``exe`` (example: exult)
+
+* Executes native game
+
 ``game_id`` (example: ``kg1``)
 
 * ScummVM runner only. Defines ScummVM Game short Name
@@ -924,7 +932,7 @@ Sysoptions
 
 ``path`` (example: $GAMEDIR)
 
-* Path to find game directory. Needed for ScummVM. Usually just $GAMEDATA
+* Path to find game directory. Needed for ScummVM. Usually just $GAMEDIR
 
 **wine section:**
 
