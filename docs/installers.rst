@@ -914,6 +914,14 @@ Sysoptions
 
 **game section: (Section is incomplete)**
 
+``appid`` (example: 999999)
+
+* TODO
+
+``arch`` (example: ``win32``, ``win64`` [select only one])
+
+* Used for wine based runners. Defines if lutris uses the 32-bit version of wine or the 64-bit version of wine.
+
 ``args`` (example: -c $GAMEDIR/exult.cfg)
 
 * Applied arguments to a native executable game
@@ -933,6 +941,14 @@ Sysoptions
 ``path`` (example: $GAMEDIR)
 
 * Path to find game directory. Needed for ScummVM. Usually just $GAMEDIR
+
+``prefix`` (example: $GAMEDIR/prefix)
+
+* wine-based running only. Defines the wine prefix directory location
+
+``working_dir`` (example: $GANEDIR)
+
+* TODO
 
 **wine section:**
 
