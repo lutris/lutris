@@ -946,7 +946,7 @@ Sysoptions
 
 * wine-based running only. Defines the wine prefix directory location
 
-``working_dir`` (example: $GANEDIR)
+``working_dir`` (example: $GAMEDIR)
 
 * TODO
 
