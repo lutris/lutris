@@ -936,7 +936,8 @@ Sysoptions
 
 ``gogid`` (example: 999999999)
 
-* Defines GOG's API Game Id (not package Id). Requires Lutris >= 5.0 and a GOG account with purchased game
+* Defines GOG's API Game Id (not package Id). Requires Lutris version >= 5.0 and a GOG account with purchased game.
+* To find a game's gogid download the windows installer (inno only) and run the ``innoextract --gog-game-id INSTALLER_FILE`` command.
 
 ``path`` (example: $GAMEDIR)
 
