@@ -498,16 +498,17 @@ class Game(GObject.Object):
             self.set_desktop_compositing(False)
 
         prelaunch_command = system_config.get("prelaunch_command")
-        command_array = shlex.split(prelaunch_command)
-        if system.path_exists(command_array[0]):
-            self.prelaunch_executor = MonitoredCommand(
-                command_array,
-                include_processes=[os.path.basename(prelaunch_command)],
-                env=self.game_runtime_config["env"],
-                cwd=self.directory,
-            )
-            self.prelaunch_executor.start()
-            logger.info("Running %s in the background", prelaunch_command)
+        if prelaunch_command:
+            command_array = shlex.split(prelaunch_command)
+            if system.path_exists(command_array[0]):
+                self.prelaunch_executor = MonitoredCommand(
+                    command_array,
+                    include_processes=[os.path.basename(command_array[0])],
+                    env=self.game_runtime_config["env"],
+                    cwd=self.directory,
+                )
+                self.prelaunch_executor.start()
+                logger.info("Running %s in the background", prelaunch_command)
         if system_config.get("prelaunch_wait"):
             self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.prelaunch_beat)
         else:
@@ -594,16 +595,17 @@ class Game(GObject.Object):
 
         # Check for post game script
         postexit_command = self.runner.system_config.get("postexit_command")
-        command_array = shlex.split(postexit_command)
-        if system.path_exists(command_array[0]):
-            logger.info("Running post-exit command: %s", postexit_command)
-            postexit_thread = MonitoredCommand(
-                command_array,
-                include_processes=[os.path.basename(postexit_command)],
-                env=self.game_runtime_config["env"],
-                cwd=self.directory,
-            )
-            postexit_thread.start()
+        if postexit_command:
+            command_array = shlex.split(postexit_command)
+            if system.path_exists(command_array[0]):
+                logger.info("Running post-exit command: %s", postexit_command)
+                postexit_thread = MonitoredCommand(
+                    command_array,
+                    include_processes=[os.path.basename(postexit_command)],
+                    env=self.game_runtime_config["env"],
+                    cwd=self.directory,
+                )
+                postexit_thread.start()
 
         if self.discord_presence.available:
             self.discord_presence.clear_discord_rich_presence()
