@@ -502,9 +502,10 @@ class Game(GObject.Object):
             self.set_desktop_compositing(False)
 
         prelaunch_command = system_config.get("prelaunch_command")
-        if system.path_exists(prelaunch_command):
+        command_array = shlex.split(prelaunch_command)
+        if system.path_exists(command_array[0]):
             self.prelaunch_executor = MonitoredCommand(
-                [prelaunch_command],
+                command_array,
                 include_processes=[os.path.basename(prelaunch_command)],
                 env=self.game_runtime_config["env"],
                 cwd=self.directory,
@@ -597,10 +598,11 @@ class Game(GObject.Object):
 
         # Check for post game script
         postexit_command = self.runner.system_config.get("postexit_command")
-        if system.path_exists(postexit_command):
+        command_array = shlex.split(postexit_command)
+        if system.path_exists(command_array[0]):
             logger.info("Running post-exit command: %s", postexit_command)
             postexit_thread = MonitoredCommand(
-                [postexit_command],
+                command_array,
                 include_processes=[os.path.basename(postexit_command)],
                 env=self.game_runtime_config["env"],
                 cwd=self.directory,

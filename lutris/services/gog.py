@@ -332,7 +332,7 @@ class GOGSyncer:
         lutris_games = api.get_api_games(gog_ids, query_type="gogid")
         added_games = []
         for game in lutris_games:
-            lutris_data=pga.get_game_by_field(game["slug"], field="slug")
+            lutris_data = pga.get_game_by_field(game["slug"], field="slug")
             game_data = {
                 "name": game["name"],
                 "slug": game["slug"],
