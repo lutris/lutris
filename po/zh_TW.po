@@ -1,0 +1,158 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: lutris\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-14 02:06+0800\n"
+"PO-Revision-Date: 2020-06-14 01:54+0800\n"
+"Last-Translator: SwimmingTiger\n"
+"Language-Team: \n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2.1\n"
+
+#: share/lutris/ui/about-dialog.ui:8
+msgid "About Lutris"
+msgstr "關於 Lutris"
+
+#: share/lutris/ui/about-dialog.ui:18
+msgid "Open Source Gaming Platform"
+msgstr "開放原始碼遊戲平臺"
+
+#: share/lutris/ui/about-dialog.ui:21
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"本程式為自由軟體：您可以在自由軟基金會發佈的 \n"
+"GNU 通用公眾授權條款下轉散佈它並/或修改它，\n"
+"可使用第三版，或（如果您想要的話）任何更新的\n"
+"版本。\n"
+"\n"
+"本程式釋出是希望它有用，但並沒有任何擔保；\n"
+"也沒有任何具銷售力或適用於任何特定用途的暗\n"
+"示保證。參見 GNU 通用公眾授權條款以取得更多\n"
+"資訊。\n"
+"\n"
+"您應該會隨著本程式收到一份 GNU 通用公眾授權\n"
+"條款。如果沒有，請見 <http://www.gnu.org/licenses/>。\n"
+
+#: share/lutris/ui/dialog-lutris-login.ui:8
+msgid "Connect to lutris.net"
+msgstr "連線 lutris.net"
+
+#: share/lutris/ui/dialog-lutris-login.ui:26
+msgid "Forgot password?"
+msgstr "忘記密碼？"
+
+#: share/lutris/ui/dialog-lutris-login.ui:95
+msgid "Password"
+msgstr "密碼"
+
+#: share/lutris/ui/dialog-lutris-login.ui:109
+msgid "Username"
+msgstr "用戶名"
+
+#: share/lutris/ui/dialog-pga-sources.ui:79
+msgid "<b>Personnal Game Archives sources</b>"
+msgstr "<b>個人遊戲檔案源</b>"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:22
+msgid "Uninstall game"
+msgstr "卸載遊戲"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:89
+msgid "Are you sure you want to uninstall {game}?"
+msgstr "確定要卸載 {game} 嗎？"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:102
+msgid ""
+"Remove <b>all data</b> from game folder\n"
+"( <i>{path}</i>)"
+msgstr ""
+"<b>徹底刪除</b>遊戲安裝目錄\n"
+"( <i>{path}</i>)"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:121
+msgid "Remove from my library"
+msgstr "從遊戲庫中移除"
+
+#: share/lutris/ui/runner-entry.ui:33
+msgid "name"
+msgstr "名稱"
+
+#: share/lutris/ui/runner-entry.ui:52
+msgid "description"
+msgstr "描述"
+
+#: share/lutris/ui/runner-entry.ui:69
+msgid "platforms"
+msgstr "平臺"
+
+#: share/lutris/ui/runner-entry.ui:104
+msgid "Manage Versions"
+msgstr "添加/刪除版本"
+
+#: share/lutris/ui/runner-entry.ui:127
+msgid "Install Runner"
+msgstr "安裝運行環境"
+
+#: share/lutris/ui/runner-entry.ui:149
+msgid "Configure Runner"
+msgstr "配置運行環境"
+
+#: share/lutris/ui/runner-entry.ui:172
+msgid "Remove Runner"
+msgstr "卸載運行環境"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:19
+msgid "Remove ALL versions?"
+msgstr "是否刪除所有已安裝的版本？"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:23
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:23
+msgid "Cancel"
+msgstr "取消"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:36
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:19
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:36
+msgid "Remove"
+msgstr "刪除"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:59
+msgid ""
+"This will remove <b>ALL</b> versions of %s.\n"
+"\n"
+"Use the Manage Versions button if you want to remove just one version."
+msgstr ""
+"即將刪除<b>所有</b>已安裝的 %s 版本。\n"
+"\n"
+"如果只想刪除某個版本，請使用“添加/刪除版本”按鈕。"
+
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:59
+msgid "This will remove <b>%s</b> and all associated data."
+msgstr "這將刪除 <b>%s</b> 和所有相關的資料及檔案。"
+
+#: share/lutris/ui/runners-dialog.ui:16
+msgid "Manage Runners"
+msgstr "安裝/卸載運行環境"
+
+#: share/lutris/ui/runners-dialog.ui:24
+msgid "Refresh Runners"
+msgstr "翻新運行環境"
+
+#: share/lutris/ui/runners-dialog.ui:40
+msgid "Open Runners Folder"
+msgstr "打開運行環境目錄"
