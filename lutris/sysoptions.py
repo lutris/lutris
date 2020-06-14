@@ -240,8 +240,8 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "gamemode",
         "type": "bool",
-        "default": system.LINUX_SYSTEM.is_feature_supported("GAMEMODE"),
-        "condition": system.LINUX_SYSTEM.is_feature_supported("GAMEMODE"),
+        "default": system.LINUX_SYSTEM.gamemode_available,
+        "condition": system.LINUX_SYSTEM.gamemode_available,
         "label": "Enable Feral gamemode",
         "help": "Request a set of optimisations be temporarily applied to the host OS",
     },
