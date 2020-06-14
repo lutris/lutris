@@ -474,10 +474,13 @@ class Game(GObject.Object):
         # Feral gamemode
         gamemode = system_config.get("gamemode")
         if gamemode:
-            env["LD_PRELOAD"] = ":".join([path for path in [
-                env.get("LD_PRELOAD"),
-                "libgamemodeauto.so",
-            ] if path])
+            if system.find_executable("gamemoderun"):
+                launch_arguments.insert(0, "gamemoderun")
+            else:
+                env["LD_PRELOAD"] = ":".join([path for path in [
+                    env.get("LD_PRELOAD"),
+                    "libgamemodeauto.so",
+                ] if path])
 
         # LD_LIBRARY_PATH
         game_ld_libary_path = gameplay_info.get("ld_library_path")
