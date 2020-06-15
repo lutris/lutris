@@ -61,7 +61,7 @@ class Application(Gtk.Application):
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         )
         init_lutris()
-        gettext.bindtextdomain("lutris", "/usr/share/locale")
+        gettext.bindtextdomain("lutris", "%s/share/locale" % settings.PREFIX_PATH)
         gettext.textdomain("lutris")
 
         GLib.set_application_name(_("Lutris"))

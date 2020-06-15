@@ -28,6 +28,12 @@ BANNER_PATH = os.path.join(DATA_DIR, "banners")
 COVERART_PATH = os.path.join(DATA_DIR, "coverart")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
+# Application install prefix
+# Example:
+# /usr/lib/python3.7/site-packages/lutris/settings.py/../../../../.. -> /usr
+# $HOME/.local/lib/python3.7/site-packages/lutris/settings.py/../../../../.. -> $HOME/.local
+PREFIX_PATH = os.path.realpath(os.path.join(__file__, *([os.path.pardir] * 5)))
+
 sio = SettingsIO(CONFIG_FILE)
 PGA_DB = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
 SITE_URL = sio.read_setting("website") or "https://lutris.net"
