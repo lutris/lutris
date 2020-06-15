@@ -107,6 +107,8 @@ Example for Wine (set wine version for this installer):
     wine:
       version: overwatch-2.15-x86_64
 
+To get a complete list of all the currently valid runners and their available version you can get a list of them from https://lutris.net/api/runners 
+
 System configuration
 --------------------
 
