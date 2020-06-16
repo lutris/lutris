@@ -6,6 +6,7 @@ Translations are not implemented yet, see github issue #728. Please read the not
 
 ```bash
 meson transl-builddir
+ninja build -C transl-builddir
 ninja lutris-update-po -C transl-builddir
 ```
 Now update the `$LANG.po` file, and run after that
@@ -19,6 +20,7 @@ and commit your changes.
 
 ```bash
 meson transl-builddir
+ninja build -C transl-builddir
 ninja lutris-pot -C transl-builddir
 mv po/lutris.pot po/$LANG.po
 ```
@@ -38,6 +40,7 @@ and commit your changes.
   ```bash
   rm -Rf transl-builddir
   meson transl-builddir --prefix=~/.local
+  ninja build -C transl-builddir
   ninja install -C transl-builddir
   env LANGUAGE=$LANG ~/.local/bin/lutris
   ```
