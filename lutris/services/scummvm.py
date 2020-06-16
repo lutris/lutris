@@ -3,6 +3,7 @@
 import os
 import re
 from configparser import ConfigParser
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris import pga
@@ -11,7 +12,7 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
-NAME = "ScummVM"
+NAME = _("ScummVM")
 ICON = "scummvm"
 ONLINE = False
 INSTALLER_SLUG = "system-scummvm"

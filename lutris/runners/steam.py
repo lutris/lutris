@@ -3,6 +3,7 @@
 import os
 import subprocess
 import time
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris.command import MonitoredCommand
@@ -39,16 +40,16 @@ def is_running():
 
 
 class steam(Runner):
-    description = "Runs Steam for Linux games"
-    human_name = "Steam"
-    platforms = ["Linux"]
+    description = _("Runs Steam for Linux games")
+    human_name = _("Steam")
+    platforms = [_("Linux")]
     runner_executable = "steam"
     game_options = [
         {
             "option": "appid",
-            "label": "Application ID",
+            "label": _("Application ID"),
             "type": "string",
-            "help": (
+            "help": _(
                 "The application ID can be retrieved from the game's "
                 "page at steampowered.com. Example: 235320 is the "
                 "app ID for <i>Original War</i> in: \n"
@@ -58,47 +59,47 @@ class steam(Runner):
         {
             "option": "args",
             "type": "string",
-            "label": "Arguments",
-            "help": (
+            "label": _("Arguments"),
+            "help": _(
                 "Command line arguments used when launching the game.\n"
                 "Ignored when Steam Big Picture mode is enabled."
             ),
         },
         {
             "option": "run_without_steam",
-            "label": "DRM free mode (Do not launch Steam)",
+            "label": _("DRM free mode (Do not launch Steam)"),
             "type": "bool",
             "default": False,
             "advanced": True,
-            "help": (
+            "help": _(
                 "Run the game directly without Steam, requires the game binary path to be set"
             ),
         },
         {
             "option": "steamless_binary",
             "type": "file",
-            "label": "Game binary path",
+            "label": _("Game binary path"),
             "advanced": True,
-            "help": "Path to the game executable (Required by DRM free mode)",
+            "help": _("Path to the game executable (Required by DRM free mode)"),
         },
     ]
     runner_options = [
         {
             "option": "quit_steam_on_exit",
-            "label": "Stop Steam after game exits",
+            "label": _("Stop Steam after game exits"),
             "type": "bool",
             "default": False,
-            "help": (
+            "help": _(
                 "Shut down Steam after the game has quit\n"
                 "(only if Steam was started by Lutris)"
             ),
         },
         {
             "option": "start_in_big_picture",
-            "label": "Start Steam in Big Picture mode",
+            "label": _("Start Steam in Big Picture mode"),
             "type": "bool",
             "default": False,
-            "help": (
+            "help": _(
                 "Launches Steam in Big Picture mode.\n"
                 "Only works if Steam is not running or "
                 "already running in Big Picture mode.\n"
@@ -107,10 +108,10 @@ class steam(Runner):
         },
         {
             "option": "steam_native_runtime",
-            "label": "Disable Steam Runtime (use native libraries)",
+            "label": _("Disable Steam Runtime (use native libraries)"),
             "type": "bool",
             "default": False,
-            "help": (
+            "help": _(
                 "Launches Steam with STEAM_RUNTIME=0. "
                 "Make sure you disabled Lutris Runtime and "
                 "have the required libraries installed."
@@ -118,10 +119,10 @@ class steam(Runner):
         },
         {
             "option": "lsi_steam",
-            "label": "Start Steam with LSI",
+            "label": _("Start Steam with LSI"),
             "type": "bool",
             "default": False,
-            "help": (
+            "help": _(
                 "Launches steam with LSI patches enabled. "
                 "Make sure Lutris Runtime is disabled and "
                 "you have LSI installed. "
@@ -131,9 +132,9 @@ class steam(Runner):
         {
             "option": "args",
             "type": "string",
-            "label": "Arguments",
+            "label": _("Arguments"),
             "advanced": True,
-            "help": ("Extra command line arguments used when " "launching Steam"),
+            "help": _("Extra command line arguments used when launching Steam"),
         },
     ]
     system_options_override = [{"option": "disable_runtime", "default": True}]
@@ -149,7 +150,7 @@ class steam(Runner):
 
     def __init__(self, config=None):
         super(steam, self).__init__(config)
-        self.own_game_remove_method = "Remove game data (through Steam)"
+        self.own_game_remove_method = _("Remove game data (through Steam)")
         self.no_game_remove_warning = True
         self.original_steampid = None
 
@@ -299,7 +300,7 @@ class steam(Runner):
 
     def prelaunch(self):
         def has_steam_shutdown(times=10):
-            for _ in range(times):
+            for __ in range(times):
                 time.sleep(1)
                 if not is_running():
                     return True

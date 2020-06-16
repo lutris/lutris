@@ -1,30 +1,33 @@
+
+from gettext import gettext as _
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
 
 class ags(Runner):
-    human_name = "Adventure Game Studio"
-    description = "Graphics adventure engine"
-    platforms = ["Linux"]
+    human_name = _("Adventure Game Studio")
+    description = _("Graphics adventure engine")
+    platforms = [_("Linux")]
     runner_executable = "ags/ags.sh"
-    game_options = [{"option": "main_file", "type": "file", "label": "Game executable or directory"}]
+    game_options = [{"option": "main_file", "type": "file", "label": _("Game executable or directory")}]
     runner_options = [
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": True,
         },
         {
             "option": "filter",
             "type": "choice",
-            "label": "Graphics filter",
+            "label": _("Graphics filter"),
             "choices": [
-                ("None", "none"),
-                ("Standard scaling", "stdscale"),
-                ("HQ2x", "hq2x"),
-                ("HQ3x", "hq3x"),
+                (_("None"), "none"),
+                (_("Standard scaling"), "stdscale"),
+                (_("HQ2x"), "hq2x"),
+                (_("HQ3x"), "hq3x"),
             ],
         },
     ]

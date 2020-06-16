@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import subprocess
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gio
@@ -17,7 +18,7 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
-NAME = "Desktop games"
+NAME = _("Desktop games")
 ICON = "linux"
 ONLINE = False
 

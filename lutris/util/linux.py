@@ -10,11 +10,11 @@ import subprocess
 import sys
 from collections import Counter, defaultdict
 
+from lutris.util import system
 # Lutris Modules
 from lutris.util.disks import get_drive_for_path
 from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
-from lutris.util import system
 
 try:
     from distro import linux_distribution

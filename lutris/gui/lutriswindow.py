@@ -3,6 +3,7 @@
 # pylint: disable=no-member
 import os
 from collections import namedtuple
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
@@ -125,8 +126,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
         self.website_search_toggle.set_image(lutris_icon)
-        self.website_search_toggle.set_label("Search Lutris.net")
-        self.website_search_toggle.set_tooltip_text("Search Lutris.net")
+        self.website_search_toggle.set_label(_("Search Lutris.net"))
+        self.website_search_toggle.set_tooltip_text(_("Search Lutris.net"))
         self.sidebar_listbox = SidebarListBox()
         self.sidebar_listbox.set_size_request(250, -1)
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
@@ -548,7 +549,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Synchronize games with local stuff and server."""
 
         def update_gui(result, error):
-            self.sync_label.set_label("Synchronize library")
+            self.sync_label.set_label(_("Synchronize library"))
             self.sync_spinner.props.active = False
             self.sync_button.set_sensitive(True)
             if error:
@@ -565,7 +566,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             else:
                 logger.error("No results returned when syncing the library")
 
-        self.sync_label.set_label("Synchronizing…")
+        self.sync_label.set_label(_("Synchronizing…"))
         self.sync_spinner.props.active = True
         self.sync_button.set_sensitive(False)
         AsyncCall(sync_from_remote, update_gui)
@@ -611,8 +612,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_disconnect(self, *_args):
         """Callback from user disconnect"""
         dlg = dialogs.QuestionDialog({
-            "question": "Do you want to log out from Lutris?",
-            "title": "Log out?",
+            "question": _("Do you want to log out from Lutris?"),
+            "title": _("Log out?"),
         })
         if dlg.result != Gtk.ResponseType.YES:
             return
@@ -729,13 +730,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.search_terms = self.search_entry.props.text
         if toggle_button.props.active:
             self.search_mode = "website"
-            self.search_entry.set_placeholder_text("Search Lutris.net")
+            self.search_entry.set_placeholder_text(_("Search Lutris.net"))
             self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "folder-download-symbolic")
             self.game_store.search_mode = True
             self.search_games(self.search_terms)
         else:
             self.search_mode = "local"
-            self.search_entry.set_placeholder_text("Filter the list of games")
+            self.search_entry.set_placeholder_text(_("Filter the list of games"))
             self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "system-search-symbolic")
             self.search_games("")
             self.search_spinner.props.active = False
@@ -906,7 +907,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.invalidate_game_filter()
 
     def show_invalid_credential_warning(self):
-        dialogs.ErrorDialog("Could not connect to your Lutris account. Please sign in again.")
+        dialogs.ErrorDialog(_("Could not connect to your Lutris account. Please sign in again."))
 
     def show_library_sync_error(self):
-        dialogs.ErrorDialog("Failed to retrieve game library. " "There might be some problems contacting lutris.net")
+        dialogs.ErrorDialog(_("Failed to retrieve game library. There might be some problems contacting lutris.net"))

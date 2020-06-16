@@ -2,6 +2,7 @@
 # Standard Library
 import os
 import time
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
@@ -34,10 +35,10 @@ def kill():
 
 # pylint: disable=C0103
 class winesteam(wine.wine):
-    description = "Runs Steam for Windows games"
+    description = _("Runs Steam for Windows games")
     multiple_versions = False
-    human_name = "Wine Steam"
-    platforms = ["Windows"]
+    human_name = _("Wine Steam")
+    platforms = [_("Windows")]
     runnable_alone = True
     depends_on = wine.wine
     default_arch = WINE_DEFAULT_ARCH
@@ -48,8 +49,8 @@ class winesteam(wine.wine):
             "type":
             "string",
             "label":
-            "Application ID",
-            "help": (
+            _("Application ID"),
+            "help": _(
                 "The application ID can be retrieved from the game's "
                 "page at steampowered.com. Example: 235320 is the "
                 "app ID for <i>Original War</i> in: \n"
@@ -59,8 +60,8 @@ class winesteam(wine.wine):
         {
             "option": "args",
             "type": "string",
-            "label": "Arguments",
-            "help": "Command line arguments used when launching the game",
+            "label": _("Arguments"),
+            "help": _("Command line arguments used when launching the game"),
         },
         {
             "option":
@@ -68,8 +69,8 @@ class winesteam(wine.wine):
             "type":
             "directory_chooser",
             "label":
-            "Prefix",
-            "help": (
+            _("Prefix"),
+            "help": _(
                 'The prefix (also named "bottle") used by Wine.\n'
                 "It's a directory containing a set of files and "
                 "folders making up a confined Windows environment."
@@ -81,11 +82,11 @@ class winesteam(wine.wine):
             "type":
             "choice",
             "label":
-            "Prefix architecture",
-            "choices": [("Auto", "auto"), ("32-bit", "win32"), ("64-bit", "win64")],
+            _("Prefix architecture"),
+            "choices": [(_("Auto"), "auto"), (_("32-bit"), "win32"), (_("64-bit"), "win64")],
             "default":
             "auto",
-            "help": (
+            "help": _(
                 "The architecture of the Windows environment.\n"
                 "32-bit is recommended unless running "
                 "a 64-bit only game."
@@ -99,32 +100,32 @@ class winesteam(wine.wine):
             "default":
             False,
             "label":
-            "Do not launch game, only open Steam",
-            "help": (
+            _("Do not launch game, only open Steam"),
+            "help": _(
                 "Opens Steam with the current settings without running the game, "
                 "useful if a game has several launch options."
             ),
         },
         {
             "option": "run_without_steam",
-            "label": "DRM free mode (Do not launch Steam)",
+            "label": _("DRM free mode (Do not launch Steam)"),
             "type": "bool",
             "default": False,
             "advanced": True,
-            "help": "Run the game directly without Steam, requires the game binary path to be set",
+            "help": _("Run the game directly without Steam, requires the game binary path to be set"),
         },
         {
             "option": "steamless_binary",
             "type": "file",
-            "label": "Game binary path",
+            "label": _("Game binary path"),
             "advanced": True,
-            "help": "Path to the game executable (Required by DRM free mode)",
+            "help": _("Path to the game executable (Required by DRM free mode)"),
         },
     ]
 
     def __init__(self, config=None):
         super(winesteam, self).__init__(config)
-        self.own_game_remove_method = "Remove game data (through Wine Steam)"
+        self.own_game_remove_method = _("Remove game data (through Wine Steam)")
         self.no_game_remove_warning = True
         winesteam_options = [
             {
@@ -133,8 +134,8 @@ class winesteam(wine.wine):
                 "type":
                 "directory_chooser",
                 "label":
-                "Custom Steam location",
-                "help": (
+                _("Custom Steam location"),
+                "help": _(
                     "Choose a folder containing Steam.exe\n"
                     "By default, Lutris will look for a Windows Steam "
                     "installation into ~/.wine or will install it in "
@@ -143,33 +144,33 @@ class winesteam(wine.wine):
             },
             {
                 "option": "quit_steam_on_exit",
-                "label": "Stop Steam after game exits",
+                "label": _("Stop Steam after game exits"),
                 "type": "bool",
                 "default": True,
-                "help": "Shut down Steam after the game has quit.",
+                "help": _("Shut down Steam after the game has quit."),
             },
             {
                 "option": "args",
                 "type": "string",
-                "label": "Arguments",
+                "label": _("Arguments"),
                 "advanced": True,
-                "help": ("Extra command line arguments used when "
-                         "launching Steam"),
+                "help": _("Extra command line arguments used when "
+                          "launching Steam"),
             },
             {
                 "option": "default_win32_prefix",
                 "type": "directory_chooser",
-                "label": "Default Wine prefix (32bit)",
+                "label": _("Default Wine prefix (32bit)"),
                 "default": os.path.join(settings.RUNNER_DIR, "winesteam/prefix"),
-                "help": "Default prefix location for Steam (32 bit)",
+                "help": _("Default prefix location for Steam (32 bit)"),
                 "advanced": True,
             },
             {
                 "option": "default_win64_prefix",
                 "type": "directory_chooser",
-                "label": "Default Wine prefix (64bit)",
+                "label": _("Default Wine prefix (64bit)"),
                 "default": os.path.join(settings.RUNNER_DIR, "winesteam/prefix64"),
-                "help": "Default prefix location for Steam (64 bit)",
+                "help": _("Default prefix location for Steam (64 bit)"),
                 "advanced": True,
             },
         ]
@@ -177,7 +178,7 @@ class winesteam(wine.wine):
             self.runner_options.insert(0, option)
 
     def __repr__(self):
-        return "Winesteam runner (%s)" % self.config
+        return _("Winesteam runner (%s)") % self.config
 
     @property
     def appid(self):
@@ -407,7 +408,7 @@ class winesteam(wine.wine):
         an error if it cannot be killed"""
 
         def has_steam_shutdown(times=10):
-            for _ in range(1, times + 1):
+            for __ in range(1, times + 1):
                 time.sleep(1)
                 if not is_running():
                     return True

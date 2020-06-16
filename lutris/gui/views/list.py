@@ -1,4 +1,6 @@
 """TreeView based game list"""
+from gettext import gettext as _
+
 # Third Party Libraries
 # pylint: disable=no-member
 from gi.repository import Gtk, Pango
@@ -37,15 +39,15 @@ class GameListView(Gtk.TreeView, GameView):
         name_cell = self.set_text_cell()
         name_cell.set_padding(5, 0)
 
-        self.set_column(name_cell, "Name", COL_NAME, 200)
-        self.set_column(default_text_cell, "Year", COL_YEAR, 60)
-        self.set_column(default_text_cell, "Runner", COL_RUNNER_HUMAN_NAME, 120)
-        self.set_column(default_text_cell, "Platform", COL_PLATFORM, 120)
-        self.set_column(default_text_cell, "Last Played", COL_LASTPLAYED_TEXT, 120)
+        self.set_column(name_cell, _("Name"), COL_NAME, 200)
+        self.set_column(default_text_cell, _("Year"), COL_YEAR, 60)
+        self.set_column(default_text_cell, _("Runner"), COL_RUNNER_HUMAN_NAME, 120)
+        self.set_column(default_text_cell, _("Platform"), COL_PLATFORM, 120)
+        self.set_column(default_text_cell, _("Last Played"), COL_LASTPLAYED_TEXT, 120)
         self.set_sort_with_column(COL_LASTPLAYED_TEXT, COL_LASTPLAYED)
-        self.set_column(default_text_cell, "Installed At", COL_INSTALLED_AT_TEXT, 120)
+        self.set_column(default_text_cell, _("Installed At"), COL_INSTALLED_AT_TEXT, 120)
         self.set_sort_with_column(COL_INSTALLED_AT_TEXT, COL_INSTALLED_AT)
-        self.set_column(default_text_cell, "Play Time", COL_PLAYTIME_TEXT, 100)
+        self.set_column(default_text_cell, _("Play Time"), COL_PLAYTIME_TEXT, 100)
         self.set_sort_with_column(COL_PLAYTIME_TEXT, COL_PLAYTIME)
 
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)

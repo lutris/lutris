@@ -1,6 +1,7 @@
 # Standard Library
 import os
 import shlex
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
@@ -9,9 +10,9 @@ from lutris.util import system
 
 
 class dosbox(Runner):
-    human_name = "DOSBox"
-    description = "MS-Dos emulator"
-    platforms = ["MS-DOS"]
+    human_name = _("DOSBox")
+    description = _("MS-Dos emulator")
+    platforms = [_("MS-DOS")]
     runnable_alone = True
     runner_executable = "dosbox/bin/dosbox"
     game_options = [
@@ -21,8 +22,8 @@ class dosbox(Runner):
             "type":
             "file",
             "label":
-            "Main file",
-            "help": (
+            _("Main file"),
+            "help": _(
                 "The CONF, EXE, COM or BAT file to launch.\n"
                 "It can be left blank if the launch of the executable is "
                 "managed in the config file."
@@ -34,8 +35,8 @@ class dosbox(Runner):
             "type":
             "file",
             "label":
-            "Configuration file",
-            "help": (
+            _("Configuration file"),
+            "help": _(
                 "Start Dosbox with the options specified in this file. \n"
                 "It can have a section in which you can put commands "
                 "to execute on startup. Read Dosbox's documentation "
@@ -45,8 +46,8 @@ class dosbox(Runner):
         {
             "option": "args",
             "type": "string",
-            "label": "Command arguments",
-            "help": "Command line arguments used when launching DOSBox",
+            "label": _("Command arguments"),
+            "help": _("Command line arguments used when launching DOSBox"),
             "validator": shlex.split,
         },
         {
@@ -55,8 +56,8 @@ class dosbox(Runner):
             "type":
             "directory_chooser",
             "label":
-            "Working directory",
-            "help": (
+            _("Working directory"),
+            "help": _(
                 "The location where the game is run from.\n"
                 "By default, Lutris uses the directory of the "
                 "executable."
@@ -89,7 +90,7 @@ class dosbox(Runner):
             "option":
             "scaler",
             "label":
-            "Graphic scaler",
+            _("Graphic scaler"),
             "type":
             "choice",
             "choices":
@@ -97,22 +98,22 @@ class dosbox(Runner):
             "default":
             "normal3x",
             "help":
-            ("The algorithm used to scale up the game's base "
-             "resolution, resulting in different visual styles. "),
+            _("The algorithm used to scale up the game's base "
+              "resolution, resulting in different visual styles. "),
         },
         {
             "option": "exit",
-            "label": "Exit Dosbox with the game",
+            "label": _("Exit Dosbox with the game"),
             "type": "bool",
             "default": True,
-            "help": "Shut down Dosbox when the game is quit.",
+            "help": _("Shut down Dosbox when the game is quit."),
         },
         {
             "option": "fullscreen",
-            "label": "Open game in fullscreen",
+            "label": _("Open game in fullscreen"),
             "type": "bool",
             "default": False,
-            "help": "Tells Dosbox to launch the game in fullscreen.",
+            "help": _("Tells Dosbox to launch the game in fullscreen."),
         },
     ]
 

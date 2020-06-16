@@ -403,7 +403,7 @@
             <property name="can_focus">False</property>
             <property name="receives_default">False</property>
             <property name="action_name">win.show-hidden-games</property>
-            <property name="text">Show Hidden Games</property>
+            <property name="text" translatable="yes">Show _Hidden Games</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -578,7 +578,7 @@
             <property name="can_focus">True</property>
             <property name="receives_default">False</property>
             <property name="action_name">win.show-tray-icon</property>
-            <property name="text" translatable="yes">Show Tray Icon</property>
+            <property name="text" translatable="yes">Show _Tray Icon</property>
           </object>
           <packing>
             <property name="expand">False</property>

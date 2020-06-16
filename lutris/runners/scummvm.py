@@ -1,6 +1,7 @@
 # Standard Library
 import os
 import subprocess
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
@@ -10,39 +11,39 @@ from lutris.util.strings import split_arguments
 
 
 class scummvm(Runner):
-    description = "Runs various 2D point-and-click adventure games."
-    human_name = "ScummVM"
-    platforms = ["Linux"]
+    description = _("Runs various 2D point-and-click adventure games.")
+    human_name = _("ScummVM")
+    platforms = [_("Linux")]
     runnable_alone = True
     runner_executable = "scummvm/bin/scummvm"
     game_options = [
         {
             "option": "game_id",
             "type": "string",
-            "label": "Game identifier"
+            "label": _("Game identifier")
         },
         {
             "option": "path",
             "type": "directory_chooser",
-            "label": "Game files location"
+            "label": _("Game files location")
         },
         {
             "option": "subtitles",
-            "label": "Enable subtitles (if the game has voice)",
+            "label": _("Enable subtitles (if the game has voice)"),
             "type": "bool",
             "default": False,
         },
         {
             "option": "args",
             "type": "string",
-            "label": "Arguments",
-            "help": "Command line arguments used when launching the game",
+            "label": _("Arguments"),
+            "help": _("Command line arguments used when launching the game"),
         },
     ]
     runner_options = [
         {
             "option": "fullscreen",
-            "label": "Fullscreen mode",
+            "label": _("Fullscreen mode"),
             "type": "bool",
             "default": False,
         },
@@ -50,12 +51,12 @@ class scummvm(Runner):
             "option":
             "aspect",
             "label":
-            "Aspect ratio correction",
+            _("Aspect ratio correction"),
             "type":
             "bool",
             "default":
             True,
-            "help": (
+            "help": _(
                 "Most games supported by ScummVM were made for VGA "
                 "display modes using rectangular pixels. Activating "
                 "this option for these games will preserve the 4:3 "
@@ -66,13 +67,13 @@ class scummvm(Runner):
             "option":
             "gfx-mode",
             "label":
-            "Graphic scaler",
+            _("Graphic scaler"),
             "type":
             "choice",
             "default":
             "3x",
             "choices": [
-                ("normal", "normal"),
+                (_("normal"), "normal"),
                 ("2x", "2x"),
                 ("3x", "3x"),
                 ("hq2x", "hq2x"),
@@ -86,14 +87,14 @@ class scummvm(Runner):
                 ("dotmatrix", "dotmatrix"),
             ],
             "help":
-            ("The algorithm used to scale up the game's base "
-             "resolution, resulting in different visual styles. "),
+            _("The algorithm used to scale up the game's base "
+              "resolution, resulting in different visual styles. "),
         },
         {
             "option": "datadir",
-            "label": "Data directory",
+            "label": _("Data directory"),
             "type": "directory_chooser",
-            "help": "Defaults to share/scummvm if unspecified.",
+            "help": _("Defaults to share/scummvm if unspecified."),
             "advanced": True,
         },
     ]

@@ -1,6 +1,7 @@
 """Base module for runners"""
 # Standard Library
 import os
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -148,7 +149,7 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
                 {
                     "option": "runner_executable",
                     "type": "file",
-                    "label": "Custom executable for the runner",
+                    "label": _("Custom executable for the runner"),
                     "advanced": True,
                 }
             )
@@ -249,9 +250,9 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
         """
         dialog = dialogs.QuestionDialog(
             {
-                "question": ("The required runner is not installed.\n"
-                             "Do you wish to install it now?"),
-                "title": "Required runner unavailable",
+                "question": _("The required runner is not installed.\n"
+                              "Do you wish to install it now?"),
+                "title": _("Required runner unavailable"),
             }
         )
         if Gtk.ResponseType.YES == dialog.result:

@@ -2,6 +2,7 @@
 # Standard Library
 import os
 import subprocess
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
@@ -36,9 +37,9 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     """MAME runner"""
 
-    human_name = "MAME"
-    description = "Arcade game emulator"
-    platforms = ["Arcade", "Plug & Play TV games", "LCD handheld games", "Game & Watch"]
+    human_name = _("MAME")
+    description = _("Arcade game emulator")
+    platforms = [_("Arcade"), _("Plug & Play TV games"), _("LCD handheld games"), _("Game & Watch")]
     runner_executable = "mame/mame"
     runnable_alone = True
     config_dir = os.path.expanduser("~/.mame")
@@ -49,65 +50,65 @@ class mame(Runner):  # pylint: disable=invalid-name
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
+            "label": _("ROM file"),
             "default_path": "game_path",
         }, {
             "option": "machine",
             "type": "choice_with_search",
-            "label": "Machine",
+            "label": _("Machine"),
             "choices": get_system_choices,
-            "help": "The emulated machine."
+            "help": _("The emulated machine.")
         }, {
             "option":
             "device",
             "type":
             "choice_with_entry",
             "label":
-            "Storage type",
+            _("Storage type"),
             "choices": [
-                ("Floppy disk", "flop"),
-                ("Floppy drive 1", "flop1"),
-                ("Floppy drive 2", "flop2"),
-                ("Floppy drive 3", "flop3"),
-                ("Floppy drive 4", "flop4"),
-                ("Cassette (tape)", "cass"),
-                ("Cassette 1 (tape)", "cass1"),
-                ("Cassette 2 (tape)", "cass2"),
-                ("Cartridge", "cart"),
-                ("Cartridge 1", "cart1"),
-                ("Cartridge 2", "cart2"),
-                ("Cartridge 3", "cart3"),
-                ("Cartridge 4", "cart4"),
-                ("Snapshot", "snapshot"),
-                ("Hard Disk", "hard"),
-                ("Hard Disk 1", "hard1"),
-                ("Hard Disk 2", "hard2"),
-                ("CDROM", "cdrm"),
-                ("CDROM 1", "cdrm1"),
-                ("CDROM 2", "cdrm2"),
-                ("Snapshot", "dump"),
-                ("Quickload", "quickload"),
-                ("Memory Card", "memc"),
-                ("Cylinder", "cyln"),
-                ("Punch Tape 1", "ptap1"),
-                ("Punch Tape 2", "ptap2"),
-                ("Print Out", "prin"),
+                (_("Floppy disk"), "flop"),
+                (_("Floppy drive 1"), "flop1"),
+                (_("Floppy drive 2"), "flop2"),
+                (_("Floppy drive 3"), "flop3"),
+                (_("Floppy drive 4"), "flop4"),
+                (_("Cassette (tape)"), "cass"),
+                (_("Cassette 1 (tape)"), "cass1"),
+                (_("Cassette 2 (tape)"), "cass2"),
+                (_("Cartridge"), "cart"),
+                (_("Cartridge 1"), "cart1"),
+                (_("Cartridge 2"), "cart2"),
+                (_("Cartridge 3"), "cart3"),
+                (_("Cartridge 4"), "cart4"),
+                (_("Snapshot"), "snapshot"),
+                (_("Hard Disk"), "hard"),
+                (_("Hard Disk 1"), "hard1"),
+                (_("Hard Disk 2"), "hard2"),
+                (_("CDROM"), "cdrm"),
+                (_("CDROM 1"), "cdrm1"),
+                (_("CDROM 2"), "cdrm2"),
+                (_("Snapshot"), "dump"),
+                (_("Quickload"), "quickload"),
+                (_("Memory Card"), "memc"),
+                (_("Cylinder"), "cyln"),
+                (_("Punch Tape 1"), "ptap1"),
+                (_("Punch Tape 2"), "ptap2"),
+                (_("Print Out"), "prin"),
             ],
         }, {
             "option": "platform",
             "type": "choice",
-            "label": "Platform",
-            "choices": (("Auto", ""), ("Plug & Play TV games", "1"), ("LCD handheld games", "2")),
+            "label": _("Platform"),
+            "choices": ((_("Auto"), ""), (_("Plug & Play TV games"), "1"), (_("LCD handheld games"), "2")),
         }, {
             "option": "autoboot_command",
             "type": "string",
-            "label": "Autoboot command",
-            "help": ("Autotype this command when the system has started,"
-                     "an enter keypress is automatically added."),
+            "label": _("Autoboot command"),
+            "help": _("Autotype this command when the system has started,"
+                      "an enter keypress is automatically added."),
         }, {
             "option": "autoboot_delay",
             "type": "range",
-            "label": "Delay before entering autoboot command",
+            "label": _("Delay before entering autoboot command"),
             "min": 0,
             "max": 120,
         }
@@ -120,8 +121,8 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type":
             "directory_chooser",
             "label":
-            "ROM/BIOS path",
-            "help": (
+            _("ROM/BIOS path"),
+            "help": _(
                 "Choose the folder containing ROMs and BIOS files.\n"
                 "These files contain code from the original hardware "
                 "necessary to the emulation."
@@ -130,29 +131,29 @@ class mame(Runner):  # pylint: disable=invalid-name
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": True,
         },
         {
             "option": "video",
             "type": "choice",
-            "label": "Video backend",
+            "label": _("Video backend"),
             "choices": (
-                ("Auto", ""),
+                (_("Auto"), ""),
                 ("OpenGL", "opengl"),
                 ("BGFX", "bgfx"),
                 ("SDL2", "accel"),
-                ("Software", "soft"),
+                (_("Software"), "soft"),
             ),
             "default": "",
         },
         {
             "option": "waitvsync",
             "type": "bool",
-            "label": "Wait for VSync",
+            "label": _("Wait for VSync"),
             "help":
-            ("Enable waiting for  the  start  of  VBLANK  before "
-             "flipping  screens; reduces tearing effects."),
+            _("Enable waiting for  the  start  of  VBLANK  before "
+              "flipping  screens; reduces tearing effects."),
             "advanced": True,
             "default": False,
         },
@@ -164,23 +165,23 @@ class mame(Runner):  # pylint: disable=invalid-name
             "label":
             "Menu mode key",
             "choices": [
-                ("Scroll Lock", "SCRLOCK"),
-                ("Num Lock", "NUMLOCK"),
-                ("Caps Lock", "CAPSLOCK"),
-                ("Menu", "MENU"),
-                ("Right Control", "RCONTROL"),
-                ("Left Control", "LCONTROL"),
-                ("Right Alt", "RALT"),
-                ("Left Alt", "LALT"),
-                ("Right Super", "RWIN"),
-                ("Left Super", "LWIN"),
+                (_("Scroll Lock"), "SCRLOCK"),
+                (_("Num Lock"), "NUMLOCK"),
+                (_("Caps Lock"), "CAPSLOCK"),
+                (_("Menu"), "MENU"),
+                (_("Right Control"), "RCONTROL"),
+                (_("Left Control"), "LCONTROL"),
+                (_("Right Alt"), "RALT"),
+                (_("Left Alt"), "LALT"),
+                (_("Right Super"), "RWIN"),
+                (_("Left Super"), "LWIN"),
             ],
             "default":
             "SCRLOCK",
             "advanced":
             True,
-            "help": ("Key to switch between Full Keyboard Mode and "
-                     "Partial Keyboard Mode (default: Scroll Lock)"),
+            "help": _("Key to switch between Full Keyboard Mode and "
+                      "Partial Keyboard Mode (default: Scroll Lock)"),
         },
     ]
 
@@ -206,8 +207,8 @@ class mame(Runner):  # pylint: disable=invalid-name
             return machine_mapping[self.game_config["machine"]]
         rom_file = os.path.basename(self.game_config.get("main_file", ""))
         if rom_file.startswith("gnw_"):
-            return "Nintendo Game & Watch"
-        return "Arcade"
+            return _("Nintendo Game & Watch")
+        return _("Arcade")
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.config_dir, "mame.ini")):

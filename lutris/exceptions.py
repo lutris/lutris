@@ -1,6 +1,7 @@
 """Exception handling module"""
 # Standard Library
 from functools import wraps
+from gettext import gettext as _
 
 
 class LutrisError(Exception):
@@ -22,7 +23,7 @@ class GameConfigError(LutrisError):
 class UnavailableLibraries(RuntimeError):
 
     def __init__(self, libraries):
-        message = (
+        message = _(
             "Some required libraries are not installed on your system, install them "
             "with your package manager and restart Lutris. Libraries: %s"
         ) % ", ".join(libraries)

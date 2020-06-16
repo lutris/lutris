@@ -1,39 +1,42 @@
+# Standard Library
+from gettext import gettext as _
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
 
 class dgen(Runner):
-    human_name = "DGen"
-    description = "Sega Genesis emulator"
-    platforms = ["Sega Genesis"]
+    human_name = _("DGen")
+    description = _("Sega Genesis emulator")
+    platforms = [_("Sega Genesis")]
     runner_executable = "dgen/bin/dgen"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            "help": "The game data, commonly called a ROM image.",
+            "label": _("ROM file"),
+            "help": _("The game data, commonly called a ROM image."),
         }
     ]
     runner_options = [
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": True,
         },
         {
             "option": "pal",
             "type": "bool",
-            "label": "PAL",
+            "label": _("PAL"),
             "default": False,
             "advanced": True,
         },
         {
             "option": "region",
             "type": "choice",
-            "label": "Region",
+            "label": _("Region"),
             "choices": [
                 ("America (NTSC)", "U"),
                 ("Japan (NTSC)", "J"),

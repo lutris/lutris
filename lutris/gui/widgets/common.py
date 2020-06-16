@@ -1,6 +1,7 @@
 """Misc widgets used in the GUI."""
 # Standard Library
 import os
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import GObject, Gtk, Pango
@@ -41,7 +42,7 @@ class FileChooserEntry(Gtk.Box):
 
     def __init__(
         self,
-        title="Select file",
+        title=_("Select file"),
         action=Gtk.FileChooserAction.OPEN,
         path=None,
         default_path=None,
@@ -64,7 +65,7 @@ class FileChooserEntry(Gtk.Box):
         if path:
             self.entry.set_text(path)
 
-        browse_button = Gtk.Button("Browse...", visible=True)
+        browse_button = Gtk.Button(_("Browse..."), visible=True)
         browse_button.connect("clicked", self.on_browse_clicked)
 
         box = Gtk.Box(spacing=6, visible=True)
@@ -91,7 +92,7 @@ class FileChooserEntry(Gtk.Box):
     def get_filechooser_dialog(self):
         """Return an instance of a FileChooserDialog configured for this widget"""
         dialog = Gtk.FileChooserDialog(title=self.title, transient_for=None, action=self.action)
-        dialog.add_buttons("_Cancel", Gtk.ResponseType.CLOSE, "_OK", Gtk.ResponseType.OK)
+        dialog.add_buttons(_("_Cancel"), Gtk.ResponseType.CLOSE, _("_OK"), Gtk.ResponseType.OK)
         dialog.set_create_folders(True)
         dialog.set_current_folder(self.get_default_folder())
         dialog.connect("response", self.on_select_file)
@@ -127,26 +128,26 @@ class FileChooserEntry(Gtk.Box):
             warning_image.set_from_pixbuf(get_stock_icon("dialog-warning", 32))
             ntfs_box.add(warning_image)
             ntfs_label = Gtk.Label(visible=True)
-            ntfs_label.set_markup(
+            ntfs_label.set_markup(_(
                 "<b>Warning!</b> The selected path is located on a drive formatted by Windows.\n"
                 "Games and programs installed on Windows drives usually <b>don't work</b>."
-            )
+            ))
             ntfs_box.add(ntfs_label)
             self.pack_end(ntfs_box, False, False, 10)
         if self.warn_if_non_empty and os.path.exists(path) and os.listdir(path):
             non_empty_label = Gtk.Label(visible=True)
-            non_empty_label.set_markup(
+            non_empty_label.set_markup(_(
                 "<b>Warning!</b> The selected path "
                 "contains files. Installation might not work properly."
-            )
+            ))
             self.pack_end(non_empty_label, False, False, 10)
         parent = system.get_existing_parent(path)
         if parent is not None and not os.access(parent, os.W_OK):
             non_writable_destination_label = Gtk.Label(visible=True)
-            non_writable_destination_label.set_markup(
+            non_writable_destination_label.set_markup(_(
                 "<b>Warning</b> The destination folder "
                 "is not writable by the current user."
-            )
+            ))
             self.pack_end(non_writable_destination_label, False, False, 10)
 
     def on_select_file(self, dialog, response):
@@ -249,11 +250,11 @@ class EditableGrid(Gtk.Grid):
             self.treeview.append_column(column)
 
         self.buttons = []
-        self.add_button = Gtk.Button("Add")
+        self.add_button = Gtk.Button(_("Add"))
         self.buttons.append(self.add_button)
         self.add_button.connect("clicked", self.on_add)
 
-        self.delete_button = Gtk.Button("Delete")
+        self.delete_button = Gtk.Button(_("Delete"))
         self.buttons.append(self.delete_button)
         self.delete_button.connect("clicked", self.on_delete)
 
