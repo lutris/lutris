@@ -21,6 +21,7 @@ builddir
 
 # i18n files
 po/lutris.pot
+po/*.mo
 transl-builddir
 
 # virtual environment folders
