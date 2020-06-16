@@ -21,6 +21,8 @@ builddir
 
 # i18n files
 po/lutris.pot
+po/POTFILES
+po/LINGUAS
 po/*.mo
 transl-builddir
 
