@@ -66,7 +66,7 @@ class dosbox(Runner):
     ]
 
     scaler_modes = [
-        ("none", "none"),
+        (_("none"), "none"),
         ("normal2x", "normal2x"),
         ("normal3x", "normal3x"),
         ("hq2x", "hq2x"),
