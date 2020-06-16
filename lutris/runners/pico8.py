@@ -4,6 +4,7 @@ import json
 import math
 import os
 import shutil
+from gettext import gettext as _
 from time import sleep
 
 # Lutris Modules
@@ -17,16 +18,16 @@ DOWNLOAD_URL = "https://github.com/daniel-j/lutris-pico-8-runner/archive/master.
 
 
 class pico8(Runner):
-    description = "Runs PICO-8 fantasy console cartridges"
+    description = _("Runs PICO-8 fantasy console cartridges")
     multiple_versions = False
-    human_name = "PICO-8"
-    platforms = ["PICO-8"]
+    human_name = _("PICO-8")
+    platforms = [_("PICO-8")]
     game_options = [
         {
             "option": "main_file",
             "type": "string",
-            "label": "Cartridge file/url/id",
-            "help": "You can put a .p8.png file path, url, or BBS cartridge id here.",
+            "label": _("Cartridge file/url/id"),
+            "help": _("You can put a .p8.png file path, url, or BBS cartridge id here."),
         }
     ]
 
@@ -34,37 +35,37 @@ class pico8(Runner):
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": True,
-            "help": "Launch in fullscreen.",
+            "help": _("Launch in fullscreen."),
         },
         {
             "option": "window_size",
-            "label": "Window size",
+            "label": _("Window size"),
             "type": "string",
             "default": "640x512",
-            "help": "The initial size of the game window.",
+            "help": _("The initial size of the game window."),
         },
         {
             "option": "splore",
             "type": "bool",
-            "label": "Start in splore mode",
+            "label": _("Start in splore mode"),
             "default": False,
         },
         {
             "option": "args",
             "type": "string",
-            "label": "Extra arguments",
+            "label": _("Extra arguments"),
             "default": "",
-            "help": "Extra arguments to the executable",
+            "help": _("Extra arguments to the executable"),
             "advanced": True,
         },
         {
             "option": "engine",
             "type": "string",
-            "label": "Engine (web only)",
+            "label": _("Engine (web only)"),
             "default": "pico8_0111g_4",
-            "help": "Name of engine (will be downloaded) or local file path",
+            "help": _("Name of engine (will be downloaded) or local file path"),
         },
     ]
 
@@ -78,7 +79,7 @@ class pico8(Runner):
         self.runnable_alone = self.is_native
 
     def __repr__(self):
-        return "PICO-8 runner (%s)" % self.config
+        return _("PICO-8 runner (%s)") % self.config
 
     def install(self, version=None, _downloader=None, callback=None):
         opts = {}

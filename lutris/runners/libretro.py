@@ -1,6 +1,7 @@
 """libretro runner"""
 # Standard Library
 import os
+from gettext import gettext as _
 from operator import itemgetter
 from zipfile import ZipFile
 
@@ -55,8 +56,8 @@ def get_core_choices():
 
 
 class libretro(Runner):
-    human_name = "Libretro"
-    description = "Multi system emulator"
+    human_name = _("Libretro")
+    description = _("Multi system emulator")
     runnable_alone = True
     runner_executable = "retroarch/retroarch"
 
@@ -64,12 +65,12 @@ class libretro(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file"
+            "label": _("ROM file")
         },
         {
             "option": "core",
             "type": "choice",
-            "label": "Core",
+            "label": _("Core"),
             "choices": get_core_choices(),
         },
     ]
@@ -78,19 +79,19 @@ class libretro(Runner):
         {
             "option": "config_file",
             "type": "file",
-            "label": "Config file",
+            "label": _("Config file"),
             "default": get_default_config_path("retroarch.cfg"),
         },
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": True,
         },
         {
             "option": "verbose",
             "type": "bool",
-            "label": "Verbose logging",
+            "label": _("Verbose logging"),
             "default": False,
         },
     ]
@@ -253,7 +254,7 @@ class libretro(Runner):
         if not core:
             return {
                 "error": "CUSTOM",
-                "text": "No core has been selected for this game",
+                "text": _("No core has been selected for this game"),
             }
         command.append("--libretro={}".format(self.get_core_path(core)))
 
@@ -264,7 +265,7 @@ class libretro(Runner):
         # Main file
         file = self.game_config.get("main_file")
         if not file:
-            return {"error": "CUSTOM", "text": "No game file specified"}
+            return {"error": "CUSTOM", "text": _("No game file specified")}
         if not system.path_exists(file):
             return {"error": "FILE_NOT_FOUND", "file": file}
         command.append(file)

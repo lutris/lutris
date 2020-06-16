@@ -1,3 +1,6 @@
+# Standard Library
+from gettext import gettext as _
+
 # Third Party Libraries
 from gi.repository import Gtk
 
@@ -10,10 +13,10 @@ class DownloadDialog(Gtk.Dialog):
     """Dialog showing a download in progress."""
 
     def __init__(self, url=None, dest=None, title=None, label=None, downloader=None):
-        Gtk.Dialog.__init__(self, title or "Downloading file")
+        Gtk.Dialog.__init__(self, title or _("Downloading file"))
         self.set_size_request(485, 104)
         self.set_border_width(12)
-        params = {"url": url, "dest": dest, "title": label or "Downloading %s" % url}
+        params = {"url": url, "dest": dest, "title": label or _("Downloading %s") % url}
         self.download_box = DownloadProgressBox(params, downloader=downloader)
 
         self.download_box.connect("complete", self.download_complete)

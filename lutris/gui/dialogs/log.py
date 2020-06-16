@@ -1,4 +1,6 @@
 """Window to show game logs"""
+from gettext import gettext as _
+
 # Third Party Libraries
 from gi.repository import Gdk, Gtk
 
@@ -24,7 +26,7 @@ class LogWindow(Gtk.ApplicationWindow):
         self.vbox.pack_start(scrolledwindow, True, True, 0)
 
         self.search_entry = Gtk.SearchEntry()
-        self.search_entry.props.placeholder_text = "Search..."
+        self.search_entry.props.placeholder_text = _("Search...")
         self.search_entry.connect("stop-search", self.dettach_search_entry)
         self.search_entry.connect("search-changed", self.logtextview.find_first)
         self.search_entry.connect("next-match", self.logtextview.find_next)

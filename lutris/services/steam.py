@@ -2,6 +2,7 @@
 # Standard Library
 import os
 import re
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris import pga
@@ -10,7 +11,7 @@ from lutris.services.service_game import ServiceGame
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 
-NAME = "Steam"
+NAME = _("Steam")
 ICON = "steam"
 ONLINE = False
 

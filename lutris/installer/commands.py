@@ -7,6 +7,7 @@ import os
 import shlex
 import shutil
 import stat
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import GLib
@@ -165,7 +166,7 @@ class CommandsMixin:
         else:
             dest_path = self.target_path
         for filename in filenames:
-            msg = "Extracting %s" % os.path.basename(filename)
+            msg = _("Extracting %s") % os.path.basename(filename)
             logger.debug(msg)
             GLib.idle_add(self.parent.set_status, msg)
             merge_single = "nomerge" not in data
@@ -206,13 +207,13 @@ class CommandsMixin:
         requires = data.get("requires")
         message = data.get(
             "message",
-            "Insert or mount game disc and click Autodetect or\n"
-            "use Browse if the disc is mounted on a non standard location.",
+            _("Insert or mount game disc and click Autodetect or\n"
+              "use Browse if the disc is mounted on a non standard location."),
         )
         message += (
-            "\n\nLutris is looking for a mounted disk drive or image \n"
-            "containing the following file or folder:\n"
-            "<i>%s</i>" % requires
+            _("\n\nLutris is looking for a mounted disk drive or image \n"
+              "containing the following file or folder:\n"
+              "<i>%s</i>") % requires
         )
         if self.runner == "wine":
             GLib.idle_add(self.parent.eject_button.show)

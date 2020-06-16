@@ -1,5 +1,6 @@
 # Standard Library
 import os
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris.runners.runner import Runner
@@ -10,84 +11,84 @@ from lutris.util.strings import split_arguments
 
 class zdoom(Runner):
     # http://zdoom.org/wiki/Command_line_parameters
-    description = "ZDoom DOOM Game Engine"
-    human_name = "ZDoom"
-    platforms = ["Linux"]
+    description = _("ZDoom DOOM Game Engine")
+    human_name = _("ZDoom")
+    platforms = [_("Linux")]
     runner_executable = "zdoom/zdoom"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "WAD file",
-            "help": "The game data, commonly called a WAD file.",
+            "label": _("WAD file"),
+            "help": _("The game data, commonly called a WAD file."),
         },
         {
             "option": "args",
             "type": "string",
-            "label": "Arguments",
-            "help": "Command line arguments used when launching the game.",
+            "label": _("Arguments"),
+            "help": _("Command line arguments used when launching the game."),
         },
         {
             "option": "files",
             "type": "multiple",
-            "label": "PWAD files",
-            "help": ("Used to load one or more PWAD files which generally contain "
-                     "user-created levels."),
+            "label": _("PWAD files"),
+            "help": _("Used to load one or more PWAD files which generally contain "
+                      "user-created levels."),
         },
         {
             "option": "warp",
             "type": "string",
-            "label": "Warp to map",
-            "help": "Starts the game on the given map.",
+            "label": _("Warp to map"),
+            "help": _("Starts the game on the given map."),
         },
         {
             "option": "savedir",
             "type": "directory_chooser",
-            "label": "Save path",
-            "help": ("User-specified path where save files should be located."),
+            "label": _("Save path"),
+            "help": _("User-specified path where save files should be located."),
         },
     ]
     runner_options = [
         {
             "option": "2",
-            "label": "Pixel Doubling",
+            "label": _("Pixel Doubling"),
             "type": "bool",
             "default": False
         },
         {
             "option": "4",
-            "label": "Pixel Quadrupling",
+            "label": _("Pixel Quadrupling"),
             "type": "bool",
             "default": False
         },
         {
             "option": "nostartup",
-            "label": "Disable Startup Screens",
+            "label": _("Disable Startup Screens"),
             "type": "bool",
             "default": False,
         },
         {
             "option": "skill",
-            "label": "Skill",
+            "label": _("Skill"),
             "type": "choice",
             "default": "",
             "choices": {
-                ("None", ""),
-                ("I'm Too Young To Die (1)", "1"),
-                ("Hey, Not Too Rough (2)", "2"),
-                ("Hurt Me Plenty (3)", "3"),
-                ("Ultra-Violence (4)", "4"),
-                ("Nightmare! (5)", "5"),
+                (_("None"), ""),
+                (_("I'm Too Young To Die (1)"), "1"),
+                (_("Hey, Not Too Rough (2)"), "2"),
+                (_("Hurt Me Plenty (3)"), "3"),
+                (_("Ultra-Violence (4)"), "4"),
+                (_("Nightmare! (5)"), "5"),
             },
         },
         {
             "option":
             "config",
             "label":
-            "Config file",
+            _("Config file"),
             "type":
             "file",
-            "help": (
+            "help": _(
                 "Used to load a user-created configuration file. If specified, "
                 "the file must contain the wad directory list or launch will fail."
             ),

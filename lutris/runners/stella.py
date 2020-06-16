@@ -1,12 +1,15 @@
+# Standard Library
+from gettext import gettext as _
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
 
 class stella(Runner):
-    description = "Atari 2600 emulator"
-    human_name = "Stella"
-    platforms = ["Atari 2600"]
+    description = _("Atari 2600 emulator")
+    human_name = _("Stella")
+    platforms = [_("Atari 2600")]
     runnable_alone = True
     runner_executable = "stella/bin/stella"
     game_options = [
@@ -16,8 +19,8 @@ class stella(Runner):
             "type":
             "file",
             "label":
-            "ROM file",
-            "help": (
+            _("ROM file"),
+            "help": _(
                 "The game data, commonly called a ROM image.\n"
                 "Supported formats: A26/BIN/ROM. GZIP and ZIP compressed "
                 "ROMs are supported."

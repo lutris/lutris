@@ -1,6 +1,7 @@
 """Side panel when no game is selected"""
 # Standard Library
 import json
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gdk, Gio, GObject, Gtk, Pango
@@ -81,7 +82,7 @@ class GenericPanel(Gtk.Fixed):
         application = Gio.Application.get_default()
         if application.running_games.get_n_items():
             running_label = Gtk.Label(visible=True)
-            running_label.set_markup("<b>Playing:</b>")
+            running_label.set_markup(_("<b>Playing:</b>"))
             self.put(running_label, 12, 355)
             self.put(self.get_running_games(), 12, 377)
 
@@ -90,7 +91,7 @@ class GenericPanel(Gtk.Fixed):
 
     def get_preferences_button(self):
         preferences_button = Gtk.Button.new_from_icon_name("preferences-system-symbolic", Gtk.IconSize.MENU)
-        preferences_button.set_tooltip_text("Preferences")
+        preferences_button.set_tooltip_text(_("Preferences"))
         preferences_button.set_size_request(32, 32)
         preferences_button.props.relief = Gtk.ReliefStyle.NONE
         preferences_button.connect("clicked", self.on_preferences_clicked)
@@ -154,26 +155,26 @@ class GenericPanel(Gtk.Fixed):
     def get_lutris_links(self):
         box = Gtk.VBox(spacing=6, visible=True)
 
-        donate_button = get_link_button("Support Lutris!")
+        donate_button = get_link_button(_("Support Lutris!"))
         donate_button.connect("clicked", lambda *x: open_uri(LINKS["donate"]))
         box.add(donate_button)
 
         help_label = Gtk.Label(visible=True)
-        help_label.set_markup("<b>Help:</b>")
+        help_label.set_markup(_("<b>Help:</b>"))
         help_label.set_alignment(0, 0.5)
         help_label.set_margin_top(136)
         box.add(help_label)
 
         help_box = Gtk.Box(spacing=6, visible=True)
-        forums_button = get_link_button("Forums")
+        forums_button = get_link_button(_("Forums"))
         forums_button.set_size_request(-1, -1)
         forums_button.connect("clicked", lambda *x: open_uri(LINKS["forums"]))
         help_box.add(forums_button)
-        irc_button = get_link_button("IRC")
+        irc_button = get_link_button(_("IRC"))
         irc_button.set_size_request(-1, -1)
         irc_button.connect("clicked", lambda *x: open_uri(LINKS["irc"]))
         help_box.add(irc_button)
-        discord_button = get_link_button("Discord")
+        discord_button = get_link_button(_("Discord"))
         discord_button.set_size_request(-1, -1)
         discord_button.connect("clicked", lambda *x: open_uri(LINKS["discord"]))
         help_box.add(discord_button)

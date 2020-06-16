@@ -1,16 +1,19 @@
+# Standard Library
+from gettext import gettext as _
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 
 
 class browser(Runner):
-    human_name = "Browser"
-    platforms = ["Web"]
-    description = "Runs games in the browser"
+    human_name = _("Browser")
+    platforms = [_("Web")]
+    description = _("Runs games in the browser")
     game_options = [
         {
             "option": "main_file",
             "type": "string",
-            "label": "Full address (URL)",
+            "label": _("Full address (URL)"),
             "help": "The full address of the game's web page.",
         }
     ]
@@ -21,8 +24,8 @@ class browser(Runner):
             "type":
             "file",
             "label":
-            "Custom web browser",
-            "help": (
+            _("Custom web browser"),
+            "help": _(
                 "Select the executable of a browser on your system. \n"
                 "If left blank, Lutris will launch your default browser."
             ),
@@ -41,7 +44,7 @@ class browser(Runner):
         if not url:
             return {
                 "error": "CUSTOM",
-                "text": ("The web address is empty, \n"
-                         "verify the game's configuration."),
+                "text": _("The web address is empty, \n"
+                          "verify the game's configuration."),
             }
         return {"command": [self.get_executable(), url]}

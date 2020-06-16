@@ -1,5 +1,6 @@
 # Standard Library
 import os
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris.runners.runner import Runner
@@ -7,13 +8,13 @@ from lutris.util import system
 
 
 class o2em(Runner):
-    human_name = "O2EM"
-    description = "Magnavox Osyssey² Emulator"
+    human_name = _("O2EM")
+    description = _("Magnavox Osyssey² Emulator")
     platforms = (
-        "Magnavox Odyssey²",
-        "Phillips C52",
-        "Phillips Videopac+",
-        "Brandt Jopac",
+        _("Magnavox Odyssey²"),
+        _("Phillips C52"),
+        _("Phillips Videopac+"),
+        _("Brandt Jopac"),
     )
     bios_path = os.path.expanduser("~/.o2em/bios")
     runner_executable = "o2em/o2em"
@@ -26,24 +27,24 @@ class o2em(Runner):
     }
 
     bios_choices = [
-        ("Magnavox Odyssey2", "o2rom"),
-        ("Phillips C52", "c52"),
-        ("Phillips Videopac+", "g7400"),
-        ("Brandt Jopac", "jopac"),
+        (_("Magnavox Odyssey2"), "o2rom"),
+        (_("Phillips C52"), "c52"),
+        (_("Phillips Videopac+"), "g7400"),
+        (_("Brandt Jopac"), "jopac"),
     ]
     controller_choices = [
-        ("Disable", "0"),
-        ("Arrows keys and right shift", "1"),
-        ("W,S,A,D,SPACE", "2"),
-        ("Joystick", "3"),
+        (_("Disable"), "0"),
+        (_("Arrows keys and right shift"), "1"),
+        (_("W,S,A,D,SPACE"), "2"),
+        (_("Joystick"), "3"),
     ]
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
+            "label": _("ROM file"),
             "default_path": "game_path",
-            "help": "The game data, commonly called a ROM image.",
+            "help": _("The game data, commonly called a ROM image."),
         }
     ]
     runner_options = [
@@ -51,36 +52,36 @@ class o2em(Runner):
             "option": "bios",
             "type": "choice",
             "choices": bios_choices,
-            "label": "Bios",
+            "label": _("Bios"),
             "default": "o2rom",
         },
         {
             "option": "controller1",
             "type": "choice",
             "choices": controller_choices,
-            "label": "First controller",
+            "label": _("First controller"),
             "default": "2",
         },
         {
             "option": "controller2",
             "type": "choice",
             "choices": controller_choices,
-            "label": "Second controller",
+            "label": _("Second controller"),
             "default": "1",
         },
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": False,
         },
         {
             "option": "scanlines",
             "type": "bool",
-            "label": "Scanlines display style",
+            "label": _("Scanlines display style"),
             "default": False,
-            "help": ("Activates a display filter adding scanlines to imitate "
-                     "the displays of yesteryear."),
+            "help": _("Activates a display filter adding scanlines to imitate "
+                      "the displays of yesteryear."),
         },
     ]
 

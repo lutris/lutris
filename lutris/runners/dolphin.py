@@ -1,13 +1,15 @@
 """Dolphin runner"""
+from gettext import gettext as _
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
 
 class dolphin(Runner):
-    description = "Gamecube and Wii emulator"
-    human_name = "Dolphin"
-    platforms = ["Nintendo Gamecube", "Nintendo Wii"]
+    description = _("Gamecube and Wii emulator")
+    human_name = _("Dolphin")
+    platforms = [_("Nintendo Gamecube"), _("Nintendo Wii")]
     runnable_alone = True
     runner_executable = "dolphin/dolphin-emu"
     game_options = [
@@ -15,29 +17,29 @@ class dolphin(Runner):
             "option": "main_file",
             "type": "file",
             "default_path": "game_path",
-            "label": "ISO file",
+            "label": _("ISO file"),
         },
         {
             "option": "platform",
             "type": "choice",
-            "label": "Platform",
-            "choices": (("Nintendo Gamecube", "0"), ("Nintendo Wii", "1")),
+            "label": _("Platform"),
+            "choices": ((_("Nintendo Gamecube"), "0"), (_("Nintendo Wii"), "1")),
         },
     ]
     runner_options = [
         {
             "option": "nogui",
             "type": "bool",
-            "label": "No GUI",
+            "label": _("No GUI"),
             "default": False,
-            "help": "Disable the graphical user interface.",
+            "help": _("Disable the graphical user interface."),
         },
         {
             "option": "batch",
             "type": "bool",
-            "label": "Batch",
+            "label": _("Batch"),
             "default": False,
-            "help": "Exit Dolphin with emulator.",
+            "help": _("Exit Dolphin with emulator."),
         },
     ]
 

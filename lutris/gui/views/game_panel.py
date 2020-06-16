@@ -1,6 +1,7 @@
 """Game panel"""
 # Standard Library
 from datetime import datetime
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import GObject, Gtk, Pango
@@ -55,7 +56,7 @@ class GamePanel(GenericPanel):
     def get_close_button(self):
         """Return the close button"""
         button = Gtk.Button.new_from_icon_name("window-close-symbolic", Gtk.IconSize.MENU)
-        button.set_tooltip_text("Close")
+        button.set_tooltip_text(_("Close"))
         button.set_size_request(32, 32)
         button.connect("clicked", self.on_close)
         button.show()
@@ -98,7 +99,7 @@ class GamePanel(GenericPanel):
         """Return the label containing the playtime info"""
         playtime_label = Gtk.Label()
         playtime_label.show()
-        playtime_label.set_markup("Time played: <b>%s</b>" % self.game.formatted_playtime)
+        playtime_label.set_markup(_("Time played: <b>%s</b>") % self.game.formatted_playtime)
         return playtime_label
 
     def get_last_played_label(self):
@@ -106,7 +107,7 @@ class GamePanel(GenericPanel):
         last_played_label = Gtk.Label()
         last_played_label.show()
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
-        last_played_label.set_markup("Last played: <b>%s</b>" % lastplayed.strftime("%x"))
+        last_played_label.set_markup(_("Last played: <b>%s</b>") % lastplayed.strftime("%x"))
         return last_played_label
 
     @staticmethod
@@ -231,14 +232,14 @@ class GamePanel(GenericPanel):
 
     def on_game_start(self, _widget):
         """Callback for the `game-start` signal"""
-        self.buttons["play"].set_label("Launching...")
+        self.buttons["play"].set_label(_("Launching..."))
         self.buttons["play"].set_sensitive(False)
 
     def on_game_started(self, _widget):
         """Callback for the `game-started` signal"""
         self.buttons["stop"].show()
         self.buttons["play"].hide()
-        self.buttons["play"].set_label("Play")
+        self.buttons["play"].set_label(_("Play"))
         self.buttons["play"].set_sensitive(True)
 
     def on_game_state_changed(self, _widget, _game_id=None):

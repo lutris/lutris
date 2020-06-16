@@ -1,3 +1,6 @@
+# Standard Library
+from gettext import gettext as _
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -5,15 +8,15 @@ from lutris.util import system
 
 class desmume(Runner):
     human_name = "DeSmuME"
-    platforms = ["Nintendo DS"]
-    description = "Nintendo DS emulator"
+    platforms = [_("Nintendo DS")]
+    description = _("Nintendo DS emulator")
     runner_executable = "desmume/bin/desmume"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            "help": "The game data, commonly called a ROM image.",
+            "label": _("ROM file"),
+            "help": _("The game data, commonly called a ROM image."),
         }
     ]
 

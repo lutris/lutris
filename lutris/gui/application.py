@@ -78,7 +78,7 @@ class Application(Gtk.Application):
         self.run_in_background = False
 
         if os.geteuid() == 0:
-            ErrorDialog("Running Lutris as root is not recommended and may cause unexpected issues")
+            ErrorDialog(_("Running Lutris as root is not recommended and may cause unexpected issues"))
 
         try:
             self.css_provider.load_from_path(os.path.join(datapath.get(), "ui", "lutris.css"))
@@ -88,17 +88,17 @@ class Application(Gtk.Application):
         if hasattr(self, "add_main_option"):
             self.add_arguments()
         else:
-            ErrorDialog("Your Linux distribution is too old. Lutris won't function properly.")
+            ErrorDialog(_("Your Linux distribution is too old. Lutris won't function properly."))
 
     def add_arguments(self):
         if hasattr(self, "set_option_context_summary"):
-            self.set_option_context_summary(
+            self.set_option_context_summary(_(
                 "Run a game directly by adding the parameter lutris:rungame/game-identifier.\n"
                 "If several games share the same identifier you can use the numerical ID "
                 "(displayed when running lutris --list-games) and add "
                 "lutris:rungameid/numerical-id.\n"
                 "To install a game, add lutris:install/game-identifier."
-            )
+            ))
         else:
             logger.warning("GLib.set_option_context_summary missing, " "was added in GLib 2.56 (Released 2018-03-12)")
         self.add_main_option(
@@ -318,7 +318,7 @@ class Application(Gtk.Application):
             url = options.lookup_value(GLib.OPTION_REMAINING)
             installer_info = self.get_lutris_action(url)
         except ValueError:
-            self._print(command_line, "%s is not a valid URI" % url.get_strv())
+            self._print(command_line, _("%s is not a valid URI") % url.get_strv())
             return 1
         game_slug = installer_info["game_slug"]
         action = installer_info["action"]
@@ -331,7 +331,7 @@ class Application(Gtk.Application):
                 try:
                     request = Request(installer_file).get()
                 except HTTPError:
-                    self._print(command_line, "Failed to download %s" % installer_file)
+                    self._print(command_line, _("Failed to download %s") % installer_file)
                     return 1
                 try:
                     headers = dict(request.response_headers)
@@ -339,7 +339,8 @@ class Application(Gtk.Application):
                 except (KeyError, IndexError):
                     file_name = os.path.basename(installer_file)
                 file_path = os.path.join(tempfile.gettempdir(), file_name)
-                self._print(command_line, "download %s to %s started" % (installer_file, file_path))
+                self._print(command_line, _("download {url} to {file} started").format(
+                    url=installer_file, file=file_path))
                 with open(file_path, 'wb') as dest_file:
                     dest_file.write(request.content)
                 installer_file = file_path
@@ -349,7 +350,7 @@ class Application(Gtk.Application):
                 action = "install"
 
             if not os.path.isfile(installer_file):
-                self._print(command_line, "No such file: %s" % installer_file)
+                self._print(command_line, _("No such file: %s") % installer_file)
                 return 1
 
         db_game = None

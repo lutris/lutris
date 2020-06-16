@@ -2,6 +2,7 @@
 import os
 import subprocess
 import xml.etree.ElementTree as etree
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
@@ -13,9 +14,9 @@ SNES9X_DIR = os.path.join(settings.DATA_DIR, "runners/snes9x")
 
 
 class snes9x(Runner):
-    description = "Super Nintendo emulator"
-    human_name = "Snes9x"
-    platforms = ["Nintendo SNES"]
+    description = _("Super Nintendo emulator")
+    human_name = _("Snes9x")
+    platforms = [_("Nintendo SNES")]
     runnable_alone = True
     runner_executable = "snes9x/bin/snes9x-gtk"
     game_options = [
@@ -23,8 +24,8 @@ class snes9x(Runner):
             "option": "main_file",
             "type": "file",
             "default_path": "game_path",
-            "label": "ROM file",
-            "help": "The game data, commonly called a ROM image.",
+            "label": _("ROM file"),
+            "help": _("The game data, commonly called a ROM image."),
         }
     ]
 
@@ -32,7 +33,7 @@ class snes9x(Runner):
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": "1"
         },
         {
@@ -41,10 +42,10 @@ class snes9x(Runner):
             "type":
             "bool",
             "label":
-            "Maintain aspect ratio (4:3)",
+            _("Maintain aspect ratio (4:3)"),
             "default":
             "1",
-            "help": (
+            "help": _(
                 "Super Nintendo games were made for 4:3 "
                 "screens with rectangular pixels, but modern screens "
                 "have square pixels, which results in a vertically "
@@ -55,7 +56,7 @@ class snes9x(Runner):
         {
             "option": "sound_driver",
             "type": "choice",
-            "label": "Sound driver",
+            "label": _("Sound driver"),
             "advanced": True,
             "choices": (("SDL", "1"), ("ALSA", "2"), ("OSS", "0")),
             "default": "1",

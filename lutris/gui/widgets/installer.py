@@ -1,4 +1,6 @@
 """Widgets for the installer window"""
+from gettext import gettext as _
+
 # Third Party Libraries
 from gi.repository import GObject, Gtk, Pango
 
@@ -75,7 +77,7 @@ class InstallerScriptBox(Gtk.VBox):
         align = Gtk.Alignment()
         align.set(0, 0, 0, 0)
 
-        install_button = Gtk.Button("Install")
+        install_button = Gtk.Button(_("Install"))
         install_button.connect("clicked", self.on_install_clicked)
         install_button.set_margin_right(6)
         align.add(install_button)

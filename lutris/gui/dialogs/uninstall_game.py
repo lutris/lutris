@@ -1,3 +1,6 @@
+# Standard Library
+from gettext import gettext as _
+
 # Third Party Libraries
 from gi.repository import Gtk, Pango
 
@@ -51,7 +54,7 @@ class UninstallGameDialog(GtkBuilderDialog):
                     remove_contents_button.set_active(True)
                 else:
                     remove_contents_button.set_sensitive(False)
-                    path = "No game folder"
+                    path = _("No game folder")
 
             path = reverse_expanduser(path)
             self.substitute_label(remove_contents_button, "path", path)
@@ -80,10 +83,10 @@ class UninstallGameDialog(GtkBuilderDialog):
             dlg = QuestionDialog(
                 {
                     "question":
-                    "Are you sure you want to delete EVERYTHING under "
-                    "\n<b>%s</b>?\n (This can't be undone)" % game_dir,
+                    _("Are you sure you want to delete EVERYTHING under "
+                      "\n<b>%s</b>?\n (This can't be undone)") % game_dir,
                     "title":
-                    "CONFIRM DANGEROUS OPERATION",
+                    _("CONFIRM DANGEROUS OPERATION"),
                 }
             )
             if dlg.result != Gtk.ResponseType.YES:

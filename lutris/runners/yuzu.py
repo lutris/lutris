@@ -1,6 +1,7 @@
 # Standard Library
 import filecmp
 import os
+from gettext import gettext as _
 from shutil import copyfile
 
 # Lutris Modules
@@ -10,30 +11,30 @@ from lutris.util.log import logger
 
 
 class yuzu(Runner):
-    human_name = "Yuzu"
-    platforms = ["Nintendo Switch"]
-    description = "Nintendo Switch emulator"
+    human_name = _("Yuzu")
+    platforms = [_("Nintendo Switch")]
+    description = _("Nintendo Switch emulator")
     runnable_alone = True
     runner_executable = "yuzu/yuzu"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            "help": "The game data, commonly called a ROM image.",
+            "label": _("ROM file"),
+            "help": _("The game data, commonly called a ROM image."),
         }
     ]
     runner_options = [
         {
             "option": "prod_keys",
-            "label": "Ecryption keys",
+            "label": _("Ecryption keys"),
             "type": "file",
-            "help": "File containing the encryption keys.",
+            "help": _("File containing the encryption keys."),
         }, {
             "option": "title_keys",
-            "label": "Title keys",
+            "label": _("Title keys"),
             "type": "file",
-            "help": "File containing the title keys.",
+            "help": _("File containing the title keys."),
         }
     ]
 

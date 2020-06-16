@@ -1,14 +1,16 @@
 # It is pitch black. You are likely to be eaten by a grue.
 
+from gettext import gettext as _
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
 
 class frotz(Runner):
-    human_name = "Frotz"
-    description = "Z-code emulator for text adventure games such as Zork."
-    platforms = ["Z-Machine"]
+    human_name = _("Frotz")
+    description = _("Z-code emulator for text adventure games such as Zork.")
+    platforms = [_("Z-Machine")]
     runner_executable = "frotz/frotz"
 
     game_options = [
@@ -18,8 +20,8 @@ class frotz(Runner):
             "type":
             "file",
             "label":
-            "Story file",
-            "help": (
+            _("Story file"),
+            "help": _(
                 "The Z-Machine game file.\n"
                 'Usally ends in ".z*", with "*" being a number from 1 '
                 "to 6 representing the version of the Z-Machine that "

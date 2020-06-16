@@ -2,6 +2,7 @@
 # Standard Library
 # pylint: disable=too-many-instance-attributes,attribute-defined-outside-init
 import os
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import GObject, Gtk
@@ -124,7 +125,7 @@ class RunnersDialog(GtkBuilderDialog):
         self.configure_button.show()
 
     def on_versions_clicked(self, widget, runner, runner_label):
-        dlg_title = "Manage %s versions" % runner.name
+        dlg_title = _("Manage %s versions") % runner.name
         versions_dialog = RunnerInstallDialog(dlg_title, self.dialog, runner.name)
         versions_dialog.connect("destroy", self.set_install_state, runner, runner_label)
 

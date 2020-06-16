@@ -4,6 +4,7 @@
 # pylint: disable=too-many-public-methods
 import os
 import signal
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gio
@@ -58,39 +59,39 @@ class GameActions:
     def get_game_actions(self):
         """Return a list of game actions and their callbacks"""
         return [
-            ("play", "Play", self.on_game_run),
-            ("stop", "Stop", self.on_stop),
-            ("show_logs", "Show logs", self.on_show_logs),
-            ("install", "Install", self.on_install_clicked),
-            ("add", "Add installed game", self.on_add_manually),
-            ("configure", "Configure", self.on_edit_game_configuration),
-            ("execute-script", "Execute script", self.on_execute_script_clicked),
-            ("browse", "Browse files", self.on_browse_files),
+            ("play", _("Play"), self.on_game_run),
+            ("stop", _("Stop"), self.on_stop),
+            ("show_logs", _("Show logs"), self.on_show_logs),
+            ("install", _("Install"), self.on_install_clicked),
+            ("add", _("Add installed game"), self.on_add_manually),
+            ("configure", _("Configure"), self.on_edit_game_configuration),
+            ("execute-script", _("Execute script"), self.on_execute_script_clicked),
+            ("browse", _("Browse files"), self.on_browse_files),
             (
                 "desktop-shortcut",
-                "Create desktop shortcut",
+                _("Create desktop shortcut"),
                 self.on_create_desktop_shortcut,
             ),
             (
                 "rm-desktop-shortcut",
-                "Delete desktop shortcut",
+                _("Delete desktop shortcut"),
                 self.on_remove_desktop_shortcut,
             ),
             (
                 "menu-shortcut",
-                "Create application menu shortcut",
+                _("Create application menu shortcut"),
                 self.on_create_menu_shortcut,
             ),
             (
                 "rm-menu-shortcut",
-                "Delete application menu shortcut",
+                _("Delete application menu shortcut"),
                 self.on_remove_menu_shortcut,
             ),
-            ("install_more", "Install another version", self.on_install_clicked),
-            ("remove", "Remove", self.on_remove_game),
-            ("view", "View on Lutris.net", self.on_view_game),
-            ("hide", "Hide game from library", self.on_hide_game),
-            ("unhide", "Unhide game from library", self.on_unhide_game),
+            ("install_more", _("Install another version"), self.on_install_clicked),
+            ("remove", _("Remove"), self.on_remove_game),
+            ("view", _("View on Lutris.net"), self.on_view_game),
+            ("hide", _("Hide game from library"), self.on_hide_game),
+            ("unhide", _("Unhide game from library"), self.on_unhide_game),
         ]
 
     def on_hide_game(self, _widget):
@@ -190,7 +191,7 @@ class GameActions:
     def on_show_logs(self, _widget):
         """Display game log"""
         return LogWindow(
-            title="Log for {}".format(self.game), buffer=self.game.log_buffer, application=self.application
+            title=_("Log for {}").format(self.game), buffer=self.game.log_buffer, application=self.application
         )
 
     def on_install_clicked(self, *_args):
@@ -221,11 +222,11 @@ class GameActions:
         """Callback to open a game folder in the file browser"""
         path = self.game.get_browse_dir()
         if not path:
-            dialogs.NoticeDialog("This game has no installation directory")
+            dialogs.NoticeDialog(_("This game has no installation directory"))
         elif path_exists(path):
             open_uri("file://%s" % path)
         else:
-            dialogs.NoticeDialog("Can't open %s \nThe folder doesn't exist." % path)
+            dialogs.NoticeDialog(_("Can't open %s \nThe folder doesn't exist.") % path)
 
     def on_create_menu_shortcut(self, *_args):
         """Add the selected game to the system's Games menu."""

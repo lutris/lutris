@@ -1,6 +1,7 @@
 """Sidebar for the main window"""
 # Standard Library
 import os
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import GObject, Gtk, Pango
@@ -61,12 +62,12 @@ class SidebarRow(Gtk.ListBoxRow):
         if self.runner.multiple_versions:
             entries.append((
                 "system-software-install-symbolic",
-                "Manage Versions",
+                _("Manage Versions"),
                 self.on_manage_versions,
             ))
         if self.runner.runnable_alone:
-            entries.append(("media-playback-start-symbolic", "Run", self.runner.run))
-        entries.append(("emblem-system-symbolic", "Configure", self.on_configure_runner))
+            entries.append(("media-playback-start-symbolic", _("Run"), self.runner.run))
+        entries.append(("emblem-system-symbolic", _("Configure"), self.on_configure_runner))
         for entry in entries:
             btn = Gtk.Button(tooltip_text=entry[1], relief=Gtk.ReliefStyle.NONE, visible=True)
             image = Gtk.Image.new_from_icon_name(entry[0], Gtk.IconSize.MENU)
@@ -81,7 +82,7 @@ class SidebarRow(Gtk.ListBoxRow):
         RunnerConfigDialog(self.runner, parent=self.get_toplevel())
 
     def on_manage_versions(self, *args):  # pylint: disable=unused-argument
-        dlg_title = "Manage %s versions" % self.runner.name
+        dlg_title = _("Manage %s versions") % self.runner.name
         RunnerInstallDialog(dlg_title, self.get_toplevel(), self.runner.name)
 
     def do_state_flags_changed(self, previous_flags):  # pylint: disable=arguments-differ
@@ -111,7 +112,7 @@ class SidebarHeader(Gtk.Box):
         box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_right=9)
         box.add(label)
         self.add(box)
-        if name == "Runners":
+        if name == _("Runners"):
             manage_runners_button = Gtk.Button.new_from_icon_name("emblem-system-symbolic", Gtk.IconSize.MENU)
             manage_runners_button.props.action_name = "win.manage-runners"
             manage_runners_button.props.relief = Gtk.ReliefStyle.NONE
@@ -144,7 +145,7 @@ class SidebarListBox(Gtk.ListBox):
         if local_theme_path not in icon_theme.get_search_path():
             icon_theme.prepend_search_path(local_theme_path)
 
-        all_row = SidebarRow(None, "runner", "All", None)
+        all_row = SidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
         self.select_row(all_row)
         for runner in self.runners:
@@ -153,7 +154,7 @@ class SidebarListBox(Gtk.ListBox):
             name = runners.import_runner(runner).human_name
             self.add(SidebarRow(runner, "runner", name, icon))
 
-        self.add(SidebarRow(None, "platform", "All", None))
+        self.add(SidebarRow(None, "platform", _("All"), None))
         for platform in self.platforms:
             icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
@@ -182,9 +183,9 @@ class SidebarListBox(Gtk.ListBox):
             return
 
         if not before:
-            row.set_header(SidebarHeader("Runners"))
+            row.set_header(SidebarHeader(_("Runners")))
         elif before.type == "runner" and row.type == "platform":
-            row.set_header(SidebarHeader("Platforms"))
+            row.set_header(SidebarHeader(_("Platforms")))
 
     def update(self, *args):  # pylint: disable=unused-argument
         self.installed_runners = [runner.name for runner in runners.get_installed()]

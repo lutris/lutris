@@ -1,5 +1,6 @@
 # Standard Library
 import os
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
@@ -9,15 +10,15 @@ from lutris.util.log import logger
 
 
 class vice(Runner):
-    description = "Commodore Emulator"
-    human_name = "Vice"
+    description = _("Commodore Emulator")
+    human_name = _("Vice")
     platforms = [
-        "Commodore 64",
-        "Commodore 128",
-        "Commodore VIC20",
-        "Commodore PET",
-        "Commodore Plus/4",
-        "Commodore CBM II",
+        _("Commodore 64"),
+        _("Commodore 128"),
+        _("Commodore VIC20"),
+        _("Commodore PET"),
+        _("Commodore Plus/4"),
+        _("Commodore CBM II"),
     ]
     machine_choices = [
         ("C64", "c64"),
@@ -34,8 +35,8 @@ class vice(Runner):
             "type":
             "file",
             "label":
-            "ROM file",
-            "help": (
+            _("ROM file"),
+            "help": _(
                 "The game data, commonly called a ROM image.\n"
                 "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
                 "D80, D82, D1M, D2M, D4M, T46, P00 and CRT."
@@ -47,44 +48,44 @@ class vice(Runner):
         {
             "option": "joy",
             "type": "bool",
-            "label": "Use joysticks",
+            "label": _("Use joysticks"),
             "default": False
         },
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": False,
         },
         {
             "option": "double",
             "type": "bool",
-            "label": "Scale up display by 2",
+            "label": _("Scale up display by 2"),
             "default": True,
         },
         {
             "option": "aspect_ratio",
             "type": "bool",
-            "label": "Keep aspect ratio",
+            "label": _("Keep aspect ratio"),
             "default": True,
         },
         {
             "option": "drivesound",
             "type": "bool",
-            "label": "Enable sound emulation of disk drives",
+            "label": _("Enable sound emulation of disk drives"),
             "default": False,
         },
         {
             "option": "renderer",
             "type": "choice",
-            "label": "Graphics renderer",
-            "choices": [("OpenGL", "opengl"), ("Software", "software")],
+            "label": _("Graphics renderer"),
+            "choices": [("OpenGL", "opengl"), (_("Software"), "software")],
             "default": "opengl",
         },
         {
             "option": "machine",
             "type": "choice",
-            "label": "Machine",
+            "label": _("Machine"),
             "choices": machine_choices,
             "default": "c64",
         },

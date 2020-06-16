@@ -1,4 +1,8 @@
 """Window for importing games from third party services"""
+# Standard Library
+import gettext
+from gettext import gettext as _
+
 # Third Party Libraries
 from gi.repository import Gtk
 from gi.repository.GdkPixbuf import Pixbuf
@@ -51,7 +55,7 @@ class ServiceSyncBox(Gtk.Box):
         if service.ONLINE:
             self.refresh_button = Gtk.Button()
             self.refresh_button.connect("clicked", self.on_refresh_clicked)
-            self.refresh_button.set_tooltip_text("Reload")
+            self.refresh_button.set_tooltip_text(_("Reload"))
             self.refresh_button.set_image(Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.MENU))
             title_box.add(self.refresh_button)
             title_box.add(self.connect_button)
@@ -64,9 +68,9 @@ class ServiceSyncBox(Gtk.Box):
         actions = Gtk.Box(spacing=6)
         self.pack_start(actions, False, False, 0)
 
-        self.import_button = Gtk.Button("Import games")
+        self.import_button = Gtk.Button(_("Import games"))
         self.import_button.set_sensitive(False)
-        self.import_button.set_tooltip_text("Sync now")
+        self.import_button.set_tooltip_text(_("Sync now"))
         self.import_button.connect("clicked", self.on_sync_button_clicked, service.SYNCER.sync)
         actions.pack_start(self.import_button, False, False, 0)
 
@@ -78,7 +82,7 @@ class ServiceSyncBox(Gtk.Box):
             self.sync_switch.set_state(True)
         actions.pack_start(Gtk.Alignment(), True, True, 0)
         actions.pack_start(self.sync_switch, False, False, 0)
-        actions.pack_start(Gtk.Label("Sync all games at startup"), False, False, 0)
+        actions.pack_start(Gtk.Label(_("Sync all games at startup")), False, False, 0)
 
         if self.service.ONLINE:
             AsyncCall(self._connect_button_toggle, None)
@@ -89,10 +93,10 @@ class ServiceSyncBox(Gtk.Box):
         if self.service.ONLINE and not self.is_connecting:
             service_logo = self.get_icon(size=(64, 64))
 
-            service_label = Gtk.Label("Connect to %s to import your library." % self.name)
+            service_label = Gtk.Label(_("Connect to %s to import your library.") % self.name)
             service_label.set_justify(Gtk.Justification.CENTER)
 
-            service_button = Gtk.Button("Connect your account")
+            service_button = Gtk.Button(_("Connect your account"))
             service_button.connect("clicked", self.on_connect_clicked)
 
             service_box = Gtk.VBox()
@@ -140,13 +144,13 @@ class ServiceSyncBox(Gtk.Box):
         self.is_connecting = False
         if self.service.is_connected():
             icon_name = "system-log-out-symbolic"
-            label = "Disconnect"
+            label = _("Disconnect")
             self.refresh_button.show()
             self.sync_switch.set_sensitive(True)
             self.import_button.set_sensitive(True)
         else:
             icon_name = "avatar-default-symbolic"
-            label = "Connect"
+            label = _("Connect")
             self.refresh_button.hide()
             self.sync_switch.set_sensitive(False)
             self.import_button.set_sensitive(False)
@@ -171,18 +175,18 @@ class ServiceSyncBox(Gtk.Box):
 
         skipped_import = len(original_games) - len(added_games)
         if added_games:
-            added_message = "%s game%s imported. " % (len(added_games), "s were" if len(added_games) > 1 else " was")
+            added_message = gettext.ngettext("%s game was imported. ",
+                                             "%s games were imported. ", len(added_games))
         else:
-            added_message = "No games were added. "
+            added_message = _("No games were added. ")
 
         if skipped_import:
-            skipped_message = "%s game%s already in the library" % (
-                skipped_import, "s are" if skipped_import > 1 else " is"
-            )
+            skipped_message = gettext.ngettext("%s game is already in the library",
+                                               "%s games are already in the library", skipped_import)
         else:
             skipped_message = ""
 
-        send_notification("Games imported", added_message + skipped_message)
+        send_notification(_("Games imported"), added_message + skipped_message)
         for game_id in added_games:
             window.game_store.add_or_update(game_id)
 
@@ -198,7 +202,7 @@ class ServiceSyncBox(Gtk.Box):
 
         renderer_text = Gtk.CellRendererText()
 
-        import_column = Gtk.TreeViewColumn("Import", renderer_toggle, active=self.COL_SELECTED)
+        import_column = Gtk.TreeViewColumn(_("Import"), renderer_toggle, active=self.COL_SELECTED)
         treeview.append_column(import_column)
 
         image_cell = Gtk.CellRendererPixbuf()
@@ -254,14 +258,14 @@ class ServiceSyncBox(Gtk.Box):
     def get_game_list_widget(self):
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         filter_box = Gtk.Box(spacing=6)
-        select_all_button = Gtk.CheckButton.new_with_label("Select all")
+        select_all_button = Gtk.CheckButton.new_with_label(_("Select all"))
         select_all_button.connect("toggled", self.on_select_all)
         filter_box.add(select_all_button)
 
         search_entry = Gtk.Entry()
         search_entry.connect("changed", self.on_search_entry_changed)
         filter_box.pack_start(Gtk.Alignment(), True, True, 0)
-        filter_box.add(Gtk.Label("Filter:"))
+        filter_box.add(Gtk.Label(_("Filter:")))
         filter_box.add(search_entry)
         content.pack_start(filter_box, False, False, 0)
 
@@ -326,7 +330,7 @@ class ServiceSyncBox(Gtk.Box):
 class SyncServiceWindow(Gtk.ApplicationWindow):
 
     def __init__(self, application):
-        super().__init__(title="Import games", application=application)
+        super().__init__(title=_("Import games"), application=application)
         self.set_default_icon_name("lutris")
         self.application = application
         self.set_show_menubar(False)
