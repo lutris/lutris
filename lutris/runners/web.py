@@ -43,8 +43,8 @@ class web(Runner):
         },
         {
             "option": "window_size",
-            "label": "Window size",
-            "type": _("choice_with_entry"),
+            "label": _("Window size"),
+            "type": "choice_with_entry",
             "choices": [
                 "640x480",
                 "800x600",

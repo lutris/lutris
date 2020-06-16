@@ -175,14 +175,18 @@ class ServiceSyncBox(Gtk.Box):
 
         skipped_import = len(original_games) - len(added_games)
         if added_games:
-            added_message = gettext.ngettext("%s game was imported. ",
-                                             "%s games were imported. ", len(added_games))
+            added_message = gettext.ngettext(
+                "%d game was imported. ",
+                "%d games were imported. ",
+                len(added_games)) % len(added_games)
         else:
             added_message = _("No games were added. ")
 
         if skipped_import:
-            skipped_message = gettext.ngettext("%s game is already in the library",
-                                               "%s games are already in the library", skipped_import)
+            skipped_message = gettext.ngettext(
+                "%s game is already in the library",
+                "%s games are already in the library",
+                skipped_import) % skipped_import
         else:
             skipped_message = ""
 
