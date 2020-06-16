@@ -17,6 +17,7 @@
 
 # Standard Library
 import gettext
+import locale
 import json
 import logging
 import os
@@ -61,7 +62,11 @@ class Application(Gtk.Application):
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         )
         init_lutris()
-        gettext.bindtextdomain("lutris", "%s/share/locale" % settings.PREFIX_PATH)
+
+        localDir = "%s/share/locale" % settings.PREFIX_PATH
+        locale.bindtextdomain("lutris", localDir)
+        locale.textdomain("lutris")
+        gettext.bindtextdomain("lutris", localDir)
         gettext.textdomain("lutris")
 
         GLib.set_application_name(_("Lutris"))
