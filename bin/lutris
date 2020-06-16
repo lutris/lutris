@@ -28,14 +28,24 @@ else:
     sys.path.insert(0, os.path.normpath(os.path.join(LAUNCH_PATH, "../lib/lutris")))
 
 try:
-    gettext.textdomain('lutris')
-except:
-    sys.stderr.write("Couldn't set gettext domain, translations won't work.")
-
-try:
     locale.setlocale(locale.LC_ALL, "")
 except locale.Error:
     sys.stderr.write("Unsupported locale setting. Fix your locales\n")
+
+try:
+    # Application install prefix
+    # Example:
+    #   /usr/bin/lutris/../..         -> /usr
+    #   $HOME/.local/bin/lutris/../.. -> $HOME/.local
+    prefixPath = os.path.realpath(os.path.join(__file__, os.path.pardir, os.path.pardir))
+
+    localDir = "%s/share/locale" % prefixPath
+    locale.bindtextdomain("lutris", localDir)
+    locale.textdomain("lutris")
+    gettext.bindtextdomain("lutris", localDir)
+    gettext.textdomain("lutris")
+except:
+    sys.stderr.write("Couldn't set gettext domain, translations won't work.")
 
 from lutris.gui.application import Application  # pylint: disable=no-name-in-module
 

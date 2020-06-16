@@ -63,12 +63,6 @@ class Application(Gtk.Application):
         )
         init_lutris()
 
-        localDir = "%s/share/locale" % settings.PREFIX_PATH
-        locale.bindtextdomain("lutris", localDir)
-        locale.textdomain("lutris")
-        gettext.bindtextdomain("lutris", localDir)
-        gettext.textdomain("lutris")
-
         GLib.set_application_name(_("Lutris"))
         self.running_games = Gio.ListStore.new(Game)
         self.window = None
