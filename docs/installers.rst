@@ -97,6 +97,9 @@ Runner configuration
 The runner can be preconfigured from the installer.
 The name of the directive is the slug name of the runner,
 for example ``wine``. Available parameters depend on the runner.
+
+To get a complete list of all the currently valid runners and their available version you can get a list of them from https://lutris.net/api/runners. Use the runner's slug as the runner identifier. 
+
 The best way to set this is to add the game to Lutris, tweak the
 runner config and then copy it from ``.config/lutris/games/<game name and id>.yml``.
 
@@ -106,8 +109,6 @@ Example for Wine (set wine version for this installer):
 
     wine:
       version: overwatch-2.15-x86_64
-
-To get a complete list of all the currently valid runners and their available version you can get a list of them from https://lutris.net/api/runners 
 
 System configuration
 --------------------
