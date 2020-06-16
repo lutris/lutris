@@ -38,6 +38,6 @@ and commit your changes.
   ```bash
   rm -Rf transl-builddir
   meson transl-builddir --prefix=~/.local
-  ninja install -C builddir
+  ninja install -C transl-builddir
   env LANGUAGE=$LANG ~/.local/bin/lutris
   ```
