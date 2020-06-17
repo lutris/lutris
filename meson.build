@@ -26,6 +26,20 @@ bindir = get_option('bindir')
 pylibdir = py.get_install_dir()
 datadir = get_option('datadir')
 localedir = get_option('localedir')
+lutrisdir = join_paths(pylibdir, 'lutris')
+
+# Generate configuration files
+prefix = get_option('prefix')
+config = configuration_data()
+config.set('localedir_path', join_paths(prefix, localedir))
+
+configure_file(
+  input: 'optional_settings.py.in',
+  output: 'optional_settings.py',
+  configuration: config,
+  install: true,
+  install_dir: lutrisdir,
+)
 
 # Translations (see github issue #728)
 subdir('po')

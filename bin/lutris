@@ -33,19 +33,28 @@ except locale.Error:
     sys.stderr.write("Unsupported locale setting. Fix your locales\n")
 
 try:
-    # Application install prefix
-    # Example:
-    #   /usr/bin/lutris/../..         -> /usr
-    #   $HOME/.local/bin/lutris/../.. -> $HOME/.local
-    prefixPath = os.path.realpath(os.path.join(__file__, os.path.pardir, os.path.pardir))
+    # optional_settings does not exist if you don't use the meson build system
+    from lutris import optional_settings
 
-    localDir = "%s/share/locale" % prefixPath
-    locale.bindtextdomain("lutris", localDir)
+    try:
+        locale.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
+        gettext.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
+    except:
+        sys.stderr.write(
+            "Couldn't bind gettext domain, translations may not work.\n"
+            "LOCALE_DIR: %s\n" % optional_settings.LOCALE_DIR
+        )
+except:
+    sys.stderr.write(
+        "Unable to load optional_settings, locale dir is not set, "
+        "translations may not work.\n"
+    )
+
+try:
     locale.textdomain("lutris")
-    gettext.bindtextdomain("lutris", localDir)
     gettext.textdomain("lutris")
 except:
-    sys.stderr.write("Couldn't set gettext domain, translations won't work.")
+    sys.stderr.write("Couldn't set gettext domain, translations won't work.\n")
 
 from lutris.gui.application import Application  # pylint: disable=no-name-in-module
 
