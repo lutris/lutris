@@ -16,8 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Standard Library
-import gettext
-import locale
 import json
 import logging
 import os
