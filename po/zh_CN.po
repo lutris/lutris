@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-17 10:38+0800\n"
+"POT-Creation-Date: 2020-06-17 10:47+0800\n"
 "PO-Revision-Date: 2020-06-17 10:37+0800\n"
 "Last-Translator: SwimmingTiger\n"
 "Language-Team: \n"
@@ -812,7 +812,7 @@ msgstr "无法获取运行环境版本， 检查您的互联网连接。"
 #: lutris/gui/dialogs/runner_install.py:72
 #, python-format
 msgid "%s version management"
-msgstr "管理 %s 版本"
+msgstr "%s 版本管理器"
 
 #: lutris/gui/dialogs/runner_install.py:145
 #, python-format
@@ -2391,7 +2391,7 @@ msgstr "宽高比"
 #: lutris/runners/mednafen.py:85 lutris/runners/wine.py:397
 #: lutris/runners/wine.py:417 lutris/runners/wine.py:500
 msgid "Disabled"
-msgstr "已禁用"
+msgstr "禁用"
 
 #: lutris/runners/mednafen.py:86
 msgid "Stretched"
@@ -3423,7 +3423,7 @@ msgstr "严格绘制顺序"
 #: lutris/runners/wine.py:397 lutris/runners/wine.py:417
 #: lutris/runners/wine.py:501
 msgid "Enabled"
-msgstr "已启用"
+msgstr "启用"
 
 #: lutris/runners/wine.py:403
 msgid ""
@@ -3865,7 +3865,7 @@ msgstr "保持现状"
 #: lutris/sysoptions.py:40 lutris/sysoptions.py:49 lutris/sysoptions.py:60
 #: lutris/sysoptions.py:458
 msgid "Off"
-msgstr "关闭显示"
+msgstr "关闭"
 
 #: lutris/sysoptions.py:41
 msgid "Primary"
