@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-17 10:47+0800\n"
+"POT-Creation-Date: 2020-06-17 11:07+0800\n"
 "PO-Revision-Date: 2020-06-17 10:37+0800\n"
 "Last-Translator: SwimmingTiger\n"
 "Language-Team: \n"
@@ -179,7 +179,7 @@ msgid "Show _Tray Icon"
 msgstr "显示托盘图标 (_T)"
 
 #: share/lutris/ui/lutris-window.ui:594 share/lutris/ui/lutris-window.ui:602
-#: lutris/gui/application.py:66 lutris/gui/widgets/status_icon.py:121
+#: lutris/gui/application.py:64 lutris/gui/widgets/status_icon.py:121
 #: lutris/settings.py:13
 msgid "Lutris"
 msgstr "Lutris"
@@ -439,16 +439,16 @@ msgid ""
 "<b>Error: A different Wine version is already using the same Wine prefix.</b>"
 msgstr "<b>错误: 该 Wine 前缀正在被另一个不同版本的 Wine 使用。</b>"
 
-#: lutris/gui/application.py:75
+#: lutris/gui/application.py:73
 msgid ""
 "Running Lutris as root is not recommended and may cause unexpected issues"
 msgstr "不建议以 root 用户身份运行 Lutris，这可能会导致未预期的问题"
 
-#: lutris/gui/application.py:85
+#: lutris/gui/application.py:83
 msgid "Your Linux distribution is too old. Lutris won't function properly."
 msgstr "您的 Linux 发行版太旧了。 Lutris 无法正常运行。"
 
-#: lutris/gui/application.py:90
+#: lutris/gui/application.py:88
 msgid ""
 "Run a game directly by adding the parameter lutris:rungame/game-identifier.\n"
 "If several games share the same identifier you can use the numerical ID "
@@ -461,70 +461,70 @@ msgstr ""
 "b> 显示），添加参数 <b>lutris:rungameid/数字id</b>。\n"
 "要安装游戏，请添加 <b>lutris:install/游戏标识符</b> 参数。"
 
-#: lutris/gui/application.py:103
+#: lutris/gui/application.py:101
 msgid "Print the version of Lutris and exit"
 msgstr "打印 Lutris 版本后退出"
 
-#: lutris/gui/application.py:111
+#: lutris/gui/application.py:109
 msgid "Show debug messages"
 msgstr "显示调试信息"
 
-#: lutris/gui/application.py:119
+#: lutris/gui/application.py:117
 msgid "Install a game from a yml file"
 msgstr "从 yml 文件安装游戏"
 
-#: lutris/gui/application.py:127
+#: lutris/gui/application.py:125
 msgid "Execute a program with the lutris runtime"
 msgstr "在 Lurtis 运行时中运行程序"
 
-#: lutris/gui/application.py:135
+#: lutris/gui/application.py:133
 msgid "List all games in database"
 msgstr "列出数据库中所有的游戏"
 
-#: lutris/gui/application.py:143
+#: lutris/gui/application.py:141
 msgid "Only list installed games"
 msgstr "仅列出已安装的游戏"
 
-#: lutris/gui/application.py:151
+#: lutris/gui/application.py:149
 msgid "List available Steam games"
 msgstr "列出可用的 Steam 游戏"
 
-#: lutris/gui/application.py:159
+#: lutris/gui/application.py:157
 msgid "List all known Steam library folders"
 msgstr "列出所有已知的 Steam 库文件夹"
 
-#: lutris/gui/application.py:167
+#: lutris/gui/application.py:165
 msgid "Display the list of games in JSON format"
 msgstr "以 JSON 格式显示游戏列表"
 
-#: lutris/gui/application.py:175
+#: lutris/gui/application.py:173
 msgid "Reinstall game"
 msgstr "重装游戏"
 
-#: lutris/gui/application.py:178
+#: lutris/gui/application.py:176
 msgid "Submit an issue"
 msgstr "提交反馈"
 
-#: lutris/gui/application.py:184
+#: lutris/gui/application.py:182
 msgid "uri to open"
 msgstr "要打开的网址"
 
-#: lutris/gui/application.py:315
+#: lutris/gui/application.py:313
 #, python-format
 msgid "%s is not a valid URI"
 msgstr "非法URI地址: %s"
 
-#: lutris/gui/application.py:328
+#: lutris/gui/application.py:326
 #, python-format
 msgid "Failed to download %s"
 msgstr "无法下载 %s"
 
-#: lutris/gui/application.py:336
+#: lutris/gui/application.py:334
 #, python-brace-format
 msgid "download {url} to {file} started"
 msgstr "开始下载 {url}，保存至 {file}"
 
-#: lutris/gui/application.py:347
+#: lutris/gui/application.py:345
 #, python-format
 msgid "No such file: %s"
 msgstr "文件找不到: %s"
@@ -1317,7 +1317,7 @@ msgstr "下载 Atari800 BIOS 文件失败"
 
 #: lutris/runners/browser.py:9
 msgid "Browser"
-msgstr "浏览"
+msgstr "浏览器"
 
 #: lutris/runners/browser.py:10 lutris/runners/web.py:18
 #: lutris/runners/web.py:20
