@@ -1,6 +1,6 @@
 # i18n
 
-Translations are not implemented yet, see github issue #728. Please read the notes before opening a PR.
+i18n build only works with the meson build system. See github issue #728 for more details.
 
 ## Updating a translations
 
@@ -9,7 +9,7 @@ meson transl-builddir
 ninja build -C transl-builddir
 ninja lutris-update-po -C transl-builddir
 ```
-Now update the `$LANG.po` file, and run after that
+Now edit the `$LANG.po` file, and run after that
 ```bash
 ninja lutris-update-po -C transl-builddir
 rm -Rf transl-builddir
@@ -24,8 +24,9 @@ ninja build -C transl-builddir
 ninja lutris-pot -C transl-builddir
 mv po/lutris.pot po/$LANG.po
 ```
-Now edit the `$LANG.po` file, add `$LANG` to the `LINGUAS` file, and run after that
+Now edit the `$LANG.po` file, and run after that
 ```bash
+ninja build -C transl-builddir
 ninja lutris-update-po -C transl-builddir
 rm -Rf transl-builddir
 ```
@@ -34,8 +35,8 @@ and commit your changes.
 ## Notes
 
 - Only commit changes for the translation file you actually edited.
-- Ignore the first four lines in the `$LANG.po` files.
-- Keep the `LINGUAS` file sorted alphabetically.
+- Ignore or delete the first four lines (copyright notice) in the `$LANG.po` files.
+- The `LINGUAS` and `POTFILES` updated by the `ninja build -C transl-builddir` command. You don't need to edit them manually.
 - Languages can't be tested without installing Lutris via meson:
   ```bash
   rm -Rf transl-builddir
