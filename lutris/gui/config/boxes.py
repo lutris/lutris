@@ -123,7 +123,7 @@ class ConfigBox(VBox):
             helptext = option.get("help")
             if isinstance(self.tooltip_default, str):
                 helptext = helptext + "\n\n" if helptext else ""
-                helptext += _("<b>Default</b>: ") + self.tooltip_default
+                helptext += _("<b>Default</b>: ") + _(self.tooltip_default)
             if value != default and option_key not in self.raw_config:
                 helptext = helptext + "\n\n" if helptext else ""
                 helptext += _(
