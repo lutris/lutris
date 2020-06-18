@@ -65,10 +65,10 @@ you can run it directly from the source directory::
     git clone https://github.com/lutris/lutris
     cd lutris
     ./bin/lutris
-    
+
 Alternatively you can install Lutris manually with the help of **virtualenv**.
 
-First, install ``python-virtualenv`` from your distribution's 
+First, install ``python-virtualenv`` from your distribution's
 repositories, along with dependencies listed in Requirements_.
 Then, create and activate virtual environment for Lutris::
 
