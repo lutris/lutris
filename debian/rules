@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
-export PYBUILD_INSTALL_ARGS_python3=--install-scripts=/usr/games/
 
 %:
-	dh $@ --buildsystem=pybuild
+	dh $@ --buildsystem=meson
+
+override_dh_auto_configure:
+	dh_auto_configure -- -Dbindir=games
