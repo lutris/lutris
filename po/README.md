@@ -32,7 +32,7 @@ and commit your changes.
 ## Notes
 
 - Only commit changes for the translation file you actually edited.
-- Ignore the first four lines in the `$LANG.po` files.
+- Ignore or delete the first four lines (copyright notice) in the `$LANG.po` files.
 - Keep the `LINGUAS` file sorted alphabetically.
 - Languages can't be tested without installing Lutris via meson:
   ```bash
