@@ -1,4 +1,1 @@
-build/
-.pybuild/
-lutris.egg-info/
-lutris/__pycache__/
+builddir/
