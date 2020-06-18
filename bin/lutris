@@ -39,22 +39,17 @@ try:
     try:
         locale.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
         gettext.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
+        locale.textdomain("lutris")
+        gettext.textdomain("lutris")
     except:
         sys.stderr.write(
-            "Couldn't bind gettext domain, translations may not work.\n"
+            "Couldn't bind gettext domain, translations won't work.\n"
             "LOCALE_DIR: %s\n" % optional_settings.LOCALE_DIR
         )
-except:
-    sys.stderr.write(
-        "Unable to load optional_settings, locale dir is not set, "
-        "translations may not work.\n"
+except ImportError:
+    sys.stdout.write(
+        "Unable to load locale dir, translations won't work.\n"
     )
-
-try:
-    locale.textdomain("lutris")
-    gettext.textdomain("lutris")
-except:
-    sys.stderr.write("Couldn't set gettext domain, translations won't work.\n")
 
 from lutris.gui.application import Application  # pylint: disable=no-name-in-module
 
