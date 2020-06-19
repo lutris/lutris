@@ -5,6 +5,7 @@
 # Standard Library
 # pylint: disable=no-member
 import os
+from gettext import gettext as _
 
 # Third Party Libraries
 import gi
@@ -131,7 +132,7 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         super().__init__(
             title=message,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
-            buttons=("_Cancel", Gtk.ResponseType.CLOSE, "_OK", Gtk.ResponseType.OK),
+            buttons=(_("_Cancel"), Gtk.ResponseType.CLOSE, _("_OK"), Gtk.ResponseType.OK),
             parent=parent,
         )
         self.result = self.run()
@@ -146,12 +147,12 @@ class FileDialog(Gtk.FileChooserDialog):
     def __init__(self, message=None, default_path=None):
         self.filename = None
         if not message:
-            message = "Please choose a file"
+            message = _("Please choose a file")
         super().__init__(
             message,
             None,
             Gtk.FileChooserAction.OPEN,
-            ("_Cancel", Gtk.ResponseType.CANCEL, "_OK", Gtk.ResponseType.OK),
+            (_("_Cancel"), Gtk.ResponseType.CANCEL, _("_OK"), Gtk.ResponseType.OK),
         )
         if default_path and os.path.exists(default_path):
             self.set_current_folder(default_path)
@@ -177,15 +178,15 @@ class InstallOrPlayDialog(Gtk.Dialog):
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
 
-        play_button = Gtk.RadioButton.new_with_label_from_widget(None, "Launch game")
+        play_button = Gtk.RadioButton.new_with_label_from_widget(None, _("Launch game"))
         play_button.connect("toggled", self.on_button_toggled, "play")
         vbox.pack_start(play_button, False, False, 0)
         install_button = Gtk.RadioButton.new_from_widget(play_button)
-        install_button.set_label("Install the game again")
+        install_button.set_label(_("Install the game again"))
         install_button.connect("toggled", self.on_button_toggled, "install")
         vbox.pack_start(install_button, False, False, 0)
 
-        confirm_button = Gtk.Button("OK")
+        confirm_button = Gtk.Button(_("OK"))
         confirm_button.connect("clicked", self.on_confirm)
         vbox.pack_start(confirm_button, False, False, 0)
 
@@ -207,7 +208,7 @@ class RuntimeUpdateDialog(Gtk.Dialog):
     """Dialog showing the progress of ongoing runtime update."""
 
     def __init__(self, parent=None):
-        Gtk.Dialog.__init__(self, "Runtime updating", parent=parent)
+        Gtk.Dialog.__init__(self, _("Runtime updating"), parent=parent)
         self.set_size_request(360, 104)
         self.set_border_width(12)
         progress_box = Gtk.Box()
@@ -250,7 +251,7 @@ class PgaSourceDialog(GtkBuilderDialog):
         self.sources_treeview.append_column(uri_column)
         self.sources_treeview.set_model(self.sources_liststore)
         sources = pga.read_sources()
-        for _, source in enumerate(sources):
+        for __, source in enumerate(sources):
             self.sources_liststore.append((source, ))
 
         self.remove_source_button.set_sensitive(False)
@@ -266,10 +267,10 @@ class PgaSourceDialog(GtkBuilderDialog):
 
     def on_add_source_button_clicked(self, widget, data=None):  # pylint: disable=unused-argument
         chooser = Gtk.FileChooserDialog(
-            "Select directory",
+            _("Select directory"),
             self.dialog,
             Gtk.FileChooserAction.SELECT_FOLDER,
-            ("_Cancel", Gtk.ResponseType.CANCEL, "_OK", Gtk.ResponseType.OK),
+            (_("_Cancel"), Gtk.ResponseType.CANCEL, _("_OK"), Gtk.ResponseType.OK),
         )
         chooser.set_local_only(False)
         response = chooser.run()
@@ -333,7 +334,7 @@ class ClientLoginDialog(GtkBuilderDialog):
         username, password = self.get_credentials()
         token = api.connect(username, password)
         if not token:
-            NoticeDialog("Login failed", parent=self.parent)
+            NoticeDialog(_("Login failed"), parent=self.parent)
         else:
             self.emit("connected", username)
             self.dialog.destroy()
@@ -351,15 +352,15 @@ class NoInstallerDialog(Gtk.MessageDialog):
             0,
             Gtk.MessageType.ERROR,
             Gtk.ButtonsType.NONE,
-            "Unable to install the game",
+            _("Unable to install the game"),
         )
-        self.format_secondary_text("No installer is available for this game")
+        self.format_secondary_text(_("No installer is available for this game"))
         self.add_buttons(
-            "Configure manually",
+            _("Configure manually"),
             self.MANUAL_CONF,
-            "Write installer",
+            _("Write installer"),
             self.NEW_INSTALLER,
-            "Close",
+            _("Close"),
             self.EXIT,
         )
         self.result = self.run()
@@ -407,7 +408,7 @@ class InstallerSourceDialog(Gtk.Dialog):
     """Show install script source"""
 
     def __init__(self, code, name, parent):
-        Gtk.Dialog.__init__(self, "Install script for {}".format(name), parent=parent)
+        Gtk.Dialog.__init__(self, _("Install script for {}").format(name), parent=parent)
         self.set_size_request(500, 350)
         self.set_border_width(0)
 
@@ -423,7 +424,7 @@ class InstallerSourceDialog(Gtk.Dialog):
         self.get_content_area().add(self.scrolled_window)
         self.scrolled_window.add(source_box)
 
-        close_button = Gtk.Button("OK")
+        close_button = Gtk.Button(_("OK"))
         close_button.connect("clicked", self.on_close)
         self.get_content_area().add(close_button)
 
@@ -459,7 +460,7 @@ class DontShowAgainDialog(Gtk.MessageDialog):
             self.props.secondary_text = secondary_message
 
         if not checkbox_message:
-            checkbox_message = "Do not display this message again."
+            checkbox_message = _("Do not display this message again.")
 
         dont_show_checkbutton = Gtk.CheckButton(checkbox_message)
         dont_show_checkbutton.props.halign = Gtk.Align.CENTER
@@ -480,11 +481,13 @@ class WineNotInstalledWarning(DontShowAgainDialog):
     def __init__(self, parent=None):
         super().__init__(
             "hide-wine-systemwide-install-warning",
-            "Wine is not installed on your system.",
-            secondary_message="Having Wine installed on your system guarantees that "
-            "Wine builds from Lutris will have all required dependencies.\n\nPlease "
-            "follow the instructions given in the <a "
-            "href='https://github.com/lutris/lutris/wiki/Wine-Dependencies'>Lutris Wiki</a> to "
-            "install Wine.",
+            _("Wine is not installed on your system."),
+            secondary_message=_(
+                "Having Wine installed on your system guarantees that "
+                "Wine builds from Lutris will have all required dependencies.\n\nPlease "
+                "follow the instructions given in the <a "
+                "href='https://github.com/lutris/lutris/wiki/Wine-Dependencies'>Lutris Wiki</a> to "
+                "install Wine."
+            ),
             parent=parent,
         )
