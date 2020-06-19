@@ -17,6 +17,7 @@ lutris/gui/config/common.py
 lutris/gui/config/edit_game.py
 lutris/gui/config/runner.py
 lutris/gui/config/system.py
+lutris/gui/dialogs/__init__.py
 lutris/gui/dialogs/download.py
 lutris/gui/dialogs/issue.py
 lutris/gui/dialogs/log.py
