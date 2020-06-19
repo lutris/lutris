@@ -1,0 +1,4364 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: lutris\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-19 21:21+0800\n"
+"PO-Revision-Date: 2020-06-19 21:21+0800\n"
+"Last-Translator: SwimmingTiger\n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2.1\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: share/lutris/ui/about-dialog.ui:8
+msgid "About Lutris"
+msgstr "关于 Lutris"
+
+#: share/lutris/ui/about-dialog.ui:18
+msgid "Open Source Gaming Platform"
+msgstr "开放源代码游戏平台"
+
+#: share/lutris/ui/about-dialog.ui:21
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"本程序为自由软件，在自由软件基金会发布的GNU通用公共许可协议的约束下，\n"
+"你可以对其进行再发布及修改。协议版本为第三版或（随你选择的）任何后续版本。\n"
+"\n"
+"我们希望发布的这款程序有用，但不提供任何担保，甚至不保证它有经济价值或\n"
+"适合特定用途。详情参见GNU通用公共许可协议。\n"
+"\n"
+"你应该已收到一份程序随付的GNU通用公共许可协议副本，如果没有，请查阅\n"
+"<http://www.gnu.org/licenses/>。\n"
+
+#: share/lutris/ui/dialog-lutris-login.ui:8
+msgid "Connect to lutris.net"
+msgstr "登录 lutris.net"
+
+#: share/lutris/ui/dialog-lutris-login.ui:26
+msgid "Forgot password?"
+msgstr "忘记密码？"
+
+#: share/lutris/ui/dialog-lutris-login.ui:95
+msgid "Password"
+msgstr "密码"
+
+#: share/lutris/ui/dialog-lutris-login.ui:109
+msgid "Username"
+msgstr "用户名"
+
+#: share/lutris/ui/dialog-pga-sources.ui:79
+msgid "<b>Personnal Game Archives sources</b>"
+msgstr "<b>个人游戏档案源</b>"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:22
+msgid "Uninstall game"
+msgstr "卸载游戏"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:89
+msgid "Are you sure you want to uninstall {game}?"
+msgstr "确定要卸载 {game} 吗？"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:102
+msgid ""
+"Remove <b>all data</b> from game folder\n"
+"( <i>{path}</i>)"
+msgstr ""
+"<b>彻底删除</b>游戏安装目录\n"
+"( <i>{path}</i>)"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:121
+msgid "Remove from my library"
+msgstr "从游戏库中移除"
+
+#: share/lutris/ui/runner-entry.ui:33
+msgid "name"
+msgstr "名称"
+
+#: share/lutris/ui/runner-entry.ui:52
+msgid "description"
+msgstr "描述"
+
+#: share/lutris/ui/runner-entry.ui:69
+msgid "platforms"
+msgstr "平台"
+
+#: share/lutris/ui/runner-entry.ui:104 lutris/gui/widgets/sidebar.py:65
+msgid "Manage Versions"
+msgstr "添加/删除版本"
+
+#: share/lutris/ui/runner-entry.ui:127
+msgid "Install Runner"
+msgstr "安装运行环境"
+
+#: share/lutris/ui/runner-entry.ui:149
+msgid "Configure Runner"
+msgstr "配置运行环境"
+
+#: share/lutris/ui/runner-entry.ui:172
+msgid "Remove Runner"
+msgstr "卸载运行环境"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:19
+msgid "Remove ALL versions?"
+msgstr "是否删除<b>所有</b>已安装的版本？"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:23
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:23
+#: lutris/gui/config/common.py:383
+msgid "Cancel"
+msgstr "取消"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:36
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:19
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:36 lutris/game_actions.py:91
+msgid "Remove"
+msgstr "卸载"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:59
+msgid ""
+"This will remove <b>ALL</b> versions of %s.\n"
+"\n"
+"Use the Manage Versions button if you want to remove just one version."
+msgstr ""
+"即将删除<b>所有</b>已安装的 %s 版本。\n"
+"\n"
+"如果只想删除某个版本，请使用“添加/删除版本”按钮。"
+
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:59
+msgid "This will remove <b>%s</b> and all associated data."
+msgstr "这将删除 <b>%s</b> 和所有相关的数据及文件。"
+
+#: share/lutris/ui/runners-dialog.ui:16
+msgid "Manage Runners"
+msgstr "安装/卸载运行环境"
+
+#: share/lutris/ui/runners-dialog.ui:24
+msgid "Refresh Runners"
+msgstr "翻新运行环境"
+
+#: share/lutris/ui/runners-dialog.ui:40
+msgid "Open Runners Folder"
+msgstr "打开运行环境文件夹"
+
+#: lutris/exceptions.py:27
+#, python-format
+msgid ""
+"Some required libraries are not installed on your system, install them with "
+"your package manager and restart Lutris. Libraries: %s"
+msgstr ""
+"系统内缺少某些必需的库，请使用程序包管理器安装它们，然后重新启动 Lutris。\n"
+"缺少的库: %s"
+
+#: lutris/game_actions.py:62 lutris/gui/views/game_panel.py:242
+msgid "Play"
+msgstr "启动"
+
+#: lutris/game_actions.py:63
+msgid "Stop"
+msgstr "停止"
+
+#: lutris/game_actions.py:64
+msgid "Show logs"
+msgstr "显示日志"
+
+#: lutris/game_actions.py:65 lutris/gui/widgets/cellrenderers.py:51
+#: lutris/gui/widgets/installer.py:80
+msgid "Install"
+msgstr "安装"
+
+#: lutris/game_actions.py:66
+msgid "Add installed game"
+msgstr "导入已安装的游戏"
+
+#: lutris/game_actions.py:67 lutris/gui/widgets/sidebar.py:70
+msgid "Configure"
+msgstr "配置"
+
+#: lutris/game_actions.py:68
+msgid "Execute script"
+msgstr "执行维护脚本"
+
+#: lutris/game_actions.py:69
+msgid "Browse files"
+msgstr "打开安装目录"
+
+#: lutris/game_actions.py:72 lutris/gui/installerwindow.py:407
+msgid "Create desktop shortcut"
+msgstr "创建桌面快捷方式"
+
+#: lutris/game_actions.py:77
+msgid "Delete desktop shortcut"
+msgstr "删除桌面快捷方式"
+
+#: lutris/game_actions.py:82 lutris/gui/installerwindow.py:408
+msgid "Create application menu shortcut"
+msgstr "创建应用列表快捷方式"
+
+#: lutris/game_actions.py:87
+msgid "Delete application menu shortcut"
+msgstr "删除应用列表快捷方式"
+
+#: lutris/game_actions.py:90
+msgid "Install another version"
+msgstr "安装其他版本"
+
+#: lutris/game_actions.py:92
+msgid "View on Lutris.net"
+msgstr "在 lutris.net 上查看"
+
+#: lutris/game_actions.py:93
+msgid "Hide game from library"
+msgstr "隐藏游戏"
+
+#: lutris/game_actions.py:94
+msgid "Unhide game from library"
+msgstr "取消隐藏"
+
+#: lutris/game_actions.py:194
+msgid "Log for {}"
+msgstr "{} 的日志"
+
+#: lutris/game_actions.py:225
+msgid "This game has no installation directory"
+msgstr "该游戏没有安装目录"
+
+#: lutris/game_actions.py:229
+#, python-format
+msgid ""
+"Can't open %s \n"
+"The folder doesn't exist."
+msgstr ""
+"无法打开 %s \n"
+"目录不存在。"
+
+#: lutris/game.py:136
+msgid "Error the runner is not installed"
+msgstr "错误：运行环境未安装"
+
+#: lutris/game.py:138
+msgid "A bios file is required to run this game"
+msgstr "该游戏需要载入一个BIOS文件才能运行"
+
+#: lutris/game.py:142
+msgid "The file {} could not be found"
+msgstr "找不到文件 {}"
+
+#: lutris/game.py:144
+msgid "No file provided"
+msgstr "未选择文件"
+
+#: lutris/game.py:148
+#, python-format
+msgid "The file %s is not executable"
+msgstr "文件 %s 不是可执行文件或没有执行权限"
+
+#: lutris/game.py:268
+msgid "Runtime currently updating"
+msgstr "运行环境正在更新"
+
+#: lutris/game.py:268
+msgid "Game might not work as expected"
+msgstr "更新完成前游戏可能无法正常启动"
+
+#: lutris/game.py:279
+msgid "Invalid game configuration: Missing runner"
+msgstr "无效游戏配置：缺少运行环境"
+
+#: lutris/game.py:304
+msgid "An error prevented the game from running"
+msgstr "启动游戏时游戏出错"
+
+#: lutris/game.py:449
+#, python-format
+msgid ""
+"The selected terminal application could not be launched:\n"
+"%s"
+msgstr ""
+"所选的终端应用程序无法启动:\n"
+"%s"
+
+#: lutris/game.py:559
+msgid "<b>Error lauching the game:</b>\n"
+msgstr "<b>启动游戏出错:</b>\n"
+
+#: lutris/game.py:645
+#, python-format
+msgid ""
+"<b>Error: Missing shared library.</b>\n"
+"\n"
+"%s"
+msgstr ""
+"<b>错误: 缺少共享库:</b>\n"
+"\n"
+"%s"
+
+#: lutris/game.py:651
+msgid ""
+"<b>Error: A different Wine version is already using the same Wine prefix.</b>"
+msgstr "<b>错误: 该 Wine 前缀正在被另一个不同版本的 Wine 使用。</b>"
+
+#: lutris/gui/application.py:64 lutris/gui/widgets/status_icon.py:121
+#: lutris/settings.py:13
+msgid "Lutris"
+msgstr "Lutris"
+
+#: lutris/gui/application.py:73
+msgid ""
+"Running Lutris as root is not recommended and may cause unexpected issues"
+msgstr "不建议以 root 用户身份运行 Lutris，这可能会导致未预期的问题"
+
+#: lutris/gui/application.py:83
+msgid "Your Linux distribution is too old. Lutris won't function properly."
+msgstr "您的 Linux 发行版太旧了。 Lutris 无法正常运行。"
+
+#: lutris/gui/application.py:88
+msgid ""
+"Run a game directly by adding the parameter lutris:rungame/game-identifier.\n"
+"If several games share the same identifier you can use the numerical ID "
+"(displayed when running lutris --list-games) and add lutris:rungameid/"
+"numerical-id.\n"
+"To install a game, add lutris:install/game-identifier."
+msgstr ""
+"通过添加参数 <b>lutris:rungame/游戏标识符</b> 直接运行游戏。\n"
+"如果多个游戏共享相同的标识符，则可以使用数字ID（运行 <b>lutris --list-games</"
+"b> 显示），添加参数 <b>lutris:rungameid/数字id</b>。\n"
+"要安装游戏，请添加 <b>lutris:install/游戏标识符</b> 参数。"
+
+#: lutris/gui/application.py:101
+msgid "Print the version of Lutris and exit"
+msgstr "打印 Lutris 版本后退出"
+
+#: lutris/gui/application.py:109
+msgid "Show debug messages"
+msgstr "显示调试信息"
+
+#: lutris/gui/application.py:117
+msgid "Install a game from a yml file"
+msgstr "从 yml 文件安装游戏"
+
+#: lutris/gui/application.py:125
+msgid "Execute a program with the lutris runtime"
+msgstr "在 Lurtis 运行时中运行程序"
+
+#: lutris/gui/application.py:133
+msgid "List all games in database"
+msgstr "列出数据库中所有的游戏"
+
+#: lutris/gui/application.py:141
+msgid "Only list installed games"
+msgstr "仅列出已安装的游戏"
+
+#: lutris/gui/application.py:149
+msgid "List available Steam games"
+msgstr "列出可用的 Steam 游戏"
+
+#: lutris/gui/application.py:157
+msgid "List all known Steam library folders"
+msgstr "列出所有已知的 Steam 库文件夹"
+
+#: lutris/gui/application.py:165
+msgid "Display the list of games in JSON format"
+msgstr "以 JSON 格式显示游戏列表"
+
+#: lutris/gui/application.py:173
+msgid "Reinstall game"
+msgstr "重装游戏"
+
+#: lutris/gui/application.py:176
+msgid "Submit an issue"
+msgstr "提交反馈"
+
+#: lutris/gui/application.py:182
+msgid "uri to open"
+msgstr "要打开的网址"
+
+#: lutris/gui/application.py:313
+#, python-format
+msgid "%s is not a valid URI"
+msgstr "非法URI地址: %s"
+
+#: lutris/gui/application.py:326
+#, python-format
+msgid "Failed to download %s"
+msgstr "无法下载 %s"
+
+#: lutris/gui/application.py:334
+#, python-brace-format
+msgid "download {url} to {file} started"
+msgstr "开始下载 {url}，保存至 {file}"
+
+#: lutris/gui/application.py:345
+#, python-format
+msgid "No such file: %s"
+msgstr "文件找不到: %s"
+
+#: lutris/gui/config/add_game.py:15
+msgid "Add a new game"
+msgstr "添加新游戏"
+
+#: lutris/gui/config/boxes.py:59
+msgid "No options available"
+msgstr "没有可用的选项"
+
+#: lutris/gui/config/boxes.py:105
+msgid "Reset option to global or default config"
+msgstr "将选项重置为全局或默认设置"
+
+#: lutris/gui/config/boxes.py:126
+msgid "<b>Default</b>: "
+msgstr "<b>默认</b>: "
+
+#: lutris/gui/config/boxes.py:130
+msgid ""
+"<i>(Italic indicates that this option is modified in a lower configuration "
+"level.)</i>"
+msgstr "<i>（斜体表示此选项在较低的配置级别被修改。）</i>"
+
+#: lutris/gui/config/boxes.py:307 lutris/runners/jzintv.py:60
+#, python-format
+msgid "%s (default)"
+msgstr "%s (默认)"
+
+#: lutris/gui/config/boxes.py:391 lutris/gui/installerwindow.py:281
+#: lutris/gui/widgets/common.py:45
+msgid "Select file"
+msgstr "选择文件"
+
+#: lutris/gui/config/boxes.py:435 lutris/gui/installerwindow.py:285
+msgid "Select folder"
+msgstr "选择目录"
+
+#: lutris/gui/config/boxes.py:475
+msgid "Add files"
+msgstr "添加文件"
+
+#: lutris/gui/config/boxes.py:493
+msgid "Files"
+msgstr "文件"
+
+#: lutris/gui/config/boxes.py:510
+msgid "Select files"
+msgstr "批量选择文件"
+
+#: lutris/gui/config/boxes.py:514 lutris/gui/dialogs/__init__.py:135
+#: lutris/gui/dialogs/__init__.py:155 lutris/gui/dialogs/__init__.py:273
+#: lutris/gui/dialogs/issue.py:74 lutris/gui/widgets/common.py:95
+#: lutris/gui/widgets/download_progress.py:47
+msgid "_Cancel"
+msgstr "取消 (_C)"
+
+#: lutris/gui/config/boxes.py:516
+msgid "_Add"
+msgstr "添加 (_A)"
+
+#: lutris/gui/config/boxes.py:646
+msgid ""
+"If modified, these options supersede the same options from the base runner "
+"configuration."
+msgstr "如果修改，这些选项将取代基本运行环境配置中的相同选项。"
+
+#: lutris/gui/config/boxes.py:666
+msgid ""
+"If modified, these options supersede the same options from the base runner "
+"configuration, which themselves supersede the global preferences."
+msgstr ""
+"如果修改，这些选项将取代基本运行环境配置中的相同选项，也将取代全局首选项。"
+
+#: lutris/gui/config/boxes.py:672
+msgid ""
+"If modified, these options supersede the same options from the global "
+"preferences."
+msgstr "如果修改，这些选项将取代全局首选项中的相同选项。"
+
+#: lutris/gui/config/common.py:31
+msgid "Select a runner in the Game Info tab"
+msgstr "在“游戏信息”选项卡中选择一个运行环境"
+
+#: lutris/gui/config/common.py:99
+msgid "Game info"
+msgstr "游戏信息"
+
+#: lutris/gui/config/common.py:108
+msgid ""
+"If provided, this location will be used by installers to cache downloaded "
+"files locally for future re-use. \n"
+"If left empty, the installer files are discarded after the install "
+"completion."
+msgstr ""
+"如果提供此位置，安装程序将使用此位置在本地缓存下载的文件，以备将来再次使"
+"用。\n"
+"如果保留为空，则安装程序文件在安装完成后将被丢弃。"
+
+#: lutris/gui/config/common.py:117
+msgid "Lutris preferences"
+msgstr "Lutris 首选项"
+
+#: lutris/gui/config/common.py:130
+msgid "Copy System Info"
+msgstr "复制系统信息到剪切板"
+
+#: lutris/gui/config/common.py:136
+msgid "System Information"
+msgstr "系统信息"
+
+#: lutris/gui/config/common.py:143
+msgid "Cache path"
+msgstr "缓存目录"
+
+#: lutris/gui/config/common.py:147
+msgid "Set the folder for the cache path"
+msgstr "设置缓存文件夹路径"
+
+#: lutris/gui/config/common.py:155
+msgid "Minimize client when a game is launched"
+msgstr "游戏启动时最小化 Lutris 客户端"
+
+#: lutris/gui/config/common.py:179 lutris/gui/views/list.py:42
+msgid "Name"
+msgstr "名称"
+
+#: lutris/gui/config/common.py:190
+msgid "Identifier"
+msgstr "标识符"
+
+#: lutris/gui/config/common.py:199 lutris/gui/config/common.py:320
+msgid "Change"
+msgstr "修改"
+
+#: lutris/gui/config/common.py:208 lutris/gui/views/list.py:44
+msgid "Runner"
+msgstr "运行环境"
+
+#: lutris/gui/config/common.py:214
+msgid "Install runners"
+msgstr "安装运行环境"
+
+#: lutris/gui/config/common.py:233
+msgid "Remove custom banner"
+msgstr "移除自定义封面"
+
+#: lutris/gui/config/common.py:244
+msgid "Remove custom icon"
+msgstr "移除自定义图标"
+
+#: lutris/gui/config/common.py:253
+msgid "Release year"
+msgstr "发行年份"
+
+#: lutris/gui/config/common.py:301
+msgid "Select a runner from the list"
+msgstr "从列表中选择一个运行环境"
+
+#: lutris/gui/config/common.py:309
+msgid "Apply"
+msgstr "应用"
+
+#: lutris/gui/config/common.py:351
+msgid "Game options"
+msgstr "游戏选项"
+
+#: lutris/gui/config/common.py:359
+msgid "Runner options"
+msgstr "运行环境选项"
+
+#: lutris/gui/config/common.py:366
+msgid "System options"
+msgstr "系统选项"
+
+#: lutris/gui/config/common.py:375
+msgid "Show advanced options"
+msgstr "显示高级选项"
+
+#: lutris/gui/config/common.py:387
+msgid "Save"
+msgstr "保存"
+
+#: lutris/gui/config/common.py:420
+msgid ""
+"Are you sure you want to change the runner for this game ? This will reset "
+"the full configuration for this game and is not reversible."
+msgstr ""
+"您确定要更改此游戏的运行环境吗？ 这将重置此游戏的所有配置，并且不可逆。"
+
+#: lutris/gui/config/common.py:424
+msgid "Confirm runner change"
+msgstr "运行环境变更确认"
+
+#: lutris/gui/config/common.py:472
+msgid "Runner not provided"
+msgstr "未选择运行环境"
+
+#: lutris/gui/config/common.py:475
+msgid "Please fill in the name"
+msgstr "请填写游戏名称"
+
+#: lutris/gui/config/common.py:478
+msgid "Steam AppId not provided"
+msgstr "Steam 应用 ID 未提供"
+
+#: lutris/gui/config/common.py:497
+msgid "The following fields have invalid values: "
+msgstr "以下字段的值无效: "
+
+#: lutris/gui/config/common.py:504
+msgid "Current configuration is not valid, ignoring save request"
+msgstr "当前配置无效，无法保存"
+
+#: lutris/gui/config/common.py:543
+msgid "Please choose a custom image"
+msgstr "请选择一个自定义图片"
+
+#: lutris/gui/config/common.py:555
+msgid "Images"
+msgstr "映像文件"
+
+#: lutris/gui/config/edit_game.py:15 lutris/gui/config/runner.py:17
+#, python-format
+msgid "Configure %s"
+msgstr "配置 %s"
+
+#: lutris/gui/config/system.py:14
+msgid "System preferences"
+msgstr "系统首选项"
+
+#: lutris/gui/dialogs/__init__.py:135 lutris/gui/dialogs/__init__.py:155
+#: lutris/gui/dialogs/__init__.py:273 lutris/gui/dialogs/issue.py:74
+#: lutris/gui/dialogs/runner_install.py:36 lutris/gui/widgets/common.py:95
+msgid "_OK"
+msgstr "确定 (_O)"
+
+#: lutris/gui/dialogs/__init__.py:150
+msgid "Please choose a file"
+msgstr "选择一个文件"
+
+#: lutris/gui/dialogs/__init__.py:181
+msgid "Launch game"
+msgstr "启动游戏"
+
+#: lutris/gui/dialogs/__init__.py:185
+msgid "Install the game again"
+msgstr "再次安装游戏"
+
+#: lutris/gui/dialogs/__init__.py:189 lutris/gui/dialogs/__init__.py:427
+msgid "OK"
+msgstr "确定"
+
+#: lutris/gui/dialogs/__init__.py:211
+msgid "Runtime updating"
+msgstr "运行环境正在更新"
+
+#: lutris/gui/dialogs/__init__.py:270
+msgid "Select directory"
+msgstr "选择文件夹"
+
+#: lutris/gui/dialogs/__init__.py:337
+msgid "Login failed"
+msgstr "登录失败"
+
+#: lutris/gui/dialogs/__init__.py:355
+msgid "Unable to install the game"
+msgstr "安装游戏失败"
+
+#: lutris/gui/dialogs/__init__.py:357
+msgid "No installer is available for this game"
+msgstr "没有适用于此游戏的安装脚本"
+
+#: lutris/gui/dialogs/__init__.py:359
+msgid "Configure manually"
+msgstr "手动安装该游戏"
+
+#: lutris/gui/dialogs/__init__.py:361
+msgid "Write installer"
+msgstr "编写安装脚本"
+
+#: lutris/gui/dialogs/__init__.py:363 lutris/gui/views/game_panel.py:59
+msgid "Close"
+msgstr "关闭"
+
+#: lutris/gui/dialogs/__init__.py:411
+msgid "Install script for {}"
+msgstr "{} 的安装脚本"
+
+#: lutris/gui/dialogs/__init__.py:463
+msgid "Do not display this message again."
+msgstr "不再显示此信息。"
+
+#: lutris/gui/dialogs/__init__.py:484
+msgid "Wine is not installed on your system."
+msgstr "你需要将 Wine 安装到你的系统中。"
+
+#: lutris/gui/dialogs/__init__.py:486
+msgid ""
+"Having Wine installed on your system guarantees that Wine builds from Lutris "
+"will have all required dependencies.\n"
+"\n"
+"Please follow the instructions given in the <a href='https://github.com/"
+"lutris/lutris/wiki/Wine-Dependencies'>Lutris Wiki</a> to install Wine."
+msgstr ""
+"在系统中安装 Wine 可以确保从 Lutris 构建的 Wine 具有所有必需的依赖项。\n"
+"\n"
+"请按照 <a href='https://github.com/lutris/lutris/wiki/Wine-"
+"Dependencies'>Lutris Wiki</a> 中给出的说明安装 Wine。"
+
+#: lutris/gui/dialogs/download.py:16
+msgid "Downloading file"
+msgstr "文件下载中"
+
+#: lutris/gui/dialogs/download.py:19
+#, python-format
+msgid "Downloading %s"
+msgstr "正在下载 %s"
+
+#: lutris/gui/dialogs/issue.py:27
+msgid "<b>Submit an issue</b>"
+msgstr "<b>提交反馈</b>"
+
+#: lutris/gui/dialogs/issue.py:32
+msgid ""
+"Describe the problem you're having in the text box below. This information "
+"will be sent the Lutris team along with your system information.You can also "
+"save this information locally if you are offline."
+msgstr ""
+"在下面的文本框中描述您遇到的问题。 该信息将与您的系统信息一起发送给 Lutris 团"
+"队。如果您没有联网，也可以将该信息保存在本地。"
+
+#: lutris/gui/dialogs/issue.py:52 lutris/gui/installerwindow.py:79
+msgid "C_ancel"
+msgstr "取消 (_A)"
+
+#: lutris/gui/dialogs/issue.py:55
+msgid "_Save"
+msgstr "保存 (_S)"
+
+#: lutris/gui/dialogs/issue.py:71
+msgid "Select a location to save the issue"
+msgstr "选择一个位置来保存反馈信息"
+
+#: lutris/gui/dialogs/issue.py:90
+#, python-format
+msgid "Issue saved in %s"
+msgstr "反馈已保存到 %s"
+
+#: lutris/gui/dialogs/log.py:29
+msgid "Search..."
+msgstr "搜索..."
+
+#: lutris/gui/dialogs/runner_install.py:44 lutris/gui/installerwindow.py:94
+#, python-format
+msgid "Waiting for response from %s"
+msgstr "等待 %s 响应"
+
+#: lutris/gui/dialogs/runner_install.py:63
+msgid "Unable to get runner versions. Check your internet connection."
+msgstr "无法获取运行环境版本， 检查您的互联网连接。"
+
+#: lutris/gui/dialogs/runner_install.py:72
+#, python-format
+msgid "%s version management"
+msgstr "%s 版本管理器"
+
+#: lutris/gui/dialogs/runner_install.py:145
+#, python-format
+msgid "In use by %d game"
+msgid_plural "In use by %d games"
+msgstr[0] "被 %d 个游戏使用"
+
+#: lutris/gui/dialogs/runner_install.py:147
+msgid "Not in use"
+msgstr "未使用"
+
+#: lutris/gui/dialogs/runner_install.py:168
+msgid "Do you want to cancel the download?"
+msgstr "是否取消下载？"
+
+#: lutris/gui/dialogs/runner_install.py:169
+msgid "Download starting"
+msgstr "下载开始"
+
+#: lutris/gui/dialogs/runner_install.py:222
+msgid "Downloading…"
+msgstr "正在下载…"
+
+#: lutris/gui/dialogs/runner_install.py:225
+msgid "Extracting…"
+msgstr "正在解压…"
+
+#: lutris/gui/dialogs/runner_install.py:248
+msgid "Failed to retrieve the runner archive"
+msgstr "下载运行环境安装包失败"
+
+#: lutris/gui/dialogs/runners.py:128 lutris/gui/widgets/sidebar.py:85
+#, python-format
+msgid "Manage %s versions"
+msgstr "管理 %s 版本"
+
+#: lutris/gui/dialogs/uninstall_game.py:57
+msgid "No game folder"
+msgstr "该游戏没有安装目录"
+
+#: lutris/gui/dialogs/uninstall_game.py:86
+#, python-format
+msgid ""
+"Are you sure you want to delete EVERYTHING under \n"
+"<b>%s</b>?\n"
+" (This can't be undone)"
+msgstr ""
+"你确定要删除该目录下的<b>所有内容</b>吗？\n"
+"<b>%s</b>\n"
+" （删除操作不可逆！）"
+
+#: lutris/gui/dialogs/uninstall_game.py:89
+msgid "CONFIRM DANGEROUS OPERATION"
+msgstr "<b>危险操作确认</b>"
+
+#: lutris/gui/installerwindow.py:77
+msgid "Configure m_anually"
+msgstr "手动配置 (_A)"
+
+#: lutris/gui/installerwindow.py:79
+msgid "Abort and revert the installation"
+msgstr "中止并回滚安装"
+
+#: lutris/gui/installerwindow.py:81
+msgid "_Eject"
+msgstr "弹出 (_E)"
+
+#: lutris/gui/installerwindow.py:82
+msgid "_View source"
+msgstr "查看来源 (_V)"
+
+#: lutris/gui/installerwindow.py:83
+msgid "_Install"
+msgstr "安装 (_I)"
+
+#: lutris/gui/installerwindow.py:84
+msgid "_Continue"
+msgstr "继续 (_C)"
+
+#: lutris/gui/installerwindow.py:85
+msgid "_Launch"
+msgstr "启动 (_L)"
+
+#: lutris/gui/installerwindow.py:86
+msgid "_Close"
+msgstr "关闭 (_C)"
+
+#: lutris/gui/installerwindow.py:188
+#, python-format
+msgid "<b>Install %s</b>"
+msgstr "<b>安装 %s</b>"
+
+#: lutris/gui/installerwindow.py:208
+#, python-format
+msgid "This game requires %s. Do you want to install it?"
+msgstr "该游戏需要 %s，您要安装吗？"
+
+#: lutris/gui/installerwindow.py:209
+msgid "Missing dependency"
+msgstr "缺少依赖"
+
+#: lutris/gui/installerwindow.py:221
+msgid "<b>Installing {}</b>"
+msgstr "<b>安装 {}</b>"
+
+#: lutris/gui/installerwindow.py:227
+msgid "Select installation directory"
+msgstr "选择安装目录"
+
+#: lutris/gui/installerwindow.py:232
+msgid "Click install to continue"
+msgstr "点击“安装”以继续"
+
+#: lutris/gui/installerwindow.py:351
+msgid "Autodetect"
+msgstr "自动检测"
+
+#: lutris/gui/installerwindow.py:357
+msgid "Browse…"
+msgstr "浏览…"
+
+#: lutris/gui/installerwindow.py:364
+msgid "Select the folder where the disc is mounted"
+msgstr "选择安装光盘的挂载文件夹"
+
+#: lutris/gui/installerwindow.py:474
+msgid "Remove game files"
+msgstr "删除游戏文件"
+
+#: lutris/gui/installerwindow.py:480
+msgid "Are you sure you want to cancel the installation?"
+msgstr "确定要取消安装吗？"
+
+#: lutris/gui/installerwindow.py:481
+msgid "Cancel installation?"
+msgstr "是否取消安装？"
+
+#: lutris/gui/lutriswindow.py:129 lutris/gui/lutriswindow.py:130
+#: lutris/gui/lutriswindow.py:733
+msgid "Search Lutris.net"
+msgstr "在 lutris.net 上搜索"
+
+#: lutris/gui/lutriswindow.py:552
+msgid "Synchronize library"
+msgstr "同步游戏库"
+
+#: lutris/gui/lutriswindow.py:569
+msgid "Synchronizing…"
+msgstr "同步中…"
+
+#: lutris/gui/lutriswindow.py:615
+msgid "Do you want to log out from Lutris?"
+msgstr "是否退出 Lutris 登录？"
+
+#: lutris/gui/lutriswindow.py:616
+msgid "Log out?"
+msgstr "是否退出？"
+
+#: lutris/gui/lutriswindow.py:739
+msgid "Filter the list of games"
+msgstr "筛选游戏列表"
+
+#: lutris/gui/lutriswindow.py:910
+msgid "Could not connect to your Lutris account. Please sign in again."
+msgstr "登录失败，请重试。"
+
+#: lutris/gui/lutriswindow.py:913
+msgid ""
+"Failed to retrieve game library. There might be some problems contacting "
+"lutris.net"
+msgstr "检索游戏库失败。 到 lutris.net 服务器的连接可能存在一些问题"
+
+#: lutris/gui/views/game_panel.py:102
+#, python-format
+msgid "Time played: <b>%s</b>"
+msgstr "游玩时间: <b>%s</b>"
+
+#: lutris/gui/views/game_panel.py:110
+#, python-format
+msgid "Last played: <b>%s</b>"
+msgstr "上次游玩: <b>%s</b>"
+
+#: lutris/gui/views/game_panel.py:235
+msgid "Launching..."
+msgstr "启动中…"
+
+#: lutris/gui/views/generic_panel.py:85
+msgid "<b>Playing:</b>"
+msgstr "<b>正在游玩:</b>"
+
+#: lutris/gui/views/generic_panel.py:94
+msgid "Preferences"
+msgstr "首选项"
+
+#: lutris/gui/views/generic_panel.py:158
+msgid "Support Lutris!"
+msgstr "支持 Lutris !"
+
+#: lutris/gui/views/generic_panel.py:163
+msgid "<b>Help:</b>"
+msgstr "<b>帮助:</b>"
+
+#: lutris/gui/views/generic_panel.py:169
+msgid "Forums"
+msgstr "论坛"
+
+#: lutris/gui/views/generic_panel.py:173
+msgid "IRC"
+msgstr "IRC 聊天室"
+
+#: lutris/gui/views/generic_panel.py:177
+msgid "Discord"
+msgstr "Discord 讨论组"
+
+#: lutris/gui/views/list.py:43
+msgid "Year"
+msgstr "发行年份"
+
+#: lutris/gui/views/list.py:45 lutris/runners/dolphin.py:25
+#: lutris/runners/mame.py:100
+msgid "Platform"
+msgstr "平台"
+
+#: lutris/gui/views/list.py:46
+msgid "Last Played"
+msgstr "上次游玩"
+
+#: lutris/gui/views/list.py:48
+msgid "Installed At"
+msgstr "安装路径"
+
+#: lutris/gui/views/list.py:50
+msgid "Play Time"
+msgstr "游戏时间"
+
+#: lutris/gui/widgets/common.py:68
+msgid "Browse..."
+msgstr "浏览..."
+
+#: lutris/gui/widgets/common.py:132
+msgid ""
+"<b>Warning!</b> The selected path is located on a drive formatted by "
+"Windows.\n"
+"Games and programs installed on Windows drives usually <b>don't work</b>."
+msgstr ""
+"<b>警告！</b>所选路径位于Windows NTFS分区。\n"
+"NTFS分区上安装的游戏和程序可能<b>无法在Linux中正常运行</b>，\n"
+"或者<b>运行速度较慢</b>。建议将游戏转移到Linux分区。"
+
+#: lutris/gui/widgets/common.py:140
+msgid ""
+"<b>Warning!</b> The selected path contains files. Installation might not "
+"work properly."
+msgstr "<b>警告！</b> 所选文件夹非空，安装可能无法正常进行。"
+
+#: lutris/gui/widgets/common.py:148
+msgid ""
+"<b>Warning</b> The destination folder is not writable by the current user."
+msgstr "<b>警告！</b> 当前用户无法写入目标文件夹。"
+
+#: lutris/gui/widgets/common.py:253
+msgid "Add"
+msgstr "添加"
+
+#: lutris/gui/widgets/common.py:257
+msgid "Delete"
+msgstr "删除"
+
+#: lutris/gui/widgets/download_progress.py:28
+msgid "Downloading {}"
+msgstr "正在下载 {}"
+
+#: lutris/gui/widgets/download_progress.py:92
+msgid "Download interrupted"
+msgstr "下载中断"
+
+#: lutris/gui/widgets/download_progress.py:101
+#, python-brace-format
+msgid "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} remaining"
+msgstr "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), 剩余时间: {time}"
+
+#: lutris/gui/widgets/services.py:58
+msgid "Reload"
+msgstr "重载"
+
+#: lutris/gui/widgets/services.py:71 lutris/gui/widgets/services.py:337
+msgid "Import games"
+msgstr "导入游戏"
+
+#: lutris/gui/widgets/services.py:73
+msgid "Sync now"
+msgstr "立即同步"
+
+#: lutris/gui/widgets/services.py:85
+msgid "Sync all games at startup"
+msgstr "启动时同步所有游戏"
+
+#: lutris/gui/widgets/services.py:96
+#, python-format
+msgid "Connect to %s to import your library."
+msgstr "登录 %s 以导入你的游戏库。"
+
+#: lutris/gui/widgets/services.py:99
+msgid "Connect your account"
+msgstr "登录 lutris 帐户"
+
+#: lutris/gui/widgets/services.py:147
+msgid "Disconnect"
+msgstr "退出"
+
+#: lutris/gui/widgets/services.py:153
+msgid "Connect"
+msgstr "登录"
+
+#: lutris/gui/widgets/services.py:179
+#, python-format
+msgid "%d game was imported. "
+msgid_plural "%d games were imported. "
+msgstr[0] "已导入 %d 个游戏。 "
+
+#: lutris/gui/widgets/services.py:183
+msgid "No games were added. "
+msgstr "未找到任何游戏。 "
+
+#: lutris/gui/widgets/services.py:187
+#, python-format
+msgid "%s game is already in the library"
+msgid_plural "%s games are already in the library"
+msgstr[0] "%s 个游戏已在库中"
+
+#: lutris/gui/widgets/services.py:193
+msgid "Games imported"
+msgstr "游戏已导入"
+
+#: lutris/gui/widgets/services.py:209
+msgid "Import"
+msgstr "导入"
+
+#: lutris/gui/widgets/services.py:265
+msgid "Select all"
+msgstr "全选"
+
+#: lutris/gui/widgets/services.py:272
+msgid "Filter:"
+msgstr "筛选:"
+
+#: lutris/gui/widgets/sidebar.py:69
+msgid "Run"
+msgstr "启动"
+
+#: lutris/gui/widgets/sidebar.py:115 lutris/gui/widgets/sidebar.py:186
+msgid "Runners"
+msgstr "运行环境"
+
+#: lutris/gui/widgets/sidebar.py:148 lutris/gui/widgets/sidebar.py:157
+msgid "All"
+msgstr "全部"
+
+#: lutris/gui/widgets/sidebar.py:188
+msgid "Platforms"
+msgstr "平台"
+
+#: lutris/gui/widgets/status_icon.py:70
+msgid "Show Lutris"
+msgstr "显示 Lutris"
+
+#: lutris/gui/widgets/status_icon.py:75
+msgid "Quit"
+msgstr "退出"
+
+#: lutris/installer/commands.py:169
+#, python-format
+msgid "Extracting %s"
+msgstr "正在解压 %s"
+
+#: lutris/installer/commands.py:210
+msgid ""
+"Insert or mount game disc and click Autodetect or\n"
+"use Browse if the disc is mounted on a non standard location."
+msgstr ""
+"插入或挂载游戏光盘，然后点击“自动检测”。\n"
+"如果光盘挂载在非标准位置，请使用“浏览”。"
+
+#: lutris/installer/commands.py:214
+#, python-format
+msgid ""
+"\n"
+"\n"
+"Lutris is looking for a mounted disk drive or image \n"
+"containing the following file or folder:\n"
+"<i>%s</i>"
+msgstr ""
+"\n"
+"\n"
+"Lutris正在寻找包含以下文件或文件夹的已安装磁盘驱动器或映像:\n"
+"<i>%s</i>"
+
+#: lutris/runners/ags.py:10
+msgid "Adventure Game Studio"
+msgstr "Adventure Game Studio"
+
+#: lutris/runners/ags.py:11
+msgid "Graphics adventure engine"
+msgstr "Graphics adventure engine"
+
+#: lutris/runners/ags.py:12 lutris/runners/linux.py:14
+#: lutris/runners/linux.py:16 lutris/runners/residualvm.py:15
+#: lutris/runners/scummvm.py:16 lutris/runners/steam.py:45
+#: lutris/runners/zdoom.py:16
+msgid "Linux"
+msgstr "Linux"
+
+#: lutris/runners/ags.py:14
+msgid "Game executable or directory"
+msgstr "游戏可执行文件或目录"
+
+#: lutris/runners/ags.py:19 lutris/runners/atari800.py:88
+#: lutris/runners/dgen.py:26 lutris/runners/hatari.py:70
+#: lutris/runners/jzintv.py:50 lutris/runners/libretro.py:88
+#: lutris/runners/mame.py:134 lutris/runners/mednafen.py:74
+#: lutris/runners/mupen64plus.py:28 lutris/runners/o2em.py:75
+#: lutris/runners/osmose.py:34 lutris/runners/pcsx2.py:26
+#: lutris/runners/pico8.py:38 lutris/runners/ppsspp.py:24
+#: lutris/runners/reicast.py:41 lutris/runners/snes9x.py:36
+#: lutris/runners/vice.py:57 lutris/runners/virtualjaguar.py:26
+msgid "Fullscreen"
+msgstr "全屏"
+
+#: lutris/runners/ags.py:25
+msgid "Graphics filter"
+msgstr "图像滤镜"
+
+#: lutris/runners/ags.py:27 lutris/runners/hatari.py:50
+#: lutris/runners/zdoom.py:76
+msgid "None"
+msgstr "无"
+
+#: lutris/runners/ags.py:28
+msgid "Standard scaling"
+msgstr "标准缩放"
+
+#: lutris/runners/ags.py:29
+msgid "HQ2x"
+msgstr "HQ2x"
+
+#: lutris/runners/ags.py:30
+msgid "HQ3x"
+msgstr "HQ3x"
+
+#: lutris/runners/atari800.py:16
+msgid "Atari800"
+msgstr "雅达利 800"
+
+#: lutris/runners/atari800.py:17
+msgid "Atari 8bit computers"
+msgstr "雅达利8位电脑"
+
+#: lutris/runners/atari800.py:20
+msgid "Atari 400,800 and XL emulator"
+msgstr "雅达利 400、800、XL 模拟器"
+
+#: lutris/runners/atari800.py:35 lutris/runners/citra.py:24
+#: lutris/runners/desmume.py:18 lutris/runners/dgen.py:18
+#: lutris/runners/jzintv.py:22 lutris/runners/libretro.py:68
+#: lutris/runners/mame.py:53 lutris/runners/mednafen.py:57
+#: lutris/runners/mupen64plus.py:20 lutris/runners/o2em.py:45
+#: lutris/runners/openmsx.py:17 lutris/runners/osmose.py:21
+#: lutris/runners/snes9x.py:27 lutris/runners/stella.py:22
+#: lutris/runners/vice.py:38 lutris/runners/virtualjaguar.py:20
+#: lutris/runners/yuzu.py:23
+msgid "ROM file"
+msgstr "ROM 文件"
+
+#: lutris/runners/atari800.py:37
+msgid ""
+"The game data, commonly called a ROM image. \n"
+"Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ and PRO."
+msgstr ""
+"游戏数据，通常称为ROM映像。\n"
+"支持的rom格式：ATR，XFD，DCM，ATR.GZ，XFD.GZ 和 PRO。"
+
+#: lutris/runners/atari800.py:50
+msgid "Desktop resolution"
+msgstr "桌面分辨率"
+
+#: lutris/runners/atari800.py:60 lutris/runners/jzintv.py:39
+msgid "Bios location"
+msgstr "BIOS路径"
+
+#: lutris/runners/atari800.py:62
+msgid ""
+"A folder containing the Atari 800 bios files.\n"
+"They are provided by Lutris so you shouldn't have to change this."
+msgstr ""
+"包含 Atari 800 BIOS 文件的文件夹。\n"
+"由 Lutris 提供，您不必更改此设置。"
+
+#: lutris/runners/atari800.py:73
+msgid "Emulate Atari 800"
+msgstr "模拟 Atari 800"
+
+#: lutris/runners/atari800.py:74
+msgid "Emulate Atari 800 XL"
+msgstr "模拟 Atari 800 XL"
+
+#: lutris/runners/atari800.py:75
+msgid "Emulate Atari 320 XE (Compy Shop)"
+msgstr "模拟 Atari 320 XE (Compy Shop)"
+
+#: lutris/runners/atari800.py:76
+msgid "Emulate Atari 320 XE (Rambo)"
+msgstr "模拟 Atari 320 XE (Rambo)"
+
+#: lutris/runners/atari800.py:77
+msgid "Emulate Atari 5200"
+msgstr "模拟 Atari 5200"
+
+#: lutris/runners/atari800.py:82 lutris/runners/mame.py:58
+#: lutris/runners/vice.py:88
+msgid "Machine"
+msgstr "机型"
+
+#: lutris/runners/atari800.py:95
+msgid "Fullscreen resolution"
+msgstr "全屏模式分辨率"
+
+#: lutris/runners/atari800.py:107
+msgid "Could not download Atari800 BIOS archive"
+msgstr "下载 Atari800 BIOS 文件失败"
+
+#: lutris/runners/browser.py:9
+msgid "Browser"
+msgstr "浏览器"
+
+#: lutris/runners/browser.py:10 lutris/runners/web.py:18
+#: lutris/runners/web.py:20
+msgid "Web"
+msgstr "网页"
+
+#: lutris/runners/browser.py:11
+msgid "Runs games in the browser"
+msgstr "在浏览器中运行游戏"
+
+#: lutris/runners/browser.py:16
+msgid "Full address (URL)"
+msgstr "完整地址 (URL)"
+
+#: lutris/runners/browser.py:27
+msgid "Custom web browser"
+msgstr "自定义网络浏览器"
+
+#: lutris/runners/browser.py:29
+msgid ""
+"Select the executable of a browser on your system. \n"
+"If left blank, Lutris will launch your default browser."
+msgstr ""
+"选择系统内的浏览器可执行文件。\n"
+"如果留空，Lutris 将启动您的默认浏览器。"
+
+#: lutris/runners/browser.py:47 lutris/runners/web.py:184
+msgid ""
+"The web address is empty, \n"
+"verify the game's configuration."
+msgstr "网址为空，请检查游戏配置。"
+
+#: lutris/runners/citra.py:14
+msgid "Citra"
+msgstr "Citra"
+
+#: lutris/runners/citra.py:15
+msgid "Nintendo 3DS"
+msgstr "任天堂 3DS"
+
+#: lutris/runners/citra.py:17
+msgid "Nintendo 3DS emulator"
+msgstr "任天堂 3DS 模拟器"
+
+#: lutris/runners/citra.py:25 lutris/runners/desmume.py:19
+#: lutris/runners/dgen.py:19 lutris/runners/mupen64plus.py:21
+#: lutris/runners/o2em.py:47 lutris/runners/openmsx.py:18
+#: lutris/runners/snes9x.py:28 lutris/runners/yuzu.py:24
+msgid "The game data, commonly called a ROM image."
+msgstr "游戏数据，通常称为ROM映像。"
+
+#: lutris/runners/desmume.py:11
+msgid "Nintendo DS"
+msgstr "任天堂 DS"
+
+#: lutris/runners/desmume.py:12
+msgid "Nintendo DS emulator"
+msgstr "任天堂 DS 模拟器"
+
+#: lutris/runners/dgen.py:10
+msgid "DGen"
+msgstr "DGen"
+
+#: lutris/runners/dgen.py:11
+msgid "Sega Genesis emulator"
+msgstr "世嘉 Genesis 模拟器"
+
+#: lutris/runners/dgen.py:12
+msgid "Sega Genesis"
+msgstr "世嘉 Genesis"
+
+#: lutris/runners/dgen.py:32
+msgid "PAL"
+msgstr "PAL制式"
+
+#: lutris/runners/dgen.py:39
+msgid "Region"
+msgstr "地区/制式"
+
+#: lutris/runners/dgen.py:41
+msgid "America (NTSC)"
+msgstr "美国 (NTSC)"
+
+#: lutris/runners/dgen.py:42
+msgid "Japan (NTSC)"
+msgstr "日本 (NTSC)"
+
+#: lutris/runners/dgen.py:43
+msgid "Japan (PAL)"
+msgstr "日本 (PAL)"
+
+#: lutris/runners/dgen.py:44
+msgid "Europe (PAL)"
+msgstr "欧洲 (PAL)"
+
+#: lutris/runners/dolphin.py:10
+msgid "Gamecube and Wii emulator"
+msgstr "GameCube 和 Wii 模拟器"
+
+#: lutris/runners/dolphin.py:11
+msgid "Dolphin"
+msgstr "Dolphin"
+
+#: lutris/runners/dolphin.py:12 lutris/runners/dolphin.py:26
+msgid "Nintendo Gamecube"
+msgstr "任天堂 GameCube"
+
+#: lutris/runners/dolphin.py:12 lutris/runners/dolphin.py:26
+msgid "Nintendo Wii"
+msgstr "任天堂 Wii"
+
+#: lutris/runners/dolphin.py:20 lutris/runners/pcsx2.py:18
+#: lutris/runners/ppsspp.py:17
+msgid "ISO file"
+msgstr "ISO光盘映像文件"
+
+#: lutris/runners/dolphin.py:33 lutris/runners/pcsx2.py:38
+#: lutris/runners/rpcs3.py:23
+msgid "No GUI"
+msgstr "无图形界面"
+
+#: lutris/runners/dolphin.py:35
+msgid "Disable the graphical user interface."
+msgstr "禁用图形用户界面。"
+
+#: lutris/runners/dolphin.py:40
+msgid "Batch"
+msgstr "批处理"
+
+#: lutris/runners/dolphin.py:42
+msgid "Exit Dolphin with emulator."
+msgstr "退出游戏时关闭 Dolphin。"
+
+#: lutris/runners/dosbox.py:13
+msgid "DOSBox"
+msgstr "DOSBox"
+
+#: lutris/runners/dosbox.py:14
+msgid "MS-Dos emulator"
+msgstr "MS-Dos 模拟器"
+
+#: lutris/runners/dosbox.py:15
+msgid "MS-DOS"
+msgstr "MS-DOS"
+
+#: lutris/runners/dosbox.py:25
+msgid "Main file"
+msgstr "主文件"
+
+#: lutris/runners/dosbox.py:27
+msgid ""
+"The CONF, EXE, COM or BAT file to launch.\n"
+"It can be left blank if the launch of the executable is managed in the "
+"config file."
+msgstr ""
+"要启动的 CONF，EXE，COM 或 BAT 文件。\n"
+"如果在配置文件中管理可执行文件的启动，则可以将其留空。"
+
+#: lutris/runners/dosbox.py:38
+msgid "Configuration file"
+msgstr "配置文件"
+
+#: lutris/runners/dosbox.py:40
+msgid ""
+"Start Dosbox with the options specified in this file. \n"
+"It can have a section in which you can put commands to execute on startup. "
+"Read Dosbox's documentation for more information."
+msgstr ""
+"使用此文件中指定的选项启动 DOSBox。\n"
+"它可以包含一个启动指令部分，在其中放置启动时要执行的命令。 阅读 DOSBox 的文档"
+"以获取更多信息。"
+
+#: lutris/runners/dosbox.py:49
+msgid "Command arguments"
+msgstr "命令行参数"
+
+#: lutris/runners/dosbox.py:50
+msgid "Command line arguments used when launching DOSBox"
+msgstr "启动 DOSBox 时使用的命令行参数"
+
+#: lutris/runners/dosbox.py:59 lutris/runners/linux.py:38
+#: lutris/runners/wine.py:64
+msgid "Working directory"
+msgstr "工作目录"
+
+#: lutris/runners/dosbox.py:61 lutris/runners/linux.py:40
+#: lutris/runners/wine.py:66
+msgid ""
+"The location where the game is run from.\n"
+"By default, Lutris uses the directory of the executable."
+msgstr ""
+"游戏启动时的起始位置。\n"
+"如果留空，Lutris 使用可执行文件所在目录作为起始位置。"
+
+#: lutris/runners/dosbox.py:69
+msgid "none"
+msgstr "无"
+
+#: lutris/runners/dosbox.py:93 lutris/runners/scummvm.py:70
+msgid "Graphic scaler"
+msgstr "画面缩放算法"
+
+#: lutris/runners/dosbox.py:101 lutris/runners/scummvm.py:90
+msgid ""
+"The algorithm used to scale up the game's base resolution, resulting in "
+"different visual styles. "
+msgstr "该算法用于放大画面，不同算法放大后的视觉效果不同。 "
+
+#: lutris/runners/dosbox.py:106
+msgid "Exit Dosbox with the game"
+msgstr "退出游戏时关闭 Dosbox"
+
+#: lutris/runners/dosbox.py:109
+msgid "Shut down Dosbox when the game is quit."
+msgstr "游戏退出时关闭 DOSBox。"
+
+#: lutris/runners/dosbox.py:113
+msgid "Open game in fullscreen"
+msgstr "全屏运行游戏"
+
+#: lutris/runners/dosbox.py:116
+msgid "Tells Dosbox to launch the game in fullscreen."
+msgstr "让 DOSBox 以全屏模式启动游戏。"
+
+#: lutris/runners/frotz.py:11
+msgid "Frotz"
+msgstr "Frotz"
+
+#: lutris/runners/frotz.py:12
+msgid "Z-code emulator for text adventure games such as Zork."
+msgstr "用于文本冒险游戏(例如Zork)的 Z-code 模拟器。"
+
+#: lutris/runners/frotz.py:13
+msgid "Z-Machine"
+msgstr "Z-Machine"
+
+#: lutris/runners/frotz.py:23
+msgid "Story file"
+msgstr "故事文件"
+
+#: lutris/runners/frotz.py:25
+msgid ""
+"The Z-Machine game file.\n"
+"Usally ends in \".z*\", with \"*\" being a number from 1 to 6 representing "
+"the version of the Z-Machine that the game was written for."
+msgstr ""
+"Z-Machine 游戏文件。\n"
+"通常以“.z*”结尾，“*”是从1到6的数字，代表编写该游戏的 Z-Machine 版本。"
+
+#: lutris/runners/fsuae.py:11
+msgid "FS-UAE"
+msgstr "FS-UAE"
+
+#: lutris/runners/fsuae.py:12
+msgid "Amiga emulator"
+msgstr "Amiga 模拟器"
+
+#: lutris/runners/fsuae.py:14 lutris/runners/fsuae.py:25
+msgid "Amiga 500"
+msgstr "Amiga 500"
+
+#: lutris/runners/fsuae.py:15
+msgid "Amiga 500+"
+msgstr "Amiga 500+"
+
+#: lutris/runners/fsuae.py:16
+msgid "Amiga 600"
+msgstr "Amiga 600"
+
+#: lutris/runners/fsuae.py:17
+msgid "Amiga 1000"
+msgstr "Amiga 1000"
+
+#: lutris/runners/fsuae.py:18 lutris/runners/fsuae.py:19
+msgid "Amiga 1200"
+msgstr "Amiga 1200"
+
+#: lutris/runners/fsuae.py:20
+msgid "Amiga 4000"
+msgstr "Amiga 4000"
+
+#: lutris/runners/fsuae.py:21 lutris/runners/fsuae.py:32
+msgid "Amiga CD32"
+msgstr "Amiga CD32"
+
+#: lutris/runners/fsuae.py:22 lutris/runners/fsuae.py:33
+msgid "Commodore CDTV"
+msgstr "Commodore CDTV"
+
+#: lutris/runners/fsuae.py:26
+msgid "Amiga 500+ with 1 MB chip RAM"
+msgstr "Amiga 500+（1 MB 内存）"
+
+#: lutris/runners/fsuae.py:27
+msgid "Amiga 600 with 1 MB chip RAM"
+msgstr "Amiga 600（1 MB 内存）"
+
+#: lutris/runners/fsuae.py:28
+msgid "Amiga 1000 with 512 KB chip RAM"
+msgstr "Amiga 1000（512 KB 内存）"
+
+#: lutris/runners/fsuae.py:29
+msgid "Amiga 1200 with 2 MB chip RAM"
+msgstr "Amiga 1200（2 MB 内存）"
+
+#: lutris/runners/fsuae.py:30
+msgid "Amiga 1200 but with 68020 processor"
+msgstr "Amiga 1200（68020 处理器）"
+
+#: lutris/runners/fsuae.py:31
+msgid "Amiga 4000 with 2 MB chip RAM and a 68040"
+msgstr "Amiga 4000（2 MB 内存，68040 处理器）"
+
+#: lutris/runners/fsuae.py:87
+msgid "Boot disk"
+msgstr "启动盘"
+
+#: lutris/runners/fsuae.py:91
+msgid ""
+"The main floppy disk file with the game data. \n"
+"FS-UAE supports floppy images in multiple file formats: ADF, IPF, DMS are "
+"the most common. ADZ (compressed ADF) and ADFs in zip files are a also "
+"supported.\n"
+"Files ending in .hdf will be mounted as hard drives and ISOs can be used for "
+"Amiga CD32 and CDTV models."
+msgstr ""
+"包含游戏数据的主软盘文件。\n"
+"FS-UAE支持多种文件格式的软盘映像：ADF，IPF，DMS是最常见的格式。 还支持zip文件"
+"中的ADZ（压缩ADF）和ADF。\n"
+"以 .hdf 结尾的文件将作为硬盘驱动器安装，ISO 光盘镜像可以用于 Amiga CD32 和 "
+"CDTV 型号。"
+
+#: lutris/runners/fsuae.py:101
+msgid "Additionnal floppies"
+msgstr "额外软盘"
+
+#: lutris/runners/fsuae.py:103
+msgid "The additional floppy disk image(s)."
+msgstr "额外的软盘映像。"
+
+#: lutris/runners/fsuae.py:106
+msgid "CD-Rom image"
+msgstr "光盘映像"
+
+#: lutris/runners/fsuae.py:108
+msgid "CD-ROM image to use on non CD32/CDTV models"
+msgstr "在非 CD32/CDTV 机型上使用的光盘映像"
+
+#: lutris/runners/fsuae.py:115
+msgid "Amiga model"
+msgstr "Amiga 型号"
+
+#: lutris/runners/fsuae.py:119
+msgid "Specify the Amiga model you want to emulate."
+msgstr "指定要模拟的 Amiga 机型。"
+
+#: lutris/runners/fsuae.py:125
+msgid "Kickstart ROMs location"
+msgstr "Kickstart ROM 位置"
+
+#: lutris/runners/fsuae.py:129
+msgid ""
+"Choose the folder containing original Amiga kickstart ROMs. Refer to FS-UAE "
+"documentation to find how to acquire them. Without these, FS-UAE uses a "
+"bundled replacement ROM which is less compatible with Amiga software."
+msgstr ""
+"选择包含原始 Amiga kickstart ROM 的文件夹，请参阅 FS-UAE 文档以了解如何获取。"
+"如果未设置，FS-UAE 将使用自带的内置 ROM，该内置 ROM 与 Amiga 软件的兼容性较"
+"差。"
+
+#: lutris/runners/fsuae.py:138
+msgid "Extended Kickstart location"
+msgstr "扩展 Kickstart 路径"
+
+#: lutris/runners/fsuae.py:140
+msgid "Location of extended Kickstart used for CD32"
+msgstr "用于 CD32 的扩展 Kickstart 位置"
+
+#: lutris/runners/fsuae.py:144
+msgid "Fast Memory"
+msgstr "快速内存"
+
+#: lutris/runners/fsuae.py:148
+msgid "Specify how much Fast Memory the Amiga model should have."
+msgstr "指定 Amiga 机型拥有的快速内存。"
+
+#: lutris/runners/fsuae.py:152
+msgid "Floppy Drive Volume"
+msgstr "软驱响声音量"
+
+#: lutris/runners/fsuae.py:156
+msgid ""
+"Set volume to 0 to disable floppy drive clicks when the drive is empty. Max "
+"volume is 100."
+msgstr "将音量设为 0 可禁用驱动器为空时的软盘驱动器卡嗒声。最大音量为100。"
+
+#: lutris/runners/fsuae.py:163
+msgid "Floppy Drive Speed"
+msgstr "软驱速度"
+
+#: lutris/runners/fsuae.py:171
+msgid ""
+"Set the speed of the emulated floppy drives, in percent. For example, you "
+"can specify 800 to get an 8x increase in speed. Use 0 to specify turbo mode. "
+"Turbo mode means that all floppy operations complete immediately. The "
+"default is 100 for most models."
+msgstr ""
+"设置仿真软盘驱动器的速度，以百分比为单位。例如，您可以指定 800 以使速度提高8"
+"倍。使用 0 指定 Turbo 模式。Turbo模式意味着所有软盘操作都将立即完成。对于大多"
+"数型号，默认值为100。"
+
+#: lutris/runners/fsuae.py:181
+msgid "Graphics Card"
+msgstr "显卡"
+
+#: lutris/runners/fsuae.py:189
+msgid ""
+"Use this option to enable a graphics card. This option is none by default, "
+"in which case only chipset graphics (OCS/ECS/AGA) support is available."
+msgstr ""
+"使用此选项启用独显。默认情况下此选项为空，此时仅板载显卡（OCS/ECS/AGA）可用。"
+
+#: lutris/runners/fsuae.py:197
+msgid "Graphics Card RAM"
+msgstr "显存"
+
+#: lutris/runners/fsuae.py:205
+msgid ""
+"Override the amount of graphics memory on the graphics card. The 0 MB option "
+"is not really valid, but exists for user interface reasons."
+msgstr ""
+"修改显卡上的显存容量。 0 MB 选项并不真正有效，只是由于用户界面的原因而存在。"
+
+#: lutris/runners/fsuae.py:211
+msgid "Fullscreen (F12 + s to switch)"
+msgstr "全屏 (可用 F12 + S 开关)"
+
+#: lutris/runners/fsuae.py:217
+msgid "JIT Compiler"
+msgstr "JIT 即时编译器"
+
+#: lutris/runners/fsuae.py:223
+msgid "Feral GameMode"
+msgstr "游戏性能优先模式"
+
+#: lutris/runners/fsuae.py:226
+msgid ""
+"Automatically uses Feral GameMode daemon if available.set to true to disable "
+"the feature."
+msgstr ""
+"默认情况下，在 Feral GameMode 守护程序可用时会自动启用，设为 true 可禁用该功"
+"能。"
+
+#: lutris/runners/fsuae.py:231
+msgid "CPU governor warning"
+msgstr "CPU调速器警告"
+
+#: lutris/runners/fsuae.py:235
+msgid ""
+"Warn if running with a CPU governor other than performance.set to true to "
+"disable the warning."
+msgstr ""
+"如果 CPU 调速器设置过头，性能不好，则启动时会发出警告。 设为 true 可禁用警"
+"告。"
+
+#: lutris/runners/fsuae.py:240
+msgid "UAE bsdsocket.library"
+msgstr "UAE bsdsocket.library"
+
+#: lutris/runners/fsuae.py:246 lutris/runners/o2em.py:81
+msgid "Scanlines display style"
+msgstr "显示模拟扫描线"
+
+#: lutris/runners/fsuae.py:249 lutris/runners/o2em.py:83
+msgid ""
+"Activates a display filter adding scanlines to imitate the displays of "
+"yesteryear."
+msgstr "启用显示滤镜，添加扫描线来模仿以前的CRT显像管显示器。"
+
+#: lutris/runners/hatari.py:14
+msgid "Hatari"
+msgstr "Hatari"
+
+#: lutris/runners/hatari.py:15
+msgid "Atari ST computers emulator"
+msgstr "雅达利 ST 电脑模拟器"
+
+#: lutris/runners/hatari.py:16
+msgid "Atari ST"
+msgstr "雅达利 ST"
+
+#: lutris/runners/hatari.py:26
+msgid "Floppy Disk A"
+msgstr "软盘 A"
+
+#: lutris/runners/hatari.py:28 lutris/runners/hatari.py:42
+msgid ""
+"Hatari supports floppy disk images in the following formats: ST, DIM, MSA, "
+"STX, IPF, RAW and CRT. The last three require the caps library (capslib). "
+"ZIP is supported, you don't need to uncompress the file."
+msgstr ""
+"Hatari支持以下格式的软盘映像：ST，DIM，MSA，STX，IPF，RAW 和 CRT。 最后三个需"
+"要 caps 库（capslib）。 支持ZIP，您无需解压文件。"
+
+#: lutris/runners/hatari.py:40
+msgid "Floppy Disk B"
+msgstr "软盘 B"
+
+#: lutris/runners/hatari.py:50
+msgid "Keyboard"
+msgstr "键盘"
+
+#: lutris/runners/hatari.py:50 lutris/runners/o2em.py:39
+msgid "Joystick"
+msgstr "摇杆"
+
+#: lutris/runners/hatari.py:59
+msgid "Bios file (TOS)"
+msgstr "BIOS 文件(TOS)"
+
+#: lutris/runners/hatari.py:61
+msgid ""
+"TOS is the operating system of the Atari ST and is necessary to run "
+"applications with the best fidelity, minimizing risks of issues.\n"
+"TOS 1.02 is recommended for games."
+msgstr ""
+"TOS 是 Atari ST 的操作系统，对于以最高保真度运行游戏是必需的，这可以最大程度"
+"地降低出问题的风险。\n"
+"建议游戏时使用 TOS 1.02。"
+
+#: lutris/runners/hatari.py:76
+msgid "Scale up display by 2 (Atari ST/STE)"
+msgstr "2倍放大显示（用于 Atari ST/STE）"
+
+#: lutris/runners/hatari.py:78
+msgid "Double the screen size in windowed mode."
+msgstr "在窗口模式下，将窗口尺寸加倍。"
+
+#: lutris/runners/hatari.py:86
+msgid "Add borders to display"
+msgstr "添加显示边框"
+
+#: lutris/runners/hatari.py:90
+msgid ""
+"Useful for some games and demos using the overscan technique. The Atari ST "
+"displayed borders around the screen because it was not powerful enough to "
+"display graphics in fullscreen. But people from the demo scene were able to "
+"remove them and some games made use of this technique."
+msgstr ""
+"使用过扫描技术对某些游戏和演示很有用。 Atari ST 在屏幕周围显示边框，因为它的"
+"功能不足以全屏显示图形。 开启过扫描就可以删除边框，有些游戏使用了这种技术。"
+
+#: lutris/runners/hatari.py:104
+msgid "Display status bar"
+msgstr "显示状态栏"
+
+#: lutris/runners/hatari.py:108
+msgid ""
+"Displays a status bar with some useful information, like green leds lighting "
+"up when the floppy disks are read."
+msgstr "显示一个状态栏以展示某些有用的信息，比如读取软盘时的绿色指示灯。"
+
+#: lutris/runners/hatari.py:116
+msgid "Joystick 1"
+msgstr "摇杆 1"
+
+#: lutris/runners/hatari.py:123
+msgid "Joystick 2"
+msgstr "摇杆 2"
+
+#: lutris/runners/hatari.py:135
+msgid "Do you want to select an Atari ST BIOS file?"
+msgstr "是否要选择一个 Atari ST BIOS 文件？"
+
+#: lutris/runners/hatari.py:136
+msgid "Use BIOS file?"
+msgstr "使用 BIOS 文件？"
+
+#: lutris/runners/hatari.py:140
+msgid "Select a BIOS file"
+msgstr "选择一个 BIOS 文件"
+
+#: lutris/runners/jzintv.py:11
+msgid "jzIntv"
+msgstr "jzIntv"
+
+#: lutris/runners/jzintv.py:12
+msgid "Intellivision Emulator"
+msgstr "Intellivision 模拟器"
+
+#: lutris/runners/jzintv.py:13
+msgid "Intellivision"
+msgstr "Intellivision"
+
+#: lutris/runners/jzintv.py:26
+msgid ""
+"The game data, commonly called a ROM image. \n"
+"Supported rom formats: .rom, .bin+.cfg, .int, .itv \n"
+"The file extension must be lower-case."
+msgstr ""
+"游戏数据，通常称为ROM映像。\n"
+"支持的ROM格式：.rom，.bin + .cfg，.int，.itv\n"
+"文件扩展名必须为小写。"
+
+#: lutris/runners/jzintv.py:41
+msgid ""
+"Choose the folder containing the Intellivision bios files (exec.bin and grom."
+"bin).\n"
+"These files contain code from the original hardware necessary to the "
+"emulation."
+msgstr ""
+"选择包含 Intellivision BIOS 文件的文件夹（exec.bin 和 grom.bin）。\n"
+"这些文件包含仿真所必需的来自原始硬件的代码。"
+
+#: lutris/runners/libretro.py:59
+msgid "Libretro"
+msgstr "Libretro"
+
+#: lutris/runners/libretro.py:60
+msgid "Multi system emulator"
+msgstr "多系统模拟器"
+
+#: lutris/runners/libretro.py:73
+msgid "Core"
+msgstr "内核"
+
+#: lutris/runners/libretro.py:82 lutris/runners/zdoom.py:88
+msgid "Config file"
+msgstr "配置文件"
+
+#: lutris/runners/libretro.py:94
+msgid "Verbose logging"
+msgstr "详细日志"
+
+#: lutris/runners/libretro.py:257
+msgid "No core has been selected for this game"
+msgstr "请先为该游戏选择核心"
+
+#: lutris/runners/libretro.py:268
+msgid "No game file specified"
+msgstr "未指定游戏文件"
+
+#: lutris/runners/linux.py:15
+msgid "Runs native games"
+msgstr "运行原生 Linux 游戏"
+
+#: lutris/runners/linux.py:23 lutris/runners/wine.py:48
+msgid "Executable"
+msgstr "游戏启动程序"
+
+#: lutris/runners/linux.py:24
+msgid "The game's main executable file"
+msgstr "游戏的主要可执行文件"
+
+#: lutris/runners/linux.py:29 lutris/runners/scummvm.py:39
+#: lutris/runners/steam.py:62 lutris/runners/steam.py:135
+#: lutris/runners/wine.py:54 lutris/runners/winesteam.py:63
+#: lutris/runners/winesteam.py:155 lutris/runners/zdoom.py:28
+msgid "Arguments"
+msgstr "参数"
+
+#: lutris/runners/linux.py:30 lutris/runners/scummvm.py:40
+#: lutris/runners/winesteam.py:64
+msgid "Command line arguments used when launching the game"
+msgstr "启动游戏时使用的命令行参数"
+
+#: lutris/runners/linux.py:48
+msgid "Preload library"
+msgstr "预加载库"
+
+#: lutris/runners/linux.py:50
+msgid "A library to load before running the game's executable."
+msgstr "运行游戏可执行文件前要加载的库。"
+
+#: lutris/runners/linux.py:58
+msgid "Add directory to LD_LIBRARY_PATH"
+msgstr "向环境变量 LD_LIBRARY_PATH 中添加目录（用于搜索共享库）"
+
+#: lutris/runners/linux.py:62
+msgid ""
+"A directory where libraries should be searched for first, before the "
+"standard set of directories; this is useful when debugging a new library or "
+"using a nonstandard library for special purposes."
+msgstr ""
+"在系统库目录（<b>/usr/lib</b>等）中搜索库文件前先搜索该目录。调试新库或出于特"
+"殊目的使用非标准库时可用。"
+
+#: lutris/runners/mame.py:40
+msgid "MAME"
+msgstr "MAME"
+
+#: lutris/runners/mame.py:41
+msgid "Arcade game emulator"
+msgstr "Arcade 游戏模拟器"
+
+#: lutris/runners/mame.py:42 lutris/runners/mame.py:211
+msgid "Arcade"
+msgstr "Arcade"
+
+#: lutris/runners/mame.py:42 lutris/runners/mame.py:101
+msgid "Plug & Play TV games"
+msgstr "即插即用电视游戏"
+
+#: lutris/runners/mame.py:42 lutris/runners/mame.py:101
+msgid "LCD handheld games"
+msgstr "液晶屏掌机"
+
+#: lutris/runners/mame.py:42
+msgid "Game & Watch"
+msgstr "电视游戏"
+
+#: lutris/runners/mame.py:60 lutris/runners/mednafen.py:67
+msgid "The emulated machine."
+msgstr "要模拟的机型。"
+
+#: lutris/runners/mame.py:67
+msgid "Storage type"
+msgstr "存储类型"
+
+#: lutris/runners/mame.py:69
+msgid "Floppy disk"
+msgstr "软盘"
+
+#: lutris/runners/mame.py:70
+msgid "Floppy drive 1"
+msgstr "软驱 1"
+
+#: lutris/runners/mame.py:71
+msgid "Floppy drive 2"
+msgstr "软驱 2"
+
+#: lutris/runners/mame.py:72
+msgid "Floppy drive 3"
+msgstr "软驱 3"
+
+#: lutris/runners/mame.py:73
+msgid "Floppy drive 4"
+msgstr "软驱 4"
+
+#: lutris/runners/mame.py:74
+msgid "Cassette (tape)"
+msgstr "磁带机"
+
+#: lutris/runners/mame.py:75
+msgid "Cassette 1 (tape)"
+msgstr "磁带机 1"
+
+#: lutris/runners/mame.py:76
+msgid "Cassette 2 (tape)"
+msgstr "磁带机 2"
+
+#: lutris/runners/mame.py:77
+msgid "Cartridge"
+msgstr "Cartridge"
+
+#: lutris/runners/mame.py:78
+msgid "Cartridge 1"
+msgstr "Cartridge 1"
+
+#: lutris/runners/mame.py:79
+msgid "Cartridge 2"
+msgstr "Cartridge 2"
+
+#: lutris/runners/mame.py:80
+msgid "Cartridge 3"
+msgstr "Cartridge 3"
+
+#: lutris/runners/mame.py:81
+msgid "Cartridge 4"
+msgstr "Cartridge 4"
+
+#: lutris/runners/mame.py:82 lutris/runners/mame.py:89
+msgid "Snapshot"
+msgstr "快照"
+
+#: lutris/runners/mame.py:83
+msgid "Hard Disk"
+msgstr "硬盘"
+
+#: lutris/runners/mame.py:84
+msgid "Hard Disk 1"
+msgstr "硬盘 1"
+
+#: lutris/runners/mame.py:85
+msgid "Hard Disk 2"
+msgstr "硬盘 2"
+
+#: lutris/runners/mame.py:86
+msgid "CDROM"
+msgstr "光驱"
+
+#: lutris/runners/mame.py:87
+msgid "CDROM 1"
+msgstr "光驱 1"
+
+#: lutris/runners/mame.py:88
+msgid "CDROM 2"
+msgstr "光驱 2"
+
+#: lutris/runners/mame.py:90
+msgid "Quickload"
+msgstr "Quickload"
+
+#: lutris/runners/mame.py:91
+msgid "Memory Card"
+msgstr "存储卡"
+
+#: lutris/runners/mame.py:92
+msgid "Cylinder"
+msgstr "Cylinder"
+
+#: lutris/runners/mame.py:93
+msgid "Punch Tape 1"
+msgstr "打孔纸带 1"
+
+#: lutris/runners/mame.py:94
+msgid "Punch Tape 2"
+msgstr "打孔纸带 2"
+
+#: lutris/runners/mame.py:95
+msgid "Print Out"
+msgstr "打印出来"
+
+#: lutris/runners/mame.py:101 lutris/runners/mame.py:142
+#: lutris/runners/wine.py:88 lutris/runners/wine.py:472
+#: lutris/runners/wine.py:509 lutris/runners/winesteam.py:86
+#: lutris/sysoptions.py:72
+msgid "Auto"
+msgstr "自动"
+
+#: lutris/runners/mame.py:105
+msgid "Autoboot command"
+msgstr "自启动命令"
+
+#: lutris/runners/mame.py:106
+msgid ""
+"Autotype this command when the system has started,an enter keypress is "
+"automatically added."
+msgstr "系统启动后自动键入此命令并回车执行。"
+
+#: lutris/runners/mame.py:111
+msgid "Delay before entering autoboot command"
+msgstr "输入自启动命令之前的延迟"
+
+#: lutris/runners/mame.py:124
+msgid "ROM/BIOS path"
+msgstr "ROM/BIOS 补丁"
+
+#: lutris/runners/mame.py:126
+msgid ""
+"Choose the folder containing ROMs and BIOS files.\n"
+"These files contain code from the original hardware necessary to the "
+"emulation."
+msgstr ""
+"选择包含 ROM 和 BIOS 文件的文件夹。\n"
+"这些文件包含仿真所必需的来自原始硬件的代码。"
+
+#: lutris/runners/mame.py:140
+msgid "Video backend"
+msgstr "图形渲染引擎"
+
+#: lutris/runners/mame.py:146 lutris/runners/residualvm.py:53
+#: lutris/runners/vice.py:82
+msgid "Software"
+msgstr "软件渲染"
+
+#: lutris/runners/mame.py:153
+msgid "Wait for VSync"
+msgstr "等待垂直同步"
+
+#: lutris/runners/mame.py:155
+msgid ""
+"Enable waiting for  the  start  of  VBLANK  before flipping  screens; "
+"reduces tearing effects."
+msgstr "启用“在帧翻转前等待 VBLANK 开始”，可减少撕裂。"
+
+#: lutris/runners/mame.py:166
+msgid "Menu mode key"
+msgstr "菜单模式键"
+
+#: lutris/runners/mame.py:168
+msgid "Scroll Lock"
+msgstr "Scroll Lock (滚动锁定)"
+
+#: lutris/runners/mame.py:169
+msgid "Num Lock"
+msgstr "Num Lock (数字锁定)"
+
+#: lutris/runners/mame.py:170
+msgid "Caps Lock"
+msgstr "大写锁定"
+
+#: lutris/runners/mame.py:171
+msgid "Menu"
+msgstr "菜单键"
+
+#: lutris/runners/mame.py:172
+msgid "Right Control"
+msgstr "右 CTRL"
+
+#: lutris/runners/mame.py:173
+msgid "Left Control"
+msgstr "左 CTRL"
+
+#: lutris/runners/mame.py:174
+msgid "Right Alt"
+msgstr "右 ALT"
+
+#: lutris/runners/mame.py:175
+msgid "Left Alt"
+msgstr "左 ALT"
+
+#: lutris/runners/mame.py:176
+msgid "Right Super"
+msgstr "右 Win 键"
+
+#: lutris/runners/mame.py:177
+msgid "Left Super"
+msgstr "左 Win 键"
+
+#: lutris/runners/mame.py:183
+msgid ""
+"Key to switch between Full Keyboard Mode and Partial Keyboard Mode (default: "
+"Scroll Lock)"
+msgstr "在全键盘模式和部分键盘模式之间切换的键 (默认: Scroll Lock)"
+
+#: lutris/runners/mame.py:210
+msgid "Nintendo Game & Watch"
+msgstr "任天堂电视游戏"
+
+#: lutris/runners/mednafen.py:16
+msgid "Mednafen"
+msgstr "Mednafen"
+
+#: lutris/runners/mednafen.py:17
+msgid "Multi-system emulator including NES, GB(A), PC Engine support."
+msgstr "多系统模拟器，包括 FC/NES，GB(A)，PC Engine 支持。"
+
+#: lutris/runners/mednafen.py:19
+msgid "Nintendo Game Boy (Color)"
+msgstr "任天堂 GBC (Game Boy Color)"
+
+#: lutris/runners/mednafen.py:20
+msgid "Nintendo Game Boy Advance"
+msgstr "任天堂 GBA (Game Boy Advance)"
+
+#: lutris/runners/mednafen.py:21
+msgid "Sega Game Gear"
+msgstr "世嘉 Game Gear"
+
+#: lutris/runners/mednafen.py:22
+msgid "Sega Genesis/Mega Drive"
+msgstr "世嘉 Genesis/Mega Drive"
+
+#: lutris/runners/mednafen.py:23
+msgid "Atari Lynx"
+msgstr "雅达利 Lynx"
+
+#: lutris/runners/mednafen.py:24 lutris/runners/osmose.py:12
+msgid "Sega Master System"
+msgstr "世嘉 Master System"
+
+#: lutris/runners/mednafen.py:25
+msgid "SNK Neo Geo Pocket (Color)"
+msgstr "SNK Neo Geo Pocket (Color)"
+
+#: lutris/runners/mednafen.py:26
+msgid "Nintendo NES"
+msgstr "任天堂 FC/NES"
+
+#: lutris/runners/mednafen.py:27
+msgid "NEC PC Engine TurboGrafx-16"
+msgstr "NEC PC Engine TurboGrafx-16"
+
+#: lutris/runners/mednafen.py:28
+msgid "NEC PC-FX"
+msgstr "NEC PC-FX"
+
+#: lutris/runners/mednafen.py:29
+msgid "Sony PlayStation"
+msgstr "索尼 PS1 (PlayStation 初代)"
+
+#: lutris/runners/mednafen.py:30
+msgid "Sega Saturn"
+msgstr "世嘉 Saturn"
+
+#: lutris/runners/mednafen.py:31 lutris/runners/snes9x.py:19
+msgid "Nintendo SNES"
+msgstr "任天堂 SNES"
+
+#: lutris/runners/mednafen.py:32
+msgid "Bandai WonderSwan"
+msgstr "万代 WonderSwan"
+
+#: lutris/runners/mednafen.py:33
+msgid "Nintendo Virtual Boy"
+msgstr "任天堂 Virtual Boy"
+
+#: lutris/runners/mednafen.py:36
+msgid "Game Boy (Color)"
+msgstr "GBC (Game Boy Color)"
+
+#: lutris/runners/mednafen.py:37
+msgid "Game Boy Advance"
+msgstr "GBA (Game Boy Advance)"
+
+#: lutris/runners/mednafen.py:38
+msgid "Game Gear"
+msgstr "Game Gear"
+
+#: lutris/runners/mednafen.py:39
+msgid "Genesis/Mega Drive"
+msgstr "Genesis/Mega Drive"
+
+#: lutris/runners/mednafen.py:40
+msgid "Lynx"
+msgstr "Lynx"
+
+#: lutris/runners/mednafen.py:41
+msgid "Master System"
+msgstr "主系统"
+
+#: lutris/runners/mednafen.py:42
+msgid "Neo Geo Pocket (Color)"
+msgstr "Neo Geo Pocket (Color)"
+
+#: lutris/runners/mednafen.py:43
+msgid "NES"
+msgstr "FC/NES"
+
+#: lutris/runners/mednafen.py:44
+msgid "PC Engine"
+msgstr "PC Engine"
+
+#: lutris/runners/mednafen.py:45
+msgid "PC-FX"
+msgstr "PC-FX"
+
+#: lutris/runners/mednafen.py:46
+msgid "PlayStation"
+msgstr "PS1 (PlayStation 初代)"
+
+#: lutris/runners/mednafen.py:47
+msgid "Saturn"
+msgstr "Saturn"
+
+#: lutris/runners/mednafen.py:48
+msgid "SNES"
+msgstr "SNES"
+
+#: lutris/runners/mednafen.py:49
+msgid "WonderSwan"
+msgstr "WonderSwan"
+
+#: lutris/runners/mednafen.py:50
+msgid "Virtual Boy"
+msgstr "Virtual Boy"
+
+#: lutris/runners/mednafen.py:59
+msgid ""
+"The game data, commonly called a ROM image. \n"
+"Mednafen supports GZIP and ZIP compressed ROMs."
+msgstr ""
+"游戏数据，通常称为ROM映像。\n"
+"Mednafen 支持 GZIP 和 ZIP 压缩的 ROM。"
+
+#: lutris/runners/mednafen.py:65
+msgid "Machine type"
+msgstr "机器型号"
+
+#: lutris/runners/mednafen.py:83
+msgid "Aspect ratio"
+msgstr "宽高比"
+
+#: lutris/runners/mednafen.py:85 lutris/runners/wine.py:433
+#: lutris/runners/wine.py:453 lutris/runners/wine.py:536
+msgid "Disabled"
+msgstr "禁用"
+
+#: lutris/runners/mednafen.py:86
+msgid "Stretched"
+msgstr "拉伸"
+
+#: lutris/runners/mednafen.py:87
+msgid "Preserve aspect ratio"
+msgstr "保持宽高比"
+
+#: lutris/runners/mednafen.py:88
+msgid "Integer scale"
+msgstr "整数缩放"
+
+#: lutris/runners/mednafen.py:89
+msgid "Multiple of 2 scale"
+msgstr "2倍数缩放"
+
+#: lutris/runners/mednafen.py:100
+msgid "Video scaler"
+msgstr "视频缩放算法"
+
+#: lutris/runners/mednafen.py:128
+msgid "Sound device"
+msgstr "声音设备"
+
+#: lutris/runners/mednafen.py:130
+msgid "Mednafen default"
+msgstr "Mednafen 默认"
+
+#: lutris/runners/mednafen.py:131
+msgid "ALSA default"
+msgstr "ALSA 默认"
+
+#: lutris/runners/mednafen.py:142
+msgid "Use default Mednafen controller configuration"
+msgstr "使用默认的 Mednafen 控制器配置"
+
+#: lutris/runners/mupen64plus.py:12
+msgid "Mupen64Plus"
+msgstr "Mupen64Plus"
+
+#: lutris/runners/mupen64plus.py:13
+msgid "Nintendo 64 emulator"
+msgstr "任天堂 64 模拟器"
+
+#: lutris/runners/mupen64plus.py:14
+msgid "Nintendo 64"
+msgstr "任天堂 64"
+
+#: lutris/runners/mupen64plus.py:34
+msgid "Hide OSD"
+msgstr "隐藏屏幕菜单 (OSD)"
+
+#: lutris/runners/o2em.py:11
+msgid "O2EM"
+msgstr "O2EM"
+
+#: lutris/runners/o2em.py:12
+msgid "Magnavox Osyssey² Emulator"
+msgstr "Magnavox Osyssey² 模拟器"
+
+#: lutris/runners/o2em.py:14
+msgid "Magnavox Odyssey²"
+msgstr "Magnavox Odyssey²"
+
+#: lutris/runners/o2em.py:15 lutris/runners/o2em.py:31
+msgid "Phillips C52"
+msgstr "飞利浦 C52"
+
+#: lutris/runners/o2em.py:16 lutris/runners/o2em.py:32
+msgid "Phillips Videopac+"
+msgstr "飞利浦 Videopac+"
+
+#: lutris/runners/o2em.py:17 lutris/runners/o2em.py:33
+msgid "Brandt Jopac"
+msgstr "Brandt Jopac"
+
+#: lutris/runners/o2em.py:30
+msgid "Magnavox Odyssey2"
+msgstr "Magnavox Odyssey2"
+
+#: lutris/runners/o2em.py:36 lutris/runners/wine.py:391
+msgid "Disable"
+msgstr "禁用"
+
+#: lutris/runners/o2em.py:37
+msgid "Arrows keys and right shift"
+msgstr "光标键和右SHIFT"
+
+#: lutris/runners/o2em.py:38
+msgid "W,S,A,D,SPACE"
+msgstr "W,S,A,D,空格"
+
+#: lutris/runners/o2em.py:55
+msgid "Bios"
+msgstr "BIOS"
+
+#: lutris/runners/o2em.py:62
+msgid "First controller"
+msgstr "手柄 1"
+
+#: lutris/runners/o2em.py:69
+msgid "Second controller"
+msgstr "手柄 2"
+
+#: lutris/runners/openmsx.py:10
+msgid "openMSX"
+msgstr "openMSX"
+
+#: lutris/runners/openmsx.py:11
+msgid "MSX computer emulator"
+msgstr "MSX 电脑模拟器"
+
+#: lutris/runners/openmsx.py:12
+msgid "MSX, MSX2, MSX2+, MSX turboR"
+msgstr "MSX, MSX2, MSX2+, MSX turboR"
+
+#: lutris/runners/osmose.py:10
+msgid "Osmose"
+msgstr "Osmose"
+
+#: lutris/runners/osmose.py:11
+msgid "Sega Master System Emulator"
+msgstr "世嘉 Master System 模拟器"
+
+#: lutris/runners/osmose.py:25
+msgid ""
+"The game data, commonly called a ROM image.\n"
+"Supported formats: SMS and GG files. ZIP compressed ROMs are supported."
+msgstr ""
+"游戏数据，通常称为ROM映像。\n"
+"支持的格式：SMS 和 GG 文件。 支持 ZIP 压缩的 ROM。"
+
+#: lutris/runners/pcsx2.py:10
+msgid "PCSX2"
+msgstr "PCSX2"
+
+#: lutris/runners/pcsx2.py:11
+msgid "PlayStation 2 emulator"
+msgstr "PS2 (PlayStation 2) 模拟器"
+
+#: lutris/runners/pcsx2.py:12
+msgid "Sony PlayStation 2"
+msgstr "索尼 PS2 (PlayStation 2)"
+
+#: lutris/runners/pcsx2.py:32
+msgid "Fullboot"
+msgstr "完全启动"
+
+#: lutris/runners/pcsx2.py:44
+msgid "Custom config file"
+msgstr "自定义配置文件"
+
+#: lutris/runners/pcsx2.py:50
+msgid "Custom config path"
+msgstr "自定义配置文件路径"
+
+#: lutris/runners/pico8.py:21
+msgid "Runs PICO-8 fantasy console cartridges"
+msgstr "运行 PICO-8 fantasy console cartridges"
+
+#: lutris/runners/pico8.py:23 lutris/runners/pico8.py:24
+msgid "PICO-8"
+msgstr "PICO-8"
+
+#: lutris/runners/pico8.py:29
+msgid "Cartridge file/url/id"
+msgstr "Cartridge 文件/网址/id"
+
+#: lutris/runners/pico8.py:30
+msgid "You can put a .p8.png file path, url, or BBS cartridge id here."
+msgstr "您可以在此处放置 .p8.png 文件路径，网址 或 BBS cartridge id。"
+
+#: lutris/runners/pico8.py:40
+msgid "Launch in fullscreen."
+msgstr "全屏启动。"
+
+#: lutris/runners/pico8.py:44 lutris/runners/web.py:46
+msgid "Window size"
+msgstr "窗口大小"
+
+#: lutris/runners/pico8.py:47
+msgid "The initial size of the game window."
+msgstr "游戏窗口的初始大小。"
+
+#: lutris/runners/pico8.py:52
+msgid "Start in splore mode"
+msgstr "从 splore 模式开始"
+
+#: lutris/runners/pico8.py:58
+msgid "Extra arguments"
+msgstr "额外参数"
+
+#: lutris/runners/pico8.py:60
+msgid "Extra arguments to the executable"
+msgstr "传递给可执行文件的额外参数"
+
+#: lutris/runners/pico8.py:66
+msgid "Engine (web only)"
+msgstr "浏览器引擎"
+
+#: lutris/runners/pico8.py:68
+msgid "Name of engine (will be downloaded) or local file path"
+msgstr "引擎名称(自动下载)或本地文件路径"
+
+#: lutris/runners/pico8.py:82
+#, python-format
+msgid "PICO-8 runner (%s)"
+msgstr "PICO-8 运行环境 (%s)"
+
+#: lutris/runners/ppsspp.py:10
+msgid "PPSSPP"
+msgstr "PPSSPP"
+
+#: lutris/runners/ppsspp.py:11
+msgid "Sony PSP emulator"
+msgstr "索尼 PSP 模拟器"
+
+#: lutris/runners/ppsspp.py:12
+msgid "Sony PlayStation Portable"
+msgstr "索尼 PSP (PlayStation Portable)"
+
+#: lutris/runners/reicast.py:17
+msgid "Reicast"
+msgstr "Reicast"
+
+#: lutris/runners/reicast.py:18
+msgid "Sega Dreamcast emulator"
+msgstr "世嘉 Dreamcast 模拟器"
+
+#: lutris/runners/reicast.py:19
+msgid "Sega Dreamcast"
+msgstr "世嘉 Dreamcast"
+
+#: lutris/runners/reicast.py:28
+msgid "Disc image file"
+msgstr "光盘映像文件"
+
+#: lutris/runners/reicast.py:29
+msgid ""
+"The game data.\n"
+"Supported formats: ISO, CDI"
+msgstr ""
+"游戏数据。\n"
+"支持的格式：ISO，CDI"
+
+#: lutris/runners/reicast.py:47
+msgid "Joypad 1"
+msgstr "手柄 1"
+
+#: lutris/runners/reicast.py:54
+msgid "Joypad 2"
+msgstr "手柄 2"
+
+#: lutris/runners/reicast.py:61
+msgid "Joypad 3"
+msgstr "手柄 3"
+
+#: lutris/runners/reicast.py:68
+msgid "Joypad 4"
+msgstr "手柄 4"
+
+#: lutris/runners/reicast.py:83
+msgid "You have to copy valid BIOS files to ~/.reicast/data before playing"
+msgstr "您必须在启动游戏前将有效的 BIOS 文件复制到 ~/.reicast/data"
+
+#: lutris/runners/residualvm.py:14
+msgid "ResidualVM"
+msgstr "ResidualVM"
+
+#: lutris/runners/residualvm.py:17
+msgid ""
+"Runs various 3D point-and-click adventure games, like Grim Fandango and "
+"Escape from Monkey Island."
+msgstr ""
+"运行各种 3D 点击式冒险游戏，例如 Grim Fandango 和 Escape from Monkey Island。"
+
+#: lutris/runners/residualvm.py:25 lutris/runners/scummvm.py:23
+msgid "Game identifier"
+msgstr "游戏标识符"
+
+#: lutris/runners/residualvm.py:30 lutris/runners/scummvm.py:28
+msgid "Game files location"
+msgstr "游戏文件位置"
+
+#: lutris/runners/residualvm.py:34 lutris/runners/scummvm.py:32
+msgid "Enable subtitles (if the game has voice)"
+msgstr "启用字幕（如果游戏有声音）"
+
+#: lutris/runners/residualvm.py:42 lutris/runners/scummvm.py:46
+msgid "Fullscreen mode"
+msgstr "全屏模式"
+
+#: lutris/runners/residualvm.py:48
+msgid "Renderer"
+msgstr "图形渲染器"
+
+#: lutris/runners/residualvm.py:52
+msgid "OpenGL shaders"
+msgstr "OpenGL 着色器"
+
+#: lutris/runners/residualvm.py:59
+msgid "Display FPS information"
+msgstr "显示帧数信息"
+
+#: lutris/runners/rpcs3.py:10
+msgid "RPCS3"
+msgstr "RPCS3"
+
+#: lutris/runners/rpcs3.py:11
+msgid "PlayStation 3 emulator"
+msgstr "PS3 (PlayStation 3) 模拟器"
+
+#: lutris/runners/rpcs3.py:12
+msgid "Sony PlayStation 3"
+msgstr "索尼 PS3 (PlayStation 3)"
+
+#: lutris/runners/rpcs3.py:20
+msgid "Path to EBOOT.BIN"
+msgstr "EBOOT.BIN 路径"
+
+#: lutris/runners/runner.py:152
+msgid "Custom executable for the runner"
+msgstr "选择运行环境的可执行文件（启动文件）"
+
+#: lutris/runners/runner.py:253
+msgid ""
+"The required runner is not installed.\n"
+"Do you wish to install it now?"
+msgstr ""
+"所需的运行环境未安装。\n"
+"是否立即安装？"
+
+#: lutris/runners/runner.py:255
+msgid "Required runner unavailable"
+msgstr "所需的运行环境不可用"
+
+#: lutris/runners/scummvm.py:14
+msgid "Runs various 2D point-and-click adventure games."
+msgstr "运行各种 2D 点击式冒险游戏。"
+
+#: lutris/runners/scummvm.py:15 lutris/services/scummvm.py:15
+msgid "ScummVM"
+msgstr "ScummVM"
+
+#: lutris/runners/scummvm.py:54
+msgid "Aspect ratio correction"
+msgstr "宽高比校正"
+
+#: lutris/runners/scummvm.py:60
+msgid ""
+"Most games supported by ScummVM were made for VGA display modes using "
+"rectangular pixels. Activating this option for these games will preserve the "
+"4:3 aspect ratio they were made for."
+msgstr ""
+"ScummVM 支持的大多数游戏都是使用矩形像素的 VGA 显示模式制作的。 为这些游戏激"
+"活此选项将保留其原始画面比例 4:3。"
+
+#: lutris/runners/scummvm.py:76
+msgid "normal"
+msgstr "常规"
+
+#: lutris/runners/scummvm.py:95
+msgid "Data directory"
+msgstr "数据文件夹"
+
+#: lutris/runners/scummvm.py:97
+msgid "Defaults to share/scummvm if unspecified."
+msgstr "如果未指定，则默认为 share/scummvm。"
+
+#: lutris/runners/snes9x.py:17
+msgid "Super Nintendo emulator"
+msgstr "超级任天堂模拟器"
+
+#: lutris/runners/snes9x.py:18
+msgid "Snes9x"
+msgstr "Snes9x"
+
+#: lutris/runners/snes9x.py:45
+msgid "Maintain aspect ratio (4:3)"
+msgstr "保持宽高比 (4:3)"
+
+#: lutris/runners/snes9x.py:49
+msgid ""
+"Super Nintendo games were made for 4:3 screens with rectangular pixels, but "
+"modern screens have square pixels, which results in a vertically squeezed "
+"image. This option corrects this by displaying rectangular pixels."
+msgstr ""
+"超级任天堂游戏是针对具有矩形像素的 4:3 屏幕制作的，而现代屏幕则具有正方形像"
+"素，这导致了图像的垂直压缩。 此选项通过显示矩形像素来纠正此问题。"
+
+#: lutris/runners/snes9x.py:59
+msgid "Sound driver"
+msgstr "音频驱动"
+
+#: lutris/runners/steam.py:43
+msgid "Runs Steam for Linux games"
+msgstr "运行 Steam Linux 游戏"
+
+#: lutris/runners/steam.py:44 lutris/services/steam.py:14
+msgid "Steam"
+msgstr "Steam"
+
+#: lutris/runners/steam.py:50 lutris/runners/winesteam.py:52
+msgid "Application ID"
+msgstr "应用 ID"
+
+#: lutris/runners/steam.py:53 lutris/runners/winesteam.py:54
+msgid ""
+"The application ID can be retrieved from the game's page at steampowered."
+"com. Example: 235320 is the app ID for <i>Original War</i> in: \n"
+"http://store.steampowered.com/app/<b>235320</b>/"
+msgstr ""
+"可以在 Steam 官网的游戏页面地址中看到 Steam 应用 ID。比如：通过以下网址可以看"
+"出，<i>Original War</i> 的应用ID是 235320：\n"
+"http://store.steampowered.com/app/<b>235320</b>/"
+
+#: lutris/runners/steam.py:64
+msgid ""
+"Command line arguments used when launching the game.\n"
+"Ignored when Steam Big Picture mode is enabled."
+msgstr ""
+"启动游戏时使用的命令行参数。\n"
+"启用 Steam 大屏幕模式时被忽略。"
+
+#: lutris/runners/steam.py:70 lutris/runners/winesteam.py:111
+msgid "DRM free mode (Do not launch Steam)"
+msgstr "DRM free 模式 (不启动 Steam)"
+
+#: lutris/runners/steam.py:75 lutris/runners/winesteam.py:115
+msgid ""
+"Run the game directly without Steam, requires the game binary path to be set"
+msgstr "在没有 Steam 的情况下直接运行游戏，需要设置游戏二进制路径"
+
+#: lutris/runners/steam.py:81 lutris/runners/winesteam.py:120
+msgid "Game binary path"
+msgstr "游戏二进制文件路径"
+
+#: lutris/runners/steam.py:83 lutris/runners/winesteam.py:122
+msgid "Path to the game executable (Required by DRM free mode)"
+msgstr "游戏可执行文件的路径（DRM free 模式要求）"
+
+#: lutris/runners/steam.py:89 lutris/runners/winesteam.py:147
+msgid "Stop Steam after game exits"
+msgstr "游戏退出后关闭Steam"
+
+#: lutris/runners/steam.py:93
+msgid ""
+"Shut down Steam after the game has quit\n"
+"(only if Steam was started by Lutris)"
+msgstr ""
+"游戏退出后关闭Steam\n"
+"(仅当Steam由Lutris启动时)"
+
+#: lutris/runners/steam.py:99
+msgid "Start Steam in Big Picture mode"
+msgstr "启动 Steam 大屏幕模式"
+
+#: lutris/runners/steam.py:103
+msgid ""
+"Launches Steam in Big Picture mode.\n"
+"Only works if Steam is not running or already running in Big Picture mode.\n"
+"Useful when playing with a Steam Controller."
+msgstr ""
+"在大屏幕模式下启动 Steam。\n"
+"仅在 Steam 未运行或已在大屏幕模式下运行时才有效。\n"
+"用手柄玩时很有用。"
+
+#: lutris/runners/steam.py:111
+msgid "Disable Steam Runtime (use native libraries)"
+msgstr "禁用 Steam 运行时库（使用本机库文件）"
+
+#: lutris/runners/steam.py:115
+msgid ""
+"Launches Steam with STEAM_RUNTIME=0. Make sure you disabled Lutris Runtime "
+"and have the required libraries installed."
+msgstr ""
+"以 STEAM_RUNTIME=0 启动 Steam。 确保禁用 Lutris 运行时库并安装了必需的库。"
+
+#: lutris/runners/steam.py:122
+msgid "Start Steam with LSI"
+msgstr "启动 Steam LSI (Linux 桌面整合) 支持"
+
+#: lutris/runners/steam.py:126
+msgid ""
+"Launches steam with LSI patches enabled. Make sure Lutris Runtime is "
+"disabled and you have LSI installed. https://github.com/solus-project/linux-"
+"steam-integration"
+msgstr ""
+"在启用 LSI (Linux Steam 整合) 补丁的情况下启动 Steam。 确保禁用 Lutris 运行时"
+"库，并且已安装 LSI。\n"
+"参阅 https://github.com/solus-project/linux-steam-integration"
+
+#: lutris/runners/steam.py:137 lutris/runners/winesteam.py:157
+msgid "Extra command line arguments used when launching Steam"
+msgstr "启动 Steam 时使用的额外命令行参数"
+
+#: lutris/runners/steam.py:153
+msgid "Remove game data (through Steam)"
+msgstr "删除游戏数据（通过Steam）"
+
+#: lutris/runners/stella.py:10
+msgid "Atari 2600 emulator"
+msgstr "雅达利 2600 模拟器"
+
+#: lutris/runners/stella.py:11
+msgid "Stella"
+msgstr "Stella"
+
+#: lutris/runners/stella.py:12
+msgid "Atari 2600"
+msgstr "雅达利 2600"
+
+#: lutris/runners/stella.py:24
+msgid ""
+"The game data, commonly called a ROM image.\n"
+"Supported formats: A26/BIN/ROM. GZIP and ZIP compressed ROMs are supported."
+msgstr ""
+"游戏数据，通常称为ROM映像。\n"
+"支持的格式：A26 / BIN / ROM。 支持 GZIP 和 ZIP 压缩的 ROM。"
+
+#: lutris/runners/vice.py:13
+msgid "Commodore Emulator"
+msgstr "Commodore 模拟器"
+
+#: lutris/runners/vice.py:14
+msgid "Vice"
+msgstr "Vice"
+
+#: lutris/runners/vice.py:16
+msgid "Commodore 64"
+msgstr "Commodore 64"
+
+#: lutris/runners/vice.py:17
+msgid "Commodore 128"
+msgstr "Commodore 128"
+
+#: lutris/runners/vice.py:18
+msgid "Commodore VIC20"
+msgstr "Commodore VIC20"
+
+#: lutris/runners/vice.py:19
+msgid "Commodore PET"
+msgstr "Commodore PET"
+
+#: lutris/runners/vice.py:20
+msgid "Commodore Plus/4"
+msgstr "Commodore Plus/4"
+
+#: lutris/runners/vice.py:21
+msgid "Commodore CBM II"
+msgstr "Commodore CBM II"
+
+#: lutris/runners/vice.py:40
+msgid ""
+"The game data, commonly called a ROM image.\n"
+"Supported formats: X64, D64, G64, P64, D67, D71, D81, D80, D82, D1M, D2M, "
+"D4M, T46, P00 and CRT."
+msgstr ""
+"游戏数据，通常称为ROM映像。\n"
+"支持的格式：X64，D64，G64，P64，D67，D71，D81，D80，D82，D1M，D2M，D4M，T46，"
+"P00 和 CRT。"
+
+#: lutris/runners/vice.py:51
+msgid "Use joysticks"
+msgstr "使用摇杆"
+
+#: lutris/runners/vice.py:63
+msgid "Scale up display by 2"
+msgstr "2倍放大显示"
+
+#: lutris/runners/vice.py:69
+msgid "Keep aspect ratio"
+msgstr "保持宽高比"
+
+#: lutris/runners/vice.py:75
+msgid "Enable sound emulation of disk drives"
+msgstr "启用磁盘驱动器的声音仿真"
+
+#: lutris/runners/vice.py:81
+msgid "Graphics renderer"
+msgstr "图形渲染引擎"
+
+#: lutris/runners/virtualjaguar.py:10
+msgid "Atari Jaguar emulator"
+msgstr "雅达利 Jaguar 模拟器"
+
+#: lutris/runners/virtualjaguar.py:11
+msgid "Virtual Jaguar"
+msgstr "Virtual Jaguar"
+
+#: lutris/runners/virtualjaguar.py:12
+msgid "Atari Jaguar"
+msgstr "雅达利 Jaguar"
+
+#: lutris/runners/virtualjaguar.py:21
+msgid ""
+"The game data, commonly called a ROM image.\n"
+"Supported formats: J64 and JAG."
+msgstr ""
+"游戏数据，通常称为ROM映像。\n"
+"支持的格式：J64 和 JAG。"
+
+#: lutris/runners/web.py:19
+msgid "Runs web based games"
+msgstr "运行网页/HTML5游戏"
+
+#: lutris/runners/web.py:25
+msgid "Full URL or HTML file path"
+msgstr "完整地址 (URL) 或 HTML 文件路径"
+
+#: lutris/runners/web.py:26
+msgid "The full address of the game's web page or path to a HTML file."
+msgstr "游戏网页的完整地址或HTML文件的路径。"
+
+#: lutris/runners/web.py:32
+msgid "Open in fullscreen"
+msgstr "打开全屏模式"
+
+#: lutris/runners/web.py:35
+msgid "Launch the game in fullscreen."
+msgstr "全屏启动游戏。"
+
+#: lutris/runners/web.py:39
+msgid "Open window maximized"
+msgstr "最大化打开的窗口"
+
+#: lutris/runners/web.py:42
+msgid "Maximizes the window when game starts."
+msgstr "游戏开始时最大化窗口。"
+
+#: lutris/runners/web.py:57
+msgid "The initial size of the game window when not opened."
+msgstr "游戏窗口的初始大小。"
+
+#: lutris/runners/web.py:61
+msgid "Disable window resizing (disables fullscreen and maximize)"
+msgstr "禁止窗口大小调整（禁止全屏和最大化）"
+
+#: lutris/runners/web.py:64
+msgid "You can't resize this window."
+msgstr "禁止调整窗口大小。"
+
+#: lutris/runners/web.py:68
+msgid "Borderless window"
+msgstr "无边框窗口模式"
+
+#: lutris/runners/web.py:71
+msgid "The window has no borders/frame."
+msgstr "隐藏窗口的标题栏和边框。"
+
+#: lutris/runners/web.py:75
+msgid "Disable menu bar and default shortcuts"
+msgstr "禁用菜单栏和默认快捷方式"
+
+#: lutris/runners/web.py:78
+msgid ""
+"This also disables default keyboard shortcuts, like copy/paste and "
+"fullscreen toggling."
+msgstr "这也会禁用默认的键盘快捷键，例如复制/粘贴和全屏切换。"
+
+#: lutris/runners/web.py:83
+msgid "Disable page scrolling and hide scrollbars"
+msgstr "禁用页面滚动并隐藏滚动条"
+
+#: lutris/runners/web.py:86
+msgid "Disables scrolling on the page."
+msgstr "禁止在页面上滚动。"
+
+#: lutris/runners/web.py:90
+msgid "Hide mouse cursor"
+msgstr "隐藏鼠标光标"
+
+#: lutris/runners/web.py:93
+msgid "Prevents the mouse cursor from showing when hovering above the window."
+msgstr "当鼠标悬停在窗口上方时，不显示鼠标光标。"
+
+#: lutris/runners/web.py:100
+msgid "Open links in game window"
+msgstr "在游戏窗口中打开链接"
+
+#: lutris/runners/web.py:106
+msgid ""
+"Enable this option if you want clicked links to open inside the game window. "
+"By default all links open in your default web browser."
+msgstr ""
+"如果要在游戏窗口中打开链接，请启用此选项。 默认情况下，所有链接都在默认的Web"
+"浏览器中打开。"
+
+#: lutris/runners/web.py:112
+msgid "Remove default <body> margin & padding"
+msgstr "删除默认的 &lt;body&gt; 边距和填充"
+
+#: lutris/runners/web.py:115
+msgid ""
+"Sets margin and padding to zero on &lt;html&gt; and &lt;body&gt; elements."
+msgstr ""
+"把 &lt;html&gt; 和 &lt;body&gt; 标签的内边距(margin)和外边距(padding)均设为"
+"0。"
+
+#: lutris/runners/web.py:120
+msgid "Enable Adobe Flash Player"
+msgstr "启用 Adobe Flash Player"
+
+#: lutris/runners/web.py:123
+msgid "Enable Adobe Flash Player."
+msgstr "启用 Adobe Flash Player。"
+
+#: lutris/runners/web.py:127
+msgid "Debug with Developer Tools"
+msgstr "通过开发者工具进行调试"
+
+#: lutris/runners/web.py:130
+msgid "Let's you debug the page."
+msgstr "让你可以调试页面。"
+
+#: lutris/runners/web.py:135
+msgid "Open in web browser (old behavior)"
+msgstr "在网络浏览器中打开（旧行为）"
+
+#: lutris/runners/web.py:138
+msgid "Launch the game in a web browser."
+msgstr "在网络浏览器中启动游戏。"
+
+#: lutris/runners/web.py:144
+msgid "Custom web browser executable"
+msgstr "自定义网络浏览器路径"
+
+#: lutris/runners/web.py:148
+msgid ""
+"Select the executable of a browser on your system.\n"
+"If left blank, Lutris will launch your default browser (xdg-open)."
+msgstr ""
+"选择系统内浏览器的可执行文件。\n"
+"如果留空，Lutris 将启动您的默认浏览器（xdg-open）。"
+
+#: lutris/runners/web.py:156
+msgid "Web browser arguments"
+msgstr "网络浏览器参数"
+
+#: lutris/runners/web.py:162
+msgid ""
+"Command line arguments to pass to the executable.\n"
+"$GAME or $URL inserts the game url.\n"
+"\n"
+"For Chrome/Chromium app mode use: --app=\"$GAME\""
+msgstr ""
+"传递给可执行文件的命令行参数。\n"
+"使用 $GAME 或 $URL 来代替游戏路径。\n"
+"\n"
+"比如要打开 Chrome/Chromium 的 APP 模式，\n"
+"可以使用 <b>--app=\"$GAME\"</b>"
+
+#: lutris/runners/web.py:195
+#, python-format
+msgid ""
+"The file %s does not exist, \n"
+"verify the game's configuration."
+msgstr ""
+"文件 %s 不存在，\n"
+"请检查您的游戏配置。"
+
+#: lutris/runners/wine.py:40
+msgid "Runs Windows games"
+msgstr "运行 Windows 游戏"
+
+#: lutris/runners/wine.py:41
+msgid "Wine"
+msgstr "Wine"
+
+#: lutris/runners/wine.py:42 lutris/runners/winesteam.py:41
+msgid "Windows"
+msgstr "Windows"
+
+#: lutris/runners/wine.py:49
+msgid "The game's main EXE file"
+msgstr "游戏启动器的 EXE 或 LNK 文件"
+
+#: lutris/runners/wine.py:55
+msgid "Windows command line arguments used when launching the game"
+msgstr "启动游戏时使用的Windows命令行参数"
+
+#: lutris/runners/wine.py:77
+msgid "Wine prefix"
+msgstr "Wine 前缀"
+
+#: lutris/runners/wine.py:79 lutris/runners/winesteam.py:74
+msgid ""
+"The prefix (also named \"bottle\") used by Wine.\n"
+"It's a directory containing a set of files and folders making up a confined "
+"Windows environment."
+msgstr ""
+"Wine 使用的“前缀”（也称为“瓶”）。\n"
+"它是一个目录，其中包含构成 Windows 兼容环境的一系列文件和文件夹。"
+
+#: lutris/runners/wine.py:87 lutris/runners/winesteam.py:85
+msgid "Prefix architecture"
+msgstr "前缀架构"
+
+#: lutris/runners/wine.py:88 lutris/runners/winesteam.py:86
+msgid "32-bit"
+msgstr "32位"
+
+#: lutris/runners/wine.py:88 lutris/runners/winesteam.py:86
+msgid "64-bit"
+msgstr "64位"
+
+#: lutris/runners/wine.py:90
+msgid "The architecture of the Windows environment"
+msgstr "Windows 兼容环境的架构"
+
+#: lutris/runners/wine.py:122
+msgid "Custom (select executable below)"
+msgstr "自定义 (在下方指定 Wine 路径)"
+
+#: lutris/runners/wine.py:124
+msgid "WineHQ devel ({})"
+msgstr "WineHQ 开发版 ({})"
+
+#: lutris/runners/wine.py:125
+msgid "WineHQ staging ({})"
+msgstr "WineHQ staging 补丁版 ({})"
+
+#: lutris/runners/wine.py:126
+msgid "Wine Development ({})"
+msgstr "Wine 开发版 ({})"
+
+#: lutris/runners/wine.py:127
+msgid "System ({})"
+msgstr "系统 ({})"
+
+#: lutris/runners/wine.py:141
+msgid "Manual"
+msgstr "手动指定"
+
+#: lutris/runners/wine.py:193
+msgid "Wine version"
+msgstr "Wine 版本"
+
+#: lutris/runners/wine.py:201
+msgid ""
+"The version of Wine used to launch the game.\n"
+"Using the last version is generally recommended, but some games work better "
+"on older versions."
+msgstr ""
+"用于启动游戏的 Wine 版本。\n"
+"通常建议使用最新版本，但是某些游戏可能在旧版本上运行的更好。"
+
+#: lutris/runners/wine.py:208
+msgid "Custom Wine executable"
+msgstr "自定义 Wine 路径"
+
+#: lutris/runners/wine.py:211
+msgid ""
+"The Wine executable to be used if you have selected \"Custom\" as the Wine "
+"version."
+msgstr "如果您选择“自定义”作为 Wine 版本，则将使用该 Wine 可执行文件。"
+
+#: lutris/runners/wine.py:216
+msgid "Use system winetricks"
+msgstr "使用系统 winetricks"
+
+#: lutris/runners/wine.py:220
+msgid "Switch on to use /usr/bin/winetricks for winetricks."
+msgstr "使用 /usr/bin/winetricks 而不是 Lutris 附带的 winetricks。"
+
+#: lutris/runners/wine.py:226
+msgid "Enable DXVK"
+msgstr "启用 DXVK"
+
+#: lutris/runners/wine.py:238
+msgid ""
+"Use DXVK to increase compatibility and performance in Direct3D 11 and 10 "
+"applications by translating their calls to Vulkan."
+msgstr ""
+"通过 DXVK 将 DX10/11 调用转换为 Vulkan，可以显著提高 DX10/11 游戏在 Wine 下运"
+"行的帧数，同时也可以改善兼容性。"
+
+#: lutris/runners/wine.py:245
+msgid "DXVK version"
+msgstr "DXVK 版本"
+
+#: lutris/runners/wine.py:253
+msgid "Enable VKD3D"
+msgstr "启用 VKD3D"
+
+#: lutris/runners/wine.py:256
+msgid "Enable DX12 support with VKD3D. This requires a compatible Wine build."
+msgstr "通过 VKD3D 启用 DX12 支持。 需要兼容的 Wine 版本。"
+
+#: lutris/runners/wine.py:262
+msgid "Enable Esync"
+msgstr "启用 Esync"
+
+#: lutris/runners/wine.py:272
+msgid ""
+"Enable eventfd-based synchronization (esync). This will increase performance "
+"in applications that take advantage of multi-core processors."
+msgstr "启用基于事件fd的同步（esync），可以提升多核游戏的性能。"
+
+#: lutris/runners/wine.py:281
+msgid "Enable Fsync"
+msgstr "启用 Fsync"
+
+#: lutris/runners/wine.py:291
+msgid ""
+"Enable futex-based synchronization (fsync). This will increase performance "
+"in applications that take advantage of multi-core processors. Requires a "
+"custom kernel with the fsync patchset."
+msgstr ""
+"启用基于futex的同步（fsync），可以提升多核游戏的性能。 需要打过 fsync 补丁的"
+"自定义内核。"
+
+#: lutris/runners/wine.py:301
+msgid "Enable Gallium Nine"
+msgstr "启用 Gallium Nine"
+
+#: lutris/runners/wine.py:311
+msgid ""
+"Gallium Nine allows to run Direct3D 9 applications faster.\n"
+"Make sure your active graphics card supports Gallium Nine state tracker "
+"before enabling this option.\n"
+"Note: This feature is not supported by proprietary Nvidia driver."
+msgstr ""
+"Gallium Nine 可以加快 DX9 游戏的运行速度。\n"
+"在启用此选项之前，请确保你的显卡驱动支持 Gallium Nine 状态跟踪器。\n"
+"注意：专有 Nvidia 驱动程序不支持此功能。"
+
+#: lutris/runners/wine.py:319
+msgid "Path to the game's executable, for x360ce support"
+msgstr "要支持 x360ce 的游戏可执行文件路径"
+
+#: lutris/runners/wine.py:321
+msgid "Locate the path for the game's executable for x360 support"
+msgstr "指定要支持x360的游戏可执行文件路径"
+
+#: lutris/runners/wine.py:326
+msgid "x360ce dinput 8 mode"
+msgstr "x360ce dinput 8 模式"
+
+#: lutris/runners/wine.py:329
+msgid "Configure x360ce with dinput8.dll, required for some games"
+msgstr "配置 x360ce 使用 dinput8.dll，某些游戏需要"
+
+#: lutris/runners/wine.py:334
+msgid "x360ce xinput 9.1.0 mode"
+msgstr "x360ce xinput 9.1.0 模式"
+
+#: lutris/runners/wine.py:337
+msgid "Configure x360ce with xinput9_1_0.dll, required for some newer games"
+msgstr "配置 x360ce 使用 xinput9_1_0.dll，某些较新的游戏需要"
+
+#: lutris/runners/wine.py:342
+msgid "Use Dumb xinput Emulator (experimental)"
+msgstr "使用 Dumb xinput 模拟器（实验性）"
+
+#: lutris/runners/wine.py:345
+msgid "Use the dlls from kozec/dumbxinputemu"
+msgstr "使用来自 kozec/dumbxinputemu 的 DLL文件"
+
+#: lutris/runners/wine.py:350
+msgid "Xinput architecture"
+msgstr "Xinput 架构"
+
+#: lutris/runners/wine.py:353
+msgid "Same as wine prefix"
+msgstr "与 Wine 前缀相同"
+
+#: lutris/runners/wine.py:354
+msgid "32 bit"
+msgstr "32位"
+
+#: lutris/runners/wine.py:355
+msgid "64 bit"
+msgstr "64位"
+
+#: lutris/runners/wine.py:364
+msgid "Windowed (virtual desktop)"
+msgstr "窗口化（虚拟桌面）"
+
+#: lutris/runners/wine.py:370
+msgid ""
+"Run the whole Windows desktop in a window.\n"
+"Otherwise, run it fullscreen.\n"
+"This corresponds to Wine's Virtual Desktop option."
+msgstr ""
+"在一个窗口中运行整个 Windows 桌面。\n"
+"如果未启用则全屏运行。\n"
+"这对应于 Wine 的“虚拟桌面”选项。"
+
+#: lutris/runners/wine.py:377
+msgid "Virtual desktop resolution"
+msgstr "虚拟桌面分辨率"
+
+#: lutris/runners/wine.py:380
+msgid "The size of the virtual desktop in pixels."
+msgstr "虚拟桌面的大小（以像素为单位）。"
+
+#: lutris/runners/wine.py:386
+msgid "Mouse Warp Override"
+msgstr "鼠标捕获行为"
+
+#: lutris/runners/wine.py:390
+msgid "Enable"
+msgstr "启用"
+
+#: lutris/runners/wine.py:392
+msgid "Force"
+msgstr "强制启用"
+
+#: lutris/runners/wine.py:399
+msgid ""
+"Override the default mouse pointer warping behavior\n"
+"<b>Enable</b>: (Wine default) warp the pointer when the mouse is exclusively "
+"acquired \n"
+"<b>Disable</b>: never warp the mouse pointer \n"
+"<b>Force</b>: always warp the pointer"
+msgstr ""
+"覆盖默认的鼠标指针捕获行为\n"
+"<b>启用</b>: 独占鼠标时捕获指针 (Wine默认)\n"
+"<b>禁用</b>: 从不捕获鼠标指针\n"
+"<b>强制启用</b>: 总是捕获鼠标指针"
+
+#: lutris/runners/wine.py:410
+msgid "Offscreen Rendering Mode"
+msgstr "离屏渲染模式"
+
+#: lutris/runners/wine.py:419
+msgid ""
+"Select the offscreen rendering implementation.\n"
+"<b>FBO</b>: (Wine default) Use framebuffer objects for offscreen rendering \n"
+"<b>Backbuffer</b>: Render offscreen render targets in the backbuffer."
+msgstr ""
+"选择离屏渲染实现。\n"
+"<b>FBO</b>: 使用帧缓冲对象进行离屏渲染。\n"
+"<b>Backbuffer</b>: 使用后备缓冲区进行离屏渲染。"
+
+#: lutris/runners/wine.py:430
+msgid "Strict Draw Ordering"
+msgstr "严格绘制顺序"
+
+#: lutris/runners/wine.py:433 lutris/runners/wine.py:453
+#: lutris/runners/wine.py:537
+msgid "Enabled"
+msgstr "启用"
+
+#: lutris/runners/wine.py:439
+msgid ""
+"This option ensures any pending drawing operations are submitted to the "
+"driver, but at a significant performance cost. Set to \"enabled\" to enable. "
+"This setting is deprecated since wine-2.6 and will likely be removed after "
+"wine-3.0. Use \"csmt\" instead."
+msgstr ""
+"此选项可确保任何挂起的绘图操作都会提交给驱动程序，但会产生很大的性\n"
+"能成本。\n"
+"从 wine-2.6 开始不推荐使用此设置，并且可能在 wine-3.0 之后将其删除。请改用“ "
+"csmt”。"
+
+#: lutris/runners/wine.py:450
+msgid "Use GLSL"
+msgstr "使用 GLSL"
+
+#: lutris/runners/wine.py:459
+msgid ""
+"When set to \"disabled\", this disables the use of GLSL for shaders. In "
+"general disabling GLSL is not recommended, only use this for debugging "
+"purposes."
+msgstr ""
+"设置为“禁用”时，将禁用对着色器使用 GLSL。 通常不建议禁用 GLSL，仅将其用于调试"
+"目的。"
+
+#: lutris/runners/wine.py:468
+msgid "Anti-aliasing Sample Count"
+msgstr "抗锯齿采样数"
+
+#: lutris/runners/wine.py:484
+msgid ""
+"Override swapchain sample count. It can be used to force enable "
+"multisampling with applications that otherwise don't support it, like the "
+"similar control panel setting available with some GPU drivers. This one "
+"might work in more cases than the driver setting though. Not all "
+"applications are compatible with all sample counts. "
+msgstr ""
+"修改交换链多重采样方式。 它可用于对不支持多重采样抗锯齿的游戏强制启用多重采"
+"样，与某些显卡驱动程序提供的控制面板设置类似。 但是，此设置生效的可能性比驱动"
+"程序控制面板更大，但并非所有游戏都与所有多重采样方式兼容。 "
+
+#: lutris/runners/wine.py:493
+msgid "Use XVidMode to switch resolutions"
+msgstr "使用 XVidMode 切换分辨率"
+
+#: lutris/runners/wine.py:497
+msgid ""
+"Set this to \"Y\" to allow wine switch the resolution using XVidMode "
+"extension."
+msgstr "启用此项以允许 Wine 使用 XVidMode 扩展切换分辨率。"
+
+#: lutris/runners/wine.py:503
+msgid "Audio driver"
+msgstr "音频驱动"
+
+#: lutris/runners/wine.py:517
+msgid ""
+"Which audio backend to use.\n"
+"By default, Wine automatically picks the right one for your system."
+msgstr ""
+"使用哪个音频后端。\n"
+"默认情况下，Wine 会自动选择合适的后端。"
+
+#: lutris/runners/wine.py:525
+msgid "DLL overrides"
+msgstr "DLL函数库顶替"
+
+#: lutris/runners/wine.py:526
+msgid "Sets WINEDLLOVERRIDES when launching the game."
+msgstr "启动游戏时设置 WINEDLLOVERRIDES（相当于 winecfg 中的“函数库顶替”）。"
+
+#: lutris/runners/wine.py:532
+msgid "Output debugging info"
+msgstr "输出调试信息"
+
+#: lutris/runners/wine.py:538
+msgid "Inherit from environment"
+msgstr "根据环境变量"
+
+#: lutris/runners/wine.py:539
+msgid "Show FPS"
+msgstr "显示帧率"
+
+#: lutris/runners/wine.py:540
+msgid "Full (CAUTION: Will cause MASSIVE slowdown)"
+msgstr "全部 (注意：运行速度会<b>非常慢</b>！)"
+
+#: lutris/runners/wine.py:544
+msgid "Output debugging information in the game log (might affect performance)"
+msgstr "在游戏日志中输出调试信息（可能会影响性能）"
+
+#: lutris/runners/wine.py:549
+msgid "Show crash dialogs"
+msgstr "显示崩溃对话框"
+
+#: lutris/runners/wine.py:557
+msgid "Autoconfigure joypads"
+msgstr "自动配置游戏手柄"
+
+#: lutris/runners/wine.py:561
+msgid ""
+"Automatically disables one of Wine's detected joypad to avoid having 2 "
+"controllers detected"
+msgstr "自动禁用Wine检测到的其中一个手柄，以避免游戏检测到两个手柄"
+
+#: lutris/runners/wine.py:570
+msgid "Create a sandbox for wine folders"
+msgstr "为 Wine 文件夹创建沙箱"
+
+#: lutris/runners/wine.py:576
+msgid ""
+"Do not use $HOME for desktop integration folders.\n"
+"By default, it use the directories in the confined Windows environment."
+msgstr ""
+"不使用当前用户的 $HOME 主目录作为 Windows“文档”、“下载”、“视频”等\n"
+"文件夹的存放位置。默认情况下，启用该选项会使这些文件夹创建在 Wine 前缀所在目"
+"录中，\n"
+"你也可以自行指定其他位置。"
+
+#: lutris/runners/wine.py:584
+msgid "Sandbox directory"
+msgstr "对主目录启用沙箱"
+
+#: lutris/runners/wine.py:585
+msgid "Custom directory for desktop integration folders."
+msgstr "自定义“文档”、“下载”、“视频”等文件夹的存放位置。"
+
+#: lutris/runners/wine.py:593
+msgid "Run EXE inside wine prefix"
+msgstr "在 Wine 前缀中运行 EXE"
+
+#: lutris/runners/wine.py:595
+msgid "Wine configuration"
+msgstr "Wine 配置"
+
+#: lutris/runners/wine.py:597
+msgid "Wine console"
+msgstr "Wine CMD"
+
+#: lutris/runners/wine.py:598
+msgid "Wine registry"
+msgstr "Wine 注册表编辑器"
+
+#: lutris/runners/wine.py:599
+msgid "Kill all wine processes"
+msgstr "结束所有 Wine 进程"
+
+#: lutris/runners/wine.py:600
+msgid "Winetricks"
+msgstr "Winetricks"
+
+#: lutris/runners/wine.py:601
+msgid "Wine Control Panel"
+msgstr "Wine 控制面板"
+
+#: lutris/runners/wine.py:757
+msgid "Select an EXE or MSI file"
+msgstr "选择一个 EXE、MSI 或 LNK 文件"
+
+#: lutris/runners/winesteam.py:38
+msgid "Runs Steam for Windows games"
+msgstr "运行 Windows 版 Steam 上的游戏"
+
+#: lutris/runners/winesteam.py:40
+msgid "Wine Steam"
+msgstr "Wine Steam"
+
+#: lutris/runners/winesteam.py:72
+msgid "Prefix"
+msgstr "前缀"
+
+#: lutris/runners/winesteam.py:90
+msgid ""
+"The architecture of the Windows environment.\n"
+"32-bit is recommended unless running a 64-bit only game."
+msgstr ""
+"Windows 兼容环境的体系结构。\n"
+"除非运行仅64位游戏，否则建议选择32位。"
+
+#: lutris/runners/winesteam.py:103
+msgid "Do not launch game, only open Steam"
+msgstr "不启动游戏，仅打开 Steam"
+
+#: lutris/runners/winesteam.py:105
+msgid ""
+"Opens Steam with the current settings without running the game, useful if a "
+"game has several launch options."
+msgstr ""
+"使用该设置在不运行游戏的情况下打开 Steam，如果游戏具有多个启动选项，则很有"
+"用。"
+
+#: lutris/runners/winesteam.py:128
+msgid "Remove game data (through Wine Steam)"
+msgstr "删除游戏数据（通过Wine Steam）"
+
+#: lutris/runners/winesteam.py:137
+msgid "Custom Steam location"
+msgstr "自定义 Steam 路径"
+
+#: lutris/runners/winesteam.py:139
+msgid ""
+"Choose a folder containing Steam.exe\n"
+"By default, Lutris will look for a Windows Steam installation into ~/.wine "
+"or will install it in its own custom Wine prefix."
+msgstr ""
+"选择一个包含 Steam.exe 的文件夹\n"
+"默认情况下，Lutris将在 ~/.wine 中查找 Windows Steam 安装或将其安装在其自己的"
+"自定义 Wine 前缀中。"
+
+#: lutris/runners/winesteam.py:150
+msgid "Shut down Steam after the game has quit."
+msgstr "游戏退出后关闭Steam。"
+
+#: lutris/runners/winesteam.py:163
+msgid "Default Wine prefix (32bit)"
+msgstr "默认 Wine 前缀（32位）"
+
+#: lutris/runners/winesteam.py:165
+msgid "Default prefix location for Steam (32 bit)"
+msgstr "Steam 所在的 Wine 前缀（32位）"
+
+#: lutris/runners/winesteam.py:171
+msgid "Default Wine prefix (64bit)"
+msgstr "默认 Wine 前缀（64位）"
+
+#: lutris/runners/winesteam.py:173
+msgid "Default prefix location for Steam (64 bit)"
+msgstr "Steam 所在的 Wine 前缀（64位）"
+
+#: lutris/runners/winesteam.py:181
+#, python-format
+msgid "Winesteam runner (%s)"
+msgstr "Wine Steam 运行环境 (%s)"
+
+#: lutris/runners/yuzu.py:14
+msgid "Yuzu"
+msgstr "Yuzu"
+
+#: lutris/runners/yuzu.py:15
+msgid "Nintendo Switch"
+msgstr "任天堂 Switch"
+
+#: lutris/runners/yuzu.py:16
+msgid "Nintendo Switch emulator"
+msgstr "任天堂 Switch 模拟器"
+
+#: lutris/runners/yuzu.py:30
+msgid "Ecryption keys"
+msgstr "加密密钥"
+
+#: lutris/runners/yuzu.py:32
+msgid "File containing the encryption keys."
+msgstr "包含加密密钥（encryption key）的文件。"
+
+#: lutris/runners/yuzu.py:35
+msgid "Title keys"
+msgstr "标题密钥"
+
+#: lutris/runners/yuzu.py:37
+msgid "File containing the title keys."
+msgstr "包含标题密钥（title key）的文件。"
+
+#: lutris/runners/zdoom.py:14
+msgid "ZDoom DOOM Game Engine"
+msgstr "ZDoom DOOM Game Engine"
+
+#: lutris/runners/zdoom.py:15
+msgid "ZDoom"
+msgstr "ZDoom"
+
+#: lutris/runners/zdoom.py:22
+msgid "WAD file"
+msgstr "WAD 文件"
+
+#: lutris/runners/zdoom.py:23
+msgid "The game data, commonly called a WAD file."
+msgstr "游戏数据，通常称为 WAD 文件。"
+
+#: lutris/runners/zdoom.py:29
+msgid "Command line arguments used when launching the game."
+msgstr "启动游戏时使用的命令行参数。"
+
+#: lutris/runners/zdoom.py:34
+msgid "PWAD files"
+msgstr "PWAD 文件"
+
+#: lutris/runners/zdoom.py:35
+msgid ""
+"Used to load one or more PWAD files which generally contain user-created "
+"levels."
+msgstr "用于加载一个或多个 PWAD 文件，这些文件通常包含用户创建的等级。"
+
+#: lutris/runners/zdoom.py:41
+msgid "Warp to map"
+msgstr "启动指定地图"
+
+#: lutris/runners/zdoom.py:42
+msgid "Starts the game on the given map."
+msgstr "在指定的地图上启动游戏。"
+
+#: lutris/runners/zdoom.py:47
+msgid "Save path"
+msgstr "保存路径"
+
+#: lutris/runners/zdoom.py:48
+msgid "User-specified path where save files should be located."
+msgstr "指定保存文件所在的路径。"
+
+#: lutris/runners/zdoom.py:54
+msgid "Pixel Doubling"
+msgstr "双倍像素"
+
+#: lutris/runners/zdoom.py:60
+msgid "Pixel Quadrupling"
+msgstr "四倍像素"
+
+#: lutris/runners/zdoom.py:66
+msgid "Disable Startup Screens"
+msgstr "禁用启动屏幕"
+
+#: lutris/runners/zdoom.py:72
+msgid "Skill"
+msgstr "游戏难度"
+
+#: lutris/runners/zdoom.py:77
+msgid "I'm Too Young To Die (1)"
+msgstr "小白求关爱 (1)"
+
+#: lutris/runners/zdoom.py:78
+msgid "Hey, Not Too Rough (2)"
+msgstr "嘿，别太难 (2)"
+
+#: lutris/runners/zdoom.py:79
+msgid "Hurt Me Plenty (3)"
+msgstr "揍的再狠点 (3)"
+
+#: lutris/runners/zdoom.py:80
+msgid "Ultra-Violence (4)"
+msgstr "极端暴力 (4)"
+
+#: lutris/runners/zdoom.py:81
+msgid "Nightmare! (5)"
+msgstr "地狱难度！(5)"
+
+#: lutris/runners/zdoom.py:92
+msgid ""
+"Used to load a user-created configuration file. If specified, the file must "
+"contain the wad directory list or launch will fail."
+msgstr ""
+"用于加载用户创建的配置文件。 如果指定，文件必须包含 wad 目录列表，否则启动将"
+"失败。"
+
+#: lutris/services/gog.py:20
+msgid "GOG"
+msgstr "GOG"
+
+#: lutris/services/humblebundle.py:18
+msgid "Humble Bundle"
+msgstr "Humble Bundle"
+
+#: lutris/services/winesteam.py:7
+msgid "Steam for Windows"
+msgstr "Windows 版 Steam"
+
+#: lutris/services/xdg.py:21
+msgid "Desktop games"
+msgstr "Linux桌面游戏"
+
+#: lutris/settings.py:15
+msgid "(c) 2010-2020 Lutris Gaming Platform"
+msgstr "(c) 2010-2020 Lutris 游戏平台"
+
+#: lutris/settings.py:16
+msgid "The Lutris team"
+msgstr "Lutris 团队"
+
+#: lutris/startup.py:84
+msgid "Your Nvidia driver is outdated."
+msgstr "您的 Nvidia 驱动程序已过时。"
+
+#: lutris/startup.py:85
+#, python-format
+msgid ""
+"You are currently running driver %s which does not fully support all "
+"features for Vulkan and DXVK games.\n"
+"Please upgrade your driver as described in our <a href='https://github.com/"
+"lutris/lutris/wiki/Installing-drivers'>installation guide</a>"
+msgstr ""
+"您当前正在运行驱动程序 %s，它不完全支持 Vulkan 和 DXVK 游戏的所有功能。\n"
+"请按照我们的<a href='https://github.com/lutris/lutris/wiki/Installing-"
+"drivers'>安装指南</a>中提到的方法升级驱动程序"
+
+#: lutris/startup.py:113
+msgid "Missing vulkan libraries"
+msgstr "缺少 vulkan库"
+
+#: lutris/startup.py:114
+#, python-format
+msgid ""
+"Lutris was unable to detect Vulkan support for the %s architecture.\n"
+"This will prevent many games and programs from working.\n"
+"To install it, please use the following guide: <a href='https://github.com/"
+"lutris/lutris/wiki/Installing-drivers'>Installing Graphics Drivers</a>"
+msgstr ""
+"Lutris 无法检测到 Vulkan 对 %s 架构的支持。\n"
+"这会使许多游戏和程序无法运行。\n"
+"要安装它，请参考以下指南：<a href='https://github.com/lutris/lutris/wiki/"
+"Installing-drivers'>安装图形驱动程序</a>"
+
+#: lutris/startup.py:119
+msgid " and "
+msgstr "、"
+
+#: lutris/startup.py:136
+msgid "Please support Lutris!"
+msgstr "请支持 Lutris !"
+
+#: lutris/startup.py:137
+msgid ""
+"Lutris is entirely funded by its community and will remain an independent "
+"gaming platform.\n"
+"For Lutris to survive and grow, the project needs your help.\n"
+"Please consider making a donation if you can. This will greatly help cover "
+"the costs of hosting the project and fund new features like cloud saves or a "
+"full-screen interface for the TV!\n"
+"<a href='https://lutris.net/donate'>SUPPORT US! https://lutris.net/donate</a>"
+msgstr ""
+"Lutris 完全由其社区提供资金，并将保持独立游戏平台的地位。\n"
+"为了让 Lutris 生存和成长，该项目需要您的帮助。\n"
+"如果可以的话，请考虑捐款。 这将极大地帮助我们支付托管项目的费用，\n"
+"并为新功能（如云存储或电视上的全屏界面）提供资金！\n"
+"<a href='https://lutris.net/donate'>支持我们！https://lutris.net/donate</a>"
+
+#: lutris/sysoptions.py:32
+msgid "Keep current"
+msgstr "保持现状"
+
+#: lutris/sysoptions.py:40 lutris/sysoptions.py:49 lutris/sysoptions.py:60
+#: lutris/sysoptions.py:458
+msgid "Off"
+msgstr "关闭"
+
+#: lutris/sysoptions.py:41
+msgid "Primary"
+msgstr "首选屏幕"
+
+#: lutris/sysoptions.py:89
+msgid "Default installation folder"
+msgstr "默认安装目录"
+
+#: lutris/sysoptions.py:92
+msgid "The default folder where you install your games."
+msgstr "安装游戏的默认文件夹。"
+
+#: lutris/sysoptions.py:100
+msgid "Disable Lutris Runtime"
+msgstr "禁用 Lutris 运行时库"
+
+#: lutris/sysoptions.py:103
+msgid ""
+"The Lutris Runtime loads some libraries before running the game. Which can "
+"cause some incompatibilities in some cases. Check this option to disable it."
+msgstr ""
+"Lutris 运行时库是在游戏运行之前会加载的一系列共享库。在某些情况下，这可能会导"
+"致不兼容，选中此选项将其禁用。"
+
+#: lutris/sysoptions.py:110
+msgid "Prefer system libraries"
+msgstr "优先使用系统库"
+
+#: lutris/sysoptions.py:112
+msgid ""
+"When the runtime is enabled, prioritize the system libraries over the "
+"provided ones."
+msgstr ""
+"启用后，将优先使用本机 Linux 系统提供的共享库，而不是 Lutris 或运行环境自带的"
+"库。"
+
+#: lutris/sysoptions.py:121
+msgid "Restore resolution on game exit"
+msgstr "游戏退出时恢复分辨率"
+
+#: lutris/sysoptions.py:124
+msgid ""
+"Some games don't restore your screen resolution when \n"
+"closed or when they crash. This is when this option comes \n"
+"into play to save your bacon."
+msgstr ""
+"某些游戏在关闭或意外崩溃时无法恢复屏幕分辨率，启用这个选项让 Lutris 帮你恢"
+"复。"
+
+#: lutris/sysoptions.py:131
+msgid "Restrict to single core"
+msgstr "仅限单核"
+
+#: lutris/sysoptions.py:134
+msgid "Restrict the game to a single CPU core."
+msgstr "将游戏限制为仅使用单个CPU核心。"
+
+#: lutris/sysoptions.py:144
+msgid "Restore gamma on game exit"
+msgstr "游戏退出时恢复伽玛值（亮度阈值）"
+
+#: lutris/sysoptions.py:147
+msgid ""
+"Some games don't correctly restores gamma on exit, making your display too "
+"bright. Select this option to correct it."
+msgstr ""
+"某些游戏退出时无法正确恢复伽玛值（亮度阈值），从而使显示效果太亮或太暗。 启用"
+"此项让 Lutris 帮你恢复。"
+
+#: lutris/sysoptions.py:152
+msgid "Disable desktop effects"
+msgstr "禁用桌面特效"
+
+#: lutris/sysoptions.py:156
+msgid ""
+"Disable desktop effects while game is running, reducing stuttering and "
+"increasing performance"
+msgstr "在游戏运行时禁用桌面特效，可减少卡顿、提高性能"
+
+#: lutris/sysoptions.py:162
+msgid "Reset PulseAudio"
+msgstr "重置 PulseAudio 声音服务"
+
+#: lutris/sysoptions.py:166
+msgid "Restart PulseAudio before launching the game."
+msgstr "启动游戏前重启 PulseAudio 声音服务。"
+
+#: lutris/sysoptions.py:171
+msgid "Reduce PulseAudio latency"
+msgstr "减少 PulseAudio 延迟"
+
+#: lutris/sysoptions.py:175
+msgid ""
+"Set the environment variable PULSE_LATENCY_MSEC=60 to improve audio quality "
+"on some games"
+msgstr "设置环境变量 PULSE_LATENCY_MSEC=60 以提高某些游戏的音频质量"
+
+#: lutris/sysoptions.py:181
+msgid "Switch to US keyboard layout"
+msgstr "切换到美式键盘布局"
+
+#: lutris/sysoptions.py:184
+msgid "Switch to US keyboard qwerty layout while game is running"
+msgstr "游戏运行时切换到美式键盘 QWERTY 布局"
+
+#: lutris/sysoptions.py:196
+msgid "Optimus launcher (NVIDIA Optimus laptops)"
+msgstr "Optimus 启动器（NVIDIA Optimus 笔记本电脑）"
+
+#: lutris/sysoptions.py:199
+msgid ""
+"If you have installed the primus or bumblebee packages, select what launcher "
+"will run the game with the command, activating your NVIDIA graphic chip for "
+"high 3D performance. primusrun normally has better performance, butoptirun/"
+"virtualgl works better for more games.Primus VK provide vulkan support under "
+"bumblebee."
+msgstr ""
+"如果您已经安装了 primus 或 bumblebee 软件包，请在此处选择运行游戏的启动器，激"
+"活 NVIDIA 独显以实现较高的3D性能。 primusrun 通常性能更佳，但 optirun / "
+"virtualgl 的兼容性更好。Primus VK 通过 bumblebee 软件包提供 vulkan 支持。"
+
+#: lutris/sysoptions.py:216
+msgid "Vulkan ICD loader"
+msgstr "Vulkan ICD 加载器"
+
+#: lutris/sysoptions.py:219
+msgid ""
+"The ICD loader is a library that is placed between a Vulkan application and "
+"any number of Vulkan drivers, in order to support multiple drivers and the "
+"instance-level functionality that works across these drivers."
+msgstr ""
+"ICD 加载器是一个库，它位于 Vulkan 应用程序和任意数量的 Vulkan 驱动程序之间，"
+"以便支持多个驱动程序以及跨这些驱动程序工作的实例级功能。"
+
+#: lutris/sysoptions.py:228
+msgid "Fps limit"
+msgstr "帧率限制"
+
+#: lutris/sysoptions.py:231
+msgid "Limit the game's fps to desired number"
+msgstr "将游戏的FPS限制为所需的数字"
+
+#: lutris/sysoptions.py:236
+msgid "Enable ACO shader compiler"
+msgstr "启用ACO着色器编译器"
+
+#: lutris/sysoptions.py:238
+msgid ""
+"Enable ACO shader compiler, improving performance in a lot of games. "
+"Requires Mesa 19.3 or later."
+msgstr ""
+"启用ACO着色器编译器，以提高许多游戏的性能。 需要 Mesa 19.3 或更高版本。"
+
+#: lutris/sysoptions.py:246
+msgid "Enable Feral gamemode"
+msgstr "启用游戏性能优先模式"
+
+#: lutris/sysoptions.py:247
+msgid "Request a set of optimisations be temporarily applied to the host OS"
+msgstr ""
+"在游戏运行时，请求将一组优化临时应用于主机 Linux 操作系统，以提升游戏性能"
+
+#: lutris/sysoptions.py:259
+msgid "Enable NVIDIA Prime render offload"
+msgstr "启用 NVIDIA Prime 渲染卸载"
+
+#: lutris/sysoptions.py:260
+msgid ""
+"If you have the latest NVIDIA driver and the properly patched xorg-server "
+"(see https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/"
+"primerenderoffload.html), you can launch a game on your NVIDIA GPU by "
+"toggling this switch. This will apply __NV_PRIME_RENDER_OFFLOAD=1 and "
+"__GLX_VENDOR_LIBRARY_NAME=nvidia environment variables."
+msgstr ""
+"如果您拥有最新的 NVIDIA 驱动程序和打过 prime 兼容补丁的 xorg 服务器（请参阅 "
+"https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/"
+"primerenderoffload.html），则可以在NVIDIA 显卡上启用此功能。 这将应用 "
+"__NV_PRIME_RENDER_OFFLOAD=1 和 __GLX_VENDOR_LIBRARY_NAME=nvidia 环境变量。"
+
+#: lutris/sysoptions.py:276
+msgid "Use discrete graphics"
+msgstr "使用独立显卡"
+
+#: lutris/sysoptions.py:279
+msgid ""
+"If you have open source graphic drivers (Mesa), selecting this option will "
+"run the game with the 'DRI_PRIME=1' environment variable, activating your "
+"discrete graphic chip for high 3D performance."
+msgstr ""
+"如果您具有开源图形驱动程序（Mesa），则选择此选项将使用环境变量 'DRI_PRIME=1' "
+"来运行游戏，从而激活您的独显以获得更高的3D性能。"
+
+#: lutris/sysoptions.py:290
+msgid "SDL 1.2 Fullscreen Monitor"
+msgstr "指定 SDL 1.2 程序使用的显示器"
+
+#: lutris/sysoptions.py:297
+msgid ""
+"Hint SDL 1.2 games to use a specific monitor when going fullscreen by "
+"setting the SDL_VIDEO_FULLSCREEN environment variable"
+msgstr ""
+"通过设置 SDL_VIDEO_FULLSCREEN 环境变量，让 SDL 1.2 游戏在进入全屏模式时使用特"
+"定的显示器"
+
+#: lutris/sysoptions.py:307
+msgid "Turn off monitors except"
+msgstr "关闭除指定显示器外的其他显示器"
+
+#: lutris/sysoptions.py:314
+msgid ""
+"Only keep the selected screen active while the game is running. \n"
+"This is useful if you have a dual-screen setup, and are \n"
+"having display issues when running a game in fullscreen."
+msgstr ""
+"游戏运行时仅使选定的屏幕保持活动状态。\n"
+"如果您有多块显示器，并且在全屏模式下运行游戏时出现显示问题，可以试试该选项。"
+
+#: lutris/sysoptions.py:322
+msgid "Switch resolution to"
+msgstr "切换分辨率为"
+
+#: lutris/sysoptions.py:325
+msgid "Switch to this screen resolution while the game is running."
+msgstr "在游戏运行时切换到此屏幕分辨率。"
+
+#: lutris/sysoptions.py:329
+msgid "Run in a terminal"
+msgstr "在终端中运行"
+
+#: lutris/sysoptions.py:333
+msgid "Run the game in a new terminal window."
+msgstr "在新的终端窗口中运行该游戏。"
+
+#: lutris/sysoptions.py:339
+msgid "Terminal application"
+msgstr "终端应用"
+
+#: lutris/sysoptions.py:348
+msgid ""
+"The terminal emulator to be run with the previous option.Choose from the "
+"list of detected terminal apps or enter the terminal's command or path.Note: "
+"Not all terminal emulators are guaranteed to work."
+msgstr ""
+"设置前一个选项要启动的终端模拟器。从检测到的终端应用列表中选择，或者输入终端"
+"的命令或路径。\n"
+"注意：不能保证所有终端模拟器都与 Lutris 兼容。"
+
+#: lutris/sysoptions.py:356
+msgid "Environment variables"
+msgstr "环境变量"
+
+#: lutris/sysoptions.py:357
+msgid "Environment variables loaded at run time"
+msgstr "游戏运行时加载的环境变量"
+
+#: lutris/sysoptions.py:362
+msgid "Command prefix"
+msgstr "命令前缀"
+
+#: lutris/sysoptions.py:364
+msgid ""
+"Command line instructions to add in front of the game's execution command."
+msgstr "添加到游戏启动命令之前的命令行指令。"
+
+#: lutris/sysoptions.py:370
+msgid "Manual script"
+msgstr "手册脚本"
+
+#: lutris/sysoptions.py:372
+msgid "Script to execute from the game's contextual menu"
+msgstr "从游戏的上下文菜单执行的脚本"
+
+#: lutris/sysoptions.py:377
+msgid "Pre-launch script"
+msgstr "预启动脚本"
+
+#: lutris/sysoptions.py:379
+msgid "Script to execute before the game starts"
+msgstr "游戏开始前执行的脚本"
+
+#: lutris/sysoptions.py:384
+msgid "Wait for pre-launch script completion"
+msgstr "等待预启动脚本完成"
+
+#: lutris/sysoptions.py:387
+msgid "Run the game only once the pre-launch script has exited"
+msgstr "等待预启动脚本退出后才运行游戏"
+
+#: lutris/sysoptions.py:392
+msgid "Post-exit script"
+msgstr "退出脚本"
+
+#: lutris/sysoptions.py:394
+msgid "Script to execute when the game exits"
+msgstr "游戏退出时执行的脚本"
+
+#: lutris/sysoptions.py:402
+msgid "Include processes"
+msgstr "包括进程"
+
+#: lutris/sysoptions.py:405
+msgid ""
+"What processes to include in process monitoring. This is to override the "
+"built-in exclude list.\n"
+"Space-separated list, processes including spaces can be wrapped in quotation "
+"marks."
+msgstr ""
+"指定进程监控要包括的进程。 这会覆盖内置的排除列表。\n"
+"用空格分隔的列表，名称包括空格的进程可以用引号引起来。"
+
+#: lutris/sysoptions.py:416
+msgid "Exclude processes"
+msgstr "排除进程"
+
+#: lutris/sysoptions.py:419
+msgid ""
+"What processes to exclude in process monitoring. For example background "
+"processes that stick around after the game has been closed.\n"
+"Space-separated list, processes including spaces can be wrapped in quotation "
+"marks."
+msgstr ""
+"指定进程监控要排除的进程，例如在游戏关闭后仍然存在的后台进程。\n"
+"用空格分隔的列表，名称包括空格的进程可以用引号引起来。"
+
+#: lutris/sysoptions.py:431
+msgid "Killswitch file"
+msgstr "Killswitch 文件"
+
+#: lutris/sysoptions.py:434
+msgid ""
+"Path to a file which will stop the game when deleted \n"
+"(usually /dev/input/js0 to stop the game on joystick unplugging)"
+msgstr ""
+"设置一个文件，如果该文件被删除则停止游戏\n"
+"(通常是 /dev/input/js0，用于在拔下摇杆时停止游戏)"
+
+#: lutris/sysoptions.py:444
+msgid "SDL2 gamepad mapping"
+msgstr "SDL2 游戏手柄映射"
+
+#: lutris/sysoptions.py:447
+msgid ""
+"SDL_GAMECONTROLLERCONFIG mapping string or path to a custom gamecontrollerdb."
+"txt file containing mappings."
+msgstr ""
+"SDL_GAMECONTROLLERCONFIG 映射字符串或包含映射的自定义 gamecontrollerdb.txt 文"
+"件路径。"
+
+#: lutris/sysoptions.py:454
+msgid "Use Xephyr"
+msgstr "使用 Xephyr"
+
+#: lutris/sysoptions.py:459
+msgid "8BPP (256 colors)"
+msgstr "8位 (256色)"
+
+#: lutris/sysoptions.py:460
+msgid "16BPP (65536 colors)"
+msgstr "16位 (6万色)"
+
+#: lutris/sysoptions.py:461
+msgid "24BPP (16M colors)"
+msgstr "24位 (1600万色)"
+
+#: lutris/sysoptions.py:468
+msgid "Run program in Xephyr to support 8BPP and 16BPP color modes"
+msgstr "在 Xephyr 中运行程序以支持8位和16位色彩模式"
+
+#: lutris/sysoptions.py:473
+msgid "Xephyr resolution"
+msgstr "Xephyr 分辨率"
+
+#: lutris/sysoptions.py:475
+msgid "Screen resolution of the Xephyr server"
+msgstr "Xephyr 服务器的屏幕分辨率"
+
+#: lutris/sysoptions.py:480
+msgid "Xephyr Fullscreen"
+msgstr "Xephyr 全屏模式"
+
+#: lutris/sysoptions.py:483
+msgid "Open Xephyr in fullscreen (at the desktop resolution)"
+msgstr "以桌面分辨率全屏打开 Xephyr"
+
+#: lutris/sysoptions.py:491
+msgid "Discord Rich Presence"
+msgstr "向 Discord 好友显示游戏状态"
+
+#: lutris/sysoptions.py:494
+msgid "Enable status to Discord of this game being played"
+msgstr "在我玩该游戏时向 Discord 好友显示游戏状态"
+
+#: lutris/sysoptions.py:499
+msgid "Discord Show Runner"
+msgstr "显示运行环境名称"
+
+#: lutris/sysoptions.py:502
+msgid "Embed the runner name in the Discord status"
+msgstr "将运行环境名称嵌入 Discord 状态"
+
+#: lutris/sysoptions.py:507
+msgid "Discord Custom Game Name"
+msgstr "Discord 自定义游戏名称"
+
+#: lutris/sysoptions.py:509
+msgid "Custom name to override with and pass to Discord"
+msgstr "自定义传递给 Discord 的游戏名称"
+
+#: lutris/sysoptions.py:514
+msgid "Discord Custom Runner Name"
+msgstr "Discord 自定义运行环境名称"
+
+#: lutris/sysoptions.py:516
+msgid "Custom runner name to override with and pass to Discord"
+msgstr "自定义传递给 Discord 的运行环境名称"
+
+#: lutris/sysoptions.py:521
+msgid "Discord Client ID"
+msgstr "Discord 客户端 ID"
+
+#: lutris/sysoptions.py:523
+msgid "Custom Discord Client ID for passing status"
+msgstr "自定义 Discord 客户端 ID，用于传递状态"
+
+#: lutris/util/wine/wine.py:373
+msgid ""
+"Your kernel is not patched for fsync. Please get a patched kernel to use "
+"fsync."
+msgstr "你的内核没有打过 fsync 补丁。 请获取打过补丁的内核以使用 fsync。"
+
+#~ msgid "Login"
+#~ msgstr "登录"
+
+#~ msgid "Register"
+#~ msgstr "注册"
+
+#~ msgid "Synchronize Library"
+#~ msgstr "同步游戏库"
+
+#~ msgid "_Add Game…"
+#~ msgstr "添加游戏 (_A)"
+
+#~ msgid "_Import Games…"
+#~ msgstr "导入游戏 (_I)"
+
+#~ msgid "Zoom:"
+#~ msgstr "缩放："
+
+#~ msgid "Sort Ascending"
+#~ msgstr "升序"
+
+#~ msgid "_Installed Games Only"
+#~ msgstr "仅显示已安装游戏 (_I)"
+
+#~ msgid "Show _Hidden Games"
+#~ msgstr "显示已隐藏的游戏 (_H)"
+
+#~ msgid "Use _Dark Theme"
+#~ msgstr "使用暗黑主题 (_D)"
+
+#~ msgid "Show _Left Side Panel"
+#~ msgstr "显示左侧边栏 (_L)"
+
+#~ msgid "Show _Right Side Panel"
+#~ msgstr "显示右侧边栏 (_R)"
+
+#~ msgid "Lutris forums"
+#~ msgstr "Lutris 论坛"
+
+#~ msgid "Manage runners"
+#~ msgstr "安装/卸载运行环境"
+
+#~ msgid "Show _Tray Icon"
+#~ msgstr "显示托盘图标 (_T)"
+
+#~ msgid "Manage Account"
+#~ msgstr "管理帐户"
+
+#~ msgid "Add Game"
+#~ msgstr "添加游戏"
+
+#~ msgid "Search Games"
+#~ msgstr "搜索游戏"
+
+#~ msgid "Toggle View"
+#~ msgstr "切换显示模式"
+
+#~ msgid "View Options"
+#~ msgstr "选项设置"
+
+#~ msgid "No Games Found"
+#~ msgstr "未找到游戏"
