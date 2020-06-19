@@ -163,7 +163,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type":
             "choice_with_entry",
             "label":
-            "Menu mode key",
+            _("Menu mode key"),
             "choices": [
                 (_("Scroll Lock"), "SCRLOCK"),
                 (_("Num Lock"), "NUMLOCK"),
