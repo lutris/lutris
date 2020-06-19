@@ -4,6 +4,7 @@ import os
 import subprocess
 from collections import OrderedDict
 from functools import lru_cache
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris import runtime, settings
@@ -368,10 +369,10 @@ def esync_display_limit_warning():
 
 
 def fsync_display_support_warning():
-    ErrorDialog(
+    ErrorDialog(_(
         "Your kernel is not patched for fsync."
         " Please get a patched kernel to use fsync."
-    )
+    ))
 
 
 def esync_display_version_warning(on_launch=False):

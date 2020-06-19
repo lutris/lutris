@@ -84,3 +84,4 @@ lutris/services/xdg.py
 lutris/settings.py
 lutris/startup.py
 lutris/sysoptions.py
+lutris/util/wine/wine.py
