@@ -62,9 +62,9 @@ class pcsx2(Runner):
         if self.runner_config.get("nogui"):
             arguments.append("--nogui")
         if self.runner_config.get("config_file"):
-            arguments.append("--cfg=%s", self.runner_config["config_file"])
+            arguments.append("--cfg={}".format(self.runner_config["config_file"]))
         if self.runner_config.get("config_path"):
-            arguments.append("--cfgpath=%s", self.runner_config["config_path"])
+            arguments.append("--cfgpath={}".format(self.runner_config["config_path"]))
 
         iso = self.game_config.get("main_file") or ""
         if not system.path_exists(iso):
