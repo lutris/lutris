@@ -72,31 +72,30 @@ def is_7zip_supported(path, extractor):
         return ext in supported_extractors
 
 
-def extract_archive(path, to_directory=".", merge_single=True, extractor=None):  # noqa: C901
-    # pylint: disable=too-many-branches,too-many-statements
-    # TODO: split into multiple methods to reduce complexity (30)
-    path = os.path.abspath(path)
+def guess_extractor(path):
+    """Guess what extractor should be used from a file name"""
+    if path.endswith(".tar.gz") or path.endswith(".tgz"):
+        extractor = "tgz"
+    elif path.endswith(".tar.xz") or path.endswith(".txz"):
+        extractor = "txz"
+    elif path.endswith(".tar"):
+        extractor = "tar"
+    elif path.endswith(".tar.bz2") or path.endswith(".tbz"):
+        extractor = "bz2"
+    elif path.endswith(".gz"):
+        extractor = "gzip"
+    elif path.endswith(".exe"):
+        extractor = "exe"
+    elif is_7zip_supported(path, None):
+        extractor = None
+    else:
+        raise RuntimeError("Could not extract `%s` - no appropriate extractor found" % path)
+    return extractor
+
+
+def get_archive_opener(extractor, path):
+    """Return the archive opener and optional mode for an extractor"""
     mode = None
-    logger.debug("Extracting %s to %s", path, to_directory)
-
-    if extractor is None:
-        if path.endswith(".tar.gz") or path.endswith(".tgz"):
-            extractor = "tgz"
-        elif path.endswith(".tar.xz") or path.endswith(".txz"):
-            extractor = "txz"
-        elif path.endswith(".tar"):
-            extractor = "tar"
-        elif path.endswith(".tar.bz2") or path.endswith(".tbz"):
-            extractor = "bz2"
-        elif path.endswith(".gz"):
-            extractor = "gzip"
-        elif path.endswith(".exe"):
-            extractor = "exe"
-        elif is_7zip_supported(path, None):
-            extractor = None
-        else:
-            raise RuntimeError("Could not extract `%s` - no appropriate extractor found" % path)
-
     if extractor == "tgz":
         opener, mode = tarfile.open, "r:gz"
     elif extractor == "txz":
@@ -106,8 +105,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None): 
     elif extractor == "bz2":
         opener, mode = tarfile.open, "r:bz2"
     elif extractor == "gzip":
-        decompress_gz(path, to_directory)
-        return
+        opener = "gz"
     elif extractor == "gog":
         opener = "innoextract"
     elif extractor == "exe":
@@ -116,6 +114,17 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None): 
         opener = "7zip"
     else:
         raise RuntimeError("Could not extract `%s` - unknown format specified" % path)
+    return opener, mode
+
+
+def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
+    path = os.path.abspath(path)
+    logger.debug("Extracting %s to %s", path, to_directory)
+
+    if extractor is None:
+        extractor = guess_extractor(path)
+
+    opener, mode = get_archive_opener(extractor, path)
 
     temp_name = ".extract-" + random_id()
     temp_path = temp_dir = os.path.join(to_directory, temp_name)
@@ -168,6 +177,8 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None): 
 
 
 def _do_extract(archive, dest, opener, mode=None, extractor=None):
+    if opener == "gz":
+        decompress_gz(archive, dest)
     if opener == "7zip":
         extract_7zip(archive, dest, archive_type=extractor)
     elif opener == "exe":
