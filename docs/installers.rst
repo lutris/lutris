@@ -2,60 +2,104 @@
 Writing installers
 ==================
 
-See an example installer at the end of this document.
 
-Fetching required files
-=======================
+Table of contents
+=================
 
-The ``files`` section of the installer references every file needed for
-installing the game. This section's keys are unique identifier used later in
-the ``installer`` section. The value can either be a string containing a URI
-pointing at the required file or a dictionary containing the ``filename`` and
-``url`` keys. The ``url`` key is equivalent to passing only a string to the
-installer and the ``filename`` key will be used to give the local copy another
-name. If you need to set referer use ``referer`` key.
-
-If the game contains copyrighted files that cannot be redistributed, the value
-should begin with ``N/A``. When the installer encounter this value, it will
-prompt the user for the location of the file. To indicate to the user what file
-to select, append a message to ``N/A`` like this:
-``N/A:Please select the installer for this game``
-
-Examples:
-
-::
-
-    files:
-    - file1: https://example.com/gamesetup.exe
-    - file2: "N/A:Select the game's setup file"
-    - file3:
-        url: https://example.com/url-that-doesnt-resolve-to-a-proper-filename
-        filename: actual_local_filename.zip
-        referer: www.mywebsite.com
+* `Basics`_
+* `Variable substitution`_
+* `Game configuration directives`_
+* `Runner configuration directives`_
+* `System configuration directives`
+* `Fetching required files`_
+* `Installer meta data`_
+* `Writing the installation script`_
+* `Trying the installer locally`_
+* `Example scripts`_
 
 
-If the game makes use of (Windows) Steam data, the value should be
-``$WINESTEAM:appid:path/to/data``. This will check that the data is available
-or install it otherwise.
+
+Basics
+======
+
+Games in Lutris are written in the YAML format in a declarative way.
+The same document provides information on how to aquire game files, setup the
+game and store a base configuration.
+
+Make sure you have some level of understanding of the YAML format before
+getting into Lutris scripting. The Ansible documentation provides a short
+guide on the syntax: https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
+
+At the very least, a lutris installer should have a ``game`` section. If the
+installer needs to download or ask the user for some files, those can be added
+in the `files` section.
+
+Installer instructions are stored in the ``installer`` section. This is where
+the installer files are processed and will results in a runnable game when the
+installer has finished.
+
+The configuration for a game is constructed from its installer. The `files` and
+`installer` sections are removed from the script, some variables such as
+$GAMEDIR are substituted and the results is saved in:
+~/.config/lutris/games/<game>-<timestamp>.yml.
+
+Published installers can be accessed from a command line by using the ``lutris:``
+url prefix followed by the installer slug.
+For example, calling ``lutris lutris:quake-darkplaces`` will launch the
+Darkplaces installer for Quake.
+
+**Important note:** Installer scripts downloaded to the client are embedded in
+another document. What is editable on the Lutris section is the ``script``
+section of a bigger document. In addition to the script it self, lutris needs
+to know the following information:
+
+* ``name``: Name of the game, should be surrounded in quotes if containing special characters.
+* ``game_slug``: Game identifier on the lutris website
+* ``version``: Name of the installer
+* ``slug``: Installer identifier
+* ``runner``: Runner used for the game.
+
+If you intend to write installers locally and not use the website, you should
+have those keys provided at the root level and everything else indented under a
+``script`` section.
+Local installers can be launched from the CLI with ``lutris -i /path/to/file.yaml``.
+
+Variable substitution
+=====================
+
+You can use variables in your script to customize some aspect of it. Those
+variables get substituted for their actual value during the install process.
+
+Available variables are:
+
+* ``$GAMEDIR``: Absolute path where the game is installed.
+* ``$CACHE``: Temporary cache used to manipulate game files and deleted at the
+  end of the installation.
+* ``$RESOLUTION``: Full resolution of the user's main display (eg. ``1920x1080``)
+* ``$RESOLUTION_WIDTH``: Resolution width of the user's main display (eg. ``1920``)
+* ``$RESOLUTION_HEIGHT``: Resolution height of the user's main display (eg. ``1080``)
+
+You can also reference files from the ``files`` section by their identifier,
+they will resolve to the absolute path of the downloaded or user provided file.
+Referencing game files usually doesn't require preceding the variable name with
+a dollar sign.
+
 
 
 Installer meta data
 ===================
 
+Installer meta-data is any directive that is at the root level of the
+installer used for customizing the installer.
+
 Referencing the main file
----------------------------
+-------------------------
 
-For Linux and Wine games, specify the executable file with the ``exe``
-directive. The given path is relative to the game directory.
-Example: ``exe: game.sh``
-
-For emulator games, in case you don't ask the user to select the rom
-directly but make the installer extract it from an archive or something, you
-can reference the rom with the ``main_file`` parameter.
-Example: ``main_file: game.rom``
-
-For web games, specify the game's URL (or filename) with ``main_file``.
-Example: ``main_file: http://www...``
+Referencing the main file of a game is possible to do at the root level of the
+installer but this information is later merged in the ``game`` section. It is
+recommended to put this information directly in the ``game`` section. If you
+see an existing installer with keys like ``exe`` or ``main_file`` sitting at
+the root level, please move them to the ``game`` section.
 
 Customizing the game's name
 ---------------------------
@@ -63,79 +107,18 @@ Customizing the game's name
 Use the ``custom-name`` directive to override the name of the game. Use this
 only if the installer provides a significantly different game from the base
 one.
-(Note: In a future update, custom names will be added as game aliases so they
-can be searchable)
 
 Example: ``custom-name: Quake Champions: Doom Edition``
-
-Presetting game parameters
---------------------------
-
-The ``game`` directive lets you preset game parameters and options. Available
-parameters depend on the runner:
-
-*   linux: ``args`` (optional command arguments), ``working_dir``
-    (optional working directory, defaults to the exe's dir).
-
-*   wine:  ``args``, ``arch`` (optional WINEARCH), ``prefix`` (optional Wine prefix), ``working_dir`` (optional
-    working directory, defaults to the exe's dir).
-
-*   winesteam: ``args``, ``prefix`` (optional Wine prefix).
-
-Example (Windows game):
-
-::
-
-    game:
-      exe: drive_c/Game/game.exe
-      prefix: $GAMEDIR
-      args: -arg
-
-Runner configuration
---------------------
-
-The runner can be preconfigured from the installer.
-The name of the directive is the slug name of the runner,
-for example ``wine``. Available parameters depend on the runner.
-
-To get a complete list of all the currently valid runners and their available version you can get a list of them from https://lutris.net/api/runners. Use the runner's slug as the runner identifier. 
-
-The best way to set this is to add the game to Lutris, tweak the
-runner config and then copy it from ``.config/lutris/games/<game name and id>.yml``.
-
-Example for Wine (set wine version for this installer):
-
-::
-
-    wine:
-      version: overwatch-2.15-x86_64
-
-System configuration
---------------------
-
-The ``system`` directive lets you preset the system config for the game.
-
-Example (setting some environment variables):
-
-::
-
-    system:
-      env:
-        __GL_SHADER_DISK_CACHE: '1'
-        __GL_THREADED_OPTIMIZATIONS: '1'
-        mesa_glthread: 'true'
 
 Requiring additional binaries
 -----------------------------
 
 If the game or the installer needs some system binaries to run, you can specify
-them in the `require-binaries` directive. The value is a comma-separated list
+them in the ``require-binaries`` directive. The value is a comma-separated list
 of required binaries (acting as AND), if one of several binaries are able to
 run the program, you can add them as a ``|`` separated list (acting as OR).
 
-Example
-
-::
+Example::
 
     # This requires cmake to be installed and either ggc or clang
     require-binaries: cmake, gcc | clang
@@ -158,15 +141,234 @@ Customizing the end of install text
 You can display a custom message when the installation is completed. To do so,
 use the ``install_complete_text`` key.
 
-Accessing the current display mode
-----------------------------------
 
-It is often useful to have access to the current screen resolution to set
-launch parameters or write config files. You can access those in scripts with
-the `$RESOLUTION`, `$RESOLUTION_WIDTH` and `$RESOLUTION_HEIGHT` variables.
 
-Note that it is not necessary to specify the resolution for Wine virtual
-desktop as Lutris will automatically set it to the current one.
+
+Game configuration directives
+=============================
+
+A game configuration file can contain up to 3 sections: `game`, `system` and a
+section named after the runner used for the game.
+
+The `game` section can also contain references to other stores such as Steam or
+GOG. Some IDs are used to launch the game (Steam, ScummVM) while in other
+cases, the ID is only used to find games files on a 3rd party platform and
+download the installer (Humble Bundle, GOG).
+
+Lutris supports the following game identifiers:
+
+`appid`: For Steam games. Numerical ID found in the URL of the store page.
+Example: The appid for https://store.steampowered.com/app/238960/Path_of_Exile/ is `238960`.
+This ID is used for installing and running the game.
+
+`game_id`: Identifier used for ScummVM / ResidualVM games. Can be looked up
+on the game compatibility list: https://www.scummvm.org/compatibility/
+and https://www.residualvm.org/compatibility/
+
+`gogid`: GOG identifier. Can be looked up on https://www.gogdb.org/products Be
+sure to reference the base game and not one of its package or DLC.
+Example: The `gogid` for Darksiders III is 1246703238
+
+`humbleid`: Humble Bundle ID. There currently isn't a way to lookup game IDs
+other than using the order details from the HB API. Lutris will soon provide
+easier ways to find this ID.
+
+`main_file`: For MAME games, the `main_file` can refer to a MAME ID instead of
+a file path.
+
+Common game section entries
+---------------------------
+
+``exe``: Main game executable. Used for Linux and Wine games.
+Example: ``exe: exult``
+
+``main_file``: Used in most emulator runners to reference the ROM or disk file.
+Example: ``main_file: game.rom``.
+Can also be used to pass the URL for web based games: ``main_file: http://www...``
+
+``args``: Pass additional arguments to the command.
+Can be used with linux, wine, winesteam, dosbox, scummvm, pico8 and zdoom runners.
+Example: ``args: -c $GAMEDIR/exult.cfg``
+
+``working_dir``: Set the working directory for the game executable. 
+This is useful if the game needs to run from a different directory than the one
+the executable resides in.
+This directive can be used for Linux, Wine and Dosbox installers.
+Example: ``$GAMEDIR/path/to/game``
+
+Wine and other wine based runners like winesteam
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``arch``: Sets the architecture of a Wine prefix. By default it is set to ``win64``,
+the value can be set to ``win32`` to setup the game in a 32-bit prefix.
+
+``prefix``: Path to the Wine prefix. For Wine games, it should be set to
+``$GAMEDIR``. For WineSteam games, set it to ``$GAMEDIR/prefix`` to isolate the
+prefix files from the the game files. This is only needed if the Steam game
+needs customization. If not provided, Lutris will use Winesteam's default prefix
+where Steam for Windows is installed.
+
+
+DRM free Steam and WineSteam
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Lutris has the ability to run Steam games without launching the Steam client.
+This is only possible with certain games lacking the Steam DRM.
+
+``run_without_steam``: Activate the DRM free mode and no not launch Steam when
+the game runs.
+
+``steamless_binary``: Used in conjonction with ``run_without_steam``. This
+allows to provide the path of the game executable if it's able to run without
+the Steam client. The game must not have the Steam DRM to use this feature.
+
+Example: ``steamless_binary: $GAMEDIR/System/GMDX.exe``
+
+
+ScummVM
+^^^^^^^
+
+``path``: Location of the game files. This should be set to ``$GAMEDIR`` in
+installer scripts.
+
+
+
+Runner configuration directives
+===============================
+
+Runners can be customized in a section named after the runner identifier
+(``slug`` field in the API).  A complete list of all runners is available at
+https://lutris.net/api/runners.  Use the runner's slug as the runner
+identifier. Please keep the amount of runner customization to a minimum, only
+adding what is needed to make the game run correctly. A lot of runner options
+do not have their place in Lutris installers and are reserved for the user's
+preferences.
+
+The following sections will describe runner directives commonly used in
+installers.
+
+wine
+----
+
+``version``: Set the Wine version to a specific build. Only set this if the game
+has known regressions with the current default build. Abusing this feature
+slows down the development of the Wine project.
+Example: ``version: staging-2.21-x86_64``
+
+``Desktop``: Run the game in a Wine virtual desktop. This should be used if the
+game has issues with Linux window managers such as crashes on Alt-Tab.
+Example: ``Desktop: true``
+
+``WineDesktop``: Set the resolution of the Wine virtual desktop. If not provided,
+the virtual desktop will take up the whole screen, which is likely the desired
+behavior. It is unlikely that you would add this directive in an installer but
+can be useful is a game is picky about the resolution it's running in.
+Example: ``WineDesktop: 1024x768``
+
+``dxvk``: Use this to disable DXVK if needed. (``dxvk: false``)
+
+``esync``: Use this to enable esync. (``esync: true``)
+
+``overrides``: Overrides for Wine DLLs. List your DLL overrides in a
+mapping with the following values:
+
+``n,b`` = Try native and fallback to builtin if native doesn't work
+
+``b,n`` = Try builtin and fallback to native if builtin doesn't work
+
+``b``   = Use builtin
+
+``n``   = Use native
+
+``disabled`` = Disable library
+
+Example::
+
+      overrides:
+        ddraw.dll: n
+        d3d9: disabled
+        winegstreamer: builtin
+
+System configuration directives
+===============================
+
+Those directives are stored in the ``system`` section and allow for
+customization of system features. As with runner configuration options, system
+directives should be used carefully, only adding them when absolutely necessary
+to run a game.
+
+``restore_gamma``: If the game doesn't restore the correct gamma on exit, you
+can use this option to call xgamma and reset the default values. This option
+won't work on Wayland.
+Example: ``restore_gamma: true``
+
+``terminal``: Run the game in a terminal if the game is a text based one. Do
+not use this option to get the console output of the game, this will result in
+a broken installer. **Only use this option for text based games.**
+
+``env``: Sets environment variables before launching a game and during install.
+Do not **ever** use this directive to enable a framerate counter. Do not use
+this directive to override Wine DLLS. Variable substitution is available in
+values.
+Example::
+
+     env:
+       __GL_SHADER_DISK_CACHE: 1
+       __GL_THREADED_OPTIMIZATIONS: '1'
+       __GL_SHADER_DISK_CACHE_PATH: $GAMEDIR
+       mesa_glthread: 'true'
+
+``single_cpu``: Run the game on a single CPU core. Useful for some old games
+that handle multicore CPUs poorly. (``single_cpu: true``)
+
+``disable_runtime``: **DO NOT DISABLE THE LUTRIS RUNTIME IN LUTRIS INSTALLERS**
+
+``pulse_latency``: Set PulseAudio latency to 60 msecs. Can reduce audio
+stuttering. (``pulse_latency: true``)
+
+``use_us_layout``: Change the keyboard layout to a standard US one while the
+game is running.  Useful for games that handle other layouts poorly and don't
+have key remapping options. (``use_us_layou: true``)
+
+``xephyr``: Run the game in Xephyr. This is useful for games only handling 256
+color modes. To enable Xephyr, pass the desired bit per plane value. (``xephyr: 8bpp``)
+
+``xephyr_resolution``: Used with the ``xephyr`` option, this sets the size of
+the Xephyr window. (``xephyr_resolution: 1024x768``)
+
+
+Fetching required files
+=======================
+
+The ``files`` section of the installer references every file needed for
+installing the game. This section's keys are unique identifier used later in
+the ``installer`` section. The value can either be a string containing a URI
+pointing at the required file or a dictionary containing the ``filename`` and
+``url`` keys. The ``url`` key is equivalent to passing only a string to the
+installer and the ``filename`` key will be used to give the local copy another
+name. If you need to set referer use ``referer`` key.
+
+If the game contains copyrighted files that cannot be redistributed, the value
+should begin with ``N/A``. When the installer encounter this value, it will
+prompt the user for the location of the file. To indicate to the user what file
+to select, append a message to ``N/A`` like this:
+``N/A:Please select the installer for this game``
+
+Examples::
+
+    files:
+    - file1: https://example.com/gamesetup.exe
+    - file2: "N/A:Select the game's setup file"
+    - file3:
+        url: https://example.com/url-that-doesnt-resolve-to-a-proper-filename
+        filename: actual_local_filename.zip
+        referer: www.mywebsite.com
+
+
+If the game makes use of (Windows) Steam data, the value should be
+``$WINESTEAM:appid:path/to/data``. This will check that the data is available
+or install it otherwise.
+
 
 Writing the installation script
 ===============================
@@ -192,9 +394,7 @@ A link to CDEmu's homepage and PPA will also be displayed if the program isn't
 detected on the machine, otherwise it will be replaced with a button to open
 gCDEmu. You can override this default text with the ``message`` parameter.
 
-Example:
-
-::
+Example::
 
     - insert-disc:
         requires: diablosetup.exe
@@ -219,9 +419,7 @@ path. It can then be used in following commands to access the moved file.
 
 The ``move`` command cannot overwrite files.
 
-Example:
-
-::
+Example::
 
     - move:
         src: game_file_id
@@ -241,9 +439,7 @@ actions accordingly.
 If the source is a ``file ID``, it will be updated with the new destination
 path. It can then be used in following commands to access the copied file.
 
-Example:
-
-::
+Example::
 
     - merge:
         src: game_file_id
@@ -261,9 +457,7 @@ You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
 be. Accepted values for ``format`` are: zip, tgz, gzip, bz2, and gog (innoextract).
 
-Example:
-
-::
+Example::
 
     - extract:
         file: game_archive
@@ -289,9 +483,7 @@ The command is executed within the Lutris Runtime (resolving most shared
 library dependencies). The file is made executable if necessary, no need to run
 chmodx before. You can also use ``env`` (environment variables), ``exclude_processes`` (space-separated list of processes to exclude from being watched), ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in exclude list) and ``disable_runtime`` (run a process without the Lutris Runtime, useful for running system binaries).
 
-Example:
-
-::
+Example::
 
     - execute:
         args: --argh
@@ -303,9 +495,7 @@ Example:
 You can use the ``command`` parameter instead of ``file`` and ``args``. This
 lets you run bash/shell commands easier. ``bash`` is used and is added to ``include_processes`` internally.
 
-Example:
-
-::
+Example::
 
     - execute:
         command: 'echo Hello World! | cat'
@@ -427,7 +617,6 @@ Currently, the following tasks are implemented:
 
         - task:
             name: create_prefix
-            prefix: $GAMEDIR
             arch: win64
 
 *   wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
@@ -438,13 +627,10 @@ Currently, the following tasks are implemented:
     ``exclude_processes`` (optional space-separated list of processes to exclude from
     being watched), ``env`` (optional environment variables), ``overrides`` (optional dll overrides).
 
-    Example:
-
-    ::
+    Example::
 
         - task:
             name: wineexec
-            prefix: $GAMEDIR
             executable: drive_c/Program Files/Game/Game.exe
             args: --windowed
 
@@ -455,13 +641,10 @@ Currently, the following tasks are implemented:
     with some components such as XNA. In such cases, you can provide the
     option ``silent: false``
 
-    Example:
-
-    ::
+    Example::
 
         - task:
             name: winetricks
-            prefix: $GAMEDIR
             app: nt40
 
     For a full list of available ``winetricks`` see here: https://github.com/Winetricks/winetricks/tree/master/files/verbs
@@ -475,7 +658,6 @@ Currently, the following tasks are implemented:
 
         - task:
             name: eject_disc
-            prefix: $GAMEDIR
 
 *   wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
     are ``path`` (the registry path, use backslashes), ``key``, ``value``,
@@ -489,12 +671,10 @@ Currently, the following tasks are implemented:
 
         - task:
             name: set_regedit
-            prefix: $GAMEDIR
             path: HKEY_CURRENT_USER\Software\Valve\Steam
             key: SuppressAutoRun
             value: '00000000'
             type: REG_DWORD
-            arch: win64
 
 *   wine / winesteam: ``delete_registry_key`` Deletes registry key in the Windows registry. Parameters
     are ``key``, ``prefix``
@@ -506,12 +686,10 @@ Currently, the following tasks are implemented:
 
         - task:
             name: set_regedit
-            prefix: $GAMEDIR
             path: HKEY_CURRENT_USER\Software\Valve\Steam
             key: SuppressAutoRun
             value: '00000000'
             type: REG_DWORD
-            arch: win64
 
 * wine / winesteam: ``set_regedit_file`` Apply a regedit file to the
   registry, Parameters are ``filename`` (regfile name),
@@ -522,9 +700,7 @@ Currently, the following tasks are implemented:
 
     - task:
         name: set_regedit_file
-        prefix: $GAMEDIR
         filename: myregfile
-        arch: win64
 
 * wine / winesteam: ``winekill`` Stops processes running in Wine prefix. Parameters
   are ``prefix`` (optional WINEPREFIX),
@@ -536,8 +712,6 @@ Currently, the following tasks are implemented:
 
     - task:
         name: winekill
-        prefix: $GAMEDIR
-        arch: win64
 
 *   dosbox: ``dosexec`` Runs dosbox. Parameters are ``executable`` (optional
     ``file ID`` or path to executable), ``config_file``
@@ -589,22 +763,13 @@ selected is French, the "$INPUT_LANG" alias would be available in
 following directives and would correspond to "fr". "$INPUT" would work as well,
 up until the next input directive.
 
+Example scripts
+===============
 
-Trying the installer locally
-============================
+Those example scripts are intended to be used as standalone files. Only the
+``script`` section should be added to the script submission form.
 
-If needed (i.e. you didn't download the installer first from the website), add
-the ``name`` (if it contains the ``:`` character, surround the name with quotes), ``game_slug``, ``slug``, ``version`` and ``runner`` directives.
-The value for ``runner`` must be the slug name for the runner.
-(E.g. winesteam for Steam Windows.)
-Under ``script``, add ``files``, ``installer``, ``game`` and other installer
-directives. See below for an example.
-Save your script in a .yaml file and use the following command in a terminal:
-``lutris -i /path/to/file.yaml``
-
-Example Linux game:
-
-::
+Example Linux game::
 
     name: My Game
     game_slug: my-game
@@ -628,9 +793,7 @@ Example Linux game:
         env:
           SOMEENV: true
 
-Example wine game:
-
-::
+Example wine game::
 
     name: My Game
     game_slug: my-game
@@ -643,7 +806,7 @@ Example wine game:
         exe: $GAMEDIR/mygame
         args: --some-args
         prefix: $GAMEDIR/prefix
-        arch: win64
+        arch: win32
         working_dir: $GAMEDIR/prefix
       files:
       - installer: "N/A:Select the game's setup file"
@@ -652,10 +815,8 @@ Example wine game:
           executable: installer
           name: wineexec
           prefix: $GAMEDIR/prefix
-          arch: win64
       wine:
         Desktop: true
-        WineDesktop: 1024x768
         overrides:
           ddraw.dll: n
       system:
@@ -680,11 +841,10 @@ there is undocumented gog option ``/NOGUI``, you need to use it when you use
 
     script:
       game:
-        exe: $GAMEDIR/prefix/game/Game.exe
+        exe: $GAMEDIR/drive_c/game/bin/Game.exe
         args: --some-arg
-        prefix: $GAMEDIR/prefix
-        arch: win64
-        working_dir: $GAMEDIR/prefix
+        prefix: $GAMEDIR
+        working_dir: $GAMEDIR/drive_c/game
       files:
       - installer: "N/A:Select the game's setup file"
       installer:
@@ -692,23 +852,17 @@ there is undocumented gog option ``/NOGUI``, you need to use it when you use
           args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
           executable: installer
           name: wineexec
-          prefix: $GAMEDIR/prefix
-          arch: win64
       wine:
         Desktop: true
-        WineDesktop: 1024x768
         overrides:
           ddraw.dll: n
       system:
         terminal: true
         env:
-          WINEDLLOVERRIDES: d3d11=
           SOMEENV: true
 
 
-Example gog wine game, alternative (requires innoextract):
-
-::
+Example gog wine game, alternative (requires innoextract)::
 
     name: My Game
     game_slug: my-game
@@ -718,11 +872,9 @@ Example gog wine game, alternative (requires innoextract):
 
     script:
       game:
-        exe: $GAMEDIR/prefix/drive_c/Games/YourGame/game.exe
+        exe: $GAMEDIR/drive_c/Games/YourGame/game.exe
         args: --some-arg
         prefix: $GAMEDIR/prefix
-        arch: win64
-        working_dir: $GAMEDIR/prefix
       files:
       - installer: "N/A:Select the game's setup file"
       installer:
@@ -736,19 +888,14 @@ Example gog wine game, alternative (requires innoextract):
           src: $CACHE/app
       wine:
         Desktop: true
-        WineDesktop: 1024x768
         overrides:
           ddraw.dll: n
       system:
-        terminal: true
         env:
-          WINEDLLOVERRIDES: d3d11=
           SOMEENV: true
 
 
-Example gog linux game (mojosetup options found here https://www.reddit.com/r/linux_gaming/comments/42l258/fully_automated_gog_games_install_howto/):
-
-::
+Example gog linux game (mojosetup options found here https://www.reddit.com/r/linux_gaming/comments/42l258/fully_automated_gog_games_install_howto/)::
 
     name: My Game
     game_slug: my-game
@@ -772,9 +919,7 @@ Example gog linux game (mojosetup options found here https://www.reddit.com/r/li
       system:
         terminal: true
 
-Example gog linux game, alternative:
-
-::
+Example gog linux game, alternative::
 
     name: My Game
     game_slug: my-game
@@ -800,9 +945,7 @@ Example gog linux game, alternative:
         terminal: true
 
 
-Example winesteam game:
-
-::
+Example winesteam game::
 
     name: My Game
     game_slug: my-game
@@ -827,15 +970,8 @@ Example winesteam game:
         WineDesktop: 1024x768
         overrides:
           ddraw.dll: n
-      system:
-        terminal: true
-        env:
-          WINEDLLOVERRIDES: d3d11=
-          SOMEENV: true
 
-Example steam Linux game:
-
-::
+Example steam Linux game::
 
     name: My Game
     game_slug: my-game
@@ -847,183 +983,3 @@ Example steam Linux game:
       game:
         appid: 227300
         args: --some-args
-      steam:
-        quit_steam_on_exit: true
-      system:
-        terminal: true
-        env:
-          SOMEENV: true
-
-When submitting the installer script to lutris.net, only copy the script part. Remove the two space indentation:
-
-::
-
-    game:
-      exe: $GAMEDIR/mygame
-      args: --some-arg
-
-    files:
-    - myfile: https://example.com
-
-    installer:
-    - chmodx: $GAMEDIR/mygame
-
-
-
-Calling the online installer
-============================
-
-The installer can be called with the ``lutris:<game-slug>`` url scheme.
-
-Library override info
-======================
-
-Overrides option accepts this values:
-
-``n,b`` = Try native and fallback to builtin if native doesn't work
-
-``b,n`` = Try builtin and fallback to native if builtin doesn't work
-
-``b``   = Use buildin
-
-``n``   = Use native
-
-``disabled`` = Disable library
-
-Overrides format for ``create_prefix``, ``wineexec`` commands and for ``wine`` options section:
-
-::
-
-      overrides:
-        ddraw.dll: n
-        d3d9: disabled
-        winegstreamer: builtin
-
-
-Override or set env
-===================
-
-Example:
-
-::
-
-     env:
-      WINEDLLOVERRIDES: d3d11=
-      SOMEENV: true
-
-
-Sysoptions
-==========
-
-**game section: (Section is incomplete)**
-
-``appid`` (example: 999999)
-
-* TODO
-
-``arch`` (example: ``win32``, ``win64`` [select only one])
-
-* Used for wine based runners. Defines if lutris uses the 32-bit version of wine or the 64-bit version of wine.
-
-``args`` (example: -c $GAMEDIR/exult.cfg)
-
-* Applied arguments to a native executable game
-
-``exe`` (example: exult)
-
-* Executes native game
-
-``game_id`` (example: ``kg1``)
-
-* ScummVM runner only. Defines ScummVM Game Short Name. See https://www.scummvm.org/compatibility/ for valid short names.
-
-``gogid`` (example: 999999999)
-
-* Defines GOG's API Game Id (not package Id). Requires Lutris version >= 5.0 and a GOG account with purchased game.
-* To find a game's gogid download the windows installer (inno only) and run the ``innoextract --gog-game-id INSTALLER_FILE`` command.
-
-``path`` (example: $GAMEDIR)
-
-* Path to find game directory. Needed for ScummVM. Usually just $GAMEDIR
-
-``prefix`` (example: $GAMEDIR/prefix)
-
-* wine-based running only. Defines the wine prefix directory location
-
-``working_dir`` (example: $GAMEDIR)
-
-* TODO
-
-**wine section:**
-
-``version`` (example: ``staging-2.21-x86_64``)
-
-``Desktop`` (example: ``true``)
-
-``WineDesktop`` (example: ``1024x768``)
-
-``MouseWarpOverride`` (example: ``enable``, ``disable`` or ``force``)
-
-``Audio`` (example: ``auto``, ``alsa``, ``oss`` or ``jack``)
-
-``ShowCrashDialog`` (example: ``true``)
-
-``overrides`` (example: described above)
-
-**winesteam (wine section options available to winesteam runner) section:**
-
-``steam_path`` (example: ``Z:\home\user\Steam\Steam.exe``)
-
-``quit_steam_on_exit`` (example: ``true``)
-
-``steamless_binary`` (example: fallout-nosteam)
-
-``run_without_steam`` (example: ``true``)
-
-**steam section:**
-
-``steamless_binary`` (example: fallout-nosteam)
-
-``run_without_steam`` (example: ``true``)
-
-``steam_native_runtime`` (example: ``false``)
-
-``args`` (example: ``-tcp -language "english"``)
-
-**system section:**
-
-``reset_desktop`` (example: ``true``)
-
-``restore_gamma`` (example: ``true``)
-
-``resolution`` (example: ``2560x1080``)
-
-``terminal`` (example: ``true``)
-
-``env`` (described above)
-
-``prefix_command`` (example: ``firejail --profile=/etc/firejail/steam.profile --``)
-
-``include_processes`` (example: ``Setup.exe``)
-
-``exclude_processes`` (example: ``unpack.exe``)
-
-``single_cpu`` (example: ``true``)
-
-``disable_runtime`` (example: ``true``)
-
-``disable_compositor`` (example: ``true``)
-
-``reset_pulse`` (example: ``true``)
-
-``pulse_latency`` (example: ``true``)
-
-``use_us_layout`` (example: ``true``)
-
-``killswitch`` (example: ``/dev/input/js0``)
-
-``sdl_gamecontrollerconfig`` (example: ``$HOME/gamecontrollerdb.txt``)
-
-``xephyr`` (example: offm ``8bpp`` or ``16bpp``)
-
-``xephyr_resolution`` (example: ``1024x768``)
