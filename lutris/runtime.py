@@ -107,6 +107,7 @@ class Runtime:
 
         # Extract the runtime archive
         jobs.AsyncCall(extract_archive, self.on_extracted, path, RUNTIME_DIR, merge_single=False)
+        return False
 
     def on_extracted(self, result, error):
         """Callback method when a runtime has extracted"""
@@ -115,10 +116,11 @@ class Runtime:
             logger.error(error)
             return False
         archive_path, _destination_path = result
+        logger.debug("Deleting runtime archive %s", archive_path)
         os.unlink(archive_path)
         self.set_updated_at()
         self.updater.notify_finish(self)
-        return True
+        return False
 
 
 class RuntimeUpdater:
