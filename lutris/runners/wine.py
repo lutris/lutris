@@ -526,12 +526,9 @@ class wine(Runner):
                 "help": _("Sets WINEDLLOVERRIDES when launching the game."),
             },
             {
-                "option":
-                "show_debug",
-                "label":
-                _("Output debugging info"),
-                "type":
-                "choice",
+                "option": "show_debug",
+                "label": _("Output debugging info"),
+                "type": "choice",
                 "choices": [
                     (_("Disabled"), "-all"),
                     (_("Enabled"), ""),
@@ -539,8 +536,7 @@ class wine(Runner):
                     (_("Show FPS"), "+fps"),
                     (_("Full (CAUTION: Will cause MASSIVE slowdown)"), "+all"),
                 ],
-                "default":
-                "-all",
+                "default": "-all",
                 "help": _("Output debugging information in the game log "
                           "(might affect performance)"),
             },
