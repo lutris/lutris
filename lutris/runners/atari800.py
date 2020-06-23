@@ -11,6 +11,15 @@ from lutris.runners.runner import Runner
 from lutris.util import display, extract, system
 
 
+def get_resolutions():
+    try:
+        screen_resolutions = [(resolution, resolution) for resolution in display.DISPLAY_MANAGER.get_resolutions()]
+    except OSError:
+        screen_resolutions = []
+    screen_resolutions.insert(0, (_("Desktop resolution"), "desktop"))
+    return screen_resolutions
+
+
 # pylint: disable=C0103
 class atari800(Runner):
     human_name = _("Atari800")
@@ -40,15 +49,6 @@ class atari800(Runner):
             ),
         }
     ]
-
-    @staticmethod
-    def get_resolutions():
-        try:
-            screen_resolutions = [(resolution, resolution) for resolution in display.DISPLAY_MANAGER.get_resolutions()]
-        except OSError:
-            screen_resolutions = []
-        screen_resolutions.insert(0, (_("Desktop resolution"), "desktop"))
-        return screen_resolutions
 
     runner_options = [
         {
@@ -90,7 +90,7 @@ class atari800(Runner):
         {
             "option": "resolution",
             "type": "choice",
-            "choices": get_resolutions,
+            "choices": get_resolutions(),
             "default": "desktop",
             "label": _("Fullscreen resolution"),
         },
