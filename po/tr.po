@@ -1,29 +1,22 @@
-# Turkish translations for lutris package.
-# Copyright (C) 2020 THE lutris'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the lutris package.
-# Automatically generated, 2020.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-23 19:25+0200\n"
-"PO-Revision-Date: 2020-06-23 19:25+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"POT-Creation-Date: 2020-06-22 12:03+0200\n"
+"PO-Revision-Date: 2020-05-28 1:40+0200\n"
+"Last-Translator: Mahmut Elmas <mahmutelmas@gmail.com>\n"
+"Language-Team: Turkish\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:567
+#: share/lutris/ui/about-dialog.ui:8
 msgid "About Lutris"
-msgstr ""
+msgstr "Lutris Hakkında"
 
 #: share/lutris/ui/about-dialog.ui:18
 msgid "Open Source Gaming Platform"
-msgstr ""
+msgstr "Açık Kaynak Oyun Arayüzü"
 
 #: share/lutris/ui/about-dialog.ui:21
 msgid ""
@@ -40,215 +33,102 @@ msgid ""
 "You should have received a copy of the GNU General Public License\n"
 "along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 msgstr ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 
 #: share/lutris/ui/dialog-lutris-login.ui:8
 msgid "Connect to lutris.net"
-msgstr ""
+msgstr "Lutris.net'e bağlan"
 
 #: share/lutris/ui/dialog-lutris-login.ui:26
 msgid "Forgot password?"
-msgstr ""
+msgstr "Şifrenizi mi unuttunuz ?"
 
 #: share/lutris/ui/dialog-lutris-login.ui:95
 msgid "Password"
-msgstr ""
+msgstr "Şifre"
 
 #: share/lutris/ui/dialog-lutris-login.ui:109
 msgid "Username"
-msgstr ""
+msgstr "Kullanıcı adı"
 
 #: share/lutris/ui/dialog-pga-sources.ui:79
 msgid "<b>Personnal Game Archives sources</b>"
-msgstr ""
+msgstr "<b>Kişisel Oyun Arşivi kaynakları</b>"
 
 #: share/lutris/ui/dialog-uninstall-game.ui:22
 msgid "Uninstall game"
-msgstr ""
+msgstr "Oyunu Sil"
 
 #: share/lutris/ui/dialog-uninstall-game.ui:89
 msgid "Are you sure you want to uninstall {game}?"
-msgstr ""
+msgstr "{game} oyununu silmek istediğinizden emin misiniz?"
 
 #: share/lutris/ui/dialog-uninstall-game.ui:102
 msgid ""
 "Remove <b>all data</b> from game folder\n"
 "( <i>{path}</i>)"
 msgstr ""
+"Oyuna ait <b>all data</b> dosyalarını tamamen sil\n"
+"( <i>{path}</i>)"
 
 #: share/lutris/ui/dialog-uninstall-game.ui:121
 msgid "Remove from my library"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:17
-msgid "Login"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:83
-msgid "Register"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:115
-msgid "Synchronize Library"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:170
-msgid "_Add Game…"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:193
-msgid "_Import Games…"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:228
-msgid "Zoom:"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:277
-msgid "Sort Ascending"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:292 lutris/gui/config/common.py:179
-#: lutris/gui/views/list.py:42
-msgid "Name"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:307 lutris/gui/views/list.py:43
-msgid "Year"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:322 lutris/gui/views/list.py:46
-msgid "Last Played"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:337 lutris/gui/views/list.py:48
-msgid "Installed At"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:352 lutris/gui/views/list.py:50
-msgid "Play Time"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:391
-msgid "_Installed Games Only"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:406
-msgid "Show _Hidden Games"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:420
-msgid "Use _Dark Theme"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:434
-msgid "Show _Left Side Panel"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:449
-msgid "Show _Right Side Panel"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:475
-msgid "Lutris forums"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:489 lutris/gui/views/generic_panel.py:177
-msgid "Discord"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:503 lutris/gui/views/generic_panel.py:158
-msgid "Support Lutris!"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:528
-msgid "Manage runners"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:542 lutris/gui/views/generic_panel.py:94
-msgid "Preferences"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:581
-msgid "Show _Tray Icon"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:594 share/lutris/ui/lutris-window.ui:602
-#: lutris/gui/application.py:64 lutris/gui/widgets/status_icon.py:121
-#: lutris/settings.py:13
-msgid "Lutris"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:615
-msgid "Manage Account"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:636
-msgid "Add Game"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:664
-msgid "Search Games"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:690
-msgid "Toggle View"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:737
-msgid "View Options"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:821 lutris/gui/lutriswindow.py:739
-msgid "Filter the list of games"
-msgstr ""
-
-#: share/lutris/ui/lutris-window.ui:915
-msgid "No Games Found"
-msgstr ""
+msgstr "Kütüphanemden kaldır"
 
 #: share/lutris/ui/runner-entry.ui:33
 msgid "name"
-msgstr ""
+msgstr "isim"
 
 #: share/lutris/ui/runner-entry.ui:52
 msgid "description"
-msgstr ""
+msgstr "tanım"
 
 #: share/lutris/ui/runner-entry.ui:69
 msgid "platforms"
-msgstr ""
+msgstr "platformlar"
 
 #: share/lutris/ui/runner-entry.ui:104 lutris/gui/widgets/sidebar.py:65
 msgid "Manage Versions"
-msgstr ""
+msgstr "Sürümleri Yönet"
 
 #: share/lutris/ui/runner-entry.ui:127
 msgid "Install Runner"
-msgstr ""
+msgstr "Oynatıcı Yükle"
 
 #: share/lutris/ui/runner-entry.ui:149
 msgid "Configure Runner"
-msgstr ""
+msgstr "Oynatıcıyı Düzenle"
 
 #: share/lutris/ui/runner-entry.ui:172
 msgid "Remove Runner"
-msgstr ""
+msgstr "Oynatıcıyı Sil"
 
 #: share/lutris/ui/runner-remove-all-versions-dialog.ui:19
 msgid "Remove ALL versions?"
-msgstr ""
+msgstr "Tüm sürümler silinsin mi ?"
 
 #: share/lutris/ui/runner-remove-all-versions-dialog.ui:23
 #: share/lutris/ui/runner-remove-confirm-dialog.ui:23
 #: lutris/gui/config/common.py:383
 msgid "Cancel"
-msgstr ""
+msgstr "Vazgeç"
 
 #: share/lutris/ui/runner-remove-all-versions-dialog.ui:36
 #: share/lutris/ui/runner-remove-confirm-dialog.ui:19
 #: share/lutris/ui/runner-remove-confirm-dialog.ui:36 lutris/game_actions.py:91
 msgid "Remove"
-msgstr ""
+msgstr "Sil"
 
 #: share/lutris/ui/runner-remove-all-versions-dialog.ui:59
 msgid ""
@@ -256,22 +136,25 @@ msgid ""
 "\n"
 "Use the Manage Versions button if you want to remove just one version."
 msgstr ""
+"Bu tüm <b>ALL</b> %s sürümlerini silecektir.\n"
+"\n"
+"Sürümleri Yönet tuşuna basarak sadece bir sürümü silebilirsiniz"
 
 #: share/lutris/ui/runner-remove-confirm-dialog.ui:59
 msgid "This will remove <b>%s</b> and all associated data."
-msgstr ""
+msgstr "Bu tüm <b>%s</b> ve dosyalarını tamamen kaldıracaktır."
 
 #: share/lutris/ui/runners-dialog.ui:16
 msgid "Manage Runners"
-msgstr ""
+msgstr "Oynatıcıları Yönet"
 
 #: share/lutris/ui/runners-dialog.ui:24
 msgid "Refresh Runners"
-msgstr ""
+msgstr "Oynatıcıları Yenile"
 
 #: share/lutris/ui/runners-dialog.ui:40
 msgid "Open Runners Folder"
-msgstr ""
+msgstr "Oynatıcı Dizinini Aç"
 
 #: lutris/exceptions.py:27
 #, python-format
@@ -294,16 +177,19 @@ msgstr ""
 
 #: lutris/game_actions.py:65 lutris/gui/widgets/cellrenderers.py:51
 #: lutris/gui/widgets/installer.py:80
+#, fuzzy
 msgid "Install"
-msgstr ""
+msgstr "Oynatıcı Yükle"
 
 #: lutris/game_actions.py:66
+#, fuzzy
 msgid "Add installed game"
-msgstr ""
+msgstr "Oyunu Sil"
 
 #: lutris/game_actions.py:67 lutris/gui/widgets/sidebar.py:70
+#, fuzzy
 msgid "Configure"
-msgstr ""
+msgstr "Oynatıcıyı Düzenle"
 
 #: lutris/game_actions.py:68
 msgid "Execute script"
@@ -334,16 +220,19 @@ msgid "Install another version"
 msgstr ""
 
 #: lutris/game_actions.py:92
+#, fuzzy
 msgid "View on Lutris.net"
-msgstr ""
+msgstr "Lutris.net'e bağlan"
 
 #: lutris/game_actions.py:93
+#, fuzzy
 msgid "Hide game from library"
-msgstr ""
+msgstr "Kütüphanemden kaldır"
 
 #: lutris/game_actions.py:94
+#, fuzzy
 msgid "Unhide game from library"
-msgstr ""
+msgstr "Kütüphanemden kaldır"
 
 #: lutris/game_actions.py:194
 msgid "Log for {}"
@@ -421,6 +310,12 @@ msgid ""
 "<b>Error: A different Wine version is already using the same Wine prefix.</b>"
 msgstr ""
 
+#: lutris/gui/application.py:64 lutris/gui/widgets/status_icon.py:121
+#: lutris/settings.py:13
+#, fuzzy
+msgid "Lutris"
+msgstr "Lutris Hakkında"
+
 #: lutris/gui/application.py:73
 msgid ""
 "Running Lutris as root is not recommended and may cause unexpected issues"
@@ -460,8 +355,9 @@ msgid "List all games in database"
 msgstr ""
 
 #: lutris/gui/application.py:141
+#, fuzzy
 msgid "Only list installed games"
-msgstr ""
+msgstr "Oyunu Sil"
 
 #: lutris/gui/application.py:149
 msgid "List available Steam games"
@@ -476,8 +372,9 @@ msgid "Display the list of games in JSON format"
 msgstr ""
 
 #: lutris/gui/application.py:173
+#, fuzzy
 msgid "Reinstall game"
-msgstr ""
+msgstr "Oyunu Sil"
 
 #: lutris/gui/application.py:176
 msgid "Submit an issue"
@@ -557,8 +454,9 @@ msgstr ""
 
 #: lutris/gui/config/boxes.py:514 lutris/gui/dialogs/issue.py:74
 #: lutris/gui/widgets/common.py:95 lutris/gui/widgets/download_progress.py:47
+#, fuzzy
 msgid "_Cancel"
-msgstr ""
+msgstr "Vazgeç"
 
 #: lutris/gui/config/boxes.py:516
 msgid "_Add"
@@ -622,6 +520,10 @@ msgstr ""
 msgid "Minimize client when a game is launched"
 msgstr ""
 
+#: lutris/gui/config/common.py:179 lutris/gui/views/list.py:42
+msgid "Name"
+msgstr ""
+
 #: lutris/gui/config/common.py:190
 msgid "Identifier"
 msgstr ""
@@ -631,16 +533,19 @@ msgid "Change"
 msgstr ""
 
 #: lutris/gui/config/common.py:208 lutris/gui/views/list.py:44
+#, fuzzy
 msgid "Runner"
-msgstr ""
+msgstr "Oynatıcıyı Sil"
 
 #: lutris/gui/config/common.py:214
+#, fuzzy
 msgid "Install runners"
-msgstr ""
+msgstr "Oynatıcı Yükle"
 
 #: lutris/gui/config/common.py:233
+#, fuzzy
 msgid "Remove custom banner"
-msgstr ""
+msgstr "Oynatıcıyı Sil"
 
 #: lutris/gui/config/common.py:244
 msgid "Remove custom icon"
@@ -685,8 +590,9 @@ msgid ""
 msgstr ""
 
 #: lutris/gui/config/common.py:424
+#, fuzzy
 msgid "Confirm runner change"
-msgstr ""
+msgstr "Oynatıcıyı Düzenle"
 
 #: lutris/gui/config/common.py:472
 msgid "Runner not provided"
@@ -717,9 +623,9 @@ msgid "Images"
 msgstr ""
 
 #: lutris/gui/config/edit_game.py:15 lutris/gui/config/runner.py:17
-#, python-format
+#, fuzzy, python-format
 msgid "Configure %s"
-msgstr ""
+msgstr "Oynatıcıyı Düzenle"
 
 #: lutris/gui/config/system.py:14
 msgid "System preferences"
@@ -746,8 +652,9 @@ msgid ""
 msgstr ""
 
 #: lutris/gui/dialogs/issue.py:52 lutris/gui/installerwindow.py:79
+#, fuzzy
 msgid "C_ancel"
-msgstr ""
+msgstr "Vazgeç"
 
 #: lutris/gui/dialogs/issue.py:55
 msgid "_Save"
@@ -817,9 +724,9 @@ msgid "Failed to retrieve the runner archive"
 msgstr ""
 
 #: lutris/gui/dialogs/runners.py:128 lutris/gui/widgets/sidebar.py:85
-#, python-format
+#, fuzzy, python-format
 msgid "Manage %s versions"
-msgstr ""
+msgstr "Sürümleri Yönet"
 
 #: lutris/gui/dialogs/uninstall_game.py:57
 msgid "No game folder"
@@ -838,8 +745,9 @@ msgid "CONFIRM DANGEROUS OPERATION"
 msgstr ""
 
 #: lutris/gui/installerwindow.py:77
+#, fuzzy
 msgid "Configure m_anually"
-msgstr ""
+msgstr "Oynatıcıyı Düzenle"
 
 #: lutris/gui/installerwindow.py:79
 msgid "Abort and revert the installation"
@@ -854,8 +762,9 @@ msgid "_View source"
 msgstr ""
 
 #: lutris/gui/installerwindow.py:83
+#, fuzzy
 msgid "_Install"
-msgstr ""
+msgstr "Oynatıcı Yükle"
 
 #: lutris/gui/installerwindow.py:84
 msgid "_Continue"
@@ -912,8 +821,9 @@ msgid "Remove game files"
 msgstr ""
 
 #: lutris/gui/installerwindow.py:480
+#, fuzzy
 msgid "Are you sure you want to cancel the installation?"
-msgstr ""
+msgstr "{game} oyununu silmek istediğinizden emin misiniz?"
 
 #: lutris/gui/installerwindow.py:481
 msgid "Cancel installation?"
@@ -921,8 +831,9 @@ msgstr ""
 
 #: lutris/gui/lutriswindow.py:129 lutris/gui/lutriswindow.py:130
 #: lutris/gui/lutriswindow.py:733
+#, fuzzy
 msgid "Search Lutris.net"
-msgstr ""
+msgstr "Lutris.net'e bağlan"
 
 #: lutris/gui/lutriswindow.py:552
 msgid "Synchronize library"
@@ -938,6 +849,10 @@ msgstr ""
 
 #: lutris/gui/lutriswindow.py:616
 msgid "Log out?"
+msgstr ""
+
+#: lutris/gui/lutriswindow.py:739
+msgid "Filter the list of games"
 msgstr ""
 
 #: lutris/gui/lutriswindow.py:910
@@ -972,6 +887,15 @@ msgstr ""
 msgid "<b>Playing:</b>"
 msgstr ""
 
+#: lutris/gui/views/generic_panel.py:94
+msgid "Preferences"
+msgstr ""
+
+#: lutris/gui/views/generic_panel.py:158
+#, fuzzy
+msgid "Support Lutris!"
+msgstr "Lutris Hakkında"
+
 #: lutris/gui/views/generic_panel.py:163
 msgid "<b>Help:</b>"
 msgstr ""
@@ -984,9 +908,31 @@ msgstr ""
 msgid "IRC"
 msgstr ""
 
+#: lutris/gui/views/generic_panel.py:177
+msgid "Discord"
+msgstr ""
+
+#: lutris/gui/views/list.py:43
+msgid "Year"
+msgstr ""
+
 #: lutris/gui/views/list.py:45 lutris/runners/dolphin.py:25
 #: lutris/runners/mame.py:100
+#, fuzzy
 msgid "Platform"
+msgstr "platformlar"
+
+#: lutris/gui/views/list.py:46
+msgid "Last Played"
+msgstr ""
+
+#: lutris/gui/views/list.py:48
+#, fuzzy
+msgid "Installed At"
+msgstr "Oynatıcı Yükle"
+
+#: lutris/gui/views/list.py:50
+msgid "Play Time"
 msgstr ""
 
 #: lutris/gui/widgets/common.py:68
@@ -1054,8 +1000,9 @@ msgid "Connect to %s to import your library."
 msgstr ""
 
 #: lutris/gui/widgets/services.py:99
+#, fuzzy
 msgid "Connect your account"
-msgstr ""
+msgstr "Lutris.net'e bağlan"
 
 #: lutris/gui/widgets/services.py:147
 msgid "Disconnect"
@@ -1104,20 +1051,23 @@ msgid "Run"
 msgstr ""
 
 #: lutris/gui/widgets/sidebar.py:115 lutris/gui/widgets/sidebar.py:186
+#, fuzzy
 msgid "Runners"
-msgstr ""
+msgstr "Oynatıcıları Yönet"
 
 #: lutris/gui/widgets/sidebar.py:148 lutris/gui/widgets/sidebar.py:157
 msgid "All"
 msgstr ""
 
 #: lutris/gui/widgets/sidebar.py:188
+#, fuzzy
 msgid "Platforms"
-msgstr ""
+msgstr "platformlar"
 
 #: lutris/gui/widgets/status_icon.py:70
+#, fuzzy
 msgid "Show Lutris"
-msgstr ""
+msgstr "Lutris Hakkında"
 
 #: lutris/gui/widgets/status_icon.py:75
 msgid "Quit"
@@ -3093,8 +3043,9 @@ msgid "Manual"
 msgstr ""
 
 #: lutris/runners/wine.py:193
+#, fuzzy
 msgid "Wine version"
-msgstr ""
+msgstr "Sürümleri Yönet"
 
 #: lutris/runners/wine.py:201
 msgid ""
@@ -3618,8 +3569,9 @@ msgid "Desktop games"
 msgstr ""
 
 #: lutris/settings.py:15
+#, fuzzy
 msgid "(c) 2010-2020 Lutris Gaming Platform"
-msgstr ""
+msgstr "Açık Kaynak Oyun Arayüzü"
 
 #: lutris/settings.py:16
 msgid "The Lutris team"
