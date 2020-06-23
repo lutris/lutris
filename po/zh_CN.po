@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-19 21:21+0800\n"
+"POT-Creation-Date: 2020-06-23 09:28+0800\n"
 "PO-Revision-Date: 2020-06-19 21:21+0800\n"
 "Last-Translator: SwimmingTiger\n"
 "Language-Team: \n"
@@ -13,7 +13,7 @@ msgstr ""
 "X-Generator: Poedit 2.2.1\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: share/lutris/ui/about-dialog.ui:8
+#: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:567
 msgid "About Lutris"
 msgstr "关于 Lutris"
 
@@ -84,6 +84,133 @@ msgstr ""
 #: share/lutris/ui/dialog-uninstall-game.ui:121
 msgid "Remove from my library"
 msgstr "从游戏库中移除"
+
+#: share/lutris/ui/lutris-window.ui:17
+msgid "Login"
+msgstr "登录"
+
+#: share/lutris/ui/lutris-window.ui:83
+msgid "Register"
+msgstr "注册"
+
+#: share/lutris/ui/lutris-window.ui:115
+msgid "Synchronize Library"
+msgstr "同步游戏库"
+
+#: share/lutris/ui/lutris-window.ui:170
+msgid "_Add Game…"
+msgstr "添加游戏 (_A)"
+
+#: share/lutris/ui/lutris-window.ui:193
+msgid "_Import Games…"
+msgstr "导入游戏 (_I)"
+
+#: share/lutris/ui/lutris-window.ui:228
+msgid "Zoom:"
+msgstr "缩放："
+
+#: share/lutris/ui/lutris-window.ui:277
+msgid "Sort Ascending"
+msgstr "升序"
+
+#: share/lutris/ui/lutris-window.ui:292 lutris/gui/config/common.py:179
+#: lutris/gui/views/list.py:42
+msgid "Name"
+msgstr "名称"
+
+#: share/lutris/ui/lutris-window.ui:307 lutris/gui/views/list.py:43
+msgid "Year"
+msgstr "发行年份"
+
+#: share/lutris/ui/lutris-window.ui:322 lutris/gui/views/list.py:46
+msgid "Last Played"
+msgstr "上次游玩"
+
+#: share/lutris/ui/lutris-window.ui:337 lutris/gui/views/list.py:48
+msgid "Installed At"
+msgstr "安装路径"
+
+#: share/lutris/ui/lutris-window.ui:352 lutris/gui/views/list.py:50
+msgid "Play Time"
+msgstr "游戏时间"
+
+#: share/lutris/ui/lutris-window.ui:391
+msgid "_Installed Games Only"
+msgstr "仅显示已安装游戏 (_I)"
+
+#: share/lutris/ui/lutris-window.ui:406
+msgid "Show _Hidden Games"
+msgstr "显示已隐藏的游戏 (_H)"
+
+#: share/lutris/ui/lutris-window.ui:420
+msgid "Use _Dark Theme"
+msgstr "使用暗黑主题 (_D)"
+
+#: share/lutris/ui/lutris-window.ui:434
+msgid "Show _Left Side Panel"
+msgstr "显示左侧边栏 (_L)"
+
+#: share/lutris/ui/lutris-window.ui:449
+msgid "Show _Right Side Panel"
+msgstr "显示右侧边栏 (_R)"
+
+#: share/lutris/ui/lutris-window.ui:475
+msgid "Lutris forums"
+msgstr "Lutris 论坛"
+
+#: share/lutris/ui/lutris-window.ui:489 lutris/gui/views/generic_panel.py:177
+msgid "Discord"
+msgstr "Discord 讨论组"
+
+#: share/lutris/ui/lutris-window.ui:503 lutris/gui/views/generic_panel.py:158
+msgid "Support Lutris!"
+msgstr "支持 Lutris !"
+
+#: share/lutris/ui/lutris-window.ui:528
+msgid "Manage runners"
+msgstr "安装/卸载运行环境"
+
+#: share/lutris/ui/lutris-window.ui:542 lutris/gui/views/generic_panel.py:94
+msgid "Preferences"
+msgstr "首选项"
+
+#: share/lutris/ui/lutris-window.ui:581
+msgid "Show _Tray Icon"
+msgstr "显示托盘图标 (_T)"
+
+#: share/lutris/ui/lutris-window.ui:594 share/lutris/ui/lutris-window.ui:602
+#: lutris/gui/application.py:64 lutris/gui/widgets/status_icon.py:121
+#: lutris/settings.py:13
+msgid "Lutris"
+msgstr "Lutris"
+
+#: share/lutris/ui/lutris-window.ui:615
+msgid "Manage Account"
+msgstr "管理帐户"
+
+#: share/lutris/ui/lutris-window.ui:636
+msgid "Add Game"
+msgstr "添加游戏"
+
+#: share/lutris/ui/lutris-window.ui:664
+msgid "Search Games"
+msgstr "搜索游戏"
+
+#: share/lutris/ui/lutris-window.ui:690
+msgid "Toggle View"
+msgstr "切换显示模式"
+
+#: share/lutris/ui/lutris-window.ui:737
+msgid "View Options"
+msgstr "选项设置"
+
+#: share/lutris/ui/lutris-window.ui:821 lutris/gui/lutriswindow.py:739
+msgid "Filter the list of games"
+msgstr "筛选游戏列表"
+
+#: share/lutris/ui/lutris-window.ui:915
+msgid "No Games Found"
+msgstr "未找到游戏"
 
 #: share/lutris/ui/runner-entry.ui:33
 msgid "name"
@@ -312,11 +439,6 @@ msgid ""
 "<b>Error: A different Wine version is already using the same Wine prefix.</b>"
 msgstr "<b>错误: 该 Wine 前缀正在被另一个不同版本的 Wine 使用。</b>"
 
-#: lutris/gui/application.py:64 lutris/gui/widgets/status_icon.py:121
-#: lutris/settings.py:13
-msgid "Lutris"
-msgstr "Lutris"
-
 #: lutris/gui/application.py:73
 msgid ""
 "Running Lutris as root is not recommended and may cause unexpected issues"
@@ -527,10 +649,6 @@ msgstr "设置缓存文件夹路径"
 #: lutris/gui/config/common.py:155
 msgid "Minimize client when a game is launched"
 msgstr "游戏启动时最小化 Lutris 客户端"
-
-#: lutris/gui/config/common.py:179 lutris/gui/views/list.py:42
-msgid "Name"
-msgstr "名称"
 
 #: lutris/gui/config/common.py:190
 msgid "Identifier"
@@ -929,10 +1047,6 @@ msgstr "是否退出 Lutris 登录？"
 msgid "Log out?"
 msgstr "是否退出？"
 
-#: lutris/gui/lutriswindow.py:739
-msgid "Filter the list of games"
-msgstr "筛选游戏列表"
-
 #: lutris/gui/lutriswindow.py:910
 msgid "Could not connect to your Lutris account. Please sign in again."
 msgstr "登录失败，请重试。"
@@ -961,14 +1075,6 @@ msgstr "启动中…"
 msgid "<b>Playing:</b>"
 msgstr "<b>正在游玩:</b>"
 
-#: lutris/gui/views/generic_panel.py:94
-msgid "Preferences"
-msgstr "首选项"
-
-#: lutris/gui/views/generic_panel.py:158
-msgid "Support Lutris!"
-msgstr "支持 Lutris !"
-
 #: lutris/gui/views/generic_panel.py:163
 msgid "<b>Help:</b>"
 msgstr "<b>帮助:</b>"
@@ -981,30 +1087,10 @@ msgstr "论坛"
 msgid "IRC"
 msgstr "IRC 聊天室"
 
-#: lutris/gui/views/generic_panel.py:177
-msgid "Discord"
-msgstr "Discord 讨论组"
-
-#: lutris/gui/views/list.py:43
-msgid "Year"
-msgstr "发行年份"
-
 #: lutris/gui/views/list.py:45 lutris/runners/dolphin.py:25
 #: lutris/runners/mame.py:100
 msgid "Platform"
 msgstr "平台"
-
-#: lutris/gui/views/list.py:46
-msgid "Last Played"
-msgstr "上次游玩"
-
-#: lutris/gui/views/list.py:48
-msgid "Installed At"
-msgstr "安装路径"
-
-#: lutris/gui/views/list.py:50
-msgid "Play Time"
-msgstr "游戏时间"
 
 #: lutris/gui/widgets/common.py:68
 msgid "Browse..."
@@ -4299,66 +4385,3 @@ msgid ""
 "Your kernel is not patched for fsync. Please get a patched kernel to use "
 "fsync."
 msgstr "你的内核没有打过 fsync 补丁。 请获取打过补丁的内核以使用 fsync。"
-
-#~ msgid "Login"
-#~ msgstr "登录"
-
-#~ msgid "Register"
-#~ msgstr "注册"
-
-#~ msgid "Synchronize Library"
-#~ msgstr "同步游戏库"
-
-#~ msgid "_Add Game…"
-#~ msgstr "添加游戏 (_A)"
-
-#~ msgid "_Import Games…"
-#~ msgstr "导入游戏 (_I)"
-
-#~ msgid "Zoom:"
-#~ msgstr "缩放："
-
-#~ msgid "Sort Ascending"
-#~ msgstr "升序"
-
-#~ msgid "_Installed Games Only"
-#~ msgstr "仅显示已安装游戏 (_I)"
-
-#~ msgid "Show _Hidden Games"
-#~ msgstr "显示已隐藏的游戏 (_H)"
-
-#~ msgid "Use _Dark Theme"
-#~ msgstr "使用暗黑主题 (_D)"
-
-#~ msgid "Show _Left Side Panel"
-#~ msgstr "显示左侧边栏 (_L)"
-
-#~ msgid "Show _Right Side Panel"
-#~ msgstr "显示右侧边栏 (_R)"
-
-#~ msgid "Lutris forums"
-#~ msgstr "Lutris 论坛"
-
-#~ msgid "Manage runners"
-#~ msgstr "安装/卸载运行环境"
-
-#~ msgid "Show _Tray Icon"
-#~ msgstr "显示托盘图标 (_T)"
-
-#~ msgid "Manage Account"
-#~ msgstr "管理帐户"
-
-#~ msgid "Add Game"
-#~ msgstr "添加游戏"
-
-#~ msgid "Search Games"
-#~ msgstr "搜索游戏"
-
-#~ msgid "Toggle View"
-#~ msgstr "切换显示模式"
-
-#~ msgid "View Options"
-#~ msgstr "选项设置"
-
-#~ msgid "No Games Found"
-#~ msgstr "未找到游戏"
