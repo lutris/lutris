@@ -360,8 +360,7 @@ class ConfigBox(VBox):
                 option_value = combobox.get_child().get_text()
         else:
             option_value = list_store[active][1]
-        if option_value:
-            self.option_changed(combobox, option, option_value)
+        self.option_changed(combobox, option, option_value)
 
     # Range
     def generate_range(self, option_name, min_val, max_val, label, value=None):
