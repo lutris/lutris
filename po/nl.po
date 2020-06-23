@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-22 12:03+0200\n"
-"PO-Revision-Date: 2020-06-22 12:03+0200\n"
+"POT-Creation-Date: 2020-06-23 19:25+0200\n"
+"PO-Revision-Date: 2020-06-23 19:28+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@outlook.com>\n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.3.1\n"
 
-#: share/lutris/ui/about-dialog.ui:8
+#: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:567
 msgid "About Lutris"
 msgstr "Over Lutris"
 
@@ -93,6 +93,133 @@ msgstr ""
 #: share/lutris/ui/dialog-uninstall-game.ui:121
 msgid "Remove from my library"
 msgstr "Verwijderen uit verzameling"
+
+#: share/lutris/ui/lutris-window.ui:17
+msgid "Login"
+msgstr "Inloggen"
+
+#: share/lutris/ui/lutris-window.ui:83
+msgid "Register"
+msgstr "Registreren"
+
+#: share/lutris/ui/lutris-window.ui:115
+msgid "Synchronize Library"
+msgstr "Verzameling synchroniseren"
+
+#: share/lutris/ui/lutris-window.ui:170
+msgid "_Add Game…"
+msgstr "Spel t_oevoegen…"
+
+#: share/lutris/ui/lutris-window.ui:193
+msgid "_Import Games…"
+msgstr "Spellen _importeren…"
+
+#: share/lutris/ui/lutris-window.ui:228
+msgid "Zoom:"
+msgstr "Zoomen:"
+
+#: share/lutris/ui/lutris-window.ui:277
+msgid "Sort Ascending"
+msgstr "Oplopend sorteren"
+
+#: share/lutris/ui/lutris-window.ui:292 lutris/gui/config/common.py:179
+#: lutris/gui/views/list.py:42
+msgid "Name"
+msgstr "Naam"
+
+#: share/lutris/ui/lutris-window.ui:307 lutris/gui/views/list.py:43
+msgid "Year"
+msgstr "Jaar"
+
+#: share/lutris/ui/lutris-window.ui:322 lutris/gui/views/list.py:46
+msgid "Last Played"
+msgstr "Laatst gespeeld"
+
+#: share/lutris/ui/lutris-window.ui:337 lutris/gui/views/list.py:48
+msgid "Installed At"
+msgstr "Geïnstalleerd op"
+
+#: share/lutris/ui/lutris-window.ui:352 lutris/gui/views/list.py:50
+msgid "Play Time"
+msgstr "Speeltijd"
+
+#: share/lutris/ui/lutris-window.ui:391
+msgid "_Installed Games Only"
+msgstr "Alleen ge_ïnstalleerde spellen"
+
+#: share/lutris/ui/lutris-window.ui:406
+msgid "Show _Hidden Games"
+msgstr "Verborgen s_pellen tonen"
+
+#: share/lutris/ui/lutris-window.ui:420
+msgid "Use _Dark Theme"
+msgstr "_Donker thema gebruiken"
+
+#: share/lutris/ui/lutris-window.ui:434
+msgid "Show _Left Side Panel"
+msgstr "_Linker zijpaneel tonen"
+
+#: share/lutris/ui/lutris-window.ui:449
+msgid "Show _Right Side Panel"
+msgstr "_Rechter zijpaneel tonen"
+
+#: share/lutris/ui/lutris-window.ui:475
+msgid "Lutris forums"
+msgstr "Lutris-forum"
+
+#: share/lutris/ui/lutris-window.ui:489 lutris/gui/views/generic_panel.py:177
+msgid "Discord"
+msgstr "Discord"
+
+#: share/lutris/ui/lutris-window.ui:503 lutris/gui/views/generic_panel.py:158
+msgid "Support Lutris!"
+msgstr "Ondersteun Lutris!"
+
+#: share/lutris/ui/lutris-window.ui:528
+msgid "Manage runners"
+msgstr "Runners beheren"
+
+#: share/lutris/ui/lutris-window.ui:542 lutris/gui/views/generic_panel.py:94
+msgid "Preferences"
+msgstr "Voorkeuren"
+
+#: share/lutris/ui/lutris-window.ui:581
+msgid "Show _Tray Icon"
+msgstr "Sys_teemvakpictogram tonen"
+
+#: share/lutris/ui/lutris-window.ui:594 share/lutris/ui/lutris-window.ui:602
+#: lutris/gui/application.py:64 lutris/gui/widgets/status_icon.py:121
+#: lutris/settings.py:13
+msgid "Lutris"
+msgstr "Lutris"
+
+#: share/lutris/ui/lutris-window.ui:615
+msgid "Manage Account"
+msgstr "Account beheren"
+
+#: share/lutris/ui/lutris-window.ui:636
+msgid "Add Game"
+msgstr "Spel toevoegen"
+
+#: share/lutris/ui/lutris-window.ui:664
+msgid "Search Games"
+msgstr "Spellen doorzoeken"
+
+#: share/lutris/ui/lutris-window.ui:690
+msgid "Toggle View"
+msgstr "Andere weergave"
+
+#: share/lutris/ui/lutris-window.ui:737
+msgid "View Options"
+msgstr "Weergave-opties"
+
+#: share/lutris/ui/lutris-window.ui:821 lutris/gui/lutriswindow.py:739
+msgid "Filter the list of games"
+msgstr "Lijst filteren"
+
+#: share/lutris/ui/lutris-window.ui:915
+msgid "No Games Found"
+msgstr "Geen spellen aangetroffen"
 
 #: share/lutris/ui/runner-entry.ui:33
 msgid "name"
@@ -322,11 +449,6 @@ msgid ""
 msgstr ""
 "<b>Fout: een andere Wine-versie gebruikt reeds hetzelfde Wine-profiel.</b>"
 
-#: lutris/gui/application.py:64 lutris/gui/widgets/status_icon.py:121
-#: lutris/settings.py:13
-msgid "Lutris"
-msgstr "Lutris"
-
 #: lutris/gui/application.py:73
 msgid ""
 "Running Lutris as root is not recommended and may cause unexpected issues"
@@ -546,10 +668,6 @@ msgstr "Stel de cachemap in"
 #: lutris/gui/config/common.py:155
 msgid "Minimize client when a game is launched"
 msgstr "Venster minimaliseren na starten van een spel"
-
-#: lutris/gui/config/common.py:179 lutris/gui/views/list.py:42
-msgid "Name"
-msgstr "Naam"
 
 #: lutris/gui/config/common.py:190
 msgid "Identifier"
@@ -880,10 +998,6 @@ msgstr "Weet je zeker dat je wilt uitloggen?"
 msgid "Log out?"
 msgstr "Uitloggen?"
 
-#: lutris/gui/lutriswindow.py:739
-msgid "Filter the list of games"
-msgstr "Lijst filteren"
-
 #: lutris/gui/lutriswindow.py:910
 msgid "Could not connect to your Lutris account. Please sign in again."
 msgstr ""
@@ -919,14 +1033,6 @@ msgstr "Bezig met starten..."
 msgid "<b>Playing:</b>"
 msgstr "<b>Aan het spelen:</b>"
 
-#: lutris/gui/views/generic_panel.py:94
-msgid "Preferences"
-msgstr "Voorkeuren"
-
-#: lutris/gui/views/generic_panel.py:158
-msgid "Support Lutris!"
-msgstr "Ondersteun Lutris!"
-
 #: lutris/gui/views/generic_panel.py:163
 msgid "<b>Help:</b>"
 msgstr "<b>Hulp:</b>"
@@ -939,30 +1045,10 @@ msgstr "Forum"
 msgid "IRC"
 msgstr "IRC"
 
-#: lutris/gui/views/generic_panel.py:177
-msgid "Discord"
-msgstr "Discord"
-
-#: lutris/gui/views/list.py:43
-msgid "Year"
-msgstr "Jaar"
-
 #: lutris/gui/views/list.py:45 lutris/runners/dolphin.py:25
 #: lutris/runners/mame.py:100
 msgid "Platform"
 msgstr "Platform"
-
-#: lutris/gui/views/list.py:46
-msgid "Last Played"
-msgstr "Laatst gespeeld"
-
-#: lutris/gui/views/list.py:48
-msgid "Installed At"
-msgstr "Geïnstalleerd op"
-
-#: lutris/gui/views/list.py:50
-msgid "Play Time"
-msgstr "Speeltijd"
 
 #: lutris/gui/widgets/common.py:68
 msgid "Browse..."
