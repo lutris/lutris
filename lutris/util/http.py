@@ -105,7 +105,7 @@ class Request:
                 return self
             try:
                 chunk = request.read(self.buffer_size)
-            except socket.timeout:
+            except (socket.timeout, ConnectionResetError):
                 raise HTTPError("Request timed out")
             self.downloaded_size += len(chunk)
             if not chunk:
