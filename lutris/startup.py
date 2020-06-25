@@ -1,10 +1,8 @@
 """Check to run at program start"""
-# Standard Library
 # pylint: disable=no-member
 import os
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris import pga, settings
 from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
@@ -128,22 +126,6 @@ def check_vulkan():
         logger.info("Vulkan is not available or your system isn't Vulkan capable")
 
 
-def check_donate():
-    setting = "dont-support-lutris"
-    if settings.read_setting(setting) != "True":
-        DontShowAgainDialog(
-            setting,
-            _("Please support Lutris!"),
-            secondary_message=_("Lutris is entirely funded by its community and will "
-                                "remain an independent gaming platform.\n"
-                                "For Lutris to survive and grow, the project needs your help.\n"
-                                "Please consider making a donation if you can. This will greatly help "
-                                "cover the costs of hosting the project and fund new features "
-                                "like cloud saves or a full-screen interface for the TV!\n"
-                                "<a href='https://lutris.net/donate'>SUPPORT US! https://lutris.net/donate</a>"),
-        )
-
-
 def fill_missing_platforms():
     """Sets the platform on games where it's missing.
     This should never happen.
@@ -164,5 +146,4 @@ def run_all_checks():
     check_driver()
     check_libs()
     check_vulkan()
-    check_donate()
     fill_missing_platforms()
