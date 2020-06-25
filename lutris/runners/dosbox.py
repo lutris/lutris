@@ -142,7 +142,7 @@ class dosbox(Runner):
         main_file = self.main_file
         if not system.path_exists(main_file):
             return {"error": "FILE_NOT_FOUND", "file": main_file}
-        args = shlex.split(self.game_config.get("args")) or []
+        args = shlex.split(self.game_config.get("args") or "")
 
         command = [self.get_executable()]
 
