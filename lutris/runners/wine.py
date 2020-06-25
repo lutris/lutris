@@ -19,6 +19,7 @@ from lutris.runners.runner import Runner
 from lutris.settings import RUNTIME_DIR
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.graphics import drivers
 from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
@@ -924,6 +925,12 @@ class wine(Runner):
 
         if not ("WINEFSYNC" in env and env["WINEFSYNC"] == "1"):
             env["WINEFSYNC"] = "1" if self.runner_config.get("fsync") else "0"
+
+        # On AMD mimic, the video memory management behavior of Windows DX12
+        # drivers more closely, otherwise d3d12 games will crash and have other
+        # funky issues.
+        if self.runner_config.get("vkd3d") and drivers.is_amd():
+            env["RADV_DEBUG"] = "zerovram"
 
         overrides = self.get_dll_overrides()
         if overrides:
