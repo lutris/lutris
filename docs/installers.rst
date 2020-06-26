@@ -10,11 +10,10 @@ Table of contents
 * `Variable substitution`_
 * `Game configuration directives`_
 * `Runner configuration directives`_
-* `System configuration directives`
+* `System configuration directives`_
 * `Fetching required files`_
 * `Installer meta data`_
 * `Writing the installation script`_
-* `Trying the installer locally`_
 * `Example scripts`_
 
 
@@ -190,7 +189,7 @@ Can also be used to pass the URL for web based games: ``main_file: http://www...
 Can be used with linux, wine, winesteam, dosbox, scummvm, pico8 and zdoom runners.
 Example: ``args: -c $GAMEDIR/exult.cfg``
 
-``working_dir``: Set the working directory for the game executable. 
+``working_dir``: Set the working directory for the game executable.
 This is useful if the game needs to run from a different directory than the one
 the executable resides in.
 This directive can be used for Linux, Wine and Dosbox installers.
@@ -503,8 +502,9 @@ Example::
 Writing files
 -------------
 
+
 Writing text files
-~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
 
 Create or overwrite a file with the ``write_file`` directive. Use the ``file``
 (an absolute path or a ``file id``) and ``content`` parameters.
@@ -525,7 +525,7 @@ Example:
         content: 'This is the contents of the file.'
 
 Writing into an INI type config file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Modify or create a config file with the ``write_config`` directive. A config file
 is a text file composed of key=value (or key: value) lines grouped under
@@ -556,7 +556,7 @@ Example:
 
 
 Writing into a JSON type file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Modify or create a JSON file with the ``write_json`` directive.
 Use the ``file`` (an absolute path or a ``file id``) and ``data`` parameters.
