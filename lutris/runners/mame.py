@@ -30,7 +30,9 @@ def get_system_choices(include_year=True):
         template += "%(description)s"
         if include_year:
             template += " %(year)s"
-        yield (template % info, system_id)
+        system_name = template % info
+        system_name = system_name.replace("<generic>", "").strip()
+        yield (system_name, system_id)
 
 
 class mame(Runner):  # pylint: disable=invalid-name
@@ -194,7 +196,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         if self._platforms:
             return self.platforms
         self._platforms = [choice[0] for choice in get_system_choices(include_year=False)]
-        self._platforms += [_("Arcade"), _("Plug & Play TV games"), _("LCD handheld games"), _("Game & Watch")]
+        self._platforms += [_("Arcade"), _("Plug & Play TV games"), _("LCD handheld games"), _("Nintendo Game & Watch")]
         return self._platforms
 
     def write_xml_list(self):
