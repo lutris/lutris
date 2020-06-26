@@ -142,6 +142,9 @@ def get_formatted_playtime(playtime):
 
 def split_arguments(args):
     """Wrapper around shlex.split that is more tolerant of errors"""
+    if not args:
+        # shlex.split seems to hangs when passed the None value
+        return []
     try:
         return shlex.split(args)
     except ValueError as ex:
