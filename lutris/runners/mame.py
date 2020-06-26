@@ -39,12 +39,12 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     human_name = _("MAME")
     description = _("Arcade game emulator")
-    platforms = [_("Arcade"), _("Plug & Play TV games"), _("LCD handheld games"), _("Game & Watch")]
     runner_executable = "mame/mame"
     runnable_alone = True
     config_dir = os.path.expanduser("~/.mame")
     cache_dir = os.path.join(settings.CACHE_DIR, "mame")
     xml_path = os.path.join(cache_dir, "mame.xml")
+    _platforms = []
 
     game_options = [
         {
@@ -188,6 +188,14 @@ class mame(Runner):  # pylint: disable=invalid-name
     @property
     def working_dir(self):
         return os.path.join(settings.RUNNER_DIR, "mame")
+
+    @property
+    def platforms(self):
+        if self._platforms:
+            return self.platforms
+        self._platforms = [choice[0] for choice in get_system_choices(include_year=False)]
+        self._platforms += [_("Arcade"), _("Plug & Play TV games"), _("LCD handheld games"), _("Game & Watch")]
+        return self._platforms
 
     def write_xml_list(self):
         """Write the full game list in XML to disk"""
