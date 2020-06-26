@@ -54,13 +54,15 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "file",
             "label": _("ROM file"),
             "default_path": "game_path",
-        }, {
+        },
+        {
             "option": "machine",
             "type": "choice_with_search",
             "label": _("Machine"),
             "choices": get_system_choices,
             "help": _("The emulated machine.")
-        }, {
+        },
+        {
             "option":
             "device",
             "type":
@@ -96,18 +98,18 @@ class mame(Runner):  # pylint: disable=invalid-name
                 (_("Punch Tape 2"), "ptap2"),
                 (_("Print Out"), "prin"),
             ],
-        }, {
-            "option": "platform",
-            "type": "choice",
-            "label": _("Platform"),
-            "choices": ((_("Auto"), ""), (_("Plug & Play TV games"), "1"), (_("LCD handheld games"), "2")),
-        }, {
+        },
+        {
+
+        },
+        {
             "option": "autoboot_command",
             "type": "string",
             "label": _("Autoboot command"),
             "help": _("Autotype this command when the system has started,"
                       "an enter keypress is automatically added."),
-        }, {
+        },
+        {
             "option": "autoboot_delay",
             "type": "range",
             "label": _("Delay before entering autoboot command"),
@@ -196,7 +198,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         if self._platforms:
             return self.platforms
         self._platforms = [choice[0] for choice in get_system_choices(include_year=False)]
-        self._platforms += [_("Arcade"), _("Plug & Play TV games"), _("LCD handheld games"), _("Nintendo Game & Watch")]
+        self._platforms += [_("Arcade"), _("Nintendo Game & Watch")]
         return self._platforms
 
     def write_xml_list(self):
