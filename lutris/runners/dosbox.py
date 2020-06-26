@@ -17,12 +17,9 @@ class dosbox(Runner):
     runner_executable = "dosbox/bin/dosbox"
     game_options = [
         {
-            "option":
-            "main_file",
-            "type":
-            "file",
-            "label":
-            _("Main file"),
+            "option": "main_file",
+            "type": "file",
+            "label": _("Main file"),
             "help": _(
                 "The CONF, EXE, COM or BAT file to launch.\n"
                 "It can be left blank if the launch of the executable is "
@@ -30,12 +27,9 @@ class dosbox(Runner):
             ),
         },
         {
-            "option":
-            "config_file",
-            "type":
-            "file",
-            "label":
-            _("Configuration file"),
+            "option": "config_file",
+            "type": "file",
+            "label": _("Configuration file"),
             "help": _(
                 "Start Dosbox with the options specified in this file. \n"
                 "It can have a section in which you can put commands "
@@ -51,12 +45,9 @@ class dosbox(Runner):
             "validator": shlex.split,
         },
         {
-            "option":
-            "working_dir",
-            "type":
-            "directory_chooser",
-            "label":
-            _("Working directory"),
+            "option": "working_dir",
+            "type": "directory_chooser",
+            "label": _("Working directory"),
             "help": _(
                 "The location where the game is run from.\n"
                 "By default, Lutris uses the directory of the "
@@ -117,16 +108,19 @@ class dosbox(Runner):
         },
     ]
 
+    def make_absolute(self, path):
+        """Return a guaranteed absolute path"""
+        if not path:
+            return ""
+        if os.path.isabs(path):
+            return path
+        if self.game_data.get("directory"):
+            return os.path.join(self.game_data.get("directory"), path)
+        return ""
+
     @property
     def main_file(self):
-        main_file = self.game_config.get("main_file")
-        if not main_file:
-            return ""
-        if os.path.isabs(main_file):
-            return main_file
-        game_directory = self.game_data.get("directory")
-        if game_directory:
-            return os.path.join(game_directory, main_file)
+        return self.make_absolute(self.game_config.get("main_file"))
 
     @property
     def working_dir(self):
@@ -154,7 +148,7 @@ class dosbox(Runner):
         # Options
         if self.game_config.get("config_file"):
             command.append("-conf")
-            command.append(self.game_config["config_file"])
+            command.append(self.make_absolute(self.game_config["config_file"]))
 
         scaler = self.runner_config.get("scaler")
         if scaler and scaler != "none":
