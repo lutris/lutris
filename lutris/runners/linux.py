@@ -14,6 +14,7 @@ class linux(Runner):
     human_name = _("Linux")
     description = _("Runs native games")
     platforms = [_("Linux")]
+    entry_point_option = "exe"
 
     game_options = [
         {

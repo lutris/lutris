@@ -12,6 +12,7 @@ class frotz(Runner):
     description = _("Z-code emulator for text adventure games such as Zork.")
     platforms = [_("Z-Machine")]
     runner_executable = "frotz/frotz"
+    entry_point_option = "story"
 
     game_options = [
         {

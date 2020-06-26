@@ -149,7 +149,7 @@ class Game(GObject.Object):
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.runner.browse_dir
+        return self.runner.game_path
 
     def _get_runner(self):
         """Return the runner instance for this game's configuration"""
