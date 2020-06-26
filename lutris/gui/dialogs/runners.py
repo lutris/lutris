@@ -62,7 +62,11 @@ class RunnersDialog(GtkBuilderDialog):
     def get_runner_hbox(self, runner_name):
         # Get runner details
         runner = runners.import_runner(runner_name)()
-        platform = ", ".join(sorted(list(set(runner.platforms))))
+        platform_list = sorted(list(set(runner.platforms)))
+        if len(platform_list) > 4:
+            platform = _("Multiple platforms")
+        else:
+            platform = ", ".join(platform_list)
 
         builder = Gtk.Builder()
         builder.add_from_file(self.runner_entry_ui)
