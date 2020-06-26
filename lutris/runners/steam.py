@@ -162,15 +162,6 @@ class steam(Runner):
     def appid(self):
         return self.game_config.get("appid") or ""
 
-    @property
-    def browse_dir(self):
-        """Return the path to open with the Browse Files action."""
-        if not self.is_installed():
-            installed = self.install_dialog()
-            if not installed:
-                return False
-        return self.game_path
-
     def get_steam_config(self):
         """Return the "Steam" part of Steam's config.vdf as a dict."""
         steam_data_dir = self.steam_data_dir

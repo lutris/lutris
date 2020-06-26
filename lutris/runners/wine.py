@@ -42,6 +42,8 @@ class wine(Runner):
     human_name = _("Wine")
     platforms = [_("Windows")]
     multiple_versions = True
+    entry_point_option = "exe"
+
     game_options = [
         {
             "option": "exe",

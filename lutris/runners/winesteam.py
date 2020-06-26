@@ -191,15 +191,6 @@ class winesteam(wine.wine):
         return os.path.expanduser(_prefix)
 
     @property
-    def browse_dir(self):
-        """Return the path to open with the Browse Files action."""
-        if not self.is_installed():
-            installed = self.install_dialog()
-            if not installed:
-                return False
-        return self.game_path
-
-    @property
     def game_path(self):
         if not self.appid:
             return None
