@@ -1,13 +1,12 @@
 """Runner for MAME"""
-# Standard Library
 import os
 import subprocess
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.strings import split_arguments
 from lutris.util.log import logger
 from lutris.util.mame.database import get_supported_systems
 
@@ -100,7 +99,10 @@ class mame(Runner):  # pylint: disable=invalid-name
             ],
         },
         {
-
+            "option": "args",
+            "type": "string",
+            "label": _("Arguments"),
+            "help": _("Command line arguments used when launching the game"),
         },
         {
             "option": "autoboot_command",
@@ -265,5 +267,8 @@ class mame(Runner):  # pylint: disable=invalid-name
             command += ["-autoboot_command", self.game_config["autoboot_command"] + "\\n"]
             if self.game_config.get("autoboot_delay"):
                 command += ["-autoboot_delay", str(self.game_config["autoboot_delay"])]
+
+        for arg in split_arguments(self.game_config.get("args")):
+            command.append(arg)
 
         return {"command": command}
