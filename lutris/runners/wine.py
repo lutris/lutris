@@ -188,16 +188,11 @@ class wine(Runner):
 
         self.runner_options = [
             {
-                "option":
-                "version",
-                "label":
-                _("Wine version"),
-                "type":
-                "choice",
-                "choices":
-                get_wine_version_choices,
-                "default":
-                get_default_version(),
+                "option": "version",
+                "label": _("Wine version"),
+                "type": "choice",
+                "choices": get_wine_version_choices,
+                "default": get_default_version(),
                 "help": _(
                     "The version of Wine used to launch the game.\n"
                     "Using the last version is generally recommended, "
@@ -221,25 +216,17 @@ class wine(Runner):
                 "help": _("Switch on to use /usr/bin/winetricks for winetricks."),
             },
             {
-                "option":
-                "dxvk",
-                "label":
-                _("Enable DXVK"),
-                "type":
-                "extended_bool",
-                "callback":
-                dxvk_vulkan_callback,
-                "callback_on":
-                True,
-                "default":
-                True,
-                "active":
-                True,
+                "option": "dxvk",
+                "label": _("Enable DXVK"),
+                "type": "extended_bool",
+                "callback": dxvk_vulkan_callback,
+                "callback_on": True,
+                "default": True,
+                "active": True,
                 "help": _(
                     "Use DXVK to increase compatibility and performance "
                     "in Direct3D 11 and 10 applications by translating "
-                    "their calls to Vulkan."
-                ),
+                    "their calls to Vulkan."),
             },
             {
                 "option": "dxvk_version",
@@ -250,6 +237,13 @@ class wine(Runner):
                 "default": dxvk.DXVKManager.DXVK_LATEST,
             },
             {
+                "option": "dvxk_d3d9",
+                "label": _("Enable DX9 in DXVK"),
+                "type": "bool",
+                "default": True,
+                "help": _("Use DXVK to handle DirectX9 games")
+            },
+            {
                 "option": "vkd3d",
                 "label": _("Enable VKD3D"),
                 "type": "bool",
@@ -257,18 +251,12 @@ class wine(Runner):
                 "help": _("Enable DX12 support with VKD3D. This requires a compatible Wine build.")
             },
             {
-                "option":
-                "esync",
-                "label":
-                _("Enable Esync"),
-                "type":
-                "extended_bool",
-                "callback":
-                esync_limit_callback,
-                "callback_on":
-                True,
-                "active":
-                True,
+                "option": "esync",
+                "label": _("Enable Esync"),
+                "type": "extended_bool",
+                "callback": esync_limit_callback,
+                "callback_on": True,
+                "active": True,
                 "help": _(
                     "Enable eventfd-based synchronization (esync). "
                     "This will increase performance in applications "
@@ -276,19 +264,13 @@ class wine(Runner):
                 ),
             },
             {
-                "option":
-                "fsync",
-                "label":
-                _("Enable Fsync"),
-                "type":
-                "extended_bool",
-                "callback":
-                fsync_support_callback,
-                "callback_on":
-                True,
-                "active":
-                True,
-                "help": _(
+                "option": "fsync",
+                "label": "Enable Fsync",
+                "type": "extended_bool",
+                "callback": fsync_support_callback,
+                "callback_on": True,
+                "active": True,
+                "help": (
                     "Enable futex-based synchronization (fsync). "
                     "This will increase performance in applications "
                     "that take advantage of multi-core processors. "
@@ -296,18 +278,12 @@ class wine(Runner):
                 ),
             },
             {
-                "option":
-                "gallium_nine",
-                "label":
-                _("Enable Gallium Nine"),
-                "type":
-                "bool",
-                "default":
-                False,
-                "condition":
-                nine.NineManager.is_available(),
-                "advanced":
-                True,
+                "option": "gallium_nine",
+                "label": _("Enable Gallium Nine"),
+                "type": "bool",
+                "default": False,
+                "condition": nine.NineManager.is_available(),
+                "advanced": True,
                 "help": _(
                     "Gallium Nine allows to run Direct3D 9 applications faster.\n"
                     "Make sure your active graphics card supports Gallium Nine state "
@@ -870,6 +846,8 @@ class wine(Runner):
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
         if self.runner_config.get("vkd3d"):
             dxvk_manager = dxvk.VKD3DManager
+        elif not self.runner_config.get("dxvk_d3d9", True):
+            dxvk_manager = dxvk.DXVKManagerNoD3D9
         else:
             dxvk_manager = dxvk.DXVKManager
         self.setup_dxvk(
