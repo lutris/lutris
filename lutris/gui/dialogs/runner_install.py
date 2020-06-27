@@ -37,7 +37,7 @@ class RunnerInstallDialog(Dialog):
         self.runner = runner
         self.runner_info = {}
         self.installing = {}
-        self.set_default_size(512, 480)
+        self.set_default_size(640, 480)
 
         self.renderer_progress = Gtk.CellRendererProgress()
 
@@ -110,13 +110,13 @@ class RunnerInstallDialog(Dialog):
             value=self.COL_PROGRESS,
             visible=self.COL_PROGRESS,
         )
-        progress_column.set_property("fixed-width", 60)
-        progress_column.set_property("min-width", 60)
-        progress_column.set_property("resizable", False)
+        progress_column.set_property("fixed-width", 120)
+        progress_column.set_property("min-width", 120)
+        progress_column.set_property("resizable", True)
         treeview.append_column(progress_column)
 
         usage_column = Gtk.TreeViewColumn(None, renderer_text, text=self.COL_USAGE)
-        usage_column.set_property("min-width", 200)
+        usage_column.set_property("min-width", 150)
         treeview.append_column(usage_column)
 
         return treeview
