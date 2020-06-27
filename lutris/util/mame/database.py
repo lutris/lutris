@@ -59,7 +59,11 @@ def is_system(machine):
 
 def iter_machines(xml_path, filter_func=None):
     """Iterate through machine nodes in the MAME XML"""
-    root = ElementTree.parse(xml_path).getroot()
+    try:
+        root = ElementTree.parse(xml_path).getroot()
+    except Exception as ex:  # pylint: disable=broad-except
+        logger.error("Failed to read MAME XML: %s", ex)
+        return []
     for machine in root:
         if filter_func and not filter_func(machine):
             continue
@@ -117,6 +121,8 @@ def get_supported_systems(xml_path, force=False):
         machine.attrib["name"]: get_machine_info(machine)
         for machine in iter_machines(xml_path, is_system)
     }
+    if not systems:
+        return {}
     with open(systems_cache_path, "w") as systems_cache_file:
         json.dump(systems, systems_cache_file, indent=2)
     return systems
