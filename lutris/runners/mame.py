@@ -6,9 +6,9 @@ from gettext import gettext as _
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.strings import split_arguments
 from lutris.util.log import logger
 from lutris.util.mame.database import get_supported_systems
+from lutris.util.strings import split_arguments
 
 
 def get_system_choices(include_year=True):
