@@ -807,10 +807,12 @@
                         <property name="halign">center</property>
                         <property name="hexpand">False</property>
                         <property name="orientation">vertical</property>
+                        <property name="margin">6</property>
                         <child>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="spacing">12</property>
                             <child>
                               <object class="GtkSearchEntry" id="search_entry">
                                 <property name="visible">True</property>
