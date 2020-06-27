@@ -17,6 +17,9 @@ def get_system_choices(include_year=True):
     if not system.path_exists(xml_path):
         logger.info("Getting full game list from MAME...")
         mame_inst = mame()
+        if not mame_inst.is_installed():
+            logger.info("MAME isn't installed, can't retrieve systems list.")
+            return []
         mame_inst.write_xml_list()
     for system_id, info in sorted(
         get_supported_systems(xml_path).items(),
