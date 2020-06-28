@@ -100,12 +100,12 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
         game_path = self.game_data.get("directory")
         if game_path:
             return game_path
+
         # Default to the directory where the entry point is located.
-        return os.path.dirname(
-            os.path.expanduser(
-                self.game_config.get(self.entry_point_option)
-            )
-        )
+        entry_point = self.game_config.get(self.entry_point_option)
+        if entry_point:
+            return os.path.dirname(os.path.expanduser(entry_point))
+        return ""
 
     @property
     def working_dir(self):
