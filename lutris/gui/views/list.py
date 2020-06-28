@@ -74,6 +74,7 @@ class GameListView(Gtk.TreeView, GameView):
         column.set_fixed_width(int(width) if width else default_width)
         self.append_column(column)
         column.connect("notify::width", self.on_column_width_changed)
+        column.get_button().connect('button-press-event', self.on_column_header_button_pressed)
         return column
 
     def set_column_sort(self, col):
@@ -100,6 +101,12 @@ class GameListView(Gtk.TreeView, GameView):
         row = self.game_store.get_row_by_id(game_id, filtered=True)
         if row:
             self.set_cursor(row.path)
+
+    def on_column_header_button_pressed(self, button, event):
+        """Handles column header button press events"""
+        if event.button == 3:
+            # TODO: Trigger column selection popup menu here!
+            return True
 
     def on_row_activated(self, widget, line=None, column=None):
         """Handles double clicks"""
