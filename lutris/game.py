@@ -469,7 +469,7 @@ class Game(GObject.Object):
             env["LD_PRELOAD"] = ld_preload
 
         # Feral gamemode
-        gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available
+        gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
         if gamemode:
             if system.find_executable("gamemoderun"):
                 launch_arguments.insert(0, "gamemoderun")
