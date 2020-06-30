@@ -238,13 +238,14 @@ class wine(Runner):
                 "choices": get_dxvk_choices,
                 "default": dxvk.DXVKManager.DXVK_LATEST,
             },
-            {
-                "option": "dvxk_d3d9",
-                "label": _("Enable DX9 in DXVK"),
-                "type": "bool",
-                "default": True,
-                "help": _("Use DXVK to handle DirectX9 games")
-            },
+            # Disabled until we get a working implementation if this option.
+            # {
+            #     "option": "dvxk_d3d9",
+            #     "label": _("Enable DX9 in DXVK"),
+            #     "type": "bool",
+            #     "default": True,
+            #     "help": _("Use DXVK to handle DirectX9 games")
+            # },
             {
                 "option": "vkd3d",
                 "label": _("Enable VKD3D"),
