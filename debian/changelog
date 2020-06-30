@@ -11,7 +11,6 @@ lutris (0.5.7) focal; urgency=medium
   * Add a no-GUI option to RPCS3
   * Fix GalliumNine conflicts with DXVK
   * Improve performance of DirectX 12 games running on AMD GPU by setting RADV_DEBUG=zerovram
-  * Add option to disable Direct9 support in DXVK
   * Code style fixes. Pylint is now used in the Travis checks.
 
  -- Mathieu Comandon <strider@strycore.com>  Fri, 26 Jun 2020 18:06:18 -0700
