@@ -32,7 +32,7 @@ def notify_mame_xml():
 
 def get_system_choices(include_year=True):
     """Return list of systems for inclusion in dropdown"""
-    if not system.path_exists(MAME_XML_PATH):
+    if not system.path_exists(MAME_XML_PATH, exclude_empty=True):
         AsyncCall(write_mame_xml, notify_mame_xml)
         logger.warning("MAME XML generation launched in the background, not returning anything this time")
         return []
