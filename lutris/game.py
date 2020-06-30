@@ -146,6 +146,11 @@ class Game(GObject.Object):
         elif message["error"] == "NOT_EXECUTABLE":
             message_text = message["file"].replace("&", "&amp;")
             dialogs.ErrorDialog(_("The file %s is not executable") % message_text)
+        elif message["error"] == "PATH_NOT_SET":
+            message_text = _("The path '%s' is not set. please set it in the options.") % message["path"]
+            dialogs.ErrorDialog(message_text)
+        else:
+            dialogs.ErrorDialog(_("Unhandled error: %s") % message["error"])
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
