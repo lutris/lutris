@@ -26,7 +26,7 @@ def write_mame_xml():
         mame_inst.write_xml_list()
 
 
-def notify_mame_xml():
+def notify_mame_xml(*args, **kwargs):
     logger.info("MAME XML written")
 
 
