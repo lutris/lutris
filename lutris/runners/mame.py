@@ -216,7 +216,10 @@ class mame(Runner):  # pylint: disable=invalid-name
             os.makedirs(self.cache_dir)
         with open(self.xml_path, "w") as xml_file:
             output = system.execute([self.get_executable(), "-listxml"])
-            xml_file.write(output)
+            if output:
+                xml_file.write(output)
+            else:
+                logger.warning("Couldn't get any output for mame -listxml")
             logger.info("MAME XML list written to %s", self.xml_path)
 
     def get_platform(self):
