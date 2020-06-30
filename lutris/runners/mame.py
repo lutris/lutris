@@ -6,10 +6,10 @@ from gettext import gettext as _
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.mame.database import get_supported_systems
 from lutris.util.strings import split_arguments
-from lutris.util.jobs import AsyncCall
 
 MAME_CACHE_DIR = os.path.join(settings.CACHE_DIR, "mame")
 MAME_XML_PATH = os.path.join(MAME_CACHE_DIR, "mame.xml")
