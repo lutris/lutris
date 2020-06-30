@@ -26,8 +26,16 @@ def write_mame_xml():
         mame_inst.write_xml_list()
 
 
+def notify_mame_xml():
+    logger.info("MAME XML written")
+
+
 def get_system_choices(include_year=True):
     """Return list of systems for inclusion in dropdown"""
+    if not system.path_exists(MAME_XML_PATH):
+        AsyncCall(write_mame_xml, notify_mame_xml)
+        logger.warning("MAME XML generation launched in the background, not returning anything this time")
+        return []
     for system_id, info in sorted(
         get_supported_systems(MAME_XML_PATH).items(),
         key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"]),
@@ -216,8 +224,7 @@ class mame(Runner):  # pylint: disable=invalid-name
     def install(self, version=None, downloader=None, callback=None):
 
         def on_runner_installed(*args):
-            logger.info("Getting MAME XML")
-            AsyncCall(write_mame_xml, None)
+            AsyncCall(write_mame_xml, notify_mame_xml)
 
         super().install(version=version, downloader=downloader, callback=on_runner_installed)
 
