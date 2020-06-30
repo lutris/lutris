@@ -11,18 +11,22 @@ from lutris.util.mame.database import get_supported_systems
 from lutris.util.strings import split_arguments
 
 
-def get_system_choices(include_year=True):
-    """Return list of systems for inclusion in dropdown"""
-    xml_path = os.path.join(settings.CACHE_DIR, "mame", "mame.xml")
-    if not system.path_exists(xml_path):
+MAME_XML_PATH = os.path.join(settings.CACHE_DIR, "mame", "mame.xml")
+
+def write_mame_xml():
+    if not system.path_exists(MAME_XML_PATH):
         logger.info("Getting full game list from MAME...")
         mame_inst = mame()
         if not mame_inst.is_installed():
             logger.info("MAME isn't installed, can't retrieve systems list.")
             return []
         mame_inst.write_xml_list()
+
+
+def get_system_choices(include_year=True):
+    """Return list of systems for inclusion in dropdown"""
     for system_id, info in sorted(
-        get_supported_systems(xml_path).items(),
+        get_supported_systems(MAME_XML_PATH).items(),
         key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"]),
     ):
         if info["description"].startswith(info["manufacturer"]):
