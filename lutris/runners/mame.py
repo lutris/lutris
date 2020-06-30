@@ -9,11 +9,14 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.mame.database import get_supported_systems
 from lutris.util.strings import split_arguments
+from lutris.util.jobs import AsyncCall
 
-
-MAME_XML_PATH = os.path.join(settings.CACHE_DIR, "mame", "mame.xml")
+MAME_CACHE_DIR = os.path.join(settings.CACHE_DIR, "mame")
+MAME_XML_PATH = os.path.join(MAME_CACHE_DIR, "mame.xml")
 
 def write_mame_xml():
+    if not system.path_exists(MAME_CACHE_DIR):
+        system.create_folder(MAME_CACHE_DIR)
     if not system.path_exists(MAME_XML_PATH):
         logger.info("Getting full game list from MAME...")
         mame_inst = mame()
@@ -209,6 +212,14 @@ class mame(Runner):  # pylint: disable=invalid-name
         self._platforms = [choice[0] for choice in get_system_choices(include_year=False)]
         self._platforms += [_("Arcade"), _("Nintendo Game & Watch")]
         return self._platforms
+
+    def install(self, version=None, downloader=None, callback=None):
+
+        def on_runner_installed(*args):
+            logger.info("Getting MAME XML")
+            AsyncCall(write_mame_xml, None)
+
+        super().install(version=version, downloader=downloader, callback=on_runner_installed)
 
     def write_xml_list(self):
         """Write the full game list in XML to disk"""
