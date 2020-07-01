@@ -279,7 +279,8 @@ def connect(parent=None):
     """Connect to GOG"""
     logger.debug("Connecting to GOG")
     dialog = WebConnectDialog(SERVICE, parent)
-    dialog.run()
+    dialog.set_modal(True)
+    dialog.show()
 
 
 def disconnect():
