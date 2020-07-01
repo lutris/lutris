@@ -21,7 +21,7 @@ from lutris.util.log import logger
 class RunnerMeta(type):
     def __new__(mcs, name, bases, body):
         if name != 'Runner' and 'play' not in body:
-            raise TypeError(f"The play method is not implemented in runner {name}!")
+            raise TypeError("The play method is not implemented in runner %s!", name)
         return super().__new__(mcs, name, bases, body)
 
 
