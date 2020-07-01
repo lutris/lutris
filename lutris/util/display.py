@@ -135,11 +135,11 @@ class DesktopEnvironment(enum.Enum):
 
     """Enum of desktop environments."""
 
-    PLASMA = enum.auto()
-    MATE = enum.auto()
-    XFCE = enum.auto()
-    DEEPIN = enum.auto()
-    UNKNOWN = enum.auto()
+    PLASMA = 0
+    MATE = 1
+    XFCE = 2
+    DEEPIN = 3
+    UNKNOWN = 999
 
 
 def get_desktop_environment():
