@@ -152,7 +152,8 @@ def is_connected():
 def connect(parent=None):
     """Connect to Humble Bundle"""
     dialog = WebConnectDialog(SERVICE, parent)
-    dialog.run()
+    dialog.set_modal(True)
+    dialog.show()
 
 
 def disconnect():
