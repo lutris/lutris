@@ -13,7 +13,12 @@ Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary"
 def _get_vidmodes():
     """Return video modes from XrandR"""
     logger.debug("Retrieving video modes from XrandR")
-    xrandr_output = subprocess.check_output(["xrandr"])
+    try:
+        xrandr_output = subprocess.check_output(["xrandr"])
+    except subprocess.CalledProcessError as ex:
+        logger.error("Unable to read xrandr: %s", ex)
+        return ""
+
     return xrandr_output.decode().split("\n")
 
 
