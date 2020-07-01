@@ -171,6 +171,9 @@ class ServiceSyncBox(Gtk.Box):
         if not window:
             logger.warning("Unable to get main window")
             return
+        if not sync_results:
+            logger.error("No sync results were passed")
+            return
         added_games, original_games = sync_results
 
         skipped_import = len(original_games) - len(added_games)
