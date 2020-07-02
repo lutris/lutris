@@ -334,12 +334,12 @@ class GOGSyncer:
         lutris_games = api.get_api_games(gog_ids, query_type="gogid")
         added_games = []
         for game in lutris_games:
-            lutris_data = pga.get_game_by_field(game["slug"], field="slug")
+            lutris_data = pga.get_game_by_field(game["slug"], field="slug") or {}
             game_data = {
                 "name": game["name"],
                 "slug": game["slug"],
-                "installed": lutris_data["installed"],
-                "configpath": lutris_data["configpath"],
+                "installed": lutris_data.get("installed"),
+                "configpath": lutris_data.get("configpath"),
                 "year": game["year"],
                 "updated": game["updated"],
                 "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
