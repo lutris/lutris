@@ -47,7 +47,7 @@ def _get_graphics_adapters():
         return []
     return [
         (pci_id, device_desc.split(": ")[1]) for pci_id, device_desc in [
-            line.split(maxsplit=1) for line in system.execute(lspci_path).split("\n")
+            line.split(maxsplit=1) for line in system.execute(lspci_path, timeout=3).split("\n")
             if any(subclass in line for subclass in dev_subclasses)
         ]
     ]
