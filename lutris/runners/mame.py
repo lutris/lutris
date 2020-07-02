@@ -14,6 +14,7 @@ from lutris.util.strings import split_arguments
 MAME_CACHE_DIR = os.path.join(settings.CACHE_DIR, "mame")
 MAME_XML_PATH = os.path.join(MAME_CACHE_DIR, "mame.xml")
 
+
 def write_mame_xml():
     if not system.path_exists(MAME_CACHE_DIR):
         system.create_folder(MAME_CACHE_DIR)
