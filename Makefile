@@ -44,7 +44,7 @@ changelog-edit:
 	dch -e
 
 upload:
-	scp build/lutris_${VERSION}.tar.xz lutris.net:/srv/releases/
+	scp build/lutris_${VERSION}.tar.xz anaheim:~/volumes/releases/
 
 upload-ppa:
 	dput ppa:lutris-team/lutris build/lutris_${VERSION}*_source.changes
