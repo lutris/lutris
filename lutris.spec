@@ -115,6 +115,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 
 %files
 %{_bindir}/%{name}
+%{_mandir}/%{name}.1
 %{_datadir}/%{name}/
 %{_datadir}/metainfo/%{appid}.metainfo.xml
 %{_datadir}/applications/%{appid}.desktop
