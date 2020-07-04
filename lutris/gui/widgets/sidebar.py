@@ -205,7 +205,10 @@ class LutrisSidebar(Gtk.ListBox):
             self.add(RunnerSidebarRow(runner_name, "runner", runner.human_name, icon, application=self.application))
 
         self.add(SidebarRow(None, "platform", _("All"), None))
-        for platform in self.platforms:
+        # what are the consequences of changing this to only use active platforms?
+        # maybe the platform list is not automatically updated when a game from a
+        #  new platform is added?
+        for platform in self.active_platforms:
             icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             self.add(SidebarRow(platform, "platform", platform, icon))
