@@ -30,3 +30,6 @@ venv
 .venv
 env
 .env
+
+# glade recovery files
+*.ui~

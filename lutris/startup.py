@@ -138,8 +138,8 @@ def fill_missing_platforms():
     """
     pga_games = get_games(filters={"installed": 1})
     for pga_game in pga_games:
-        if pga_game.get("platform") or not pga_game["runner"]:
-            continue
+        # if pga_game.get("platform") or not pga_game["runner"]:
+            # continue
         game = Game(game_id=pga_game["id"])
         game.set_platform_from_runner()
         if game.platform:
