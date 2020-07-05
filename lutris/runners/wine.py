@@ -34,7 +34,7 @@ from lutris.util.wine.wine import (
 )
 from lutris.util.wine.x360ce import X360ce
 
-MIN_SAFE_VERSION = "4.0"  # Wine installers must run with at least this version
+MIN_SAFE_VERSION = "5.0"  # Wine installers must run with at least this version
 
 
 class wine(Runner):
