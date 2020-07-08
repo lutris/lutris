@@ -105,6 +105,7 @@ class GameStore(GObject.Object):
         self.filter_text = None
         self.filter_runner = None
         self.filter_platform = None
+        self.filter_category = None
         self.store = Gtk.ListStore(
             int,
             str,
@@ -225,6 +226,10 @@ class GameStore(GObject.Object):
         if self.filter_platform:
             platform = model.get_value(_iter, COL_PLATFORM)
             if platform != self.filter_platform:
+                return False
+        if self.filter_category:
+            identifier = model.get_value(_iter, COL_ID)
+            if (identifier is None) or identifier not in pga.get_games_in_categories(self.filter_category):
                 return False
         return True
 

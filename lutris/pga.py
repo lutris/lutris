@@ -142,15 +142,20 @@ DATABASE = {
         },
     ],
     "sources": [
-        {
-            "name": "id",
-            "type": "INTEGER",
-            "indexed": True
-        },
-        {
-            "name": "uri",
-            "type": "TEXT UNIQUE"
-        },
+        {"name": "id", "type": "INTEGER", "indexed": True},
+        {"name": "uri", "type": "TEXT UNIQUE"},
+     ],
+    "categories": [
+        {"name": "id", "type": "INTEGER", "indexed": True},
+        {"name": "category", "type": "TEXT"},
+        {"name": "category", "type": "UNIQUE"},
+    ],
+    "games_categories": [
+        {"name": "game_id", "type": "INTEGER", "indexed": False},
+        {"name": "category_id", "type": "INTEGER", "indexed": False},
+        {"name": "games", "type": "REFERENCE", "indexed": False,  "referenced": "id"},
+        {"name": "categories", "type": "REFERENCE", "indexed": False, "referenced": "id"},
+        #{"name": "games, categories", "type": "UNIQUE"},
     ]
 }
 
@@ -182,10 +187,15 @@ def get_schema(tablename):
 
 def field_to_string(name="", type="", indexed=False):  # pylint: disable=redefined-builtin
     """Converts a python based table definition to it's SQL statement"""
-    field_query = "%s %s" % (name, type)
-    if indexed:
-        field_query += " PRIMARY KEY"
-    return field_query
+    if type == "UNIQUE":
+        return "UNIQUE (%s)" % name
+
+    if referenced is None:
+        field_query = "%s %s" % (name, type)
+        if indexed:
+            field_query += " PRIMARY KEY"
+        return field_query
+    return "FOREIGN KEY (%s) REFERENCES %s(%s)" % (name, name, referenced)
 
 
 def create_table(name, schema):
@@ -310,7 +320,7 @@ def get_games_where(**conditions):
     if condition:
         query = " WHERE ".join((query, condition))
     else:
-        # FIXME: Inspect and document why we should return
+        # Inspect and document why we should return
         # an empty list when no condition is present.
         return []
     return sql.db_query(PGA_DB, query, tuple(condition_values))
@@ -412,7 +422,6 @@ def delete_game(game_id):
     """Delete a game from the PGA."""
     sql.db_delete(PGA_DB, "games", "id", game_id)
 
-
 def set_uninstalled(game_id):
     sql.db_update(PGA_DB, "games", {"installed": 0, "runner": ""}, ("id", game_id))
 
@@ -510,7 +519,6 @@ def get_used_platforms_game_count():
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}
 
-
 def get_hidden_ids():
     """Return a list of game IDs to be excluded from the library view"""
     # Load the ignore string and filter out empty strings to prevent issues
@@ -525,3 +533,74 @@ def set_hidden_ids(games):
     """Writes a list of game IDs that are to be hidden into the config file"""
     ignores_str = [str(game_id) for game_id in games]
     settings.write_setting("library_ignores", ','.join(ignores_str), section="lutris")
+
+def get_categories(select="*"):
+    """Get the list of every category in database."""
+
+    category_result = sql.db_select(PGA_DB, "categories",)
+    if category_result:
+        #print (category_result[0])
+        return category_result[0]
+    return {}
+
+    #query = "select %s from categories" % (select)
+    #params = []
+
+    #query += " ORDER BY category"
+
+    #return_categories = []
+    #for category in sql.db_query(PGA_DB, query, tuple(params)):
+    #    return_categories.append(category["category"])
+    #print(return_categories)
+    #return return_categories
+
+def get_games_in_categories(category="*"):
+    """Get the ids of games in database."""
+    query = "select games.id from games " \
+            "JOIN games_categories ON games.id = games_categories.games " \
+            "JOIN categories ON categories.id = games_categories.categories " \
+            "WHERE categories.category = ?" % (category)
+    params = []
+    return [
+        game["id"]
+        for game in sql.db_query(PGA_DB, query, tuple(params)):
+    ]
+    return return_ids
+
+def get_categories_in_game(game_id=-1):
+    """Get the categories of a game in database."""
+    if game_id < 0:
+        return []
+    query = (
+        "select categories.category from categories "
+        "JOIN games_categories ON categories.id = games_categories.category_id "
+        "JOIN games ON games.id = games_categories.game_id "
+        "WHERE games.id = \"?\""
+    )
+    return [
+        category["category"]
+        for category in sql.db_query(PGA_DB, query, (game_id,)):
+    ]
+
+def add_category_favorite():
+    """Add a favorite category to the PGA database if it doesn't exist"""
+    try:
+        return sql.db_insert(PGA_DB, "categories", {"category": "favorite"})
+    except Exception as e:
+        print("")
+
+def add_game_to_category(game_id=-1, category=None):
+    """Add a m2m reference from game2category to the PGA database."""
+    query = "insert into games_categories (games, categories) " \
+            "select " + str(game_id) + " as games, categories.id as categories from categories " \
+                                       "where categories.category = \"" + category + "\""
+    with sql.db_cursor(PGA_DB) as cursor:
+        sql.cursor_execute(cursor, query)
+
+def delete_game_by_id_from_category(game_id, category):
+    """Delete a game to category entry from the m2m table."""
+    query = "DELETE FROM games_categories WHERE categories IN " \
+            "( SELECT games_categories.categories from categories WHERE games_categories.categories = categories.id " \
+            "AND categories.category = \"" + category + "\" ) AND games_categories.games = " + str(game_id)
+    with sql.db_cursor(PGA_DB) as cursor:
+        sql.cursor_execute(cursor, query)
