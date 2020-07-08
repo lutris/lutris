@@ -25,7 +25,7 @@ from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, split_arguments
 from lutris.util.wine import dxvk, nine
-from lutris.util.wine.prefix import WinePrefixManager
+from lutris.util.wine.prefix import WinePrefixManager, find_prefix
 from lutris.util.wine.wine import (
     POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
     esync_display_version_warning, fsync_display_support_warning, fsync_display_version_warning, get_default_version,
@@ -581,13 +581,15 @@ class wine(Runner):
     @property
     def prefix_path(self):
         """Return the absolute path of the Wine prefix"""
-        _prefix_path = self.game_config.get("prefix")
+        _prefix_path = self.game_config.get("prefix") \
+            or os.environ.get("WINEPREFIX") \
+            or find_prefix(self.game_exe)
         if not _prefix_path:
             logger.warning(
-                "Wine prefix not provided, defaulting to $WINEPREFIX then ~/.wine."
+                "Wine prefix not provided, defaulting to ~/.wine."
                 " This is probably not the intended behavior."
             )
-            _prefix_path = os.environ.get("WINEPREFIX") or "~/.wine"
+            _prefix_path = "~/.wine"
         return os.path.expanduser(_prefix_path)
 
     @property

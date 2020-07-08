@@ -13,6 +13,26 @@ DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
 DEFAULT_DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
 DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES"]
 
+def is_prefix(path):
+    """Return True if the path is prefix"""
+    return os.path.isdir(os.path.join(path, "drive_c")) \
+        and os.path.exists(os.path.join(path, "user.reg"))
+
+def find_prefix(path):
+    """Given an executable path, try to find a Wine prefix associated with it."""
+    dir_path = path
+    if not dir_path:
+        logger.info("No path given, unable to guess prefix location")
+        return
+    while dir_path != "/" and dir_path:
+        dir_path = os.path.dirname(dir_path)
+        if is_prefix(dir_path):
+            return dir_path
+        for prefix_dir in ("prefix", "pfx"):
+            prefix_path = os.path.join(dir_path, prefix_dir)
+            if is_prefix(prefix_path):
+                return prefix_path
+
 
 class WinePrefixManager:
 
