@@ -550,7 +550,7 @@ def get_games_in_category(category_name):
         "WHERE categories.name=?"
     )
     return [
-        game["id"]
+        game["game_id"]
         for game in sql.db_query(PGA_DB, query, (category_name, ))
     ]
 

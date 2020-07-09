@@ -21,6 +21,14 @@ LABEL = 3
 GAMECOUNT = 4
 
 
+def load_icon_theme():
+    """Add the lutris icon folder to the default theme"""
+    icon_theme = Gtk.IconTheme.get_default()
+    local_theme_path = os.path.join(datapath.get(), "icons")
+    if local_theme_path not in icon_theme.get_search_path():
+        icon_theme.prepend_search_path(local_theme_path)
+
+
 class SidebarRow(Gtk.ListBoxRow):
 
     def __init__(self, id_, type_, name, icon):
@@ -133,18 +141,14 @@ class SidebarListBox(Gtk.ListBox):
         self.active_platforms = pga.get_used_platforms()
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(platforms.__all__)
-        self.sidebar_categories = dict()  # We have to keep track on the elements somewhere
+        self.categories = pga.get_categories()
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
         GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
         GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
 
-        # TODO: This should be in a more logical location
-        icon_theme = Gtk.IconTheme.get_default()
-        local_theme_path = os.path.join(datapath.get(), "icons")
-        if local_theme_path not in icon_theme.get_search_path():
-            icon_theme.prepend_search_path(local_theme_path)
+        load_icon_theme()
 
         icon = Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
         self.add(SidebarRow("favorite", "category", _("Favorites"), icon))
@@ -194,14 +198,8 @@ class SidebarListBox(Gtk.ListBox):
         elif before.type == "runner" and row.type == "platform":
             row.set_header(SidebarHeader(_("Platforms")))
 
-    def add_category_entries(self):
-        for category in pga.get_categories():
-            self.sidebar_categories[category["id"]] = SidebarRow(category["id"], category["name"], category["name"].capitalize(), None)
-            self.add(self.sidebar_categories[category["id"]])
-
-    def update(self, *args):  # pylint: disable=unused-argument
+    def update(self, *_args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
-        self.add_category_entries()
         self.invalidate_filter()
         return True

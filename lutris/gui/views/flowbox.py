@@ -102,11 +102,6 @@ class GameFlowBox(FlowBox):
 
         self.icon_type = icon_type
 
-        self.filter_text = ""
-        self.filter_runner = None
-        self.filter_platform = None
-        self.filter_installed = filter_installed
-
         self.game_list = game_list
 
     @property
@@ -121,21 +116,6 @@ class GameFlowBox(FlowBox):
         return game_item.game.id
 
     def filter_func(self, child):
-        game = child.get_children()[0]
-        if self.filter_installed:
-            if not game.installed:
-                return False
-        if self.filter_text:
-            if self.filter_text.lower() not in game.name.lower():
-                return False
-        if self.filter_runner:
-            if self.filter_runner != game.runner:
-                return False
-        if self.filter_platform:
-            if not game.game.runner:
-                return False
-            if self.filter_platform != game.game.platform:
-                return False
         return True
 
     @staticmethod
