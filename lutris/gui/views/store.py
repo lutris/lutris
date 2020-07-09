@@ -217,7 +217,10 @@ class GameStore(GObject.Object):
             "text": lambda: self.filters["text"].lower() not in model.get_value(_iter, COL_NAME).lower(),
             "runner": lambda: self.filters["runner"] != model.get_value(_iter, COL_RUNNER),
             "platform": lambda: self.filters["platform"] != model.get_value(_iter, COL_PLATFORM),
-            "category": lambda: model.get_value(_iter, COL_ID) not in pga.get_games_in_category(self.filters["category"]),
+            "category": lambda: (
+                model.get_value(_iter, COL_ID)
+                not in pga.get_games_in_category(self.filters["category"])
+            ),
         }
         for filter_key in self.filters:
             if self.filters[filter_key] and filter_defs[filter_key]():
