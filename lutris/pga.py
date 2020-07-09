@@ -530,12 +530,16 @@ def set_hidden_ids(games):
     settings.write_setting("library_ignores", ','.join(ignores_str), section="lutris")
 
 
-def get_categories(select="*"):
+def get_categories():
     """Get the list of every category in database."""
-    category_result = sql.db_select(PGA_DB, "categories",)
-    if category_result:
-        return category_result[0]
-    return {}
+    return sql.db_select(PGA_DB, "categories",)
+
+
+def get_category(name):
+    """Return a category by name"""
+    categories = sql.db_select(PGA_DB, "categories", condition=("name", name))
+    if categories:
+        return categories[0]
 
 
 def get_games_in_category(category_name):
@@ -543,7 +547,7 @@ def get_games_in_category(category_name):
     query = (
         "select game_id from games_categories "
         "JOIN categories ON categories.id = games_categories.category_id "
-        "WHERE categories.category=?"
+        "WHERE categories.name=?"
     )
     return [
         game["id"]

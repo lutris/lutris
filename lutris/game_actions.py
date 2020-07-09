@@ -214,12 +214,15 @@ class GameActions:
 
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""
-        pga.add_category_favorite()
-        pga.add_game_to_category(self.game.id, "favorite")
+        favorite = pga.get_category("favorite")
+        if not favorite:
+            favorite = pga.add_category("favorite")
+        pga.add_game_to_category(self.game.id, favorite["id"])
 
     def on_delete_favorite_game(self, _widget):
         """delete from favorites"""
-        pga.delete_game_by_id_from_category(self.game_id, "favorite")
+        favorite = pga.get_category("favorite")
+        pga.remove_category_from_game(self.game_id, favorite["id"])
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""

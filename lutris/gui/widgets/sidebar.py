@@ -176,9 +176,8 @@ class SidebarListBox(Gtk.ListBox):
             if row.id is None:
                 return True  # 'All'
             return row.id in self.installed_runners
+        print(row.type)
         if row.type == "favorite":
-            if len(self.sidebar_categories) < 1:
-                return False  # Hide useless filter
             return True
         if len(self.active_platforms) <= 1:
             return False  # Hide useless filter
@@ -197,24 +196,13 @@ class SidebarListBox(Gtk.ListBox):
             row.set_header(SidebarHeader("Category"))
 
     def add_category_entries(self):
-        categories = pga.get_categories()
         for category in pga.get_categories():
-            if category not in self.sidebar_categories.keys():
-                temp = SidebarRow(category, "Favorite Games", category, None)
-                self.sidebar_categories[category] = temp
-                self.add(temp)
-        removalbe_categories = []
-        for sidebar_category in self.sidebar_categories.keys():
-            if sidebar_category not in categories:
-                self.remove(self.sidebar_categories[sidebar_category])
-                removalbe_categories.append(sidebar_category)
-        for rem_category in removalbe_categories:
-            del self.sidebar_categories[rem_category]
-        self.show_all()
+            self.sidebar_categories[category["id"]] = SidebarRow(category["id"], category["name"], category["name"].capitalize(), None)
+            self.add(self.sidebar_categories[category["id"]])
 
     def update(self, *args):  # pylint: disable=unused-argument
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
         self.add_category_entries()
-        self.invalidate_filter()
+        # self.invalidate_filter()
         return True
