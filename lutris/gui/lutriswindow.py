@@ -86,6 +86,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.threads_stoppers = []
         self.selected_runner = None
         self.selected_platform = None
+        self.selected_category = None
         self.icon_type = None
 
         # Load settings
@@ -530,7 +531,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             child = scrollwindow_children[0]
             child.destroy()
         self.games_scrollwindow.add(self.view)
-        self.set_selected_filter(self.selected_runner, self.selected_platform)
+        self.set_selected_filter(self.selected_runner, self.selected_platform, self.selected_category)
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
@@ -697,14 +698,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""
         settings.write_setting("filter_installed", bool(filter_installed))
-        self.game_store.filter_installed = filter_installed
+        self.game_store.filters["installed"] = filter_installed
         self.invalidate_game_filter()
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
         if self.search_mode == "local":
-            self.game_store.filter_text = entry.get_text()
+            self.game_store.filters["text"] = entry.get_text()
             self.invalidate_game_filter()
         elif self.search_mode == "website":
             search_terms = entry.get_text().lower().strip()
@@ -787,7 +788,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_store = self.get_store(api.search_games(query) if query else None)
         self.game_store.set_icon_type(self.icon_type)
         self.game_store.load(from_search=bool(query))
-        self.game_store.filter_text = self.search_entry.props.text
+        self.game_store.filters["text"] = self.search_entry.props.text
         self.search_spinner.props.active = False
         self.switch_view(self.get_view_type())
         self.invalidate_game_filter()
@@ -892,18 +893,22 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
         if row is None:
-            self.set_selected_filter(None, None)
+            self.set_selected_filter(None, None, None)
         elif row.type == "runner":
-            self.set_selected_filter(row.id, None)
+            self.set_selected_filter(row.id, None, None)
+        elif row.type == "category":
+            self.set_selected_filter(None, None, row.id)
         else:
-            self.set_selected_filter(None, row.id)
+            self.set_selected_filter(None, row.id, None)
 
-    def set_selected_filter(self, runner, platform):
+    def set_selected_filter(self, runner, platform, category):
         """Filter the view to a given runner and platform"""
         self.selected_runner = runner
         self.selected_platform = platform
-        self.game_store.filter_runner = self.selected_runner
-        self.game_store.filter_platform = self.selected_platform
+        self.selected_category = category
+        self.game_store.filters["runner"] = self.selected_runner
+        self.game_store.filters["platform"] = self.selected_platform
+        self.game_store.filters["category"] = self.selected_category
         self.invalidate_game_filter()
 
     def show_invalid_credential_warning(self):

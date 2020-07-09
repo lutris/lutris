@@ -21,6 +21,14 @@ LABEL = 3
 GAMECOUNT = 4
 
 
+def load_icon_theme():
+    """Add the lutris icon folder to the default theme"""
+    icon_theme = Gtk.IconTheme.get_default()
+    local_theme_path = os.path.join(datapath.get(), "icons")
+    if local_theme_path not in icon_theme.get_search_path():
+        icon_theme.prepend_search_path(local_theme_path)
+
+
 class SidebarRow(Gtk.ListBoxRow):
 
     def __init__(self, id_, type_, name, icon):
@@ -133,17 +141,17 @@ class SidebarListBox(Gtk.ListBox):
         self.active_platforms = pga.get_used_platforms()
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(platforms.__all__)
+        self.categories = pga.get_categories()
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
         GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
         GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
 
-        # TODO: This should be in a more logical location
-        icon_theme = Gtk.IconTheme.get_default()
-        local_theme_path = os.path.join(datapath.get(), "icons")
-        if local_theme_path not in icon_theme.get_search_path():
-            icon_theme.prepend_search_path(local_theme_path)
+        load_icon_theme()
+
+        icon = Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
+        self.add(SidebarRow("favorite", "category", _("Favorites"), icon))
 
         all_row = SidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
@@ -166,28 +174,25 @@ class SidebarListBox(Gtk.ListBox):
         self.show_all()
 
     def _filter_func(self, row):
-        if row is None:
+        if not row or not row.id or row.type == "category":
             return True
         if row.type == "runner":
             if row.id is None:
                 return True  # 'All'
             return row.id in self.installed_runners
-        if len(self.active_platforms) <= 1:
-            return False  # Hide useless filter
-        if row.id is None:  # 'All'
-            return True
         return row.id in self.active_platforms
 
     def _header_func(self, row, before):
         if row.get_header():
             return
-
         if not before:
+            row.set_header(SidebarHeader(_("Library")))
+        elif before.type == "category" and row.type == "runner":
             row.set_header(SidebarHeader(_("Runners")))
         elif before.type == "runner" and row.type == "platform":
             row.set_header(SidebarHeader(_("Platforms")))
 
-    def update(self, *args):  # pylint: disable=unused-argument
+    def update(self, *_args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
         self.invalidate_filter()

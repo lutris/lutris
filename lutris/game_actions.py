@@ -6,10 +6,8 @@ import os
 import signal
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gio
 
-# Lutris Modules
 from lutris import pga
 from lutris.command import MonitoredCommand
 from lutris.game import Game
@@ -23,6 +21,14 @@ from lutris.gui.widgets.utils import open_uri
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.system import path_exists
+
+
+def game_in_favorite(game_id):
+    categories = pga.get_categories_in_game(game_id)
+    for category in categories:
+        if category == "favorite":
+            return True
+    return False
 
 
 class GameActions:
@@ -65,6 +71,8 @@ class GameActions:
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Add installed game"), self.on_add_manually),
             ("configure", _("Configure"), self.on_edit_game_configuration),
+            ("favorite", _("Add to favorites"), self.on_add_favorite_game),
+            ("deletefavorite", _("Remove from favorites"), self.on_delete_favorite_game),
             ("execute-script", _("Execute script"), self.on_execute_script_clicked),
             ("browse", _("Browse files"), self.on_browse_files),
             (
@@ -123,40 +131,37 @@ class GameActions:
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
         return {
-            "add":
-            not self.game.is_installed and not self.game.is_search_result,
-            "install":
-            not self.game.is_installed,
-            "play":
-            self.game.is_installed and not self.is_game_running,
-            "stop":
-            self.is_game_running,
-            "show_logs":
-            self.game.is_installed,
-            "configure":
-            bool(self.game.is_installed),
-            "install_more":
-            self.game.is_installed and not self.game.is_search_result,
-            "execute-script":
-            bool(self.game.is_installed and self.game.runner.system_config.get("manual_command")),
-            "desktop-shortcut":
-            (self.game.is_installed and not xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)),
-            "menu-shortcut":
-            (self.game.is_installed and not xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)),
-            "rm-desktop-shortcut":
-            bool(self.game.is_installed and xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)),
-            "rm-menu-shortcut":
-            bool(self.game.is_installed and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)),
-            "browse":
-            self.game.is_installed and self.game.runner_name != "browser",
-            "remove":
-            not self.game.is_search_result,
-            "view":
-            True,
-            "hide":
-            not GameActions.is_game_hidden(self.game),
-            "unhide":
-            GameActions.is_game_hidden(self.game)
+            "add": not self.game.is_installed and not self.game.is_search_result,
+            "install": not self.game.is_installed,
+            "play": self.game.is_installed and not self.is_game_running,
+            "stop": self.is_game_running,
+            "show_logs": self.game.is_installed,
+            "configure": bool(self.game.is_installed),
+            "favorite": self.game.is_installed and bool(not game_in_favorite(self.game_id)),
+            "deletefavorite": self.game.is_installed and bool(game_in_favorite(self.game_id)),
+            "install_more": self.game.is_installed and not self.game.is_search_result,
+            "execute-script": bool(self.game.is_installed and self.game.runner.system_config.get("manual_command")),
+            "desktop-shortcut": (
+                self.game.is_installed
+                and not xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)
+            ),
+            "menu-shortcut": (
+                self.game.is_installed
+                and not xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
+            ),
+            "rm-desktop-shortcut": bool(
+                self.game.is_installed
+                and xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)
+            ),
+            "rm-menu-shortcut": bool(
+                self.game.is_installed
+                and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
+            ),
+            "browse": self.game.is_installed and self.game.runner_name != "browser",
+            "remove": not self.game.is_search_result,
+            "view": True,
+            "hide": not GameActions.is_game_hidden(self.game),
+            "unhide": GameActions.is_game_hidden(self.game)
         }
 
     def on_game_run(self, *_args):
@@ -206,6 +211,18 @@ class GameActions:
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
         EditGameConfigDialog(self.window, self.game)
+
+    def on_add_favorite_game(self, _widget):
+        """Add to favorite Games list"""
+        favorite = pga.get_category("favorite")
+        if not favorite:
+            favorite = pga.add_category("favorite")
+        pga.add_game_to_category(self.game.id, favorite["id"])
+
+    def on_delete_favorite_game(self, _widget):
+        """delete from favorites"""
+        favorite = pga.get_category("favorite")
+        pga.remove_category_from_game(self.game_id, favorite["id"])
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""
