@@ -14,8 +14,6 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
-from lutris.gui.config.add_favorite_games import AddFavoriteGamesDialog
-from lutris.gui.config.delete_favorite_games import DeleteFavoriteGamesDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
 from lutris.gui.installerwindow import InstallerWindow
@@ -24,12 +22,14 @@ from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.system import path_exists
 
+
 def game_in_favorite(game_id):
     categories = pga.get_categories_in_game(game_id)
-    for category in categories :
+    for category in categories:
         if category == "favorite":
             return True
     return False
+
 
 class GameActions:
 
@@ -138,8 +138,7 @@ class GameActions:
             "show_logs": self.game.is_installed,
             "configure": bool(self.game.is_installed),
             "favorite": self.game.is_installed and bool(not game_in_favorite(self.game_id)),
-            "deletefavorite": self.game.is_installed and bool(game_in_favorite(self.game_id)
-            ),
+            "deletefavorite": self.game.is_installed and bool(game_in_favorite(self.game_id)),
             "install_more": self.game.is_installed and not self.game.is_search_result,
             "execute-script": bool(self.game.is_installed and self.game.runner.system_config.get("manual_command")),
             "desktop-shortcut": (
@@ -215,11 +214,12 @@ class GameActions:
 
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""
-        AddFavoriteGamesDialog(self.window, self.game)
+        pga.add_category_favorite()
+        pga.add_game_to_category(self.game.id, "favorite")
 
     def on_delete_favorite_game(self, _widget):
-        """delete to favorite Games list"""
-        DeleteFavoriteGamesDialog(self.window, self.game)
+        """delete from favorites"""
+        pga.delete_game_by_id_from_category(self.game_id, "favorite")
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""

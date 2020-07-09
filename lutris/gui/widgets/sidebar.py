@@ -146,6 +146,9 @@ class SidebarListBox(Gtk.ListBox):
         if local_theme_path not in icon_theme.get_search_path():
             icon_theme.prepend_search_path(local_theme_path)
 
+        self.add(SidebarRow(None, "category", "Games", None))
+        self.add(SidebarRow("category", "favorite", _("Favorites"), None))
+
         all_row = SidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
         self.select_row(all_row)
@@ -161,9 +164,6 @@ class SidebarListBox(Gtk.ListBox):
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             self.add(SidebarRow(platform, "platform", platform, icon))
 
-        self.add(SidebarRow(None, "category", "All", None))
-        self.add(SidebarRow("category", "favorite", "Favorite Games", None))
-
         self.set_filter_func(self._filter_func)
         self.set_header_func(self._header_func)
         self.update()
@@ -176,13 +176,13 @@ class SidebarListBox(Gtk.ListBox):
             if row.id is None:
                 return True  # 'All'
             return row.id in self.installed_runners
-        elif row.type == "favorite":
+        if row.type == "favorite":
             if len(self.sidebar_categories) < 1:
                 return False  # Hide useless filter
             return True
-        elif len(self.active_platforms) <= 1:
+        if len(self.active_platforms) <= 1:
             return False  # Hide useless filter
-        elif row.id is None:  # 'All'
+        if row.id is None:  # 'All'
             return True
         return row.id in self.active_platforms
 

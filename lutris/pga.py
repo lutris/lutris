@@ -144,18 +144,14 @@ DATABASE = {
     "sources": [
         {"name": "id", "type": "INTEGER", "indexed": True},
         {"name": "uri", "type": "TEXT UNIQUE"},
-     ],
+    ],
     "categories": [
         {"name": "id", "type": "INTEGER", "indexed": True},
-        {"name": "category", "type": "TEXT"},
-        {"name": "category", "type": "UNIQUE"},
+        {"name": "name", "type": "TEXT", "unique": True},
     ],
     "games_categories": [
         {"name": "game_id", "type": "INTEGER", "indexed": False},
         {"name": "category_id", "type": "INTEGER", "indexed": False},
-        {"name": "games", "type": "REFERENCE", "indexed": False,  "referenced": "id"},
-        {"name": "categories", "type": "REFERENCE", "indexed": False, "referenced": "id"},
-        #{"name": "games, categories", "type": "UNIQUE"},
     ]
 }
 
@@ -185,17 +181,14 @@ def get_schema(tablename):
     return tables
 
 
-def field_to_string(name="", type="", indexed=False):  # pylint: disable=redefined-builtin
+def field_to_string(name="", type="", indexed=False, unique=False):  # pylint: disable=redefined-builtin
     """Converts a python based table definition to it's SQL statement"""
-    if type == "UNIQUE":
-        return "UNIQUE (%s)" % name
-
-    if referenced is None:
-        field_query = "%s %s" % (name, type)
-        if indexed:
-            field_query += " PRIMARY KEY"
-        return field_query
-    return "FOREIGN KEY (%s) REFERENCES %s(%s)" % (name, name, referenced)
+    field_query = "%s %s" % (name, type)
+    if indexed:
+        field_query += " PRIMARY KEY"
+    if unique:
+        field_query += " UNIQUE"
+    return field_query
 
 
 def create_table(name, schema):
@@ -422,6 +415,7 @@ def delete_game(game_id):
     """Delete a game from the PGA."""
     sql.db_delete(PGA_DB, "games", "id", game_id)
 
+
 def set_uninstalled(game_id):
     sql.db_update(PGA_DB, "games", {"installed": 0, "runner": ""}, ("id", game_id))
 
@@ -519,6 +513,7 @@ def get_used_platforms_game_count():
         results = rows.fetchall()
     return {result[0]: result[1] for result in results if result[0]}
 
+
 def get_hidden_ids():
     """Return a list of game IDs to be excluded from the library view"""
     # Load the ignore string and filter out empty strings to prevent issues
@@ -534,73 +529,54 @@ def set_hidden_ids(games):
     ignores_str = [str(game_id) for game_id in games]
     settings.write_setting("library_ignores", ','.join(ignores_str), section="lutris")
 
+
 def get_categories(select="*"):
     """Get the list of every category in database."""
-
     category_result = sql.db_select(PGA_DB, "categories",)
     if category_result:
-        #print (category_result[0])
         return category_result[0]
     return {}
 
-    #query = "select %s from categories" % (select)
-    #params = []
 
-    #query += " ORDER BY category"
-
-    #return_categories = []
-    #for category in sql.db_query(PGA_DB, query, tuple(params)):
-    #    return_categories.append(category["category"])
-    #print(return_categories)
-    #return return_categories
-
-def get_games_in_categories(category="*"):
+def get_games_in_category(category_name):
     """Get the ids of games in database."""
-    query = "select games.id from games " \
-            "JOIN games_categories ON games.id = games_categories.games " \
-            "JOIN categories ON categories.id = games_categories.categories " \
-            "WHERE categories.category = ?" % (category)
-    params = []
-    return [
-        game["id"]
-        for game in sql.db_query(PGA_DB, query, tuple(params)):
-    ]
-    return return_ids
-
-def get_categories_in_game(game_id=-1):
-    """Get the categories of a game in database."""
-    if game_id < 0:
-        return []
     query = (
-        "select categories.category from categories "
-        "JOIN games_categories ON categories.id = games_categories.category_id "
-        "JOIN games ON games.id = games_categories.game_id "
-        "WHERE games.id = \"?\""
+        "select game_id from games_categories "
+        "JOIN categories ON categories.id = games_categories.category_id "
+        "WHERE categories.category=?"
     )
     return [
-        category["category"]
-        for category in sql.db_query(PGA_DB, query, (game_id,)):
+        game["id"]
+        for game in sql.db_query(PGA_DB, query, (category_name, ))
     ]
 
-def add_category_favorite():
-    """Add a favorite category to the PGA database if it doesn't exist"""
-    try:
-        return sql.db_insert(PGA_DB, "categories", {"category": "favorite"})
-    except Exception as e:
-        print("")
 
-def add_game_to_category(game_id=-1, category=None):
-    """Add a m2m reference from game2category to the PGA database."""
-    query = "insert into games_categories (games, categories) " \
-            "select " + str(game_id) + " as games, categories.id as categories from categories " \
-                                       "where categories.category = \"" + category + "\""
-    with sql.db_cursor(PGA_DB) as cursor:
-        sql.cursor_execute(cursor, query)
+def get_categories_in_game(game_id):
+    """Get the categories of a game in database."""
+    query = (
+        "select categories.name from categories "
+        "JOIN games_categories ON categories.id = games_categories.category_id "
+        "JOIN games ON games.id = games_categories.game_id "
+        "WHERE games.id=?"
+    )
+    return [
+        category["name"]
+        for category in sql.db_query(PGA_DB, query, (game_id,))
+    ]
 
-def delete_game_by_id_from_category(game_id, category):
-    """Delete a game to category entry from the m2m table."""
-    query = "DELETE FROM games_categories WHERE categories IN " \
-            "( SELECT games_categories.categories from categories WHERE games_categories.categories = categories.id " \
-            "AND categories.category = \"" + category + "\" ) AND games_categories.games = " + str(game_id)
+
+def add_category(category_name):
+    """Add a category to the database"""
+    return sql.db_insert(PGA_DB, "categories", {"name": category_name})
+
+
+def add_game_to_category(game_id, category_id):
+    """Add a category to a game"""
+    return sql.db_insert(PGA_DB, "games_categories", {"game_id": game_id, "category_id": category_id})
+
+
+def remove_category_from_game(game_id, category_id):
+    """Remove a category from a game"""
+    query = "DELETE FROM games_categories WHERE category_id=? AND game_id=?"
     with sql.db_cursor(PGA_DB) as cursor:
-        sql.cursor_execute(cursor, query)
+        sql.cursor_execute(cursor, query, (category_id, game_id))

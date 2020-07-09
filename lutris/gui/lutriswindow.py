@@ -901,7 +901,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             self.set_selected_filter(None, row.id, None)
 
-
     def set_selected_filter(self, runner, platform, category):
         """Filter the view to a given runner and platform"""
         self.selected_runner = runner

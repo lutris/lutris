@@ -229,7 +229,7 @@ class GameStore(GObject.Object):
                 return False
         if self.filter_category:
             identifier = model.get_value(_iter, COL_ID)
-            if (identifier is None) or identifier not in pga.get_games_in_categories(self.filter_category):
+            if not identifier or identifier not in pga.get_games_in_category(self.filter_category):
                 return False
         return True
 
