@@ -146,8 +146,8 @@ class SidebarListBox(Gtk.ListBox):
         if local_theme_path not in icon_theme.get_search_path():
             icon_theme.prepend_search_path(local_theme_path)
 
-        self.add(SidebarRow(None, "category", "Games", None))
-        self.add(SidebarRow("category", "favorite", _("Favorites"), None))
+        icon = Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
+        self.add(SidebarRow("favorite", "category", _("Favorites"), icon))
 
         all_row = SidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
@@ -176,8 +176,7 @@ class SidebarListBox(Gtk.ListBox):
             if row.id is None:
                 return True  # 'All'
             return row.id in self.installed_runners
-        print(row.type)
-        if row.type == "favorite":
+        if row.type == "category":
             return True
         if len(self.active_platforms) <= 1:
             return False  # Hide useless filter
@@ -189,11 +188,11 @@ class SidebarListBox(Gtk.ListBox):
         if row.get_header():
             return
         if not before:
+            row.set_header(SidebarHeader(_("Library")))
+        elif before.type == "category" and row.type == "runner":
             row.set_header(SidebarHeader(_("Runners")))
         elif before.type == "runner" and row.type == "platform":
             row.set_header(SidebarHeader(_("Platforms")))
-        elif before.type == "platform" and row.type == "category":
-            row.set_header(SidebarHeader("Category"))
 
     def add_category_entries(self):
         for category in pga.get_categories():
@@ -204,5 +203,5 @@ class SidebarListBox(Gtk.ListBox):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
         self.add_category_entries()
-        # self.invalidate_filter()
+        self.invalidate_filter()
         return True
