@@ -162,7 +162,11 @@ def get_desktop_environment():
 
 
 def _get_command_output(*command):
-    return subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, close_fds=True).communicate()[0]
+    """Some rogue function that gives no shit about residing in the correct module"""
+    try:
+        return subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, close_fds=True).communicate()[0]
+    except FileNotFoundError:
+        logger.error("Unable to run command, %s not found", command[0])
 
 
 def is_compositing_enabled():
