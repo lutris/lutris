@@ -164,7 +164,12 @@ def get_desktop_environment():
 def _get_command_output(*command):
     """Some rogue function that gives no shit about residing in the correct module"""
     try:
-        return subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, close_fds=True).communicate()[0]
+        return subprocess.Popen(
+            command,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            close_fds=True
+        ).communicate()[0]
     except FileNotFoundError:
         logger.error("Unable to run command, %s not found", command[0])
 
@@ -225,7 +230,13 @@ def _get_compositor_commands():
 
 
 def _run_command(*command):
-    return subprocess.Popen(command, stdin=subprocess.DEVNULL, close_fds=True)
+    """Random _run_command lost in the middle of the project,
+    are you lost little _run_command?
+    """
+    try:
+        return subprocess.Popen(command, stdin=subprocess.DEVNULL, close_fds=True)
+    except FileNotFoundError:
+        logger.error("Oh no")
 
 
 def disable_compositing():
