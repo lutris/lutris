@@ -30,7 +30,7 @@ class IssueReportWindow(BaseApplicationWindow):
 
         issue_entry_label = Gtk.Label(_(
             "Describe the problem you're having in the text box below. "
-            "This information will be sent the Lutris team along with your system information."
+            "This information will be sent the Lutris team along with your system information. "
             "You can also save this information locally if you are offline."
         ))
         issue_entry_label.set_max_width_chars(80)
