@@ -37,8 +37,6 @@ Recommends: python3-evdev,
             gvfs-backends,
             libwine-development,
             winetricks,
-            libc6-i386 [amd64],
-            lib32gcc1 [amd64] | lib32gcc-s1 [amd64],
 Suggests: gamemode,
 Description: open source gaming platform
  Lutris goal is to make gaming on Linux as easy as possible by taking care of
