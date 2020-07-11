@@ -12,7 +12,7 @@ Vcs-Browser: https://github.com/lutris/lutris
 Vcs-Git: https://github.com/lutris/lutris.git
 
 Package: lutris
-Architecture: any
+Architecture: all
 Depends: ${misc:Depends},
          ${python3:Depends},
          python3-yaml,
