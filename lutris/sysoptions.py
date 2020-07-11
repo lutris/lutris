@@ -222,6 +222,15 @@ system_options = [  # pylint: disable=invalid-name
                   "across these drivers.")
     },
     {
+        "option": "mangohud",
+        "type": "bool",
+        "size": "small",
+        "label": _("FPS counter (MangoHud)"),
+        "advanced": False,
+        "condition": bool(system.find_executable("mangohud")),
+        "help": _("Display the game's FPS + other information. Requires MangoHud to be installed."),
+    },
+    {
         "option": "fps_limit",
         "type": "string",
         "size": "small",

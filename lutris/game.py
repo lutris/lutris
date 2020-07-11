@@ -428,6 +428,18 @@ class Game(GObject.Object):
         if vk_icd and vk_icd != "off" and system.path_exists(vk_icd):
             env["VK_ICD_FILENAMES"] = vk_icd
 
+        # Mangohud activation
+        mangohud = system_config.get("mangohud") or ""
+        if mangohud and system.find_executable("mangohud"):
+            # This is probably not the way to go. This only work with a few
+            # Wine games. It will probably crash it, or do nothing at all.
+            # I have never got mangohud to work on anything other than a Wine
+            # game.
+            dialogs.NoticeDialog("MangoHud support is experimental. Expect the "
+                                 "game to crash or the framerate counter not to "
+                                 "appear at all.")
+            launch_arguments = ["mangohud"] + launch_arguments
+
         fps_limit = system_config.get("fps_limit") or ""
         if fps_limit:
             strangle_cmd = system.find_executable("strangle")
