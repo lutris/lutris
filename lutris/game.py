@@ -448,7 +448,7 @@ class Game(GObject.Object):
         """Return the terminal used to run the game into or None if the game is not run from a terminal.
         Remember that only games using text mode should use the terminal.
         """
-        if self.system_config.get("terminal"):
+        if self.runner.system_config.get("terminal"):
             terminal = self.system_config.get("terminal_app", system.get_default_terminal())
             if terminal and not system.find_executable(terminal):
                 raise GameConfigError(_("The selected terminal application could not be launched:\n%s") % terminal)
