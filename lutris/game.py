@@ -316,7 +316,6 @@ class Game(GObject.Object):
         return False
 
     def get_launch_parameters(self, gameplay_info):
-
         system_config = self.runner.system_config
         launch_arguments = gameplay_info["command"]
 
@@ -462,6 +461,18 @@ class Game(GObject.Object):
         if killswitch and system.path_exists(self.killswitch):
             return killswitch
 
+    def get_gameplay_info(self):
+        """Return the information provided by a runner's play method.
+        Checks for possible errors.
+        """
+        gameplay_info = self.runner.play()
+        if "error" in gameplay_info:
+            self.show_error_message(gameplay_info)
+            self.state = self.STATE_STOPPED
+            self.emit("game-stop")
+            return
+        return gameplay_info
+
     @watch_lutris_errors
     def configure_game(self, prelaunched, error=None):  # noqa: C901
         """Get the game ready to start, applying all the options
@@ -476,13 +487,9 @@ class Game(GObject.Object):
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
-        gameplay_info = self.runner.play()
-        if "error" in gameplay_info:
-            self.show_error_message(gameplay_info)
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
+        gameplay_info = self.get_gameplay_info()
+        if not gameplay_info:
             return
-
         command, env = self.get_launch_parameters(gameplay_info)
         self.game_runtime_config = {
             "args": command,
