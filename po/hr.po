@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-08 16:45+0200\n"
-"PO-Revision-Date: 2020-07-08 18:56+0200\n"
+"POT-Creation-Date: 2020-07-12 12:06+0200\n"
+"PO-Revision-Date: 2020-07-12 13:41+0200\n"
 "Last-Translator: gogo <trebelnik2@gmail.com>\n"
 "Language-Team: \n"
 "Language: hr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.3\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
@@ -214,7 +214,7 @@ msgstr "Promijeni pogled"
 msgid "View Options"
 msgstr "Mogućnosti pogleda"
 
-#: share/lutris/ui/lutris-window.ui:823 lutris/gui/lutriswindow.py:739
+#: share/lutris/ui/lutris-window.ui:823 lutris/gui/lutriswindow.py:740
 msgid "Filter the list of games"
 msgstr "Filtriraj popis igara"
 
@@ -234,7 +234,7 @@ msgstr "opis"
 msgid "platforms"
 msgstr "platforme"
 
-#: share/lutris/ui/runner-entry.ui:104 lutris/gui/widgets/sidebar.py:65
+#: share/lutris/ui/runner-entry.ui:104 lutris/gui/widgets/sidebar.py:73
 msgid "Manage Versions"
 msgstr "Upravljanje inačicma"
 
@@ -262,7 +262,7 @@ msgstr "Odustani"
 
 #: share/lutris/ui/runner-remove-all-versions-dialog.ui:36
 #: share/lutris/ui/runner-remove-confirm-dialog.ui:19
-#: share/lutris/ui/runner-remove-confirm-dialog.ui:36 lutris/game_actions.py:91
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:36 lutris/game_actions.py:99
 msgid "Remove"
 msgstr "Ukloni"
 
@@ -302,80 +302,88 @@ msgstr ""
 "ih putem svojeg upravitelja paketima i ponovno pokrenite Lutris. Biblioteke: "
 "%s"
 
-#: lutris/game_actions.py:62 lutris/gui/views/game_panel.py:242
+#: lutris/game_actions.py:68 lutris/gui/views/game_panel.py:242
 msgid "Play"
 msgstr "Igraj"
 
-#: lutris/game_actions.py:63
+#: lutris/game_actions.py:69
 msgid "Stop"
 msgstr "Zaustavi"
 
-#: lutris/game_actions.py:64
+#: lutris/game_actions.py:70
 msgid "Show logs"
 msgstr "Prikaži zapise"
 
-#: lutris/game_actions.py:65 lutris/gui/widgets/cellrenderers.py:51
+#: lutris/game_actions.py:71 lutris/gui/widgets/cellrenderers.py:51
 #: lutris/gui/widgets/installer.py:80
 msgid "Install"
 msgstr "Instaliraj"
 
-#: lutris/game_actions.py:66
+#: lutris/game_actions.py:72
 msgid "Add installed game"
 msgstr "Dodaj instaliranu igru"
 
-#: lutris/game_actions.py:67 lutris/gui/widgets/sidebar.py:70
+#: lutris/game_actions.py:73 lutris/gui/widgets/sidebar.py:78
 msgid "Configure"
 msgstr "Prilagodi"
 
-#: lutris/game_actions.py:68
+#: lutris/game_actions.py:74
+msgid "Add to favorites"
+msgstr "Dodaj u omiljene"
+
+#: lutris/game_actions.py:75
+msgid "Remove from favorites"
+msgstr "Ukloni iz omiljenih"
+
+#: lutris/game_actions.py:76
 msgid "Execute script"
 msgstr "Pokreni skriptu"
 
-#: lutris/game_actions.py:69
+#: lutris/game_actions.py:77
 msgid "Browse files"
 msgstr "Pregledaj datoteke"
 
-#: lutris/game_actions.py:72 lutris/gui/installerwindow.py:407
+#: lutris/game_actions.py:80 lutris/gui/installerwindow.py:407
 msgid "Create desktop shortcut"
 msgstr "Stvori prečac radne površine"
 
-#: lutris/game_actions.py:77
+#: lutris/game_actions.py:85
 msgid "Delete desktop shortcut"
 msgstr "Obriši prečac radne površine"
 
-#: lutris/game_actions.py:82 lutris/gui/installerwindow.py:408
+#: lutris/game_actions.py:90 lutris/gui/installerwindow.py:408
 msgid "Create application menu shortcut"
 msgstr "Stvori prečac izbornika aplikacija"
 
-#: lutris/game_actions.py:87
+#: lutris/game_actions.py:95
 msgid "Delete application menu shortcut"
 msgstr "Obriši prečac izbornika aplikacija"
 
-#: lutris/game_actions.py:90
+#: lutris/game_actions.py:98
 msgid "Install another version"
 msgstr "Instaliraj drugu inačicu"
 
-#: lutris/game_actions.py:92
+#: lutris/game_actions.py:100
 msgid "View on Lutris.net"
 msgstr "Pogledaj na lutris.net"
 
-#: lutris/game_actions.py:93
+#: lutris/game_actions.py:101
 msgid "Hide game from library"
 msgstr "Sakrij igru u igroteci"
 
-#: lutris/game_actions.py:94
+#: lutris/game_actions.py:102
 msgid "Unhide game from library"
 msgstr "Otkrij igru u igroteci"
 
-#: lutris/game_actions.py:194
+#: lutris/game_actions.py:199
 msgid "Log for {}"
 msgstr "Zapis za {}"
 
-#: lutris/game_actions.py:225
+#: lutris/game_actions.py:242
 msgid "This game has no installation directory"
 msgstr "Ova igra nema direktorij instalacije"
 
-#: lutris/game_actions.py:229
+#: lutris/game_actions.py:246
 #, python-format
 msgid ""
 "Can't open %s \n"
@@ -384,52 +392,48 @@ msgstr ""
 "Nemoguće je otvoriti %s \n"
 "Mapa ne postoji."
 
-#: lutris/game.py:136
+#: lutris/game.py:133
 msgid "Error the runner is not installed"
 msgstr "Greška, pokretač nije instaliran"
 
-#: lutris/game.py:138
+#: lutris/game.py:135
 msgid "A bios file is required to run this game"
 msgstr "Bios datoteka je potrebna za pokretanje ove igre"
 
-#: lutris/game.py:142
+#: lutris/game.py:139
 msgid "The file {} could not be found"
 msgstr "Datoteka {} se ne može pronaći"
 
-#: lutris/game.py:144
+#: lutris/game.py:141
 msgid "No file provided"
 msgstr "Nema potrebne datoteke"
 
-#: lutris/game.py:148
+#: lutris/game.py:145
 #, python-format
 msgid "The file %s is not executable"
 msgstr "Datoteka %s nije izvršna datoteka"
 
-#: lutris/game.py:150
+#: lutris/game.py:147
 #, python-format
 msgid "The path '%s' is not set. please set it in the options."
 msgstr "Putanja '%s' nije postavljena. Postavite ju u mogućnostima."
 
-#: lutris/game.py:153
+#: lutris/game.py:150
 #, python-format
 msgid "Unhandled error: %s"
 msgstr "Neobrađena greška: %s"
 
-#: lutris/game.py:273
+#: lutris/game.py:270
 msgid "Runtime currently updating"
 msgstr "Tijek izvođenja se trenutno nadopunjuje"
 
-#: lutris/game.py:273
+#: lutris/game.py:270
 msgid "Game might not work as expected"
 msgstr "Igra možda neće očekivano raditi"
 
-#: lutris/game.py:284
+#: lutris/game.py:281
 msgid "Invalid game configuration: Missing runner"
 msgstr "Nevaljano podešavanje igre: Nedostaje pokretač"
-
-#: lutris/game.py:309
-msgid "An error prevented the game from running"
-msgstr "Greška je spriječila pokretanje igre"
 
 #: lutris/game.py:454
 #, python-format
@@ -440,11 +444,15 @@ msgstr ""
 "Odabrana aplikacija terminala se ne može pokrenuti:\n"
 "%s"
 
-#: lutris/game.py:564
+#: lutris/game.py:488
+msgid "An error prevented the game from running"
+msgstr "Greška je spriječila pokretanje igre"
+
+#: lutris/game.py:585
 msgid "<b>Error lauching the game:</b>\n"
 msgstr "<b>Greška pokretanja igre:</b>\n"
 
-#: lutris/game.py:650
+#: lutris/game.py:671
 #, python-format
 msgid ""
 "<b>Error: Missing shared library.</b>\n"
@@ -455,7 +463,7 @@ msgstr ""
 "\n"
 "%s"
 
-#: lutris/game.py:656
+#: lutris/game.py:677
 msgid ""
 "<b>Error: A different Wine version is already using the same Wine prefix.</b>"
 msgstr "<b>Greška: Druga Wine inačica već koristi isti Wine prefiks.</b>"
@@ -500,57 +508,61 @@ msgid "Install a game from a yml file"
 msgstr "Instaliraj igru iz yml datoteke"
 
 #: lutris/gui/application.py:125
+msgid "Generate a bash script to run a game without the client"
+msgstr "Stvori bash skriptu za pokretanje igre bez klijenta"
+
+#: lutris/gui/application.py:133
 msgid "Execute a program with the lutris runtime"
 msgstr "Pokreni igru s lutris tijekom izvođenja"
 
-#: lutris/gui/application.py:133
+#: lutris/gui/application.py:141
 msgid "List all games in database"
 msgstr "Prikaži sve igre iz baze podataka"
 
-#: lutris/gui/application.py:141
+#: lutris/gui/application.py:149
 msgid "Only list installed games"
 msgstr "Samo prikaži instalirane igre"
 
-#: lutris/gui/application.py:149
+#: lutris/gui/application.py:157
 msgid "List available Steam games"
 msgstr "Prikaži dostupne Steam igre"
 
-#: lutris/gui/application.py:157
+#: lutris/gui/application.py:165
 msgid "List all known Steam library folders"
 msgstr "Prikaži sve poznate mape Steam biblioteke"
 
-#: lutris/gui/application.py:165
+#: lutris/gui/application.py:173
 msgid "Display the list of games in JSON format"
 msgstr "Prikaži popis igara u JSON formatu"
 
-#: lutris/gui/application.py:173
+#: lutris/gui/application.py:181
 msgid "Reinstall game"
 msgstr "Ponovno instaliraj igru"
 
-#: lutris/gui/application.py:176
+#: lutris/gui/application.py:184
 msgid "Submit an issue"
 msgstr "Prijavi problem"
 
-#: lutris/gui/application.py:182
+#: lutris/gui/application.py:190
 msgid "uri to open"
 msgstr "uri za otvoriti"
 
-#: lutris/gui/application.py:313
+#: lutris/gui/application.py:329
 #, python-format
 msgid "%s is not a valid URI"
 msgstr "%s nije valjan URI"
 
-#: lutris/gui/application.py:326
+#: lutris/gui/application.py:347
 #, python-format
 msgid "Failed to download %s"
 msgstr "Neuspjelo preuzimanje %s"
 
-#: lutris/gui/application.py:334
+#: lutris/gui/application.py:355
 #, python-brace-format
 msgid "download {url} to {file} started"
 msgstr "preuzimanje {url} u {file} je započelo"
 
-#: lutris/gui/application.py:345
+#: lutris/gui/application.py:366
 #, python-format
 msgid "No such file: %s"
 msgstr "Nema takve datoteke: %s"
@@ -579,7 +591,7 @@ msgstr ""
 "<i>(Ukošeno naznačuje da je ova mogućnost promijenjena na nižoj razini "
 "podešavanja.)</i>"
 
-#: lutris/gui/config/boxes.py:307 lutris/runners/jzintv.py:60
+#: lutris/gui/config/boxes.py:307
 #, python-format
 msgid "%s (default)"
 msgstr "%s (zadano)"
@@ -885,8 +897,8 @@ msgstr "<b>Prijavite problem</b>"
 #: lutris/gui/dialogs/issue.py:32
 msgid ""
 "Describe the problem you're having in the text box below. This information "
-"will be sent the Lutris team along with your system information.You can also "
-"save this information locally if you are offline."
+"will be sent the Lutris team along with your system information. You can "
+"also save this information locally if you are offline."
 msgstr ""
 "Opišite problem koji imate u tekstu ispod. Ta će informacija biti poslana "
 "Lutris timu zajedno s informacijama o vašem sustavu. Možete spremiti te "
@@ -964,7 +976,7 @@ msgstr "Neuspjelo preuzimanje arhive pokretača"
 msgid "Multiple platforms"
 msgstr "Više platformi"
 
-#: lutris/gui/dialogs/runners.py:132 lutris/gui/widgets/sidebar.py:85
+#: lutris/gui/dialogs/runners.py:132 lutris/gui/widgets/sidebar.py:93
 #, python-format
 msgid "Manage %s versions"
 msgstr "Upravljanje %s inačicom"
@@ -1070,32 +1082,32 @@ msgstr "Sigurno želite prekinuti instalaciju?"
 msgid "Cancel installation?"
 msgstr "Prekini instalaciju?"
 
-#: lutris/gui/lutriswindow.py:129 lutris/gui/lutriswindow.py:130
-#: lutris/gui/lutriswindow.py:733
+#: lutris/gui/lutriswindow.py:130 lutris/gui/lutriswindow.py:131
+#: lutris/gui/lutriswindow.py:734
 msgid "Search Lutris.net"
 msgstr "Pretraži Lutris.net"
 
-#: lutris/gui/lutriswindow.py:552
+#: lutris/gui/lutriswindow.py:553
 msgid "Synchronize library"
 msgstr "Uskladi biblioteku"
 
-#: lutris/gui/lutriswindow.py:569
+#: lutris/gui/lutriswindow.py:570
 msgid "Synchronizing…"
 msgstr "Usklađivanje…"
 
-#: lutris/gui/lutriswindow.py:615
+#: lutris/gui/lutriswindow.py:616
 msgid "Do you want to log out from Lutris?"
 msgstr "Želite li se odjaviti iz Lutrisa?"
 
-#: lutris/gui/lutriswindow.py:616
+#: lutris/gui/lutriswindow.py:617
 msgid "Log out?"
 msgstr "Odjavi?"
 
-#: lutris/gui/lutriswindow.py:910
+#: lutris/gui/lutriswindow.py:915
 msgid "Could not connect to your Lutris account. Please sign in again."
 msgstr "Nemoguće povezivanje s vašim Lutris računom. Pokušajte ponovno."
 
-#: lutris/gui/lutriswindow.py:913
+#: lutris/gui/lutriswindow.py:918
 msgid ""
 "Failed to retrieve game library. There might be some problems contacting "
 "lutris.net"
@@ -1255,19 +1267,27 @@ msgstr "Odaberi sve"
 msgid "Filter:"
 msgstr "Filter:"
 
-#: lutris/gui/widgets/sidebar.py:69
+#: lutris/gui/widgets/sidebar.py:77
 msgid "Run"
 msgstr "Pokreni"
 
-#: lutris/gui/widgets/sidebar.py:115 lutris/gui/widgets/sidebar.py:186
+#: lutris/gui/widgets/sidebar.py:123 lutris/gui/widgets/sidebar.py:191
 msgid "Runners"
 msgstr "Pokretači"
 
-#: lutris/gui/widgets/sidebar.py:148 lutris/gui/widgets/sidebar.py:157
+#: lutris/gui/widgets/sidebar.py:154
+msgid "Favorites"
+msgstr "Omiljeno"
+
+#: lutris/gui/widgets/sidebar.py:156 lutris/gui/widgets/sidebar.py:165
 msgid "All"
 msgstr "Sve"
 
-#: lutris/gui/widgets/sidebar.py:188
+#: lutris/gui/widgets/sidebar.py:189
+msgid "Library"
+msgstr "Igroteka"
+
+#: lutris/gui/widgets/sidebar.py:193
 msgid "Platforms"
 msgstr "Platforme"
 
@@ -1307,58 +1327,6 @@ msgstr ""
 "koji sadrže sljedeću datoteku ili mapu:\n"
 "<i>%s</i>"
 
-#: lutris/runners/ags.py:10
-msgid "Adventure Game Studio"
-msgstr "Adventure Game Studio"
-
-#: lutris/runners/ags.py:11
-msgid "Graphics adventure engine"
-msgstr "Graphics adventure engine"
-
-#: lutris/runners/ags.py:12 lutris/runners/linux.py:14
-#: lutris/runners/linux.py:16 lutris/runners/residualvm.py:15
-#: lutris/runners/scummvm.py:16 lutris/runners/steam.py:45
-#: lutris/runners/zdoom.py:16
-msgid "Linux"
-msgstr "Linux"
-
-#: lutris/runners/ags.py:14
-msgid "Game executable or directory"
-msgstr "Izvršna datoteka igre ili direktorij"
-
-#: lutris/runners/ags.py:19 lutris/runners/atari800.py:88
-#: lutris/runners/dgen.py:26 lutris/runners/hatari.py:72
-#: lutris/runners/jzintv.py:50 lutris/runners/libretro.py:88
-#: lutris/runners/mame.py:159 lutris/runners/mednafen.py:74
-#: lutris/runners/mupen64plus.py:28 lutris/runners/o2em.py:75
-#: lutris/runners/osmose.py:34 lutris/runners/pcsx2.py:26
-#: lutris/runners/pico8.py:38 lutris/runners/ppsspp.py:24
-#: lutris/runners/reicast.py:42 lutris/runners/snes9x.py:36
-#: lutris/runners/vice.py:57 lutris/runners/virtualjaguar.py:26
-msgid "Fullscreen"
-msgstr "Cjelozaslonski prikaz"
-
-#: lutris/runners/ags.py:25
-msgid "Graphics filter"
-msgstr "Filter grafike"
-
-#: lutris/runners/ags.py:27 lutris/runners/hatari.py:52
-#: lutris/runners/zdoom.py:76
-msgid "None"
-msgstr "Nikakav"
-
-#: lutris/runners/ags.py:28
-msgid "Standard scaling"
-msgstr "Standardna promjena veličine"
-
-#: lutris/runners/ags.py:29
-msgid "HQ2x"
-msgstr "HQ2x"
-
-#: lutris/runners/ags.py:30
-msgid "HQ3x"
-msgstr "HQ3x"
-
 #: lutris/runners/atari800.py:19
 msgid "Desktop resolution"
 msgstr "Razlučivost radne površine"
@@ -1375,15 +1343,13 @@ msgstr "Atari 8bitna računala"
 msgid "Atari 400,800 and XL emulator"
 msgstr "Atari 400,800 i XL emulator"
 
-#: lutris/runners/atari800.py:44 lutris/runners/citra.py:24
-#: lutris/runners/desmume.py:18 lutris/runners/dgen.py:18
-#: lutris/runners/jzintv.py:22 lutris/runners/libretro.py:68
-#: lutris/runners/mame.py:73 lutris/runners/mednafen.py:57
-#: lutris/runners/mupen64plus.py:20 lutris/runners/o2em.py:45
-#: lutris/runners/openmsx.py:17 lutris/runners/osmose.py:21
-#: lutris/runners/snes9x.py:27 lutris/runners/stella.py:22
-#: lutris/runners/vice.py:38 lutris/runners/virtualjaguar.py:20
-#: lutris/runners/yuzu.py:23
+#: lutris/runners/atari800.py:44 lutris/runners/jzintv.py:19
+#: lutris/runners/libretro.py:68 lutris/runners/mame.py:73
+#: lutris/runners/mednafen.py:57 lutris/runners/mupen64plus.py:20
+#: lutris/runners/o2em.py:45 lutris/runners/openmsx.py:17
+#: lutris/runners/osmose.py:21 lutris/runners/snes9x.py:27
+#: lutris/runners/stella.py:22 lutris/runners/vice.py:38
+#: lutris/runners/virtualjaguar.py:20 lutris/runners/yuzu.py:23
 msgid "ROM file"
 msgstr "ROM datoteka"
 
@@ -1395,7 +1361,7 @@ msgstr ""
 "Podaci igre, uobičajeno se nazivaju ROM slika (image). \n"
 "Podržani rom formati: ATR, XFD, DCM, ATR.GZ, XFD.GZ i PRO."
 
-#: lutris/runners/atari800.py:60 lutris/runners/jzintv.py:39
+#: lutris/runners/atari800.py:60 lutris/runners/jzintv.py:32
 msgid "Bios location"
 msgstr "Bios lokacija"
 
@@ -1431,6 +1397,17 @@ msgstr "Emuliraj Atari 5200"
 #: lutris/runners/vice.py:88
 msgid "Machine"
 msgstr "Stroj"
+
+#: lutris/runners/atari800.py:88 lutris/runners/hatari.py:72
+#: lutris/runners/jzintv.py:43 lutris/runners/libretro.py:88
+#: lutris/runners/mame.py:159 lutris/runners/mednafen.py:74
+#: lutris/runners/mupen64plus.py:28 lutris/runners/o2em.py:75
+#: lutris/runners/osmose.py:34 lutris/runners/pcsx2.py:26
+#: lutris/runners/pico8.py:38 lutris/runners/ppsspp.py:24
+#: lutris/runners/reicast.py:42 lutris/runners/snes9x.py:36
+#: lutris/runners/vice.py:57 lutris/runners/virtualjaguar.py:26
+msgid "Fullscreen"
+msgstr "Cjelozaslonski prikaz"
 
 #: lutris/runners/atari800.py:95
 msgid "Fullscreen resolution"
@@ -1477,69 +1454,6 @@ msgstr ""
 "The web address is empty, \n"
 "verify the game's configuration."
 
-#: lutris/runners/citra.py:14
-msgid "Citra"
-msgstr "Citra"
-
-#: lutris/runners/citra.py:15
-msgid "Nintendo 3DS"
-msgstr "Nintendo 3DS"
-
-#: lutris/runners/citra.py:17
-msgid "Nintendo 3DS emulator"
-msgstr "Nintendo 3DS emulator"
-
-#: lutris/runners/citra.py:25 lutris/runners/desmume.py:19
-#: lutris/runners/dgen.py:19 lutris/runners/mupen64plus.py:21
-#: lutris/runners/o2em.py:47 lutris/runners/openmsx.py:18
-#: lutris/runners/snes9x.py:28 lutris/runners/yuzu.py:24
-msgid "The game data, commonly called a ROM image."
-msgstr "Podaci igre, uobičajeno se nazivaju ROM slika (image)."
-
-#: lutris/runners/desmume.py:11
-msgid "Nintendo DS"
-msgstr "Nintendo DS"
-
-#: lutris/runners/desmume.py:12
-msgid "Nintendo DS emulator"
-msgstr "Nintendo DS emulator"
-
-#: lutris/runners/dgen.py:10
-msgid "DGen"
-msgstr "DGen"
-
-#: lutris/runners/dgen.py:11
-msgid "Sega Genesis emulator"
-msgstr "Sega Genesis emulator"
-
-#: lutris/runners/dgen.py:12
-msgid "Sega Genesis"
-msgstr "Sega Genesis"
-
-#: lutris/runners/dgen.py:32
-msgid "PAL"
-msgstr "PAL"
-
-#: lutris/runners/dgen.py:39
-msgid "Region"
-msgstr "Regija"
-
-#: lutris/runners/dgen.py:41
-msgid "America (NTSC)"
-msgstr "America (NTSC)"
-
-#: lutris/runners/dgen.py:42
-msgid "Japan (NTSC)"
-msgstr "Japan (NTSC)"
-
-#: lutris/runners/dgen.py:43
-msgid "Japan (PAL)"
-msgstr "Japan (PAL)"
-
-#: lutris/runners/dgen.py:44
-msgid "Europe (PAL)"
-msgstr "Europa (PAL)"
-
 #: lutris/runners/dolphin.py:10
 msgid "Gamecube and Wii emulator"
 msgstr "Gamecube i Wii emulator"
@@ -1564,7 +1478,7 @@ msgstr "ISO datoteka"
 #: lutris/runners/dolphin.py:33 lutris/runners/pcsx2.py:38
 #: lutris/runners/rpcs3.py:23
 msgid "No GUI"
-msgstr "Bez GUI-a"
+msgstr "Bez grafičkog sučelja"
 
 #: lutris/runners/dolphin.py:35
 msgid "Disable the graphical user interface."
@@ -1671,32 +1585,6 @@ msgstr "Otvori igru u cjelozaslonskom prikazu"
 #: lutris/runners/dosbox.py:107
 msgid "Tells Dosbox to launch the game in fullscreen."
 msgstr "Postavi Dosbox tako da pokrene igru preko cijelog zaslona."
-
-#: lutris/runners/frotz.py:11
-msgid "Frotz"
-msgstr "Frotz"
-
-#: lutris/runners/frotz.py:12
-msgid "Z-code emulator for text adventure games such as Zork."
-msgstr "Z-code emulator za tekstne avanturističke igre poput Zorka."
-
-#: lutris/runners/frotz.py:13
-msgid "Z-Machine"
-msgstr "Z-Machine"
-
-#: lutris/runners/frotz.py:24
-msgid "Story file"
-msgstr "Story datoteka"
-
-#: lutris/runners/frotz.py:26
-msgid ""
-"The Z-Machine game file.\n"
-"Usally ends in \".z*\", with \"*\" being a number from 1 to 6 representing "
-"the version of the Z-Machine that the game was written for."
-msgstr ""
-"Z-Machine datoteka igre.\n"
-"Uobičajeno završava sa \".z*\", \"*\" je broj od 1 do 6 koji označuje "
-"inačicu Z-Machine za koju je igra napisana."
 
 #: lutris/runners/fsuae.py:11
 msgid "FS-UAE"
@@ -1966,6 +1854,10 @@ msgstr ""
 msgid "Floppy Disk B"
 msgstr "Disketa B"
 
+#: lutris/runners/hatari.py:52 lutris/runners/zdoom.py:76
+msgid "None"
+msgstr "Nijedna"
+
 #: lutris/runners/hatari.py:52
 msgid "Keyboard"
 msgstr "Tipkovnica"
@@ -2056,7 +1948,7 @@ msgstr "Intellivision emulator"
 msgid "Intellivision"
 msgstr "Intellivision"
 
-#: lutris/runners/jzintv.py:26
+#: lutris/runners/jzintv.py:22
 msgid ""
 "The game data, commonly called a ROM image. \n"
 "Supported rom formats: .rom, .bin+.cfg, .int, .itv \n"
@@ -2066,7 +1958,7 @@ msgstr ""
 "Podržani rom formati: .rom, .bin+.cfg, .int, .itv\n"
 "Nastavak vrste datoteke mora sadržavati mala slova."
 
-#: lutris/runners/jzintv.py:41
+#: lutris/runners/jzintv.py:34
 msgid ""
 "Choose the folder containing the Intellivision bios files (exec.bin and grom."
 "bin).\n"
@@ -2104,6 +1996,12 @@ msgstr "Jezgra nije odabrana za ovu igru"
 #: lutris/runners/libretro.py:268
 msgid "No game file specified"
 msgstr "Datoteka igre nije navedena"
+
+#: lutris/runners/linux.py:14 lutris/runners/linux.py:16
+#: lutris/runners/residualvm.py:15 lutris/runners/scummvm.py:16
+#: lutris/runners/steam.py:45 lutris/runners/zdoom.py:16
+msgid "Linux"
+msgstr "Linux"
 
 #: lutris/runners/linux.py:15
 msgid "Runs native games"
@@ -2309,7 +2207,7 @@ msgstr "Video pozadina"
 #: lutris/runners/wine.py:452 lutris/runners/wine.py:489
 #: lutris/runners/winesteam.py:86 lutris/sysoptions.py:72
 msgid "Auto"
-msgstr "Automatska"
+msgstr "Automatski"
 
 #: lutris/runners/mame.py:171 lutris/runners/residualvm.py:53
 #: lutris/runners/vice.py:82
@@ -2535,7 +2433,7 @@ msgstr "Omjer slike"
 #: lutris/runners/mednafen.py:85 lutris/runners/wine.py:413
 #: lutris/runners/wine.py:433 lutris/runners/wine.py:513
 msgid "Disabled"
-msgstr "Onemogućen"
+msgstr "Onemogućeno"
 
 #: lutris/runners/mednafen.py:86
 msgid "Stretched"
@@ -2584,6 +2482,12 @@ msgstr "Nintendo 64 emulator"
 #: lutris/runners/mupen64plus.py:14
 msgid "Nintendo 64"
 msgstr "Nintendo 64"
+
+#: lutris/runners/mupen64plus.py:21 lutris/runners/o2em.py:47
+#: lutris/runners/openmsx.py:18 lutris/runners/snes9x.py:28
+#: lutris/runners/yuzu.py:24
+msgid "The game data, commonly called a ROM image."
+msgstr "Podaci igre, uobičajeno se nazivaju ROM slika (image)."
 
 #: lutris/runners/mupen64plus.py:34
 msgid "Hide OSD"
@@ -2858,11 +2762,11 @@ msgstr "Sony PlayStation 3"
 msgid "Path to EBOOT.BIN"
 msgstr "Putanja do EBOOT.BIN"
 
-#: lutris/runners/runner.py:150
+#: lutris/runners/runner.py:146
 msgid "Custom executable for the runner"
 msgstr "Prilagođena izvršna datoteka za pokretač"
 
-#: lutris/runners/runner.py:251
+#: lutris/runners/runner.py:288
 msgid ""
 "The required runner is not installed.\n"
 "Do you wish to install it now?"
@@ -2870,7 +2774,7 @@ msgstr ""
 "Potreban pokretač nije instaliran.\n"
 "Želite li ga odmah instalirati?"
 
-#: lutris/runners/runner.py:253
+#: lutris/runners/runner.py:290
 msgid "Required runner unavailable"
 msgstr "Potreban pokretač nije dostupan"
 
@@ -3236,7 +3140,7 @@ msgid ""
 msgstr ""
 "Omogućite ovu mogućnost ako želite da se kliknute poveznice otvore unutar "
 "prozora igre. Po zadanome sve poveznice se otvaraju u vašem zadanome web "
-"pregkedniku."
+"pregledniku."
 
 #: lutris/runners/web.py:112
 msgid "Remove default <body> margin & padding"
@@ -3564,8 +3468,8 @@ msgstr ""
 "Zaobilaženje zadanog ponašanja hvatanja pokazivača miša\n"
 "<b>Omogući</b>: (Wine zadano) uhvati pokazivač kada je miš isključivo "
 "dobiven \n"
-"<b>Disable</b>: nikada ne hvataj pokazivač miša \n"
-"<b>Force</b>: uvijek hvataj pokazivač miša"
+"<b>Onemogući</b>: nikada ne hvataj pokazivač miša \n"
+"<b>Prisilno</b>: uvijek hvataj pokazivač miša"
 
 #: lutris/runners/wine.py:390
 msgid "Offscreen Rendering Mode"
@@ -3679,7 +3583,7 @@ msgstr "Naslijedi iz radnog okruženja"
 
 #: lutris/runners/wine.py:516
 msgid "Show FPS"
-msgstr "Prikaži FPS"
+msgstr "Prikaži (FPS) sličice u sekundi"
 
 #: lutris/runners/wine.py:517
 msgid "Full (CAUTION: Will cause MASSIVE slowdown)"
@@ -3969,7 +3873,7 @@ msgstr "Steam za Windows"
 
 #: lutris/services/xdg.py:21
 msgid "Desktop games"
-msgstr "Igre radne površine"
+msgstr "Igre radnog okruženja"
 
 #: lutris/settings.py:15
 msgid "(c) 2010-2020 Lutris Gaming Platform"
@@ -3979,11 +3883,11 @@ msgstr "(c) Lutris platforma za igranje"
 msgid "The Lutris team"
 msgstr "Lutris tim"
 
-#: lutris/startup.py:82
+#: lutris/startup.py:86
 msgid "Your Nvidia driver is outdated."
 msgstr "Vaši Nvidia upravljački programi su zastarjeli."
 
-#: lutris/startup.py:83
+#: lutris/startup.py:87
 #, python-format
 msgid ""
 "You are currently running driver %s which does not fully support all "
@@ -3997,11 +3901,11 @@ msgstr ""
 "href='https://github.com/lutris/lutris/wiki/Installing-"
 "drivers'>instalacijskim uputama</a>"
 
-#: lutris/startup.py:111
+#: lutris/startup.py:115
 msgid "Missing vulkan libraries"
 msgstr "Nedostaju vulkan biblioteke"
 
-#: lutris/startup.py:112
+#: lutris/startup.py:116
 #, python-format
 msgid ""
 "Lutris was unable to detect Vulkan support for the %s architecture.\n"
@@ -4015,7 +3919,7 @@ msgstr ""
 "com/lutris/lutris/wiki/Installing-drivers'>Instalacija grafičkih "
 "upravljačkih programa</a>"
 
-#: lutris/startup.py:117
+#: lutris/startup.py:121
 msgid " and "
 msgstr " i "
 
@@ -4024,9 +3928,9 @@ msgid "Keep current"
 msgstr "Zadrži trenutno"
 
 #: lutris/sysoptions.py:40 lutris/sysoptions.py:49 lutris/sysoptions.py:60
-#: lutris/sysoptions.py:458
+#: lutris/sysoptions.py:467
 msgid "Off"
-msgstr "Isključen"
+msgstr "Isključeno"
 
 #: lutris/sysoptions.py:41
 msgid "Primary"
@@ -4107,8 +4011,8 @@ msgid ""
 "Disable desktop effects while game is running, reducing stuttering and "
 "increasing performance"
 msgstr ""
-"Onemogući efekte radne površine kada je igra pokrenuta, smanjuje zapinjanje "
-"i povećava performanse"
+"Onemogući efekte radne površine kada je igra pokrenuta, smanjuje trzanje "
+"slike i povećava performanse"
 
 #: lutris/sysoptions.py:162
 msgid "Reset PulseAudio"
@@ -4172,39 +4076,51 @@ msgstr ""
 "upravljačkim programima."
 
 #: lutris/sysoptions.py:228
+msgid "FPS counter (MangoHud)"
+msgstr "FPS brojač (MangoHud)"
+
+#: lutris/sysoptions.py:231
+msgid ""
+"Display the game's FPS + other information. Requires MangoHud to be "
+"installed."
+msgstr ""
+"Prikazuje broj sličica igre (FPS) + druge informacije. Zahtijeva instalirani "
+"MangoHud."
+
+#: lutris/sysoptions.py:237
 msgid "Fps limit"
 msgstr "Fps ograničenje"
 
-#: lutris/sysoptions.py:231
+#: lutris/sysoptions.py:240
 msgid "Limit the game's fps to desired number"
-msgstr "Ograniči fps igre na željeni broj"
+msgstr "Ograniči broj sličica igre na željeni broj"
 
-#: lutris/sysoptions.py:236
+#: lutris/sysoptions.py:245
 msgid "Enable ACO shader compiler"
 msgstr "Omogući kompilator ACO sjenčanja"
 
-#: lutris/sysoptions.py:238
+#: lutris/sysoptions.py:247
 msgid ""
 "Enable ACO shader compiler, improving performance in a lot of games. "
 "Requires Mesa 19.3 or later."
 msgstr ""
-"Omogući kompilator ACO sjenčanja, što poboljšava performanse u mnogo igra. "
-"Zahtijeva Mesa 19.3 ili novije."
+"Omogući kompilator ACO sjenčanja, što poboljšava performanse u mnogim "
+"igrama. Zahtijeva Mesa 19.3 ili novije."
 
-#: lutris/sysoptions.py:246
+#: lutris/sysoptions.py:255
 msgid "Enable Feral gamemode"
 msgstr "Omogući Feral gamemode"
 
-#: lutris/sysoptions.py:247
+#: lutris/sysoptions.py:256
 msgid "Request a set of optimisations be temporarily applied to the host OS"
 msgstr ""
 "Zahtijeva skup optimizacija privremeno primijenjenih na operativni sustav"
 
-#: lutris/sysoptions.py:259
+#: lutris/sysoptions.py:268
 msgid "Enable NVIDIA Prime render offload"
 msgstr "Omogući NVIDIA Prime rasterećenje prikaza"
 
-#: lutris/sysoptions.py:260
+#: lutris/sysoptions.py:269
 msgid ""
 "If you have the latest NVIDIA driver and the properly patched xorg-server "
 "(see https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/"
@@ -4219,11 +4135,11 @@ msgstr ""
 "__NV_PRIME_RENDER_OFFLOAD=1 i __GLX_VENDOR_LIBRARY_NAME=nvidia varijable "
 "okruženja."
 
-#: lutris/sysoptions.py:276
+#: lutris/sysoptions.py:285
 msgid "Use discrete graphics"
 msgstr "Koristi diskretnu grafiku"
 
-#: lutris/sysoptions.py:279
+#: lutris/sysoptions.py:288
 msgid ""
 "If you have open source graphic drivers (Mesa), selecting this option will "
 "run the game with the 'DRI_PRIME=1' environment variable, activating your "
@@ -4233,11 +4149,11 @@ msgstr ""
 "će pokrenuti igru sa 'DRI_PRIME=1' varijablom okruženja, aktivirajte vaš "
 "diskretni grafički čip za visoke 3D performanse."
 
-#: lutris/sysoptions.py:290
+#: lutris/sysoptions.py:299
 msgid "SDL 1.2 Fullscreen Monitor"
 msgstr "SDL 1.2 cjelozaslonski monitor"
 
-#: lutris/sysoptions.py:297
+#: lutris/sysoptions.py:306
 msgid ""
 "Hint SDL 1.2 games to use a specific monitor when going fullscreen by "
 "setting the SDL_VIDEO_FULLSCREEN environment variable"
@@ -4245,11 +4161,11 @@ msgstr ""
 "Nagovijesti SDL 1.2 igrama da koriste određeni monitor kada se prebaciva u "
 "cjelozaslonski prikaz postavljanjem SDL_VIDEO_FULLSCREEN varijable okruženja"
 
-#: lutris/sysoptions.py:307
+#: lutris/sysoptions.py:316
 msgid "Turn off monitors except"
 msgstr "Očekivanje isključivanja monitora"
 
-#: lutris/sysoptions.py:314
+#: lutris/sysoptions.py:323
 msgid ""
 "Only keep the selected screen active while the game is running. \n"
 "This is useful if you have a dual-screen setup, and are \n"
@@ -4259,27 +4175,27 @@ msgstr ""
 "To je korisno ako koristite dva zaslona i imate probleme\n"
 "sa zaslonom kada je igra pokrenuta u cijelom zaslonu."
 
-#: lutris/sysoptions.py:322
+#: lutris/sysoptions.py:331
 msgid "Switch resolution to"
 msgstr "Prebaci razlučivost na"
 
-#: lutris/sysoptions.py:325
+#: lutris/sysoptions.py:334
 msgid "Switch to this screen resolution while the game is running."
 msgstr "Prebaci razlučivost na ovom zaslonu kada je igra pokrenuta."
 
-#: lutris/sysoptions.py:329
+#: lutris/sysoptions.py:338
 msgid "Run in a terminal"
 msgstr "Pokreni u terminalu"
 
-#: lutris/sysoptions.py:333
+#: lutris/sysoptions.py:342
 msgid "Run the game in a new terminal window."
 msgstr "Pokreni igru u novom prozoru terminala."
 
-#: lutris/sysoptions.py:339
+#: lutris/sysoptions.py:348
 msgid "Terminal application"
 msgstr "Aplikacija terminala"
 
-#: lutris/sysoptions.py:348
+#: lutris/sysoptions.py:357
 msgid ""
 "The terminal emulator to be run with the previous option.Choose from the "
 "list of detected terminal apps or enter the terminal's command or path.Note: "
@@ -4289,62 +4205,62 @@ msgstr ""
 "s popisa otkrivenih aplikacija terminala ili upišite naredbu ili putanju "
 "terminala. Napomena: Nije sigurno da će svi emulatori terminala raditi."
 
-#: lutris/sysoptions.py:356
+#: lutris/sysoptions.py:365
 msgid "Environment variables"
 msgstr "Varijable okruženja"
 
-#: lutris/sysoptions.py:357
+#: lutris/sysoptions.py:366
 msgid "Environment variables loaded at run time"
 msgstr "Varijable okruženja učitane pri tijeku izvođenja"
 
-#: lutris/sysoptions.py:362
+#: lutris/sysoptions.py:371
 msgid "Command prefix"
 msgstr "Prefiks naredbe"
 
-#: lutris/sysoptions.py:364
+#: lutris/sysoptions.py:373
 msgid ""
 "Command line instructions to add in front of the game's execution command."
 msgstr ""
 "Instrukcije naredbenog retka koje će biti dodane ispred naredbe pokretanja "
 "igre."
 
-#: lutris/sysoptions.py:370
+#: lutris/sysoptions.py:379
 msgid "Manual script"
 msgstr "Ručna skripta"
 
-#: lutris/sysoptions.py:372
+#: lutris/sysoptions.py:381
 msgid "Script to execute from the game's contextual menu"
 msgstr "Skripta koja će se pokrenuti iz sadržajnog izbornika igre"
 
-#: lutris/sysoptions.py:377
+#: lutris/sysoptions.py:386
 msgid "Pre-launch script"
 msgstr "Predpokrenuta skripta"
 
-#: lutris/sysoptions.py:379
+#: lutris/sysoptions.py:388
 msgid "Script to execute before the game starts"
 msgstr "Skripta koja će se pokrenuti prije pokretanja igre"
 
-#: lutris/sysoptions.py:384
+#: lutris/sysoptions.py:393
 msgid "Wait for pre-launch script completion"
 msgstr "Čekaj završetak predpokrenute skripte"
 
-#: lutris/sysoptions.py:387
+#: lutris/sysoptions.py:396
 msgid "Run the game only once the pre-launch script has exited"
 msgstr "Pokreni igru samo kada predpokrenuta skripta završi"
 
-#: lutris/sysoptions.py:392
+#: lutris/sysoptions.py:401
 msgid "Post-exit script"
-msgstr "Skripta nakon zatvaranja"
+msgstr "Naknadna skripta zatvaranja"
 
-#: lutris/sysoptions.py:394
+#: lutris/sysoptions.py:403
 msgid "Script to execute when the game exits"
 msgstr "Skripta koja će se pokrenuti nakon zatvaranja igre"
 
-#: lutris/sysoptions.py:402
+#: lutris/sysoptions.py:411
 msgid "Include processes"
 msgstr "Obuhvati procese"
 
-#: lutris/sysoptions.py:405
+#: lutris/sysoptions.py:414
 msgid ""
 "What processes to include in process monitoring. This is to override the "
 "built-in exclude list.\n"
@@ -4353,14 +4269,14 @@ msgid ""
 msgstr ""
 "Koji će se procesi obuhvatiti u procesu nadgledanja. Ovo zaobilazi ugrađeni "
 "popis izuzimanja.\n"
-"Popis odvojen razmakom, procesi koji imaju razmake mogu biti obuhvaćeni "
-"unutar navodnika."
+"Popis odvojen razmakom, procesi koji imaju razmake mogu biti navedeni unutar "
+"navodnika."
 
-#: lutris/sysoptions.py:416
+#: lutris/sysoptions.py:425
 msgid "Exclude processes"
 msgstr "Izuzmi procese"
 
-#: lutris/sysoptions.py:419
+#: lutris/sysoptions.py:428
 msgid ""
 "What processes to exclude in process monitoring. For example background "
 "processes that stick around after the game has been closed.\n"
@@ -4369,14 +4285,14 @@ msgid ""
 msgstr ""
 "Koji će se procesi izuzeti u procesu nadgledanja. Na primjer pozadinski "
 "procesi koji traju nakon što se igra zatvori.\n"
-"Popis odvojen razmakom, procesi koji imaju razmake mogu biti obuhvaćeni "
-"unutar navodnika."
+"Popis odvojen razmakom, procesi koji imaju razmake mogu biti navedeni unutar "
+"navodnika."
 
-#: lutris/sysoptions.py:431
+#: lutris/sysoptions.py:440
 msgid "Killswitch file"
 msgstr "Killswitch datoteka"
 
-#: lutris/sysoptions.py:434
+#: lutris/sysoptions.py:443
 msgid ""
 "Path to a file which will stop the game when deleted \n"
 "(usually /dev/input/js0 to stop the game on joystick unplugging)"
@@ -4385,11 +4301,11 @@ msgstr ""
 "(uobičajeno /dev/input/js0 za zaustavljanje igre kada se upravljač igre "
 "odspoji)"
 
-#: lutris/sysoptions.py:444
+#: lutris/sysoptions.py:453
 msgid "SDL2 gamepad mapping"
 msgstr "SDL2 mapiranje upravljača igre"
 
-#: lutris/sysoptions.py:447
+#: lutris/sysoptions.py:456
 msgid ""
 "SDL_GAMECONTROLLERCONFIG mapping string or path to a custom gamecontrollerdb."
 "txt file containing mappings."
@@ -4397,79 +4313,79 @@ msgstr ""
 "SDL_GAMECONTROLLERCONFIG izraz mapiranja ili putanja do prilagođene "
 "gamecontrollerdb.txt datoteke koja sadrži mapiranja."
 
-#: lutris/sysoptions.py:454
+#: lutris/sysoptions.py:463
 msgid "Use Xephyr"
 msgstr "Koristi Xephyr"
 
-#: lutris/sysoptions.py:459
+#: lutris/sysoptions.py:468
 msgid "8BPP (256 colors)"
 msgstr "8BPP (256 boja)"
 
-#: lutris/sysoptions.py:460
+#: lutris/sysoptions.py:469
 msgid "16BPP (65536 colors)"
 msgstr "16BPP (65536 boja)"
 
-#: lutris/sysoptions.py:461
+#: lutris/sysoptions.py:470
 msgid "24BPP (16M colors)"
 msgstr "24BPP (16M boja)"
 
-#: lutris/sysoptions.py:468
+#: lutris/sysoptions.py:477
 msgid "Run program in Xephyr to support 8BPP and 16BPP color modes"
 msgstr "Pokreni program u Xephyr za podršku rada u 8BPP i 16BPP bojama"
 
-#: lutris/sysoptions.py:473
+#: lutris/sysoptions.py:482
 msgid "Xephyr resolution"
 msgstr "Xephyr razlučivost"
 
-#: lutris/sysoptions.py:475
+#: lutris/sysoptions.py:484
 msgid "Screen resolution of the Xephyr server"
 msgstr "Razlučivost zaslona Xephyr poslužitelja"
 
-#: lutris/sysoptions.py:480
+#: lutris/sysoptions.py:489
 msgid "Xephyr Fullscreen"
 msgstr "Xephyr cijeli zaslon"
 
-#: lutris/sysoptions.py:483
+#: lutris/sysoptions.py:492
 msgid "Open Xephyr in fullscreen (at the desktop resolution)"
 msgstr "Otvori Xephyr u cijelom zaslonu (na razlučivosti radne površine)"
 
-#: lutris/sysoptions.py:491
+#: lutris/sysoptions.py:500
 msgid "Discord Rich Presence"
 msgstr "Discord opširna prisutnost"
 
-#: lutris/sysoptions.py:494
+#: lutris/sysoptions.py:503
 msgid "Enable status to Discord of this game being played"
 msgstr "Omogući status na Discordu kada se igra ova igra"
 
-#: lutris/sysoptions.py:499
+#: lutris/sysoptions.py:508
 msgid "Discord Show Runner"
 msgstr "Discord prikaz pokretača"
 
-#: lutris/sysoptions.py:502
+#: lutris/sysoptions.py:511
 msgid "Embed the runner name in the Discord status"
 msgstr "Omogući naziv pokretača u statusu Discorda"
 
-#: lutris/sysoptions.py:507
+#: lutris/sysoptions.py:516
 msgid "Discord Custom Game Name"
 msgstr "Discord prilagođeni naslov igre"
 
-#: lutris/sysoptions.py:509
+#: lutris/sysoptions.py:518
 msgid "Custom name to override with and pass to Discord"
 msgstr "Prilagođeni naslov za zaobilaženje i prosljeđivanje na Discord"
 
-#: lutris/sysoptions.py:514
+#: lutris/sysoptions.py:523
 msgid "Discord Custom Runner Name"
 msgstr "Discord prilagođeni naziv pokretača"
 
-#: lutris/sysoptions.py:516
+#: lutris/sysoptions.py:525
 msgid "Custom runner name to override with and pass to Discord"
 msgstr "Prilagođeni naziv za zaobilaženje i prosljeđivanje na Discord"
 
-#: lutris/sysoptions.py:521
+#: lutris/sysoptions.py:530
 msgid "Discord Client ID"
 msgstr "ID Discord klijenta"
 
-#: lutris/sysoptions.py:523
+#: lutris/sysoptions.py:532
 msgid "Custom Discord Client ID for passing status"
 msgstr "Prilagođeni Id Discord klijenta za prosljeđivanje statusa"
 
@@ -4480,6 +4396,90 @@ msgid ""
 msgstr ""
 "Vaš kernel nije zakrpan za fsync. Nabavite zakrpani kernel kako bi mogli "
 "koristiti fsync."
+
+#~ msgid "Adventure Game Studio"
+#~ msgstr "Adventure Game Studio"
+
+#~ msgid "Graphics adventure engine"
+#~ msgstr "Graphics adventure engine"
+
+#~ msgid "Game executable or directory"
+#~ msgstr "Izvršna datoteka igre ili direktorij"
+
+#~ msgid "Graphics filter"
+#~ msgstr "Filter grafike"
+
+#~ msgid "Standard scaling"
+#~ msgstr "Standardna promjena veličine"
+
+#~ msgid "HQ2x"
+#~ msgstr "HQ2x"
+
+#~ msgid "HQ3x"
+#~ msgstr "HQ3x"
+
+#~ msgid "Citra"
+#~ msgstr "Citra"
+
+#~ msgid "Nintendo 3DS"
+#~ msgstr "Nintendo 3DS"
+
+#~ msgid "Nintendo 3DS emulator"
+#~ msgstr "Nintendo 3DS emulator"
+
+#~ msgid "Nintendo DS"
+#~ msgstr "Nintendo DS"
+
+#~ msgid "Nintendo DS emulator"
+#~ msgstr "Nintendo DS emulator"
+
+#~ msgid "DGen"
+#~ msgstr "DGen"
+
+#~ msgid "Sega Genesis emulator"
+#~ msgstr "Sega Genesis emulator"
+
+#~ msgid "Sega Genesis"
+#~ msgstr "Sega Genesis"
+
+#~ msgid "PAL"
+#~ msgstr "PAL"
+
+#~ msgid "Region"
+#~ msgstr "Regija"
+
+#~ msgid "America (NTSC)"
+#~ msgstr "America (NTSC)"
+
+#~ msgid "Japan (NTSC)"
+#~ msgstr "Japan (NTSC)"
+
+#~ msgid "Japan (PAL)"
+#~ msgstr "Japan (PAL)"
+
+#~ msgid "Europe (PAL)"
+#~ msgstr "Europa (PAL)"
+
+#~ msgid "Frotz"
+#~ msgstr "Frotz"
+
+#~ msgid "Z-code emulator for text adventure games such as Zork."
+#~ msgstr "Z-code emulator za tekstne avanturističke igre poput Zorka."
+
+#~ msgid "Z-Machine"
+#~ msgstr "Z-Machine"
+
+#~ msgid "Story file"
+#~ msgstr "Story datoteka"
+
+#~ msgid ""
+#~ "The Z-Machine game file.\n"
+#~ "Usally ends in \".z*\", with \"*\" being a number from 1 to 6 "
+#~ "representing the version of the Z-Machine that the game was written for."
+#~ msgstr ""
+#~ "Z-Machine datoteka igre.\n"
+#~ "Uobičajeno završava sa \".z*\", \"*\" je broj od 1 do 6 koji označuje "
+#~ "inačicu Z-Machine za koju je igra napisana."
 
 #~ msgid "Enable DX9 in DXVK"
 #~ msgstr "Omogući DX9 u DXVK"
