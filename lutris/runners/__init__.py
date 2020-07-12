@@ -43,7 +43,7 @@ __all__ = [
     "o2em",
     "zdoom",
 ]
-JSON_RUNNERS = {}
+ADDON_RUNNERS = {}
 
 
 class InvalidRunner(Exception):
@@ -75,8 +75,8 @@ def get_runner_module(runner_name):
 
 def import_runner(runner_name):
     """Dynamically import a runner class."""
-    if runner_name in JSON_RUNNERS:
-        return JSON_RUNNERS[runner_name]
+    if runner_name in ADDON_RUNNERS and runner_name not in __all__:
+        return ADDON_RUNNERS[runner_name]
 
     runner_module = get_runner_module(runner_name)
     if not runner_module:
@@ -104,7 +104,7 @@ def get_installed(sort=True):
 
 def inject_runners(runners):
     for runner_name in runners:
-        JSON_RUNNERS[runner_name] = runners[runner_name]
+        ADDON_RUNNERS[runner_name] = runners[runner_name]
         __all__.append(runner_name)
 
 
