@@ -21,7 +21,7 @@ class JsonRunner(Runner):
             self._json_data = json.load(json_file)
 
         self.game_options = self._json_data["game_options"]
-        self.runner_options = self._json_data["runner_options"]
+        self.runner_options = self._json_data.get("runner_options", [])
         self.human_name = self._json_data["human_name"]
         self.description = self._json_data["description"]
         self.platforms = self._json_data["platforms"]

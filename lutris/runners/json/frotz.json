@@ -12,7 +12,7 @@
             "help": "The Z-Machine game file.\nUsally ends in .z*, with * being a number from 1 to 6 matching the Z-machine version the game was written for."
         }
     ],
-    system_options_override = [
+    "system_options_override": [
         {
             "option": "terminal",
             "default": true

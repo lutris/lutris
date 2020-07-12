@@ -75,7 +75,7 @@ def get_runner_module(runner_name):
 
 def import_runner(runner_name):
     """Dynamically import a runner class."""
-    if runner_name in ADDON_RUNNERS and runner_name not in __all__:
+    if runner_name in ADDON_RUNNERS:
         return ADDON_RUNNERS[runner_name]
 
     runner_module = get_runner_module(runner_name)
