@@ -449,7 +449,7 @@ class Game(GObject.Object):
         Remember that only games using text mode should use the terminal.
         """
         if self.runner.system_config.get("terminal"):
-            terminal = self.system_config.get("terminal_app", system.get_default_terminal())
+            terminal = self.runner.system_config.get("terminal_app", system.get_default_terminal())
             if terminal and not system.find_executable(terminal):
                 raise GameConfigError(_("The selected terminal application could not be launched:\n%s") % terminal)
             return terminal
@@ -508,7 +508,7 @@ class Game(GObject.Object):
 
         # Input control
 
-        if self.system_config.get("use_us_layout"):
+        if self.runner.system_config.get("use_us_layout"):
             self.set_keyboard_layout("us")
 
         # Display control
