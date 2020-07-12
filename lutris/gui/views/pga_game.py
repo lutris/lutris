@@ -1,9 +1,9 @@
 """Game representation for views"""
 import time
 
-from lutris.runners import RUNNER_NAMES
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.runners import RUNNER_NAMES
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
 

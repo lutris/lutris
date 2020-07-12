@@ -1,6 +1,7 @@
 """Base class and utilities for JSON based runners"""
-import os
 import json
+import os
+
 from lutris.runners.runner import Runner
 from lutris.util import system
 

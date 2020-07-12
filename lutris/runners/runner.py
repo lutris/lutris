@@ -10,13 +10,13 @@ from gi.repository import Gtk
 from lutris import pga, runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
+from lutris.exceptions import UnavailableLibraries
 from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
-from lutris.exceptions import UnavailableLibraries
 from lutris.util import system
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import Request
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 

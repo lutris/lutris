@@ -16,8 +16,7 @@ __all__ = [
     "scummvm",
     "residualvm",
     "libretro",
-    "ags",
-    # Commdore
+    # Commodore
     "fsuae",
     "vice",
     # Atari
@@ -29,8 +28,6 @@ __all__ = [
     "snes9x",
     "mupen64plus",
     "dolphin",
-    "desmume",
-    "citra",
     "yuzu",
     # Sony
     "ppsspp",
@@ -42,7 +39,6 @@ __all__ = [
     # Fantasy consoles
     "pico8",
     # Misc legacy systems
-    "frotz",
     "jzintv",
     "o2em",
     "zdoom",
@@ -110,6 +106,7 @@ def inject_runners(runners):
     for runner_name in runners:
         JSON_RUNNERS[runner_name] = runners[runner_name]
         __all__.append(runner_name)
+
 
 def get_runner_names():
     return {
