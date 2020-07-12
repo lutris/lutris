@@ -290,6 +290,31 @@ class Game(GObject.Object):
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
+    def restrict_to_display(self, display):
+        outputs = DISPLAY_MANAGER.get_config()
+        if display == "primary":
+            display = None
+            for output in outputs:
+                if output.primary:
+                    display = output.name
+                    break
+            if not display:
+                logger.warning("No primary display set")
+        else:
+            found = False
+            for output in outputs:
+                if output.name == display:
+                    found = True
+                    break
+            if not found:
+                logger.warning("Selected display %s not found", display)
+                display = None
+        if display:
+            turn_off_except(display)
+            time.sleep(3)
+            return True
+        return False
+
     @watch_lutris_errors
     def configure_game(self, prelaunched, error=None):  # noqa: C901
         """Get the game ready to start, applying all the options
@@ -307,7 +332,6 @@ class Game(GObject.Object):
             self.emit("game-stop")
             return
         self.original_outputs = DISPLAY_MANAGER.get_config()
-
         gameplay_info = self.runner.play()
         if "error" in gameplay_info:
             self.show_error_message(gameplay_info)
@@ -317,29 +341,8 @@ class Game(GObject.Object):
 
         system_config = self.runner.system_config
 
-        restrict_to_display = system_config.get("display")
-        if restrict_to_display != "off":
-            if restrict_to_display == "primary":
-                restrict_to_display = None
-                for output in self.original_outputs:
-                    if output.primary:
-                        restrict_to_display = output.name
-                        break
-                if not restrict_to_display:
-                    logger.warning("No primary display set")
-            else:
-                found = False
-                for output in self.original_outputs:
-                    if output.name == restrict_to_display:
-                        found = True
-                        break
-                if not found:
-                    logger.warning("Selected display %s not found", restrict_to_display)
-                    restrict_to_display = None
-            if restrict_to_display:
-                turn_off_except(restrict_to_display)
-                time.sleep(3)
-                self.resolution_changed = True
+        if system_config.get("display") != "off":
+            self.resolution_changed = self.restrict_to_display(system_config.get("display"))
 
         resolution = system_config.get("resolution")
         if resolution != "off":
