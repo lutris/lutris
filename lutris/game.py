@@ -2,8 +2,8 @@
 
 # pylint: disable=too-many-public-methods
 import os
-import stat
 import shlex
+import stat
 import subprocess
 import time
 from gettext import gettext as _
