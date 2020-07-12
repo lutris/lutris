@@ -29,7 +29,6 @@ __all__ = [
     "dolphin",
     "yuzu",
     # Sony
-    "ppsspp",
     "pcsx2",
     "rpcs3",
     # Sega
