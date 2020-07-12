@@ -36,9 +36,9 @@ and commit your changes.
 - Keep the `LINGUAS` file sorted alphabetically.
 - Languages can't be tested without installing Lutris via meson:
   ```bash
-  rm -Rf transl-builddir
-  meson transl-builddir --prefix=~/.local
-  ninja install -C transl-builddir
+  rm -Rf builddir
+  meson builddir --prefix=~/.local
+  ninja install -C builddir
 
   rm -Rf builddir
   meson builddir --prefix=~/.local
