@@ -1,0 +1,24 @@
+{
+    "human_name": "PPSSPP",
+    "description": "Sony PSP emulator",
+    "platforms": ["Sony PlayStation Portable"],
+    "runner_executable": "ppsspp/PPSSPPSDL",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ISO file",
+            "default_path": "game_path"
+        }
+    ],
+    "runner_options": [
+
+        {
+            "option": "config",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": true,
+            "argument": "--fullscreen"
+        }
+    ]
+}
