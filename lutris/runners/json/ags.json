@@ -1,0 +1,34 @@
+{
+    "human_name": "Adventure Game Studio",
+    "description": "Graphics adventure engine",
+    "platforms": ["Linux"],
+    "runner_executable": "ags/ags.sh",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Game executable or directory"
+        }
+    ],
+    "runner_options": [
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": true,
+            "argument": "--fullscreen"
+        },
+        {
+            "option": "filter",
+            "type": "choice",
+            "label": "Graphics filter",
+            "choices": [
+                ["None", "none"],
+                ["Standard scaling", "stdscale"],
+                ["HQ2x", "hq2x"],
+                ["HQ3x", "hq3x"]
+            ],
+            "argument": "--gfxfilter"
+        }
+    ]
+}

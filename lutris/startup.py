@@ -3,9 +3,10 @@
 import os
 from gettext import gettext as _
 
-from lutris import pga, settings
+from lutris import pga, runners, settings
 from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
+from lutris.runners.json import load_json_runners
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -41,6 +42,9 @@ def init_db():
 
 def init_lutris():
     """Run full initialization of Lutris"""
+    runners.inject_runners(load_json_runners())
+    # Load runner names
+    runners.RUNNER_NAMES = runners.get_runner_names()
     init_dirs()
     init_db()
 

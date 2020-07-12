@@ -1,0 +1,14 @@
+{
+    "human_name": "Desmume",
+    "description": "Nintendo DS emulator",
+    "platforms": ["Nintendo DS"],
+    "runner_executable": "desmume/bin/desmume",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            "help": "A 3DS ROM"
+        }
+    ]
+}

@@ -1,0 +1,45 @@
+{
+    "human_name": "DGen",
+    "description": "Sega Genesis emulator",
+    "platforms": ["Sega Genesis"],
+    "runner_executable": "dgen/bin/dgen",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            "help": "The game data, commonly called a ROM image."
+        }
+    ],
+    "runner_options": [
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": true,
+            "argument": "-f"
+        },
+        {
+            "option": "pal",
+            "type": "bool",
+            "label": "PAL",
+            "default": false,
+            "advanced": true,
+            "argument": "-P"
+        },
+        {
+            "option": "region",
+            "type": "choice",
+            "label": "Region",
+            "choices": [
+                ["America (NTSC)", "U"],
+                ["Japan (NTSC)", "J"],
+                ["Japan (PAL)", "X"],
+                ["Europe (PAL)", "E"]
+            ],
+            "default": "off",
+            "advanced": true,
+            "argument": "-R"
+        }
+    ]
+}

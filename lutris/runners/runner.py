@@ -10,44 +10,40 @@ from gi.repository import Gtk
 from lutris import pga, runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
+from lutris.exceptions import UnavailableLibraries
 from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import system
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import Request
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
-class RunnerMeta(type):
-    def __new__(mcs, name, bases, body):
-        if name != 'Runner' and 'play' not in body:
-            raise TypeError("The play method is not implemented in runner %s!" % name)
-        return super().__new__(mcs, name, bases, body)
-
-
-class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
+class Runner:  # pylint: disable=too-many-public-methods
 
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
     platforms = []
-    require_libs = []
     runnable_alone = False
     game_options = []
     runner_options = []
     system_options_override = []
     context_menu_entries = []
+    require_libs = []
     depends_on = None
     runner_executable = None
     entry_point_option = "main_file"
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.arch = system.LINUX_SYSTEM.arch
+        self.arch = system.LINUX_SYSTEM.arch  # What the hell is this needed for?!
         self.config = config
-        self.game_data = {}
         if config:
             self.game_data = pga.get_game_by_field(self.config.game_config_id, "configpath")
+        else:
+            self.game_data = {}
 
     def __lt__(self, other):
         return self.name < other.name
@@ -60,7 +56,7 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
     @description.setter
     def description(self, value):
         """Leave the ability to override the docstring."""
-        self.__doc__ = value
+        self.__doc__ = value  # What the shit
 
     @property
     def name(self):
@@ -205,6 +201,13 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
 
     def prelaunch(self):
         """Run actions before running the game, override this method in runners"""
+        available_libs = set()
+        for lib in set(self.require_libs):
+            if lib in LINUX_SYSTEM.shared_libraries:
+                available_libs.add(lib)
+        unavailable_libs = set(self.require_libs) - available_libs
+        if unavailable_libs:
+            raise UnavailableLibraries(unavailable_libs)
         return True
 
     def get_run_data(self):

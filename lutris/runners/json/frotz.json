@@ -1,0 +1,21 @@
+{
+    "human_name": "Frotz",
+    "description": "Z-code emulator for text adventure games such as Zork.",
+    "platforms": ["Z-Machine"],
+    "runner_executable": "frotz/frotz",
+    "entry_point_option": "story",
+    "game_options": [
+        {
+            "option": "story",
+            "type": "file",
+            "label": "Story file",
+            "help": "The Z-Machine game file.\nUsally ends in .z*, with * being a number from 1 to 6 matching the Z-machine version the game was written for."
+        }
+    ],
+    "system_options_override": [
+        {
+            "option": "terminal",
+            "default": true
+        }
+    ]
+}
