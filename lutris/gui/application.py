@@ -118,6 +118,14 @@ class Application(Gtk.Application):
             None,
         )
         self.add_main_option(
+            "output-script",
+            ord("b"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Generate a bash script to run a game without the client"),
+            None,
+        )
+        self.add_main_option(
             "exec",
             ord("e"),
             GLib.OptionFlags.NONE,
@@ -234,6 +242,14 @@ class Application(Gtk.Application):
         # Workaround broken pygobject bindings
         command_line.do_print_literal(command_line, string + "\n")
 
+    def generate_script(self, db_game, script_path):
+        """Output a script to a file.
+        The script is capable of launching a game without the client
+        """
+        game = Game(db_game["id"])
+        game.load_config()
+        game.write_script(script_path)
+
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
         # pylint: disable=too-many-statements
@@ -312,8 +328,13 @@ class Application(Gtk.Application):
         except ValueError:
             self._print(command_line, _("%s is not a valid URI") % url.get_strv())
             return 1
+
         game_slug = installer_info["game_slug"]
         action = installer_info["action"]
+
+        if options.contains("output-script"):
+            action = "write-script"
+
         revision = installer_info["revision"]
 
         installer_file = None
@@ -365,6 +386,13 @@ class Application(Gtk.Application):
                     pga.get_game_by_field(game_slug, "id") or pga.get_game_by_field(game_slug, "slug")
                     or pga.get_game_by_field(game_slug, "installer_slug")
                 )
+
+        if action == "write-script":
+            if not db_game or not db_game["id"]:
+                logger.warning("No game provided to generate the script")
+                return 1
+            self.generate_script(db_game, options.lookup_value("output-script").get_string())
+            return 0
 
         # Graphical commands
         self.activate()

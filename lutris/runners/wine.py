@@ -887,7 +887,7 @@ class wine(Runner):
         overrides.update(self.dll_overrides)
         return overrides
 
-    def get_env(self, os_env=True):
+    def get_env(self, os_env=False):
         """Return environment variables used by the game"""
         # Always false to runner.get_env, the default value
         # of os_env is inverted in the wine class,

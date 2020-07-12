@@ -164,11 +164,42 @@ class Runner:  # pylint: disable=too-many-public-methods
         if os_env:
             env.update(os.environ.copy())
 
-        system_env = self.system_config.get("env") or {}
-        env.update(system_env)
+        # Override SDL2 controller configuration
+        sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")
+        if sdl_gamecontrollerconfig:
+            path = os.path.expanduser(sdl_gamecontrollerconfig)
+            if system.path_exists(path):
+                with open(path, "r") as controllerdb_file:
+                    sdl_gamecontrollerconfig = controllerdb_file.read()
+            env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
+        # Set monitor to use for SDL 1 games
+        if self.system_config.get("sdl_video_fullscreen"):
+            env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = self.system_config["sdl_video_fullscreen"]
+
+        # DRI Prime
         if self.system_config.get("dri_prime"):
             env["DRI_PRIME"] = "1"
+
+        # Prime vars
+        prime = self.system_config.get("prime")
+        if prime:
+            env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
+            env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
+            env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
+
+        # Enable ACO compiler for AMD GPUs
+        if self.system_config.get("aco"):
+            env["RADV_PERFTEST"] = "aco"
+
+        # Set PulseAudio latency to 60ms
+        if self.system_config.get("pulse_latency"):
+            env["PULSE_LATENCY_MSEC"] = "60"
+
+        # Vulkan ICD files
+        vk_icd = self.system_config.get("vk_icd")
+        if vk_icd and vk_icd != "off" and system.path_exists(vk_icd):
+            env["VK_ICD_FILENAMES"] = vk_icd
 
         runtime_ld_library_path = None
 
@@ -184,6 +215,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             if not ld_library_path:
                 ld_library_path = "$LD_LIBRARY_PATH"
             env["LD_LIBRARY_PATH"] = ":".join([runtime_ld_library_path, ld_library_path])
+
+        # Apply user overrides at the end
+        env.update(self.system_config.get("env") or {})
 
         return env
 
