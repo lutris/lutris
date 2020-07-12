@@ -20,7 +20,6 @@ __all__ = [
     "fsuae",
     "vice",
     # Atari
-    "stella",
     "atari800",
     "hatari",
     "virtualjaguar",
