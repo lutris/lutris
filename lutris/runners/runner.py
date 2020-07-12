@@ -18,14 +18,7 @@ from lutris.util.http import Request
 from lutris.util.log import logger
 
 
-class RunnerMeta(type):
-    def __new__(mcs, name, bases, body):
-        if name != 'Runner' and 'play' not in body:
-            raise TypeError("The play method is not implemented in runner %s!" % name)
-        return super().__new__(mcs, name, bases, body)
-
-
-class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
+class Runner:  # pylint: disable=too-many-public-methods
 
     """Generic runner (base class for other runners)."""
 
@@ -43,11 +36,12 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.arch = system.LINUX_SYSTEM.arch
+        self.arch = system.LINUX_SYSTEM.arch  # What the hell is this needed for?!
         self.config = config
-        self.game_data = {}
         if config:
             self.game_data = pga.get_game_by_field(self.config.game_config_id, "configpath")
+        else:
+            self.game_data = {}
 
     def __lt__(self, other):
         return self.name < other.name
@@ -60,7 +54,7 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
     @description.setter
     def description(self, value):
         """Leave the ability to override the docstring."""
-        self.__doc__ = value
+        self.__doc__ = value  # What the shit
 
     @property
     def name(self):

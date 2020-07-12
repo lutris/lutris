@@ -156,11 +156,11 @@ class SidebarListBox(Gtk.ListBox):
         all_row = SidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
         self.select_row(all_row)
-        for runner in self.runners:
-            icon_name = runner.lower().replace(" ", "") + "-symbolic"
+        for runner_name in self.runners:
+            icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
-            name = runners.import_runner(runner).human_name
-            self.add(SidebarRow(runner, "runner", name, icon))
+            runner = runners.import_runner(runner_name)()
+            self.add(SidebarRow(runner_name, "runner", runner.human_name, icon))
 
         self.add(SidebarRow(None, "platform", _("All"), None))
         for platform in self.platforms:

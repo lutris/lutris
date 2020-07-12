@@ -1,9 +1,7 @@
 """Game representation for views"""
-# Standard Library
 import time
 
-# Lutris Modules
-from lutris import runners
+from lutris.runners import RUNNER_NAMES
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.util.log import logger
@@ -11,7 +9,6 @@ from lutris.util.strings import get_formatted_playtime, gtk_safe
 
 
 class PgaGame:
-
     """Representation of a game for views
     TODO: Fix overlap with Game class
     """
@@ -20,7 +17,6 @@ class PgaGame:
         if not pga_data:
             raise RuntimeError("No game data provided")
         self._pga_data = pga_data
-        self.runner_names = {runner: runners.import_runner(runner).human_name for runner in runners.__all__}
 
     def __str__(self):
         return self.name
@@ -56,7 +52,7 @@ class PgaGame:
     @property
     def runner_text(self):
         """Runner name"""
-        return gtk_safe(self.runner_names.get(self.runner))
+        return gtk_safe(RUNNER_NAMES.get(self.runner))
 
     @property
     def platform(self):
