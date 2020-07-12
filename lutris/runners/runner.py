@@ -12,7 +12,9 @@ from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
+from lutris.exceptions import UnavailableLibraries
 from lutris.util import system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import Request
 from lutris.util.log import logger
@@ -24,12 +26,12 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     multiple_versions = False
     platforms = []
-    require_libs = []
     runnable_alone = False
     game_options = []
     runner_options = []
     system_options_override = []
     context_menu_entries = []
+    require_libs = []
     depends_on = None
     runner_executable = None
     entry_point_option = "main_file"
@@ -199,6 +201,13 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def prelaunch(self):
         """Run actions before running the game, override this method in runners"""
+        available_libs = set()
+        for lib in set(self.require_libs):
+            if lib in LINUX_SYSTEM.shared_libraries:
+                available_libs.add(lib)
+        unavailable_libs = set(self.require_libs) - available_libs
+        if unavailable_libs:
+            raise UnavailableLibraries(unavailable_libs)
         return True
 
     def get_run_data(self):
