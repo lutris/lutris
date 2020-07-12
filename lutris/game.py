@@ -1,18 +1,14 @@
 """Module that actually runs the games."""
 
-# Standard Library
 # pylint: disable=too-many-public-methods
-import json
 import os
 import shlex
 import subprocess
 import time
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import GLib, GObject, Gtk
 
-# Lutris Modules
 from lutris import pga, runtime
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
@@ -310,7 +306,6 @@ class Game(GObject.Object):
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
-        system_config = self.runner.system_config
         self.original_outputs = DISPLAY_MANAGER.get_config()
 
         gameplay_info = self.runner.play()
@@ -319,20 +314,8 @@ class Game(GObject.Object):
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
-        logger.debug("Launching %s", self.name)
-        logger.debug(json.dumps(gameplay_info, indent=2))
 
-        env = {}
-        sdl_gamecontrollerconfig = system_config.get("sdl_gamecontrollerconfig")
-        if sdl_gamecontrollerconfig:
-            path = os.path.expanduser(sdl_gamecontrollerconfig)
-            if system.path_exists(path):
-                with open(path, "r") as controllerdb_file:
-                    sdl_gamecontrollerconfig = controllerdb_file.read()
-            env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
-
-        sdl_video_fullscreen = system_config.get("sdl_video_fullscreen") or ""
-        env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
+        system_config = self.runner.system_config
 
         restrict_to_display = system_config.get("display")
         if restrict_to_display != "off":
@@ -385,6 +368,26 @@ class Game(GObject.Object):
         elif optimus == "pvkrun" and system.find_executable("pvkrun"):
             launch_arguments.insert(0, "pvkrun")
 
+        env = {}
+        env.update(self.runner.get_env())
+        env.update(gameplay_info.get("env") or {})
+        env["game_name"] = self.name
+
+        # Set environment variables dependent on gameplay info
+
+        # LD_PRELOAD
+        ld_preload = gameplay_info.get("ld_preload")
+        if ld_preload:
+            env["LD_PRELOAD"] = ld_preload
+
+        # LD_LIBRARY_PATH
+        game_ld_libary_path = gameplay_info.get("ld_library_path")
+        if game_ld_libary_path:
+            ld_library_path = env.get("LD_LIBRARY_PATH")
+            if not ld_library_path:
+                ld_library_path = "$LD_LIBRARY_PATH"
+            env["LD_LIBRARY_PATH"] = ":".join([game_ld_libary_path, ld_library_path])
+
         xephyr = system_config.get("xephyr") or "off"
         if xephyr != "off":
             if not system.find_executable("Xephyr"):
@@ -416,17 +419,6 @@ class Game(GObject.Object):
             xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE)
             subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin).communicate()
             xkbcomp.communicate()
-
-        if system_config.get("aco"):
-            env["RADV_PERFTEST"] = "aco"
-
-        pulse_latency = system_config.get("pulse_latency")
-        if pulse_latency:
-            env["PULSE_LATENCY_MSEC"] = "60"
-
-        vk_icd = system_config.get("vk_icd")
-        if vk_icd and vk_icd != "off" and system.path_exists(vk_icd):
-            env["VK_ICD_FILENAMES"] = vk_icd
 
         # Mangohud activation
         mangohud = system_config.get("mangohud") or ""
@@ -468,23 +460,6 @@ class Game(GObject.Object):
                 self.emit("game-stop")
                 return
 
-        # Env vars
-        game_env = gameplay_info.get("env") or self.runner.get_env()
-        env.update(game_env)
-        env["game_name"] = self.name
-
-        # Prime vars
-        prime = system_config.get("prime")
-        if prime:
-            env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
-            env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
-            env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
-
-        # LD_PRELOAD
-        ld_preload = gameplay_info.get("ld_preload")
-        if ld_preload:
-            env["LD_PRELOAD"] = ld_preload
-
         # Feral gamemode
         gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
         if gamemode:
@@ -495,14 +470,6 @@ class Game(GObject.Object):
                     env.get("LD_PRELOAD"),
                     "libgamemodeauto.so",
                 ] if path])
-
-        # LD_LIBRARY_PATH
-        game_ld_libary_path = gameplay_info.get("ld_library_path")
-        if game_ld_libary_path:
-            ld_library_path = env.get("LD_LIBRARY_PATH")
-            if not ld_library_path:
-                ld_library_path = "$LD_LIBRARY_PATH"
-            env["LD_LIBRARY_PATH"] = ":".join([game_ld_libary_path, ld_library_path])
 
         include_processes = shlex.split(system_config.get("include_processes", ""))
         exclude_processes = shlex.split(system_config.get("exclude_processes", ""))
