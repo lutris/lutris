@@ -22,7 +22,6 @@ __all__ = [
     # Atari
     "atari800",
     "hatari",
-    "virtualjaguar",
     # Nintendo
     "snes9x",
     "mupen64plus",
