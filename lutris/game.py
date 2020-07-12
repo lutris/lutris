@@ -2,6 +2,7 @@
 
 # pylint: disable=too-many-public-methods
 import os
+import stat
 import shlex
 import subprocess
 import time
@@ -363,6 +364,7 @@ class Game(GObject.Object):
 
         env = {}
         env.update(self.runner.get_env())
+
         env.update(gameplay_info.get("env") or {})
         env["game_name"] = self.name
 
@@ -687,3 +689,23 @@ class Game(GObject.Object):
                 appmanifest.steamid,
             )
             self.game_thread.ready_state = False
+
+    def write_script(self, script_path):
+        """Output the launch argument in a bash script"""
+
+        gameplay_info = self.get_gameplay_info()
+        if not gameplay_info:
+            return
+        command, env = self.get_launch_parameters(gameplay_info)
+        # Override TERM otherwise the script might not run
+        env["TERM"] = "xterm"
+        script_content = "#!/bin/bash\n\n\n"
+        script_content += "# Environment variables\n\n"
+        for env_var in env:
+            script_content += "export %s=\"%s\"\n" % (env_var, env[env_var])
+        script_content += "\n\n# Command\n\n"
+        script_content += shlex.join(command)
+        with open(script_path, "w") as script_file:
+            script_file.write(script_content)
+
+        os.chmod(script_path, os.stat(script_path).st_mode | stat.S_IEXEC)
