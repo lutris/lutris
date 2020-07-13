@@ -4,9 +4,12 @@ import os
 
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util import datapath
+from lutris import settings
 
 JSON_RUNNER_DIRS = [
-    os.path.join(os.path.dirname(__file__), "json")
+    os.path.join(datapath.get(), "json"),
+    os.path.join(settings.RUNNER_DIR, "json"),
 ]
 
 
@@ -53,6 +56,8 @@ class JsonRunner(Runner):
 def load_json_runners():
     json_runners = {}
     for json_dir in JSON_RUNNER_DIRS:
+        if not os.path.exists(json_dir):
+            continue
         for json_path in os.listdir(json_dir):
             if not json_path.endswith(".json"):
                 continue
