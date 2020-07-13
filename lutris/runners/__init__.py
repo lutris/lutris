@@ -20,17 +20,14 @@ __all__ = [
     "fsuae",
     "vice",
     # Atari
-    "stella",
     "atari800",
     "hatari",
-    "virtualjaguar",
     # Nintendo
     "snes9x",
     "mupen64plus",
     "dolphin",
     "yuzu",
     # Sony
-    "ppsspp",
     "pcsx2",
     "rpcs3",
     # Sega
