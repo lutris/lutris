@@ -1,0 +1,33 @@
+{
+    "human_name": "PCem",
+    "description": "PCem is an IBM PC emulator",
+    "platforms": ["MS-DOS"],
+    "runnable_alone": "True",
+    "runner_executable": "pcem/pcem",
+    "download_url": "http://pcem-emulator.co.uk/files/PCemV16Linux.tar.gz",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Config file",
+            "help": "PCem's Configuration file"
+        }
+    ],
+    "runner_options": [
+
+        {
+            "option": "config",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": true,
+            "argument": "--fullscreen"
+        },
+        {
+            "option": "config",
+            "type": "bool",
+            "label": "Config",
+            "default": true,
+            "argument": "--config"
+        }
+    ]
+}
