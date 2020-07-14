@@ -393,14 +393,29 @@ class WebConnectDialog(Dialog):
         self.webview.connect("load-changed", self.on_navigation)
         self.vbox.pack_start(self.webview, True, True, 0)
 
+        webkit_settings = self.webview.get_settings()
+        # Allow popups (Doesn't work...)
+        webkit_settings.set_enable_write_console_messages_to_stdout(True)
+        webkit_settings.set_allow_modal_dialogs(True)
+        # Enable developer options for troubleshooting (Can be disabled in
+        # releases)
+        webkit_settings.set_javascript_can_open_windows_automatically(True)
+        webkit_settings.set_enable_developer_extras(True)
+
         self.show_all()
+
+    def enable_inspector(self):
+        """If you want a full blown Webkit inspector, call this"""
+        inspector = self.webview.get_inspector()
+        inspector.show()
 
     def on_navigation(self, widget, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
-            uri = widget.get_uri()
-            if uri.startswith(self.service.redirect_uri):
-                self.service.request_token(uri)
+            url = widget.get_uri()
+            if url.startswith(self.service.redirect_uri):
+                self.service.request_token(url)
                 self.destroy()
+        return True
 
 
 class InstallerSourceDialog(Gtk.Dialog):

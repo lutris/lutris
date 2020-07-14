@@ -3,8 +3,8 @@
 import math
 import re
 import shlex
-import uuid
 import unicodedata
+import uuid
 
 # Lutris Modules
 from lutris.util.log import logger
