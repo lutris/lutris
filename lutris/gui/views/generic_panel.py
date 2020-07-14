@@ -11,7 +11,7 @@ from lutris import api
 from lutris.game import Game
 from lutris.gui.config.system import SystemConfigDialog
 from lutris.gui.widgets.utils import (
-    get_link_button, get_main_window, get_pixbuf, get_pixbuf_for_game, get_pixbuf_for_panel, open_uri
+    get_link_button, get_pixbuf, get_pixbuf_for_game, get_pixbuf_for_panel, open_uri
 )
 from lutris.util import system
 
@@ -99,7 +99,7 @@ class GenericPanel(Gtk.Fixed):
         return preferences_button
 
     def on_preferences_clicked(self, button):
-        SystemConfigDialog(get_main_window(button))
+        self.application.show_window(SystemConfigDialog)
 
     def create_list_widget(self, game):
         box = Gtk.Box(spacing=6, margin_top=6, margin_bottom=6, margin_right=6, margin_left=6)

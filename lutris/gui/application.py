@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Standard Library
 import json
 import logging
 import os
@@ -30,7 +29,6 @@ gi.require_version("Gtk", "3.0")
 gi.require_version("GnomeDesktop", "3.0")
 from gi.repository import Gio, GLib, Gtk
 
-# Lutris Modules
 from lutris import pga, settings
 from lutris.api import parse_installer_url
 from lutris.command import exec_command
@@ -226,7 +224,10 @@ class Application(Gtk.Application):
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
             return self.app_windows[window_key]
-        window_inst = window_class(application=self, **kwargs)
+        if issubclass(window_class, Gtk.Dialog):
+            window_inst = window_class(parent=self.window, **kwargs)
+        else:
+            window_inst = window_class(application=self, **kwargs)
         window_inst.connect("destroy", self.on_app_window_destroyed, str(kwargs))
         self.app_windows[window_key] = window_inst
         return window_inst
