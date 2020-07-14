@@ -61,7 +61,7 @@ install_subdir(
 )
 
 install_man(
-  files('share/man/lutris.1'),
+  files('share/man/man1/lutris.1'),
   install_dir: join_paths(mandir, 'man1'),
 )
 
