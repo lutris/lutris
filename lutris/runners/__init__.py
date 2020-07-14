@@ -30,6 +30,7 @@ __all__ = [
     # Sony
     "pcsx2",
     "rpcs3",
+    "redream",
     # Sega
     "osmose",
     "reicast",
