@@ -129,7 +129,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.website_search_toggle.set_image(lutris_icon)
         self.website_search_toggle.set_label(_("Search Lutris.net"))
         self.website_search_toggle.set_tooltip_text(_("Search Lutris.net"))
-        self.sidebar_listbox = SidebarListBox()
+        self.sidebar_listbox = SidebarListBox(self.application)
         self.sidebar_listbox.set_size_request(250, -1)
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar_listbox)
@@ -666,7 +666,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_preferences_activate(self, *_args):
         """Callback when preferences is activated."""
-        SystemConfigDialog(parent=self)
+        self.application.show_window(SystemConfigDialog)
 
     @GtkTemplate.Callback
     def on_manage_runners(self, *args):

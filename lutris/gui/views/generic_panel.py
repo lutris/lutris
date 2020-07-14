@@ -10,9 +10,7 @@ from gi.repository import Gdk, Gio, GObject, Gtk, Pango
 from lutris import api
 from lutris.game import Game
 from lutris.gui.config.system import SystemConfigDialog
-from lutris.gui.widgets.utils import (
-    get_link_button, get_pixbuf, get_pixbuf_for_game, get_pixbuf_for_panel, open_uri
-)
+from lutris.gui.widgets.utils import get_link_button, get_pixbuf, get_pixbuf_for_game, get_pixbuf_for_panel, open_uri
 from lutris.util import system
 
 LINKS = {

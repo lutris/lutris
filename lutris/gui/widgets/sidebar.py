@@ -1,12 +1,9 @@
 """Sidebar for the main window"""
-# Standard Library
 import os
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import GObject, Gtk, Pango
 
-# Lutris Modules
 from lutris import pga, platforms, runners
 from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
@@ -31,8 +28,9 @@ def load_icon_theme():
 
 class SidebarRow(Gtk.ListBoxRow):
 
-    def __init__(self, id_, type_, name, icon):
+    def __init__(self, id_, type_, name, icon, application=None):
         super().__init__()
+        self.application = application
         self.type = type_
         self.id = id_
         self.btn_box = None
@@ -86,10 +84,10 @@ class SidebarRow(Gtk.ListBoxRow):
 
         self.box.add(self.btn_box)
 
-    def on_configure_runner(self, *args):  # pylint: disable=unused-argument
-        RunnerConfigDialog(self.runner, parent=self.get_toplevel())
+    def on_configure_runner(self, *_args):
+        self.application.show_window(RunnerConfigDialog, runner=self.runner)
 
-    def on_manage_versions(self, *args):  # pylint: disable=unused-argument
+    def on_manage_versions(self, *_args):
         dlg_title = _("Manage %s versions") % self.runner.name
         RunnerInstallDialog(dlg_title, self.get_toplevel(), self.runner.name)
 
@@ -134,8 +132,9 @@ class SidebarHeader(Gtk.Box):
 class SidebarListBox(Gtk.ListBox):
     __gtype_name__ = "LutrisSidebar"
 
-    def __init__(self):
+    def __init__(self, application):
         super().__init__()
+        self.application = application
         self.get_style_context().add_class("sidebar")
         self.installed_runners = []
         self.active_platforms = pga.get_used_platforms()
@@ -160,7 +159,7 @@ class SidebarListBox(Gtk.ListBox):
             icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             runner = runners.import_runner(runner_name)()
-            self.add(SidebarRow(runner_name, "runner", runner.human_name, icon))
+            self.add(SidebarRow(runner_name, "runner", runner.human_name, icon, application=self.application))
 
         self.add(SidebarRow(None, "platform", _("All"), None))
         for platform in self.platforms:
