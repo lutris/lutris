@@ -2,10 +2,9 @@
 import json
 import os
 
-from lutris.runners.runner import Runner
-from lutris.util import system
-from lutris.util import datapath
 from lutris import settings
+from lutris.runners.runner import Runner
+from lutris.util import datapath, system
 
 JSON_RUNNER_DIRS = [
     os.path.join(datapath.get(), "json"),
