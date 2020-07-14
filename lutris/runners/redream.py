@@ -10,7 +10,7 @@ class redream(Runner):
     description = "Sega Dreamcast emulator"
     platforms = ["Sega Dreamcast"]
     runner_executable = "redream/redream"
-    download_url = "https://redream.io/download/redream.x86_64-linux-v1.5.0.tar.gz",
+    download_url = "https://redream.io/download/redream.x86_64-linux-v1.5.0.tar.gz"
     game_options = [
         {
             "option": "main_file",
