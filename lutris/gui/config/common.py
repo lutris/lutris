@@ -1,14 +1,10 @@
 """Shared config dialog stuff"""
-# Standard Library
 # pylint: disable=no-member,not-an-iterable
-import importlib
 import os
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gdk, GLib, Gtk, Pango
 
-# Lutris Modules
 from lutris import runners, settings
 from lutris.cache import get_cache_path, save_cache_path
 from lutris.config import LutrisConfig, make_game_config_id
@@ -22,6 +18,7 @@ from lutris.util import resources
 from lutris.util.linux import gather_system_info_str
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+from lutris.runners import import_runner
 
 
 # pylint: disable=too-many-instance-attributes
@@ -478,8 +475,7 @@ class GameDialogCommon:
             ErrorDialog(_("Steam AppId not provided"))
             return False
         invalid_fields = []
-        runner_module = importlib.import_module("lutris.runners." + self.runner_name)
-        runner_class = getattr(runner_module, self.runner_name)
+        runner_class = import_runner(self.runner_name)
         runner_instance = runner_class()
         for config in ["game", "runner"]:
             for k, v in getattr(self.lutris_config, config + "_config").items():
