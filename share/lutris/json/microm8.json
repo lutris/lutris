@@ -1,0 +1,46 @@
+{
+    "human_name": "MicroM8",
+    "description": "microM8 is an Apple II emulator",
+    "platforms": ["Apple IIe"],
+    "runner_executable": "microm8/microm8",
+    "download_url": "http://paleotronic.com/download/microm8-linux.zip",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Apple II disk file",
+            "help": "An Apple II disk file"
+        }
+    ],
+    "runner_options": [
+
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": false,
+            "argument": "-fullscreen"
+        },
+        {
+            "option": "bw",
+            "type": "bool",
+            "label": "Black and White",
+            "default": false,
+            "argument": "-bw"
+        },
+        {
+            "option": "wp",
+            "type": "bool",
+            "label": "Drive 1 in write protect mode",
+            "default": false,
+            "argument": "-drive1wp"
+        },
+        {
+            "option": "config",
+            "type": "bool",
+            "label": "Disk 1",
+            "default": true,
+            "argument": "-drive1"
+        }
+    ]
+}

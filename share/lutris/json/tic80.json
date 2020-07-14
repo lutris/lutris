@@ -1,0 +1,38 @@
+{
+    "human_name": "TIC-80",
+    "description": "TIC-80 tiny computer",
+    "platforms": ["TIC-80"],
+    "runner_executable": "tic80/tic80",
+    "download_url": "https://github.com/nesbox/tic.computer/releases/download/v0.70.6/tic80_0.70.6.tar.gz",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            "default_path": "game_path"
+        }
+    ],
+    "runner_options": [
+        {
+            "option": "surf",
+            "type": "bool",
+            "label": "Start in Surf",
+            "default": false,
+            "argument": "-surf"
+        },
+        {
+            "option": "skip",
+            "type": "bool",
+            "label": "Skip startup animation",
+            "default": false,
+            "argument": "-skip"
+        },
+        {
+            "option": "nosound",
+            "type": "bool",
+            "label": "Start in silent mode",
+            "default": false,
+            "argument": "-nosound"
+        }
+    ]
+}
