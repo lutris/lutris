@@ -46,6 +46,7 @@ from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.util.wine.dxvk import init_dxvk_versions, wait_for_dxvk_init
+from lutris.installer import silient_install
 
 from .lutriswindow import LutrisWindow
 
@@ -124,6 +125,22 @@ class Application(Gtk.Application):
             None,
         )
         self.add_main_option(
+            "bin_path",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Binary path for a silent install"),
+            None,
+        )
+        self.add_main_option(
+            "install_path",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Install path for a silent install. If not declared, default path will be used"),
+            None,
+        )
+        self.add_main_option(
             "exec",
             ord("e"),
             GLib.OptionFlags.NONE,
@@ -192,7 +209,7 @@ class Application(Gtk.Application):
     def do_startup(self):  # pylint: disable=arguments-differ
         Gtk.Application.do_startup(self)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-
+        
         action = Gio.SimpleAction.new("quit")
         action.connect("activate", lambda *x: self.quit())
         self.add_action(action)
@@ -367,6 +384,10 @@ class Application(Gtk.Application):
                 self._print(command_line, _("No such file: %s") % installer_file)
                 return 1
 
+            # Do we have an silent install?
+            if options.contains("bin_path"):
+                action = "silent_install"
+
         db_game = None
         if game_slug:
             if action == "rungameid":
@@ -388,11 +409,43 @@ class Application(Gtk.Application):
                     or pga.get_game_by_field(game_slug, "installer_slug")
                 )
 
+<<<<<<< HEAD
         if action == "write-script":
             if not db_game or not db_game["id"]:
                 logger.warning("No game provided to generate the script")
                 return 1
             self.generate_script(db_game, options.lookup_value("output-script").get_string())
+=======
+        # check if path is provided with install
+        if (options.contains("bin_path") or options.contains("install_path")) and not options.contains("install"):
+            self._print(command_line, _("No installer provided!"))
+            return 1
+
+        if action == "silent_install":
+            self.window = LutrisWindow(application=self)
+            screen = self.window.props.screen
+            Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+            if options.contains("install_path"):
+                silient_install.SilenInstall(
+                    game_slug=game_slug,
+                    installer_file=installer_file,
+                    revision=revision,
+                    binary_path=options.lookup_value("bin_path").get_string().split("; "),
+                    install_path=options.lookup_value("install_path").get_string(),
+                    cmd_print=self._print,
+                    commandline=command_line
+                )
+            else:
+                silient_install.SilenInstall(
+                    game_slug=game_slug,
+                    installer_file=installer_file,
+                    revision=revision,
+                    binary_path=options.lookup_value("bin_path").get_string().split("; "),
+                    cmd_print=self._print,
+                    commandline=command_line
+                )
+>>>>>>> a294b699... Added option to install from command line
             return 0
 
         # Graphical commands
