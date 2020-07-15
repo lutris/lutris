@@ -2,7 +2,7 @@ Source: lutris
 Section: games
 Priority: optional
 Maintainer: Mathieu Comandon <strider@strycore.com>
-Build-Depends: debhelper-compat (= 12),
+Build-Depends: debhelper (>= 12),
                dh-sequence-python3,
                meson,
 Rules-Requires-Root: no
