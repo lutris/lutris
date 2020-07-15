@@ -209,7 +209,7 @@ class Application(Gtk.Application):
     def do_startup(self):  # pylint: disable=arguments-differ
         Gtk.Application.do_startup(self)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-        
+
         action = Gio.SimpleAction.new("quit")
         action.connect("activate", lambda *x: self.quit())
         self.add_action(action)

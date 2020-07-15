@@ -167,11 +167,11 @@ class SilenInstall:
         except RuntimeError as ex:
             self._print(self.commandline, _("Downloading  %s to %s has an error: %s") %
                         (file_uri, dest_file, ex.__str__))
-            logger.error(_("Downloading  %s to %s has an error: %s") % (file_uri, dest_file, ex.__str__))
+            logger.error("Downloading  %s to %s has an error: %s", file_uri, dest_file, ex.__str__)
             return None
 
         self._print(self.commandline, _("Downloading %s to %s") % (file_uri, dest_file))
-        logger.info(_("Downloading %s to %s") % (file_uri, dest_file))
+        logger.info("Downloading %s to %s", file_uri, dest_file)
         self.downloader.start()
 
         while self.downloader.check_progress() != 1.0:
