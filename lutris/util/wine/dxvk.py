@@ -79,7 +79,7 @@ class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
 
     DXVK_TAGS_URL = "https://api.github.com/repos/lutris/dxvk/releases"
-    DXVK_VERSIONS = ["1.6"]
+    DXVK_VERSIONS = ["1.7L-84bb768"]
     DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:9]
 
     init_started = False
