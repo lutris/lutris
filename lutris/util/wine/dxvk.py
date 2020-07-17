@@ -88,7 +88,7 @@ class DXVKManager:
     base_url = "https://github.com/lutris/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
     base_name = "dxvk"
     base_dir = os.path.join(RUNTIME_DIR, base_name)
-    dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9")
+    dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9", "d3d12")
     latest_version = DXVK_LATEST
 
     def __init__(self, prefix, arch="win64", version=None):
