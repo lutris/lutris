@@ -219,16 +219,16 @@ class wine(Runner):
             },
             {
                 "option": "dxvk",
-                "label": _("Enable DXVK"),
+                "label": _("Enable DXVK/VKD3D"),
                 "type": "extended_bool",
                 "callback": dxvk_vulkan_callback,
                 "callback_on": True,
                 "default": True,
                 "active": True,
                 "help": _(
-                    "Use DXVK to increase compatibility and performance "
-                    "in Direct3D 11 and 10 applications by translating "
-                    "their calls to Vulkan."),
+                    "Use DXVK and VKD3D to enable support for Direct3D 12 and "
+                    "increase compatibility and performance in Direct3D 11, 10 "
+                    "and 9 applications by translating their calls to Vulkan."),
             },
             {
                 "option": "dxvk_version",
