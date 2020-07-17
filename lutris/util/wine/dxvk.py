@@ -223,12 +223,6 @@ class DXVKManager:
             self.disable_dxvk_dll(system_dir, dxvk_arch, dll)
 
 
-class VKD3DManager(DXVKManager):
-
-    """Modified DXVKManager for supporting VKD3D"""
-    dxvk_dlls = ("d3d11", "d3d10core", "d3d9", "dxvk_config")
-
-
 class DXVKManagerNoD3D9(DXVKManager):
 
     """Modified DXVKManager without D3D9 support"""
