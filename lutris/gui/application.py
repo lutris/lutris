@@ -125,6 +125,22 @@ class Application(Gtk.Application):
             None,
         )
         self.add_main_option(
+            "uninstall",
+            ord("u"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Uninstall a game. Keep files on the disk"),
+            None,
+        )
+        self.add_main_option(
+            "remove",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Uninstall and remove game"),
+            None,
+        )
+        self.add_main_option(
             "bin_path",
             0,
             GLib.OptionFlags.NONE,
@@ -409,13 +425,12 @@ class Application(Gtk.Application):
                     or pga.get_game_by_field(game_slug, "installer_slug")
                 )
 
-<<<<<<< HEAD
         if action == "write-script":
             if not db_game or not db_game["id"]:
                 logger.warning("No game provided to generate the script")
                 return 1
             self.generate_script(db_game, options.lookup_value("output-script").get_string())
-=======
+            return 0
         # check if path is provided with install
         if (options.contains("bin_path") or options.contains("install_path")) and not options.contains("install"):
             self._print(command_line, _("No installer provided!"))
@@ -445,7 +460,22 @@ class Application(Gtk.Application):
                     cmd_print=self._print,
                     commandline=command_line
                 )
->>>>>>> a294b699... Added option to install from command line
+            return 0
+        
+        if action == "uninstall":
+            if not db_game or not db_game["id"]:
+                logger.warning("No game found in library")
+                return 1
+            self._print(command_line, _("Uninstall Game %s") % db_game["slug"])
+            Game(db_game["id"]).remove(True, False)
+            return 0
+        
+        if action == "remove":
+            if not db_game or not db_game["id"]:
+                logger.warning("No game found in library")
+                return 1
+            self._print(command_line, _("Remove Game %s") % db_game["slug"])
+            Game(db_game["id"]).remove(True, True)
             return 0
 
         # Graphical commands
