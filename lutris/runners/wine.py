@@ -247,13 +247,6 @@ class wine(Runner):
             #     "help": _("Use DXVK to handle DirectX9 games")
             # },
             {
-                "option": "vkd3d",
-                "label": _("Enable VKD3D"),
-                "type": "bool",
-                "default": False,
-                "help": _("Enable DX12 support with VKD3D. This requires a compatible Wine build.")
-            },
-            {
                 "option": "esync",
                 "label": _("Enable Esync"),
                 "type": "extended_bool",
@@ -847,9 +840,7 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
-        if self.runner_config.get("vkd3d"):
-            dxvk_manager = dxvk.VKD3DManager
-        elif not self.runner_config.get("dxvk_d3d9", True):
+        if self.runner_config.get("dxvk_d3d9", True):
             dxvk_manager = dxvk.DXVKManagerNoD3D9
         else:
             dxvk_manager = dxvk.DXVKManager
