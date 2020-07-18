@@ -35,6 +35,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     depends_on = None
     runner_executable = None
     entry_point_option = "main_file"
+    download_url = None
 
     def __init__(self, config=None):
         """Initialize runner."""
@@ -362,8 +363,12 @@ class Runner:  # pylint: disable=too-many-public-methods
             downloader,
             callback,
         )
-        runner = self.get_runner_version(version)
-        if not runner:
+        if self.download_url:
+            runner_url = self.download_url
+            runner_version = True
+        else:
+            runner_version = self.get_runner_version(version)
+        if not runner_version:
             raise RunnerInstallationError("Failed to retrieve {} ({}) information".format(self.name, version))
         if not downloader:
             raise RuntimeError("Missing mandatory downloader for runner %s" % self)
@@ -371,13 +376,15 @@ class Runner:  # pylint: disable=too-many-public-methods
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(
-                settings.RUNNER_DIR, self.name, "{}-{}".format(runner["version"], runner["architecture"])
+                settings.RUNNER_DIR,
+                self.name,
+                "{}-{}".format(runner_version["version"], runner_version["architecture"])
             )
 
         if self.name == "libretro" and version:
             opts["merge_single"] = False
             opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
-        self.download_and_extract(runner["url"], **opts)
+        self.download_and_extract(runner_url, **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
         downloader = opts["downloader"]

@@ -30,6 +30,7 @@ class JsonRunner(Runner):
         self.runner_executable = self._json_data["runner_executable"]
         self.system_options_override = self._json_data.get("system_options_override", [])
         self.entry_point_option = self._json_data.get("entry_point_option", "main_file")
+        self.download_url = self._json_data.get("download_url")
 
     def play(self):
         """Return a launchable command constructed from the options"""
