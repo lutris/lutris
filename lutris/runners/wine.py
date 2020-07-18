@@ -840,10 +840,7 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
-        if self.runner_config.get("dxvk_d3d9", True):
-            dxvk_manager = dxvk.DXVKManagerNoD3D9
-        else:
-            dxvk_manager = dxvk.DXVKManager
+        dxvk_manager = dxvk.DXVKManager
         self.setup_dxvk(
             "dxvk",
             dxvk_manager=dxvk_manager(
