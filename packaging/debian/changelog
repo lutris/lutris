@@ -1,6 +1,6 @@
 lutris (0.5.7.1) focal; urgency=medium
 
-  * Provide D3D12.DLL, based on vkd3d3-proton project
+  * Provide D3D12.DLL, based on vkd3d-proton project
     (https://github.com/HansKristian-Work/vkd3d-proton),
     as part of our DXVK runtime. This will help push updates faster and provide better compatibility for
     Direct3D 12 titles such as World of Warcraft.
