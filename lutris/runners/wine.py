@@ -219,16 +219,16 @@ class wine(Runner):
             },
             {
                 "option": "dxvk",
-                "label": _("Enable DXVK"),
+                "label": _("Enable DXVK/VKD3D"),
                 "type": "extended_bool",
                 "callback": dxvk_vulkan_callback,
                 "callback_on": True,
                 "default": True,
                 "active": True,
                 "help": _(
-                    "Use DXVK to increase compatibility and performance "
-                    "in Direct3D 11 and 10 applications by translating "
-                    "their calls to Vulkan."),
+                    "Use DXVK and VKD3D to enable support for Direct3D 12 and "
+                    "increase compatibility and performance in Direct3D 11, 10 "
+                    "and 9 applications by translating their calls to Vulkan."),
             },
             {
                 "option": "dxvk_version",
@@ -246,13 +246,6 @@ class wine(Runner):
             #     "default": True,
             #     "help": _("Use DXVK to handle DirectX9 games")
             # },
-            {
-                "option": "vkd3d",
-                "label": _("Enable VKD3D"),
-                "type": "bool",
-                "default": False,
-                "help": _("Enable DX12 support with VKD3D. This requires a compatible Wine build.")
-            },
             {
                 "option": "esync",
                 "label": _("Enable Esync"),
@@ -849,12 +842,7 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
-        if self.runner_config.get("vkd3d"):
-            dxvk_manager = dxvk.VKD3DManager
-        elif not self.runner_config.get("dxvk_d3d9", True):
-            dxvk_manager = dxvk.DXVKManagerNoD3D9
-        else:
-            dxvk_manager = dxvk.DXVKManager
+        dxvk_manager = dxvk.DXVKManager
         self.setup_dxvk(
             "dxvk",
             dxvk_manager=dxvk_manager(
