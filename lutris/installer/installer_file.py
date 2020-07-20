@@ -2,12 +2,11 @@
 # Standard Library
 import os
 from urllib.parse import urlparse
-from lutris import pga
-from lutris import settings
+
+from lutris import cache, pga, settings
 from lutris.installer.errors import ScriptingError
-from lutris.util.log import logger
 from lutris.util import system
-from lutris import cache
+from lutris.util.log import logger
 
 
 class InstallerFile:

@@ -9,8 +9,8 @@ from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.runners import import_runner
 from lutris.util import system
-from lutris.util.strings import split_arguments
 from lutris.util.log import logger
+from lutris.util.strings import split_arguments
 from lutris.util.wine.cabinstall import CabInstaller
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.wine import (

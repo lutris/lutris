@@ -1,19 +1,20 @@
 """Lutris installer class"""
-import os
 import json
+import os
+
 import yaml
-from lutris import pga
-from lutris import settings
-from lutris.game import Game
-from lutris.installer.installer_file import InstallerFile
-from lutris.installer.errors import ScriptingError
-from lutris.util.log import logger
-from lutris.util.http import HTTPError
-from lutris.util import system
-from lutris.services import UnavailableGame
-from lutris.services.gog import get_gog_download_links, MultipleInstallerError
-from lutris.services.humblebundle import get_humble_download_link
+
+from lutris import pga, settings
 from lutris.config import LutrisConfig, make_game_config_id
+from lutris.game import Game
+from lutris.installer.errors import ScriptingError
+from lutris.installer.installer_file import InstallerFile
+from lutris.services import UnavailableGame
+from lutris.services.gog import MultipleInstallerError, get_gog_download_links
+from lutris.services.humblebundle import get_humble_download_link
+from lutris.util import system
+from lutris.util.http import HTTPError
+from lutris.util.log import logger
 
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes

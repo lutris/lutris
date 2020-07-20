@@ -4,15 +4,12 @@ import time
 
 from gi.repository import GLib, GObject
 
+from lutris.config import LutrisConfig
 from lutris.installer.errors import ScriptingError
-from lutris.util.steam.log import get_app_state_log
+from lutris.runners import steam, winesteam
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.config import LutrisConfig
-from lutris.runners import (
-    winesteam,
-    steam
-)
+from lutris.util.steam.log import get_app_state_log
 
 
 class SteamInstaller(GObject.Object):

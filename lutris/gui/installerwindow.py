@@ -12,11 +12,9 @@ from gi.repository import Gtk
 from lutris import api, pga, settings
 from lutris.game import Game
 from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.dialogs import (
-    NoInstallerDialog, DirectoryDialog, InstallerSourceDialog, QuestionDialog
-)
+from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, NoInstallerDialog, QuestionDialog
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
-from lutris.gui.widgets.installer import InstallerPicker, InstallerFilesBox
+from lutris.gui.widgets.installer import InstallerFilesBox, InstallerPicker
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import interpreter
@@ -182,7 +180,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """Stage where we choose an install script."""
         self.validate_scripts()
         base_script = self.scripts[0]
-        self.title_label.set_markup(_("<b>Install %s</b>") % escape_gtk_label(base_script["name"]))
+        self.title_label.set_markup(_("<b>Install %s</b>") % gtk_safe(base_script["name"]))
         installer_picker = InstallerPicker(self.scripts)
         installer_picker.connect("installer-selected", self.on_installer_selected)
         scrolledwindow = Gtk.ScrolledWindow(
@@ -232,7 +230,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 )
             self.destroy()
             return
-        self.title_label.set_markup(_(u"<b>Installing {}</b>").format(escape_gtk_label(self.interpreter.game_name)))
+        self.title_label.set_markup(_(u"<b>Installing {}</b>").format(gtk_safe(self.interpreter.game_name)))
         self.select_install_folder()
 
     def select_install_folder(self):

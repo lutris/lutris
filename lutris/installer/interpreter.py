@@ -1,29 +1,23 @@
 """Install a game by following its install script."""
 import os
-import yaml
 
+import yaml
 from gi.repository import GLib, GObject
 
-from lutris import pga
-from lutris import settings
-
+from lutris import pga, settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import WineNotInstalledWarning
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
-from lutris.runners import (
-    InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
-)
+from lutris.installer.installer import LutrisInstaller
+from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.http import Request
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.wine.wine import get_wine_version_exe, get_system_wine_version
-
-from lutris.installer.installer import LutrisInstaller
-
 from lutris.util.strings import unpack_dependencies
+from lutris.util.wine.wine import get_system_wine_version, get_wine_version_exe
 
 
 def fetch_script(game_slug, revision=None):

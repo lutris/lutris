@@ -1,9 +1,9 @@
 """Installer specific exceptions"""
 import sys
 
+from lutris.gui.dialogs import ErrorDialog
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
-from lutris.gui.dialogs import ErrorDialog
 
 
 class ScriptingError(Exception):
