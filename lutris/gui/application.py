@@ -1,6 +1,6 @@
 # pylint: disable=no-member,wrong-import-position
 #
-# Copyright (C) 2016 Patrick Griffis <tingping@tingping.se>
+# Copyright (C) 2020 Mathieu Comandon <strider@strycore.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -40,8 +40,7 @@ setup(
         'lutris.util.graphics',
         'lutris.util.mame',
         'lutris.util.steam',
-        'lutris.util.wine',
-        'lutris.vendor'
+        'lutris.util.wine'
     ],
     scripts=['bin/lutris'],
     data_files=data_files,

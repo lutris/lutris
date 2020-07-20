@@ -250,10 +250,9 @@ class pico8(Runner):
             command.append(game_data.get("name") + " - PICO-8")
 
             icon = datapath.get_icon_path(game_data.get("slug"))
-            if not os.path.exists(icon):
-                icon = os.path.join(datapath.get(), "media/runner_icons/pico8.png")
-            command.append("--icon")
-            command.append(icon)
+            if icon:
+                command.append("--icon")
+                command.append(icon)
 
             webargs = {
                 "cartridge": self.cart_path,
