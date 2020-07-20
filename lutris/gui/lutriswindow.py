@@ -31,12 +31,11 @@ from lutris.sync import sync_from_remote
 from lutris.util import datapath, http
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.vendor.gi_composites import GtkTemplate
 
 # from lutris.util.steam.watcher import SteamWatcher
 
 
-@GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
+@Gtk.Template(filename=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
 class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-methods
 
     """Handler class for main window signals."""
@@ -47,26 +46,26 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     __gtype_name__ = "LutrisWindow"
 
-    main_box = GtkTemplate.Child()
-    games_scrollwindow = GtkTemplate.Child()
-    sidebar_revealer = GtkTemplate.Child()
-    sidebar_scrolled = GtkTemplate.Child()
-    connection_label = GtkTemplate.Child()
-    search_revealer = GtkTemplate.Child()
-    search_entry = GtkTemplate.Child()
-    search_toggle = GtkTemplate.Child()
-    zoom_adjustment = GtkTemplate.Child()
-    no_results_overlay = GtkTemplate.Child()
-    connect_button = GtkTemplate.Child()
-    disconnect_button = GtkTemplate.Child()
-    register_button = GtkTemplate.Child()
-    sync_button = GtkTemplate.Child()
-    sync_label = GtkTemplate.Child()
-    sync_spinner = GtkTemplate.Child()
-    search_spinner = GtkTemplate.Child()
-    add_popover = GtkTemplate.Child()
-    viewtype_icon = GtkTemplate.Child()
-    website_search_toggle = GtkTemplate.Child()
+    main_box = Gtk.Template.Child()
+    games_scrollwindow = Gtk.Template.Child()
+    sidebar_revealer = Gtk.Template.Child()
+    sidebar_scrolled = Gtk.Template.Child()
+    connection_label = Gtk.Template.Child()
+    search_revealer = Gtk.Template.Child()
+    search_entry = Gtk.Template.Child()
+    search_toggle = Gtk.Template.Child()
+    zoom_adjustment = Gtk.Template.Child()
+    no_results_overlay = Gtk.Template.Child()
+    connect_button = Gtk.Template.Child()
+    disconnect_button = Gtk.Template.Child()
+    register_button = Gtk.Template.Child()
+    sync_button = Gtk.Template.Child()
+    sync_label = Gtk.Template.Child()
+    sync_spinner = Gtk.Template.Child()
+    search_spinner = Gtk.Template.Child()
+    add_popover = Gtk.Template.Child()
+    viewtype_icon = Gtk.Template.Child()
+    website_search_toggle = Gtk.Template.Child()
 
     def __init__(self, application, **kwargs):
         # pylint: disable=too-many-statements
@@ -112,7 +111,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.connect("delete-event", self.on_window_delete)
         if self.maximized:
             self.maximize()
-        self.init_template()
+
         self._init_actions()
         self._bind_zoom_adjustment()
 
@@ -588,7 +587,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         settings.write_setting("dark_theme", value.get_boolean())
         self.set_dark_theme()
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_connect(self, *_args):
         """Callback when a user connects to his account."""
         login_dialog = dialogs.ClientLoginDialog(self)
@@ -609,7 +608,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             self.application.show_window(InstallerWindow, parent=self, game_slug=game.slug)
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_disconnect(self, *_args):
         """Callback from user disconnect"""
         dlg = dialogs.QuestionDialog({
@@ -632,7 +631,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.connection_label.set_text(username)
             logger.info("Connected to lutris.net as %s", username)
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_resize(self, widget, *_args):
         """Size-allocate signal.
 
@@ -649,7 +648,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.hide()
             return True
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_destroy(self, *_args):
         """Signal for window close."""
         # Stop cancellable running threads
@@ -663,12 +662,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         settings.write_setting("height", height)
         settings.write_setting("maximized", self.maximized)
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_preferences_activate(self, *_args):
         """Callback when preferences is activated."""
         self.application.show_window(SystemConfigDialog)
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_manage_runners(self, *args):
         self.application.show_window(RunnersDialog, transient_for=self)
 
@@ -701,7 +700,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_store.filters["installed"] = filter_installed
         self.invalidate_game_filter()
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
         if self.search_mode == "local":
@@ -716,7 +715,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             raise ValueError("Unsupported search mode %s" % self.search_mode)
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_search_toggle(self, button):
         """Called when search bar is shown / hidden"""
         active = button.props.active
@@ -726,7 +725,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             self.search_entry.props.text = ""
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_website_search_toggle_toggled(self, toggle_button):
         self.search_terms = self.search_entry.props.text
         if toggle_button.props.active:
@@ -742,7 +741,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.search_games("")
             self.search_spinner.props.active = False
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_about_clicked(self, *_args):
         """Open the about dialog."""
         dialogs.AboutDialog(parent=self)
@@ -817,7 +816,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         for pga_game in pga.get_games_where(slug=slug):
             self.game_store.update(pga_game)
 
-    @GtkTemplate.Callback
+    @Gtk.Template.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
         self.add_popover.hide()
