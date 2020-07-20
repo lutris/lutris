@@ -4,12 +4,11 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk, Pango
 
-from lutris import pga, platforms, runners
+from lutris import pga, platforms, runners, settings
 from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
-from lutris.util import datapath
 
 TYPE = 0
 SLUG = 1
@@ -21,7 +20,7 @@ GAMECOUNT = 4
 def load_icon_theme():
     """Add the lutris icon folder to the default theme"""
     icon_theme = Gtk.IconTheme.get_default()
-    local_theme_path = os.path.join(datapath.get(), "icons")
+    local_theme_path = os.path.join(settings.RUNTIME_DIR, "icons")
     if local_theme_path not in icon_theme.get_search_path():
         icon_theme.prepend_search_path(local_theme_path)
 
