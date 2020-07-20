@@ -1,0 +1,16 @@
+{
+    "human_name": "melonDS",
+    "description": "Nintendo DS emulator",
+    "platforms": ["Nintendo DS"],
+    "runner_executable": "melonDS/melonDS",
+    "download_url": "http://melonds.kuribo64.net/downloads/melonDS_0.8.3_linux64.7z",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            "help": "A DS ROM",
+            "default_path": "game_path"
+        }
+    ]
+}

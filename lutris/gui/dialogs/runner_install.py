@@ -1,9 +1,11 @@
 """Dialog used to install versions of a runner"""
+import gettext
 # Standard Library
 # pylint: disable=no-member
 import os
 import random
 from collections import defaultdict
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import GLib, Gtk
@@ -31,15 +33,15 @@ class RunnerInstallDialog(Dialog):
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0)
-        self.add_buttons("_OK", Gtk.ButtonsType.OK)
+        self.add_buttons(_("_OK"), Gtk.ButtonsType.OK)
         self.runner = runner
         self.runner_info = {}
         self.installing = {}
-        self.set_default_size(512, 480)
+        self.set_default_size(640, 480)
 
         self.renderer_progress = Gtk.CellRendererProgress()
 
-        label = Gtk.Label.new("Waiting for response from %s" % (settings.SITE_URL))
+        label = Gtk.Label.new(_("Waiting for response from %s") % (settings.SITE_URL))
         self.vbox.pack_start(label, False, False, 18)
 
         spinner = Gtk.Spinner(visible=True)
@@ -58,7 +60,7 @@ class RunnerInstallDialog(Dialog):
 
         self.runner_info = runner_info
         if not self.runner_info:
-            ErrorDialog("Unable to get runner versions. Check your internet connection.")
+            ErrorDialog(_("Unable to get runner versions. Check your internet connection."))
             return
 
         for child_widget in self.vbox.get_children():
@@ -67,7 +69,7 @@ class RunnerInstallDialog(Dialog):
 
         self.populate_store()
 
-        label = Gtk.Label.new("%s version management" % self.runner_info["name"])
+        label = Gtk.Label.new(_("%s version management") % self.runner_info["name"])
         self.vbox.add(label)
         scrolled_window = Gtk.ScrolledWindow()
         treeview = self.get_treeview(self.runner_store)
@@ -108,13 +110,13 @@ class RunnerInstallDialog(Dialog):
             value=self.COL_PROGRESS,
             visible=self.COL_PROGRESS,
         )
-        progress_column.set_property("fixed-width", 60)
-        progress_column.set_property("min-width", 60)
-        progress_column.set_property("resizable", False)
+        progress_column.set_property("fixed-width", 120)
+        progress_column.set_property("min-width", 120)
+        progress_column.set_property("resizable", True)
         treeview.append_column(progress_column)
 
         usage_column = Gtk.TreeViewColumn(None, renderer_text, text=self.COL_USAGE)
-        usage_column.set_property("min-width", 200)
+        usage_column.set_property("min-width", 150)
         treeview.append_column(usage_column)
 
         return treeview
@@ -139,9 +141,10 @@ class RunnerInstallDialog(Dialog):
         for version_info in reversed(self.runner_info["versions"]):
             is_installed = os.path.exists(self.get_runner_path(version_info["version"], version_info["architecture"]))
             games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
-            usage_summary = "In use by %d game%s" % (
-                len(games_using), "s" if len(games_using) > 1 else ""
-            ) if games_using else "Not in use"
+            usage_summary = gettext.ngettext(
+                "In use by %d game",
+                "In use by %d games",
+                len(games_using)) % len(games_using) if games_using else _("Not in use")
             self.runner_store.append(
                 [
                     version_info["version"], version_info["architecture"], version_info["url"], is_installed, 0,
@@ -162,8 +165,8 @@ class RunnerInstallDialog(Dialog):
         if row[self.COL_VER] in self.installing:
             confirm_dlg = QuestionDialog(
                 {
-                    "question": "Do you want to cancel the download?",
-                    "title": "Download starting",
+                    "question": _("Do you want to cancel the download?"),
+                    "title": _("Download starting"),
                 }
             )
             if confirm_dlg.result == confirm_dlg.YES:
@@ -216,10 +219,10 @@ class RunnerInstallDialog(Dialog):
         else:
             row[self.COL_PROGRESS] = 1
             self.renderer_progress.props.pulse = random.randint(1, 100)
-            self.renderer_progress.props.text = "Downloading…"
+            self.renderer_progress.props.text = _("Downloading…")
         if downloader.state == downloader.COMPLETED:
             row[self.COL_PROGRESS] = 99
-            self.renderer_progress.props.text = "Extracting…"
+            self.renderer_progress.props.text = _("Extracting…")
             self.on_runner_downloaded(row)
             return False
         return True
@@ -242,7 +245,7 @@ class RunnerInstallDialog(Dialog):
     def on_extracted(self, row_info, error):
         """Called when a runner archive is extracted"""
         if error or not row_info:
-            ErrorDialog("Failed to retrieve the runner archive", parent=self)
+            ErrorDialog(_("Failed to retrieve the runner archive"), parent=self)
             return
         src, row = row_info
         os.remove(src)

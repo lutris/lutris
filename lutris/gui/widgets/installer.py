@@ -1,11 +1,15 @@
 """Widgets for the installer window"""
 import os
 import shutil
+from gettext import gettext as _
+
 from gi.repository import Gtk, GObject, Pango
+
 from lutris.util.strings import gtk_safe, add_url_tags
 from lutris.util.log import logger
 from lutris.util import system
 from lutris.gui.widgets.download_progress import DownloadProgressBox
+
 from lutris.gui.widgets.utils import get_icon
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.installer.steam_installer import SteamInstaller
@@ -84,7 +88,7 @@ class InstallerScriptBox(Gtk.VBox):
         align = Gtk.Alignment()
         align.set(0, 0, 0, 0)
 
-        install_button = Gtk.Button("Install")
+        install_button = Gtk.Button(_("Install"))
         install_button.connect("clicked", self.on_install_clicked)
         align.add(install_button)
         return align

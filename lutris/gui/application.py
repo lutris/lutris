@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Standard Library
-import gettext
 import json
 import logging
 import os
@@ -31,7 +29,6 @@ gi.require_version("Gtk", "3.0")
 gi.require_version("GnomeDesktop", "3.0")
 from gi.repository import Gio, GLib, Gtk
 
-# Lutris Modules
 from lutris import pga, settings
 from lutris.api import parse_installer_url
 from lutris.command import exec_command
@@ -61,8 +58,6 @@ class Application(Gtk.Application):
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         )
         init_lutris()
-        gettext.bindtextdomain("lutris", "/usr/share/locale")
-        gettext.textdomain("lutris")
 
         GLib.set_application_name(_("Lutris"))
         self.running_games = Gio.ListStore.new(Game)
@@ -73,7 +68,7 @@ class Application(Gtk.Application):
         self.run_in_background = False
 
         if os.geteuid() == 0:
-            ErrorDialog("Running Lutris as root is not recommended and may cause unexpected issues")
+            ErrorDialog(_("Running Lutris as root is not recommended and may cause unexpected issues"))
 
         try:
             self.css_provider.load_from_path(os.path.join(datapath.get(), "ui", "lutris.css"))
@@ -83,17 +78,17 @@ class Application(Gtk.Application):
         if hasattr(self, "add_main_option"):
             self.add_arguments()
         else:
-            ErrorDialog("Your Linux distribution is too old. Lutris won't function properly.")
+            ErrorDialog(_("Your Linux distribution is too old. Lutris won't function properly."))
 
     def add_arguments(self):
         if hasattr(self, "set_option_context_summary"):
-            self.set_option_context_summary(
+            self.set_option_context_summary(_(
                 "Run a game directly by adding the parameter lutris:rungame/game-identifier.\n"
                 "If several games share the same identifier you can use the numerical ID "
                 "(displayed when running lutris --list-games) and add "
                 "lutris:rungameid/numerical-id.\n"
                 "To install a game, add lutris:install/game-identifier."
-            )
+            ))
         else:
             logger.warning("GLib.set_option_context_summary missing, " "was added in GLib 2.56 (Released 2018-03-12)")
         self.add_main_option(
@@ -118,6 +113,14 @@ class Application(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
             _("Install a game from a yml file"),
+            None,
+        )
+        self.add_main_option(
+            "output-script",
+            ord("b"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Generate a bash script to run a game without the client"),
             None,
         )
         self.add_main_option(
@@ -221,7 +224,10 @@ class Application(Gtk.Application):
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
             return self.app_windows[window_key]
-        window_inst = window_class(application=self, **kwargs)
+        if issubclass(window_class, Gtk.Dialog):
+            window_inst = window_class(parent=self.window, **kwargs)
+        else:
+            window_inst = window_class(application=self, **kwargs)
         window_inst.connect("destroy", self.on_app_window_destroyed, str(kwargs))
         self.app_windows[window_key] = window_inst
         return window_inst
@@ -236,6 +242,14 @@ class Application(Gtk.Application):
     def _print(command_line, string):
         # Workaround broken pygobject bindings
         command_line.do_print_literal(command_line, string + "\n")
+
+    def generate_script(self, db_game, script_path):
+        """Output a script to a file.
+        The script is capable of launching a game without the client
+        """
+        game = Game(db_game["id"])
+        game.load_config()
+        game.write_script(script_path)
 
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
@@ -313,10 +327,15 @@ class Application(Gtk.Application):
             url = options.lookup_value(GLib.OPTION_REMAINING)
             installer_info = self.get_lutris_action(url)
         except ValueError:
-            self._print(command_line, "%s is not a valid URI" % url.get_strv())
+            self._print(command_line, _("%s is not a valid URI") % url.get_strv())
             return 1
+
         game_slug = installer_info["game_slug"]
         action = installer_info["action"]
+
+        if options.contains("output-script"):
+            action = "write-script"
+
         revision = installer_info["revision"]
 
         installer_file = None
@@ -326,7 +345,7 @@ class Application(Gtk.Application):
                 try:
                     request = Request(installer_file).get()
                 except HTTPError:
-                    self._print(command_line, "Failed to download %s" % installer_file)
+                    self._print(command_line, _("Failed to download %s") % installer_file)
                     return 1
                 try:
                     headers = dict(request.response_headers)
@@ -334,7 +353,8 @@ class Application(Gtk.Application):
                 except (KeyError, IndexError):
                     file_name = os.path.basename(installer_file)
                 file_path = os.path.join(tempfile.gettempdir(), file_name)
-                self._print(command_line, "download %s to %s started" % (installer_file, file_path))
+                self._print(command_line, _("download {url} to {file} started").format(
+                    url=installer_file, file=file_path))
                 with open(file_path, 'wb') as dest_file:
                     dest_file.write(request.content)
                 installer_file = file_path
@@ -344,7 +364,7 @@ class Application(Gtk.Application):
                 action = "install"
 
             if not os.path.isfile(installer_file):
-                self._print(command_line, "No such file: %s" % installer_file)
+                self._print(command_line, _("No such file: %s") % installer_file)
                 return 1
 
         db_game = None
@@ -372,6 +392,13 @@ class Application(Gtk.Application):
         # If reinstall flag is passed, force the action to install
         if options.contains("reinstall"):
             action = "install"
+
+        if action == "write-script":
+            if not db_game or not db_game["id"]:
+                logger.warning("No game provided to generate the script")
+                return 1
+            self.generate_script(db_game, options.lookup_value("output-script").get_string())
+            return 0
 
         # Graphical commands
         self.activate()

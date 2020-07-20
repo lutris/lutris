@@ -1,4 +1,6 @@
 """AppIndicator based tray icon"""
+from gettext import gettext as _
+
 # Third Party Libraries
 import gi
 from gi.repository import Gtk
@@ -65,12 +67,12 @@ class LutrisStatusIcon:
 
         present_menu = Gtk.ImageMenuItem()
         present_menu.set_image(Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU))
-        present_menu.set_label("Show Lutris")
+        present_menu.set_label(_("Show Lutris"))
         present_menu.connect("activate", self.on_activate)
         menu.append(present_menu)
 
         quit_menu = Gtk.MenuItem()
-        quit_menu.set_label("Quit")
+        quit_menu.set_label(_("Quit"))
         quit_menu.connect("activate", self.on_quit_application)
         menu.append(quit_menu)
         menu.show_all()
@@ -116,7 +118,7 @@ class LutrisTray(Gtk.StatusIcon):
 
     def __init__(self, application, **_kwargs):
         super().__init__()
-        self.set_tooltip_text("Lutris")
+        self.set_tooltip_text(_("Lutris"))
         self.set_visible(True)
         self.application = application
         self.set_from_icon_name("lutris")

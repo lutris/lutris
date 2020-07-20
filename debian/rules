@@ -1,5 +1,0 @@
-#!/usr/bin/make -f
-export PYBUILD_INSTALL_ARGS_python3=--install-scripts=/usr/games/
-
-%:
-	dh $@ --buildsystem=pybuild

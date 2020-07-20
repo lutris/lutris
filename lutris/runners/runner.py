@@ -1,6 +1,7 @@
 """Base module for runners"""
 # Standard Library
 import os
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gtk
@@ -9,43 +10,40 @@ from gi.repository import Gtk
 from lutris import pga, runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
+from lutris.exceptions import UnavailableLibraries
 from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import system
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import Request
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
-class RunnerMeta(type):
-    def __new__(mcs, name, bases, body):
-        if name != 'Runner' and 'play' not in body:
-            raise TypeError(f"The play method is not implemented in runner {name}!")
-        return super().__new__(mcs, name, bases, body)
-
-
-class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
+class Runner:  # pylint: disable=too-many-public-methods
 
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
     platforms = []
-    require_libs = []
     runnable_alone = False
     game_options = []
     runner_options = []
     system_options_override = []
     context_menu_entries = []
+    require_libs = []
     depends_on = None
     runner_executable = None
+    entry_point_option = "main_file"
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.arch = system.LINUX_SYSTEM.arch
+        self.arch = system.LINUX_SYSTEM.arch  # What the hell is this needed for?!
         self.config = config
-        self.game_data = {}
         if config:
             self.game_data = pga.get_game_by_field(self.config.game_config_id, "configpath")
+        else:
+            self.game_data = {}
 
     def __lt__(self, other):
         return self.name < other.name
@@ -58,7 +56,7 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
     @description.setter
     def description(self, value):
         """Leave the ability to override the docstring."""
-        self.__doc__ = value
+        self.__doc__ = value  # What the shit
 
     @property
     def name(self):
@@ -93,20 +91,17 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
         return self.system_config.get("game_path")
 
     @property
-    def browse_dir(self):
-        """Return the path to open with the Browse Files action."""
-        for key in self.game_config:
-            if key in ["exe", "main_file", "rom", "disk", "iso"]:
-                path = os.path.dirname(self.game_config.get(key) or "")
-                if not os.path.isabs(path):
-                    path = os.path.join(self.game_path, path)
-                return path
-        return self.game_path
-
-    @property
     def game_path(self):
         """Return the directory where the game is installed."""
-        return self.game_data.get("directory")
+        game_path = self.game_data.get("directory")
+        if game_path:
+            return game_path
+
+        # Default to the directory where the entry point is located.
+        entry_point = self.game_config.get(self.entry_point_option)
+        if entry_point:
+            return os.path.dirname(os.path.expanduser(entry_point))
+        return ""
 
     @property
     def working_dir(self):
@@ -148,7 +143,7 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
                 {
                     "option": "runner_executable",
                     "type": "file",
-                    "label": "Custom executable for the runner",
+                    "label": _("Custom executable for the runner"),
                     "advanced": True,
                 }
             )
@@ -169,11 +164,42 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
         if os_env:
             env.update(os.environ.copy())
 
-        system_env = self.system_config.get("env") or {}
-        env.update(system_env)
+        # Override SDL2 controller configuration
+        sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")
+        if sdl_gamecontrollerconfig:
+            path = os.path.expanduser(sdl_gamecontrollerconfig)
+            if system.path_exists(path):
+                with open(path, "r") as controllerdb_file:
+                    sdl_gamecontrollerconfig = controllerdb_file.read()
+            env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
+        # Set monitor to use for SDL 1 games
+        if self.system_config.get("sdl_video_fullscreen"):
+            env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = self.system_config["sdl_video_fullscreen"]
+
+        # DRI Prime
         if self.system_config.get("dri_prime"):
             env["DRI_PRIME"] = "1"
+
+        # Prime vars
+        prime = self.system_config.get("prime")
+        if prime:
+            env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
+            env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
+            env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
+
+        # Enable ACO compiler for AMD GPUs
+        if self.system_config.get("aco"):
+            env["RADV_PERFTEST"] = "aco"
+
+        # Set PulseAudio latency to 60ms
+        if self.system_config.get("pulse_latency"):
+            env["PULSE_LATENCY_MSEC"] = "60"
+
+        # Vulkan ICD files
+        vk_icd = self.system_config.get("vk_icd")
+        if vk_icd and vk_icd != "off" and system.path_exists(vk_icd):
+            env["VK_ICD_FILENAMES"] = vk_icd
 
         runtime_ld_library_path = None
 
@@ -189,6 +215,9 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
             if not ld_library_path:
                 ld_library_path = "$LD_LIBRARY_PATH"
             env["LD_LIBRARY_PATH"] = ":".join([runtime_ld_library_path, ld_library_path])
+
+        # Apply user overrides at the end
+        env.update(self.system_config.get("env") or {})
 
         return env
 
@@ -206,6 +235,13 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
 
     def prelaunch(self):
         """Run actions before running the game, override this method in runners"""
+        available_libs = set()
+        for lib in set(self.require_libs):
+            if lib in LINUX_SYSTEM.shared_libraries:
+                available_libs.add(lib)
+        unavailable_libs = set(self.require_libs) - available_libs
+        if unavailable_libs:
+            raise UnavailableLibraries(unavailable_libs)
         return True
 
     def get_run_data(self):
@@ -249,9 +285,9 @@ class Runner(metaclass=RunnerMeta):  # pylint: disable=too-many-public-methods
         """
         dialog = dialogs.QuestionDialog(
             {
-                "question": ("The required runner is not installed.\n"
-                             "Do you wish to install it now?"),
-                "title": "Required runner unavailable",
+                "question": _("The required runner is not installed.\n"
+                              "Do you wish to install it now?"),
+                "title": _("Required runner unavailable"),
             }
         )
         if Gtk.ResponseType.YES == dialog.result:

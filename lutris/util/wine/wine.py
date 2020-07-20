@@ -4,6 +4,7 @@ import os
 import subprocess
 from collections import OrderedDict
 from functools import lru_cache
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris import runtime, settings
@@ -12,6 +13,7 @@ from lutris.runners.steam import steam
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, version_sort
+from lutris.util.wine import fsync
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
 WINE_DEFAULT_ARCH = "win64" if system.LINUX_SYSTEM.is_64_bit else "win32"
@@ -23,6 +25,7 @@ WINE_PATHS = {
 }
 
 ESYNC_LIMIT_CHECK = os.environ.get("ESYNC_LIMIT_CHECK", "").lower()
+FSYNC_SUPPORT_CHECK = os.environ.get("FSYNC_SUPPORT_CHECK", "").lower()
 
 
 def get_playonlinux():
@@ -216,6 +219,14 @@ def is_esync_limit_set():
     return system.LINUX_SYSTEM.has_enough_file_descriptors()
 
 
+def is_fsync_supported():
+    """Checks if the running kernel has Valve's futex patch applied."""
+    if FSYNC_SUPPORT_CHECK in ("0", "off"):
+        logger.info("futex patch check for fsync was manually disabled")
+        return True
+    return fsync.is_fsync_supported()
+
+
 def get_default_version():
     """Return the default version of wine. Prioritize 64bit builds"""
     installed_versions = get_wine_versions()
@@ -282,6 +293,32 @@ def is_version_esync(path):
     return False
 
 
+def is_version_fsync(path):
+    """Determines if a Wine build is Fsync capable
+
+    Params:
+        path: the path to the Wine version
+
+    Returns:
+        bool: True is the build is Fsync capable
+    """
+    try:
+        version = path.split("/")[-3].lower()
+    except IndexError:
+        logger.error("Invalid path '%s'", path)
+        return False
+    _, version_prefix, version_suffix = parse_version(version)
+    fsync_compatible_versions = ["fsync", "lutris", "ge", "proton"]
+    for fsync_version in fsync_compatible_versions:
+        if fsync_version in version_prefix or fsync_version in version_suffix:
+            return True
+
+    wine_ver = str(subprocess.check_output([path, "--version"])).lower()
+    if "fsync" in wine_ver:
+        return True
+    return False
+
+
 def get_real_executable(windows_executable, working_dir=None):
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
@@ -331,6 +368,13 @@ def esync_display_limit_warning():
     )
 
 
+def fsync_display_support_warning():
+    ErrorDialog(_(
+        "Your kernel is not patched for fsync."
+        " Please get a patched kernel to use fsync."
+    ))
+
+
 def esync_display_version_warning(on_launch=False):
     setting = "hide-wine-non-esync-version-warning"
     if on_launch:
@@ -344,6 +388,24 @@ def esync_display_version_warning(on_launch=False):
         secondary_message="The Wine build you have selected "
         "does not support Esync.\n"
         "Please switch to an esync-capable version.",
+        checkbox_message=checkbox_message,
+    )
+    return settings.read_setting(setting) == "True"
+
+
+def fsync_display_version_warning(on_launch=False):
+    setting = "hide-wine-non-fsync-version-warning"
+    if on_launch:
+        checkbox_message = "Launch anyway and do not show this message again."
+    else:
+        checkbox_message = "Enable anyway and do not show this message again."
+
+    DontShowAgainDialog(
+        setting,
+        "Incompatible Wine version detected",
+        secondary_message="The Wine build you have selected "
+        "does not support Fsync.\n"
+        "Please switch to an fsync-capable version.",
         checkbox_message=checkbox_message,
     )
     return settings.read_setting(setting) == "True"

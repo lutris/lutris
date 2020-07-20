@@ -38,13 +38,13 @@ pgp-renew:
 	osc rebuildpac home:strycore --all
 
 changelog-add:
-	dch -i
+	EDITOR=vim dch -i
 
 changelog-edit:
-	dch -e
+	EDITOR=vim dch -e
 
 upload:
-	scp build/lutris_${VERSION}.tar.xz lutris.net:/srv/releases/
+	scp build/lutris_${VERSION}.tar.xz anaheim:~/volumes/releases/
 
 upload-ppa:
 	dput ppa:lutris-team/lutris build/lutris_${VERSION}*_source.changes

@@ -1,7 +1,6 @@
-"""Generic runner functions."""
-# from lutris.util.log import logger
+"""Runner loaders"""
 
-__all__ = (
+__all__ = [
     # Native
     "linux",
     "steam",
@@ -17,38 +16,31 @@ __all__ = (
     "scummvm",
     "residualvm",
     "libretro",
-    "ags",
-    # Commdore
+    # Commodore
     "fsuae",
     "vice",
     # Atari
-    "stella",
     "atari800",
     "hatari",
-    "virtualjaguar",
     # Nintendo
     "snes9x",
     "mupen64plus",
     "dolphin",
-    "desmume",
-    "citra",
     "yuzu",
     # Sony
-    "ppsspp",
     "pcsx2",
     "rpcs3",
     # Sega
     "osmose",
-    "dgen",
     "reicast",
     # Fantasy consoles
     "pico8",
     # Misc legacy systems
-    "frotz",
     "jzintv",
     "o2em",
     "zdoom",
-)
+]
+ADDON_RUNNERS = {}
 
 
 class InvalidRunner(Exception):
@@ -80,6 +72,9 @@ def get_runner_module(runner_name):
 
 def import_runner(runner_name):
     """Dynamically import a runner class."""
+    if runner_name in ADDON_RUNNERS:
+        return ADDON_RUNNERS[runner_name]
+
     runner_module = get_runner_module(runner_name)
     if not runner_module:
         return None
@@ -102,3 +97,18 @@ def get_installed(sort=True):
         if runner.is_installed():
             installed.append(runner)
     return sorted(installed) if sort else installed
+
+
+def inject_runners(runners):
+    for runner_name in runners:
+        ADDON_RUNNERS[runner_name] = runners[runner_name]
+        __all__.append(runner_name)
+
+
+def get_runner_names():
+    return {
+        runner: import_runner(runner)().human_name for runner in __all__
+    }
+
+
+RUNNER_NAMES = {}  # This needs to be initialized at startup with get_runner_names

@@ -1,11 +1,9 @@
 """Sidebar for the main window"""
-# Standard Library
 import os
+from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import GObject, Gtk, Pango
 
-# Lutris Modules
 from lutris import pga, platforms, runners
 from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
@@ -20,10 +18,19 @@ LABEL = 3
 GAMECOUNT = 4
 
 
+def load_icon_theme():
+    """Add the lutris icon folder to the default theme"""
+    icon_theme = Gtk.IconTheme.get_default()
+    local_theme_path = os.path.join(datapath.get(), "icons")
+    if local_theme_path not in icon_theme.get_search_path():
+        icon_theme.prepend_search_path(local_theme_path)
+
+
 class SidebarRow(Gtk.ListBoxRow):
 
-    def __init__(self, id_, type_, name, icon):
+    def __init__(self, id_, type_, name, icon, application=None):
         super().__init__()
+        self.application = application
         self.type = type_
         self.id = id_
         self.btn_box = None
@@ -61,12 +68,12 @@ class SidebarRow(Gtk.ListBoxRow):
         if self.runner.multiple_versions:
             entries.append((
                 "system-software-install-symbolic",
-                "Manage Versions",
+                _("Manage Versions"),
                 self.on_manage_versions,
             ))
         if self.runner.runnable_alone:
-            entries.append(("media-playback-start-symbolic", "Run", self.runner.run))
-        entries.append(("emblem-system-symbolic", "Configure", self.on_configure_runner))
+            entries.append(("media-playback-start-symbolic", _("Run"), self.runner.run))
+        entries.append(("emblem-system-symbolic", _("Configure"), self.on_configure_runner))
         for entry in entries:
             btn = Gtk.Button(tooltip_text=entry[1], relief=Gtk.ReliefStyle.NONE, visible=True)
             image = Gtk.Image.new_from_icon_name(entry[0], Gtk.IconSize.MENU)
@@ -77,11 +84,11 @@ class SidebarRow(Gtk.ListBoxRow):
 
         self.box.add(self.btn_box)
 
-    def on_configure_runner(self, *args):  # pylint: disable=unused-argument
-        RunnerConfigDialog(self.runner, parent=self.get_toplevel())
+    def on_configure_runner(self, *_args):
+        self.application.show_window(RunnerConfigDialog, runner=self.runner)
 
-    def on_manage_versions(self, *args):  # pylint: disable=unused-argument
-        dlg_title = "Manage %s versions" % self.runner.name
+    def on_manage_versions(self, *_args):
+        dlg_title = _("Manage %s versions") % self.runner.name
         RunnerInstallDialog(dlg_title, self.get_toplevel(), self.runner.name)
 
     def do_state_flags_changed(self, previous_flags):  # pylint: disable=arguments-differ
@@ -111,7 +118,7 @@ class SidebarHeader(Gtk.Box):
         box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_right=9)
         box.add(label)
         self.add(box)
-        if name == "Runners":
+        if name == _("Runners"):
             manage_runners_button = Gtk.Button.new_from_icon_name("emblem-system-symbolic", Gtk.IconSize.MENU)
             manage_runners_button.props.action_name = "win.manage-runners"
             manage_runners_button.props.relief = Gtk.ReliefStyle.NONE
@@ -125,35 +132,36 @@ class SidebarHeader(Gtk.Box):
 class SidebarListBox(Gtk.ListBox):
     __gtype_name__ = "LutrisSidebar"
 
-    def __init__(self):
+    def __init__(self, application):
         super().__init__()
+        self.application = application
         self.get_style_context().add_class("sidebar")
         self.installed_runners = []
         self.active_platforms = pga.get_used_platforms()
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(platforms.__all__)
+        self.categories = pga.get_categories()
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
         GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
         GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
 
-        # TODO: This should be in a more logical location
-        icon_theme = Gtk.IconTheme.get_default()
-        local_theme_path = os.path.join(datapath.get(), "icons")
-        if local_theme_path not in icon_theme.get_search_path():
-            icon_theme.prepend_search_path(local_theme_path)
+        load_icon_theme()
 
-        all_row = SidebarRow(None, "runner", "All", None)
+        icon = Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
+        self.add(SidebarRow("favorite", "category", _("Favorites"), icon))
+
+        all_row = SidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
         self.select_row(all_row)
-        for runner in self.runners:
-            icon_name = runner.lower().replace(" ", "") + "-symbolic"
+        for runner_name in self.runners:
+            icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
-            name = runners.import_runner(runner).human_name
-            self.add(SidebarRow(runner, "runner", name, icon))
+            runner = runners.import_runner(runner_name)()
+            self.add(SidebarRow(runner_name, "runner", runner.human_name, icon, application=self.application))
 
-        self.add(SidebarRow(None, "platform", "All", None))
+        self.add(SidebarRow(None, "platform", _("All"), None))
         for platform in self.platforms:
             icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
@@ -165,28 +173,26 @@ class SidebarListBox(Gtk.ListBox):
         self.show_all()
 
     def _filter_func(self, row):
-        if row is None:
+        if not row or not row.id or row.type == "category":
             return True
         if row.type == "runner":
             if row.id is None:
                 return True  # 'All'
             return row.id in self.installed_runners
-        if len(self.active_platforms) <= 1:
-            return False  # Hide useless filter
-        if row.id is None:  # 'All'
-            return True
         return row.id in self.active_platforms
 
     def _header_func(self, row, before):
         if row.get_header():
             return
-
         if not before:
-            row.set_header(SidebarHeader("Runners"))
+            row.set_header(SidebarHeader(_("Library")))
+        elif before.type == "category" and row.type == "runner":
+            row.set_header(SidebarHeader(_("Runners")))
         elif before.type == "runner" and row.type == "platform":
-            row.set_header(SidebarHeader("Platforms"))
+            row.set_header(SidebarHeader(_("Platforms")))
 
-    def update(self, *args):  # pylint: disable=unused-argument
+    def update(self, *_args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = pga.get_used_platforms()
         self.invalidate_filter()
+        return True

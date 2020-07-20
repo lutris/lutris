@@ -79,7 +79,7 @@ class DXVKManager:
     """Utility class to install DXVK dlls to a Wine prefix"""
 
     DXVK_TAGS_URL = "https://api.github.com/repos/lutris/dxvk/releases"
-    DXVK_VERSIONS = ["1.6"]
+    DXVK_VERSIONS = ["1.7L-84bb768"]
     DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:9]
 
     init_started = False
@@ -88,7 +88,7 @@ class DXVKManager:
     base_url = "https://github.com/lutris/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
     base_name = "dxvk"
     base_dir = os.path.join(RUNTIME_DIR, base_name)
-    dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9")
+    dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9", "d3d12")
     latest_version = DXVK_LATEST
 
     def __init__(self, prefix, arch="win64", version=None):
@@ -223,7 +223,7 @@ class DXVKManager:
             self.disable_dxvk_dll(system_dir, dxvk_arch, dll)
 
 
-class VKD3DManager(DXVKManager):
+class DXVKManagerNoD3D9(DXVKManager):
 
-    """Modified DXVKManager for supporting VKD3D"""
-    dxvk_dlls = ("d3d11", "d3d10core", "d3d9", "dxvk_config")
+    """Modified DXVKManager without D3D9 support"""
+    dxvk_dlls = ("d3d11", "d3d10core")

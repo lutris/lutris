@@ -6,6 +6,7 @@ import shutil
 # Lutris Modules
 from lutris.runners.commands.wine import wineexec
 from lutris.util import system
+from lutris.util.log import logger
 from lutris.util.wine.cabinstall import CabInstaller
 
 
@@ -20,8 +21,10 @@ class NineManager:
 
     nine_files = ("d3d9-nine.dll", "ninewinecfg.exe")
     mesa_files = ("d3dadapter9.so.1", )
+    nine_dll = "d3d9"
 
-    def __init__(self, prefix, arch):
+    def __init__(self, path, prefix, arch):
+        self.wine_path = path
         self.prefix = prefix
         self.wine_arch = arch
 
@@ -109,6 +112,28 @@ class NineManager:
                 if not os.path.exists(os.path.join(self.get_system_path("x64"), nine_file)):
                     raise NineUnavailable("could not install " + nine_file + " (x64)")
 
+    def move_dll(self, backup):
+        """ Backup or restore dll used by Gallium Nine"""
+        src_suff = "" if backup else ".orig"
+        dst_suff = ".orig" if backup else ""
+
+        wine_dll_path = os.path.join(self.get_system_path("x32"), NineManager.nine_dll + ".dll")
+        if (
+            os.path.exists(wine_dll_path + src_suff)
+            and not os.path.islink(wine_dll_path + src_suff)
+        ):
+            shutil.move(wine_dll_path + src_suff, wine_dll_path + dst_suff)
+            logger.debug("Moving file %s (x32)", wine_dll_path + src_suff)
+
+        if self.wine_arch == "win64":
+            wine_dll_path = os.path.join(self.get_system_path("x64"), NineManager.nine_dll + ".dll")
+            if (
+                os.path.exists(wine_dll_path + src_suff)
+                and not os.path.islink(wine_dll_path + src_suff)
+            ):
+                shutil.move(wine_dll_path + src_suff, wine_dll_path + dst_suff)
+                logger.debug("Moving file %s (x64)", wine_dll_path + src_suff)
+
     def enable(self):
         if not self.nine_is_supported():
             raise NineUnavailable("Nine is not supported on this system")
@@ -117,18 +142,27 @@ class NineManager:
         if not self.is_prefix_prepared():
             self.prepare_prefix()
 
+        self.move_dll(True)
+
         wineexec(
             "ninewinecfg",
             args="-e",
+            wine_path=self.wine_path,
             prefix=self.prefix,
             blocking=True,
         )
 
     def disable(self):
         if self.is_prefix_prepared():
+            # DXVK might to restore the dll - backup it again before calling ninewinecfg
+            self.move_dll(True)
+
             wineexec(
                 "ninewinecfg",
                 args="-d",
+                wine_path=self.wine_path,
                 prefix=self.prefix,
                 blocking=True,
             )
+
+            self.move_dll(False)

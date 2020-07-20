@@ -1,0 +1,44 @@
+Source: lutris
+Section: games
+Priority: optional
+Maintainer: Mathieu Comandon <strider@strycore.com>
+Build-Depends: debhelper (>= 12),
+               dh-sequence-python3,
+               meson,
+Rules-Requires-Root: no
+Standards-Version: 4.5.0
+Homepage: https://lutris.net
+Vcs-Browser: https://github.com/lutris/lutris
+Vcs-Git: https://github.com/lutris/lutris.git
+
+Package: lutris
+Architecture: any
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         python3-yaml,
+         python3-requests,
+         python3-pil,
+         python3-gi,
+         python3-setproctitle,
+         python3-distro,
+         gir1.2-gtk-3.0,
+         gir1.2-gnomedesktop-3.0,
+         gir1.2-webkit2-4.0,
+         gir1.2-notify-0.7,
+         psmisc,
+         cabextract,
+         unzip,
+         p7zip,
+         curl,
+         fluid-soundfont-gs,
+         x11-xserver-utils,
+         mesa-utils,
+Recommends: python3-evdev,
+            gvfs-backends,
+            libwine-development,
+            winetricks,
+Suggests: gamemode,
+Description: open source gaming platform
+ Lutris goal is to make gaming on Linux as easy as possible by taking care of
+ installing and setting up the game for the user. The only thing you have to do
+ is play the game. It aims to support every game that is playable on Linux.

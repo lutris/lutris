@@ -11,6 +11,7 @@ import sys
 from collections import Counter, defaultdict
 
 # Lutris Modules
+from lutris.util import system
 from lutris.util.disks import get_drive_for_path
 from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
@@ -207,6 +208,16 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
             info = kernel_info.readlines()[0]
             version = info.split(" ")[2]
         return version
+
+    def gamemode_available(self):
+        """Return whether gamemode is available"""
+        # Current versions of gamemode use gamemoderun
+        if system.find_executable("gamemoderun"):
+            return True
+        # This is for old versions of gamemode only
+        if self.is_feature_supported("GAMEMODE"):
+            return True
+        return False
 
     @property
     def is_flatpak(self):

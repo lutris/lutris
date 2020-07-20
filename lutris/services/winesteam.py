@@ -1,8 +1,10 @@
 """Steam for Windows service"""
+from gettext import gettext as _
+
 # Lutris Modules
 from lutris.services.steam import SteamSyncer
 
-NAME = "Steam for Windows"
+NAME = _("Steam for Windows")
 ICON = "winesteam"
 ONLINE = False
 

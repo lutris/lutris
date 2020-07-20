@@ -2,6 +2,7 @@
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 import os
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gdk, Gtk
@@ -55,7 +56,7 @@ class ConfigBox(VBox):
     def generate_widgets(self, config_section):  # noqa: C901 # pylint: disable=too-many-branches,too-many-statements
         """Parse the config dict and generates widget accordingly."""
         if not self.options:
-            no_options_label = Label("No options available")
+            no_options_label = Label(_("No options available"))
             no_options_label.set_halign(Gtk.Align.CENTER)
             no_options_label.set_valign(Gtk.Align.CENTER)
             self.pack_start(no_options_label, True, True, 0)
@@ -101,7 +102,7 @@ class ConfigBox(VBox):
             # Reset button
             reset_btn = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
             reset_btn.set_relief(Gtk.ReliefStyle.NONE)
-            reset_btn.set_tooltip_text("Reset option to global or " "default config")
+            reset_btn.set_tooltip_text(_("Reset option to global or default config"))
             reset_btn.connect(
                 "clicked",
                 self.on_reset_button_clicked,
@@ -122,10 +123,10 @@ class ConfigBox(VBox):
             helptext = option.get("help")
             if isinstance(self.tooltip_default, str):
                 helptext = helptext + "\n\n" if helptext else ""
-                helptext += "<b>Default</b>: " + self.tooltip_default
+                helptext += _("<b>Default</b>: ") + _(self.tooltip_default)
             if value != default and option_key not in self.raw_config:
                 helptext = helptext + "\n\n" if helptext else ""
-                helptext += (
+                helptext += _(
                     "<i>(Italic indicates that this option is "
                     "modified in a lower configuration level.)</i>"
                 )
@@ -303,7 +304,7 @@ class ConfigBox(VBox):
             if isinstance(choice, str):
                 choice = (choice, choice)
             if choice[1] == default:
-                liststore.append((choice[0] + "  (default)", choice[1]))
+                liststore.append((_("%s (default)") % choice[0], choice[1]))
                 self.tooltip_default = choice[0]
             else:
                 liststore.append(choice)
@@ -359,8 +360,7 @@ class ConfigBox(VBox):
                 option_value = combobox.get_child().get_text()
         else:
             option_value = list_store[active][1]
-        if option_value:
-            self.option_changed(combobox, option, option_value)
+        self.option_changed(combobox, option, option_value)
 
     # Range
     def generate_range(self, option_name, min_val, max_val, label, value=None):
@@ -387,7 +387,10 @@ class ConfigBox(VBox):
         option_name = option["option"]
         label = Label(option["label"])
         file_chooser = FileChooserEntry(
-            title="Select file", action=Gtk.FileChooserAction.OPEN, path=path, default_path=option.get("default_path")
+            title=_("Select file"),
+            action=Gtk.FileChooserAction.OPEN,
+            path=path,
+            default_path=option.get("default_path")
         )
         file_chooser.set_size_request(200, 30)
 
@@ -428,7 +431,7 @@ class ConfigBox(VBox):
         if not path and self.game and self.game.runner:
             default_path = self.game.runner.working_dir
         directory_chooser = FileChooserEntry(
-            title="Select folder", action=Gtk.FileChooserAction.SELECT_FOLDER, path=path, default_path=default_path
+            title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER, path=path, default_path=default_path
         )
         directory_chooser.entry.connect("changed", self._on_chooser_dir_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)
@@ -468,7 +471,7 @@ class ConfigBox(VBox):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         label = Label(label + ":")
         label.set_halign(Gtk.Align.START)
-        button = Gtk.Button("Add files")
+        button = Gtk.Button(_("Add files"))
         button.connect("clicked", self.on_add_files_clicked, option_name, value)
         button.set_margin_left(10)
         vbox.pack_start(label, False, False, 5)
@@ -486,7 +489,7 @@ class ConfigBox(VBox):
             self.files_list_store.append([filename])
         cell_renderer = Gtk.CellRendererText()
         files_treeview = Gtk.TreeView(self.files_list_store)
-        files_column = Gtk.TreeViewColumn("Files", cell_renderer, text=0)
+        files_column = Gtk.TreeViewColumn(_("Files"), cell_renderer, text=0)
         files_treeview.append_column(files_column)
         files_treeview.connect("key-press-event", self.on_files_treeview_keypress, option_name)
         treeview_scroll = Gtk.ScrolledWindow()
@@ -503,13 +506,13 @@ class ConfigBox(VBox):
     def on_add_files_clicked(self, _widget, option_name, value):
         """Create and run multi-file chooser dialog."""
         dialog = Gtk.FileChooserDialog(
-            title="Select files",
+            title=_("Select files"),
             parent=None,
             action=Gtk.FileChooserAction.OPEN,
             buttons=(
-                "_Cancel",
+                _("_Cancel"),
                 Gtk.ResponseType.CANCEL,
-                "_Add",
+                _("_Add"),
                 Gtk.ResponseType.ACCEPT,
             ),
         )
@@ -638,10 +641,10 @@ class RunnerBox(ConfigBox):
             self.options = runner.get_runner_options()
 
         if lutris_config.level == "game":
-            self.generate_top_info_box(
+            self.generate_top_info_box(_(
                 "If modified, these options supersede the same options from "
                 "the base runner configuration."
-            )
+            ))
         self.generate_widgets("runner")
 
 
@@ -658,15 +661,15 @@ class SystemBox(ConfigBox):
             self.options = sysoptions.system_options
 
         if lutris_config.game_config_id and runner_slug:
-            self.generate_top_info_box(
+            self.generate_top_info_box(_(
                 "If modified, these options supersede the same options from "
                 "the base runner configuration, which themselves supersede "
                 "the global preferences."
-            )
+            ))
         elif runner_slug:
-            self.generate_top_info_box(
+            self.generate_top_info_box(_(
                 "If modified, these options supersede the same options from "
                 "the global preferences."
-            )
+            ))
 
         self.generate_widgets("system")

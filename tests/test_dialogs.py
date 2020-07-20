@@ -1,4 +1,5 @@
 import os
+from unittest import TestCase
 import gi
 
 gi.require_version('Gtk', '3.0')
@@ -12,7 +13,6 @@ from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.application import Application
 from lutris.gui.views.store import sort_func
-from unittest import TestCase
 from lutris import runners
 
 TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')

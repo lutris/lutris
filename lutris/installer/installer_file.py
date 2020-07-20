@@ -120,7 +120,7 @@ class InstallerFile:
             try:
                 logger.debug("Creating cache path %s", self.cache_path)
                 os.makedirs(self.cache_path)
-            except OSError as ex:
+            except (OSError, PermissionError) as ex:
                 logger.error("Failed to created cache path: %s", ex)
                 return False
             return True

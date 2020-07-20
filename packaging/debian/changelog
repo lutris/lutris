@@ -1,3 +1,29 @@
+lutris (0.5.7.1) focal; urgency=medium
+
+  * Provide D3D12.DLL, based on vkd3d3-proton project
+    (https://github.com/HansKristian-Work/vkd3d-proton),
+    as part of our DXVK runtime. This will help push updates faster and provide better compatibility for
+    Direct3D 12 titles such as World of Warcraft.
+
+ -- Mathieu Comandon <strider@strycore.com>  Sat, 18 Jul 2020 14:35:23 -0700
+
+lutris (0.5.7) focal; urgency=medium
+
+  * Use Meson and Ninja to build translation files
+  * Improve Debian package compliance with standards
+  * Add translation strings for the code base
+  * Set a default directory to manually added games, allowing to remove them
+  * Deprecate MESS runner
+  * Migrate all MESS games to MAME
+  * Get full supported system list from the XML given by MAME
+  * Allow to run MAME games by ID if the ROM path is set
+  * Add a no-GUI option to RPCS3
+  * Fix GalliumNine conflicts with DXVK
+  * Improve performance of DirectX 12 games running on AMD GPU by setting RADV_DEBUG=zerovram
+  * Code style fixes. Pylint is now used in the Travis checks.
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 26 Jun 2020 18:06:18 -0700
+
 lutris (0.5.6) eoan; urgency=medium
 
   * Add some wine core processes to be excluded from monitor (Fixes Battle.net

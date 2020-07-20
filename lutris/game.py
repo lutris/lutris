@@ -1,17 +1,15 @@
 """Module that actually runs the games."""
 
-# Standard Library
 # pylint: disable=too-many-public-methods
-import json
 import os
 import shlex
+import stat
 import subprocess
 import time
+from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import GLib, GObject, Gtk
 
-# Lutris Modules
 from lutris import pga, runtime
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
@@ -21,7 +19,7 @@ from lutris.gui import dialogs
 from lutris.runners import InvalidRunner, import_runner, wine
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 from lutris.util import audio, jobs, strings, system, xdgshortcuts
-from lutris.util.display import DISPLAY_MANAGER, get_compositor_commands, restore_gamma
+from lutris.util.display import DISPLAY_MANAGER, disable_compositing, enable_compositing, restore_gamma
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -89,7 +87,6 @@ class Game(GObject.Object):
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
-        self.stop_compositor = self.start_compositor = ""
         self.original_outputs = None
         self._log_buffer = None
         self.timer = Timer()
@@ -133,23 +130,28 @@ class Game(GObject.Object):
             message_text = message["text"].replace("&", "&amp;")
             dialogs.ErrorDialog(message_text)
         elif message["error"] == "RUNNER_NOT_INSTALLED":
-            dialogs.ErrorDialog("Error the runner is not installed")
+            dialogs.ErrorDialog(_("Error the runner is not installed"))
         elif message["error"] == "NO_BIOS":
-            dialogs.ErrorDialog("A bios file is required to run this game")
+            dialogs.ErrorDialog(_("A bios file is required to run this game"))
         elif message["error"] == "FILE_NOT_FOUND":
             filename = message["file"]
             if filename:
-                message_text = "The file {} could not be found".format(filename.replace("&", "&amp;"))
+                message_text = _("The file {} could not be found").format(filename.replace("&", "&amp;"))
             else:
-                message_text = "No file provided"
+                message_text = _("No file provided")
             dialogs.ErrorDialog(message_text)
         elif message["error"] == "NOT_EXECUTABLE":
             message_text = message["file"].replace("&", "&amp;")
-            dialogs.ErrorDialog("The file %s is not executable" % message_text)
+            dialogs.ErrorDialog(_("The file %s is not executable") % message_text)
+        elif message["error"] == "PATH_NOT_SET":
+            message_text = _("The path '%s' is not set. please set it in the options.") % message["path"]
+            dialogs.ErrorDialog(message_text)
+        else:
+            dialogs.ErrorDialog(_("Unhandled error: %s") % message["error"])
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.runner.browse_dir
+        return self.runner.game_path
 
     def _get_runner(self):
         """Return the runner instance for this game's configuration"""
@@ -179,15 +181,12 @@ class Game(GObject.Object):
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
         if enable:
-            system.execute(self.start_compositor, shell=True)
-            self.compositor_disabled = False
+            if self.compositor_disabled:
+                enable_compositing()
+                self.compositor_disabled = False
         else:
-            (
-                self.start_compositor,
-                self.stop_compositor,
-            ) = get_compositor_commands()
-            if not (self.compositor_disabled or not self.stop_compositor):
-                system.execute(self.stop_compositor, shell=True)
+            if not self.compositor_disabled:
+                disable_compositing()
                 self.compositor_disabled = True
 
     def remove(self, from_library=False, from_disk=False):
@@ -268,7 +267,7 @@ class Game(GObject.Object):
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
                 logger.warning("Runtime updates: %s", runtime_updater.current_updates)
-                dialogs.ErrorDialog("Runtime currently updating", "Game might not work as expected")
+                dialogs.ErrorDialog(_("Runtime currently updating"), _("Game might not work as expected"))
         if ("wine" in self.runner_name and not wine.get_system_wine_version() and not LINUX_SYSTEM.is_flatpak):
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
@@ -279,7 +278,7 @@ class Game(GObject.Object):
     def play(self):
         """Launch the game."""
         if not self.runner:
-            dialogs.ErrorDialog("Invalid game configuration: Missing runner")
+            dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
@@ -292,85 +291,33 @@ class Game(GObject.Object):
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
-    @watch_lutris_errors
-    def configure_game(self, prelaunched, error=None):  # noqa: C901
-        """Get the game ready to start, applying all the options
-        This methods sets the game_runtime_config attribute.
-        """
-        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-        # TODO: split into multiple methods to reduce complexity (42)
-        if error:
-            logger.error(error)
-            dialogs.ErrorDialog(str(error))
-        if not prelaunched:
-            logger.error("Game prelaunch unsuccessful")
-            dialogs.ErrorDialog("An error prevented the game from running")
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
-            return
-        system_config = self.runner.system_config
-        self.original_outputs = DISPLAY_MANAGER.get_config()
-
-        gameplay_info = self.runner.play()
-        if "error" in gameplay_info:
-            self.show_error_message(gameplay_info)
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
-            return
-        logger.debug("Launching %s", self.name)
-        logger.debug(json.dumps(gameplay_info, indent=2))
-
-        env = {}
-        sdl_gamecontrollerconfig = system_config.get("sdl_gamecontrollerconfig")
-        if sdl_gamecontrollerconfig:
-            path = os.path.expanduser(sdl_gamecontrollerconfig)
-            if system.path_exists(path):
-                with open(path, "r") as controllerdb_file:
-                    sdl_gamecontrollerconfig = controllerdb_file.read()
-            env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
-
-        sdl_video_fullscreen = system_config.get("sdl_video_fullscreen") or ""
-        env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
-
-        restrict_to_display = system_config.get("display")
-        if restrict_to_display != "off":
-            if restrict_to_display == "primary":
-                restrict_to_display = None
-                for output in self.original_outputs:
-                    if output.primary:
-                        restrict_to_display = output.name
-                        break
-                if not restrict_to_display:
-                    logger.warning("No primary display set")
-            else:
-                found = False
-                for output in self.original_outputs:
-                    if output.name == restrict_to_display:
-                        found = True
-                        break
-                if not found:
-                    logger.warning("Selected display %s not found", restrict_to_display)
-                    restrict_to_display = None
-            if restrict_to_display:
-                turn_off_except(restrict_to_display)
-                time.sleep(3)
-                self.resolution_changed = True
-
-        resolution = system_config.get("resolution")
-        if resolution != "off":
-            DISPLAY_MANAGER.set_resolution(resolution)
+    def restrict_to_display(self, display):
+        outputs = DISPLAY_MANAGER.get_config()
+        if display == "primary":
+            display = None
+            for output in outputs:
+                if output.primary:
+                    display = output.name
+                    break
+            if not display:
+                logger.warning("No primary display set")
+        else:
+            found = False
+            for output in outputs:
+                if output.name == display:
+                    found = True
+                    break
+            if not found:
+                logger.warning("Selected display %s not found", display)
+                display = None
+        if display:
+            turn_off_except(display)
             time.sleep(3)
-            self.resolution_changed = True
+            return True
+        return False
 
-        if system_config.get("reset_pulse"):
-            audio.reset_pulse()
-
-        self.killswitch = system_config.get("killswitch")
-        if self.killswitch and not system.path_exists(self.killswitch):
-            # Prevent setting a killswitch to a file that doesn't exists
-            self.killswitch = None
-
-        # Command
+    def get_launch_parameters(self, gameplay_info):
+        system_config = self.runner.system_config
         launch_arguments = gameplay_info["command"]
 
         optimus = system_config.get("optimus")
@@ -383,48 +330,17 @@ class Game(GObject.Object):
         elif optimus == "pvkrun" and system.find_executable("pvkrun"):
             launch_arguments.insert(0, "pvkrun")
 
-        xephyr = system_config.get("xephyr") or "off"
-        if xephyr != "off":
-            if not system.find_executable("Xephyr"):
-                raise GameConfigError("Unable to find Xephyr, install it or disable the Xephyr option")
-
-            xephyr_depth = "8" if xephyr == "8bpp" else "16"
-            xephyr_resolution = system_config.get("xephyr_resolution") or "640x480"
-            xephyr_command = [
-                "Xephyr",
-                ":2",
-                "-ac",
-                "-screen",
-                xephyr_resolution + "x" + xephyr_depth,
-                "-glamor",
-                "-reset",
-                "-terminate",
-            ]
-            if system_config.get("xephyr_fullscreen"):
-                xephyr_command.append("-fullscreen")
-
-            xephyr_thread = MonitoredCommand(xephyr_command)
-            xephyr_thread.start()
-            time.sleep(3)
-            env["DISPLAY"] = ":2"
-
-        if system_config.get("use_us_layout"):
-            setxkbmap_command = ["setxkbmap", "-model", "pc101", "us", "-print"]
-            xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
-            xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE)
-            subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin).communicate()
-            xkbcomp.communicate()
-
-        if system_config.get("aco"):
-            env["RADV_PERFTEST"] = "aco"
-
-        pulse_latency = system_config.get("pulse_latency")
-        if pulse_latency:
-            env["PULSE_LATENCY_MSEC"] = "60"
-
-        vk_icd = system_config.get("vk_icd")
-        if vk_icd and vk_icd != "off" and system.path_exists(vk_icd):
-            env["VK_ICD_FILENAMES"] = vk_icd
+        # Mangohud activation
+        mangohud = system_config.get("mangohud") or ""
+        if mangohud and system.find_executable("mangohud"):
+            # This is probably not the way to go. This only work with a few
+            # Wine games. It will probably crash it, or do nothing at all.
+            # I have never got mangohud to work on anything other than a Wine
+            # game.
+            dialogs.NoticeDialog("MangoHud support is experimental. Expect the "
+                                 "game to crash or the framerate counter not to "
+                                 "appear at all.")
+            launch_arguments = ["mangohud"] + launch_arguments
 
         fps_limit = system_config.get("fps_limit") or ""
         if fps_limit:
@@ -445,39 +361,19 @@ class Game(GObject.Object):
             launch_arguments.insert(0, "-c")
             launch_arguments.insert(0, "taskset")
 
-        terminal = system_config.get("terminal")
-        if terminal:
-            terminal = system_config.get("terminal_app", system.get_default_terminal())
-            if terminal and not system.find_executable(terminal):
-                dialogs.ErrorDialog("The selected terminal application " "could not be launched:\n" "%s" % terminal)
-                self.state = self.STATE_STOPPED
-                self.emit("game-stop")
-                return
 
-        # Env vars
-        game_env = gameplay_info.get("env") or self.runner.get_env()
-        env.update(game_env)
+        env = {}
+        env.update(self.runner.get_env())
+
+        env.update(gameplay_info.get("env") or {})
         env["game_name"] = self.name
 
-        # Prime vars
-        prime = system_config.get("prime")
-        if prime:
-            env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
-            env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
-            env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
+        # Set environment variables dependent on gameplay info
 
         # LD_PRELOAD
         ld_preload = gameplay_info.get("ld_preload")
         if ld_preload:
             env["LD_PRELOAD"] = ld_preload
-
-        # Feral gamemode
-        gamemode = system_config.get("gamemode")
-        if gamemode:
-            env["LD_PRELOAD"] = ":".join([path for path in [
-                env.get("LD_PRELOAD"),
-                "libgamemodeauto.so",
-            ] if path])
 
         # LD_LIBRARY_PATH
         game_ld_libary_path = gameplay_info.get("ld_library_path")
@@ -487,31 +383,163 @@ class Game(GObject.Object):
                 ld_library_path = "$LD_LIBRARY_PATH"
             env["LD_LIBRARY_PATH"] = ":".join([game_ld_libary_path, ld_library_path])
 
-        include_processes = shlex.split(system_config.get("include_processes", ""))
-        exclude_processes = shlex.split(system_config.get("exclude_processes", ""))
+        # Feral gamemode
+        gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
+        if gamemode:
+            if system.find_executable("gamemoderun"):
+                launch_arguments.insert(0, "gamemoderun")
+            else:
+                env["LD_PRELOAD"] = ":".join([path for path in [
+                    env.get("LD_PRELOAD"),
+                    "libgamemodeauto.so",
+                ] if path])
+        return launch_arguments, env
 
+    def start_xephyr(self, display=":2"):
+        """Start a monitored Xephyr instance"""
+        if not system.find_executable("Xephyr"):
+            raise GameConfigError("Unable to find Xephyr, install it or disable the Xephyr option")
+
+        xephyr_depth = "8" if self.runner.system_config.get("xephyr") == "8bpp" else "16"
+        xephyr_resolution = self.runner.system_config.get("xephyr_resolution") or "640x480"
+        xephyr_command = [
+            "Xephyr",
+            display,
+            "-ac",
+            "-screen",
+            xephyr_resolution + "x" + xephyr_depth,
+            "-glamor",
+            "-reset",
+            "-terminate",
+        ]
+        if self.runner.system_config.get("xephyr_fullscreen"):
+            xephyr_command.append("-fullscreen")
+
+        xephyr_thread = MonitoredCommand(xephyr_command)
+        xephyr_thread.start()
+        time.sleep(3)
+        return display
+
+    @staticmethod
+    def set_keyboard_layout(layout):
+        setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
+        xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
+        xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE)
+        subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin).communicate()
+        xkbcomp.communicate()
+
+    def start_prelaunch_command(self):
+        """Start the prelaunch command specified in the system options"""
+        prelaunch_command = self.runner.system_config.get("prelaunch_command")
+        command_array = shlex.split(prelaunch_command)
+        if not system.path_exists(command_array[0]):
+            logger.warning("Command %s not found", command_array[0])
+            return
+        self.prelaunch_executor = MonitoredCommand(
+            command_array,
+            include_processes=[os.path.basename(command_array[0])],
+            env=self.game_runtime_config["env"],
+            cwd=self.directory,
+        )
+        self.prelaunch_executor.start()
+        logger.info("Running %s in the background", prelaunch_command)
+
+    def get_terminal(self):
+        """Return the terminal used to run the game into or None if the game is not run from a terminal.
+        Remember that only games using text mode should use the terminal.
+        """
+        if self.runner.system_config.get("terminal"):
+            terminal = self.runner.system_config.get("terminal_app", system.get_default_terminal())
+            if terminal and not system.find_executable(terminal):
+                raise GameConfigError(_("The selected terminal application could not be launched:\n%s") % terminal)
+            return terminal
+
+    def get_killswitch(self):
+        """Return the path to a file that is monitored during game execution.
+        If the file stops existing, the game is stopped.
+        """
+        killswitch = self.runner.system_config.get("killswitch")
+        # Prevent setting a killswitch to a file that doesn't exists
+        if killswitch and system.path_exists(self.killswitch):
+            return killswitch
+
+    def get_gameplay_info(self):
+        """Return the information provided by a runner's play method.
+        Checks for possible errors.
+        """
+        gameplay_info = self.runner.play()
+        if "error" in gameplay_info:
+            self.show_error_message(gameplay_info)
+            self.state = self.STATE_STOPPED
+            self.emit("game-stop")
+            return
+        return gameplay_info
+
+    @watch_lutris_errors
+    def configure_game(self, prelaunched, error=None):  # noqa: C901
+        """Get the game ready to start, applying all the options
+        This methods sets the game_runtime_config attribute.
+        """
+        if error:
+            logger.error(error)
+            dialogs.ErrorDialog(str(error))
+        if not prelaunched:
+            logger.error("Game prelaunch unsuccessful")
+            dialogs.ErrorDialog(_("An error prevented the game from running"))
+            self.state = self.STATE_STOPPED
+            self.emit("game-stop")
+            return
+        gameplay_info = self.get_gameplay_info()
+        if not gameplay_info:
+            return
+        command, env = self.get_launch_parameters(gameplay_info)
         self.game_runtime_config = {
-            "args": launch_arguments,
+            "args": command,
             "env": env,
-            "terminal": terminal,
-            "include_processes": include_processes,
-            "exclude_processes": exclude_processes,
+            "terminal": self.get_terminal(),
+            "include_processes": shlex.split(self.runner.system_config.get("include_processes", "")),
+            "exclude_processes": shlex.split(self.runner.system_config.get("exclude_processes", "")),
         }
 
-        if system_config.get("disable_compositor"):
+        # Audio control
+
+        if self.runner.system_config.get("reset_pulse"):
+            audio.reset_pulse()
+
+        # Input control
+
+        if self.runner.system_config.get("use_us_layout"):
+            self.set_keyboard_layout("us")
+
+        # Display control
+
+        self.original_outputs = DISPLAY_MANAGER.get_config()
+
+        if self.runner.system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
 
-        prelaunch_command = system_config.get("prelaunch_command")
-        if system.path_exists(prelaunch_command):
-            self.prelaunch_executor = MonitoredCommand(
-                [prelaunch_command],
-                include_processes=[os.path.basename(prelaunch_command)],
-                env=self.game_runtime_config["env"],
-                cwd=self.directory,
-            )
-            self.prelaunch_executor.start()
-            logger.info("Running %s in the background", prelaunch_command)
-        if system_config.get("prelaunch_wait"):
+        if self.runner.system_config.get("display") != "off":
+            self.resolution_changed = self.restrict_to_display(self.runner.system_config.get("display"))
+
+        resolution = self.runner.system_config.get("resolution")
+        if resolution != "off":
+            DISPLAY_MANAGER.set_resolution(resolution)
+            time.sleep(3)
+            self.resolution_changed = True
+
+        xephyr = self.runner.system_config.get("xephyr") or "off"
+        if xephyr != "off":
+            env["DISPLAY"] = self.start_xephyr()
+
+        # Execution control
+
+        self.killswitch = self.get_killswitch()
+
+        if self.runner.system_config.get("prelaunch_command"):
+            self.start_prelaunch_command()
+
+        if self.runner.system_config.get("prelaunch_wait"):
+            # Monitor the prelaunch command and wait until it has finished
             self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.prelaunch_beat)
         else:
             self.start_game()
@@ -554,7 +582,7 @@ class Game(GObject.Object):
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
-            dialogs.ErrorDialog("<b>Error lauching the game:</b>\n" + self.game_thread.error)
+            dialogs.ErrorDialog(_("<b>Error lauching the game:</b>\n") + self.game_thread.error)
             self.on_game_quit()
             return False
 
@@ -597,15 +625,17 @@ class Game(GObject.Object):
 
         # Check for post game script
         postexit_command = self.runner.system_config.get("postexit_command")
-        if system.path_exists(postexit_command):
-            logger.info("Running post-exit command: %s", postexit_command)
-            postexit_thread = MonitoredCommand(
-                [postexit_command],
-                include_processes=[os.path.basename(postexit_command)],
-                env=self.game_runtime_config["env"],
-                cwd=self.directory,
-            )
-            postexit_thread.start()
+        if postexit_command:
+            command_array = shlex.split(postexit_command)
+            if system.path_exists(command_array[0]):
+                logger.info("Running post-exit command: %s", postexit_command)
+                postexit_thread = MonitoredCommand(
+                    command_array,
+                    include_processes=[os.path.basename(postexit_command)],
+                    env=self.game_runtime_config["env"],
+                    cwd=self.directory,
+                )
+                postexit_thread.start()
 
         if self.discord_presence.available:
             self.discord_presence.clear_discord_rich_presence()
@@ -638,13 +668,13 @@ class Game(GObject.Object):
             error = "error while loading shared lib"
             error_line = strings.lookup_string_in_text(error, self.game_thread.stdout)
             if error_line:
-                dialogs.ErrorDialog("<b>Error: Missing shared library.</b>" "\n\n%s" % error_line)
+                dialogs.ErrorDialog(_("<b>Error: Missing shared library.</b>\n\n%s") % error_line)
 
         if self.game_thread.return_code == 1:
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
-                dialogs.ErrorDialog("<b>Error: A different Wine version is " "already using the same Wine prefix.</b>")
+                dialogs.ErrorDialog(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
     def notify_steam_game_changed(self, appmanifest):
         """Receive updates from Steam games and set the thread's ready state accordingly"""
@@ -659,3 +689,23 @@ class Game(GObject.Object):
                 appmanifest.steamid,
             )
             self.game_thread.ready_state = False
+
+    def write_script(self, script_path):
+        """Output the launch argument in a bash script"""
+
+        gameplay_info = self.get_gameplay_info()
+        if not gameplay_info:
+            return
+        command, env = self.get_launch_parameters(gameplay_info)
+        # Override TERM otherwise the script might not run
+        env["TERM"] = "xterm"
+        script_content = "#!/bin/bash\n\n\n"
+        script_content += "# Environment variables\n\n"
+        for env_var in env:
+            script_content += "export %s=\"%s\"\n" % (env_var, env[env_var])
+        script_content += "\n\n# Command\n\n"
+        script_content += shlex.join(command)
+        with open(script_path, "w") as script_file:
+            script_file.write(script_content)
+
+        os.chmod(script_path, os.stat(script_path).st_mode | stat.S_IEXEC)

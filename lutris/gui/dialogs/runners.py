@@ -2,6 +2,7 @@
 # Standard Library
 # pylint: disable=too-many-instance-attributes,attribute-defined-outside-init
 import os
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import GObject, Gtk
@@ -61,7 +62,11 @@ class RunnersDialog(GtkBuilderDialog):
     def get_runner_hbox(self, runner_name):
         # Get runner details
         runner = runners.import_runner(runner_name)()
-        platform = ", ".join(sorted(list(set(runner.platforms))))
+        platform_list = sorted(list(set(runner.platforms)))
+        if len(platform_list) > 4:
+            platform = _("Multiple platforms")
+        else:
+            platform = ", ".join(platform_list)
 
         builder = Gtk.Builder()
         builder.add_from_file(self.runner_entry_ui)
@@ -124,7 +129,7 @@ class RunnersDialog(GtkBuilderDialog):
         self.configure_button.show()
 
     def on_versions_clicked(self, widget, runner, runner_label):
-        dlg_title = "Manage %s versions" % runner.name
+        dlg_title = _("Manage %s versions") % runner.name
         versions_dialog = RunnerInstallDialog(dlg_title, self.dialog, runner.name)
         versions_dialog.connect("destroy", self.set_install_state, runner, runner_label)
 

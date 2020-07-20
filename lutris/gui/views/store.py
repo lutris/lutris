@@ -100,11 +100,14 @@ class GameStore(GObject.Object):
         self.search_mode = False
         self.games_to_refresh = set()
         self.icon_type = icon_type
-        self.filter_installed = filter_installed
+        self.filters = {
+            "installed": filter_installed,
+            "text": None,
+            "runner": None,
+            "platform": None,
+            "category": None
+        }
         self.show_installed_first = show_installed_first
-        self.filter_text = None
-        self.filter_runner = None
-        self.filter_platform = None
         self.store = Gtk.ListStore(
             int,
             str,
@@ -148,8 +151,7 @@ class GameStore(GObject.Object):
 
     def __str__(self):
         return (
-            "GameStore: <filter_installed: {filter_installed}, "
-            "filter_text: {filter_text}>".format(**self.__dict__)
+            "GameStore: <installed: {installed}, text: {text}>".format(**self.filters)
         )
 
     def load(self, from_search=False):
@@ -210,21 +212,18 @@ class GameStore(GObject.Object):
         """Filter function for the game model"""
         if self.search_mode:
             return True
-        if self.filter_installed:
-            installed = model.get_value(_iter, COL_INSTALLED)
-            if not installed and not self.search_mode:
-                return False
-        if self.filter_text:
-            name = model.get_value(_iter, COL_NAME)
-            if not self.filter_text.lower() in name.lower():
-                return False
-        if self.filter_runner:
-            runner = model.get_value(_iter, COL_RUNNER)
-            if not self.filter_runner == runner:
-                return False
-        if self.filter_platform:
-            platform = model.get_value(_iter, COL_PLATFORM)
-            if platform != self.filter_platform:
+        filter_defs = {
+            "installed": lambda: not model.get_value(_iter, COL_INSTALLED),
+            "text": lambda: self.filters["text"].lower() not in model.get_value(_iter, COL_NAME).lower(),
+            "runner": lambda: self.filters["runner"] != model.get_value(_iter, COL_RUNNER),
+            "platform": lambda: self.filters["platform"] != model.get_value(_iter, COL_PLATFORM),
+            "category": lambda: (
+                model.get_value(_iter, COL_ID)
+                not in pga.get_games_in_category(self.filters["category"])
+            ),
+        }
+        for filter_key in self.filters:
+            if self.filters[filter_key] and filter_defs[filter_key]():
                 return False
         return True
 

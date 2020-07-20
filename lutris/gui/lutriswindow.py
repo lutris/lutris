@@ -3,6 +3,7 @@
 # pylint: disable=no-member
 import os
 from collections import namedtuple
+from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
@@ -85,6 +86,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.threads_stoppers = []
         self.selected_runner = None
         self.selected_platform = None
+        self.selected_category = None
         self.icon_type = None
 
         # Load settings
@@ -125,9 +127,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
         self.website_search_toggle.set_image(lutris_icon)
-        self.website_search_toggle.set_label("Search Lutris.net")
-        self.website_search_toggle.set_tooltip_text("Search Lutris.net")
-        self.sidebar_listbox = SidebarListBox()
+        self.website_search_toggle.set_label(_("Search Lutris.net"))
+        self.website_search_toggle.set_tooltip_text(_("Search Lutris.net"))
+        self.sidebar_listbox = SidebarListBox(self.application)
         self.sidebar_listbox.set_size_request(250, -1)
         self.sidebar_listbox.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar_listbox)
@@ -529,7 +531,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             child = scrollwindow_children[0]
             child.destroy()
         self.games_scrollwindow.add(self.view)
-        self.set_selected_filter(self.selected_runner, self.selected_platform)
+        self.set_selected_filter(self.selected_runner, self.selected_platform, self.selected_category)
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
@@ -548,7 +550,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Synchronize games with local stuff and server."""
 
         def update_gui(result, error):
-            self.sync_label.set_label("Synchronize library")
+            self.sync_label.set_label(_("Synchronize library"))
             self.sync_spinner.props.active = False
             self.sync_button.set_sensitive(True)
             if error:
@@ -565,7 +567,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             else:
                 logger.error("No results returned when syncing the library")
 
-        self.sync_label.set_label("Synchronizing…")
+        self.sync_label.set_label(_("Synchronizing…"))
         self.sync_spinner.props.active = True
         self.sync_button.set_sensitive(False)
         AsyncCall(sync_from_remote, update_gui)
@@ -611,8 +613,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_disconnect(self, *_args):
         """Callback from user disconnect"""
         dlg = dialogs.QuestionDialog({
-            "question": "Do you want to log out from Lutris?",
-            "title": "Log out?",
+            "question": _("Do you want to log out from Lutris?"),
+            "title": _("Log out?"),
         })
         if dlg.result != Gtk.ResponseType.YES:
             return
@@ -664,7 +666,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_preferences_activate(self, *_args):
         """Callback when preferences is activated."""
-        SystemConfigDialog(parent=self)
+        self.application.show_window(SystemConfigDialog)
 
     @GtkTemplate.Callback
     def on_manage_runners(self, *args):
@@ -696,14 +698,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""
         settings.write_setting("filter_installed", bool(filter_installed))
-        self.game_store.filter_installed = filter_installed
+        self.game_store.filters["installed"] = filter_installed
         self.invalidate_game_filter()
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
         if self.search_mode == "local":
-            self.game_store.filter_text = entry.get_text()
+            self.game_store.filters["text"] = entry.get_text()
             self.invalidate_game_filter()
         elif self.search_mode == "website":
             search_terms = entry.get_text().lower().strip()
@@ -729,13 +731,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.search_terms = self.search_entry.props.text
         if toggle_button.props.active:
             self.search_mode = "website"
-            self.search_entry.set_placeholder_text("Search Lutris.net")
+            self.search_entry.set_placeholder_text(_("Search Lutris.net"))
             self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "folder-download-symbolic")
             self.game_store.search_mode = True
             self.search_games(self.search_terms)
         else:
             self.search_mode = "local"
-            self.search_entry.set_placeholder_text("Filter the list of games")
+            self.search_entry.set_placeholder_text(_("Filter the list of games"))
             self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "system-search-symbolic")
             self.search_games("")
             self.search_spinner.props.active = False
@@ -786,7 +788,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_store = self.get_store(api.search_games(query) if query else None)
         self.game_store.set_icon_type(self.icon_type)
         self.game_store.load(from_search=bool(query))
-        self.game_store.filter_text = self.search_entry.props.text
+        self.game_store.filters["text"] = self.search_entry.props.text
         self.search_spinner.props.active = False
         self.switch_view(self.get_view_type())
         self.invalidate_game_filter()
@@ -891,22 +893,26 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
         if row is None:
-            self.set_selected_filter(None, None)
+            self.set_selected_filter(None, None, None)
         elif row.type == "runner":
-            self.set_selected_filter(row.id, None)
+            self.set_selected_filter(row.id, None, None)
+        elif row.type == "category":
+            self.set_selected_filter(None, None, row.id)
         else:
-            self.set_selected_filter(None, row.id)
+            self.set_selected_filter(None, row.id, None)
 
-    def set_selected_filter(self, runner, platform):
+    def set_selected_filter(self, runner, platform, category):
         """Filter the view to a given runner and platform"""
         self.selected_runner = runner
         self.selected_platform = platform
-        self.game_store.filter_runner = self.selected_runner
-        self.game_store.filter_platform = self.selected_platform
+        self.selected_category = category
+        self.game_store.filters["runner"] = self.selected_runner
+        self.game_store.filters["platform"] = self.selected_platform
+        self.game_store.filters["category"] = self.selected_category
         self.invalidate_game_filter()
 
     def show_invalid_credential_warning(self):
-        dialogs.ErrorDialog("Could not connect to your Lutris account. Please sign in again.")
+        dialogs.ErrorDialog(_("Could not connect to your Lutris account. Please sign in again."))
 
     def show_library_sync_error(self):
-        dialogs.ErrorDialog("Failed to retrieve game library. " "There might be some problems contacting lutris.net")
+        dialogs.ErrorDialog(_("Failed to retrieve game library. There might be some problems contacting lutris.net"))

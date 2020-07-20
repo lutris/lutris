@@ -1,0 +1,25 @@
+{
+    "human_name": "Virtual Jaguar",
+    "description": "Atari Jaguar emulator",
+    "platforms": ["Atari Jaguar"],
+    "runner_executable": "virtualjaguar/virtualjaguar",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            "help": "A DS ROM",
+            "default_path": "game_path"
+        }
+    ],
+    "runner_options": [
+
+        {
+            "option": "config",
+            "type": "bool",
+            "label": "Fullscreen",
+            "default": true,
+            "argument": "--fullscreen"
+        }
+    ]
+}

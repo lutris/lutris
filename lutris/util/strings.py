@@ -4,6 +4,7 @@ import math
 import re
 import shlex
 import unicodedata
+import uuid
 
 # Lutris Modules
 from lutris.util.log import logger
@@ -15,16 +16,21 @@ def slugify(value):
     Normalizes string, converts to lowercase, removes non-alpha characters,
     and converts spaces to hyphens.
     """
-    value = str(value)
+    _value = str(value)
     # This differs from the Lutris website implementation which uses the Django
     # version of `slugify` and uses the "NFKD" normalization method instead of
     # "NFD". This creates some inconsistencies in titles containing a trademark
     # symbols or some other special characters. The website version of slugify
     # will likely get updated to use the same normalization method.
-    value = unicodedata.normalize("NFD", value).encode("ascii", "ignore")
-    value = value.decode("utf-8")
-    value = str(re.sub(r"[^\w\s-]", "", value)).strip().lower()
-    return re.sub(r"[-\s]+", "-", value)
+    _value = unicodedata.normalize("NFD", _value).encode("ascii", "ignore")
+    _value = _value.decode("utf-8")
+    _value = str(re.sub(r"[^\w\s-]", "", _value)).strip().lower()
+    slug = re.sub(r"[-\s]+", "-", _value)
+    if not slug:
+        # The slug is empty, likely because the string contains only non-latin
+        # characters
+        slug = str(uuid.uuid5(uuid.NAMESPACE_URL, str(value)))
+    return slug
 
 
 def add_url_tags(text):
@@ -138,6 +144,9 @@ def get_formatted_playtime(playtime):
 
 def split_arguments(args):
     """Wrapper around shlex.split that is more tolerant of errors"""
+    if not args:
+        # shlex.split seems to hangs when passed the None value
+        return []
     try:
         return shlex.split(args)
     except ValueError as ex:

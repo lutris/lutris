@@ -1,12 +1,12 @@
 """Check to run at program start"""
-# Standard Library
 # pylint: disable=no-member
 import os
+from gettext import gettext as _
 
-# Lutris Modules
-from lutris import pga, settings
+from lutris import pga, runners, settings
 from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
+from lutris.runners.json import load_json_runners
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -42,6 +42,9 @@ def init_db():
 
 def init_lutris():
     """Run full initialization of Lutris"""
+    runners.inject_runners(load_json_runners())
+    # Load runner names
+    runners.RUNNER_NAMES = runners.get_runner_names()
     init_dirs()
     init_db()
 
@@ -80,12 +83,12 @@ def check_driver():
         if settings.read_setting(setting) != "True":
             DontShowAgainDialog(
                 setting,
-                "Your Nvidia driver is outdated.",
-                secondary_message="You are currently running driver %s which does not "
-                "fully support all features for Vulkan and DXVK games.\n"
-                "Please upgrade your driver as described in our "
-                "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
-                "installation guide</a>" % driver_info["nvrm"]["version"],
+                _("Your Nvidia driver is outdated."),
+                secondary_message=_("You are currently running driver %s which does not "
+                                    "fully support all features for Vulkan and DXVK games.\n"
+                                    "Please upgrade your driver as described in our "
+                                    "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
+                                    "installation guide</a>") % driver_info["nvrm"]["version"],
             )
 
 
@@ -109,13 +112,13 @@ def check_libs(all_components=False):
         if settings.read_setting(setting) != "True":
             DontShowAgainDialog(
                 setting,
-                "Missing vulkan libraries",
-                secondary_message="Lutris was unable to detect Vulkan support for "
-                "the %s architecture.\n"
-                "This will prevent many games and programs from working.\n"
-                "To install it, please use the following guide: "
-                "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
-                "Installing Graphics Drivers</a>" % " and ".join(missing_vulkan_libs),
+                _("Missing vulkan libraries"),
+                secondary_message=_("Lutris was unable to detect Vulkan support for "
+                                    "the %s architecture.\n"
+                                    "This will prevent many games and programs from working.\n"
+                                    "To install it, please use the following guide: "
+                                    "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
+                                    "Installing Graphics Drivers</a>") % _(" and ").join(missing_vulkan_libs),
             )
 
 
@@ -125,22 +128,6 @@ def check_vulkan():
         logger.info("Vulkan is supported")
     else:
         logger.info("Vulkan is not available or your system isn't Vulkan capable")
-
-
-def check_donate():
-    setting = "dont-support-lutris"
-    if settings.read_setting(setting) != "True":
-        DontShowAgainDialog(
-            setting,
-            "Please support Lutris!",
-            secondary_message="Lutris is entirely funded by its community and will "
-            "remain an independent gaming platform.\n"
-            "For Lutris to survive and grow, the project needs your help.\n"
-            "Please consider making a donation if you can. This will greatly help "
-            "cover the costs of hosting the project and fund new features "
-            "like cloud saves or a full-screen interface for the TV!\n"
-            "<a href='https://lutris.net/donate'>SUPPORT US! https://lutris.net/donate</a>",
-        )
 
 
 def fill_missing_platforms():
@@ -163,5 +150,4 @@ def run_all_checks():
     check_driver()
     check_libs()
     check_vulkan()
-    check_donate()
     fill_missing_platforms()

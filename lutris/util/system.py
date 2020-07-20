@@ -1,5 +1,4 @@
 """System utilities"""
-# Standard Library
 import hashlib
 import os
 import re
@@ -8,12 +7,11 @@ import signal
 import string
 import subprocess
 
-# Lutris Modules
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
-def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
+def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False, timeout=None):
     """
         Execute a system command and return its results.
 
@@ -23,6 +21,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
             cwd (str): Working directory
             log_errors (bool): Pipe stderr to stdout (might cause slowdowns)
             quiet (bool): Do not display log messages
+            timeout (int): Number of seconds the program is allowed to run, disabled by default
 
         Returns:
             str: stdout output
@@ -31,10 +30,10 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
     # Check if the executable exists
     if not command:
         logger.error("No executable provided!")
-        return
+        return ""
     if os.path.isabs(command[0]) and not path_exists(command[0]):
         logger.error("No executable found in %s", command)
-        return
+        return ""
 
     if not quiet:
         logger.debug("Executing %s", " ".join([str(i) for i in command]))
@@ -57,10 +56,13 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
             stderr=subprocess.PIPE if log_errors else subprocess.DEVNULL,
             env=existing_env,
             cwd=cwd,
-        ).communicate()
+        ).communicate(timeout=timeout)
     except (OSError, TypeError) as ex:
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
-        return
+        return ""
+    except subprocess.TimeoutExpired:
+        logger.error("Command %s after %s seconds", command, timeout)
+        return ""
     if stderr and log_errors:
         logger.error(stderr)
     return stdout.decode(errors="replace").strip()
@@ -302,16 +304,19 @@ def reverse_expanduser(path):
     return path
 
 
-def path_exists(path, check_symlinks=False):
+def path_exists(path, check_symlinks=False, exclude_empty=False):
     """Wrapper around system.path_exists that doesn't crash with empty values
 
     Params:
         path (str): File to the file to check
         check_symlinks (bool): If the path is a broken symlink, return False
+        exclude_empty (bool): If true, consider 0 bytes files as non existing
     """
     if not path:
         return False
     if os.path.exists(path):
+        if exclude_empty:
+            return os.stat(path).st_size > 0
         return True
     if os.path.islink(path):
         logger.warning("%s is a broken link", path)

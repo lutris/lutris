@@ -62,6 +62,11 @@ class TestSteamUtils(TestCase):
 
 
 class TestStringUtils(TestCase):
+    def test_slugify_with_nonwestern_name(self):
+        name = 'メイド☆ぱらだいす ～目指せ！メイドナンバーワン！～'
+        slug = strings.slugify(name)
+        self.assertTrue(len(slug) > 0)
+
     def test_add_url_tags(self):
         self.assertEqual(strings.add_url_tags("foo bar"), "foo bar")
         self.assertEqual(

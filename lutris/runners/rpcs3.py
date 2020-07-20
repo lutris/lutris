@@ -1,12 +1,15 @@
+# Standard Library
+from gettext import gettext as _
+
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 
 
 class rpcs3(Runner):
-    human_name = "RPCS3"
-    description = "PlayStation 3 emulator"
-    platforms = ["Sony PlayStation 3"]
+    human_name = _("RPCS3")
+    description = _("PlayStation 3 emulator")
+    platforms = [_("Sony PlayStation 3")]
     runnable_alone = True
     runner_executable = "rpcs3/rpcs3"
     game_options = [
@@ -14,10 +17,10 @@ class rpcs3(Runner):
             "option": "main_file",
             "type": "file",
             "default_path": "game_path",
-            "label": "Path to EBOOT.BIN",
+            "label": _("Path to EBOOT.BIN"),
         }
     ]
-    runner_options = [{"option": "nogui", "type": "bool", "label": "No GUI", "default": False}]
+    runner_options = [{"option": "nogui", "type": "bool", "label": _("No GUI"), "default": False}]
 
     # RPCS3 currently uses an AppImage, no need for the runtime.
     system_options_override = [{"option": "disable_runtime", "default": True}]
