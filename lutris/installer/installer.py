@@ -120,6 +120,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
     def swap_gog_game_files(self):
         """Replace user provided file with downloads from GOG"""
+        logger.info("Swap GOG game files")
         if not self.gogid:
             raise UnavailableGame("The installer has no GOG ID!")
         try:
@@ -167,6 +168,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # If this is a GOG installer, download required files.
         version = self.version.lower()
         if version.startswith("gog"):
+            logger.debug("GOG game detected")
             try:
                 self.swap_gog_game_files()
             except UnavailableGame as ex:

@@ -7,7 +7,6 @@ from gi.repository import GObject, Gtk, Pango
 
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.download_progress import DownloadProgressBox
-from lutris.gui.widgets.utils import get_icon
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
 from lutris.util.log import logger
@@ -43,7 +42,6 @@ class InstallerScriptBox(Gtk.VBox):
         self.set_margin_left(12)
         self.set_margin_right(12)
         box = Gtk.Box(spacing=12, margin_top=6, margin_bottom=6)
-        box.add(self.get_icon())
         box.pack_start(self.get_infobox(), True, True, 0)
         box.add(self.get_install_button())
         self.add(box)
@@ -76,11 +74,6 @@ class InstallerScriptBox(Gtk.VBox):
         self.revealer.add(self.get_notes())
         self.revealer.set_reveal_child(revealed)
         return self.revealer
-
-    def get_icon(self):
-        """Return the runner icon widget"""
-        icon = get_icon(self.script["runner"], size=(32, 32))
-        return icon
 
     def get_install_button(self):
         """Return the install button widget"""
@@ -217,9 +210,6 @@ class InstallerFileBox(Gtk.VBox):
             self.stop_func = steam_installer.stop_func
 
             steam_box = Gtk.HBox(spacing=6)
-            icon = get_icon("steam", size=(32, 32))
-            icon.set_margin_right(6)
-            steam_box.add(icon)
             info_box = Gtk.VBox(spacing=6)
             steam_label = InstallerLabel("Steam game for %s (appid: <b>%s</b>)" % (
                 steam_installer.platform,

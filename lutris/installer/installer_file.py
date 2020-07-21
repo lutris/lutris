@@ -42,13 +42,6 @@ class InstallerFile:
         if self.url.startswith("/"):
             self.url = "file://" + self.url
 
-        if not self.filename:
-            logger.error("Couldn't find a filename for file %s in %s", file_id, file_meta)
-            raise ScriptingError(
-                "No filename provided for %s, please provide 'url' "
-                "and 'filename' parameters in the script" % file_id
-            )
-
     def __str__(self):
         return "%s/%s" % (self.game_slug, self.id)
 
