@@ -1,10 +1,10 @@
 """Sidebar for the main window"""
-import os
 from gettext import gettext as _
 
 from gi.repository import GObject, Gtk, Pango
 
-from lutris import pga, platforms, runners, settings
+from lutris import pga, platforms, runners
+from lutris.gui.widgets.utils import load_icon_theme
 from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
@@ -16,13 +16,6 @@ ICON = 2
 LABEL = 3
 GAMECOUNT = 4
 
-
-def load_icon_theme():
-    """Add the lutris icon folder to the default theme"""
-    icon_theme = Gtk.IconTheme.get_default()
-    local_theme_path = os.path.join(settings.RUNTIME_DIR, "icons")
-    if local_theme_path not in icon_theme.get_search_path():
-        icon_theme.prepend_search_path(local_theme_path)
 
 
 class SidebarRow(Gtk.ListBoxRow):
