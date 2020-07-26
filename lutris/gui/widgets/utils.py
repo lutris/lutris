@@ -86,7 +86,7 @@ def get_icon(icon_name, icon_format="image", size=None, icon_type="runner"):
     icon_type -- Retrieve either a 'runner' or 'platform' icon (default 'runner')
     """
     filename = icon_name.lower().replace(" ", "") + ".png"
-    icon_path = os.path.join(datapath.get(), "media/" + icon_type + "_icons", filename)
+    icon_path = os.path.join(settings.RUNTIME_DIR, "icons/hicolor/64x64/apps", filename)
     if not os.path.exists(icon_path):
         logger.error("Unable to find icon '%s'", icon_path)
         return None
@@ -214,3 +214,11 @@ def get_link_button(text):
     button.get_style_context().add_class("panel-button")
     button.set_size_request(-1, 24)
     return button
+
+
+def load_icon_theme():
+    """Add the lutris icon folder to the default theme"""
+    icon_theme = Gtk.IconTheme.get_default()
+    local_theme_path = os.path.join(settings.RUNTIME_DIR, "icons")
+    if local_theme_path not in icon_theme.get_search_path():
+        icon_theme.prepend_search_path(local_theme_path)
