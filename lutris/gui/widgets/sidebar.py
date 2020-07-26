@@ -4,18 +4,17 @@ from gettext import gettext as _
 from gi.repository import GObject, Gtk, Pango
 
 from lutris import pga, platforms, runners
-from lutris.gui.widgets.utils import load_icon_theme
 from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
+from lutris.gui.widgets.utils import load_icon_theme
 
 TYPE = 0
 SLUG = 1
 ICON = 2
 LABEL = 3
 GAMECOUNT = 4
-
 
 
 class SidebarRow(Gtk.ListBoxRow):
