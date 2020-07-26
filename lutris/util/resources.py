@@ -1,7 +1,7 @@
 """Utility module to handle media resources"""
 import os
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib
 
 from lutris import settings
 from lutris.util import system
