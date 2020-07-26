@@ -22,6 +22,7 @@ from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
+from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.widgets.sidebar import SidebarListBox
 from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri
@@ -31,7 +32,6 @@ from lutris.sync import sync_from_remote
 from lutris.util import datapath, http
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.vendor.gi_composites import GtkTemplate
 
 # from lutris.util.steam.watcher import SteamWatcher
 
@@ -196,12 +196,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             Action(self.on_add_game_button_clicked),
             "preferences":
             Action(self.on_preferences_activate),
-            "manage-runners":
-            Action(self.on_manage_runners),
-            "about":
-            Action(self.on_about_clicked),
-            "show-installed-only":
-            Action(
+            "manage-runners": Action(self.on_manage_runners, ),
+            "about": Action(self.on_about_clicked),
+            "show-installed-only": Action(
                 self.on_show_installed_state_change,
                 type="b",
                 default=self.filter_installed,
