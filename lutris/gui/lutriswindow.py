@@ -22,7 +22,6 @@ from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
-from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.widgets.sidebar import SidebarListBox
 from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri
@@ -644,7 +643,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.hide()
             return True
 
-    @Gtk.Template.Callback
     def on_destroy(self, *_args):
         """Signal for window close."""
         # Stop cancellable running threads
@@ -718,7 +716,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.search_entry.grab_focus()
         else:
             self.search_entry.props.text = ""
-
 
     @Gtk.Template.Callback("on_website_search_toggle_toggled")
     def on_website_search_toggle_toggled(self, toggle_button):
