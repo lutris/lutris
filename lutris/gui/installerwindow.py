@@ -7,7 +7,6 @@ from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gtk
-from gi.repository import GLib
 
 # Lutris Modules
 from lutris import api, pga, settings
@@ -529,11 +528,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         scrolledwindow.show()
         self.log_textview.show()
 
-    def set_cancle_butten_sensitive(self, sensitivity):
-        GLib.idle_add(self.cancel_button.set_sensitive, sensitivity)
+    def set_cancel_butten_sensitive(self, sensitivity):
+        self.cancel_button.set_sensitive(sensitivity)
 
     def continue_button_hide(self):
         self.continue_button.hide()
 
     def eject_button_show(self):
-        GLib.idle_add(self.eject_button.show)
+        self.eject_button.show()

@@ -46,7 +46,7 @@ from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.util.wine.dxvk import init_dxvk_versions, wait_for_dxvk_init
-from lutris.installer import silient_install
+from lutris.installer import unattended_install
 
 from .lutriswindow import LutrisWindow
 
@@ -133,19 +133,11 @@ class Application(Gtk.Application):
             None,
         )
         self.add_main_option(
-            "remove",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Uninstall and remove game"),
-            None,
-        )
-        self.add_main_option(
             "bin_path",
             0,
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
-            _("Binary path for a silent install"),
+            _("Binary path for a unattended install"),
             None,
         )
         self.add_main_option(
@@ -153,7 +145,15 @@ class Application(Gtk.Application):
             0,
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
-            _("Install path for a silent install. If not declared, default path will be used"),
+            _("Install path for a unattended install. If not declared, default path will be used"),
+            None,
+        )
+        self.add_main_option(
+            "input_menu",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Input menu option for a unattended install. Needed if the install script has an input menu"),
             None,
         )
         self.add_main_option(
@@ -400,9 +400,10 @@ class Application(Gtk.Application):
                 self._print(command_line, _("No such file: %s") % installer_file)
                 return 1
 
-            # Do we have an silent install?
+            # Do we have an unattended install install?
             if options.contains("bin_path"):
-                action = "silent_install"
+                action = "unattended_install"
+                self.run_in_background = True
 
         db_game = None
         if game_slug:
@@ -431,51 +432,41 @@ class Application(Gtk.Application):
                 return 1
             self.generate_script(db_game, options.lookup_value("output-script").get_string())
             return 0
+
         # check if path is provided with install
-        if (options.contains("bin_path") or options.contains("install_path")) and not options.contains("install"):
+        if (options.contains("bin_path") or options.contains("install_path")
+           or options.contains("install_input_menu")) and not options.contains("install"):
             self._print(command_line, _("No installer provided!"))
             return 1
 
-        if action == "silent_install":
-            self.window = LutrisWindow(application=self)
-            screen = self.window.props.screen
-            Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
+        if action == "unattended_install":
+            self.activate()
+            install_path = None
+            input_menu = []
             if options.contains("install_path"):
-                silient_install.SilenInstall(
-                    game_slug=game_slug,
-                    installer_file=installer_file,
-                    revision=revision,
-                    binary_path=options.lookup_value("bin_path").get_string().split("; "),
-                    install_path=options.lookup_value("install_path").get_string(),
-                    cmd_print=self._print,
-                    commandline=command_line
-                )
-            else:
-                silient_install.SilenInstall(
-                    game_slug=game_slug,
-                    installer_file=installer_file,
-                    revision=revision,
-                    binary_path=options.lookup_value("bin_path").get_string().split("; "),
-                    cmd_print=self._print,
-                    commandline=command_line
-                )
+                install_path = options.lookup_value("install_path").get_string()
+            if options.contains("input_menu"):
+                input_menu = options.lookup_value("input_menu").get_string().split(":")
+
+            unattended_install.UnattendedInstall(
+                game_slug=game_slug,
+                installer_file=installer_file,
+                revision=revision,
+                binary_path=options.lookup_value("bin_path").get_string().split(":"),
+                install_path=install_path,
+                install_options=input_menu,
+                cmd_print=self._print,
+                commandline=command_line,
+                quit_callback=self.do_shutdown
+            )
             return 0
-        
+
         if action == "uninstall":
             if not db_game or not db_game["id"]:
-                logger.warning("No game found in library")
+                logger.warning("No Game found in library")
                 return 1
             self._print(command_line, _("Uninstall Game %s") % db_game["slug"])
             Game(db_game["id"]).remove(True, False)
-            return 0
-        
-        if action == "remove":
-            if not db_game or not db_game["id"]:
-                logger.warning("No game found in library")
-                return 1
-            self._print(command_line, _("Remove Game %s") % db_game["slug"])
-            Game(db_game["id"]).remove(True, True)
             return 0
 
         # Graphical commands
@@ -512,6 +503,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
             self.launch(Game(db_game["id"]))
+
         return 0
 
     def launch(self, game):

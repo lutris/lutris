@@ -492,7 +492,7 @@ class ScriptInterpreter(CommandsMixin):
         try:
             runner = import_runner(runner_name)
         except InvalidRunner:
-            self.parent.set_cancle_butten_sensitive()
+            GLib.idle_add(self.parent.set_cancel_butten_sensitive, True)
             raise ScriptingError("Invalid runner provided %s" % runner_name)
         return runner
 

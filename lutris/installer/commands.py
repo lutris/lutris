@@ -198,7 +198,7 @@ class CommandsMixin:
         choosen_option = menu.get_active_id()
         if choosen_option:
             self.user_inputs.append({"alias": alias, "value": choosen_option})
-            self.parent.continue_button_hide()
+            GLib.idle_add(self.parent.continue_button_hide)
             self._iter_commands()
 
     def insert_disc(self, data):
@@ -216,7 +216,7 @@ class CommandsMixin:
               "<i>%s</i>") % requires
         )
         if self.runner == "wine":
-            self.parent.eject_button_show()
+            GLib.idle_add(self.parent.eject_button_show)
         GLib.idle_add(self.parent.ask_for_disc, message, self._find_matching_disc, requires)
         return "STOP"
 
@@ -365,7 +365,7 @@ class CommandsMixin:
         """
         self._check_required_params("name", data, "task")
         if self.parent:
-            GLib.idle_add(self.parent.cancel_button_set_sensitive, False)
+            GLib.idle_add(self.parent.set_cancel_butten_sensitiv, False)
         runner_name, task_name = self._get_task_runner_and_name(data.pop("name"))
 
         wine_version = None
@@ -397,7 +397,7 @@ class CommandsMixin:
 
         task = import_task(runner_name, task_name)
         thread = task(**data)
-        GLib.idle_add(self.parent.cancel_button_set_sensitive, True)
+        GLib.idle_add(self.parent.set_cancel_butten_sensitive, True)
         if isinstance(thread, MonitoredCommand):
             # Monitor thread and continue when task has executed
             GLib.idle_add(self.parent.attach_logger, thread)
