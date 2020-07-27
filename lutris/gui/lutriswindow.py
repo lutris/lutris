@@ -660,7 +660,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_preferences_activate(self, *_args):
         """Callback when preferences is activated."""
         self.application.show_window(SystemConfigDialog)
-        
+
     def on_manage_runners(self, *args):
         self.application.show_window(RunnersDialog, transient_for=self)
 
