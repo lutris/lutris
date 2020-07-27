@@ -527,3 +527,12 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
         scrolledwindow.show()
         self.log_textview.show()
+
+    def set_cancel_butten_sensitive(self, sensitivity):
+        self.cancel_button.set_sensitive(sensitivity)
+
+    def continue_button_hide(self):
+        self.continue_button.hide()
+
+    def eject_button_show(self):
+        self.eject_button.show()

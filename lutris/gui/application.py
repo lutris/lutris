@@ -46,6 +46,7 @@ from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.util.wine.dxvk import init_dxvk_versions, wait_for_dxvk_init
+from lutris.installer import unattended_install
 
 from .lutriswindow import LutrisWindow
 
@@ -121,6 +122,38 @@ class Application(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
             _("Generate a bash script to run a game without the client"),
+            None,
+        )
+        self.add_main_option(
+            "uninstall",
+            ord("u"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Uninstall a game. Keep files on the disk"),
+            None,
+        )
+        self.add_main_option(
+            "bin_path",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Binary path for a unattended install"),
+            None,
+        )
+        self.add_main_option(
+            "install_path",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Install path for a unattended install. If not declared, default path will be used"),
+            None,
+        )
+        self.add_main_option(
+            "input_menu",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Input menu option for a unattended install. Needed if the install script has an input menu"),
             None,
         )
         self.add_main_option(
@@ -367,6 +400,11 @@ class Application(Gtk.Application):
                 self._print(command_line, _("No such file: %s") % installer_file)
                 return 1
 
+            # Do we have an unattended install install?
+            if options.contains("bin_path"):
+                action = "unattended_install"
+                self.run_in_background = True
+
         db_game = None
         if game_slug:
             if action == "rungameid":
@@ -393,6 +431,42 @@ class Application(Gtk.Application):
                 logger.warning("No game provided to generate the script")
                 return 1
             self.generate_script(db_game, options.lookup_value("output-script").get_string())
+            return 0
+
+        # check if path is provided with install
+        if (options.contains("bin_path") or options.contains("install_path")
+           or options.contains("install_input_menu")) and not options.contains("install"):
+            self._print(command_line, _("No installer provided!"))
+            return 1
+
+        if action == "unattended_install":
+            self.activate()
+            install_path = None
+            input_menu = []
+            if options.contains("install_path"):
+                install_path = options.lookup_value("install_path").get_string()
+            if options.contains("input_menu"):
+                input_menu = options.lookup_value("input_menu").get_string().split(":")
+
+            unattended_install.UnattendedInstall(
+                game_slug=game_slug,
+                installer_file=installer_file,
+                revision=revision,
+                binary_path=options.lookup_value("bin_path").get_string().split(":"),
+                install_path=install_path,
+                install_options=input_menu,
+                cmd_print=self._print,
+                commandline=command_line,
+                quit_callback=self.do_shutdown
+            )
+            return 0
+
+        if action == "uninstall":
+            if not db_game or not db_game["id"]:
+                logger.warning("No Game found in library")
+                return 1
+            self._print(command_line, _("Uninstall Game %s") % db_game["slug"])
+            Game(db_game["id"]).remove(True, False)
             return 0
 
         # Graphical commands
@@ -429,6 +503,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
             self.launch(Game(db_game["id"]))
+
         return 0
 
     def launch(self, game):

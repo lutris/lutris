@@ -492,7 +492,7 @@ class ScriptInterpreter(CommandsMixin):
         try:
             runner = import_runner(runner_name)
         except InvalidRunner:
-            GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
+            GLib.idle_add(self.parent.set_cancel_butten_sensitive, True)
             raise ScriptingError("Invalid runner provided %s" % runner_name)
         return runner
 
@@ -535,7 +535,7 @@ class ScriptInterpreter(CommandsMixin):
 
         self.parent.set_status("Installing game data")
         self.parent.add_spinner()
-        self.parent.continue_button.hide()
+        self.parent.continue_button_hide()
 
         commands = self.script.get("installer", [])
         if exception:
