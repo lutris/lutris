@@ -897,10 +897,10 @@ class wine(Runner):
         if not ("WINEFSYNC" in env and env["WINEFSYNC"] == "1"):
             env["WINEFSYNC"] = "1" if self.runner_config.get("fsync") else "0"
 
-        # On AMD mimic, the video memory management behavior of Windows DX12
+        # On AMD, mimic the video memory management behavior of Windows DX12
         # drivers more closely, otherwise d3d12 games will crash and have other
         # funky issues.
-        if self.runner_config.get("vkd3d") and drivers.is_amd():
+        if self.runner_config.get("dxvk") and drivers.is_amd():
             env["RADV_DEBUG"] = "zerovram"
 
         overrides = self.get_dll_overrides()
