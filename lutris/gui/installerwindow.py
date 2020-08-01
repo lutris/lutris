@@ -50,6 +50,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.log_textview = None
 
         self.title_label = InstallerLabel()
+        self.title_label.set_selectable(False)
         self.vbox.add(self.title_label)
 
         self.status_label = InstallerLabel()
