@@ -809,7 +809,7 @@ class wine(Runner):
         if version.lower() != "manual":
             if enable:
                 if not dxvk_manager.is_available():
-                    logger.info("DXVK %s is not available yet, downloading...")
+                    logger.info("DXVK %s is not available yet, downloading...", version)
                     dxvk_manager.download()
                 dxvk_manager.enable()
             else:
