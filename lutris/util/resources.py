@@ -1,11 +1,8 @@
 """Utility module to handle media resources"""
-# Standard Library
 import os
 
-# Third Party Libraries
 from gi.repository import GLib
 
-# Lutris Modules
 from lutris import settings
 from lutris.util import system
 from lutris.util.http import HTTPError, Request

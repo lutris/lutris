@@ -391,6 +391,7 @@ class WebConnectDialog(Dialog):
         self.webview = WebKit2.WebView.new_with_context(self.context)
         self.webview.load_uri(service.login_url)
         self.webview.connect("load-changed", self.on_navigation)
+        self.webview.connect("create", self.on_webview_popup)
         self.vbox.pack_start(self.webview, True, True, 0)
 
         webkit_settings = self.webview.get_settings()
@@ -416,6 +417,51 @@ class WebConnectDialog(Dialog):
                 self.service.request_token(url)
                 self.destroy()
         return True
+
+    def on_webview_popup(self, widget, navigation_action):
+        """Handles web popups created by this dialog's webview"""
+        uri = navigation_action.get_request().get_uri()
+        view = WebKit2.WebView.new_with_related_view(widget)
+        view.load_uri(uri)
+        popup_dialog = WebPopupDialog(view, parent=self)
+        popup_dialog.set_modal(True)
+        popup_dialog.show()
+        return view
+
+
+class WebPopupDialog(Dialog):
+    """Dialog for handling web popups"""
+
+    def __init__(self, webview, parent=None):
+        self.parent = parent
+        super(WebPopupDialog, self).__init__(title=_('Loading...'), parent=parent)
+        self.webview = webview
+        self.webview.connect("ready-to-show", self.on_ready_webview)
+        self.webview.connect("notify::title", self.on_available_webview_title)
+        self.webview.connect("create", self.on_new_webview_popup)
+        self.webview.connect("close", self.on_webview_close)
+        self.vbox.pack_start(self.webview, True, True, 0)
+        self.set_border_width(0)
+        self.set_default_size(390, 500)
+
+    def on_ready_webview(self, webview):
+        self.show_all()
+
+    def on_available_webview_title(self, webview, gparamstring):
+        self.set_title(webview.get_title())
+
+    def on_new_webview_popup(self, webview, navigation_action):
+        """Handles web popups created by this dialog's webview"""
+        uri = navigation_action.get_request().get_uri()
+        view = WebKit2.WebView.new_with_related_view(webview)
+        view.load_uri(uri)
+        dialog = WebPopupDialog(view, parent=self)
+        dialog.set_modal(True)
+        dialog.show()
+        return view
+
+    def on_webview_close(self, webview):
+        self.destroy()
 
 
 class InstallerSourceDialog(Gtk.Dialog):
