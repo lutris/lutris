@@ -353,7 +353,7 @@ class ScriptInterpreter(CommandsMixin):
             try:
                 self.swap_humble_game_files()
             except UnavailableGame as ex:
-                logger.error("Unable to get the game from GOG: %s", ex)
+                logger.error("Unable to get the game from Humble Bundle: %s", ex)
         self.iter_game_files()
 
     def iter_game_files(self):
