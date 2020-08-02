@@ -292,6 +292,8 @@ class InstallerFileBox(Gtk.VBox):
             return "Cache"
         if self.provider == "user":
             return "Local"
+        if self.provider == "steam":
+            return "Steam"
         raise ValueError("Unsupported provider %s" % self.provider)
 
     def get_file_provider_label(self):
