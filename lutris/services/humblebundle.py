@@ -170,7 +170,7 @@ def pick_download_url_from_download_info(download_info):
         logger.info("There are %s downloads available:")
         sorted_downloads = []
         for _download in download_info["download"]["download_struct"]:
-            if "deb" in _download["name"] or "32" in _download["name"]:
+            if "deb" in _download["name"] or "rpm" in _download["name"] or "32" in _download["name"]:
                 sorted_downloads.append(_download)
             else:
                 sorted_downloads.insert(0, _download)
