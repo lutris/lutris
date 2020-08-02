@@ -199,7 +199,7 @@ class InstallerFileBox(Gtk.VBox):
             box.pack_start(url_label, False, False, 6)
             return box
         if self.provider == "user":
-            user_label = InstallerLabel(self.installer_file.human_url)
+            user_label = InstallerLabel(gtk_safe(self.installer_file.human_url))
             box.pack_start(user_label, False, False, 0)
         if self.provider == "steam":
             steam_installer = SteamInstaller(self.installer_file.url,
@@ -221,7 +221,7 @@ class InstallerFileBox(Gtk.VBox):
             steam_box.add(info_box)
             return steam_box
 
-        return Gtk.Label(self.installer_file.url)
+        return Gtk.Label(gtk_safe(self.installer_file.url))
 
     def get_popover(self):
         """Return the popover widget to select file source"""
@@ -312,7 +312,7 @@ class InstallerFileBox(Gtk.VBox):
                 cache_option.connect("toggled", self.on_user_file_cached)
                 box.pack_start(cache_option, False, False, 0)
             return box
-        return InstallerLabel(self.installer_file.human_url)
+        return InstallerLabel(gtk_safe(self.installer_file.human_url), wrap=False)
 
     def get_widgets(self):
         """Return the widget with the source of the file and a way to change its source"""
