@@ -1,6 +1,5 @@
 """Widgets for the installer window"""
 import os
-import shutil
 from gettext import gettext as _
 
 from gi.repository import GObject, Gtk, Pango
@@ -8,6 +7,7 @@ from gi.repository import GObject, Gtk, Pango
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.installer.steam_installer import SteamInstaller
+from lutris.cache import save_to_cache
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, gtk_safe
@@ -374,12 +374,7 @@ class InstallerFileBox(Gtk.VBox):
     def cache_file(self):
         """Copy file to the PGA cache"""
         if self.cache_to_pga:
-            if os.path.dirname(self.installer_file.dest_file) == self.installer_file.cache_path:
-                return
-            shutil.copy(self.installer_file.dest_file, self.installer_file.cache_path)
-            logger.debug("Copied %s to cache %s",
-                         self.installer_file.dest_file,
-                         self.installer_file.cache_path)
+            save_to_cache(self.installer_file.dest_file, self.installer_file.cache_path)
 
     def on_download_cancelled(self):
         """Handle cancellation of installers"""
