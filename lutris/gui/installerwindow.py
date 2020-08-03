@@ -236,12 +236,12 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def select_install_folder(self):
         """Stage where we select the install directory."""
-        if self.interpreter.installer.creates_game_folder:
-            self.set_message(_("Select installation directory"))
-            default_path = self.interpreter.get_default_target()
-            self.set_install_destination(default_path)
-        else:
-            self.set_message(_("Click install to continue"))
+        if not self.interpreter.installer.creates_game_folder:
+            self.on_install_clicked(self.install_button)
+            return
+        self.set_message(_("Select installation directory"))
+        default_path = self.interpreter.get_default_target()
+        self.set_install_destination(default_path)
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
         self.continue_button.hide()
