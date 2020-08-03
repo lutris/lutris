@@ -138,7 +138,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
         file_id_provided = False  # Only assign installer_file_id once
         for index, link in enumerate(links):
-            filename = link.split("?")[0].split("/")[-1]
+            if isinstance(link, dict):
+                url = link["url"]
+            else:
+                url = link
+            filename = url.split("?")[0].split("/")[-1]
             if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
                 file_id = installer_file_id
                 file_id_provided = True
@@ -146,7 +150,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 file_id = "gog_file_%s" % index
             self.files.append(
                 InstallerFile(self.game_slug, file_id, {
-                    "url": link,
+                    "url": url,
                     "filename": filename,
                 })
             )
