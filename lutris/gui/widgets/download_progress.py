@@ -31,7 +31,7 @@ class DownloadProgressBox(Gtk.Box):
         self.main_label.set_alignment(0, 0)
         self.main_label.set_property("wrap", True)
         self.main_label.set_margin_bottom(10)
-        self.main_label.set_max_width_chars(70)
+        # self.main_label.set_max_width_chars(70)
         self.main_label.set_selectable(True)
         self.main_label.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
         self.pack_start(self.main_label, True, True, 0)
@@ -57,6 +57,7 @@ class DownloadProgressBox(Gtk.Box):
         self.pack_start(self.progress_label, True, True, 0)
 
         self.show_all()
+        self.cancel_button.hide()
 
     def start(self):
         """Start downloading a file."""
@@ -71,6 +72,7 @@ class DownloadProgressBox(Gtk.Box):
                 return None
 
         timer_id = GLib.timeout_add(500, self._progress)
+        self.cancel_button.show()
         self.cancel_button.set_sensitive(True)
         if not self.downloader.state == self.downloader.DOWNLOADING:
             self.downloader.start()

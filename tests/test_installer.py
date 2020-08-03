@@ -1,5 +1,6 @@
 from unittest import TestCase
 from lutris.installer.interpreter import ScriptInterpreter
+from lutris.installer.installer import LutrisInstaller
 from lutris.installer.errors import ScriptingError
 
 TEST_INSTALLER = {
@@ -20,9 +21,6 @@ class MockInterpreter(ScriptInterpreter):
     """A script interpreter mock."""
     runner = 'linux'
 
-    def is_valid(self):
-        return True
-
 
 class TestScriptInterpreter(TestCase):
     def test_script_with_correct_values_is_valid(self):
@@ -35,16 +33,17 @@ class TestScriptInterpreter(TestCase):
             'version': 'doom-gzdoom'
         }
         interpreter = ScriptInterpreter(installer, None)
-        self.assertEqual(interpreter.game_name, 'Doom')
-        self.assertFalse(interpreter.errors)
-        self.assertTrue(interpreter.is_valid())
+        self.assertEqual(interpreter.installer.game_name, 'Doom')
+        self.assertFalse(interpreter.installer.get_errors())
 
     def test_move_requires_src_and_dst(self):
         script = {
             'foo': 'bar',
-            'script': [],
+            'script': {},
             'name': 'missing_runner',
             'game_slug': 'missing-runner',
+            'slug': 'some-slug',
+            'runner': 'linux',
             'version': 'bar-baz'
         }
         with self.assertRaises(ScriptingError):

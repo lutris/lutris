@@ -380,13 +380,18 @@ class Application(Gtk.Application):
             elif action == "install":
                 # Installers can use game or installer slugs
                 self.run_in_background = True
-                db_game = pga.get_game_by_field(game_slug, "slug") or pga.get_game_by_field(game_slug, "installer_slug")
+                db_game = pga.get_game_by_field(game_slug, "slug") \
+                    or pga.get_game_by_field(game_slug, "installer_slug")
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (
                     pga.get_game_by_field(game_slug, "id") or pga.get_game_by_field(game_slug, "slug")
                     or pga.get_game_by_field(game_slug, "installer_slug")
                 )
+
+        # If reinstall flag is passed, force the action to install
+        if options.contains("reinstall"):
+            action = "install"
 
         if action == "write-script":
             if not db_game or not db_game["id"]:

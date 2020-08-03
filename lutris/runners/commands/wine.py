@@ -1,11 +1,9 @@
 """Wine commands for installers"""
-# Standard Library
 # pylint: disable=too-many-arguments
 import os
 import shlex
 import time
 
-# Lutris Modules
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig

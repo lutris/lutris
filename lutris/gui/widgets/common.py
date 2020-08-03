@@ -49,7 +49,11 @@ class FileChooserEntry(Gtk.Box):
         warn_if_non_empty=False,
         warn_if_ntfs=False
     ):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=12, visible=True)
+        super().__init__(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=0,
+            visible=True
+        )
         self.title = title
         self.action = action
         self.path = os.path.expanduser(path) if path else None
@@ -71,7 +75,7 @@ class FileChooserEntry(Gtk.Box):
         box = Gtk.Box(spacing=6, visible=True)
         box.pack_start(self.entry, True, True, 0)
         box.add(browse_button)
-        self.add(box)
+        self.pack_start(box, False, False, 0)
 
     def get_text(self):
         """Return the entry's text"""

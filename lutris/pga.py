@@ -459,8 +459,7 @@ def check_for_file(game, file_id):
         game_dir = os.path.join(source, game)
         if not system.path_exists(game_dir):
             continue
-        game_files = os.listdir(game_dir)
-        for game_file in game_files:
+        for game_file in os.listdir(game_dir):
             game_base, _ext = os.path.splitext(game_file)
             if game_base == file_id:
                 return os.path.join(game_dir, game_file)
