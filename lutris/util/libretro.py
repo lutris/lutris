@@ -11,12 +11,14 @@ class RetroConfig:
         self.config_path = config_path
         self._config = []
 
+    @property
     def config(self):
         """Lazy loading of the RetroArch config """
         if self._config:
             return self._config
         try:
             self.load_config()
+            return self._config
         except UnicodeDecodeError:
             logger.error(
                 "The Retroarch config in %s could not "
