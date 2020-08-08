@@ -3,7 +3,6 @@
 # pylint: disable=too-many-public-methods
 import os
 import shlex
-import stat
 import subprocess
 import time
 from gettext import gettext as _
@@ -16,6 +15,7 @@ from lutris.config import LutrisConfig
 from lutris.discord import DiscordPresence
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
+from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 from lutris.util import audio, jobs, strings, system, xdgshortcuts
@@ -102,6 +102,49 @@ class Game(GObject.Object):
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
+
+    @property
+    def is_favorite(self):
+        """Return whether the game is in the user's favorites"""
+        categories = pga.get_categories_in_game(self.id)
+        for category in categories:
+            if category == "favorite":
+                return True
+        return False
+
+    def add_to_favorites(self):
+        """Add the game to the 'favorite' category"""
+        favorite = pga.get_category("favorite")
+        if not favorite:
+            favorite = pga.add_category("favorite")
+        pga.add_game_to_category(self.id, favorite["id"])
+        self.emit("game-updated")
+
+    def remove_from_favorites(self):
+        """Remove game from favorites"""
+        favorite = pga.get_category("favorite")
+        pga.remove_category_from_game(self.id, favorite["id"])
+        self.emit("game-updated")
+
+    @property
+    def is_hidden(self):
+        """Is the game hidden in the UI?"""
+        return self.id in pga.get_hidden_ids()
+
+    def hide(self):
+        """Do not show this game in the UI"""
+        # Append the new hidden ID and save it
+        ignores = pga.get_hidden_ids() + [self.id]
+        pga.set_hidden_ids(ignores)
+        self.emit("game-updated")
+
+    def unhide(self):
+        """Remove the game from hidden games"""
+        # Remove the ID to unhide and save it
+        ignores = pga.get_hidden_ids()
+        ignores.remove(self.id)
+        pga.set_hidden_ids(ignores)
+        self.emit("game-updated")
 
     @property
     def log_buffer(self):
@@ -319,84 +362,6 @@ class Game(GObject.Object):
             return True
         return False
 
-    def get_launch_parameters(self, gameplay_info):
-        system_config = self.runner.system_config
-        launch_arguments = gameplay_info["command"]
-
-        optimus = system_config.get("optimus")
-        if optimus == "primusrun" and system.find_executable("primusrun"):
-            launch_arguments.insert(0, "primusrun")
-        elif optimus == "optirun" and system.find_executable("optirun"):
-            launch_arguments.insert(0, "virtualgl")
-            launch_arguments.insert(0, "-b")
-            launch_arguments.insert(0, "optirun")
-        elif optimus == "pvkrun" and system.find_executable("pvkrun"):
-            launch_arguments.insert(0, "pvkrun")
-
-        # Mangohud activation
-        mangohud = system_config.get("mangohud") or ""
-        if mangohud and system.find_executable("mangohud"):
-            # This is probably not the way to go. This only work with a few
-            # Wine games. It will probably crash it, or do nothing at all.
-            # I have never got mangohud to work on anything other than a Wine
-            # game.
-            dialogs.NoticeDialog("MangoHud support is experimental. Expect the "
-                                 "game to crash or the framerate counter not to "
-                                 "appear at all.")
-            launch_arguments = ["mangohud"] + launch_arguments
-
-        fps_limit = system_config.get("fps_limit") or ""
-        if fps_limit:
-            strangle_cmd = system.find_executable("strangle")
-            if strangle_cmd:
-                launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
-            else:
-                logger.warning("libstrangle is not available on this system, FPS limiter disabled")
-
-        prefix_command = system_config.get("prefix_command") or ""
-        if prefix_command:
-            launch_arguments = (shlex.split(os.path.expandvars(prefix_command)) + launch_arguments)
-
-        single_cpu = system_config.get("single_cpu") or False
-        if single_cpu:
-            logger.info("The game will run on a single CPU core")
-            launch_arguments.insert(0, "0")
-            launch_arguments.insert(0, "-c")
-            launch_arguments.insert(0, "taskset")
-
-
-        env = {}
-        env.update(self.runner.get_env())
-
-        env.update(gameplay_info.get("env") or {})
-        env["game_name"] = self.name
-
-        # Set environment variables dependent on gameplay info
-
-        # LD_PRELOAD
-        ld_preload = gameplay_info.get("ld_preload")
-        if ld_preload:
-            env["LD_PRELOAD"] = ld_preload
-
-        # LD_LIBRARY_PATH
-        game_ld_libary_path = gameplay_info.get("ld_library_path")
-        if game_ld_libary_path:
-            ld_library_path = env.get("LD_LIBRARY_PATH")
-            if not ld_library_path:
-                ld_library_path = "$LD_LIBRARY_PATH"
-            env["LD_LIBRARY_PATH"] = ":".join([game_ld_libary_path, ld_library_path])
-
-        # Feral gamemode
-        gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
-        if gamemode:
-            if system.find_executable("gamemoderun"):
-                launch_arguments.insert(0, "gamemoderun")
-            else:
-                env["LD_PRELOAD"] = ":".join([path for path in [
-                    env.get("LD_PRELOAD"),
-                    "libgamemodeauto.so",
-                ] if path])
-        return launch_arguments, env
 
     def start_xephyr(self, display=":2"):
         """Start a monitored Xephyr instance"""
@@ -495,7 +460,8 @@ class Game(GObject.Object):
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:
             return
-        command, env = self.get_launch_parameters(gameplay_info)
+        command, env = get_launch_parameters(self.runner, gameplay_info)
+        env["game_name"] = self.name  # What is this used for??
         self.game_runtime_config = {
             "args": command,
             "env": env,
@@ -702,20 +668,7 @@ class Game(GObject.Object):
 
     def write_script(self, script_path):
         """Output the launch argument in a bash script"""
-
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:
             return
-        command, env = self.get_launch_parameters(gameplay_info)
-        # Override TERM otherwise the script might not run
-        env["TERM"] = "xterm"
-        script_content = "#!/bin/bash\n\n\n"
-        script_content += "# Environment variables\n\n"
-        for env_var in env:
-            script_content += "export %s=\"%s\"\n" % (env_var, env[env_var])
-        script_content += "\n\n# Command\n\n"
-        script_content += shlex.join(command)
-        with open(script_path, "w") as script_file:
-            script_file.write(script_content)
-
-        os.chmod(script_path, os.stat(script_path).st_mode | stat.S_IEXEC)
+        export_bash_script(self.runner, gameplay_info, script_path)
