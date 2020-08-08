@@ -188,14 +188,6 @@ def search_games(query):
         api_games = response_data.get("games", [])
     else:
         api_games = response_data.get("results", [])
-    for index, game in enumerate(api_games, 1):
-        game["id"] = index * -1
-        game["installed"] = 1
-        game["runner"] = None
-        game["platform"] = None
-        game["lastplayed"] = None
-        game["installed_at"] = None
-        game["playtime"] = None
     return api_games
 
 
