@@ -5,9 +5,9 @@ import re
 from configparser import ConfigParser
 from gettext import gettext as _
 
-# Lutris Modules
-from lutris import pga
 from lutris.config import LutrisConfig, make_game_config_id
+# Lutris Modules
+from lutris.database.games import add_or_update, get_games_where
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -24,7 +24,7 @@ def mark_as_installed(scummvm_id, name, path):
     logger.info("Setting %s as installed", name)
     slug = slugify(name)
     config_id = make_game_config_id(slug)
-    game_id = pga.add_or_update(
+    game_id = add_or_update(
         name=name,
         runner="scummvm",
         installer_slug=INSTALLER_SLUG,
@@ -60,7 +60,7 @@ def sync_with_lutris():
     """Sync the ScummVM games to Lutris"""
     scummvm_games = {
         game["slug"]: game
-        for game in pga.get_games_where(runner="scummvm", installer_slug=INSTALLER_SLUG, installed=1)
+        for game in get_games_where(runner="scummvm", installer_slug=INSTALLER_SLUG, installed=1)
     }
     seen = set()
 
@@ -70,4 +70,4 @@ def sync_with_lutris():
         if slug not in scummvm_games.keys():
             mark_as_installed(scummvm_id, name, path)
     for slug in set(scummvm_games.keys()).difference(seen):
-        return pga.add_or_update(id=scummvm_games[slug]["id"], installed=0)
+        return add_or_update(id=scummvm_games[slug]["id"], installed=0)

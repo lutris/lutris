@@ -1,19 +1,16 @@
 """
-    Commonly used dialogs
-    isort:skip_file
+Commonly used dialogs
+isort:skip_file
 """
-# Standard Library
-# pylint: disable=no-member
 import os
 from gettext import gettext as _
 
-# Third Party Libraries
 import gi
 gi.require_version("WebKit2", "4.0")
-from gi.repository import GLib, GObject, Gtk, WebKit2
+from gi.repository import GObject, Gtk, WebKit2
 
-# Lutris Modules
-from lutris import api, pga, runtime, settings
+from lutris import api, settings
+from lutris.database import sources as sources_db
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.log import logger
@@ -39,6 +36,7 @@ class GtkBuilderDialog(GObject.Object):
     }
 
     def __init__(self, parent=None, **kwargs):
+        # pylint: disable=no-member
         super().__init__()
         ui_filename = os.path.join(datapath.get(), "ui", self.glade_file)
         if not os.path.exists(ui_filename):
@@ -203,34 +201,6 @@ class InstallOrPlayDialog(Gtk.Dialog):
         self.destroy()
 
 
-class RuntimeUpdateDialog(Gtk.Dialog):
-
-    """Dialog showing the progress of ongoing runtime update."""
-
-    def __init__(self, parent=None):
-        Gtk.Dialog.__init__(self, _("Runtime updating"), parent=parent)
-        self.set_size_request(360, 104)
-        self.set_border_width(12)
-        progress_box = Gtk.Box()
-        self.progressbar = Gtk.ProgressBar()
-        self.progressbar.set_margin_top(40)
-        self.progressbar.set_margin_bottom(40)
-        self.progressbar.set_margin_right(20)
-        self.progressbar.set_margin_left(20)
-        progress_box.pack_start(self.progressbar, True, True, 0)
-        self.get_content_area().add(progress_box)
-        GLib.timeout_add(200, self.on_runtime_check)
-        self.show_all()
-
-    def on_runtime_check(self, *args, **kwargs):  # pylint: disable=unused-argument
-        self.progressbar.pulse()
-        if not runtime.is_updating():
-            self.response(Gtk.ResponseType.OK)
-            self.destroy()
-            return False
-        return True
-
-
 class PgaSourceDialog(GtkBuilderDialog):
     glade_file = "dialog-pga-sources.ui"
     dialog_object = "pga_dialog"
@@ -250,7 +220,7 @@ class PgaSourceDialog(GtkBuilderDialog):
         uri_column = Gtk.TreeViewColumn("URI", renderer, text=0)
         self.sources_treeview.append_column(uri_column)
         self.sources_treeview.set_model(self.sources_liststore)
-        sources = pga.read_sources()
+        sources = sources_db.read_sources()
         for __, source in enumerate(sources):
             self.sources_liststore.append((source, ))
 
@@ -262,7 +232,7 @@ class PgaSourceDialog(GtkBuilderDialog):
         return [source[0] for source in self.sources_liststore]
 
     def on_apply(self, widget, data=None):
-        pga.write_sources(self.sources_list)
+        sources_db.write_sources(self.sources_list)
         self.on_close(widget, data)
 
     def on_add_source_button_clicked(self, widget, data=None):  # pylint: disable=unused-argument
@@ -392,7 +362,7 @@ class WebConnectDialog(Dialog):
         self.webview.load_uri(service.login_url)
         self.webview.connect("load-changed", self.on_navigation)
         self.webview.connect("create", self.on_webview_popup)
-        self.vbox.pack_start(self.webview, True, True, 0)
+        self.vbox.pack_start(self.webview, True, True, 0)  # pylint: disable=no-member
 
         webkit_settings = self.webview.get_settings()
         # Allow popups (Doesn't work...)
@@ -433,6 +403,7 @@ class WebPopupDialog(Dialog):
     """Dialog for handling web popups"""
 
     def __init__(self, webview, parent=None):
+        # pylint: disable=no-member
         self.parent = parent
         super(WebPopupDialog, self).__init__(title=_('Loading...'), parent=parent)
         self.webview = webview
@@ -507,7 +478,7 @@ class DontShowAgainDialog(Gtk.MessageDialog):
         parent=None,
         checkbox_message=None,
     ):
-
+        # pylint: disable=no-member
         if settings.read_setting(setting) == "True":
             logger.info("Dialog %s dismissed by user", setting)
             return

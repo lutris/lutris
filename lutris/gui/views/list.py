@@ -23,7 +23,7 @@ class GameListView(Gtk.TreeView, GameView):
 
     def __init__(self, store):
         self.game_store = store
-        self.model = self.game_store.modelsort
+        self.model = self.game_store.store
         super().__init__(self.model)
         self.set_rules_hint(True)
 
@@ -81,7 +81,9 @@ class GameListView(Gtk.TreeView, GameView):
 
     def set_column_sort(self, col):
         """Sort a column and fallback to sorting by name and runner."""
-        self.model.set_sort_func(col, sort_func, col)
+        model = self.get_model()
+        if model:
+            model.set_sort_func(col, sort_func, col)
 
     def set_sort_with_column(self, col, sort_col):
         """Sort a column by using another column's data"""

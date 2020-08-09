@@ -4,8 +4,9 @@ import os
 import yaml
 from gi.repository import GLib, GObject
 
-from lutris import pga, settings
+from lutris import settings
 from lutris.config import LutrisConfig
+from lutris.database.games import get_game_by_field
 from lutris.gui.dialogs import WineNotInstalledWarning
 from lutris.gui.dialogs.download import simple_downloader
 from lutris.installer.commands import CommandsMixin
@@ -115,10 +116,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     @staticmethod
     def _get_installed_dependency(dependency):
         """Return whether a dependency is installed"""
-        game = pga.get_game_by_field(dependency, field="installer_slug")
+        game = get_game_by_field(dependency, field="installer_slug")
 
         if not game:
-            game = pga.get_game_by_field(dependency, "slug")
+            game = get_game_by_field(dependency, "slug")
         if bool(game) and bool(game["directory"]):
             return game
 

@@ -1,12 +1,11 @@
 """Manage Humble Bundle libraries"""
-# Standard Library
 import json
 import os
 from gettext import gettext as _
 from urllib.parse import urlparse
 
-# Lutris Modules
-from lutris import api, pga, settings
+from lutris import api, settings
+from lutris.database.games import add_or_update
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
@@ -228,7 +227,7 @@ class HumbleBundleSyncer:
                 "updated": game["updated"],
                 "humblestoreid": game["humblestoreid"],
             }
-            added_games.append(pga.add_or_update(**game_data))
+            added_games.append(add_or_update(**game_data))
         if not full:
             return added_games, games
         return added_games, []

@@ -1,6 +1,5 @@
 """Communicates between third party services games and Lutris games"""
-# Lutris Modules
-from lutris import pga
+from lutris.database.games import add_or_update
 
 
 class ServiceGame:
@@ -52,7 +51,7 @@ class ServiceGame:
         else:
             name = self.name
             slug = self.slug
-        self.game_id = pga.add_or_update(
+        self.game_id = add_or_update(
             id=self.game_id,
             name=name,
             runner=self.runner,
@@ -67,7 +66,7 @@ class ServiceGame:
 
     def uninstall(self):
         """Uninstall a game from Lutris"""
-        return pga.add_or_update(id=self.game_id, installed=0)
+        return add_or_update(id=self.game_id, installed=0)
 
     def create_config(self):
         """Implement this in subclasses to properly create the game config"""

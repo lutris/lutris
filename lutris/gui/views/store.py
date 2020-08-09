@@ -1,20 +1,19 @@
 """Store object for a list of games"""
-# Standard Library
 # pylint: disable=not-an-iterable
 import concurrent.futures
 
-# Third Party Libraries
 from gi.repository import GLib, GObject, Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
-# Lutris Modules
-from lutris import api, pga
-from lutris.gui.views.pga_game import PgaGame
+from lutris import api
+from lutris.database.games import get_games_by_slug
+from lutris.gui.views.pga_game import GameItem
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.resources import download_media, get_icon_path, update_desktop_icons
+from lutris.util.strings import gtk_safe
 
 from . import (
     COL_ICON, COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT,
@@ -91,11 +90,11 @@ class GameStore(GObject.Object):
         show_installed_first=False,
     ):
         super(GameStore, self).__init__()
-        self.games = games or pga.get_games(show_installed_first=show_installed_first)
-        if not show_hidden_games:
-            # Check if the PGA contains game IDs that the user does not
-            # want to see
-            self.games = [game for game in self.games if game["id"] not in pga.get_hidden_ids()]
+        self.games = games
+        # if not show_hidden_games:
+        #    # Check if the PGA contains game IDs that the user does not
+        #    # want to see
+        #    # self.games = [game for game in self.games if game["id"] not in pga.get_hidden_ids()]
 
         self.search_mode = False
         self.games_to_refresh = set()
@@ -103,11 +102,9 @@ class GameStore(GObject.Object):
         self.filters = {
             "installed": filter_installed,
             "text": None,
-            "runner": None,
-            "platform": None,
-            "category": None
         }
-        self.show_installed_first = show_installed_first
+
+        self.games_in_category = []  # pga.get_games_in_category(self.filters["category"])
         self.store = Gtk.ListStore(
             int,
             str,
@@ -125,23 +122,16 @@ class GameStore(GObject.Object):
             float,
             str,
         )
-        sort_col = COL_NAME
         if show_installed_first:
-            sort_col = COL_INSTALLED
-            self.store.set_sort_column_id(sort_col, Gtk.SortType.DESCENDING)
+            self.sort_col = COL_INSTALLED
+            self.store.set_sort_column_id(self.sort_col, Gtk.SortType.DESCENDING)
         else:
-            self.store.set_sort_column_id(sort_col, Gtk.SortType.ASCENDING)
-        self.prevent_sort_update = False  # prevent recursion with signals
+            self.sort_col = COL_NAME
+            self.store.set_sort_column_id(self.sort_col, Gtk.SortType.ASCENDING)
         self.modelfilter = self.store.filter_new()
         self.modelfilter.set_visible_func(self.filter_view)
-        try:
-            self.modelsort = Gtk.TreeModelSort.sort_new_with_model(self.modelfilter)
-        except AttributeError:
-            # Apparently some API breaking changes on GTK minor versions.
-            self.modelsort = Gtk.TreeModelSort.new_with_model(self.modelfilter)  # pylint: disable=no-member  # NOQA
-        self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
-        self.modelsort.set_sort_func(sort_col, sort_func, sort_col)
-        self.sort_view(sort_key, sort_ascending)
+        self.prevent_sort_update = False  # prevent recursion with signals
+        # self.sort_view(sort_key, sort_ascending)
         self.medias = {"banner": {}, "icon": {}}
         self.banner_misses = set()
         self.icon_misses = set()
@@ -215,49 +205,39 @@ class GameStore(GObject.Object):
         filter_defs = {
             "installed": lambda: not model.get_value(_iter, COL_INSTALLED),
             "text": lambda: self.filters["text"].lower() not in model.get_value(_iter, COL_NAME).lower(),
-            "runner": lambda: self.filters["runner"] != model.get_value(_iter, COL_RUNNER),
-            "platform": lambda: self.filters["platform"] != model.get_value(_iter, COL_PLATFORM),
-            "category": lambda: (
-                model.get_value(_iter, COL_ID)
-                not in pga.get_games_in_category(self.filters["category"])
-            ),
         }
         for filter_key in self.filters:
             if self.filters[filter_key] and filter_defs[filter_key]():
                 return False
         return True
 
-    def sort_view(self, key="name", ascending=True):
-        """Sort the model on a given column name"""
-        try:
-            sort_column = self.sort_columns[key]
-        except KeyError:
-            logger.error("Invalid column name '%s'", key)
-            sort_column = COL_NAME
-        self.modelsort.set_sort_column_id(
-            sort_column,
-            Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING,
-        )
+    # def sort_view(self, key="name", ascending=True):
+    #     """Sort the model on a given column name"""
+    #     try:
+    #         sort_column = self.sort_columns[key]
+    #     except KeyError:
+    #         logger.error("Invalid column name '%s'", key)
+    #         sort_column = COL_NAME
+    #     self.modelsort.set_sort_column_id(
+    #         sort_column,
+    #         Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING,
+    #     )
 
-    def on_sort_column_changed(self, model):
-        if self.prevent_sort_update:
-            return
-        (col, direction) = model.get_sort_column_id()
-        key = next((c for c, k in self.sort_columns.items() if k == col), None)
-        ascending = direction == Gtk.SortType.ASCENDING
-        self.prevent_sort_update = True
-        if not key:
-            raise ValueError("Invalid sort key for col %s" % col)
-        self.sort_view(key, ascending)
-        self.prevent_sort_update = False
-        self.emit("sorting-changed", key, ascending)
+    # def on_sort_column_changed(self, model):
+    #     if self.prevent_sort_update:
+    #         return
+    #     (col, direction) = model.get_sort_column_id()
+    #     key = next((c for c, k in self.sort_columns.items() if k == col), None)
+    #     ascending = direction == Gtk.SortType.ASCENDING
+    #     self.prevent_sort_update = True
+    #     if not key:
+    #         raise ValueError("Invalid sort key for col %s" % col)
+    #     self.sort_view(key, ascending)
+    #     self.prevent_sort_update = False
+    #     self.emit("sorting-changed", key, ascending)
 
     def get_row_by_id(self, game_id, filtered=False):
-        if filtered:
-            store = self.modelsort
-        else:
-            store = self.store
-        for model_row in store:
+        for model_row in self.store:
             if model_row[COL_ID] == int(game_id):
                 return model_row
 
@@ -286,15 +266,9 @@ class GameStore(GObject.Object):
         if row:
             self.store.remove(row.iter)
 
-    def update_game_by_id(self, game_id):
-        pga_game = pga.get_game_by_field(game_id, "id")
-        if pga_game:
-            return self.update(pga_game)
-        return self.remove_game(game_id)
-
     def update(self, pga_game):
         """Update game informations."""
-        game = PgaGame(pga_game)
+        game = GameItem(pga_game)
         if self.search_mode:
             row = self.get_row_by_slug(game.slug)
         else:
@@ -303,12 +277,12 @@ class GameStore(GObject.Object):
             raise ValueError("No existing row for game %s" % game.slug)
         row[COL_ID] = game.id
         row[COL_SLUG] = game.slug
-        row[COL_NAME] = game.name
+        row[COL_NAME] = gtk_safe(game.name)
         row[COL_ICON] = game.get_pixbuf(self.icon_type)
         row[COL_YEAR] = game.year
         row[COL_RUNNER] = game.runner
-        row[COL_RUNNER_HUMAN_NAME] = game.runner_text
-        row[COL_PLATFORM] = game.platform
+        row[COL_RUNNER_HUMAN_NAME] = gtk_safe(game.runner_text)
+        row[COL_PLATFORM] = gtk_safe(game.platform)
         row[COL_LASTPLAYED] = game.lastplayed
         row[COL_LASTPLAYED_TEXT] = game.lastplayed_text
         row[COL_INSTALLED] = game.installed
@@ -331,7 +305,7 @@ class GameStore(GObject.Object):
         if self.search_mode:
             GLib.idle_add(self.update_icon, game_slug)
             return
-        for pga_game in pga.get_games_by_slug(game_slug):
+        for pga_game in get_games_by_slug(game_slug):
             logger.debug("Updating %s", pga_game["id"])
             GLib.idle_add(self.update, pga_game)
 
@@ -388,16 +362,9 @@ class GameStore(GObject.Object):
         if media_type == "icon":
             update_desktop_icons()
 
-    def add_games_by_ids(self, game_ids):
-        self.add_games(pga.get_games_by_ids(game_ids))
-
-    def add_game_by_id(self, game_id):
-        """Add a game into the store."""
-        return self.add_games_by_ids([game_id])
-
     def add_game(self, pga_game):
         """Add a PGA game to the store"""
-        game = PgaGame(pga_game)
+        game = GameItem(pga_game)
         self.games.append(pga_game)
         self.store.append(
             (
@@ -408,7 +375,7 @@ class GameStore(GObject.Object):
                 game.year,
                 game.runner,
                 game.runner_text,
-                game.platform,
+                gtk_safe(game.platform),
                 game.lastplayed,
                 game.lastplayed_text,
                 game.installed,
@@ -420,12 +387,6 @@ class GameStore(GObject.Object):
         )
         if not self.has_icon(game.slug):
             self.refresh_icon(game.slug)
-
-    def add_or_update(self, game_id):
-        try:
-            self.update_game_by_id(game_id)
-        except ValueError:
-            self.add_game_by_id(game_id)
 
     def set_icon_type(self, icon_type):
         """Change the icon type"""

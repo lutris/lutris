@@ -1,6 +1,6 @@
 """Synchronization of the game library with server and local data."""
-# Lutris Modules
-from lutris import api, pga
+from lutris import api
+from lutris.database.games import add_games_bulk, add_or_update, get_game_by_field, get_games
 from lutris.util import resources
 from lutris.util.log import logger
 
@@ -27,7 +27,7 @@ def sync_missing_games(not_in_local, remote_library):
                     "steamid": remote_game["steamid"],
                 }
             )
-    missing_ids = pga.add_games_bulk(missing)
+    missing_ids = add_games_bulk(missing)
     logger.debug("%d games added", len(missing))
     return set(missing_ids)
 
@@ -44,7 +44,7 @@ def sync_game_details(remote_library):
     for remote_game in remote_library:
         slug = remote_game["slug"]
         sync_required = False
-        local_game = pga.get_game_by_field(slug, "slug")
+        local_game = get_game_by_field(slug, "slug")
         if not local_game:
             continue
         if local_game["updated"] and remote_game["updated"] > local_game["updated"]:
@@ -55,7 +55,7 @@ def sync_game_details(remote_library):
             continue
 
         logger.debug("Syncing details for %s", slug)
-        game_id = pga.add_or_update(
+        game_id = add_or_update(
             id=local_game["id"],
             name=local_game["name"],
             runner=local_game["runner"],
@@ -88,7 +88,7 @@ def sync_from_remote():
     remote_library = api.get_library()
     remote_slugs = {game["slug"] for game in remote_library}
 
-    local_slugs = {game["slug"] for game in pga.get_games()}
+    local_slugs = {game["slug"] for game in get_games()}
     missing_slugs = remote_slugs.difference(local_slugs)
 
     added = sync_missing_games(missing_slugs, remote_library)

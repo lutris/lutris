@@ -1,14 +1,13 @@
-# Third Party Libraries
 from gi.repository import Gdk, GObject
 
-# Lutris Modules
-from lutris import pga
+from lutris.database.games import get_games_by_slug
 from lutris.game import Game
 from lutris.gui.views import COL_ID, COL_INSTALLED, COL_NAME, COL_SLUG
 from lutris.util.log import logger
 
 
 class GameView:
+    # pylint: disable=no-member
     __gsignals__ = {
         "game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Game, )),
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (Game, )),
@@ -41,15 +40,15 @@ class GameView:
         model = self.get_model()
         game_id = model.get_value(selected_item, COL_ID)
         game_slug = model.get_value(selected_item, COL_SLUG)
-        pga_game = pga.get_games_by_slug(game_slug)
+        pga_game = get_games_by_slug(game_slug)
         if game_id > 0:
             selected_game = Game(game_id)
         elif pga_game:
             selected_game = Game(pga_game[0]["id"])
         else:
+            logger.debug("Don't query the game from anywhere")
             selected_game = Game(game_id)
-            selected_game.id = game_id
-            selected_game.slug = game_slug
+            selected_game.slug = model.get_value(selected_item, COL_SLUG)
             selected_game.name = model.get_value(selected_item, COL_NAME)
             selected_game.installed = model.get_value(selected_item, COL_INSTALLED)
         return selected_game
@@ -63,4 +62,5 @@ class GameView:
             return
         key = event.keyval
         if key == Gdk.KEY_Delete:
+            logger.debug("Emit remove-game")
             self.emit("remove-game")

@@ -1,12 +1,10 @@
 """Steam service"""
-# Standard Library
 import os
 import re
 from gettext import gettext as _
 
-# Lutris Modules
-from lutris import pga
 from lutris.config import LutrisConfig, make_game_config_id
+from lutris.database.games import get_games_where
 from lutris.services.service_game import ServiceGame
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
@@ -84,7 +82,7 @@ class SteamSyncer:
     def lutris_games(self):
         """Return all Steam games present in the Lutris library"""
         if not self._lutris_games:
-            self._lutris_games = pga.get_games_where(steamid__isnull=False, steamid__not="")
+            self._lutris_games = get_games_where(steamid__isnull=False, steamid__not="")
         return self._lutris_games
 
     @property

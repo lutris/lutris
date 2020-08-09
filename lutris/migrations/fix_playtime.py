@@ -1,6 +1,6 @@
 # Lutris Modules
-from lutris.pga import PGA_DB, get_games
-from lutris.util import sql
+from lutris.database import sql
+from lutris.database.games import PGA_DB, get_games
 from lutris.util.log import logger
 
 

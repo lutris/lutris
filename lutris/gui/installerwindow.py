@@ -9,7 +9,8 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 # Lutris Modules
-from lutris import api, pga, settings
+from lutris import api, settings
+from lutris.database.games import add_game, get_game_by_field
 from lutris.game import Game
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, NoInstallerDialog, QuestionDialog
@@ -140,7 +141,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             webbrowser.open(settings.GAME_URL % self.game_slug)
 
     def manually_configure_game(self):
-        game_data = pga.get_game_by_field(self.game_slug, "slug")
+        game_data = get_game_by_field(self.game_slug, "slug")
 
         if game_data and "slug" in game_data:
             # Game data already exist locally.
@@ -158,7 +159,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                     "updated": remote_game["updated"],
                     "steamid": remote_game["steamid"],
                 }
-                game = Game(pga.add_game(**game_data))
+                game = Game(add_game(**game_data))
             else:
                 game = None
         AddGameDialog(self.parent, game=game)

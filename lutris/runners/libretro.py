@@ -31,7 +31,7 @@ if os.path.exists(runner_path):
     info_path = get_default_config_path("info")
     if not os.path.exists(info_path):
         req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
-        if req.status_code == requests.codes.ok:
+        if req.status_code == requests.codes.ok:  # pylint: disable=no-member
             open(get_default_config_path('info.zip'), 'wb').write(req.content)
             with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
                 info_zip.extractall(info_path)
@@ -197,7 +197,7 @@ class libretro(Runner):
             except (ValueError, TypeError):
                 firmware_count = 0
             system_path = self.get_system_directory(retro_config)
-            notes = retro_config["notes"] or ""
+            notes = str(retro_config["notes"] or "")
             checksums = {}
             if notes.startswith("Suggested md5sums:"):
                 parts = notes.split("|")

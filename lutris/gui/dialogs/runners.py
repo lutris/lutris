@@ -198,7 +198,7 @@ class RunnersDialog(GtkBuilderDialog):
         self.populate_runners()
 
     def on_close_clicked(self, _widget):
-        self.destroy()
+        self.destroy()  # pylint: disable=no-member
 
     def set_install_state(self, _widget, runner, runner_label):
         if runner.is_installed():

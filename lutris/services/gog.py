@@ -1,13 +1,12 @@
 """Module for handling the GOG service"""
-# Standard Library
 import json
 import os
 import time
 from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
 
-# Lutris Modules
-from lutris import api, pga, settings
+from lutris import api, settings
+from lutris.database.games import add_or_update, get_game_by_field
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.services import AuthenticationError, UnavailableGame
 from lutris.services.base import OnlineService
@@ -335,7 +334,7 @@ class GOGSyncer:
         lutris_games = api.get_api_games(gog_ids, query_type="gogid")
         added_games = []
         for game in lutris_games:
-            lutris_data = pga.get_game_by_field(game["slug"], field="slug") or {}
+            lutris_data = get_game_by_field(game["slug"], field="slug") or {}
             game_data = {
                 "name": game["name"],
                 "slug": game["slug"],
@@ -345,7 +344,7 @@ class GOGSyncer:
                 "updated": game["updated"],
                 "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
             }
-            added_games.append(pga.add_or_update(**game_data))
+            added_games.append(add_or_update(**game_data))
         if not full:
             return added_games, games
         return added_games, []

@@ -1,12 +1,10 @@
 """AppIndicator based tray icon"""
 from gettext import gettext as _
 
-# Third Party Libraries
 import gi
 from gi.repository import Gtk
 
-# Lutris Modules
-from lutris import pga
+from lutris.database.games import get_games
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 
@@ -101,7 +99,7 @@ class LutrisStatusIcon:
     @staticmethod
     def add_games():
         """Adds installed games in order of last use"""
-        installed_games = pga.get_games(filter_installed=True)
+        installed_games = get_games(filter_installed=True)
         installed_games.sort(
             key=lambda game: max(game["lastplayed"] or 0, game["installed_at"] or 0),
             reverse=True,
