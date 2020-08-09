@@ -24,14 +24,12 @@ import tempfile
 from gettext import gettext as _
 
 import gi
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
-gi.require_version("GnomeDesktop", "3.0")
 from gi.repository import Gio, GLib, Gtk
 
-from lutris import pga, settings
+from lutris import settings
 from lutris.api import parse_installer_url
 from lutris.command import exec_command
+from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
@@ -48,6 +46,10 @@ from lutris.util.steam.config import get_steamapps_paths
 from lutris.util.wine.dxvk import init_dxvk_versions, wait_for_dxvk_init
 
 from .lutriswindow import LutrisWindow
+
+gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
+gi.require_version("GnomeDesktop", "3.0")
 
 
 class Application(Gtk.Application):
@@ -296,7 +298,7 @@ class Application(Gtk.Application):
 
         # List game
         if options.contains("list-games"):
-            game_list = pga.get_games()
+            game_list = games_db.get_games()
             if options.contains("installed"):
                 game_list = [game for game in game_list if game["installed"]]
             if options.contains("json"):
@@ -372,21 +374,22 @@ class Application(Gtk.Application):
             if action == "rungameid":
                 # Force db_game to use game id
                 self.run_in_background = True
-                db_game = pga.get_game_by_field(game_slug, "id")
+                db_game = games_db.get_game_by_field(game_slug, "id")
             elif action == "rungame":
                 # Force db_game to use game slug
                 self.run_in_background = True
-                db_game = pga.get_game_by_field(game_slug, "slug")
+                db_game = games_db.get_game_by_field(game_slug, "slug")
             elif action == "install":
                 # Installers can use game or installer slugs
                 self.run_in_background = True
-                db_game = pga.get_game_by_field(game_slug, "slug") \
-                    or pga.get_game_by_field(game_slug, "installer_slug")
+                db_game = games_db.get_game_by_field(game_slug, "slug") \
+                    or games_db.get_game_by_field(game_slug, "installer_slug")
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (
-                    pga.get_game_by_field(game_slug, "id") or pga.get_game_by_field(game_slug, "slug")
-                    or pga.get_game_by_field(game_slug, "installer_slug")
+                    games_db.get_game_by_field(game_slug, "id")
+                    or games_db.get_game_by_field(game_slug, "slug")
+                    or games_db.get_game_by_field(game_slug, "installer_slug")
                 )
 
         # If reinstall flag is passed, force the action to install

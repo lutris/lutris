@@ -1,9 +1,8 @@
 """Manipulates installer files"""
-# Standard Library
 import os
 from urllib.parse import urlparse
 
-from lutris import cache, pga, settings
+from lutris import cache, settings
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
 from lutris.util.log import logger
@@ -136,12 +135,6 @@ class InstallerFile:
         """Prepare the file for download"""
         if not system.path_exists(self.cache_path):
             os.makedirs(self.cache_path)
-
-    def pga_uri(self):
-        """Return the URI of the file stored in the PGA
-        This isn't used yet, it looks in the PGA sources
-        """
-        return pga.check_for_file(self.game_slug, self.id)
 
     def check_hash(self):
         """Checks the checksum of `file` and compare it to `value`

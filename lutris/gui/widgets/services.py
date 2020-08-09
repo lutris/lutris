@@ -185,6 +185,7 @@ class ServiceSyncBox(Gtk.Box):
         else:
             added_message = _("No games were added. ")
 
+        #  XXX This is the problematic part, don't worry about this code
         if skipped_import:
             skipped_message = gettext.ngettext(
                 "%s game is already in the library",
@@ -195,7 +196,10 @@ class ServiceSyncBox(Gtk.Box):
 
         send_notification(_("Games imported"), added_message + skipped_message)
         for game_id in added_games:
-            window.game_store.add_or_update(game_id)
+            try:
+                window.update_game_by_id(game_id)
+            except ValueError:
+                window.game_store.add_games([])
 
     def on_switch_changed(self, switch, _data):
         write_setting("sync_at_startup", switch.get_active(), self.identifier)

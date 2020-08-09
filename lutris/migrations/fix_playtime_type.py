@@ -1,6 +1,5 @@
-# Lutris Modules
-from lutris.pga import PGA_DB
-from lutris.util.sql import cursor_execute, db_cursor
+from lutris.database.schema import PGA_DB
+from lutris.database.sql import cursor_execute, db_cursor
 
 SQL_STATEMENTS = [
     """

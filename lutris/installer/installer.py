@@ -4,8 +4,9 @@ import os
 
 import yaml
 
-from lutris import pga, settings
+from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id
+from lutris.database.games import add_or_update, get_game_by_field
 from lutris.game import Game
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
@@ -51,7 +52,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         """Return the ID of the game in the local DB if one exists"""
         # If the game is in the library and uninstalled, the first installation
         # updates it
-        existing_game = pga.get_game_by_field(self.game_slug, "slug")
+        existing_game = get_game_by_field(self.game_slug, "slug")
         if existing_game and not existing_game["installed"]:
             return existing_game["id"]
 
@@ -250,7 +251,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
         if self.requires:
             # Load the base game config
-            required_game = pga.get_game_by_field(self.requires, field="installer_slug")
+            required_game = get_game_by_field(self.requires, field="installer_slug")
             base_config = LutrisConfig(
                 runner_slug=self.runner, game_config_id=required_game["configpath"]
             )
@@ -258,7 +259,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         else:
             config = {"game": {}}
 
-        self.game_id = pga.add_or_update(
+        self.game_id = add_or_update(
             name=self.game_name,
             runner=self.runner,
             slug=self.game_slug,

@@ -8,7 +8,7 @@ from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
 
 
-class PgaGame:
+class GameItem:
     """Representation of a game for views
     TODO: Fix overlap with Game class
     """
@@ -22,7 +22,7 @@ class PgaGame:
         return self.name
 
     def __repr__(self):
-        return "<PgaGame id=%s slug=%s>" % (self.id, self.slug)
+        return "<GameItem id=%s slug=%s>" % (self.id, self.slug)
 
     @property
     def id(self):  # pylint: disable=invalid-name

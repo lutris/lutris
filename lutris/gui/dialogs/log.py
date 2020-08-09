@@ -54,7 +54,7 @@ class LogWindow(Gtk.ApplicationWindow):
                 self.search_entry.emit("next-match")
 
     def attach_search_entry(self):
-        if self.search_entry.props.parent is None:
+        if self.search_entry.props.parent is None:  # pylint: disable=no-member
             self.vbox.pack_start(self.search_entry, False, False, 0)
             self.show_all()
             self.search_entry.grab_focus()
@@ -62,7 +62,7 @@ class LogWindow(Gtk.ApplicationWindow):
                 self.logtextview.find_first(self.search_entry)
 
     def dettach_search_entry(self, searched_entry):
-        if self.search_entry.props.parent is not None:
+        if self.search_entry.props.parent is not None:  # pylint: disable=no-member
             self.logtextview.reset_search()
             self.vbox.remove(self.search_entry)
             # Replace to bottom of log

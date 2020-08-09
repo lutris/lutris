@@ -1,15 +1,13 @@
 """Main window for the Lutris interface."""
-# Standard Library
 # pylint: disable=no-member
 import os
 from collections import namedtuple
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
-# Lutris Modules
-from lutris import api, pga, settings
+from lutris import api, settings
+from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
@@ -94,9 +92,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
-        self.filter_type = None  # Type of filter corresponding to the selected sidebar element
-        self.filter_value = None
-        self.search_terms = None
+        self.filters = {}  # Type of filter corresponding to the selected sidebar element
         self.search_timer_id = None
         self.search_mode = "local"
         self.game_store = None
@@ -246,19 +242,18 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.sync_services()
 
-
     def hidden_state_change(self, action, value):
         """Hides or shows the hidden games"""
         action.set_state(value)
 
         # Add or remove hidden games
-        ignores = pga.get_hidden_ids()
+        ignores = games_db.get_hidden_ids()
         settings.write_setting("show_hidden_games", str(self.show_hidden_games).lower(), section="lutris")
 
         # If we have to show the hidden games now, we need to add them back to
         # the view. If we need to hide them, we just remove them from the view
         if value:
-            self.game_store.add_games(pga.get_games_by_ids(ignores))
+            self.game_store.add_games(games_db.get_games_by_ids(ignores))
         else:
             for game_id in ignores:
                 self.game_store.remove_game(game_id)
@@ -323,20 +318,23 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return settings.read_setting("show_hidden_games").lower() == "true"
 
     def get_games_from_filters(self):
-        if self.filter_type == "dynamic_category":
+        if "dynamic_category" in self.filters:
             raise NotImplementedError
-        if not self.filter_type:
-            filters = {}
+        if "category" in self.filters:
+            raise NotImplementedError
+        if "text" in self.filters:
+            search_query = self.filters.pop("text")
         else:
-            filters = {self.filter_type: self.filter_value}
-        games = pga.get_games(extra_filters=filters)
+            search_query = None
+        games = games_db.get_games(
+            name_filter=search_query,
+            extra_filters=self.filters
+        )
         logger.info("Returned %s games from filters", len(games))
         return games
 
     def get_store(self):
         """Return an instance of the game store"""
-        print("get store")
-        # games = self.get_games_from_filters()
         game_store = GameStore(
             [],
             self.icon_type,
@@ -350,20 +348,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return game_store
 
     def update_store(self, games=None):
-        print("update store")
-        self.view.set_model(Gtk.ListStore())
         self.game_store.games = []
-        self.game_store.modelfilter.clear_cache()
         self.game_store.store.clear()
-        self.game_store.modelfilter.refilter()
         games = games or self.get_games_from_filters()
         for game in games:
             self.game_store.add_game(game)
-        return self.game_store
+        return False
 
     def update_game_by_id(self, game_id):
         """Update the view by DB ID"""
-        pga_game = pga.get_game_by_field(game_id, "id")
+        pga_game = games_db.get_game_by_field(game_id, "id")
         if pga_game:
             return self.game_store.update(pga_game)
         return self.game_store.remove_game(game_id)
@@ -389,7 +383,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 try:
                     self.update_game_by_id(game_id)
                 except ValueError:
-                    self.game_store.add_games(pga.get_games_by_ids([game_id]))
+                    self.game_store.add_games(games_db.get_games_by_ids([game_id]))
 
             for game_id in removed_games:
                 self.update_game_by_id(game_id)
@@ -405,7 +399,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         #     self.running_game.notify_steam_game_changed(appmanifest)
 
         runner_name = appmanifest.get_runner_name()
-        games = pga.get_games_where(steamid=appmanifest.steamid)
+        games = games_db.get_games_where(steamid=appmanifest.steamid)
         if operation == Gio.FileMonitorEvent.DELETED:
             for game in games:
                 if game["runner"] == runner_name:
@@ -502,11 +496,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.icon_type = default
         return self.icon_type
 
-    def reload_view(self):
-        logger.info("Reloading view")
-        self.update_store()
-        self.view.model = self.game_store
-
     def switch_view(self, view_type=None):
         """Switch between grid view and list view."""
         print("switch view")
@@ -523,7 +512,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self._connect_signals()
 
         self.invalidate_game_filter()
-        GLib.idle_add(self.reload_view)
+        GLib.idle_add(self.update_store)
         self.set_show_installed_state(self.filter_installed)
 
         self.zoom_adjustment.props.value = list(IMAGE_SIZES.keys()).index(self.icon_type)
@@ -552,7 +541,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 return
             if result:
                 added_ids, updated_ids = result
-                self.game_store.add_games(pga.get_games_by_ids(added_ids))
+                self.game_store.add_games(games_db.get_games_by_ids(added_ids))
                 for game_id in updated_ids.difference(added_ids):
                     self.update_game_by_id(game_id)
             else:
@@ -666,8 +655,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def invalidate_game_filter(self):
         """Refilter the game view based on current filters"""
         self.game_store.modelfilter.refilter()
-        self.game_store.modelsort.clear_cache()
-        self.game_store.sort_view(self.view_sorting, self.view_sorting_ascending)
+        # self.game_store.modelsort.clear_cache()
+        # self.game_store.sort_view(self.view_sorting, self.view_sorting_ascending)
         self.no_results_overlay.props.visible = not bool(self.game_store.games)
 
     def on_show_installed_first_state_change(self, action, value):
@@ -696,8 +685,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
         if self.search_mode == "local":
-            self.game_store.filters["text"] = entry.get_text()
-            self.invalidate_game_filter()
+            self.filters["text"] = entry.get_text().strip()
+            self.update_store()
         elif self.search_mode == "website":
             search_terms = entry.get_text().lower().strip()
             self.search_spinner.props.active = True
@@ -719,13 +708,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     @GtkTemplate.Callback
     def on_website_search_toggle_toggled(self, toggle_button):
-        self.search_terms = self.search_entry.props.text
         if toggle_button.props.active:
             self.search_mode = "website"
             self.search_entry.set_placeholder_text(_("Search Lutris.net"))
             self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "folder-download-symbolic")
             self.game_store.search_mode = True
-            self.search_games(self.search_terms)
+            self.search_games(self.search_entry.props.text)
         else:
             self.search_mode = "local"
             self.search_entry.set_placeholder_text(_("Filter the list of games"))
@@ -758,9 +746,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.game_selection_changed(None, None)
         game.load_config()
         try:
-            self.game_store.update_game_by_id(game.id)
+            self.update_game_by_id(game.id)
         except ValueError:
-            self.game_store.add_game_by_id(game.id)
+            self.game_store.add_games(games_db.get_games_by_ids([game.id]))
 
         self.game_panel.refresh()
         return True
@@ -774,15 +762,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def search_games(self, query):
         """Search for games from the website API"""
         logger.debug("%s search for :%s", self.search_mode, query)
-        self.search_terms = query
-        self.view.destroy()
-        self.game_store = self.get_store(api.search_games(query) if query else None)
+        self.filters["text"] = query
         self.game_store.set_icon_type(self.icon_type)
-        self.game_store.load(from_search=bool(query))
-        self.game_store.filters["text"] = self.search_entry.props.text
         self.search_spinner.props.active = False
-        self.switch_view(self.get_view_type())
-        self.invalidate_game_filter()
+        self.update_store()
 
     def game_selection_changed(self, _widget, game):
         """Callback to handle the selection of a game in the view"""
@@ -805,20 +788,24 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_selection_changed(panel, None)
 
     def update_game(self, slug):
-        for pga_game in pga.get_games_where(slug=slug):
+        for pga_game in games_db.get_games_where(slug=slug):
             self.game_store.update(pga_game)
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
         self.add_popover.hide()
-        AddGameDialog(self, runner=self.selected_runner)
+        if "runner" in self.filters:
+            runner = self.filters["runner"]
+        else:
+            runner = None
+        AddGameDialog(self, runner=runner)
         return True
 
     def remove_game_from_view(self, game_id, from_library=False):
         """Remove a game from the view"""
-        self.game_store.update_game_by_id(game_id)
-        self.sidebar_listbox.update()
+        self.update_game_by_id(game_id)
+        self.sidebar.update()
 
     def on_toggle_viewtype(self, *args):
         self.switch_view("list" if self.current_view_type == "grid" else "grid")
@@ -839,7 +826,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         elif self.current_view_type == "list":
             settings.write_setting("icon_type_listview", self.icon_type)
         self.game_store.set_icon_type(self.icon_type)
-        self.switch_view(self.get_view_type())
+        self.switch_view()
 
     def on_icontype_state_change(self, action, value):
         action.set_state(value)
@@ -883,24 +870,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
-        if row is None:
-            self.set_selected_filter(None, None, None)
-        elif row.type == "runner":
-            self.set_selected_filter(row.id, None, None)
-        elif row.type == "category":
-            self.set_selected_filter(None, None, row.id)
-        else:
-            self.set_selected_filter(None, row.id, None)
-
-    def set_selected_filter(self, runner, platform, category):
-        """Filter the view to a given runner and platform"""
-        self.selected_runner = runner
-        self.selected_platform = platform
-        self.selected_category = category
-        self.game_store.filters["runner"] = self.selected_runner
-        self.game_store.filters["platform"] = self.selected_platform
-        self.game_store.filters["category"] = self.selected_category
-        self.invalidate_game_filter()
+        if row:
+            self.filters[row.type] = row.id
+        GLib.idle_add(self.update_store)
 
     def show_invalid_credential_warning(self):
         dialogs.ErrorDialog(_("Could not connect to your Lutris account. Please sign in again."))

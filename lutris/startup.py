@@ -1,9 +1,10 @@
 """Check to run at program start"""
-# pylint: disable=no-member
 import os
 from gettext import gettext as _
 
-from lutris import pga, runners, settings
+from lutris import runners, settings
+from lutris.database.games import get_games
+from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
@@ -37,7 +38,7 @@ def init_dirs():
 
 def init_db():
     """Initialize the SQLite DB"""
-    pga.syncdb()
+    syncdb()
 
 
 def init_lutris():
@@ -61,6 +62,7 @@ def check_driver():
             gpu_info = drivers.get_nvidia_gpu_info(gpu_id)
             logger.info("GPU: %s", gpu_info.get("Model"))
     elif LINUX_SYSTEM.glxinfo:
+        # pylint: disable=no-member
         logger.info("Using %s", LINUX_SYSTEM.glxinfo.opengl_vendor)
         if hasattr(LINUX_SYSTEM.glxinfo, "GLX_MESA_query_renderer"):
             logger.info(
@@ -134,7 +136,7 @@ def fill_missing_platforms():
     """Sets the platform on games where it's missing.
     This should never happen.
     """
-    pga_games = pga.get_games(filter_installed=True)
+    pga_games = get_games(filter_installed=True)
     for pga_game in pga_games:
         if pga_game.get("platform") or not pga_game["runner"]:
             continue

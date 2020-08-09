@@ -1,15 +1,13 @@
 """Base module for runners"""
-# Standard Library
 import os
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gtk
 
-# Lutris Modules
-from lutris import pga, runtime, settings
+from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
+from lutris.database.games import get_game_by_field
 from lutris.exceptions import UnavailableLibraries
 from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
@@ -41,7 +39,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Initialize runner."""
         self.config = config
         if config:
-            self.game_data = pga.get_game_by_field(self.config.game_config_id, "configpath")
+            self.game_data = get_game_by_field(self.config.game_config_id, "configpath")
         else:
             self.game_data = {}
 
@@ -300,7 +298,8 @@ class Runner:  # pylint: disable=too-many-public-methods
             from lutris.gui.dialogs import ErrorDialog
             try:
                 if hasattr(self, "get_version"):
-                    self.install(downloader=simple_downloader, version=self.get_version(use_default=False))
+                    version = self.get_version(use_default=False)  # pylint: disable=no-member
+                    self.install(downloader=simple_downloader, version=version)
                 else:
                     self.install(downloader=simple_downloader)
             except RunnerInstallationError as ex:

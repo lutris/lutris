@@ -1,18 +1,14 @@
 """XDG applications service"""
-
-# Standard Library
 import os
 import re
 import shlex
 import subprocess
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gio
 
-# Lutris Modules
-from lutris import pga
 from lutris.config import LutrisConfig
+from lutris.database.games import get_games_where
 from lutris.services.service_game import ServiceGame
 from lutris.util import system
 from lutris.util.log import logger
@@ -137,7 +133,7 @@ class XDGSyncer:
     @property
     def lutris_games(self):
         """Iterates through Lutris games imported from XDG"""
-        for game in pga.get_games_where(runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1):
+        for game in get_games_where(runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1):
             yield game
 
     @classmethod

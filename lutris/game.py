@@ -9,9 +9,11 @@ from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk
 
-from lutris import pga, runtime
+from lutris import runtime
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
+from lutris.database import categories as categories_db
+from lutris.database import games as games_db
 from lutris.discord import DiscordPresence
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
@@ -58,7 +60,7 @@ class Game(GObject.Object):
         self.config = None
 
         # Load attributes from database
-        game_data = pga.get_game_by_field(game_id, "id")
+        game_data = games_db.get_game_by_field(game_id, "id")
         self.slug = game_data.get("slug") or ""
         self.runner_name = game_data.get("runner") or ""
         self.directory = game_data.get("directory") or ""
@@ -106,7 +108,7 @@ class Game(GObject.Object):
     @property
     def is_favorite(self):
         """Return whether the game is in the user's favorites"""
-        categories = pga.get_categories_in_game(self.id)
+        categories = categories_db.get_categories_in_game(self.id)
         for category in categories:
             if category == "favorite":
                 return True
@@ -114,36 +116,36 @@ class Game(GObject.Object):
 
     def add_to_favorites(self):
         """Add the game to the 'favorite' category"""
-        favorite = pga.get_category("favorite")
+        favorite = categories_db.get_category("favorite")
         if not favorite:
-            favorite = pga.add_category("favorite")
-        pga.add_game_to_category(self.id, favorite["id"])
+            favorite = categories_db.add_category("favorite")
+        categories_db.add_game_to_category(self.id, favorite["id"])
         self.emit("game-updated")
 
     def remove_from_favorites(self):
         """Remove game from favorites"""
-        favorite = pga.get_category("favorite")
-        pga.remove_category_from_game(self.id, favorite["id"])
+        favorite = categories_db.get_category("favorite")
+        categories_db.remove_category_from_game(self.id, favorite["id"])
         self.emit("game-updated")
 
     @property
     def is_hidden(self):
         """Is the game hidden in the UI?"""
-        return self.id in pga.get_hidden_ids()
+        return self.id in games_db.get_hidden_ids()
 
     def hide(self):
         """Do not show this game in the UI"""
         # Append the new hidden ID and save it
-        ignores = pga.get_hidden_ids() + [self.id]
-        pga.set_hidden_ids(ignores)
+        ignores = games_db.get_hidden_ids() + [self.id]
+        games_db.set_hidden_ids(ignores)
         self.emit("game-updated")
 
     def unhide(self):
         """Remove the game from hidden games"""
         # Remove the ID to unhide and save it
-        ignores = pga.get_hidden_ids()
+        ignores = games_db.get_hidden_ids()
         ignores.remove(self.id)
-        pga.set_hidden_ids(ignores)
+        games_db.set_hidden_ids(ignores)
         self.emit("game-updated")
 
     @property
@@ -251,15 +253,15 @@ class Game(GObject.Object):
             self.runner.remove_game_data(game_path=self.directory)
 
         # Do not keep multiple copies of the same game
-        existing_games = pga.get_games_where(slug=self.slug)
+        existing_games = games_db.get_games_where(slug=self.slug)
         if len(existing_games) > 1:
             from_library = True
 
         if from_library:
             logger.debug("Removing game %s from library", self.id)
-            pga.delete_game(self.id)
+            games_db.delete_game(self.id)
         else:
-            pga.set_uninstalled(self.id)
+            games_db.set_uninstalled(self.id)
         if self.config:
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
@@ -286,7 +288,7 @@ class Game(GObject.Object):
         if not metadata_only:
             self.config.save()
         self.set_platform_from_runner()
-        self.id = pga.add_or_update(
+        self.id = games_db.add_or_update(
             name=self.name,
             runner=self.runner_name,
             slug=self.slug,
