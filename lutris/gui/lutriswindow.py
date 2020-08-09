@@ -31,8 +31,6 @@ from lutris.util import datapath, http
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
-# from lutris.util.steam.watcher import SteamWatcher
-
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
 class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-methods
@@ -322,28 +320,29 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             raise NotImplementedError
         if "category" in self.filters:
             raise NotImplementedError
-        if "text" in self.filters:
-            search_query = self.filters.pop("text")
+        sql_filters = {}
+        if self.filters.get("runner"):
+            sql_filters["runner"] = self.filters["runner"]
+        if self.filters.get("platform"):
+            sql_filters["platform"] = self.filters["platform"]
+        if self.filters.get("installed"):
+            sql_filters["installed"] = "1"
+        if self.filters.get("text"):
+            search_query = self.filters["text"]
         else:
             search_query = None
         games = games_db.get_games(
             name_filter=search_query,
-            extra_filters=self.filters
+            extra_filters=sql_filters,
+            ordering=self.view_sorting,
+            direction="ASC" if self.view_sorting_ascending else "DESC"
         )
-        logger.info("Returned %s games from filters", len(games))
+        logger.info("Returned %s games from %s", len(games), self.filters)
         return games
 
     def get_store(self):
         """Return an instance of the game store"""
-        game_store = GameStore(
-            [],
-            self.icon_type,
-            self.filter_installed,
-            self.view_sorting,
-            self.view_sorting_ascending,
-            self.show_hidden_games,
-            self.show_installed_first,
-        )
+        game_store = GameStore([], self.icon_type)
         game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
         return game_store
 
@@ -353,6 +352,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         games = games or self.get_games_from_filters()
         for game in games:
             self.game_store.add_game(game)
+        self.no_results_overlay.props.visible = not bool(games)
         return False
 
     def update_game_by_id(self, game_id):
@@ -511,7 +511,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.games_scrollwindow.add(self.view)
         self._connect_signals()
 
-        self.invalidate_game_filter()
         GLib.idle_add(self.update_store)
         self.set_show_installed_state(self.filter_installed)
 
@@ -635,7 +634,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         # Stop cancellable running threads
         for stopper in self.threads_stoppers:
             stopper()
-        # self.steam_watcher = None
 
         # Save settings
         width, height = self.window_size
@@ -652,13 +650,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_manage_runners(self, *args):
         self.application.show_window(RunnersDialog, transient_for=self)
 
-    def invalidate_game_filter(self):
-        """Refilter the game view based on current filters"""
-        self.game_store.modelfilter.refilter()
-        # self.game_store.modelsort.clear_cache()
-        # self.game_store.sort_view(self.view_sorting, self.view_sorting_ascending)
-        self.no_results_overlay.props.visible = not bool(self.game_store.games)
-
     def on_show_installed_first_state_change(self, action, value):
         """Callback to handle installed games first toggle"""
         action.set_state(value)
@@ -667,8 +658,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def set_show_installed_first_state(self, show_installed_first):
         """Shows the installed games first in the view"""
         settings.write_setting("show_installed_first", bool(show_installed_first))
-        self.game_store.sort_view(show_installed_first)
-        self.game_store.modelfilter.refilter()
+        self.update_store()
 
     def on_show_installed_state_change(self, action, value):
         """Callback to handle uninstalled game filter switch"""
@@ -678,8 +668,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""
         settings.write_setting("filter_installed", bool(filter_installed))
-        self.game_store.filters["installed"] = filter_installed
-        self.invalidate_game_filter()
+        self.filters["installed"] = filter_installed
+        self.update_store()
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, entry):
@@ -833,10 +823,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self._set_icon_type(value.get_string())
 
     def on_view_sorting_state_change(self, action, value):
-        self.game_store.sort_view(value.get_string(), self.view_sorting_ascending)
+        self.update_store()
 
     def on_view_sorting_direction_change(self, action, value):
-        self.game_store.sort_view(self.view_sorting, value.get_boolean())
+        self.update_store()
 
     def on_game_store_sorting_changed(self, _game_store, key, ascending):
         self.actions["view-sorting"].set_state(GLib.Variant.new_string(key))

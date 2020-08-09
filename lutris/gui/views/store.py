@@ -79,16 +79,7 @@ class GameStore(GObject.Object):
         "playtime_text": COL_PLAYTIME_TEXT,
     }
 
-    def __init__(
-        self,
-        games,
-        icon_type,
-        filter_installed,
-        sort_key,
-        sort_ascending,
-        show_hidden_games,
-        show_installed_first=False,
-    ):
+    def __init__(self, games, icon_type):
         super(GameStore, self).__init__()
         self.games = games
         # if not show_hidden_games:
@@ -99,12 +90,7 @@ class GameStore(GObject.Object):
         self.search_mode = False
         self.games_to_refresh = set()
         self.icon_type = icon_type
-        self.filters = {
-            "installed": filter_installed,
-            "text": None,
-        }
 
-        self.games_in_category = []  # pga.get_games_in_category(self.filters["category"])
         self.store = Gtk.ListStore(
             int,
             str,
@@ -122,16 +108,7 @@ class GameStore(GObject.Object):
             float,
             str,
         )
-        if show_installed_first:
-            self.sort_col = COL_INSTALLED
-            self.store.set_sort_column_id(self.sort_col, Gtk.SortType.DESCENDING)
-        else:
-            self.sort_col = COL_NAME
-            self.store.set_sort_column_id(self.sort_col, Gtk.SortType.ASCENDING)
-        self.modelfilter = self.store.filter_new()
-        self.modelfilter.set_visible_func(self.filter_view)
         self.prevent_sort_update = False  # prevent recursion with signals
-        # self.sort_view(sort_key, sort_ascending)
         self.medias = {"banner": {}, "icon": {}}
         self.banner_misses = set()
         self.icon_misses = set()
@@ -139,15 +116,9 @@ class GameStore(GObject.Object):
         self.connect("media-loaded", self.on_media_loaded)
         self.connect("icon-loaded", self.on_icon_loaded)
 
-    def __str__(self):
-        return (
-            "GameStore: <installed: {installed}, text: {text}>".format(**self.filters)
-        )
-
     def load(self, from_search=False):
         if not self.games:
             return
-        self.search_mode = from_search
         self.add_games(self.games)
 
     @property
@@ -198,57 +169,9 @@ class GameStore(GObject.Object):
         self.media_loaded = True
         self.emit("media-loaded")
 
-    def filter_view(self, model, _iter, _filter_data=None):
-        """Filter function for the game model"""
-        if self.search_mode:
-            return True
-        filter_defs = {
-            "installed": lambda: not model.get_value(_iter, COL_INSTALLED),
-            "text": lambda: self.filters["text"].lower() not in model.get_value(_iter, COL_NAME).lower(),
-        }
-        for filter_key in self.filters:
-            if self.filters[filter_key] and filter_defs[filter_key]():
-                return False
-        return True
-
-    # def sort_view(self, key="name", ascending=True):
-    #     """Sort the model on a given column name"""
-    #     try:
-    #         sort_column = self.sort_columns[key]
-    #     except KeyError:
-    #         logger.error("Invalid column name '%s'", key)
-    #         sort_column = COL_NAME
-    #     self.modelsort.set_sort_column_id(
-    #         sort_column,
-    #         Gtk.SortType.ASCENDING if ascending else Gtk.SortType.DESCENDING,
-    #     )
-
-    # def on_sort_column_changed(self, model):
-    #     if self.prevent_sort_update:
-    #         return
-    #     (col, direction) = model.get_sort_column_id()
-    #     key = next((c for c, k in self.sort_columns.items() if k == col), None)
-    #     ascending = direction == Gtk.SortType.ASCENDING
-    #     self.prevent_sort_update = True
-    #     if not key:
-    #         raise ValueError("Invalid sort key for col %s" % col)
-    #     self.sort_view(key, ascending)
-    #     self.prevent_sort_update = False
-    #     self.emit("sorting-changed", key, ascending)
-
     def get_row_by_id(self, game_id, filtered=False):
         for model_row in self.store:
             if model_row[COL_ID] == int(game_id):
-                return model_row
-
-    def get_row_by_slug(self, slug):
-        """Return a row by its slug.
-        Requires slugs to be unique, thus only works for search mode
-        """
-        if not self.search_mode:
-            raise RuntimeError("get_row_by_slug can only be used with search_mode")
-        for model_row in self.store:
-            if model_row[COL_SLUG] == slug:
                 return model_row
 
     def remove_game(self, game_id):
@@ -269,10 +192,7 @@ class GameStore(GObject.Object):
     def update(self, pga_game):
         """Update game informations."""
         game = GameItem(pga_game)
-        if self.search_mode:
-            row = self.get_row_by_slug(game.slug)
-        else:
-            row = self.get_row_by_id(game.id)
+        row = self.get_row_by_id(game.id)
         if not row:
             raise ValueError("No existing row for game %s" % game.slug)
         row[COL_ID] = game.id
@@ -302,16 +222,16 @@ class GameStore(GObject.Object):
             return
         if media_type != self.icon_type:
             return
-        if self.search_mode:
-            GLib.idle_add(self.update_icon, game_slug)
-            return
+        # if self.search_mode:
+        #     GLib.idle_add(self.update_icon, game_slug)
+        #     return
         for pga_game in get_games_by_slug(game_slug):
             logger.debug("Updating %s", pga_game["id"])
             GLib.idle_add(self.update, pga_game)
 
-    def update_icon(self, game_slug):
-        row = self.get_row_by_slug(game_slug)
-        row[COL_ICON] = get_pixbuf_for_game(game_slug, self.icon_type, True)
+    # def update_icon(self, game_slug):
+    #     row = self.get_row_by_slug(game_slug)
+    #     row[COL_ICON] = get_pixbuf_for_game(game_slug, self.icon_type, True)
 
     def fetch_icon(self, slug):
         if not self.media_loaded:
