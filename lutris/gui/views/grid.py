@@ -19,6 +19,7 @@ class GameGridView(Gtk.IconView, GameView):
         super().__init__(model=self.game_store.store)
         GameView.__init__(self)
 
+        self.service = None
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
         self.set_item_padding(1)

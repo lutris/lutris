@@ -13,9 +13,12 @@ class GameView:
         "game-activated": (GObject.SIGNAL_RUN_FIRST, None, (Game, )),
         "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
-    selected_game = None
-    current_path = None
-    contextual_menu = None
+
+    def __init__(self):
+        self.service = None
+        self.selected_game = None
+        self.current_path = None
+        self.contextual_menu = None
 
     def connect_signals(self):
         """Signal handlers common to all views"""
@@ -41,7 +44,7 @@ class GameView:
         game_id = model.get_value(selected_item, COL_ID)
         game_slug = model.get_value(selected_item, COL_SLUG)
         pga_game = get_games_by_slug(game_slug)
-        if game_id > 0:
+        if not self.service:
             selected_game = Game(game_id)
         elif pga_game:
             selected_game = Game(pga_game[0]["id"])

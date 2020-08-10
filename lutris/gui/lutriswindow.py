@@ -343,7 +343,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 syncer = service.SYNCER()
                 AsyncCall(syncer.load, self.on_service_games_loaded)
                 return
-
+            self.service = category
             game_providers = {
                 "running": self.get_running_games,
                 "lutrisnet": self.get_api_games,
@@ -391,6 +391,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_store.store.clear()
         games = self.get_games_from_filters()
 
+        self.view.service = self.service
         if self.service:
             for child in self.search_revealer.get_children():
                 child.destroy()
@@ -428,12 +429,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Enables or disbales dark theme"""
         gtksettings = Gtk.Settings.get_default()
         gtksettings.set_property("gtk-application-prefer-dark-theme", self.use_dark_theme)
-
-    def get_view(self):
-        """Return the appropriate widget for the current view"""
-        if self.view_type == "grid":
-            return GameGridView(self.game_store)
-        return GameListView(self.game_store)
 
     def _connect_signals(self):
         """Connect signals from the view with the main window.
@@ -504,7 +499,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.load_icon_type_from_settings()
         self.game_store.set_icon_type(self.icon_type)
 
-        self.view = self.get_view()
+        if self.view_type == "grid":
+            self.view = GameGridView(self.game_store)
+        else:
+            self.view = GameListView(self.game_store)
+
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         for child in self.games_scrollwindow.get_children():
             child.destroy()
