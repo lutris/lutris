@@ -55,7 +55,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     search_entry = GtkTemplate.Child()
     search_toggle = GtkTemplate.Child()
     zoom_adjustment = GtkTemplate.Child()
-    no_results_overlay = GtkTemplate.Child()
+    blank_overlay = GtkTemplate.Child()
     connect_button = GtkTemplate.Child()
     disconnect_button = GtkTemplate.Child()
     register_button = GtkTemplate.Child()
@@ -82,6 +82,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.threads_stoppers = []
         self.icon_type = None
         self.service = None
+        self.service_games = {}
 
         # Load settings
         self.window_size = (width, height)
@@ -319,15 +320,29 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             game["playtime"] = None
         return api_games
 
+    def game_matches(self, game):
+        if not self.filters.get("text"):
+            return True
+        return self.filters["text"] in game["name"].lower()
+
     def get_games_from_filters(self):
         self.service = None
         if "dynamic_category" in self.filters:
             category = self.filters["dynamic_category"]
             if category.startswith("lutris.services"):
                 self.service = category.rsplit(".", 1)[-1]
+                if self.service in self.service_games:
+                    return [
+                        game for game in sorted(
+                            [service_game.as_dict() for service_game in self.service_games[self.service]],
+                            key=lambda game: game[self.view_sorting] or game["name"],
+                            reverse=not self.view_sorting_ascending
+                        ) if self.game_matches(game)
+                    ]
                 service = services.import_service(self.service)
-                service_games = service.SYNCER.load()
-                return [service_game.as_dict() for service_game in service_games]
+                syncer = service.SYNCER()
+                AsyncCall(syncer.load, self.on_service_games_loaded)
+                return
 
             game_providers = {
                 "running": self.get_running_games,
@@ -360,6 +375,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         logger.info("Returned %s games from %s, %s", len(games), self.filters, self.view_sorting)
         return games
 
+    def on_service_games_loaded(self, results, error):
+        if error:
+            logger.error("Failed to load service games: %s", error)
+            return
+        self.service_games[self.service] = results
+        self.emit("view-updated")
+
     def get_store(self):
         """Return an instance of the game store"""
         return GameStore([], self.icon_type)
@@ -368,21 +390,29 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_store.games = []
         self.game_store.store.clear()
         games = self.get_games_from_filters()
-        for game in games:
-            self.game_store.add_game(game)
 
         if self.service:
             for child in self.search_revealer.get_children():
                 child.destroy()
             service = services.import_service(self.service)
             service_box = ServiceSyncBox(service)
-            service_box.set_margin_top(12)
             service_box.show()
             self.search_revealer.add(service_box)
             self.search_revealer.set_reveal_child(True)
         else:
             self.search_revealer.set_reveal_child(False)
-        self.no_results_overlay.props.visible = not bool(games)
+        for child in self.blank_overlay.get_children():
+            child.destroy()
+        if games is None:
+            spinner = Gtk.Spinner(visible=True)
+            spinner.start()
+            self.blank_overlay.add(spinner)
+            self.blank_overlay.props.visible = True
+            self.search_spinner.props.active = True
+            return False
+        for game in games:
+            self.game_store.add_game(game)
+        self.blank_overlay.props.visible = not bool(games)
         self.search_spinner.props.active = False
         self.search_timer_id = None
         return False

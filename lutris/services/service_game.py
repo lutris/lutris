@@ -1,5 +1,6 @@
 """Communicates between third party services games and Lutris games"""
 from lutris.database.games import add_or_update
+from lutris.util.strings import slugify
 
 
 class ServiceGame:
@@ -76,7 +77,7 @@ class ServiceGame:
         return {
             "id": self.game_id,
             "name": self.name,
-            "slug": self.slug,
+            "slug": self.slug or slugify(self.name),
             "runner": self.runner,
             "steamid": self.steamid,
             "installed": 1,

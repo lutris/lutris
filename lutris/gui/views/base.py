@@ -46,7 +46,7 @@ class GameView:
         elif pga_game:
             selected_game = Game(pga_game[0]["id"])
         else:
-            logger.debug("Don't query the game from anywhere")
+            logger.debug("Don't query %s (%s) from anywhere", game_slug, game_id)
             selected_game = Game(game_id)
             selected_game.slug = model.get_value(selected_item, COL_SLUG)
             selected_game.name = model.get_value(selected_item, COL_NAME)
