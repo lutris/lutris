@@ -12,22 +12,27 @@ PGA_DB = settings.PGA_DB
 
 def get_games(
     name_filter=None,
-    extra_filters=None,
+    filters=None,
+    excludes=None,
     sorts=None
 ):
     """Get the list of every game in database."""
     query = "select * from games"
     params = []
-    filters = []
+    sql_filters = []
     if name_filter:
-        filters.append("name LIKE ?")
+        sql_filters.append("name LIKE ?")
         params.append("%" + name_filter + "%")
-    for field in extra_filters or {}:
-        if extra_filters[field]:
-            filters.append("%s = ?" % field)
-            params.append(extra_filters[field])
-    if filters:
-        query += " WHERE " + " AND ".join(filters)
+    for field in filters or {}:
+        if filters[field]:
+            sql_filters.append("%s = ?" % field)
+            params.append(filters[field])
+    for field in excludes or {}:
+        if excludes[field]:
+            sql_filters.append("%s IS NOT ?" % field)
+            params.append(excludes[field])
+    if sql_filters:
+        query += " WHERE " + " AND ".join(sql_filters)
     if sorts:
         query += " ORDER BY %s" % ", ".join(
             ["%s %s" % (sort[0], sort[1]) for sort in sorts]
@@ -201,15 +206,6 @@ def get_used_runners():
     return [result[0] for result in results if result[0]]
 
 
-def get_used_runners_game_count():
-    """Return a dictionary listing for each runner in use, how many games are using it."""
-    with sql.db_cursor(PGA_DB) as cursor:
-        query = "select runner, count(*) from games where runner is not null group by runner order by runner"
-        rows = cursor.execute(query)
-        results = rows.fetchall()
-    return {result[0]: result[1] for result in results if result[0]}
-
-
 def get_used_platforms():
     """Return a list of platforms currently in use"""
     with sql.db_cursor(PGA_DB) as cursor:
@@ -220,36 +216,3 @@ def get_used_platforms():
         rows = cursor.execute(query)
         results = rows.fetchall()
     return [result[0] for result in results if result[0]]
-
-
-def get_used_platforms_game_count():
-    """Return a dictionary listing for each platform in use, how many games are using it."""
-    with sql.db_cursor(PGA_DB) as cursor:
-        # The extra check for 'installed is 1' is needed because
-        # the platform lists don't show uninstalled games, but the platform of a game
-        # is remembered even after the game is uninstalled.
-        query = (
-            "select platform, count(*) from games "
-            "where platform is not null and platform is not '' and installed is 1 "
-            "group by platform "
-            "order by platform"
-        )
-        rows = cursor.execute(query)
-        results = rows.fetchall()
-    return {result[0]: result[1] for result in results if result[0]}
-
-
-def get_hidden_ids():
-    """Return a list of game IDs to be excluded from the library view"""
-    # Load the ignore string and filter out empty strings to prevent issues
-    ignores_raw = settings.read_setting("library_ignores", section="lutris", default="").split(",")
-    ignores = [ignore for ignore in ignores_raw if not ignore == ""]
-
-    # Turn the strings into integers
-    return [int(game_id) for game_id in ignores]
-
-
-def set_hidden_ids(games):
-    """Writes a list of game IDs that are to be hidden into the config file"""
-    ignores_str = [str(game_id) for game_id in games]
-    settings.write_setting("library_ignores", ','.join(ignores_str), section="lutris")

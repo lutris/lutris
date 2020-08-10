@@ -99,7 +99,7 @@ class LutrisStatusIcon:
     @staticmethod
     def add_games():
         """Adds installed games in order of last use"""
-        installed_games = get_games(extra_filters={"installed": "1"})
+        installed_games = get_games(filters={"installed": 1})
         installed_games.sort(
             key=lambda game: max(game["lastplayed"] or 0, game["installed_at"] or 0),
             reverse=True,
