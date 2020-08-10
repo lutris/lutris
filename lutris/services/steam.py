@@ -72,11 +72,6 @@ class SteamSyncer:
         self._lutris_steamids = None
 
     @property
-    def runner(self):
-        """Return the appropriate runner for the platform"""
-        return "steam" if self.platform == "linux" else "winesteam"
-
-    @property
     def lutris_games(self):
         """Return all Steam games present in the Lutris library"""
         if not self._lutris_games:
@@ -108,7 +103,7 @@ class SteamSyncer:
         for pga_game in self.lutris_games:
             if (
                 str(pga_game["steamid"]) == game.appid
-                and (pga_game["runner"] == self.runner or not pga_game["runner"]) and not pga_game["installed"]
+                and (pga_game["runner"] == game.runner or not pga_game["runner"]) and not pga_game["installed"]
             ):
                 return pga_game
 
@@ -125,25 +120,10 @@ class SteamSyncer:
                 if (steamid in self.lutris_steamids and pga_game["installed"] != 1 and pga_game["installed"]):
                     added_games.append(game.install())
 
-            if steamid not in self.lutris_steamids:
-                added_games.append(game.install())
-            else:
-                if pga_game:
-                    added_games.append(game.install(pga_game))
-
         if not full:
             return added_games, games
 
         removed_games = []
-        unavailable_ids = self.lutris_steamids.difference(available_ids)
-        for steamid in unavailable_ids:
-            for pga_game in self.lutris_games:
-                if (
-                    str(pga_game["steamid"]) == steamid and pga_game["installed"] and pga_game["runner"] == self.runner
-                ):
-                    game = SteamGame.new_from_lutris_id(pga_game["id"])
-                    game.uninstall()
-                    removed_games.append(pga_game["id"])
         return (added_games, removed_games)
 
 

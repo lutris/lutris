@@ -652,20 +652,7 @@
                             <property name="can_focus">False</property>
                             <property name="spacing">12</property>
                             <child>
-                              <object class="GtkSearchEntry" id="search_entry">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="halign">center</property>
-                                <property name="valign">center</property>
-                                <property name="width_chars">30</property>
-                                <property name="placeholder_text" translatable="yes">Search games</property>
-                                <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">0</property>
-                              </packing>
+                              <placeholder/>
                             </child>
                             <child>
                               <object class="GtkSpinner" id="search_spinner">
@@ -944,6 +931,20 @@
           <packing>
             <property name="pack_type">end</property>
             <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSearchEntry" id="search_entry">
+            <property name="can_focus">True</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="width_chars">30</property>
+            <property name="placeholder_text" translatable="yes">Search games</property>
+            <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+          </object>
+          <packing>
+            <property name="pack_type">end</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>
