@@ -310,8 +310,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             api_games = api.get_bundle("featured")
         else:
             api_games = api.search_games(self.filters["text"])
-        for index, game in enumerate(api_games, 1):
-            game["id"] = index * -1
+        for game in api_games:
+            game["id"] = ''
             game["installed"] = 1
             game["runner"] = None
             game["platform"] = None
@@ -343,7 +343,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 syncer = service.SYNCER()
                 AsyncCall(syncer.load, self.on_service_games_loaded)
                 return
-            self.service = category
             game_providers = {
                 "running": self.get_running_games,
                 "lutrisnet": self.get_api_games,
@@ -413,6 +412,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return False
         for game in games:
             self.game_store.add_game(game)
+        self.blank_overlay.add(Gtk.Label("No games found", visible=True))
         self.blank_overlay.props.visible = not bool(games)
         self.search_spinner.props.active = False
         self.search_timer_id = None

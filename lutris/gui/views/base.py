@@ -42,11 +42,11 @@ class GameView:
         selected_game = None
         model = self.get_model()
         game_id = model.get_value(selected_item, COL_ID)
+        if not self.service and game_id:
+            return Game(game_id)
         game_slug = model.get_value(selected_item, COL_SLUG)
         pga_game = get_games_by_slug(game_slug)
-        if not self.service:
-            selected_game = Game(game_id)
-        elif pga_game:
+        if pga_game:
             selected_game = Game(pga_game[0]["id"])
         else:
             logger.debug("Don't query %s (%s) from anywhere", game_slug, game_id)
