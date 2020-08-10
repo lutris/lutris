@@ -171,12 +171,7 @@ def search_games(query):
     if not query:
         return []
     query = query.lower().strip()[:32]
-    if query == "open source games":
-        url = "/api/bundles/open-source"
-    elif query == "free to play games":
-        url = "/api/bundles/free-to-play"
-    else:
-        url = "/api/games?%s" % urllib.parse.urlencode({"search": query})
+    url = "/api/games?%s" % urllib.parse.urlencode({"search": query})
     response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
     try:
         response.get()
@@ -184,11 +179,20 @@ def search_games(query):
         logger.error("Unable to get games from API: %s", ex)
         return None
     response_data = response.json
-    if "bundles" in url:
-        api_games = response_data.get("games", [])
-    else:
-        api_games = response_data.get("results", [])
-    return api_games
+    return response_data.get("results", [])
+
+
+def get_bundle(bundle):
+    """Retrieve a lutris bundle from the API"""
+    url = "/api/bundles/%s" % bundle
+    response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
+    try:
+        response.get()
+    except http.HTTPError as ex:
+        logger.error("Unable to get bundle from API: %s", ex)
+        return None
+    response_data = response.json
+    return response_data.get("games", [])
 
 
 def parse_installer_url(url):

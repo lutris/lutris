@@ -63,7 +63,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     search_spinner = GtkTemplate.Child()
     add_popover = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
-    website_search_toggle = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         # pylint: disable=too-many-statements
@@ -93,7 +92,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_actions = GameActions(application=application, window=self)
         self.filters = {}  # Type of filter corresponding to the selected sidebar element
         self.search_timer_id = None
-        self.search_mode = "local"
         self.game_store = None
         self.view = Gtk.Box()
 
@@ -117,9 +115,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         # Add additional widgets
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
-        self.website_search_toggle.set_image(lutris_icon)
-        self.website_search_toggle.set_label(_("Search Lutris.net"))
-        self.website_search_toggle.set_tooltip_text(_("Search Lutris.net"))
         self.sidebar = LutrisSidebar(self.application)
         self.sidebar.set_size_request(250, -1)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
@@ -320,10 +315,27 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Return a list of currently running games"""
         return games_db.get_games_by_ids([game.id for game in self.application.running_games])
 
+    def get_api_games(self):
+        """Return games from the lutris API"""
+        if not self.filters.get("text"):
+            api_games = api.get_bundle("featured")
+        else:
+            api_games = api.search_games(self.filters["text"])
+        for index, game in enumerate(api_games, 1):
+            game["id"] = index * -1
+            game["installed"] = 1
+            game["runner"] = None
+            game["platform"] = None
+            game["lastplayed"] = None
+            game["installed_at"] = None
+            game["playtime"] = None
+        return api_games
+
     def get_games_from_filters(self):
         if "dynamic_category" in self.filters:
             game_providers = {
                 "running": self.get_running_games,
+                "lutrisnet": self.get_api_games,
             }
             return game_providers[self.filters["dynamic_category"]]()
         if self.filters.get("category"):
@@ -655,21 +667,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.search_entry.props.text = ""
 
     @GtkTemplate.Callback
-    def on_website_search_toggle_toggled(self, toggle_button):
-        if toggle_button.props.active:
-            self.search_mode = "website"
-            self.search_entry.set_placeholder_text(_("Search Lutris.net"))
-            self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "folder-download-symbolic")
-            self.game_store.search_mode = True
-            self.search_games(self.search_entry.props.text)
-        else:
-            self.search_mode = "local"
-            self.search_entry.set_placeholder_text(_("Filter the list of games"))
-            self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "system-search-symbolic")
-            self.search_games("")
-            self.search_spinner.props.active = False
-
-    @GtkTemplate.Callback
     def on_about_clicked(self, *_args):
         """Open the about dialog."""
         dialogs.AboutDialog(parent=self)
@@ -700,17 +697,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.game_panel.refresh()
         return True
-
-    def on_search_games_fire(self, value):
-        GLib.source_remove(self.search_timer_id)
-        self.search_timer_id = None
-        self.search_games(value)
-        return False
-
-    def search_games(self, query):
-        """Search for games from the website API"""
-        self.game_store.set_icon_type(self.icon_type)
-        self.update_store()
 
     def game_selection_changed(self, _widget, game):
         """Callback to handle the selection of a game in the view"""
