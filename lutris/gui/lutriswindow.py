@@ -629,11 +629,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_search_toggle(self, button):
         """Called when search bar is shown / hidden"""
         active = button.props.active
-        self.search_revealer.set_reveal_child(active)
+        # self.search_revealer.set_reveal_child(active)
         if active:
+            self.search_entry.show()
             self.search_entry.grab_focus()
         else:
             self.search_entry.props.text = ""
+            self.search_entry.hide()
 
     @GtkTemplate.Callback
     def on_about_clicked(self, *_args):

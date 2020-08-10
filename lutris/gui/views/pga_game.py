@@ -2,7 +2,7 @@
 import time
 
 from lutris.game import Game
-from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game, get_pixbuf
 from lutris.runners import RUNNER_NAMES
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
@@ -75,6 +75,8 @@ class GameItem:
 
     def get_pixbuf(self, icon_type):
         """Pixbuf varying on icon type"""
+        if self._pga_data.get("icon"):
+            return get_pixbuf(self._pga_data["icon"], (96, 96))
         return get_pixbuf_for_game(self._pga_data["slug"], icon_type, self._pga_data["installed"])
 
     @property
