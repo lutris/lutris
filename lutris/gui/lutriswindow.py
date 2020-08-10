@@ -6,7 +6,7 @@ from gettext import gettext as _
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
-from lutris import api, settings, services
+from lutris import api, services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
@@ -22,7 +22,7 @@ from lutris.gui.views.list import GameListView
 from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.gi_composites import GtkTemplate
-from lutris.gui.widgets.services import SyncServiceWindow
+from lutris.gui.widgets.services import ServiceSyncBox
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri
 from lutris.runtime import RuntimeUpdater
@@ -81,6 +81,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
         self.icon_type = None
+        self.service = None
 
         # Load settings
         self.window_size = (width, height)
@@ -149,7 +150,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             "disconnect": Action(self.on_disconnect),
             "connect": Action(self.on_connect),
             "synchronize": Action(lambda *x: self.sync_library()),
-            "sync-local": Action(lambda *x: self.open_sync_dialog()),
             "add-game": Action(self.on_add_game_button_clicked),
             "preferences": Action(self.on_preferences_activate),
             "manage-runners": Action(self.on_manage_runners, ),
@@ -320,10 +320,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return api_games
 
     def get_games_from_filters(self):
+        self.service = None
         if "dynamic_category" in self.filters:
             category = self.filters["dynamic_category"]
             if category.startswith("lutris.services"):
-                service = services.import_service(category.rsplit(".", 1)[-1])
+                self.service = category.rsplit(".", 1)[-1]
+                service = services.import_service(self.service)
                 service_games = service.SYNCER.load()
                 return [service_game.as_dict() for service_game in service_games]
 
@@ -368,6 +370,18 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         games = self.get_games_from_filters()
         for game in games:
             self.game_store.add_game(game)
+
+        if self.service:
+            for child in self.search_revealer.get_children():
+                child.destroy()
+            service = services.import_service(self.service)
+            service_box = ServiceSyncBox(service)
+            service_box.set_margin_top(12)
+            service_box.show()
+            self.search_revealer.add(service_box)
+            self.search_revealer.set_reveal_child(True)
+        else:
+            self.search_revealer.set_reveal_child(False)
         self.no_results_overlay.props.visible = not bool(games)
         self.search_spinner.props.active = False
         self.search_timer_id = None
@@ -505,11 +519,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.sync_button.set_sensitive(False)
         AsyncCall(sync_from_remote, update_gui)
 
-    def open_sync_dialog(self):
-        """Opens the service sync dialog"""
-        self.add_popover.hide()
-        self.application.show_window(SyncServiceWindow)
-
     def update_runtime(self):
         """Check that the runtime is up to date"""
         runtime_sync = AsyncCall(self.runtime_updater.update, None)
@@ -629,7 +638,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_search_toggle(self, button):
         """Called when search bar is shown / hidden"""
         active = button.props.active
-        # self.search_revealer.set_reveal_child(active)
         if active:
             self.search_entry.show()
             self.search_entry.grab_focus()
