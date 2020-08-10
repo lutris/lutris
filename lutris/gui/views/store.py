@@ -69,7 +69,6 @@ class GameStore(GObject.Object):
         super(GameStore, self).__init__()
         self.games = games
 
-        self.search_mode = False
         self.games_to_refresh = set()
         self.icon_type = icon_type
 
@@ -96,11 +95,6 @@ class GameStore(GObject.Object):
         self.media_loaded = False
         self.connect("media-loaded", self.on_media_loaded)
         self.connect("icon-loaded", self.on_icon_loaded)
-
-    def load(self, from_search=False):
-        if not self.games:
-            return
-        self.add_games(self.games)
 
     @property
     def game_slugs(self):
@@ -291,6 +285,6 @@ class GameStore(GObject.Object):
             row[COL_ICON] = get_pixbuf_for_game(
                 row[COL_SLUG],
                 icon_type,
-                is_installed=row[COL_INSTALLED] if not self.search_mode else True,
+                is_installed=row[COL_INSTALLED],
             )
         self.emit("icons-changed", icon_type)

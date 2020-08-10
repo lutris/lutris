@@ -13,7 +13,7 @@ PGA_DB = settings.PGA_DB
 def get_games(
     name_filter=None,
     extra_filters=None,
-    sort=None
+    sorts=None
 ):
     """Get the list of every game in database."""
     query = "select * from games"
@@ -21,17 +21,20 @@ def get_games(
     filters = []
     if name_filter:
         filters.append("name LIKE ?")
-        params.append(name_filter)
+        params.append("%" + name_filter + "%")
     for field in extra_filters or {}:
         if extra_filters[field]:
             filters.append("%s = ?" % field)
             params.append(extra_filters[field])
     if filters:
         query += " WHERE " + " AND ".join(filters)
-    if sort:
-        query += " ORDER BY %(field)s %(direction)s" % sort
+    if sorts:
+        query += " ORDER BY %s" % ", ".join(
+            ["%s %s" % (sort[0], sort[1]) for sort in sorts]
+        )
     else:
         query += " ORDER BY slug ASC"
+    print(query, params)
     return sql.db_query(PGA_DB, query, tuple(params))
 
 
