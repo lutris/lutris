@@ -63,29 +63,11 @@ class GameStore(GObject.Object):
         "media-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
         "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-        "sorting-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, bool)),
-    }
-
-    sort_columns = {
-        "name": COL_NAME,
-        "year": COL_YEAR,
-        "runner": COL_RUNNER_HUMAN_NAME,
-        "platform": COL_PLATFORM,
-        "lastplayed": COL_LASTPLAYED,
-        "lastplayed_text": COL_LASTPLAYED_TEXT,
-        "installed_at": COL_INSTALLED_AT,
-        "installed_at_text": COL_INSTALLED_AT_TEXT,
-        "playtime": COL_PLAYTIME,
-        "playtime_text": COL_PLAYTIME_TEXT,
     }
 
     def __init__(self, games, icon_type):
         super(GameStore, self).__init__()
         self.games = games
-        # if not show_hidden_games:
-        #    # Check if the PGA contains game IDs that the user does not
-        #    # want to see
-        #    # self.games = [game for game in self.games if game["id"] not in pga.get_hidden_ids()]
 
         self.search_mode = False
         self.games_to_refresh = set()
@@ -108,7 +90,6 @@ class GameStore(GObject.Object):
             float,
             str,
         )
-        self.prevent_sort_update = False  # prevent recursion with signals
         self.medias = {"banner": {}, "icon": {}}
         self.banner_misses = set()
         self.icon_misses = set()
@@ -169,7 +150,7 @@ class GameStore(GObject.Object):
         self.media_loaded = True
         self.emit("media-loaded")
 
-    def get_row_by_id(self, game_id, filtered=False):
+    def get_row_by_id(self, game_id):
         for model_row in self.store:
             if model_row[COL_ID] == int(game_id):
                 return model_row
@@ -222,16 +203,9 @@ class GameStore(GObject.Object):
             return
         if media_type != self.icon_type:
             return
-        # if self.search_mode:
-        #     GLib.idle_add(self.update_icon, game_slug)
-        #     return
         for pga_game in get_games_by_slug(game_slug):
             logger.debug("Updating %s", pga_game["id"])
             GLib.idle_add(self.update, pga_game)
-
-    # def update_icon(self, game_slug):
-    #     row = self.get_row_by_slug(game_slug)
-    #     row[COL_ICON] = get_pixbuf_for_game(game_slug, self.icon_type, True)
 
     def fetch_icon(self, slug):
         if not self.media_loaded:
