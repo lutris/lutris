@@ -75,7 +75,7 @@ class ServiceGame:
     def as_dict(self):
         """Return the data in a format compatible with lutris views"""
         return {
-            "id": self.game_id,
+            "id": self.appid,
             "name": self.name,
             "slug": self.slug or slugify(self.name),
             "runner": self.runner,

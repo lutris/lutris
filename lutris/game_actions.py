@@ -96,7 +96,7 @@ class GameActions:
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
         return {
-            "add": not self.game.is_installed and not self.game.is_search_result,
+            "add": not self.game.is_installed,
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "stop": self.is_game_running,
@@ -104,7 +104,7 @@ class GameActions:
             "configure": bool(self.game.is_installed),
             "favorite": not self.game.is_favorite,
             "deletefavorite": self.game.is_favorite,
-            "install_more": self.game.is_installed and not self.game.is_search_result,
+            "install_more": self.game.is_installed,
             "execute-script": bool(self.game.is_installed and self.game.runner.system_config.get("manual_command")),
             "desktop-shortcut": (
                 self.game.is_installed
@@ -123,7 +123,7 @@ class GameActions:
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
             "browse": self.game.is_installed and self.game.runner_name != "browser",
-            "remove": not self.game.is_search_result,
+            "remove": self.game.is_installed,
             "view": True,
             "hide": not self.game.is_hidden,
             "unhide": self.game.is_hidden,

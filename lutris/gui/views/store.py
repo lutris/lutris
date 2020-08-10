@@ -73,7 +73,7 @@ class GameStore(GObject.Object):
         self.icon_type = icon_type
 
         self.store = Gtk.ListStore(
-            int,
+            str,
             str,
             str,
             Pixbuf,
@@ -256,7 +256,7 @@ class GameStore(GObject.Object):
         self.games.append(pga_game)
         self.store.append(
             (
-                game.id,
+                str(game.id),
                 game.slug,
                 game.name,
                 game.get_pixbuf(self.icon_type),

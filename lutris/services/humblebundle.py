@@ -103,15 +103,30 @@ class HumbleBundleService(OnlineService):
         """Return the games from the user's library"""
         games = []
         for order in self.get_orders():
+            if not order:
+                logger.error("Got None as order")
+                continue
             for product in order["subproducts"]:
                 for download in product["downloads"]:
                     if download["platform"] in self.supported_platforms:
                         games.append(product)
         return games
 
+    def get_gamekeys_from_local_orders(self):
+        """Retrieve a list of orders from the cache."""
+        game_keys = []
+        if os.path.exists(self.cache_path):
+            for order_file in os.listdir(self.cache_path):
+                if not order_file.endswith(".json"):
+                    continue
+                game_keys.append({"gamekey": order_file[:-5]})
+        return game_keys
+
     def get_orders(self):
         """Return all orders"""
-        gamekeys = self.make_api_request(self.api_url + "api/v1/user/order")
+        gamekeys = self.get_gamekeys_from_local_orders()
+        if not gamekeys:
+            gamekeys = self.make_api_request(self.api_url + "api/v1/user/order")
         return [self.get_order(gamekey["gamekey"]) for gamekey in gamekeys]
 
     @staticmethod

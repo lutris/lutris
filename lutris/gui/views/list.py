@@ -24,7 +24,8 @@ class GameListView(Gtk.TreeView, GameView):
     def __init__(self, store):
         self.game_store = store
         self.model = self.game_store.store
-        super().__init__(self.model)
+        super().__init__(model=self.model)
+        GameView.__init__(self)
         self.set_rules_hint(True)
 
         # Icon column
