@@ -171,6 +171,15 @@ class LutrisSidebar(Gtk.ListBox):
             )
         )
 
+        self.add(
+            SidebarRow(
+                "lutrisnet",
+                "dynamic_category",
+                _("Lutris.net"),
+                Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
+            )
+        )
+
         all_row = RunnerSidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
         self.select_row(all_row)

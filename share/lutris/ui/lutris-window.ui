@@ -658,7 +658,7 @@
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
                                 <property name="width_chars">30</property>
-                                <property name="placeholder_text" translatable="yes">Filter the list of games</property>
+                                <property name="placeholder_text" translatable="yes">Search games</property>
                                 <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
                               </object>
                               <packing>
@@ -671,20 +671,6 @@
                               <object class="GtkSpinner" id="search_spinner">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkToggleButton" id="website_search_toggle">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="always_show_image">True</property>
-                                <signal name="toggled" handler="on_website_search_toggle_toggled" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
