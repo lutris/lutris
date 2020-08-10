@@ -209,6 +209,7 @@ class HumbleBundleSyncer:
                 continue
             humble_games.append(HumbleBundleGame.new_from_humble_game(game))
             seen.add(game["human_name"])
+        print("returning %s humble games" % len(humble_games))
         return humble_games
 
     @classmethod

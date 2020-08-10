@@ -685,46 +685,14 @@
                       </packing>
                     </child>
                     <child type="overlay">
-                      <object class="GtkGrid" id="no_results_overlay">
+                      <object class="GtkAlignment" id="blank_overlay">
+                        <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="halign">center</property>
-                        <property name="valign">center</property>
-                        <property name="hexpand">True</property>
-                        <property name="vexpand">True</property>
-                        <property name="row_spacing">12</property>
+                        <property name="xscale">0.10000000149011612</property>
+                        <property name="yscale">0.10000000149011612</property>
                         <child>
-                          <object class="GtkImage">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="pixel_size">72</property>
-                            <property name="icon_name">edit-find-symbolic</property>
-                            <style>
-                              <class name="dim-label"/>
-                            </style>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">0</property>
-                          </packing>
+                          <placeholder/>
                         </child>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">No Games Found</property>
-                            <attributes>
-                              <attribute name="weight" value="bold"/>
-                              <attribute name="scale" value="1.4399999999999999"/>
-                            </attributes>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">1</property>
-                          </packing>
-                        </child>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
                       </object>
                       <packing>
                         <property name="pass_through">True</property>

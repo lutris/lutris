@@ -1,9 +1,9 @@
 """Widget to connect to third party services"""
 from gettext import gettext as _
 
-from gi.repository import Gtk, GObject
+from gi.repository import GObject, Gtk
 
-from lutris.gui.widgets.utils import get_icon, get_main_window
+from lutris.gui.widgets.utils import get_icon
 from lutris.util.jobs import AsyncCall
 
 
