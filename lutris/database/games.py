@@ -13,8 +13,7 @@ PGA_DB = settings.PGA_DB
 def get_games(
     name_filter=None,
     extra_filters=None,
-    ordering="slug",
-    direction="ASC"
+    sort=None
 ):
     """Get the list of every game in database."""
     query = "select * from games"
@@ -29,7 +28,10 @@ def get_games(
             params.append(extra_filters[field])
     if filters:
         query += " WHERE " + " AND ".join(filters)
-    query += " ORDER BY slug %s" % direction
+    if sort:
+        query += " ORDER BY %(field)s %(direction)s" % sort
+    else:
+        query += " ORDER BY slug ASC"
     return sql.db_query(PGA_DB, query, tuple(params))
 
 

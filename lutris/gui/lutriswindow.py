@@ -25,7 +25,7 @@ from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri
 from lutris.runtime import RuntimeUpdater
-from lutris.services import get_services_synced_at_startup, steam
+from lutris.services import get_services_synced_at_startup
 from lutris.sync import sync_from_remote
 from lutris.util import datapath, http
 from lutris.util.jobs import AsyncCall
@@ -305,7 +305,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     @property
     def view_sorting(self):
-        return settings.read_setting("view_sorting") or "name"
+        value = settings.read_setting("view_sorting") or "name"
+        if value.endswith("_text"):
+            value = value[:-5]
+        return value
 
     @property
     def view_sorting_ascending(self):
@@ -334,17 +337,17 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         games = games_db.get_games(
             name_filter=search_query,
             extra_filters=sql_filters,
-            ordering=self.view_sorting,
-            direction="ASC" if self.view_sorting_ascending else "DESC"
+            sort={
+                "field": self.view_sorting,
+                "direction": "ASC" if self.view_sorting_ascending else "DESC"
+            }
         )
-        logger.info("Returned %s games from %s", len(games), self.filters)
+        logger.info("Returned %s games from %s, %s", len(games), self.filters, self.view_sorting)
         return games
 
     def get_store(self):
         """Return an instance of the game store"""
-        game_store = GameStore([], self.icon_type)
-        game_store.connect("sorting-changed", self.on_game_store_sorting_changed)
-        return game_store
+        return GameStore([], self.icon_type)
 
     def update_store(self, games=None):
         self.game_store.games = []
@@ -391,38 +394,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         for service in get_services_synced_at_startup():
             AsyncCall(full_sync, on_sync_complete, service.SYNCER)
-
-    def on_steam_game_changed(self, operation, path):
-        """Action taken when a Steam AppManifest file is updated"""
-        appmanifest = steam.AppManifest(path)
-        # if self.running_game and "steam" in self.running_game.runner_name:
-        #     self.running_game.notify_steam_game_changed(appmanifest)
-
-        runner_name = appmanifest.get_runner_name()
-        games = games_db.get_games_where(steamid=appmanifest.steamid)
-        if operation == Gio.FileMonitorEvent.DELETED:
-            for game in games:
-                if game["runner"] == runner_name:
-                    steam.mark_as_uninstalled(game)
-                    self.game_store.set_uninstalled(Game(game["id"]))
-                    break
-        elif operation in (Gio.FileMonitorEvent.CHANGED, Gio.FileMonitorEvent.CREATED):
-            if not appmanifest.is_installed():
-                return
-            if runner_name == "winesteam":
-                return
-            game_info = None
-            for game in games:
-                if game["installed"] == 0:
-                    game_info = game
-                else:
-                    # Game is already installed, don't do anything
-                    return
-            if not game_info:
-                game_info = {"name": appmanifest.name, "slug": appmanifest.slug}
-            if steam in get_services_synced_at_startup():
-                game_id = steam.mark_as_installed(appmanifest.steamid, runner_name, game_info)
-                self.update_game_by_id(game_id)
 
     def set_dark_theme(self):
         """Enables or disbales dark theme"""
@@ -823,17 +794,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self._set_icon_type(value.get_string())
 
     def on_view_sorting_state_change(self, action, value):
-        self.update_store()
+        self.actions["view-sorting"].set_state(value)
+        value = str(value).strip("'")
+        settings.write_setting("view_sorting", value)
+        GLib.idle_add(self.update_store)
 
     def on_view_sorting_direction_change(self, action, value):
-        self.update_store()
-
-    def on_game_store_sorting_changed(self, _game_store, key, ascending):
-        self.actions["view-sorting"].set_state(GLib.Variant.new_string(key))
-        settings.write_setting("view_sorting", key)
-
-        self.actions["view-sorting-ascending"].set_state(GLib.Variant.new_boolean(ascending))
-        settings.write_setting("view_sorting_ascending", bool(ascending))
+        self.actions["view-sorting-ascending"].set_state(value)
+        settings.write_setting("view_sorting_ascending", bool(value))
+        GLib.idle_add(self.update_store)
 
     def on_left_side_panel_state_change(self, action, value):
         """Callback to handle left side panel toggle"""
@@ -862,7 +831,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         row = widget.get_selected_row()
         if row:
             self.filters[row.type] = row.id
-        GLib.idle_add(self.update_store)
+        self.update_store()
 
     def show_invalid_credential_warning(self):
         dialogs.ErrorDialog(_("Could not connect to your Lutris account. Please sign in again."))
