@@ -8,6 +8,7 @@ from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
 from lutris import api, settings
 from lutris.database import games as games_db
+from lutris.database import categories as categories_db
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
@@ -321,8 +322,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def get_games_from_filters(self):
         if "dynamic_category" in self.filters:
             raise NotImplementedError
-        if "category" in self.filters:
-            raise NotImplementedError
+        if self.filters.get("category"):
+            game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
+            return games_db.get_games_by_ids(game_ids)
         sql_filters = {}
         if self.filters.get("runner"):
             sql_filters["runner"] = self.filters["runner"]
@@ -829,6 +831,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
+        for filter_type in ("category", "dynamic_category", "runner", "platform"):
+            if filter_type in self.filters:
+                self.filters.pop(filter_type)
         if row:
             self.filters[row.type] = row.id
         self.update_store()
