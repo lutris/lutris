@@ -16,7 +16,7 @@ def get_category(name):
         return categories[0]
 
 
-def get_games_in_category(category_name):
+def get_game_ids_for_category(category_name):
     """Get the ids of games in database."""
     query = (
         "select game_id from games_categories "
