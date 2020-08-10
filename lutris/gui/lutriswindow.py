@@ -7,8 +7,8 @@ from gettext import gettext as _
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
 from lutris import api, settings
-from lutris.database import games as games_db
 from lutris.database import categories as categories_db
+from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
@@ -165,11 +165,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 default=self.filter_installed,
                 accel="<Primary>h",
             ),
-            "show-installed-first": Action(
-                self.on_show_installed_first_state_change,
-                type="b",
-                default=self.show_installed_first,
-            ),
             "toggle-viewtype": Action(self.on_toggle_viewtype),
             "icon-type": Action(self.on_icontype_state_change, type="s", default=self.icon_type),
             "view-sorting": Action(self.on_view_sorting_state_change, type="s", default=self.view_sorting),
@@ -289,10 +284,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Return whether to use the dark theme variant (if the theme provides one)"""
         return settings.read_setting("dark_theme", default="false").lower() == "true"
 
-    @property
-    def show_installed_first(self):
-        return settings.read_setting("show_installed_first", default="false").lower() == "true"
-
     def on_tray_icon_toggle(self, action, value):
         """Callback for handling tray icon toggle"""
         action.set_state(value)
@@ -319,9 +310,22 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def show_hidden_games(self):
         return settings.read_setting("show_hidden_games").lower() == "true"
 
+    @property
+    def sort_params(self):
+        _sort_params = [("installed", "DESC")]
+        _sort_params.append((self.view_sorting, "ASC" if self.view_sorting_ascending else "DESC"))
+        return _sort_params
+
+    def get_running_games(self):
+        """Return a list of currently running games"""
+        return games_db.get_games_by_ids([game.id for game in self.application.running_games])
+
     def get_games_from_filters(self):
         if "dynamic_category" in self.filters:
-            raise NotImplementedError
+            game_providers = {
+                "running": self.get_running_games,
+            }
+            return game_providers[self.filters["dynamic_category"]]()
         if self.filters.get("category"):
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
             return games_db.get_games_by_ids(game_ids)
@@ -339,10 +343,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         games = games_db.get_games(
             name_filter=search_query,
             extra_filters=sql_filters,
-            sort={
-                "field": self.view_sorting,
-                "direction": "ASC" if self.view_sorting_ascending else "DESC"
-            }
+            sorts=self.sort_params
         )
         logger.info("Returned %s games from %s, %s", len(games), self.filters, self.view_sorting)
         return games
@@ -358,6 +359,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         for game in games:
             self.game_store.add_game(game)
         self.no_results_overlay.props.visible = not bool(games)
+        self.search_spinner.props.active = False
+        self.search_timer_id = None
         return False
 
     def update_game_by_id(self, game_id):
@@ -471,7 +474,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def switch_view(self, view_type=None):
         """Switch between grid view and list view."""
-        print("switch view")
         if self.view:
             self.view.destroy()
         self.load_icon_type_from_settings()
@@ -485,7 +487,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self._connect_signals()
 
         GLib.idle_add(self.update_store)
-        self.set_show_installed_state(self.filter_installed)
 
         self.zoom_adjustment.props.value = list(IMAGE_SIZES.keys()).index(self.icon_type)
 
@@ -623,16 +624,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_manage_runners(self, *args):
         self.application.show_window(RunnersDialog, transient_for=self)
 
-    def on_show_installed_first_state_change(self, action, value):
-        """Callback to handle installed games first toggle"""
-        action.set_state(value)
-        self.set_show_installed_first_state(value.get_boolean())
-
-    def set_show_installed_first_state(self, show_installed_first):
-        """Shows the installed games first in the view"""
-        settings.write_setting("show_installed_first", bool(show_installed_first))
-        self.update_store()
-
     def on_show_installed_state_change(self, action, value):
         """Callback to handle uninstalled game filter switch"""
         action.set_state(value)
@@ -647,17 +638,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
-        if self.search_mode == "local":
-            self.filters["text"] = entry.get_text().strip()
-            self.update_store()
-        elif self.search_mode == "website":
-            search_terms = entry.get_text().lower().strip()
-            self.search_spinner.props.active = True
-            if self.search_timer_id:
-                GLib.source_remove(self.search_timer_id)
-            self.search_timer_id = GLib.timeout_add(750, self.on_search_games_fire, search_terms)
-        else:
-            raise ValueError("Unsupported search mode %s" % self.search_mode)
+        self.search_spinner.props.active = True
+        if self.search_timer_id:
+            GLib.source_remove(self.search_timer_id)
+        self.filters["text"] = entry.get_text().lower().strip()
+        self.search_timer_id = GLib.timeout_add(350, self.update_store)
 
     @GtkTemplate.Callback
     def on_search_toggle(self, button):
@@ -724,10 +709,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def search_games(self, query):
         """Search for games from the website API"""
-        logger.debug("%s search for :%s", self.search_mode, query)
-        self.filters["text"] = query
         self.game_store.set_icon_type(self.icon_type)
-        self.search_spinner.props.active = False
         self.update_store()
 
     def game_selection_changed(self, _widget, game):
