@@ -3,7 +3,7 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk, Pango
 
-from lutris import platforms, runners
+from lutris import platforms, runners, services
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
@@ -179,6 +179,15 @@ class LutrisSidebar(Gtk.ListBox):
                 Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
             )
         )
+        for service in services.get_services():
+            self.add(
+                SidebarRow(
+                    service.__name__,
+                    "dynamic_category",
+                    service.NAME,
+                    Gtk.Image.new_from_icon_name(service.ICON, Gtk.IconSize.MENU)
+                )
+            )
 
         all_row = RunnerSidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
