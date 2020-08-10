@@ -68,6 +68,7 @@ class Game(GObject.Object):
 
         self.game_config_id = game_data.get("configpath") or ""
         self.is_installed = bool(game_data.get("installed") and self.game_config_id)
+        self.is_hidden = bool(game_data.get("hidden"))
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
@@ -128,25 +129,15 @@ class Game(GObject.Object):
         categories_db.remove_category_from_game(self.id, favorite["id"])
         self.emit("game-updated")
 
-    @property
-    def is_hidden(self):
-        """Is the game hidden in the UI?"""
-        return self.id in games_db.get_hidden_ids()
-
     def hide(self):
         """Do not show this game in the UI"""
-        # Append the new hidden ID and save it
-        ignores = games_db.get_hidden_ids() + [self.id]
-        games_db.set_hidden_ids(ignores)
-        self.emit("game-updated")
+        self.is_hidden = True
+        self.save()
 
     def unhide(self):
         """Remove the game from hidden games"""
-        # Remove the ID to unhide and save it
-        ignores = games_db.get_hidden_ids()
-        ignores.remove(self.id)
-        games_db.set_hidden_ids(ignores)
-        self.emit("game-updated")
+        self.is_hidden = False
+        self.save()
 
     @property
     def log_buffer(self):
@@ -301,6 +292,7 @@ class Game(GObject.Object):
             steamid=self.steamid,
             id=self.id,
             playtime=self.playtime,
+            hidden=self.is_hidden,
         )
         self.emit("game-updated")
 

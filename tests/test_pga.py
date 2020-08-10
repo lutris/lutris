@@ -54,7 +54,7 @@ class TestPersonnalGameArchive(DatabaseTester):
     def test_can_filter_by_installed_games(self):
         games_db.add_game(name="installed_game", runner="Linux", installed=1)
         games_db.add_game(name="bang", runner="Linux", installed=0)
-        game_list = games_db.get_games(filter_installed=True)
+        game_list = games_db.get_games(filters={'installed': 1})
         self.assertEqual(len(game_list), 1)
         self.assertEqual(game_list[0]['name'], 'installed_game')
 

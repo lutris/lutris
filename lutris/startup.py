@@ -136,7 +136,7 @@ def fill_missing_platforms():
     """Sets the platform on games where it's missing.
     This should never happen.
     """
-    pga_games = get_games(extra_filters={"installed": "1"})
+    pga_games = get_games(filters={"installed": 1})
     for pga_game in pga_games:
         if pga_game.get("platform") or not pga_game["runner"]:
             continue

@@ -90,6 +90,10 @@ DATABASE = {
             "name": "playtime",
             "type": "REAL"
         },
+        {
+            "name": "hidden",
+            "type": "INTEGER"
+        },
     ],
     "store_games": [
         {

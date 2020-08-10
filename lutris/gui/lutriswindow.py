@@ -43,6 +43,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     default_height = 600
 
     __gtype_name__ = "LutrisWindow"
+    __gsignals__ = {
+        "view-updated": (GObject.SIGNAL_RUN_LAST, None, ()),
+    }
 
     main_box = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
@@ -65,8 +68,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     viewtype_icon = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
-        # pylint: disable=too-many-statements
-        # TODO: refactor
         width = int(settings.read_setting("width") or self.default_width)
         height = int(settings.read_setting("height") or self.default_height)
         super().__init__(
@@ -234,18 +235,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def hidden_state_change(self, action, value):
         """Hides or shows the hidden games"""
         action.set_state(value)
-
-        # Add or remove hidden games
-        ignores = games_db.get_hidden_ids()
         settings.write_setting("show_hidden_games", str(self.show_hidden_games).lower(), section="lutris")
-
-        # If we have to show the hidden games now, we need to add them back to
-        # the view. If we need to hide them, we just remove them from the view
-        if value:
-            self.game_store.add_games(games_db.get_games_by_ids(ignores))
-        else:
-            for game_id in ignores:
-                self.game_store.remove_game(game_id)
+        self.emit("view-updated")
 
     @property
     def current_view_type(self):
@@ -342,6 +333,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
             return games_db.get_games_by_ids(game_ids)
         sql_filters = {}
+        sql_excludes = {}
         if self.filters.get("runner"):
             sql_filters["runner"] = self.filters["runner"]
         if self.filters.get("platform"):
@@ -352,9 +344,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             search_query = self.filters["text"]
         else:
             search_query = None
+        if not self.show_hidden_games:
+            sql_excludes["hidden"] = 1
         games = games_db.get_games(
             name_filter=search_query,
-            extra_filters=sql_filters,
+            filters=sql_filters,
+            excludes=sql_excludes,
             sorts=self.sort_params
         )
         logger.info("Returned %s games from %s, %s", len(games), self.filters, self.view_sorting)
@@ -364,10 +359,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Return an instance of the game store"""
         return GameStore([], self.icon_type)
 
-    def update_store(self, games=None):
+    def update_store(self, *_args, **_kwargs):
         self.game_store.games = []
         self.game_store.store.clear()
-        games = games or self.get_games_from_filters()
+        games = self.get_games_from_filters()
         for game in games:
             self.game_store.add_game(game)
         self.no_results_overlay.props.visible = not bool(games)
@@ -429,6 +424,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         This must be called each time the view is rebuilt.
         """
 
+        self.connect("view-updated", self.update_store)
         self.view.connect("game-selected", self.game_selection_changed)
         self.view.connect("game-activated", self.on_game_activated)
 
@@ -498,8 +494,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.games_scrollwindow.add(self.view)
         self._connect_signals()
 
-        GLib.idle_add(self.update_store)
-
         self.zoom_adjustment.props.value = list(IMAGE_SIZES.keys()).index(self.icon_type)
 
         if view_type:
@@ -507,6 +501,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             settings.write_setting("view_type", view_type)
 
         self.view.show_all()
+        self.emit("view-updated")
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
@@ -640,12 +635,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Callback to handle uninstalled game filter switch"""
         action.set_state(value)
         self.set_show_installed_state(value.get_boolean())
+        self.emit("view-updated")
 
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""
         settings.write_setting("filter_installed", bool(filter_installed))
         self.filters["installed"] = filter_installed
-        self.update_store()
+        self.emit("view-updated")
 
     @GtkTemplate.Callback
     def on_search_entry_changed(self, entry):
@@ -695,7 +691,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         except ValueError:
             self.game_store.add_games(games_db.get_games_by_ids([game.id]))
 
-        self.game_panel.refresh()
+        GLib.idle_add(self.game_panel.refresh)
+        self.emit("view-updated")
         return True
 
     def game_selection_changed(self, _widget, game):
@@ -767,12 +764,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.actions["view-sorting"].set_state(value)
         value = str(value).strip("'")
         settings.write_setting("view_sorting", value)
-        GLib.idle_add(self.update_store)
+        self.emit("view-updated")
 
     def on_view_sorting_direction_change(self, action, value):
         self.actions["view-sorting-ascending"].set_state(value)
         settings.write_setting("view_sorting_ascending", bool(value))
-        GLib.idle_add(self.update_store)
+        self.emit("view-updated")
 
     def on_left_side_panel_state_change(self, action, value):
         """Callback to handle left side panel toggle"""
@@ -804,7 +801,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.filters.pop(filter_type)
         if row:
             self.filters[row.type] = row.id
-        self.update_store()
+        self.emit("view-updated")
 
     def show_invalid_credential_warning(self):
         dialogs.ErrorDialog(_("Could not connect to your Lutris account. Please sign in again."))
