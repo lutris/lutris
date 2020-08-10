@@ -104,7 +104,6 @@ class HumbleBundleService(OnlineService):
         games = []
         for order in self.get_orders():
             if not order:
-                logger.error("Got None as order")
                 continue
             for product in order["subproducts"]:
                 for download in product["downloads"]:
