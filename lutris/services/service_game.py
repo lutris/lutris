@@ -35,7 +35,7 @@ class ServiceGame:
         """Return the SteamID, this is a special case since Steam's appid's are
         a field in the game table. Keeping this here allows to reuse the install method.
         """
-        if hasattr(self, "appid") and hasattr(self, "runner") and "steam" in self.runner:
+        if hasattr(self, "appid") and self.runner and "steam" in self.runner:
             return int(self.appid)
         return None
 
@@ -70,3 +70,20 @@ class ServiceGame:
 
     def create_config(self):
         """Implement this in subclasses to properly create the game config"""
+
+    def as_dict(self):
+        """Return the data in a format compatible with lutris views"""
+        return {
+            "id": self.game_id,
+            "name": self.name,
+            "slug": self.slug,
+            "runner": self.runner,
+            "steamid": self.steamid,
+            "installed": 1,
+            "year": None,
+            "platform": None,
+            "lastplayed": None,
+            "installed_at": None,
+            "playtime": None,
+            "icon": self.icon,
+        }

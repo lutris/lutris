@@ -6,7 +6,7 @@ from gettext import gettext as _
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
-from lutris import api, settings
+from lutris import api, settings, services
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
@@ -26,7 +26,6 @@ from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri
 from lutris.runtime import RuntimeUpdater
-from lutris.services import get_services_synced_at_startup
 from lutris.sync import sync_from_remote
 from lutris.util import datapath, http
 from lutris.util.jobs import AsyncCall
@@ -230,8 +229,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.toggle_connection(False)
             self.sync_library()
 
-        self.sync_services()
-
     def hidden_state_change(self, action, value):
         """Hides or shows the hidden games"""
         action.set_state(value)
@@ -324,11 +321,17 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def get_games_from_filters(self):
         if "dynamic_category" in self.filters:
+            category = self.filters["dynamic_category"]
+            if category.startswith("lutris.services"):
+                service = services.import_service(category.rsplit(".", 1)[-1])
+                service_games = service.SYNCER.load()
+                return [service_game.as_dict() for service_game in service_games]
+
             game_providers = {
                 "running": self.get_running_games,
                 "lutrisnet": self.get_api_games,
             }
-            return game_providers[self.filters["dynamic_category"]]()
+            return game_providers[category]()
         if self.filters.get("category"):
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
             return games_db.get_games_by_ids(game_ids)
@@ -376,36 +379,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if pga_game:
             return self.game_store.update(pga_game)
         return self.game_store.remove_game(game_id)
-
-    def sync_services(self):
-        """Sync local lutris library with current Steam games and desktop games"""
-
-        def full_sync(syncer_cls):
-            syncer = syncer_cls()
-            games = syncer.load()
-            return syncer.sync(games, full=True)
-
-        def on_sync_complete(response, errors):
-            """Callback to update the view on sync complete
-            XXX: This might go away.
-            """
-            if errors:
-                logger.error("Sync failed: %s", errors)
-                return
-            added_games, removed_games = response
-
-            for game_id in added_games:
-                try:
-                    self.update_game_by_id(game_id)
-                except ValueError:
-                    self.game_store.add_games(games_db.get_games_by_ids([game_id]))
-
-            for game_id in removed_games:
-                self.update_game_by_id(game_id)
-            self.sidebar.update()
-
-        for service in get_services_synced_at_startup():
-            AsyncCall(full_sync, on_sync_complete, service.SYNCER)
 
     def set_dark_theme(self):
         """Enables or disbales dark theme"""

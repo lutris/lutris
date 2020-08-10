@@ -65,9 +65,7 @@ class SteamGame(ServiceGame):
 
 
 class SteamSyncer:
-
     """Sync Steam games to the local library"""
-    platform = "linux"
 
     def __init__(self):
         self._lutris_games = None
@@ -92,15 +90,17 @@ class SteamSyncer:
             self._lutris_steamids = {str(game["steamid"]) for game in self.lutris_games}
         return self._lutris_steamids
 
-    def load(self):
+    @classmethod
+    def load(cls):
         """Return importable Steam games"""
         games = []
         steamapps_paths = get_steamapps_paths()
-        for steamapps_path in steamapps_paths[self.platform]:
-            for appmanifest_file in get_appmanifests(steamapps_path):
-                app_manifest = AppManifest(os.path.join(steamapps_path, appmanifest_file))
-                if SteamGame.is_importable(app_manifest):
-                    games.append(SteamGame.new_from_steam_game(app_manifest))
+        for platform in ('linux', 'windows'):
+            for steamapps_path in steamapps_paths[platform]:
+                for appmanifest_file in get_appmanifests(steamapps_path):
+                    app_manifest = AppManifest(os.path.join(steamapps_path, appmanifest_file))
+                    if SteamGame.is_importable(app_manifest):
+                        games.append(SteamGame.new_from_steam_game(app_manifest))
         return games
 
     def get_pga_game(self, game):
