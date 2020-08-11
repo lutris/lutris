@@ -16,15 +16,9 @@ class ServiceGame:
         self.runner = None  # Name of the runner
         self.name = None  # Name
         self.slug = None  # Game slug
-        self.icon = None  # Game icon / logo
+        self.logo = None  # Game logo
+        self.icon = None  # Game icon
         self.details = None  # Additional details for the game
-
-    @classmethod
-    def new_from_lutris_id(cls, game_id):
-        """Create a ServiceGame from its Lutris ID"""
-        service_game = cls()
-        service_game.game_id = game_id
-        return service_game
 
     @property
     def config_id(self):

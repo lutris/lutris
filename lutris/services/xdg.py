@@ -99,26 +99,6 @@ class XDGSyncer:
 
     ignored_games = (
         "lutris",
-        "mame",
-        "dosbox",
-        "playonlinux",
-        "org.gnome.Games",
-        "com.github.tkashkin.gamehub",
-        "retroarch",
-        "steam",
-        "steam-runtime",
-        "steam-valve",
-        "steam-native",
-        "PlayOnLinux",
-        "fs-uae-arcade",
-        "PCSX2",
-        "ppsspp",
-        "qchdman",
-        "qmc2-sdlmame",
-        "qmc2-arcade",
-        "sc-controller",
-        "epsxe",
-        "lsi-settings",
     )
     ignored_executables = ("lutris", "steam")
     ignored_categories = ("Emulator", "Development", "Utility")
@@ -167,36 +147,6 @@ class XDGSyncer:
     def load(cls):
         """Return the list of games stored in the XDG menu."""
         return [XDGGame.new_from_xdg_app(app) for app in cls.iter_xdg_games()]
-
-    def sync(self, games, full=False):
-        """Sync the given games to the lutris library
-
-        Params:
-            games (list): List of ServiceGames to sync
-            full (bool): Run a full sync, removes games not found from the lutris library
-
-        Return:
-            tuple: 2-tuple of added and removed game ID lists
-        """
-        installed_games = {game["slug"]: game for game in self.lutris_games}
-        available_games = set()
-        added_games = []
-        removed_games = []
-        for xdg_game in games:
-            available_games.add(xdg_game.slug)
-            if xdg_game.slug not in installed_games.keys():
-                game_id = xdg_game.install()
-                added_games.append(game_id)
-
-        if not full:
-            return added_games, games
-
-        for slug in set(installed_games.keys()).difference(available_games):
-            game_id = installed_games[slug]["id"]
-            removed_games.append(game_id)
-            service_game = XDGGame.new_from_lutris_id(game_id)
-            service_game.uninstall()
-        return added_games, removed_games
 
 
 SYNCER = XDGSyncer

@@ -95,14 +95,14 @@ DATABASE = {
             "type": "INTEGER"
         },
     ],
-    "store_games": [
+    "service_games": [
         {
             "name": "id",
             "type": "INTEGER",
             "indexed": True
         },
         {
-            "name": "store",
+            "name": "service",
             "type": "TEXT"
         },
         {
@@ -115,6 +115,10 @@ DATABASE = {
         },
         {
             "name": "slug",
+            "type": "TEXT"
+        },
+        {
+            "name": "icon",
             "type": "TEXT"
         },
         {
