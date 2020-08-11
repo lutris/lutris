@@ -43,7 +43,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     __gtype_name__ = "LutrisWindow"
     __gsignals__ = {
-        "view-updated": (GObject.SIGNAL_RUN_LAST, None, ()),
+        "view-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     main_box = GtkTemplate.Child()
@@ -217,7 +217,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_load(self, widget, data):
         self.game_store = self.get_store()
-        # self.game_store.load()
         self.switch_view()
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         self.update_runtime()
@@ -326,22 +325,20 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return self.filters["text"] in game["name"].lower()
 
     def get_games_from_filters(self):
-        self.service = None
         if "dynamic_category" in self.filters:
             category = self.filters["dynamic_category"]
-            if category.startswith("lutris.services"):
-                self.service = category.rsplit(".", 1)[-1]
-                if self.service in self.service_games:
+            if category in services.get_services():
+                if category in self.service_games:
                     return [
                         game for game in sorted(
-                            [service_game.as_dict() for service_game in self.service_games[self.service]],
+                            [service_game.as_dict() for service_game in self.service_games[category]],
                             key=lambda game: game[self.view_sorting] or game["name"],
                             reverse=not self.view_sorting_ascending
                         ) if self.game_matches(game)
                     ]
-                service = services.import_service(self.service)
-                syncer = service.SYNCER()
-                AsyncCall(syncer.load, self.on_service_games_loaded)
+                self.service = services.get_services()[category]()
+                AsyncCall(self.service.load, self.on_service_games_loaded)
+                logger.debug("Fetching %s games in the background", category)
                 return
             game_providers = {
                 "running": self.get_running_games,
@@ -372,30 +369,32 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             sorts=self.sort_params
         )
         logger.info("Returned %s games from %s, %s", len(games), self.filters, self.view_sorting)
+        self.service = None
         return games
 
     def on_service_games_loaded(self, results, error):
         if error:
             logger.error("Failed to load service games: %s", error)
             return
-        self.service_games[self.service] = results
+        self.service_games[self.service.id] = results
         self.emit("view-updated")
+        return False
 
     def get_store(self):
         """Return an instance of the game store"""
         return GameStore([], self.icon_type)
 
     def update_store(self, *_args, **_kwargs):
+        logger.debug("Updating store...")
         self.game_store.games = []
         self.game_store.store.clear()
         games = self.get_games_from_filters()
 
-        self.view.service = self.service
+        self.view.service = self.service.id if self.service else None
         if self.service:
             for child in self.search_revealer.get_children():
                 child.destroy()
-            service = services.import_service(self.service)
-            service_box = ServiceSyncBox(service)
+            service_box = ServiceSyncBox(self.service)
             service_box.show()
             self.search_revealer.add(service_box)
             self.search_revealer.set_reveal_child(True)
@@ -517,7 +516,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             settings.write_setting("view_type", view_type)
 
         self.view.show_all()
-        self.emit("view-updated")
+        self.update_store()
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
@@ -726,10 +725,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_panel_closed(self, panel):
         self.game_selection_changed(panel, None)
-
-    def update_game(self, slug):
-        for pga_game in games_db.get_games_where(slug=slug):
-            self.game_store.update(pga_game)
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):

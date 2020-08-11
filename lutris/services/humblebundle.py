@@ -73,6 +73,10 @@ class HumbleBundleService(OnlineService):
         dialog.set_modal(True)
         dialog.show()
 
+    def is_connected(self):
+        """Is the service connected?"""
+        return self.is_authenticated()
+
     def load(self):
         """Load the user's Humble Bundle library"""
         humble_games = []
