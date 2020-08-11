@@ -5,10 +5,9 @@ import time
 from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
 
-from lutris import api, settings
-from lutris.database.games import add_or_update, get_game_by_field
+from lutris import settings
+from lutris.exceptions import AuthenticationError, MultipleInstallerError, UnavailableGame
 from lutris.gui.dialogs import WebConnectDialog
-from lutris.services import AuthenticationError, UnavailableGame
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.util import system
@@ -16,22 +15,16 @@ from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.resources import download_media
 
-NAME = _("GOG")
-ICON = "gog"
-ONLINE = True
 
-
-class MultipleInstallerError(BaseException):
-
-    """Current implementation doesn't know how to deal with multiple installers
-    Raise this if a game returns more than 1 installer."""
-
-
-class GogService(OnlineService):
+class GOGService(OnlineService):
 
     """Service class for GOG"""
 
-    name = "GOG"
+    id = "gog"
+    name = _("GOG")
+    icon = "gog"
+    online = True
+
     embed_url = "https://embed.gog.com"
     api_url = "https://api.gog.com"
 
@@ -59,12 +52,23 @@ class GogService(OnlineService):
     def credential_files(self):
         return [self.cookies_path, self.token_path]
 
-    def is_available(self):
+    def connect(self, parent=None):
+        """Connect to GOG"""
+        logger.debug("Connecting to GOG")
+        dialog = WebConnectDialog(self, parent)
+        dialog.set_modal(True)
+        dialog.show()
+
+    def is_connected(self):
         """Return whether the user is authenticated and if the service is available"""
         if not self.is_authenticated():
             return False
         user_data = self.get_user_data()
         return user_data and "username" in user_data
+
+    def load(self):
+        """Load the user game library from the GOG API"""
+        return [GOGGame.new_from_gog_game(game) for game in self.get_library()]
 
     def request_token(self, url="", refresh_token=""):
         """Get authentication token from GOG"""
@@ -176,6 +180,9 @@ class GogService(OnlineService):
             json.dump(games, gog_cache)
         return games
 
+    def get_service_game(self, gog_game):
+        return GOGGame.new_from_gog_game(gog_game)
+
     def get_products_page(self, page=1, search=None):
         """Return a single page of games"""
         if not self.is_authenticated():
@@ -266,34 +273,13 @@ class GOGGame(ServiceGame):
         return cache_path
 
 
-SERVICE = GogService()
-
-
-def is_connected():
-    """Return True if user is connected to GOG"""
-    return SERVICE.is_available()
-
-
-def connect(parent=None):
-    """Connect to GOG"""
-    logger.debug("Connecting to GOG")
-    dialog = WebConnectDialog(SERVICE, parent)
-    dialog.set_modal(True)
-    dialog.show()
-
-
-def disconnect():
-    """Disconnect from GOG"""
-    SERVICE.disconnect()
-
-
 def get_gog_download_links(gogid, runner):
     """Return a list of downloadable links for a GOG game"""
-    gog_service = GogService()
-    if not gog_service.is_available():
+    gog_service = GOGService()
+    if not gog_service.is_connected():
         logger.info("You are not connected to GOG")
-        connect()
-    if not gog_service.is_available():
+        gog_service.connect()
+    if not gog_service.is_connected():
         raise UnavailableGame
     gog_installers = gog_service.get_installers(gogid, runner)
     if len(gog_installers) > 1:
@@ -314,15 +300,3 @@ def get_gog_download_links(gogid, runner):
             logger.info("Adding %s to download links", url)
             download_links.append({"url": download_info[field], "filename": download_info[field + "_filename"]})
     return download_links
-
-
-class GOGSyncer:
-
-    """Sync GOG games to Lutris"""
-
-    @classmethod
-    def load(cls):
-        """Load the user game library from the GOG API"""
-        return [GOGGame.new_from_gog_game(game) for game in SERVICE.get_library()]
-
-SYNCER = GOGSyncer

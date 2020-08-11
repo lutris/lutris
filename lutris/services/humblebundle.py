@@ -13,10 +13,6 @@ from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.resources import download_media
 
-NAME = _("Humble Bundle")
-ICON = "humblebundle"
-ONLINE = True
-
 
 class HumbleBundleGame(ServiceGame):
 
@@ -53,7 +49,11 @@ class HumbleBundleService(OnlineService):
 
     """Service for Humble Bundle"""
 
-    name = NAME
+    id = "humblebundle"
+    name = _("Humble Bundle")
+    icon = "humblebundle"
+    online = True
+
     api_url = "https://www.humblebundle.com/"
     login_url = "https://www.humblebundle.com/login?goto=/home/library"
     redirect_uri = "https://www.humblebundle.com/home/library"
@@ -66,6 +66,23 @@ class HumbleBundleService(OnlineService):
 
     def request_token(self, url="", refresh_token=""):
         """Dummy function, should not be here. Fix in WebConnectDialog"""
+
+    def connect(self, parent=None):
+        """Connect to Humble Bundle"""
+        dialog = WebConnectDialog(self, parent)
+        dialog.set_modal(True)
+        dialog.show()
+
+    def load(self):
+        """Load the user's Humble Bundle library"""
+        humble_games = []
+        seen = set()
+        for game in self.get_library():
+            if game["human_name"] in seen:
+                continue
+            humble_games.append(HumbleBundleGame.new_from_humble_game(game))
+            seen.add(game["human_name"])
+        return humble_games
 
     def make_api_request(self, url):
         """Make an authenticated request to the Humble API"""
@@ -153,26 +170,6 @@ class HumbleBundleService(OnlineService):
         return download_links
 
 
-SERVICE = HumbleBundleService()
-
-
-def is_connected():
-    """Is the service connected?"""
-    return SERVICE.is_authenticated()
-
-
-def connect(parent=None):
-    """Connect to Humble Bundle"""
-    dialog = WebConnectDialog(SERVICE, parent)
-    dialog.set_modal(True)
-    dialog.show()
-
-
-def disconnect():
-    """Disconnect from Humble Bundle"""
-    return SERVICE.disconnect()
-
-
 def pick_download_url_from_download_info(download_info):
     """From a list of downloads in Humble Bundle, pick the most appropriate one
     for the installer.
@@ -192,38 +189,18 @@ def pick_download_url_from_download_info(download_info):
 
 def get_humble_download_link(humbleid, runner):
     """Return a download link for a given humbleid and runner"""
+    service = HumbleBundleService()
     platform = runner if runner != "wine" else "windows"
-    downloads = SERVICE.get_downloads(humbleid, platform)
+    downloads = service.get_downloads(humbleid, platform)
     if not downloads:
         logger.error("Game %s for %s not found in the Humble Bundle library", humbleid, platform)
         return
     logger.info("Found %s download for %s", len(downloads), humbleid)
     download = downloads[0]
     logger.info("Reloading order %s", download["product"]["human_name"])
-    os.remove(SERVICE.order_path(download["gamekey"]))
-    order = SERVICE.get_order(download["gamekey"])
-    download_info = SERVICE.find_download_in_order(order, humbleid, platform)
+    os.remove(service.order_path(download["gamekey"]))
+    order = service.get_order(download["gamekey"])
+    download_info = service.find_download_in_order(order, humbleid, platform)
     if download_info:
         return pick_download_url_from_download_info(download_info)
     logger.warning("Couldn't retrieve any downloads for %s", humbleid)
-
-
-class HumbleBundleSyncer:
-
-    """Sync DRM-Free Humble Bundle games to the local library"""
-
-    @classmethod
-    def load(cls):
-        """Load the user's Humble Bundle library"""
-        humble_games = []
-        seen = set()
-        for game in SERVICE.get_library():
-            if game["human_name"] in seen:
-                continue
-            humble_games.append(HumbleBundleGame.new_from_humble_game(game))
-            seen.add(game["human_name"])
-        print("returning %s humble games" % len(humble_games))
-        return humble_games
-
-
-SYNCER = HumbleBundleSyncer

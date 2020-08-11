@@ -9,10 +9,6 @@ from lutris.services.service_game import ServiceGame
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 
-NAME = _("Steam")
-ICON = "steam"
-ONLINE = False
-
 
 class SteamGame(ServiceGame):
 
@@ -58,8 +54,12 @@ class SteamGame(ServiceGame):
         game_config.save()
 
 
-class SteamSyncer:
-    """Sync Steam games to the local library"""
+class SteamService:
+
+    id = "steam"
+    name = _("Steam")
+    icon = "steam"
+    online = False
 
     def __init__(self):
         self._lutris_games = None
@@ -100,25 +100,3 @@ class SteamSyncer:
                 and (pga_game["runner"] == game.runner or not pga_game["runner"]) and not pga_game["installed"]
             ):
                 return pga_game
-
-    def sync(self, games, full=False):
-        """Syncs Steam games to Lutris"""
-        available_ids = set()  # Set of Steam appids seen while browsing AppManifests
-        added_games = []
-        for game in games:
-            steamid = game.appid
-            available_ids.add(steamid)
-            pga_game = self.get_pga_game(game)
-
-            if pga_game:
-                if (steamid in self.lutris_steamids and pga_game["installed"] != 1 and pga_game["installed"]):
-                    added_games.append(game.install())
-
-        if not full:
-            return added_games, games
-
-        removed_games = []
-        return (added_games, removed_games)
-
-
-SYNCER = SteamSyncer

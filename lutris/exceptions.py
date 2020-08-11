@@ -33,6 +33,20 @@ class UnavailableLibraries(RuntimeError):
         self.libraries = libraries
 
 
+class AuthenticationError(Exception):
+    """Raised when authentication to a service fails"""
+
+
+class UnavailableGame(Exception):
+    """Raised when a game is available from a service"""
+
+
+class MultipleInstallerError(BaseException):
+
+    """Current implementation doesn't know how to deal with multiple installers
+    Raise this if a game returns more than 1 installer."""
+
+
 def watch_lutris_errors(function):
     """Decorator used to catch LutrisError exceptions and send events"""
 
