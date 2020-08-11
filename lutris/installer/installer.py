@@ -7,10 +7,10 @@ import yaml
 from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.database.games import add_or_update, get_game_by_field
+from lutris.exceptions import UnavailableGame
 from lutris.game import Game
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
-from lutris.services import UnavailableGame
 from lutris.services.gog import MultipleInstallerError, get_gog_download_links
 from lutris.services.humblebundle import get_humble_download_link
 from lutris.util import system

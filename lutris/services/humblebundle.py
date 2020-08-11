@@ -17,7 +17,7 @@ from lutris.util.resources import download_media
 class HumbleBundleGame(ServiceGame):
 
     """Service game for DRM free Humble Bundle games"""
-    store = "humblebundle"
+    service = "humblebundle"
 
     @classmethod
     def new_from_humble_game(cls, humble_game):
@@ -30,9 +30,9 @@ class HumbleBundleGame(ServiceGame):
         return service_game
 
     @classmethod
-    def get_icon(cls, gog_game):
+    def get_icon(cls, humble_game):
         """Download the icon for the game and return the local path"""
-        icon_url = gog_game["icon"]
+        icon_url = humble_game["icon"]
         cache_dir = os.path.join(settings.CACHE_DIR, "humblebundle/icons/")
         if not system.path_exists(cache_dir):
             os.makedirs(cache_dir)
@@ -67,11 +67,12 @@ class HumbleBundleService(OnlineService):
     def request_token(self, url="", refresh_token=""):
         """Dummy function, should not be here. Fix in WebConnectDialog"""
 
-    def connect(self, parent=None):
+    def login(self, parent=None):
         """Connect to Humble Bundle"""
         dialog = WebConnectDialog(self, parent)
         dialog.set_modal(True)
         dialog.show()
+        self.emit("service-login", self.id)
 
     def is_connected(self):
         """Is the service connected?"""
@@ -86,7 +87,9 @@ class HumbleBundleService(OnlineService):
                 continue
             humble_games.append(HumbleBundleGame.new_from_humble_game(game))
             seen.add(game["human_name"])
-        return humble_games
+        for game in humble_games:
+            game.save()
+        self.emit("service-games-loaded", self.id)
 
     def make_api_request(self, url):
         """Make an authenticated request to the Humble API"""
@@ -95,7 +98,7 @@ class HumbleBundleService(OnlineService):
             request.get()
         except HTTPError:
             logger.error(
-                "Failed to request %s, check your GOG credentials and internet connectivity",
+                "Failed to request %s, check your Humble Bundle credentials and internet connectivity",
                 url,
             )
             return
@@ -107,7 +110,7 @@ class HumbleBundleService(OnlineService):
 
     def get_order(self, gamekey):
         """Retrieve an order identitied by its key"""
-        logger.debug("Getting Humble Bundle order %s", gamekey)
+        # logger.debug("Getting Humble Bundle order %s", gamekey)
         cache_filename = self.order_path(gamekey)
         if os.path.exists(cache_filename):
             with open(cache_filename) as cache_file:

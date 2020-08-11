@@ -1,17 +1,38 @@
 """Generic service utilities"""
-# Standard Library
 import os
 import shutil
 
-# Lutris Modules
+from gi.repository import GObject
+
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
 
 
-class OnlineService:
+class BaseService(GObject.Object):
+    """Base class for local services"""
+    id = NotImplemented
+    name = NotImplemented
+    icon = NotImplemented
+    online = False
 
+    __gsignals__ = {
+        "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+    }
+
+
+class OnlineService(GObject.Object):
     """Base class for online gaming services"""
 
+    __gsignals__ = {
+        "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "service-login": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "service-logout": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+    }
+
+    id = NotImplemented
+    name = NotImplemented
+    icon = NotImplemented
+    online = True
     cookies_path = NotImplemented
     cache_path = NotImplemented
 
@@ -32,7 +53,7 @@ class OnlineService:
         elif os.path.exists(self.cache_path):
             os.remove(self.cache_path)
 
-    def disconnect(self):
+    def logout(self):
         """Disconnect from the service by removing all credentials"""
         self.wipe_game_cache()
         for auth_file in self.credential_files:
@@ -40,6 +61,7 @@ class OnlineService:
                 os.remove(auth_file)
             except OSError:
                 logger.warning("Unable to remove %s", auth_file)
+        self.emit("service-logout", self.id)
 
     def load_cookies(self):
         """Load cookies from disk"""

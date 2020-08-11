@@ -9,6 +9,7 @@ from gi.repository import Gio
 
 from lutris.config import LutrisConfig
 from lutris.database.games import get_games_where
+from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.util import system
 from lutris.util.log import logger
@@ -27,7 +28,7 @@ def get_appid(app):
         return app.get_executable()
 
 
-class XDGService():
+class XDGService(BaseService):
 
     id = "xdg"
     name = _("Desktop games")
@@ -80,17 +81,19 @@ class XDGService():
             return False
         return True
 
-    @classmethod
-    def load(cls):
+    def load(self):
         """Return the list of games stored in the XDG menu."""
-        return [XDGGame.new_from_xdg_app(app) for app in cls.iter_xdg_games()]
+        xdg_games = [XDGGame.new_from_xdg_app(app) for app in self.iter_xdg_games()]
+        for game in xdg_games:
+            game.save()
+        self.emit("service-games-loaded", self.id)
 
 
 class XDGGame(ServiceGame):
 
     """XDG game (Linux game with a desktop launcher)"""
 
-    store = "xdg"
+    service = "xdg"
     runner = "linux"
     installer_slug = "desktopapp"
 
