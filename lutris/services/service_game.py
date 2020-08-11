@@ -1,13 +1,17 @@
 """Communicates between third party services games and Lutris games"""
+from lutris import settings
+from lutris.database import sql
 from lutris.database.games import add_or_update
 from lutris.util.strings import slugify
+
+PGA_DB = settings.PGA_DB
 
 
 class ServiceGame:
 
     """Representation of a game from a 3rd party service"""
 
-    store = NotImplemented
+    service = NotImplemented
     installer_slug = NotImplemented
 
     def __init__(self):
@@ -65,6 +69,19 @@ class ServiceGame:
 
     def create_config(self):
         """Implement this in subclasses to properly create the game config"""
+
+    def save(self):
+        """Save this game to database"""
+        game_data = {
+            "service": self.service,
+            "appid": self.appid,
+            "name": self.name,
+            "slug": self.slug,
+            "icon": self.icon,
+            "logo": self.logo,
+            "details": str(self.details),
+        }
+        sql.db_insert(PGA_DB, "service_games", game_data)
 
     def as_dict(self):
         """Return the data in a format compatible with lutris views"""

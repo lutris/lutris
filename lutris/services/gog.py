@@ -23,7 +23,6 @@ class GOGService(OnlineService):
     id = "gog"
     name = _("GOG")
     icon = "gog"
-    online = True
 
     embed_url = "https://embed.gog.com"
     api_url = "https://api.gog.com"
@@ -52,12 +51,13 @@ class GOGService(OnlineService):
     def credential_files(self):
         return [self.cookies_path, self.token_path]
 
-    def connect(self, parent=None):
+    def login(self, parent=None):
         """Connect to GOG"""
         logger.debug("Connecting to GOG")
         dialog = WebConnectDialog(self, parent)
         dialog.set_modal(True)
         dialog.show()
+        self.emit("service-login", self.id)
 
     def is_connected(self):
         """Return whether the user is authenticated and if the service is available"""
@@ -68,7 +68,10 @@ class GOGService(OnlineService):
 
     def load(self):
         """Load the user game library from the GOG API"""
-        return [GOGGame.new_from_gog_game(game) for game in self.get_library()]
+        games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
+        for game in games:
+            game.save()
+        self.emit("service-games-loaded", self.id)
 
     def request_token(self, url="", refresh_token=""):
         """Get authentication token from GOG"""
@@ -101,7 +104,7 @@ class GOGService(OnlineService):
         except HTTPError:
             logger.error("Failed to get token, check your GOG credentials.")
             logger.warning("Clearing existing credentials")
-            self.disconnect()
+            self.logout()
             return
 
         token = request.json
@@ -186,7 +189,7 @@ class GOGService(OnlineService):
     def get_products_page(self, page=1, search=None):
         """Return a single page of games"""
         if not self.is_authenticated():
-            raise RuntimeError("User is not logged in")
+            raise AuthenticationError("User is not logged in")
         params = {"mediaType": "1"}
         if page:
             params["page"] = page
@@ -245,7 +248,7 @@ class GOGService(OnlineService):
 class GOGGame(ServiceGame):
 
     """Representation of a GOG game"""
-    store = "gog"
+    service = "gog"
 
     @classmethod
     def new_from_gog_game(cls, gog_game):
@@ -278,7 +281,7 @@ def get_gog_download_links(gogid, runner):
     gog_service = GOGService()
     if not gog_service.is_connected():
         logger.info("You are not connected to GOG")
-        gog_service.connect()
+        gog_service.login()
     if not gog_service.is_connected():
         raise UnavailableGame
     gog_installers = gog_service.get_installers(gogid, runner)

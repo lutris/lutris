@@ -5,6 +5,7 @@ from gettext import gettext as _
 
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.database.games import get_games_where
+from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
@@ -14,7 +15,7 @@ class SteamGame(ServiceGame):
 
     """ServiceGame for Steam games"""
 
-    store = "steam"
+    service = "steam"
     installer_slug = "steam"
     excluded_appids = [
         "228980",  # Steamworks Common Redistributables
@@ -54,7 +55,7 @@ class SteamGame(ServiceGame):
         game_config.save()
 
 
-class SteamService:
+class SteamService(BaseService):
 
     id = "steam"
     name = _("Steam")
@@ -62,6 +63,7 @@ class SteamService:
     online = False
 
     def __init__(self):
+        super().__init__()
         self._lutris_games = None
         self._lutris_steamids = None
 
@@ -79,8 +81,7 @@ class SteamService:
             self._lutris_steamids = {str(game["steamid"]) for game in self.lutris_games}
         return self._lutris_steamids
 
-    @classmethod
-    def load(cls):
+    def load(self):
         """Return importable Steam games"""
         games = []
         steamapps_paths = get_steamapps_paths()
@@ -90,7 +91,9 @@ class SteamService:
                     app_manifest = AppManifest(os.path.join(steamapps_path, appmanifest_file))
                     if SteamGame.is_importable(app_manifest):
                         games.append(SteamGame.new_from_steam_game(app_manifest))
-        return games
+        for game in games:
+            game.save()
+        self.emit("service-games-loaded", self.id)
 
     def get_pga_game(self, game):
         """Return a PGA game if one is found"""

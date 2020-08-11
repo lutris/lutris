@@ -9,6 +9,7 @@ from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 from lutris import api, services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
@@ -319,6 +320,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             game["playtime"] = None
         return api_games
 
+    def add_view_fields(self, game):
+        game["year"] = game.get("year")
+        game["installed"] = 1
+        game["runner"] = None
+        game["platform"] = None
+        game["lastplayed"] = None
+        game["installed_at"] = None
+        game["playtime"] = None
+        return game
+
     def game_matches(self, game):
         if not self.filters.get("text"):
             return True
@@ -328,17 +339,34 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if "dynamic_category" in self.filters:
             category = self.filters["dynamic_category"]
             if category in services.get_services():
-                if category in self.service_games:
+                service_games = ServiceGameCollection.get_for_service(category)
+                if service_games:
                     return [
                         game for game in sorted(
-                            [service_game.as_dict() for service_game in self.service_games[category]],
+                            [self.add_view_fields(game) for game in service_games],
                             key=lambda game: game[self.view_sorting] or game["name"],
                             reverse=not self.view_sorting_ascending
                         ) if self.game_matches(game)
                     ]
                 self.service = services.get_services()[category]()
-                AsyncCall(self.service.load, self.on_service_games_loaded)
-                logger.debug("Fetching %s games in the background", category)
+                if self.service.online:
+                    print(self.service.name)
+                    self.service.connect("service-login", self.on_service_games_updated)
+                    self.service.connect("service-logout", self.on_service_games_updated)
+                self.service.connect("service-games-loaded", self.on_service_games_updated)
+
+                if not self.service.online or self.service.is_connected():
+                    AsyncCall(self.service.load, None)
+                    logger.debug("Fetching %s games in the background", category)
+                    spinner = Gtk.Spinner(visible=True)
+                    spinner.start()
+                    self.blank_overlay.add(spinner)
+                    self.blank_overlay.props.visible = True
+                else:
+                    self.blank_overlay.add(
+                        Gtk.Label(_("Connect your %s account to access your games") % self.service.name, visible=True)
+                    )
+                    self.blank_overlay.props.visible = True
                 return
             game_providers = {
                 "running": self.get_running_games,
@@ -372,11 +400,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.service = None
         return games
 
-    def on_service_games_loaded(self, results, error):
-        if error:
-            logger.error("Failed to load service games: %s", error)
-            return
-        self.service_games[self.service.id] = results
+    def on_service_games_updated(self, *args, **kwargs):
+        logger.debug("Service games updated")
         self.emit("view-updated")
         return False
 
@@ -388,8 +413,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         logger.debug("Updating store...")
         self.game_store.games = []
         self.game_store.store.clear()
+        for child in self.blank_overlay.get_children():
+            child.destroy()
         games = self.get_games_from_filters()
-
         self.view.service = self.service.id if self.service else None
         if self.service:
             for child in self.search_revealer.get_children():
@@ -400,13 +426,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.search_revealer.set_reveal_child(True)
         else:
             self.search_revealer.set_reveal_child(False)
-        for child in self.blank_overlay.get_children():
-            child.destroy()
         if games is None:
-            spinner = Gtk.Spinner(visible=True)
-            spinner.start()
-            self.blank_overlay.add(spinner)
-            self.blank_overlay.props.visible = True
             self.search_spinner.props.active = True
             return False
         for game in games:

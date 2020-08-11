@@ -1,10 +1,11 @@
 """Widget to connect to third party services"""
 from gettext import gettext as _
 
-from gi.repository import GObject, Gtk
+from gi.repository import Gtk
 
 from lutris.gui.widgets.utils import get_icon
 from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
 
 
 class ServiceSyncBox(Gtk.Box):
@@ -16,12 +17,6 @@ class ServiceSyncBox(Gtk.Box):
     COL_ICON = 3
     COL_DETAILS = 4
     MARGIN = 8
-
-    __gsignals__ = {
-        "service-connected": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-        "service-disconnected": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-        "service-refresh": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-    }
 
     def __init__(self, service):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
@@ -83,9 +78,11 @@ class ServiceSyncBox(Gtk.Box):
         if self.service.is_connected():
             # Disable sync on disconnect
             self.emit("service-disconnected", self.identifier)
+            logger.debug("Disconnecting from %s", self.identifier)
             self._connect_button_toggle()
             self.service.disconnect()
         else:
+            logger.debug("Connecting to %s", self.identifier)
             self.emit("service-connected", self.identifier)
             self._connect_button_toggle()
             self.service.connect()
