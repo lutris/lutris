@@ -179,13 +179,15 @@ class LutrisSidebar(Gtk.ListBox):
                 Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
             )
         )
-        for service in services.get_services():
+        service_classes = services.get_services()
+        for service_name in service_classes:
+            service = service_classes[service_name]()
             self.add(
                 SidebarRow(
-                    service.__name__,
+                    service.id,
                     "dynamic_category",
-                    service.NAME,
-                    Gtk.Image.new_from_icon_name(service.ICON, Gtk.IconSize.MENU)
+                    service.name,
+                    Gtk.Image.new_from_icon_name(service.icon, Gtk.IconSize.MENU)
                 )
             )
 

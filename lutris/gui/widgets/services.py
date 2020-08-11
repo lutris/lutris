@@ -32,18 +32,18 @@ class ServiceSyncBox(Gtk.Box):
         self.set_margin_bottom(self.MARGIN)
 
         self.service = service
-        self.identifier = service.__name__.split(".")[-1]
+        self.identifier = service.id
         self.is_connecting = False
-        self.name = service.NAME
+        self.name = service.name
 
-        service_logo = get_icon(self.service.ICON, size=(24, 24)) or Gtk.Label(self.name)
+        service_logo = get_icon(self.service.icon, size=(24, 24)) or Gtk.Label(self.name)
         service_logo.show()
         self.pack_start(service_logo, False, False, self.MARGIN)
 
         self.connect_button = Gtk.Button()
         self.connect_button.connect("clicked", self.on_connect_clicked)
 
-        if service.ONLINE:
+        if self.service.online:
             self.refresh_button = Gtk.Button()
             self.refresh_button.connect("clicked", self.on_refresh_clicked)
             self.refresh_button.set_tooltip_text(_("Reload"))
@@ -52,13 +52,13 @@ class ServiceSyncBox(Gtk.Box):
             self.pack_end(self.connect_button, False, False, 0)
 
         self.show_all()
-        if self.service.ONLINE:
+        if self.service.online:
             AsyncCall(self._connect_button_toggle, None)
 
     def get_content_widget(self):
         center_alignment = Gtk.Alignment()
         center_alignment.set(0.5, 0.5, 0.1, 0.1)
-        if self.service.ONLINE and not self.is_connecting:
+        if self.service.online and not self.is_connecting:
             service_label = Gtk.Label(_("Connect to %s to import your library.") % self.name)
             service_label.set_justify(Gtk.Justification.CENTER)
 
@@ -106,18 +106,10 @@ class ServiceSyncBox(Gtk.Box):
 
     def load_games(self, force_reload=False):
         """Load the list of games in a treeview"""
-        if self.service.ONLINE and not self.service.is_connected():
+        if self.service.online and not self.service.is_connected():
             return
         if force_reload:
-            self.service.SERVICE.wipe_game_cache()
+            self.service.wipe_game_cache()
 
         self.is_connecting = True
-        syncer = self.service.SYNCER()
-        AsyncCall(syncer.load, None)
-
-    def swap_content(self, old_widget, widget):
-        widget_position = self.child_get_property(old_widget, 'position')
-        old_widget.destroy()
-        old_widget = widget
-        self.pack_start(widget, True, True, 0)
-        self.reorder_child(widget, widget_position)
+        AsyncCall(self.service.load, None)
