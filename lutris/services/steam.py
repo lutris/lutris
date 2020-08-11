@@ -36,12 +36,6 @@ class SteamGame(ServiceGame):
         steam_game.runner = appmanifest.get_runner_name()
         return steam_game
 
-    @classmethod
-    def new_from_lutris_id(cls, game_id):
-        steam_game = SteamGame()
-        steam_game.game_id = game_id
-        return steam_game
-
     @property
     def config_id(self):
         return make_game_config_id(self.slug)

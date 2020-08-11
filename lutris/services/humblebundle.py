@@ -4,8 +4,7 @@ import os
 from gettext import gettext as _
 from urllib.parse import urlparse
 
-from lutris import api, settings
-from lutris.database.games import add_or_update
+from lutris import settings
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
@@ -225,27 +224,6 @@ class HumbleBundleSyncer:
             seen.add(game["human_name"])
         print("returning %s humble games" % len(humble_games))
         return humble_games
-
-    @classmethod
-    def sync(cls, games, full=True):
-        """Import Humble Bundle games to the library"""
-        humbleids = [game.appid for game in games]
-        if not humbleids:
-            return ([], [])
-        lutris_games = api.get_api_games(humbleids, query_type="humblestoreid")
-        added_games = []
-        for game in lutris_games:
-            game_data = {
-                "name": game["name"],
-                "slug": game["slug"],
-                "year": game["year"],
-                "updated": game["updated"],
-                "humblestoreid": game["humblestoreid"],
-            }
-            added_games.append(add_or_update(**game_data))
-        if not full:
-            return added_games, games
-        return added_games, []
 
 
 SYNCER = HumbleBundleSyncer
