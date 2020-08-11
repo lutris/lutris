@@ -14,10 +14,6 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
-NAME = _("Desktop games")
-ICON = "linux"
-ONLINE = False
-
 
 def get_appid(app):
     """Get the appid for the game"""
@@ -29,6 +25,65 @@ def get_appid(app):
             app,
         )
         return app.get_executable()
+
+
+class XDGService():
+
+    id = "xdg"
+    name = _("Desktop games")
+    icon = "linux"
+    online = False
+
+    ignored_games = (
+        "lutris",
+    )
+    ignored_executables = ("lutris", "steam")
+    ignored_categories = ("Emulator", "Development", "Utility")
+
+    @classmethod
+    def iter_xdg_games(cls):
+        """Iterates through XDG games only"""
+        for app in Gio.AppInfo.get_all():
+            if cls.is_importable(app):
+                yield app
+
+    @property
+    def lutris_games(self):
+        """Iterates through Lutris games imported from XDG"""
+        for game in get_games_where(runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1):
+            yield game
+
+    @classmethod
+    def is_importable(cls, app):
+        """Returns whether a XDG game is importable to Lutris"""
+        appid = get_appid(app)
+        executable = app.get_executable() or ""
+        if any(
+            [
+                app.get_nodisplay() or app.get_is_hidden(),  # App is hidden
+                not executable,  # Check app has an executable
+                appid.startswith("net.lutris"),  # Skip lutris created shortcuts
+                appid.lower() in map(str.lower, cls.ignored_games),  # game blacklisted
+                executable.lower() in cls.ignored_executables,  # exe blacklisted
+            ]
+        ):
+            return False
+
+        # must be in Game category
+        categories = app.get_categories() or ""
+        categories = list(filter(None, categories.lower().split(";")))
+        if "game" not in categories:
+            return False
+
+        # contains a blacklisted category
+        if bool([category for category in categories if category in map(str.lower, cls.ignored_categories)]):
+            return False
+        return True
+
+    @classmethod
+    def load(cls):
+        """Return the list of games stored in the XDG menu."""
+        return [XDGGame.new_from_xdg_app(app) for app in cls.iter_xdg_games()]
 
 
 class XDGGame(ServiceGame):
@@ -91,62 +146,3 @@ class XDGGame(ServiceGame):
     def get_slug(xdg_app):
         """Get the slug from the game name"""
         return slugify(xdg_app.get_display_name()) or slugify(get_appid(xdg_app))
-
-
-class XDGSyncer:
-
-    """Sync games available in a XDG compliant menu to Lutris"""
-
-    ignored_games = (
-        "lutris",
-    )
-    ignored_executables = ("lutris", "steam")
-    ignored_categories = ("Emulator", "Development", "Utility")
-
-    @classmethod
-    def iter_xdg_games(cls):
-        """Iterates through XDG games only"""
-        for app in Gio.AppInfo.get_all():
-            if cls.is_importable(app):
-                yield app
-
-    @property
-    def lutris_games(self):
-        """Iterates through Lutris games imported from XDG"""
-        for game in get_games_where(runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1):
-            yield game
-
-    @classmethod
-    def is_importable(cls, app):
-        """Returns whether a XDG game is importable to Lutris"""
-        appid = get_appid(app)
-        executable = app.get_executable() or ""
-        if any(
-            [
-                app.get_nodisplay() or app.get_is_hidden(),  # App is hidden
-                not executable,  # Check app has an executable
-                appid.startswith("net.lutris"),  # Skip lutris created shortcuts
-                appid.lower() in map(str.lower, cls.ignored_games),  # game blacklisted
-                executable.lower() in cls.ignored_executables,  # exe blacklisted
-            ]
-        ):
-            return False
-
-        # must be in Game category
-        categories = app.get_categories() or ""
-        categories = list(filter(None, categories.lower().split(";")))
-        if "game" not in categories:
-            return False
-
-        # contains a blacklisted category
-        if bool([category for category in categories if category in map(str.lower, cls.ignored_categories)]):
-            return False
-        return True
-
-    @classmethod
-    def load(cls):
-        """Return the list of games stored in the XDG menu."""
-        return [XDGGame.new_from_xdg_app(app) for app in cls.iter_xdg_games()]
-
-
-SYNCER = XDGSyncer
