@@ -4,8 +4,12 @@ import shutil
 
 from gi.repository import GObject
 
+from lutris import settings
+from lutris.database import sql
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
+
+PGA_DB = settings.PGA_DB
 
 
 class BaseService(GObject.Object):
@@ -19,19 +23,18 @@ class BaseService(GObject.Object):
         "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
     }
 
+    def wipe_game_cache(self):
+        sql.db_delete(PGA_DB, "service_games", "service", self.id)
 
-class OnlineService(GObject.Object):
+
+class OnlineService(BaseService):
     """Base class for online gaming services"""
 
     __gsignals__ = {
-        "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
         "service-login": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
         "service-logout": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
     }
 
-    id = NotImplemented
-    name = NotImplemented
-    icon = NotImplemented
     online = True
     cookies_path = NotImplemented
     cache_path = NotImplemented
@@ -52,6 +55,7 @@ class OnlineService(GObject.Object):
             shutil.rmtree(self.cache_path)
         elif os.path.exists(self.cache_path):
             os.remove(self.cache_path)
+        super().wipe_game_cache()
 
     def logout(self):
         """Disconnect from the service by removing all credentials"""
