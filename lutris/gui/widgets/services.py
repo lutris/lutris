@@ -72,20 +72,20 @@ class ServiceSyncBox(Gtk.Box):
         return center_alignment
 
     def on_refresh_clicked(self, _button):
-        self.emit("service-refresh", self.identifier)
+        self.service.wipe_game_cache()
+        self.service.load()
+        self.service.emit("service-games-loaded", self.service.id)
 
     def on_connect_clicked(self, _button):
         if self.service.is_connected():
             # Disable sync on disconnect
-            self.emit("service-disconnected", self.identifier)
             logger.debug("Disconnecting from %s", self.identifier)
             self._connect_button_toggle()
-            self.service.disconnect()
+            self.service.logout()
         else:
             logger.debug("Connecting to %s", self.identifier)
-            self.emit("service-connected", self.identifier)
             self._connect_button_toggle()
-            self.service.connect()
+            self.service.login()
         return False
 
     def _connect_button_toggle(self):

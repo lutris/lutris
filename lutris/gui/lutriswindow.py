@@ -339,6 +339,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if "dynamic_category" in self.filters:
             category = self.filters["dynamic_category"]
             if category in services.get_services():
+                self.service = services.get_services()[category]()
                 service_games = ServiceGameCollection.get_for_service(category)
                 if service_games:
                     return [
@@ -348,9 +349,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                             reverse=not self.view_sorting_ascending
                         ) if self.game_matches(game)
                     ]
-                self.service = services.get_services()[category]()
                 if self.service.online:
-                    print(self.service.name)
                     self.service.connect("service-login", self.on_service_games_updated)
                     self.service.connect("service-logout", self.on_service_games_updated)
                 self.service.connect("service-games-loaded", self.on_service_games_updated)
@@ -361,12 +360,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                     spinner = Gtk.Spinner(visible=True)
                     spinner.start()
                     self.blank_overlay.add(spinner)
-                    self.blank_overlay.props.visible = True
                 else:
                     self.blank_overlay.add(
                         Gtk.Label(_("Connect your %s account to access your games") % self.service.name, visible=True)
                     )
-                    self.blank_overlay.props.visible = True
+                self.blank_overlay.props.visible = True
                 return
             game_providers = {
                 "running": self.get_running_games,
