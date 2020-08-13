@@ -21,10 +21,12 @@ class BaseService(GObject.Object):
 
     __gsignals__ = {
         "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "service-games-cleared": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
     }
 
     def wipe_game_cache(self):
         sql.db_delete(PGA_DB, "service_games", "service", self.id)
+        self.emit("service-games-cleared", self.id)
 
 
 class OnlineService(BaseService):

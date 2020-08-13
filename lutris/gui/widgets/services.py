@@ -52,13 +52,12 @@ class ServiceSyncBox(Gtk.Box):
     def on_refresh_clicked(self, _button):
         logger.debug("Refreshing game list")
         self.service.wipe_game_cache()
-        self.service.load()
-        self.service.emit("service-games-loaded", self.service.id)
+        AsyncCall(self.service.load, None)
 
     def on_connect_clicked(self, _button):
         if self.service.is_connected():
             logger.debug("Disconnecting from %s", self.identifier)
-            self._connect_button_toggle()
+            AsyncCall(self._connect_button_toggle, None)
             self.service.logout()
         else:
             logger.debug("Connecting to %s", self.identifier)
