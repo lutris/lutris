@@ -66,13 +66,13 @@ class HumbleBundleService(OnlineService):
 
     def request_token(self, url="", refresh_token=""):
         """Dummy function, should not be here. Fix in WebConnectDialog"""
+        self.emit("service-login", self.id)
 
     def login(self, parent=None):
         """Connect to Humble Bundle"""
         dialog = WebConnectDialog(self, parent)
         dialog.set_modal(True)
         dialog.show()
-        self.emit("service-login", self.id)
 
     def is_connected(self):
         """Is the service connected?"""

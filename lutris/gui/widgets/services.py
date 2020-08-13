@@ -28,7 +28,6 @@ class ServiceSyncBox(Gtk.Box):
 
         self.service = service
         self.identifier = service.id
-        self.is_connecting = False
         self.name = service.name
 
         service_logo = get_icon(self.service.icon, size=(24, 24)) or Gtk.Label(self.name)
@@ -37,48 +36,27 @@ class ServiceSyncBox(Gtk.Box):
 
         self.connect_button = Gtk.Button()
         self.connect_button.connect("clicked", self.on_connect_clicked)
-
         if self.service.online:
-            self.refresh_button = Gtk.Button()
-            self.refresh_button.connect("clicked", self.on_refresh_clicked)
-            self.refresh_button.set_tooltip_text(_("Reload"))
-            self.refresh_button.set_image(Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.MENU))
-            self.pack_end(self.refresh_button, False, False, 0)
             self.pack_end(self.connect_button, False, False, 0)
+
+        self.refresh_button = Gtk.Button()
+        self.refresh_button.connect("clicked", self.on_refresh_clicked)
+        self.refresh_button.set_tooltip_text(_("Reload"))
+        self.refresh_button.set_image(Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.MENU))
+        self.pack_end(self.refresh_button, False, False, 0)
 
         self.show_all()
         if self.service.online:
             AsyncCall(self._connect_button_toggle, None)
 
-    def get_content_widget(self):
-        center_alignment = Gtk.Alignment()
-        center_alignment.set(0.5, 0.5, 0.1, 0.1)
-        if self.service.online and not self.is_connecting:
-            service_label = Gtk.Label(_("Connect to %s to import your library.") % self.name)
-            service_label.set_justify(Gtk.Justification.CENTER)
-
-            service_button = Gtk.Button(_("Connect your account"))
-            service_button.connect("clicked", self.on_connect_clicked)
-
-            service_box = Gtk.HBox()
-            service_box.add(service_label)
-            service_box.add(service_button)
-            center_alignment.add(service_box)
-        else:
-            spinner = Gtk.Spinner()
-            spinner.start()
-            center_alignment.add(spinner)
-        center_alignment.show_all()
-        return center_alignment
-
     def on_refresh_clicked(self, _button):
+        logger.debug("Refreshing game list")
         self.service.wipe_game_cache()
         self.service.load()
         self.service.emit("service-games-loaded", self.service.id)
 
     def on_connect_clicked(self, _button):
         if self.service.is_connected():
-            # Disable sync on disconnect
             logger.debug("Disconnecting from %s", self.identifier)
             self._connect_button_toggle()
             self.service.logout()
@@ -89,7 +67,6 @@ class ServiceSyncBox(Gtk.Box):
         return False
 
     def _connect_button_toggle(self):
-        self.is_connecting = False
         if self.service.is_connected():
             icon_name = "system-log-out-symbolic"
             label = _("Disconnect")
@@ -100,13 +77,3 @@ class ServiceSyncBox(Gtk.Box):
             self.refresh_button.hide()
         self.connect_button.set_tooltip_text(label)
         self.connect_button.set_image(Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU))
-
-    def load_games(self, force_reload=False):
-        """Load the list of games in a treeview"""
-        if self.service.online and not self.service.is_connected():
-            return
-        if force_reload:
-            self.service.wipe_game_cache()
-
-        self.is_connecting = True
-        AsyncCall(self.service.load, None)

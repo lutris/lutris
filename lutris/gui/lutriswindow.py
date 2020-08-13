@@ -351,7 +351,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                     ]
                 if self.service.online:
                     self.service.connect("service-login", self.on_service_games_updated)
-                    self.service.connect("service-logout", self.on_service_games_updated)
+                    self.service.connect("service-logout", self.on_service_logout)
                 self.service.connect("service-games-loaded", self.on_service_games_updated)
 
                 if not self.service.online or self.service.is_connected():
@@ -402,6 +402,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         logger.debug("Service games updated")
         self.emit("view-updated")
         return False
+
+    def on_service_logout(self, *args, **kwargs):
+        logger.debug("Service games logged out")
+        self.update_store()
+        return False
+
 
     def get_store(self):
         """Return an instance of the game store"""

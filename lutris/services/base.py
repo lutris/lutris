@@ -51,6 +51,7 @@ class OnlineService(BaseService):
 
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""
+        logger.debug("Wiping %s cache", self.id)
         if os.path.isdir(self.cache_path):
             shutil.rmtree(self.cache_path)
         elif os.path.exists(self.cache_path):
@@ -65,6 +66,7 @@ class OnlineService(BaseService):
                 os.remove(auth_file)
             except OSError:
                 logger.warning("Unable to remove %s", auth_file)
+        logger.debug("logged out from %s", self.id)
         self.emit("service-logout", self.id)
 
     def load_cookies(self):

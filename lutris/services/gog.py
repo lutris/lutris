@@ -57,7 +57,6 @@ class GOGService(OnlineService):
         dialog = WebConnectDialog(self, parent)
         dialog.set_modal(True)
         dialog.show()
-        self.emit("service-login", self.id)
 
     def is_connected(self):
         """Return whether the user is authenticated and if the service is available"""
@@ -110,6 +109,7 @@ class GOGService(OnlineService):
         token = request.json
         with open(self.token_path, "w") as token_file:
             token_file.write(json.dumps(token))
+        self.emit("service-login", self.id)
 
     def load_token(self):
         """Load token from disk"""
