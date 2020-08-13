@@ -64,7 +64,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     sync_label = GtkTemplate.Child()
     sync_spinner = GtkTemplate.Child()
     search_spinner = GtkTemplate.Child()
-    add_popover = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
@@ -753,7 +752,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
-        self.add_popover.hide()
         if "runner" in self.filters:
             runner = self.filters["runner"]
         else:

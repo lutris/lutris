@@ -145,42 +145,6 @@
       </object>
     </child>
   </object>
-  <object class="GtkPopover" id="add_popover">
-    <property name="can_focus">False</property>
-    <child>
-      <object class="GtkBox">
-        <property name="width_request">140</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="border_width">9</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">3</property>
-        <child>
-          <object class="GtkButton">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="receives_default">False</property>
-            <property name="action_name">win.add-game</property>
-            <property name="relief">none</property>
-            <property name="xalign">0</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Add Game…</property>
-                <property name="use_underline">True</property>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-  </object>
   <object class="GtkImage" id="view_grid_symbolic">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -755,7 +719,8 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="tooltip_text" translatable="yes">Add Game</property>
-                <property name="popover">add_popover</property>
+                <property name="action_name">win.add-game</property>
+                <property name="use_popover">False</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
