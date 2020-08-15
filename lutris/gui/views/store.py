@@ -7,7 +7,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris import api
 from lutris.database.games import get_games_by_slug
-from lutris.gui.views.pga_game import GameItem
+from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
@@ -164,9 +164,9 @@ class GameStore(GObject.Object):
         if row:
             self.store.remove(row.iter)
 
-    def update(self, pga_game):
+    def update(self, store_game):
         """Update game informations."""
-        game = GameItem(pga_game)
+        game = StoreItem(store_game)
         row = self.get_row_by_id(game.id)
         if not row:
             raise ValueError("No existing row for game %s" % game.slug)
@@ -252,7 +252,7 @@ class GameStore(GObject.Object):
 
     def add_game(self, pga_game):
         """Add a PGA game to the store"""
-        game = GameItem(pga_game)
+        game = StoreItem(pga_game)
         self.games.append(pga_game)
         self.store.append(
             (
