@@ -1,14 +1,10 @@
 """Side panel when no game is selected"""
-# Standard Library
 import json
 from gettext import gettext as _
 
-# Third Party Libraries
-from gi.repository import Gdk, Gio, GObject, Gtk, Pango
+from gi.repository import Gdk, Gtk, Pango
 
-# Lutris Modules
 from lutris import api
-from lutris.game import Game
 from lutris.gui.config.system import SystemConfigDialog
 from lutris.gui.widgets.utils import get_link_button, get_pixbuf, get_pixbuf_for_game, get_pixbuf_for_panel, open_uri
 from lutris.util import system
@@ -36,7 +32,6 @@ class GenericPanel(Gtk.Fixed):
     """Side panel displayed when no game is selected"""
 
     __gtype_name__ = "LutrisPanel"
-    __gsignals__ = {"running-game-selected": (GObject.SIGNAL_RUN_FIRST, None, (Game, ))}
 
     def __init__(self, application=None):
         super().__init__(visible=True)
@@ -76,13 +71,6 @@ class GenericPanel(Gtk.Fixed):
         self.put(self.get_user_info_box(), 48, 16)
 
         self.put(self.get_lutris_links(), 40, 80)
-
-        application = Gio.Application.get_default()
-        if application.running_games.get_n_items():
-            running_label = Gtk.Label(visible=True)
-            running_label.set_markup(_("<b>Playing:</b>"))
-            self.put(running_label, 12, 355)
-            self.put(self.get_running_games(), 12, 377)
 
     def refresh(self):
         self.place_content()
@@ -178,18 +166,3 @@ class GenericPanel(Gtk.Fixed):
         help_box.add(discord_button)
         box.add(help_box)
         return box
-
-    def get_running_games(self):
-        listbox = Gtk.ListBox(visible=True)
-        listbox.bind_model(self.application.running_games, self.create_list_widget)
-        listbox.connect('row-selected', self.on_running_game_select)
-        listbox.show()
-        return listbox
-
-    def on_running_game_select(self, widget, row):
-        """Handler for hiding and showing the revealers in children"""
-        if not row:
-            game = None
-        else:
-            game = row.get_children()[0].game
-        self.emit("running-game-selected", game)

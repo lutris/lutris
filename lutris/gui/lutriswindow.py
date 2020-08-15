@@ -101,7 +101,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-started", self.on_game_started)
         GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
-        GObject.add_emission_hook(GenericPanel, "running-game-selected", self.game_selection_changed)
         self.connect("delete-event", self.on_window_delete)
         self.connect("map-event", self.on_load)
         if self.maximized:
