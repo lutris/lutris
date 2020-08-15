@@ -256,6 +256,7 @@ class GOGGame(ServiceGame):
         service_game = GOGGame()
         service_game.appid = str(gog_game["id"])
         service_game.icon = cls.get_banner(gog_game)
+        service_game.slug = gog_game["slug"]
         service_game.name = gog_game["title"]
         service_game.details = json.dumps(gog_game)
         return service_game
@@ -265,6 +266,7 @@ class GOGGame(ServiceGame):
         """Return the path to the game banner.
         Downloads the banner if not present.
         """
+        # Are there other formats?
         image_url = "https:%s_prof_game_100x60.jpg" % gog_game["image"]
         image_hash = gog_game["image"].split("/")[-1]
         cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")

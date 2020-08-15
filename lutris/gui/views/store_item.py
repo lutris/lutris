@@ -8,7 +8,7 @@ from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
 
 
-class GameItem:
+class StoreItem:
     """Representation of a game for views
     TODO: Fix overlap with Game class
     """
@@ -27,11 +27,19 @@ class GameItem:
     @property
     def id(self):  # pylint: disable=invalid-name
         """Game internal ID"""
+        # Return an unique identifier for the game.
+        # Since service games are not related to lutris, use the appid
+        if self._pga_data.get("service"):
+            return self._pga_data["appid"]
         return self._pga_data["id"]
 
     @property
     def slug(self):
-        """Slug identifier"""
+        """Slug identifier (the lutris one)"""
+        # The service slug is not useful to match with lutris games
+        # Use the lutris slug instead.
+        if self._pga_data.get("service"):
+            return self._pga_data["lutris_slug"]
         return gtk_safe(self._pga_data["slug"])
 
     @property

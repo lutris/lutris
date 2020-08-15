@@ -4,7 +4,7 @@ import os
 from gettext import gettext as _
 from urllib.parse import urlparse
 
-from lutris import settings
+from lutris import settings, api
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
@@ -78,6 +78,15 @@ class HumbleBundleService(OnlineService):
         """Is the service connected?"""
         return self.is_authenticated()
 
+    def get_lutris_games(self, service_games):
+        """Return a dictionary of Lutris games keyed by the service's appids"""
+        lutris_games = api.get_api_games(
+            [game.appid for game in service_games],
+            query_type="humblestoreid"
+        )
+        return {game["humblestoreid"]: game for game in lutris_games}
+
+
     def load(self):
         """Load the user's Humble Bundle library"""
         humble_games = []
@@ -87,7 +96,9 @@ class HumbleBundleService(OnlineService):
                 continue
             humble_games.append(HumbleBundleGame.new_from_humble_game(game))
             seen.add(game["human_name"])
+        lutris_games = self.get_lutris_games(humble_games)
         for game in humble_games:
+            game.lutris_slug = lutris_games[game.appid]["slug"] if lutris_games.get(game.appid) else None
             game.save()
         self.emit("service-games-loaded", self.id)
 

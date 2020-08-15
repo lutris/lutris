@@ -407,7 +407,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.update_store()
         return False
 
-
     def get_store(self):
         """Return an instance of the game store"""
         return GameStore([], self.icon_type)
