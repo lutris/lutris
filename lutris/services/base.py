@@ -4,7 +4,7 @@ import shutil
 
 from gi.repository import GObject
 
-from lutris import settings, api
+from lutris import api, settings
 from lutris.database import sql
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger

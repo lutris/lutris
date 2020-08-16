@@ -2,9 +2,9 @@
 import hashlib
 import os
 import re
-import stat
 import shutil
 import signal
+import stat
 import string
 import subprocess
 
