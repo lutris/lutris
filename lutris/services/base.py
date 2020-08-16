@@ -56,7 +56,7 @@ class OnlineService(BaseService):
             [game.appid for game in service_games],
             query_type=self.lutris_db_field
         )
-        return {game[self.lutris_db_field]: game for game in lutris_games}
+        return {str(game[self.lutris_db_field]): game for game in lutris_games}
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""
