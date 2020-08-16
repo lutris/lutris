@@ -274,9 +274,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         )
 
         game = Game(self.game_id)
-        game.save()
-
-        logger.debug("Saved game entry %s (%d)", self.game_slug, self.game_id)
+        game.config.save()
 
         # Config update
         if "system" in self.script:
@@ -297,6 +295,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         with open(config_filename, "w") as config_file:
             config_file.write(yaml_config)
+        game.save()
+        logger.debug("Saved game entry %s (%d)", self.game_slug, self.game_id)
+
 
     def get_game_launcher_config(self, game_files):
         """Game options such as exe or main_file can be added at the root of the
