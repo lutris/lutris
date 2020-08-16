@@ -4,7 +4,7 @@ import os
 from gettext import gettext as _
 from urllib.parse import urlparse
 
-from lutris import settings, api
+from lutris import api, settings
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
