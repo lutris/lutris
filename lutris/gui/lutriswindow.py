@@ -756,11 +756,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         AddGameDialog(self, runner=runner)
         return True
 
-    def remove_game_from_view(self, game_id, from_library=False):
-        """Remove a game from the view"""
-        self.update_game_by_id(game_id)
-        self.sidebar.update()
-
     def on_toggle_viewtype(self, *args):
         self.switch_view("list" if self.current_view_type == "grid" else "grid")
 

@@ -236,4 +236,4 @@ class GameActions:
 
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""
-        UninstallGameDialog(game_id=self.game.id, callback=self.window.remove_game_from_view, parent=self.window)
+        UninstallGameDialog(game_id=self.game.id, callback=self.window.update_store, parent=self.window)
