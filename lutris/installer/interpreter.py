@@ -24,6 +24,8 @@ from lutris.util.wine.wine import get_system_wine_version, get_wine_version_exe
 
 def fetch_script(game_slug, revision=None):
     """Download install script(s) for matching game_slug."""
+    if not game_slug:
+        raise ValueError("No game_slug provided. Can't query an installer")
     if revision:
         installer_url = settings.INSTALLER_REVISION_URL % (game_slug, revision)
         key = None

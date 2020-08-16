@@ -77,8 +77,7 @@ class CommandsMixin:
     def chmodx(self, filename):
         """Make filename executable"""
         filename = self._substitute(filename)
-        file_stats = os.stat(filename)
-        os.chmod(filename, file_stats.st_mode | stat.S_IEXEC)
+        system.make_executable(filename)
 
     def execute(self, data):
         """Run an executable file."""
@@ -127,13 +126,12 @@ class CommandsMixin:
         else:
             # Determine whether 'file' value is a file id or a path
             file_ref = self._get_file(file_ref)
-
+        if system.path_exists(file_ref) and not system.is_executable(file_ref):
+            logger.warning("Making %s executable", file_ref)
+            system.make_executable(file_ref)
         exec_path = system.find_executable(file_ref)
         if not exec_path:
             raise ScriptingError("Unable to find executable %s" % file_ref)
-        if not os.access(exec_path, os.X_OK):
-            logger.warning("Making %s executable", exec_path)
-            self.chmodx(exec_path)
 
         if terminal:
             terminal = system.get_default_terminal()

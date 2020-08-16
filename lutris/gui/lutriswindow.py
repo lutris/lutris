@@ -713,22 +713,17 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_game_updated(self, game):
         """Callback to refresh the view when a game is updated"""
-        logger.debug("Updating game %s", game)
+        logger.debug("%s has been updated, refreshing view", game)
         if not game.is_installed:
-            game = Game(game_id=game.id)
-            self.game_selection_changed(None, None)
+            game = Game(game_id=game.id)  # ???? Why does it need a reload?
+            self.swap_game_panel()
         game.load_config()
-        try:
-            self.update_game_by_id(game.id)
-        except ValueError:
-            self.game_store.add_games(games_db.get_games_by_ids([game.id]))
-
         GLib.idle_add(self.game_panel.refresh)
         self.emit("view-updated")
         return True
 
-    def game_selection_changed(self, _widget, game):
-        """Callback to handle the selection of a game in the view"""
+    def swap_game_panel(self, game=None):
+        """Load a panel for a game or replace it with a generic one"""
         child = self.game_scrolled.get_child()
         if child:
             self.game_scrolled.remove(child)
@@ -742,10 +737,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.game_panel.connect("panel-closed", self.on_panel_closed)
             self.view.contextual_menu.connect("shortcut-edited", self.game_panel.on_shortcut_edited)
         self.game_scrolled.add(self.game_panel)
+
+    def game_selection_changed(self, _widget, game):
+        """Callback to handle the selection of a game in the view"""
+        self.swap_game_panel(game)
         return True
 
     def on_panel_closed(self, panel):
-        self.game_selection_changed(panel, None)
+        self.swap_game_panel()
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):

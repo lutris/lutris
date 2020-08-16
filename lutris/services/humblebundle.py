@@ -52,6 +52,7 @@ class HumbleBundleService(OnlineService):
     id = "humblebundle"
     name = _("Humble Bundle")
     icon = "humblebundle"
+    lutris_db_field = "humblestoreid"
     online = True
 
     api_url = "https://www.humblebundle.com/"
@@ -77,15 +78,6 @@ class HumbleBundleService(OnlineService):
     def is_connected(self):
         """Is the service connected?"""
         return self.is_authenticated()
-
-    def get_lutris_games(self, service_games):
-        """Return a dictionary of Lutris games keyed by the service's appids"""
-        lutris_games = api.get_api_games(
-            [game.appid for game in service_games],
-            query_type="humblestoreid"
-        )
-        return {game["humblestoreid"]: game for game in lutris_games}
-
 
     def load(self):
         """Load the user's Humble Bundle library"""
