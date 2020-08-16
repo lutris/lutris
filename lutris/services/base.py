@@ -4,7 +4,7 @@ import shutil
 
 from gi.repository import GObject
 
-from lutris import settings
+from lutris import settings, api
 from lutris.database import sql
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
@@ -37,6 +37,7 @@ class OnlineService(BaseService):
         "service-logout": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
     }
 
+    lutris_db_field = None
     online = True
     cookies_path = NotImplemented
     cache_path = NotImplemented
@@ -46,6 +47,16 @@ class OnlineService(BaseService):
         """Return a list of all files used for authentication
         """
         return [self.cookies_path]
+
+    def get_lutris_games(self, service_games):
+        """Return a dictionary of Lutris games keyed by the service's appids"""
+        if not self.lutris_db_field:
+            return {}
+        lutris_games = api.get_api_games(
+            [game.appid for game in service_games],
+            query_type=self.lutris_db_field
+        )
+        return {game[self.lutris_db_field]: game for game in lutris_games}
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""

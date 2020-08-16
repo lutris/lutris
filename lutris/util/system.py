@@ -2,6 +2,7 @@
 import hashlib
 import os
 import re
+import stat
 import shutil
 import signal
 import string
@@ -88,6 +89,16 @@ def get_file_checksum(filename, hash_type):
         for chunk in iter(lambda: input_file.read(4096), b""):
             hasher.update(chunk)
     return hasher.hexdigest()
+
+
+def is_executable(exec_path):
+    """Return whether exec_path is an executable"""
+    return os.access(exec_path, os.X_OK)
+
+
+def make_executable(exec_path):
+    file_stats = os.stat(exec_path)
+    os.chmod(exec_path, file_stats.st_mode | stat.S_IEXEC)
 
 
 def find_executable(exec_name):

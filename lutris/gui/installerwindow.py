@@ -42,6 +42,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.install_in_progress = False
         self.interpreter = None
         self.parent = parent
+
         self.game_slug = game_slug
         self.revision = revision
         self.desktop_shortcut_box = None
@@ -110,8 +111,12 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.action_buttons.add(button)
         return button
 
-    def on_scripts_obtained(self, scripts, _error=None):
+    def on_scripts_obtained(self, scripts, error):
         """Continue the install process when the scripts are available"""
+        if error:
+            self.clean_widgets()
+            self.install_in_progress = False
+            raise ScriptingError("Failed to get installer", error)
         if not scripts:
             self.destroy()
             self.run_no_installer_dialog()

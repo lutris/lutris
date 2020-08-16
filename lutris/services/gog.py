@@ -23,6 +23,7 @@ class GOGService(OnlineService):
     id = "gog"
     name = _("GOG")
     icon = "gog"
+    lutris_db_field = "gogid"
 
     embed_url = "https://embed.gog.com"
     api_url = "https://api.gog.com"
@@ -68,7 +69,9 @@ class GOGService(OnlineService):
     def load(self):
         """Load the user game library from the GOG API"""
         games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
+        lutris_games = self.get_lutris_games(games)
         for game in games:
+            game.lutris_slug = lutris_games[game.appid]["slug"] if lutris_games.get(game.appid) else None
             game.save()
         self.emit("service-games-loaded", self.id)
 
