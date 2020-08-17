@@ -11,10 +11,10 @@ from lutris.exceptions import UnavailableGame
 from lutris.game import Game
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
+from lutris.installer.legacy import get_game_launcher
+from lutris.runners import import_runner
 from lutris.services.gog import MultipleInstallerError, get_gog_download_links
 from lutris.services.humblebundle import get_humble_download_link
-from lutris.runners import import_runner
-from lutris.util import system
 from lutris.util.http import HTTPError
 from lutris.util.log import logger
 
@@ -144,7 +144,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 url = link["url"]
             else:
                 url = link
-            filename = url.split("?")[0].split("/")[-1]
+            filename = link["filename"]
             if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
                 file_id = installer_file_id
                 file_id_provided = True
@@ -156,6 +156,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     "filename": filename,
                 })
             )
+        if not file_id_provided:
+            raise UnavailableGame("Unable to determine correct file to launch installer")
 
     def pop_user_provided_file(self):
         """Return and remove the first user provided file, which is used for game stores
@@ -302,14 +304,16 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             configpath=configpath,
             id=self.game_id,
         )
+        # This is a bit redundant but used to trigger the game-updated signal
         game = Game(self.game_id)
         game.save()
 
     def get_game_launcher_config(self, game_files):
         """Game options such as exe or main_file can be added at the root of the
         script as a shortcut, this integrates them into the game config properly
+        This should be deprecated. Game launchers should go in the game section.
         """
-        launcher, launcher_value = self.get_game_launcher()
+        launcher, launcher_value = get_game_launcher(self.script)
         if isinstance(launcher_value, list):
             launcher_values = []
             for game_file in launcher_value:
@@ -325,20 +329,4 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     os.path.join(self.interpreter.target_path, launcher_value)
             ):
                 launcher_value = os.path.join(self.interpreter.target_path, launcher_value)
-        return launcher, launcher_value
-
-    def get_game_launcher(self):
-        """Return the key and value of the launcher"""
-        launcher_value = None
-        # exe64 can be provided to specify an executable for 64bit systems
-        exe = "exe64" if "exe64" in self.script and system.LINUX_SYSTEM.is_64_bit else "exe"
-        for launcher in (exe, "iso", "rom", "disk", "main_file"):
-            if launcher not in self.script:
-                continue
-            launcher_value = self.script[launcher]
-            if launcher == "exe64":
-                launcher = "exe"  # If exe64 is used, rename it to exe
-            break
-        if not launcher_value:
-            launcher = None
         return launcher, launcher_value

@@ -12,6 +12,7 @@ from lutris.gui.dialogs.download import simple_downloader
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.installer import LutrisInstaller
+from lutris.installer.legacy import get_game_launcher
 from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
@@ -344,7 +345,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         game = self.installer.script.get("game")
         launcher_value = None
         if game:
-            _launcher, launcher_value = self.installer.get_game_launcher()
+            _launcher, launcher_value = get_game_launcher(self.installer.script)
         path = None
         if launcher_value:
             path = self._substitute(launcher_value)
