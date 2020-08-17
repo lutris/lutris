@@ -225,7 +225,7 @@ class LutrisSidebar(Gtk.ListBox):
             return
         if not before:
             row.set_header(SidebarHeader(_("Library")))
-        elif before.type == "category" and row.type == "runner":
+        elif before.type in ("category", "dynamic_category") and row.type == "runner":
             row.set_header(SidebarHeader(_("Runners")))
         elif before.type == "runner" and row.type == "platform":
             row.set_header(SidebarHeader(_("Platforms")))
