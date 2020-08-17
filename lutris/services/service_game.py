@@ -20,7 +20,7 @@ class ServiceGame:
         self.runner = None  # Name of the runner
         self.name = None  # Name
         self.slug = None  # Game slug
-        self.lutris_slug = None # Slug used by the lutris website
+        self.lutris_slug = None  # Slug used by the lutris website
         self.logo = None  # Game logo
         self.icon = None  # Game icon
         self.details = None  # Additional details for the game

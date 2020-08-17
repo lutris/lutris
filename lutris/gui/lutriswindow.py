@@ -432,7 +432,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return False
         for game in games:
             self.game_store.add_game(game)
-        self.blank_overlay.add(Gtk.Label("No games found", visible=True))
+
+        if self.filters.get("text"):
+            empty_label = Gtk.Label(_("No games matching '%s' found ") % self.filters["text"], visible=True)
+        else:
+            empty_label = Gtk.Label(_("No games found"), visible=True)
+        self.blank_overlay.add(empty_label)
         self.blank_overlay.props.visible = not bool(games)
         self.search_spinner.props.active = False
         self.search_timer_id = None

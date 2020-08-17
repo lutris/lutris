@@ -167,7 +167,7 @@ def main():
         #  the initial process may have been excluded. Wait for the game
         #  to be considered "started".
         if not monitor.is_game_alive():
-            log("Waiting for game to be considered started (first non-excluded process started)")
+            log("Waiting for game to start (first non-excluded process started)")
             while not monitor.is_game_alive():
                 async_reap_children()
                 time.sleep(0.1)
@@ -176,12 +176,12 @@ def main():
         #  The game is running. Our process is now just waiting around
         #  for processes to exit, waiting up every .1s to reap child
         #  processes.
-        log("Game is considered started.")
+        log("Start monitoring process.")
         while monitor.is_game_alive():
             async_reap_children()
             time.sleep(0.1)
 
-        log("Game is considered exited.")
+        log("Monitored process exited.")
         async_reap_children()
 
 
@@ -219,7 +219,7 @@ def main():
 
     if returncode is None:
         returncode = 0
-        log("Never found the initial process' return code. Weird?")
+        log("Monitored process didn't return an exit code.")
     log("Exit with returncode %s" % returncode)
     sys.exit(returncode)
 
