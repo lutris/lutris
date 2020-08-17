@@ -1,3 +1,5 @@
+import sqlite3
+
 from lutris import settings
 from lutris.database import sql
 from lutris.util.log import logger
@@ -209,6 +211,7 @@ def migrate(table, schema):
     Returns:
         list: The list of column names that have been added
     """
+
     existing_schema = get_schema(table)
     migrated_fields = []
     if existing_schema:

@@ -1,5 +1,6 @@
 """Check to run at program start"""
 import os
+import sqlite3
 from gettext import gettext as _
 
 from lutris import runners, settings
@@ -36,18 +37,19 @@ def init_dirs():
         create_folder(directory)
 
 
-def init_db():
-    """Initialize the SQLite DB"""
-    syncdb()
-
-
 def init_lutris():
     """Run full initialization of Lutris"""
     runners.inject_runners(load_json_runners())
     # Load runner names
     runners.RUNNER_NAMES = runners.get_runner_names()
     init_dirs()
-    init_db()
+    try:
+        syncdb()
+    except sqlite3.DatabaseError:
+        raise RuntimeError(
+            "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
+            settings.PGA_DB
+        )
 
 
 def check_driver():

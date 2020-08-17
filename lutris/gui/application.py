@@ -59,11 +59,16 @@ class Application(Gtk.Application):
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         )
-        init_lutris()
-
         GLib.set_application_name(_("Lutris"))
-        self.running_games = Gio.ListStore.new(Game)
         self.window = None
+
+        try:
+            init_lutris()
+        except RuntimeError as ex:
+            ErrorDialog(str(ex))
+            return
+
+        self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
