@@ -86,7 +86,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
         # check if installer is local or online
         if system.path_exists(installer_file):
-            self.on_scripts_obtained(interpreter.read_script(installer_file))
+            self.on_scripts_obtained(interpreter.read_script(installer_file), None)
         else:
             self.title_label.set_markup(_("Waiting for response from %s") % (settings.SITE_URL))
             self.add_spinner()
