@@ -82,7 +82,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.threads_stoppers = []
         self.icon_type = None
         self.service = None
-        self.service_games = {}
 
         # Load settings
         self.window_size = (width, height)
