@@ -1,18 +1,14 @@
 """Commands for installer scripts"""
-# Standard Library
 import glob
 import json
 import multiprocessing
 import os
 import shlex
 import shutil
-import stat
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import GLib
 
-# Lutris Modules
 from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand

@@ -262,14 +262,14 @@ class Game(GObject.Object):
         if not self.platform:
             logger.warning("Can't get platform for runner %s", self.runner.human_name)
 
-    def save(self, metadata_only=False):
+    def save(self, save_config=False):
         """
-        Save the game's config and metadata, if `metadata_only` is set to True,
+        Save the game's config and metadata, if `save_config` is set to False,
         do not save the config. This is useful when exiting the game since the
         config might have changed and we don't want to override the changes.
         """
-        logger.debug("Saving %s", self)
-        if not metadata_only:
+        logger.debug("Saving %s with config ID %s", self, self.config.game_config_id)
+        if save_config:
             self.config.save()
         self.set_platform_from_runner()
         self.id = games_db.add_or_update(
@@ -277,10 +277,10 @@ class Game(GObject.Object):
             runner=self.runner_name,
             slug=self.slug,
             platform=self.platform,
-            year=self.year,
-            lastplayed=self.lastplayed,
             directory=self.directory,
             installed=self.is_installed,
+            year=self.year,
+            lastplayed=self.lastplayed,
             configpath=self.config.game_config_id,
             steamid=self.steamid,
             id=self.id,
@@ -602,7 +602,7 @@ class Game(GObject.Object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
-        self.save(metadata_only=True)
+        self.save(save_config=False)
 
         os.chdir(os.path.expanduser("~"))
 

@@ -144,7 +144,7 @@ def fill_missing_platforms():
         game.set_platform_from_runner()
         if game.platform:
             logger.info("Platform for %s set to %s", game.name, game.platform)
-            game.save(metadata_only=True)
+            game.save(save_config=False)
 
 
 def run_all_checks():

@@ -109,7 +109,10 @@ class StoreItem:
     def lastplayed_text(self):
         """Date of last play (textual representation)"""
         return gtk_safe(
-            time.strftime("%X %x", time.localtime(self._game_data["lastplayed"])) if self._game_data["lastplayed"] else ""
+            time.strftime(
+                "%X %x",
+                time.localtime(self._game_data["lastplayed"])
+            ) if self._game_data["lastplayed"] else ""
         )
 
     @property
