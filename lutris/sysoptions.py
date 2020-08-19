@@ -10,7 +10,7 @@ from gettext import gettext as _
 from lutris import runners
 from lutris.discord import DiscordPresence
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER, USE_DRI_PRIME
+from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
 
 VULKAN_DATA_DIRS = [
     "/usr/local/etc/vulkan",  # standard site-local location
@@ -155,6 +155,17 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "help": _("Disable desktop effects while game is running, "
                   "reducing stuttering and increasing performance"),
+    },
+    {
+        "option": "disable_screen_saver",
+        "label": _("Disable screen saver"),
+        "type": "bool",
+        "default": SCREEN_SAVER_INHIBITOR is not None,
+        "advanced": False,
+        "condition": SCREEN_SAVER_INHIBITOR is not None,
+        "help": _("Disable the screen saver while a game is running. "
+                  "Requires the screen saver's functionality "
+                  "to be exposed over DBus."),
     },
     {
         "option": "reset_pulse",

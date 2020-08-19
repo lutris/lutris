@@ -10,7 +10,7 @@ try:
 except ImportError:
     DBUS_AVAILABLE = False
 
-from gi.repository import Gdk, GLib, GnomeDesktop
+from gi.repository import Gdk, GLib, GnomeDesktop, Gio
 
 from lutris.util import system
 from lutris.util.graphics.displayconfig import MutterDisplayManager
@@ -263,3 +263,42 @@ def enable_compositing():
     start_compositor, _ = _get_compositor_commands()
     if start_compositor:
         _run_command(*start_compositor)
+
+
+class DBusScreenSaverInhibitor:
+
+    """Inhibit and uninhibit the screen saver using DBus.
+    Requires the Inhibit() and UnInhibit() methods to be exposed over DBus."""
+
+    def __init__(self, name, path, interface, bus_type=Gio.BusType.SESSION):
+        self.proxy = Gio.DBusProxy.new_for_bus_sync(
+            bus_type, Gio.DBusProxyFlags.NONE, None, name, path, interface, None)
+
+    def inhibit(self, game_name):
+        """Inhibit the screen saver.
+        Returns a cookie that must be passed to the corresponding uninhibit() call."""
+        return self.proxy.Inhibit("(ss)", "Lutris", "Running game: %s" % game_name)
+
+    def uninhibit(self, cookie):
+        self.proxy.UnInhibit("(u)", cookie)
+
+
+def _get_screen_saver_inhibitor():
+    """Return the appropriate screen saver inhibitor instance.
+    Returns None if the required interface isn't available."""
+    desktop_environment = get_desktop_environment()
+    if desktop_environment is DesktopEnvironment.MATE:
+        name = "org.mate.ScreenSaver"
+        path = "/"
+    else:
+        name = "org.freedesktop.ScreenSaver"
+        path = "/org/freedesktop/ScreenSaver"
+    interface = name
+    try:
+        return DBusScreenSaverInhibitor(name, path, interface)
+    except GLib.Error as err:
+        logger.error("Error during creation of DBusScreenSaverInhibitor: %s", err.message)
+        return None
+
+
+SCREEN_SAVER_INHIBITOR = _get_screen_saver_inhibitor()
