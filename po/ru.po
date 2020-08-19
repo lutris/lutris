@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-08-19 20:25+0900\n"
-"PO-Revision-Date: 2020-08-19 22:09+0900\n"
+"PO-Revision-Date: 2020-08-19 22:56+0900\n"
 "Last-Translator: RDL\n"
 "Language-Team: \n"
 "Language: ru_RU\n"
@@ -941,7 +941,7 @@ msgstr ""
 #: lutris/gui/widgets/common.py:148
 msgid ""
 "<b>Warning</b> The destination folder is not writable by the current user."
-msgstr "<b>Предупреждение</b> Не имеет права записи в папку назначения."
+msgstr "<b>Предупреждение</b> Вы не имеете права записи в эту папку."
 
 #: lutris/gui/widgets/common.py:253
 msgid "Add"
