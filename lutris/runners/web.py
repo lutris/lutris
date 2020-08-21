@@ -123,6 +123,14 @@ class web(Runner):
             "help": _("Enable Adobe Flash Player."),
         },
         {
+            "option": "user_agent",
+            "label": _("Custom User-Agent"),
+            "type": "string",
+            "default": "",
+            "help": _("Overrides the default User-Agent header used by the runner."),
+            "advanced": True,
+        },
+        {
             "option": "devtools",
             "label": _("Debug with Developer Tools"),
             "type": "bool",
@@ -248,5 +256,8 @@ class web(Runner):
         if self.runner_config.get("window_size"):
             command.append("--window-size")
             command.append(self.runner_config.get("window_size"))
+        if self.runner_config.get("user_agent"):
+            command.append("--user-agent")
+            command.append(self.runner_config.get("user_agent"))
 
         return {"command": command, "env": self.get_env(False)}
