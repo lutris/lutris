@@ -268,9 +268,14 @@ class Game(GObject.Object):
         do not save the config. This is useful when exiting the game since the
         config might have changed and we don't want to override the changes.
         """
-        logger.debug("Saving %s with config ID %s", self, self.config.game_config_id)
-        if save_config:
-            self.config.save()
+        if self.config:
+            logger.debug("Saving %s with config ID %s", self, self.config.game_config_id)
+            configpath = self.config.game_config_id
+            if save_config:
+                self.config.save()
+        else:
+            logger.warning("Saving %s without a configuration", self)
+            configpath = ""
         self.set_platform_from_runner()
         self.id = games_db.add_or_update(
             name=self.name,
@@ -281,7 +286,7 @@ class Game(GObject.Object):
             installed=self.is_installed,
             year=self.year,
             lastplayed=self.lastplayed,
-            configpath=self.config.game_config_id,
+            configpath=configpath,
             steamid=self.steamid,
             id=self.id,
             playtime=self.playtime,
