@@ -19,7 +19,9 @@ from lutris.gui import dialogs
 from lutris.runners import InvalidRunner, import_runner, wine
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 from lutris.util import audio, jobs, strings, system, xdgshortcuts
-from lutris.util.display import DISPLAY_MANAGER, disable_compositing, enable_compositing, restore_gamma
+from lutris.util.display import (
+    DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
+)
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -90,6 +92,7 @@ class Game(GObject.Object):
         self.original_outputs = None
         self._log_buffer = None
         self.timer = Timer()
+        self.screen_saver_inhibitor_cookie = None
 
     def __repr__(self):
         return self.__str__()
@@ -518,6 +521,9 @@ class Game(GObject.Object):
         if self.runner.system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
 
+        if self.runner.system_config.get("disable_screen_saver"):
+            self.screen_saver_inhibitor_cookie = SCREEN_SAVER_INHIBITOR.inhibit(self.name)
+
         if self.runner.system_config.get("display") != "off":
             self.resolution_changed = self.restrict_to_display(self.runner.system_config.get("display"))
 
@@ -652,6 +658,10 @@ class Game(GObject.Object):
 
         if self.compositor_disabled:
             self.set_desktop_compositing(True)
+
+        if self.screen_saver_inhibitor_cookie is not None:
+            SCREEN_SAVER_INHIBITOR.uninhibit(self.screen_saver_inhibitor_cookie)
+            self.screen_saver_inhibitor_cookie = None
 
         if self.runner.system_config.get("use_us_layout"):
             subprocess.Popen(["setxkbmap"], env=os.environ).communicate()
