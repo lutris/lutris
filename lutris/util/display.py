@@ -297,6 +297,9 @@ def _get_screen_saver_inhibitor():
     if desktop_environment is DesktopEnvironment.MATE:
         name = "org.mate.ScreenSaver"
         path = "/"
+    elif desktop_environment is DesktopEnvironment.XFCE:
+        name = "org.xfce.ScreenSaver"
+        path = "/"
     else:
         name = "org.freedesktop.ScreenSaver"
         path = "/org/freedesktop/ScreenSaver"
