@@ -276,11 +276,18 @@ class DBusScreenSaverInhibitor:
 
     def inhibit(self, game_name):
         """Inhibit the screen saver.
-        Returns a cookie that must be passed to the corresponding uninhibit() call."""
-        return self.proxy.Inhibit("(ss)", "Lutris", "Running game: %s" % game_name)
+        Returns a cookie that must be passed to the corresponding uninhibit() call.
+        If an error occurs, None is returned instead."""
+        try:
+            return self.proxy.Inhibit("(ss)", "Lutris", "Running game: %s" % game_name)
+        except Exception:
+            return None
 
     def uninhibit(self, cookie):
-        self.proxy.UnInhibit("(u)", cookie)
+        """Uninhibit the screen saver.
+        Takes a cookie as returned by inhibit. If cookie is None, no action is taken."""
+        if cookie is not None:
+            self.proxy.UnInhibit("(u)", cookie)
 
 
 def _get_screen_saver_inhibitor():
