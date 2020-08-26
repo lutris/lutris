@@ -22,11 +22,13 @@ class GameConfigError(LutrisError):
 
 class UnavailableLibraries(RuntimeError):
 
-    def __init__(self, libraries):
+    def __init__(self, libraries, arch=None):
         message = _(
-            "Some required libraries are not installed on your system, install them "
-            "with your package manager and restart Lutris. Libraries: %s"
-        ) % ", ".join(libraries)
+            "The following %s libraries are required but are not installed on your system:\n%s"
+        ) % (
+            arch if arch else "",
+            ", ".join(libraries)
+        )
         super().__init__(message)
         self.libraries = libraries
 
