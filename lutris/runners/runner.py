@@ -35,10 +35,10 @@ class Runner:  # pylint: disable=too-many-public-methods
     depends_on = None
     runner_executable = None
     entry_point_option = "main_file"
+    arch = None  # If the runner is only available for an architecture that isn't x86_64
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.arch = system.LINUX_SYSTEM.arch  # What the hell is this needed for?!
         self.config = config
         if config:
             self.game_data = pga.get_game_by_field(self.config.game_config_id, "configpath")
@@ -238,10 +238,14 @@ class Runner:  # pylint: disable=too-many-public-methods
         available_libs = set()
         for lib in set(self.require_libs):
             if lib in LINUX_SYSTEM.shared_libraries:
-                available_libs.add(lib)
+                if self.arch:
+                    if self.arch in [l.arch for l in LINUX_SYSTEM.shared_libraries[lib]]:
+                        available_libs.add(lib)
+                else:
+                    available_libs.add(lib)
         unavailable_libs = set(self.require_libs) - available_libs
         if unavailable_libs:
-            raise UnavailableLibraries(unavailable_libs)
+            raise UnavailableLibraries(unavailable_libs, self.arch)
         return True
 
     def get_run_data(self):
@@ -330,7 +334,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return
 
         versions = runner_info.get("versions") or []
-        arch = self.arch
+        arch = system.LINUX_SYSTEM.arch
         if version:
             if version.endswith("-i386") or version.endswith("-x86_64"):
                 version, arch = version.rsplit("-", 1)
