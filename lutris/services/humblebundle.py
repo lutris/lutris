@@ -167,7 +167,7 @@ def pick_download_url_from_download_info(download_info):
     This needs a way to be explicitely filtered.
     """
     if len(download_info["download"]["download_struct"]) > 1:
-        logger.info("There are %s downloads available:")
+        logger.info("There are %s downloads available:", len(download_info["download"]["download_struct"]))
         sorted_downloads = []
         for _download in download_info["download"]["download_struct"]:
             if "deb" in _download["name"] or "rpm" in _download["name"] or "32" in _download["name"]:
