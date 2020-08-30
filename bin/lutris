@@ -47,7 +47,7 @@ try:
             "LOCALE_DIR: %s\n" % optional_settings.LOCALE_DIR
         )
 except ImportError:
-    sys.stdout.write(
+    sys.stderr.write(
         "Unable to load locale dir, translations won't work.\n"
     )
 
