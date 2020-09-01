@@ -214,7 +214,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 app.add_accelerator(value.accel, "win." + name)
 
     def on_load(self, widget, data):
-        self.game_store = self.get_store()
+        self.game_store = GameStore([], self.icon_type)
         self.switch_view()
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         self.update_runtime()
@@ -405,10 +405,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.update_store()
         return False
 
-    def get_store(self):
-        """Return an instance of the game store"""
-        return GameStore([], self.icon_type)
-
     def update_store(self, *_args, **_kwargs):
         logger.debug("Updating store...")
         self.game_store.games = []
@@ -430,6 +426,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.search_spinner.props.active = True
             return False
         for game in games:
+            if self.service:
+                game["image_size"] = self.service.image_size
             self.game_store.add_game(game)
 
         if self.filters.get("text"):
@@ -444,9 +442,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def update_game_by_id(self, game_id):
         """Update the view by DB ID"""
-        pga_game = games_db.get_game_by_field(game_id, "id")
-        if pga_game:
-            return self.game_store.update(pga_game)
+        db_game = games_db.get_game_by_field(game_id, "id")
+        if db_game:
+            return self.game_store.update(db_game)
         return self.game_store.remove_game(game_id)
 
     def set_dark_theme(self):

@@ -22,7 +22,7 @@ class StoreItem:
         return self.name
 
     def __repr__(self):
-        return "<GameItem id=%s slug=%s>" % (self.id, self.slug)
+        return "<Store id=%s slug=%s>" % (self.id, self.slug)
 
     @property
     def id(self):  # pylint: disable=invalid-name
@@ -84,7 +84,7 @@ class StoreItem:
     def get_pixbuf(self, icon_type):
         """Pixbuf varying on icon type"""
         if self._game_data.get("icon"):
-            return get_pixbuf(self._game_data["icon"], (96, 96))
+            return get_pixbuf(self._game_data["icon"], self._game_data["image_size"])
         return get_pixbuf_for_game(self._game_data["slug"], icon_type, self._game_data["installed"])
 
     @property

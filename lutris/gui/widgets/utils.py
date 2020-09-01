@@ -17,14 +17,12 @@ except ImportError:
     Image = None
 
 BANNER_SIZE = (184, 69)
-BANNER_SMALL_SIZE = (120, 45)
 ICON_SIZE = (32, 32)
-ICON_SMALL_SIZE = (20, 20)
 
 IMAGE_SIZES = {
-    "icon_small": ICON_SMALL_SIZE,
+    "icon_small": (20, 20),
     "icon": ICON_SIZE,
-    "banner_small": BANNER_SMALL_SIZE,
+    "banner_small": (120, 45),
     "banner": BANNER_SIZE,
 }
 

@@ -8,7 +8,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 from lutris import api
 from lutris.database.games import get_games_by_slug
 from lutris.gui.views.store_item import StoreItem
-from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.gui.widgets.utils import IMAGE_SIZES, get_pixbuf_for_game
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -30,7 +30,7 @@ def try_lower(value):
 
 
 def sort_func(model, row1, row2, sort_col):
-    """Sorting function for the GameStore"""
+    """Sorting function for the game store"""
     value1 = model.get_value(row1, sort_col)
     value2 = model.get_value(row2, sort_col)
     if value1 is None and value2 is None:
@@ -62,15 +62,16 @@ class GameStore(GObject.Object):
     __gsignals__ = {
         "media-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
-        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, games, icon_type):
-        super(GameStore, self).__init__()
+    def __init__(self, games, icon_type, image_size=None):
+        super().__init__()
         self.games = games
 
         self.games_to_refresh = set()
         self.icon_type = icon_type
+        self.image_size = image_size or IMAGE_SIZES[self.icon_type]
 
         self.store = Gtk.ListStore(
             str,
@@ -109,7 +110,9 @@ class GameStore(GObject.Object):
             GLib.idle_add(self.add_game, game)
 
     def has_icon(self, game_slug, media_type=None):
-        """Return True if the game_slug has the icon of `icon_type`"""
+        """Return True if the game_slug has the icon of `icon_type`
+        This shouldn't be in this class.
+        """
         media_type = media_type or self.icon_type
         return system.path_exists(get_icon_path(game_slug, media_type))
 
@@ -164,9 +167,9 @@ class GameStore(GObject.Object):
         if row:
             self.store.remove(row.iter)
 
-    def update(self, store_game):
+    def update(self, db_game):
         """Update game informations."""
-        game = StoreItem(store_game)
+        game = StoreItem(db_game)
         row = self.get_row_by_id(game.id)
         if not row:
             raise ValueError("No existing row for game %s" % game.slug)
@@ -250,10 +253,10 @@ class GameStore(GObject.Object):
         if media_type == "icon":
             update_desktop_icons()
 
-    def add_game(self, pga_game):
+    def add_game(self, db_game):
         """Add a PGA game to the store"""
-        game = StoreItem(pga_game)
-        self.games.append(pga_game)
+        game = StoreItem(db_game)
+        self.games.append(db_game)
         self.store.append(
             (
                 str(game.id),
@@ -287,4 +290,6 @@ class GameStore(GObject.Object):
                 icon_type,
                 is_installed=row[COL_INSTALLED],
             )
-        self.emit("icons-changed", icon_type)
+        if not self.image_size:
+            self.image_size = IMAGE_SIZES[icon_type]
+        self.emit("icons-changed")

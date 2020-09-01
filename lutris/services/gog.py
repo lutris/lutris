@@ -15,6 +15,18 @@ from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.resources import download_media
 
+GOG_BANNER_FORMATS = {
+    "small": "_prof_game_100x60.jpg",
+    "medium": "_196.jpg",
+    "large": "_392.jpg",
+}
+
+GOG_BANNER_SIZES = {
+    "small": (100, 60),
+    "medium": (196, 110),
+    "large": (392, 220),
+}
+
 
 class GOGService(OnlineService):
 
@@ -36,6 +48,11 @@ class GOGService(OnlineService):
     cookies_path = os.path.join(settings.CACHE_DIR, ".gog.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
     cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
+    image_format = "medium"
+
+    @property
+    def image_size(self):
+        return GOG_BANNER_SIZES[self.image_format]
 
     @property
     def login_url(self):
@@ -269,17 +286,11 @@ class GOGGame(ServiceGame):
         """Return the path to the game banner.
         Downloads the banner if not present.
         """
-        GOG_FORMATS = {
-            "small": "_prof_game_100x60.jpg",
-            "medium": "_196.jpg",
-            "large": "_392.jpg",
-        }
-        # Are there other formats?
-        image_url = "https:%s%s" % (gog_game["image"], GOG_FORMATS[size])
+        image_url = "https:%s%s" % (gog_game["image"], GOG_BANNER_FORMATS[size])
         cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/", size)
         if not system.path_exists(cache_dir):
             os.makedirs(cache_dir)
-        image_filename = gog_game["image"].split("/")[-1] + GOG_FORMATS[size]
+        image_filename = gog_game["image"].split("/")[-1] + GOG_BANNER_FORMATS[size]
         cache_path = os.path.join(cache_dir, image_filename)
         if not system.path_exists(cache_path):
             download_media(image_url, cache_path)
