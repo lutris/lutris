@@ -265,17 +265,22 @@ class GOGGame(ServiceGame):
         return service_game
 
     @classmethod
-    def get_banner(cls, gog_game):
+    def get_banner(cls, gog_game, size="medium"):
         """Return the path to the game banner.
         Downloads the banner if not present.
         """
+        GOG_FORMATS = {
+            "small": "_prof_game_100x60.jpg",
+            "medium": "_196.jpg",
+            "large": "_392.jpg",
+        }
         # Are there other formats?
-        image_url = "https:%s_prof_game_100x60.jpg" % gog_game["image"]
-        image_hash = gog_game["image"].split("/")[-1]
-        cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")
+        image_url = "https:%s%s" % (gog_game["image"], GOG_FORMATS[size])
+        cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/", size)
         if not system.path_exists(cache_dir):
             os.makedirs(cache_dir)
-        cache_path = os.path.join(cache_dir, "%s.jpg" % image_hash)
+        image_filename = gog_game["image"].split("/")[-1] + GOG_FORMATS[size]
+        cache_path = os.path.join(cache_dir, image_filename)
         if not system.path_exists(cache_path):
             download_media(image_url, cache_path)
         return cache_path
