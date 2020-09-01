@@ -34,6 +34,7 @@ class XDGService(BaseService):
     name = _("Desktop games")
     icon = "linux"
     online = False
+    image_size = (128, 128)
 
     ignored_games = (
         "lutris",

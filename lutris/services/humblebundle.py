@@ -54,6 +54,7 @@ class HumbleBundleService(OnlineService):
     icon = "humblebundle"
     lutris_db_field = "humblestoreid"
     online = True
+    image_size = (70, 70)
 
     api_url = "https://www.humblebundle.com/"
     login_url = "https://www.humblebundle.com/login?goto=/home/library"

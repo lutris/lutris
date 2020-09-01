@@ -62,6 +62,7 @@ class SteamService(BaseService):
     name = _("Steam")
     icon = "steam"
     online = False
+    image_size = (184, 69)
 
     def __init__(self):
         super().__init__()

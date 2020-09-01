@@ -1,5 +1,3 @@
-import sqlite3
-
 from lutris import settings
 from lutris.database import sql
 from lutris.util.log import logger
