@@ -510,6 +510,7 @@ class Application(Gtk.Application):
                 "slug": game["slug"],
                 "name": game["name"],
                 "runner": game["runner"],
+                "platform": game["platform"],
                 "directory": game["directory"],
             } for game in game_list
         ]
