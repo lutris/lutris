@@ -38,6 +38,7 @@ lutris/gui/widgets/services.py
 lutris/gui/widgets/sidebar.py
 lutris/gui/widgets/status_icon.py
 lutris/installer/commands.py
+lutris/installer/interpreter.py
 lutris/runners/atari800.py
 lutris/runners/browser.py
 lutris/runners/dolphin.py

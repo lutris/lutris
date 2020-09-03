@@ -286,7 +286,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.interpreter.launch_installer_commands()
             return
 
-        self.set_status("Please review the files needed for the installation then click 'Continue'")
+        self.set_status(_("Please review the files needed for the installation then click 'Continue'"))
         installer_files_box = InstallerFilesBox(self.interpreter.installer.files, self)
         installer_files_box.connect("files-available", self.on_files_available)
         installer_files_box.connect("files-ready", self.on_files_ready)

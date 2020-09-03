@@ -31,7 +31,7 @@
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="button1">
-                <property name="label">_Cancel</property>
+                <property name="label" translatable="yes">_Cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -47,7 +47,7 @@
             </child>
             <child>
               <object class="GtkButton" id="button2">
-                <property name="label">Appl_y</property>
+                <property name="label" translatable="yes">Appl_y</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -139,7 +139,7 @@
                     <property name="layout_style">start</property>
                     <child>
                       <object class="GtkButton" id="add_source_button">
-                        <property name="label">_Add</property>
+                        <property name="label" translatable="yes">_Add</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="has_focus">True</property>
@@ -155,7 +155,7 @@
                     </child>
                     <child>
                       <object class="GtkButton" id="remove_source_button">
-                        <property name="label">_Remove</property>
+                        <property name="label" translatable="yes">_Remove</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>

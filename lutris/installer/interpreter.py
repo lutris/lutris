@@ -1,5 +1,6 @@
 """Install a game by following its install script."""
 import os
+from gettext import gettext as _
 
 from gi.repository import GLib, GObject
 
@@ -267,7 +268,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         if result == "STOP" or self.cancelled:
             return
 
-        self.parent.set_status("Installing game data")
+        self.parent.set_status(_("Installing game data"))
         self.parent.add_spinner()
         self.parent.continue_button.hide()
 
@@ -325,12 +326,14 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.installer.save()
         if path and not os.path.isfile(path) and self.installer.runner not in ("web", "browser"):
             self.parent.set_status(
-                "The executable at path %s can't be found, please check the destination folder.\n"
-                "Some parts of the installation process may have not completed successfully." % path
+                _(
+                    "The executable at path %s can't be found, please check the destination folder.\n"
+                    "Some parts of the installation process may have not completed successfully."
+                ) % path
             )
             logger.warning("No executable found at specified location %s", path)
         else:
-            install_complete_text = (self.installer.script.get("install_complete_text") or "Installation completed!")
+            install_complete_text = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
             self.parent.set_status(install_complete_text)
         self.parent.on_install_finished()
 
