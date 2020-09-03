@@ -1,0 +1,159 @@
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-22 18:56+0200\n"
+"PO-Revision-Date: 2020-09-03 19:01+0900\n"
+"Language-Team: Korean\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: \n"
+"X-Generator: Poedit 2.0.6\n"
+"Last-Translator: Kevin Kim <root@hamonikr.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: ko\n"
+
+#: share/lutris/ui/about-dialog.ui:8
+msgid "About Lutris"
+msgstr "Lutris 정보"
+
+#: share/lutris/ui/about-dialog.ui:17
+msgid "Open Source Gaming Platform"
+msgstr "오픈소스 게임을 위한 플랫폼"
+
+#: share/lutris/ui/about-dialog.ui:20
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"이 프로그램은 무료 소프트웨어입니다. 재배포 및 / 또는 수정할 수 있습니다.\n"
+"GNU General Public License의 조건에 따라\n"
+"Free Software Foundation, 라이선스 버전 3 또는\n"
+"(귀하의 선택에 따라) 이후 버전.\n"
+"\n"
+"이 프로그램은 유용 할 것이라는 희망으로 배포됩니다.\n"
+"그러나 어떠한 보증도없이; 묵시적 보증도없이\n"
+"상품성 또는 특정 목적에의 적합성. 참조\n"
+"자세한 내용은 GNU General Public License를 참조하십시오.\n"
+"\n"
+"GNU General Public License 사본을 받았을 것입니다.\n"
+"이 프로그램과 함께. 그렇지 않은 경우 <http://www.gnu.org/licenses/>를 참조하십시오.\n"
+
+#: share/lutris/ui/dialog-lutris-login.ui:8
+msgid "Connect to lutris.net"
+msgstr "lutris.net 에 연결"
+
+#: share/lutris/ui/dialog-lutris-login.ui:26
+msgid "Forgot password?"
+msgstr "비밀번호를 분실했나요?"
+
+#: share/lutris/ui/dialog-lutris-login.ui:95
+msgid "Password"
+msgstr "비밀번호"
+
+#: share/lutris/ui/dialog-lutris-login.ui:109
+msgid "Username"
+msgstr "사용자명"
+
+#: share/lutris/ui/dialog-pga-sources.ui:79
+msgid "<b>Personnal Game Archives sources</b>"
+msgstr "<b>개인 게임 보관소</b>"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:22
+msgid "Uninstall game"
+msgstr "게임 삭제"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:89
+msgid "Are you sure you want to uninstall {game}?"
+msgstr "정말 {game} 을 삭제 하시겠습니까?"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:102
+msgid ""
+"Remove <b>all data</b> from game folder\n"
+"( <i>{path}</i>)"
+msgstr ""
+"<b>모든 데이터</b> 를 게임 폴더에서 삭제합니다.\n"
+"( <i>{path}</i>)"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:121
+msgid "Remove from my library"
+msgstr "라이브러리에서 제거합니다."
+
+#: share/lutris/ui/runner-entry.ui:33
+msgid "name"
+msgstr "이름"
+
+#: share/lutris/ui/runner-entry.ui:52
+msgid "description"
+msgstr "설명"
+
+#: share/lutris/ui/runner-entry.ui:69
+msgid "platforms"
+msgstr "플랫폼"
+
+#: share/lutris/ui/runner-entry.ui:104
+msgid "Manage Versions"
+msgstr "버전 관리"
+
+#: share/lutris/ui/runner-entry.ui:127
+msgid "Install Runner"
+msgstr "러너 설치"
+
+#: share/lutris/ui/runner-entry.ui:151
+msgid "Configure Runner"
+msgstr "러너 설정"
+
+#: share/lutris/ui/runner-entry.ui:174
+msgid "Remove Runner"
+msgstr "러너 제거"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:19
+msgid "Remove ALL versions?"
+msgstr "모든 버전을 삭제 하시겠습니까?"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:23
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:23
+msgid "Cancel"
+msgstr "취소"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:36
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:19
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:36
+msgid "Remove"
+msgstr "삭제"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:59
+msgid ""
+"This will remove <b>ALL</b> versions of %s.\n"
+"\n"
+"Use the Manage Versions button if you want to remove just one version."
+msgstr ""
+"<b>모든</b> 버전의  %s 을 삭제합니다.\n"
+"\n"
+"만약 하나의 버전만 삭제하려면 버전 관리를 이용하세요."
+
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:59
+msgid "This will remove <b>%s</b> and all associated data."
+msgstr "관련된 모든 데이터를 삭제합니다."
+
+#: share/lutris/ui/runners-dialog.ui:16
+msgid "Manage Runners"
+msgstr "러너 관리"
+
+#: share/lutris/ui/runners-dialog.ui:24
+msgid "Refresh Runners"
+msgstr "러너 새로고침"
+
+#: share/lutris/ui/runners-dialog.ui:40
+msgid "Open Runners Folder"
+msgstr "러너 폴더 열기"
