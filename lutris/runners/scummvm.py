@@ -73,7 +73,7 @@ class scummvm(Runner):
             "default":
             "3x",
             "choices": [
-                (_("1x"), "1x"),
+                ("1x", "1x"),
                 ("2x", "2x"),
                 ("3x", "3x"),
                 ("hq2x", "hq2x"),
