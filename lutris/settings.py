@@ -7,7 +7,7 @@ from gi.repository import GLib
 from lutris import __version__
 from lutris.util.settings import SettingsIO
 
-PROJECT = _("Lutris")
+PROJECT = "Lutris"
 VERSION = __version__
 COPYRIGHT = _("(c) 2010-2020 Lutris Gaming Platform")
 AUTHORS = [_("The Lutris team")]
