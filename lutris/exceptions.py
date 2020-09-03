@@ -24,10 +24,10 @@ class UnavailableLibraries(RuntimeError):
 
     def __init__(self, libraries, arch=None):
         message = _(
-            "The following %s libraries are required but are not installed on your system:\n%s"
-        ) % (
-            arch if arch else "",
-            ", ".join(libraries)
+            "The following {arch} libraries are required but are not installed on your system:\n{libs}"
+        ).format(
+            arch=arch if arch else "",
+            libs=", ".join(libraries)
         )
         super().__init__(message)
         self.libraries = libraries
