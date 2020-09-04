@@ -346,6 +346,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """The runners are ready, proceed with file selection"""
         self.clean_widgets()
         self.interpreter.installer.prepare_game_files()
+        if not self.interpreter.installer.files:
+            logger.debug("Installer doesn't require files")
+            self.interpreter.launch_installer_commands()
+            return
+
         self.set_status("Please review the files needed for the installation then click 'Continue'")
         installer_files_box = InstallerFilesBox(self.interpreter.installer.files, self)
         installer_files_box.connect("files-available", self.on_files_available)
