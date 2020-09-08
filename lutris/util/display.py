@@ -307,7 +307,7 @@ def _get_screen_saver_inhibitor():
     try:
         return DBusScreenSaverInhibitor(name, path, interface)
     except GLib.Error as err:
-        logger.error("Error during creation of DBusScreenSaverInhibitor: %s", err.message)
+        logger.error("Error during creation of DBusScreenSaverInhibitor: %s", err.message)  # pylint: disable=no-member
         return None
 
 
