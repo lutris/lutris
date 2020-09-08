@@ -688,7 +688,7 @@
         <property name="has_subtitle">False</property>
         <property name="show_close_button">True</property>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="left_header_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="spacing">6</property>
@@ -738,7 +738,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="right_header_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="spacing">6</property>
@@ -844,20 +844,33 @@
           </packing>
         </child>
         <child>
-          <object class="GtkSearchEntry" id="search_entry">
-            <property name="can_focus">True</property>
-            <property name="halign">center</property>
-            <property name="valign">center</property>
-            <property name="width_chars">30</property>
-            <property name="placeholder_text" translatable="yes">Search games</property>
-            <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+          <object class="GtkAlignment">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="hexpand">True</property>
+            <child>
+              <object class="GtkSearchEntry" id="search_entry">
+                <property name="can_focus">True</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="width_chars">45</property>
+                <property name="placeholder_text" translatable="yes">Search games</property>
+                <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+              </object>
+            </child>
           </object>
           <packing>
-            <property name="pack_type">end</property>
             <property name="position">2</property>
           </packing>
         </child>
       </object>
     </child>
   </template>
+  <object class="GtkSizeGroup" id="size1">
+    <property name="mode">both</property>
+    <widgets>
+      <widget name="left_header_box"/>
+      <widget name="right_header_box"/>
+    </widgets>
+  </object>
 </interface>
