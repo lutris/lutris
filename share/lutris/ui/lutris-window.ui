@@ -847,6 +847,7 @@
           <object class="GtkAlignment">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="halign">center</property>
             <property name="hexpand">True</property>
             <child>
               <object class="GtkSearchEntry" id="search_entry">
@@ -860,6 +861,7 @@
             </child>
           </object>
           <packing>
+            <property name="pack_type">end</property>
             <property name="position">2</property>
           </packing>
         </child>

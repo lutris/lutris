@@ -164,6 +164,15 @@ class LutrisSidebar(Gtk.ListBox):
 
         self.add(
             SidebarRow(
+                "installed",
+                "dynamic_category",
+                _("Installed"),
+                Gtk.Image.new_from_icon_name("drive-harddisk-symbolic", Gtk.IconSize.MENU)
+            )
+        )
+
+        self.add(
+            SidebarRow(
                 "favorite",
                 "category",
                 _("Favorites"),

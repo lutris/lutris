@@ -301,6 +301,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Return a list of currently running games"""
         return games_db.get_games_by_ids([game.id for game in self.application.running_games])
 
+    def get_installed_games(self):
+        """Return a list of currently running games"""
+        return games_db.get_games(filters={'installed': '1'})
+
     def get_api_games(self):
         """Return games from the lutris API"""
         if not self.filters.get("text"):
@@ -365,6 +369,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 return
             game_providers = {
                 "running": self.get_running_games,
+                "installed": self.get_installed_games,
                 "lutrisnet": self.get_api_games,
             }
             return game_providers[category]()
