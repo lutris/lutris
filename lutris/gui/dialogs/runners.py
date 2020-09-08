@@ -11,20 +11,11 @@ from gi.repository import GObject, Gtk
 from lutris import runners, settings
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import ErrorDialog, GtkBuilderDialog
-from lutris.gui.dialogs.download import DownloadDialog
+from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import ICON_SIZE, get_builder_from_file, get_icon, open_uri
 from lutris.util import datapath
 from lutris.util.log import logger
-
-
-def simple_downloader(url, destination, callback, callback_args=None):
-    """Default downloader used for runners"""
-    if not callback_args:
-        callback_args = {}
-    dialog = DownloadDialog(url, destination)
-    dialog.run()
-    return callback(**callback_args)
 
 
 class RunnersDialog(GtkBuilderDialog):

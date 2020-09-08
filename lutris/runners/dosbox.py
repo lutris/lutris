@@ -15,7 +15,7 @@ class dosbox(Runner):
     platforms = [_("MS-DOS")]
     runnable_alone = True
     runner_executable = "dosbox/bin/dosbox"
-    require_libs = ["libopusfile.so.0",]
+    require_libs = ["libopusfile.so.0", ]
     game_options = [
         {
             "option": "main_file",

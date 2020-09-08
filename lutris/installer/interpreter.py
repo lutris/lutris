@@ -7,6 +7,7 @@ from gi.repository import GLib, GObject
 from lutris import pga, settings
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import WineNotInstalledWarning
+from lutris.gui.dialogs.download import simple_downloader
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -263,7 +264,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         try:
             runner.install(
                 version=self._get_runner_version(),
-                downloader=self.parent.start_download,
+                downloader=simple_downloader,
                 callback=self.install_runners,
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
