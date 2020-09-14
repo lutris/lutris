@@ -257,7 +257,15 @@ class steam(Runner):
                 if path and os.path.isdir(path):
                     dirs.append(path)
                 i += 1
-        return dirs
+
+        # Deduplicate directories with the same Device.Inode
+        unique_dirs = {}
+        for _dir in dirs:
+            stat = os.stat(_dir)
+            identifier = "{device}.{inode}".format(device=stat.st_dev, inode=stat.st_ino)
+            if identifier not in unique_dirs:
+                unique_dirs[identifier] = _dir
+        return unique_dirs.values()
 
     def get_default_steamapps_path(self):
         steamapps_paths = self.get_steamapps_dirs()
