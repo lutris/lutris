@@ -157,6 +157,7 @@ class LutrisSidebar(Gtk.ListBox):
             SidebarRow(
                 "running",
                 "dynamic_category",
+
                 _("Running"),
                 Gtk.Image.new_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.MENU)
             )

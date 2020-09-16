@@ -8,11 +8,10 @@ from gi.repository.GdkPixbuf import Pixbuf
 from lutris import api
 from lutris.database.games import get_games_by_slug
 from lutris.gui.views.store_item import StoreItem
-from lutris.gui.widgets.utils import IMAGE_SIZES, get_pixbuf_for_game
-from lutris.util import system
+from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.resources import download_media, get_icon_path, update_desktop_icons
+# from lutris.util.http import download_file
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -58,20 +57,104 @@ def sort_func(model, row1, row2, sort_col):
         return 0
 
 
+class MediaLoader(GObject.Object):
+    __gsignals__ = {
+        "api-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+    }
+
+    def __init__(self, service_media):
+        super().__init__()
+        self.service_media = service_media
+
+        self.games_to_refresh = set()
+        self.medias = {}
+        self.misses = set()
+        self.api_loaded = False
+        self.connect("api-loaded", self.on_api_loaded)
+
+    def refresh_icon(self, game_slug, force=False):
+        if not self.service_media.exists(game_slug) or force:
+            AsyncCall(self.fetch_icon, None, game_slug)
+
+    def fetch_icon(self, slug):
+        if not self.api_loaded:
+            self.games_to_refresh.add(slug)
+            return
+
+        # XXX there is no self.medias
+        # for media_type in ("banner", "icon"):
+        #     url = self.medias[media_type].get(slug)
+        #     if url:
+        #         logger.debug("Getting %s for %s: %s", media_type, slug, url)
+        #         # FIXME set dest path accordingly
+        #         # download_file(url, get_icon_path(slug, media_type))
+        #         self.emit("icon-loaded", slug)
+
+    def get_missing_media(self, slugs):
+        """Query the Lutris.net API for missing icons"""
+        unavailable_media = {slug for slug in slugs if not self.service_media.exists(slug)}
+
+        # Remove duplicate slugs
+        missing_media_slugs = (unavailable_media - self.misses)
+        if not missing_media_slugs:
+            return
+        if len(missing_media_slugs) > 10:
+            logger.debug("Requesting missing icons from API for %d games", len(missing_media_slugs))
+        else:
+            logger.debug("Requesting missing icons from API for %s", ", ".join(missing_media_slugs))
+
+        lutris_media = api.get_api_games(list(missing_media_slugs), inject_aliases=True)
+        if not lutris_media:
+            return
+
+        for game in lutris_media:
+            if game["slug"] in unavailable_media and game["icon_url"]:
+                self.medias[game["slug"]] = game["icon_url"]
+                unavailable_media.remove(game["slug"])
+        self.misses = unavailable_media
+        self.api_loaded = True
+        self.emit("api-loaded")
+
+    def on_api_loaded(self, _response):
+        """Callback to handle a response from the API with the new media"""
+        self.download_icons(self.medias)
+
+    def download_icons(self, medias):
+        """Download a list of media files concurrently.
+
+        Limits the number of simultaneous downloads to avoid API throttling
+        and UI being overloaded with signals.
+        """
+        if not medias:
+            return
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            future_downloads = {
+                executor.submit(self.service_media.download, slug): slug
+                for slug in medias
+            }
+            for future in concurrent.futures.as_completed(future_downloads):
+                slug = future_downloads[future]
+                try:
+                    future.result()
+                except Exception as ex:  # pylint: disable=broad-except
+                    logger.exception('%r failed: %s', slug, ex)
+                else:
+                    self.emit("icon-loaded", slug)
+        # XXX clearly not the place for this
+        # if media_type == "icon":
+        #     system.update_desktop_icons()
+
+
 class GameStore(GObject.Object):
     __gsignals__ = {
-        "media-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
         "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, games, icon_type, image_size=None):
+    def __init__(self, service_media):
         super().__init__()
-        self.games = games
-
-        self.games_to_refresh = set()
-        self.icon_type = icon_type
-        self.image_size = image_size or IMAGE_SIZES[self.icon_type]
+        self.service_media = service_media
 
         self.store = Gtk.ListStore(
             str,
@@ -90,62 +173,16 @@ class GameStore(GObject.Object):
             float,
             str,
         )
-        self.medias = {"banner": {}, "icon": {}}
-        self.banner_misses = set()
-        self.icon_misses = set()
-        self.media_loaded = False
-        self.connect("media-loaded", self.on_media_loaded)
-        self.connect("icon-loaded", self.on_icon_loaded)
-
-    @property
-    def game_slugs(self):
-        return [game["slug"] for game in self.games]
+        self.media_loader = MediaLoader(service_media)
+        self.media_loader.connect("icon-loaded", self.on_icon_loaded)
 
     def add_games(self, games):
         """Add games to the store"""
-        self.media_loaded = False
+        self.media_loader.api_loaded = False
         if games:
-            AsyncCall(self.get_missing_media, None, [game["slug"] for game in games])
+            AsyncCall(self.media_loader.get_missing_media, None, [game["slug"] for game in games])
         for game in list(games):
             GLib.idle_add(self.add_game, game)
-
-    def has_icon(self, game_slug, media_type=None):
-        """Return True if the game_slug has the icon of `icon_type`
-        This shouldn't be in this class.
-        """
-        media_type = media_type or self.icon_type
-        return system.path_exists(get_icon_path(game_slug, media_type))
-
-    def get_missing_media(self, slugs=None):
-        """Query the Lutris.net API for missing icons"""
-        slugs = slugs or self.game_slugs
-        unavailable_banners = {slug for slug in slugs if not self.has_icon(slug, "banner")}
-        unavailable_icons = {slug for slug in slugs if not self.has_icon(slug, "icon")}
-
-        # Remove duplicate slugs
-        missing_media_slugs = ((unavailable_banners - self.banner_misses) | (unavailable_icons - self.icon_misses))
-        if not missing_media_slugs:
-            return
-        if len(missing_media_slugs) > 10:
-            logger.debug("Requesting missing icons from API for %d games", len(missing_media_slugs))
-        else:
-            logger.debug("Requesting missing icons from API for %s", ", ".join(missing_media_slugs))
-
-        lutris_media = api.get_api_games(list(missing_media_slugs), inject_aliases=True)
-        if not lutris_media:
-            return
-
-        for game in lutris_media:
-            if game["slug"] in unavailable_banners and game["banner_url"]:
-                self.medias["banner"][game["slug"]] = game["banner_url"]
-                unavailable_banners.remove(game["slug"])
-            if game["slug"] in unavailable_icons and game["icon_url"]:
-                self.medias["icon"][game["slug"]] = game["icon_url"]
-                unavailable_icons.remove(game["slug"])
-        self.banner_misses = unavailable_banners
-        self.icon_misses = unavailable_icons
-        self.media_loaded = True
-        self.emit("media-loaded")
 
     def get_row_by_id(self, game_id):
         for model_row in self.store:
@@ -154,15 +191,6 @@ class GameStore(GObject.Object):
 
     def remove_game(self, game_id):
         """Remove a game from the view."""
-        game_index = 0
-        for index, game in enumerate(self.games):
-            if game["id"] == game_id:
-                game_index = index
-                break
-        if game_index:
-            self.games.pop(game_index)
-        else:
-            logger.warning("Can't find game %s in game list", game_id)
         row = self.get_row_by_id(game_id)
         if row:
             self.store.remove(row.iter)
@@ -176,7 +204,7 @@ class GameStore(GObject.Object):
         row[COL_ID] = game.id
         row[COL_SLUG] = game.slug
         row[COL_NAME] = gtk_safe(game.name)
-        row[COL_ICON] = game.get_pixbuf(self.icon_type)
+        row[COL_ICON] = game.get_pixbuf()
         row[COL_YEAR] = game.year
         row[COL_RUNNER] = game.runner
         row[COL_RUNNER_HUMAN_NAME] = gtk_safe(game.runner_text)
@@ -188,81 +216,17 @@ class GameStore(GObject.Object):
         row[COL_INSTALLED_AT_TEXT] = game.installed_at_text
         row[COL_PLAYTIME] = game.playtime
         row[COL_PLAYTIME_TEXT] = game.playtime_text
-        if not self.has_icon(game.slug):
-            self.refresh_icon(game.slug)
-
-    def refresh_icon(self, game_slug):
-        AsyncCall(self.fetch_icon, None, game_slug)
-
-    def on_icon_loaded(self, _store, game_slug, media_type):
-        if not self.has_icon(game_slug):
-            logger.debug("%s has no %s", game_slug, media_type)
-            return
-        if media_type != self.icon_type:
-            return
-        for pga_game in get_games_by_slug(game_slug):
-            logger.debug("Updating %s", pga_game["id"])
-            GLib.idle_add(self.update, pga_game)
-
-    def fetch_icon(self, slug):
-        if not self.media_loaded:
-            self.games_to_refresh.add(slug)
-            return
-
-        for media_type in ("banner", "icon"):
-            url = self.medias[media_type].get(slug)
-            if url:
-                logger.debug("Getting %s for %s: %s", media_type, slug, url)
-                download_media(url, get_icon_path(slug, media_type))
-                self.emit("icon-loaded", slug, media_type)
-
-    def on_media_loaded(self, _response):
-        """Callback to handle a response from the API with the new media"""
-        if not self.medias:
-            return
-        for media_type in ("banner", "icon"):
-            self.download_icons(
-                [
-                    (slug, self.medias[media_type][slug], get_icon_path(slug, media_type))
-                    for slug in self.medias[media_type]
-                ], media_type
-            )
-
-    def download_icons(self, downloads, media_type):
-        """Download a list of media files concurrently.
-
-        Limits the number of simultaneous downloads to avoid API throttling
-        and UI being overloaded with signals.
-        """
-        if not downloads:
-            return
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            future_downloads = {
-                executor.submit(download_media, url, dest_path): slug
-                for slug, url, dest_path in downloads
-            }
-            for future in concurrent.futures.as_completed(future_downloads):
-                slug = future_downloads[future]
-                try:
-                    future.result()
-                except Exception as ex:  # pylint: disable=broad-except
-                    logger.exception('%r failed: %s', slug, ex)
-                else:
-                    self.emit("icon-loaded", slug, media_type)
-        if media_type == "icon":
-            update_desktop_icons()
+        self.media_loader.refresh_icon(game.slug)
 
     def add_game(self, db_game):
         """Add a PGA game to the store"""
         game = StoreItem(db_game)
-        self.games.append(db_game)
         self.store.append(
             (
                 str(game.id),
                 game.slug,
                 game.name,
-                game.get_pixbuf(self.icon_type),
+                game.get_pixbuf(),
                 game.year,
                 game.runner,
                 game.runner_text,
@@ -276,20 +240,25 @@ class GameStore(GObject.Object):
                 game.playtime_text,
             )
         )
-        if not self.has_icon(game.slug):
-            self.refresh_icon(game.slug)
+        self.media_loader.refresh_icon(game.slug)
 
-    def set_icon_type(self, icon_type):
+    def set_service_media(self, service_media):
         """Change the icon type"""
-        if icon_type == self.icon_type:
+        if service_media == self.service_media:
             return
-        self.icon_type = icon_type
+        self.service_media = service_media
         for row in self.store:
             row[COL_ICON] = get_pixbuf_for_game(
                 row[COL_SLUG],
-                icon_type,
+                self.service_media.size,
                 is_installed=row[COL_INSTALLED],
             )
-        if not self.image_size:
-            self.image_size = IMAGE_SIZES[icon_type]
         self.emit("icons-changed")
+
+    def on_icon_loaded(self, game_slug):
+        """Callback signal for when a icon has downloaded.
+        Update the image in the view.
+        """
+        for pga_game in get_games_by_slug(game_slug):
+            logger.debug("Updating %s", pga_game["id"])
+            GLib.idle_add(self.update, pga_game)

@@ -1,14 +1,11 @@
 """Various utilities using the GObject framework"""
-# Standard Library
 import array
 import os
 
-# Third Party Libraries
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 
-# Lutris Modules
 from lutris import settings
-from lutris.util import datapath, resources, system
+from lutris.util import datapath, system
 from lutris.util.log import logger
 
 try:
@@ -16,15 +13,8 @@ try:
 except ImportError:
     Image = None
 
-BANNER_SIZE = (184, 69)
 ICON_SIZE = (32, 32)
-
-IMAGE_SIZES = {
-    "icon_small": (20, 20),
-    "icon": ICON_SIZE,
-    "banner_small": (120, 45),
-    "banner": BANNER_SIZE,
-}
+BANNER_SIZE = (184, 69)
 
 
 def get_main_window(widget):
@@ -107,20 +97,15 @@ def get_overlay(overlay_path, size):
     return transparent_pixbuf
 
 
-def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
-    if icon_type.startswith("banner"):
-        default_icon_path = os.path.join(datapath.get(), "media/default_banner.png")
-        icon_path = resources.get_banner_path(game_slug)
-    elif icon_type.startswith("icon"):
-        default_icon_path = os.path.join(datapath.get(), "media/default_icon.png")
-        icon_path = resources.get_icon_path(game_slug)
-    else:
-        logger.error("Invalid icon type '%s'", icon_type)
-        return None
+def get_default_icon(size):
+    if size[0] == size[1]:
+        return os.path.join(datapath.get(), "media/default_icon.png")
+    return os.path.join(datapath.get(), "media/default_banner.png")
 
-    size = IMAGE_SIZES[icon_type]
 
-    pixbuf = get_pixbuf(icon_path, size, fallback=default_icon_path)
+def get_pixbuf_for_game(image_abspath, size, is_installed=True):
+    # icon_path = resources.get_icon_path(game_slug)
+    pixbuf = get_pixbuf(image_abspath, size, fallback=get_default_icon(size))
     if not is_installed:
         unavailable_game_overlay = os.path.join(datapath.get(), "media/unavailable.png")
         transparent_pixbuf = get_overlay(unavailable_game_overlay, size).copy()
