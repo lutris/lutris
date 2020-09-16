@@ -81,11 +81,15 @@ class StoreItem:
             return False
         return self._game_data["installed"]
 
-    def get_pixbuf(self, icon_type):
+    def get_pixbuf(self):
         """Pixbuf varying on icon type"""
         if self._game_data.get("icon"):
             return get_pixbuf(self._game_data["icon"], self._game_data["image_size"])
-        return get_pixbuf_for_game(self._game_data["slug"], icon_type, self._game_data["installed"])
+        return get_pixbuf_for_game(
+            self._game_data["slug"],
+            self._game_data["image_size"],
+            self._game_data["installed"]
+        )
 
     @property
     def installed_at(self):

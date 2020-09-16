@@ -6,7 +6,6 @@ from gi.repository import Gtk
 
 from lutris.database.games import get_games
 from lutris.game import Game
-from lutris.gui.widgets.utils import get_pixbuf_for_game
 
 try:
     gi.require_version('AppIndicator3', '0.1')
@@ -89,10 +88,8 @@ class LutrisStatusIcon:
         self.application.do_shutdown()
 
     def _make_menu_item_for_game(self, game):
-        menu_item = Gtk.ImageMenuItem()
+        menu_item = Gtk.MenuItem()
         menu_item.set_label(game["name"])
-        game_icon = get_pixbuf_for_game(game["slug"], "icon_small")
-        menu_item.set_image(Gtk.Image.new_from_pixbuf(game_icon))
         menu_item.connect("activate", self.on_game_selected, game["id"])
         return menu_item
 

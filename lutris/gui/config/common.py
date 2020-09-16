@@ -15,7 +15,7 @@ from lutris.gui.widgets.common import FileChooserEntry, Label, NumberEntry, Slug
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
 from lutris.runners import import_runner
-from lutris.util import resources
+from lutris.util import resources, system
 from lutris.util.linux import gather_system_info_str
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -259,18 +259,13 @@ class GameDialogCommon:
 
     def _set_image(self, image_format):
         image = Gtk.Image()
+        size = BANNER_SIZE if image_format == "banner" else ICON_SIZE
         game_slug = self.game.slug if self.game else ""
-        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, image_format))
+        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, size))
         if image_format == "banner":
             self.banner_button.set_image(image)
         else:
             self.icon_button.set_image(image)
-
-    def _set_icon_image(self):
-        image = Gtk.Image()
-        game_slug = self.game.slug if self.game else ""
-        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, "banner"))
-        self.banner_button.set_image(image)
 
     def _get_runner_dropdown(self):
         runner_liststore = self._get_runner_liststore()
@@ -557,12 +552,12 @@ class GameDialogCommon:
             image_path = dialog.get_filename()
             if image_type == "banner":
                 self.game.has_custom_banner = True
-                dest_path = resources.get_banner_path(self.game.slug)
+                dest_path = resources.get_icon_path(self.game.slug, icon_type=image_type)
                 size = BANNER_SIZE
                 file_format = "jpeg"
             else:
                 self.game.has_custom_icon = True
-                dest_path = resources.get_icon_path(self.game.slug)
+                dest_path = resources.get_icon_path(self.game.slug, icon_type="icon")
                 size = ICON_SIZE
                 file_format = "png"
             pixbuf = get_pixbuf(image_path, size)
@@ -570,17 +565,17 @@ class GameDialogCommon:
             self._set_image(image_type)
 
             if image_type == "icon":
-                resources.update_desktop_icons()
+                system.update_desktop_icons()
 
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
         if image_type == "banner":
             self.game.has_custom_banner = False
-            dest_path = resources.get_banner_path(self.game.slug)
+            dest_path = resources.get_icon_path(self.game.slug, icon_type="banner")
         elif image_type == "icon":
             self.game.has_custom_icon = False
-            dest_path = resources.get_icon_path(self.game.slug)
+            dest_path = resources.get_icon_path(self.game.slug, icon_type="icon")
         else:
             raise ValueError("Unsupported image type %s" % image_type)
         os.remove(dest_path)

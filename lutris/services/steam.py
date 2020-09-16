@@ -6,10 +6,18 @@ from gettext import gettext as _
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.database.games import get_games_where
 from lutris.services.base import BaseService
-from lutris.services.service_game import ServiceGame
+from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
+
+
+class SteamBanner(ServiceMedia):
+    size = (184, 69)
+
+
+class SteamIcon(ServiceMedia):
+    size = (32, 32)
 
 
 class SteamGame(ServiceGame):
@@ -22,6 +30,10 @@ class SteamGame(ServiceGame):
         "228980",  # Steamworks Common Redistributables
         "1070560",  # Steam Linux Runtime
     ]
+    medias = {
+        "banner": SteamBanner,
+        "icon": SteamIcon
+    }
 
     @classmethod
     def new_from_steam_game(cls, appmanifest, game_id=None):
@@ -62,7 +74,6 @@ class SteamService(BaseService):
     name = _("Steam")
     icon = "steam"
     online = False
-    image_size = (184, 69)
 
     def __init__(self):
         super().__init__()

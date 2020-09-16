@@ -21,8 +21,9 @@ class GameListView(Gtk.TreeView, GameView):
 
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, store):
+    def __init__(self, store, service_media):
         self.game_store = store
+        self.service_media = service_media
         self.model = self.game_store.store
         super().__init__(model=self.model)
         GameView.__init__(self)

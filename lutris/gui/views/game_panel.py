@@ -1,33 +1,52 @@
 """Game panel"""
-# Standard Library
 from datetime import datetime
 from gettext import gettext as _
 
-# Third Party Libraries
-from gi.repository import GObject, Gtk, Pango
+from gi.repository import Gdk, GObject, Gtk, Pango
 
-# Lutris Modules
 from lutris import runners
-from lutris.gui.views.generic_panel import GenericPanel
-from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game, get_pixbuf_for_panel
 from lutris.util.strings import gtk_safe
 
 
-class GamePanel(GenericPanel):
-
+class GamePanel(Gtk.Fixed):
     """Panel allowing users to interact with a game"""
-
     __gsignals__ = {
         "panel-closed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def __init__(self, game_actions):
+        super().__init__(visible=True)
         self.game_actions = game_actions
         self.game = game_actions.game
-        super().__init__()
+        self.set_size_request(320, -1)
+        self.get_style_context().add_class("game-panel")
+        self.set_background()
+        self.place_content()
+        self.timer_id = None
+
         self.game.connect("game-start", self.on_game_start)
         self.game.connect("game-started", self.on_game_started)
         self.game.connect("game-stopped", self.on_game_state_changed)
+
+    def set_background(self):
+        """Return the background image for the panel"""
+        bg_path = get_pixbuf_for_panel(self.background_id)
+        if not bg_path:
+            return
+
+        style = Gtk.StyleContext()
+        style.add_class(Gtk.STYLE_CLASS_VIEW)
+        bg_provider = Gtk.CssProvider()
+        bg_provider.load_from_data(
+            ('.game-scrolled { background-image: url("%s"); '
+             "background-repeat: no-repeat; }" % bg_path).encode("utf-8")
+        )
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            bg_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+        )
 
     def place_content(self):
         self.put(self.get_close_button(), 276, 16)
@@ -64,7 +83,7 @@ class GamePanel(GenericPanel):
 
     def get_icon(self):
         """Return the game icon"""
-        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(self.game.slug, "icon"))
+        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(self.game.slug, (32, 32)))
         icon.show()
         return icon
 

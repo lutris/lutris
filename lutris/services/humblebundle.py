@@ -2,16 +2,22 @@
 import json
 import os
 from gettext import gettext as _
-from urllib.parse import urlparse
 
 from lutris import settings
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.services.base import OnlineService
-from lutris.services.service_game import ServiceGame
-from lutris.util import system
+from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
-from lutris.util.resources import download_media
+
+
+class HumbleBundleIcon(ServiceMedia):
+    """HumbleBundle icon"""
+    size = (70, 70)
+    small_size = (35, 35)
+    dest_path = os.path.join(settings.CACHE_DIR, "humblebundle/icons")
+    file_pattern = "%s.png"
+    api_field = "icon"
 
 
 class HumbleBundleGame(ServiceGame):
@@ -25,24 +31,9 @@ class HumbleBundleGame(ServiceGame):
         service_game = HumbleBundleGame()
         service_game.appid = humble_game["machine_name"]
         service_game.name = humble_game["human_name"]
-        service_game.icon = cls.get_icon(humble_game)
+        service_game.icon_url = humble_game["icon"]
         service_game.details = json.dumps(humble_game)
         return service_game
-
-    @classmethod
-    def get_icon(cls, humble_game):
-        """Download the icon for the game and return the local path"""
-        icon_url = humble_game["icon"]
-        cache_dir = os.path.join(settings.CACHE_DIR, "humblebundle/icons/")
-        if not system.path_exists(cache_dir):
-            os.makedirs(cache_dir)
-        icon_filename = os.path.basename(urlparse(icon_url).path)
-        if not icon_filename:
-            return ""
-        cache_path = os.path.join(cache_dir, icon_filename)
-        if not system.path_exists(cache_path):
-            download_media(icon_url, cache_path)
-        return cache_path
 
 
 class HumbleBundleService(OnlineService):
@@ -54,7 +45,9 @@ class HumbleBundleService(OnlineService):
     icon = "humblebundle"
     lutris_db_field = "humblestoreid"
     online = True
-    image_size = (70, 70)
+    medias = {
+        "icon": HumbleBundleIcon
+    }
 
     api_url = "https://www.humblebundle.com/"
     login_url = "https://www.humblebundle.com/login?goto=/home/library"

@@ -9,33 +9,64 @@ from lutris import settings
 from lutris.exceptions import AuthenticationError, MultipleInstallerError, UnavailableGame
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.services.base import OnlineService
-from lutris.services.service_game import ServiceGame
+from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util import system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
-from lutris.util.resources import download_media
 
-GOG_BANNER_FORMATS = {
-    "small": "_prof_game_100x60.jpg",
-    "medium": "_196.jpg",
-    "large": "_392.jpg",
-}
 
-GOG_BANNER_SIZES = {
-    "small": (100, 60),
-    "medium": (196, 110),
-    "large": (392, 220),
-}
+class GogSmallBanner(ServiceMedia):
+    """Small size game logo"""
+    size = (100, 60)
+    dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/small")
+    file_pattern = "%s.jpg"
+    api_field = "icon"
+    url_pattern = "https%s_prof_game_100x60.jpg"
+
+
+class GogMediumBanner(GogSmallBanner):
+    """Medium size game logo"""
+    size = (196, 110)
+    dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/medium")
+    url_pattern = "https%s_196.jpg"
+
+
+class GogLargeBanner(GogSmallBanner):
+    """Big size game logo"""
+    size = (392, 220)
+    dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/large")
+    url_pattern = "https%s_392.jpg"
+
+
+class GOGGame(ServiceGame):
+
+    """Representation of a GOG game"""
+    service = "gog"
+
+    @classmethod
+    def new_from_gog_game(cls, gog_game):
+        """Return a GOG game instance from the API info"""
+        service_game = GOGGame()
+        service_game.appid = str(gog_game["id"])
+        service_game.icon_url = gog_game["image"]
+        service_game.slug = gog_game["slug"]
+        service_game.name = gog_game["title"]
+        service_game.details = json.dumps(gog_game)
+        return service_game
 
 
 class GOGService(OnlineService):
-
     """Service class for GOG"""
 
     id = "gog"
     name = _("GOG")
     icon = "gog"
     lutris_db_field = "gogid"
+    medias = {
+        "banner_small": GogSmallBanner,
+        "banner": GogMediumBanner,
+        "banner_large": GogLargeBanner
+    }
 
     embed_url = "https://embed.gog.com"
     api_url = "https://api.gog.com"
@@ -48,11 +79,6 @@ class GOGService(OnlineService):
     cookies_path = os.path.join(settings.CACHE_DIR, ".gog.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
     cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
-    image_format = "medium"
-
-    @property
-    def image_size(self):
-        return GOG_BANNER_SIZES[self.image_format]
 
     @property
     def login_url(self):
@@ -263,38 +289,6 @@ class GOGService(OnlineService):
         # and / or language selection implemented
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
         return gog_installers
-
-
-class GOGGame(ServiceGame):
-
-    """Representation of a GOG game"""
-    service = "gog"
-
-    @classmethod
-    def new_from_gog_game(cls, gog_game):
-        """Return a GOG game instance from the API info"""
-        service_game = GOGGame()
-        service_game.appid = str(gog_game["id"])
-        service_game.icon = cls.get_banner(gog_game)
-        service_game.slug = gog_game["slug"]
-        service_game.name = gog_game["title"]
-        service_game.details = json.dumps(gog_game)
-        return service_game
-
-    @classmethod
-    def get_banner(cls, gog_game, size="medium"):
-        """Return the path to the game banner.
-        Downloads the banner if not present.
-        """
-        image_url = "https:%s%s" % (gog_game["image"], GOG_BANNER_FORMATS[size])
-        cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/", size)
-        if not system.path_exists(cache_dir):
-            os.makedirs(cache_dir)
-        image_filename = gog_game["image"].split("/")[-1] + GOG_BANNER_FORMATS[size]
-        cache_path = os.path.join(cache_dir, image_filename)
-        if not system.path_exists(cache_path):
-            download_media(image_url, cache_path)
-        return cache_path
 
 
 def get_gog_download_links(gogid, runner):

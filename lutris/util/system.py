@@ -8,6 +8,8 @@ import stat
 import string
 import subprocess
 
+from gi.repository import GLib
+
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -367,3 +369,12 @@ def get_existing_parent(path):
     if os.path.exists(path) and not os.path.isfile(path):
         return path
     return get_existing_parent(os.path.dirname(path))
+
+
+def update_desktop_icons():
+    """Update Icon for GTK+ desktop manager
+    Other desktop manager icon cache commands must be added here if needed
+    """
+    if find_executable("gtk-update-icon-cache"):
+        logger.debug("Updating GTK icon cache...")
+        os.system("gtk-update-icon-cache -tf %s" % os.path.join(GLib.get_user_data_dir(), "icons", "hicolor"))

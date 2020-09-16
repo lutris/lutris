@@ -10,7 +10,7 @@ import urllib.request
 
 # Lutris Modules
 from lutris import settings
-from lutris.util import http, resources, system
+from lutris.util import http, system
 from lutris.util.log import logger
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
@@ -53,7 +53,7 @@ def connect(username, password):
 
 def disconnect():
     """Removes the API token, disconnecting the user"""
-    for file_path in [API_KEY_FILE_PATH, USER_INFO_FILE_PATH, USER_ICON_FILE_PATH]:
+    for file_path in [API_KEY_FILE_PATH, USER_INFO_FILE_PATH]:
         if system.path_exists(file_path):
             os.remove(file_path)
 
@@ -71,8 +71,6 @@ def get_user_info():
         logger.warning("Unable to fetch user info for %s", credentials["username"])
     with open(USER_INFO_FILE_PATH, "w") as token_file:
         json.dump(account_info, token_file, indent=2)
-    if account_info.get("avatar_url"):
-        resources.download_media(account_info["avatar_url"], USER_ICON_FILE_PATH)
 
 
 def get_library():

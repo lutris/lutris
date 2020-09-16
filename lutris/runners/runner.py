@@ -237,7 +237,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         for lib in set(self.require_libs):
             if lib in LINUX_SYSTEM.shared_libraries:
                 if self.arch:
-                    if self.arch in [l.arch for l in LINUX_SYSTEM.shared_libraries[lib]]:
+                    if self.arch in [_lib.arch for _lib in LINUX_SYSTEM.shared_libraries[lib]]:
                         available_libs.add(lib)
                 else:
                     available_libs.add(lib)

@@ -37,8 +37,6 @@ INSTALLER_URL = SITE_URL + "/api/installers/%s"
 # XXX change this, should query on the installer, not the game.
 INSTALLER_REVISION_URL = SITE_URL + "/api/installers/games/%s/revisions/%s"
 GAME_URL = SITE_URL + "/games/%s/"
-ICON_URL = SITE_URL + "/games/icon/%s.png"
-BANNER_URL = SITE_URL + "/games/banner/%s.jpg"
 RUNTIME_URL = "https://lutris.net/api/runtime"
 
 DEFAULT_DISCORD_CLIENT_ID = "618290412402114570"

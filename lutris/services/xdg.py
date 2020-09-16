@@ -10,7 +10,7 @@ from gi.repository import Gio
 from lutris.config import LutrisConfig
 from lutris.database.games import get_games_where
 from lutris.services.base import BaseService
-from lutris.services.service_game import ServiceGame
+from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -28,13 +28,19 @@ def get_appid(app):
         return app.get_executable()
 
 
+class XDGMedia(ServiceMedia):
+    size = (128, 128)
+
+
 class XDGService(BaseService):
 
     id = "xdg"
     name = _("Desktop games")
     icon = "linux"
     online = False
-    image_size = (128, 128)
+    medias = {
+        "icon": XDGMedia
+    }
 
     ignored_games = (
         "lutris",
@@ -91,7 +97,6 @@ class XDGService(BaseService):
 
 
 class XDGGame(ServiceGame):
-
     """XDG game (Linux game with a desktop launcher)"""
 
     service = "xdg"
