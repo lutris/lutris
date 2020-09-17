@@ -136,7 +136,7 @@ class SidebarHeader(Gtk.Box):
 class LutrisSidebar(Gtk.ListBox):
     __gtype_name__ = "LutrisSidebar"
 
-    def __init__(self, application):
+    def __init__(self, application, selected=None):
         super().__init__()
         self.application = application
         self.get_style_context().add_class("sidebar")
@@ -145,6 +145,10 @@ class LutrisSidebar(Gtk.ListBox):
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(platforms.__all__)
         self.categories = categories_db.get_categories()
+        if selected:
+            row_type, row_id = selected.split(":")
+        else:
+            row_type, row_id = ("runner", "all")
 
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
         GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
@@ -203,7 +207,6 @@ class LutrisSidebar(Gtk.ListBox):
 
         all_row = RunnerSidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
-        self.select_row(all_row)
         for runner_name in self.runners:
             icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
@@ -216,9 +219,14 @@ class LutrisSidebar(Gtk.ListBox):
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             self.add(SidebarRow(platform, "platform", platform, icon))
 
+
         self.set_filter_func(self._filter_func)
         self.set_header_func(self._header_func)
         self.update()
+        for row in self.get_children():
+            if row.type == row_type and row.id == row_id:
+                self.select_row(row)
+                break
         self.show_all()
 
     def _filter_func(self, row):

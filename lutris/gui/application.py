@@ -560,9 +560,10 @@ class Application(Gtk.Application):
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
-        Gtk.Application.do_shutdown(self)
         if self.window:
+            settings.write_setting("selected_category", self.window.selected_category)
             self.window.destroy()
+        Gtk.Application.do_shutdown(self)
 
     def set_tray_icon(self):
         """Creates or destroys a tray icon for the application"""

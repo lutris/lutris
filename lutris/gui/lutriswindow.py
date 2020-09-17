@@ -89,7 +89,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
-        self.filters = {}  # Type of filter corresponding to the selected sidebar element
         self.search_timer_id = None
         self.game_store = None
         self.view = Gtk.Box()
@@ -113,7 +112,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         # Add additional widgets
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
-        self.sidebar = LutrisSidebar(self.application)
+        self.selected_category = settings.read_setting("selected_category", default="runner:all")
+        category, value = self.selected_category.split(":")
+        self.filters = {category: value}  # Type of filter corresponding to the selected sidebar element
+        self.sidebar = LutrisSidebar(self.application, selected=self.selected_category)
         self.sidebar.set_size_request(250, -1)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar)
@@ -762,6 +764,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
+        self.selected_category = "%s:%s" % (row.type, row.id)
         for filter_type in ("category", "dynamic_category", "runner", "platform"):
             if filter_type in self.filters:
                 self.filters.pop(filter_type)
