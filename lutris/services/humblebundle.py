@@ -13,6 +13,7 @@ from lutris.util.log import logger
 
 class HumbleBundleIcon(ServiceMedia):
     """HumbleBundle icon"""
+    service = "humblebundle"
     size = (70, 70)
     small_size = (35, 35)
     dest_path = os.path.join(settings.CACHE_DIR, "humblebundle/icons")
@@ -30,8 +31,8 @@ class HumbleBundleGame(ServiceGame):
         """Converts a game from the API to a service game usable by Lutris"""
         service_game = HumbleBundleGame()
         service_game.appid = humble_game["machine_name"]
+        service_game.slug = humble_game["machine_name"]
         service_game.name = humble_game["human_name"]
-        service_game.icon_url = humble_game["icon"]
         service_game.details = json.dumps(humble_game)
         return service_game
 
@@ -82,9 +83,7 @@ class HumbleBundleService(OnlineService):
                 continue
             humble_games.append(HumbleBundleGame.new_from_humble_game(game))
             seen.add(game["human_name"])
-        lutris_games = self.get_lutris_games(humble_games)
         for game in humble_games:
-            game.lutris_slug = lutris_games[game.appid]["slug"] if lutris_games.get(game.appid) else None
             game.save()
         self.emit("service-games-loaded", self.id)
 

@@ -1,12 +1,9 @@
 """Internal settings."""
-# Standard Library
 import os
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import GLib
 
-# Lutris Modules
 from lutris import __version__
 from lutris.util.settings import SettingsIO
 

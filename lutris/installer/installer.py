@@ -21,6 +21,7 @@ from lutris.util.log import logger
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     """Represents a Lutris installer"""
+
     def __init__(self, installer, interpreter):
         self.interpreter = interpreter
         self.version = installer["version"]

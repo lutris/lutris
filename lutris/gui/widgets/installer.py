@@ -16,6 +16,7 @@ from lutris.util.strings import add_url_tags, gtk_safe
 class InstallerLabel(Gtk.Label):
 
     """A label for installers"""
+
     def __init__(self, text, wrap=True):
         super().__init__()
         if wrap:

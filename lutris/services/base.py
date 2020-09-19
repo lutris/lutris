@@ -18,6 +18,8 @@ class BaseService(GObject.Object):
     name = NotImplemented
     icon = NotImplemented
     online = False
+    medias = {}
+    default_format = "icon"
 
     __gsignals__ = {
         "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
@@ -25,6 +27,7 @@ class BaseService(GObject.Object):
     }
 
     def wipe_game_cache(self):
+        logger.debug("Deleting games from service-games for %s", self.id)
         sql.db_delete(PGA_DB, "service_games", "service", self.id)
         self.emit("service-games-cleared", self.id)
 

@@ -21,7 +21,7 @@ class GamePanel(Gtk.Fixed):
         self.game = game_actions.game
         self.set_size_request(320, -1)
         self.get_style_context().add_class("game-panel")
-        self.set_background()
+        # self.set_background()
         self.place_content()
         self.timer_id = None
 

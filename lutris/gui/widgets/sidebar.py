@@ -161,7 +161,6 @@ class LutrisSidebar(Gtk.ListBox):
             SidebarRow(
                 "running",
                 "dynamic_category",
-
                 _("Running"),
                 Gtk.Image.new_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.MENU)
             )
@@ -218,7 +217,6 @@ class LutrisSidebar(Gtk.ListBox):
             icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             self.add(SidebarRow(platform, "platform", platform, icon))
-
 
         self.set_filter_func(self._filter_func)
         self.set_header_func(self._header_func)

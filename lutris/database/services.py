@@ -8,4 +8,6 @@ class ServiceGameCollection:
 
     @classmethod
     def get_for_service(cls, service):
+        if not service:
+            raise ValueError("No service provided")
         return sql.db_select(PGA_DB, "service_games", condition=("service", service))

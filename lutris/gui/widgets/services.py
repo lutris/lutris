@@ -55,7 +55,7 @@ class ServiceSyncBox(Gtk.Box):
         AsyncCall(self.service.load, None)
 
     def on_connect_clicked(self, _button):
-        if self.service.is_connected():
+        if self.service.is_authenticated():
             logger.debug("Disconnecting from %s", self.identifier)
             AsyncCall(self._connect_button_toggle, None)
             self.service.logout()
@@ -66,7 +66,7 @@ class ServiceSyncBox(Gtk.Box):
         return False
 
     def _connect_button_toggle(self):
-        if self.service.is_connected():
+        if self.service.is_authenticated():
             icon_name = "system-log-out-symbolic"
             label = _("Disconnect")
             self.refresh_button.show()

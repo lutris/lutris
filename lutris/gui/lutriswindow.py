@@ -328,6 +328,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             category = self.filters["dynamic_category"]
             if category in services.get_services():
                 self.service = services.get_services()[category]()
+                if self.service.online:
+                    self.service.connect("service-login", self.on_service_games_updated)
+                    self.service.connect("service-logout", self.on_service_logout)
+                self.service.connect("service-games-loaded", self.on_service_games_updated)
+
                 service_games = ServiceGameCollection.get_for_service(category)
                 if service_games:
                     return [
@@ -337,10 +342,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                             reverse=not self.view_sorting_ascending
                         ) if self.game_matches(game)
                     ]
-                if self.service.online:
-                    self.service.connect("service-login", self.on_service_games_updated)
-                    self.service.connect("service-logout", self.on_service_logout)
-                self.service.connect("service-games-loaded", self.on_service_games_updated)
 
                 if not self.service.online or self.service.is_connected():
                     AsyncCall(self.service.load, None)
@@ -355,6 +356,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.blank_overlay.props.visible = True
                 return
             self.service = LutrisService()
+            self.service.connect("service-games-loaded", self.on_service_games_updated)
             game_providers = {
                 "running": self.get_running_games,
                 "installed": self.get_installed_games,
@@ -362,6 +364,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             }
             return game_providers[category]()
         self.service = LutrisService()
+        self.service.connect("service-games-loaded", self.on_service_games_updated)
         if self.filters.get("category"):
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
             return games_db.get_games_by_ids(game_ids)
@@ -374,13 +377,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.filters.get("installed"):
             sql_filters["installed"] = "1"
         if self.filters.get("text"):
-            search_query = self.filters["text"]
+            search_query = {"name": self.filters["text"]}
         else:
             search_query = None
         if not self.show_hidden_games:
             sql_excludes["hidden"] = 1
         games = games_db.get_games(
-            name_filter=search_query,
+            searches=search_query,
             filters=sql_filters,
             excludes=sql_excludes,
             sorts=self.sort_params
@@ -388,8 +391,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         logger.info("Returned %s games from %s, %s", len(games), self.filters, self.view_sorting)
         return games
 
-    def on_service_games_updated(self, *args, **kwargs):
+    def on_service_games_updated(self, service, service_id):
         logger.debug("Service games updated")
+        self.game_store.load_icons()
         self.emit("view-updated")
         return False
 
@@ -403,7 +407,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         medias = self.service.medias
         if icon_type in medias:
             return medias[icon_type]()
-        return medias[medias.keys()[0]]()
+        return medias[self.service.default_format]()
 
     def update_store(self, *_args, **_kwargs):
         logger.debug("Updating store...")
@@ -412,6 +416,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             child.destroy()
         games = self.get_games_from_filters()
         self.view.service = self.service.id
+        self.reload_service_media()
         for child in self.search_revealer.get_children():
             child.destroy()
         service_box = ServiceSyncBox(self.service)
@@ -509,14 +514,18 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.icon_type = default
         return self.icon_type
 
+    def reload_service_media(self):
+        icon_type = self.load_icon_type_from_settings()
+        service_media = self.get_service_media(icon_type)
+        self.game_store.set_service_media(service_media)
+        # self.zoom_adjustment.props.value = list(self.service.medias.keys()).index(self.icon_type)
+        return service_media
+
     def switch_view(self, view_type=None):
         """Switch between grid view and list view."""
         if self.view:
             self.view.destroy()
-        icon_type = self.load_icon_type_from_settings()
-        service_media = self.get_service_media(icon_type)
-        self.game_store.set_service_media(service_media)
-
+        service_media = self.reload_service_media()
         if self.view_type == "grid":
             self.view = GameGridView(self.game_store, service_media)
         else:
@@ -527,8 +536,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             child.destroy()
         self.games_scrollwindow.add(self.view)
         self._connect_signals()
-
-        # self.zoom_adjustment.props.value = list(self.service.medias.keys()).index(self.icon_type)
 
         if view_type:
             self.set_viewtype_icon(view_type)
@@ -720,8 +727,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             settings.write_setting("icon_type_gridview", self.icon_type)
         elif self.current_view_type == "list":
             settings.write_setting("icon_type_listview", self.icon_type)
-        self.service_media = self.get_service_media(icon_type)
-        self.game_store.set_service_media(self.service_media)
         self.switch_view()
 
     def on_icontype_state_change(self, action, value):
