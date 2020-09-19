@@ -47,7 +47,7 @@ class TestPersonnalGameArchive(DatabaseTester):
     def test_filter(self):
         games_db.add_game(name="foobar", runner="Linux")
         games_db.add_game(name="bang", runner="Linux")
-        game_list = games_db.get_games(name_filter='bang')
+        game_list = games_db.get_games(searches={"name": 'bang'})
         self.assertEqual(len(game_list), 1)
         self.assertEqual(game_list[0]['name'], 'bang')
 

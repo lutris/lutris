@@ -9,6 +9,7 @@ from lutris.services.service_game import ServiceGame, ServiceMedia
 
 
 class LutrisBanner(ServiceMedia):
+    service = 'lutris'
     size = (184, 69)
     small_size = (120, 45)
     dest_path = settings.BANNER_PATH
@@ -17,6 +18,7 @@ class LutrisBanner(ServiceMedia):
 
 
 class LutrisIcon(ServiceMedia):
+    service = 'lutris'
     size = (32, 32)
     small_size = (20, 20)
     dest_path = settings.ICON_PATH
@@ -35,8 +37,6 @@ class LutrisGame(ServiceGame):
         service_game.appid = api_payload['slug']
         service_game.slug = api_payload['slug']
         service_game.name = api_payload['name']
-        service_game.icon_url = api_payload[LutrisIcon.api_field]
-        service_game.logo_url = api_payload[LutrisBanner.api_field]
         service_game.details = json.dumps(api_payload)
         return service_game
 
@@ -53,16 +53,16 @@ class LutrisService(OnlineService):
         "banner": LutrisBanner,
         "icon": LutrisIcon
     }
+    default_format = "banner"
 
     api_url = settings.SITE_URL + "/api"
     login_url = settings.SITE_URL + "/api/accounts/token"
-
+    cache_path = os.path.join(settings.CACHE_DIR, "lutris")
     token_path = os.path.join(settings.CACHE_DIR, "auth-token")
 
     @property
     def credential_files(self):
-        """Return a list of all files used for authentication
-        """
+        """Return a list of all files used for authentication"""
         return [self.token_path]
 
     def is_connected(self):

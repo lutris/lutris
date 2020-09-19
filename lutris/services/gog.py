@@ -17,25 +17,26 @@ from lutris.util.log import logger
 
 class GogSmallBanner(ServiceMedia):
     """Small size game logo"""
+    service = "gog"
     size = (100, 60)
     dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/small")
     file_pattern = "%s.jpg"
-    api_field = "icon"
-    url_pattern = "https%s_prof_game_100x60.jpg"
+    api_field = "image"
+    url_pattern = "https:%s_prof_game_100x60.jpg"
 
 
 class GogMediumBanner(GogSmallBanner):
     """Medium size game logo"""
     size = (196, 110)
     dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/medium")
-    url_pattern = "https%s_196.jpg"
+    url_pattern = "https:%s_196.jpg"
 
 
 class GogLargeBanner(GogSmallBanner):
     """Big size game logo"""
     size = (392, 220)
     dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/large")
-    url_pattern = "https%s_392.jpg"
+    url_pattern = "https:%s_392.jpg"
 
 
 class GOGGame(ServiceGame):
@@ -48,7 +49,6 @@ class GOGGame(ServiceGame):
         """Return a GOG game instance from the API info"""
         service_game = GOGGame()
         service_game.appid = str(gog_game["id"])
-        service_game.icon_url = gog_game["image"]
         service_game.slug = gog_game["slug"]
         service_game.name = gog_game["title"]
         service_game.details = json.dumps(gog_game)
@@ -67,6 +67,7 @@ class GOGService(OnlineService):
         "banner": GogMediumBanner,
         "banner_large": GogLargeBanner
     }
+    default_format = "banner"
 
     embed_url = "https://embed.gog.com"
     api_url = "https://api.gog.com"
@@ -112,9 +113,7 @@ class GOGService(OnlineService):
     def load(self):
         """Load the user game library from the GOG API"""
         games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
-        lutris_games = self.get_lutris_games(games)
         for game in games:
-            game.lutris_slug = lutris_games[game.appid]["slug"] if lutris_games.get(game.appid) else None
             game.save()
         self.emit("service-games-loaded", self.id)
 

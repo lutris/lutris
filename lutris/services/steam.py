@@ -4,7 +4,6 @@ import re
 from gettext import gettext as _
 
 from lutris.config import LutrisConfig, make_game_config_id
-from lutris.database.games import get_games_where
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util.log import logger
@@ -34,6 +33,7 @@ class SteamGame(ServiceGame):
         "banner": SteamBanner,
         "icon": SteamIcon
     }
+    default_format = "banner"
 
     @classmethod
     def new_from_steam_game(cls, appmanifest, game_id=None):
@@ -75,24 +75,6 @@ class SteamService(BaseService):
     icon = "steam"
     online = False
 
-    def __init__(self):
-        super().__init__()
-        self._lutris_games = None
-
-    @property
-    def lutris_games(self):
-        """Get all Lutris games with a Steam ID"""
-        if not self._lutris_games:
-            self._lutris_games = get_games_where(steamid__isnull=False, steamid__not="")
-        return self._lutris_games
-
-    def get_lutris_games_by_appid(self):
-        """Return Lutris games keyed by Steam AppID"""
-        lutris_steamid_map = {}
-        for lutris_game in self.lutris_games:
-            lutris_steamid_map[lutris_game["steamid"]] = lutris_game
-        return lutris_steamid_map
-
     def load(self):
         """Return importable Steam games"""
         games = []
@@ -105,10 +87,6 @@ class SteamService(BaseService):
                         logger.debug("Found Steam game %s", app_manifest)
                         games.append(SteamGame.new_from_steam_game(app_manifest))
 
-        steam_map = self.get_lutris_games_by_appid()
         for game in games:
-            if game.appid in steam_map:
-                game.lutris_slug = steam_map[game.appid]["slug"]
-                logger.debug("Attached Lutris slug %s", game.lutris_slug)
             game.save()
         self.emit("service-games-loaded", self.id)
