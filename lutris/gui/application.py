@@ -24,6 +24,10 @@ import tempfile
 from gettext import gettext as _
 
 import gi
+gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
+gi.require_version("GnomeDesktop", "3.0")
+
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
@@ -46,10 +50,6 @@ from lutris.util.steam.config import get_steamapps_paths
 from lutris.util.wine.dxvk import init_dxvk_versions, wait_for_dxvk_init
 
 from .lutriswindow import LutrisWindow
-
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
-gi.require_version("GnomeDesktop", "3.0")
 
 
 class Application(Gtk.Application):
@@ -296,7 +296,7 @@ class Application(Gtk.Application):
             logger.setLevel(logging.NOTSET)
             return 0
 
-        logger.info("Running Lutris %s", settings.VERSION)
+        logger.info("Lutris %s", settings.VERSION)
         migrate()
         run_all_checks()
         AsyncCall(init_dxvk_versions, None)

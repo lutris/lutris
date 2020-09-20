@@ -1,8 +1,9 @@
 from gi.repository import Gdk, GObject
 
 from lutris.database.games import get_games_by_slug
+from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.gui.views import COL_ID, COL_INSTALLED, COL_NAME, COL_SLUG
+from lutris.gui.views import COL_ID, COL_SLUG
 from lutris.util.log import logger
 
 
@@ -39,23 +40,17 @@ class GameView:
             logger.error("Failed to read path: %s", ex)
 
     def get_selected_game(self, selected_item):
-        selected_game = None
         model = self.get_model()
-        game_id = model.get_value(selected_item, COL_ID)
         game_slug = model.get_value(selected_item, COL_SLUG)
+        game_id = model.get_value(selected_item, COL_ID)
         logger.debug("Selecting %s(%s) (Service: %s)", game_slug, game_id, self.service)
+        if self.service:
+            return ServiceGameCollection.get_game(self.service, game_id)
         if not self.service and game_id:
             return Game(game_id)
         pga_game = get_games_by_slug(game_slug)
         if pga_game:
-            selected_game = Game(pga_game[0]["id"])
-        else:
-            logger.debug("Don't query %s (%s) from anywhere", game_slug, game_id)
-            selected_game = Game(None)
-            selected_game.slug = model.get_value(selected_item, COL_SLUG)
-            selected_game.name = model.get_value(selected_item, COL_NAME)
-            selected_game.installed = model.get_value(selected_item, COL_INSTALLED)
-        return selected_game
+            return Game(pga_game[0]["id"])
 
     def select(self):
         """Selects the object pointed by current_path"""

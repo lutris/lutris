@@ -3,12 +3,14 @@ from gettext import gettext as _
 
 from gi.repository import Gtk
 
+from lutris import api
+from lutris.gui import dialogs
 from lutris.gui.widgets.utils import get_icon
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
 
-class ServiceSyncBox(Gtk.Box):
+class ServiceBox(Gtk.Box):
     """Display components to interact with a service"""
 
     COL_SELECTED = 0
@@ -76,3 +78,13 @@ class ServiceSyncBox(Gtk.Box):
             self.refresh_button.hide()
         self.connect_button.set_tooltip_text(label)
         self.connect_button.set_image(Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU))
+
+    def on_disconnect(self, *_args):
+        """Callback from user disconnect"""
+        dlg = dialogs.QuestionDialog({
+            "question": _("Do you want to log out from Lutris?"),
+            "title": _("Log out?"),
+        })
+        if dlg.result != Gtk.ResponseType.YES:
+            return
+        api.disconnect()

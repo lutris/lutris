@@ -65,10 +65,10 @@ def check_driver():
             logger.info("GPU: %s", gpu_info.get("Model"))
     elif LINUX_SYSTEM.glxinfo:
         # pylint: disable=no-member
-        logger.info("Using %s", LINUX_SYSTEM.glxinfo.opengl_vendor)
         if hasattr(LINUX_SYSTEM.glxinfo, "GLX_MESA_query_renderer"):
             logger.info(
-                "Running Mesa driver %s on %s",
+                "Running %s Mesa driver %s on %s",
+                LINUX_SYSTEM.glxinfo.opengl_vendor,
                 LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version,
                 LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device,
             )
@@ -78,7 +78,7 @@ def check_driver():
     for card in drivers.get_gpus():
         # pylint: disable=logging-format-interpolation
         try:
-            logger.info("GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} drivers".format(**drivers.get_gpu_info(card)))
+            logger.info("GPU: {PCI_ID} {PCI_SUBSYS_ID} ({DRIVER} drivers)".format(**drivers.get_gpu_info(card)))
         except KeyError:
             logger.error("Unable to get GPU information from '%s'", card)
 
@@ -128,10 +128,8 @@ def check_libs(all_components=False):
 
 def check_vulkan():
     """Reports if Vulkan is enabled on the system"""
-    if vkquery.is_vulkan_supported():
-        logger.info("Vulkan is supported")
-    else:
-        logger.info("Vulkan is not available or your system isn't Vulkan capable")
+    if not vkquery.is_vulkan_supported():
+        logger.warning("Vulkan is not available or your system isn't Vulkan capable")
 
 
 def fill_missing_platforms():
