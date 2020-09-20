@@ -8,7 +8,6 @@ from lutris.database.games import add_or_update
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
 from lutris.util.http import download_file
-from lutris.util.strings import slugify
 
 PGA_DB = settings.PGA_DB
 
@@ -138,21 +137,3 @@ class ServiceGame:
             "details": str(self.details),
         }
         sql.db_insert(PGA_DB, "service_games", game_data)
-
-    def as_dict(self):
-        """Return the data in a format compatible with lutris views"""
-        return {
-            "id": self.appid,
-            "name": self.name,
-            "slug": self.slug or slugify(self.name),
-            "lutris_slug": self.lutris_slug,
-            "runner": self.runner,
-            "steamid": self.steamid,
-            "installed": 1,
-            "year": None,
-            "platform": None,
-            "lastplayed": None,
-            "installed_at": None,
-            "playtime": None,
-            "icon": self.icon,
-        }

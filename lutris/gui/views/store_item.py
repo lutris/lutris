@@ -37,7 +37,7 @@ class StoreItem:
 
     @property
     def service(self):
-        return self._game_data["service"]
+        return self._game_data.get("service")
 
     @property
     def slug(self):
@@ -86,7 +86,6 @@ class StoreItem:
     def get_pixbuf(self):
         """Pixbuf varying on icon type"""
         image_path = self.service_media.get_absolute_path(self.slug or self.id)
-        print(image_path)
         if system.path_exists(image_path):
             return get_pixbuf(image_path, self.service_media.size)
         return get_pixbuf_for_game(

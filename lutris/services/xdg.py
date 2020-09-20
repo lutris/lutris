@@ -42,9 +42,7 @@ class XDGService(BaseService):
         "icon": XDGMedia
     }
 
-    ignored_games = (
-        "lutris",
-    )
+    ignored_games = ("lutris", )
     ignored_executables = ("lutris", "steam")
     ignored_categories = ("Emulator", "Development", "Utility")
 
@@ -52,7 +50,7 @@ class XDGService(BaseService):
     def iter_xdg_games(cls):
         """Iterates through XDG games only"""
         for app in Gio.AppInfo.get_all():
-            if cls.is_importable(app):
+            if cls._is_importable(app):
                 yield app
 
     @property
@@ -62,7 +60,7 @@ class XDGService(BaseService):
             yield game
 
     @classmethod
-    def is_importable(cls, app):
+    def _is_importable(cls, app):
         """Returns whether a XDG game is importable to Lutris"""
         appid = get_appid(app)
         executable = app.get_executable() or ""

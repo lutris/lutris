@@ -165,20 +165,6 @@ def image2pixbuf(image):
     return GdkPixbuf.Pixbuf.new_from_data(image_array, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4)
 
 
-def get_pixbuf_for_panel(game_slug):
-    """Return the pixbuf for the game panel background"""
-    if Image is None:
-        # PIL is not available
-        return
-    source_path = os.path.join(settings.COVERART_PATH, "%s.jpg" % game_slug)
-    if not os.path.exists(source_path):
-        source_path = os.path.join(datapath.get(), "media/generic-panel-bg.png")
-    dest_path = os.path.join(settings.CACHE_DIR, "panel_bg.png")
-    background = convert_to_background(source_path)
-    background.save(dest_path)
-    return dest_path
-
-
 def get_builder_from_file(glade_file):
     ui_filename = os.path.join(datapath.get(), "ui", glade_file)
     if not os.path.exists(ui_filename):

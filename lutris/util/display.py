@@ -3,6 +3,9 @@
 import enum
 import os
 import subprocess
+import gi
+
+gi.require_version("GnomeDesktop", "3.0")
 
 try:
     from dbus.exceptions import DBusException
