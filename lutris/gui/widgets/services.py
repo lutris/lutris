@@ -21,7 +21,7 @@ class ServiceBox(Gtk.Box):
     MARGIN = 8
 
     def __init__(self, service):
-        super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
         self.set_spacing(self.MARGIN)
         self.set_margin_top(self.MARGIN)
         self.set_margin_right(self.MARGIN)

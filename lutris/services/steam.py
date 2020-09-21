@@ -1,7 +1,7 @@
 """Steam service"""
+import json
 import os
 import re
-import json
 from gettext import gettext as _
 
 from lutris import settings
