@@ -4,7 +4,7 @@ from gettext import gettext as _
 from gi.repository import Gtk, Pango
 
 from lutris.game import Game
-from lutris.gui.widgets.utils import get_pixbuf_for_game, get_link_button
+from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
 from lutris.util.strings import gtk_safe
 
 
@@ -13,7 +13,7 @@ class GameBar(Gtk.Fixed):
         """Create the game bar with a database row"""
         super().__init__(visible=True)
         self.game_actions = game_actions
-        self.set_size_request(-1, 160)
+        self.set_size_request(-1, 125)
         self.service = db_game["service"]
         if db_game.get("directory"):  # Any field that isn't in service game. Not ideal
             game_id = db_game["id"]
@@ -25,17 +25,15 @@ class GameBar(Gtk.Fixed):
             self.game = None
         self.game_name = db_game["name"]
         self.game_slug = db_game["slug"]
-        self.put(self.get_game_name_label(), 16, 10)
+        self.put(self.get_game_name_label(), 16, 8)
         if self.game:
             game_actions.set_game(self.game)
             if self.game.is_installed:
-                self.put(self.get_runner_label(), 100, 60)
+                self.put(self.get_runner_label(), 140, 40)
             if self.game.playtime:
-                self.put(self.get_playtime_label(), 100, 80)
+                self.put(self.get_playtime_label(), 140, 65)
             if self.game.lastplayed:
-                self.put(self.get_last_played_label(), 100, 100)
-            # self.put(Gtk.Label("game id: %s" % self.game.id, visible=True), 300, 20)
-            # self.put(Gtk.Label("actions id: %s" % game_actions.game.id, visible=True), 300, 40)
+                self.put(self.get_last_played_label(), 140, 90)
             self.place_buttons()
 
     def get_icon(self):
@@ -99,11 +97,13 @@ class GameBar(Gtk.Fixed):
             if action_id in icon_map:
                 button = Gtk.Button.new_from_icon_name(icon_map[action_id], Gtk.IconSize.MENU)
                 button.set_tooltip_text(label)
-                button.set_size_request(32, 32)
+                button.props.relief = Gtk.ReliefStyle.NONE
+                button.set_size_request(24, 24)
             else:
                 if action_id in ("play", "stop", "install"):
                     button = Gtk.Button(label)
-                    button.set_size_request(60, 60)
+                    button.get_style_context().add_class("play-button")
+                    button.set_size_request(115, 36)
                 else:
                     button = get_link_button(label)
             if displayed.get(action_id):
@@ -119,31 +119,32 @@ class GameBar(Gtk.Fixed):
         base_height = 12
         buttons = self.get_buttons()
         icon_offset = 6
-        icon_width = 32
-        icon_start = 220
-        icons_y_offset = 28
+        icon_width = 24
+        icon_x_start = 8
+        icons_y_offset = 70
+
         # buttons_x_offset = 28
         # extra_button_start = 80  # Y position for runner actions
         # extra_button_index = 0
         for action_id, button in buttons.items():
             position = None
             if action_id in ("play", "stop", "install"):
-                position = (12, 60)
+                position = (12, 40)
             if action_id == "configure":
-                position = (icon_start, base_height + icons_y_offset)
+                position = (icon_x_start, base_height + icons_y_offset)
             if action_id == "browse":
                 position = (
-                    icon_start + icon_offset + icon_width,
+                    icon_x_start + icon_offset + icon_width,
                     base_height + icons_y_offset,
                 )
             if action_id == "show_logs":
                 position = (
-                    icon_start + icon_offset * 2 + icon_width * 2,
+                    icon_x_start + icon_offset * 2 + icon_width * 2,
                     base_height + icons_y_offset,
                 )
             if action_id == "remove":
                 position = (
-                    icon_start + icon_offset * 3 + icon_width * 3,
+                    icon_x_start + icon_offset * 3 + icon_width * 3,
                     base_height + icons_y_offset,
                 )
 

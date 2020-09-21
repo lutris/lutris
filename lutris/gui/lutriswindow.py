@@ -354,15 +354,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         except KeyError:
             logger.error("No %s in %s", service.default_format, medias)
 
-    def update_store(self, *_args, **_kwargs):
-        self.game_store.store.clear()
-        for child in self.blank_overlay.get_children():
-            child.destroy()
-        games = self.get_games_from_filters()
-        self.view.service = self.service.id if self.service else "lutris"
-        self.reload_service_media()
+    def update_revealer(self, game=None):
         for child in self.search_revealer.get_children():
             child.destroy()
+        for child in self.game_revealer.get_children():
+            child.destroy()
+        if game:
+            self.game_revealer.add(GameBar(game, self.game_actions))
+            self.game_revealer.set_reveal_child(True)
+        else:
+            self.game_revealer.set_reveal_child(False)
         if self.service:
             service_box = ServiceBox(self.service)
             service_box.show()
@@ -370,6 +371,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.search_revealer.set_reveal_child(True)
         else:
             self.search_revealer.set_reveal_child(False)
+
+    def update_store(self, *_args, **_kwargs):
+        self.game_store.store.clear()
+        for child in self.blank_overlay.get_children():
+            child.destroy()
+        games = self.get_games_from_filters()
+        self.view.service = self.service.id if self.service else "lutris"
+        self.reload_service_media()
         if games is None:
             self.search_spinner.props.active = True
             return False
@@ -482,16 +491,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def game_selection_changed(self, view, game_id):
         if not game_id:
-            self.game_revealer.set_reveal_child(False)
+            self.update_revealer()
             return
         if self.service:
             game = ServiceGameCollection.get_game(self.service.id, game_id)
         else:
             game = games_db.get_game_by_field(int(game_id), "id")
-        for child in self.game_revealer.get_children():
-            child.destroy()
-        self.game_revealer.add(GameBar(game, self.game_actions))
-        self.game_revealer.set_reveal_child(True)
+        self.update_revealer(game)
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)

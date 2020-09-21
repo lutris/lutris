@@ -1,3 +1,13 @@
+.play-button {
+  padding: 0;
+  border: 0;
+  background-color: rgb(255, 153, 0);
+}
+.play-button > label {
+  background-color: rgb(255, 153, 0);
+  color: rgb(55, 55, 55)
+}
+
 .lutris-logview > text {
   color: rgb(255, 199, 116);
   background-color: rgb(47, 47, 47);
