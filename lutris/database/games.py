@@ -88,7 +88,7 @@ def get_games_by_ids(game_ids):
 
 def get_game_by_field(value, field="slug"):
     """Query a game based on a database field"""
-    if field not in ("slug", "installer_slug", "id", "configpath", "steamid"):
+    if field not in ("slug", "installer_slug", "id", "configpath"):
         raise ValueError("Can't query by field '%s'" % field)
     game_result = sql.db_select(PGA_DB, "games", condition=(field, value))
     if game_result:

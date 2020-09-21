@@ -83,15 +83,6 @@ class ServiceGame:
         """Returns the ID to use for the lutris config file"""
         return self.slug + "-" + self.installer_slug
 
-    @property
-    def steamid(self):
-        """Return the SteamID, this is a special case since Steam's appid's are
-        a field in the game table. Keeping this here allows to reuse the install method.
-        """
-        if hasattr(self, "appid") and self.runner and "steam" in self.runner:
-            return int(self.appid)
-        return None
-
     def install(self, updated_info=None):
         """Add an installed game to the library
 
@@ -109,10 +100,11 @@ class ServiceGame:
             name=name,
             runner=self.runner,
             slug=slug,
-            steamid=self.steamid,
             installed=1,
             configpath=self.config_id,
             installer_slug=self.installer_slug,
+            service=self.service,
+            service_id=self.appid,
         )
         self.create_config()
         return self.game_id

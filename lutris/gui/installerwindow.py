@@ -162,7 +162,6 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                     "slug": remote_game["slug"],
                     "year": remote_game["year"],
                     "updated": remote_game["updated"],
-                    "steamid": remote_game["steamid"],
                 }
                 game = Game(add_game(**game_data))
             else:

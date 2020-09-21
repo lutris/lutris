@@ -63,18 +63,6 @@ DATABASE = {
             "type": "INTEGER"
         },
         {
-            "name": "steamid",
-            "type": "INTEGER"
-        },
-        {
-            "name": "gogid",
-            "type": "INTEGER"
-        },
-        {
-            "name": "humblestoreid",
-            "type": "TEXT"
-        },
-        {
             "name": "configpath",
             "type": "TEXT"
         },
@@ -94,6 +82,14 @@ DATABASE = {
             "name": "hidden",
             "type": "INTEGER"
         },
+        {
+            "name": "service",
+            "type": "TEXT"
+        },
+        {
+            "name": "service_id",
+            "type": "TEXT"
+        }
     ],
     "service_games": [
         {

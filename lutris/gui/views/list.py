@@ -119,18 +119,18 @@ class GameListView(Gtk.TreeView, GameView):
         """Handles double clicks"""
         selected_item = self.get_selected_item()
         if selected_item:
-            selected_game = self.get_selected_game(selected_item)
+            selected_id = self.get_selected_id(selected_item)
         else:
-            selected_game = None
-        self.emit("game-activated", selected_game)
+            selected_id = None
+        self.emit("game-activated", selected_id)
 
     def on_cursor_changed(self, widget, _line=None, _column=None):
         selected_item = self.get_selected_item()
         if selected_item:
-            self.selected_game = self.get_selected_game(selected_item)
+            selected_id = self.get_selected_id(selected_item)
         else:
-            self.selected_game = None
-        self.emit("game-selected", self.selected_game)
+            selected_id = None
+        self.emit("game-selected", selected_id)
 
     @staticmethod
     def on_column_width_changed(col, *args):
