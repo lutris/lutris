@@ -173,5 +173,4 @@ class GameStore(GObject.Object):
             "appid": appid
         }))
         for game in games:
-            print(game)
             GLib.idle_add(self.update, game)

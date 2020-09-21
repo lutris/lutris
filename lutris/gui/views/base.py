@@ -28,7 +28,7 @@ class GameView:
         view.current_path = view.get_path_at_pos(event.x, event.y)
         if view.current_path:
             view.select()
-            selected_id = self.get_selected_id(view.current_path)
+            selected_id = self.get_selected_id(self.get_model().get_iter(view.current_path))
             game_row = self.game_store.get_row_by_id(selected_id)
             self.contextual_menu.popup(event, game_row)
 

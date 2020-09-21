@@ -85,7 +85,10 @@ class StoreItem:
 
     def get_pixbuf(self):
         """Pixbuf varying on icon type"""
-        image_path = self.service_media.get_absolute_path(self.slug or self.id)
+        if self._game_data.get("icon"):
+            image_path = self._game_data["icon"]
+        else:
+            image_path = self.service_media.get_absolute_path(self.slug or self.id)
         if system.path_exists(image_path):
             return get_pixbuf(image_path, self.service_media.size)
         return get_pixbuf_for_game(
