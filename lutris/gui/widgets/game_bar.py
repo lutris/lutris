@@ -12,25 +12,22 @@ class GameBar(Gtk.Fixed):
     def __init__(self, db_game):
         """Create the game bar with a database row"""
         super().__init__(visible=True)
-        self.set_size_request(-1, 64)
+        self.set_size_request(-1, 256)
         if "service" in db_game:
             self.service = db_game["service"]
-            print(db_game)
             game_id = None
         else:
             self.service = None
             game_id = db_game["id"]
-
         if game_id:
             self.game = Game(game_id)
         else:
             self.game = None
         self.game_name = db_game["name"]
         self.game_slug = db_game["slug"]
-        # self.put(self.get_icon(), 12, 30)
-        self.put(self.get_game_name_label(), 64, 12)
+        self.put(self.get_icon(), 12, 12)
+        self.put(self.get_game_name_label(), 54, 12)
         if self.game:
-            print("bliblibliblbil")
             if self.game.is_installed:
                 self.put(self.get_runner_label(), 120, 20)
             if self.game.playtime:
@@ -40,7 +37,7 @@ class GameBar(Gtk.Fixed):
 
     def get_icon(self):
         """Return the game icon"""
-        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(self.game_slug, "icon"))
+        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(self.game_slug, (32, 32)))
         icon.show()
         return icon
 

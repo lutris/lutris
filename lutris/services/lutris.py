@@ -71,12 +71,12 @@ class LutrisService(OnlineService):
 
     def login(self, parent=None):
         """Connect to Lutris"""
-        login_dialog = dialogs.ClientLoginDialog(self)
+        login_dialog = dialogs.ClientLoginDialog(parent=parent)
         login_dialog.connect("connected", self.on_connect_success)
 
-    def on_connect_success(self, _widget):
+    def on_connect_success(self, _widget, _username):
         """Handles connection success"""
-        print("connected!")
+        self.emit("service-login", self.id)
 
     def load(self):
         for game in api.get_library():

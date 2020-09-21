@@ -17,7 +17,7 @@ class ServiceMedia:
     service = NotImplemented
     size = NotImplemented
     small_size = None
-    dest_path = NotImplemented
+    dest_path = None
     file_pattern = NotImplemented
     api_field = NotImplemented
     url_pattern = "%s"

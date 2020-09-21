@@ -73,7 +73,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
         self.icon_type = None
-        self.service = LutrisService()
+        self.service = None
 
         # Load settings
         self.window_size = (width, height)
@@ -301,16 +301,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                     )
                 self.blank_overlay.props.visible = True
                 return
-            self.service = LutrisService()
-            self.service.connect("service-games-loaded", self.on_service_games_updated)
             game_providers = {
                 "running": self.get_running_games,
                 "installed": self.get_installed_games,
                 "lutrisnet": self.get_api_games,
             }
             return game_providers[category]()
-        self.service = LutrisService()
-        self.service.connect("service-games-loaded", self.on_service_games_updated)
+        self.service = None
         if self.filters.get("category"):
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
             return games_db.get_games_by_ids(game_ids)
@@ -347,24 +344,32 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def get_service_media(self, icon_type):
         """Return the ServiceMedia class used for this view"""
-        medias = self.service.medias
+        icon_type = "banner-large"
+        service = self.service if self.service else LutrisService
+        medias = service.medias
         if icon_type in medias:
             return medias[icon_type]()
-        return medias[self.service.default_format]()
+        try:
+            return medias[service.default_format]()
+        except KeyError:
+            logger.error("No %s in %s", service.default_format, medias)
 
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()
         for child in self.blank_overlay.get_children():
             child.destroy()
         games = self.get_games_from_filters()
-        self.view.service = self.service.id
+        self.view.service = self.service.id if self.service else "lutris"
         self.reload_service_media()
         for child in self.search_revealer.get_children():
             child.destroy()
-        service_box = ServiceBox(self.service)
-        service_box.show()
-        self.search_revealer.add(service_box)
-        self.search_revealer.set_reveal_child(True)
+        if self.service:
+            service_box = ServiceBox(self.service)
+            service_box.show()
+            self.search_revealer.add(service_box)
+            self.search_revealer.set_reveal_child(True)
+        else:
+            self.search_revealer.set_reveal_child(False)
         if games is None:
             self.search_spinner.props.active = True
             return False
@@ -440,7 +445,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             self.icon_type = settings.read_setting("icon_type_gridview")
             default = "banner"
-        if self.icon_type not in self.service.medias:
+        if self.service and self.icon_type not in self.service.medias:
             self.icon_type = default
         return self.icon_type
 
@@ -480,14 +485,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.game_revealer.set_reveal_child(False)
             return
         if self.service:
-            print(game_id)
-            print(type(game_id))
-            print(type(self.service))
             game = ServiceGameCollection.get_game(self.service.id, game_id)
         else:
-            game = games_db.get_game_by_field(game_id, "id")
+            game = games_db.get_game_by_field(int(game_id), "id")
         for child in self.game_revealer.get_children():
             child.destroy()
+        if not game:
+            self.game_revealer.set_reveal_child(False)
+            return
         self.game_revealer.add(GameBar(game))
         self.game_revealer.set_reveal_child(True)
 
