@@ -44,29 +44,23 @@ class GameGridView(Gtk.IconView, GameView):
         self.current_path = selection[0]
         return self.get_model().get_iter(self.current_path)
 
-    def set_selected_game(self, game_id):
-        """Select a game referenced by its ID in the view"""
-        row = self.game_store.get_row_by_id(game_id, filtered=True)
-        if row:
-            self.select_path(row.path)
-
     def on_item_activated(self, _view, _path):
         """Handles double clicks"""
         selected_item = self.get_selected_item()
         if selected_item:
-            self.selected_game = self.get_selected_game(selected_item)
+            selected_id = self.get_selected_id(selected_item)
         else:
-            self.selected_game = None
-        self.emit("game-activated", self.selected_game)
+            selected_id = None
+        self.emit("game-activated", selected_id)
 
     def on_selection_changed(self, _view):
         """Handles selection changes"""
         selected_item = self.get_selected_item()
         if selected_item:
-            self.selected_game = self.get_selected_game(selected_item)
+            selected_id = self.get_selected_id(selected_item)
         else:
-            self.selected_game = None
-        self.emit("game-selected", self.selected_game)
+            selected_id = None
+        self.emit("game-selected", selected_id)
 
     def on_icons_changed(self, store):
         cell_width = max(self.service_media.size[0], self.min_width)

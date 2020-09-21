@@ -72,7 +72,6 @@ class Game(GObject.Object):
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
-        self.steamid = game_data.get("steamid") or ""
         self.has_custom_banner = bool(game_data.get("has_custom_banner"))
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
         self.discord_presence = DiscordPresence()
@@ -287,7 +286,6 @@ class Game(GObject.Object):
             year=self.year,
             lastplayed=self.lastplayed,
             configpath=configpath,
-            steamid=self.steamid,
             id=self.id,
             playtime=self.playtime,
             hidden=self.is_hidden,
@@ -643,20 +641,6 @@ class Game(GObject.Object):
             error = "maybe the wrong wineserver"
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
                 dialogs.ErrorDialog(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
-
-    def notify_steam_game_changed(self, appmanifest):
-        """Receive updates from Steam games and set the thread's ready state accordingly"""
-        if not self.game_thread:
-            return
-        if "Fully Installed" in appmanifest.states and not self.game_thread.ready_state:
-            logger.info("Steam game %s is fully installed", appmanifest.steamid)
-            self.game_thread.ready_state = True
-        elif "Update Required" in appmanifest.states and self.game_thread.ready_state:
-            logger.info(
-                "Steam game %s updating, setting game thread as not ready",
-                appmanifest.steamid,
-            )
-            self.game_thread.ready_state = False
 
     def write_script(self, script_path):
         """Output the launch argument in a bash script"""

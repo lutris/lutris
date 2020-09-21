@@ -19,6 +19,7 @@ from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
+from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.services import ServiceBox
 from lutris.gui.widgets.sidebar import LutrisSidebar
@@ -49,6 +50,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
     search_revealer = GtkTemplate.Child()
+    game_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
     search_toggle = GtkTemplate.Child()
     zoom_adjustment = GtkTemplate.Child()
@@ -459,6 +461,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             self.view = GameListView(self.game_store, service_media)
 
+        self.view.connect("game-selected", self.game_selection_changed)
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         for child in self.games_scrollwindow.get_children():
             child.destroy()
@@ -471,6 +474,22 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.view.show_all()
         self.update_store()
+
+    def game_selection_changed(self, view, game_id):
+        if not game_id:
+            self.game_revealer.set_reveal_child(False)
+            return
+        if self.service:
+            print(game_id)
+            print(type(game_id))
+            print(type(self.service))
+            game = ServiceGameCollection.get_game(self.service.id, game_id)
+        else:
+            game = games_db.get_game_by_field(game_id, "id")
+        for child in self.game_revealer.get_children():
+            child.destroy()
+        self.game_revealer.add(GameBar(game))
+        self.game_revealer.set_reveal_child(True)
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
