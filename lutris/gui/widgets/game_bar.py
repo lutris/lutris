@@ -28,12 +28,17 @@ class GameBar(Gtk.Fixed):
         self.put(self.get_game_name_label(), 16, 8)
         if self.game:
             game_actions.set_game(self.game)
+            x_offset = 150
+            y_offset = 38
+            line_size = 24
             if self.game.is_installed:
-                self.put(self.get_runner_label(), 140, 40)
+                self.put(self.get_runner_label(), x_offset, y_offset)
+                y_offset += line_size
             if self.game.playtime:
-                self.put(self.get_playtime_label(), 140, 65)
+                self.put(self.get_playtime_label(), x_offset, y_offset)
+                y_offset += line_size
             if self.game.lastplayed:
-                self.put(self.get_last_played_label(), 140, 90)
+                self.put(self.get_last_played_label(), x_offset, y_offset)
             self.place_buttons()
 
     def get_icon(self):
