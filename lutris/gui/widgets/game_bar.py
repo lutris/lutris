@@ -4,36 +4,39 @@ from gettext import gettext as _
 from gi.repository import Gtk, Pango
 
 from lutris.game import Game
-from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game, get_link_button
 from lutris.util.strings import gtk_safe
 
 
 class GameBar(Gtk.Fixed):
-    def __init__(self, db_game):
+    def __init__(self, db_game, game_actions):
         """Create the game bar with a database row"""
         super().__init__(visible=True)
-        self.set_size_request(-1, 256)
-        if "service" in db_game:
-            self.service = db_game["service"]
-            game_id = None
-        else:
-            self.service = None
+        self.game_actions = game_actions
+        self.set_size_request(-1, 160)
+        self.service = db_game["service"]
+        if db_game.get("directory"):  # Any field that isn't in service game. Not ideal
             game_id = db_game["id"]
+        else:
+            game_id = None
         if game_id:
             self.game = Game(game_id)
         else:
             self.game = None
         self.game_name = db_game["name"]
         self.game_slug = db_game["slug"]
-        self.put(self.get_icon(), 12, 12)
-        self.put(self.get_game_name_label(), 54, 12)
+        self.put(self.get_game_name_label(), 16, 10)
         if self.game:
+            game_actions.set_game(self.game)
             if self.game.is_installed:
-                self.put(self.get_runner_label(), 120, 20)
+                self.put(self.get_runner_label(), 100, 60)
             if self.game.playtime:
-                self.put(self.get_playtime_label(), 120, 40)
+                self.put(self.get_playtime_label(), 100, 80)
             if self.game.lastplayed:
-                self.put(self.get_last_played_label(), 230, 20)
+                self.put(self.get_last_played_label(), 100, 100)
+            # self.put(Gtk.Label("game id: %s" % self.game.id, visible=True), 300, 20)
+            # self.put(Gtk.Label("actions id: %s" % game_actions.game.id, visible=True), 300, 40)
+            self.place_buttons()
 
     def get_icon(self):
         """Return the game icon"""
@@ -44,7 +47,7 @@ class GameBar(Gtk.Fixed):
     def get_game_name_label(self):
         """Return the label with the game's title"""
         title_label = Gtk.Label()
-        title_label.set_markup("<span font_desc='12'><b>%s</b></span>" % gtk_safe(self.game_name))
+        title_label.set_markup("<span font_desc='16'><b>%s</b></span>" % gtk_safe(self.game_name))
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
         title_label.set_size_request(426, -1)
         title_label.set_alignment(0, 0.5)
@@ -70,15 +73,79 @@ class GameBar(Gtk.Fixed):
 
     def get_playtime_label(self):
         """Return the label containing the playtime info"""
-        playtime_label = Gtk.Label()
-        playtime_label.show()
+        playtime_label = Gtk.Label(visible=True)
         playtime_label.set_markup(_("Time played: <b>%s</b>") % self.game.formatted_playtime)
         return playtime_label
 
     def get_last_played_label(self):
         """Return the label containing the last played info"""
-        last_played_label = Gtk.Label()
-        last_played_label.show()
+        last_played_label = Gtk.Label(visible=True)
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
         last_played_label.set_markup(_("Last played: <b>%s</b>") % lastplayed.strftime("%x"))
         return last_played_label
+
+    def get_buttons(self):
+        """Return a dictionary of buttons to use in the panel"""
+        displayed = self.game_actions.get_displayed_entries()
+        icon_map = {
+            "configure": "preferences-system-symbolic",
+            "browse": "system-file-manager-symbolic",
+            "show_logs": "utilities-terminal-symbolic",
+            "remove": "user-trash-symbolic",
+        }
+        buttons = {}
+        for action in self.game_actions.get_game_actions():
+            action_id, label, callback = action
+            if action_id in icon_map:
+                button = Gtk.Button.new_from_icon_name(icon_map[action_id], Gtk.IconSize.MENU)
+                button.set_tooltip_text(label)
+                button.set_size_request(32, 32)
+            else:
+                if action_id in ("play", "stop", "install"):
+                    button = Gtk.Button(label)
+                    button.set_size_request(60, 60)
+                else:
+                    button = get_link_button(label)
+            if displayed.get(action_id):
+                button.show()
+            else:
+                button.hide()
+            buttons[action_id] = button
+            button.connect("clicked", callback)
+        return buttons
+
+    def place_buttons(self):
+        """Places all appropriate buttons in the panel"""
+        base_height = 12
+        buttons = self.get_buttons()
+        icon_offset = 6
+        icon_width = 32
+        icon_start = 220
+        icons_y_offset = 28
+        # buttons_x_offset = 28
+        # extra_button_start = 80  # Y position for runner actions
+        # extra_button_index = 0
+        for action_id, button in buttons.items():
+            position = None
+            if action_id in ("play", "stop", "install"):
+                position = (12, 60)
+            if action_id == "configure":
+                position = (icon_start, base_height + icons_y_offset)
+            if action_id == "browse":
+                position = (
+                    icon_start + icon_offset + icon_width,
+                    base_height + icons_y_offset,
+                )
+            if action_id == "show_logs":
+                position = (
+                    icon_start + icon_offset * 2 + icon_width * 2,
+                    base_height + icons_y_offset,
+                )
+            if action_id == "remove":
+                position = (
+                    icon_start + icon_offset * 3 + icon_width * 3,
+                    base_height + icons_y_offset,
+                )
+
+            if position:
+                self.put(button, position[0], position[1])

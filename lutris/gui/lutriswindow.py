@@ -490,10 +490,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             game = games_db.get_game_by_field(int(game_id), "id")
         for child in self.game_revealer.get_children():
             child.destroy()
-        if not game:
-            self.game_revealer.set_reveal_child(False)
-            return
-        self.game_revealer.add(GameBar(game))
+        self.game_revealer.add(GameBar(game, self.game_actions))
         self.game_revealer.set_reveal_child(True)
 
     def set_viewtype_icon(self, view_type):
