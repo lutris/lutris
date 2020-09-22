@@ -138,7 +138,7 @@ def add_or_update(**params):
     game_id = get_matching_game(params)
     if game_id:
         params["id"] = game_id
-        sql.db_update(PGA_DB, "games", params, ("id", game_id))
+        sql.db_update(PGA_DB, "games", params, {"id": game_id})
         return game_id
     return add_game(**params)
 
@@ -170,7 +170,7 @@ def delete_game(game_id):
 
 
 def set_uninstalled(game_id):
-    sql.db_update(PGA_DB, "games", {"installed": 0, "runner": ""}, ("id", game_id))
+    sql.db_update(PGA_DB, "games", {"installed": 0, "runner": ""}, {"id": game_id})
 
 
 def get_used_runners():

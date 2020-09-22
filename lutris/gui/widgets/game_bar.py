@@ -40,6 +40,8 @@ class GameBar(Gtk.Fixed):
             if self.game.lastplayed:
                 self.put(self.get_last_played_label(), x_offset, y_offset)
             self.place_buttons()
+        else:
+            print(db_game)
 
     def get_icon(self):
         """Return the game icon"""

@@ -61,7 +61,6 @@ class GOGService(OnlineService):
     id = "gog"
     name = _("GOG")
     icon = "gog"
-    lutris_db_field = "gogid"
     medias = {
         "banner_small": GogSmallBanner,
         "banner": GogMediumBanner,
@@ -115,7 +114,7 @@ class GOGService(OnlineService):
         games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
         for game in games:
             game.save()
-        self.emit("service-games-loaded", self.id)
+        self.emit("service-games-loaded")
 
     def request_token(self, url="", refresh_token=""):
         """Get authentication token from GOG"""

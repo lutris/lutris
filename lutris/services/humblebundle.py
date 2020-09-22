@@ -44,7 +44,6 @@ class HumbleBundleService(OnlineService):
     id = "humblebundle"
     name = _("Humble Bundle")
     icon = "humblebundle"
-    lutris_db_field = "humblestoreid"
     online = True
     medias = {
         "icon": HumbleBundleIcon
@@ -62,7 +61,7 @@ class HumbleBundleService(OnlineService):
 
     def request_token(self, url="", refresh_token=""):
         """Dummy function, should not be here. Fix in WebConnectDialog"""
-        self.emit("service-login", self.id)
+        self.emit("service-login")
 
     def login(self, parent=None):
         """Connect to Humble Bundle"""
@@ -85,7 +84,7 @@ class HumbleBundleService(OnlineService):
             seen.add(game["human_name"])
         for game in humble_games:
             game.save()
-        self.emit("service-games-loaded", self.id)
+        self.emit("service-games-loaded")
 
     def make_api_request(self, url):
         """Make an authenticated request to the Humble API"""

@@ -60,15 +60,15 @@ def db_insert(db_path, table, fields):
     return inserted_id
 
 
-def db_update(db_path, table, updated_fields, where):
+def db_update(db_path, table, updated_fields, conditions):
     """Update `table` with the values given in the dict `values` on the
        condition given with the `row` tuple.
     """
     columns = "=?, ".join(list(updated_fields.keys())) + "=?"
     field_values = tuple(updated_fields.values())
 
-    condition_field = "{0}=?".format(where[0])
-    condition_value = (where[1], )
+    condition_field = " AND ".join(["%s=?" % field for field in conditions])
+    condition_value = tuple(conditions.values())
 
     with db_cursor(db_path) as cursor:
         query = "UPDATE {0} SET {1} WHERE {2}".format(table, columns, condition_field)

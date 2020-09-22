@@ -6,6 +6,7 @@ from gi.repository import GObject
 
 from lutris import api, settings
 from lutris.database import sql
+from lutris.database.services import ServiceGameCollection
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
 
@@ -22,25 +23,46 @@ class BaseService(GObject.Object):
     default_format = "icon"
 
     __gsignals__ = {
-        "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-        "service-games-cleared": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)
         sql.db_delete(PGA_DB, "service_games", "service", self.id)
-        self.emit("service-games-cleared", self.id)
+
+    def match_games(self):
+        """Matching of service games to lutris games"""
+        service_games = {
+            str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
+        }
+        lutris_games = api.get_api_games(list(service_games.keys()), service=self.id)
+        for lutris_game in lutris_games:
+            for provider_game in lutris_game["provider_games"]:
+                if provider_game["service"] != self.id:
+                    print("Not the same")
+                    continue
+                service_game = service_games.get(provider_game["slug"])
+                if not service_game:
+                    print("No game for %s" % provider_game)
+                    continue
+                conditions = {"appid": service_game["appid"], "service": self.id}
+                print(conditions)
+                sql.db_update(
+                    PGA_DB,
+                    "service_games",
+                    {"lutris_slug": lutris_game["slug"]},
+                    conditions=conditions
+                )
 
 
 class OnlineService(BaseService):
     """Base class for online gaming services"""
 
     __gsignals__ = {
-        "service-login": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-        "service-logout": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "service-login": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "service-logout": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    lutris_db_field = None
     online = True
     cookies_path = NotImplemented
     cache_path = NotImplemented
@@ -50,16 +72,6 @@ class OnlineService(BaseService):
         """Return a list of all files used for authentication
         """
         return [self.cookies_path]
-
-    def get_lutris_games(self, service_games):
-        """Return a dictionary of Lutris games keyed by the service's appids"""
-        if not self.lutris_db_field:
-            return {}
-        lutris_games = api.get_api_games(
-            [game.appid for game in service_games],
-            query_type=self.lutris_db_field
-        )
-        return {str(game[self.lutris_db_field]): game for game in lutris_games}
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""
@@ -83,7 +95,7 @@ class OnlineService(BaseService):
             except OSError:
                 logger.warning("Unable to remove %s", auth_file)
         logger.debug("logged out from %s", self.id)
-        self.emit("service-logout", self.id)
+        self.emit("service-logout")
 
     def load_cookies(self):
         """Load cookies from disk"""
