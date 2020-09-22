@@ -47,7 +47,6 @@ class LutrisService(OnlineService):
     id = "lutris"
     name = _("Lutris")
     icon = "lutris"
-    lutris_db_field = "slug"
     online = True
     medias = {
         "banner": LutrisBanner,
@@ -76,10 +75,10 @@ class LutrisService(OnlineService):
 
     def on_connect_success(self, _widget, _username):
         """Handles connection success"""
-        self.emit("service-login", self.id)
+        self.emit("service-login")
 
     def load(self):
         for game in api.get_library():
             lutris_game = LutrisGame.new_from_api(game)
             lutris_game.save()
-        self.emit("service-games-loaded", self.id)
+        self.emit("service-games-loaded")

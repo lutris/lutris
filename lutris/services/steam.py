@@ -110,4 +110,4 @@ class SteamService(BaseService):
         for game in games:
             game.save()
         logger.debug("Steam games loaded")
-        self.emit("service-games-loaded", self.id)
+        self.emit("service-games-loaded")

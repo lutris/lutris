@@ -33,7 +33,6 @@ from lutris.util.log import logger
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
 class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-methods
-
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -301,6 +300,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                     )
                 self.blank_overlay.props.visible = True
                 return
+            self.service = None
             game_providers = {
                 "running": self.get_running_games,
                 "installed": self.get_installed_games,
@@ -325,22 +325,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             search_query = None
         if not self.show_hidden_games:
             sql_excludes["hidden"] = 1
-        games = games_db.get_games(
+        return games_db.get_games(
             searches=search_query,
             filters=sql_filters,
             excludes=sql_excludes,
             sorts=self.sort_params
         )
-        return games
-
-    def on_service_games_updated(self, service, service_id):
-        self.game_store.load_icons()
-        self.emit("view-updated")
-        return False
-
-    def on_service_logout(self, *args, **kwargs):
-        self.update_store()
-        return False
 
     def get_service_media(self, icon_type):
         """Return the ServiceMedia class used for this view"""
@@ -379,6 +369,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         games = self.get_games_from_filters()
         self.view.service = self.service.id if self.service else "lutris"
         self.reload_service_media()
+
         if games is None:
             self.search_spinner.props.active = True
             return False
@@ -395,13 +386,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.search_spinner.props.active = False
         self.search_timer_id = None
         return False
-
-    def update_game_by_id(self, game_id):
-        """Update the view by DB ID"""
-        db_game = games_db.get_game_by_field(game_id, "id")
-        if db_game:
-            return self.game_store.update(db_game)
-        return self.game_store.remove_game(game_id)
 
     def set_dark_theme(self):
         """Enables or disbales dark theme"""
@@ -507,6 +491,32 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         runtime_sync = AsyncCall(self.runtime_updater.update, None)
         self.threads_stoppers.append(runtime_sync.stop_request.set)
 
+    def set_show_installed_state(self, filter_installed):
+        """Shows or hide uninstalled games"""
+        settings.write_setting("filter_installed", bool(filter_installed))
+        self.filters["installed"] = filter_installed
+        self.emit("view-updated")
+
+    def _set_icon_type(self, icon_type):
+        self.icon_type = icon_type
+        if self.icon_type == self.game_store.icon_type:
+            return
+        if self.current_view_type == "grid":
+            settings.write_setting("icon_type_gridview", self.icon_type)
+        elif self.current_view_type == "list":
+            settings.write_setting("icon_type_listview", self.icon_type)
+        self.switch_view()
+
+    def on_service_games_updated(self, service):
+        self.game_store.load_icons()
+        service.match_games()
+        self.emit("view-updated")
+        return False
+
+    def on_service_logout(self, *args, **kwargs):
+        self.update_store()
+        return False
+
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
         action.set_state(value)
@@ -558,12 +568,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.set_show_installed_state(value.get_boolean())
         self.emit("view-updated")
 
-    def set_show_installed_state(self, filter_installed):
-        """Shows or hide uninstalled games"""
-        settings.write_setting("filter_installed", bool(filter_installed))
-        self.filters["installed"] = filter_installed
-        self.emit("view-updated")
-
     @GtkTemplate.Callback
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
@@ -613,16 +617,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         view_type = val.get_string()
         if view_type != self.current_view_type:
             self.switch_view(view_type)
-
-    def _set_icon_type(self, icon_type):
-        self.icon_type = icon_type
-        if self.icon_type == self.game_store.icon_type:
-            return
-        if self.current_view_type == "grid":
-            settings.write_setting("icon_type_gridview", self.icon_type)
-        elif self.current_view_type == "list":
-            settings.write_setting("icon_type_listview", self.icon_type)
-        self.switch_view()
 
     def on_icontype_state_change(self, action, value):
         action.set_state(value)
