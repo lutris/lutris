@@ -1,24 +1,37 @@
+import json
 from datetime import datetime
 from gettext import gettext as _
 
-from gi.repository import Gtk, Pango
+from gi.repository import Gio, Gtk, Pango
 
+from lutris import services
+from lutris.config import LutrisConfig
+from lutris.database.games import add_or_update, get_games
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
 from lutris.util.strings import gtk_safe
 
 
 class GameBar(Gtk.Fixed):
+    play_button_position = (12, 40)
+
     def __init__(self, db_game, game_actions):
         """Create the game bar with a database row"""
         super().__init__(visible=True)
         self.game_actions = game_actions
+        self.db_game = db_game
         self.set_size_request(-1, 125)
-        self.service = db_game["service"]
-        if db_game.get("directory"):  # Any field that isn't in service game. Not ideal
-            game_id = db_game["id"]
+        if db_game.get("service"):
+            self.service = services.get_services()[db_game["service"]]()
         else:
-            game_id = None
+            self.service = None
+        game_id = None
+        if "service_id" in db_game:  # Any field that isn't in service game. Not ideal
+            game_id = db_game["id"]
+        elif self.service:
+            existing_games = get_games(filters={"service_id": db_game["appid"], "service": self.service.id})
+            if existing_games:
+                game_id = existing_games[0]["id"]
         if game_id:
             self.game = Game(game_id)
         else:
@@ -41,7 +54,10 @@ class GameBar(Gtk.Fixed):
                 self.put(self.get_last_played_label(), x_offset, y_offset)
             self.place_buttons()
         else:
-            print(db_game)
+            if not self.service.online:
+                play_button = self.get_play_button("Play")
+                play_button.connect("clicked", self.on_play_clicked)
+                self.put(play_button, self.play_button_position[0], self.play_button_position[1])
 
     def get_icon(self):
         """Return the game icon"""
@@ -89,6 +105,12 @@ class GameBar(Gtk.Fixed):
         last_played_label.set_markup(_("Last played: <b>%s</b>") % lastplayed.strftime("%x"))
         return last_played_label
 
+    def get_play_button(self, label):
+        button = Gtk.Button(label, visible=True)
+        button.get_style_context().add_class("play-button")
+        button.set_size_request(115, 36)
+        return button
+
     def get_buttons(self):
         """Return a dictionary of buttons to use in the panel"""
         displayed = self.game_actions.get_displayed_entries()
@@ -108,9 +130,7 @@ class GameBar(Gtk.Fixed):
                 button.set_size_request(24, 24)
             else:
                 if action_id in ("play", "stop", "install"):
-                    button = Gtk.Button(label)
-                    button.get_style_context().add_class("play-button")
-                    button.set_size_request(115, 36)
+                    button = self.get_play_button(label)
                 else:
                     button = get_link_button(label)
             if displayed.get(action_id):
@@ -136,7 +156,7 @@ class GameBar(Gtk.Fixed):
         for action_id, button in buttons.items():
             position = None
             if action_id in ("play", "stop", "install"):
-                position = (12, 40)
+                position = self.play_button_position
             if action_id == "configure":
                 position = (icon_x_start, base_height + icons_y_offset)
             if action_id == "browse":
@@ -157,3 +177,35 @@ class GameBar(Gtk.Fixed):
 
             if position:
                 self.put(button, position[0], position[1])
+
+    def on_play_clicked(self, button):
+        """Handler for service games"""
+        config_id = self.game_slug + "-" + self.service.id
+        if self.service.id == "xdg":
+            print(self.db_game)
+            details = json.loads(self.db_game["details"])
+            game_id = add_or_update(
+                name=self.game_name,
+                runner="linux",
+                slug=self.game_slug,
+                installed=1,
+                configpath=config_id,
+                installer_slug="desktopapp",
+                service=self.service.id,
+                service_id=self.db_game["appid"],
+            )
+            self.create_xdg_config(details, config_id)
+            game = Game(game_id)
+            application = Gio.Application.get_default()
+            application.launch(game)
+
+    def create_xdg_config(self, details, config_id):
+        config = LutrisConfig(runner_slug="linux", game_config_id=config_id)
+        config.raw_game_config.update(
+            {
+                "exe": details["exe"],
+                "args": details["args"],
+            }
+        )
+        config.raw_system_config.update({"disable_runtime": True})
+        config.save()

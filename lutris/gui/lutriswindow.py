@@ -369,7 +369,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         games = self.get_games_from_filters()
         self.view.service = self.service.id if self.service else "lutris"
         self.reload_service_media()
-
+        self.update_revealer()
         if games is None:
             self.search_spinner.props.active = True
             return False
@@ -388,7 +388,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return False
 
     def set_dark_theme(self):
-        """Enables or disbales dark theme"""
+        """Enables or disables dark theme"""
         gtksettings = Gtk.Settings.get_default()
         gtksettings.set_property("gtk-application-prefer-dark-theme", self.use_dark_theme)
 

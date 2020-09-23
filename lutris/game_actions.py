@@ -136,7 +136,7 @@ class GameActions:
     def get_running_game(self):
         for i in range(self.application.running_games.get_n_items()):
             game = self.application.running_games.get_item(i)
-            if game == self.game:
+            if game.id == self.game.id:
                 return game
         return None
 

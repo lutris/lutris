@@ -14,8 +14,10 @@ PGA_DB = settings.PGA_DB
 
 class ServiceMedia:
     """Information about the service's media format"""
+
     service = NotImplemented
     size = NotImplemented
+    source = "remote"  # set to local if the files don't need to be downloaded
     small_size = None
     dest_path = None
     file_pattern = NotImplemented
@@ -42,6 +44,8 @@ class ServiceMedia:
 
     def get_media_urls(self):
         """Return URLs for icons and logos from a service"""
+        if self.source == "local":
+            return {}
         service_games = ServiceGameCollection.get_for_service(self.service)
         medias = {}
         for game in service_games:
@@ -60,7 +64,6 @@ class ServiceMedia:
 
 
 class ServiceGame:
-
     """Representation of a game from a 3rd party service"""
 
     service = NotImplemented
@@ -84,22 +87,12 @@ class ServiceGame:
         return self.slug + "-" + self.installer_slug
 
     def install(self, updated_info=None):
-        """Add an installed game to the library
-
-        Params:
-            updated_info (dict): Optional dictonary containing existing data not to overwrite
-        """
-        if updated_info:
-            name = updated_info["name"]
-            slug = updated_info["slug"]
-        else:
-            name = self.name
-            slug = self.slug
+        """Add an installed game to the library"""
         self.game_id = add_or_update(
             id=self.game_id,
-            name=name,
+            name=self.name,
             runner=self.runner,
-            slug=slug,
+            slug=self.slug,
             installed=1,
             configpath=self.config_id,
             installer_slug=self.installer_slug,
