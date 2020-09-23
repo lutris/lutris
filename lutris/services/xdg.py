@@ -1,4 +1,5 @@
 """XDG applications service"""
+import json
 import os
 import re
 import shlex
@@ -29,11 +30,12 @@ def get_appid(app):
 
 
 class XDGMedia(ServiceMedia):
+    service = "xdg"
+    source = "local"
     size = (128, 128)
 
 
 class XDGService(BaseService):
-
     id = "xdg"
     name = _("Desktop games")
     icon = "linux"
@@ -91,7 +93,7 @@ class XDGService(BaseService):
         xdg_games = [XDGGame.new_from_xdg_app(app) for app in self.iter_xdg_games()]
         for game in xdg_games:
             game.save()
-        self.emit("service-games-loaded", self.id)
+        self.emit("service-games-loaded")
 
 
 class XDGGame(ServiceGame):
@@ -119,10 +121,10 @@ class XDGGame(ServiceGame):
         service_game.slug = cls.get_slug(xdg_app)
         service_game.runner = "linux"
         exe, args = cls.get_command_args(xdg_app)
-        service_game.details = {
+        service_game.details = json.dumps({
             "exe": exe,
             "args": args,
-        }
+        })
         return service_game
 
     def create_config(self):

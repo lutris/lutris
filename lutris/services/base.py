@@ -39,14 +39,11 @@ class BaseService(GObject.Object):
         for lutris_game in lutris_games:
             for provider_game in lutris_game["provider_games"]:
                 if provider_game["service"] != self.id:
-                    print("Not the same")
                     continue
                 service_game = service_games.get(provider_game["slug"])
                 if not service_game:
-                    print("No game for %s" % provider_game)
                     continue
                 conditions = {"appid": service_game["appid"], "service": self.id}
-                print(conditions)
                 sql.db_update(
                     PGA_DB,
                     "service_games",
