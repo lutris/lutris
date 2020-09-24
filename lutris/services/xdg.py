@@ -32,12 +32,12 @@ def get_appid(app):
 class XDGMedia(ServiceMedia):
     service = "xdg"
     source = "local"
-    size = (128, 128)
+    size = (64, 64)
 
 
 class XDGService(BaseService):
     id = "xdg"
-    name = _("Desktop games")
+    name = _("Local")
     icon = "linux"
     online = False
     medias = {

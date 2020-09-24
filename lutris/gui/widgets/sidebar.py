@@ -184,21 +184,13 @@ class LutrisSidebar(Gtk.ListBox):
             )
         )
 
-        self.add(
-            SidebarRow(
-                "lutrisnet",
-                "dynamic_category",
-                _("Lutris.net"),
-                Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
-            )
-        )
         service_classes = services.get_services()
         for service_name in service_classes:
             service = service_classes[service_name]()
             self.add(
                 SidebarRow(
                     service.id,
-                    "dynamic_category",
+                    "service",
                     service.name,
                     Gtk.Image.new_from_icon_name(service.icon, Gtk.IconSize.MENU)
                 )
@@ -228,7 +220,7 @@ class LutrisSidebar(Gtk.ListBox):
         self.show_all()
 
     def _filter_func(self, row):
-        if not row or not row.id or row.type in ("category", "dynamic_category"):
+        if not row or not row.id or row.type in ("category", "dynamic_category", "service"):
             return True
         if row.type == "runner":
             if row.id is None:
@@ -241,7 +233,9 @@ class LutrisSidebar(Gtk.ListBox):
             return
         if not before:
             row.set_header(SidebarHeader(_("Library")))
-        elif before.type in ("category", "dynamic_category") and row.type == "runner":
+        elif before.type in ("category", "dynamic_category") and row.type == "service":
+            row.set_header(SidebarHeader(_("Sources")))
+        elif before.type == "service" and row.type == "runner":
             row.set_header(SidebarHeader(_("Runners")))
         elif before.type == "runner" and row.type == "platform":
             row.set_header(SidebarHeader(_("Platforms")))
