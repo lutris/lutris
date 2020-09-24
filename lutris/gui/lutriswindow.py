@@ -21,7 +21,7 @@ from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
-from lutris.gui.widgets.services import ServiceBox
+from lutris.gui.widgets.services import ServiceBar
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import open_uri
 from lutris.runtime import RuntimeUpdater
@@ -311,6 +311,17 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.filters.get("category"):
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
             return games_db.get_games_by_ids(game_ids)
+
+        searches, filters, excludes = self.get_sql_filters()
+        return games_db.get_games(
+            searches=searches,
+            filters=filters,
+            excludes=excludes,
+            sorts=self.sort_params
+        )
+
+    def get_sql_filters(self):
+        """Return the current filters for the view"""
         sql_filters = {}
         sql_excludes = {}
         if self.filters.get("runner"):
@@ -320,17 +331,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.filters.get("installed"):
             sql_filters["installed"] = "1"
         if self.filters.get("text"):
-            search_query = {"name": self.filters["text"]}
+            searches = {"name": self.filters["text"]}
         else:
-            search_query = None
+            searches = None
         if not self.show_hidden_games:
             sql_excludes["hidden"] = 1
-        return games_db.get_games(
-            searches=search_query,
-            filters=sql_filters,
-            excludes=sql_excludes,
-            sorts=self.sort_params
-        )
+        return searches, sql_filters, sql_excludes
 
     def get_service_media(self, icon_type):
         """Return the ServiceMedia class used for this view"""
@@ -347,17 +353,21 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def update_revealer(self, game=None):
         for child in self.search_revealer.get_children():
             child.destroy()
-        for child in self.game_revealer.get_children():
-            child.destroy()
+        children = 0
+        box = Gtk.HBox(visible=True)
+
         if game:
-            self.game_revealer.add(GameBar(game, self.game_actions))
-            self.game_revealer.set_reveal_child(True)
-        else:
-            self.game_revealer.set_reveal_child(False)
+            box.pack_start(GameBar(game, self.game_actions), True, True, 0)
+            children += 1
+
         if self.service:
-            service_box = ServiceBox(self.service)
-            service_box.show()
-            self.search_revealer.add(service_box)
+            fit_box = Gtk.VBox(visible=True)
+            fit_box.pack_start(ServiceBar(self.service), False, False, 0)
+            box.pack_end(fit_box, False, False, 0)
+            children += 1
+
+        if children:
+            self.search_revealer.add(box)
             self.search_revealer.set_reveal_child(True)
         else:
             self.search_revealer.set_reveal_child(False)
@@ -454,12 +464,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.view:
             self.view.destroy()
         service_media = self.reload_service_media()
-        if self.view_type == "grid":
-            self.view = GameGridView(self.game_store, service_media)
-        else:
-            self.view = GameListView(self.game_store, service_media)
+        view_class = GameGridView if self.view_type == "grid" else GameListView
+        self.view = view_class(self.game_store, service_media)
 
-        self.view.connect("game-selected", self.game_selection_changed)
+        self.view.connect("game-selected", self.on_game_selection_changed)
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         for child in self.games_scrollwindow.get_children():
             child.destroy()
@@ -472,16 +480,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.view.show_all()
         self.update_store()
-
-    def game_selection_changed(self, view, game_id):
-        if not game_id:
-            self.update_revealer()
-            return
-        if self.service:
-            game = ServiceGameCollection.get_game(self.service.id, game_id)
-        else:
-            game = games_db.get_game_by_field(int(game_id), "id")
-        self.update_revealer(game)
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
@@ -526,7 +524,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_resize(self, widget, *_args):
         """Size-allocate signal.
-
         Updates stored window size and maximized state.
         """
         if not widget.get_window():
@@ -653,3 +650,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if row:
             self.filters[row.type] = row.id
         self.emit("view-updated")
+
+    def on_game_selection_changed(self, view, game_id):
+        if not game_id:
+            # self.update_revealer()
+            return False
+        if self.service:
+            game = ServiceGameCollection.get_game(self.service.id, game_id)
+        else:
+            game = games_db.get_game_by_field(int(game_id), "id")
+        GLib.idle_add(self.update_revealer, game)
+        return False
