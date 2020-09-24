@@ -10,7 +10,7 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
 
-class ServiceBox(Gtk.Box):
+class ServiceBar(Gtk.Box):
     """Display components to interact with a service"""
 
     COL_SELECTED = 0
