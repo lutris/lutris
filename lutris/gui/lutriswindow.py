@@ -254,7 +254,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def get_installed_games(self):
         """Return a list of currently running games"""
-        return games_db.get_games(filters={'installed': '1'})
+        searches, _filters, excludes = self.get_sql_filters()
+        return games_db.get_games(searches=searches, filters={'installed': '1'}, excludes=excludes)
 
     def get_api_games(self):
         """Return games from the lutris API"""
@@ -270,16 +271,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return self.filters["text"] in game["name"].lower()
 
     def get_games_from_filters(self):
-        if "dynamic_category" in self.filters:
-            category = self.filters["dynamic_category"]
-            if category in services.get_services():
-                self.service = services.get_services()[category]()
+        if self.filters.get("service"):
+            service_name = self.filters["service"]
+            if service_name in services.get_services():
+                self.service = services.get_services()[service_name]()
                 if self.service.online:
                     self.service.connect("service-login", self.on_service_games_updated)
                     self.service.connect("service-logout", self.on_service_logout)
                 self.service.connect("service-games-loaded", self.on_service_games_updated)
 
-                service_games = ServiceGameCollection.get_for_service(category)
+                service_games = ServiceGameCollection.get_for_service(service_name)
                 if service_games:
                     return [
                         game for game in sorted(
@@ -301,12 +302,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.blank_overlay.props.visible = True
                 return
             self.service = None
-            game_providers = {
-                "running": self.get_running_games,
-                "installed": self.get_installed_games,
-                "lutrisnet": self.get_api_games,
-            }
-            return game_providers[category]()
+        dynamic_categories = {
+            "running": self.get_running_games,
+            "installed": self.get_installed_games
+        }
+        if self.filters.get("dynamic_category") in dynamic_categories:
+            return dynamic_categories[self.filters["dynamic_category"]]()
         self.service = None
         if self.filters.get("category"):
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
@@ -644,7 +645,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
         self.selected_category = "%s:%s" % (row.type, row.id)
-        for filter_type in ("category", "dynamic_category", "runner", "platform"):
+        for filter_type in ("category", "dynamic_category", "service", "runner", "platform"):
             if filter_type in self.filters:
                 self.filters.pop(filter_type)
         if row:
@@ -653,7 +654,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_game_selection_changed(self, view, game_id):
         if not game_id:
-            # self.update_revealer()
+            GLib.idle_add(self.update_revealer)
             return False
         if self.service:
             game = ServiceGameCollection.get_game(self.service.id, game_id)
