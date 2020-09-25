@@ -273,6 +273,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return True
         return self.filters["text"] in game["name"].lower()
 
+    def unset_service(self):
+        self.service = None
+        if self.service_bar:
+            self.service_bar.destroy()
+
     def get_games_from_filters(self):
         if self.filters.get("service"):
             service_name = self.filters["service"]
@@ -304,14 +309,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                     )
                 self.blank_overlay.props.visible = True
                 return
-            self.service = None
+            self.unset_service()
         dynamic_categories = {
             "running": self.get_running_games,
             "installed": self.get_installed_games
         }
         if self.filters.get("dynamic_category") in dynamic_categories:
             return dynamic_categories[self.filters["dynamic_category"]]()
-        self.service = None
+        self.unset_service()
         if self.filters.get("category"):
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
             return games_db.get_games_by_ids(game_ids)

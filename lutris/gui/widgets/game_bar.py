@@ -32,32 +32,41 @@ class GameBar(Gtk.Fixed):
             existing_games = get_games(filters={"service_id": db_game["appid"], "service": self.service.id})
             if existing_games:
                 game_id = existing_games[0]["id"]
-
         if game_id:
             self.game = Game(game_id)
         else:
-            self.game = None
+            self.game = Game()
         self.game_name = db_game["name"]
         self.game_slug = db_game["slug"]
         self.put(self.get_game_name_label(), 16, 8)
         if self.game:
             game_actions.set_game(self.game)
-            x_offset = 150
-            y_offset = 42
-            if self.game.playtime:
-                self.put(self.get_playtime_label(), x_offset, y_offset)
-                x_offset += 175
-            if self.game.lastplayed:
-                self.put(self.get_last_played_label(), x_offset, y_offset)
-            if self.game.is_installed:
-                self.put(self.get_runner_label(), 410, 16)
-            self.place_buttons()
+        x_offset = 145
+        y_offset = 42
+        if self.game.is_installed:
+            self.put(self.get_runner_label(), x_offset, y_offset)
+            x_offset += 135
+        if self.game.lastplayed:
+            self.put(self.get_last_played_label(), x_offset, y_offset)
+            x_offset += 95
+        if self.game.playtime:
+            self.put(self.get_playtime_label(), x_offset, y_offset)
 
-        else:
-            if not self.service.online:
-                play_button = self.get_play_button("Play")
-                play_button.connect("clicked", self.on_play_clicked)
-                self.put(play_button, self.play_button_position[0], self.play_button_position[1])
+        self.put(self.get_play_button(), self.play_button_position[0], self.play_button_position[1])
+
+    def get_popover(self):
+        """Return the popover widget to select file source"""
+        popover = Gtk.Popover()
+        popover.add(self.get_popover_menu())
+        popover.set_position(Gtk.PositionType.BOTTOM)
+        return popover
+
+    def get_popover_menu(self):
+        """Create the menu going into the popover"""
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        for link_button in self.get_link_buttons():
+            vbox.pack_start(link_button, False, True, 10)
+        return vbox
 
     def get_icon(self):
         """Return the game icon"""
@@ -79,9 +88,14 @@ class GameBar(Gtk.Fixed):
         )
         runner_icon.show()
         runner_label = Gtk.Label(visible=True)
-        runner_label.set_markup("<b>%s</b>" % gtk_safe(self.game.platform))
-        runner_box.pack_end(runner_label, False, False, 0)
-        runner_box.pack_end(runner_icon, False, False, 0)
+        if len(self.game.platform) > 15:
+            platform = self.game.platform[:15] + "…"
+        else:
+            platform = self.game.platform
+        runner_label.set_markup("Platform:\n<b>%s</b>" % gtk_safe(platform))
+
+        runner_box.pack_start(runner_icon, False, False, 0)
+        runner_box.pack_start(runner_label, False, False, 0)
         return runner_box
 
     def get_playtime_label(self):
@@ -97,34 +111,34 @@ class GameBar(Gtk.Fixed):
         last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%x"))
         return last_played_label
 
-    def get_play_button(self, label):
-        button = Gtk.Button(label, visible=True)
-        button.get_style_context().add_class("play-button")
+    def get_play_button(self):
+        button = Gtk.Button(visible=True)
         button.set_size_request(120, 36)
+        if self.service:
+            if self.service.online:
+                button.set_label(_("Play"))
+                button.connect("clicked", self.on_play_clicked)
+            else:
+                button.set_label(_("Install"))
+                button.connect("clicked", self.on_install_clicked)
+        else:
+            if self.game.is_installed:
+                button.set_label(_("Play"))
+                button.connect("clicked", self.game_actions.on_game_run)
+            else:
+                button.set_label(_("Install"))
+                button.connect("clicked", self.game_actions.on_install_clicked)
         return button
 
-    def get_buttons(self):
+    def get_link_buttons(self):
         """Return a dictionary of buttons to use in the panel"""
         displayed = self.game_actions.get_displayed_entries()
-        icon_map = {
-            "configure": "preferences-system-symbolic",
-            "browse": "system-file-manager-symbolic",
-            "show_logs": "utilities-terminal-symbolic",
-            "remove": "user-trash-symbolic",
-        }
         buttons = {}
         for action in self.game_actions.get_game_actions():
             action_id, label, callback = action
-            if action_id in icon_map:
-                button = Gtk.Button.new_from_icon_name(icon_map[action_id], Gtk.IconSize.MENU)
-                button.set_tooltip_text(label)
-                button.props.relief = Gtk.ReliefStyle.NONE
-                button.set_size_request(24, 24)
-            else:
-                if action_id in ("play", "stop", "install"):
-                    button = self.get_play_button(label)
-                else:
-                    button = get_link_button(label)
+            if action_id in ("play", "stop", "install"):
+                continue
+            button = get_link_button(label)
             if displayed.get(action_id):
                 button.show()
             else:
@@ -133,44 +147,15 @@ class GameBar(Gtk.Fixed):
             button.connect("clicked", callback)
         return buttons
 
-    def place_buttons(self):
-        """Places all appropriate buttons in the panel"""
-        buttons = self.get_buttons()
-        icon_offset = 6
-        icon_width = 24
-        icon_x_start = 410
-        icons_y_offset = 42
-
-        # buttons_x_offset = 28
-        # extra_button_start = 80  # Y position for runner actions
-        # extra_button_index = 0
-        for action_id, button in buttons.items():
-            position = None
-            if action_id in ("play", "stop", "install"):
-                position = self.play_button_position
-            if action_id == "configure":
-                position = (icon_x_start, icons_y_offset)
-            if action_id == "browse":
-                position = (
-                    icon_x_start + icon_offset + icon_width,
-                    icons_y_offset,
-                )
-            if action_id == "show_logs":
-                position = (
-                    icon_x_start + icon_offset * 2 + icon_width * 2,
-                    icons_y_offset,
-                )
-            if action_id == "remove":
-                position = (
-                    icon_x_start + icon_offset * 3 + icon_width * 3,
-                    icons_y_offset,
-                )
-
-            if position:
-                self.put(button, position[0], position[1])
+    def on_install_clicked(self, button):
+        """Handler for installing service games"""
+        print("Installing:")
+        print(self.db_game)
+        print("Service:")
+        print(self.service)
 
     def on_play_clicked(self, button):
-        """Handler for service games"""
+        """Handler for launching service games"""
         config_id = self.game_slug + "-" + self.service.id
         if self.service.id == "xdg":
             runner = "linux"
