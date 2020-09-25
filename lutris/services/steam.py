@@ -30,14 +30,7 @@ class SteamBannerLarge(ServiceMedia):
     url_pattern = "https://cdn.cloudflare.steamstatic.com/steam/apps/%s/header.jpg"
 
 
-class SteamIcon(ServiceMedia):
-    service = "steam"
-    size = (32, 32)
-    dest_path = os.path.join(settings.CACHE_DIR, "steam/icons")
-
-
 class SteamGame(ServiceGame):
-
     """ServiceGame for Steam games"""
 
     service = "steam"
