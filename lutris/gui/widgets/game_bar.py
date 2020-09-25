@@ -52,21 +52,18 @@ class GameBar(Gtk.Fixed):
         if self.game.playtime:
             self.put(self.get_playtime_label(), x_offset, y_offset)
 
-        self.put(self.get_play_button(), self.play_button_position[0], self.play_button_position[1])
+        self.put_play_button()
 
     def get_popover(self):
         """Return the popover widget to select file source"""
         popover = Gtk.Popover()
-        popover.add(self.get_popover_menu())
-        popover.set_position(Gtk.PositionType.BOTTOM)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
+        buttons = self.get_link_buttons()
+        for action in buttons:
+            vbox.pack_end(buttons[action], False, False, 1)
+        popover.add(vbox)
+        popover.set_position(Gtk.PositionType.TOP)
         return popover
-
-    def get_popover_menu(self):
-        """Create the menu going into the popover"""
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        for link_button in self.get_link_buttons():
-            vbox.pack_start(link_button, False, True, 10)
-        return vbox
 
     def get_icon(self):
         """Return the game icon"""
@@ -111,24 +108,37 @@ class GameBar(Gtk.Fixed):
         last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%x"))
         return last_played_label
 
-    def get_play_button(self):
-        button = Gtk.Button(visible=True)
-        button.set_size_request(120, 36)
+    def put_play_button(self):
+
         if self.service:
+            button = Gtk.Button(visible=True)
+            button.set_size_request(120, 36)
             if self.service.online:
-                button.set_label(_("Play"))
-                button.connect("clicked", self.on_play_clicked)
-            else:
                 button.set_label(_("Install"))
                 button.connect("clicked", self.on_install_clicked)
+            else:
+                button.set_label(_("Play"))
+                button.connect("clicked", self.on_play_clicked)
+            widget = button
         else:
+            box = Gtk.HBox(visible=True)
+            style_context = box.get_style_context()
+            style_context.add_class("linked")
+            button = Gtk.Button(visible=True)
+            button.set_size_request(84, 36)
+            popover_button = Gtk.MenuButton(visible=True)
+            popover_button.set_size_request(36, 36)
+            popover_button.set_popover(self.get_popover())
             if self.game.is_installed:
                 button.set_label(_("Play"))
                 button.connect("clicked", self.game_actions.on_game_run)
             else:
                 button.set_label(_("Install"))
                 button.connect("clicked", self.game_actions.on_install_clicked)
-        return button
+            box.add(button)
+            box.add(popover_button)
+            widget = box
+        self.put(widget, self.play_button_position[0], self.play_button_position[1])
 
     def get_link_buttons(self):
         """Return a dictionary of buttons to use in the panel"""
