@@ -5,7 +5,6 @@ import re
 from gettext import gettext as _
 
 from lutris import settings
-from lutris.config import LutrisConfig, make_game_config_id
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util.log import logger
@@ -61,10 +60,6 @@ class SteamGame(ServiceGame):
         steam_game.details = json.dumps({"appid": appid})
         return steam_game
 
-    @property
-    def config_id(self):
-        return make_game_config_id(self.slug)
-
     @classmethod
     def is_importable(cls, appmanifest):
         """Return whether a Steam game should be imported"""
@@ -75,12 +70,6 @@ class SteamGame(ServiceGame):
         if re.match(r"^Proton \d*", appmanifest.name):
             return False
         return True
-
-    def create_config(self):
-        """Create the game configuration for a Steam game"""
-        game_config = LutrisConfig(runner_slug=self.runner, game_config_id=self.config_id)
-        game_config.raw_game_config.update({"appid": self.appid})
-        game_config.save()
 
 
 class SteamService(BaseService):
