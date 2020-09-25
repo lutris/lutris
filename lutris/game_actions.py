@@ -100,8 +100,9 @@ class GameActions:
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "stop": self.is_game_running,
-            "show_logs": self.game.is_installed,
             "configure": bool(self.game.is_installed),
+            "browse": self.game.is_installed and self.game.runner_name != "browser",
+            "show_logs": self.game.is_installed,
             "favorite": not self.game.is_favorite,
             "deletefavorite": self.game.is_favorite,
             "install_more": self.game.is_installed,
@@ -122,7 +123,6 @@ class GameActions:
                 self.game.is_installed
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
-            "browse": self.game.is_installed and self.game.runner_name != "browser",
             "remove": self.game.is_installed,
             "view": True,
             "hide": not self.game.is_hidden,
