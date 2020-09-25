@@ -53,7 +53,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     search_toggle = GtkTemplate.Child()
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
-    search_spinner = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
@@ -112,6 +111,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         # Sidebar visibility
         self.sidebar_revealer.set_reveal_child(self.left_side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
+
+        self.game_bar = None
+        self.service_bar = None
+        self.revealer_box = Gtk.HBox(visible=True)
+        self.game_revealer.add(self.revealer_box)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -350,22 +354,27 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         except KeyError:
             logger.error("No %s in %s", service.default_format, medias)
 
-    def update_revealer(self, game=None):
-        for child in self.game_revealer.get_children():
-            child.destroy()
-
-        box = Gtk.HBox(visible=True)
-
-        if game:
-            box.pack_start(GameBar(game, self.game_actions), True, True, 0)
-
+    def update_service_box(self):
         if self.service:
-            fit_box = Gtk.VBox(visible=True)
-            fit_box.pack_start(ServiceBar(self.service), False, False, 0)
-            box.pack_end(fit_box, False, False, 0)
+            if self.service_bar:
+                if self.service.id != self.service_bar.service.id:
+                    return
+                self.service_bar.destroy()
+            self.service_bar = ServiceBar(self.service)
+            self.revealer_box.pack_end(self.service_bar, False, False, 0)
+        elif self.service_bar:
+            self.service_bar.destroy()
 
-        if box.get_children():
-            GLib.idle_add(self.game_revealer.add, box)
+    def update_revealer(self, game=None):
+        if game:
+            if self.game_bar:
+                self.game_bar.destroy()
+            self.game_bar = GameBar(game, self.game_actions)
+            self.revealer_box.pack_start(self.game_bar, True, True, 0)
+        elif self.game_bar:
+            self.game_bar.destroy()
+        self.update_service_box()
+        if self.revealer_box.get_children():
             self.game_revealer.set_reveal_child(True)
         else:
             self.game_revealer.set_reveal_child(False)
@@ -379,7 +388,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.reload_service_media()
         self.update_revealer()
         if games is None:
-            self.search_spinner.props.active = True
             return False
         for game in games:
             game["image_size"] = self.service_media.size
@@ -391,7 +399,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             empty_label = Gtk.Label(_("No games found"), visible=True)
         self.blank_overlay.add(empty_label)
         self.blank_overlay.props.visible = not bool(games)
-        self.search_spinner.props.active = False
         self.search_timer_id = None
         return False
 
@@ -566,7 +573,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
-        self.search_spinner.props.active = True
         if self.search_timer_id:
             GLib.source_remove(self.search_timer_id)
         self.filters["text"] = entry.get_text().lower().strip()

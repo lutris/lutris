@@ -4,7 +4,6 @@ import os
 
 from lutris import settings
 from lutris.database import sql
-from lutris.database.games import add_or_update
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
 from lutris.util.http import download_file
@@ -80,34 +79,6 @@ class ServiceGame:
         self.logo = None  # Game logo
         self.icon = None  # Game icon
         self.details = None  # Additional details for the game
-
-    @property
-    def config_id(self):
-        """Returns the ID to use for the lutris config file"""
-        return self.slug + "-" + self.installer_slug
-
-    def install(self, updated_info=None):
-        """Add an installed game to the library"""
-        self.game_id = add_or_update(
-            id=self.game_id,
-            name=self.name,
-            runner=self.runner,
-            slug=self.slug,
-            installed=1,
-            configpath=self.config_id,
-            installer_slug=self.installer_slug,
-            service=self.service,
-            service_id=self.appid,
-        )
-        self.create_config()
-        return self.game_id
-
-    def uninstall(self):
-        """Uninstall a game from Lutris"""
-        return add_or_update(id=self.game_id, installed=0)
-
-    def create_config(self):
-        """Implement this in subclasses to properly create the game config"""
 
     def save(self):
         """Save this game to database"""

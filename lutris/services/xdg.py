@@ -8,7 +8,6 @@ from gettext import gettext as _
 
 from gi.repository import Gio
 
-from lutris.config import LutrisConfig
 from lutris.database.games import get_games_where
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame, ServiceMedia
@@ -126,19 +125,6 @@ class XDGGame(ServiceGame):
             "args": args,
         })
         return service_game
-
-    def create_config(self):
-        """Create a Lutris config for the current game"""
-        config = LutrisConfig(runner_slug=self.runner, game_config_id=self.config_id)
-        config.raw_game_config.update(
-            {
-                "appid": self.appid,
-                "exe": self.details["exe"],
-                "args": self.details["args"],
-            }
-        )
-        config.raw_system_config.update({"disable_runtime": True})
-        config.save()
 
     @staticmethod
     def get_command_args(app):
