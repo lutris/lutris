@@ -9,6 +9,8 @@ import uuid
 # Lutris Modules
 from lutris.util.log import logger
 
+NO_PLAYTIME = "Never played"
+
 
 def slugify(value):
     """Remove special characters from a string and slugify it.
@@ -117,7 +119,7 @@ def gtk_safe(string):
 def get_formatted_playtime(playtime):
     """Return a human readable value of the play time"""
     if not playtime:
-        return "No play time recorded"
+        return NO_PLAYTIME
 
     try:
         playtime = float(playtime)
@@ -139,7 +141,7 @@ def get_formatted_playtime(playtime):
     formatted_time = " and ".join([text for text in (hours_text, minutes_text) if text])
     if formatted_time:
         return formatted_time
-    return "No play time recorded"
+    return NO_PLAYTIME
 
 
 def split_arguments(args):
