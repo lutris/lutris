@@ -48,7 +48,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     games_scrollwindow = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
-    search_revealer = GtkTemplate.Child()
     game_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
     search_toggle = GtkTemplate.Child()
@@ -352,26 +351,24 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             logger.error("No %s in %s", service.default_format, medias)
 
     def update_revealer(self, game=None):
-        for child in self.search_revealer.get_children():
+        for child in self.game_revealer.get_children():
             child.destroy()
-        children = 0
+
         box = Gtk.HBox(visible=True)
 
         if game:
             box.pack_start(GameBar(game, self.game_actions), True, True, 0)
-            children += 1
 
         if self.service:
             fit_box = Gtk.VBox(visible=True)
             fit_box.pack_start(ServiceBar(self.service), False, False, 0)
             box.pack_end(fit_box, False, False, 0)
-            children += 1
 
-        if children:
-            self.search_revealer.add(box)
-            self.search_revealer.set_reveal_child(True)
+        if box.get_children():
+            GLib.idle_add(self.game_revealer.add, box)
+            self.game_revealer.set_reveal_child(True)
         else:
-            self.search_revealer.set_reveal_child(False)
+            self.game_revealer.set_reveal_child(False)
 
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()
