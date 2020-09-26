@@ -256,6 +256,7 @@
                 <property name="vexpand">True</property>
                 <property name="adjustment">zoom_adjustment</property>
                 <property name="restrict_to_fill_level">False</property>
+                <property name="fill_level">0</property>
                 <property name="draw_value">False</property>
                 <property name="has_origin">False</property>
               </object>
