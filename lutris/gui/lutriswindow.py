@@ -76,7 +76,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
 
-        icon_type = self.load_icon_type_from_settings()
+        icon_type = self.load_icon_type()
         self.service_media = self.get_service_media(icon_type)
 
         # Window initialization
@@ -349,15 +349,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def get_service_media(self, icon_type):
         """Return the ServiceMedia class used for this view"""
-        icon_type = "banner-large"
         service = self.service if self.service else LutrisService
         medias = service.medias
         if icon_type in medias:
             return medias[icon_type]()
-        try:
-            return medias[service.default_format]()
-        except KeyError:
-            logger.error("No %s in %s", service.default_format, medias)
+        return medias[service.default_format]()
 
     def update_service_box(self):
         if self.service:
@@ -414,12 +410,31 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
-        # media_services = self.service.medias.keys()
-        # self.zoom_adjustment.props.value = self.service_media.size
-        # self.zoom_adjustment.connect(
-        #     "value-changed",
-        #     lambda adj: self._set_icon_type(media_services[int(adj.props.value)]),
-        # )
+        service = self.service if self.service else LutrisService
+        media_services = list(service.medias.keys())
+        self.zoom_adjustment.set_lower(0)
+        self.zoom_adjustment.set_upper(len(media_services))
+        if self.icon_type in media_services:
+            value = media_services.index(self.icon_type)
+        else:
+            value = 0
+        self.zoom_adjustment.props.value = value
+        self.zoom_adjustment.connect("value-changed", self.on_zoom_changed)
+
+    def on_zoom_changed(self, adjustment):
+        """Handler for zoom modification"""
+        media_index = int(adjustment.props.value)
+        adjustment.props.value = media_index
+        service = self.service if self.service else LutrisService
+        media_services = list(service.medias.keys())
+        if len(media_services) <= media_index:
+            media_index = media_services.index(service.default_format)
+        icon_type = media_services[media_index]
+        if icon_type != self.icon_type:
+            self.save_icon_type(icon_type)
+            self.reload_service_media()
+            self.game_store.load_icons()
+            self.emit("view-updated")
 
     @property
     def view_type(self):
@@ -450,32 +465,37 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.search_entry.grab_focus()
         return self.search_entry.do_key_press_event(self.search_entry, event)
 
-    def load_icon_type_from_settings(self):
+    def load_icon_type(self):
         """Return the icon style depending on the type of view."""
         if self.view_type == "list":
             self.icon_type = settings.read_setting("icon_type_listview")
-            default = "icon"
         else:
             self.icon_type = settings.read_setting("icon_type_gridview")
-            default = "banner"
-        if self.service and self.icon_type not in self.service.medias:
-            self.icon_type = default
         return self.icon_type
 
+    def save_icon_type(self, icon_type):
+        self.icon_type = icon_type
+        if self.current_view_type == "grid":
+            settings.write_setting("icon_type_gridview", self.icon_type)
+        elif self.current_view_type == "list":
+            settings.write_setting("icon_type_listview", self.icon_type)
+        self.switch_view()
+
     def reload_service_media(self):
-        icon_type = self.load_icon_type_from_settings()
-        service_media = self.get_service_media(icon_type)
-        self.game_store.set_service_media(service_media)
-        # self.zoom_adjustment.props.value = list(self.service.medias.keys()).index(self.icon_type)
-        return service_media
+        self.game_store.set_service_media(
+            self.get_service_media(
+                self.load_icon_type()
+            )
+        )
 
     def switch_view(self, view_type=None):
         """Switch between grid view and list view."""
         if self.view:
             self.view.destroy()
-        service_media = self.reload_service_media()
+            logger.debug("View destroyed")
+        self.reload_service_media()
         view_class = GameGridView if self.view_type == "grid" else GameListView
-        self.view = view_class(self.game_store, service_media)
+        self.view = view_class(self.game_store, self.game_store.service_media)
 
         self.view.connect("game-selected", self.on_game_selection_changed)
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
@@ -504,16 +524,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         settings.write_setting("filter_installed", bool(filter_installed))
         self.filters["installed"] = filter_installed
         self.emit("view-updated")
-
-    def _set_icon_type(self, icon_type):
-        self.icon_type = icon_type
-        if self.icon_type == self.game_store.icon_type:
-            return
-        if self.current_view_type == "grid":
-            settings.write_setting("icon_type_gridview", self.icon_type)
-        elif self.current_view_type == "list":
-            settings.write_setting("icon_type_listview", self.icon_type)
-        self.switch_view()
 
     def on_service_games_updated(self, service):
         self.game_store.load_icons()
