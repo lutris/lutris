@@ -13,7 +13,7 @@ from lutris.util.strings import gtk_safe
 
 
 class GameBar(Gtk.Fixed):
-    play_button_position = (12, 40)
+    play_button_position = (12, 42)
 
     def __init__(self, db_game, game_actions):
         """Create the game bar with a database row"""
@@ -41,10 +41,11 @@ class GameBar(Gtk.Fixed):
         self.put(self.get_game_name_label(), 16, 8)
         if self.game:
             game_actions.set_game(self.game)
-        x_offset = 145
+        x_offset = 140
         y_offset = 42
         if self.game.is_installed:
-            self.put(self.get_runner_label(), x_offset, y_offset)
+            self.put(self.get_runner_button(), x_offset, y_offset)
+            self.put(self.get_runner_label(), x_offset + 45, y_offset)
             x_offset += 135
         if self.game.lastplayed:
             self.put(self.get_last_played_label(), x_offset, y_offset)
@@ -77,23 +78,23 @@ class GameBar(Gtk.Fixed):
         title_label.set_markup("<span font_desc='16'><b>%s</b></span>" % gtk_safe(self.game_name))
         return title_label
 
-    def get_runner_label(self):
-        runner_box = Gtk.Box(spacing=6, visible=True)
-        runner_icon = Gtk.Image.new_from_icon_name(
-            self.game.runner.name + "-symbolic",
-            Gtk.IconSize.MENU
-        )
+    def get_runner_button(self):
+        icon_name = self.game.runner.name + "-symbolic"
+        runner_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
         runner_icon.show()
+        runner_button = Gtk.MenuButton()
+        runner_button.set_image(runner_icon)
+        runner_button.show()
+        return runner_button
+
+    def get_runner_label(self):
         runner_label = Gtk.Label(visible=True)
         if len(self.game.platform) > 15:
             platform = self.game.platform[:15] + "…"
         else:
             platform = self.game.platform
         runner_label.set_markup("Platform:\n<b>%s</b>" % gtk_safe(platform))
-
-        runner_box.pack_start(runner_icon, False, False, 0)
-        runner_box.pack_start(runner_label, False, False, 0)
-        return runner_box
+        return runner_label
 
     def get_playtime_label(self):
         """Return the label containing the playtime info"""
@@ -109,7 +110,6 @@ class GameBar(Gtk.Fixed):
         return last_played_label
 
     def put_play_button(self):
-
         if self.service:
             button = Gtk.Button(visible=True)
             button.set_size_request(120, 36)
@@ -125,9 +125,9 @@ class GameBar(Gtk.Fixed):
             style_context = box.get_style_context()
             style_context.add_class("linked")
             button = Gtk.Button(visible=True)
-            button.set_size_request(84, 36)
+            button.set_size_request(84, 32)
             popover_button = Gtk.MenuButton(visible=True)
-            popover_button.set_size_request(36, 36)
+            popover_button.set_size_request(32, 32)
             popover_button.set_popover(self.get_popover())
             if self.game.is_installed:
                 button.set_label(_("Play"))

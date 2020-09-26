@@ -109,8 +109,6 @@ class GameStore(GObject.Object):
         """Update game informations."""
         game = StoreItem(db_game, self.service_media)
         row = self.get_row_by_id(game.id)
-        if not row:
-            raise ValueError("No existing row for game %s" % game.slug)
         row[COL_ID] = game.id
         row[COL_SLUG] = game.slug
         row[COL_NAME] = gtk_safe(game.name)
@@ -149,7 +147,6 @@ class GameStore(GObject.Object):
                 game.playtime_text,
             )
         )
-        # self.media_loader.refresh_icon(game.slug)
 
     def set_service_media(self, service_media):
         """Change the icon type"""
