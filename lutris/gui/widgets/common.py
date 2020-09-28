@@ -102,6 +102,9 @@ class FileChooserEntry(Gtk.Box):
         dialog.connect("response", self.on_select_file)
         return dialog
 
+    def set_default_folder(self, default_path):
+        self.default_path = os.path.expanduser(default_path) if default_path else self.path
+
     def get_default_folder(self):
         """Return the default folder for the file picker"""
         default_path = self.path or self.default_path or ""
