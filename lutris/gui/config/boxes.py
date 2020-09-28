@@ -46,7 +46,7 @@ class ConfigBox(VBox):
         return retVal
 
     # Priority of paths, highest to lowest:
-    #   Last selected for this option (this run only)
+    #   Path in the text box (if it exists)
     #   Configuation for this option
     #   Last selected in any open dialog in (for this config box only, this run only)
     #   Game's runner's working directory

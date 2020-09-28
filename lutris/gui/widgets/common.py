@@ -8,6 +8,7 @@ from gi.repository import GObject, Gtk, Pango
 
 # Lutris Modules
 from lutris.gui.widgets.utils import get_stock_icon
+from lutris.gui.widgets.default_path_handler import default_path_handler
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -46,6 +47,9 @@ class FileChooserEntry(Gtk.Box):
         action=Gtk.FileChooserAction.OPEN,
         path=None,
         default_path=None,
+        install_path=None,
+        path_type=None,
+        game_path=None,
         warn_if_non_empty=False,
         warn_if_ntfs=False
     ):
@@ -57,7 +61,7 @@ class FileChooserEntry(Gtk.Box):
         self.title = title
         self.action = action
         self.path = os.path.expanduser(path) if path else None
-        self.default_path = os.path.expanduser(default_path) if default_path else path
+        self.default_path = os.path.expanduser(default_path) if default_path else None
         self.warn_if_non_empty = warn_if_non_empty
         self.warn_if_ntfs = warn_if_ntfs
 
@@ -66,6 +70,9 @@ class FileChooserEntry(Gtk.Box):
         self.entry = Gtk.Entry(visible=True)
         self.entry.set_completion(self.get_completion())
         self.entry.connect("changed", self.on_entry_changed)
+        self.install_path = install_path
+        self.path_type = path_type
+        self.game_path = game_path
         if path:
             self.entry.set_text(path)
 
@@ -119,6 +126,22 @@ class FileChooserEntry(Gtk.Box):
     def on_browse_clicked(self, _widget):
         """Browse button click callback"""
         file_chooser_dialog = self.get_filechooser_dialog()
+        def_path = default_path_handler.GetDefault(
+            entry=self.get_text(),
+            default=self.default_path,
+            game_path=self.game_path,
+            install_path=self.install_path,
+            path_type=self.path_type)
+
+        if os.path.isfile(def_path):
+            if self.action != Gtk.FileChooserAction.SELECT_FOLDER:
+                file_chooser_dialog.select_filename(def_path)
+            else:
+                def_path = os.path.dirname(def_path)
+                file_chooser_dialog.set_current_folder(def_path)
+        else:
+            file_chooser_dialog.set_current_folder(def_path)
+
         file_chooser_dialog.run()
 
     def on_entry_changed(self, widget):
@@ -164,6 +187,7 @@ class FileChooserEntry(Gtk.Box):
             if target_path:
                 dialog.set_current_folder(target_path)
                 self.entry.set_text(system.reverse_expanduser(target_path))
+            default_path_handler.SetLastSelectedPath(self.entry.get_text(), self.path_type)
         dialog.hide()
 
     def update_completion(self, current_path):
