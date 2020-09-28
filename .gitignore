@@ -29,3 +29,14 @@ venv
 .venv
 env
 .env
+
+# Generated files
+debian/.debhelper
+debian/lutris
+obj-x86_64-linux-gnu/*
+debian/debhelper-build-stamp
+debian/files
+debian/lutris.debhelper.log
+debian/lutris.postinst.debhelper
+debian/lutris.prerm.debhelper
+debian/lutris.substvars
