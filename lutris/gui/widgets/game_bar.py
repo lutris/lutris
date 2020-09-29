@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from gettext import gettext as _
 
-from gi.repository import Gio, Gtk
+from gi.repository import Gio, GObject, Gtk
 
 from lutris import runners, services
 from lutris.config import LutrisConfig
@@ -18,6 +18,13 @@ class GameBar(Gtk.Fixed):
     def __init__(self, db_game, game_actions):
         """Create the game bar with a database row"""
         super().__init__(visible=True)
+        GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
+        GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
+        GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
+        GObject.add_emission_hook(Game, "game-updated", self.on_game_state_changed)
+        GObject.add_emission_hook(Game, "game-removed", self.on_game_state_changed)
+        GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
+
         self.set_margin_bottom(12)
         self.game_actions = game_actions
         self.db_game = db_game
@@ -38,9 +45,18 @@ class GameBar(Gtk.Fixed):
             self.game = Game()
         self.game_name = db_game["name"]
         self.game_slug = db_game["slug"]
-        self.put(self.get_game_name_label(), 16, 8)
         if self.game:
             game_actions.set_game(self.game)
+        self.update_view()
+
+    def clear_view(self):
+        """Clears all widgets from the container"""
+        for child in self.get_children():
+            child.destroy()
+
+    def update_view(self):
+        """Populate the view with widgets"""
+        self.put(self.get_game_name_label(), 16, 8)
         x_offset = 140
         y_offset = 42
         if self.game.is_installed:
@@ -53,7 +69,8 @@ class GameBar(Gtk.Fixed):
         if self.game.playtime:
             self.put(self.get_playtime_label(), x_offset, y_offset)
 
-        self.put_play_button()
+        self.play_button = self.get_play_button()
+        self.put(self.play_button, self.play_button_position[0], self.play_button_position[1])
 
     def get_popover(self, buttons):
         """Return the popover widget containing a list of link buttons"""
@@ -110,37 +127,47 @@ class GameBar(Gtk.Fixed):
         last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%x"))
         return last_played_label
 
-    def put_play_button(self):
-        if self.service:
-            button = Gtk.Button(visible=True)
-            button.set_size_request(120, 36)
-            if self.service.online:
-                button.set_label(_("Install"))
-                button.connect("clicked", self.on_install_clicked)
-            else:
-                button.set_label(_("Play"))
-                button.connect("clicked", self.on_play_clicked)
-            widget = button
+    def get_service_button(self):
+        """Button for service games"""
+        button = Gtk.Button(visible=True)
+        button.set_size_request(120, 36)
+        if self.service.online:
+            button.set_label(_("Install"))
+            button.connect("clicked", self.on_install_clicked)
         else:
-            box = Gtk.HBox(visible=True)
-            style_context = box.get_style_context()
-            style_context.add_class("linked")
-            button = Gtk.Button(visible=True)
-            button.set_size_request(84, 32)
-            popover_button = Gtk.MenuButton(visible=True)
-            popover_button.set_size_request(32, 32)
-            popover_button.props.direction = Gtk.ArrowType.UP
-            popover_button.set_popover(self.get_popover(self.get_game_buttons()))
-            if self.game.is_installed:
+            button.set_label(_("Play"))
+            button.connect("clicked", self.on_play_clicked)
+        return button
+
+    def get_play_button(self):
+        """Return the widget for install/play/stop and game config"""
+        if not self.game.is_installed and self.service:
+            return self.get_service_button()
+        box = Gtk.HBox(visible=True)
+        style_context = box.get_style_context()
+        style_context.add_class("linked")
+        button = Gtk.Button(visible=True)
+        button.set_size_request(84, 32)
+        popover_button = Gtk.MenuButton(visible=True)
+        popover_button.set_size_request(32, 32)
+        popover_button.props.direction = Gtk.ArrowType.UP
+        popover_button.set_popover(self.get_popover(self.get_game_buttons()))
+        if self.game.is_installed:
+            if self.game.state == self.game.STATE_STOPPED:
                 button.set_label(_("Play"))
                 button.connect("clicked", self.game_actions.on_game_run)
+            elif self.game.state == self.game.STATE_LAUNCHING:
+                button.set_label(_("Launching"))
+                button.set_sensitive(False)
             else:
-                button.set_label(_("Install"))
-                button.connect("clicked", self.game_actions.on_install_clicked)
-            box.add(button)
-            box.add(popover_button)
-            widget = box
-        self.put(widget, self.play_button_position[0], self.play_button_position[1])
+                button.set_label(_("Stop"))
+                button.connect("clicked", self.game_actions.on_game_stop)
+        else:
+            button.set_label(_("Install"))
+            button.connect("clicked", self.game_actions.on_install_clicked)
+        box.add(button)
+        box.add(popover_button)
+        return box
 
     def get_game_buttons(self):
         """Return a dictionary of buttons to use in the panel"""
@@ -231,3 +258,12 @@ class GameBar(Gtk.Fixed):
         )
         config.raw_system_config.update({"disable_runtime": True})
         config.save()
+
+    def on_game_state_changed(self, game):
+        """Handler called when the game has changed state"""
+        if game.id == self.game.id:
+            self.game = game
+        else:
+            return
+        self.clear_view()
+        self.update_view()

@@ -24,6 +24,7 @@ from lutris.util import audio, jobs, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
 )
+from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -37,9 +38,8 @@ class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
        and running it.
     """
-
-    STATE_IDLE = "idle"
     STATE_STOPPED = "stopped"
+    STATE_LAUNCHING = "launching"
     STATE_RUNNING = "running"
 
     __gsignals__ = {
@@ -47,7 +47,7 @@ class Game(GObject.Object):
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int, )),
+        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -87,7 +87,7 @@ class Game(GObject.Object):
         self.prelaunch_executor = None
         self.heartbeat = None
         self.killswitch = None
-        self.state = self.STATE_IDLE
+        self.state = self.STATE_STOPPED
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
@@ -315,15 +315,12 @@ class Game(GObject.Object):
         """Launch the game."""
         if not self.runner:
             dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
             return
 
         if not self.is_launchable():
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
+            logger.error("Game is not launchable")
             return
-
+        self.state = self.STATE_LAUNCHING
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
@@ -352,27 +349,11 @@ class Game(GObject.Object):
             return True
         return False
 
-
     def start_xephyr(self, display=":2"):
         """Start a monitored Xephyr instance"""
         if not system.find_executable("Xephyr"):
             raise GameConfigError("Unable to find Xephyr, install it or disable the Xephyr option")
-
-        xephyr_depth = "8" if self.runner.system_config.get("xephyr") == "8bpp" else "16"
-        xephyr_resolution = self.runner.system_config.get("xephyr_resolution") or "640x480"
-        xephyr_command = [
-            "Xephyr",
-            display,
-            "-ac",
-            "-screen",
-            xephyr_resolution + "x" + xephyr_depth,
-            "-glamor",
-            "-reset",
-            "-terminate",
-        ]
-        if self.runner.system_config.get("xephyr_fullscreen"):
-            xephyr_command.append("-fullscreen")
-
+        xephyr_command = get_xephyr_command(display, self.runner.system_config)
         xephyr_thread = MonitoredCommand(xephyr_command)
         xephyr_thread.start()
         time.sleep(3)
@@ -522,8 +503,8 @@ class Game(GObject.Object):
             self.game_thread.stop_func = self.runner.stop
         self.game_thread.start()
         self.timer.start()
-        self.emit("game-started")
         self.state = self.STATE_RUNNING
+        self.emit("game-started")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def stop_game(self):

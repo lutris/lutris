@@ -476,7 +476,7 @@ class Application(Gtk.Application):
         game_index = self.get_game_index(game.id)
         if game_index is not None:
             self.running_games.remove(game_index)
-        game.emit("game-stopped", game.id)
+        game.emit("game-stopped")
 
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.show()  # Show launcher window
