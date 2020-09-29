@@ -35,6 +35,7 @@ from lutris.api import parse_installer_url
 from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game
+from lutris.installer import get_installers
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
@@ -426,14 +427,16 @@ class Application(Gtk.Application):
                 # No game found, default to install if a game_slug or
                 # installer_file is provided
                 action = "install"
-
         if action == "install":
-            self.show_window(
-                InstallerWindow,
-                parent=self.window,
+            installers = get_installers(
                 game_slug=game_slug,
                 installer_file=installer_file,
                 revision=revision,
+            )
+            self.show_window(
+                InstallerWindow,
+                parent=self.window,
+                installers=installers
             )
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:

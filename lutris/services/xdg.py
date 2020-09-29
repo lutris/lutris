@@ -8,6 +8,7 @@ from gettext import gettext as _
 
 from gi.repository import Gio
 
+from lutris.config import LutrisConfig
 from lutris.database.games import get_games_where
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame, ServiceMedia
@@ -93,6 +94,18 @@ class XDGService(BaseService):
         for game in xdg_games:
             game.save()
         self.emit("service-games-loaded")
+
+    def create_config(self, db_game, config_id):
+        details = json.loads(db_game["details"])
+        config = LutrisConfig(runner_slug="linux", game_config_id=config_id)
+        config.raw_game_config.update(
+            {
+                "exe": details["exe"],
+                "args": details["args"],
+            }
+        )
+        config.raw_system_config.update({"disable_runtime": True})
+        config.save()
 
 
 class XDGGame(ServiceGame):

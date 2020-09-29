@@ -1,7 +1,6 @@
 """Install a game by following its install script."""
 import os
 
-import yaml
 from gi.repository import GLib, GObject
 
 from lutris import settings
@@ -16,44 +15,10 @@ from lutris.installer.legacy import get_game_launcher
 from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
-from lutris.util.http import Request
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import unpack_dependencies
 from lutris.util.wine.wine import get_system_wine_version, get_wine_version_exe
-
-
-def fetch_script(game_slug, revision=None):
-    """Download install script(s) for matching game_slug."""
-    if not game_slug:
-        raise ValueError("No game_slug provided. Can't query an installer")
-    if revision:
-        installer_url = settings.INSTALLER_REVISION_URL % (game_slug, revision)
-        key = None
-    else:
-        installer_url = settings.INSTALLER_URL % game_slug
-        key = "results"
-    logger.debug("Fetching installer %s", installer_url)
-    request = Request(installer_url)
-    request.get()
-    response = request.json
-    if response is None:
-        raise RuntimeError("Couldn't get installer at %s" % installer_url)
-
-    if key:
-        return response[key]
-    return response
-
-
-def read_script(filename):
-    """Return scripts from a local file"""
-    logger.debug("Loading script(s) from %s", filename)
-    scripts = yaml.safe_load(open(filename, "r").read())
-    if isinstance(scripts, list):
-        return scripts
-    if "results" in scripts:
-        return scripts["results"]
-    return scripts
 
 
 class ScriptInterpreter(GObject.Object, CommandsMixin):

@@ -19,11 +19,6 @@ def get_games(
     return sql.filtered_query(PGA_DB, "games", searches=searches, filters=filters, excludes=excludes, sorts=sorts)
 
 
-def get_game_ids():
-    """Return a list of ids of games in the database."""
-    return [game["id"] for game in get_games()]
-
-
 def get_games_where(**conditions):
     """
         Query games table based on conditions

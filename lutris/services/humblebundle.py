@@ -4,7 +4,9 @@ import os
 from gettext import gettext as _
 
 from lutris import settings
+from lutris.exceptions import UnavailableGame
 from lutris.gui.dialogs import WebConnectDialog
+from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util.http import HTTPError, Request
@@ -170,6 +172,23 @@ class HumbleBundleService(OnlineService):
             if download:
                 download_links.append(download)
         return download_links
+
+    def get_installer_files(self, installer, installer_file_id):
+        """Replace the user provided file with download links from Humble Bundle"""
+        try:
+            link = get_humble_download_link(installer.service_appid, installer.runner)
+        except Exception as ex:
+            logger.exception("Failed to get Humble Bundle game: %s", ex)
+            raise UnavailableGame
+        if not link:
+            raise UnavailableGame("No game found on Humble Bundle")
+        filename = link.split("?")[0].split("/")[-1]
+        return [
+            InstallerFile(installer.game_slug, installer_file_id, {
+                "url": link,
+                "filename": filename
+            })
+        ]
 
 
 def pick_download_url_from_download_info(download_info):

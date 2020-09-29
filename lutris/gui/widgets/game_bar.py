@@ -1,11 +1,9 @@
-import json
 from datetime import datetime
 from gettext import gettext as _
 
 from gi.repository import Gio, GObject, Gtk
 
 from lutris import runners, services
-from lutris.config import LutrisConfig
 from lutris.database.games import add_or_update, get_games
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
@@ -200,64 +198,35 @@ class GameBar(Gtk.Fixed):
 
     def on_install_clicked(self, button):
         """Handler for installing service games"""
-        print("Installing:")
-        print(self.db_game)
-        print("Service:")
-        print(self.service)
+        print(self.service.install(self.db_game))
 
     def on_play_clicked(self, button):
         """Handler for launching service games"""
+        service_runners = {
+            "xdg": {"runner": "linux", "slug": "desktopapp"},
+            "steam": {"runner": "steam", "slug": "steam"}
+        }
+        if self.service.id in service_runners:
+            service_runner = service_runners[self.service.id]
+            self.launch_service_game(service_runner["runner"], service_runner["slug"])
+
+    def launch_service_game(self, runner, installer_slug):
+        """For services that allow it, add the game to Lutris and launch it"""
         config_id = self.game_slug + "-" + self.service.id
-        if self.service.id == "xdg":
-            runner = "linux"
-            game_id = add_or_update(
-                name=self.game_name,
-                runner=runner,
-                slug=self.game_slug,
-                installed=1,
-                configpath=config_id,
-                installer_slug="desktopapp",
-                service=self.service.id,
-                service_id=self.db_game["appid"],
-            )
-            self.create_xdg_config(config_id)
-            game = Game(game_id)
-            application = Gio.Application.get_default()
-            application.launch(game)
-        elif self.service.id == "steam":
-            runner = "steam"
-            game_id = add_or_update(
-                name=self.game_name,
-                runner=runner,
-                slug=self.game_slug,
-                installed=1,
-                configpath=config_id,
-                installer_slug="steam",
-                service=self.service.id,
-                service_id=self.db_game["appid"],
-            )
-            self.create_steam_config(config_id)
-            game = Game(game_id)
-            application = Gio.Application.get_default()
-            application.launch(game)
-
-    def create_steam_config(self, config_id):
-        """Create the game configuration for a Steam game"""
-        game_config = LutrisConfig(runner_slug="steam", game_config_id=config_id)
-        game_config.raw_game_config.update({"appid": self.db_game["appid"]})
-        game_config.save()
-
-    def create_xdg_config(self, config_id):
-        details = json.loads(self.db_game["details"])
-        config = LutrisConfig(runner_slug="linux", game_config_id=config_id)
-        config.raw_game_config.update(
-            {
-                "exe": details["exe"],
-                "args": details["args"],
-            }
+        game_id = add_or_update(
+            name=self.game_name,
+            runner=runner,
+            slug=self.game_slug,
+            installed=1,
+            configpath=config_id,
+            installer_slug=installer_slug,
+            service=self.service.id,
+            service_id=self.db_game["appid"],
         )
-        config.raw_system_config.update({"disable_runtime": True})
-        config.save()
+        self.service.create_config(self.db_game, config_id)
+        game = Game(game_id)
+        application = Gio.Application.get_default()
+        application.launch(game)
 
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""

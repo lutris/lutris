@@ -5,6 +5,8 @@ import re
 from gettext import gettext as _
 
 from lutris import settings
+from lutris.config import LutrisConfig
+from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util.log import logger
@@ -93,3 +95,19 @@ class SteamService(BaseService):
             game.save()
         logger.debug("Steam games loaded")
         self.emit("service-games-loaded")
+
+    def create_config(self, db_game, config_id):
+        """Create the game configuration for a Steam game"""
+        game_config = LutrisConfig(runner_slug="steam", game_config_id=config_id)
+        game_config.raw_game_config.update({"appid": db_game["appid"]})
+        game_config.save()
+
+    def get_installer_files(self, installer, installer_file_id):
+        steam_uri = "$WINESTEAM:%s:." if installer.runner == "winesteam" else "$STEAM:%s:."
+        appid = str(installer.script["game"]["appid"])
+        return [
+            InstallerFile(installer.game_slug, "steam_game", {
+                "url": steam_uri % appid,
+                "filename": appid
+            })
+        ]
