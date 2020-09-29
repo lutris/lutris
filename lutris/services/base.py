@@ -7,6 +7,7 @@ from gi.repository import GObject
 from lutris import api, settings
 from lutris.database import sql
 from lutris.database.services import ServiceGameCollection
+from lutris.installer import fetch_script
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
 
@@ -50,6 +51,19 @@ class BaseService(GObject.Object):
                     {"lutris_slug": lutris_game["slug"]},
                     conditions=conditions
                 )
+
+    def install(self, db_game):
+        lutris_games = api.get_api_games([db_game["appid"]], service=self.id)
+        if not lutris_games:
+            # TODO generate auto installer
+            print("No game found")
+            return
+        lutris_game = lutris_games[0]
+        installers = fetch_script(lutris_game["slug"])
+        service_installers = []
+        for installer in installers:
+            if self.id in installer["version"].lower():
+                service_installers.append(installer)
 
 
 class OnlineService(BaseService):

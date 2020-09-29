@@ -8,6 +8,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 from lutris import settings
 from lutris.exceptions import AuthenticationError, MultipleInstallerError, UnavailableGame
 from lutris.gui.dialogs import WebConnectDialog
+from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util import system
@@ -287,6 +288,36 @@ class GOGService(OnlineService):
         # and / or language selection implemented
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
         return gog_installers
+
+    def get_installer_files(self, installer, installer_file_id):
+        try:
+            links = get_gog_download_links(installer.service_appid, installer.runner)
+        except HTTPError:
+            raise UnavailableGame("Couldn't load the download links for this game")
+        if not links:
+            raise UnavailableGame("Could not fing GOG game")
+        files = []
+        file_id_provided = False  # Only assign installer_file_id once
+        for index, link in enumerate(links):
+            if isinstance(link, dict):
+                url = link["url"]
+            else:
+                url = link
+            filename = link["filename"]
+            if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
+                file_id = installer_file_id
+                file_id_provided = True
+            else:
+                file_id = "gog_file_%s" % index
+            files.append(
+                InstallerFile(installer.game_slug, file_id, {
+                    "url": url,
+                    "filename": filename,
+                })
+            )
+        if not file_id_provided:
+            raise UnavailableGame("Unable to determine correct file to launch installer")
+        return files
 
 
 def get_gog_download_links(gogid, runner):

@@ -310,33 +310,6 @@ class ClientLoginDialog(GtkBuilderDialog):
             self.dialog.destroy()
 
 
-class NoInstallerDialog(Gtk.MessageDialog):
-    MANUAL_CONF = 1
-    NEW_INSTALLER = 2
-    EXIT = 4
-
-    def __init__(self, parent=None):
-        Gtk.MessageDialog.__init__(
-            self,
-            parent,
-            0,
-            Gtk.MessageType.ERROR,
-            Gtk.ButtonsType.NONE,
-            _("Unable to install the game"),
-        )
-        self.format_secondary_text(_("No installer is available for this game"))
-        self.add_buttons(
-            _("Configure manually"),
-            self.MANUAL_CONF,
-            _("Write installer"),
-            self.NEW_INSTALLER,
-            _("Close"),
-            self.EXIT,
-        )
-        self.result = self.run()
-        self.destroy()
-
-
 class WebConnectDialog(Dialog):
 
     """Login form for external services"""

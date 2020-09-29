@@ -1,50 +1,40 @@
 """Window used for game installers"""
-# Standard Library
 import os
 import time
-import webbrowser
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gtk
 
-# Lutris Modules
-from lutris import api, settings
-from lutris.database.games import add_game, get_game_by_field
+from lutris import settings
 from lutris.game import Game
-from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, NoInstallerDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, QuestionDialog
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
 from lutris.gui.widgets.installer import InstallerFilesBox, InstallerPicker
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
-from lutris.util import jobs, system, xdgshortcuts
+from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, gtk_safe
 
 
 class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
-
     """GUI for the install process."""
 
     def __init__(
         self,
-        game_slug=None,
-        installer_file=None,
-        revision=None,
+        installers,
         parent=None,
         application=None,
     ):
         super().__init__(application=application)
 
+        self.installers = installers
         self.install_in_progress = False
         self.interpreter = None
         self.parent = parent
 
-        self.game_slug = game_slug
-        self.revision = revision
         self.desktop_shortcut_box = None
         self.menu_shortcut_box = None
 
@@ -71,7 +61,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         action_buttons_alignment.add(self.action_buttons)
         self.vbox.pack_start(action_buttons_alignment, False, True, 0)
 
-        self.manual_button = self.add_button(_("Configure m_anually"), self.on_manual_clicked)
+        # self.manual_button = self.add_button(_("Configure m_anually"), self.on_manual_clicked)
         self.cancel_button = self.add_button(
             _("C_ancel"), self.cancel_installation, tooltip=_("Abort and revert the installation")
         )
@@ -84,20 +74,19 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
         self.continue_handler = None
 
-        # check if installer is local or online
-        if system.path_exists(installer_file):
-            self.on_scripts_obtained(interpreter.read_script(installer_file), None)
-        else:
-            self.title_label.set_markup(_("Waiting for response from %s") % (settings.SITE_URL))
-            self.add_spinner()
-            self.widget_box.show()
-            self.title_label.show()
-            jobs.AsyncCall(
-                interpreter.fetch_script,
-                self.on_scripts_obtained,
-                self.game_slug,
-                self.revision,
-            )
+        self.clean_widgets()
+        self.show_all()
+        self.close_button.hide()
+        self.play_button.hide()
+        self.install_button.hide()
+        self.source_button.hide()
+        self.eject_button.hide()
+        self.continue_button.hide()
+        self.install_in_progress = True
+        self.widget_box.show()
+        self.title_label.show()
+        self.choose_installer()
+
         self.present()
 
     def add_button(self, label, handler=None, tooltip=None):
@@ -107,74 +96,12 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             button.set_tooltip_text(tooltip)
         if handler:
             button.connect("clicked", handler)
-
         self.action_buttons.add(button)
         return button
 
-    def on_scripts_obtained(self, scripts, error):
-        """Continue the install process when the scripts are available"""
-        if error:
-            self.clean_widgets()
-            self.install_in_progress = False
-            raise ScriptingError("Failed to get installer", error)
-        if not scripts:
-            self.destroy()
-            self.run_no_installer_dialog()
-            return
-
-        if not isinstance(scripts, list):
-            scripts = [scripts]
-        self.clean_widgets()
-        self.scripts = scripts
-        self.show_all()
-        self.close_button.hide()
-        self.play_button.hide()
-        self.install_button.hide()
-        self.source_button.hide()
-        self.eject_button.hide()
-        self.continue_button.hide()
-        self.install_in_progress = True
-
-        self.choose_installer()
-
-    def run_no_installer_dialog(self):
-        """Open dialog for 'no script available' situation."""
-        dlg = NoInstallerDialog(self)
-        if dlg.result == dlg.MANUAL_CONF:
-            self.manually_configure_game()
-        elif dlg.result == dlg.NEW_INSTALLER:
-            webbrowser.open(settings.GAME_URL % self.game_slug)
-
-    def manually_configure_game(self):
-        game_data = get_game_by_field(self.game_slug, "slug")
-
-        if game_data and "slug" in game_data:
-            # Game data already exist locally.
-            game = Game(game_data["id"])
-        else:
-            # Try to load game data from remote.
-            games = api.get_api_games([self.game_slug])
-
-            if games and len(games) >= 1:
-                remote_game = games[0]
-                game_data = {
-                    "name": remote_game["name"],
-                    "slug": remote_game["slug"],
-                    "year": remote_game["year"],
-                    "updated": remote_game["updated"],
-                }
-                game = Game(add_game(**game_data))
-            else:
-                game = None
-        AddGameDialog(self.parent, game=game)
-
-    def on_manual_clicked(self, widget):
-        self.destroy()
-        self.manually_configure_game()
-
     def validate_scripts(self):
         """Auto-fixes some script aspects and checks for mandatory fields"""
-        for script in self.scripts:
+        for script in self.installers:
             for item in ["description", "notes"]:
                 script[item] = script.get(item) or ""
             for item in ["name", "runner", "version"]:
@@ -185,9 +112,9 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def choose_installer(self):
         """Stage where we choose an install script."""
         self.validate_scripts()
-        base_script = self.scripts[0]
+        base_script = self.installers[0]
         self.title_label.set_markup(_("<b>Install %s</b>") % gtk_safe(base_script["name"]))
-        installer_picker = InstallerPicker(self.scripts)
+        installer_picker = InstallerPicker(self.installers)
         installer_picker.connect("installer-selected", self.on_installer_selected)
         scrolledwindow = Gtk.ScrolledWindow(
             hexpand=True,
@@ -201,7 +128,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def get_script_from_slug(self, script_slug):
         """Return a installer script from its slug, raise an error if one isn't found"""
         install_script = None
-        for script in self.scripts:
+        for script in self.installers:
             if script["slug"] == script_slug:
                 install_script = script
         if not install_script:
@@ -230,7 +157,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             )
             if dlg.result == Gtk.ResponseType.YES:
                 InstallerWindow(
-                    game_slug=ex.slug,
+                    installers=self.installers,
                     parent=self.parent,
                     application=self.application,
                 )
@@ -253,7 +180,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.source_button.show()
         self.install_button.grab_focus()
         self.install_button.show()
-        self.manual_button.hide()
+        # self.manual_button.hide()
 
     def on_target_changed(self, text_entry, _data=None):
         """Set the installation target for the game."""

@@ -17,6 +17,7 @@ from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.utils import open_uri
+from lutris.installer import get_installers
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.system import path_exists
@@ -166,7 +167,8 @@ class GameActions:
     def on_install_clicked(self, *_args):
         """Install a game"""
         # Install the currently selected game in the UI
-        self.application.show_window(InstallerWindow, parent=self.window, game_slug=self.game.slug)
+        installers = get_installers(game_slug=self.game.slug)
+        self.application.show_window(InstallerWindow, parent=self.window, installers=installers)
 
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""
