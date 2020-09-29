@@ -4,7 +4,7 @@ from gettext import gettext as _
 
 from gi.repository import Gio, Gtk
 
-from lutris import services
+from lutris import runners, services
 from lutris.config import LutrisConfig
 from lutris.database.games import add_or_update, get_games
 from lutris.game import Game
@@ -55,11 +55,11 @@ class GameBar(Gtk.Fixed):
 
         self.put_play_button()
 
-    def get_popover(self):
-        """Return the popover widget to select file source"""
+    def get_popover(self, buttons):
+        """Return the popover widget containing a list of link buttons"""
         popover = Gtk.Popover()
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-        buttons = self.get_link_buttons()
+
         for action in buttons:
             vbox.pack_end(buttons[action], False, False, 1)
         popover.add(vbox)
@@ -84,6 +84,7 @@ class GameBar(Gtk.Fixed):
         runner_icon.show()
         runner_button = Gtk.MenuButton()
         runner_button.set_image(runner_icon)
+        runner_button.set_popover(self.get_popover(self.get_runner_buttons()))
         runner_button.show()
         return runner_button
 
@@ -128,7 +129,8 @@ class GameBar(Gtk.Fixed):
             button.set_size_request(84, 32)
             popover_button = Gtk.MenuButton(visible=True)
             popover_button.set_size_request(32, 32)
-            popover_button.set_popover(self.get_popover())
+            popover_button.props.direction = Gtk.ArrowType.UP
+            popover_button.set_popover(self.get_popover(self.get_game_buttons()))
             if self.game.is_installed:
                 button.set_label(_("Play"))
                 button.connect("clicked", self.game_actions.on_game_run)
@@ -140,7 +142,7 @@ class GameBar(Gtk.Fixed):
             widget = box
         self.put(widget, self.play_button_position[0], self.play_button_position[1])
 
-    def get_link_buttons(self):
+    def get_game_buttons(self):
         """Return a dictionary of buttons to use in the panel"""
         displayed = self.game_actions.get_displayed_entries()
         buttons = {}
@@ -155,6 +157,18 @@ class GameBar(Gtk.Fixed):
                 button.hide()
             buttons[action_id] = button
             button.connect("clicked", callback)
+        return buttons
+
+    def get_runner_buttons(self):
+        buttons = {}
+        if self.game.runner_name and self.game.is_installed:
+            runner = runners.import_runner(self.game.runner_name)(self.game.config)
+            for entry in runner.context_menu_entries:
+                name, label, callback = entry
+                button = get_link_button(label)
+                button.show()
+                button.connect("clicked", callback)
+                buttons[name] = button
         return buttons
 
     def on_install_clicked(self, button):
