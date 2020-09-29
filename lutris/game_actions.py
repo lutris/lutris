@@ -57,7 +57,7 @@ class GameActions:
         """Return a list of game actions and their callbacks"""
         return [
             ("play", _("Play"), self.on_game_run),
-            ("stop", _("Stop"), self.on_stop),
+            ("stop", _("Stop"), self.on_game_stop),
             ("show_logs", _("Show logs"), self.on_show_logs),
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Add installed game"), self.on_add_manually),
@@ -140,9 +140,8 @@ class GameActions:
                 return game
         return None
 
-    def on_stop(self, caller):  # pylint: disable=unused-argument
+    def on_game_stop(self, caller):  # pylint: disable=unused-argument
         """Stops the game"""
-
         matched_game = self.get_running_game()
         if not matched_game:
             logger.warning(
