@@ -119,10 +119,6 @@ def get_formatted_playtime(playtime):
     if not playtime:
         return "No play time recorded"
 
-    try:
-        playtime = float(playtime)
-    except TypeError:
-        return "Invalid playtime %s" % playtime
     hours = math.floor(playtime)
 
     if hours:
