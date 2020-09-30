@@ -40,7 +40,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.user_inputs = []
         self.current_command = 0  # Current installer command when iterating through them
         self.runners_to_install = []
-        self.installer = LutrisInstaller(installer, self)
+        self.installer = LutrisInstaller(installer, self, service=parent.service, appid=parent.appid)
         if not self.installer.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
         script_errors = self.installer.get_errors()

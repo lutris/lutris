@@ -240,6 +240,14 @@ class Application(Gtk.Application):
         self.app_windows[window_key] = window_inst
         return window_inst
 
+    def show_installer_window(self, installers, service=None, appid=None):
+        self.show_window(
+            InstallerWindow,
+            installers=installers,
+            service=service,
+            appid=appid
+        )
+
     def on_app_window_destroyed(self, app_window, kwargs_str):
         """Remove the reference to the window when it has been destroyed"""
         window_key = str(app_window.__class__) + kwargs_str
@@ -433,11 +441,8 @@ class Application(Gtk.Application):
                 installer_file=installer_file,
                 revision=revision,
             )
-            self.show_window(
-                InstallerWindow,
-                parent=self.window,
-                installers=installers
-            )
+            self.show_installer_window(installers)
+
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
                 logger.warning("No game found in library")

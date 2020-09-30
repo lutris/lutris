@@ -2,7 +2,7 @@
 import os
 import shutil
 
-from gi.repository import GObject
+from gi.repository import Gio, GObject
 
 from lutris import api, settings
 from lutris.database import sql
@@ -17,6 +17,7 @@ PGA_DB = settings.PGA_DB
 class BaseService(GObject.Object):
     """Base class for local services"""
     id = NotImplemented
+    matcher = id
     name = NotImplemented
     icon = NotImplemented
     online = False
@@ -53,7 +54,8 @@ class BaseService(GObject.Object):
                 )
 
     def install(self, db_game):
-        lutris_games = api.get_api_games([db_game["appid"]], service=self.id)
+        appid = db_game["appid"]
+        lutris_games = api.get_api_games([appid], service=self.id)
         if not lutris_games:
             # TODO generate auto installer
             print("No game found")
@@ -62,8 +64,11 @@ class BaseService(GObject.Object):
         installers = fetch_script(lutris_game["slug"])
         service_installers = []
         for installer in installers:
-            if self.id in installer["version"].lower():
+            if self.matcher in installer["version"].lower():
                 service_installers.append(installer)
+        if service_installers:
+            application = Gio.Application.get_default()
+            application.show_installer_window(service_installers, service=self, appid=appid)
 
 
 class OnlineService(BaseService):

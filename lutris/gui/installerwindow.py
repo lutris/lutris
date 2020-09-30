@@ -25,15 +25,17 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def __init__(
         self,
         installers,
-        parent=None,
+        service=None,
+        appid=None,
         application=None,
     ):
         super().__init__(application=application)
 
         self.installers = installers
+        self.service = service
+        self.appid = appid
         self.install_in_progress = False
         self.interpreter = None
-        self.parent = parent
 
         self.desktop_shortcut_box = None
         self.menu_shortcut_box = None
@@ -158,7 +160,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             if dlg.result == Gtk.ResponseType.YES:
                 InstallerWindow(
                     installers=self.installers,
-                    parent=self.parent,
+                    service=self.service,
+                    appid=self.appid,
                     application=self.application,
                 )
             self.destroy()

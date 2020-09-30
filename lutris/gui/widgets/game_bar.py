@@ -32,9 +32,11 @@ class GameBar(Gtk.Fixed):
             self.service = None
         game_id = None
         if "service_id" in db_game:  # Any field that isn't in service game. Not ideal
+            self.appid = db_game["service_id"]
             game_id = db_game["id"]
         elif self.service:
-            existing_games = get_games(filters={"service_id": db_game["appid"], "service": self.service.id})
+            self.appid = db_game["appid"]
+            existing_games = get_games(filters={"service_id": self.appid, "service": self.service.id})
             if existing_games:
                 game_id = existing_games[0]["id"]
         if game_id:
@@ -43,6 +45,7 @@ class GameBar(Gtk.Fixed):
             self.game = Game()
         self.game_name = db_game["name"]
         self.game_slug = db_game["slug"]
+
         if self.game:
             game_actions.set_game(self.game)
         self.update_view()
@@ -230,7 +233,10 @@ class GameBar(Gtk.Fixed):
 
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""
-        if game.id == self.game.id:
+        if (
+            game.id == self.game.id
+            or game.appid == self.appid
+        ):
             self.game = game
         else:
             return
