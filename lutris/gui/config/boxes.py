@@ -31,54 +31,6 @@ class ConfigBox(VBox):
         self.tooltip_default = None
         self.files = []
         self.files_list_store = None
-        self.chooser_widgets = {}
-        self.last_used_path = {}
-        self.last_selected_path = None
-
-    def validate_path(self, path=None):
-        if not path:
-            return path
-        retVal = os.path.expanduser(path)
-        if not os.path.exists(retVal):
-            return None
-        if os.path.isfile(retVal):
-            retVal = os.path.dirname(retVal)
-        return retVal
-
-    # Priority of paths, highest to lowest:
-    #   Path in the text box (if it exists)
-    #   Configuation for this option
-    #   Last selected in any open dialog in (for this config box only, this run only)
-    #   Game's runner's working directory
-    #   Game's runner's game_path
-    #   Game's directory (from the database)
-    #   Default installation folder/<Game Name> - Not going to be implemented this round
-    #   Default installation folder/<game slug> - Not going to be implemented this round
-    #   Default installation folder
-    #   ~/Games
-    #   ~
-    #   None
-    def get_default_path(self, name, config_path=None):
-        path = None
-        if name in self.last_used_path:
-            path = self.validate_path(self.last_used_path[name])
-        path = path or self.validate_path(config_path)
-        path = path or self.validate_path(self.last_selected_path)
-        if self.game:
-            if self.game.runner:
-                path = path or self.validate_path(self.game.runner.working_dir)
-                path = path or self.validate_path(self.game.runner.game_path)
-            path = path or self.validate_path(self.game.directory)
-        path = path or self.validate_path(self.config.get("game_path"))
-        path = path or self.validate_path(self.lutris_config.game_config.get("game_path"))
-        path = path or self.validate_path(self.lutris_config.runner_config.get("game_path"))
-        path = path or self.validate_path(self.lutris_config.system_config.get("game_path"))
-        return path or os.path.expanduser("~")
-
-    def update_default_path(self):
-        for name in self.chooser_widgets:
-            path = self.get_default_path(name)
-            self.chooser_widgets[name].set_default_folder(path)
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -197,7 +149,6 @@ class ConfigBox(VBox):
                     hbox.set_no_show_all(True)
             hbox.pack_start(self.wrapper, True, True, 0)
             self.pack_start(hbox, False, False, 0)
-        self.update_default_path()
 
     def call_widget_generator(self, option, option_key, value, default):  # noqa: C901
         """Call the right generation method depending on option type."""
@@ -441,7 +392,6 @@ class ConfigBox(VBox):
             path=path,
             default_path=option.get("default_path")
         )
-        self.chooser_widgets[option_name] = file_chooser
         file_chooser.set_size_request(200, 30)
 
         # WTF?
@@ -470,9 +420,6 @@ class ConfigBox(VBox):
         """Action triggered on file select dialog 'file-set' signal."""
         if not os.path.isabs(entry.get_text()):
             entry.set_text(os.path.expanduser(entry.get_text()))
-        self.last_used_path[option] = entry.get_text()
-        self.last_selected_path = entry.get_text()
-        self.update_default_path()
         self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Directory chooser
@@ -486,7 +433,6 @@ class ConfigBox(VBox):
         directory_chooser = FileChooserEntry(
             title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER, path=path, default_path=default_path
         )
-        self.chooser_widgets[option_name] = directory_chooser
         directory_chooser.entry.connect("changed", self._on_chooser_dir_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
@@ -495,9 +441,6 @@ class ConfigBox(VBox):
 
     def _on_chooser_dir_set(self, entry, option):
         """Action triggered on file select dialog 'file-set' signal."""
-        self.last_used_path[option] = entry.get_text()
-        self.last_selected_path = entry.get_text()
-        self.update_default_path()
         self.option_changed(entry.get_parent(), option, entry.get_text())
 
     # Editable grid
@@ -530,7 +473,6 @@ class ConfigBox(VBox):
         label.set_halign(Gtk.Align.START)
         button = Gtk.Button(_("Add files"))
         button.connect("clicked", self.on_add_files_clicked, option_name, value)
-        self.last_used_path[option_name] = None
         button.set_margin_left(10)
         vbox.pack_start(label, False, False, 5)
         vbox.pack_end(button, False, False, 0)
@@ -574,7 +516,7 @@ class ConfigBox(VBox):
                 Gtk.ResponseType.ACCEPT,
             ),
         )
-        self.chooser_widgets[option_name] = dialog
+        dialog.set_select_multiple(True)
 
         first_file_dir = os.path.dirname(value[0]) if value else None
         dialog.set_current_folder(

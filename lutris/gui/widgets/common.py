@@ -8,7 +8,7 @@ from gi.repository import GObject, Gtk, Pango
 
 # Lutris Modules
 from lutris.gui.widgets.utils import get_stock_icon
-from lutris.gui.widgets.default_path_handler import default_path_handler
+from lutris.gui.widgets.default_path import default_path_handler
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -126,7 +126,7 @@ class FileChooserEntry(Gtk.Box):
     def on_browse_clicked(self, _widget):
         """Browse button click callback"""
         file_chooser_dialog = self.get_filechooser_dialog()
-        def_path = default_path_handler.GetDefault(
+        def_path = default_path_handler.get(
             entry=self.get_text(),
             default=self.default_path,
             game_path=self.game_path,
@@ -187,7 +187,7 @@ class FileChooserEntry(Gtk.Box):
             if target_path:
                 dialog.set_current_folder(target_path)
                 self.entry.set_text(system.reverse_expanduser(target_path))
-            default_path_handler.SetLastSelectedPath(self.entry.get_text(), self.path_type)
+            default_path_handler.set_selected(self.entry.get_text(), self.path_type)
         dialog.hide()
 
     def update_completion(self, current_path):

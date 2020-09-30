@@ -19,7 +19,7 @@ from lutris.util import resources
 from lutris.util.linux import gather_system_info_str
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.gui.widgets.default_path_handler import default_path_handler
+from lutris.gui.widgets.default_path import default_path_handler
 
 
 # pylint: disable=too-many-instance-attributes
@@ -496,21 +496,25 @@ class GameDialogCommon:
         return True
 
     def on_save(self, _button):
-        if self.slug_entry.get_sensitive() and self.slug != self.slug_entry.get_text():
-            # Warn the user they made changes to the slug that need to be applied
-            dlg = QuestionDialog(
-                {
-                    "question":
-                    _("You have modified the idenitifier, but not applied it."
-                      "Would you like to apply those changes now?"),
-                    "title":
-                    _("Confirm pending identifier change"),
-                }
-            )
-            if dlg.result == Gtk.ResponseType.YES:
-                self.change_game_slug()
-
         """Save game info and destroy widget. Return True if success."""
+
+        try:
+            if self.slug_entry.get_sensitive() and self.slug != self.slug_entry.get_text():
+                # Warn the user they made changes to the slug that need to be applied
+                dlg = QuestionDialog(
+                    {
+                        "question":
+                        _("You have modified the idenitifier, but not applied it."
+                          "Would you like to apply those changes now?"),
+                        "title":
+                        _("Confirm pending identifier change"),
+                    }
+                )
+                if dlg.result == Gtk.ResponseType.YES:
+                    self.change_game_slug()
+        except AttributeError:
+            pass
+
         if not self.is_valid():
             logger.warning(_("Current configuration is not valid, ignoring save request"))
             return False
@@ -566,7 +570,7 @@ class GameDialogCommon:
         image_filter.set_name(_("Images"))
         image_filter.add_pixbuf_formats()
         dialog.add_filter(image_filter)
-        def_path = default_path_handler.GetDefault(
+        def_path = default_path_handler.get(
             path_type=image_type)
         if os.path.isfile(def_path):
             if self.action != Gtk.FileChooserAction.SELECT_FOLDER:
@@ -578,7 +582,7 @@ class GameDialogCommon:
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             image_path = dialog.get_filename()
-            default_path_handler.SetLastSelectedPath(image_path, image_type)
+            default_path_handler.set_selected(image_path, image_type)
             if image_type == "banner":
                 self.game.has_custom_banner = True
                 dest_path = resources.get_banner_path(self.game.slug)
