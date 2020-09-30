@@ -20,7 +20,7 @@ from lutris.util.log import logger
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     """Represents a Lutris installer"""
 
-    def __init__(self, installer, interpreter):
+    def __init__(self, installer, interpreter, service, appid):
         self.interpreter = interpreter
         self.installer = installer
         self.version = installer["version"]
@@ -30,8 +30,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.script = installer.get("script")
         self.game_name = self.script.get("custom-name") or installer["name"]
         self.game_slug = installer["game_slug"]
-        self.service = self.get_service()
-        self.service_appid = self.get_appid(installer)
+        self.service = self.get_service(initial=service)
+        self.service_appid = self.get_appid(installer, initial=appid)
         self.steamid = installer.get("steamid")
         self.files = [
             InstallerFile(self.game_slug, file_id, file_meta)
@@ -42,16 +42,20 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
 
-    def get_service(self):
+    def get_service(self, initial=None):
+        if initial:
+            return initial
         if "steam" in self.runner:
-            return get_services()["steam"]
+            return get_services()["steam"]()
         version = self.version.lower()
         if "humble" in version:
-            return get_services()["humblebundle"]
+            return get_services()["humblebundle"]()
         if "gog" in version:
-            return get_services()["gog"]
+            return get_services()["gog"]()
 
-    def get_appid(self, installer):
+    def get_appid(self, installer, initial=None):
+        if initial:
+            return initial
         if not self.service:
             return
         if self.service.id == "steam":
@@ -232,6 +236,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             year=self.year,
             steamid=self.steamid,
             configpath=configpath,
+            service=self.service.id,
+            service_id=self.service_appid,
             id=self.game_id,
         )
         # This is a bit redundant but used to trigger the game-updated signal

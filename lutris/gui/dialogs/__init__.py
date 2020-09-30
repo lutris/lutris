@@ -311,7 +311,6 @@ class ClientLoginDialog(GtkBuilderDialog):
 
 
 class WebConnectDialog(Dialog):
-
     """Login form for external services"""
 
     def __init__(self, service, parent=None):

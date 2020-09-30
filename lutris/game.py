@@ -74,6 +74,8 @@ class Game(GObject.Object):
         self.lastplayed = game_data.get("lastplayed") or 0
         self.has_custom_banner = bool(game_data.get("has_custom_banner"))
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
+        self.service = game_data.get("service")
+        self.appid = game_data.get("service_id")
         self.discord_presence = DiscordPresence()
         try:
             self.playtime = float(game_data.get("playtime") or 0.0)

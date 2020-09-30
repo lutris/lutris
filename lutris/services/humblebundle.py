@@ -17,14 +17,16 @@ class HumbleBundleIcon(ServiceMedia):
     """HumbleBundle icon"""
     service = "humblebundle"
     size = (70, 70)
-    small_size = (35, 35)
     dest_path = os.path.join(settings.CACHE_DIR, "humblebundle/icons")
     file_pattern = "%s.png"
     api_field = "icon"
 
 
-class HumbleBundleGame(ServiceGame):
+class HumbleSmallIcon(HumbleBundleIcon):
+    size = (35, 35)
 
+
+class HumbleBundleGame(ServiceGame):
     """Service game for DRM free Humble Bundle games"""
     service = "humblebundle"
 
@@ -44,12 +46,15 @@ class HumbleBundleService(OnlineService):
     """Service for Humble Bundle"""
 
     id = "humblebundle"
+    matcher = "humble"
     name = _("Humble Bundle")
     icon = "humblebundle"
     online = True
     medias = {
+        "small_icon": HumbleSmallIcon,
         "icon": HumbleBundleIcon
     }
+    default_format = "icon"
 
     api_url = "https://www.humblebundle.com/"
     login_url = "https://www.humblebundle.com/login?goto=/home/library"
