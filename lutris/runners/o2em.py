@@ -101,7 +101,7 @@ class o2em(Runner):
             if callback:
                 callback()
 
-        super(o2em, self).install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed)
 
     def play(self):
         arguments = ["-biosdir=%s" % self.bios_path]

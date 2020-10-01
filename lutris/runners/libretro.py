@@ -133,12 +133,12 @@ class libretro(Runner):
                 if callback:
                     callback()
             else:
-                super(libretro, self).install(version, downloader, callback)
+                super().install(version, downloader, callback)
 
         if not self.is_retroarch_installed():
-            super(libretro, self).install(version=None, downloader=downloader, callback=install_core)
+            super().install(version=None, downloader=downloader, callback=install_core)
         else:
-            super(libretro, self).install(version, downloader, callback)
+            super().install(version, downloader, callback)
 
     def get_run_data(self):
         return {
@@ -281,7 +281,7 @@ class libretro(Runner):
         retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
         if os.path.isdir(retroarch_path):
             system.remove_folder(retroarch_path)
-        super(libretro, self).uninstall()
+        super().uninstall()
 
     def get_main_file(self):
         return self.game_config.get("main_file")

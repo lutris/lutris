@@ -177,7 +177,7 @@ class web(Runner):
     runner_executable = "web/electron/electron"
 
     def get_env(self, os_env=True):
-        env = super(web, self).get_env(os_env)
+        env = super().get_env(os_env)
 
         enable_flash_player = self.runner_config.get("enable_flash")
         env["ENABLE_FLASH_PLAYER"] = "1" if enable_flash_player else "0"

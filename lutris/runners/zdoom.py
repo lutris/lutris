@@ -96,7 +96,7 @@ class zdoom(Runner):
     ]
 
     def get_executable(self):
-        executable = super(zdoom, self).get_executable()
+        executable = super().get_executable()
         executable_dir = os.path.dirname(executable)
         if not system.path_exists(executable_dir):
             return executable

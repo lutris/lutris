@@ -118,7 +118,7 @@ class wine(Runner):
     )
 
     def __init__(self, config=None):  # noqa: C901
-        super(wine, self).__init__(config)
+        super().__init__(config)
         self.dll_overrides = {"winemenubuilder.exe": "d"}
 
         def get_wine_version_choices():
@@ -608,7 +608,7 @@ class wine(Runner):
             return option
         if self.game_exe:
             return os.path.dirname(self.game_exe)
-        return super(wine, self).working_dir
+        return super().working_dir
 
     @property
     def wine_arch(self):
@@ -880,7 +880,7 @@ class wine(Runner):
         # Always false to runner.get_env, the default value
         # of os_env is inverted in the wine class,
         # the OS env is read later.
-        env = super(wine, self).get_env(False)
+        env = super().get_env(False)
         if os_env:
             env.update(os.environ.copy())
         show_debug = self.runner_config.get("show_debug", "-all")

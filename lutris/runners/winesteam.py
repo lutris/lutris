@@ -124,7 +124,7 @@ class winesteam(wine.wine):
     ]
 
     def __init__(self, config=None):
-        super(winesteam, self).__init__(config)
+        super().__init__(config)
         self.own_game_remove_method = _("Remove game data (through Wine Steam)")
         self.no_game_remove_warning = True
         winesteam_options = [

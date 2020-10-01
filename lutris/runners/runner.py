@@ -1,11 +1,11 @@
 """Base module for runners"""
 # Standard Library
 import os
+from abc import ABC, abstractmethod
 from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gtk
-from abc import ABC, abstractmethod
 
 # Lutris Modules
 from lutris import pga, runtime, settings

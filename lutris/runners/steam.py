@@ -149,7 +149,7 @@ class steam(Runner):
     )
 
     def __init__(self, config=None):
-        super(steam, self).__init__(config)
+        super().__init__(config)
         self.own_game_remove_method = _("Remove game data (through Steam)")
         self.no_game_remove_warning = True
         self.original_steampid = None
@@ -216,7 +216,7 @@ class steam(Runner):
         return args + split_arguments(self.runner_config.get("args") or "")
 
     def get_env(self):
-        env = super(steam, self).get_env()
+        env = super().get_env()
 
         if not self.runner_config.get("lsi_steam") and self.runner_config.get(
             "steam_native_runtime"
