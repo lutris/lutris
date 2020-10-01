@@ -113,7 +113,7 @@ class vice(Runner):
         try:
             executable = executables[machine]
         except KeyError:
-            raise ValueError("Invalid machine '%s'" % machine)
+            raise ValueError("Invalid machine '%s'" % machine) from vice
         return os.path.join(settings.RUNNER_DIR, "vice/bin/%s" % executable)
 
     def install(self, version=None, downloader=None, callback=None):

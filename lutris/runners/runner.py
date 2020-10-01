@@ -412,7 +412,7 @@ class Runner(ABC):  # pylint: disable=too-many-public-methods
             extract_archive(archive, dest, merge_single=merge_single)
         except ExtractFailure as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
-            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex))
+            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex)) from Runner
         os.remove(archive)
 
         if self.name == "wine":

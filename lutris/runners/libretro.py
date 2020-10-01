@@ -274,7 +274,7 @@ class libretro(Runner):
     # Checks whether the retroarch or libretro directories can be uninstalled.
     def can_uninstall(self):
         retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
-        return os.path.isdir(retroarch_path) or super(libretro, self).can_uninstall()
+        return os.path.isdir(retroarch_path) or super().can_uninstall()
 
     # Remove the `retroarch` directory.
     def uninstall(self):

@@ -831,7 +831,7 @@ class wine(Runner):
                 dxvk_manager=dxvk_manager,
             )
         except dxvk.UnavailableDXVKVersion:
-            raise GameConfigError("Unable to get " + base_name.upper() + " %s" % dxvk_manager.version)
+            raise GameConfigError("Unable to get " + base_name.upper() + " %s" % dxvk_manager.version) from wine
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
@@ -858,7 +858,7 @@ class wine(Runner):
                 bool(self.runner_config.get("dxvk"))
             )
         except nine.NineUnavailable as ex:
-            raise GameConfigError("Unable to configure GalliumNine: %s" % ex)
+            raise GameConfigError("Unable to configure GalliumNine: %s" % ex) from wine
         return True
 
     def get_dll_overrides(self):
