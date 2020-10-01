@@ -51,6 +51,9 @@ class JsonRunner(Runner):
         arguments.append(main_file)
         return {"command": arguments}
 
+    def get_main_file(self):
+        return self.game_config.get(self.entry_point_option)
+
 
 def load_json_runners():
     json_runners = {}

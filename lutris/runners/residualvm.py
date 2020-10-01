@@ -125,3 +125,6 @@ class residualvm(Runner):
             if game.startswith("-----"):
                 game_list_start = True
         return game_array
+
+    def get_main_file(self):
+        return None

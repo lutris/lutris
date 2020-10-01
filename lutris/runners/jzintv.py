@@ -84,3 +84,6 @@ class jzintv(Runner):
         arguments += ["--rom-path=%s/" % romdir]
         arguments += [romfile]
         return {"command": arguments}
+
+    def get_main_file(self):
+        return self.game_config.get("main_file")

@@ -341,3 +341,6 @@ class fsuae(Runner):
 
     def play(self):
         return {"command": [self.get_executable()] + self.get_params() + self.insert_floppies()}
+
+    def get_main_file(self):
+        return self.game_config.get("main_file")

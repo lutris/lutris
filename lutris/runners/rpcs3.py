@@ -36,3 +36,6 @@ class rpcs3(Runner):
             return {"error": "FILE_NOT_FOUND", "file": eboot}
         arguments.append(eboot)
         return {"command": arguments}
+
+    def get_main_file(self):
+        return self.game_config.get("main_file")

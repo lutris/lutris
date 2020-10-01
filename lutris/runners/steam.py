@@ -375,3 +375,6 @@ class steam(Runner):
             env=self.get_env(),
         )
         command.start()
+
+    def get_main_file(self):
+        return None

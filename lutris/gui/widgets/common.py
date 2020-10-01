@@ -1,6 +1,7 @@
 """Misc widgets used in the GUI."""
 # Standard Library
 import os
+
 from gettext import gettext as _
 
 # Third Party Libraries
@@ -49,7 +50,7 @@ class FileChooserEntry(Gtk.Box):
         default_path=None,
         install_path=None,
         path_type=None,
-        game_path=None,
+        game=None,
         warn_if_non_empty=False,
         warn_if_ntfs=False
     ):
@@ -70,9 +71,9 @@ class FileChooserEntry(Gtk.Box):
         self.entry = Gtk.Entry(visible=True)
         self.entry.set_completion(self.get_completion())
         self.entry.connect("changed", self.on_entry_changed)
-        self.install_path = install_path
         self.path_type = path_type
-        self.game_path = game_path
+        self.install_path = install_path
+        self.game = game
         if path:
             self.entry.set_text(path)
 
@@ -105,31 +106,22 @@ class FileChooserEntry(Gtk.Box):
         dialog = Gtk.FileChooserDialog(title=self.title, transient_for=None, action=self.action)
         dialog.add_buttons(_("_Cancel"), Gtk.ResponseType.CLOSE, _("_OK"), Gtk.ResponseType.OK)
         dialog.set_create_folders(True)
-        dialog.set_current_folder(self.get_default_folder())
         dialog.connect("response", self.on_select_file)
         return dialog
-
-    def set_default_folder(self, default_path):
-        self.default_path = os.path.expanduser(default_path) if default_path else self.path
-
-    def get_default_folder(self):
-        """Return the default folder for the file picker"""
-        default_path = self.path or self.default_path or ""
-        if not default_path or not system.path_exists(default_path):
-            current_entry = self.get_text()
-            if system.path_exists(current_entry):
-                default_path = current_entry
-        if not os.path.isdir(default_path):
-            default_path = os.path.dirname(default_path)
-        return os.path.expanduser(default_path or "~")
 
     def on_browse_clicked(self, _widget):
         """Browse button click callback"""
         file_chooser_dialog = self.get_filechooser_dialog()
+
+        try:
+            main_file_path = self.game.runner.get_main_file()
+        except AttributeError:
+            main_file_path = None
+
         def_path = default_path_handler.get(
             entry=self.get_text(),
             default=self.default_path,
-            game_path=self.game_path,
+            main_file_path=main_file_path,
             install_path=self.install_path,
             path_type=self.path_type)
 

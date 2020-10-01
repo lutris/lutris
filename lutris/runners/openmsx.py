@@ -24,3 +24,6 @@ class openmsx(Runner):
         if not system.path_exists(rom):
             return {"error": "FILE_NOT_FOUND", "file": rom}
         return {"command": [self.get_executable(), rom]}
+
+    def get_main_file(self):
+        return self.game_config.get("main_file")

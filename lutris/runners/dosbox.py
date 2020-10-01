@@ -166,3 +166,6 @@ class dosbox(Runner):
             command.extend(args)
 
         return {"command": command}
+
+    def get_main_file(self):
+        return self.main_file

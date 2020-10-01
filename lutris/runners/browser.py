@@ -48,3 +48,6 @@ class browser(Runner):
                           "verify the game's configuration."),
             }
         return {"command": [self.get_executable(), url]}
+
+    def get_main_file(self):
+        return None

@@ -389,6 +389,8 @@ class ConfigBox(VBox):
         file_chooser = FileChooserEntry(
             title=_("Select file"),
             action=Gtk.FileChooserAction.OPEN,
+            game=self.game,
+            install_path=self.lutris_config.system_config["game_path"],
             path=path,
             default_path=option.get("default_path")
         )
@@ -427,11 +429,14 @@ class ConfigBox(VBox):
         """Generate a file chooser button to select a directory."""
         label = Label(option["label"])
         option_name = option["option"]
-        default_path = None
-        if not path and self.game and self.game.runner:
-            default_path = self.game.runner.working_dir
+
         directory_chooser = FileChooserEntry(
-            title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER, path=path, default_path=default_path
+            title=_("Select folder"),
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            game=self.game,
+            install_path=self.lutris_config.system_config["game_path"],
+            path=path,
+            default_path=option.get("default_path")
         )
         directory_chooser.entry.connect("changed", self._on_chooser_dir_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)

@@ -5,6 +5,7 @@ from gettext import gettext as _
 
 # Third Party Libraries
 from gi.repository import Gtk
+from abc import ABC, abstractmethod
 
 # Lutris Modules
 from lutris import pga, runtime, settings
@@ -20,7 +21,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
-class Runner:  # pylint: disable=too-many-public-methods
+class Runner(ABC):  # pylint: disable=too-many-public-methods
 
     """Generic runner (base class for other runners)."""
 
@@ -132,6 +133,10 @@ class Runner:  # pylint: disable=too-many-public-methods
     def discord_client_id(self):
         if self.game_data.get("discord_client_id"):
             return self.game_data.get("discord_client_id")
+
+    @abstractmethod
+    def get_main_file(self):
+        pass
 
     def get_platform(self):
         return self.platforms[0]

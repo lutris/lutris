@@ -303,3 +303,6 @@ class mame(Runner):  # pylint: disable=invalid-name
             command.append(arg)
 
         return {"command": command}
+
+    def get_main_file(self):
+        return self.game_config.get("rom_path")

@@ -220,3 +220,6 @@ class vice(Runner):
 
         params.extend(self.get_rom_args(machine, rom))
         return {"command": params}
+
+    def get_main_file(self):
+        return self.game_config.get("main_file")

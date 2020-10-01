@@ -489,3 +489,6 @@ class winesteam(wine.wine):
             env=self.get_env(os_env=False),
         )
         uninstall_command.start()
+
+    def get_main_file(self):
+        return None

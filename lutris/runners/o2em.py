@@ -124,3 +124,6 @@ class o2em(Runner):
         arguments.append("-romdir=%s/" % romdir)
         arguments.append(romfile)
         return {"command": [self.get_executable()] + arguments}
+
+    def get_main_file(self):
+        return self.game_config.get("main_file")

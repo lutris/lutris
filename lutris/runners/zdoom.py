@@ -184,3 +184,6 @@ class zdoom(Runner):
             command.append(arg)
 
         return {"command": command}
+
+    def get_main_file(self):
+        return self.game_config.get("main_file")

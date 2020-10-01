@@ -140,3 +140,6 @@ class linux(Runner):
             command.append(arg)
         launch_info["command"] = command
         return launch_info
+
+    def get_main_file(self):
+        return self.game_exe

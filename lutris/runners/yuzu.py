@@ -87,3 +87,6 @@ class yuzu(Runner):
         for key in ["prod_keys", "title_keys"]:
             self._update_key(key_type=key)
         return True
+
+    def get_main_file(self):
+        return self.game_config.get("main_file")

@@ -282,3 +282,6 @@ class libretro(Runner):
         if os.path.isdir(retroarch_path):
             system.remove_folder(retroarch_path)
         super(libretro, self).uninstall()
+
+    def get_main_file(self):
+        return self.game_config.get("main_file")

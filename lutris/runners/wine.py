@@ -1079,3 +1079,6 @@ class wine(Runner):
 
         # Relative path
         return path
+
+    def get_main_file(self):
+        return self.game_exe

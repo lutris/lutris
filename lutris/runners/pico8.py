@@ -264,3 +264,6 @@ class pico8(Runner):
 
         launch_info["command"] = command
         return launch_info
+
+    def get_main_file(self):
+        return self.cart_path

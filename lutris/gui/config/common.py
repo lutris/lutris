@@ -142,7 +142,10 @@ class GameDialogCommon:
         box.pack_start(label, False, False, 0)
         cache_path = get_cache_path()
         path_chooser = FileChooserEntry(
-            title=_("Set the folder for the cache path"), action=Gtk.FileChooserAction.SELECT_FOLDER, path=cache_path
+            title=_("Set the folder for the cache path"),
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            path=cache_path,
+            path_type="Cache"
         )
         path_chooser.entry.connect("changed", self._on_cache_path_set)
         box.pack_start(path_chooser, True, True, 0)
@@ -570,7 +573,19 @@ class GameDialogCommon:
         image_filter.set_name(_("Images"))
         image_filter.add_pixbuf_formats()
         dialog.add_filter(image_filter)
+
+        try:
+            main_file_path = self.game.runner.get_main_file()
+        except AttributeError:
+            main_file_path = None
+
         def_path = default_path_handler.get(
+            # unfortuantely the original path is not stored
+            entry=None,
+            # No default for images
+            default=None,
+            main_file_path=main_file_path,
+            install_path=self.lutris_config.game_config.get("game_path"),
             path_type=image_type)
         if os.path.isfile(def_path):
             if self.action != Gtk.FileChooserAction.SELECT_FOLDER:

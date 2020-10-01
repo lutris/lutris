@@ -261,3 +261,6 @@ class web(Runner):
             command.append(self.runner_config.get("user_agent"))
 
         return {"command": command, "env": self.get_env(False)}
+
+    def get_main_file(self):
+        return None
