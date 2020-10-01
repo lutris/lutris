@@ -6,6 +6,9 @@ from lutris.util import system
 from lutris.util.http import Request
 from lutris.util.log import logger
 
+AUTO_ELF_EXE = "_xXx_AUTO_ELF_xXx_"
+AUTO_WIN32_EXE = "_xXx_AUTO_WIN32_xXx_"
+
 
 def fetch_script(game_slug, revision=None):
     """Download install script(s) for matching game_slug."""

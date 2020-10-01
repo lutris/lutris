@@ -49,7 +49,8 @@ setup(
         'PyYAML',
         'PyGObject',
         'evdev',
-        'requests'
+        'requests',
+        'python-magic'
     ],
     extras_require={
         'Discord': ['pypresence~=3.3.2']

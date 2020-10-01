@@ -349,6 +349,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def _substitute(self, template_string):
         """Replace path aliases with real paths."""
+        if not template_string:
+            logger.warning("No template string given")
+            return ""
         replacements = {
             "GAMEDIR": self.target_path,
             "CACHE": self.cache_path,

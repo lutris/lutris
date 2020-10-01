@@ -9,11 +9,13 @@ from lutris.config import LutrisConfig, make_game_config_id
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.exceptions import UnavailableGame
 from lutris.game import Game
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.legacy import get_game_launcher
 from lutris.runners import import_runner
 from lutris.services import get_services
+from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
 from lutris.util.log import logger
 
 
@@ -202,6 +204,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             except ValueError:
                 raise ScriptingError("Invalid 'game' section", self.script["game"])
             config["game"] = self._substitute_config(config["game"])
+            if AUTO_ELF_EXE in config["game"].get("exe", ""):
+                config["game"]["exe"] = find_linux_game_executable(self.interpreter.target_path, make_executable=True)
+            if AUTO_WIN32_EXE in config["game"].get("exe", ""):
+                config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
         return config
 
     def write_game_config(self):
