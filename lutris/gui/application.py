@@ -251,7 +251,10 @@ class Application(Gtk.Application):
     def on_app_window_destroyed(self, app_window, kwargs_str):
         """Remove the reference to the window when it has been destroyed"""
         window_key = str(app_window.__class__) + kwargs_str
-        del self.app_windows[window_key]
+        try:
+            del self.app_windows[window_key]
+        except KeyError:
+            logger.debug("No window %s", window_key)
         return True
 
     @staticmethod

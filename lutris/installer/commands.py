@@ -73,6 +73,8 @@ class CommandsMixin:
     def chmodx(self, filename):
         """Make filename executable"""
         filename = self._substitute(filename)
+        if not system.path_exists(filename):
+            raise ScriptingError("Invalid file '%s'. Can't make it executable" % filename)
         system.make_executable(filename)
 
     def execute(self, data):

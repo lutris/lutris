@@ -368,6 +368,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             if alias:
                 replacements[alias] = input_data["value"]
         replacements.update(self.game_files)
+        if template_string.replace("-", "_") in self.game_files:
+            template_string = template_string.replace("-", "_")
         return system.substitute(template_string, replacements)
 
     def _get_last_user_input(self):
