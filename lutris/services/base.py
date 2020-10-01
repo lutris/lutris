@@ -17,7 +17,7 @@ PGA_DB = settings.PGA_DB
 class BaseService(GObject.Object):
     """Base class for local services"""
     id = NotImplemented
-    matcher = id
+    _matcher = None
     name = NotImplemented
     icon = NotImplemented
     online = False
@@ -27,6 +27,12 @@ class BaseService(GObject.Object):
     __gsignals__ = {
         "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
+
+    @property
+    def matcher(self):
+        if self._matcher:
+            return self._matcher
+        return self.id
 
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)

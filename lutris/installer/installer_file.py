@@ -14,7 +14,7 @@ class InstallerFile:
 
     def __init__(self, game_slug, file_id, file_meta):
         self.game_slug = game_slug
-        self.id = file_id  # pylint: disable=invalid-name
+        self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
         self.referer = None
         self.checksum = None
         if isinstance(file_meta, dict):

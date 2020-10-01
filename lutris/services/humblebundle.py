@@ -46,7 +46,7 @@ class HumbleBundleService(OnlineService):
     """Service for Humble Bundle"""
 
     id = "humblebundle"
-    matcher = "humble"
+    _matcher = "humble"
     name = _("Humble Bundle")
     icon = "humblebundle"
     online = True
