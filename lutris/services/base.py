@@ -38,6 +38,10 @@ class BaseService(GObject.Object):
         logger.debug("Deleting games from service-games for %s", self.id)
         sql.db_delete(PGA_DB, "service_games", "service", self.id)
 
+    def generate_installer(self, db_game):
+        """Used to generate an installer from the data returned from the services"""
+        return {}
+
     def match_games(self):
         """Matching of service games to lutris games"""
         service_games = {
@@ -61,17 +65,21 @@ class BaseService(GObject.Object):
 
     def install(self, db_game):
         appid = db_game["appid"]
+        logger.debug("Installing %s from service %s", appid, self.id)
         lutris_games = api.get_api_games([appid], service=self.id)
-        if not lutris_games:
-            # TODO generate auto installer
-            print("No game found")
-            return
-        lutris_game = lutris_games[0]
-        installers = fetch_script(lutris_game["slug"])
         service_installers = []
-        for installer in installers:
-            if self.matcher in installer["version"].lower():
+        if lutris_games:
+            lutris_game = lutris_games[0]
+            installers = fetch_script(lutris_game["slug"])
+            for installer in installers:
+                if self.matcher in installer["version"].lower():
+                    service_installers.append(installer)
+
+        if not service_installers:
+            installer = self.generate_installer(db_game)
+            if installer:
                 service_installers.append(installer)
+
         if service_installers:
             application = Gio.Application.get_default()
             application.show_installer_window(service_installers, service=self, appid=appid)

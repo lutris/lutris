@@ -6,11 +6,13 @@ from gettext import gettext as _
 from lutris import settings
 from lutris.exceptions import UnavailableGame
 from lutris.gui.dialogs import WebConnectDialog
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
+from lutris.util.strings import slugify
 
 
 class HumbleBundleIcon(ServiceMedia):
@@ -195,22 +197,77 @@ class HumbleBundleService(OnlineService):
             })
         ]
 
+    @staticmethod
+    def get_filename_for_platform(downloads, platform):
+        download = [d for d in downloads if d["platform"] == platform][0]
+        url = pick_download_url_from_download_info(download)
+        return url.split("?")[0].split("/")[-1]
+
+    def generate_installer(self, db_game):
+        details = json.loads(db_game["details"])
+        platforms = [download["platform"] for download in details["downloads"]]
+        if "linux" in platforms:
+            runner = "linux"
+            game_config = {"exe": AUTO_ELF_EXE}
+            filename = self.get_filename_for_platform(details["downloads"], "linux")
+            if filename.lower().endswith(".sh"):
+                script = [
+                    {"extract": {"file": "humblegame", "format": "zip", "dst": "$CACHE"}},
+                    {"merge": {"src": "$CACHE/data/noarch", "dst": "$GAMEDIR", "optional": True}},
+                    {"merge": {"src": "$CACHE/data/x86_64", "dst": "$GAMEDIR", "optional": True}},
+                    {"merge": {"src": "$CACHE/data/x86", "dst": "$GAMEDIR", "optional": True}},
+                    {"merge": {"src": "$CACHE/data/", "dst": "$GAMEDIR", "optional": True}},
+                ]
+            else:
+                script = [{"extract": {"file": "humblegame"}}]
+        elif "windows" in platforms:
+            runner = "wine"
+            game_config = {"exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"}
+            filename = self.get_filename_for_platform(details["downloads"], "windows")
+            if filename.lower().endswith(".zip"):
+                script = [
+                    {"task": {"name": "create_prefix", "prefix": "$GAMEDIR"}},
+                    {"extract": {"file": "humblegame", "dst": "$GAMEDIR/drive_c/%s" % db_game["slug"]}}
+                ]
+            else:
+                script = [
+                    {"task": {"name": "wineexec", "file": "humblegame"}}
+                ]
+        else:
+            logger.warning("Unsupported platforms: %s", platforms)
+            return {}
+        return {
+            "name": db_game["name"],
+            "version": "Humble Bundle",
+            "slug": details["machine_name"],
+            "game_slug": slugify(db_game["name"]),
+            "runner": runner,
+            "humbleid": db_game["appid"],
+            "script": {
+                "game": game_config,
+                "files": [
+                    {"humblegame": "N/A:Select the installer from Humble Bundle"}
+                ],
+                "installer": script
+            }
+        }
+
 
 def pick_download_url_from_download_info(download_info):
     """From a list of downloads in Humble Bundle, pick the most appropriate one
     for the installer.
     This needs a way to be explicitely filtered.
     """
-    if len(download_info["download"]["download_struct"]) > 1:
+    if len(download_info["download_struct"]) > 1:
         logger.info("There are %s downloads available:")
         sorted_downloads = []
-        for _download in download_info["download"]["download_struct"]:
+        for _download in download_info["download_struct"]:
             if "deb" in _download["name"] or "rpm" in _download["name"] or "32" in _download["name"]:
                 sorted_downloads.append(_download)
             else:
                 sorted_downloads.insert(0, _download)
         return sorted_downloads[0]["url"]["web"]
-    return download_info["download"]["download_struct"][0]["url"]["web"]
+    return download_info["download_struct"][0]["url"]["web"]
 
 
 def get_humble_download_link(humbleid, runner):
@@ -228,5 +285,5 @@ def get_humble_download_link(humbleid, runner):
     order = service.get_order(download["gamekey"])
     download_info = service.find_download_in_order(order, humbleid, platform)
     if download_info:
-        return pick_download_url_from_download_info(download_info)
+        return pick_download_url_from_download_info(download_info["download"])
     logger.warning("Couldn't retrieve any downloads for %s", humbleid)
