@@ -99,7 +99,6 @@ class GameStore(GObject.Object):
 
         self.search_mode = False
         self.games_to_refresh = set()
-        print(image_type)
         self.image_type = image_type
         self.filters = {
             "installed": filter_installed,
@@ -306,7 +305,7 @@ class GameStore(GObject.Object):
         row[COL_ID] = game.id
         row[COL_SLUG] = game.slug
         row[COL_NAME] = game.name
-        row[COL_ICON] = game.get_pixbuf(self.icon_type)
+        row[COL_ICON] = game.get_pixbuf(self.image_type)
         row[COL_YEAR] = game.year
         row[COL_RUNNER] = game.runner
         row[COL_RUNNER_HUMAN_NAME] = game.runner_text

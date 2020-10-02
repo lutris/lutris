@@ -87,7 +87,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.selected_runner = None
         self.selected_platform = None
         self.selected_category = None
-        self.icon_type = None
 
         # Load settings
         self.window_size = (width, height)
@@ -263,7 +262,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             else:
                 default_value = None
                 param_type = None
-                print(name)
                 if value.default is not None:
                     default_value = GLib.Variant(value.type, value.default)
                 if value.type != "b":
@@ -521,7 +519,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
         self.view.destroy()
-        self.load_icon_type_from_settings(view_type)
+        self.load_image_type_from_settings(view_type)
         self.game_store.set_image_type(ImageType[self.icon_type])
 
         self.view = self.get_view(view_type)
@@ -840,20 +838,20 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if view_type != self.current_view_type:
             self.switch_view(view_type)
 
-    def _set_icon_type(self, icon_type):
-        self.icon_type = icon_type
-        if self.icon_type == self.game_store.icon_type:
+    def _set_image_type(self, image_type):
+        self.image_type = image_type
+        if self.image_type == self.game_store.image_type:
             return
         if self.current_view_type == "grid":
-            settings.write_setting("icon_type_gridview", self.icon_type)
+            settings.write_setting("icon_type_gridview", self.image_type._name_)
         elif self.current_view_type == "list":
-            settings.write_setting("icon_type_listview", self.icon_type)
-        self.game_store.set_icon_type(self.icon_type)
+            settings.write_setting("icon_type_listview", self.image_type._name_)
+        self.game_store.set_image_type(self.image_type)
         self.switch_view(self.get_view_type())
 
     def on_icontype_state_change(self, action, value):
         action.set_state(value)
-        self._set_icon_type(value.get_string())
+        self._set_image_type(ImageType[value.get_string()])
 
     def on_view_sorting_state_change(self, action, value):
         self.game_store.sort_view(value.get_string(), self.view_sorting_ascending)

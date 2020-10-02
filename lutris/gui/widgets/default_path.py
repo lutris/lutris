@@ -86,23 +86,6 @@ class default_path_handler:
             "/home/bob/Games",
             "~"]
 
-        # names = [
-        #     "override"
-        #     "entry",
-        #     "default",
-        #     "lsp_pt",
-        #     "main_file_path",
-        #     "lsp_any",
-        #     "install_path",
-        #     "\"~/Games\"",
-        #     "\"~\""]
-
-        # for i in range(len(items)):
-        #     try:
-        #         print("{}=\"{}\"".format(names[i], os.path.expanduser(items[i])))
-        #     except TypeError:
-        #         print("{}=\"{}\"".format(names[i], items[i]))
-
         for item in items:
             if cls.is_valid(item):
                 try:
