@@ -32,6 +32,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         super().__init__()
         self.target_path = None
         self.parent = parent
+        self.service = parent.service
+        self.appid = parent.appid
         self.game_dir_created = False  # Whether a game folder was created during the install
         self.game_disc = None
         self.game_files = {}
@@ -40,7 +42,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.user_inputs = []
         self.current_command = 0  # Current installer command when iterating through them
         self.runners_to_install = []
-        self.installer = LutrisInstaller(installer, self, service=parent.service, appid=parent.appid)
+        self.installer = LutrisInstaller(installer, self, service=self.service, appid=self.appid)
         if not self.installer.script:
             raise ScriptingError("This installer doesn't have a 'script' section")
         script_errors = self.installer.get_errors()
@@ -59,7 +61,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         """Return default installation dir"""
         config = LutrisConfig(runner_slug=self.installer.runner)
         games_dir = config.system_config.get("game_path", os.path.expanduser("~"))
-        return os.path.expanduser(os.path.join(games_dir, self.installer.game_slug))
+        if self.service:
+            service_dir = self.service.id
+        else:
+            service_dir = ""
+        return os.path.expanduser(os.path.join(games_dir, service_dir, self.installer.game_slug))
 
     @property
     def cache_path(self):
