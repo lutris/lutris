@@ -2,7 +2,6 @@
 # Standard Library
 import array
 import os
-from enum import Flag
 
 # Third Party Libraries
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
