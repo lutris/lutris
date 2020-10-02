@@ -13,7 +13,8 @@ from lutris import api, pga, settings
 from lutris.game import Game
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, NoInstallerDialog, QuestionDialog
-from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
+from lutris.gui.widgets.common import FileChooserEntry, FileChooserWarnings, InstallerLabel
+from lutris.gui.widgets.default_path import PATH_TYPE
 from lutris.gui.widgets.installer import InstallerFilesBox, InstallerPicker
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
@@ -269,9 +270,9 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         location_entry = FileChooserEntry(
             "Select folder",
             Gtk.FileChooserAction.SELECT_FOLDER,
-            path=default_path,
-            warn_if_non_empty=True,
-            warn_if_ntfs=True
+            default_path=default_path,
+            path_type=PATH_TYPE.INSTALL_TO,
+            warnings=FileChooserWarnings.NTFS | FileChooserWarnings.NON_EMPTY
         )
         location_entry.entry.connect("changed", self.on_target_changed)
         self.widget_box.pack_start(location_entry, False, False, 0)

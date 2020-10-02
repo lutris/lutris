@@ -25,7 +25,7 @@ from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.widgets.sidebar import SidebarListBox
-from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri
+from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri, ImageType
 from lutris.runtime import RuntimeUpdater
 from lutris.services import get_services_synced_at_startup, steam
 from lutris.sync import sync_from_remote
@@ -94,7 +94,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.maximized = settings.read_setting("maximized") == "True"
 
         view_type = self.get_view_type()
-        self.load_icon_type_from_settings(view_type)
+        self.load_image_type_from_settings(view_type)
 
         # Window initialization
         self.game_actions = GameActions(application=application, window=self)
@@ -213,7 +213,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             "toggle-viewtype":
             Action(self.on_toggle_viewtype),
             "icon-type":
-            Action(self.on_icontype_state_change, type="s", default=self.icon_type),
+            Action(self.on_icontype_state_change, type="s", default=self.image_type._name_),
             "view-sorting":
             Action(self.on_view_sorting_state_change, type="s", default=self.view_sorting),
             "view-sorting-ascending":
@@ -263,6 +263,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             else:
                 default_value = None
                 param_type = None
+                print(name)
                 if value.default is not None:
                     default_value = GLib.Variant(value.type, value.default)
                 if value.type != "b":
@@ -377,7 +378,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         games = games or pga.get_games(show_installed_first=self.show_installed_first)
         game_store = GameStore(
             games,
-            self.icon_type,
+            self.image_type,
             self.filter_installed,
             self.view_sorting,
             self.view_sorting_ascending,
@@ -466,10 +467,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
         image_sizes = list(IMAGE_SIZES.keys())
-        self.zoom_adjustment.props.value = image_sizes.index(self.icon_type)
+        self.zoom_adjustment.props.value = image_sizes.index(self.image_type)
         self.zoom_adjustment.connect(
             "value-changed",
-            lambda adj: self._set_icon_type(image_sizes[int(adj.props.value)]),
+            lambda adj: self._set_image_type(image_sizes[int(adj.props.value)]),
         )
 
     def get_view_type(self):
@@ -502,23 +503,26 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.search_entry.grab_focus()
         return self.search_entry.do_key_press_event(self.search_entry, event)
 
-    def load_icon_type_from_settings(self, view_type):
+    def load_image_type_from_settings(self, view_type):
         """Return the icon style depending on the type of view."""
+
         if view_type == "list":
-            self.icon_type = settings.read_setting("icon_type_listview")
-            default = "icon"
+            try:
+                self.image_type = ImageType[settings.read_setting("icon_type_listview")]
+            except KeyError:
+                self.image_type = ImageType.icon
         else:
-            self.icon_type = settings.read_setting("icon_type_gridview")
-            default = "banner"
-        if self.icon_type not in IMAGE_SIZES.keys():
-            self.icon_type = default
-        return self.icon_type
+            try:
+                self.image_type = ImageType[settings.read_setting("icon_type_gridview")]
+            except KeyError:
+                self.image_type = ImageType.banner
+        return self.image_type
 
     def switch_view(self, view_type):
         """Switch between grid view and list view."""
         self.view.destroy()
         self.load_icon_type_from_settings(view_type)
-        self.game_store.set_icon_type(self.icon_type)
+        self.game_store.set_image_type(ImageType[self.icon_type])
 
         self.view = self.get_view(view_type)
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
@@ -532,7 +536,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.set_show_installed_state(self.filter_installed)
         self.view.show_all()
 
-        self.zoom_adjustment.props.value = list(IMAGE_SIZES.keys()).index(self.icon_type)
+        self.zoom_adjustment.props.value = list(IMAGE_SIZES.keys()).index(ImageType[self.icon_type])
 
         self.set_viewtype_icon(view_type)
         settings.write_setting("view_type", view_type)
@@ -783,7 +787,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.search_terms = query
         self.view.destroy()
         self.game_store = self.get_store(api.search_games(query) if query else None)
-        self.game_store.set_icon_type(self.icon_type)
+        self.game_store.set_image_type(self.image_type)
         self.game_store.load(from_search=bool(query))
         self.game_store.filters["text"] = self.search_entry.props.text
         self.search_spinner.props.active = False

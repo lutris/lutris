@@ -6,20 +6,26 @@ from gi.repository import GLib
 from lutris import settings
 from lutris.util import system
 from lutris.util.http import HTTPError, Request
+from lutris.gui.widgets.utils import ImageType
 
 
-def get_icon_path(game_slug, icon_type="icon"):
+def get_image_path(game_slug, image_type=ImageType.icon):
     """Return the absolute path for a game_slug icon"""
-    if icon_type.startswith("banner"):
+    if image_type & ImageType.banner:
         return os.path.join(settings.BANNER_PATH, "%s.jpg" % game_slug)
-    if icon_type.startswith("icon"):
+    if image_type & ImageType.icon:
         return os.path.join(settings.ICON_PATH, "lutris_%s.png" % game_slug)
-    raise ValueError("Invalid icon type %s" % icon_type)
+    raise ValueError("Invalid image type %s" % image_type)
 
 
 def get_banner_path(game_slug):
     """Return the absolute path for a game_slug banner"""
-    return get_icon_path(game_slug, "banner")
+    return get_image_path(game_slug, ImageType.banner)
+
+
+def get_icon_path(game_slug):
+    """Return the absolute path for a game_slug banner"""
+    return get_image_path(game_slug, ImageType.icon)
 
 
 def update_desktop_icons():

@@ -10,11 +10,11 @@ from gi.repository.GdkPixbuf import Pixbuf
 # Lutris Modules
 from lutris import api, pga
 from lutris.gui.views.pga_game import PgaGame
-from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.gui.widgets.utils import ImageType, get_pixbuf_for_game
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.resources import download_media, get_icon_path, update_desktop_icons
+from lutris.util.resources import download_media, get_image_path, update_desktop_icons
 
 from . import (
     COL_ICON, COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT,
@@ -83,7 +83,7 @@ class GameStore(GObject.Object):
     def __init__(
         self,
         games,
-        icon_type,
+        image_type,
         filter_installed,
         sort_key,
         sort_ascending,
@@ -99,7 +99,8 @@ class GameStore(GObject.Object):
 
         self.search_mode = False
         self.games_to_refresh = set()
-        self.icon_type = icon_type
+        print(image_type)
+        self.image_type = image_type
         self.filters = {
             "installed": filter_installed,
             "text": None,
@@ -142,7 +143,7 @@ class GameStore(GObject.Object):
         self.modelsort.connect("sort-column-changed", self.on_sort_column_changed)
         self.modelsort.set_sort_func(sort_col, sort_func, sort_col)
         self.sort_view(sort_key, sort_ascending)
-        self.medias = {"banner": {}, "icon": {}}
+        self.medias = {ImageType.banner: {}, ImageType.icon: {}}
         self.banner_misses = set()
         self.icon_misses = set()
         self.media_loaded = False
@@ -173,15 +174,16 @@ class GameStore(GObject.Object):
             GLib.idle_add(self.add_game, game)
 
     def has_icon(self, game_slug, media_type=None):
-        """Return True if the game_slug has the icon of `icon_type`"""
-        media_type = media_type or self.icon_type
-        return system.path_exists(get_icon_path(game_slug, media_type))
+        """Return True if the game_slug has the icon of `image_type`"""
+
+        media_type = media_type or self.image_type
+        return system.path_exists(get_image_path(game_slug, media_type))
 
     def get_missing_media(self, slugs=None):
         """Query the Lutris.net API for missing icons"""
         slugs = slugs or self.game_slugs
-        unavailable_banners = {slug for slug in slugs if not self.has_icon(slug, "banner")}
-        unavailable_icons = {slug for slug in slugs if not self.has_icon(slug, "icon")}
+        unavailable_banners = {slug for slug in slugs if not self.has_icon(slug, ImageType.banner)}
+        unavailable_icons = {slug for slug in slugs if not self.has_icon(slug, ImageType.icon)}
 
         # Remove duplicate slugs
         missing_media_slugs = ((unavailable_banners - self.banner_misses) | (unavailable_icons - self.icon_misses))
@@ -198,10 +200,10 @@ class GameStore(GObject.Object):
 
         for game in lutris_media:
             if game["slug"] in unavailable_banners and game["banner_url"]:
-                self.medias["banner"][game["slug"]] = game["banner_url"]
+                self.medias[ImageType.banner][game["slug"]] = game["banner_url"]
                 unavailable_banners.remove(game["slug"])
             if game["slug"] in unavailable_icons and game["icon_url"]:
-                self.medias["icon"][game["slug"]] = game["icon_url"]
+                self.medias[ImageType.icon][game["slug"]] = game["icon_url"]
                 unavailable_icons.remove(game["slug"])
         self.banner_misses = unavailable_banners
         self.icon_misses = unavailable_icons
@@ -326,7 +328,7 @@ class GameStore(GObject.Object):
         if not self.has_icon(game_slug):
             logger.debug("%s has no %s", game_slug, media_type)
             return
-        if media_type != self.icon_type:
+        if media_type != self.image_type:
             return
         if self.search_mode:
             GLib.idle_add(self.update_icon, game_slug)
@@ -337,28 +339,28 @@ class GameStore(GObject.Object):
 
     def update_icon(self, game_slug):
         row = self.get_row_by_slug(game_slug)
-        row[COL_ICON] = get_pixbuf_for_game(game_slug, self.icon_type, True)
+        row[COL_ICON] = get_pixbuf_for_game(game_slug, self.image_type, True)
 
     def fetch_icon(self, slug):
         if not self.media_loaded:
             self.games_to_refresh.add(slug)
             return
 
-        for media_type in ("banner", "icon"):
+        for media_type in (ImageType.banner, ImageType.icon):
             url = self.medias[media_type].get(slug)
             if url:
                 logger.debug("Getting %s for %s: %s", media_type, slug, url)
-                download_media(url, get_icon_path(slug, media_type))
+                download_media(url, get_image_path(slug, media_type))
                 self.emit("icon-loaded", slug, media_type)
 
     def on_media_loaded(self, _response):
         """Callback to handle a response from the API with the new media"""
         if not self.medias:
             return
-        for media_type in ("banner", "icon"):
+        for media_type in (ImageType.banner, ImageType.icon):
             self.download_icons(
                 [
-                    (slug, self.medias[media_type][slug], get_icon_path(slug, media_type))
+                    (slug, self.medias[media_type][slug], get_image_path(slug, media_type))
                     for slug in self.medias[media_type]
                 ], media_type
             )
@@ -404,7 +406,7 @@ class GameStore(GObject.Object):
                 game.id,
                 game.slug,
                 game.name,
-                game.get_pixbuf(self.icon_type),
+                game.get_pixbuf(self.image_type),
                 game.year,
                 game.runner,
                 game.runner_text,
@@ -427,15 +429,15 @@ class GameStore(GObject.Object):
         except ValueError:
             self.add_game_by_id(game_id)
 
-    def set_icon_type(self, icon_type):
+    def set_image_type(self, image_type):
         """Change the icon type"""
-        if icon_type == self.icon_type:
+        if image_type == self.image_type:
             return
-        self.icon_type = icon_type
+        self.image_type = image_type
         for row in self.store:
             row[COL_ICON] = get_pixbuf_for_game(
                 row[COL_SLUG],
-                icon_type,
+                image_type,
                 is_installed=row[COL_INSTALLED] if not self.search_mode else True,
             )
-        self.emit("icons-changed", icon_type)
+        self.emit("icons-changed", image_type)

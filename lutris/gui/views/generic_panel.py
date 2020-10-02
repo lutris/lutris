@@ -10,7 +10,8 @@ from gi.repository import Gdk, Gio, GObject, Gtk, Pango
 from lutris import api
 from lutris.game import Game
 from lutris.gui.config.system import SystemConfigDialog
-from lutris.gui.widgets.utils import get_link_button, get_pixbuf, get_pixbuf_for_game, get_pixbuf_for_panel, open_uri
+from lutris.gui.widgets.utils import get_link_button, get_pixbuf, get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_panel, open_uri, ImageType
 from lutris.util import system
 
 LINKS = {
@@ -103,7 +104,7 @@ class GenericPanel(Gtk.Fixed):
         box = Gtk.Box(spacing=6, margin_top=6, margin_bottom=6, margin_right=6, margin_left=6)
         box.set_size_request(280, 32)
 
-        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(game.slug, "icon"))
+        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(game.slug, ImageType.icon))
         icon.show()
         box.add(icon)
 

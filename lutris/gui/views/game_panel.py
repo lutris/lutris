@@ -9,7 +9,7 @@ from gi.repository import GObject, Gtk, Pango
 # Lutris Modules
 from lutris import runners
 from lutris.gui.views.generic_panel import GenericPanel
-from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game, ImageType
 from lutris.util.strings import gtk_safe
 
 
@@ -64,7 +64,7 @@ class GamePanel(GenericPanel):
 
     def get_icon(self):
         """Return the game icon"""
-        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(self.game.slug, "icon"))
+        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(self.game.slug, ImageType.icon))
         icon.show()
         return icon
 

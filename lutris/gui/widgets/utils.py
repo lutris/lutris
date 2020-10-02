@@ -2,6 +2,7 @@
 # Standard Library
 import array
 import os
+from enum import Flag
 
 # Third Party Libraries
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
@@ -16,16 +17,44 @@ try:
 except ImportError:
     Image = None
 
+
+class ImageType(Flag):
+    """Enum for image type.
+
+    Notes:
+    Having small without another attibute is invalid
+    Having multiple attibutes (BANNER and ICON) is invalid
+    """
+
+    _ignore_ = "SMALL"
+    NONE = 0
+    small = 1 << 0
+    icon = 1 << 1
+    icon_small = small | icon
+    banner = 1 << 2
+    banner_small = small | banner
+
+    @classmethod
+    def _missing_(cls, value):
+        """Ensures the only values allow are the values explictly listed
+
+        Raises
+        ------
+        ValueError if an invalid value is created (e.g. ICON|BANNER)"""
+
+        raise ValueError("Unsupported value %s" % value)
+
+
 BANNER_SIZE = (184, 69)
 BANNER_SMALL_SIZE = (120, 45)
 ICON_SIZE = (32, 32)
 ICON_SMALL_SIZE = (20, 20)
 
 IMAGE_SIZES = {
-    "icon_small": ICON_SMALL_SIZE,
-    "icon": ICON_SIZE,
-    "banner_small": BANNER_SMALL_SIZE,
-    "banner": BANNER_SIZE,
+    ImageType.icon_small: ICON_SMALL_SIZE,
+    ImageType.icon: ICON_SIZE,
+    ImageType.banner_small: BANNER_SMALL_SIZE,
+    ImageType.banner: BANNER_SIZE,
 }
 
 
@@ -109,18 +138,19 @@ def get_overlay(overlay_path, size):
     return transparent_pixbuf
 
 
-def get_pixbuf_for_game(game_slug, icon_type, is_installed=True):
-    if icon_type.startswith("banner"):
+def get_pixbuf_for_game(game_slug, image_type, is_installed=True):
+    icon_path = ""
+    default_icon_path = ""
+
+    if ImageType.banner & image_type:
         default_icon_path = os.path.join(datapath.get(), "media/default_banner.png")
         icon_path = resources.get_banner_path(game_slug)
-    elif icon_type.startswith("icon"):
+
+    if ImageType.icon == image_type:
         default_icon_path = os.path.join(datapath.get(), "media/default_icon.png")
         icon_path = resources.get_icon_path(game_slug)
-    else:
-        logger.error("Invalid icon type '%s'", icon_type)
-        return None
 
-    size = IMAGE_SIZES[icon_type]
+    size = IMAGE_SIZES[image_type]
 
     pixbuf = get_pixbuf(icon_path, size, fallback=default_icon_path)
     if not is_installed:

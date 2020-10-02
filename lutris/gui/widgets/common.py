@@ -3,13 +3,14 @@
 import os
 
 from gettext import gettext as _
+from enum import Flag, auto
 
 # Third Party Libraries
 from gi.repository import GObject, Gtk, Pango
 
 # Lutris Modules
 from lutris.gui.widgets.utils import get_stock_icon
-from lutris.gui.widgets.default_path import default_path_handler
+from lutris.gui.widgets.default_path import default_path_handler, PATH_TYPE
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -36,24 +37,59 @@ class NumberEntry(Gtk.Entry, Gtk.Editable):
         return position
 
 
+class FileChooserWarnings(Flag):
+    NONE = 0
+    NON_EMPTY = auto()
+    NTFS = auto()
+
+
 class FileChooserEntry(Gtk.Box):
 
     """Editable entry with a file picker button"""
 
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
 
+    """
+        Parameters
+        ----------
+        title : str
+
+            Shown on the title of the dialog
+
+        action : Gtk.FileChooserAction
+
+            Show the user select a file(default) or folder
+            (https://developer.gnome.org/gtk3/stable/GtkFileChooser.html#GtkFileChooserAction)
+
+        path_type: lutris.gui.widgets.default_path.PATH_TYPE
+
+            UNKNOWN (default) or some explict type of path
+            see lutris.gui.widgets.default_path.default_path_handler.get for rules
+        path : str
+            None (default) or the file/folder the dialog should point to
+        default_path : str
+            None (default) or where the widget should point by default
+        install_path : str
+            None (default) or where games should be installed
+        game : lutris.game
+            None (default) or the game object
+        warnings : lutris.gui.widgets.common.FileChooserWarnings
+            FileChooserWarnings.NONE (default) or a set of warnings with boolean operations
+            This is a Flags enum
+        """
+
     def __init__(
         self,
         title=_("Select file"),
         action=Gtk.FileChooserAction.OPEN,
         path=None,
+        path_type=PATH_TYPE.UNKNOWN,
         default_path=None,
         install_path=None,
-        path_type=None,
         game=None,
-        warn_if_non_empty=False,
-        warn_if_ntfs=False
+        warnings=FileChooserWarnings.NONE
     ):
+
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
             spacing=0,
@@ -63,8 +99,8 @@ class FileChooserEntry(Gtk.Box):
         self.action = action
         self.path = os.path.expanduser(path) if path else None
         self.default_path = os.path.expanduser(default_path) if default_path else None
-        self.warn_if_non_empty = warn_if_non_empty
-        self.warn_if_ntfs = warn_if_ntfs
+        self.warn_if_non_empty = bool(warnings & FileChooserWarnings.NON_EMPTY)
+        self.warn_if_ntfs = bool(warnings & FileChooserWarnings.NTFS)
 
         self.path_completion = Gtk.ListStore(str)
 

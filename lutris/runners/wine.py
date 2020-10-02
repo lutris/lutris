@@ -830,8 +830,8 @@ class wine(Runner):
                 version=dxvk_manager.version,
                 dxvk_manager=dxvk_manager,
             )
-        except dxvk.UnavailableDXVKVersion:
-            raise GameConfigError("Unable to get " + base_name.upper() + " %s" % dxvk_manager.version) from wine
+        except dxvk.UnavailableDXVKVersion as ex:
+            raise GameConfigError("Unable to get " + base_name.upper() + " %s" % dxvk_manager.version) from ex
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
@@ -858,7 +858,7 @@ class wine(Runner):
                 bool(self.runner_config.get("dxvk"))
             )
         except nine.NineUnavailable as ex:
-            raise GameConfigError("Unable to configure GalliumNine: %s" % ex) from wine
+            raise GameConfigError("Unable to configure GalliumNine: %s" % ex) from ex
         return True
 
     def get_dll_overrides(self):
@@ -953,14 +953,14 @@ class wine(Runner):
             logger.error("%s is not a valid path for x360ce", x360ce_path)
             return
         mode = "dumbxinputemu" if self.runner_config.get("dumbxinputemu") else "x360ce"
+        xinput_arch = self.runner_config.get("xinput-arch") or self.wine_arch
+        dll_path = os.path.join(RUNTIME_DIR, mode, xinput_arch)
         dll_files = ["xinput1_3.dll"]
         if self.runner_config.get("x360ce-xinput9"):
             dll_files.append("xinput9_1_0.dll")
 
         for dll_file in dll_files:
             xinput_dest_path = os.path.join(x360ce_path, dll_file)
-            xinput_arch = self.runner_config.get("xinput-arch") or self.wine_arch
-            dll_path = os.path.join(RUNTIME_DIR, mode, xinput_arch)
             if not system.path_exists(xinput_dest_path):
                 source_file = dll_file if mode == "dumbxinputemu" else "xinput1_3.dll"
                 shutil.copyfile(os.path.join(dll_path, source_file), xinput_dest_path)

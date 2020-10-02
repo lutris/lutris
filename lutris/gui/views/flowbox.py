@@ -4,7 +4,7 @@ from gi.repository import Gdk, GObject, Gtk
 
 # Lutris Modules
 from lutris.game import Game
-from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game, ImageType
 
 try:
     FlowBox = Gtk.FlowBox
@@ -16,10 +16,10 @@ except AttributeError:
 
 class GameItem(Gtk.VBox):
 
-    def __init__(self, game, parent, icon_type="banner"):
+    def __init__(self, game, parent, image_type=ImageType.banner):
         super(GameItem, self).__init__()
 
-        self.icon_type = icon_type
+        self.image_type = image_type
 
         self.parent = parent
         self.game = Game(game["id"])
@@ -48,16 +48,16 @@ class GameItem(Gtk.VBox):
         return eventbox
 
     def set_image_pixbuf(self):
-        pixbuf = get_pixbuf_for_game(self.slug, self.icon_type, self.installed)
+        pixbuf = get_pixbuf_for_game(self.slug, self.image_type, self.installed)
         self.image.set_from_pixbuf(pixbuf)
 
     def get_label(self):
         self.label = Gtk.Label(self.name)
         self.label.set_size_request(184, 40)
 
-        if self.icon_type == "banner":
+        if self.image_type == ImageType.banner:
             self.label.set_max_width_chars(20)
-        else:
+        if self.image_type == ImageType.icon:
             self.label.set_max_width_chars(15)
 
         self.label.set_property("wrap", True)
@@ -83,7 +83,7 @@ class GameFlowBox(FlowBox):
         "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, game_list, icon_type="banner", filter_installed=False):
+    def __init__(self, game_list, image_type=ImageType.banner, filter_installed=False):
         super(GameFlowBox, self).__init__()
 
         self.set_valign(Gtk.Align.START)
@@ -100,7 +100,7 @@ class GameFlowBox(FlowBox):
 
         self.contextual_menu = None
 
-        self.icon_type = icon_type
+        self.image_type = image_type
 
         self.game_list = game_list
 

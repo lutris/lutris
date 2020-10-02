@@ -73,9 +73,9 @@ class PgaGame:
             return False
         return self._pga_data["installed"]
 
-    def get_pixbuf(self, icon_type):
+    def get_pixbuf(self, image_type):
         """Pixbuf varying on icon type"""
-        return get_pixbuf_for_game(self._pga_data["slug"], icon_type, self._pga_data["installed"])
+        return get_pixbuf_for_game(self._pga_data["slug"], image_type, self._pga_data["installed"])
 
     @property
     def installed_at(self):

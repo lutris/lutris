@@ -12,8 +12,9 @@ from lutris.game import Game
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import FileChooserEntry, Label, NumberEntry, SlugEntry, VBox
+from lutris.gui.widgets.default_path import PATH_TYPE
 from lutris.gui.widgets.log_text_view import LogTextView
-from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
+from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game, ImageType
 from lutris.runners import import_runner
 from lutris.util import resources
 from lutris.util.linux import gather_system_info_str
@@ -145,7 +146,7 @@ class GameDialogCommon:
             title=_("Set the folder for the cache path"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             path=cache_path,
-            path_type="Cache"
+            path_type=PATH_TYPE.CACHE
         )
         path_chooser.entry.connect("changed", self._on_cache_path_set)
         box.pack_start(path_chooser, True, True, 0)
@@ -225,25 +226,25 @@ class GameDialogCommon:
         banner_box.pack_start(label, False, False, 0)
 
         self.banner_button = Gtk.Button()
-        self._set_image("banner")
-        self.banner_button.connect("clicked", self.on_custom_image_select, "banner")
+        self._set_image(ImageType.banner)
+        self.banner_button.connect("clicked", self.on_custom_image_select, ImageType.banner)
         banner_box.pack_start(self.banner_button, False, False, 0)
 
         reset_banner_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
         reset_banner_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_banner_button.set_tooltip_text(_("Remove custom banner"))
-        reset_banner_button.connect("clicked", self.on_custom_image_reset_clicked, "banner")
+        reset_banner_button.connect("clicked", self.on_custom_image_reset_clicked, ImageType.banner)
         banner_box.pack_start(reset_banner_button, False, False, 0)
 
         self.icon_button = Gtk.Button()
-        self._set_image("icon")
-        self.icon_button.connect("clicked", self.on_custom_image_select, "icon")
+        self._set_image(ImageType.icon)
+        self.icon_button.connect("clicked", self.on_custom_image_select, ImageType.icon)
         banner_box.pack_start(self.icon_button, False, False, 0)
 
         reset_icon_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
         reset_icon_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_icon_button.set_tooltip_text(_("Remove custom icon"))
-        reset_icon_button.connect("clicked", self.on_custom_image_reset_clicked, "icon")
+        reset_icon_button.connect("clicked", self.on_custom_image_reset_clicked, ImageType.icon)
         banner_box.pack_start(reset_icon_button, False, False, 0)
 
         return banner_box
@@ -265,15 +266,15 @@ class GameDialogCommon:
         image = Gtk.Image()
         game_slug = self.game.slug if self.game else ""
         image.set_from_pixbuf(get_pixbuf_for_game(game_slug, image_format))
-        if image_format == "banner":
+        if ImageType.banner & image_format:
             self.banner_button.set_image(image)
-        else:
+        if ImageType.icon & image_format:
             self.icon_button.set_image(image)
 
     def _set_icon_image(self):
         image = Gtk.Image()
         game_slug = self.game.slug if self.game else ""
-        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, "banner"))
+        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, ImageType.banner))
         self.banner_button.set_image(image)
 
     def _get_runner_dropdown(self):
@@ -578,6 +579,11 @@ class GameDialogCommon:
             main_file_path = self.game.runner.get_main_file()
         except AttributeError:
             main_file_path = None
+        path_type = PATH_TYPE.UNKNOWN
+        if ImageType.banner & image_type:
+            path_type = PATH_TYPE.BANNER
+        if ImageType.icon & image_type:
+            path_type = PATH_TYPE.ICON
 
         def_path = default_path_handler.get(
             # unfortuantely the original path is not stored
@@ -586,7 +592,7 @@ class GameDialogCommon:
             default=None,
             main_file_path=main_file_path,
             install_path=self.lutris_config.game_config.get("game_path"),
-            path_type=image_type)
+            path_type=path_type)
         if os.path.isfile(def_path):
             if self.action != Gtk.FileChooserAction.SELECT_FOLDER:
                 dialog.set_filename(os.path.basename(def_path))
@@ -598,33 +604,37 @@ class GameDialogCommon:
         if response == Gtk.ResponseType.OK:
             image_path = dialog.get_filename()
             default_path_handler.set_selected(image_path, image_type)
-            if image_type == "banner":
+            file_format = ""
+            dest_path = ""
+            size = None
+            if ImageType.banner & image_type:
                 self.game.has_custom_banner = True
                 dest_path = resources.get_banner_path(self.game.slug)
                 size = BANNER_SIZE
                 file_format = "jpeg"
-            else:
+            if ImageType.icon & image_type:
                 self.game.has_custom_icon = True
                 dest_path = resources.get_icon_path(self.game.slug)
                 size = ICON_SIZE
                 file_format = "png"
+
             pixbuf = get_pixbuf(image_path, size)
             pixbuf.savev(dest_path, file_format, [], [])
             self._set_image(image_type)
 
-            if image_type == "icon":
+            if ImageType.icon & image_type:
                 resources.update_desktop_icons()
 
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
-        if image_type == "banner":
+        dest_path = ""
+        if ImageType.banner & image_type:
             self.game.has_custom_banner = False
             dest_path = resources.get_banner_path(self.game.slug)
-        elif image_type == "icon":
+        if ImageType.icon & image_type:
             self.game.has_custom_icon = False
             dest_path = resources.get_icon_path(self.game.slug)
-        else:
-            raise ValueError("Unsupported image type %s" % image_type)
+
         os.remove(dest_path)
         self._set_image(image_type)

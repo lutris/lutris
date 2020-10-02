@@ -1,17 +1,31 @@
 import os
+from enum import Enum, auto
 from gettext import gettext as _
 
 from lutris.util.log import logger
 
 
+class PATH_TYPE(Enum):
+    """Types of paths, UNKNOWN should be used by default"""
+
+    UNKNOWN = 0
+    BANNER = auto()
+    ICON = auto()
+    CACHE = auto()
+    INSTALLER = auto()
+    INSTALL_TO = auto()
+
+
 class default_path_handler:
-    ANY_PT = "Any pathtype"
-    last_selected_path = {ANY_PT: None}
+    """Handles finding the correct path to set in the file chooser dialog"""
+
+    last_selected_path = {PATH_TYPE.UNKNOWN: None}
 
     @staticmethod
     def is_valid(path):
         """Checks if a path is valid, returns False if it is not a path (None)
            or if it does not exist on the system"""
+
         try:
             fullpath = os.path.expanduser(path)
         except TypeError:
@@ -30,7 +44,7 @@ class default_path_handler:
         return None
 
     @classmethod
-    def get(cls, entry=None, default=None, main_file_path=None, install_path=None, path_type=None):
+    def get(cls, entry=None, default=None, main_file_path=None, install_path=None, path_type=PATH_TYPE.UNKNOWN):
         """Returns the default path to use, if this item has a type then that might be used
 
         First match wins
@@ -42,17 +56,27 @@ class default_path_handler:
             install_path: the path to install into
             ~/Games: Games directory
             ~: home directory
+
+        Note:
+            if the path type is INSTALL_TO, install_path will be the highest priority, even if entry
+            is set
         """
+
+        override = None
+        if PATH_TYPE.INSTALL_TO == path_type:
+            override = install_path
+
         try:
             lsp_pt = default_path_handler.last_selected_path[path_type]
         except KeyError:
             lsp_pt = None
         try:
-            lsp_any = default_path_handler.last_selected_path[default_path_handler.ANY_PT]
+            lsp_any = default_path_handler.last_selected_path[PATH_TYPE.UNKNOWN]
         except KeyError:
             lsp_any = None
 
         items = [
+            override,
             entry,
             default,
             lsp_pt,
@@ -63,6 +87,7 @@ class default_path_handler:
             "~"]
 
         # names = [
+        #     "override"
         #     "entry",
         #     "default",
         #     "lsp_pt",
@@ -88,6 +113,7 @@ class default_path_handler:
         return None
 
     @ classmethod
-    def set_selected(cls, selected_path, path_type=ANY_PT):
+    def set_selected(cls, selected_path, path_type=PATH_TYPE.UNKNOWN):
         """Sets the last user selected path for this path type or any if no path type is selected"""
-        cls.last_selected_path[path_type or cls.ANY_PT] = cls.path_to_directory(selected_path)
+
+        cls.last_selected_path[path_type or PATH_TYPE.UNKNOWN] = cls.path_to_directory(selected_path)

@@ -7,7 +7,7 @@ from gi.repository import Gtk
 from lutris.gui.views import COL_ICON, COL_NAME
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
-from lutris.gui.widgets.utils import BANNER_SIZE, BANNER_SMALL_SIZE
+from lutris.gui.widgets.utils import IMAGE_SIZES, ImageType
 
 
 class GameGridView(Gtk.IconView, GameView):
@@ -18,10 +18,14 @@ class GameGridView(Gtk.IconView, GameView):
         self.model = self.game_store.modelsort
         super().__init__(model=self.model)
 
+        try:
+            img_size = IMAGE_SIZES[store.image_type | ImageType.banner]
+        except ValueError:
+            img_size = IMAGE_SIZES[ImageType.banner_small]
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
         self.set_item_padding(1)
-        self.cell_width = (BANNER_SIZE[0] if store.icon_type == "banner" else BANNER_SMALL_SIZE[0])
+        self.cell_width = img_size[0]
         self.cell_renderer = GridViewCellRendererText(self.cell_width)
         self.pack_end(self.cell_renderer, False)
         self.add_attribute(self.cell_renderer, "markup", COL_NAME)
@@ -66,8 +70,11 @@ class GameGridView(Gtk.IconView, GameView):
             self.selected_game = None
         self.emit("game-selected", self.selected_game)
 
-    def on_icons_changed(self, store, icon_type):
-        width = BANNER_SIZE[0] if icon_type == "banner" else BANNER_SMALL_SIZE[0]
-        self.set_item_width(width)
-        self.cell_renderer.props.width = width
+    def on_icons_changed(self, store, image_type):
+        try:
+            img_size = IMAGE_SIZES[store.image_type | ImageType.banner]
+        except ValueError:
+            img_size = IMAGE_SIZES[ImageType.banner_small]
+        self.set_item_width(img_size[0])
+        self.cell_renderer.props.width = img_size[0]
         self.queue_draw()
