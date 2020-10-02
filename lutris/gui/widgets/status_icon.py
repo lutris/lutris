@@ -8,7 +8,9 @@ from gi.repository import Gtk
 # Lutris Modules
 from lutris import pga
 from lutris.game import Game
-from lutris.gui.widgets.utils import get_pixbuf_for_game, ImageType
+from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.util.image_type import ImageType
+
 
 try:
     gi.require_version('AppIndicator3', '0.1')

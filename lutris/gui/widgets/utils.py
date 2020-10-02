@@ -10,40 +10,13 @@ from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 # Lutris Modules
 from lutris import settings
 from lutris.util import datapath, resources, system
+from lutris.util.image_type import ImageType
 from lutris.util.log import logger
 
 try:
     from PIL import Image
 except ImportError:
     Image = None
-
-
-class ImageType(Flag):
-    """Enum for image type.
-
-    Notes:
-    Having small without another attibute is invalid
-    Having multiple attibutes (BANNER and ICON) is invalid
-    """
-
-    _ignore_ = "SMALL"
-    NONE = 0
-    small = 1 << 0
-    icon = 1 << 1
-    icon_small = small | icon
-    banner = 1 << 2
-    banner_small = small | banner
-
-    @classmethod
-    def _missing_(cls, value):
-        """Ensures the only values allow are the values explictly listed
-
-        Raises
-        ------
-        ValueError if an invalid value is created (e.g. ICON|BANNER)"""
-
-        raise ValueError("Unsupported value %s" % value)
-
 
 BANNER_SIZE = (184, 69)
 BANNER_SMALL_SIZE = (120, 45)

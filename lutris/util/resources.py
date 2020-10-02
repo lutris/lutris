@@ -6,7 +6,7 @@ from gi.repository import GLib
 from lutris import settings
 from lutris.util import system
 from lutris.util.http import HTTPError, Request
-from lutris.gui.widgets.utils import ImageType
+from lutris.util.image_type import ImageType
 
 
 def get_image_path(game_slug, image_type=ImageType.icon):

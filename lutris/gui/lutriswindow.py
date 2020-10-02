@@ -25,13 +25,14 @@ from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.services import SyncServiceWindow
 from lutris.gui.widgets.sidebar import SidebarListBox
-from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri, ImageType
+from lutris.gui.widgets.utils import IMAGE_SIZES, open_uri
 from lutris.runtime import RuntimeUpdater
 from lutris.services import get_services_synced_at_startup, steam
 from lutris.sync import sync_from_remote
 from lutris.util import datapath, http
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.image_type import ImageType
 
 # from lutris.util.steam.watcher import SteamWatcher
 
@@ -99,6 +100,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_actions = GameActions(application=application, window=self)
         self.search_terms = None
         self.search_timer_id = None
+        self.image_type = ImageType.icon
         self.search_mode = "local"
         self.game_store = self.get_store()
         self.view = self.get_view(view_type)
@@ -507,11 +509,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if view_type == "list":
             try:
                 self.image_type = ImageType[settings.read_setting("icon_type_listview")]
+            # FIXME: IS THIS A KeyError OR ValueError ?
             except KeyError:
                 self.image_type = ImageType.icon
         else:
             try:
                 self.image_type = ImageType[settings.read_setting("icon_type_gridview")]
+            # FIXME: IS THIS A KeyError OR ValueError ?
             except KeyError:
                 self.image_type = ImageType.banner
         return self.image_type

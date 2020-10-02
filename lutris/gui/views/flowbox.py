@@ -4,7 +4,8 @@ from gi.repository import Gdk, GObject, Gtk
 
 # Lutris Modules
 from lutris.game import Game
-from lutris.gui.widgets.utils import get_pixbuf_for_game, ImageType
+from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.util.image_type import ImageType
 
 try:
     FlowBox = Gtk.FlowBox
@@ -17,7 +18,7 @@ except AttributeError:
 class GameItem(Gtk.VBox):
 
     def __init__(self, game, parent, image_type=ImageType.banner):
-        super(GameItem, self).__init__()
+        super().__init__()
 
         self.image_type = image_type
 
@@ -84,7 +85,7 @@ class GameFlowBox(FlowBox):
     }
 
     def __init__(self, game_list, image_type=ImageType.banner, filter_installed=False):
-        super(GameFlowBox, self).__init__()
+        super().__init__()
 
         self.set_valign(Gtk.Align.START)
 

@@ -9,7 +9,8 @@ from gi.repository import GObject, Gtk, Pango
 # Lutris Modules
 from lutris import runners
 from lutris.gui.views.generic_panel import GenericPanel
-from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game, ImageType
+from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
+from lutris.util.image_type import ImageType
 from lutris.util.strings import gtk_safe
 
 

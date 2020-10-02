@@ -10,8 +10,9 @@ from gi.repository.GdkPixbuf import Pixbuf
 # Lutris Modules
 from lutris import api, pga
 from lutris.gui.views.pga_game import PgaGame
-from lutris.gui.widgets.utils import ImageType, get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.util import system
+from lutris.util.image_type import ImageType
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.resources import download_media, get_image_path, update_desktop_icons
@@ -90,7 +91,7 @@ class GameStore(GObject.Object):
         show_hidden_games,
         show_installed_first=False,
     ):
-        super(GameStore, self).__init__()
+        super().__init__()
         self.games = games or pga.get_games(show_installed_first=show_installed_first)
         if not show_hidden_games:
             # Check if the PGA contains game IDs that the user does not

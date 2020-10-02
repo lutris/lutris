@@ -11,8 +11,9 @@ from lutris import api
 from lutris.game import Game
 from lutris.gui.config.system import SystemConfigDialog
 from lutris.gui.widgets.utils import get_link_button, get_pixbuf, get_pixbuf_for_game
-from lutris.gui.widgets.utils import get_pixbuf_for_panel, open_uri, ImageType
+from lutris.gui.widgets.utils import get_pixbuf_for_panel, open_uri
 from lutris.util import system
+from lutris.util.image_type import ImageType
 
 LINKS = {
     "floss":

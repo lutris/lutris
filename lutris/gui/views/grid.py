@@ -7,7 +7,8 @@ from gi.repository import Gtk
 from lutris.gui.views import COL_ICON, COL_NAME
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
-from lutris.gui.widgets.utils import IMAGE_SIZES, ImageType
+from lutris.gui.widgets.utils import IMAGE_SIZES
+from lutris.util.image_type import ImageType
 
 
 class GameGridView(Gtk.IconView, GameView):

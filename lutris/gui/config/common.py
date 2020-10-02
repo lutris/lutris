@@ -14,9 +14,10 @@ from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import FileChooserEntry, Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.default_path import PATH_TYPE
 from lutris.gui.widgets.log_text_view import LogTextView
-from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game, ImageType
+from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
 from lutris.runners import import_runner
 from lutris.util import resources
+from lutris.util.image_type import ImageType
 from lutris.util.linux import gather_system_info_str
 from lutris.util.log import logger
 from lutris.util.strings import slugify
