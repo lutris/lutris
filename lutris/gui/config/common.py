@@ -12,6 +12,7 @@ from lutris.game import Game
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import FileChooserEntry, Label, NumberEntry, SlugEntry, VBox
+from lutris.gui.widgets.default_path import default_path_handler, PATH_TYPE
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
 from lutris.runners import import_runner
@@ -19,7 +20,6 @@ from lutris.util import resources
 from lutris.util.linux import gather_system_info_str
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.gui.widgets.default_path import default_path_handler
 
 
 # pylint: disable=too-many-instance-attributes
@@ -145,7 +145,7 @@ class GameDialogCommon:
             title=_("Set the folder for the cache path"),
             action=Gtk.FileChooserAction.SELECT_FOLDER,
             path=cache_path,
-            path_type="Cache"
+            path_type=PATH_TYPE.CACHE
         )
         path_chooser.entry.connect("changed", self._on_cache_path_set)
         box.pack_start(path_chooser, True, True, 0)
@@ -579,6 +579,12 @@ class GameDialogCommon:
         except AttributeError:
             main_file_path = None
 
+        path_type = PATH_TYPE.UNKNOWN
+        if image_type.startswith("banner"):
+            path_type = PATH_TYPE.BANNER
+        if image_type.startswith("icon"):
+            path_type = PATH_TYPE.ICON
+
         def_path = default_path_handler.get(
             # unfortuantely the original path is not stored
             entry=None,
@@ -586,7 +592,7 @@ class GameDialogCommon:
             default=None,
             main_file_path=main_file_path,
             install_path=self.lutris_config.game_config.get("game_path"),
-            path_type=image_type)
+            path_type=path_type)
         if os.path.isfile(def_path):
             if self.action != Gtk.FileChooserAction.SELECT_FOLDER:
                 dialog.set_filename(os.path.basename(def_path))

@@ -6,6 +6,7 @@ from gi.repository import GObject, Gtk, Pango
 
 from lutris.cache import save_to_cache
 from lutris.gui.widgets.common import FileChooserEntry
+from lutris.gui.widgets.default_path import PATH_TYPE
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
@@ -303,7 +304,8 @@ class InstallerFileBox(Gtk.VBox):
             location_entry = FileChooserEntry(
                 self.installer_file.human_url,
                 Gtk.FileChooserAction.OPEN,
-                path=None
+                path=None,
+                path_type=PATH_TYPE.INSTALLER
             )
             location_entry.entry.connect("changed", self.on_location_changed)
             location_entry.show()
