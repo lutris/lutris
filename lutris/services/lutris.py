@@ -1,11 +1,18 @@
 import json
 import os
 from gettext import gettext as _
+import urllib.parse
 
-from lutris import api, settings
+from gi.repository import Gio
+
+from lutris import settings
+from lutris.api import read_api_key
 from lutris.gui import dialogs
+from lutris.util import http
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame, ServiceMedia
+from lutris.installer import fetch_script
+from lutris.util.log import logger
 
 
 class LutrisBanner(ServiceMedia):
@@ -77,8 +84,33 @@ class LutrisService(OnlineService):
         """Handles connection success"""
         self.emit("service-login")
 
+    def get_library(self):
+        """Return the remote library as a list of dicts."""
+        credentials = read_api_key()
+        if not credentials:
+            return []
+        url = settings.SITE_URL + "/api/games/library/%s" % urllib.parse.quote(credentials["username"])
+        request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
+        try:
+            response = request.get()
+        except http.HTTPError as ex:
+            logger.error("Unable to load library: %s", ex)
+            return []
+        response_data = response.json
+        if response_data:
+            return response_data["games"]
+        return []
+
     def load(self):
-        for game in api.get_library():
+        for game in self.get_library():
             lutris_game = LutrisGame.new_from_api(game)
             lutris_game.save()
         self.emit("service-games-loaded")
+
+    def install(self, db_game):
+        installers = fetch_script(db_game["slug"])
+        if not installers:
+            logger.warning("No installer for %s", db_game["slug"])
+            return
+        application = Gio.Application.get_default()
+        application.show_installer_window(installers)

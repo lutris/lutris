@@ -9,6 +9,7 @@ import urllib.request
 
 from lutris import settings
 from lutris.util import http, system
+
 from lutris.util.log import logger
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
@@ -69,24 +70,6 @@ def get_user_info():
         logger.warning("Unable to fetch user info for %s", credentials["username"])
     with open(USER_INFO_FILE_PATH, "w") as token_file:
         json.dump(account_info, token_file, indent=2)
-
-
-def get_library():
-    """Return the remote library as a list of dicts."""
-    credentials = read_api_key()
-    if not credentials:
-        return []
-    url = settings.SITE_URL + "/api/games/library/%s" % urllib.parse.quote(credentials["username"])
-    request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
-    try:
-        response = request.get()
-    except http.HTTPError as ex:
-        logger.error("Unable to load library: %s", ex)
-        return []
-    response_data = response.json
-    if response_data:
-        return response_data["games"]
-    return []
 
 
 def get_runners(runner_name):
