@@ -502,7 +502,7 @@ class GameDialogCommon:
                 dlg = QuestionDialog(
                     {
                         "question":
-                        _("You have modified the idenitifier, but not applied it."
+                        _("You have modified the identifier, but not applied it."
                           "Would you like to apply those changes now?"),
                         "title":
                         _("Confirm pending identifier change"),
@@ -578,7 +578,7 @@ class GameDialogCommon:
             path_type = PATH_TYPE.ICON
 
         def_path = default_path_handler.get(
-            # unfortuantely the original path is not stored
+            # unfortunately the original path is not stored
             entry=None,
             # No default for images
             default=None,

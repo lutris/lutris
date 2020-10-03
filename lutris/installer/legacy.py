@@ -8,6 +8,7 @@ def get_game_launcher(script):
     added.
     """
     launcher_value = None
+    launcher = None
     exe = "exe64" if "exe64" in script and system.LINUX_SYSTEM.is_64_bit else "exe"
     for launcher in (exe, "iso", "rom", "disk", "main_file"):
         if launcher not in script:

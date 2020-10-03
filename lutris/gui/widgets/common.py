@@ -63,7 +63,7 @@ class FileChooserEntry(Gtk.Box):
 
         Args:
         - `title` (`str`, optional): Text to put in the title bar. Defaults to `_("Select file")`.
-        - `action` (`Gtk.FileChooserAction`, optional): Show the user select a or folder.
+        - `action` (`Gtk.FileChooserAction`, optional): Show the user select a file or folder.
           Defaults to `Gtk.FileChooserAction.OPEN`.
           - See https://developer.gnome.org/gtk3/stable/GtkFileChooser.html#GtkFileChooserAction
         - `path` (`str`, optional): What this entry points to. Defaults to `None`.

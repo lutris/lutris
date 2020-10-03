@@ -298,8 +298,8 @@ class CommandsMixin:
             else:
                 action = shutil.move
             self._killable_process(action, src, dst)
-        except shutil.Error:
-            raise ScriptingError("Can't move %s \nto destination %s" % (src, dst))
+        except shutil.Error as ex:
+            raise ScriptingError("Can't move %s \nto destination %s" % (src, dst)) from ex
 
     def rename(self, params):
         """Rename file or folder."""
@@ -328,8 +328,8 @@ class CommandsMixin:
         """Process raw 'src' and 'dst' data."""
         try:
             src_ref = params["src"]
-        except KeyError:
-            raise ScriptingError("Missing parameter src")
+        except KeyError as ex:
+            raise ScriptingError("Missing parameter src") from ex
         src = self.game_files.get(src_ref) or self._substitute(src_ref)
         if not src:
             raise ScriptingError("Wrong value for 'src' param", src_ref)
