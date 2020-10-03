@@ -19,6 +19,7 @@ from lutris.util.log import logger
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     """Represents a Lutris installer"""
+
     def __init__(self, installer, interpreter):
         self.interpreter = interpreter
         self.version = installer["version"]
@@ -322,6 +323,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     def get_game_launcher(self):
         """Return the key and value of the launcher"""
         launcher_value = None
+        launcher = None
         # exe64 can be provided to specify an executable for 64bit systems
         exe = "exe64" if "exe64" in self.script and system.LINUX_SYSTEM.is_64_bit else "exe"
         for launcher in (exe, "iso", "rom", "disk", "main_file"):

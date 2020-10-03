@@ -120,8 +120,8 @@ class CommandsMixin:
         else:
             raise ScriptingError("No parameters supplied to execute command.", data)
 
+        file_ref = "bash"
         if command:
-            file_ref = "bash"
             args = ["-c", self._get_file(command.strip())]
             include_processes.append("bash")
         else:

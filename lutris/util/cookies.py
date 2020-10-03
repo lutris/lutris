@@ -13,6 +13,7 @@ class WebkitCookieJar(MozillaCookieJar):
 
     def _really_load(self, f, filename, ignore_discard, ignore_expires):  # pylint: disable=too-many-locals
         now = time.time()
+        line = ""
         try:
             while 1:
                 line = f.readline()

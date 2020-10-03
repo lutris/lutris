@@ -197,6 +197,7 @@ class DXVKManager:
 
     def _iter_dxvk_dlls(self):
         windows_path = os.path.join(self.prefix, "drive_c/windows")
+        system_dirs = {}
         if self.wine_arch == "win64":
             system_dirs = {
                 "x64": os.path.join(windows_path, "system32"),

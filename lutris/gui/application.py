@@ -304,6 +304,7 @@ class Application(Gtk.Application):
             else:
                 self.print_game_list(command_line, game_list)
             return 0
+
         # List Steam games
         if options.contains("list-steam-games"):
             self.print_steam_list(command_line)
@@ -323,8 +324,8 @@ class Application(Gtk.Application):
             IssueReportWindow(application=self)
             return 0
 
+        url = options.lookup_value(GLib.OPTION_REMAINING)
         try:
-            url = options.lookup_value(GLib.OPTION_REMAINING)
             installer_info = self.get_lutris_action(url)
         except ValueError:
             self._print(command_line, _("%s is not a valid URI") % url.get_strv())
