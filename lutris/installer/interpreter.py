@@ -32,8 +32,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         super().__init__()
         self.target_path = None
         self.parent = parent
-        self.service = parent.service
-        self.appid = parent.appid
+        self.service = parent.service if parent else None
+        self.appid = parent.appid if parent else None
         self.game_dir_created = False  # Whether a game folder was created during the install
         self.game_disc = None
         self.game_files = {}
