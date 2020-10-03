@@ -8,12 +8,14 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 from lutris import settings
 from lutris.exceptions import AuthenticationError, MultipleInstallerError, UnavailableGame
 from lutris.gui.dialogs import WebConnectDialog
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util import system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
+from lutris.util.strings import slugify
 
 
 class GogSmallBanner(ServiceMedia):
@@ -318,6 +320,42 @@ class GOGService(OnlineService):
         if not file_id_provided:
             raise UnavailableGame("Unable to determine correct file to launch installer")
         return files
+
+    def generate_installer(self, db_game):
+        details = json.loads(db_game["details"])
+        print(details)
+        platforms = [platform.lower() for platform, is_supported in details["worksOn"].items() if is_supported]
+        system_config = {}
+        if "linux" in platforms:
+            runner = "linux"
+            game_config = {"exe": AUTO_ELF_EXE}
+            script = [
+                {"extract": {"file": "goginstaller", "format": "zip", "dst": "$CACHE"}},
+                {"merge": {"src": "$CACHE/data/noarch", "dst": "$GAMEDIR"}},
+            ]
+        else:
+            runner = "wine"
+            game_config = {"exe": AUTO_WIN32_EXE}
+            script = [
+                {"task": {"name": "create_prefix", "prefix": "$GAMEDIR"}},
+                {"task": {"name": "wineexec", "executable": "goginstaller", "args": "args: /SP- /NOCANCEL"}},
+            ]
+        return {
+            "name": db_game["name"],
+            "version": "GOG",
+            "slug": details["slug"],
+            "game_slug": slugify(db_game["name"]),
+            "runner": runner,
+            "humbleid": db_game["appid"],
+            "script": {
+                "game": game_config,
+                "system": system_config,
+                "files": [
+                    {"goginstaller": "N/A:Select the installer from GOG"}
+                ],
+                "installer": script
+            }
+        }
 
 
 def get_gog_download_links(gogid, runner):

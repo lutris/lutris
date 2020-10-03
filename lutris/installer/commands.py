@@ -172,6 +172,7 @@ class CommandsMixin:
             extractor = data.get("format")
             logger.debug("extracting file %s to %s", filename, dest_path)
             self._killable_process(extract.extract_archive, filename, dest_path, merge_single, extractor)
+        logger.debug("Extract done")
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
@@ -276,6 +277,9 @@ class CommandsMixin:
         src, dst = self._get_move_paths(params)
         logger.debug("Moving %s to %s", src, dst)
         if not os.path.exists(src):
+            if params.get("optional"):
+                logger.info("Optional path %s not present", src)
+                return
             raise ScriptingError("I can't move %s, it does not exist" % src)
 
         if os.path.isfile(src):
@@ -514,4 +518,5 @@ class CommandsMixin:
         self.abort_current_task = process.terminate
         result = result_obj.get()  # Wait process end & reraise exceptions
         self.abort_current_task = None
+        logger.debug("Process %s returned: %s", func, result)
         return result
