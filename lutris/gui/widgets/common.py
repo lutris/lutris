@@ -73,7 +73,7 @@ class FileChooserEntry(Gtk.Box):
         - `default_path` (`str`, optional): Where the widget should point by default. Defaults to `None`.
         - `install_path` (`str`, optional): Where games should be installed. Defaults to `None`.
         - `game` (`[type]`, optional): . Defaults to `None`.
-        - `warnings` (`lutris.gui.widgets.common.FileChooserWarnings`, optional): 
+        - `warnings` (`lutris.gui.widgets.common.FileChooserWarnings`, optional):
           A set of warnings to check for. Defaults to `FileChooserWarnings.NONE`.
           - This is a Flags enum
         """
