@@ -183,6 +183,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_load(self, widget, data):
         self.game_store = GameStore(self.service_media)
         self.switch_view()
+        self.view.grab_focus()
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         self.update_runtime()
 
