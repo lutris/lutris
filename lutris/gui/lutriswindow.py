@@ -358,7 +358,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def update_service_box(self):
         if self.service:
             if self.service_bar:
-                if self.service.id != self.service_bar.service.id:
+                if self.service.id == self.service_bar.service.id:
                     return
                 self.service_bar.destroy()
             self.service_bar = ServiceBar(self.service)
