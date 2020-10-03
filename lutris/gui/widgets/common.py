@@ -47,7 +47,7 @@ class FileChooserEntry(Gtk.Box):
     """Editable entry with a file picker button"""
 
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
-    
+
     def __init__(
         self,
         title=_("Select file"),
@@ -63,15 +63,18 @@ class FileChooserEntry(Gtk.Box):
 
         Args:
         - `title` (`str`, optional): Text to put in the title bar. Defaults to `_("Select file")`.
-        - `action` (`Gtk.FileChooserAction`, optional): Show the user select a or folder. Defaults to `Gtk.FileChooserAction.OPEN`.
+        - `action` (`Gtk.FileChooserAction`, optional): Show the user select a or folder.
+          Defaults to `Gtk.FileChooserAction.OPEN`.
           - See https://developer.gnome.org/gtk3/stable/GtkFileChooser.html#GtkFileChooserAction
         - `path` (`str`, optional): What this entry points to. Defaults to `None`.
           - See lutris.gui.widgets.default_path.default_path_handler.get for path rules
-        - `path_type` (`lutris.gui.widgets.default_path.PATH_TYPE`, optional): A type of path for this widget. Defaults to `PATH_TYPE.UNKNOWN`.
+        - `path_type` (`lutris.gui.widgets.default_path.PATH_TYPE`, optional):
+          A type of path for this widget. Defaults to `PATH_TYPE.UNKNOWN`.
         - `default_path` (`str`, optional): Where the widget should point by default. Defaults to `None`.
         - `install_path` (`str`, optional): Where games should be installed. Defaults to `None`.
         - `game` (`[type]`, optional): . Defaults to `None`.
-        - `warnings` (`lutris.gui.widgets.common.FileChooserWarnings`, optional): A set of warnings to check for. Defaults to `FileChooserWarnings.NONE`.
+        - `warnings` (`lutris.gui.widgets.common.FileChooserWarnings`, optional): 
+          A set of warnings to check for. Defaults to `FileChooserWarnings.NONE`.
           - This is a Flags enum
         """
 
