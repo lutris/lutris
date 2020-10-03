@@ -274,6 +274,8 @@ class Game(GObject.Object):
             configpath = self.config.game_config_id
             if save_config:
                 self.config.save()
+            else:
+                logger.debug("Not saving config")
         else:
             logger.warning("Saving %s without a configuration", self)
             configpath = ""

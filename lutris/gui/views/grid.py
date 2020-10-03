@@ -5,6 +5,7 @@ from gi.repository import Gtk
 from lutris.gui.views import COL_ICON, COL_NAME
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
+from lutris.util.log import logger
 
 
 class GameGridView(Gtk.IconView, GameView):
@@ -50,6 +51,7 @@ class GameGridView(Gtk.IconView, GameView):
         if selected_item:
             selected_id = self.get_selected_id(selected_item)
         else:
+            logger.debug("No game selected")
             selected_id = None
         self.emit("game-activated", selected_id)
 
@@ -59,6 +61,7 @@ class GameGridView(Gtk.IconView, GameView):
         if selected_item:
             selected_id = self.get_selected_id(selected_item)
         else:
+            logger.debug("No game selected")
             selected_id = None
         self.emit("game-selected", selected_id)
 

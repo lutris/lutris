@@ -521,7 +521,7 @@ class GameDialogCommon:
         self.game.directory = runner.game_path
         self.game.is_installed = True
         self.game.config = self.lutris_config
-        self.game.save()
+        self.game.save(save_config=True)
         self.destroy()
         self.saved = True
         return True

@@ -1,5 +1,8 @@
 from gi.repository import Gdk, GObject
 
+from lutris.database.games import get_game_for_service
+from lutris.game import Game
+from lutris.game_actions import GameActions
 from lutris.gui.views import COL_ID
 
 
@@ -12,7 +15,7 @@ class GameView:
     }
 
     def __init__(self):
-        self.service = None
+        self.service = None  # Stores the service.id in a string
         self.current_path = None
         self.contextual_menu = None
 
@@ -30,7 +33,21 @@ class GameView:
             view.select()
             selected_id = self.get_selected_id(self.get_model().get_iter(view.current_path))
             game_row = self.game_store.get_row_by_id(selected_id)
-            self.contextual_menu.popup(event, game_row)
+            game_id = None
+            if self.service:
+                print(self.service)
+                game = get_game_for_service(self.service, game_row[COL_ID])
+                if game:
+                    game_id = game["id"]
+            else:
+                game_id = game_row[COL_ID]
+            if not game_id:
+                return
+            game = Game(game_id)
+            game_actions = GameActions()
+            game_actions.set_game(game=game)
+
+            self.contextual_menu.popup(event, game_actions)
 
     def get_selected_id(self, selected_item):
         return self.get_model().get_value(selected_item, COL_ID)
