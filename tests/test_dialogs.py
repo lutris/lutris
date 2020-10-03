@@ -5,10 +5,10 @@ import gi
 gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk
+from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.startup import init_lutris
 # from lutris import settings
-from lutris import pga
 from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.application import Application
@@ -98,7 +98,7 @@ class TestGameDialog(TestCase):
         add_button = self.get_buttons().get_children()[1]
         add_button.clicked()
 
-        pga_game = pga.get_game_by_field('test-game', 'slug')
+        pga_game = games_db.get_game_by_field('test-game', 'slug')
         self.assertTrue(pga_game)
         game = Game(pga_game['id'])
         self.assertEqual(game.name, 'Test game')

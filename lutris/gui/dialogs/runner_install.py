@@ -12,9 +12,9 @@ from gi.repository import GLib, Gtk
 
 # Lutris Modules
 from lutris import api, settings
+from lutris.database.games import get_games_by_runner
 from lutris.game import Game
 from lutris.gui.dialogs import Dialog, ErrorDialog, QuestionDialog
-from lutris.pga import get_games_by_runner
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive

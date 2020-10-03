@@ -39,3 +39,12 @@ class DownloadDialog(Gtk.Dialog):
         if response == Gtk.ResponseType.DELETE_EVENT:
             self.download_box.downloader.cancel()
             self.destroy()
+
+
+def simple_downloader(url, destination, callback, callback_args=None):
+    """Basic downloader with a DownloadDialog"""
+    if not callback_args:
+        callback_args = {}
+    dialog = DownloadDialog(url, destination)
+    dialog.run()
+    return callback(**callback_args)

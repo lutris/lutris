@@ -60,15 +60,15 @@ def db_insert(db_path, table, fields):
     return inserted_id
 
 
-def db_update(db_path, table, updated_fields, where):
+def db_update(db_path, table, updated_fields, conditions):
     """Update `table` with the values given in the dict `values` on the
        condition given with the `row` tuple.
     """
     columns = "=?, ".join(list(updated_fields.keys())) + "=?"
     field_values = tuple(updated_fields.values())
 
-    condition_field = "{0}=?".format(where[0])
-    condition_value = (where[1], )
+    condition_field = " AND ".join(["%s=?" % field for field in conditions])
+    condition_value = tuple(conditions.values())
 
     with db_cursor(db_path) as cursor:
         query = "UPDATE {0} SET {1} WHERE {2}".format(table, columns, condition_field)
@@ -136,3 +136,36 @@ def add_field(db_path, tablename, field):
     )
     with db_cursor(db_path) as cursor:
         cursor.execute(query)
+
+
+def filtered_query(
+    db_path,
+    table,
+    searches=None,
+    filters=None,
+    excludes=None,
+    sorts=None
+):
+    query = "select * from %s" % table
+    params = []
+    sql_filters = []
+    for field in searches or {}:
+        sql_filters.append("%s LIKE ?" % field)
+        params.append("%" + searches[field] + "%")
+    for field in filters or {}:
+        if filters[field]:
+            sql_filters.append("%s = ?" % field)
+            params.append(filters[field])
+    for field in excludes or {}:
+        if excludes[field]:
+            sql_filters.append("%s IS NOT ?" % field)
+            params.append(excludes[field])
+    if sql_filters:
+        query += " WHERE " + " AND ".join(sql_filters)
+    if sorts:
+        query += " ORDER BY %s" % ", ".join(
+            ["%s %s" % (sort[0], sort[1]) for sort in sorts]
+        )
+    else:
+        query += " ORDER BY slug ASC"
+    return db_query(db_path, query, tuple(params))

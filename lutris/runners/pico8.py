@@ -1,5 +1,4 @@
 """Runner for the PICO-8 fantasy console"""
-# Standard Library
 import json
 import math
 import os
@@ -7,10 +6,10 @@ import shutil
 from gettext import gettext as _
 from time import sleep
 
-# Lutris Modules
-from lutris import pga, settings
+from lutris import settings
+from lutris.database.games import get_game_by_field
 from lutris.runners.runner import Runner
-from lutris.util import datapath, downloader, system
+from lutris.util import downloader, system
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 
@@ -233,7 +232,7 @@ class pico8(Runner):
         launch_info = {}
         launch_info["env"] = self.get_env(os_env=False)
 
-        game_data = pga.get_game_by_field(self.config.game_config_id, "configpath")
+        game_data = get_game_by_field(self.config.game_config_id, "configpath")
 
         command = self.launch_args
 
@@ -249,10 +248,10 @@ class pico8(Runner):
             command.append("--name")
             command.append(game_data.get("name") + " - PICO-8")
 
-            icon = datapath.get_icon_path(game_data.get("slug"))
-            if icon:
-                command.append("--icon")
-                command.append(icon)
+            # icon = datapath.get_icon_path(game_data.get("slug"))
+            # if icon:
+            #     command.append("--icon")
+            #     command.append(icon)
 
             webargs = {
                 "cartridge": self.cart_path,

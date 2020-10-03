@@ -1,27 +1,30 @@
 """Grid view for the main window"""
-# Third Party Libraries
 # pylint: disable=no-member
 from gi.repository import Gtk
 
-# Lutris Modules
 from lutris.gui.views import COL_ICON, COL_NAME
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
-from lutris.gui.widgets.utils import BANNER_SIZE, BANNER_SMALL_SIZE
+from lutris.util.log import logger
 
 
 class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, store):
-        self.game_store = store
-        self.model = self.game_store.modelsort
-        super().__init__(model=self.model)
+    min_width = 110  # Minimum width for a cell
 
+    def __init__(self, store, service_media):
+        self.game_store = store
+        self.service_media = service_media
+        self.model = self.game_store.store
+        super().__init__(model=self.game_store.store)
+        GameView.__init__(self)
+
+        self.service = None
         self.set_column_spacing(1)
         self.set_pixbuf_column(COL_ICON)
         self.set_item_padding(1)
-        self.cell_width = (BANNER_SIZE[0] if store.icon_type == "banner" else BANNER_SMALL_SIZE[0])
+        self.cell_width = (max(service_media.size[0], self.min_width))
         self.cell_renderer = GridViewCellRendererText(self.cell_width)
         self.pack_end(self.cell_renderer, False)
         self.add_attribute(self.cell_renderer, "markup", COL_NAME)
@@ -42,32 +45,28 @@ class GameGridView(Gtk.IconView, GameView):
         self.current_path = selection[0]
         return self.get_model().get_iter(self.current_path)
 
-    def set_selected_game(self, game_id):
-        """Select a game referenced by its ID in the view"""
-        row = self.game_store.get_row_by_id(game_id, filtered=True)
-        if row:
-            self.select_path(row.path)
-
     def on_item_activated(self, _view, _path):
         """Handles double clicks"""
         selected_item = self.get_selected_item()
         if selected_item:
-            self.selected_game = self.get_selected_game(selected_item)
+            selected_id = self.get_selected_id(selected_item)
         else:
-            self.selected_game = None
-        self.emit("game-activated", self.selected_game)
+            logger.debug("No game selected")
+            selected_id = None
+        self.emit("game-activated", selected_id)
 
     def on_selection_changed(self, _view):
         """Handles selection changes"""
         selected_item = self.get_selected_item()
         if selected_item:
-            self.selected_game = self.get_selected_game(selected_item)
+            selected_id = self.get_selected_id(selected_item)
         else:
-            self.selected_game = None
-        self.emit("game-selected", self.selected_game)
+            logger.debug("No game selected")
+            selected_id = None
+        self.emit("game-selected", selected_id)
 
-    def on_icons_changed(self, store, icon_type):
-        width = BANNER_SIZE[0] if icon_type == "banner" else BANNER_SMALL_SIZE[0]
-        self.set_item_width(width)
-        self.cell_renderer.props.width = width
+    def on_icons_changed(self, store):
+        cell_width = max(self.service_media.size[0], self.min_width)
+        self.set_item_width(cell_width)
+        self.cell_renderer.props.width = cell_width
         self.queue_draw()

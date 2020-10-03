@@ -14,8 +14,8 @@ from lutris.util.strings import add_url_tags, gtk_safe
 
 
 class InstallerLabel(Gtk.Label):
-
     """A label for installers"""
+
     def __init__(self, text, wrap=True):
         super().__init__()
         if wrap:
@@ -31,7 +31,6 @@ class InstallerLabel(Gtk.Label):
 
 
 class InstallerScriptBox(Gtk.VBox):
-
     """Box displaying the details of a script, with associated action buttons"""
 
     def __init__(self, script, parent=None, revealed=False):
@@ -108,7 +107,6 @@ class InstallerScriptBox(Gtk.VBox):
 
 
 class InstallerPicker(Gtk.ListBox):
-
     """List box to pick between several installers"""
 
     __gsignals__ = {"installer-selected": (GObject.SIGNAL_RUN_FIRST, None, (str, ))}
@@ -211,9 +209,9 @@ class InstallerFileBox(Gtk.VBox):
 
             steam_box = Gtk.HBox(spacing=6)
             info_box = Gtk.VBox(spacing=6)
-            steam_label = InstallerLabel("Steam game for %s (appid: <b>%s</b>)" % (
-                steam_installer.platform,
-                steam_installer.appid
+            steam_label = InstallerLabel(_("Steam game for {platform} (appid: <b>{appid}</b>)").format(
+                platform=steam_installer.platform,
+                appid=steam_installer.appid
             ))
             info_box.add(steam_label)
             self.state_label = InstallerLabel("")
@@ -243,14 +241,14 @@ class InstallerFileBox(Gtk.VBox):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         last_widget = None
         if "download" in self.installer_file.providers:
-            download_button = self.get_source_radiobutton(last_widget, "Download", "download")
+            download_button = self.get_source_radiobutton(last_widget, _("Download"), "download")
             vbox.pack_start(download_button, False, True, 10)
             last_widget = download_button
         if "pga" in self.installer_file.providers:
-            pga_button = self.get_source_radiobutton(last_widget, "Use cache", "pga")
+            pga_button = self.get_source_radiobutton(last_widget, _("Use cache"), "pga")
             vbox.pack_start(pga_button, False, True, 10)
             last_widget = pga_button
-        user_button = self.get_source_radiobutton(last_widget, "Select file", "user")
+        user_button = self.get_source_radiobutton(last_widget, _("Select file"), "user")
         vbox.pack_start(user_button, False, True, 10)
         return vbox
 
@@ -287,13 +285,13 @@ class InstallerFileBox(Gtk.VBox):
     def get_source_button_label(self):
         """Return the label for the source button"""
         if self.provider == "download":
-            return "Download"
+            return _("Download")
         if self.provider == "pga":
-            return "Cache"
+            return _("Cache")
         if self.provider == "user":
-            return "Local"
+            return _("Local")
         if self.provider == "steam":
-            return "Steam"
+            return _("Steam")
         raise ValueError("Unsupported provider %s" % self.provider)
 
     def get_file_provider_label(self):
@@ -309,7 +307,7 @@ class InstallerFileBox(Gtk.VBox):
             location_entry.show()
             box.pack_start(location_entry, False, False, 0)
             if self.installer_file.uses_pga_cache(create=True):
-                cache_option = Gtk.CheckButton("Cache file for future installations")
+                cache_option = Gtk.CheckButton(_("Cache file for future installations"))
                 cache_option.set_active(self.cache_to_pga)
                 cache_option.connect("toggled", self.on_user_file_cached)
                 box.pack_start(cache_option, False, False, 0)
@@ -328,7 +326,7 @@ class InstallerFileBox(Gtk.VBox):
         source_box = Gtk.HBox()
         source_box.props.valign = Gtk.Align.START
         box.pack_start(source_box, False, False, 0)
-        source_box.pack_start(InstallerLabel("Source:"), False, False, 0)
+        source_box.pack_start(InstallerLabel(_("Source:")), False, False, 0)
         button = Gtk.Button.new_with_label(self.get_source_button_label())
         button.connect("clicked", self.on_file_source_select)
         source_box.pack_start(button, False, False, 0)

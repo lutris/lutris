@@ -8,6 +8,7 @@ build
 tags
 *.pyc
 *.pyo
+*.ui~
 PYSMELLTAGS
 lutris.e4p
 .coverage

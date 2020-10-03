@@ -1,38 +1,76 @@
 """Module for handling the GOG service"""
-# Standard Library
 import json
 import os
 import time
 from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
 
-# Lutris Modules
-from lutris import api, pga, settings
+from lutris import settings
+from lutris.exceptions import AuthenticationError, MultipleInstallerError, UnavailableGame
 from lutris.gui.dialogs import WebConnectDialog
-from lutris.services import AuthenticationError, UnavailableGame
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
+from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
-from lutris.services.service_game import ServiceGame
+from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util import system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
-from lutris.util.resources import download_media
-
-NAME = _("GOG")
-ICON = "gog"
-ONLINE = True
+from lutris.util.strings import slugify
 
 
-class MultipleInstallerError(BaseException):
+class GogSmallBanner(ServiceMedia):
+    """Small size game logo"""
+    service = "gog"
+    size = (100, 60)
+    dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/small")
+    file_pattern = "%s.jpg"
+    api_field = "image"
+    url_pattern = "https:%s_prof_game_100x60.jpg"
 
-    """Current implementation doesn't know how to deal with multiple installers
-    Raise this if a game returns more than 1 installer."""
+
+class GogMediumBanner(GogSmallBanner):
+    """Medium size game logo"""
+    size = (196, 110)
+    dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/medium")
+    url_pattern = "https:%s_196.jpg"
 
 
-class GogService(OnlineService):
+class GogLargeBanner(GogSmallBanner):
+    """Big size game logo"""
+    size = (392, 220)
+    dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/large")
+    url_pattern = "https:%s_392.jpg"
 
+
+class GOGGame(ServiceGame):
+
+    """Representation of a GOG game"""
+    service = "gog"
+
+    @classmethod
+    def new_from_gog_game(cls, gog_game):
+        """Return a GOG game instance from the API info"""
+        service_game = GOGGame()
+        service_game.appid = str(gog_game["id"])
+        service_game.slug = gog_game["slug"]
+        service_game.name = gog_game["title"]
+        service_game.details = json.dumps(gog_game)
+        return service_game
+
+
+class GOGService(OnlineService):
     """Service class for GOG"""
 
-    name = "GOG"
+    id = "gog"
+    name = _("GOG")
+    icon = "gog"
+    medias = {
+        "banner_small": GogSmallBanner,
+        "banner": GogMediumBanner,
+        "banner_large": GogLargeBanner
+    }
+    default_format = "banner"
+
     embed_url = "https://embed.gog.com"
     api_url = "https://api.gog.com"
 
@@ -60,12 +98,26 @@ class GogService(OnlineService):
     def credential_files(self):
         return [self.cookies_path, self.token_path]
 
-    def is_available(self):
+    def login(self, parent=None):
+        """Connect to GOG"""
+        logger.debug("Connecting to GOG")
+        dialog = WebConnectDialog(self, parent)
+        dialog.set_modal(True)
+        dialog.show()
+
+    def is_connected(self):
         """Return whether the user is authenticated and if the service is available"""
         if not self.is_authenticated():
             return False
         user_data = self.get_user_data()
         return user_data and "username" in user_data
+
+    def load(self):
+        """Load the user game library from the GOG API"""
+        games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
+        for game in games:
+            game.save()
+        self.emit("service-games-loaded")
 
     def request_token(self, url="", refresh_token=""):
         """Get authentication token from GOG"""
@@ -98,12 +150,13 @@ class GogService(OnlineService):
         except HTTPError:
             logger.error("Failed to get token, check your GOG credentials.")
             logger.warning("Clearing existing credentials")
-            self.disconnect()
+            self.logout()
             return
 
         token = request.json
         with open(self.token_path, "w") as token_file:
             token_file.write(json.dumps(token))
+        self.emit("service-login")
 
     def load_token(self):
         """Load token from disk"""
@@ -177,10 +230,13 @@ class GogService(OnlineService):
             json.dump(games, gog_cache)
         return games
 
+    def get_service_game(self, gog_game):
+        return GOGGame.new_from_gog_game(gog_game)
+
     def get_products_page(self, page=1, search=None):
         """Return a single page of games"""
         if not self.is_authenticated():
-            raise RuntimeError("User is not logged in")
+            raise AuthenticationError("User is not logged in")
         params = {"mediaType": "1"}
         if page:
             params["page"] = page
@@ -235,66 +291,80 @@ class GogService(OnlineService):
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
         return gog_installers
 
+    def get_installer_files(self, installer, installer_file_id):
+        try:
+            links = get_gog_download_links(installer.service_appid, installer.runner)
+        except HTTPError:
+            raise UnavailableGame("Couldn't load the download links for this game")
+        if not links:
+            raise UnavailableGame("Could not fing GOG game")
+        files = []
+        file_id_provided = False  # Only assign installer_file_id once
+        for index, link in enumerate(links):
+            if isinstance(link, dict):
+                url = link["url"]
+            else:
+                url = link
+            filename = link["filename"]
+            if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
+                file_id = installer_file_id
+                file_id_provided = True
+            else:
+                file_id = "gog_file_%s" % index
+            files.append(
+                InstallerFile(installer.game_slug, file_id, {
+                    "url": url,
+                    "filename": filename,
+                })
+            )
+        if not file_id_provided:
+            raise UnavailableGame("Unable to determine correct file to launch installer")
+        return files
 
-class GOGGame(ServiceGame):
-
-    """Representation of a GOG game"""
-    store = "gog"
-
-    @classmethod
-    def new_from_gog_game(cls, gog_game):
-        """Return a GOG game instance from the API info"""
-        service_game = GOGGame()
-        service_game.appid = str(gog_game["id"])
-        service_game.icon = cls.get_banner(gog_game)
-        service_game.name = gog_game["title"]
-        service_game.details = json.dumps(gog_game)
-        return service_game
-
-    @classmethod
-    def get_banner(cls, gog_game):
-        """Return the path to the game banner.
-        Downloads the banner if not present.
-        """
-        image_url = "https:%s_prof_game_100x60.jpg" % gog_game["image"]
-        image_hash = gog_game["image"].split("/")[-1]
-        cache_dir = os.path.join(settings.CACHE_DIR, "gog/banners/small/")
-        if not system.path_exists(cache_dir):
-            os.makedirs(cache_dir)
-        cache_path = os.path.join(cache_dir, "%s.jpg" % image_hash)
-        if not system.path_exists(cache_path):
-            download_media(image_url, cache_path)
-        return cache_path
-
-
-SERVICE = GogService()
-
-
-def is_connected():
-    """Return True if user is connected to GOG"""
-    return SERVICE.is_available()
-
-
-def connect(parent=None):
-    """Connect to GOG"""
-    logger.debug("Connecting to GOG")
-    dialog = WebConnectDialog(SERVICE, parent)
-    dialog.set_modal(True)
-    dialog.show()
-
-
-def disconnect():
-    """Disconnect from GOG"""
-    SERVICE.disconnect()
+    def generate_installer(self, db_game):
+        details = json.loads(db_game["details"])
+        print(details)
+        platforms = [platform.lower() for platform, is_supported in details["worksOn"].items() if is_supported]
+        system_config = {}
+        if "linux" in platforms:
+            runner = "linux"
+            game_config = {"exe": AUTO_ELF_EXE}
+            script = [
+                {"extract": {"file": "goginstaller", "format": "zip", "dst": "$CACHE"}},
+                {"merge": {"src": "$CACHE/data/noarch", "dst": "$GAMEDIR"}},
+            ]
+        else:
+            runner = "wine"
+            game_config = {"exe": AUTO_WIN32_EXE}
+            script = [
+                {"task": {"name": "create_prefix", "prefix": "$GAMEDIR"}},
+                {"task": {"name": "wineexec", "executable": "goginstaller", "args": "args: /SP- /NOCANCEL"}},
+            ]
+        return {
+            "name": db_game["name"],
+            "version": "GOG",
+            "slug": details["slug"],
+            "game_slug": slugify(db_game["name"]),
+            "runner": runner,
+            "humbleid": db_game["appid"],
+            "script": {
+                "game": game_config,
+                "system": system_config,
+                "files": [
+                    {"goginstaller": "N/A:Select the installer from GOG"}
+                ],
+                "installer": script
+            }
+        }
 
 
 def get_gog_download_links(gogid, runner):
     """Return a list of downloadable links for a GOG game"""
-    gog_service = GogService()
-    if not gog_service.is_available():
+    gog_service = GOGService()
+    if not gog_service.is_connected():
         logger.info("You are not connected to GOG")
-        connect()
-    if not gog_service.is_available():
+        gog_service.login()
+    if not gog_service.is_connected():
         raise UnavailableGame
     gog_installers = gog_service.get_installers(gogid, runner)
     if len(gog_installers) > 1:
@@ -315,40 +385,3 @@ def get_gog_download_links(gogid, runner):
             logger.info("Adding %s to download links", url)
             download_links.append({"url": download_info[field], "filename": download_info[field + "_filename"]})
     return download_links
-
-
-class GOGSyncer:
-
-    """Sync GOG games to Lutris"""
-
-    @classmethod
-    def load(cls):
-        """Load the user game library from the GOG API"""
-        return [GOGGame.new_from_gog_game(game) for game in SERVICE.get_library()]
-
-    @classmethod
-    def sync(cls, games, full=False):
-        """Import GOG games to the Lutris library"""
-        gog_ids = [game.appid for game in games]
-        if not gog_ids:
-            return ([], [])
-        lutris_games = api.get_api_games(gog_ids, query_type="gogid")
-        added_games = []
-        for game in lutris_games:
-            lutris_data = pga.get_game_by_field(game["slug"], field="slug") or {}
-            game_data = {
-                "name": game["name"],
-                "slug": game["slug"],
-                "installed": lutris_data.get("installed"),
-                "configpath": lutris_data.get("configpath"),
-                "year": game["year"],
-                "updated": game["updated"],
-                "gogid": game.get("gogid"),  # GOG IDs will be added at a later stage in the API
-            }
-            added_games.append(pga.add_or_update(**game_data))
-        if not full:
-            return added_games, games
-        return added_games, []
-
-
-SYNCER = GOGSyncer

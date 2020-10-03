@@ -261,12 +261,12 @@ class wine(Runner):
             },
             {
                 "option": "fsync",
-                "label": "Enable Fsync",
+                "label": _("Enable Fsync"),
                 "type": "extended_bool",
                 "callback": fsync_support_callback,
                 "callback_on": True,
                 "active": True,
-                "help": (
+                "help": _(
                     "Enable futex-based synchronization (fsync). "
                     "This will increase performance in applications "
                     "that take advantage of multi-core processors. "

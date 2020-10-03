@@ -19,6 +19,7 @@ addons:
       - python3-pil
       - python3-setproctitle
       - python3-distro
+      - python3-magic
       - gir1.2-gtk-3.0
       - psmisc
       - gir1.2-glib-2.0

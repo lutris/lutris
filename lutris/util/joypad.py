@@ -28,6 +28,7 @@ def read_button(device):
     """Reference function for reading controller buttons and axis values.
     Not to be used as is.
     """
+    # pylint: disable=no-member
     for event in device.read_loop():
         if event.type == evdev.ecodes.EV_KEY and event.value == 0:
             print("button %s (%s): %s" % (event.code, hex(event.code), event.value))

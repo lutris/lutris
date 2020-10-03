@@ -1,22 +1,16 @@
-# Standard Library
 import importlib
 
-# Lutris Modules
 from lutris import settings
 from lutris.util.log import logger
 
-MIGRATION_VERSION = 8  # Never decrease this number
+MIGRATION_VERSION = 10  # Never decrease this number
 
 # Replace deprecated migrations with empty lists
 MIGRATIONS = [
-    [],
-    [],
-    [],
-    [],
-    ["fix_playtime"],
-    ["d9vk_to_dxvk"],
-    ["fix_playtime_type"],
+    [], [], [], [], [], [], [],
     ["mess_to_mame"],
+    ["migrate_hidden_ids"],
+    ["migrate_steam_appids"],
 ]
 
 

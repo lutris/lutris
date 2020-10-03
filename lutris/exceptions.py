@@ -24,13 +24,27 @@ class UnavailableLibraries(RuntimeError):
 
     def __init__(self, libraries, arch=None):
         message = _(
-            "The following %s libraries are required but are not installed on your system:\n%s"
-        ) % (
-            arch if arch else "",
-            ", ".join(libraries)
+            "The following {arch} libraries are required but are not installed on your system:\n{libs}"
+        ).format(
+            arch=arch if arch else "",
+            libs=", ".join(libraries)
         )
         super().__init__(message)
         self.libraries = libraries
+
+
+class AuthenticationError(Exception):
+    """Raised when authentication to a service fails"""
+
+
+class UnavailableGame(Exception):
+    """Raised when a game is available from a service"""
+
+
+class MultipleInstallerError(BaseException):
+
+    """Current implementation doesn't know how to deal with multiple installers
+    Raise this if a game returns more than 1 installer."""
 
 
 def watch_lutris_errors(function):

@@ -8,7 +8,6 @@ from gettext import gettext as _
 
 from gi.repository import Gio
 
-from lutris import pga
 from lutris.command import MonitoredCommand
 from lutris.game import Game
 from lutris.gui import dialogs
@@ -16,19 +15,11 @@ from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
-from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.utils import open_uri
+from lutris.installer import get_installers
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.system import path_exists
-
-
-def game_in_favorite(game_id):
-    categories = pga.get_categories_in_game(game_id)
-    for category in categories:
-        if category == "favorite":
-            return True
-    return False
 
 
 class GameActions:
@@ -66,7 +57,7 @@ class GameActions:
         """Return a list of game actions and their callbacks"""
         return [
             ("play", _("Play"), self.on_game_run),
-            ("stop", _("Stop"), self.on_stop),
+            ("stop", _("Stop"), self.on_game_stop),
             ("show_logs", _("Show logs"), self.on_show_logs),
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Add installed game"), self.on_add_manually),
@@ -102,44 +93,19 @@ class GameActions:
             ("unhide", _("Unhide game from library"), self.on_unhide_game),
         ]
 
-    def on_hide_game(self, _widget):
-        """Add a game to the list of hidden games"""
-        game = Game(self.window.view.selected_game.id)
-
-        # Append the new hidden ID and save it
-        ignores = pga.get_hidden_ids() + [game.id]
-        pga.set_hidden_ids(ignores)
-
-        # Update the GUI
-        if not self.window.show_hidden_games:
-            self.window.game_store.remove_game(game.id)
-
-    def on_unhide_game(self, _widget):
-        """Removes a game from the list of hidden games"""
-        game = Game(self.window.view.selected_game.id)
-
-        # Remove the ID to unhide and save it
-        ignores = pga.get_hidden_ids()
-        ignores.remove(game.id)
-        pga.set_hidden_ids(ignores)
-
-    @staticmethod
-    def is_game_hidden(game):
-        """Returns whether a game is on the list of hidden games"""
-        return game.id in pga.get_hidden_ids()
-
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
         return {
-            "add": not self.game.is_installed and not self.game.is_search_result,
+            "add": not self.game.is_installed,
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "stop": self.is_game_running,
-            "show_logs": self.game.is_installed,
             "configure": bool(self.game.is_installed),
-            "favorite": self.game.is_installed and bool(not game_in_favorite(self.game_id)),
-            "deletefavorite": self.game.is_installed and bool(game_in_favorite(self.game_id)),
-            "install_more": self.game.is_installed and not self.game.is_search_result,
+            "browse": self.game.is_installed and self.game.runner_name != "browser",
+            "show_logs": self.game.is_installed,
+            "favorite": not self.game.is_favorite,
+            "deletefavorite": self.game.is_favorite,
+            "install_more": self.game.is_installed,
             "execute-script": bool(self.game.is_installed and self.game.runner.system_config.get("manual_command")),
             "desktop-shortcut": (
                 self.game.is_installed
@@ -157,11 +123,10 @@ class GameActions:
                 self.game.is_installed
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
-            "browse": self.game.is_installed and self.game.runner_name != "browser",
-            "remove": not self.game.is_search_result,
+            "remove": self.game.is_installed,
             "view": True,
-            "hide": not GameActions.is_game_hidden(self.game),
-            "unhide": GameActions.is_game_hidden(self.game)
+            "hide": not self.game.is_hidden,
+            "unhide": self.game.is_hidden,
         }
 
     def on_game_run(self, *_args):
@@ -171,13 +136,12 @@ class GameActions:
     def get_running_game(self):
         for i in range(self.application.running_games.get_n_items()):
             game = self.application.running_games.get_item(i)
-            if game == self.game:
+            if game.id == self.game.id:
                 return game
         return None
 
-    def on_stop(self, caller):  # pylint: disable=unused-argument
+    def on_game_stop(self, caller):  # pylint: disable=unused-argument
         """Stops the game"""
-
         matched_game = self.get_running_game()
         if not matched_game:
             logger.warning(
@@ -202,7 +166,8 @@ class GameActions:
     def on_install_clicked(self, *_args):
         """Install a game"""
         # Install the currently selected game in the UI
-        self.application.show_window(InstallerWindow, parent=self.window, game_slug=self.game.slug)
+        installers = get_installers(game_slug=self.game.slug)
+        self.application.show_installer_window(installers=installers)
 
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""
@@ -214,15 +179,19 @@ class GameActions:
 
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""
-        favorite = pga.get_category("favorite")
-        if not favorite:
-            favorite = pga.add_category("favorite")
-        pga.add_game_to_category(self.game.id, favorite["id"])
+        self.game.add_to_favorites()
 
     def on_delete_favorite_game(self, _widget):
         """delete from favorites"""
-        favorite = pga.get_category("favorite")
-        pga.remove_category_from_game(self.game_id, favorite["id"])
+        self.game.remove_from_favorites()
+
+    def on_hide_game(self, _widget):
+        """Add a game to the list of hidden games"""
+        self.game.hide()
+
+    def on_unhide_game(self, _widget):
+        """Removes a game from the list of hidden games"""
+        self.game.unhide()
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""
@@ -267,4 +236,4 @@ class GameActions:
 
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""
-        UninstallGameDialog(game_id=self.game.id, callback=self.window.remove_game_from_view, parent=self.window)
+        UninstallGameDialog(game_id=self.game.id, callback=self.window.update_store, parent=self.window)
