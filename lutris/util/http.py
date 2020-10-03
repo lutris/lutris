@@ -1,23 +1,22 @@
-# Standard Library
+"""HTTP utilities"""
 import json
+import os
 import socket
 import urllib.error
 import urllib.parse
 import urllib.request
 from ssl import CertificateError
 
-# Lutris Modules
 from lutris.settings import PROJECT, SITE_URL, VERSION
+from lutris.util import system
 from lutris.util.log import logger
 
 
 class HTTPError(Exception):
-
     """Exception raised on request failures"""
 
 
 class UnauthorizedAccess(Exception):
-
     """Exception raised for 401 HTTP errors"""
 
 
@@ -39,6 +38,7 @@ class Request:
             url = "https:" + url
 
         if url.startswith("/"):
+            logger.warning("Please don't do that")
             url = SITE_URL + url
 
         self.url = url
@@ -135,3 +135,18 @@ class Request:
         if self.content:
             return self.content.decode()
         return ""
+
+
+def download_file(url, dest, overwrite=False):
+    """Save a remote resource locally"""
+    if system.path_exists(dest):
+        if overwrite:
+            os.remove(dest)
+        else:
+            return dest
+    try:
+        request = Request(url).get()
+    except HTTPError:
+        return
+    request.write_to_file(dest)
+    return dest

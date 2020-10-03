@@ -1,26 +1,20 @@
 """XDG applications service"""
-
-# Standard Library
+import json
 import os
 import re
 import shlex
 import subprocess
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gio
 
-# Lutris Modules
-from lutris import pga
 from lutris.config import LutrisConfig
-from lutris.services.service_game import ServiceGame
+from lutris.database.games import get_games_where
+from lutris.services.base import BaseService
+from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-
-NAME = _("Desktop games")
-ICON = "linux"
-ONLINE = False
 
 
 def get_appid(app):
@@ -35,95 +29,22 @@ def get_appid(app):
         return app.get_executable()
 
 
-class XDGGame(ServiceGame):
-
-    """XDG game (Linux game with a desktop launcher)"""
-
-    store = "xdg"
-    runner = "linux"
-    installer_slug = "desktopapp"
-
-    @staticmethod
-    def get_app_icon(xdg_app):
-        """Return the name of the icon for an XDG app if one if set"""
-        icon = xdg_app.get_icon()
-        if not icon:
-            return ""
-        return icon.to_string()
-
-    @classmethod
-    def new_from_xdg_app(cls, xdg_app):
-        """Create a service game from a XDG entry"""
-        service_game = cls()
-        service_game.name = xdg_app.get_display_name()
-        service_game.icon = cls.get_app_icon(xdg_app)
-        service_game.appid = get_appid(xdg_app)
-        service_game.slug = cls.get_slug(xdg_app)
-        service_game.runner = "linux"
-        exe, args = cls.get_command_args(xdg_app)
-        service_game.details = {
-            "exe": exe,
-            "args": args,
-        }
-        return service_game
-
-    def create_config(self):
-        """Create a Lutris config for the current game"""
-        config = LutrisConfig(runner_slug=self.runner, game_config_id=self.config_id)
-        config.raw_game_config.update(
-            {
-                "appid": self.appid,
-                "exe": self.details["exe"],
-                "args": self.details["args"],
-            }
-        )
-        config.raw_system_config.update({"disable_runtime": True})
-        config.save()
-
-    @staticmethod
-    def get_command_args(app):
-        """Return a tuple with absolute command path and an argument string"""
-        command = shlex.split(app.get_commandline())
-        # remove %U etc. and change %% to % in arguments
-        args = list(map(lambda arg: re.sub("%[^%]", "", arg).replace("%%", "%"), command[1:]))
-        exe = command[0]
-        if not exe.startswith("/"):
-            exe = system.find_executable(exe)
-        return exe, subprocess.list2cmdline(args)
-
-    @staticmethod
-    def get_slug(xdg_app):
-        """Get the slug from the game name"""
-        return slugify(xdg_app.get_display_name()) or slugify(get_appid(xdg_app))
+class XDGMedia(ServiceMedia):
+    service = "xdg"
+    source = "local"
+    size = (64, 64)
 
 
-class XDGSyncer:
+class XDGService(BaseService):
+    id = "xdg"
+    name = _("Local")
+    icon = "linux"
+    online = False
+    medias = {
+        "icon": XDGMedia
+    }
 
-    """Sync games available in a XDG compliant menu to Lutris"""
-
-    ignored_games = (
-        "lutris",
-        "mame",
-        "dosbox",
-        "playonlinux",
-        "org.gnome.Games",
-        "com.github.tkashkin.gamehub",
-        "retroarch",
-        "steam",
-        "steam-runtime",
-        "steam-valve",
-        "steam-native",
-        "PlayOnLinux",
-        "fs-uae-arcade",
-        "PCSX2",
-        "ppsspp",
-        "qchdman",
-        "qmc2-sdlmame",
-        "qmc2-arcade",
-        "sc-controller",
-        "epsxe",
-        "lsi-settings",
-    )
+    ignored_games = ("lutris", )
     ignored_executables = ("lutris", "steam")
     ignored_categories = ("Emulator", "Development", "Utility")
 
@@ -131,17 +52,17 @@ class XDGSyncer:
     def iter_xdg_games(cls):
         """Iterates through XDG games only"""
         for app in Gio.AppInfo.get_all():
-            if cls.is_importable(app):
+            if cls._is_importable(app):
                 yield app
 
     @property
     def lutris_games(self):
         """Iterates through Lutris games imported from XDG"""
-        for game in pga.get_games_where(runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1):
+        for game in get_games_where(runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1):
             yield game
 
     @classmethod
-    def is_importable(cls, app):
+    def _is_importable(cls, app):
         """Returns whether a XDG game is importable to Lutris"""
         appid = get_appid(app)
         executable = app.get_executable() or ""
@@ -167,40 +88,69 @@ class XDGSyncer:
             return False
         return True
 
-    @classmethod
-    def load(cls):
+    def load(self):
         """Return the list of games stored in the XDG menu."""
-        return [XDGGame.new_from_xdg_app(app) for app in cls.iter_xdg_games()]
+        xdg_games = [XDGGame.new_from_xdg_app(app) for app in self.iter_xdg_games()]
+        for game in xdg_games:
+            game.save()
+        self.emit("service-games-loaded")
 
-    def sync(self, games, full=False):
-        """Sync the given games to the lutris library
-
-        Params:
-            games (list): List of ServiceGames to sync
-            full (bool): Run a full sync, removes games not found from the lutris library
-
-        Return:
-            tuple: 2-tuple of added and removed game ID lists
-        """
-        installed_games = {game["slug"]: game for game in self.lutris_games}
-        available_games = set()
-        added_games = []
-        removed_games = []
-        for xdg_game in games:
-            available_games.add(xdg_game.slug)
-            if xdg_game.slug not in installed_games.keys():
-                game_id = xdg_game.install()
-                added_games.append(game_id)
-
-        if not full:
-            return added_games, games
-
-        for slug in set(installed_games.keys()).difference(available_games):
-            game_id = installed_games[slug]["id"]
-            removed_games.append(game_id)
-            service_game = XDGGame.new_from_lutris_id(game_id)
-            service_game.uninstall()
-        return added_games, removed_games
+    def create_config(self, db_game, config_id):
+        details = json.loads(db_game["details"])
+        config = LutrisConfig(runner_slug="linux", game_config_id=config_id)
+        config.raw_game_config.update(
+            {
+                "exe": details["exe"],
+                "args": details["args"],
+            }
+        )
+        config.raw_system_config.update({"disable_runtime": True})
+        config.save()
 
 
-SYNCER = XDGSyncer
+class XDGGame(ServiceGame):
+    """XDG game (Linux game with a desktop launcher)"""
+
+    service = "xdg"
+    runner = "linux"
+    installer_slug = "desktopapp"
+
+    @staticmethod
+    def get_app_icon(xdg_app):
+        """Return the name of the icon for an XDG app if one if set"""
+        icon = xdg_app.get_icon()
+        if not icon:
+            return ""
+        return icon.to_string()
+
+    @classmethod
+    def new_from_xdg_app(cls, xdg_app):
+        """Create a service game from a XDG entry"""
+        service_game = cls()
+        service_game.name = xdg_app.get_display_name()
+        service_game.icon = cls.get_app_icon(xdg_app)
+        service_game.appid = get_appid(xdg_app)
+        service_game.slug = cls.get_slug(xdg_app)
+        service_game.runner = "linux"
+        exe, args = cls.get_command_args(xdg_app)
+        service_game.details = json.dumps({
+            "exe": exe,
+            "args": args,
+        })
+        return service_game
+
+    @staticmethod
+    def get_command_args(app):
+        """Return a tuple with absolute command path and an argument string"""
+        command = shlex.split(app.get_commandline())
+        # remove %U etc. and change %% to % in arguments
+        args = list(map(lambda arg: re.sub("%[^%]", "", arg).replace("%%", "%"), command[1:]))
+        exe = command[0]
+        if not exe.startswith("/"):
+            exe = system.find_executable(exe)
+        return exe, subprocess.list2cmdline(args)
+
+    @staticmethod
+    def get_slug(xdg_app):
+        """Get the slug from the game name"""
+        return slugify(xdg_app.get_display_name()) or slugify(get_appid(xdg_app))

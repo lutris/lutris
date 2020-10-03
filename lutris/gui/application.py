@@ -27,12 +27,15 @@ import gi
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 gi.require_version("GnomeDesktop", "3.0")
+
 from gi.repository import Gio, GLib, Gtk
 
-from lutris import pga, settings
+from lutris import settings
 from lutris.api import parse_installer_url
 from lutris.command import exec_command
+from lutris.database import games as games_db
 from lutris.game import Game
+from lutris.installer import get_installers
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
@@ -57,11 +60,16 @@ class Application(Gtk.Application):
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         )
-        init_lutris()
-
         GLib.set_application_name(_("Lutris"))
-        self.running_games = Gio.ListStore.new(Game)
         self.window = None
+
+        try:
+            init_lutris()
+        except RuntimeError as ex:
+            ErrorDialog(str(ex))
+            return
+
+        self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
@@ -232,10 +240,21 @@ class Application(Gtk.Application):
         self.app_windows[window_key] = window_inst
         return window_inst
 
+    def show_installer_window(self, installers, service=None, appid=None):
+        self.show_window(
+            InstallerWindow,
+            installers=installers,
+            service=service,
+            appid=appid
+        )
+
     def on_app_window_destroyed(self, app_window, kwargs_str):
         """Remove the reference to the window when it has been destroyed"""
         window_key = str(app_window.__class__) + kwargs_str
-        del self.app_windows[window_key]
+        try:
+            del self.app_windows[window_key]
+        except KeyError:
+            logger.debug("No window %s", window_key)
         return True
 
     @staticmethod
@@ -289,14 +308,14 @@ class Application(Gtk.Application):
             logger.setLevel(logging.NOTSET)
             return 0
 
-        logger.info("Running Lutris %s", settings.VERSION)
+        logger.info("Lutris %s", settings.VERSION)
         migrate()
         run_all_checks()
         AsyncCall(init_dxvk_versions, None)
 
         # List game
         if options.contains("list-games"):
-            game_list = pga.get_games()
+            game_list = games_db.get_games()
             if options.contains("installed"):
                 game_list = [game for game in game_list if game["installed"]]
             if options.contains("json"):
@@ -373,21 +392,22 @@ class Application(Gtk.Application):
             if action == "rungameid":
                 # Force db_game to use game id
                 self.run_in_background = True
-                db_game = pga.get_game_by_field(game_slug, "id")
+                db_game = games_db.get_game_by_field(game_slug, "id")
             elif action == "rungame":
                 # Force db_game to use game slug
                 self.run_in_background = True
-                db_game = pga.get_game_by_field(game_slug, "slug")
+                db_game = games_db.get_game_by_field(game_slug, "slug")
             elif action == "install":
                 # Installers can use game or installer slugs
                 self.run_in_background = True
-                db_game = pga.get_game_by_field(game_slug, "slug") \
-                    or pga.get_game_by_field(game_slug, "installer_slug")
+                db_game = games_db.get_game_by_field(game_slug, "slug") \
+                    or games_db.get_game_by_field(game_slug, "installer_slug")
             else:
                 # Dazed and confused, try anything that might works
                 db_game = (
-                    pga.get_game_by_field(game_slug, "id") or pga.get_game_by_field(game_slug, "slug")
-                    or pga.get_game_by_field(game_slug, "installer_slug")
+                    games_db.get_game_by_field(game_slug, "id")
+                    or games_db.get_game_by_field(game_slug, "slug")
+                    or games_db.get_game_by_field(game_slug, "installer_slug")
                 )
 
         # If reinstall flag is passed, force the action to install
@@ -419,15 +439,14 @@ class Application(Gtk.Application):
                 # No game found, default to install if a game_slug or
                 # installer_file is provided
                 action = "install"
-
         if action == "install":
-            self.show_window(
-                InstallerWindow,
-                parent=self.window,
+            installers = get_installers(
                 game_slug=game_slug,
                 installer_file=installer_file,
                 revision=revision,
             )
+            self.show_installer_window(installers)
+
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
                 logger.warning("No game found in library")
@@ -469,7 +488,7 @@ class Application(Gtk.Application):
         game_index = self.get_game_index(game.id)
         if game_index is not None:
             self.running_games.remove(game_index)
-        game.emit("game-stopped", game.id)
+        game.emit("game-stopped")
 
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.show()  # Show launcher window
@@ -553,9 +572,10 @@ class Application(Gtk.Application):
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
-        Gtk.Application.do_shutdown(self)
         if self.window:
+            settings.write_setting("selected_category", self.window.selected_category)
             self.window.destroy()
+        Gtk.Application.do_shutdown(self)
 
     def set_tray_icon(self):
         """Creates or destroys a tray icon for the application"""

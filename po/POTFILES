@@ -18,8 +18,8 @@ lutris/gui/config/common.py
 lutris/gui/config/edit_game.py
 lutris/gui/config/runner.py
 lutris/gui/config/system.py
-lutris/gui/dialogs/__init__.py
 lutris/gui/dialogs/download.py
+lutris/gui/dialogs/__init__.py
 lutris/gui/dialogs/issue.py
 lutris/gui/dialogs/log.py
 lutris/gui/dialogs/runner_install.py
@@ -38,15 +38,11 @@ lutris/gui/widgets/services.py
 lutris/gui/widgets/sidebar.py
 lutris/gui/widgets/status_icon.py
 lutris/installer/commands.py
-lutris/runners/ags.py
+lutris/installer/interpreter.py
 lutris/runners/atari800.py
 lutris/runners/browser.py
-lutris/runners/citra.py
-lutris/runners/desmume.py
-lutris/runners/dgen.py
 lutris/runners/dolphin.py
 lutris/runners/dosbox.py
-lutris/runners/frotz.py
 lutris/runners/fsuae.py
 lutris/runners/hatari.py
 lutris/runners/jzintv.py
@@ -60,7 +56,6 @@ lutris/runners/openmsx.py
 lutris/runners/osmose.py
 lutris/runners/pcsx2.py
 lutris/runners/pico8.py
-lutris/runners/ppsspp.py
 lutris/runners/reicast.py
 lutris/runners/residualvm.py
 lutris/runners/rpcs3.py
@@ -68,9 +63,7 @@ lutris/runners/runner.py
 lutris/runners/scummvm.py
 lutris/runners/snes9x.py
 lutris/runners/steam.py
-lutris/runners/stella.py
 lutris/runners/vice.py
-lutris/runners/virtualjaguar.py
 lutris/runners/web.py
 lutris/runners/wine.py
 lutris/runners/winesteam.py

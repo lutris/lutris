@@ -1,5 +1,4 @@
 """Functions to interact with the Lutris REST API"""
-# Standard Library
 import json
 import os
 import re
@@ -8,9 +7,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-# Lutris Modules
 from lutris import settings
-from lutris.util import http, resources, system
+from lutris.util import http, system
+
 from lutris.util.log import logger
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
@@ -53,7 +52,7 @@ def connect(username, password):
 
 def disconnect():
     """Removes the API token, disconnecting the user"""
-    for file_path in [API_KEY_FILE_PATH, USER_INFO_FILE_PATH, USER_ICON_FILE_PATH]:
+    for file_path in [API_KEY_FILE_PATH, USER_INFO_FILE_PATH]:
         if system.path_exists(file_path):
             os.remove(file_path)
 
@@ -71,26 +70,6 @@ def get_user_info():
         logger.warning("Unable to fetch user info for %s", credentials["username"])
     with open(USER_INFO_FILE_PATH, "w") as token_file:
         json.dump(account_info, token_file, indent=2)
-    if account_info.get("avatar_url"):
-        resources.download_media(account_info["avatar_url"], USER_ICON_FILE_PATH)
-
-
-def get_library():
-    """Return the remote library as a list of dicts."""
-    credentials = read_api_key()
-    if not credentials:
-        return []
-    url = settings.SITE_URL + "/api/games/library/%s" % urllib.parse.quote(credentials["username"])
-    request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
-    try:
-        response = request.get()
-    except http.HTTPError as ex:
-        logger.error("Unable to load library: %s", ex)
-        return []
-    response_data = response.json
-    if response_data:
-        return response_data["games"]
-    return []
 
 
 def get_runners(runner_name):
@@ -100,7 +79,20 @@ def get_runners(runner_name):
     return response.json
 
 
-def get_game_api_page(game_ids, page="1", query_type="games"):
+def get_http_response(url, payload):
+    response = http.Request(url, headers={"Content-Type": "application/json"})
+    try:
+        response.get(data=payload)
+    except http.HTTPError as ex:
+        logger.error("Unable to get games from API: %s", ex)
+        return None
+    if response.status_code != 200:
+        logger.error("API call failed: %s", response.status_code)
+        return None
+    return response.json
+
+
+def get_game_api_page(game_ids, page=1):
     """Read a single page of games from the API and return the response
 
     Args:
@@ -110,36 +102,32 @@ def get_game_api_page(game_ids, page="1", query_type="games"):
                           games by their Lutris slug. 'gogid' can also be used.
     """
     url = settings.SITE_URL + "/api/games"
-
     if int(page) > 1:
         url += "?page={}".format(page)
-
-    response = http.Request(url, headers={"Content-Type": "application/json"})
-    if game_ids:
-        payload = json.dumps({query_type: game_ids, "page": page}).encode("utf-8")
-    else:
-        raise ValueError("No game id provided will fetch all games from the API")
-    try:
-        response.get(data=payload)
-    except http.HTTPError as ex:
-        logger.error("Unable to get games from API: %s", ex)
-        return None
-    response_data = response.json
-    num_games = len(response_data.get("results"))
-    if num_games:
-        logger.debug("Loaded %s games from page %s", num_games, page)
-    else:
-        logger.debug("No game found for %s", ', '.join(game_ids))
-
-    if not response_data:
-        logger.warning("Unable to get games from API, status code: %s", response.status_code)
-        return None
-    return response_data
+    if not game_ids:
+        return []
+    payload = json.dumps({"games": game_ids, "page": page}).encode("utf-8")
+    return get_http_response(url, payload)
 
 
-def get_api_games(game_slugs=None, page="1", query_type="games", inject_aliases=False):
+def get_game_service_api_page(service, appids, page=1):
+    """Get matching Lutris games from a list of appids from a given service"""
+    url = settings.SITE_URL + "/api/games/service/%s" % service
+    if int(page) > 1:
+        url += "?page={}".format(page)
+    if not appids:
+        return []
+    payload = json.dumps({"appids": appids}).encode("utf-8")
+    return get_http_response(url, payload)
+
+
+def get_api_games(game_slugs=None, page=1, service=None):
     """Return all games from the Lutris API matching the given game slugs"""
-    response_data = get_game_api_page(game_slugs, page=page, query_type=query_type)
+    if service:
+        response_data = get_game_service_api_page(service, game_slugs)
+    else:
+        response_data = get_game_api_page(game_slugs)
+
     if not response_data:
         return []
     results = response_data.get("results", [])
@@ -150,20 +138,14 @@ def get_api_games(game_slugs=None, page="1", query_type="games", inject_aliases=
         else:
             logger.error("No page found in %s", response_data["next"])
             break
-        response_data = get_game_api_page(game_slugs, page=next_page, query_type=query_type)
+        if service:
+            response_data = get_game_service_api_page(service, game_slugs, page=next_page)
+        else:
+            response_data = get_game_api_page(game_slugs, page=next_page)
         if not response_data:
             logger.warning("Unable to get response for page %s", next_page)
             break
         results += response_data.get("results")
-    if game_slugs and inject_aliases:
-        matched_games = []
-        for game in results:
-            for alias_slug in [alias["slug"] for alias in game.get("aliases", [])]:
-                if alias_slug in game_slugs:
-                    matched_games.append((alias_slug, game))
-        for alias_slug, game in matched_games:
-            game["slug"] = alias_slug
-            results.append(game)
     return results
 
 
@@ -171,12 +153,7 @@ def search_games(query):
     if not query:
         return []
     query = query.lower().strip()[:32]
-    if query == "open source games":
-        url = "/api/bundles/open-source"
-    elif query == "free to play games":
-        url = "/api/bundles/free-to-play"
-    else:
-        url = "/api/games?%s" % urllib.parse.urlencode({"search": query})
+    url = "/api/games?%s" % urllib.parse.urlencode({"search": query})
     response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
     try:
         response.get()
@@ -184,19 +161,20 @@ def search_games(query):
         logger.error("Unable to get games from API: %s", ex)
         return None
     response_data = response.json
-    if "bundles" in url:
-        api_games = response_data.get("games", [])
-    else:
-        api_games = response_data.get("results", [])
-    for index, game in enumerate(api_games, 1):
-        game["id"] = index * -1
-        game["installed"] = 1
-        game["runner"] = None
-        game["platform"] = None
-        game["lastplayed"] = None
-        game["installed_at"] = None
-        game["playtime"] = None
-    return api_games
+    return response_data.get("results", [])
+
+
+def get_bundle(bundle):
+    """Retrieve a lutris bundle from the API"""
+    url = "/api/bundles/%s" % bundle
+    response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
+    try:
+        response.get()
+    except http.HTTPError as ex:
+        logger.error("Unable to get bundle from API: %s", ex)
+        return None
+    response_data = response.json
+    return response_data.get("games", [])
 
 
 def parse_installer_url(url):

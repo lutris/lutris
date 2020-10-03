@@ -65,7 +65,6 @@ disable=
     inconsistent-return-statements,
     unsubscriptable-object,
     not-an-iterable,
-    no-member,
     unused-argument,
     bare-except,
     too-many-statements,

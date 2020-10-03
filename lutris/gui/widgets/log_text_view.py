@@ -2,7 +2,8 @@
 from gi.repository import Gtk
 
 
-class LogTextView(Gtk.TextView):  # pylint: disable=no-member
+class LogTextView(Gtk.TextView):
+    # pylint: disable=no-member
 
     def __init__(self, buffer=None, autoscroll=True):
         super().__init__()

@@ -1,16 +1,14 @@
 """Base module for runners"""
-# Standard Library
 import os
 from abc import ABC, abstractmethod
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gtk
 
-# Lutris Modules
-from lutris import pga, runtime, settings
+from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
+from lutris.database.games import get_game_by_field
 from lutris.exceptions import UnavailableLibraries
 from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
@@ -42,7 +40,7 @@ class Runner(ABC):  # pylint: disable=too-many-public-methods
         """Initialize runner."""
         self.config = config
         if config:
-            self.game_data = pga.get_game_by_field(self.config.game_config_id, "configpath")
+            self.game_data = get_game_by_field(self.config.game_config_id, "configpath")
         else:
             self.game_data = {}
 
@@ -244,7 +242,7 @@ class Runner(ABC):  # pylint: disable=too-many-public-methods
         for lib in set(self.require_libs):
             if lib in LINUX_SYSTEM.shared_libraries:
                 if self.arch:
-                    if self.arch in [l.arch for l in LINUX_SYSTEM.shared_libraries[lib]]:
+                    if self.arch in [_lib.arch for _lib in LINUX_SYSTEM.shared_libraries[lib]]:
                         available_libs.add(lib)
                 else:
                     available_libs.add(lib)
@@ -305,7 +303,8 @@ class Runner(ABC):  # pylint: disable=too-many-public-methods
             from lutris.gui.dialogs import ErrorDialog
             try:
                 if hasattr(self, "get_version"):
-                    self.install(downloader=simple_downloader, version=self.get_version(use_default=False))
+                    version = self.get_version(use_default=False)  # pylint: disable=no-member
+                    self.install(downloader=simple_downloader, version=version)
                 else:
                     self.install(downloader=simple_downloader)
             except RunnerInstallationError as ex:

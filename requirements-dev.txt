@@ -11,7 +11,7 @@
 ################################################################################
 
 appdirs==1.4.3
-astroid==2.3.3
+astroid==2.4.0
 autopep8==1.5.2
 certifi==2020.4.5.1
 distlib==0.3.0
@@ -32,5 +32,5 @@ pygobject==3.36.0
 pylint==2.4.4
 six==1.14.0
 virtualenv-clone==0.5.4
-virtualenv==20.0.18
-wrapt==1.11.2
+virtualenv==20.0.20
+wrapt==1.12.1

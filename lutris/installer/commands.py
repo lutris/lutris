@@ -1,18 +1,14 @@
 """Commands for installer scripts"""
-# Standard Library
 import glob
 import json
 import multiprocessing
 import os
 import shlex
 import shutil
-import stat
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import GLib
 
-# Lutris Modules
 from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
@@ -77,8 +73,9 @@ class CommandsMixin:
     def chmodx(self, filename):
         """Make filename executable"""
         filename = self._substitute(filename)
-        file_stats = os.stat(filename)
-        os.chmod(filename, file_stats.st_mode | stat.S_IEXEC)
+        if not system.path_exists(filename):
+            raise ScriptingError("Invalid file '%s'. Can't make it executable" % filename)
+        system.make_executable(filename)
 
     def execute(self, data):
         """Run an executable file."""
@@ -127,13 +124,12 @@ class CommandsMixin:
         else:
             # Determine whether 'file' value is a file id or a path
             file_ref = self._get_file(file_ref)
-
+        if system.path_exists(file_ref) and not system.is_executable(file_ref):
+            logger.warning("Making %s executable", file_ref)
+            system.make_executable(file_ref)
         exec_path = system.find_executable(file_ref)
         if not exec_path:
             raise ScriptingError("Unable to find executable %s" % file_ref)
-        if not os.access(exec_path, os.X_OK):
-            logger.warning("Making %s executable", exec_path)
-            self.chmodx(exec_path)
 
         if terminal:
             terminal = system.get_default_terminal()
@@ -176,6 +172,7 @@ class CommandsMixin:
             extractor = data.get("format")
             logger.debug("extracting file %s to %s", filename, dest_path)
             self._killable_process(extract.extract_archive, filename, dest_path, merge_single, extractor)
+        logger.debug("Extract done")
 
     def input_menu(self, data):
         """Display an input request as a dropdown menu with options."""
@@ -253,6 +250,9 @@ class CommandsMixin:
         src, dst = self._get_move_paths(params)
         logger.debug("Merging %s into %s", src, dst)
         if not os.path.exists(src):
+            if params.get("optional"):
+                logger.info("Optional path %s not present", src)
+                return
             raise ScriptingError("Source does not exist: %s" % src, params)
         if not os.path.exists(dst):
             os.makedirs(dst)
@@ -277,6 +277,9 @@ class CommandsMixin:
         src, dst = self._get_move_paths(params)
         logger.debug("Moving %s to %s", src, dst)
         if not os.path.exists(src):
+            if params.get("optional"):
+                logger.info("Optional path %s not present", src)
+                return
             raise ScriptingError("I can't move %s, it does not exist" % src)
 
         if os.path.isfile(src):
@@ -515,4 +518,5 @@ class CommandsMixin:
         self.abort_current_task = process.terminate
         result = result_obj.get()  # Wait process end & reraise exceptions
         self.abort_current_task = None
+        logger.debug("Process %s returned: %s", func, result)
         return result

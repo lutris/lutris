@@ -21,10 +21,12 @@ class GameListView(Gtk.TreeView, GameView):
 
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, store):
+    def __init__(self, store, service_media):
         self.game_store = store
-        self.model = self.game_store.modelsort
-        super().__init__(self.model)
+        self.service_media = service_media
+        self.model = self.game_store.store
+        super().__init__(model=self.model)
+        GameView.__init__(self)
         self.set_rules_hint(True)
 
         # Icon column
@@ -81,7 +83,9 @@ class GameListView(Gtk.TreeView, GameView):
 
     def set_column_sort(self, col):
         """Sort a column and fallback to sorting by name and runner."""
-        self.model.set_sort_func(col, sort_func, col)
+        model = self.get_model()
+        if model:
+            model.set_sort_func(col, sort_func, col)
 
     def set_sort_with_column(self, col, sort_col):
         """Sort a column by using another column's data"""
@@ -115,18 +119,18 @@ class GameListView(Gtk.TreeView, GameView):
         """Handles double clicks"""
         selected_item = self.get_selected_item()
         if selected_item:
-            selected_game = self.get_selected_game(selected_item)
+            selected_id = self.get_selected_id(selected_item)
         else:
-            selected_game = None
-        self.emit("game-activated", selected_game)
+            selected_id = None
+        self.emit("game-activated", selected_id)
 
     def on_cursor_changed(self, widget, _line=None, _column=None):
         selected_item = self.get_selected_item()
         if selected_item:
-            self.selected_game = self.get_selected_game(selected_item)
+            selected_id = self.get_selected_id(selected_item)
         else:
-            self.selected_game = None
-        self.emit("game-selected", self.selected_game)
+            selected_id = None
+        self.emit("game-selected", selected_id)
 
     @staticmethod
     def on_column_width_changed(col, *args):
