@@ -17,8 +17,8 @@ from lutris.gui.config.system import SystemConfigDialog
 from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
-from lutris.gui.views.menu import ContextualMenu
 from lutris.gui.views.store import GameStore
+from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.services import ServiceBar
@@ -385,7 +385,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         for child in self.blank_overlay.get_children():
             child.destroy()
         games = self.get_games_from_filters()
-        self.view.service = self.service.id if self.service else "lutris"
+        self.view.service = self.service.id if self.service else None
         self.reload_service_media()
         self.update_revealer()
         if games is None:

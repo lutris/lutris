@@ -81,6 +81,12 @@ def get_games_by_ids(game_ids):
     )
 
 
+def get_game_for_service(service, appid):
+    existing_games = get_games(filters={"service_id": appid, "service": service})
+    if existing_games:
+        return existing_games[0]
+
+
 def get_game_by_field(value, field="slug"):
     """Query a game based on a database field"""
     if field not in ("slug", "installer_slug", "id", "configpath"):

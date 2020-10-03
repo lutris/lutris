@@ -4,7 +4,7 @@ from gettext import gettext as _
 from gi.repository import Gio, GObject, Gtk
 
 from lutris import runners, services
-from lutris.database.games import add_or_update, get_games
+from lutris.database.games import add_or_update, get_game_for_service
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
 from lutris.util.strings import gtk_safe
@@ -31,14 +31,14 @@ class GameBar(Gtk.Fixed):
         else:
             self.service = None
         game_id = None
-        if "service_id" in db_game:  # Any field that isn't in service game. Not ideal
+        if "service_id" in db_game:
             self.appid = db_game["service_id"]
             game_id = db_game["id"]
         elif self.service:
             self.appid = db_game["appid"]
-            existing_games = get_games(filters={"service_id": self.appid, "service": self.service.id})
-            if existing_games:
-                game_id = existing_games[0]["id"]
+            game = get_game_for_service(self.service.id, self.appid)
+            if game:
+                game_id = game["id"]
         if game_id:
             self.game = Game(game_id)
         else:
