@@ -4,8 +4,11 @@ import os
 import re
 import shutil
 import signal
+import stat
 import string
 import subprocess
+
+from gi.repository import GLib
 
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -88,6 +91,16 @@ def get_file_checksum(filename, hash_type):
         for chunk in iter(lambda: input_file.read(4096), b""):
             hasher.update(chunk)
     return hasher.hexdigest()
+
+
+def is_executable(exec_path):
+    """Return whether exec_path is an executable"""
+    return os.access(exec_path, os.X_OK)
+
+
+def make_executable(exec_path):
+    file_stats = os.stat(exec_path)
+    os.chmod(exec_path, file_stats.st_mode | stat.S_IEXEC)
 
 
 def find_executable(exec_name):
@@ -356,3 +369,12 @@ def get_existing_parent(path):
     if os.path.exists(path) and not os.path.isfile(path):
         return path
     return get_existing_parent(os.path.dirname(path))
+
+
+def update_desktop_icons():
+    """Update Icon for GTK+ desktop manager
+    Other desktop manager icon cache commands must be added here if needed
+    """
+    if find_executable("gtk-update-icon-cache"):
+        logger.debug("Updating GTK icon cache...")
+        os.system("gtk-update-icon-cache -tf %s" % os.path.join(GLib.get_user_data_dir(), "icons", "hicolor"))

@@ -3,25 +3,28 @@
 # pylint: disable=too-many-public-methods
 import os
 import shlex
-import stat
 import subprocess
 import time
 from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk
 
-from lutris import pga, runtime
+from lutris import runtime
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
+from lutris.database import categories as categories_db
+from lutris.database import games as games_db
 from lutris.discord import DiscordPresence
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
+from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 from lutris.util import audio, jobs, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
 )
+from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -35,9 +38,8 @@ class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
        and running it.
     """
-
-    STATE_IDLE = "idle"
     STATE_STOPPED = "stopped"
+    STATE_LAUNCHING = "launching"
     STATE_RUNNING = "running"
 
     __gsignals__ = {
@@ -45,7 +47,7 @@ class Game(GObject.Object):
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-stop": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, (int, )),
+        "game-stopped": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -58,7 +60,7 @@ class Game(GObject.Object):
         self.config = None
 
         # Load attributes from database
-        game_data = pga.get_game_by_field(game_id, "id")
+        game_data = games_db.get_game_by_field(game_id, "id")
         self.slug = game_data.get("slug") or ""
         self.runner_name = game_data.get("runner") or ""
         self.directory = game_data.get("directory") or ""
@@ -66,18 +68,16 @@ class Game(GObject.Object):
 
         self.game_config_id = game_data.get("configpath") or ""
         self.is_installed = bool(game_data.get("installed") and self.game_config_id)
+        self.is_hidden = bool(game_data.get("hidden"))
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
-        self.steamid = game_data.get("steamid") or ""
         self.has_custom_banner = bool(game_data.get("has_custom_banner"))
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
+        self.service = game_data.get("service")
+        self.appid = game_data.get("service_id")
         self.discord_presence = DiscordPresence()
-        try:
-            self.playtime = float(game_data.get("playtime") or 0.0)
-        except ValueError:
-            logger.error("Invalid playtime value %s", game_data.get("playtime"))
-            self.playtime = 0.0
+        self.playtime = game_data.get("playtime") or 0.0
 
         if self.game_config_id:
             self.load_config()
@@ -85,7 +85,7 @@ class Game(GObject.Object):
         self.prelaunch_executor = None
         self.heartbeat = None
         self.killswitch = None
-        self.state = self.STATE_IDLE
+        self.state = self.STATE_STOPPED
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
@@ -104,6 +104,39 @@ class Game(GObject.Object):
         return value
 
     @property
+    def is_favorite(self):
+        """Return whether the game is in the user's favorites"""
+        categories = categories_db.get_categories_in_game(self.id)
+        for category in categories:
+            if category == "favorite":
+                return True
+        return False
+
+    def add_to_favorites(self):
+        """Add the game to the 'favorite' category"""
+        favorite = categories_db.get_category("favorite")
+        if not favorite:
+            favorite = categories_db.add_category("favorite")
+        categories_db.add_game_to_category(self.id, favorite["id"])
+        self.emit("game-updated")
+
+    def remove_from_favorites(self):
+        """Remove game from favorites"""
+        favorite = categories_db.get_category("favorite")
+        categories_db.remove_category_from_game(self.id, favorite["id"])
+        self.emit("game-updated")
+
+    def hide(self):
+        """Do not show this game in the UI"""
+        self.is_hidden = True
+        self.save()
+
+    def unhide(self):
+        """Remove the game from hidden games"""
+        self.is_hidden = False
+        self.save()
+
+    @property
     def log_buffer(self):
         """Access the log buffer object, creating it if necessary"""
         if self._log_buffer is None:
@@ -118,13 +151,6 @@ class Game(GObject.Object):
     def formatted_playtime(self):
         """Return a human readable formatted play time"""
         return strings.get_formatted_playtime(self.playtime)
-
-    @property
-    def is_search_result(self):
-        """Return whether or not the game is a remote game from search results.
-        This is bad, find another way to do this.
-        """
-        return self.id < 0
 
     @staticmethod
     def show_error_message(message):
@@ -208,15 +234,15 @@ class Game(GObject.Object):
             self.runner.remove_game_data(game_path=self.directory)
 
         # Do not keep multiple copies of the same game
-        existing_games = pga.get_games_where(slug=self.slug)
+        existing_games = games_db.get_games_where(slug=self.slug)
         if len(existing_games) > 1:
             from_library = True
 
         if from_library:
             logger.debug("Removing game %s from library", self.id)
-            pga.delete_game(self.id)
+            games_db.delete_game(self.id)
         else:
-            pga.set_uninstalled(self.id)
+            games_db.set_uninstalled(self.id)
         if self.config:
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
@@ -233,29 +259,36 @@ class Game(GObject.Object):
         if not self.platform:
             logger.warning("Can't get platform for runner %s", self.runner.human_name)
 
-    def save(self, metadata_only=False):
+    def save(self, save_config=False):
         """
-        Save the game's config and metadata, if `metadata_only` is set to True,
+        Save the game's config and metadata, if `save_config` is set to False,
         do not save the config. This is useful when exiting the game since the
         config might have changed and we don't want to override the changes.
         """
-        logger.debug("Saving %s", self)
-        if not metadata_only:
-            self.config.save()
+        if self.config:
+            logger.debug("Saving %s with config ID %s", self, self.config.game_config_id)
+            configpath = self.config.game_config_id
+            if save_config:
+                self.config.save()
+            else:
+                logger.debug("Not saving config")
+        else:
+            logger.warning("Saving %s without a configuration", self)
+            configpath = ""
         self.set_platform_from_runner()
-        self.id = pga.add_or_update(
+        self.id = games_db.add_or_update(
             name=self.name,
             runner=self.runner_name,
             slug=self.slug,
             platform=self.platform,
-            year=self.year,
-            lastplayed=self.lastplayed,
             directory=self.directory,
             installed=self.is_installed,
-            configpath=self.config.game_config_id,
-            steamid=self.steamid,
+            year=self.year,
+            lastplayed=self.lastplayed,
+            configpath=configpath,
             id=self.id,
             playtime=self.playtime,
+            hidden=self.is_hidden,
         )
         self.emit("game-updated")
 
@@ -282,15 +315,12 @@ class Game(GObject.Object):
         """Launch the game."""
         if not self.runner:
             dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
             return
 
         if not self.is_launchable():
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
+            logger.error("Game is not launchable")
             return
-
+        self.state = self.STATE_LAUNCHING
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
@@ -319,105 +349,11 @@ class Game(GObject.Object):
             return True
         return False
 
-    def get_launch_parameters(self, gameplay_info):
-        system_config = self.runner.system_config
-        launch_arguments = gameplay_info["command"]
-
-        optimus = system_config.get("optimus")
-        if optimus == "primusrun" and system.find_executable("primusrun"):
-            launch_arguments.insert(0, "primusrun")
-        elif optimus == "optirun" and system.find_executable("optirun"):
-            launch_arguments.insert(0, "virtualgl")
-            launch_arguments.insert(0, "-b")
-            launch_arguments.insert(0, "optirun")
-        elif optimus == "pvkrun" and system.find_executable("pvkrun"):
-            launch_arguments.insert(0, "pvkrun")
-
-        # Mangohud activation
-        mangohud = system_config.get("mangohud") or ""
-        if mangohud and system.find_executable("mangohud"):
-            # This is probably not the way to go. This only work with a few
-            # Wine games. It will probably crash it, or do nothing at all.
-            # I have never got mangohud to work on anything other than a Wine
-            # game.
-            dialogs.NoticeDialog("MangoHud support is experimental. Expect the "
-                                 "game to crash or the framerate counter not to "
-                                 "appear at all.")
-            launch_arguments = ["mangohud"] + launch_arguments
-
-        fps_limit = system_config.get("fps_limit") or ""
-        if fps_limit:
-            strangle_cmd = system.find_executable("strangle")
-            if strangle_cmd:
-                launch_arguments = [strangle_cmd, fps_limit] + launch_arguments
-            else:
-                logger.warning("libstrangle is not available on this system, FPS limiter disabled")
-
-        prefix_command = system_config.get("prefix_command") or ""
-        if prefix_command:
-            launch_arguments = (shlex.split(os.path.expandvars(prefix_command)) + launch_arguments)
-
-        single_cpu = system_config.get("single_cpu") or False
-        if single_cpu:
-            logger.info("The game will run on a single CPU core")
-            launch_arguments.insert(0, "0")
-            launch_arguments.insert(0, "-c")
-            launch_arguments.insert(0, "taskset")
-
-
-        env = {}
-        env.update(self.runner.get_env())
-
-        env.update(gameplay_info.get("env") or {})
-        env["game_name"] = self.name
-
-        # Set environment variables dependent on gameplay info
-
-        # LD_PRELOAD
-        ld_preload = gameplay_info.get("ld_preload")
-        if ld_preload:
-            env["LD_PRELOAD"] = ld_preload
-
-        # LD_LIBRARY_PATH
-        game_ld_libary_path = gameplay_info.get("ld_library_path")
-        if game_ld_libary_path:
-            ld_library_path = env.get("LD_LIBRARY_PATH")
-            if not ld_library_path:
-                ld_library_path = "$LD_LIBRARY_PATH"
-            env["LD_LIBRARY_PATH"] = ":".join([game_ld_libary_path, ld_library_path])
-
-        # Feral gamemode
-        gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
-        if gamemode:
-            if system.find_executable("gamemoderun"):
-                launch_arguments.insert(0, "gamemoderun")
-            else:
-                env["LD_PRELOAD"] = ":".join([path for path in [
-                    env.get("LD_PRELOAD"),
-                    "libgamemodeauto.so",
-                ] if path])
-        return launch_arguments, env
-
     def start_xephyr(self, display=":2"):
         """Start a monitored Xephyr instance"""
         if not system.find_executable("Xephyr"):
             raise GameConfigError("Unable to find Xephyr, install it or disable the Xephyr option")
-
-        xephyr_depth = "8" if self.runner.system_config.get("xephyr") == "8bpp" else "16"
-        xephyr_resolution = self.runner.system_config.get("xephyr_resolution") or "640x480"
-        xephyr_command = [
-            "Xephyr",
-            display,
-            "-ac",
-            "-screen",
-            xephyr_resolution + "x" + xephyr_depth,
-            "-glamor",
-            "-reset",
-            "-terminate",
-        ]
-        if self.runner.system_config.get("xephyr_fullscreen"):
-            xephyr_command.append("-fullscreen")
-
+        xephyr_command = get_xephyr_command(display, self.runner.system_config)
         xephyr_thread = MonitoredCommand(xephyr_command)
         xephyr_thread.start()
         time.sleep(3)
@@ -495,7 +431,8 @@ class Game(GObject.Object):
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:
             return
-        command, env = self.get_launch_parameters(gameplay_info)
+        command, env = get_launch_parameters(self.runner, gameplay_info)
+        env["game_name"] = self.name  # What is this used for??
         self.game_runtime_config = {
             "args": command,
             "env": env,
@@ -566,8 +503,8 @@ class Game(GObject.Object):
             self.game_thread.stop_func = self.runner.stop
         self.game_thread.start()
         self.timer.start()
-        self.emit("game-started")
         self.state = self.STATE_RUNNING
+        self.emit("game-started")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
     def stop_game(self):
@@ -649,7 +586,7 @@ class Game(GObject.Object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
-        self.save(metadata_only=True)
+        self.save(save_config=False)
 
         os.chdir(os.path.expanduser("~"))
 
@@ -686,36 +623,9 @@ class Game(GObject.Object):
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
                 dialogs.ErrorDialog(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
-    def notify_steam_game_changed(self, appmanifest):
-        """Receive updates from Steam games and set the thread's ready state accordingly"""
-        if not self.game_thread:
-            return
-        if "Fully Installed" in appmanifest.states and not self.game_thread.ready_state:
-            logger.info("Steam game %s is fully installed", appmanifest.steamid)
-            self.game_thread.ready_state = True
-        elif "Update Required" in appmanifest.states and self.game_thread.ready_state:
-            logger.info(
-                "Steam game %s updating, setting game thread as not ready",
-                appmanifest.steamid,
-            )
-            self.game_thread.ready_state = False
-
     def write_script(self, script_path):
         """Output the launch argument in a bash script"""
-
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:
             return
-        command, env = self.get_launch_parameters(gameplay_info)
-        # Override TERM otherwise the script might not run
-        env["TERM"] = "xterm"
-        script_content = "#!/bin/bash\n\n\n"
-        script_content += "# Environment variables\n\n"
-        for env_var in env:
-            script_content += "export %s=\"%s\"\n" % (env_var, env[env_var])
-        script_content += "\n\n# Command\n\n"
-        script_content += shlex.join(command)
-        with open(script_path, "w") as script_file:
-            script_file.write(script_content)
-
-        os.chmod(script_path, os.stat(script_path).st_mode | stat.S_IEXEC)
+        export_bash_script(self.runner, gameplay_info, script_path)

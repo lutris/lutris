@@ -22,14 +22,14 @@ Basics
 ======
 
 Games in Lutris are written in the YAML format in a declarative way.
-The same document provides information on how to aquire game files, setup the
+The same document provides information on how to acquire game files, setup the
 game and store a base configuration.
 
 Make sure you have some level of understanding of the YAML format before
 getting into Lutris scripting. The Ansible documentation provides a short
 guide on the syntax: https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
 
-At the very least, a lutris installer should have a ``game`` section. If the
+At the very least, a Lutris installer should have a ``game`` section. If the
 installer needs to download or ask the user for some files, those can be added
 in the `files` section.
 
@@ -43,17 +43,17 @@ $GAMEDIR are substituted and the results is saved in:
 ~/.config/lutris/games/<game>-<timestamp>.yml.
 
 Published installers can be accessed from a command line by using the ``lutris:``
-url prefix followed by the installer slug.
+URL prefix followed by the installer slug.
 For example, calling ``lutris lutris:quake-darkplaces`` will launch the
 Darkplaces installer for Quake.
 
 **Important note:** Installer scripts downloaded to the client are embedded in
 another document. What is editable on the Lutris section is the ``script``
-section of a bigger document. In addition to the script it self, lutris needs
+section of a bigger document. In addition to the script it self, Lutris needs
 to know the following information:
 
 * ``name``: Name of the game, should be surrounded in quotes if containing special characters.
-* ``game_slug``: Game identifier on the lutris website
+* ``game_slug``: Game identifier on the Lutris website
 * ``version``: Name of the installer
 * ``slug``: Installer identifier
 * ``runner``: Runner used for the game.
@@ -157,7 +157,7 @@ download the installer (Humble Bundle, GOG).
 Lutris supports the following game identifiers:
 
 `appid`: For Steam games. Numerical ID found in the URL of the store page.
-Example: The appid for https://store.steampowered.com/app/238960/Path_of_Exile/ is `238960`.
+Example: The `appid` for https://store.steampowered.com/app/238960/Path_of_Exile/ is `238960`.
 This ID is used for installing and running the game.
 
 `game_id`: Identifier used for ScummVM / ResidualVM games. Can be looked up
@@ -195,7 +195,7 @@ the executable resides in.
 This directive can be used for Linux, Wine and Dosbox installers.
 Example: ``$GAMEDIR/path/to/game``
 
-Wine and other wine based runners like winesteam
+Wine and other wine based runners like WineSteam
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``arch``: Sets the architecture of a Wine prefix. By default it is set to ``win64``,
@@ -203,8 +203,8 @@ the value can be set to ``win32`` to setup the game in a 32-bit prefix.
 
 ``prefix``: Path to the Wine prefix. For Wine games, it should be set to
 ``$GAMEDIR``. For WineSteam games, set it to ``$GAMEDIR/prefix`` to isolate the
-prefix files from the the game files. This is only needed if the Steam game
-needs customization. If not provided, Lutris will use Winesteam's default prefix
+prefix files from the game files. This is only needed if the Steam game
+needs customization. If not provided, Lutris will use WineSteam's default prefix
 where Steam for Windows is installed.
 
 
@@ -307,7 +307,7 @@ a broken installer. **Only use this option for text based games.**
 
 ``env``: Sets environment variables before launching a game and during install.
 Do not **ever** use this directive to enable a framerate counter. Do not use
-this directive to override Wine DLLS. Variable substitution is available in
+this directive to override Wine DLLs. Variable substitution is available in
 values.
 Example::
 
@@ -372,7 +372,7 @@ or install it otherwise.
 Writing the installation script
 ===============================
 
-After every file needed by the game has been aquired, the actual installation
+After every file needed by the game has been acquired, the actual installation
 can take place. A series of directives will tell the installer how to set up
 the game correctly. Start the installer section with ``installer:`` then stack
 the directives by order of execution (top to bottom).
@@ -605,7 +605,7 @@ Currently, the following tasks are implemented:
     * ``arch``: optional architecture of the prefix, default: win64 unless a
       32bit build is specified in the runner options.
 
-    * ``overrides``: optional dll overrides, format described later
+    * ``overrides``: optional DLL overrides, format described later
 
     * ``install_gecko``: optional variable to stop installing gecko
 
@@ -625,7 +625,7 @@ Currently, the following tasks are implemented:
     ``arch`` (optional WINEARCH, required when you created win64 prefix), ``blocking`` (if true, do not run the process in a thread), ``working_dir`` (optional working directory), ``include_processes``  (optional space-separated list of processes to include to
     being watched)
     ``exclude_processes`` (optional space-separated list of processes to exclude from
-    being watched), ``env`` (optional environment variables), ``overrides`` (optional dll overrides).
+    being watched), ``env`` (optional environment variables), ``overrides`` (optional DLL overrides).
 
     Example::
 

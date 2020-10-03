@@ -4,23 +4,27 @@ import os
 
 import yaml
 
-from lutris import pga, settings
+from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id
+from lutris.database.games import add_or_update, get_game_by_field
+from lutris.exceptions import UnavailableGame
 from lutris.game import Game
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
-from lutris.services import UnavailableGame
-from lutris.services.gog import MultipleInstallerError, get_gog_download_links
-from lutris.services.humblebundle import get_humble_download_link
-from lutris.util import system
-from lutris.util.http import HTTPError
+from lutris.installer.legacy import get_game_launcher
+from lutris.runners import import_runner
+from lutris.services import get_services
+from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
 from lutris.util.log import logger
 
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     """Represents a Lutris installer"""
-    def __init__(self, installer, interpreter):
+
+    def __init__(self, installer, interpreter, service, appid):
         self.interpreter = interpreter
+        self.installer = installer
         self.version = installer["version"]
         self.slug = installer["slug"]
         self.year = installer.get("year")
@@ -28,11 +32,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.script = installer.get("script")
         self.game_name = self.script.get("custom-name") or installer["name"]
         self.game_slug = installer["game_slug"]
+        self.service = self.get_service(initial=service)
+        self.service_appid = self.get_appid(installer, initial=appid)
         self.steamid = installer.get("steamid")
-        game_config = self.script.get("game", {})
-        self.gogid = game_config.get("gogid") or installer.get("gogid")
-        self.humbleid = game_config.get("humbleid") or installer.get("humblestoreid")
-
         self.files = [
             InstallerFile(self.game_slug, file_id, file_meta)
             for file_desc in self.script.get("files", [])
@@ -41,6 +43,30 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
+
+    def get_service(self, initial=None):
+        if initial:
+            return initial
+        if "steam" in self.runner:
+            return get_services()["steam"]()
+        version = self.version.lower()
+        if "humble" in version:
+            return get_services()["humblebundle"]()
+        if "gog" in version:
+            return get_services()["gog"]()
+
+    def get_appid(self, installer, initial=None):
+        if initial:
+            return initial
+        if not self.service:
+            return
+        if self.service.id == "steam":
+            return installer.get("steamid")
+        game_config = self.script.get("game", {})
+        if self.service.id == "gog":
+            return game_config.get("gogid") or installer.get("gogid")
+        if self.service.id == "humblebundle":
+            return game_config.get("humbleid") or installer.get("humblestoreid")
 
     @property
     def script_pretty(self):
@@ -51,7 +77,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         """Return the ID of the game in the local DB if one exists"""
         # If the game is in the library and uninstalled, the first installation
         # updates it
-        existing_game = pga.get_game_by_field(self.game_slug, "slug")
+        existing_game = get_game_by_field(self.game_slug, "slug")
         if existing_game and not existing_game["installed"]:
             return existing_game["id"]
 
@@ -103,58 +129,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             errors.append("Scripts can't have both extends and requires")
         return errors
 
-    def swap_steam_install(self):
-        """Add steam installation to commands if it's a Steam game"""
-        # XXX Steam is no longer an install command, it's a file
-        # if self.runner in ("steam", "winesteam"):
-        #     self.steam_data["appid"] = self.script["game"]["appid"]
-        #     if "arch" in self.script["game"]:
-        #         self.steam_data["arch"] = self.script["game"]["arch"]
-
-        #     commands = self.script.get("installer", [])
-        #     self.steam_data["platform"] = (
-        #         "windows" if self.runner == "winesteam" else "linux"
-        #     )
-        #     commands.insert(0, "install_steam_game")
-        #     self.script["installer"] = commands
-
-    def swap_gog_game_files(self):
-        """Replace user provided file with downloads from GOG"""
-        logger.info("Swap GOG game files")
-        if not self.gogid:
-            raise UnavailableGame("The installer has no GOG ID!")
-        try:
-            links = get_gog_download_links(self.gogid, self.runner)
-        except HTTPError:
-            raise UnavailableGame("Couldn't load the download links for this game")
-        except MultipleInstallerError:
-            raise UnavailableGame("Don't know how to deal with multiple installers yet.")
-        if not links:
-            raise UnavailableGame("Could not fing GOG game")
-
-        installer_file_id = self.pop_user_provided_file()
-        if not installer_file_id:
-            raise UnavailableGame("Installer has no user provided file")
-
-        file_id_provided = False  # Only assign installer_file_id once
-        for index, link in enumerate(links):
-            if isinstance(link, dict):
-                url = link["url"]
-            else:
-                url = link
-            filename = url.split("?")[0].split("/")[-1]
-            if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
-                file_id = installer_file_id
-                file_id_provided = True
-            else:
-                file_id = "gog_file_%s" % index
-            self.files.append(
-                InstallerFile(self.game_slug, file_id, {
-                    "url": url,
-                    "filename": filename,
-                })
-            )
-
     def pop_user_provided_file(self):
         """Return and remove the first user provided file, which is used for game stores
         """
@@ -170,51 +144,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     def prepare_game_files(self):
         """Gathers necessary files before iterating through them."""
         # If this is a GOG installer, download required files.
-        version = self.version.lower()
-        if version.startswith("gog"):
-            logger.debug("GOG game detected")
-            try:
-                self.swap_gog_game_files()
-            except UnavailableGame as ex:
-                logger.error("Unable to get the game from GOG: %s", ex)
-        if version.startswith("humble"):
-            try:
-                self.swap_humble_game_files()
-            except UnavailableGame as ex:
-                logger.error("Unable to get the game from GOG: %s", ex)
-        if self.runner in ("steam", "winesteam"):
-            steam_uri = "$WINESTEAM:%s:." if self.runner == "winesteam" else "$STEAM:%s:."
-            appid = str(self.script["game"]["appid"])
-            self.files.append(
-                InstallerFile(self.game_slug, "steam_game", {
-                    "url": steam_uri % appid,
-                    "filename": appid
-                })
-            )
-
-    def swap_humble_game_files(self):
-        """Replace the user provided file with download links from Humble Bundle"""
-        if not self.humbleid:
-            raise UnavailableGame(
-                "This installer has no Humble Bundle ID ('humbleid' in the game section)"
-            )
-        installer_file_id = self.pop_user_provided_file()
-        if not installer_file_id:
-            raise UnavailableGame("Installer has no user provided file")
-        try:
-            link = get_humble_download_link(self.humbleid, self.runner)
-        except Exception as ex:
-            logger.exception("Failed to get Humble Bundle game: %s", ex)
-            raise UnavailableGame
-        if not link:
-            raise UnavailableGame("No game found on Humble Bundle")
-        filename = link.split("?")[0].split("/")[-1]
-        self.files.append(
-            InstallerFile(self.game_slug, installer_file_id, {
-                "url": link,
-                "filename": filename
-            })
-        )
+        if self.service:
+            if not self.service_appid:
+                raise UnavailableGame("No ID for the game on %s" % self.service)
+            installer_file_id = self.pop_user_provided_file()
+            if not installer_file_id:
+                raise UnavailableGame("Installer has no user provided file")
+            installer_files = self.service.get_installer_files(self, installer_file_id)
+            if not installer_files:
+                raise UnavailableGame("Unable to get the game on %s" % self.service.name)
+            for installer_file in installer_files:
+                self.files.append(installer_file)
 
     def _substitute_config(self, script_config):
         """Substitute values such as $GAMEDIR in a config dict."""
@@ -237,45 +177,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 config[key] = self.interpreter._substitute(value)
         return config
 
-    def write_config(self):
-        """Write the game configuration in the DB and config file"""
-        if self.extends:
-            logger.info(
-                "This is an extension to %s, not creating a new game entry",
-                self.extends,
-            )
-            return
-        configpath = make_game_config_id(self.slug)
-        config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
-
+    def get_game_config(self):
+        """Return the game configuration"""
         if self.requires:
             # Load the base game config
-            required_game = pga.get_game_by_field(self.requires, field="installer_slug")
+            required_game = get_game_by_field(self.requires, field="installer_slug")
             base_config = LutrisConfig(
                 runner_slug=self.runner, game_config_id=required_game["configpath"]
             )
             config = base_config.game_level
         else:
             config = {"game": {}}
-
-        self.game_id = pga.add_or_update(
-            name=self.game_name,
-            runner=self.runner,
-            slug=self.game_slug,
-            directory=self.interpreter.target_path,
-            installed=1,
-            installer_slug=self.slug,
-            parent_slug=self.requires,
-            year=self.year,
-            steamid=self.steamid,
-            configpath=configpath,
-            id=self.game_id,
-        )
-
-        game = Game(self.game_id)
-        game.save()
-
-        logger.debug("Saved game entry %s (%d)", self.game_slug, self.game_id)
 
         # Config update
         if "system" in self.script:
@@ -292,16 +204,58 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             except ValueError:
                 raise ScriptingError("Invalid 'game' section", self.script["game"])
             config["game"] = self._substitute_config(config["game"])
+            if AUTO_ELF_EXE in config["game"].get("exe", ""):
+                config["game"]["exe"] = find_linux_game_executable(self.interpreter.target_path, make_executable=True)
+            if AUTO_WIN32_EXE in config["game"].get("exe", ""):
+                config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
+        return config
 
+    def write_game_config(self):
+        configpath = make_game_config_id(self.slug)
+        config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
+        config = self.get_game_config()
         yaml_config = yaml.safe_dump(config, default_flow_style=False)
         with open(config_filename, "w") as config_file:
+            logger.debug("Writing game config to %s", config_filename)
             config_file.write(yaml_config)
+        return configpath
+
+    def save(self):
+        """Write the game configuration in the DB and config file"""
+        if self.extends:
+            logger.info(
+                "This is an extension to %s, not creating a new game entry",
+                self.extends,
+            )
+            return
+        configpath = self.write_game_config()
+        runner_inst = import_runner(self.runner)()
+        self.game_id = add_or_update(
+            name=self.game_name,
+            runner=self.runner,
+            slug=self.game_slug,
+            platform=runner_inst.get_platform(),
+            directory=self.interpreter.target_path,
+            installed=1,
+            installer_slug=self.slug,
+            parent_slug=self.requires,
+            year=self.year,
+            steamid=self.steamid,
+            configpath=configpath,
+            service=self.service.id,
+            service_id=self.service_appid,
+            id=self.game_id,
+        )
+        # This is a bit redundant but used to trigger the game-updated signal
+        game = Game(self.game_id)
+        game.save()
 
     def get_game_launcher_config(self, game_files):
         """Game options such as exe or main_file can be added at the root of the
         script as a shortcut, this integrates them into the game config properly
+        This should be deprecated. Game launchers should go in the game section.
         """
-        launcher, launcher_value = self.get_game_launcher()
+        launcher, launcher_value = get_game_launcher(self.script)
         if isinstance(launcher_value, list):
             launcher_values = []
             for game_file in launcher_value:
@@ -317,20 +271,4 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     os.path.join(self.interpreter.target_path, launcher_value)
             ):
                 launcher_value = os.path.join(self.interpreter.target_path, launcher_value)
-        return launcher, launcher_value
-
-    def get_game_launcher(self):
-        """Return the key and value of the launcher"""
-        launcher_value = None
-        # exe64 can be provided to specify an executable for 64bit systems
-        exe = "exe64" if "exe64" in self.script and system.LINUX_SYSTEM.is_64_bit else "exe"
-        for launcher in (exe, "iso", "rom", "disk", "main_file"):
-            if launcher not in self.script:
-                continue
-            launcher_value = self.script[launcher]
-            if launcher == "exe64":
-                launcher = "exe"  # If exe64 is used, rename it to exe
-            break
-        if not launcher_value:
-            launcher = None
         return launcher, launcher_value

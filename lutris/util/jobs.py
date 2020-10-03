@@ -35,8 +35,7 @@ class AsyncCall(threading.Thread):
         except Exception as ex:  # pylint: disable=broad-except
             logger.error("Error while completing task %s: %s", self.function, ex)
             error = ex
-            ex_type, ex_value, trace = sys.exc_info()
-            print(ex_type, ex_value)
+            _ex_type, _ex_value, trace = sys.exc_info()
             traceback.print_tb(trace)
 
         self.source_id = GLib.idle_add(self.callback, result, error)

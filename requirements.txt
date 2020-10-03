@@ -10,7 +10,7 @@
 # `Pipfile.lock` and then regenerate `requirements*.txt`.
 ################################################################################
 
-astroid==2.3.3
+astroid==2.4.0
 certifi==2020.4.5.1
 cffi==1.14.0
 chardet==3.0.4
@@ -20,7 +20,7 @@ entrypoints==0.3
 evdev==1.3.0
 idna==2.9
 jeepney==0.4.3 ; sys_platform == 'linux'
-keyring==21.2.0
+keyring==21.2.1
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
 pycairo==1.19.1
@@ -32,4 +32,4 @@ requests==2.23.0
 secretstorage==3.1.2 ; sys_platform == 'linux'
 six==1.14.0
 urllib3==1.25.9
-wrapt==1.11.2
+wrapt==1.12.1

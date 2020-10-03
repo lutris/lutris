@@ -32,12 +32,45 @@ class fsuae(Runner):
         (_("Amiga CD32"), "CD32"),
         (_("Commodore CDTV"), "CDTV"),
     ]
+    cpumodel_choices = [
+        ("68000", "68000"),
+        ("68010", "68010"),
+        ("68020 with 24-bit addressing", "68EC020"),
+        ("68020", "68020"),
+        ("68030 without internal MMU", "68EC030"),
+        ("68030", "68030"),
+        ("68040 without internal FPU and MMU", "68EC040"),
+        ("68040 without internal FPU", "68LC040"),
+        ("68040 without internal MMU", "68040-NOMMU"),
+        ("68040", "68040"),
+        ("68060 without internal FPU and MMU", "68EC060"),
+        ("68060 without internal FPU", "68LC060"),
+        ("68060 without internal MMU", "68060-NOMMU"),
+        ("68060", "68060"),
+        ("auto", "auto"),
+    ]
     memory_choices = [
         ("0", "0"),
         ("1 MB", "1024"),
         ("2 MB", "2048"),
         ("4 MB", "4096"),
         ("8 MB", "8192"),
+    ]
+    zorroiii_choices = [
+        ("0", "0"),
+        ("1 MB", "1024"),
+        ("2 MB", "2048"),
+        ("4 MB", "4096"),
+        ("8 MB", "8192"),
+        ("16 MB", "16384"),
+        ("32 MB", "32768"),
+        ("64 MB", "65536"),
+        ("128 MB", "131072"),
+        ("256 MB", "262144"),
+        ("384 MB", "393216"),
+        ("512 MB", "524288"),
+        ("768 MB", "786432"),
+        ("1 GB", "1048576"),
     ]
     flsound_choices = [
         ("0", "0"),
@@ -140,12 +173,32 @@ class fsuae(Runner):
             "help": _("Location of extended Kickstart used for CD32"),
         },
         {
+            "option": "cpumodel",
+            "label": _("CPU"),
+            "type": "choice",
+            "choices": cpumodel_choices,
+            "default": "auto",
+            "help": _("Use this option to override the CPU model in the emulated Amiga. All Amiga"
+                      "models imply a default CPU model, so you only need to use this option if"
+                      "want to use another CPU."),
+        },
+        {
             "option": "fmemory",
             "label": _("Fast Memory"),
             "type": "choice",
             "choices": memory_choices,
             "default": "0",
             "help": _("Specify how much Fast Memory the Amiga model should have."),
+        },
+        {
+            "option": "ziiimem",
+            "label": _("Zorro III RAM"),
+            "type": "choice",
+            "choices": zorroiii_choices,
+            "default": "0",
+            "help": _("Override the amount of Zorro III Fast memory, specified in KB. Must be a"
+                      "multiple of 1024. The default value depends on [amiga_model]. Requires a"
+                      "processor with 32-bit address bus, (use for example the A1200/020 model).."),
         },
         {
             "option": "fdvolume",
@@ -298,7 +351,9 @@ class fsuae(Runner):
     def get_params(self):  # pylint: disable=too-many-branches
         params = []
         model = self.runner_config.get("model")
+        cpumodel = self.runner_config.get("cpumodel")
         fmemory = self.runner_config.get("fmemory")
+        ziiimem = self.runner_config.get("ziiimem")
         fdvolume = self.runner_config.get("fdvolume")
         fdspeed = self.runner_config.get("fdspeed")
         grafixcard = self.runner_config.get("grafixcard")
@@ -311,8 +366,12 @@ class fsuae(Runner):
             params.append("--kickstart_ext_file=%s" % kickstart_ext_file)
         if model:
             params.append("--amiga_model=%s" % model)
+        if cpumodel:
+            params.append("--cpu=%s" % cpumodel)
         if fmemory:
             params.append("--fast_memory=%s" % fmemory)
+        if ziiimem:
+            params.append("--zorro_iii_memory=%s" % ziiimem)
         if fdvolume:
             params.append("--floppy_drive_volume=%s" % fdvolume)
         if fdspeed:

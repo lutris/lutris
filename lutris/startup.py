@@ -1,9 +1,11 @@
 """Check to run at program start"""
-# pylint: disable=no-member
 import os
+import sqlite3
 from gettext import gettext as _
 
-from lutris import pga, runners, settings
+from lutris import runners, settings
+from lutris.database.games import get_games
+from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
@@ -35,18 +37,19 @@ def init_dirs():
         create_folder(directory)
 
 
-def init_db():
-    """Initialize the SQLite DB"""
-    pga.syncdb()
-
-
 def init_lutris():
     """Run full initialization of Lutris"""
     runners.inject_runners(load_json_runners())
     # Load runner names
     runners.RUNNER_NAMES = runners.get_runner_names()
     init_dirs()
-    init_db()
+    try:
+        syncdb()
+    except sqlite3.DatabaseError:
+        raise RuntimeError(
+            "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
+            settings.PGA_DB
+        )
 
 
 def check_driver():
@@ -61,10 +64,11 @@ def check_driver():
             gpu_info = drivers.get_nvidia_gpu_info(gpu_id)
             logger.info("GPU: %s", gpu_info.get("Model"))
     elif LINUX_SYSTEM.glxinfo:
-        logger.info("Using %s", LINUX_SYSTEM.glxinfo.opengl_vendor)
+        # pylint: disable=no-member
         if hasattr(LINUX_SYSTEM.glxinfo, "GLX_MESA_query_renderer"):
             logger.info(
-                "Running Mesa driver %s on %s",
+                "Running %s Mesa driver %s on %s",
+                LINUX_SYSTEM.glxinfo.opengl_vendor,
                 LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version,
                 LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device,
             )
@@ -74,7 +78,7 @@ def check_driver():
     for card in drivers.get_gpus():
         # pylint: disable=logging-format-interpolation
         try:
-            logger.info("GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} drivers".format(**drivers.get_gpu_info(card)))
+            logger.info("GPU: {PCI_ID} {PCI_SUBSYS_ID} ({DRIVER} drivers)".format(**drivers.get_gpu_info(card)))
         except KeyError:
             logger.error("Unable to get GPU information from '%s'", card)
 
@@ -124,17 +128,15 @@ def check_libs(all_components=False):
 
 def check_vulkan():
     """Reports if Vulkan is enabled on the system"""
-    if vkquery.is_vulkan_supported():
-        logger.info("Vulkan is supported")
-    else:
-        logger.info("Vulkan is not available or your system isn't Vulkan capable")
+    if not vkquery.is_vulkan_supported():
+        logger.warning("Vulkan is not available or your system isn't Vulkan capable")
 
 
 def fill_missing_platforms():
     """Sets the platform on games where it's missing.
     This should never happen.
     """
-    pga_games = pga.get_games(filter_installed=True)
+    pga_games = get_games(filters={"installed": 1})
     for pga_game in pga_games:
         if pga_game.get("platform") or not pga_game["runner"]:
             continue
@@ -142,7 +144,7 @@ def fill_missing_platforms():
         game.set_platform_from_runner()
         if game.platform:
             logger.info("Platform for %s set to %s", game.name, game.platform)
-            game.save(metadata_only=True)
+            game.save(save_config=False)
 
 
 def run_all_checks():
