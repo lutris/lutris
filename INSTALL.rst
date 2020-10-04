@@ -24,7 +24,7 @@ These dependencies are only for running the Lutris client. To install and run
 games themselves we recommend you install the following packages:
 
   * psmisc (or the package providing 'fuser')
-  * pz7zip (or the package providing '7z')
+  * p7zip (or the package providing '7z')
   * curl
   * fluid-soundfont-gs (or other soundfonts for MIDI support)
   * cabextract (if needed, to install Windows games)
