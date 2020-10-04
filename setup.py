@@ -26,6 +26,7 @@ setup(
     author_email='strider@strycore.com',
     packages=[
         'lutris',
+        'lutris.database',
         'lutris.gui',
         'lutris.gui.config',
         'lutris.gui.dialogs',
