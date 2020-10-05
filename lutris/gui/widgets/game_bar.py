@@ -1,7 +1,7 @@
 from datetime import datetime
 from gettext import gettext as _
 
-from gi.repository import Gio, GObject, Gtk
+from gi.repository import GObject, Gtk
 
 from lutris import runners, services
 from lutris.database.games import add_or_update, get_game_for_service
@@ -156,7 +156,7 @@ class GameBar(Gtk.Fixed):
         if self.game.is_installed:
             if self.game.state == self.game.STATE_STOPPED:
                 button.set_label(_("Play"))
-                button.connect("clicked", self.game_actions.on_game_run)
+                button.connect("clicked", self.game_actions.on_game_launch)
             elif self.game.state == self.game.STATE_LAUNCHING:
                 button.set_label(_("Launching"))
                 button.set_sensitive(False)
@@ -228,8 +228,7 @@ class GameBar(Gtk.Fixed):
         )
         self.service.create_config(self.db_game, config_id)
         game = Game(game_id)
-        application = Gio.Application.get_default()
-        application.launch(game)
+        game.emit("game-launch")
 
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""

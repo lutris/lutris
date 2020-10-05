@@ -1,17 +1,17 @@
 import json
 import os
-from gettext import gettext as _
 import urllib.parse
+from gettext import gettext as _
 
 from gi.repository import Gio
 
 from lutris import settings
 from lutris.api import read_api_key
 from lutris.gui import dialogs
-from lutris.util import http
+from lutris.installer import fetch_script
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame, ServiceMedia
-from lutris.installer import fetch_script
+from lutris.util import http
 from lutris.util.log import logger
 
 
