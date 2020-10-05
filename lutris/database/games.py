@@ -8,6 +8,7 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 
 PGA_DB = settings.PGA_DB
+_SERVICE_CACHE = {}
 
 
 def get_games(
@@ -85,6 +86,15 @@ def get_game_for_service(service, appid):
     existing_games = get_games(filters={"service_id": appid, "service": service})
     if existing_games:
         return existing_games[0]
+
+
+def get_service_games(service):
+    """Return the list of all installed games for a service"""
+    if service not in _SERVICE_CACHE:
+        _SERVICE_CACHE[service] = [
+            game["service_id"] for game in get_games(filters={"service": service, "installed": "1"})
+        ]
+    return _SERVICE_CACHE[service]
 
 
 def get_game_by_field(value, field="slug"):

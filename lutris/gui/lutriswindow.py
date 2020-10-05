@@ -102,8 +102,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
         self.selected_category = settings.read_setting("selected_category", default="runner:all")
-        category, value = self.selected_category.split(":")
-        self.filters = {category: value}  # Type of filter corresponding to the selected sidebar element
+
+        self.filters = self.load_filters()
+
         self.sidebar = LutrisSidebar(self.application, selected=self.selected_category)
         self.sidebar.set_size_request(250, -1)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
@@ -188,6 +189,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         self.update_runtime()
 
+    def load_filters(self):
+        """Load the initial filters when creating the view"""
+        category, value = self.selected_category.split(":")
+        filters = {
+            category: value
+        }  # Type of filter corresponding to the selected sidebar element
+        filters["hidden"] = settings.read_setting("show_hidden_games").lower() == "true"
+        filters["installed"] = settings.read_setting("filter_installed").lower() == "true"
+        return filters
+
     def hidden_state_change(self, action, value):
         """Hides or shows the hidden games"""
         action.set_state(value)
@@ -271,6 +282,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return api_games
 
     def game_matches(self, game):
+        if self.filters.get("installed"):
+            if game["appid"] not in games_db.get_service_games(self.service.id):
+                return False
         if not self.filters.get("text"):
             return True
         return self.filters["text"] in game["name"].lower()
@@ -425,7 +439,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_zoom_changed(self, adjustment):
         """Handler for zoom modification"""
-        media_index = int(adjustment.props.value)
+        media_index = round(adjustment.props.value)
         adjustment.props.value = media_index
         service = self.service if self.service else LutrisService
         media_services = list(service.medias.keys())

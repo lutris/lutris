@@ -1,6 +1,7 @@
 """Game representation for views"""
 import time
 
+from lutris.database.games import get_service_games
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf, get_pixbuf_for_game
 from lutris.runners import RUNNER_NAMES
@@ -79,6 +80,8 @@ class StoreItem:
     @property
     def installed(self):
         """Game is installed"""
+        if "service_id" not in self._game_data:
+            return self.id in get_service_games(self.service)
         if not self._game_data.get("runner"):
             return False
         return self._game_data.get("installed")
@@ -90,7 +93,7 @@ class StoreItem:
         else:
             image_path = self.service_media.get_absolute_path(self.slug or self.id)
         if system.path_exists(image_path):
-            return get_pixbuf(image_path, self.service_media.size)
+            return get_pixbuf(image_path, self.service_media.size, is_installed=self.installed)
         return get_pixbuf_for_game(
             self._game_data["slug"],
             self._game_data["image_size"],

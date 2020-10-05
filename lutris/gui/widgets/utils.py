@@ -39,16 +39,36 @@ def open_uri(uri):
         system.execute(["xdg-open", uri])
 
 
-def get_pixbuf(image, size, fallback=None):
+def get_pixbuf(image, size, fallback=None, is_installed=True):
     """Return a pixbuf from file `image` at `size` or fallback to `fallback`"""
     width, heigth = size
+    pixbuf = None
     if system.path_exists(image):
         try:
-            return GdkPixbuf.Pixbuf.new_from_file_at_size(image, width, heigth)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, width, heigth)
         except GLib.GError:
             logger.error("Unable to load icon from image %s", image)
     if system.path_exists(fallback):
-        return GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, heigth)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, heigth)
+    if pixbuf:
+        if not is_installed:
+            overlay = os.path.join(datapath.get(), "media/unavailable.png")
+            transparent_pixbuf = get_overlay(overlay, size).copy()
+            pixbuf.composite(
+                transparent_pixbuf,
+                0,
+                0,
+                size[0],
+                size[1],
+                0,
+                0,
+                1,
+                1,
+                GdkPixbuf.InterpType.NEAREST,
+                100,
+            )
+            return transparent_pixbuf
+        return pixbuf
     if image and not image.startswith("/"):
         return get_stock_icon(image, width)
     return None
@@ -104,26 +124,7 @@ def get_default_icon(size):
 
 
 def get_pixbuf_for_game(image_abspath, size, is_installed=True):
-    # icon_path = resources.get_icon_path(game_slug)
-    pixbuf = get_pixbuf(image_abspath, size, fallback=get_default_icon(size))
-    if not is_installed:
-        unavailable_game_overlay = os.path.join(datapath.get(), "media/unavailable.png")
-        transparent_pixbuf = get_overlay(unavailable_game_overlay, size).copy()
-        pixbuf.composite(
-            transparent_pixbuf,
-            0,
-            0,
-            size[0],
-            size[1],
-            0,
-            0,
-            1,
-            1,
-            GdkPixbuf.InterpType.NEAREST,
-            100,
-        )
-        return transparent_pixbuf
-    return pixbuf
+    return get_pixbuf(image_abspath, size, fallback=get_default_icon(size), is_installed=is_installed)
 
 
 def convert_to_background(background_path, target_size=(320, 1080)):
