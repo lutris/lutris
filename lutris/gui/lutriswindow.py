@@ -10,6 +10,7 @@ from lutris import api, services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
+from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
 from lutris.gui.config.add_game import AddGameDialog
@@ -498,6 +499,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.view = view_class(self.game_store, self.game_store.service_media)
 
         self.view.connect("game-selected", self.on_game_selection_changed)
+        self.view.connect("game-activated", self.on_game_activated)
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         for child in self.games_scrollwindow.get_children():
             child.destroy()
@@ -680,3 +682,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             game = games_db.get_game_by_field(int(game_id), "id")
         GLib.idle_add(self.update_revealer, game)
         return False
+
+    def on_game_activated(self, view, game_id):
+        """Handles view activations (double click, enter press)"""
+        if self.service:
+            logger.error("TODO")
+            return
+        game = Game(game_id)
+        if game.is_installed:
+            logger.info("Game is installed")
+        game.emit("game-launch")

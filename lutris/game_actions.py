@@ -56,7 +56,7 @@ class GameActions:
     def get_game_actions(self):
         """Return a list of game actions and their callbacks"""
         return [
-            ("play", _("Play"), self.on_game_run),
+            ("play", _("Play"), self.on_game_launch),
             ("stop", _("Stop"), self.on_game_stop),
             ("show_logs", _("Show logs"), self.on_show_logs),
             ("install", _("Install"), self.on_install_clicked),
@@ -129,33 +129,29 @@ class GameActions:
             "unhide": self.game.is_hidden,
         }
 
-    def on_game_run(self, *_args):
+    def on_game_launch(self, *_args):
         """Launch a game"""
-        self.application.launch(self.game)
+        self.game.emit("game-launch")
 
     def get_running_game(self):
-        for i in range(self.application.running_games.get_n_items()):
-            game = self.application.running_games.get_item(i)
-            if game.id == self.game.id:
-                return game
-        return None
+        ids = self.application.get_running_game_ids()
+        for game_id in ids:
+            if game_id == self.game.id:
+                return self.game
+        logger.warning("Game %s not in %s", self.game_id, ids)
 
     def on_game_stop(self, caller):  # pylint: disable=unused-argument
         """Stops the game"""
         matched_game = self.get_running_game()
         if not matched_game:
-            logger.warning(
-                "Game %s not in the %s running games", self.game_id, self.application.running_games.get_n_items()
-            )
             return
         if not matched_game.game_thread:
             logger.warning("Game %s doesn't appear to be running, not killing it", self.game_id)
             return
         try:
             os.kill(matched_game.game_thread.game_process.pid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
-        logger.debug("Removed game with ID %s from running games", self.game_id)
+        except ProcessLookupError as ex:
+            logger.debug("Failed to kill game process: %s", ex)
 
     def on_show_logs(self, _widget):
         """Display game log"""

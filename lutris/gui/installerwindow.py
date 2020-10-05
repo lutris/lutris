@@ -367,7 +367,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """Launch a game after it's been installed."""
         widget.set_sensitive(False)
         self.on_destroy(widget)
-        self.application.launch(Game(self.interpreter.installer.game_id))
+        game = Game(self.interpreter.installer.game_id)
+        game.emit("game-launch")
 
     def on_destroy(self, _widget, _data=None):
         """destroy event handler"""

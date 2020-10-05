@@ -28,7 +28,7 @@ gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 gi.require_version("GnomeDesktop", "3.0")
 
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import Gio, GLib, Gtk, GObject
 
 from lutris import settings
 from lutris.api import parse_installer_url
@@ -48,7 +48,7 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
-from lutris.util.wine.dxvk import init_dxvk_versions, wait_for_dxvk_init
+from lutris.util.wine.dxvk import init_dxvk_versions
 
 from .lutriswindow import LutrisWindow
 
@@ -60,6 +60,12 @@ class Application(Gtk.Application):
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
         )
+
+        GObject.add_emission_hook(Game, "game-launch", self.on_game_launch)
+        GObject.add_emission_hook(Game, "game-start", self.on_game_start)
+        GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
+        GObject.add_emission_hook(Game, "game-install", self.on_game_install)
+
         GLib.set_application_name(_("Lutris"))
         self.window = None
 
@@ -452,43 +458,49 @@ class Application(Gtk.Application):
                 if not self.window.is_visible():
                     self.do_shutdown()
                 return 0
-            self.launch(Game(db_game["id"]))
+            game = Game(db_game["id"])
+            self.on_game_start(game)
         return 0
 
-    def launch(self, game):
-        """Launch a Lutris game"""
-        logger.debug("Launching %s", game)
-        self.running_games.append(game)
-        game.connect("game-stop", self.on_game_stop)
-        wait_for_dxvk_init()
-        game.load_config()  # Reload the config before launching it.
-        game.play()
+    def on_game_launch(self, game):
+        game.launch()
 
+    def on_game_start(self, game):
+        self.running_games.append(game)
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.hide()  # Hide launcher window
+
+    def on_game_install(self, game):
+        """Request installation of a game"""
+        installers = get_installers(game_slug=game.slug)
+        if installers:
+            self.show_installer_window(installers)
+        else:
+            logger.error("TODO: Generate autoinstaller")
+
+    def get_running_game_ids(self):
+        ids = []
+        for i in range(self.running_games.get_n_items()):
+            game = self.running_games.get_item(i)
+            ids.append(str(game.id))
+        return ids
 
     def get_game_by_id(self, game_id):
         for i in range(self.running_games.get_n_items()):
             game = self.running_games.get_item(i)
-            if game.id == game_id:
+            if str(game.id) == game_id:
                 return game
-        return None
-
-    def get_game_index(self, game_id):
-        for i in range(self.running_games.get_n_items()):
-            game = self.running_games.get_item(i)
-            if game.id == game_id:
-                return i
         return None
 
     def on_game_stop(self, game):
         """Callback to remove the game from the running games"""
-        game.disconnect_by_func(self.on_game_stop)
-        game_index = self.get_game_index(game.id)
-        if game_index is not None:
-            self.running_games.remove(game_index)
-        game.emit("game-stopped")
+        ids = self.get_running_game_ids()
+        if str(game.id) in ids:
+            self.running_games.remove(ids.index(game.id))
+        else:
+            logger.warning("%s not in %s", game.id, ids)
 
+        game.emit("game-stopped")
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.show()  # Show launcher window
         elif not self.window.is_visible():

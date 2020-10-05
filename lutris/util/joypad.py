@@ -16,7 +16,13 @@ def get_devices():
     if not evdev:
         logger.warning("python3-evdev not installed, controller support not available")
         return []
-    return [evdev.InputDevice(dev) for dev in evdev.list_devices()]
+    _devices = []
+    for dev in evdev.list_devices():
+        try:
+            _devices.append(evdev.InputDevice(dev))
+        except RuntimeError:
+            pass
+    return _devices
 
 
 def get_joypads():
