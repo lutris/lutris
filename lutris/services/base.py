@@ -99,8 +99,7 @@ class OnlineService(BaseService):
 
     @property
     def credential_files(self):
-        """Return a list of all files used for authentication
-        """
+        """Return a list of all files used for authentication"""
         return [self.cookies_path]
 
     def is_authenticated(self):
@@ -129,7 +128,6 @@ class OnlineService(BaseService):
 
     def load_cookies(self):
         """Load cookies from disk"""
-        # logger.debug("Loading cookies from %s", self.cookies_path)
         if not os.path.exists(self.cookies_path):
             logger.warning("No cookies found in %s, please authenticate first", self.cookies_path)
             return
