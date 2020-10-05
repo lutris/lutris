@@ -1,8 +1,0 @@
-{
-    "python.linting.pylintEnabled": true,
-    "cSpell.words": [
-        "lutris",
-        "pylint"
-    ],
-    "restructuredtext.confPath": ""
-}
