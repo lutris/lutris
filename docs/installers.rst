@@ -134,6 +134,19 @@ add-on "The reckoning" for Quake 2, you should add: ``requires: quake-2``
 You can also add complex requirements following the same syntax as the
 ``require-binaries`` directive described above.
 
+Extensions / patches
+--------------------
+
+You can write installers that will not create a new game entry in Lutris.
+Instead they will modify the configuration on an exsiting game.
+You can use this feature with the ``extends`` directive. It works the same
+way as the ``requires`` directive and will check for a base game to be available.
+
+Example::
+
+    # Used in a installer that fixes issues with Mesa
+    extends: unreal-gold
+
 Customizing the end of install text
 -----------------------------------
 
