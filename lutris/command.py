@@ -171,14 +171,16 @@ class MonitoredCommand:
             sys.stdout.write(line)
             sys.stdout.flush()
 
-    def on_stop(self, _pid, returncode):
+    def on_stop(self, pid, _user_data):
         """Callback registered on game process termination"""
         if self.prevent_on_stop:  # stop() already in progress
             return False
-
-        logger.debug("The process has terminated with code %s", returncode)
+        if self.game_process.returncode is None:
+            logger.debug("Process hasn't terminated yet")
+            self.game_process.wait()
+        logger.debug("Process %s has terminated with code %s", pid, self.game_process.returncode)
         self.is_running = False
-        self.return_code = returncode
+        self.return_code = self.game_process.returncode
 
         resume_stop = self.stop()
         if not resume_stop:
@@ -238,7 +240,6 @@ class MonitoredCommand:
                 logger.error("Failed to create working directory, falling back to %s", self.fallback_cwd)
                 self.cwd = "/tmp"
         try:
-
             return subprocess.Popen(
                 command,
                 stdout=subprocess.PIPE,
@@ -257,8 +258,9 @@ class MonitoredCommand:
 
         try:
             self.game_process.terminate()
-        except ProcessLookupError:  # process already dead.
-            logger.debug("Management process looks dead already.")
+        except ProcessLookupError:
+            # process already dead.
+            pass
 
         if hasattr(self, "stop_func"):
             resume_stop = self.stop_func()

@@ -141,17 +141,17 @@ def main():
 
         while True:
             try:
-                dead_pid, dead_returncode, _ = os.wait3(os.WNOHANG)
+                dead_pid, dead_returncode, usage = os.wait3(os.WNOHANG)
             except ChildProcessError:
                 # No processes remain. No need to check monitor.
                 raise NoMoreChildren from None
 
+            if returncode is None and dead_pid == initial_pid:
+                returncode = dead_returncode
+                log("Initial process has exited (return code: %s)" % dead_returncode)
+
             if dead_pid == 0:
                 break
-
-            if returncode is None and dead_pid == initial_pid:
-                log("Initial process has exited.")
-                returncode = dead_returncode
 
     try:
         # While we are inside this try..except, if at the time of any
@@ -184,7 +184,6 @@ def main():
         log("Monitored process exited.")
         async_reap_children()
 
-
         # The exit wait loop:
         #  The game is no longer running. We ask monitored processes
         #  to exit and wait 30 seconds before sending more SIGTERMs.
@@ -197,7 +196,6 @@ def main():
                     os.kill(child.pid, signal.SIGTERM)
                 except ProcessLookupError:  # process already dead
                     pass
-
 
             # Spend 60 seconds waiting for processes to clean up.
             async_reap_children()
