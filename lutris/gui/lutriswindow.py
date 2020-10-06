@@ -203,6 +203,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Hides or shows the hidden games"""
         action.set_state(value)
         settings.write_setting("show_hidden_games", str(self.show_hidden_games).lower(), section="lutris")
+        self.filters["hidden"] = value
         self.emit("view-updated")
 
     @property
@@ -359,7 +360,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             searches = {"name": self.filters["text"]}
         else:
             searches = None
-        if not self.show_hidden_games:
+        if not self.filters.get("hidden"):
             sql_excludes["hidden"] = 1
         return searches, sql_filters, sql_excludes
 
