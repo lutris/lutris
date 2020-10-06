@@ -6,7 +6,7 @@ import yaml
 
 from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id
-from lutris.database.games import add_or_update, get_game_by_field, clear_service_cache
+from lutris.database.games import add_or_update, clear_service_cache, get_game_by_field
 from lutris.exceptions import UnavailableGame
 from lutris.game import Game
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
@@ -230,6 +230,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return
         configpath = self.write_game_config()
         runner_inst = import_runner(self.runner)()
+        if self.service:
+            service_id = self.service.id
+        else:
+            service_id = None
         self.game_id = add_or_update(
             name=self.game_name,
             runner=self.runner,
@@ -242,14 +246,15 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             year=self.year,
             steamid=self.steamid,
             configpath=configpath,
-            service=self.service.id,
+            service=service_id,
             service_id=self.service_appid,
             id=self.game_id,
         )
         # This is a bit redundant but used to trigger the game-updated signal
         game = Game(self.game_id)
         game.save()
-        clear_service_cache(self.service.id)
+        if self.service:
+            clear_service_cache(self.service.id)
 
     def get_game_launcher_config(self, game_files):
         """Game options such as exe or main_file can be added at the root of the

@@ -18,7 +18,7 @@ from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.installer import get_installers
 from lutris.util import xdgshortcuts
-from lutris.util.log import logger
+from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.system import path_exists
 
 
@@ -131,7 +131,7 @@ class GameActions:
 
     def on_game_launch(self, *_args):
         """Launch a game"""
-        self.game.emit("game-launch")
+        self.game.launch()
 
     def get_running_game(self):
         ids = self.application.get_running_game_ids()
@@ -155,8 +155,13 @@ class GameActions:
 
     def on_show_logs(self, _widget):
         """Display game log"""
+        _buffer = LOG_BUFFERS.get(self.game.id)
+        if not _buffer:
+            logger.info("No log for game %s", self.game)
         return LogWindow(
-            title=_("Log for {}").format(self.game), buffer=self.game.log_buffer, application=self.application
+            title=_("Log for {}").format(self.game),
+            buffer=_buffer,
+            application=self.application
         )
 
     def on_install_clicked(self, *_args):

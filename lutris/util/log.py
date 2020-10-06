@@ -1,12 +1,13 @@
 """Utility module for creating an application wide logger."""
-# Standard Library
 import logging
 import logging.handlers
 import os
 import sys
 
-# Third Party Libraries
 from gi.repository import GLib
+
+# Used to store log buffers for games.
+LOG_BUFFERS = {}
 
 CACHE_DIR = os.path.realpath(os.path.join(GLib.get_user_cache_dir(), "lutris"))
 if not os.path.isdir(CACHE_DIR):

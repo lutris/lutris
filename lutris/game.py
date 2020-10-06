@@ -27,7 +27,7 @@ from lutris.util.display import (
 from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.util.log import logger
+from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.timer import Timer
 from lutris.util.wine.dxvk import wait_for_dxvk_init
 
@@ -142,13 +142,16 @@ class Game(GObject.Object):
     @property
     def log_buffer(self):
         """Access the log buffer object, creating it if necessary"""
-        if self._log_buffer is None:
-            self._log_buffer = Gtk.TextBuffer()
-            self._log_buffer.create_tag("warning", foreground="red")
-            if self.game_thread:
-                self.game_thread.set_log_buffer(self._log_buffer)
-                self._log_buffer.set_text(self.game_thread.stdout)
-        return self._log_buffer
+        _log_buffer = LOG_BUFFERS.get(self.id)
+        if _log_buffer:
+            return _log_buffer
+        _log_buffer = Gtk.TextBuffer()
+        _log_buffer.create_tag("warning", foreground="red")
+        if self.game_thread:
+            self.game_thread.set_log_buffer(self._log_buffer)
+            _log_buffer.set_text(self.game_thread.stdout)
+        LOG_BUFFERS[self.id] = _log_buffer
+        return _log_buffer
 
     @property
     def formatted_playtime(self):
@@ -500,7 +503,7 @@ class Game(GObject.Object):
             runner=self.runner,
             env=self.game_runtime_config["env"],
             term=self.game_runtime_config["terminal"],
-            log_buffer=self._log_buffer,
+            log_buffer=self.log_buffer,
             include_processes=self.game_runtime_config["include_processes"],
             exclude_processes=self.game_runtime_config["exclude_processes"],
         )
