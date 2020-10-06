@@ -74,7 +74,7 @@ def parse_version(version):
     version_number = version_match.groups()[0]
     prefix = version[0:version_match.span()[0]]
     suffix = version[version_match.span()[1]:]
-    return [int(p) for p in version_number.split(".")], prefix, suffix
+    return [int(p) for p in version_number.split(".")], suffix, prefix
 
 
 def version_sort(versions, reverse=False):

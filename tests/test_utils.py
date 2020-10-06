@@ -94,7 +94,7 @@ class TestStringUtils(TestCase):
 
 class TestVersionSort(TestCase):
     def test_parse_version(self):
-        self.assertEqual(strings.parse_version("3.6-staging"), ([3, 6], '', '-staging'))
+        self.assertEqual(strings.parse_version("3.6-staging"), ([3, 6], '-staging', ''))
 
     def test_versions_are_correctly_sorted(self):
         versions = ['1.8', '1.7.4', '1.9.1', '1.9.10', '1.9.4']
