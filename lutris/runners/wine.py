@@ -870,9 +870,6 @@ class wine(Runner):
         if not isinstance(overrides, dict):
             logger.warning("DLL overrides is not a mapping: %s", overrides)
             overrides = {}
-
-        overrides = overrides.copy()
-        overrides.update(self.dll_overrides)
         return overrides
 
     def get_env(self, os_env=False):
@@ -905,7 +902,8 @@ class wine(Runner):
 
         overrides = self.get_dll_overrides()
         if overrides:
-            env["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
+            self.dll_overrides.update(overrides)
+            env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
         return env
 
     def get_runtime_env(self):
