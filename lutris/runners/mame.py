@@ -81,12 +81,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             "help": _("The emulated machine.")
         },
         {
-            "option":
-            "device",
-            "type":
-            "choice_with_entry",
-            "label":
-            _("Storage type"),
+            "option": "device",
+            "type": "choice_with_entry",
+            "label": _("Storage type"),
             "choices": [
                 (_("Floppy disk"), "flop"),
                 (_("Floppy drive 1"), "flop1"),
@@ -141,12 +138,9 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     runner_options = [
         {
-            "option":
-            "rompath",
-            "type":
-            "directory_chooser",
-            "label":
-            _("ROM/BIOS path"),
+            "option": "rompath",
+            "type": "directory_chooser",
+            "label": _("ROM/BIOS path"),
             "help": _(
                 "Choose the folder containing ROMs and BIOS files.\n"
                 "These files contain code from the original hardware "
@@ -183,12 +177,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             "default": False,
         },
         {
-            "option":
-            "uimodekey",
-            "type":
-            "choice_with_entry",
-            "label":
-            _("Menu mode key"),
+            "option": "uimodekey",
+            "type": "choice_with_entry",
+            "label": _("Menu mode key"),
             "choices": [
                 (_("Scroll Lock"), "SCRLOCK"),
                 (_("Num Lock"), "NUMLOCK"),
@@ -201,10 +192,8 @@ class mame(Runner):  # pylint: disable=invalid-name
                 (_("Right Super"), "RWIN"),
                 (_("Left Super"), "LWIN"),
             ],
-            "default":
-            "SCRLOCK",
-            "advanced":
-            True,
+            "default": "SCRLOCK",
+            "advanced": True,
             "help": _("Key to switch between Full Keyboard Mode and "
                       "Partial Keyboard Mode (default: Scroll Lock)"),
         },
@@ -282,7 +271,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             if rompath:
                 command += ["-rompath", rompath]
             command.append(self.game_config["machine"])
-            device = self.game_config["device"]
+            device = self.game_config.get("device")
+            if not device:
+                return {'error': "CUSTOM", "text": "No device is set for machine %s" % self.game_config["machine"]}
             rom = self.game_config["main_file"]
             command += ["-" + device, rom]
         else:
