@@ -496,7 +496,10 @@ class Application(Gtk.Application):
         """Callback to remove the game from the running games"""
         ids = self.get_running_game_ids()
         if str(game.id) in ids:
-            self.running_games.remove(ids.index(game.id))
+            try:
+                self.running_games.remove(ids.index(game.id))
+            except ValueError:
+                pass
         else:
             logger.warning("%s not in %s", game.id, ids)
 

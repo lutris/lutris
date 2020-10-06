@@ -8,10 +8,29 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
+def get_mangohud_conf(system_config):
+    """Return correct launch arguments and environment variables for Mangohud."""
+    env = {"MANGOHUD": "1"}
+    mango_args = []
+    mangohud = system_config.get("mangohud") or ""
+    if mangohud and system.find_executable("mangohud"):
+        if mangohud == "gl64":
+            mango_args = ["mangohud"]
+            env["MANGOHUD_DLSYM"] = "1"
+        elif mangohud == "gl32":
+            mango_args = ["mangohud.x86"]
+            env["MANGOHUD_DLSYM"] = "1"
+        else:
+            mango_args = ["mangohud"]
+    return mango_args, env
+
+
 def get_launch_parameters(runner, gameplay_info):
     system_config = runner.system_config
     launch_arguments = gameplay_info["command"]
+    env = {}
 
+    # Optimus
     optimus = system_config.get("optimus")
     if optimus == "primusrun" and system.find_executable("primusrun"):
         launch_arguments.insert(0, "primusrun")
@@ -22,11 +41,12 @@ def get_launch_parameters(runner, gameplay_info):
     elif optimus == "pvkrun" and system.find_executable("pvkrun"):
         launch_arguments.insert(0, "pvkrun")
 
-    # Mangohud activation
-    mangohud = system_config.get("mangohud") or ""
-    if mangohud and system.find_executable("mangohud"):
-        launch_arguments = ["mangohud"] + launch_arguments
+    mango_args, mango_env = get_mangohud_conf(system_config)
+    if mango_args:
+        launch_arguments = mango_args + launch_arguments
+        env.update(mango_env)
 
+    # Libstrangle
     fps_limit = system_config.get("fps_limit") or ""
     if fps_limit:
         strangle_cmd = system.find_executable("strangle")
@@ -46,7 +66,6 @@ def get_launch_parameters(runner, gameplay_info):
         launch_arguments.insert(0, "-c")
         launch_arguments.insert(0, "taskset")
 
-    env = {}
     env.update(runner.get_env())
 
     env.update(gameplay_info.get("env") or {})
