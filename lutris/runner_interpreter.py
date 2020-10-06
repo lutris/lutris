@@ -87,14 +87,9 @@ def get_launch_parameters(runner, gameplay_info):
 
     # Feral gamemode
     gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
-    if gamemode:
-        if system.find_executable("gamemoderun"):
-            launch_arguments.insert(0, "gamemoderun")
-        else:
-            env["LD_PRELOAD"] = ":".join([path for path in [
-                env.get("LD_PRELOAD"),
-                "libgamemodeauto.so",
-            ] if path])
+    if gamemode and system.find_executable("gamemoderun"):
+        launch_arguments.insert(0, "gamemoderun")
+
     return launch_arguments, env
 
 
