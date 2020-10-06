@@ -33,6 +33,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     depends_on = None
     runner_executable = None
     entry_point_option = "main_file"
+    download_url = None
     arch = None  # If the runner is only available for an architecture that isn't x86_64
 
     def __init__(self, config=None):
@@ -365,12 +366,16 @@ class Runner:  # pylint: disable=too-many-public-methods
             downloader,
             callback,
         )
+        opts = {"downloader": downloader, "callback": callback}
+        if self.download_url:
+            opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name)
+            return self.download_and_extract(self.download_url, **opts)
         runner = self.get_runner_version(version)
         if not runner:
             raise RunnerInstallationError("Failed to retrieve {} ({}) information".format(self.name, version))
         if not downloader:
             raise RuntimeError("Missing mandatory downloader for runner %s" % self)
-        opts = {"downloader": downloader, "callback": callback}
+
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(
