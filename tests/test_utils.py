@@ -92,6 +92,7 @@ class TestStringUtils(TestCase):
         self.assertEqual(strings.get_formatted_playtime(1.5), "1 hour and 30 minutes")
         self.assertEqual(strings.get_formatted_playtime(45.90), "45 hours and 53 minutes")
 
+
 class TestVersionSort(TestCase):
     def test_parse_version(self):
         self.assertEqual(strings.parse_version("3.6-staging"), ([3, 6], '-staging', ''))
