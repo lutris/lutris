@@ -215,18 +215,12 @@ system_options = [  # pylint: disable=invalid-name
                   "Primus VK provide vulkan support under bumblebee."),
     },
     {
-        "option":
-        "vk_icd",
-        "type":
-        "choice",
-        "default":
-        "",
-        "choices":
-        get_vk_icd_choices,
-        "label":
-        _("Vulkan ICD loader"),
-        "advanced":
-        True,
+        "option": "vk_icd",
+        "type": "choice",
+        "default": "",
+        "choices": get_vk_icd_choices,
+        "label": _("Vulkan ICD loader"),
+        "advanced": True,
         "help": _("The ICD loader is a library that is placed between a Vulkan "
                   "application and any number of Vulkan drivers, in order to support "
                   "multiple drivers and the instance-level functionality that works "
@@ -234,9 +228,15 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "option": "mangohud",
-        "type": "bool",
-        "size": "small",
+        "type": "choice",
         "label": _("FPS counter (MangoHud)"),
+        "choices": (
+            (_("Disabled"), ""),
+            (_("Enabled (Vulkan)"), "vk64"),
+            (_("Enabled (OpenGL)"), "gl64"),
+            (_("Enabled (OpenGL, 32bit)"), "gl32")
+        ),
+        "default": "",
         "advanced": False,
         "condition": bool(system.find_executable("mangohud")),
         "help": _("Display the game's FPS + other information. Requires MangoHud to be installed."),

@@ -97,6 +97,12 @@ def get_service_games(service):
     return _SERVICE_CACHE[service]
 
 
+def clear_service_cache(service):
+    """Clears the cache for a single service"""
+    if service in _SERVICE_CACHE:
+        _SERVICE_CACHE.pop(service)
+
+
 def get_game_by_field(value, field="slug"):
     """Query a game based on a database field"""
     if field not in ("slug", "installer_slug", "id", "configpath"):
