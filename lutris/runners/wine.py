@@ -1,19 +1,16 @@
 """Wine runner"""
-
-# Standard Library
 # pylint: disable=too-many-lines
 import os
 import shlex
 import shutil
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris import runtime
 from lutris.exceptions import GameConfigError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, set_regedit, set_regedit_file, winecfg,
-    wineexec, winekill, winetricks
+    wineexec, winekill, winetricks, open_wine_terminal
 )
 from lutris.runners.runner import Runner
 from lutris.settings import RUNTIME_DIR
@@ -59,12 +56,9 @@ class wine(Runner):
             "validator": shlex.split
         },
         {
-            "option":
-            "working_dir",
-            "type":
-            "directory_chooser",
-            "label":
-            _("Working directory"),
+            "option": "working_dir",
+            "type": "directory_chooser",
+            "label": _("Working directory"),
             "help": _(
                 "The location where the game is run from.\n"
                 "By default, Lutris uses the directory of the "
@@ -72,12 +66,9 @@ class wine(Runner):
             ),
         },
         {
-            "option":
-            "prefix",
-            "type":
-            "directory_chooser",
-            "label":
-            _("Wine prefix"),
+            "option": "prefix",
+            "type": "directory_chooser",
+            "label": _("Wine prefix"),
             "help": _(
                 'The prefix (also named "bottle") used by Wine.\n'
                 "It's a directory containing a set of files and "
@@ -563,7 +554,8 @@ class wine(Runner):
         if "Proton" not in self.get_version():
             menu_entries.append(("winecfg", _("Wine configuration"), self.run_winecfg))
         menu_entries += [
-            ("wineconsole", _("Wine console"), self.run_wineconsole),
+            ("wineshell", _("Open Bash terminal"), self.run_wine_terminal),
+            ("wineconsole", _("Open Wine console"), self.run_wineconsole),
             ("wine-regedit", _("Wine registry"), self.run_regedit),
             ("winekill", _("Kill all wine processes"), self.run_winekill),
             ("winetricks", _("Winetricks"), self.run_winetricks),
@@ -751,6 +743,15 @@ class wine(Runner):
         """Run regedit in the current context"""
         self.prelaunch()
         self._run_executable("regedit")
+
+    def run_wine_terminal(self, *args):
+        terminal = self.system_config.get("terminal_app")
+        open_wine_terminal(
+            terminal=terminal,
+            wine_path=self.get_executable(),
+            prefix=self.prefix_path,
+            env=self.get_env(os_env=True)
+        )
 
     def run_winetricks(self, *args):
         """Run winetricks in the current context"""

@@ -1,6 +1,4 @@
 """Threading module, used to launch games while monitoring them."""
-
-# Standard Library
 import contextlib
 import fcntl
 import io
@@ -8,13 +6,11 @@ import os
 import shlex
 import subprocess
 import sys
-from textwrap import dedent
 
-# Third Party Libraries
 from gi.repository import GLib
 
-# Lutris Modules
 from lutris import runtime, settings
+from lutris.util.shell import get_terminal_script
 from lutris.util import system
 from lutris.util.log import logger
 
@@ -65,7 +61,7 @@ class MonitoredCommand:
         self.game_process = None
         self.prevent_on_stop = False
         self.return_code = None
-        self.terminal = system.find_executable(term)
+        self.terminal = term
         self.is_running = True
         self.error = None
         self.log_handlers = [
@@ -136,7 +132,12 @@ class MonitoredCommand:
         logger.debug(" ".join(self.wrapper_command))
 
         if self.terminal:
-            self.game_process = self.run_in_terminal()
+            terminal = system.find_executable(self.terminal)
+            if not terminal:
+                logger.error("Couldn't find terminal %s", self.terminal)
+                return
+            script_path = get_terminal_script(self.wrapper_command, self.cwd, self.env)
+            self.game_process = self.execute_process([terminal, "-e", script_path])
         else:
             env = self.get_child_environment()
             self.game_process = self.execute_process(self.wrapper_command, env)
@@ -206,30 +207,6 @@ class MonitoredCommand:
         for log_handler in self.log_handlers:
             log_handler(line)
         return True
-
-    def run_in_terminal(self):
-        """Write command in a script file and run it.
-
-        Running it from a file is likely the only way to set env vars only
-        for the command (not for the terminal app).
-        It's also the only reliable way to keep the term open when the
-        game is quit.
-        """
-        script_path = os.path.join(settings.CACHE_DIR, "run_in_term.sh")
-        exported_environment = "\n".join('export %s="%s" ' % (key, value) for key, value in self.env.items())
-        command = " ".join(['"%s"' % token for token in self.wrapper_command])
-        with open(script_path, "w") as script_file:
-            script_file.write(
-                dedent(
-                    """#!/bin/sh
-                cd "%s"
-                %s
-                exec %s
-                """ % (self.cwd, exported_environment, command)
-                )
-            )
-            os.chmod(script_path, 0o744)
-        return self.execute_process([self.terminal, "-e", script_path])
 
     def execute_process(self, command, env=None):
         """Execute and return a subprocess"""
