@@ -704,8 +704,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_game_activated(self, view, game_id):
         """Handles view activations (double click, enter press)"""
         if self.service:
-            logger.error("TODO")
-            return
+            db_game = games_db.get_game_for_service(self.service.id, game_id)
+            if db_game:
+                game_id = db_game["id"]
+            else:
+                db_game = ServiceGameCollection.get_game(self.service.id, game_id)
+                self.service.install(db_game)
+                return
         game = Game(game_id)
         if game.is_installed:
             logger.info("Game is installed")

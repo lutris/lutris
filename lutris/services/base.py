@@ -6,7 +6,9 @@ from gi.repository import Gio, GObject
 
 from lutris import api, settings
 from lutris.database import sql
+from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
+from lutris.game import Game
 from lutris.installer import fetch_script
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
@@ -75,6 +77,21 @@ class BaseService(GObject.Object):
                 if self.matcher in installer["version"].lower():
                     service_installers.append(installer)
 
+        # Check if the game is not already installed
+        for service_installer in service_installers:
+            print(service_installer["slug"])
+            db_games = get_games(
+                filters={
+                    "installer_slug": service_installer["slug"]
+                }
+            )
+            for _game in db_games:
+                logger.info("Found existing installation of %s", _game["name"])
+                game = Game(_game["id"])
+                game.appid = appid
+                game.service = self.id
+                game.save()
+                return
         if not service_installers:
             installer = self.generate_installer(db_game)
             if installer:

@@ -293,6 +293,8 @@ class Game(GObject.Object):
             id=self.id,
             playtime=self.playtime,
             hidden=self.is_hidden,
+            service=self.service,
+            service_id=self.appid,
         )
         self.emit("game-updated")
 

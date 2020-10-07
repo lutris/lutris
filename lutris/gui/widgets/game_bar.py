@@ -205,7 +205,7 @@ class GameBar(Gtk.Fixed):
 
     def on_install_clicked(self, button):
         """Handler for installing service games"""
-        print(self.service.install(self.db_game))
+        self.service.install(self.db_game)
 
     def on_play_clicked(self, button):
         """Handler for launching service games"""

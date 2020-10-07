@@ -8,7 +8,6 @@ from lutris.database import sql
 from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf_for_game
-from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -111,7 +110,6 @@ class GameStore(GObject.Object):
         game = StoreItem(db_game, self.service_media)
         row = self.get_row_by_id(game.id)
         if not row:
-            logger.debug("No row for %s", game.id)
             return
         row[COL_ID] = game.id
         row[COL_SLUG] = game.slug
