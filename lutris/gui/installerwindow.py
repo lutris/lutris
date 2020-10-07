@@ -314,6 +314,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """Call this when the user confirms the install files
         This will start the downloads.
         """
+        self.set_status("")
         self.continue_button.set_sensitive(False)
         self.continue_button.disconnect(self.continue_handler)
         file_box.start_all()

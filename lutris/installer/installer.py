@@ -130,20 +130,14 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         return errors
 
     def pop_user_provided_file(self):
-        """Return and remove the first user provided file, which is used for game stores
-        """
-        installer_file_id = None
+        """Return and remove the first user provided file, which is used for game stores"""
         for index, file in enumerate(self.files):
             if file.url.startswith("N/A"):
-                logger.debug("File %s detected as user provided, removing from files", file.id)
                 self.files.pop(index)
-                installer_file_id = file.id
-                break
-        return installer_file_id
+                return file.id
 
     def prepare_game_files(self):
         """Gathers necessary files before iterating through them."""
-        # If this is a GOG installer, download required files.
         if self.service:
             if not self.service_appid:
                 raise UnavailableGame("No ID for the game on %s" % self.service)
