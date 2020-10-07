@@ -75,6 +75,8 @@ class GameBar(Gtk.Fixed):
 
     def get_popover(self, buttons):
         """Return the popover widget containing a list of link buttons"""
+        if not buttons:
+            return None
         popover = Gtk.Popover()
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
 
@@ -102,7 +104,9 @@ class GameBar(Gtk.Fixed):
         runner_icon.show()
         runner_button = Gtk.MenuButton()
         runner_button.set_image(runner_icon)
-        runner_button.set_popover(self.get_popover(self.get_runner_buttons()))
+        popover = self.get_popover(self.get_runner_buttons())
+        if popover:
+            runner_button.set_popover(popover)
         runner_button.show()
         return runner_button
 

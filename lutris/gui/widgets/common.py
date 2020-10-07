@@ -192,7 +192,6 @@ class FileChooserEntry(Gtk.Box):
 
 
 class Label(Gtk.Label):
-
     """Standardised label for config vboxes."""
 
     def __init__(self, message=None):
@@ -207,7 +206,6 @@ class Label(Gtk.Label):
 
 
 class InstallerLabel(Gtk.Label):
-
     """Label for installer window"""
 
     def __init__(self, message=None):
@@ -220,7 +218,6 @@ class InstallerLabel(Gtk.Label):
 
 
 class VBox(Gtk.Box):
-
     def __init__(self, **kwargs):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=18, **kwargs)
 

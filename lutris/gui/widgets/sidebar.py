@@ -40,6 +40,7 @@ class SidebarRow(Gtk.ListBoxRow):
         self.id = id_
         self.btn_box = None
         self.runner = None
+        self.name = name
 
         self.box = Gtk.Box(spacing=self.SPACING, margin_start=self.MARGIN, margin_end=self.MARGIN)
         self.add(self.box)

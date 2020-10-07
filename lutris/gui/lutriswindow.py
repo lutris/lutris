@@ -680,6 +680,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
+        self.set_title("Lutris - %s" % row.name)
         self.selected_category = "%s:%s" % (row.type, row.id)
         for filter_type in ("category", "dynamic_category", "service", "runner", "platform"):
             if filter_type in self.filters:
