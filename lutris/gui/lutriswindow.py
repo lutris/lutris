@@ -92,7 +92,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.maximize()
         self.init_template()
         self._init_actions()
-        self._bind_zoom_adjustment()
+
 
         # Set theme to dark if set in the settings
         self.set_dark_theme()
@@ -118,6 +118,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.service_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
+
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -185,6 +186,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_load(self, widget, data):
         self.game_store = GameStore(self.service_media)
         self.switch_view()
+        self._bind_zoom_adjustment()
         self.view.grab_focus()
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
         self.update_runtime()
@@ -317,14 +319,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
                 if not self.service.online or self.service.is_connected():
                     AsyncCall(self.service.load, None)
-                    spinner = Gtk.Spinner(visible=True)
-                    spinner.start()
-                    self.blank_overlay.add(spinner)
+                    self.show_spinner()
                 else:
                     self.blank_overlay.add(
                         Gtk.Label(_("Connect your %s account to access your games") % self.service.name, visible=True)
                     )
-                self.blank_overlay.props.visible = True
+                    self.blank_overlay.props.visible = True
                 return
             self.unset_service()
         self.unset_service()
@@ -431,7 +431,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         service = self.service if self.service else LutrisService
         media_services = list(service.medias.keys())
         self.zoom_adjustment.set_lower(0)
-        self.zoom_adjustment.set_upper(len(media_services))
+        self.zoom_adjustment.set_upper(len(media_services) - 1)
         if self.icon_type in media_services:
             value = media_services.index(self.icon_type)
         else:
@@ -451,8 +451,27 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if icon_type != self.icon_type:
             self.save_icon_type(icon_type)
             self.reload_service_media()
-            self.game_store.load_icons()
-            self.emit("view-updated")
+            self.show_spinner()
+            AsyncCall(self.game_store.load_icons, self.icons_loaded_cb)
+
+    def show_spinner(self):
+        spinner = Gtk.Spinner(visible=True)
+        spinner.start()
+        for child in self.blank_overlay.get_children():
+            child.destroy()
+        self.blank_overlay.add(spinner)
+        self.blank_overlay.props.visible = True
+
+    def hide_spinner(self):
+        self.blank_overlay.props.visible = False
+        for child in self.blank_overlay.get_children():
+            child.destroy()
+
+    def icons_loaded_cb(self, result, error):
+        if error:
+            logger.debug("Failed to reload icons")
+        self.hide_spinner()
+        self.emit("view-updated")
 
     @property
     def view_type(self):
@@ -510,7 +529,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Switch between grid view and list view."""
         if self.view:
             self.view.destroy()
-            logger.debug("View destroyed")
         self.reload_service_media()
         view_class = GameGridView if self.view_type == "grid" else GameListView
         self.view = view_class(self.game_store, self.game_store.service_media)
