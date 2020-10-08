@@ -9,7 +9,7 @@ from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk
 
-from lutris import runtime, settings
+from lutris import runtime
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
@@ -17,7 +17,6 @@ from lutris.database import games as games_db
 from lutris.discord import DiscordPresence
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
-from lutris.platforms import LONG_PLATFORM_OVERRIDES
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
 from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
@@ -262,14 +261,10 @@ class Game(GObject.Object):
         if not self.runner:
             logger.warning("Game has no runner, can't set platform")
             return
-        platform_name = self.runner.get_platform() # short platform name from official runner
-        if not platform_name:
+        self.platform = self.runner.get_platform()
+        if not self.platform:
             logger.warning("Can't get platform for runner %s", self.runner.human_name)
-            return
-        if settings.read_setting("use_long_platform_names") == "True":
-            if platform_name in LONG_PLATFORM_OVERRIDES:
-                platform_name = LONG_PLATFORM_OVERRIDES.get(platform_name)
-        self.platform = platform_name
+
 
     def save(self, save_config=False):
         """

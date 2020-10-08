@@ -109,7 +109,6 @@ class GameDialogCommon:
         prefs_box.pack_start(cache_help_label, False, False, 6)
 
         prefs_box.pack_start(self._get_hide_on_game_launch_box(), False, False, 6)
-        prefs_box.pack_start(self._get_use_long_platform_names(), False, False, 6)
 
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, _("Lutris preferences"))
@@ -157,22 +156,9 @@ class GameDialogCommon:
         box.pack_start(checkbox, True, True, 0)
         return box
 
-    def _get_use_long_platform_names(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        checkbox = Gtk.CheckButton(label=_("Use long platform names (Manufacturer - System) (requires restart)"))
-        if settings.read_setting("use_long_platform_names") == "True":
-            checkbox.set_active(True)
-        checkbox.connect("toggled", self._on_platform_name_change)
-        box.pack_start(checkbox, True, True, 0)
-        return box
-
     def _on_hide_client_change(self, widget):
         """Save setting for hiding the game on game launch"""
         settings.write_setting("hide_client_on_game_start", widget.get_active())
-
-    def _on_platform_name_change(self, widget):
-        """Save setting for using long platform names"""
-        settings.write_setting("use_long_platform_names", widget.get_active())
 
     def _on_cache_path_set(self, entry):
         if self.timer_id:
