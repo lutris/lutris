@@ -140,15 +140,21 @@ def get_formatted_playtime(playtime):
     return NO_PLAYTIME
 
 
+def _split_arguments(args, closing_quot='', quotations=None):
+    if quotations is None:
+        quotations = ["'", '"']
+    try:
+        return shlex.split(args + closing_quot)
+    except ValueError as ex:
+        message = ex.args[0]
+        if message == "No closing quotation" and quotations:
+            return _split_arguments(args, quotations[0], quotations[1:])
+        logger.error(message)
+
+
 def split_arguments(args):
     """Wrapper around shlex.split that is more tolerant of errors"""
     if not args:
         # shlex.split seems to hangs when passed the None value
         return []
-    try:
-        return shlex.split(args)
-    except ValueError as ex:
-        message = ex.args[0]
-        if message == "No closing quotation":
-            return split_arguments(args + "\"")
-        logger.error(message)
+    return _split_arguments(args)
