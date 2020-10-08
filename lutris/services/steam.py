@@ -4,14 +4,18 @@ import os
 import re
 from gettext import gettext as _
 
+from gi.repository import Gio
+
 from lutris import settings
 from lutris.config import LutrisConfig
+from lutris.database.games import get_games
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame, ServiceMedia
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
+from lutris.util.strings import slugify
 
 
 class SteamBanner(ServiceMedia):
@@ -111,3 +115,30 @@ class SteamService(BaseService):
                 "filename": appid
             })
         ]
+
+    def generate_installer(self, db_game):
+        """Generate a basic Steam installer"""
+        return {
+            "name": db_game["name"],
+            "version": "Steam",
+            "slug": slugify(db_game["name"]) + "-steam",
+            "game_slug": slugify(db_game["name"]),
+            "runner": "steam",
+            "appid": db_game["appid"],
+            "script": {
+                "game": {"appid": db_game["appid"]}
+            }
+        }
+
+    def install(self, db_game):
+        appid = db_game["appid"]
+        db_games = get_games(filters={"steamid": appid, "installed": "1"})
+        existing_game = self.match_existing_game(db_games, appid)
+        if existing_game:
+            logger.debug("Found steam game: %s", existing_game)
+            return existing_game
+        # Get lutris installers
+        # Generate installer
+        installer = self.generate_installer(db_game)
+        application = Gio.Application.get_default()
+        application.show_installer_window([installer], service=self, appid=appid)

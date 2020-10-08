@@ -35,7 +35,6 @@ HEARTBEAT_DELAY = 2000
 
 
 class Game(GObject.Object):
-
     """This class takes cares of loading the configuration for a game
        and running it.
     """

@@ -6,6 +6,7 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris import settings
+from lutris.exceptions import UnavailableGame
 from lutris.game import Game
 from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, QuestionDialog
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
@@ -280,7 +281,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def on_runners_ready(self, _widget):
         """The runners are ready, proceed with file selection"""
         self.clean_widgets()
-        self.interpreter.installer.prepare_game_files()
+        try:
+            self.interpreter.installer.prepare_game_files()
+        except UnavailableGame as ex:
+            raise ScriptingError(str(ex))
+
         if not self.interpreter.installer.files:
             logger.debug("Installer doesn't require files")
             self.interpreter.launch_installer_commands()

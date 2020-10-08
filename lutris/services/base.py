@@ -65,6 +65,16 @@ class BaseService(GObject.Object):
                     conditions=conditions
                 )
 
+    def match_existing_game(self, db_games, appid):
+        """Checks if a game is already installed and populates the service info"""
+        for _game in db_games:
+            logger.info("Found existing installation of %s (%s)", _game["name"], _game["installed"])
+            game = Game(_game["id"])
+            game.appid = appid
+            game.service = self.id
+            game.save()
+            return game
+
     def install(self, db_game):
         appid = db_game["appid"]
         logger.debug("Installing %s from service %s", appid, self.id)
@@ -79,19 +89,13 @@ class BaseService(GObject.Object):
 
         # Check if the game is not already installed
         for service_installer in service_installers:
-            print(service_installer["slug"])
-            db_games = get_games(
-                filters={
-                    "installer_slug": service_installer["slug"]
-                }
+            existing_game = self.match_existing_game(
+                get_games(filters={"installer_slug": service_installer["slug"], "installed": "1"}),
+                appid
             )
-            for _game in db_games:
-                logger.info("Found existing installation of %s", _game["name"])
-                game = Game(_game["id"])
-                game.appid = appid
-                game.service = self.id
-                game.save()
-                return
+            if existing_game:
+                return existing_game
+
         if not service_installers:
             installer = self.generate_installer(db_game)
             if installer:
