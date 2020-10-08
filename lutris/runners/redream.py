@@ -1,8 +1,9 @@
-import shutil
 import os
-from lutris.runners.runner import Runner
-from lutris.gui.dialogs import QuestionDialog, FileDialog
+import shutil
+
 from lutris import settings
+from lutris.gui.dialogs import FileDialog, QuestionDialog
+from lutris.runners.runner import Runner
 
 
 class redream(Runner):

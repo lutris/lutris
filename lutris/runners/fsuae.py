@@ -112,14 +112,10 @@ class fsuae(Runner):
     runner_executable = "fs-uae/fs-uae"
     game_options = [
         {
-            "option":
-            "main_file",
-            "type":
-            "file",
-            "label":
-            _("Boot disk"),
-            "default_path":
-            "game_path",
+            "option": "main_file",
+            "type": "file",
+            "label": _("Boot disk"),
+            "default_path": "game_path",
             "help": _(
                 "The main floppy disk file with the game data. \n"
                 "FS-UAE supports floppy images in multiple file formats: "
@@ -152,12 +148,9 @@ class fsuae(Runner):
             "help": _("Specify the Amiga model you want to emulate."),
         },
         {
-            "option":
-            "kickstart_file",
-            "label":
-            _("Kickstart ROMs location"),
-            "type":
-            "file",
+            "option": "kickstart_file",
+            "label": _("Kickstart ROMs location"),
+            "type": "file",
             "help": _(
                 "Choose the folder containing original Amiga kickstart "
                 "ROMs. Refer to FS-UAE documentation to find how to "
@@ -170,127 +163,12 @@ class fsuae(Runner):
             "option": "kickstart_ext_file",
             "label": _("Extended Kickstart location"),
             "type": "file",
+            "advanced": True,
             "help": _("Location of extended Kickstart used for CD32"),
-        },
-        {
-            "option": "cpumodel",
-            "label": _("CPU"),
-            "type": "choice",
-            "choices": cpumodel_choices,
-            "default": "auto",
-            "help": _("Use this option to override the CPU model in the emulated Amiga. All Amiga"
-                      "models imply a default CPU model, so you only need to use this option if"
-                      "want to use another CPU."),
-        },
-        {
-            "option": "fmemory",
-            "label": _("Fast Memory"),
-            "type": "choice",
-            "choices": memory_choices,
-            "default": "0",
-            "help": _("Specify how much Fast Memory the Amiga model should have."),
-        },
-        {
-            "option": "ziiimem",
-            "label": _("Zorro III RAM"),
-            "type": "choice",
-            "choices": zorroiii_choices,
-            "default": "0",
-            "help": _("Override the amount of Zorro III Fast memory, specified in KB. Must be a"
-                      "multiple of 1024. The default value depends on [amiga_model]. Requires a"
-                      "processor with 32-bit address bus, (use for example the A1200/020 model).."),
-        },
-        {
-            "option": "fdvolume",
-            "label": _("Floppy Drive Volume"),
-            "type": "choice",
-            "choices": flsound_choices,
-            "default": "0",
-            "help": _("Set volume to 0 to disable floppy drive clicks "
-                      "when the drive is empty. Max volume is 100.")
-        },
-        {
-            "option":
-            "fdspeed",
-            "label":
-            _("Floppy Drive Speed"),
-            "type":
-            "choice",
-            "choices":
-            flspeed_choices,
-            "default":
-            "100",
-            "help": _(
-                "Set the speed of the emulated floppy drives, in percent. "
-                "For example, you can specify 800 to get an 8x increase in "
-                "speed. Use 0 to specify turbo mode. Turbo mode means that "
-                "all floppy operations complete immediately. The default is 100 for most models."
-            )
-        },
-        {
-            "option":
-            "grafixcard",
-            "label":
-            _("Graphics Card"),
-            "type":
-            "choice",
-            "choices":
-            gpucard_choices,
-            "default":
-            "None",
-            "help": _(
-                "Use this option to enable a graphics card. This option is none by default, in "
-                "which case only chipset graphics (OCS/ECS/AGA) support is available."
-            )
-        },
-        {
-            "option":
-            "grafixmemory",
-            "label":
-            _("Graphics Card RAM"),
-            "type":
-            "choice",
-            "choices":
-            gpumem_choices,
-            "default":
-            "0",
-            "help": _(
-                "Override the amount of graphics memory on the graphics card. The 0 MB option is "
-                "not really valid, but exists for user interface reasons."
-            )
         },
         {
             "option": "gfx_fullscreen_amiga",
             "label": _("Fullscreen (F12 + s to switch)"),
-            "type": "bool",
-            "default": False,
-        },
-        {
-            "option": "jitcompiler",
-            "label": _("JIT Compiler"),
-            "type": "bool",
-            "default": False,
-        },
-        {
-            "option": "gamemode",
-            "label": _("Feral GameMode"),
-            "type": "bool",
-            "default": False,
-            "help": _("Automatically uses Feral GameMode daemon if available."
-                      "set to true to disable the feature.")
-        },
-        {
-            "option": "govwarning",
-            "label": _("CPU governor warning"),
-            "type": "bool",
-            "default": False,
-            "help":
-            _("Warn if running with a CPU governor other than performance."
-              "set to true to disable the warning.")
-        },
-        {
-            "option": "bsdsocket",
-            "label": _("UAE bsdsocket.library"),
             "type": "bool",
             "default": False,
         },
@@ -302,6 +180,119 @@ class fsuae(Runner):
             "help": _("Activates a display filter adding scanlines to imitate "
                       "the displays of yesteryear."),
         },
+        {
+            "option": "cpumodel",
+            "label": _("CPU"),
+            "type": "choice",
+            "choices": cpumodel_choices,
+            "default": "auto",
+            "advanced": True,
+            "help": _("Use this option to override the CPU model in the emulated Amiga. All Amiga"
+                      "models imply a default CPU model, so you only need to use this option if"
+                      "want to use another CPU."),
+        },
+        {
+            "option": "fmemory",
+            "label": _("Fast Memory"),
+            "type": "choice",
+            "choices": memory_choices,
+            "default": "0",
+            "advanced": True,
+            "help": _("Specify how much Fast Memory the Amiga model should have."),
+        },
+        {
+            "option": "ziiimem",
+            "label": _("Zorro III RAM"),
+            "type": "choice",
+            "choices": zorroiii_choices,
+            "default": "0",
+            "advanced": True,
+            "help": _("Override the amount of Zorro III Fast memory, specified in KB. Must be a"
+                      "multiple of 1024. The default value depends on [amiga_model]. Requires a"
+                      "processor with 32-bit address bus, (use for example the A1200/020 model).."),
+        },
+        {
+            "option": "fdvolume",
+            "label": _("Floppy Drive Volume"),
+            "type": "choice",
+            "choices": flsound_choices,
+            "default": "0",
+            "advanced": True,
+            "help": _("Set volume to 0 to disable floppy drive clicks "
+                      "when the drive is empty. Max volume is 100.")
+        },
+        {
+            "option": "fdspeed",
+            "label": _("Floppy Drive Speed"),
+            "type": "choice",
+            "choices": flspeed_choices,
+            "default": "100",
+            "advanced": True,
+            "help": _(
+                "Set the speed of the emulated floppy drives, in percent. "
+                "For example, you can specify 800 to get an 8x increase in "
+                "speed. Use 0 to specify turbo mode. Turbo mode means that "
+                "all floppy operations complete immediately. The default is 100 for most models."
+            )
+        },
+        {
+            "option": "grafixcard",
+            "label": _("Graphics Card"),
+            "type": "choice",
+            "choices": gpucard_choices,
+            "default": "None",
+            "advanced": True,
+            "help": _(
+                "Use this option to enable a graphics card. This option is none by default, in "
+                "which case only chipset graphics (OCS/ECS/AGA) support is available."
+            )
+        },
+        {
+            "option": "grafixmemory",
+            "label": _("Graphics Card RAM"),
+            "type": "choice",
+            "choices": gpumem_choices,
+            "default": "0",
+            "advanced": True,
+            "help": _(
+                "Override the amount of graphics memory on the graphics card. The 0 MB option is "
+                "not really valid, but exists for user interface reasons."
+            )
+        },
+        {
+            "option": "jitcompiler",
+            "label": _("JIT Compiler"),
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+        },
+        {
+            "option": "gamemode",
+            "label": _("Feral GameMode"),
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+            "help": _("Automatically uses Feral GameMode daemon if available."
+                      "set to true to disable the feature.")
+        },
+        {
+            "option": "govwarning",
+            "label": _("CPU governor warning"),
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+            "help":
+            _("Warn if running with a CPU governor other than performance."
+              "set to true to disable the warning.")
+        },
+        {
+            "option": "bsdsocket",
+            "label": _("UAE bsdsocket.library"),
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+        },
+
     ]
 
     def get_platform(self):
@@ -350,36 +341,23 @@ class fsuae(Runner):
 
     def get_params(self):  # pylint: disable=too-many-branches
         params = []
-        model = self.runner_config.get("model")
-        cpumodel = self.runner_config.get("cpumodel")
-        fmemory = self.runner_config.get("fmemory")
-        ziiimem = self.runner_config.get("ziiimem")
-        fdvolume = self.runner_config.get("fdvolume")
-        fdspeed = self.runner_config.get("fdspeed")
-        grafixcard = self.runner_config.get("grafixcard")
-        grafixmemory = self.runner_config.get("grafixmemory")
-        kickstart_file = self.runner_config.get("kickstart_file")
-        if kickstart_file:
-            params.append("--kickstart_file=%s" % kickstart_file)
-        kickstart_ext_file = self.runner_config.get("kickstart_ext_file")
-        if kickstart_ext_file:
-            params.append("--kickstart_ext_file=%s" % kickstart_ext_file)
-        if model:
-            params.append("--amiga_model=%s" % model)
-        if cpumodel:
-            params.append("--cpu=%s" % cpumodel)
-        if fmemory:
-            params.append("--fast_memory=%s" % fmemory)
-        if ziiimem:
-            params.append("--zorro_iii_memory=%s" % ziiimem)
-        if fdvolume:
-            params.append("--floppy_drive_volume=%s" % fdvolume)
-        if fdspeed:
-            params.append("--floppy_drive_speed=%s" % fdspeed)
-        if grafixcard:
-            params.append("--graphics_card=%s" % grafixcard)
-        if grafixmemory:
-            params.append("--graphics_memory=%s" % grafixmemory)
+        option_params = {
+            "kickstart_file": "--kickstart_file=%s",
+            "kickstart_ext_file": "--kickstart_ext_file=%s",
+            "model": "--amiga_model=%s",
+            "cpumodel": "--cpu=%s",
+            "fmemory": "--fast_memory=%s",
+            "ziiimem": "--zorro_iii_memory=%s",
+            "fdvolume": "--floppy_drive_volume=%s",
+            "fdspeed": "--floppy_drive_speed=%s",
+            "grafixcard": "--graphics_card=%s",
+            "grafixmemory": "--graphics_memory=%s",
+        }
+        for option, param in option_params.items():
+            option_value = self.runner_config.get(option)
+            if option_value:
+                params.append(param % option_value)
+
         if self.runner_config.get("gfx_fullscreen_amiga"):
             width = int(DISPLAY_MANAGER.get_current_resolution()[0])
             params.append("--fullscreen")
