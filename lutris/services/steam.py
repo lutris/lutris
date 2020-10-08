@@ -9,6 +9,7 @@ from gi.repository import Gio
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_games
+from lutris.game import Game
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame, ServiceMedia
@@ -136,9 +137,11 @@ class SteamService(BaseService):
         existing_game = self.match_existing_game(db_games, appid)
         if existing_game:
             logger.debug("Found steam game: %s", existing_game)
-            return existing_game
-        # Get lutris installers
-        # Generate installer
-        installer = self.generate_installer(db_game)
+            game = Game(existing_game["id"])
+            game.save()
+            return
+        service_installers = self.get_installers_from_api(appid)
+        if not service_installers:
+            service_installers = [self.generate_installer(db_game)]
         application = Gio.Application.get_default()
-        application.show_installer_window([installer], service=self, appid=appid)
+        application.show_installer_window(service_installers, service=self, appid=appid)

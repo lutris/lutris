@@ -5,6 +5,7 @@ from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris import settings
 from lutris.database import sql
+from lutris.game import Game
 from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf_for_game
@@ -83,6 +84,7 @@ class GameStore(GObject.Object):
         )
         self.media_loader = MediaLoader(service_media)
         self.media_loader.connect("icon-loaded", self.on_icon_loaded)
+        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
 
     def load_icons(self):
         """Downloads the icons for a service"""
@@ -163,9 +165,9 @@ class GameStore(GObject.Object):
             )
         self.emit("icons-changed")
 
-    def on_icon_loaded(self, media_loader, appid, path):
-        """Callback signal for when a icon has downloaded.
-        Update the image in the view.
+    def on_icon_loaded(self, media_loader, appid, _path):
+        """Callback signal for when an icon is loaded
+        Updates the image in the view.
         """
         games = sql.filtered_query(PGA_DB, "service_games", filters=({
             "service": self.service_media.service,
@@ -173,3 +175,11 @@ class GameStore(GObject.Object):
         }))
         for game in games:
             GLib.idle_add(self.update, game)
+
+    def on_game_updated(self, game):
+        db_games = sql.filtered_query(PGA_DB, "service_games", filters=({
+            "service": self.service_media.service,
+            "appid": game.appid
+        }))
+        for db_game in db_games:
+            GLib.idle_add(self.update, db_game)

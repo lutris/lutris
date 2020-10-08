@@ -75,9 +75,8 @@ class BaseService(GObject.Object):
             game.save()
             return game
 
-    def install(self, db_game):
-        appid = db_game["appid"]
-        logger.debug("Installing %s from service %s", appid, self.id)
+    def get_installers_from_api(self, appid):
+        """Query the lutris API for an appid and get existing installers for the service"""
         lutris_games = api.get_api_games([appid], service=self.id)
         service_installers = []
         if lutris_games:
@@ -86,7 +85,12 @@ class BaseService(GObject.Object):
             for installer in installers:
                 if self.matcher in installer["version"].lower():
                     service_installers.append(installer)
+        return service_installers
 
+    def install(self, db_game):
+        appid = db_game["appid"]
+        logger.debug("Installing %s from service %s", appid, self.id)
+        service_installers = self.get_installers_from_api(appid)
         # Check if the game is not already installed
         for service_installer in service_installers:
             existing_game = self.match_existing_game(
@@ -94,7 +98,7 @@ class BaseService(GObject.Object):
                 appid
             )
             if existing_game:
-                return existing_game
+                return
 
         if not service_installers:
             installer = self.generate_installer(db_game)

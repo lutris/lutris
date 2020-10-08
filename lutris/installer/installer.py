@@ -7,7 +7,6 @@ import yaml
 from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.database.games import add_or_update, clear_service_cache, get_game_by_field
-from lutris.exceptions import UnavailableGame
 from lutris.game import Game
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
@@ -138,15 +137,14 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
     def prepare_game_files(self):
         """Gathers necessary files before iterating through them."""
+        if not self.files:
+            return
         if self.service:
-            if not self.service_appid:
-                raise UnavailableGame("No ID for the game on %s" % self.service)
             installer_file_id = self.pop_user_provided_file()
             if not installer_file_id:
-                raise UnavailableGame("Installer has no user provided file")
+                logger.warning("Could not find a file for this service")
+                return
             installer_files = self.service.get_installer_files(self, installer_file_id)
-            if not installer_files:
-                raise UnavailableGame("Unable to get the game on %s" % self.service.name)
             for installer_file in installer_files:
                 self.files.append(installer_file)
 
