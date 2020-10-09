@@ -158,3 +158,13 @@ def split_arguments(args):
         # shlex.split seems to hangs when passed the None value
         return []
     return _split_arguments(args)
+
+
+def human_size(size):
+    """Shows a size in bytes in a more readable way"""
+    units = ("bytes", "kB", "MB", "GB", "TB", "PB", "nuh uh", "no way", "BS")
+    unit_index = 0
+    while size > 1024:
+        size = size / 1024
+        unit_index += 1
+    return "%0.1f %s" % (size, units[unit_index])

@@ -378,3 +378,10 @@ def update_desktop_icons():
     if find_executable("gtk-update-icon-cache"):
         logger.debug("Updating GTK icon cache...")
         os.system("gtk-update-icon-cache -tf %s" % os.path.join(GLib.get_user_data_dir(), "icons", "hicolor"))
+
+
+def get_disk_size(path):
+    total_size = 0
+    for base, dirs, files in os.walk(path):
+        total_size += sum([os.stat(os.path.join(base, f)).st_size for f in files if os.path.isfile(os.path.join(base, f))])
+    return total_size
