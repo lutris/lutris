@@ -73,14 +73,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.icon_type = None
         self.service = None
 
-        # Load settings
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
 
         icon_type = self.load_icon_type()
         self.service_media = self.get_service_media(icon_type)
 
-        # Window initialization
         self.game_actions = GameActions(application=application, window=self)
         self.search_timer_id = None
         self.game_store = None
@@ -93,11 +91,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.init_template()
         self._init_actions()
 
-        # Set theme to dark if set in the settings
         self.set_dark_theme()
         self.set_viewtype_icon(self.view_type)
 
-        # Add additional widgets
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
         self.selected_category = settings.read_setting("selected_category", default="runner:all")
@@ -109,7 +105,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar)
 
-        # Sidebar visibility
         self.sidebar_revealer.set_reveal_child(self.left_side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
 
@@ -187,7 +182,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_load(self, widget, data):
         self.game_store = GameStore(self.service_media)
-        self.switch_view()
+        self.redraw_view()
         self._bind_zoom_adjustment()
         self.view.grab_focus()
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
@@ -503,7 +498,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             settings.write_setting("icon_type_gridview", self.icon_type)
         elif self.current_view_type == "list":
             settings.write_setting("icon_type_listview", self.icon_type)
-        self.switch_view()
+        self.redraw_view()
 
     def reload_service_media(self):
         self.game_store.set_service_media(
@@ -512,11 +507,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             )
         )
 
-    def switch_view(self, view_type=None):
-        """Switch between grid view and list view."""
+    def redraw_view(self):
+        """Completely reconstruct the main view"""
         if self.view:
             self.view.destroy()
         self.reload_service_media()
+
         view_class = GameGridView if self.view_type == "grid" else GameListView
         self.view = view_class(self.game_store, self.game_store.service_media)
 
@@ -527,10 +523,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             child.destroy()
         self.games_scrollwindow.add(self.view)
         self.connect("view-updated", self.update_store)
-
-        if view_type:
-            self.set_viewtype_icon(view_type)
-            settings.write_setting("view_type", view_type)
 
         self.view.show_all()
         self.update_store()
@@ -649,14 +641,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return True
 
     def on_toggle_viewtype(self, *args):
-        self.switch_view("list" if self.current_view_type == "grid" else "grid")
-
-    def on_viewtype_state_change(self, action, val):
-        """Callback to handle view type switch"""
-        action.set_state(val)
-        view_type = val.get_string()
-        if view_type != self.current_view_type:
-            self.switch_view(view_type)
+        view_type = "list" if self.current_view_type == "grid" else "grid"
+        self.set_viewtype_icon(view_type)
+        settings.write_setting("view_type", view_type)
+        self.redraw_view()
 
     def on_icontype_state_change(self, action, value):
         action.set_state(value)
