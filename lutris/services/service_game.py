@@ -56,6 +56,8 @@ class ServiceMedia:
 
     def download(self, slug, url):
         """Downloads the banner if not present"""
+        if not url:
+            return
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
         if not system.path_exists(cache_path):
             download_file(url, cache_path)

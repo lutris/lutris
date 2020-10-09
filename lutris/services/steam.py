@@ -83,9 +83,15 @@ class SteamService(BaseService):
         "banner_large": SteamBannerLarge,
     }
     default_format = "banner"
+    is_loading = False
 
     def load(self):
         """Return importable Steam games"""
+        if self.is_loading:
+            logger.warning("Steam games are already loading")
+            return
+        self.is_loading = True
+        self.emit("service-games-load")
         logger.debug("Loading Steam games from local install")
         games = []
         steamapps_paths = get_steamapps_paths()
@@ -98,6 +104,7 @@ class SteamService(BaseService):
         logger.debug("Saving Steam games...")
         for game in games:
             game.save()
+        self.is_loading = False
         logger.debug("Steam games loaded")
         self.emit("service-games-loaded")
 

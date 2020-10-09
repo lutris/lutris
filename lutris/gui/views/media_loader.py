@@ -34,7 +34,8 @@ class MediaLoader(GObject.Object):
                 except Exception as ex:  # pylint: disable=broad-except
                     logger.exception('%r failed: %s', slug, ex)
                 else:
-                    self.emit("icon-loaded", slug, path)
+                    if path:
+                        self.emit("icon-loaded", slug, path)
         # XXX clearly not the place for this
         # if media_type == "icon":
         #     system.update_desktop_icons()

@@ -233,11 +233,11 @@
         <property name="orientation">vertical</property>
         <property name="spacing">3</property>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="zoom_box">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkLabel" id="zoom_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">Zoom:</property>
@@ -249,14 +249,17 @@
               </packing>
             </child>
             <child>
-              <object class="GtkScale">
+              <object class="GtkScale" id="zoom_scale">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
                 <property name="adjustment">zoom_adjustment</property>
+                <property name="lower_stepper_sensitivity">on</property>
+                <property name="upper_stepper_sensitivity">on</property>
                 <property name="restrict_to_fill_level">False</property>
                 <property name="fill_level">0</property>
+                <property name="round_digits">0</property>
                 <property name="draw_value">False</property>
                 <property name="has_origin">False</property>
               </object>

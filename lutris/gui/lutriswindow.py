@@ -25,6 +25,7 @@ from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import open_uri
 from lutris.runtime import RuntimeUpdater
+from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
@@ -115,6 +116,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
+
+        GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
+        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
+        GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
+        GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -288,51 +294,38 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return True
         return self.filters["text"] in game["name"].lower()
 
+    def set_service(self, service_name):
+        self.service = services.get_services()[service_name]()
+
     def unset_service(self):
         self.service = None
 
     def get_games_from_filters(self):
-        if self.filters.get("service"):
-            service_name = self.filters["service"]
-            if service_name in services.get_services():
-                self.service = services.get_services()[service_name]()
-                if self.service.online:
-                    self.service.connect("service-login", self.on_service_games_updated)
-                    self.service.connect("service-logout", self.on_service_logout)
-                self.service.connect("service-games-loaded", self.on_service_games_updated)
-
-                service_games = ServiceGameCollection.get_for_service(service_name)
-                if service_games:
-                    return [
-                        game for game in sorted(
-                            service_games,
-                            key=lambda game: game.get(self.view_sorting) or game["name"],
-                            reverse=not self.view_sorting_ascending
-                        ) if self.game_matches(game)
-                    ]
-
-                if not self.service.online or self.service.is_connected():
-                    AsyncCall(self.service.load, None)
-                    self.show_spinner()
-                else:
-                    self.blank_overlay.add(
-                        Gtk.Label(_("Connect your %s account to access your games") % self.service.name, visible=True)
-                    )
-                    self.blank_overlay.props.visible = True
-                return
-            self.unset_service()
+        service_name = self.filters.get("service")
+        if service_name in services.get_services():
+            self.set_service(service_name)
+            service_games = ServiceGameCollection.get_for_service(service_name)
+            if service_games:
+                return [
+                    game for game in sorted(
+                        service_games,
+                        key=lambda game: game.get(self.view_sorting) or game["name"],
+                        reverse=not self.view_sorting_ascending
+                    ) if self.game_matches(game)
+                ]
+            if self.service.online and not self.service.is_connected():
+                self.show_label(_("Connect your %s account to access your games") % self.service.name)
+            return
         self.unset_service()
         dynamic_categories = {
             "running": self.get_running_games,
             "installed": self.get_installed_games
         }
-
         if self.filters.get("dynamic_category") in dynamic_categories:
             return dynamic_categories[self.filters["dynamic_category"]]()
         if self.filters.get("category"):
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
             return games_db.get_games_by_ids(game_ids)
-
         searches, filters, excludes = self.get_sql_filters()
         return games_db.get_games(
             searches=searches,
@@ -340,6 +333,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             excludes=excludes,
             sorts=self.sort_params
         )
+
+    def on_service_games_updating(self, service):
+        if not self.service or service.id != self.service.id:
+            logger.warning("Wrong service %s", self.service)
+            return
+        self.show_spinner()
 
     def get_sql_filters(self):
         """Return the current filters for the view"""
@@ -393,13 +392,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         for game in games:
             game["image_size"] = self.service_media.size
             self.game_store.add_game(game)
-
-        if self.filters.get("text"):
-            empty_label = Gtk.Label(_("No games matching '%s' found ") % self.filters["text"], visible=True)
-        else:
-            empty_label = Gtk.Label(_("No games found"), visible=True)
-        self.blank_overlay.add(empty_label)
-        self.blank_overlay.props.visible = not bool(games)
+        if not games:
+            if self.filters.get("text"):
+                self.show_label(_("No games matching '%s' found ") % self.filters["text"])
+            else:
+                self.show_label(_("No games found"))
         self.search_timer_id = None
         return False
 
@@ -436,6 +433,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.show_spinner()
             AsyncCall(self.game_store.load_icons, self.icons_loaded_cb)
 
+    def show_label(self, message):
+        """Display a label in the middle of the UI"""
+        for child in self.blank_overlay.get_children():
+            child.destroy()
+        label = Gtk.Label(message)
+        self.blank_overlay.add(label)
+        self.blank_overlay.props.visible = True
+
     def show_spinner(self):
         spinner = Gtk.Spinner(visible=True)
         spinner.start()
@@ -444,7 +449,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.blank_overlay.add(spinner)
         self.blank_overlay.props.visible = True
 
-    def hide_spinner(self):
+    def hide_overlay(self):
         self.blank_overlay.props.visible = False
         for child in self.blank_overlay.get_children():
             child.destroy()
@@ -452,7 +457,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def icons_loaded_cb(self, result, error):
         if error:
             logger.debug("Failed to reload icons")
-        self.hide_spinner()
+        self.hide_overlay()
         self.emit("view-updated")
 
     @property
@@ -545,14 +550,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.emit("view-updated")
 
     def on_service_games_updated(self, service):
-        self.game_store.load_icons()
-        service.match_games()
+        AsyncCall(self.game_store.load_icons, None)
         self.emit("view-updated")
-        return False
 
-    def on_service_logout(self, *args, **kwargs):
-        self.update_store()
-        return False
+    def on_service_login(self, service):
+        AsyncCall(service.load, None)
+
+    def on_service_logout(self, service):
+        self.emit("view-updated")
 
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""

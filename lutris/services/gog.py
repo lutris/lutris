@@ -83,6 +83,8 @@ class GOGService(OnlineService):
     token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
     cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
 
+    is_loading = False
+
     @property
     def login_url(self):
         """Return authentication URL"""
@@ -114,9 +116,16 @@ class GOGService(OnlineService):
 
     def load(self):
         """Load the user game library from the GOG API"""
+        if self.is_loading:
+            logger.warning("GOG games are already loading")
+            return
+        self.is_loading = True
+        self.emit("service-games-load")
         games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
         for game in games:
             game.save()
+        self.match_games()
+        self.is_loading = False
         self.emit("service-games-loaded")
 
     def request_token(self, url="", refresh_token=""):

@@ -7,6 +7,8 @@ from gi.repository import Gio
 
 from lutris import settings
 from lutris.api import read_api_key
+from lutris.database.games import get_games
+from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
 from lutris.installer import fetch_script
 from lutris.services.base import OnlineService
@@ -66,10 +68,20 @@ class LutrisService(OnlineService):
     cache_path = os.path.join(settings.CACHE_DIR, "lutris")
     token_path = os.path.join(settings.CACHE_DIR, "auth-token")
 
+    is_loading = False
+
     @property
     def credential_files(self):
         """Return a list of all files used for authentication"""
         return [self.token_path]
+
+    def match_games(self):
+        """Matching lutris games is much simpler... No API call needed."""
+        service_games = {
+            str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
+        }
+        for lutris_game in get_games():
+            self.match_game(service_games.get(lutris_game["slug"]), lutris_game["slug"])
 
     def is_connected(self):
         """Is the service connected?"""
@@ -102,9 +114,16 @@ class LutrisService(OnlineService):
         return []
 
     def load(self):
+        if self.is_loading:
+            logger.warning("Lutris games are already loading")
+            return
+        self.emit("service-games-load")
+        self.is_loading = True
         for game in self.get_library():
             lutris_game = LutrisGame.new_from_api(game)
             lutris_game.save()
+        self.match_games()
+        self.is_loading = False
         self.emit("service-games-loaded")
 
     def install(self, db_game):

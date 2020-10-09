@@ -27,7 +27,10 @@ class BaseService(GObject.Object):
     default_format = "icon"
 
     __gsignals__ = {
+        "service-games-load": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "service-games-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "service-login": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "service-logout": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     @property
@@ -44,6 +47,18 @@ class BaseService(GObject.Object):
         """Used to generate an installer from the data returned from the services"""
         return {}
 
+    def match_game(self, service_game, slug):
+        """Match a service game to a lutris game referenced by its slug"""
+        if not service_game:
+            return
+        conditions = {"appid": service_game["appid"], "service": self.id}
+        sql.db_update(
+            PGA_DB,
+            "service_games",
+            {"lutris_slug": slug},
+            conditions=conditions
+        )
+
     def match_games(self):
         """Matching of service games to lutris games"""
         service_games = {
@@ -54,16 +69,7 @@ class BaseService(GObject.Object):
             for provider_game in lutris_game["provider_games"]:
                 if provider_game["service"] != self.id:
                     continue
-                service_game = service_games.get(provider_game["slug"])
-                if not service_game:
-                    continue
-                conditions = {"appid": service_game["appid"], "service": self.id}
-                sql.db_update(
-                    PGA_DB,
-                    "service_games",
-                    {"lutris_slug": lutris_game["slug"]},
-                    conditions=conditions
-                )
+                self.match_game(service_games.get(provider_game["slug"]), lutris_game["slug"])
 
     def match_existing_game(self, db_games, appid):
         """Checks if a game is already installed and populates the service info"""
@@ -88,6 +94,7 @@ class BaseService(GObject.Object):
         return service_installers
 
     def install(self, db_game):
+        """Install a service game"""
         appid = db_game["appid"]
         logger.debug("Installing %s from service %s", appid, self.id)
         service_installers = self.get_installers_from_api(appid)
@@ -99,12 +106,10 @@ class BaseService(GObject.Object):
             )
             if existing_game:
                 return
-
         if not service_installers:
             installer = self.generate_installer(db_game)
             if installer:
                 service_installers.append(installer)
-
         if service_installers:
             application = Gio.Application.get_default()
             application.show_installer_window(service_installers, service=self, appid=appid)
@@ -112,11 +117,6 @@ class BaseService(GObject.Object):
 
 class OnlineService(BaseService):
     """Base class for online gaming services"""
-
-    __gsignals__ = {
-        "service-login": (GObject.SIGNAL_RUN_FIRST, None, ()),
-        "service-logout": (GObject.SIGNAL_RUN_FIRST, None, ()),
-    }
 
     online = True
     cookies_path = NotImplemented

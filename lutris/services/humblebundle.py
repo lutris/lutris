@@ -67,6 +67,7 @@ class HumbleBundleService(OnlineService):
     cache_path = os.path.join(settings.CACHE_DIR, "humblebundle-library/")
 
     supported_platforms = ("linux", "windows")
+    is_loading = False
 
     def request_token(self, url="", refresh_token=""):
         """Dummy function, should not be here. Fix in WebConnectDialog"""
@@ -84,6 +85,11 @@ class HumbleBundleService(OnlineService):
 
     def load(self):
         """Load the user's Humble Bundle library"""
+        if self.is_loading:
+            logger.warning("Humble bundle games are already loading")
+            return
+        self.is_loading = True
+        self.emit("service-games-load")
         humble_games = []
         seen = set()
         for game in self.get_library():
@@ -93,6 +99,7 @@ class HumbleBundleService(OnlineService):
             seen.add(game["human_name"])
         for game in humble_games:
             game.save()
+        self.is_loading = False
         self.emit("service-games-loaded")
 
     def make_api_request(self, url):
