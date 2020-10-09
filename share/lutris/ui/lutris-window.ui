@@ -651,6 +651,7 @@
                 <property name="width_chars">45</property>
                 <property name="placeholder_text" translatable="yes">Search games</property>
                 <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+		<signal name="key-press-event" handler="on_search_entry_key_press" swapped="no"/>
               </object>
             </child>
           </object>
