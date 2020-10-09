@@ -527,7 +527,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.view.show_all()
         self.update_store()
-
+        
+        #select first game
+        if self.current_view_type == 'grid':
+            self.view.select_path(Gtk.TreePath('0')) # needed for gridview only
+        self.view.set_cursor(Gtk.TreePath('0'), None, False) # needed for both view types
+        
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
 
@@ -609,6 +614,20 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             GLib.source_remove(self.search_timer_id)
         self.filters["text"] = entry.get_text().lower().strip()
         self.search_timer_id = GLib.timeout_add(350, self.update_store)
+
+    @GtkTemplate.Callback
+    def on_search_entry_key_press(self, widget, event):
+        if event.keyval == Gdk.KEY_Down:
+            if self.current_view_type == 'grid':
+                self.view.select_path(Gtk.TreePath('0')) # needed for gridview only
+                ## if game_bar is alive at this point it can mess grid item selection up
+                ## for some unknown reason,
+                ## it is safe to close it here, it will be reopened automatically.
+                if self.game_bar:
+                    self.game_bar.destroy() # for gridview only
+                ##
+            self.view.set_cursor(Gtk.TreePath('0'), None, False) # needed for both view types
+            self.view.grab_focus()
 
     @GtkTemplate.Callback
     def on_search_toggle(self, button):
