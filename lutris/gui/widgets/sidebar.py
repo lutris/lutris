@@ -11,6 +11,7 @@ from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.gui.widgets.utils import load_icon_theme
+from lutris.util.jobs import AsyncCall
 
 TYPE = 0
 SLUG = 1
@@ -38,7 +39,6 @@ class SidebarRow(Gtk.ListBoxRow):
         self.application = application
         self.type = type_
         self.id = id_
-        self.btn_box = None
         self.runner = None
         self.name = name
 
@@ -48,29 +48,112 @@ class SidebarRow(Gtk.ListBoxRow):
         if not icon:
             icon = Gtk.Box(spacing=self.SPACING, margin_start=self.MARGIN, margin_end=self.MARGIN)
         self.box.add(icon)
-
-        self.box.add(
-            Gtk.Label(
-                label=name,
-                halign=Gtk.Align.START,
-                hexpand=True,
-                margin_top=self.SPACING,
-                margin_bottom=self.SPACING,
-                ellipsize=Pango.EllipsizeMode.END,
-            )
+        label = Gtk.Label(
+            label=name,
+            halign=Gtk.Align.START,
+            hexpand=True,
+            margin_top=self.SPACING,
+            margin_bottom=self.SPACING,
+            ellipsize=Pango.EllipsizeMode.END,
         )
+        self.box.pack_start(label, True, True, 0)
+        self.btn_box = Gtk.Box(spacing=3, no_show_all=True, valign=Gtk.Align.CENTER, homogeneous=True)
+        self.box.pack_end(self.btn_box, False, False, 0)
+        self.connect("realize", self.on_realize)
+
+    def get_actions(self):
+        return []
+
+    def is_row_active(self):
+        """Return true if the row is hovered or is the one selected"""
+        flags = self.get_state_flags()
+        # Naming things sure is hard... But "prelight" instead of "hover"? Come on...
+        return flags & Gtk.StateFlags.PRELIGHT or flags & Gtk.StateFlags.SELECTED
+
+    def do_state_flags_changed(self, previous_flags):  # pylint: disable=arguments-differ
+        if self.id:
+            self.update_buttons()
+        Gtk.ListBoxRow.do_state_flags_changed(self, previous_flags)
+
+    def update_buttons(self):
+        if self.is_row_active():
+            self.btn_box.show()
+        elif self.btn_box.get_visible():
+            self.btn_box.hide()
+
+    def create_button_box(self):
+        """Adds buttons in the button box based on the row's actions"""
+        for action in self.get_actions():
+            btn = Gtk.Button(tooltip_text=action[1], relief=Gtk.ReliefStyle.NONE, visible=True)
+            image = Gtk.Image.new_from_icon_name(action[0], Gtk.IconSize.MENU)
+            image.show()
+            btn.add(image)
+            btn.connect("clicked", action[2])
+            self.btn_box.add(btn)
+
+    def on_realize(self, widget):
+        self.create_button_box()
+
+
+class ServiceSidebarRow(SidebarRow):
+
+    def __init__(self, service):
+        super().__init__(
+            service.id,
+            "service",
+            service.name,
+            Gtk.Image.new_from_icon_name(service.icon, Gtk.IconSize.MENU)
+        )
+        self.service = service
+
+    def get_actions(self):
+        """Return the definition of buttons to be added to the row"""
+        return [
+            ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked)
+        ]
+
+    def on_refresh_clicked(self, _button):
+        """Reload the service games"""
+        self.service.wipe_game_cache()
+        AsyncCall(self.service.load, None)
+
+
+class OnlineServiceSidebarRow(ServiceSidebarRow):
+    def get_buttons(self):
+        return {
+            "refresh": ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked),
+            "disconnect": ("system-log-out-symbolic", _("Disconnect"), self.on_connect_clicked),
+            "connect": ("avatar-default-symbolic", _("Connect"), self.on_connect_clicked)
+        }
+
+    def get_actions(self):
+        buttons = self.get_buttons()
+        if self.service.is_authenticated():
+            return [buttons["refresh"], buttons["disconnect"]]
+        return [buttons["connect"]]
+
+    def on_connect_clicked(self, button):
+        buttons = self.get_buttons()
+        if self.service.is_authenticated():
+            self.service.logout()
+            new_button = buttons["connect"]
+        else:
+            self.service.login()
+            new_button = buttons["disconnect"]
+        button.set_tooltip_text(new_button[1])
+        button.set_image(Gtk.Image.new_from_icon_name(new_button[0], Gtk.IconSize.MENU))
 
 
 class RunnerSidebarRow(SidebarRow):
-
-    def _create_button_box(self):
-        self.btn_box = Gtk.Box(spacing=3, no_show_all=True, valign=Gtk.Align.CENTER, homogeneous=True)
-        self.box.add(self.btn_box)
+    def get_actions(self):
+        """Return the definition of buttons to be added to the row"""
+        if not self.id:
+            return []
+        entries = []
 
         # Creation is delayed because only installed runners can be imported
         # and all visible boxes should be installed.
         self.runner = runners.import_runner(self.id)()
-        entries = []
         if self.runner.multiple_versions:
             entries.append((
                 "system-software-install-symbolic",
@@ -80,31 +163,16 @@ class RunnerSidebarRow(SidebarRow):
         if self.runner.runnable_alone:
             entries.append(("media-playback-start-symbolic", _("Run"), self.runner.run))
         entries.append(("emblem-system-symbolic", _("Configure"), self.on_configure_runner))
-        for entry in entries:
-            btn = Gtk.Button(tooltip_text=entry[1], relief=Gtk.ReliefStyle.NONE, visible=True)
-            image = Gtk.Image.new_from_icon_name(entry[0], Gtk.IconSize.MENU)
-            image.show()
-            btn.add(image)
-            btn.connect("clicked", entry[2])
-            self.btn_box.add(btn)
+        return entries
 
     def on_configure_runner(self, *_args):
+        """Show runner configuration"""
         self.application.show_window(RunnerConfigDialog, runner=self.runner)
 
     def on_manage_versions(self, *_args):
+        """Manage runner versions"""
         dlg_title = _("Manage %s versions") % self.runner.name
         RunnerInstallDialog(dlg_title, self.get_toplevel(), self.runner.name)
-
-    def do_state_flags_changed(self, previous_flags):  # pylint: disable=arguments-differ
-        if self.id is not None and self.type == "runner":
-            flags = self.get_state_flags()
-            if flags & Gtk.StateFlags.PRELIGHT or flags & Gtk.StateFlags.SELECTED:
-                if self.btn_box is None:
-                    self._create_button_box()
-                self.btn_box.show()
-            elif self.btn_box is not None and self.btn_box.get_visible():
-                self.btn_box.hide()
-        Gtk.ListBoxRow.do_state_flags_changed(self, previous_flags)
 
 
 class SidebarHeader(Gtk.Box):
@@ -188,14 +256,8 @@ class LutrisSidebar(Gtk.ListBox):
         service_classes = services.get_services()
         for service_name in service_classes:
             service = service_classes[service_name]()
-            self.add(
-                SidebarRow(
-                    service.id,
-                    "service",
-                    service.name,
-                    Gtk.Image.new_from_icon_name(service.icon, Gtk.IconSize.MENU)
-                )
-            )
+            row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow
+            self.add(row_class(service))
 
         all_row = RunnerSidebarRow(None, "runner", _("All"), None)
         self.add(all_row)

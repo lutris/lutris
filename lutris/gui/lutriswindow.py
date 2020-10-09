@@ -22,7 +22,6 @@ from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
-from lutris.gui.widgets.services import ServiceBar
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import open_uri
 from lutris.runtime import RuntimeUpdater
@@ -114,7 +113,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.sidebar_revealer.set_transition_duration(300)
 
         self.game_bar = None
-        self.service_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
 
@@ -292,8 +290,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def unset_service(self):
         self.service = None
-        if self.service_bar:
-            self.service_bar.destroy()
 
     def get_games_from_filters(self):
         if self.filters.get("service"):
@@ -371,17 +367,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return medias[icon_type]()
         return medias[service.default_format]()
 
-    def update_service_box(self):
-        if self.service:
-            if self.service_bar:
-                if self.service.id == self.service_bar.service.id:
-                    return
-                self.service_bar.destroy()
-            self.service_bar = ServiceBar(self.service)
-            self.revealer_box.pack_end(self.service_bar, False, False, 0)
-        elif self.service_bar:
-            self.service_bar.destroy()
-
     def update_revealer(self, game=None):
         if game:
             if self.game_bar:
@@ -390,7 +375,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.revealer_box.pack_start(self.game_bar, True, True, 0)
         elif self.game_bar:
             self.game_bar.destroy()
-        self.update_service_box()
         if self.revealer_box.get_children():
             self.game_revealer.set_reveal_child(True)
         else:
