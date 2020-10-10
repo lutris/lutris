@@ -1,17 +1,16 @@
 """Shared config dialog stuff"""
-# pylint: disable=no-member,not-an-iterable
+# pylint: disable=not-an-iterable
 import os
 from gettext import gettext as _
 
-from gi.repository import Gdk, GLib, Gtk, Pango
+from gi.repository import Gdk, Gtk, Pango
 
 from lutris import runners, settings
-from lutris.cache import get_cache_path, save_cache_path
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.game import Game
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog
-from lutris.gui.widgets.common import FileChooserEntry, Label, NumberEntry, SlugEntry, VBox
+from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
 from lutris.runners import import_runner
@@ -21,7 +20,7 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 
 
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes, no-member
 class GameDialogCommon:
 
     """Mixin for config dialogs"""
@@ -30,6 +29,7 @@ class GameDialogCommon:
     def __init__(self):
         self.notebook = None
         self.vbox = None
+        self.action_area = None
         self.name_entry = None
         self.runner_box = None
 
@@ -99,19 +99,7 @@ class GameDialogCommon:
 
     def _build_prefs_tab(self):
         prefs_box = VBox()
-        prefs_box.pack_start(self._get_game_cache_box(), False, False, 6)
-
-        cache_help_label = Gtk.Label(visible=True)
-        cache_help_label.set_size_request(400, -1)
-        cache_help_label.set_markup(_(
-            "If provided, this location will be used by installers to cache "
-            "downloaded files locally for future re-use. \nIf left empty, the "
-            "installer files are discarded after the install completion."
-        ))
-        prefs_box.pack_start(cache_help_label, False, False, 6)
-
         prefs_box.pack_start(self._get_hide_on_game_launch_box(), False, False, 6)
-
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, _("Lutris preferences"))
 
@@ -137,18 +125,6 @@ class GameDialogCommon:
     def _copy_text(self, widget):  # pylint: disable=unused-argument
         self.clipboard.set_text(self._clipboard_buffer, -1)
 
-    def _get_game_cache_box(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        label = Label(_("Cache path"))
-        box.pack_start(label, False, False, 0)
-        cache_path = get_cache_path()
-        path_chooser = FileChooserEntry(
-            title=_("Set the folder for the cache path"), action=Gtk.FileChooserAction.SELECT_FOLDER, path=cache_path
-        )
-        path_chooser.entry.connect("changed", self._on_cache_path_set)
-        box.pack_start(path_chooser, True, True, 0)
-        return box
-
     def _get_hide_on_game_launch_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
         checkbox = Gtk.CheckButton(label=_("Minimize client when a game is launched"))
@@ -161,17 +137,6 @@ class GameDialogCommon:
     def _on_hide_client_change(self, widget):
         """Save setting for hiding the game on game launch"""
         settings.write_setting("hide_client_on_game_start", widget.get_active())
-
-    def _on_cache_path_set(self, entry):
-        if self.timer_id:
-            GLib.source_remove(self.timer_id)
-        self.timer_id = GLib.timeout_add(1000, self.save_cache_setting, entry.get_text())
-
-    def save_cache_setting(self, value):
-        save_cache_path(value)
-        GLib.source_remove(self.timer_id)
-        self.timer_id = None
-        return False
 
     def _get_name_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)

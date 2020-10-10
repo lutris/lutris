@@ -9,6 +9,7 @@ from lutris import settings
 from lutris.exceptions import UnavailableGame
 from lutris.game import Game
 from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, QuestionDialog
+from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
 from lutris.gui.widgets.installer import InstallerFilesBox, InstallerPicker
 from lutris.gui.widgets.log_text_view import LogTextView
@@ -59,12 +60,17 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
         self.vbox.add(Gtk.HSeparator())
 
+        button_box = Gtk.Box()
+        self.cache_button = Gtk.Button(_("Cache"))
+        self.cache_button.connect("clicked", self.on_cache_clicked)
+        button_box.add(self.cache_button)
+
         self.action_buttons = Gtk.Box(spacing=6)
         action_buttons_alignment = Gtk.Alignment.new(1, 0, 0, 0)
         action_buttons_alignment.add(self.action_buttons)
-        self.vbox.pack_start(action_buttons_alignment, False, True, 0)
+        button_box.pack_end(action_buttons_alignment, True, True, 0)
+        self.vbox.pack_start(button_box, False, True, 0)
 
-        # self.manual_button = self.add_button(_("Configure m_anually"), self.on_manual_clicked)
         self.cancel_button = self.add_button(
             _("C_ancel"), self.cancel_installation, tooltip=_("Abort and revert the installation")
         )
@@ -137,6 +143,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         if not install_script:
             raise ValueError("Could not find script %s" % script_slug)
         return install_script
+
+    def on_cache_clicked(self, _button):
+        """Open the cache configuration dialog"""
+        CacheConfigurationDialog()
 
     def on_installer_selected(self, _widget, installer_slug):
         """Sets the script interpreter to the correct script then proceed to
