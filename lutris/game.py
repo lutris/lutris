@@ -3,6 +3,7 @@
 # pylint: disable=too-many-public-methods
 import os
 import shlex
+import shutil
 import subprocess
 import time
 from gettext import gettext as _
@@ -622,3 +623,42 @@ class Game(GObject.Object):
         if not gameplay_info:
             return
         export_bash_script(self.runner, gameplay_info, script_path)
+
+    def move(self, new_location):
+        logger.info("Moving %s to %s", self, new_location)
+        new_config = ""
+        old_location = self.directory
+        if old_location:
+            game_directory = os.path.basename(old_location)
+            target_directory = os.path.join(new_location, game_directory)
+        else:
+            target_directory = new_location
+        self.directory = target_directory
+        self.save()
+        if not old_location:
+            logger.info("Previous location wasn't set. Cannot continue moving")
+            return target_directory
+
+        with open(self.config.game_config_path) as config_file:
+            for line in config_file.readlines():
+                if target_directory in line:
+                    new_config += line
+                else:
+                    new_config += line.replace(old_location, target_directory)
+        with open(self.config.game_config_path, "w") as config_file:
+            config_file.write(new_config)
+
+        if not system.path_exists(old_location):
+            logger.warning("Location %s doesn't exist, files already moved?", old_location)
+            return
+        if new_location.startswith(old_location):
+            logger.warning("Can't move %s to one of its children %s", old_location, new_location)
+            return target_directory
+        try:
+            shutil.move(old_location, new_location)
+        except OSError as ex:
+            logger.error(
+                "Failed to move %s to %s, you may have to move files manually (Exception: %s)",
+                old_location, new_location, ex
+            )
+        return target_directory

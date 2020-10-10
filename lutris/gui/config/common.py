@@ -10,7 +10,7 @@ from lutris.cache import get_cache_path, save_cache_path
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.game import Game
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
-from lutris.gui.dialogs import ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import FileChooserEntry, Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
@@ -38,6 +38,7 @@ class GameDialogCommon:
         self.saved = None
         self.slug = None
         self.slug_entry = None
+        self.directory_entry = None
         self.year_entry = None
         self.slug_change_button = None
         self.runner_dropdown = None
@@ -84,13 +85,14 @@ class GameDialogCommon:
 
         info_box.pack_start(self._get_name_box(), False, False, 6)  # Game name
 
-        if self.game:
-            info_box.pack_start(self._get_slug_box(), False, False, 6)  # Game id
-
         self.runner_box = self._get_runner_box()
         info_box.pack_start(self.runner_box, False, False, 6)  # Runner
 
         info_box.pack_start(self._get_year_box(), False, False, 6)  # Year
+
+        if self.game:
+            info_box.pack_start(self._get_slug_box(), False, False, 6)
+            info_box.pack_start(self._get_directory_box(), False, False, 6)
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, _("Game info"))
@@ -198,6 +200,20 @@ class GameDialogCommon:
         slug_box.pack_start(self.slug_change_button, False, False, 0)
 
         return slug_box
+
+    def _get_directory_box(self):
+        """Return widget displaying the location of the game and allowing to move it"""
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
+        label = Label(_("Directory"))
+        box.pack_start(label, False, False, 0)
+        self.directory_entry = Gtk.Entry(visible=True)
+        self.directory_entry.set_text(self.game.directory)
+        self.directory_entry.set_sensitive(False)
+        box.pack_start(self.directory_entry, True, True, 0)
+        move_button = Gtk.Button(_("Move"), visible=True)
+        move_button.connect("clicked", self.on_move_clicked)
+        box.pack_start(move_button, False, False, 0)
+        return box
 
     def _get_runner_box(self):
         runner_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
@@ -310,6 +326,11 @@ class GameDialogCommon:
         self.slug = self.slug_entry.get_text()
         self.slug_entry.set_sensitive(False)
         self.slug_change_button.set_label(_("Change"))
+
+    def on_move_clicked(self, _button):
+        new_location = DirectoryDialog("Select new location for the game", default_path=self.game.directory)
+        new_directory = self.game.move(new_location.folder)
+        self.directory_entry.set_text(new_directory)
 
     def on_install_runners_clicked(self, _button):
         """Messed up callback requiring an import in the method to avoid a circular dependency"""
