@@ -51,16 +51,27 @@ class RunnerInstallDialog(Dialog):
         self.show_all()
 
         self.runner_store = Gtk.ListStore(str, str, str, bool, int, str)
-        jobs.AsyncCall(api.get_runners, self.display_all_versions, self.runner)
+        jobs.AsyncCall(api.get_runners, self.runner_fetch_cb, self.runner)
 
-    def display_all_versions(self, runner_info, error):
+    def runner_fetch_cb(self, runner_info, error):
         """Clear the box and display versions from runner_info"""
         if error:
             logger.error(error)
+            ErrorDialog(_("Unable to get runner versions: %s") % error)
+            return
 
         self.runner_info = runner_info
+        remote_versions = {(v["version"], v["architecture"]) for v in self.runner_info["versions"]}
+        local_versions = self.get_installed_versions()
+        for local_version in local_versions - remote_versions:
+            self.runner_info["versions"].append({
+                "version": local_version[0],
+                "architecture": local_version[1],
+                "url": "",
+            })
+
         if not self.runner_info:
-            ErrorDialog(_("Unable to get runner versions. Check your internet connection."))
+            ErrorDialog(_("Unable to get runner versions from lutris.net"))
             return
 
         for child_widget in self.vbox.get_children():
@@ -121,20 +132,6 @@ class RunnerInstallDialog(Dialog):
 
         return treeview
 
-    def get_usage_stats(self):
-        """Return the usage for each version"""
-        runner_games = get_games_by_runner(self.runner)
-        if self.runner == "wine":
-            runner_games += get_games_by_runner("winesteam")
-        version_usage = defaultdict(list)
-        for db_game in runner_games:
-            if not db_game["installed"]:
-                continue
-            game = Game(db_game["id"])
-            version = game.config.runner_config["version"]
-            version_usage[version].append(db_game["id"])
-        return version_usage
-
     def populate_store(self):
         """Return a ListStore populated with the runner versions"""
         version_usage = self.get_usage_stats()
@@ -151,6 +148,14 @@ class RunnerInstallDialog(Dialog):
                     usage_summary if is_installed else ""
                 ]
             )
+
+    def get_installed_versions(self):
+        """List versions available locally"""
+        return {
+            tuple(p.rsplit("-", 1))
+            for p in os.listdir(os.path.join(settings.RUNNER_DIR, self.runner))
+            if "-" in p
+        }
 
     def get_runner_path(self, version, arch):
         """Return the local path where the runner is/will be installed"""
@@ -198,6 +203,10 @@ class RunnerInstallDialog(Dialog):
     def install_runner(self, row):
         """Download and install a runner version"""
         dest_path = self.get_dest_path(row)
+        url = row[self.COL_URL]
+        if not url:
+            ErrorDialog("Version %s is not longer available" % row[self.COL_VER])
+            return
         downloader = Downloader(row[self.COL_URL], dest_path, overwrite=True)
         GLib.timeout_add(100, self.get_progress, downloader, row)
         self.installing[row[self.COL_VER]] = downloader
@@ -226,6 +235,20 @@ class RunnerInstallDialog(Dialog):
             self.on_runner_downloaded(row)
             return False
         return True
+
+    def get_usage_stats(self):
+        """Return the usage for each version"""
+        runner_games = get_games_by_runner(self.runner)
+        if self.runner == "wine":
+            runner_games += get_games_by_runner("winesteam")
+        version_usage = defaultdict(list)
+        for db_game in runner_games:
+            if not db_game["installed"]:
+                continue
+            game = Game(db_game["id"])
+            version = game.config.runner_config["version"]
+            version_usage[version].append(db_game["id"])
+        return version_usage
 
     def on_runner_downloaded(self, row):
         """Handler called when a runner version is downloaded"""
