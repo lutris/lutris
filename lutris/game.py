@@ -223,37 +223,20 @@ class Game(GObject.Object):
                 disable_compositing()
                 self.compositor_disabled = True
 
-    def remove(self, from_library=False, from_disk=False):
+    def remove(self, delete_files=False):
         """Uninstall a game
 
         Params:
-            from_library (bool): Completely remove the game from library, do
-                                 not set it as uninstalled
-            from_disk (bool): Delete the game files
-
-        Return:
-            bool: Updated value for from_library
+            delete_files (bool): Delete the game files
         """
-        if from_disk and self.runner:
-            logger.debug("Removing game %s from disk", self.id)
+        if delete_files and self.runner:
             self.runner.remove_game_data(game_path=self.directory)
-
-        # Do not keep multiple copies of the same game
-        existing_games = games_db.get_games_where(slug=self.slug)
-        if len(existing_games) > 1:
-            from_library = True
-
-        if from_library:
-            logger.debug("Removing game %s from library", self.id)
-            games_db.delete_game(self.id)
-        else:
-            games_db.set_uninstalled(self.id)
+        games_db.set_uninstalled(self.id)
         if self.config:
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         self.is_installed = False
         self.emit("game-removed")
-        return from_library
 
     def set_platform_from_runner(self):
         """Set the game's platform from the runner"""

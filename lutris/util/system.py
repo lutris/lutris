@@ -13,6 +13,13 @@ from gi.repository import GLib
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
+# Home folders that should never get deleted. This should be localized and return the
+# appropriate folders names for the current locale.
+PROTECTED_HOME_FOLDERS = (
+    "Documents", "Downloads", "Desktop",
+    "Pictures", "Videos", "Pictures", "Projects", "Games"
+)
+
 
 def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False, timeout=None):
     """
@@ -230,9 +237,9 @@ def create_folder(path):
     return path
 
 
-def is_removeable(path, excludes=None):
+def is_removeable(path):
     """Check if a folder is safe to remove (not system or home, ...)"""
-    if not path_exists(path) or path in excludes:
+    if not path_exists(path):
         return False
 
     parts = path.strip("/").split("/")
@@ -242,12 +249,9 @@ def is_removeable(path, excludes=None):
 
     if parts[0] == "home":
         if len(parts) <= 2:
-            # Path is a home folder
             return False
-        if parts[2] == ".wine":
-            # Protect main .wine folder
+        if len(parts) == 3 and parts[2] in PROTECTED_HOME_FOLDERS:
             return False
-
     return True
 
 
@@ -381,7 +385,12 @@ def update_desktop_icons():
 
 
 def get_disk_size(path):
+    """Return the disk size in bytes of a folder"""
     total_size = 0
-    for base, dirs, files in os.walk(path):
-        total_size += sum([os.stat(os.path.join(base, f)).st_size for f in files if os.path.isfile(os.path.join(base, f))])
+    for base, _dirs, files in os.walk(path):
+        total_size += sum([
+            os.stat(os.path.join(base, f)).st_size
+            for f in files
+            if os.path.isfile(os.path.join(base, f))
+        ])
     return total_size

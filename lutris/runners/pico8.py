@@ -9,7 +9,8 @@ from time import sleep
 from lutris import settings
 from lutris.database.games import get_game_by_field
 from lutris.runners.runner import Runner
-from lutris.util import downloader, system
+from lutris.util import system
+from lutris.util.downloader import Downloader
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 
@@ -184,7 +185,7 @@ class pico8(Runner):
                         os.remove(cartPath + ".download")
                     downloadCompleted = True
 
-                dl = downloader.Downloader(
+                dl = Downloader(
                     downloadUrl,
                     cartPath + ".download",
                     True,
@@ -194,7 +195,7 @@ class pico8(Runner):
 
                 # Wait for download to complete or continue if it exists (to work in offline mode)
                 while not os.path.exists(cartPath):
-                    if downloadCompleted or dl.state == downloader.Downloader.ERROR:
+                    if downloadCompleted or dl.state == Downloader.ERROR:
                         logger.error("Could not download cartridge from %s", downloadUrl)
                         return False
                     sleep(0.1)
@@ -215,13 +216,13 @@ class pico8(Runner):
                     nonlocal downloadCompleted
                     downloadCompleted = True
 
-                dl = downloader.Downloader(downloadUrl, enginePath, True, callback=on_downloaded_engine)
+                dl = Downloader(downloadUrl, enginePath, True, callback=on_downloaded_engine)
                 dl.start()
                 dl.thread.join()  # Doesn't actually wait until finished
 
                 # Waits for download to complete
                 while not os.path.exists(enginePath):
-                    if downloadCompleted or dl.state == downloader.Downloader.ERROR:
+                    if downloadCompleted or dl.state == Downloader.ERROR:
                         logger.error("Could not download engine from %s", downloadUrl)
                         return False
                     sleep(0.1)

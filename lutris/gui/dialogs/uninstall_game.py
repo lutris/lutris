@@ -1,99 +1,104 @@
-# Standard Library
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gtk, Pango
 
-# Lutris Modules
+from lutris.database.games import get_games
 from lutris.game import Game
-from lutris.gui.dialogs import GtkBuilderDialog, QuestionDialog
-from lutris.util.system import is_removeable, reverse_expanduser
+from lutris.gui.dialogs import Dialog, NoticeDialog, QuestionDialog
+from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
+from lutris.util.strings import gtk_safe, human_size
+from lutris.util.system import get_disk_size, is_removeable, reverse_expanduser
 
 
-class UninstallGameDialog(GtkBuilderDialog):
-    glade_file = "dialog-uninstall-game.ui"
-    dialog_object = "uninstall-game-dialog"
-
-    @staticmethod
-    def substitute_label(widget, name, replacement):
-        if hasattr(widget, "get_text"):
-            get_text = widget.get_text
-            set_text = widget.set_text
-        elif hasattr(widget, "get_label"):
-            get_text = widget.get_label
-            set_text = widget.set_label
-        else:
-            raise TypeError("Unsupported type %s" % type(widget))
-
-        set_text(get_text().replace("{%s}" % name, replacement))
-
-    def initialize(self, game_id=None, callback=None):
+class UninstallGameDialog(Dialog):
+    def __init__(self, game_id, callback, parent=None):
+        super().__init__(parent=parent)
+        self.set_size_request(640, 128)
         self.game = Game(game_id)
         self.callback = callback
-        runner = self.game.runner
+        self.delete_files = False
+        container = Gtk.VBox(visible=True)
+        self.get_content_area().add(container)
 
-        self.substitute_label(self.builder.get_object("description_label"), "game", self.game.name)
+        title_label = Gtk.Label(visible=True)
+        title_label.set_line_wrap(True)
+        title_label.set_alignment(0, 0.5)
+        title_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        title_label.set_markup("<span font_desc='14'><b>Uninstall %s</b></span>" % gtk_safe(self.game.name))
 
-        self.substitute_label(
-            self.builder.get_object("remove_from_library_button"),
-            "game",
-            self.game.name,
-        )
-        remove_contents_button = self.builder.get_object("remove_contents_button")
-        if self.game.is_installed:
-            path = self.game.directory or ""
-            if hasattr(runner, "own_game_remove_method"):
-                remove_contents_button.set_label(runner.own_game_remove_method)
-                remove_contents_button.set_active(True)
-            else:
-                try:
-                    default_path = runner.default_path
-                except AttributeError:
-                    default_path = "/"
-                if is_removeable(path, excludes=[default_path]):
-                    remove_contents_button.set_active(True)
-                else:
-                    remove_contents_button.set_sensitive(False)
-                    path = _("No game folder")
+        container.pack_start(title_label, False, False, 4)
 
-            path = reverse_expanduser(path)
-            self.substitute_label(remove_contents_button, "path", path)
-            label = remove_contents_button.get_child()
-            label.set_use_markup(True)
-            label.set_line_wrap(True)
-            label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        self.folder_label = Gtk.Label(visible=True)
+        self.folder_label.set_alignment(0, 0.5)
+        self.folder_label.set_margin_bottom(30)
+
+        self.delete_button = Gtk.Button(_("Uninstall"), visible=True)
+        self.delete_button.connect("clicked", self.on_delete_clicked)
+
+        if not self.game.directory:
+            self.folder_label.set_markup("No file will be deleted")
+        elif len(get_games(searches={"directory": self.game.directory})) > 1:
+            self.folder_label.set_markup("The folder %s is used by other games and will be kept." % self.game.directory)
+        elif is_removeable(self.game.directory):
+            self.delete_button.set_sensitive(False)
+            self.folder_label.set_markup("<i>Calculating size…</i>")
+            AsyncCall(get_disk_size, self.folder_size_cb, self.game.directory)
         else:
-            remove_contents_button.hide()
+            self.folder_label.set_markup(
+                "Content of %s are protected and will not be deleted." % reverse_expanduser(self.game.directory)
+            )
+        container.pack_start(self.folder_label, False, False, 4)
 
-        cancel_button = self.builder.get_object("cancel_button")
+        button_box = Gtk.HBox(visible=True)
+        style_context = button_box.get_style_context()
+        style_context.add_class("linked")
+        cancel_button = Gtk.Button(_("Cancel"), visible=True)
         cancel_button.connect("clicked", self.on_close)
+        button_box.add(cancel_button)
+        button_box.add(self.delete_button)
+        container.pack_end(button_box, False, False, 0)
+        self.show()
 
-        apply_button = self.builder.get_object("apply_button")
-        apply_button.connect("clicked", self.on_apply_button_clicked)
+    def folder_size_cb(self, folder_size, error):
+        if error:
+            logger.error(error)
+            return
+        self.delete_files = True
+        self.delete_button.set_sensitive(True)
+        self.folder_label.set_markup(
+            "This will delete all contents from <b>%s</b> (%s)" % (
+                reverse_expanduser(self.game.directory),
+                human_size(folder_size)
+            )
+        )
 
-    def on_apply_button_clicked(self, widget):
-        widget.set_sensitive(False)
+    def on_close(self, _button):
+        self.destroy()
 
-        remove_from_library_button = self.builder.get_object("remove_from_library_button")
-        remove_from_library = remove_from_library_button.get_active()
-        remove_contents_button = self.builder.get_object("remove_contents_button")
-        remove_contents = remove_contents_button.get_active()
-        if remove_contents and not hasattr(self.game.runner, "no_game_remove_warning"):
-            game_dir = self.game.directory.replace("&", "&amp;")
+    def on_delete_clicked(self, button):
+        button.set_sensitive(False)
+        if self.delete_files and not hasattr(self.game.runner, "no_game_remove_warning"):
             dlg = QuestionDialog(
                 {
-                    "question":
-                    _("Are you sure you want to delete EVERYTHING under "
-                      "\n<b>%s</b>?\n (This can't be undone)") % game_dir,
-                    "title":
-                    _("CONFIRM DANGEROUS OPERATION"),
+                    "question": _(
+                        "Please confirm.\nEverything under <b>%s</b>\n"
+                        "will be deleted."
+                    ) % gtk_safe(self.game.directory),
+                    "title": _("Permanently delete files?"),
                 }
             )
             if dlg.result != Gtk.ResponseType.YES:
-                widget.set_sensitive(True)
+                button.set_sensitive(True)
                 return
+        if self.delete_files:
+            self.folder_label.set_markup("Uninstalling game and deleting files...")
+        else:
+            self.folder_label.set_markup("Uninstalling game...")
+        AsyncCall(self.game.remove, self.delete_cb, self.delete_files)
 
-        remove_from_library = self.game.remove(remove_from_library, remove_contents)
-        self.callback(self.game.id, remove_from_library)
-
-        self.on_close()
+    def delete_cb(self, result, error):
+        if error:
+            logger.error(error)
+            NoticeDialog("Something went wrong while deleting the game")
+        self.destroy()
