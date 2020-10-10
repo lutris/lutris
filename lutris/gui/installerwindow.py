@@ -31,7 +31,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         application=None,
     ):
         super().__init__(application=application)
-
+        self.set_default_size(540, 320)
         self.installers = installers
         self.service = service
         self.appid = appid

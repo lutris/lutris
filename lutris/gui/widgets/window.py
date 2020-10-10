@@ -10,8 +10,7 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         Gtk.ApplicationWindow.__init__(self, icon_name="lutris", application=application)
         self.application = application
         self.set_show_menubar(False)
-        self.set_size_request(420, 420)
-        self.set_default_size(600, 480)
+
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("delete-event", self.on_destroy)
 
