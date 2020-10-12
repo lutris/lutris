@@ -1,11 +1,9 @@
-# Standard Library
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import GLib, GObject, Gtk, Pango
 
-# Lutris Modules
 from lutris.util.downloader import Downloader
+from lutris.util.strings import gtk_safe
 
 
 class DownloadProgressBox(Gtk.Box):
@@ -93,7 +91,7 @@ class DownloadProgressBox(Gtk.Box):
             if self.downloader.state == self.downloader.CANCELLED:
                 self._set_text(_("Download interrupted"))
             else:
-                self._set_text(self.downloader.error)
+                self._set_text(self.downloader.error[:80])
             if self.downloader.state == self.downloader.CANCELLED:
                 self.emit("cancel", {})
             return False
@@ -115,5 +113,5 @@ class DownloadProgressBox(Gtk.Box):
         return True
 
     def _set_text(self, text):
-        markup = u"<span size='10000'>{}</span>".format(text)
+        markup = u"<span size='10000'>{}</span>".format(gtk_safe(text))
         self.progress_label.set_markup(markup)

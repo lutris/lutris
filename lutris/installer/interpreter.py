@@ -36,6 +36,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.service = parent.service if parent else None
         self.appid = parent.appid if parent else None
         self.game_dir_created = False  # Whether a game folder was created during the install
+        # Extra files for installers, either None if the extras haven't been checked yet.
+        # Or a list of IDs of extras to be downloaded during the install
+        self.extras = None
         self.game_disc = None
         self.game_files = {}
         self.cancelled = False
@@ -146,6 +149,13 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 if index == 0:
                     self.target_path = game["directory"]
                     self.requires = game["installer_slug"]
+
+    def get_extras(self):
+        """Get extras and store them to move them at the end of the install"""
+        if not self.service or not self.service.has_extras:
+            self.extras = []
+        self.extras = self.service.get_extras(self.appid)
+        return self.extras
 
     def launch_install(self):
         """Launch the install process"""
@@ -262,6 +272,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             os.chdir(self.target_path)
         if not os.path.exists(self.cache_path):
             os.mkdir(self.cache_path)
+
+        # Copy extras to game folder
+        for extra in self.extras:
+            self.installer.script["installer"].append(
+                {"copy": {"src": extra, "dst": "$GAMEDIR/extras"}}
+            )
         self._iter_commands()
 
     def _iter_commands(self, result=None, exception=None):

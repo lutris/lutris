@@ -10,15 +10,16 @@ from lutris.exceptions import UnavailableGame
 from lutris.game import Game
 from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, QuestionDialog
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
+from lutris.gui.installer.files_box import InstallerFilesBox
+from lutris.gui.installer.picker import InstallerPicker
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
-from lutris.gui.widgets.installer import InstallerFilesBox, InstallerPicker
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
-from lutris.util.strings import add_url_tags, gtk_safe
+from lutris.util.strings import add_url_tags, gtk_safe, human_size
 
 
 class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
@@ -288,9 +289,14 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """Enable continue button if a non-empty choice is selected"""
         self.continue_button.set_sensitive(bool(widget.get_active_id()))
 
-    def on_runners_ready(self, _widget):
+    def on_runners_ready(self, _widget=None):
         """The runners are ready, proceed with file selection"""
         self.clean_widgets()
+        if self.interpreter.extras is None:
+            extras = self.interpreter.get_extras()
+            if extras:
+                self.show_extras(extras)
+                return
         try:
             self.interpreter.installer.prepare_game_files()
         except UnavailableGame as ex:
@@ -319,6 +325,67 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.continue_handler = self.continue_button.connect(
             "clicked", self.on_files_confirmed, installer_files_box
         )
+
+    def get_extra_label(self, extra):
+        label = extra["name"]
+        _infos = []
+        if extra.get("total_size"):
+            _infos.append(human_size(extra["total_size"]))
+        if extra.get("type"):
+            _infos.append(extra["type"])
+        if _infos:
+            label += " (%s)" % ", ".join(_infos)
+        return label
+
+    def show_extras(self, extras):
+        extra_liststore = Gtk.ListStore(
+            bool,   # is selected?
+            str,  # id
+            str,  # label
+        )
+        for extra in extras:
+            extra_liststore.append((False, extra["id"], self.get_extra_label(extra)))
+
+        treeview = Gtk.TreeView(extra_liststore)
+        treeview.set_headers_visible(False)
+        renderer_toggle = Gtk.CellRendererToggle()
+        renderer_toggle.connect("toggled", self.on_extra_toggled, extra_liststore)
+        renderer_text = Gtk.CellRendererText()
+
+        installed_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0)
+        treeview.append_column(installed_column)
+
+        label_column = Gtk.TreeViewColumn(None, renderer_text)
+        label_column.add_attribute(renderer_text, "text", 2)
+        label_column.set_property("min-width", 80)
+        treeview.append_column(label_column)
+
+        scrolledwindow = Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            child=treeview,
+            visible=True
+        )
+        scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        scrolledwindow.show_all()
+        self.widget_box.pack_end(scrolledwindow, True, True, 10)
+        self.continue_button.show()
+        self.continue_button.set_sensitive(True)
+        self.continue_handler = self.continue_button.connect("clicked", self.on_extras_confirmed, extra_liststore)
+
+    def on_extra_toggled(self, _widget, path, store):
+        row = store[path]
+        row[0] = not row[0]
+
+    def on_extras_confirmed(self, _button, extra_store):
+        logger.debug("Extras confirmed")
+        selected_extras = []
+        for extra in extra_store:
+            if extra[0]:
+                selected_extras.append(extra[1])
+        self.interpreter.extras = selected_extras
+        print(selected_extras)
+        self.on_runners_ready()
 
     def on_files_ready(self, _widget, is_ready):
         """Toggle state of continue button based on ready state"""
@@ -458,7 +525,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.widget_box.pack_start(label, False, False, 18)
 
     def add_spinner(self):
-        """Display a wait icon."""
+        """Show a spinner in the middle of the view"""
         self.clean_widgets()
         spinner = Gtk.Spinner()
         self.widget_box.pack_start(spinner, False, False, 18)

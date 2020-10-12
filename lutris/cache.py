@@ -22,6 +22,8 @@ def save_cache_path(path):
 
 def save_to_cache(source, destination):
     """Copy a file or folder to the cache"""
+    if not source:
+        raise ValueError("No source given to save")
     if os.path.dirname(source) == destination:
         logger.info("File is already cached in %s, skipping", destination)
         return

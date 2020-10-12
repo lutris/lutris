@@ -20,6 +20,7 @@ class BaseService(GObject.Object):
     """Base class for local services"""
     id = NotImplemented
     _matcher = None
+    has_extras = False
     name = NotImplemented
     icon = NotImplemented
     online = False

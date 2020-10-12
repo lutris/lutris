@@ -102,7 +102,7 @@ class TestGameDialog(TestCase):
         self.assertTrue(pga_game)
         game = Game(pga_game['id'])
         self.assertEqual(game.name, 'Test game')
-        game.remove(from_library=True)
+        game.remove()
 
 
 class TestSort(TestCase):

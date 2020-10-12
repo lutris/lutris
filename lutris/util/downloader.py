@@ -1,11 +1,8 @@
-# Standard Library
 import os
 import time
 
-# Third Party Libraries
 import requests
 
-# Lutris Modules
 from lutris import __version__
 from lutris.util import jobs
 from lutris.util.log import logger

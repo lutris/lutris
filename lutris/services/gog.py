@@ -6,7 +6,7 @@ from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
 
 from lutris import settings
-from lutris.exceptions import AuthenticationError, MultipleInstallerError, UnavailableGame
+from lutris.exceptions import AuthenticationError, UnavailableGame
 from lutris.gui.dialogs import WebConnectDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
@@ -64,6 +64,7 @@ class GOGService(OnlineService):
     id = "gog"
     name = _("GOG")
     icon = "gog"
+    has_extras = True
     medias = {
         "banner_small": GogSmallBanner,
         "banner": GogMediumBanner,
@@ -84,6 +85,10 @@ class GOGService(OnlineService):
     cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
 
     is_loading = False
+
+    def __init__(self):
+        super().__init__()
+        self.selected_extras = None
 
     @property
     def login_url(self):
@@ -221,7 +226,6 @@ class GOGService(OnlineService):
 
     def get_library(self):
         """Return the user's library of GOG games"""
-
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached GOG library")
             with open(self.cache_path, "r") as gog_cache:
@@ -265,10 +269,11 @@ class GOGService(OnlineService):
         logger.info("Getting download info for %s", downlink)
         try:
             response = self.make_api_request(downlink)
-        except HTTPError:
-            raise UnavailableGame()
+        except HTTPError as ex:
+            logger.error("HTTP error: %s", ex)
+            raise UnavailableGame
         if not response:
-            raise UnavailableGame()
+            raise UnavailableGame
         for field in ("checksum", "downlink"):
             field_url = response[field]
             parsed = urlparse(field_url)
@@ -277,15 +282,27 @@ class GOGService(OnlineService):
         return response
 
     def get_downloads(self, gogid):
+        """Return all available downloads for a GOG ID"""
         gog_data = self.get_game_details(gogid)
         if not gog_data:
             logger.warning("Unable to get GOG data for game %s", gogid)
             return []
         return gog_data["downloads"]
 
-    def get_installers(self, gogid, runner, language="en"):
-        """Return available installers for a GOG game"""
+    def get_extras(self, gogid):
+        """Return a list of bonus content available for a GOG ID"""
         downloads = self.get_downloads(gogid)
+        return [
+            {
+                "name": download.get("name", ""),
+                "type": download.get("type", ""),
+                "total_size": download.get("total_size", 0),
+                "id": str(download["id"]),
+            } for download in downloads.get("bonus_content") or []
+        ]
+
+    def get_installers(self, downloads, runner, language="en"):
+        """Return available installers for a GOG game"""
 
         # Filter out Mac installers
         gog_installers = [installer for installer in downloads["installers"] if installer["os"] != "mac"]
@@ -303,43 +320,66 @@ class GOGService(OnlineService):
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
         return gog_installers
 
-    def get_installer(self, gogid, runner):
-        """Return a single installer for a given runner"""
-        if not self.is_connected():
-            logger.info("You are not connected to GOG")
-            self.login()
-        if not self.is_connected():
-            raise UnavailableGame
-        gog_installers = self.get_installers(gogid, runner)
-        if len(gog_installers) > 1:
-            raise MultipleInstallerError()
-        try:
-            installer = gog_installers[0]
-        except IndexError:
-            raise UnavailableGame
-        return installer
-
-    def get_gog_download_links(self, gogid, runner):
-        """Return a list of downloadable links for a GOG game"""
-        installer = self.get_installer(gogid, runner)
+    def query_download_links(self, download):
+        """Convert files from the GOG API to a format compatible with lutris installers"""
         download_links = []
-        for game_file in installer.get('files', []):
+        for game_file in download.get("files", []):
             downlink = game_file.get("downlink")
             if not downlink:
-                logger.error("No download information for %s", installer)
+                logger.error("No download information for %s", game_file)
                 continue
             download_info = self.get_download_info(downlink)
             for field in ('checksum', 'downlink'):
-                download_links.append({"url": download_info[field], "filename": download_info[field + "_filename"]})
+                download_links.append({
+                    "name": download.get("name", ""),
+                    "os": download.get("os", ""),
+                    "type": download.get("type", ""),
+                    "total_size": download.get("total_size", 0),
+                    "id": str(game_file["id"]),
+                    "url": download_info[field],
+                    "filename": download_info[field + "_filename"]
+                })
         return download_links
 
+    def get_extra_files(self, downloads, installer):
+        extra_files = []
+        for extra in downloads["bonus_content"]:
+            if str(extra["id"]) not in self.selected_extras:
+                continue
+            links = self.query_download_links(extra)
+            for link in links:
+                if link["filename"].endswith(".xml"):
+                    # GOG gives a link for checksum XML files for bonus content
+                    # but downloading them results in a 404 error.
+                    continue
+                extra_files.append(
+                    InstallerFile(installer.game_slug, str(extra["id"]), {
+                        "url": link["url"],
+                        "filename": link["filename"],
+                    })
+                )
+        return extra_files
+
     def get_installer_files(self, installer, installer_file_id):
+        if not self.is_connected():
+            self.login()
+        if not self.is_connected():
+            logger.warning("Not connected to GOG, not returning any files")
+            return []
         try:
-            links = self.get_gog_download_links(installer.service_appid, installer.runner)
+            downloads = self.get_downloads(installer.service_appid)
+            gog_installers = self.get_installers(downloads, installer.runner)
+            if not gog_installers:
+                return []
+            if len(gog_installers) > 1:
+                logger.warning("More than 1 GOG installer found, picking first.")
+            _installer = gog_installers[0]
+            links = self.query_download_links(_installer)
         except HTTPError:
             raise UnavailableGame("Couldn't load the download links for this game")
         if not links:
             raise UnavailableGame("Could not fing GOG game")
+
         files = []
         file_id_provided = False  # Only assign installer_file_id once
         for index, link in enumerate(links):
@@ -361,6 +401,9 @@ class GOGService(OnlineService):
             )
         if not file_id_provided:
             raise UnavailableGame("Unable to determine correct file to launch installer")
+        if self.selected_extras:
+            for extra_file in self.get_extra_files(downloads, installer):
+                files.append(extra_file)
         return files
 
     def generate_installer(self, db_game):

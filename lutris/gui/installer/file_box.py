@@ -1,133 +1,18 @@
 """Widgets for the installer window"""
 import os
 from gettext import gettext as _
+from urllib.parse import urlparse
 
-from gi.repository import GObject, Gtk, Pango
+from gi.repository import GObject, Gtk
 
 from lutris.cache import save_to_cache
+from lutris.gui.installer.widgets import InstallerLabel
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.strings import add_url_tags, gtk_safe
-
-
-class InstallerLabel(Gtk.Label):
-    """A label for installers"""
-
-    def __init__(self, text, wrap=True):
-        super().__init__()
-        if wrap:
-            self.set_line_wrap(True)
-            self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        else:
-            self.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
-        self.set_alignment(0, 0.5)
-        self.set_margin_right(12)
-        self.set_markup(text)
-        self.props.can_focus = False
-        self.set_tooltip_text(text)
-
-
-class InstallerScriptBox(Gtk.VBox):
-    """Box displaying the details of a script, with associated action buttons"""
-
-    def __init__(self, script, parent=None, revealed=False):
-        super().__init__()
-        self.script = script
-        self.parent = parent
-        self.revealer = None
-        self.set_margin_left(12)
-        self.set_margin_right(12)
-        box = Gtk.Box(spacing=12, margin_top=6, margin_bottom=6)
-        box.pack_start(self.get_infobox(), True, True, 0)
-        box.add(self.get_install_button())
-        self.add(box)
-        self.add(self.get_revealer(revealed))
-
-    def get_rating(self):
-        """Return a string representation of the API rating"""
-        try:
-            rating = int(self.script["rating"])
-        except (ValueError, TypeError, KeyError):
-            return ""
-        return "⭐" * rating
-
-    def get_infobox(self):
-        """Return the central information box"""
-        info_box = Gtk.VBox(spacing=6)
-        title_box = Gtk.HBox(spacing=6)
-        title_box.add(InstallerLabel("<b>%s</b>" % gtk_safe(self.script["version"])))
-        title_box.pack_start(InstallerLabel(""), True, True, 0)
-        rating_label = InstallerLabel(self.get_rating())
-        rating_label.set_alignment(1, 0.5)
-        title_box.pack_end(rating_label, False, False, 0)
-        info_box.add(title_box)
-        info_box.add(InstallerLabel(add_url_tags(self.script["description"])))
-        return info_box
-
-    def get_revealer(self, revealed):
-        """Return the revelaer widget"""
-        self.revealer = Gtk.Revealer()
-        self.revealer.add(self.get_notes())
-        self.revealer.set_reveal_child(revealed)
-        return self.revealer
-
-    def get_install_button(self):
-        """Return the install button widget"""
-        align = Gtk.Alignment()
-        align.set(0, 0, 0, 0)
-
-        install_button = Gtk.Button(_("Install"))
-        install_button.connect("clicked", self.on_install_clicked)
-        align.add(install_button)
-        return align
-
-    def get_notes(self):
-        """Return the notes widget"""
-        notes = self.script["notes"].strip()
-        if not notes:
-            return Gtk.Alignment()
-        notes_label = InstallerLabel(notes)
-        notes_label.set_margin_top(12)
-        notes_label.set_margin_bottom(12)
-        notes_label.set_margin_right(12)
-        notes_label.set_margin_left(12)
-        return notes_label
-
-    def reveal(self, reveal=True):
-        """Show or hide the information in the revealer"""
-        if self.revealer:
-            self.revealer.set_reveal_child(reveal)
-
-    def on_install_clicked(self, _widget):
-        """Handler to notify the parent of the selected installer"""
-        self.parent.emit("installer-selected", self.script["slug"])
-
-
-class InstallerPicker(Gtk.ListBox):
-    """List box to pick between several installers"""
-
-    __gsignals__ = {"installer-selected": (GObject.SIGNAL_RUN_FIRST, None, (str, ))}
-
-    def __init__(self, scripts):
-        super().__init__()
-        revealed = True
-        for script in scripts:
-            self.add(InstallerScriptBox(script, parent=self, revealed=revealed))
-            revealed = False  # Only reveal the first installer.
-        self.connect('row-selected', self.on_activate)
-        self.show_all()
-
-    @staticmethod
-    def on_activate(widget, row):
-        """Handler for hiding and showing the revealers in children"""
-        for script_box_row in widget:
-            script_box = script_box_row.get_children()[0]
-            script_box.reveal(False)
-        installer_row = row.get_children()[0]
-        installer_row.reveal()
+from lutris.util.strings import gtk_safe
 
 
 class InstallerFileBox(Gtk.VBox):
@@ -185,6 +70,8 @@ class InstallerFileBox(Gtk.VBox):
     def get_file_provider_widget(self):
         """Return the widget used to track progress of file"""
         box = Gtk.VBox(spacing=6)
+        print("PROVIDER")
+        print(self.provider)
         if self.provider == "download":
             download_progress = self.get_download_progress()
             box.pack_start(download_progress, False, False, 0)
@@ -218,8 +105,17 @@ class InstallerFileBox(Gtk.VBox):
             info_box.add(self.state_label)
             steam_box.add(info_box)
             return steam_box
+        return Gtk.Label(self.get_file_label())
 
-        return Gtk.Label(gtk_safe(self.installer_file.url))
+    def get_file_label(self):
+        """Return a human readable label for installer files"""
+        url = self.installer_file.url
+        if url.startswith("http"):
+            parsed = urlparse(url)
+            label = "%s on %s" % (self.installer_file.filename, parsed.netloc)
+        else:
+            label = url
+        return gtk_safe(label)
 
     def get_popover(self):
         """Return the popover widget to select file source"""
@@ -284,14 +180,14 @@ class InstallerFileBox(Gtk.VBox):
 
     def get_source_button_label(self):
         """Return the label for the source button"""
-        if self.provider == "download":
-            return _("Download")
-        if self.provider == "pga":
-            return _("Cache")
-        if self.provider == "user":
-            return _("Local")
-        if self.provider == "steam":
-            return _("Steam")
+        provider_labels = {
+            "download": _("Download"),
+            "pga": _("Cache"),
+            "user": _("Local"),
+            "steam": _("Steam"),
+        }
+        if self.provider in provider_labels:
+            return provider_labels[self.provider]
         raise ValueError("Unsupported provider %s" % self.provider)
 
     def get_file_provider_label(self):
@@ -312,7 +208,7 @@ class InstallerFileBox(Gtk.VBox):
                 cache_option.connect("toggled", self.on_user_file_cached)
                 box.pack_start(cache_option, False, False, 0)
             return box
-        return InstallerLabel(gtk_safe(self.installer_file.human_url), wrap=False)
+        return InstallerLabel(self.get_file_label(), wrap=False)
 
     def get_widgets(self):
         """Return the widget with the source of the file and a way to change its source"""
@@ -383,77 +279,3 @@ class InstallerFileBox(Gtk.VBox):
             self.installer_file.dest_file = widget.get_steam_data_path()
         self.emit("file-available")
         self.cache_file()
-
-
-class InstallerFilesBox(Gtk.ListBox):
-    """List box presenting all files needed for an installer"""
-
-    __gsignals__ = {
-        "files-ready": (GObject.SIGNAL_RUN_LAST, None, (bool, )),
-        "files-available": (GObject.SIGNAL_RUN_LAST, None, ())
-    }
-
-    def __init__(self, installer_files, parent):
-        super().__init__()
-        self.parent = parent
-        self.installer_files = installer_files
-        self.ready_files = set()
-        self.available_files = set()
-        self.installer_files_boxes = {}
-        for installer_file in installer_files:
-            installer_file_box = InstallerFileBox(installer_file)
-            installer_file_box.connect("file-ready", self.on_file_ready)
-            installer_file_box.connect("file-unready", self.on_file_unready)
-            installer_file_box.connect("file-available", self.on_file_available)
-            self.installer_files_boxes[installer_file.id] = installer_file_box
-            self.add(installer_file_box)
-            if installer_file_box.is_ready:
-                self.ready_files.add(installer_file.id)
-        self.show_all()
-        self.check_files_ready()
-
-    def start_all(self):
-        """Start all downloads"""
-        for file_id in self.installer_files_boxes:
-            self.installer_files_boxes[file_id].start()
-
-    @property
-    def is_ready(self):
-        """Return True if all files are ready to be fetched"""
-        return len(self.ready_files) == len(self.installer_files)
-
-    def check_files_ready(self):
-        """Checks if all installer files are ready and emit a signal if so"""
-        logger.debug("Files are ready? %s", self.is_ready)
-        self.emit("files-ready", self.is_ready)
-
-    def on_file_ready(self, widget):
-        """Fired when a file has a valid provider.
-        If the file is user provided, it must set to a valid path.
-        """
-        file_id = widget.installer_file.id
-        self.ready_files.add(file_id)
-        self.check_files_ready()
-
-    def on_file_unready(self, widget):
-        """Fired when a file can't be provided.
-        Blocks the installer from continuing.
-        """
-        file_id = widget.installer_file.id
-        self.ready_files.remove(file_id)
-        self.check_files_ready()
-
-    def on_file_available(self, widget):
-        """A new file is available"""
-        file_id = widget.installer_file.id
-        self.available_files.add(file_id)
-        if len(self.available_files) == len(self.installer_files):
-            logger.info("All files available")
-            self.emit("files-available")
-
-    def get_game_files(self):
-        """Return a mapping of the local files usable by the interpreter"""
-        return {
-            installer_file.id: installer_file.dest_file
-            for installer_file in self.installer_files
-        }

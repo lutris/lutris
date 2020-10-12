@@ -32,6 +32,7 @@ setup(
         'lutris.gui',
         'lutris.gui.config',
         'lutris.gui.dialogs',
+        'lutris.gui.installer',
         'lutris.gui.views',
         'lutris.gui.widgets',
         'lutris.installer',
