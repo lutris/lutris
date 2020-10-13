@@ -154,6 +154,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         """Get extras and store them to move them at the end of the install"""
         if not self.service or not self.service.has_extras:
             self.extras = []
+            return self.extras
         self.extras = self.service.get_extras(self.appid)
         return self.extras
 

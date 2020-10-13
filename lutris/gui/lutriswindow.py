@@ -646,7 +646,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             game_id = game.appid
         else:
             game_id = game.id
-        self.game_store.remove(game_id)
+        self.game_store.remove_game(game_id)
 
     def on_toggle_viewtype(self, *args):
         view_type = "list" if self.current_view_type == "grid" else "grid"

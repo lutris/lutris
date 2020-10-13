@@ -260,7 +260,7 @@ class Application(Gtk.Application):
         try:
             del self.app_windows[window_key]
         except KeyError:
-            logger.debug("No window %s", window_key)
+            pass
         return True
 
     @staticmethod
