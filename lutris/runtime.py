@@ -7,6 +7,7 @@ import time
 from gi.repository import GLib
 
 # Lutris Modules
+import concurrent.futures
 from lutris.settings import RUNTIME_DIR, RUNTIME_URL
 from lutris.util import http, jobs, system
 from lutris.util.downloader import Downloader
@@ -64,19 +65,74 @@ class Runtime:
         )
         return True
 
+    def should_update_component(self, filename, remote_modified_at):
+        """Should an individual component be updated?"""
+        file_path = os.path.join(RUNTIME_DIR, self.name, filename)
+        if not system.path_exists(file_path):
+            return True
+        locally_modified_at = time.gmtime(os.path.getmtime(file_path))
+        if locally_modified_at >= remote_modified_at:
+            return False
+        return True
+
     def download(self, remote_runtime_info):
         """Downloads a runtime locally"""
+        url = remote_runtime_info["url"]
+        if not url:
+            return self.download_components()
         remote_updated_at = remote_runtime_info["created_at"]
         remote_updated_at = time.strptime(remote_updated_at[:remote_updated_at.find(".")], "%Y-%m-%dT%H:%M:%S")
         if not self.should_update(remote_updated_at):
             return None
 
-        url = remote_runtime_info["url"]
         archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
         downloader = Downloader(url, archive_path, overwrite=True)
         downloader.start()
         GLib.timeout_add(100, self.check_download_progress, downloader)
         return downloader
+
+    def download_component(self, component):
+        """Download an individual file from a runtime item"""
+        file_path = os.path.join(RUNTIME_DIR, self.name, component["filename"])
+        try:
+            http.download_file(component["url"], file_path)
+        except http.HTTPError:
+            return
+        return file_path
+
+    def get_runtime_components(self):
+        """Fetch runtime components from the API"""
+        request = http.Request(RUNTIME_URL + "/" + self.name)
+        try:
+            response = request.get()
+        except http.HTTPError as ex:
+            logger.error("Failed to get components: %s", ex)
+            return
+        if not response.json:
+            return []
+        return response.json.get("components", [])
+
+    def download_components(self):
+        """Download a runtime item by individual components."""
+        components = self.get_runtime_components()
+        downloads = []
+        for component in components:
+            modified_at = time.strptime(
+                component["modified_at"][:component["modified_at"].find(".")], "%Y-%m-%dT%H:%M:%S"
+            )
+            if not self.should_update_component(component["filename"], modified_at):
+                continue
+            downloads.append(component)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            future_downloads = {
+                executor.submit(self.download_component, component): component["filename"]
+                for component in downloads
+            }
+            for future in concurrent.futures.as_completed(future_downloads):
+                filename = future_downloads[future]
+                if not filename:
+                    logger.warning("Failed to get %s", future)
 
     def check_download_progress(self, downloader):
         """Call download.check_progress(), return True if download finished."""

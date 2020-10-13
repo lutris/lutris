@@ -117,9 +117,15 @@ class Request:
 
     def write_to_file(self, path):
         content = self.content
-        if content:
-            with open(path, "wb") as dest_file:
-                dest_file.write(content)
+        logger.info("Writing to %s", path)
+        if not content:
+            logger.warning("No content to write")
+            return
+        dirname = os.path.dirname(path)
+        if not system.path_exists(dirname):
+            os.makedirs(dirname)
+        with open(path, "wb") as dest_file:
+            dest_file.write(content)
 
     @property
     def json(self):
@@ -146,7 +152,8 @@ def download_file(url, dest, overwrite=False):
             return dest
     try:
         request = Request(url).get()
-    except HTTPError:
+    except HTTPError as ex:
+        logger.error("Failed to get url %s: %s", url, ex)
         return
     request.write_to_file(dest)
     return dest
