@@ -62,8 +62,9 @@ class GameBar(Gtk.Fixed):
         y_offset = 42
         if self.game.is_installed:
             self.put(self.get_runner_button(), x_offset, y_offset)
-            self.put(self.get_runner_label(), x_offset + 45, y_offset)
-            x_offset += 135
+            x_offset += 80
+            self.put(self.get_runner_label(), x_offset, y_offset)
+            x_offset += 95
         if self.game.lastplayed:
             self.put(self.get_last_played_label(), x_offset, y_offset)
             x_offset += 95
@@ -101,14 +102,25 @@ class GameBar(Gtk.Fixed):
     def get_runner_button(self):
         icon_name = self.game.runner.name + "-symbolic"
         runner_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
-        runner_icon.show()
-        runner_button = Gtk.MenuButton()
+        runner_button = Gtk.Button(visible=True)
+        runner_button.set_sensitive(False)
         runner_button.set_image(runner_icon)
+
+        popover_button = Gtk.MenuButton(visible=True)
+        popover_button.set_size_request(32, 32)
+        popover_button.props.direction = Gtk.ArrowType.UP
         popover = self.get_popover(self.get_runner_buttons())
         if popover:
-            runner_button.set_popover(popover)
-        runner_button.show()
-        return runner_button
+            popover_button.set_popover(popover)
+        else:
+            popover_button.set_sensitive(False)
+
+        box = Gtk.HBox(visible=True)
+        box.add(runner_button)
+        box.add(popover_button)
+        style_context = box.get_style_context()
+        style_context.add_class("linked")
+        return box
 
     def get_runner_label(self):
         runner_label = Gtk.Label(visible=True)
