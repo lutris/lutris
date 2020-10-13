@@ -1,13 +1,10 @@
 """Runtime handling module"""
-# Standard Library
+import concurrent.futures
 import os
 import time
 
-# Third Party Libraries
 from gi.repository import GLib
 
-# Lutris Modules
-import concurrent.futures
 from lutris.settings import RUNTIME_DIR, RUNTIME_URL
 from lutris.util import http, jobs, system
 from lutris.util.downloader import Downloader

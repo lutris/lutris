@@ -116,6 +116,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
+        GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -639,6 +640,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             runner = None
         AddGameDialog(self, runner=runner)
         return True
+
+    def on_game_removed(self, game):
+        if self.service:
+            game_id = game.appid
+        else:
+            game_id = game.id
+        self.game_store.remove(game_id)
 
     def on_toggle_viewtype(self, *args):
         view_type = "list" if self.current_view_type == "grid" else "grid"

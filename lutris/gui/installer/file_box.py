@@ -70,8 +70,6 @@ class InstallerFileBox(Gtk.VBox):
     def get_file_provider_widget(self):
         """Return the widget used to track progress of file"""
         box = Gtk.VBox(spacing=6)
-        print("PROVIDER")
-        print(self.provider)
         if self.provider == "download":
             download_progress = self.get_download_progress()
             box.pack_start(download_progress, False, False, 0)
