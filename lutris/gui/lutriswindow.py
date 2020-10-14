@@ -351,6 +351,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             logger.warning("Wrong service %s", self.service)
             return
         self.show_spinner()
+        return True
 
     def get_sql_filters(self):
         """Return the current filters for the view"""
@@ -567,12 +568,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_service_games_updated(self, service):
         AsyncCall(self.game_store.load_icons, None)
         self.emit("view-updated")
+        return True
 
     def on_service_login(self, service):
         AsyncCall(service.load, None)
+        return True
 
     def on_service_logout(self, service):
         self.emit("view-updated")
+        return True
 
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
@@ -682,6 +686,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             game_id = game.id
         self.game_store.remove_game(game_id)
+        return True
 
     def on_toggle_viewtype(self, *args):
         view_type = "list" if self.current_view_type == "grid" else "grid"

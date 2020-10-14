@@ -183,3 +183,4 @@ class GameStore(GObject.Object):
         }))
         for db_game in db_games:
             GLib.idle_add(self.update, db_game)
+        return True

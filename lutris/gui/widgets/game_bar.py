@@ -254,6 +254,7 @@ class GameBar(Gtk.Fixed):
         ):
             self.game = game
         else:
-            return
+            return True
         self.clear_view()
         self.update_view()
+        return True

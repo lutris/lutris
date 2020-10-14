@@ -464,11 +464,13 @@ class Application(Gtk.Application):
 
     def on_game_launch(self, game):
         game.launch()
+        return True  # Return True to continue handling the emission hook
 
     def on_game_start(self, game):
         self.running_games.append(game)
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.hide()  # Hide launcher window
+        return True
 
     def on_game_install(self, game):
         """Request installation of a game"""
@@ -476,7 +478,10 @@ class Application(Gtk.Application):
         if installers:
             self.show_installer_window(installers)
         else:
-            logger.error("TODO: Generate autoinstaller")
+            logger.error("Should generate automagical installer here but....")
+            logger.error("Wait? how did you get here?")
+            logger.error("I tried to and couldn't figure it out...")
+        return True
 
     def get_running_game_ids(self):
         ids = []
@@ -502,6 +507,7 @@ class Application(Gtk.Application):
                 pass
         else:
             logger.warning("%s not in %s", game.id, ids)
+        return True
 
         game.emit("game-stopped")
         if settings.read_setting("hide_client_on_game_start") == "True":
