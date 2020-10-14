@@ -45,7 +45,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         "view-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    main_box = GtkTemplate.Child()
+    game_view_box = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
@@ -83,6 +83,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.search_timer_id = None
         self.game_store = None
         self.view = Gtk.Box()
+        self.tabs = None
 
         self.connect("delete-event", self.on_window_delete)
         self.connect("map-event", self.on_load)
@@ -269,18 +270,21 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Return a list of currently running games"""
         return games_db.get_games_by_ids([game.id for game in self.application.running_games])
 
-    def get_installed_games(self):
+    def get_recent_games(self):
         """Return a list of currently running games"""
         searches, _filters, excludes = self.get_sql_filters()
-        return games_db.get_games(searches=searches, filters={'installed': '1'}, excludes=excludes)
+        games = games_db.get_games(searches=searches, filters={'installed': '1'}, excludes=excludes)
+        return sorted(
+            games,
+            key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0),
+            reverse=True
+        )
 
     def get_api_games(self):
         """Return games from the lutris API"""
-        if not self.filters.get("text"):
-            api_games = api.get_bundle("featured")
-        else:
-            api_games = api.search_games(self.filters["text"])
-        return api_games
+        if self.filters.get("text"):
+            return api.search_games(self.filters["text"])
+        return []
 
     def game_matches(self, game):
         if self.filters.get("installed"):
@@ -296,26 +300,30 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def unset_service(self):
         self.service = None
 
+    def switch_to_service(self, service_name):
+        """Switch the current service to service_name and return games if available"""
+        self.set_service(service_name)
+        service_games = ServiceGameCollection.get_for_service(service_name)
+        if service_games:
+            return [
+                game for game in sorted(
+                    service_games,
+                    key=lambda game: game.get(self.view_sorting) or game["name"],
+                    reverse=not self.view_sorting_ascending
+                ) if self.game_matches(game)
+            ]
+        if self.service.online and not self.service.is_connected():
+            self.show_label(_("Connect your %s account to access your games") % self.service.name)
+        return
+
     def get_games_from_filters(self):
         service_name = self.filters.get("service")
         if service_name in services.get_services():
-            self.set_service(service_name)
-            service_games = ServiceGameCollection.get_for_service(service_name)
-            if service_games:
-                return [
-                    game for game in sorted(
-                        service_games,
-                        key=lambda game: game.get(self.view_sorting) or game["name"],
-                        reverse=not self.view_sorting_ascending
-                    ) if self.game_matches(game)
-                ]
-            if self.service.online and not self.service.is_connected():
-                self.show_label(_("Connect your %s account to access your games") % self.service.name)
-            return
+            return self.switch_to_service(service_name)
         self.unset_service()
         dynamic_categories = {
             "running": self.get_running_games,
-            "installed": self.get_installed_games
+            "recent": self.get_recent_games,
         }
         if self.filters.get("dynamic_category") in dynamic_categories:
             return dynamic_categories[self.filters["dynamic_category"]]()

@@ -1,11 +1,8 @@
 """DBus backed display management for Mutter"""
-# Standard Library
 from collections import namedtuple
 
-# Third Party Libraries
 import dbus
 
-# Lutris Modules
 from lutris.util.log import logger
 
 DisplayConfig = namedtuple("DisplayConfig", ("monitors", "name", "position", "transform", "primary", "scale"))
@@ -621,6 +618,7 @@ class MutterDisplayManager:
 
     def get_current_resolution(self):
         """Return the current resolution for the primary display"""
+        logger.debug("Retrieving current resolution")
         current_mode = self.display_config.current_state.get_current_mode()
         if not current_mode:
             logger.error("Could not retrieve the current display mode")

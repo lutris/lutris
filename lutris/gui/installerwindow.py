@@ -1,9 +1,8 @@
 """Window used for game installers"""
 import os
-import time
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib
 
 from lutris import settings
 from lutris.exceptions import UnavailableGame
@@ -137,13 +136,9 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def get_script_from_slug(self, script_slug):
         """Return a installer script from its slug, raise an error if one isn't found"""
-        install_script = None
         for script in self.installers:
             if script["slug"] == script_slug:
-                install_script = script
-        if not install_script:
-            raise ValueError("Could not find script %s" % script_slug)
-        return install_script
+                return script
 
     def on_cache_clicked(self, _button):
         """Open the cache configuration dialog"""
@@ -158,10 +153,12 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """
         self.clean_widgets()
         try:
+
             self.interpreter = interpreter.ScriptInterpreter(
                 self.get_script_from_slug(installer_slug),
                 self
             )
+
         except MissingGameDependency as ex:
             dlg = QuestionDialog(
                 {
@@ -206,7 +203,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         button.hide()
         self.source_button.hide()
         self.interpreter.connect("runners-installed", self.on_runners_ready)
-        self.interpreter.launch_install()
+        GLib.idle_add(self.interpreter.launch_install)
 
     def set_install_destination(self, default_path=None):
         """Display the destination chooser."""
@@ -225,7 +222,6 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def ask_for_disc(self, message, callback, requires):
         """Ask the user to do insert a CD-ROM."""
-        time.sleep(0.3)
         self.clean_widgets()
         label = InstallerLabel(message)
         label.show()
@@ -261,7 +257,6 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def input_menu(self, alias, options, preselect, has_entry, callback):
         """Display an input request as a dropdown menu with options."""
-        time.sleep(0.3)
         self.clean_widgets()
 
         model = Gtk.ListStore(str, str)
@@ -282,7 +277,6 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.continue_handler = self.continue_button.connect("clicked", callback, alias, combobox)
         self.continue_button.grab_focus()
         self.continue_button.show()
-
         self.on_input_menu_changed(combobox)
 
     def on_input_menu_changed(self, widget):
@@ -291,7 +285,6 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def on_runners_ready(self, _widget=None):
         """The runners are ready, proceed with file selection"""
-        self.clean_widgets()
         if self.interpreter.extras is None:
             extras = self.interpreter.get_extras()
             if extras:
@@ -306,7 +299,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             logger.debug("Installer doesn't require files")
             self.interpreter.launch_installer_commands()
             return
+        self.show_installer_files_screen()
 
+    def show_installer_files_screen(self):
+        """Show installer screen with the file picker / downloader"""
+        self.clean_widgets()
         self.set_status(_("Please review the files needed for the installation then click 'Continue'"))
         installer_files_box = InstallerFilesBox(self.interpreter.installer.files, self)
         installer_files_box.connect("files-available", self.on_files_available)
@@ -327,6 +324,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         )
 
     def get_extra_label(self, extra):
+        """Return a label for the extras picker"""
         label = extra["name"]
         _infos = []
         if extra.get("total_size"):
@@ -338,6 +336,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         return label
 
     def show_extras(self, extras):
+        """Show installer screen with the extras picker"""
         extra_liststore = Gtk.ListStore(
             bool,   # is selected?
             str,  # id
@@ -378,14 +377,13 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         row[0] = not row[0]
 
     def on_extras_confirmed(self, _button, extra_store):
-        logger.debug("Extras confirmed")
+        """Resume install when user has selected extras to download"""
         selected_extras = []
         for extra in extra_store:
             if extra[0]:
                 selected_extras.append(extra[1])
         self.interpreter.extras = selected_extras
-        print(selected_extras)
-        self.on_runners_ready()
+        GLib.idle_add(self.on_runners_ready)
 
     def on_files_ready(self, _widget, is_ready):
         """Toggle state of continue button based on ready state"""
@@ -442,8 +440,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.set_urgency_hint(False)
 
     def on_install_error(self, message):
-        self.set_status(message)
         self.clean_widgets()
+        self.set_status(message)
         self.cancel_button.grab_focus()
 
     def launch_game(self, widget, _data=None):
