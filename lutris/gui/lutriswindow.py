@@ -119,7 +119,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
-        GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
+        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
+        GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -311,6 +312,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.tabs_box.show()  # Only the lutris service has the ability to search through all games.
             if self.website_button.props.active:
                 return self.get_api_games()
+        else:
+            self.tabs_box.hide()
+
         service_games = ServiceGameCollection.get_for_service(service_name)
         if service_games:
             return [
@@ -678,6 +682,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             runner = None
         AddGameDialog(self, runner=runner)
+        return True
+
+    def on_game_updated(self, game):
+        self.game_store.on_game_updated(game)
         return True
 
     def on_game_removed(self, game):

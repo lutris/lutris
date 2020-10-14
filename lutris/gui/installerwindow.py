@@ -274,6 +274,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
         combobox.connect("changed", self.on_input_menu_changed)
         combobox.show()
+        if self.continue_handler:
+            self.continue_button.disconnect(self.continue_handler)
         self.continue_handler = self.continue_button.connect("clicked", callback, alias, combobox)
         self.continue_button.grab_focus()
         self.continue_button.show()
@@ -319,6 +321,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
         self.continue_button.show()
         self.continue_button.set_sensitive(installer_files_box.is_ready)
+        if self.continue_handler:
+            self.continue_button.disconnect(self.continue_handler)
         self.continue_handler = self.continue_button.connect(
             "clicked", self.on_files_confirmed, installer_files_box
         )
@@ -337,6 +341,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def show_extras(self, extras):
         """Show installer screen with the extras picker"""
+        self.clean_widgets()
         extra_liststore = Gtk.ListStore(
             bool,   # is selected?
             str,  # id
@@ -370,6 +375,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
         self.continue_button.show()
         self.continue_button.set_sensitive(True)
+        if self.continue_handler:
+            self.continue_button.disconnect(self.continue_handler)
         self.continue_handler = self.continue_button.connect("clicked", self.on_extras_confirmed, extra_liststore)
 
     def on_extra_toggled(self, _widget, path, store):

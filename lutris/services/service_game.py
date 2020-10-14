@@ -94,4 +94,8 @@ class ServiceGame:
             "logo": self.logo,
             "details": str(self.details),
         }
-        sql.db_insert(PGA_DB, "service_games", game_data)
+        existing_game = ServiceGameCollection.get_game(self.service, self.appid)
+        if existing_game:
+            sql.db_update(PGA_DB, "service_games", game_data, {"id": existing_game["id"]})
+        else:
+            sql.db_insert(PGA_DB, "service_games", game_data)

@@ -84,6 +84,7 @@ class InstallerFileBox(Gtk.VBox):
         if self.provider == "user":
             user_label = InstallerLabel(gtk_safe(self.installer_file.human_url))
             box.pack_start(user_label, False, False, 0)
+            return box
         if self.provider == "steam":
             steam_installer = SteamInstaller(self.installer_file.url,
                                              self.installer_file.id)
@@ -103,7 +104,7 @@ class InstallerFileBox(Gtk.VBox):
             info_box.add(self.state_label)
             steam_box.add(info_box)
             return steam_box
-        return Gtk.Label(self.get_file_label())
+        return Gtk.Label("?")
 
     def get_file_label(self):
         """Return a human readable label for installer files"""
