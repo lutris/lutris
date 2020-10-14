@@ -2,7 +2,7 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gtk, GLib
+from gi.repository import GLib, Gtk
 
 from lutris import settings
 from lutris.exceptions import UnavailableGame

@@ -45,7 +45,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         "view-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    game_view_box = GtkTemplate.Child()
+    tabs_box = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
@@ -55,6 +55,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
+    library_button = GtkTemplate.Child()
+    website_button = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -83,7 +85,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.search_timer_id = None
         self.game_store = None
         self.view = Gtk.Box()
-        self.tabs = None
 
         self.connect("delete-event", self.on_window_delete)
         self.connect("map-event", self.on_load)
@@ -108,6 +109,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.sidebar_revealer.set_reveal_child(self.left_side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
+        self.tabs_box.hide()
 
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
@@ -284,6 +286,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Return games from the lutris API"""
         if self.filters.get("text"):
             return api.search_games(self.filters["text"])
+
         return []
 
     def game_matches(self, game):
@@ -299,10 +302,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def unset_service(self):
         self.service = None
+        self.tabs_box.hide()
 
     def switch_to_service(self, service_name):
         """Switch the current service to service_name and return games if available"""
         self.set_service(service_name)
+        if service_name == "lutris":
+            self.tabs_box.show()  # Only the lutris service has the ability to search through all games.
+            if self.website_button.props.active:
+                return self.get_api_games()
         service_games = ServiceGameCollection.get_for_service(service_name)
         if service_games:
             return [
@@ -399,6 +407,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if not games:
             if self.filters.get("text"):
                 self.show_label(_("No games matching '%s' found ") % self.filters["text"])
+            elif self.view.service == "lutris" and self.website_button.props.active:
+                self.show_label(_("Use search to find games on lutris.net"))
             else:
                 self.show_label(_("No games found"))
         self.search_timer_id = None
@@ -441,7 +451,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Display a label in the middle of the UI"""
         for child in self.blank_overlay.get_children():
             child.destroy()
-        label = Gtk.Label(message)
+        label = Gtk.Label(message, visible=True)
         self.blank_overlay.add(label)
         self.blank_overlay.props.visible = True
 
@@ -535,12 +545,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.view.show_all()
         self.update_store()
-        
-        #select first game
+
         if self.current_view_type == 'grid':
-            self.view.select_path(Gtk.TreePath('0')) # needed for gridview only
-        self.view.set_cursor(Gtk.TreePath('0'), None, False) # needed for both view types
-        
+            self.view.select_path(Gtk.TreePath('0'))  # needed for gridview only
+        self.view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
+
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
 
@@ -627,14 +636,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_search_entry_key_press(self, widget, event):
         if event.keyval == Gdk.KEY_Down:
             if self.current_view_type == 'grid':
-                self.view.select_path(Gtk.TreePath('0')) # needed for gridview only
-                ## if game_bar is alive at this point it can mess grid item selection up
-                ## for some unknown reason,
-                ## it is safe to close it here, it will be reopened automatically.
+                self.view.select_path(Gtk.TreePath('0'))  # needed for gridview only
+                # if game_bar is alive at this point it can mess grid item selection up
+                # for some unknown reason,
+                # it is safe to close it here, it will be reopened automatically.
                 if self.game_bar:
-                    self.game_bar.destroy() # for gridview only
-                ##
-            self.view.set_cursor(Gtk.TreePath('0'), None, False) # needed for both view types
+                    self.game_bar.destroy()  # for gridview only
+            self.view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
             self.view.grab_focus()
 
     @GtkTemplate.Callback
@@ -718,6 +726,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.filters[row.type] = row.id
         self.emit("view-updated")
 
+    def on_library_button_toggled(self, button):
+        if self.library_button.props.active:
+            self.website_button.props.active = False
+            self.update_store()
+
+    def on_website_button_toggled(self, button):
+        if self.website_button.props.active:
+            self.library_button.props.active = False
+            self.update_store()
+
     def on_game_selection_changed(self, view, game_id):
         if not game_id:
             GLib.idle_add(self.update_revealer)
@@ -737,7 +755,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 game_id = db_game["id"]
             else:
                 db_game = ServiceGameCollection.get_game(self.service.id, game_id)
-                self.service.install(db_game)
+                if db_game:
+                    self.service.install(db_game)
+                else:
+                    self.service.install(game_id)
                 return
         game = Game(game_id)
         if game.is_installed:

@@ -127,9 +127,13 @@ class LutrisService(OnlineService):
         self.emit("service-games-loaded")
 
     def install(self, db_game):
-        installers = fetch_script(db_game["slug"])
+        if isinstance(db_game, dict):
+            slug = db_game["slug"]
+        else:
+            slug = db_game
+        installers = fetch_script(slug)
         if not installers:
-            logger.warning("No installer for %s", db_game["slug"])
+            logger.warning("No installer for %s", slug)
             return
         application = Gio.Application.get_default()
         application.show_installer_window(installers)

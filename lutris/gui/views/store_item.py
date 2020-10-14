@@ -33,7 +33,9 @@ class StoreItem:
         # Return an unique identifier for the game.
         # Since service games are not related to lutris, use the appid
         if "service_id" not in self._game_data:
-            return self._game_data["appid"]
+            if "appid" in self._game_data:
+                return self._game_data["appid"]
+            return self._game_data["slug"]
         return self._game_data["id"]
 
     @property
