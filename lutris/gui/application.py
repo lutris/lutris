@@ -49,6 +49,8 @@ from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.util.wine.dxvk import init_dxvk_versions
+from lutris.services import get_services
+from lutris.database.services import ServiceGameCollection
 
 from .lutriswindow import LutrisWindow
 
@@ -475,12 +477,18 @@ class Application(Gtk.Application):
     def on_game_install(self, game):
         """Request installation of a game"""
         installers = get_installers(game_slug=game.slug)
-        if installers:
-            self.show_installer_window(installers)
+        service = None
+        if not installers and game.appid:
+            service = get_services()[game.service]()
+            db_game = ServiceGameCollection.get_game(service.id, game.appid)
+            installers = [service.generate_installer(db_game)]
         else:
             logger.error("Should generate automagical installer here but....")
             logger.error("Wait? how did you get here?")
             logger.error("I tried to and couldn't figure it out...")
+            installers = None
+        if installers:
+            self.show_installer_window(installers, service=service, appid=game.appid)
         return True
 
     def get_running_game_ids(self):

@@ -75,10 +75,7 @@ class InstallerFileBox(Gtk.VBox):
             box.pack_start(download_progress, False, False, 0)
             return box
         if self.provider == "pga":
-            url_label = InstallerLabel(
-                "CACHED: %s" % gtk_safe(self.installer_file.human_url),
-                wrap=False
-            )
+            url_label = InstallerLabel("In cache: %s" % self.get_file_label(), wrap=False)
             box.pack_start(url_label, False, False, 6)
             return box
         if self.provider == "user":

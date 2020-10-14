@@ -260,6 +260,8 @@ class GOGService(OnlineService):
 
     def get_game_details(self, product_id):
         """Return game information for a given game"""
+        if not product_id:
+            raise ValueError("Missing product ID")
         logger.info("Getting game details for %s", product_id)
         url = "{}/products/{}?expand=downloads".format(self.api_url, product_id)
         return self.make_api_request(url)

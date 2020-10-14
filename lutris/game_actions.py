@@ -167,8 +167,7 @@ class GameActions:
     def on_install_clicked(self, *_args):
         """Install a game"""
         # Install the currently selected game in the UI
-        installers = get_installers(game_slug=self.game.slug)
-        self.application.show_installer_window(installers=installers)
+        self.game.emit("game-install")
 
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""
