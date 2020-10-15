@@ -10,27 +10,27 @@
 # `Pipfile.lock` and then regenerate `requirements*.txt`.
 ################################################################################
 
-appdirs==1.4.3
-astroid==2.4.0
-autopep8==1.5.2
-certifi==2020.4.5.1
-distlib==0.3.0
-entrypoints==0.3
+appdirs==1.4.4
+astroid==2.4.2
+autopep8==1.5.4
+certifi==2020.6.20
+distlib==0.3.1
 filelock==3.0.12
-flake8==3.7.9
+flake8==3.8.4
 isort==4.3.21
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
-pbr==5.4.5
+pbr==5.5.0 ; python_version >= '2.6'
 pipenv-to-requirements==0.9.0
-pipenv==2018.11.26
-pycairo==1.19.1
-pycodestyle==2.5.0
+pipenv==2020.8.13 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+pycairo==1.20.0
+pycodestyle==2.6.0
 pyflakes==2.2.0
 pygobject-stubs==0.0.2
-pygobject==3.36.0
+pygobject==3.38.0
 pylint==2.4.4
-six==1.14.0
-virtualenv-clone==0.5.4
-virtualenv==20.0.20
+six==1.15.0
+toml==0.10.1
+virtualenv-clone==0.5.4 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+virtualenv==20.0.34 ; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 wrapt==1.12.1
