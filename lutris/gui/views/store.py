@@ -83,7 +83,7 @@ class GameStore(GObject.Object):
             float,
             str,
         )
-        self.media_loader = MediaLoader(service_media)
+        self.media_loader = MediaLoader()
         self.media_loader.connect("icon-loaded", self.on_icon_loaded)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)

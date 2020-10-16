@@ -10,6 +10,7 @@ from lutris.api import read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
+from lutris.gui.views.media_loader import MediaLoader
 from lutris.installer import fetch_script
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
@@ -140,3 +141,24 @@ class LutrisService(OnlineService):
             return
         application = Gio.Application.get_default()
         application.show_installer_window(installers)
+
+
+def download_lutris_media(slug):
+    """Downloads the banner and icon for a given lutris game"""
+    url = settings.SITE_URL + "/api/games/%s" % slug
+    request = http.Request(url)
+    try:
+        response = request.get()
+    except http.HTTPError as ex:
+        logger.debug("Unable to load %s: %s", slug, ex)
+        return
+    response_data = response.json
+    icon_url = response_data.get("icon_url")
+    if icon_url:
+        icon_loader = MediaLoader()
+        icon_loader.download_icons({slug: icon_url}, LutrisIcon())
+
+    banner_url = response_data.get("banner_url")
+    if banner_url:
+        banner_loader = MediaLoader()
+        banner_loader.download_icons({slug: banner_url}, LutrisBanner())

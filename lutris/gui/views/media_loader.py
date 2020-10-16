@@ -13,7 +13,7 @@ class MediaLoader(GObject.Object):
 
     num_workers = 8
 
-    def __init__(self, service_media):
+    def __init__(self):
         super().__init__()
 
     def download_icons(self, media_urls, service_media):
