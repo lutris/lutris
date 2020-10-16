@@ -10,7 +10,6 @@ from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
-
 from lutris.util.jobs import AsyncCall
 
 TYPE = 0

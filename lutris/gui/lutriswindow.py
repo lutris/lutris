@@ -23,7 +23,7 @@ from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
-from lutris.gui.widgets.utils import open_uri, load_icon_theme
+from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import RuntimeUpdater
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
@@ -573,7 +573,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.emit("view-updated")
 
     def on_service_games_updated(self, service):
-        AsyncCall(self.game_store.load_icons, None)
+        """Request a view update when service games are loaded"""
         self.emit("view-updated")
         return True
 

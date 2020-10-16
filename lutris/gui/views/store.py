@@ -9,6 +9,7 @@ from lutris.game import Game
 from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.services.base import BaseService
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -85,6 +86,7 @@ class GameStore(GObject.Object):
         self.media_loader = MediaLoader(service_media)
         self.media_loader.connect("icon-loaded", self.on_icon_loaded)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
+        GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
 
     def load_icons(self):
         """Downloads the icons for a service"""
@@ -183,4 +185,9 @@ class GameStore(GObject.Object):
         }))
         for db_game in db_games:
             GLib.idle_add(self.update, db_game)
+        return True
+
+    def on_service_games_updated(self, game):
+        """Reload icons when service games are loaded"""
+        GLib.idle_add(self.load_icons)
         return True

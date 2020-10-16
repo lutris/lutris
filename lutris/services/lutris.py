@@ -123,8 +123,10 @@ class LutrisService(OnlineService):
         for game in self.get_library():
             lutris_game = LutrisGame.new_from_api(game)
             lutris_game.save()
+        logger.debug("Matching with already installed games")
         self.match_games()
         self.is_loading = False
+        logger.debug("Lutris games loaded")
         self.emit("service-games-loaded")
 
     def install(self, db_game):

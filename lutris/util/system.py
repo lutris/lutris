@@ -10,9 +10,9 @@ import subprocess
 
 from gi.repository import GLib
 
+from lutris import settings
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris import settings
 
 # Home folders that should never get deleted. This should be localized and return the
 # appropriate folders names for the current locale.
