@@ -91,9 +91,12 @@ def get_game_for_service(service, appid):
 def get_service_games(service):
     """Return the list of all installed games for a service"""
     if service not in _SERVICE_CACHE:
-        _SERVICE_CACHE[service] = [
-            game["service_id"] for game in get_games(filters={"service": service, "installed": "1"})
-        ]
+        if service == "lutris":
+            _SERVICE_CACHE[service] = [game["slug"] for game in get_games(filters={"installed": "1"})]
+        else:
+            _SERVICE_CACHE[service] = [
+                game["service_id"] for game in get_games(filters={"service": service, "installed": "1"})
+            ]
     return _SERVICE_CACHE[service]
 
 
