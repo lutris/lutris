@@ -13,9 +13,6 @@ class MediaLoader(GObject.Object):
 
     num_workers = 8
 
-    def __init__(self):
-        super().__init__()
-
     def download_icons(self, media_urls, service_media):
         """Download a list of media files concurrently.
 
@@ -36,6 +33,3 @@ class MediaLoader(GObject.Object):
                 else:
                     if path:
                         self.emit("icon-loaded", slug, path)
-        # XXX clearly not the place for this
-        # if media_type == "icon":
-        #     system.update_desktop_icons()
