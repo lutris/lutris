@@ -58,5 +58,5 @@ class ServiceMedia:
             return
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
         if not system.path_exists(cache_path):
-            download_file(url, cache_path)
+            return download_file(url, cache_path)
         return cache_path

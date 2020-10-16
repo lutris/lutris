@@ -10,7 +10,7 @@ from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
-from lutris.gui.widgets.utils import load_icon_theme
+
 from lutris.util.jobs import AsyncCall
 
 TYPE = 0
@@ -207,6 +207,7 @@ class LutrisSidebar(Gtk.ListBox):
 
     def __init__(self, application, selected=None):
         super().__init__()
+        self.set_size_request(250, -1)
         self.application = application
         self.get_style_context().add_class("sidebar")
         self.installed_runners = []
@@ -223,8 +224,6 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
         GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
-
-        load_icon_theme()
 
         self.add(
             SidebarRow(

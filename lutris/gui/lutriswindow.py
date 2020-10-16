@@ -23,13 +23,14 @@ from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
-from lutris.gui.widgets.utils import open_uri
+from lutris.gui.widgets.utils import open_uri, load_icon_theme
 from lutris.runtime import RuntimeUpdater
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
@@ -69,6 +70,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             application=application,
             **kwargs
         )
+        update_desktop_icons()
+        load_icon_theme()
         self.application = application
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
@@ -103,7 +106,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.filters = self.load_filters()
 
         self.sidebar = LutrisSidebar(self.application, selected=self.selected_category)
-        self.sidebar.set_size_request(250, -1)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar)
 
@@ -186,6 +188,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 app.add_accelerator(value.accel, "win." + name)
 
     def on_load(self, widget, data):
+        """Finish initializing the view"""
         self.game_store = GameStore(self.service_media)
         self.redraw_view()
         self._bind_zoom_adjustment()

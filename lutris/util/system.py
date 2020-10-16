@@ -12,6 +12,7 @@ from gi.repository import GLib
 
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris import settings
 
 # Home folders that should never get deleted. This should be localized and return the
 # appropriate folders names for the current locale.
@@ -381,7 +382,8 @@ def update_desktop_icons():
     """
     if find_executable("gtk-update-icon-cache"):
         logger.debug("Updating GTK icon cache...")
-        os.system("gtk-update-icon-cache -tf %s" % os.path.join(GLib.get_user_data_dir(), "icons", "hicolor"))
+        os.system("gtk-update-icon-cache -tf %s" % os.path.join(GLib.get_user_data_dir(), "icons/hicolor"))
+        os.system("gtk-update-icon-cache -tf %s" % os.path.join(settings.RUNTIME_DIR, "icons/hicolor"))
 
 
 def get_disk_size(path):

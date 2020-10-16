@@ -38,7 +38,7 @@ class Request:
             url = "https:" + url
 
         if url.startswith("/"):
-            logger.warning("Please don't do that")
+            logger.error("Stop using relative URLs!: %s", url)
             url = SITE_URL + url
 
         self.url = url
