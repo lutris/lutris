@@ -515,7 +515,6 @@ class Application(Gtk.Application):
                 pass
         else:
             logger.warning("%s not in %s", game.id, ids)
-        return True
 
         game.emit("game-stopped")
         if settings.read_setting("hide_client_on_game_start") == "True":
@@ -523,6 +522,7 @@ class Application(Gtk.Application):
         elif not self.window.is_visible():
             if self.running_games.get_n_items() == 0:
                 self.quit()
+        return True
 
     @staticmethod
     def get_lutris_action(url):

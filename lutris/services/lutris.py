@@ -12,7 +12,8 @@ from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
 from lutris.installer import fetch_script
 from lutris.services.base import OnlineService
-from lutris.services.service_game import ServiceGame, ServiceMedia
+from lutris.services.service_game import ServiceGame
+from lutris.services.service_media import ServiceMedia
 from lutris.util import http
 from lutris.util.log import logger
 

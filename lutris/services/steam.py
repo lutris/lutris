@@ -12,7 +12,8 @@ from lutris.database.games import get_games
 from lutris.game import Game
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import BaseService
-from lutris.services.service_game import ServiceGame, ServiceMedia
+from lutris.services.service_game import ServiceGame
+from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths

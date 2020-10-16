@@ -16,7 +16,6 @@ from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
-from lutris.installer import get_installers
 from lutris.util import xdgshortcuts
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.system import path_exists

@@ -11,7 +11,8 @@ from gi.repository import Gio
 from lutris.config import LutrisConfig
 from lutris.database.games import get_games_where
 from lutris.services.base import BaseService
-from lutris.services.service_game import ServiceGame, ServiceMedia
+from lutris.services.service_game import ServiceGame
+from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
