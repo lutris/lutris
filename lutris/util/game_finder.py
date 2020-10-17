@@ -6,12 +6,24 @@ import magic
 from lutris.util import system
 
 
+def is_excluded_elf(filename):
+    excluded = (
+        "xdg-open",
+        "uninstall"
+    )
+    _fn = filename.lower()
+    for exclude in excluded:
+        if exclude in _fn:
+            return True
+    return False
+
+
 def find_linux_game_executable(path, make_executable=False):
     """Looks for a binary or shell script that launches the game in a directory"""
     for base, _dirs, files in os.walk(path):
         candidates = {}
         for _file in files:
-            if "uninstall" in _file.lower():
+            if is_excluded_elf(_file):
                 continue
             abspath = os.path.join(base, _file)
             file_type = magic.from_file(abspath)

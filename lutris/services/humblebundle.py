@@ -224,7 +224,6 @@ class HumbleBundleService(OnlineService):
     def generate_installer(self, db_game):
         details = json.loads(db_game["details"])
         platforms = [download["platform"] for download in details["downloads"]]
-        logger.debug(details)
         system_config = {}
         if "linux" in platforms and self.platform_has_downloads(details["downloads"], "linux"):
             runner = "linux"
@@ -241,7 +240,7 @@ class HumbleBundleService(OnlineService):
                     {"move": {"src": "$CACHE/data/x86", "dst": "$CACHE/x86", "optional": True}},
                     {"merge": {"src": "$CACHE/data/", "dst": "$GAMEDIR", "optional": True}},
                 ]
-            elif filename.endswith("-bin"):
+            elif filename.endswith("-bin") or filename.endswith("mojo.run"):
                 script = [
                     {"extract": {"file": "humblegame", "format": "zip", "dst": "$CACHE"}},
                     {"merge": {"src": "$CACHE/data/", "dst": "$GAMEDIR"}},
@@ -292,7 +291,7 @@ def pick_download_url_from_download_info(download_info):
         logger.warning("No downloads found")
         return
     if len(download_info["download_struct"]) > 1:
-        logger.info("There are %s downloads available:", len(download_info["download"]["download_struct"]))
+        logger.info("There are %s downloads available:", len(download_info["download_struct"]))
         sorted_downloads = []
         for _download in download_info["download_struct"]:
             if "deb" in _download["name"] or "rpm" in _download["name"] or "32" in _download["name"]:
