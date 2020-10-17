@@ -324,6 +324,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def switch_to_service(self, service_name):
         """Switch the current service to service_name and return games if available"""
+
+        def combine_games(service_game, lutris_game):
+            if not lutris_game or service_game["appid"] != lutris_game["service_id"]:
+                return service_game
+            for field in ("platform", "runner", "year", "installed_at", "lastplayed", "playtime", "installed"):
+                service_game[field] = lutris_game[field]
+            return service_game
+
         self.set_service(service_name)
         if service_name == "lutris":
             self.tabs_box.show()  # Only the lutris service has the ability to search through all games.
@@ -339,7 +347,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             lutris_games = {g["service_id"]: g for g in games_db.get_games(filters={"service": self.service.id})}
         if service_games:
             return [
-                game for game in sorted(
+                combine_games(game, lutris_games.get(game["appid"])) for game in sorted(
                     service_games,
                     key=lambda game: str(lutris_games.get(game["appid"], {}).get(self.view_sorting)) or game["name"],
                     reverse=not self.view_sorting_ascending
