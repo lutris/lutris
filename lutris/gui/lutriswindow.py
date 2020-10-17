@@ -308,7 +308,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def set_service(self, service_name):
         if self.service and self.service.id == service_name:
             return self.service
-        logger.debug("Setting service to %s", service_name)
 
         if not service_name:
             self.unset_service()

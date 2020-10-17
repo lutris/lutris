@@ -381,9 +381,8 @@ def update_desktop_icons():
     Other desktop manager icon cache commands must be added here if needed
     """
     if find_executable("gtk-update-icon-cache"):
-        logger.debug("Updating GTK icon cache...")
-        os.system("gtk-update-icon-cache -tf %s" % os.path.join(GLib.get_user_data_dir(), "icons/hicolor"))
-        os.system("gtk-update-icon-cache -tf %s" % os.path.join(settings.RUNTIME_DIR, "icons/hicolor"))
+        execute(["gtk-update-icon-cache", "-tf", os.path.join(GLib.get_user_data_dir(), "icons/hicolor")], quiet=True)
+        execute(["gtk-update-icon-cache", "-tf", os.path.join(settings.RUNTIME_DIR, "icons/hicolor")], quiet=True)
 
 
 def get_disk_size(path):
