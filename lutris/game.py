@@ -473,6 +473,10 @@ class Game(GObject.Object):
             return
         wait_for_dxvk_init()
         self.load_config()  # Reload the config before launching it.
+
+        if self.id in LOG_BUFFERS:  # Reset game logs on each launch
+            LOG_BUFFERS.pop(self.id)
+
         if not self.runner:
             dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
             return
