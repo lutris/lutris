@@ -43,6 +43,7 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
     """Return a pixbuf from file `image` at `size` or fallback to `fallback`"""
     width, heigth = size
     pixbuf = None
+
     if system.path_exists(image):
         try:
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, width, heigth)
@@ -50,32 +51,30 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
             logger.error("Unable to load icon from image %s", image)
     if system.path_exists(fallback):
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, heigth)
-    if pixbuf:
-        if not is_installed:
-            overlay = os.path.join(datapath.get(), "media/unavailable.png")
-            transparent_pixbuf = get_overlay(overlay, size).copy()
-            pixbuf.composite(
-                transparent_pixbuf,
-                0,
-                0,
-                size[0],
-                size[1],
-                0,
-                0,
-                1,
-                1,
-                GdkPixbuf.InterpType.NEAREST,
-                100,
-            )
-            return transparent_pixbuf
+    if not pixbuf:
+        return None
+    if is_installed:
         return pixbuf
-    if image and not image.startswith("/"):
-        return get_stock_icon(image, width)
-    return None
+    overlay = os.path.join(datapath.get(), "media/unavailable.png")
+    transparent_pixbuf = get_overlay(overlay, size).copy()
+    pixbuf.composite(
+        transparent_pixbuf,
+        0,
+        0,
+        size[0],
+        size[1],
+        0,
+        0,
+        1,
+        1,
+        GdkPixbuf.InterpType.NEAREST,
+        100,
+    )
+    return transparent_pixbuf
 
 
 def get_stock_icon(name, size):
-    """Return a picxbuf from a stock icon name"""
+    """Return a pixbuf from a stock icon name"""
     theme = Gtk.IconTheme.get_default()
     try:
         return theme.load_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK)

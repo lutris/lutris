@@ -76,13 +76,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
         self.icon_type = None
-        self.service = None
+
 
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
-
-        icon_type = self.load_icon_type()
-        self.service_media = self.get_service_media(icon_type)
 
         self.game_actions = GameActions(application=application, window=self)
         self.search_timer_id = None
@@ -93,17 +90,22 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.connect("map-event", self.on_load)
         if self.maximized:
             self.maximize()
+        self.load_icon_type()
         self.init_template()
         self._init_actions()
 
         self.set_dark_theme()
+
         self.set_viewtype_icon(self.view_type)
 
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
-        self.selected_category = settings.read_setting("selected_category", default="runner:all")
 
+        self.selected_category = settings.read_setting("selected_category", default="runner:all")
         self.filters = self.load_filters()
+        self.set_service(self.filters.get("service"))
+
+        self.service_media = self.get_service_media(self.load_icon_type())
 
         self.sidebar = LutrisSidebar(self.application, selected=self.selected_category)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
@@ -302,6 +304,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return self.filters["text"] in game["name"].lower()
 
     def set_service(self, service_name):
+        logger.debug("Setting service to %s" % service_name)
+        if not service_name:
+            self.unset_service()
         self.service = services.get_services()[service_name]()
 
     def unset_service(self):
