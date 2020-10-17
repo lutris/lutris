@@ -345,11 +345,28 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             lutris_games = {g["slug"]: g for g in games_db.get_games()}
         else:
             lutris_games = {g["service_id"]: g for g in games_db.get_games(filters={"service": self.service.id})}
+
+        def get_sort_value(game):
+            sort_defaults = {
+                "name": "",
+                "year": 0,
+                "lastplayed": 0.0,
+                "installed_at": 0.0,
+                "playtime": 0.0,
+            }
+            lutris_game = lutris_games.get(game["appid"])
+            if not lutris_game:
+                return sort_defaults[self.view_sorting]
+            value = lutris_game[self.view_sorting]
+            if value:
+                return value
+            return sort_defaults[self.view_sorting]
+
         if service_games:
             return [
                 combine_games(game, lutris_games.get(game["appid"])) for game in sorted(
                     service_games,
-                    key=lambda game: str(lutris_games.get(game["appid"], {}).get(self.view_sorting)) or game["name"],
+                    key=get_sort_value,
                     reverse=not self.view_sorting_ascending
                 ) if self.game_matches(game)
             ]
