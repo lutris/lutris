@@ -57,11 +57,11 @@ class GameBar(Gtk.Fixed):
         """Populate the view with widgets"""
         self.put(self.get_game_name_label(), 16, 8)
         x_offset = 140
-        y_offset = 42
+        y_offset = 40
         if self.game.is_installed:
-            self.put(self.get_runner_button(), x_offset, y_offset)
+            self.put(self.get_runner_button(), x_offset, y_offset + 2)
             x_offset += 80
-            self.put(self.get_runner_label(), x_offset, y_offset)
+            self.put(self.get_platform_label(), x_offset, y_offset)
             x_offset += 95
         if self.game.lastplayed:
             self.put(self.get_last_played_label(), x_offset, y_offset)
@@ -100,34 +100,35 @@ class GameBar(Gtk.Fixed):
     def get_runner_button(self):
         icon_name = self.game.runner.name + "-symbolic"
         runner_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
-        runner_button = Gtk.Button(visible=True)
-        runner_button.set_sensitive(False)
-        runner_button.set_image(runner_icon)
-
-        popover_button = Gtk.MenuButton(visible=True)
-        popover_button.set_size_request(32, 32)
-        popover_button.props.direction = Gtk.ArrowType.UP
+        runner_icon.show()
+        box = Gtk.HBox(visible=True)
         popover = self.get_popover(self.get_runner_buttons())
         if popover:
+            runner_button = Gtk.Button(visible=True)
+            runner_button.set_sensitive(False)
+            runner_button.set_image(runner_icon)
+            popover_button = Gtk.MenuButton(visible=True)
+            popover_button.set_size_request(32, 32)
+            popover_button.props.direction = Gtk.ArrowType.UP
             popover_button.set_popover(popover)
+            box.add(runner_button)
+            box.add(popover_button)
+            style_context = box.get_style_context()
+            style_context.add_class("linked")
         else:
-            popover_button.set_sensitive(False)
-
-        box = Gtk.HBox(visible=True)
-        box.add(runner_button)
-        box.add(popover_button)
-        style_context = box.get_style_context()
-        style_context.add_class("linked")
+            runner_icon.set_margin_top(8)
+            runner_icon.set_margin_left(48)
+            box.add(runner_icon)
         return box
 
-    def get_runner_label(self):
-        runner_label = Gtk.Label(visible=True)
+    def get_platform_label(self):
+        platform_label = Gtk.Label(visible=True)
         if len(self.game.platform) > 15:
             platform = self.game.platform[:15] + "…"
         else:
             platform = self.game.platform
-        runner_label.set_markup("Platform:\n<b>%s</b>" % gtk_safe(platform))
-        return runner_label
+        platform_label.set_markup("Platform:\n<b>%s</b>" % gtk_safe(platform))
+        return platform_label
 
     def get_playtime_label(self):
         """Return the label containing the playtime info"""
