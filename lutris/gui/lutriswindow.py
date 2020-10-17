@@ -308,9 +308,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def set_service(self, service_name):
         if self.service and self.service.id == service_name:
             return self.service
-
         if not service_name:
             self.unset_service()
+            return
         self.service = services.get_services()[service_name]()
         if self.game_store:
             self.game_store.service = self.service
