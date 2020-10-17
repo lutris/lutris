@@ -26,7 +26,7 @@ from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import RuntimeUpdater
 from lutris.services.base import BaseService
-from lutris.services.lutris import LutrisService
+from lutris.services.lutris import LutrisService, LutrisBanner, LutrisIcon
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -287,10 +287,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def get_api_games(self):
         """Return games from the lutris API"""
-        if self.filters.get("text"):
-            return api.search_games(self.filters["text"])
+        if not self.filters.get("text"):
+            return []
+        api_games = api.search_games(self.filters["text"])
+        GLib.idle_add(self.load_icons, {g["slug"]: g["banner_url"] for g in api_games}, LutrisBanner)
+        GLib.idle_add(self.load_icons, {g["slug"]: g["icon_url"] for g in api_games}, LutrisIcon)
+        return api_games
 
-        return []
+    def load_icons(self, media_urls, service_media):
+        self.game_store.media_loader.download_icons(media_urls, service_media())
 
     def game_matches(self, game):
         if self.filters.get("installed"):
@@ -647,7 +652,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.search_timer_id:
             GLib.source_remove(self.search_timer_id)
         self.filters["text"] = entry.get_text().lower().strip()
-        self.search_timer_id = GLib.timeout_add(350, self.update_store)
+        self.search_timer_id = GLib.timeout_add(1000, self.update_store)
 
     @GtkTemplate.Callback
     def on_search_entry_key_press(self, widget, event):

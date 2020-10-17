@@ -8,9 +8,8 @@ from lutris.database import sql
 from lutris.game import Game
 from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
-from lutris.gui.widgets.utils import get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf_for_game, get_pixbuf
 from lutris.services.base import BaseService
-from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -170,19 +169,15 @@ class GameStore(GObject.Object):
             )
         self.emit("icons-changed")
 
-    def on_icon_loaded(self, media_loader, appid, _path):
-        """Callback signal for when an icon is loaded
-        Updates the image in the view.
-        """
-        games = sql.filtered_query(PGA_DB, "service_games", filters=({
-            "service": self.service_media.service,
-            "appid": appid
-        }))
-        for game in games:
-            GLib.idle_add(self.update, game)
+    def on_icon_loaded(self, media_loader, appid, _path, width, heigth):
+        row = self.get_row_by_id(appid)
+        if not row:
+            return
+        if width != self.service_media.size[0]:
+            return
+        row[COL_ICON] = get_pixbuf(_path, (width, heigth))
 
     def on_game_updated(self, game):
-        logger.debug("Updating %s: %s", game, game.is_installed)
         if self.service:
             db_games = sql.filtered_query(PGA_DB, "service_games", filters=({
                 "service": self.service_media.service,

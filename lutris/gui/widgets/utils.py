@@ -41,16 +41,17 @@ def open_uri(uri):
 
 def get_pixbuf(image, size, fallback=None, is_installed=True):
     """Return a pixbuf from file `image` at `size` or fallback to `fallback`"""
-    width, heigth = size
+    width, height = size
     pixbuf = None
 
     if system.path_exists(image):
         try:
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, width, heigth)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, width, height)
+            pixbuf = pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.NEAREST)
         except GLib.GError:
             logger.error("Unable to load icon from image %s", image)
     if system.path_exists(fallback):
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, heigth)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, height)
     if not pixbuf:
         return None
     if is_installed:

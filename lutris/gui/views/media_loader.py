@@ -8,7 +8,7 @@ from lutris.util.log import logger
 
 class MediaLoader(GObject.Object):
     __gsignals__ = {
-        "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
+        "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, str, int, int)),
     }
 
     num_workers = 8
@@ -32,4 +32,4 @@ class MediaLoader(GObject.Object):
                     logger.exception('%r failed: %s', slug, ex)
                 else:
                     if path:
-                        self.emit("icon-loaded", slug, path)
+                        self.emit("icon-loaded", slug, path, service_media.size[0], service_media.size[1])
