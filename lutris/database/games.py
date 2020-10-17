@@ -9,6 +9,7 @@ from lutris.util.strings import slugify
 
 PGA_DB = settings.PGA_DB
 _SERVICE_CACHE = {}
+_SERVICE_CACHE_ACCESSED = False  # Keep time of last access to have a self degrading cache
 
 
 def get_games(
@@ -90,7 +91,10 @@ def get_game_for_service(service, appid):
 
 def get_service_games(service):
     """Return the list of all installed games for a service"""
-    if service not in _SERVICE_CACHE:
+    global _SERVICE_CACHE_ACCESSED
+    previous_cache_accessed = _SERVICE_CACHE_ACCESSED or 0
+    _SERVICE_CACHE_ACCESSED = time.time()
+    if service not in _SERVICE_CACHE or _SERVICE_CACHE_ACCESSED - previous_cache_accessed > 1:
         if service == "lutris":
             _SERVICE_CACHE[service] = [game["slug"] for game in get_games(filters={"installed": "1"})]
         else:
@@ -98,12 +102,6 @@ def get_service_games(service):
                 game["service_id"] for game in get_games(filters={"service": service, "installed": "1"})
             ]
     return _SERVICE_CACHE[service]
-
-
-def clear_service_cache(service):
-    """Clears the cache for a single service"""
-    if service in _SERVICE_CACHE:
-        _SERVICE_CACHE.pop(service)
 
 
 def get_game_by_field(value, field="slug"):
@@ -187,10 +185,6 @@ def get_matching_game(params):
 def delete_game(game_id):
     """Delete a game from the PGA."""
     sql.db_delete(PGA_DB, "games", "id", game_id)
-
-
-def set_uninstalled(game_id):
-    sql.db_update(PGA_DB, "games", {"installed": 0, "runner": ""}, {"id": game_id})
 
 
 def get_used_runners():

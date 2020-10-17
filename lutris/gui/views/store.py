@@ -10,6 +10,7 @@ from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.services.base import BaseService
+from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -62,8 +63,9 @@ class GameStore(GObject.Object):
         "icons-changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, service_media):
+    def __init__(self, service, service_media):
         super().__init__()
+        self.service = service
         self.service_media = service_media
 
         self.store = Gtk.ListStore(
@@ -86,6 +88,7 @@ class GameStore(GObject.Object):
         self.media_loader = MediaLoader()
         self.media_loader.connect("icon-loaded", self.on_icon_loaded)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
+        GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
 
     def load_icons(self):
@@ -179,10 +182,17 @@ class GameStore(GObject.Object):
             GLib.idle_add(self.update, game)
 
     def on_game_updated(self, game):
-        db_games = sql.filtered_query(PGA_DB, "service_games", filters=({
-            "service": self.service_media.service,
-            "appid": game.appid
-        }))
+        logger.debug("Updating %s: %s", game, game.is_installed)
+        if self.service:
+            db_games = sql.filtered_query(PGA_DB, "service_games", filters=({
+                "service": self.service_media.service,
+                "appid": game.appid
+            }))
+        else:
+            db_games = sql.filtered_query(PGA_DB, "games", filters=({
+                "id": game.id
+            }))
+
         for db_game in db_games:
             GLib.idle_add(self.update, db_game)
         return True

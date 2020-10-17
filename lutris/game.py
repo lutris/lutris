@@ -10,11 +10,12 @@ from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk
 
-from lutris import runtime
+from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.database import sql
 from lutris.discord import DiscordPresence
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
@@ -230,13 +231,14 @@ class Game(GObject.Object):
         Params:
             delete_files (bool): Delete the game files
         """
-        if delete_files and self.runner:
-            self.runner.remove_game_data(game_path=self.directory)
-        games_db.set_uninstalled(self.id)
+        sql.db_update(settings.PGA_DB, "games", {"installed": 0, "runner": ""}, {"id": self.id})
         if self.config:
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
+        if delete_files and self.runner:
+            self.runner.remove_game_data(game_path=self.directory)
         self.is_installed = False
+        self.runner = None
         self.emit("game-removed")
 
     def set_platform_from_runner(self):

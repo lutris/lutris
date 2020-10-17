@@ -76,8 +76,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
         self.icon_type = None
-
-
+        self.service = None
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
 
@@ -123,8 +122,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
-        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
-        GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -191,7 +188,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_load(self, widget, data):
         """Finish initializing the view"""
-        self.game_store = GameStore(self.service_media)
+        self.game_store = GameStore(self.service, self.service_media)
         self.redraw_view()
         self._bind_zoom_adjustment()
         self.view.grab_focus()
@@ -304,13 +301,17 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return self.filters["text"] in game["name"].lower()
 
     def set_service(self, service_name):
-        logger.debug("Setting service to %s" % service_name)
+        logger.debug("Setting service to %s", service_name)
         if not service_name:
             self.unset_service()
         self.service = services.get_services()[service_name]()
+        if self.game_store:
+            self.game_store.service = self.service
+        return self.service
 
     def unset_service(self):
         self.service = None
+        self.game_store.service = None
         self.tabs_box.hide()
 
     def switch_to_service(self, service_name):
@@ -690,18 +691,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             runner = None
         AddGameDialog(self, runner=runner)
-        return True
-
-    def on_game_updated(self, game):
-        self.game_store.on_game_updated(game)
-        return True
-
-    def on_game_removed(self, game):
-        if self.service:
-            game_id = game.appid
-        else:
-            game_id = game.id
-        self.game_store.remove_game(game_id)
         return True
 
     def on_toggle_viewtype(self, *args):

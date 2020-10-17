@@ -6,7 +6,7 @@ import yaml
 
 from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id
-from lutris.database.games import add_or_update, clear_service_cache, get_game_by_field
+from lutris.database.games import add_or_update, get_game_by_field
 from lutris.game import Game
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
@@ -251,8 +251,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # This is a bit redundant but used to trigger the game-updated signal
         game = Game(self.game_id)
         game.save()
-        if self.service:
-            clear_service_cache(self.service.id)
 
     def get_game_launcher_config(self, game_files):
         """Game options such as exe or main_file can be added at the root of the
