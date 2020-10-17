@@ -476,13 +476,15 @@ class Application(Gtk.Application):
 
     def on_game_install(self, game):
         """Request installation of a game"""
-        installers = get_installers(game_slug=game.slug)
-        service = None
-        if not installers and game.appid:
+        if game.service:
             service = get_services()[game.service]()
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
-            installers = [service.generate_installer(db_game)]
+            service.install(db_game)
+            return
         else:
+            service = None
+            installers = get_installers(game_slug=game.slug)
+        if not installers:
             logger.error("Should generate automagical installer here but....")
             logger.error("Wait? how did you get here?")
             logger.error("I tried to and couldn't figure it out...")
