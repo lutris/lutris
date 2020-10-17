@@ -318,7 +318,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def unset_service(self):
         self.service = None
-        self.game_store.service = None
+        if self.game_store:
+            self.game_store.service = None
         self.tabs_box.hide()
 
     def switch_to_service(self, service_name):
