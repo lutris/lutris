@@ -428,7 +428,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if games is None:
             return False
         for game in games:
-            game["image_size"] = self.service_media.size
             self.game_store.add_game(game)
         if not games:
             if self.filters.get("text"):
