@@ -8,7 +8,7 @@ from lutris.database import sql
 from lutris.game import Game
 from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
-from lutris.gui.widgets.utils import get_pixbuf_for_game, get_pixbuf
+from lutris.gui.widgets.utils import get_pixbuf, get_pixbuf_for_game
 from lutris.services.base import BaseService
 from lutris.util.strings import gtk_safe
 

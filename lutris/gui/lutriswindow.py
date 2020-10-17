@@ -26,7 +26,7 @@ from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runtime import RuntimeUpdater
 from lutris.services.base import BaseService
-from lutris.services.lutris import LutrisService, LutrisBanner, LutrisIcon
+from lutris.services.lutris import LutrisBanner, LutrisIcon, LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -306,7 +306,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return self.filters["text"] in game["name"].lower()
 
     def set_service(self, service_name):
+        if self.service and self.service.id == service_name:
+            return self.service
         logger.debug("Setting service to %s", service_name)
+
         if not service_name:
             self.unset_service()
         self.service = services.get_services()[service_name]()
@@ -330,11 +333,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.tabs_box.hide()
 
         service_games = ServiceGameCollection.get_for_service(service_name)
+        if service_name == "lutris":
+            lutris_games = {g["slug"]: g for g in games_db.get_games()}
+        else:
+            lutris_games = {g["service_id"]: g for g in games_db.get_games(filters={"service": self.service.id})}
         if service_games:
             return [
                 game for game in sorted(
                     service_games,
-                    key=lambda game: game.get(self.view_sorting) or game["name"],
+                    key=lambda game: str(lutris_games.get(game["appid"], {}).get(self.view_sorting)) or game["name"],
                     reverse=not self.view_sorting_ascending
                 ) if self.game_matches(game)
             ]
