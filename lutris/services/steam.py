@@ -7,7 +7,6 @@ from gettext import gettext as _
 from gi.repository import Gio
 
 from lutris import settings
-from lutris.config import LutrisConfig
 from lutris.database.games import get_games
 from lutris.game import Game
 from lutris.installer.installer_file import InstallerFile
@@ -108,12 +107,6 @@ class SteamService(BaseService):
         self.is_loading = False
         logger.debug("Steam games loaded")
         self.emit("service-games-loaded")
-
-    def create_config(self, db_game, config_id):
-        """Create the game configuration for a Steam game"""
-        game_config = LutrisConfig(runner_slug="steam", game_config_id=config_id)
-        game_config.raw_game_config.update({"appid": db_game["appid"]})
-        game_config.save()
 
     def get_installer_files(self, installer, installer_file_id):
         steam_uri = "$WINESTEAM:%s:." if installer.runner == "winesteam" else "$STEAM:%s:."

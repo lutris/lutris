@@ -782,6 +782,4 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                     self.service.install(game_id)
                 return
         game = Game(game_id)
-        if game.is_installed:
-            logger.info("Game is installed")
         game.emit("game-launch")

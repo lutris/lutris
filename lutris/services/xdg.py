@@ -8,7 +8,6 @@ from gettext import gettext as _
 
 from gi.repository import Gio
 
-from lutris.config import LutrisConfig
 from lutris.database.games import get_games_where
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
@@ -89,6 +88,10 @@ class XDGService(BaseService):
             return False
         return True
 
+    def match_games(self):
+        """XDG games aren't on the lutris website"""
+        return
+
     def load(self):
         """Return the list of games stored in the XDG menu."""
         xdg_games = [XDGGame.new_from_xdg_app(app) for app in self.iter_xdg_games()]
@@ -96,17 +99,22 @@ class XDGService(BaseService):
             game.save()
         self.emit("service-games-loaded")
 
-    def create_config(self, db_game, config_id):
+    def generate_installer(self, db_game):
         details = json.loads(db_game["details"])
-        config = LutrisConfig(runner_slug="linux", game_config_id=config_id)
-        config.raw_game_config.update(
-            {
-                "exe": details["exe"],
-                "args": details["args"],
+        return {
+            "name": db_game["name"],
+            "version": "XDG",
+            "slug": db_game["slug"],
+            "game_slug": slugify(db_game["name"]),
+            "runner": "linux",
+            "script": {
+                "game": {
+                    "exe": details["exe"],
+                    "args": details["args"],
+                },
+                "system": {"disable_runtime": True}
             }
-        )
-        config.raw_system_config.update({"disable_runtime": True})
-        config.save()
+        }
 
 
 class XDGGame(ServiceGame):

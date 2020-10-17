@@ -135,7 +135,7 @@ class GameActions:
     def get_running_game(self):
         ids = self.application.get_running_game_ids()
         for game_id in ids:
-            if game_id == self.game.id:
+            if str(game_id) == str(self.game.id):
                 return self.game
         logger.warning("Game %s not in %s", self.game_id, ids)
 

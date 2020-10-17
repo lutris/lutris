@@ -4,7 +4,7 @@ from gettext import gettext as _
 from gi.repository import GObject, Gtk
 
 from lutris import runners, services
-from lutris.database.games import add_or_update, get_game_for_service
+from lutris.database.games import get_game_for_service
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
 from lutris.util.strings import gtk_safe
@@ -41,13 +41,11 @@ class GameBar(Gtk.Fixed):
                 game_id = game["id"]
         if game_id:
             self.game = Game(game_id)
+            game_actions.set_game(self.game)
         else:
             self.game = Game()
         self.game_name = db_game["name"]
         self.game_slug = db_game["slug"]
-
-        if self.game:
-            game_actions.set_game(self.game)
         self.update_view()
 
     def clear_view(self):
@@ -144,22 +142,14 @@ class GameBar(Gtk.Fixed):
         last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%x"))
         return last_played_label
 
-    def get_service_button(self):
-        """Button for service games"""
-        button = Gtk.Button(visible=True)
-        button.set_size_request(120, 36)
-        if self.service.online:
-            button.set_label(_("Install"))
-            button.connect("clicked", self.on_install_clicked)
-        else:
-            button.set_label(_("Play"))
-            button.connect("clicked", self.on_play_clicked)
-        return button
-
     def get_play_button(self):
         """Return the widget for install/play/stop and game config"""
         if not self.game.is_installed and self.service:
-            return self.get_service_button()
+            button = Gtk.Button(visible=True)
+            button.set_size_request(120, 36)
+            button.set_label(_("Install"))
+            button.connect("clicked", self.on_install_clicked)
+            return button
         box = Gtk.HBox(visible=True)
         style_context = box.get_style_context()
         style_context.add_class("linked")
@@ -218,33 +208,6 @@ class GameBar(Gtk.Fixed):
     def on_install_clicked(self, button):
         """Handler for installing service games"""
         self.service.install(self.db_game)
-
-    def on_play_clicked(self, button):
-        """Handler for launching service games"""
-        service_runners = {
-            "xdg": {"runner": "linux", "slug": "desktopapp"},
-            "steam": {"runner": "steam", "slug": "steam"}
-        }
-        if self.service.id in service_runners:
-            service_runner = service_runners[self.service.id]
-            self.launch_service_game(service_runner["runner"], service_runner["slug"])
-
-    def launch_service_game(self, runner, installer_slug):
-        """For services that allow it, add the game to Lutris and launch it"""
-        config_id = self.game_slug + "-" + self.service.id
-        game_id = add_or_update(
-            name=self.game_name,
-            runner=runner,
-            slug=self.game_slug,
-            installed=1,
-            configpath=config_id,
-            installer_slug=installer_slug,
-            service=self.service.id,
-            service_id=self.db_game["appid"],
-        )
-        self.service.create_config(self.db_game, config_id)
-        game = Game(game_id)
-        game.emit("game-launch")
 
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""
