@@ -1,3 +1,68 @@
+lutris (0.5.8) UNRELEASED; urgency=medium
+
+  * 3rd party services are now available from the main window
+  * The "Import games" window has been removed. The concept of
+    importing games from other services into Lutris has been removed.
+    Syncing games from other services on start has been removed.
+  * Integration with the lutris website such as login and showing your
+    library has been delegated to the 'lutris' service in the sidebar.
+  * The lutris service gives the option of searching your library or the whole
+    lutris.net library.
+  * Games from 3rd party services no longer depend on an install script to be
+    present on the website. Lutris will automatically install games with an
+    auto-generated script. Scripts from the website take precedence if available.
+  * Game banners and icons are downloaded from the services themselves. This
+    allows for customized media size in the UI based on what's available from the
+    service.
+  * The installer game cache configuration has been moved to the installer
+    window.
+  * Installers now offer the choice between downloaded files, custom user
+    provided files or cached files (when available).
+  * Bonus content for GOG games such as manuals or soundtracks can now be
+    downloaded as part of the install process. Selected content are downloaded
+    in a 'extras' folder in the game folder. Those files will likely be in
+    compressed format.
+  * The right side bar has been moved to the bottom of the window to optimize
+    space and to declutter the overall design. Game actions are now shown in a
+    popover menu displayed next to the play button. Runner actions, if available
+    (for example, wine), will show up in a popover menu next to the runner icon.
+  * Running games have been moved from the right side bar to a row on the left
+    side bar.
+  * Added favorites section and allow to add/remove games from favorites
+  * When removing a game, Lutris now displays the size of the folder to be
+    deleted.
+  * Game logs are no longer erased when switching to another game in the
+    window.
+  * Game logs can be saved to a file
+  * Lutris runners can now be written in JSON instead of Python code. This
+    handles only simple cases but it's enough to handle a vast number of 
+    emulators or game engines. Some existing runners have been migrated to JSON
+    such as dgen, ppsspp, citra, ags, virtualjaguar... as well as new ones like
+    melonds, tic80, pcem... Check out the `share/lutris/json` folder for those
+    runners. If you plan to submit new JSON based runner be sure to provide a valid
+    'download_url' otherwise the lutris client won't have a runner to download.
+  * Lutris will not delete any game folder that is used by another game or any
+    folder that is in some predefined locations. Note that protection of folders
+    such as 'Documents' or 'Downloads' only works on English locales for the moment.
+  * Added a Mangohud option with special modes for OpenGL and 32bit games.
+  * Added a wine menu entry to launch a bash shell in the game's environment
+    with WINEPREFIX set and the correct Wine build aliased to `wine`.
+  * Added a command line option to generate a bash script that will run a
+    lutris game without the client. ex: `lutris quake --output-script quake.sh`.
+    This will create a 'quake.sh' script to launch the game.
+  * Removed all platform and runner icons from the code base to eliminate any
+    issue regarding their licenses (This is done to help get the lutris 
+    package into debian).
+  * DOSBox and PCSX2 display an error if needed libraries are missing.
+  * The old versions of gamemode are no longer supported. Make sure you have
+    the one that ships with a `gamemoderun` executable.
+  * The runtime now supports downloading individual files. New icons can be
+    submitted by sending a PR to github.com/lutris/lutris-runtime.
+  * Refactor of several core components. New python packages
+    `lutris.database` and `lutris.gui.installer`
+
+ -- Mathieu Comandon <strider@strycore.com>  Sat, 17 Oct 2020 16:36:28 -0700
+
 lutris (0.5.7.1) focal; urgency=medium
 
   * Provide D3D12.DLL, based on vkd3d-proton project
