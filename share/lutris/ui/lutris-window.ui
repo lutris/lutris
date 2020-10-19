@@ -552,9 +552,19 @@
       <object class="GtkHeaderBar" id="header_bar">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="title" translatable="yes">Lutris</property>
-        <property name="has_subtitle">False</property>
         <property name="show_close_button">True</property>
+        <child type="title">
+          <object class="GtkSearchEntry" id="search_entry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="width_chars">45</property>
+            <property name="placeholder_text" translatable="yes">Search games</property>
+            <signal name="key-press-event" handler="on_search_entry_key_press" swapped="no"/>
+            <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
+          </object>
+        </child>
         <child>
           <object class="GtkBox" id="left_header_box">
             <property name="visible">True</property>
@@ -589,28 +599,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="spacing">6</property>
-            <child>
-              <object class="GtkToggleButton" id="search_toggle">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="tooltip_text" translatable="yes">Search Games</property>
-                <signal name="toggled" handler="on_search_toggle" swapped="no"/>
-                <child>
-                  <object class="GtkImage">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="icon_name">edit-find-symbolic</property>
-                  </object>
-                </child>
-                <accelerator key="f" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
             <child>
               <object class="GtkBox">
                 <property name="visible">True</property>
@@ -688,29 +676,6 @@
           <packing>
             <property name="pack_type">end</property>
             <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkAlignment">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="halign">center</property>
-            <property name="hexpand">True</property>
-            <child>
-              <object class="GtkSearchEntry" id="search_entry">
-                <property name="can_focus">True</property>
-                <property name="halign">center</property>
-                <property name="valign">center</property>
-                <property name="width_chars">45</property>
-                <property name="placeholder_text" translatable="yes">Search games</property>
-                <signal name="key-press-event" handler="on_search_entry_key_press" swapped="no"/>
-                <signal name="search-changed" handler="on_search_entry_changed" swapped="no"/>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="pack_type">end</property>
-            <property name="position">2</property>
           </packing>
         </child>
       </object>

@@ -52,7 +52,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     sidebar_scrolled = GtkTemplate.Child()
     game_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
-    search_toggle = GtkTemplate.Child()
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
@@ -533,9 +532,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return self.default_view_type
 
     def do_key_press_event(self, event):  # pylint: disable=arguments-differ
-        if event.keyval == Gdk.KEY_Escape:
-            self.search_toggle.set_active(False)
-            return Gdk.EVENT_STOP
         # XXX: This block of code below is to enable searching on type.
         # Enabling this feature steals focus from other entries so it needs
         # some kind of focus detection before enabling library search.
@@ -549,7 +545,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         ):
             return Gtk.ApplicationWindow.do_key_press_event(self, event)
 
-        self.search_toggle.set_active(True)
         self.search_entry.grab_focus()
         return self.search_entry.do_key_press_event(self.search_entry, event)
 
@@ -697,17 +692,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                     self.game_bar.destroy()  # for gridview only
             self.view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
             self.view.grab_focus()
-
-    @GtkTemplate.Callback
-    def on_search_toggle(self, button):
-        """Called when search bar is shown / hidden"""
-        active = button.props.active
-        if active:
-            self.search_entry.show()
-            self.search_entry.grab_focus()
-        else:
-            self.search_entry.props.text = ""
-            self.search_entry.hide()
 
     @GtkTemplate.Callback
     def on_about_clicked(self, *_args):
