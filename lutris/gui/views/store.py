@@ -177,11 +177,12 @@ class GameStore(GObject.Object):
             return
         self.service_media = service_media
         for row in self.store:
-            row[COL_ICON] = get_pixbuf_for_game(
-                row[COL_SLUG],
-                self.service_media.size,
-                is_installed=row[COL_INSTALLED],
-            )
+            try:
+                slug = row[COL_SLUG]
+                is_installed = row[COL_INSTALLED]
+                row[COL_ICON] = get_pixbuf_for_game(slug, self.service_media.size, is_installed=is_installed)
+            except TypeError:
+                return
         self.emit("icons-changed")
 
     def on_icon_loaded(self, media_loader, appid, _path, width, heigth):
