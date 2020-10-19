@@ -55,12 +55,7 @@ class GameGridView(Gtk.IconView, GameView):
 
     def on_selection_changed(self, _view):
         """Handles selection changes"""
-        selected_item = self.get_selected_item()
-        if selected_item:
-            selected_id = self.get_selected_id(selected_item)
-        else:
-            selected_id = None
-        self.emit("game-selected", selected_id)
+        self.emit("game-selected", self.get_selected_item())
 
     def on_icons_changed(self, store):
         cell_width = max(self.service_media.size[0], self.min_width)

@@ -1,10 +1,13 @@
 """Store object for a list of games"""
 # pylint: disable=not-an-iterable
+import time
+
 from gi.repository import GLib, GObject, Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
 from lutris import settings
 from lutris.database import sql
+from lutris.database.games import get_games
 from lutris.game import Game
 from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
@@ -66,6 +69,8 @@ class GameStore(GObject.Object):
         super().__init__()
         self.service = service
         self.service_media = service_media
+        self._installed_games = []
+        self._installed_games_accessed = False
 
         self.store = Gtk.ListStore(
             str,
@@ -89,6 +94,14 @@ class GameStore(GObject.Object):
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
+
+    @property
+    def installed_game_slugs(self):
+        previous_access = self._installed_games_accessed or 0
+        self._installed_games_accessed = time.time()
+        if self._installed_games_accessed - previous_access > 1:
+            self._installed_games = [g["slug"] for g in get_games(filters={"installed": "1"})]
+        return self._installed_games
 
     def load_icons(self):
         """Downloads the icons for a service"""
@@ -177,7 +190,8 @@ class GameStore(GObject.Object):
             return
         if width != self.service_media.size[0]:
             return
-        row[COL_ICON] = get_pixbuf(_path, (width, heigth))
+        installed = appid in self.installed_game_slugs
+        row[COL_ICON] = get_pixbuf(_path, (width, heigth), is_installed=installed)
 
     def on_game_updated(self, game):
         if self.service:

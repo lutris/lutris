@@ -16,6 +16,7 @@ from lutris.gui import dialogs
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.system import SystemConfigDialog
 from lutris.gui.dialogs.runners import RunnersDialog
+from lutris.gui.views import COL_ID, COL_NAME
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
@@ -772,7 +773,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.library_button.props.active = False
             self.update_store()
 
-    def on_game_selection_changed(self, view, game_id):
+    def on_game_selection_changed(self, view, selection):
+        if not selection:
+            GLib.idle_add(self.update_revealer)
+            return False
+        game_id = view.get_model().get_value(selection, COL_ID)
         if not game_id:
             GLib.idle_add(self.update_revealer)
             return False
@@ -780,6 +785,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             game = ServiceGameCollection.get_game(self.service.id, game_id)
         else:
             game = games_db.get_game_by_field(int(game_id), "id")
+        if not game:
+            game = {
+                "id": game_id,
+                "appid": game_id,
+                "name": view.get_model().get_value(selection, COL_NAME),
+                "slug": game_id,
+                "service": self.service.id if self.service else None,
+            }
+
         GLib.idle_add(self.update_revealer, game)
         return False
 

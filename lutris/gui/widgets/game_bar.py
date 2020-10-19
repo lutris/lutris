@@ -4,7 +4,7 @@ from gettext import gettext as _
 from gi.repository import GObject, Gtk, Pango
 
 from lutris import runners, services
-from lutris.database.games import get_game_for_service
+from lutris.database.games import get_game_by_field, get_game_for_service
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
 from lutris.util.strings import gtk_safe
@@ -36,7 +36,10 @@ class GameBar(Gtk.Fixed):
             game_id = db_game["id"]
         elif self.service:
             self.appid = db_game["appid"]
-            game = get_game_for_service(self.service.id, self.appid)
+            if self.service.id == "lutris":
+                game = get_game_by_field(self.appid, field="slug")
+            else:
+                game = get_game_for_service(self.service.id, self.appid)
             if game:
                 game_id = game["id"]
         if game_id:
