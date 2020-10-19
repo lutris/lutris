@@ -14,8 +14,7 @@ from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
-from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
-from lutris.util.steam.config import get_steamapps_paths
+from lutris.util.steam.config import get_steam_dir, get_steam_library, get_user_steam_id
 from lutris.util.strings import slugify
 
 
@@ -57,23 +56,20 @@ class SteamGame(ServiceGame):
     ]
 
     @classmethod
-    def new_from_steam_game(cls, appmanifest, game_id=None):
+    def new_from_steam_game(cls, steam_game, game_id=None):
         """Return a Steam game instance from an AppManifest"""
-        appid = str(appmanifest.steamid)
-        steam_game = SteamGame()
-        steam_game.appid = appid
-        steam_game.game_id = game_id
-        steam_game.name = appmanifest.name
-        steam_game.slug = appmanifest.slug
-        steam_game.runner = appmanifest.get_runner_name()
-        steam_game.details = json.dumps({"appid": appid})
-        return steam_game
+        game = SteamGame()
+        game.appid = steam_game["appid"]
+        game.game_id = steam_game["appid"]
+        game.name = steam_game["name"]
+        game.slug = slugify(steam_game["name"])
+        game.runner = "steam"
+        game.details = json.dumps(steam_game)
+        return game
 
     @classmethod
     def is_importable(cls, appmanifest):
         """Return whether a Steam game should be imported"""
-        if not appmanifest.is_installed():
-            return False
         if appmanifest.steamid in cls.excluded_appids:
             return False
         if re.match(r"^Proton \d*", appmanifest.name):
@@ -102,18 +98,13 @@ class SteamService(BaseService):
             return
         self.is_loading = True
         self.emit("service-games-load")
-        logger.debug("Loading Steam games from local install")
-        games = []
-        steamapps_paths = get_steamapps_paths()
-        for platform in ('linux', 'windows'):
-            for steamapps_path in steamapps_paths[platform]:
-                for appmanifest_file in get_appmanifests(steamapps_path):
-                    app_manifest = AppManifest(os.path.join(steamapps_path, appmanifest_file))
-                    if SteamGame.is_importable(app_manifest):
-                        games.append(SteamGame.new_from_steam_game(app_manifest))
-        logger.debug("Saving Steam games...")
-        for game in games:
+
+        steam_dir = get_steam_dir()
+
+        for steam_game in get_steam_library(get_user_steam_id(steam_dir)):
+            game = SteamGame.new_from_steam_game(steam_game)
             game.save()
+
         self.is_loading = False
         logger.debug("Steam games loaded")
         self.emit("service-games-loaded")

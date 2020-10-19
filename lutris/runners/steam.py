@@ -12,7 +12,7 @@ from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import get_path_from_appmanifest
-from lutris.util.steam.config import get_default_acf, read_config
+from lutris.util.steam.config import STEAM_DATA_DIRS, get_default_acf, get_steam_dir, read_config
 from lutris.util.steam.vdf import to_vdf
 from lutris.util.strings import split_arguments
 
@@ -139,15 +139,6 @@ class steam(Runner):
     ]
     system_options_override = [{"option": "disable_runtime", "default": True}]
 
-    data_dir_candidates = (
-        "/usr/share/steam",
-        "/usr/local/share/steam",
-        "~/.steam",
-        "~/.local/share/steam",
-        "~/.steam/steam",
-        "~/.var/app/com.valvesoftware.Steam/data/steam",
-    )
-
     def __init__(self, config=None):
         super(steam, self).__init__(config)
         self.own_game_remove_method = _("Remove game data (through Steam)")
@@ -164,10 +155,7 @@ class steam(Runner):
 
     def get_steam_config(self):
         """Return the "Steam" part of Steam's config.vdf as a dict."""
-        steam_data_dir = self.steam_data_dir
-        if not steam_data_dir:
-            return None
-        return read_config(steam_data_dir)
+        return read_config(self.steam_data_dir)
 
     @property
     def game_path(self):
@@ -177,13 +165,8 @@ class steam(Runner):
 
     @property
     def steam_data_dir(self):
-        """Return dir where Steam files lie."""
-        for candidate in self.data_dir_candidates:
-            path = system.fix_path_case(
-                os.path.join(os.path.expanduser(candidate), "SteamApps")
-            )
-            if path:
-                return path[: -len("SteamApps")]
+        """Main installation directory for Steam"""
+        return get_steam_dir()
 
     def get_executable(self):
         if system.LINUX_SYSTEM.is_flatpak:
@@ -240,8 +223,8 @@ class steam(Runner):
         if 'STEAM_EXTRA_COMPAT_TOOLS_PATHS' in os.environ:
             dirs += os.getenv('STEAM_EXTRA_COMPAT_TOOLS_PATHS').split(':')
         # Main steamapps dir and compatibilitytools.d dir
-        for data_dir in self.data_dir_candidates:
-            for _dir in ["SteamApps", "compatibilitytools.d"]:
+        for data_dir in STEAM_DATA_DIRS:
+            for _dir in ["steamapps", "compatibilitytools.d"]:
                 abs_dir = os.path.join(os.path.expanduser(data_dir), _dir)
                 abs_dir = system.fix_path_case(abs_dir)
                 if abs_dir and os.path.isdir(abs_dir):
@@ -252,7 +235,7 @@ class steam(Runner):
         if steam_config:
             i = 1
             while "BaseInstallFolder_%s" % i in steam_config:
-                path = steam_config["BaseInstallFolder_%s" % i] + "/SteamApps"
+                path = steam_config["BaseInstallFolder_%s" % i] + "/steamapps"
                 path = system.fix_path_case(path)
                 if path and os.path.isdir(path):
                     dirs.append(path)

@@ -11,7 +11,7 @@ class MediaLoader(GObject.Object):
         "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, str, int, int)),
     }
 
-    num_workers = 8
+    num_workers = 3
 
     def download_icons(self, media_urls, service_media):
         """Download a list of media files concurrently.
