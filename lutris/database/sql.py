@@ -40,8 +40,9 @@ def cursor_execute(cursor, query, params=None):
             logger.error("SQL query '%s' failed. %d retries remaining: %s", query, DB_RETRIES - i, ex)
             error_message = str(ex)
             if "database is locked" in error_message:
-                logger.error("10 second penalty for trying to access the database while locked")
-                time.sleep(10)
+                penalty = 20 * i
+                logger.error("%s second penalty for trying to access the database while locked", penalty)
+                time.sleep(penalty)
             else:
                 time.sleep(0.5)
 
