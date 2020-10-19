@@ -314,12 +314,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.service = services.get_services()[service_name]()
         if self.game_store:
             self.game_store.service = self.service
+        self._bind_zoom_adjustment()
         return self.service
 
     def unset_service(self):
         self.service = None
         if self.game_store:
             self.game_store.service = None
+        self._bind_zoom_adjustment()
         self.tabs_box.hide()
 
     def switch_to_service(self, service_name):
@@ -477,6 +479,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Bind the zoom slider to the supported banner sizes"""
         service = self.service if self.service else LutrisService
         media_services = list(service.medias.keys())
+        self.load_icon_type()
         self.zoom_adjustment.set_lower(0)
         self.zoom_adjustment.set_upper(len(media_services) - 1)
         if self.icon_type in media_services:
@@ -555,18 +558,18 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def load_icon_type(self):
         """Return the icon style depending on the type of view."""
-        if self.view_type == "list":
-            self.icon_type = settings.read_setting("icon_type_listview")
-        else:
-            self.icon_type = settings.read_setting("icon_type_gridview")
+        setting_key = "icon_type_%sview" % self.current_view_type
+        if self.service and self.service.id != "lutris":
+            setting_key += "_%s" % self.service.id
+        self.icon_type = settings.read_setting(setting_key)
         return self.icon_type
 
     def save_icon_type(self, icon_type):
         self.icon_type = icon_type
-        if self.current_view_type == "grid":
-            settings.write_setting("icon_type_gridview", self.icon_type)
-        elif self.current_view_type == "list":
-            settings.write_setting("icon_type_listview", self.icon_type)
+        setting_key = "icon_type_%sview" % self.current_view_type
+        if self.service and self.service.id != "lutris":
+            setting_key += "_%s" % self.service.id
+        settings.write_setting(setting_key, self.icon_type)
         self.redraw_view()
 
     def reload_service_media(self):

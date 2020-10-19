@@ -117,8 +117,11 @@ class GameStore(GObject.Object):
         if not _id:
             return
         for model_row in self.store:
-            if model_row[COL_ID] == _id:
-                return model_row
+            try:
+                if model_row[COL_ID] == _id:
+                    return model_row
+            except TypeError:
+                return
 
     def remove_game(self, _id):
         """Remove a game from the view."""
