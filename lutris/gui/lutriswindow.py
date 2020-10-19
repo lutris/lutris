@@ -398,7 +398,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_service_games_updating(self, service):
         if not self.service or service.id != self.service.id:
-            logger.warning("Wrong service %s", self.service)
             return
         self.show_spinner()
         return True

@@ -10,6 +10,7 @@ from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
+from lutris.services.base import BaseService
 from lutris.util.jobs import AsyncCall
 
 TYPE = 0
@@ -40,8 +41,10 @@ class SidebarRow(Gtk.ListBoxRow):
         self.id = id_
         self.runner = None
         self.name = name
+        self.is_updating = False
 
         self.box = Gtk.Box(spacing=self.SPACING, margin_start=self.MARGIN, margin_end=self.MARGIN)
+        self.connect("realize", self.on_realize)
         self.add(self.box)
 
         if not icon:
@@ -58,7 +61,8 @@ class SidebarRow(Gtk.ListBoxRow):
         self.box.pack_start(label, True, True, 0)
         self.btn_box = Gtk.Box(spacing=3, no_show_all=True, valign=Gtk.Align.CENTER, homogeneous=True)
         self.box.pack_end(self.btn_box, False, False, 0)
-        self.connect("realize", self.on_realize)
+        self.spinner = Gtk.Spinner()
+        self.box.pack_end(self.spinner, False, False, 0)
 
     def get_actions(self):
         return []
@@ -75,6 +79,13 @@ class SidebarRow(Gtk.ListBoxRow):
         Gtk.ListBoxRow.do_state_flags_changed(self, previous_flags)
 
     def update_buttons(self):
+        if self.is_updating:
+            self.btn_box.hide()
+            self.spinner.show()
+            self.spinner.start()
+            return
+        self.spinner.stop()
+        self.spinner.hide()
         if self.is_row_active():
             self.btn_box.show()
         elif self.btn_box.get_visible():
@@ -210,14 +221,16 @@ class LutrisSidebar(Gtk.ListBox):
         self.application = application
         self.get_style_context().add_class("sidebar")
         self.installed_runners = []
-        self.active_platforms = games_db.get_used_platforms()
-        self.runners = sorted(runners.__all__)
-        self.platforms = sorted(platforms.__all__)
-        self.categories = categories_db.get_categories()
+        self.service_rows = {}
+        self.active_platforms = None
+        self.runners = None
+        self.platforms = None
+        self.categories = None
+        self.running_row = None
         if selected:
-            row_type, row_id = selected.split(":")
+            self.selected_row_type, self.selected_row_id = selected.split(":")
         else:
-            row_type, row_id = ("runner", "all")
+            self.selected_row_type, self.selected_row_id = ("runner", "all")
         self.row_headers = {
             "library": SidebarHeader(_("Library")),
             "sources": SidebarHeader(_("Sources")),
@@ -230,6 +243,18 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
+        GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
+        GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
+        self.connect("realize", self.on_realize)
+        self.set_filter_func(self._filter_func)
+        self.set_header_func(self._header_func)
+        self.show_all()
+
+    def on_realize(self, widget):
+        self.active_platforms = games_db.get_used_platforms()
+        self.runners = sorted(runners.__all__)
+        self.platforms = sorted(platforms.__all__)
+        self.categories = categories_db.get_categories()
 
         self.add(
             SidebarRow(
@@ -262,7 +287,9 @@ class LutrisSidebar(Gtk.ListBox):
         for service_name in service_classes:
             service = service_classes[service_name]()
             row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow
-            self.add(row_class(service))
+            service_row = row_class(service)
+            self.service_rows[service_name] = service_row
+            self.add(service_row)
 
         all_row = RunnerSidebarRow(None, "runner", _("All"), None)
         self.add(all_row)
@@ -278,15 +305,12 @@ class LutrisSidebar(Gtk.ListBox):
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             self.add(SidebarRow(platform, "platform", platform, icon))
 
-        self.set_filter_func(self._filter_func)
-        self.set_header_func(self._header_func)
         self.update()
         for row in self.get_children():
-            if row.type == row_type and row.id == row_id:
+            if row.type == self.selected_row_type and row.id == self.selected_row_id:
                 self.select_row(row)
                 break
         self.show_all()
-
         self.running_row.hide()
 
     def _filter_func(self, row):
@@ -325,4 +349,14 @@ class LutrisSidebar(Gtk.ListBox):
         """Hide the "running" section when no games are running"""
         if not self.application.running_games.get_n_items():
             self.running_row.hide()
+        return True
+
+    def on_service_games_updating(self, service):
+        self.service_rows[service.id].is_updating = True
+        self.service_rows[service.id].update_buttons()
+        return True
+
+    def on_service_games_updated(self, service):
+        self.service_rows[service.id].is_updating = False
+        self.service_rows[service.id].update_buttons()
         return True
