@@ -4,7 +4,6 @@ __all__ = [
     # Native
     "linux",
     "steam",
-    "browser",
     "web",
     # Microsoft based
     "wine",
