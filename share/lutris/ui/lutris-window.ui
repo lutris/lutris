@@ -426,9 +426,6 @@
                   <object class="GtkAlignment">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="xscale">0.5</property>
-                    <property name="top_padding">15</property>
-                    <property name="bottom_padding">15</property>
                     <child>
                       <object class="GtkBox" id="tabs_box">
                         <property name="visible">True</property>
@@ -436,7 +433,7 @@
                         <property name="homogeneous">True</property>
                         <child>
                           <object class="GtkToggleButton" id="library_button">
-                            <property name="label" translatable="yes">Library</property>
+                            <property name="label" translatable="yes">Your library</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -451,7 +448,7 @@
                         </child>
                         <child>
                           <object class="GtkToggleButton" id="website_button">
-                            <property name="label" translatable="yes">All games</property>
+                            <property name="label" translatable="yes">Community installers</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>

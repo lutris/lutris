@@ -260,7 +260,7 @@ class LutrisSidebar(Gtk.ListBox):
             SidebarRow(
                 "all",
                 "category",
-                _("All games"),
+                _("Games"),
                 Gtk.Image.new_from_icon_name("applications-games-symbolic", Gtk.IconSize.MENU)
             )
         )
