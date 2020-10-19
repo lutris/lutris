@@ -60,8 +60,8 @@ class LutrisService(OnlineService):
     icon = "lutris"
     online = True
     medias = {
+        "icon": LutrisIcon,
         "banner": LutrisBanner,
-        "icon": LutrisIcon
     }
     default_format = "banner"
 
