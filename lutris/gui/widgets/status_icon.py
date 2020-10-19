@@ -104,7 +104,7 @@ class LutrisStatusIcon:
         return installed_games
 
     def on_game_selected(self, _widget, game_id):
-        self.application.launch(Game(game_id))
+        Game(game_id).launch()
 
 
 class LutrisTray(Gtk.StatusIcon):

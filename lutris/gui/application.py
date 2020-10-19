@@ -509,7 +509,7 @@ class Application(Gtk.Application):
         ids = self.get_running_game_ids()
         if str(game.id) in ids:
             try:
-                self.running_games.remove(ids.index(game.id))
+                self.running_games.remove(ids.index(str(game.id)))
             except ValueError:
                 pass
         else:
