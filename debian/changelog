@@ -11,9 +11,12 @@ lutris (0.5.8) UNRELEASED; urgency=medium
   * Games from 3rd party services no longer depend on an install script to be
     present on the website. Lutris will automatically install games with an
     auto-generated script. Scripts from the website take precedence if available.
+  * Steam games are directly loaded from the Steam API and it is no longer needed
+    to sync your Steam library on the lutris website to see all your Steam games.
   * Game banners and icons are downloaded from the services themselves. This
     allows for customized media size in the UI based on what's available from the
     service.
+  * Added option to hide the text under the icons
   * The installer game cache configuration has been moved to the installer
     window.
   * Installers now offer the choice between downloaded files, custom user
@@ -35,7 +38,7 @@ lutris (0.5.8) UNRELEASED; urgency=medium
     window.
   * Game logs can be saved to a file
   * Lutris runners can now be written in JSON instead of Python code. This
-    handles only simple cases but it's enough to handle a vast number of 
+    handles only simple cases but it's enough to handle a vast number of
     emulators or game engines. Some existing runners have been migrated to JSON
     such as dgen, ppsspp, citra, ags, virtualjaguar... as well as new ones like
     melonds, tic80, pcem... Check out the `share/lutris/json` folder for those
@@ -51,7 +54,7 @@ lutris (0.5.8) UNRELEASED; urgency=medium
     lutris game without the client. ex: `lutris quake --output-script quake.sh`.
     This will create a 'quake.sh' script to launch the game.
   * Removed all platform and runner icons from the code base to eliminate any
-    issue regarding their licenses (This is done to help get the lutris 
+    issue regarding their licenses (This is done to help get the lutris
     package into debian).
   * DOSBox and PCSX2 display an error if needed libraries are missing.
   * The old versions of gamemode are no longer supported. Make sure you have
