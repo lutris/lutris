@@ -30,6 +30,8 @@ def find_linux_game_executable(path, make_executable=False):
             file_type = magic.from_file(abspath)
             if "ASCII text executable" in file_type:
                 candidates["shell"] = abspath
+            if "Bourne-Again shell script" in file_type:
+                candidates["bash"] = abspath
             if "64-bit LSB executable" in file_type:
                 candidates["64bit"] = abspath
             if "32-bit LSB executable" in file_type:
@@ -40,6 +42,7 @@ def find_linux_game_executable(path, make_executable=False):
                     system.make_executable(candidates[file_type])
             return (
                 candidates.get("shell")
+                or candidates.get("bash")
                 or candidates.get("64bit")
                 or candidates.get("32bit")
             )
