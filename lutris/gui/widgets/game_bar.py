@@ -108,12 +108,12 @@ class GameBar(Gtk.Fixed):
         popover = self.get_popover(self.get_runner_buttons())
         if popover:
             runner_button = Gtk.Button(visible=True)
-            runner_button.set_sensitive(False)
             runner_button.set_image(runner_icon)
             popover_button = Gtk.MenuButton(visible=True)
             popover_button.set_size_request(32, 32)
             popover_button.props.direction = Gtk.ArrowType.UP
             popover_button.set_popover(popover)
+            runner_button.connect("clicked", lambda _x: popover_button.emit("clicked"))
             box.add(runner_button)
             box.add(popover_button)
             style_context = box.get_style_context()
