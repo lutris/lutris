@@ -105,6 +105,7 @@ class SteamService(BaseService):
             game = SteamGame.new_from_steam_game(steam_game)
             game.save()
 
+        self.match_games()
         self.is_loading = False
         logger.debug("Steam games loaded")
         self.emit("service-games-loaded")
