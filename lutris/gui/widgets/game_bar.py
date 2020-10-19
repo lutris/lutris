@@ -1,7 +1,7 @@
 from datetime import datetime
 from gettext import gettext as _
 
-from gi.repository import GObject, Gtk
+from gi.repository import GObject, Gtk, Pango
 
 from lutris import runners, services
 from lutris.database.games import get_game_for_service
@@ -62,7 +62,7 @@ class GameBar(Gtk.Fixed):
             self.put(self.get_runner_button(), x_offset, y_offset + 2)
             x_offset += 80
             self.put(self.get_platform_label(), x_offset, y_offset)
-            x_offset += 95
+            x_offset += 120
         if self.game.lastplayed:
             self.put(self.get_last_played_label(), x_offset, y_offset)
             x_offset += 95
@@ -123,11 +123,12 @@ class GameBar(Gtk.Fixed):
 
     def get_platform_label(self):
         platform_label = Gtk.Label(visible=True)
-        if len(self.game.platform) > 15:
-            platform = self.game.platform[:15] + "…"
-        else:
-            platform = self.game.platform
-        platform_label.set_markup("Platform:\n<b>%s</b>" % gtk_safe(platform))
+        platform_label.set_size_request(120, -1)
+        platform_label.set_alignment(0, 0.5)
+        platform = gtk_safe(self.game.platform)
+        platform_label.set_tooltip_markup(platform)
+        platform_label.set_markup("Platform:\n<b>%s</b>" % platform)
+        platform_label.set_property("ellipsize", Pango.EllipsizeMode.END)
         return platform_label
 
     def get_playtime_label(self):
