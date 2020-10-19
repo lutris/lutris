@@ -4,6 +4,7 @@ import os
 import magic
 
 from lutris.util import system
+from lutris.util.log import logger
 
 
 def is_excluded_elf(filename):
@@ -42,6 +43,8 @@ def find_linux_game_executable(path, make_executable=False):
                 or candidates.get("64bit")
                 or candidates.get("32bit")
             )
+    logger.error("Couldn't find a Linux executable in %s", path)
+    return ""
 
 
 def is_excluded_dir(path):
@@ -102,3 +105,5 @@ def find_windows_game_executable(path):
                 or candidates.get("64bit")
                 or candidates.get("32bit")
             )
+    logger.error("Couldn't find a Windows executable in %s", path)
+    return ""

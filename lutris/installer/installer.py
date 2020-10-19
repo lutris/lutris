@@ -203,9 +203,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 raise ScriptingError("Invalid 'game' section", self.script["game"])
             config["game"] = self._substitute_config(config["game"])
             if AUTO_ELF_EXE in config["game"].get("exe", ""):
-                config["game"]["exe"] = find_linux_game_executable(self.interpreter.target_path, make_executable=True)
-            if AUTO_WIN32_EXE in config["game"].get("exe", ""):
+                config["game"]["exe"] = find_linux_game_executable(self.interpreter.target_path,
+                                                                   make_executable=True)
+            elif AUTO_WIN32_EXE in config["game"].get("exe", ""):
                 config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
+
         return config
 
     def write_game_config(self):
