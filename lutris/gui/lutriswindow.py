@@ -459,7 +459,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             elif self.view.service == "lutris" and self.website_button.props.active:
                 self.show_label(_("Use search to find games on lutris.net"))
             else:
-                if self.filters.get("installed"):
+                if self.filters.get("category") == "favorite":
+                    self.show_label(_("Add games to your favorites to see them here."))
+                elif self.filters.get("installed"):
                     self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
                 else:
                     self.show_label(_("No games found"))
