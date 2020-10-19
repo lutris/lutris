@@ -230,7 +230,7 @@ class LutrisSidebar(Gtk.ListBox):
         if selected:
             self.selected_row_type, self.selected_row_id = selected.split(":")
         else:
-            self.selected_row_type, self.selected_row_id = ("runner", "all")
+            self.selected_row_type, self.selected_row_id = ("category", "all")
         self.row_headers = {
             "library": SidebarHeader(_("Library")),
             "sources": SidebarHeader(_("Sources")),
