@@ -83,7 +83,7 @@ class LutrisService(OnlineService):
             str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
         }
         for lutris_game in get_games():
-            self.match_game(service_games.get(lutris_game["slug"]), lutris_game["slug"])
+            self.match_game(service_games.get(lutris_game["slug"]), lutris_game)
 
     def is_connected(self):
         """Is the service connected?"""
