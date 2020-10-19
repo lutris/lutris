@@ -13,7 +13,7 @@ from lutris.util.strings import gtk_safe
 class GameBar(Gtk.Fixed):
     play_button_position = (12, 42)
 
-    def __init__(self, db_game, game_actions):
+    def __init__(self, db_game, game_actions, application):
         """Create the game bar with a database row"""
         super().__init__(visible=True)
         GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
@@ -40,7 +40,7 @@ class GameBar(Gtk.Fixed):
             if game:
                 game_id = game["id"]
         if game_id:
-            self.game = Game(game_id)
+            self.game = application.get_game_by_id(game_id) or Game(game_id)
             game_actions.set_game(self.game)
         else:
             self.game = Game()

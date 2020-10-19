@@ -432,7 +432,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if game:
             if self.game_bar:
                 self.game_bar.destroy()
-            self.game_bar = GameBar(game, self.game_actions)
+            self.game_bar = GameBar(game, self.game_actions, self.application)
             self.revealer_box.pack_start(self.game_bar, True, True, 0)
         elif self.game_bar:
             self.game_bar.destroy()
