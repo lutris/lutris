@@ -459,7 +459,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             elif self.view.service == "lutris" and self.website_button.props.active:
                 self.show_label(_("Use search to find games on lutris.net"))
             else:
-                self.show_label(_("No games found"))
+                if self.filters.get("installed"):
+                    self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
+                else:
+                    self.show_label(_("No games found"))
         self.search_timer_id = None
         return False
 
@@ -678,7 +681,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.search_timer_id:
             GLib.source_remove(self.search_timer_id)
         self.filters["text"] = entry.get_text().lower().strip()
-        self.search_timer_id = GLib.timeout_add(1000, self.update_store)
+        if self.service and self.service.id == "lutris" and self.website_button.props.active:
+            delay = 1250  # Big delay to make sure user has stopped typing before sending a search
+        else:
+            delay = 150
+        self.search_timer_id = GLib.timeout_add(delay, self.update_store)
 
     @GtkTemplate.Callback
     def on_search_entry_key_press(self, widget, event):

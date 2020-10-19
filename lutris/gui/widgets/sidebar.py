@@ -218,20 +218,18 @@ class LutrisSidebar(Gtk.ListBox):
             row_type, row_id = selected.split(":")
         else:
             row_type, row_id = ("runner", "all")
-
+        self.row_headers = {
+            "library": SidebarHeader(_("Library")),
+            "sources": SidebarHeader(_("Sources")),
+            "runners": SidebarHeader(_("Runners")),
+            "platforms": SidebarHeader(_("Platforms")),
+        }
         GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
         GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
+        GObject.add_emission_hook(Game, "game-start", self.on_game_start)
+        GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
-
-        self.add(
-            SidebarRow(
-                "running",
-                "dynamic_category",
-                _("Running"),
-                Gtk.Image.new_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.MENU)
-            )
-        )
 
         self.add(
             SidebarRow(
@@ -250,6 +248,15 @@ class LutrisSidebar(Gtk.ListBox):
                 Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
             )
         )
+
+        self.running_row = SidebarRow(
+            "running",
+            "dynamic_category",
+            _("Running"),
+            Gtk.Image.new_from_icon_name("media-playback-start-symbolic", Gtk.IconSize.MENU)
+        )
+        # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
+        self.add(self.running_row)
 
         service_classes = services.get_services()
         for service_name in service_classes:
@@ -280,6 +287,8 @@ class LutrisSidebar(Gtk.ListBox):
                 break
         self.show_all()
 
+        self.running_row.hide()
+
     def _filter_func(self, row):
         if not row or not row.id or row.type in ("category", "dynamic_category", "service"):
             return True
@@ -293,16 +302,27 @@ class LutrisSidebar(Gtk.ListBox):
         if row.get_header():
             return
         if not before:
-            row.set_header(SidebarHeader(_("Library")))
+            row.set_header(self.row_headers["library"])
         elif before.type in ("category", "dynamic_category") and row.type == "service":
-            row.set_header(SidebarHeader(_("Sources")))
+            row.set_header(self.row_headers["sources"])
         elif before.type == "service" and row.type == "runner":
-            row.set_header(SidebarHeader(_("Runners")))
+            row.set_header(self.row_headers["runners"])
         elif before.type == "runner" and row.type == "platform":
-            row.set_header(SidebarHeader(_("Platforms")))
+            row.set_header(self.row_headers["platforms"])
 
     def update(self, *_args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = games_db.get_used_platforms()
         self.invalidate_filter()
+        return True
+
+    def on_game_start(self, _game):
+        """Show the "running" section when a game start"""
+        self.running_row.show()
+        return True
+
+    def on_game_stop(self, _game):
+        """Hide the "running" section when no games are running"""
+        if not self.application.running_games.get_n_items():
+            self.running_row.hide()
         return True
