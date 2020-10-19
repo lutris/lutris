@@ -380,12 +380,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return self.switch_to_service(service_name)
         self.unset_service()
         dynamic_categories = {
-            "running": self.get_running_games,
             "recent": self.get_recent_games,
+            "running": self.get_running_games,
         }
         if self.filters.get("dynamic_category") in dynamic_categories:
             return dynamic_categories[self.filters["dynamic_category"]]()
-        if self.filters.get("category"):
+        if self.filters.get("category") and self.filters["category"] != "all":
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
             return games_db.get_games_by_ids(game_ids)
         searches, filters, excludes = self.get_sql_filters()

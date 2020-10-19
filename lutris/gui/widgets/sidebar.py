@@ -258,6 +258,15 @@ class LutrisSidebar(Gtk.ListBox):
 
         self.add(
             SidebarRow(
+                "all",
+                "category",
+                _("All games"),
+                Gtk.Image.new_from_icon_name("applications-games-symbolic", Gtk.IconSize.MENU)
+            )
+        )
+
+        self.add(
+            SidebarRow(
                 "recent",
                 "dynamic_category",
                 _("Recent"),
@@ -291,15 +300,12 @@ class LutrisSidebar(Gtk.ListBox):
             self.service_rows[service_name] = service_row
             self.add(service_row)
 
-        all_row = RunnerSidebarRow(None, "runner", _("All"), None)
-        self.add(all_row)
         for runner_name in self.runners:
             icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             runner = runners.import_runner(runner_name)()
             self.add(RunnerSidebarRow(runner_name, "runner", runner.human_name, icon, application=self.application))
 
-        self.add(SidebarRow(None, "platform", _("All"), None))
         for platform in self.platforms:
             icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
             icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
