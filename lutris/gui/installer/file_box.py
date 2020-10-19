@@ -109,6 +109,8 @@ class InstallerFileBox(Gtk.VBox):
         if url.startswith("http"):
             parsed = urlparse(url)
             label = "%s on %s" % (self.installer_file.filename, parsed.netloc)
+        elif url.startswith("N/A"):
+            label = url[3:].lstrip(":")
         else:
             label = url
         return gtk_safe(label)
@@ -190,6 +192,9 @@ class InstallerFileBox(Gtk.VBox):
         """Return the label displayed before the download starts"""
         if self.provider == "user":
             box = Gtk.VBox(spacing=6)
+            label = InstallerLabel(self.get_file_label())
+            label.props.can_focus = True
+            box.pack_start(label, False, False, 0)
             location_entry = FileChooserEntry(
                 self.installer_file.human_url,
                 Gtk.FileChooserAction.OPEN,
@@ -204,7 +209,7 @@ class InstallerFileBox(Gtk.VBox):
                 cache_option.connect("toggled", self.on_user_file_cached)
                 box.pack_start(cache_option, False, False, 0)
             return box
-        return InstallerLabel(self.get_file_label(), wrap=False)
+        return InstallerLabel(self.get_file_label())
 
     def get_widgets(self):
         """Return the widget with the source of the file and a way to change its source"""
