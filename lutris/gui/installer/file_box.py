@@ -12,7 +12,7 @@ from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe
+from lutris.util.strings import gtk_safe, add_url_tags
 
 
 class InstallerFileBox(Gtk.VBox):
@@ -113,7 +113,7 @@ class InstallerFileBox(Gtk.VBox):
             label = url[3:].lstrip(":")
         else:
             label = url
-        return gtk_safe(label)
+        return add_url_tags(gtk_safe(label))
 
     def get_popover(self):
         """Return the popover widget to select file source"""
