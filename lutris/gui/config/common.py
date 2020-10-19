@@ -99,8 +99,13 @@ class GameDialogCommon:
 
     def _build_prefs_tab(self):
         prefs_box = VBox()
-        prefs_box.pack_start(self._get_hide_on_game_launch_box(), False, False, 6)
-        prefs_box.pack_start(self._get_hide_text_under_icons(), False, False, 6)
+        settings_options = {
+            "hide_client_on_game_start": _("Minimize client when a game is launched"),
+            "hide_text_under_icons": _("Hide text under icons"),
+            "show_tray_icon": _("Show Tray Icon"),
+        }
+        for setting_key, label in settings_options.items():
+            prefs_box.pack_start(self._get_setting_box(setting_key, label), False, False, 6)
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, _("Lutris preferences"))
 
@@ -126,31 +131,18 @@ class GameDialogCommon:
     def _copy_text(self, widget):  # pylint: disable=unused-argument
         self.clipboard.set_text(self._clipboard_buffer, -1)
 
-    def _get_hide_on_game_launch_box(self):
+    def _get_setting_box(self, setting_key, label):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        checkbox = Gtk.CheckButton(label=_("Minimize client when a game is launched"))
-        if settings.read_setting("hide_client_on_game_start") == "True":
+        checkbox = Gtk.CheckButton(label=label)
+        if settings.read_setting(setting_key).lower() == "true":
             checkbox.set_active(True)
-        checkbox.connect("toggled", self._on_hide_client_change)
+        checkbox.connect("toggled", self._on_setting_change, setting_key)
         box.pack_start(checkbox, True, True, 0)
         return box
 
-    def _on_hide_client_change(self, widget):
-        """Save setting for hiding the game on game launch"""
-        settings.write_setting("hide_client_on_game_start", widget.get_active())
-
-    def _get_hide_text_under_icons(self):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        checkbox = Gtk.CheckButton(label=_("Hide text under icons"))
-        if settings.read_setting("hide_text_under_icons") == "True":
-            checkbox.set_active(True)
-        checkbox.connect("toggled", self._on_hide_text_change)
-        box.pack_start(checkbox, True, True, 0)
-        return box
-
-    def _on_hide_text_change(self, widget):
-        """Save setting for hiding the game on game launch"""
-        settings.write_setting("hide_text_under_icons", widget.get_active())
+    def _on_setting_change(self, widget, setting_key):
+        """Save a setting when an option is toggled"""
+        settings.write_setting(setting_key, widget.get_active())
 
     def _get_name_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)

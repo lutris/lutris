@@ -147,7 +147,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 default=self.view_sorting_ascending,
             ),
             "use-dark-theme": Action(self.on_dark_theme_state_change, type="b", default=self.use_dark_theme),
-            "show-tray-icon": Action(self.on_tray_icon_toggle, type="b", default=self.show_tray_icon),
             "show-left-side-panel": Action(
                 self.on_left_side_panel_state_change,
                 type="b",
@@ -238,12 +237,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def use_dark_theme(self):
         """Return whether to use the dark theme variant (if the theme provides one)"""
         return settings.read_setting("dark_theme", default="false").lower() == "true"
-
-    def on_tray_icon_toggle(self, action, value):
-        """Callback for handling tray icon toggle"""
-        action.set_state(value)
-        settings.write_setting('show_tray_icon', value)
-        self.application.set_tray_icon()
 
     @property
     def show_tray_icon(self):
