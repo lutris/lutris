@@ -59,6 +59,9 @@ class yuzu(Runner):
     def _update_key(self, key_type):
         """Update a keys file if set """
         yuzu_data_dir = self.yuzu_data_dir
+        if not yuzu_data_dir:
+            logger.error("Yuzu data dir not set")
+            return
         if key_type == "prod_keys":
             key_loc = os.path.join(yuzu_data_dir, "keys/prod.keys")
         elif key_type == "title_keys":
