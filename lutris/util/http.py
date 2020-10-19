@@ -33,6 +33,8 @@ class Request:
 
         if not url:
             raise ValueError("An URL is required!")
+        if url == "None":
+            raise ValueError("You'd better stop that right now.")
 
         if url.startswith("//"):
             url = "https:" + url
@@ -69,7 +71,10 @@ class Request:
 
     def get(self, data=None):
         logger.debug("GET %s", self.url)
-        req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
+        try:
+            req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
+        except ValueError as ex:
+            raise HTTPError("Failed to create HTTP request to %s: %s" % (self.url, ex))
         try:
             if self.opener:
                 request = self.opener.open(req, timeout=self.timeout)
@@ -81,8 +86,6 @@ class Request:
             raise HTTPError("Request to %s failed: %s" % (self.url, error))
         except (socket.timeout, urllib.error.URLError) as error:
             raise HTTPError("Unable to connect to server %s: %s" % (self.url, error))
-        if request.getcode() > 200:
-            logger.debug("Server responded with status code %s", request.getcode())
         try:
             self.total_size = int(request.info().get("Content-Length").strip())
         except AttributeError:
@@ -150,6 +153,8 @@ def download_file(url, dest, overwrite=False):
             os.remove(dest)
         else:
             return dest
+    if not url:
+        return None
     try:
         request = Request(url).get()
     except HTTPError as ex:

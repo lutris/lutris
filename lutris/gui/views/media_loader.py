@@ -23,6 +23,7 @@ class MediaLoader(GObject.Object):
             future_downloads = {
                 executor.submit(service_media.download, slug, url): slug
                 for slug, url in media_urls.items()
+                if url
             }
             for future in concurrent.futures.as_completed(future_downloads):
                 slug = future_downloads[future]

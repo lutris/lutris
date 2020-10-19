@@ -101,6 +101,8 @@ class GameStore(GObject.Object):
             GLib.idle_add(self.add_game, game)
 
     def get_row_by_id(self, _id):
+        if not _id:
+            return
         for model_row in self.store:
             if model_row[COL_ID] == _id:
                 return model_row

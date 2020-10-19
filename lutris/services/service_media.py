@@ -4,7 +4,7 @@ import os
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
-from lutris.util.http import download_file
+from lutris.util.http import download_file, HTTPError
 
 PGA_DB = settings.PGA_DB
 
@@ -49,6 +49,8 @@ class ServiceMedia:
             if not game["details"]:
                 continue
             details = json.loads(game["details"])
+            if not details[self.api_field]:
+                continue
             medias[game["slug"]] = self.url_pattern % details[self.api_field]
         return medias
 
@@ -58,5 +60,8 @@ class ServiceMedia:
             return
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
         if not system.path_exists(cache_path):
-            return download_file(url, cache_path)
+            try:
+                return download_file(url, cache_path)
+            except HTTPError:
+                return None
         return cache_path
