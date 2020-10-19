@@ -4,7 +4,7 @@ import os
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
-from lutris.util.http import download_file, HTTPError
+from lutris.util.http import HTTPError, download_file
 
 PGA_DB = settings.PGA_DB
 

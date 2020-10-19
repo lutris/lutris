@@ -48,7 +48,7 @@ class BaseService(GObject.Object):
         """Used to generate an installer from the data returned from the services"""
         return {}
 
-    def match_game(self, service_game, slug):
+    def match_game(self, service_game, api_game):
         """Match a service game to a lutris game referenced by its slug"""
         if not service_game:
             return
@@ -56,9 +56,21 @@ class BaseService(GObject.Object):
         sql.db_update(
             PGA_DB,
             "service_games",
-            {"lutris_slug": slug},
+            {"lutris_slug": api_game["slug"]},
             conditions=conditions
         )
+        unmatched_lutris_games = get_games(
+            searches={"installer_slug": self.matcher},
+            filters={"slug": api_game["slug"]},
+            excludes={"service": self.id}
+        )
+        for game in unmatched_lutris_games:
+            sql.db_update(
+                PGA_DB,
+                "games",
+                {"service": self.id, "service_id": service_game["appid"]},
+                conditions={"id": game["id"]}
+            )
 
     def match_games(self):
         """Matching of service games to lutris games"""
@@ -70,7 +82,13 @@ class BaseService(GObject.Object):
             for provider_game in lutris_game["provider_games"]:
                 if provider_game["service"] != self.id:
                     continue
-                self.match_game(service_games.get(provider_game["slug"]), lutris_game["slug"])
+                self.match_game(service_games.get(provider_game["slug"]), lutris_game)
+        unmatched_service_games = get_games(searches={"installer_slug": self.matcher}, excludes={"service": self.id})
+        for lutris_game in api.get_api_games(game_slugs=[g["slug"] for g in unmatched_service_games]):
+            for provider_game in lutris_game["provider_games"]:
+                if provider_game["service"] != self.id:
+                    continue
+                self.match_game(service_games.get(provider_game["slug"]), lutris_game)
 
     def match_existing_game(self, db_games, appid):
         """Checks if a game is already installed and populates the service info"""
