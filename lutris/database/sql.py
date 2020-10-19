@@ -37,9 +37,13 @@ def cursor_execute(cursor, query, params=None):
             i += 1
             if i == DB_RETRIES:
                 raise
-            logger.error("SQL query '%s' failed. %d retries remaining", query, DB_RETRIES - i)
-            logger.error(ex)
-            time.sleep(1)
+            logger.error("SQL query '%s' failed. %d retries remaining: %s", query, DB_RETRIES - i, ex)
+            error_message = str(ex)
+            if "database is locked" in error_message:
+                logger.error("10 second penalty for trying to access the database while locked")
+                time.sleep(10)
+            else:
+                time.sleep(0.5)
 
 
 def db_insert(db_path, table, fields):
