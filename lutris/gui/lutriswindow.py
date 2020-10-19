@@ -644,7 +644,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         size = widget.get_size()
         if not self.maximized:
             self.window_size = size
-        self.search_entry.set_size_request(min(max(50, size[0] - 400), 800), -1)
+        self.search_entry.set_size_request(min(max(50, size[0] - 470), 800), -1)
 
     def on_window_delete(self, *_args):
         if self.application.running_games.get_n_items():

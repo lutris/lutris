@@ -556,6 +556,7 @@
             <property name="can_focus">True</property>
             <property name="halign">center</property>
             <property name="valign">center</property>
+            <property name="margin_start">70</property>
             <property name="width_chars">30</property>
             <property name="placeholder_text" translatable="yes">Search games</property>
             <signal name="key-press-event" handler="on_search_entry_key_press" swapped="no"/>

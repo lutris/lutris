@@ -295,7 +295,8 @@ class GameDialogCommon:
     def on_move_clicked(self, _button):
         new_location = DirectoryDialog("Select new location for the game", default_path=self.game.directory)
         new_directory = self.game.move(new_location.folder)
-        self.directory_entry.set_text(new_directory)
+        if new_directory:
+            self.directory_entry.set_text(new_directory)
 
     def on_install_runners_clicked(self, _button):
         """Messed up callback requiring an import in the method to avoid a circular dependency"""
