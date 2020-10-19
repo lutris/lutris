@@ -10,9 +10,9 @@ from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
 class GameGridView(Gtk.IconView, GameView):
     __gsignals__ = GameView.__gsignals__
 
-    min_width = 110  # Minimum width for a cell
+    min_width = 70  # Minimum width for a cell
 
-    def __init__(self, store, service_media):
+    def __init__(self, store, service_media, hide_text=False):
         self.game_store = store
         self.service_media = service_media
         self.model = self.game_store.store
@@ -20,13 +20,16 @@ class GameGridView(Gtk.IconView, GameView):
         GameView.__init__(self)
 
         self.service = None
-        self.set_column_spacing(1)
+        self.set_column_spacing(6)
         self.set_pixbuf_column(COL_ICON)
         self.set_item_padding(1)
         self.cell_width = (max(service_media.size[0], self.min_width))
-        self.cell_renderer = GridViewCellRendererText(self.cell_width)
-        self.pack_end(self.cell_renderer, False)
-        self.add_attribute(self.cell_renderer, "markup", COL_NAME)
+        if hide_text:
+            self.cell_renderer = None
+        else:
+            self.cell_renderer = GridViewCellRendererText(self.cell_width)
+            self.pack_end(self.cell_renderer, False)
+            self.add_attribute(self.cell_renderer, "markup", COL_NAME)
 
         self.connect_signals()
         self.connect("item-activated", self.on_item_activated)
@@ -60,5 +63,6 @@ class GameGridView(Gtk.IconView, GameView):
     def on_icons_changed(self, store):
         cell_width = max(self.service_media.size[0], self.min_width)
         self.set_item_width(cell_width)
-        self.cell_renderer.props.width = cell_width
+        if self.cell_renderer:
+            self.cell_renderer.props.width = cell_width
         self.queue_draw()

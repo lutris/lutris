@@ -585,8 +585,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.view.destroy()
         self.reload_service_media()
 
-        view_class = GameGridView if self.view_type == "grid" else GameListView
-        self.view = view_class(self.game_store, self.game_store.service_media)
+        if self.view_type == "grid":
+            self.view = GameGridView(
+                self.game_store,
+                self.game_store.service_media,
+                hide_text=settings.read_setting("hide_text_under_icons") == "True"
+            )
+        else:
+            self.view = GameListView(self.game_store, self.game_store.service_media)
 
         self.view.connect("game-selected", self.on_game_selection_changed)
         self.view.connect("game-activated", self.on_game_activated)
