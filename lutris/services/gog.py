@@ -22,7 +22,7 @@ from lutris.util.strings import slugify
 class GogSmallBanner(ServiceMedia):
     """Small size game logo"""
     service = "gog"
-    size = (100, 60)
+    size = (70, 70)
     dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/small")
     file_pattern = "%s.jpg"
     api_field = "image"
