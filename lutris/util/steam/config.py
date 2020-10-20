@@ -60,7 +60,7 @@ def get_user_steam_id(steam_data_dir):
     if not user_config or "users" not in user_config:
         return
     for steam_id in user_config["users"]:
-        if user_config["users"][steam_id].get("mostrecent") == "1":
+        if user_config["users"][steam_id].get("MostRecent") == "1":
             return steam_id
 
 
