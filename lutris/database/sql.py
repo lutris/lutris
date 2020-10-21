@@ -35,16 +35,11 @@ def cursor_execute(cursor, query, params=None):
             return cursor.execute(query, params)
         except sqlite3.OperationalError as ex:
             i += 1
-            if i == DB_RETRIES:
+            error_message = str(ex)
+            if i == DB_RETRIES or "database is locked" in error_message:
                 raise
             logger.error("SQL query '%s' failed. %d retries remaining: %s", query, DB_RETRIES - i, ex)
-            error_message = str(ex)
-            if "database is locked" in error_message:
-                penalty = 20 * i
-                logger.error("%s second penalty for trying to access the database while locked", penalty)
-                time.sleep(penalty)
-            else:
-                time.sleep(0.5)
+            time.sleep(0.5)
 
 
 def db_insert(db_path, table, fields):
