@@ -101,9 +101,8 @@ def get_steam_library(steamid):
         return response['games']
     if 'game_count' in response and response['game_count'] == 0:
         return []
-    else:
-        logger.error("Weird response: %s", json_data)
-        return []
+    logger.error("Weird response: %s", json_data)
+    return []
 
 
 def read_config(steam_data_dir):

@@ -1,7 +1,7 @@
 """Sidebar for the main window"""
 from gettext import gettext as _
 
-from gi.repository import GObject, Gtk, Pango
+from gi.repository import GLib, GObject, Gtk, Pango
 
 from lutris import platforms, runners, services
 from lutris.database import categories as categories_db
@@ -12,6 +12,7 @@ from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.services.base import BaseService
 from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
 
 TYPE = 0
 SLUG = 1
@@ -42,6 +43,7 @@ class SidebarRow(Gtk.ListBoxRow):
         self.runner = None
         self.name = name
         self.is_updating = False
+        self.buttons = {}
 
         self.box = Gtk.Box(spacing=self.SPACING, margin_start=self.MARGIN, margin_end=self.MARGIN)
         self.connect("realize", self.on_realize)
@@ -99,6 +101,7 @@ class SidebarRow(Gtk.ListBoxRow):
             image.show()
             btn.add(image)
             btn.connect("clicked", action[2])
+            self.buttons[action[3]] = btn
             self.btn_box.add(btn)
 
     def on_realize(self, widget):
@@ -119,21 +122,31 @@ class ServiceSidebarRow(SidebarRow):
     def get_actions(self):
         """Return the definition of buttons to be added to the row"""
         return [
-            ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked)
+            ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh")
         ]
 
-    def on_refresh_clicked(self, _button):
+    def on_refresh_clicked(self, button):
         """Reload the service games"""
+        button.set_sensitive(False)
         self.service.wipe_game_cache()
-        AsyncCall(self.service.load, None)
+        AsyncCall(self.service.load, self.service_load_cb)
+
+    def service_load_cb(self, _result, error):
+        if error:
+            logger.error("Service reload failed")
+        GLib.timeout_add(5000, self.enable_refresh_button)
+
+    def enable_refresh_button(self):
+        self.buttons["refresh"].set_sensitive(True)
+        return False
 
 
 class OnlineServiceSidebarRow(ServiceSidebarRow):
     def get_buttons(self):
         return {
-            "refresh": ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked),
-            "disconnect": ("system-log-out-symbolic", _("Disconnect"), self.on_connect_clicked),
-            "connect": ("avatar-default-symbolic", _("Connect"), self.on_connect_clicked)
+            "refresh": ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh"),
+            "disconnect": ("system-log-out-symbolic", _("Disconnect"), self.on_connect_clicked, "disconnect"),
+            "connect": ("avatar-default-symbolic", _("Connect"), self.on_connect_clicked, "connect")
         }
 
     def get_actions(self):
@@ -143,6 +156,7 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
         return [buttons["connect"]]
 
     def on_connect_clicked(self, button):
+        button.set_sensitive(False)
         buttons = self.get_buttons()
         if self.service.is_authenticated():
             self.service.logout()
@@ -152,6 +166,7 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
             new_button = buttons["disconnect"]
         button.set_tooltip_text(new_button[1])
         button.set_image(Gtk.Image.new_from_icon_name(new_button[0], Gtk.IconSize.MENU))
+        button.set_sensitive(True)
 
 
 class RunnerSidebarRow(SidebarRow):
@@ -169,10 +184,11 @@ class RunnerSidebarRow(SidebarRow):
                 "system-software-install-symbolic",
                 _("Manage Versions"),
                 self.on_manage_versions,
+                "manage-versions"
             ))
         if self.runner.runnable_alone:
-            entries.append(("media-playback-start-symbolic", _("Run"), self.runner.run))
-        entries.append(("emblem-system-symbolic", _("Configure"), self.on_configure_runner))
+            entries.append(("media-playback-start-symbolic", _("Run"), self.runner.run, "run"))
+        entries.append(("emblem-system-symbolic", _("Configure"), self.on_configure_runner, "configure"))
         return entries
 
     def on_configure_runner(self, *_args):
