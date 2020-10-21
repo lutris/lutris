@@ -40,12 +40,12 @@ class StoreItem:
 
     @property
     def service(self):
-        return self._game_data.get("service")
+        return gtk_safe(self._game_data.get("service"))
 
     @property
     def slug(self):
         """Slug identifier"""
-        return self._game_data["slug"]
+        return gtk_safe(self._game_data["slug"])
 
     @property
     def name(self):
@@ -77,7 +77,7 @@ class StoreItem:
                 _platform = game_inst.platform
             else:
                 logger.debug("Game %s has no platform", self)
-        return _platform
+        return gtk_safe(_platform)
 
     @property
     def installed(self):
@@ -143,4 +143,4 @@ class StoreItem:
         except ValueError:
             logger.warning("Invalid playtime value %s for %s", self.playtime, self)
             _playtime_text = ""  # Do not show erroneous values
-        return _playtime_text
+        return gtk_safe(_playtime_text)

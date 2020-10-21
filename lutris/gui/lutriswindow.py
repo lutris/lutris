@@ -618,7 +618,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
-        self.emit("view-updated")
+        if self.service and service.id == self.service.id:
+            self.emit("view-updated")
         return True
 
     def on_service_login(self, service):
@@ -626,7 +627,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return True
 
     def on_service_logout(self, service):
-        self.emit("view-updated")
+        if self.service and service.id == self.service.id:
+            self.emit("view-updated")
         return True
 
     def on_dark_theme_state_change(self, action, value):

@@ -212,7 +212,9 @@ class GameStore(GObject.Object):
             GLib.idle_add(self.update, db_game)
         return True
 
-    def on_service_games_updated(self, game):
+    def on_service_games_updated(self, service):
         """Reload icons when service games are loaded"""
+        if not self.service or service.id != self.service.id:
+            return True
         GLib.idle_add(self.load_icons)
         return True

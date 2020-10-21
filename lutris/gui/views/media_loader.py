@@ -3,6 +3,7 @@ import concurrent.futures
 
 from gi.repository import GObject
 
+from lutris.util import system
 from lutris.util.log import logger
 
 
@@ -27,10 +28,10 @@ class MediaLoader(GObject.Object):
             }
             for future in concurrent.futures.as_completed(future_downloads):
                 slug = future_downloads[future]
+                path = None
                 try:
                     path = future.result()
                 except Exception as ex:  # pylint: disable=broad-except
                     logger.exception('%r failed: %s', slug, ex)
-                else:
-                    if path:
-                        self.emit("icon-loaded", slug, path, service_media.size[0], service_media.size[1])
+                if system.path_exists(path):
+                    self.emit("icon-loaded", slug, path, service_media.size[0], service_media.size[1])
