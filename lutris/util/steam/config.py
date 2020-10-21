@@ -55,16 +55,31 @@ def read_user_config(steam_data_dir):
     return config
 
 
+def get_config_value(config, key):
+    """Fetch a value from a configuration in a case insensitive way"""
+    keymap = {k.lower(): k for k in config.keys()}
+    if key not in keymap:
+        logger.warning(
+            "Config key %s not found in %s", key, ", ".join(list(config.keys()))
+        )
+        return
+    return config[keymap[key.lower()]]
+
+
 def get_user_steam_id(steam_data_dir):
+    """Read user's SteamID from Steam config files"""
     user_config = read_user_config(steam_data_dir)
     if not user_config or "users" not in user_config:
         return
     for steam_id in user_config["users"]:
-        if user_config["users"][steam_id].get("mostrecent") == "1":
+        if get_config_value(user_config["users"][steam_id], "mostrecent") == "1":
             return steam_id
 
 
 def get_steam_library(steamid):
+    """Return the list of games owned by a SteamID"""
+    if not steamid:
+        raise ValueError("Missing SteamID")
     steam_games_url = (
         "https://api.steampowered.com/"
         "IPlayerService/GetOwnedGames/v0001/"
@@ -84,7 +99,7 @@ def get_steam_library(steamid):
         return []
     if 'games' in response:
         return response['games']
-    elif 'game_count' in response and response['game_count'] == 0:
+    if 'game_count' in response and response['game_count'] == 0:
         return []
     else:
         logger.error("Weird response: %s", json_data)

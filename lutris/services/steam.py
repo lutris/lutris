@@ -100,8 +100,13 @@ class SteamService(BaseService):
         self.emit("service-games-load")
 
         steam_dir = get_steam_dir()
+        steamid = get_user_steam_id(steam_dir)
+        if not steamid:
+            logger.error("Unable to find SteamID from Steam config")
+            self.emit("service-games-loaded")
+            return
 
-        for steam_game in get_steam_library(get_user_steam_id(steam_dir)):
+        for steam_game in get_steam_library(steamid):
             game = SteamGame.new_from_steam_game(steam_game)
             game.save()
 
