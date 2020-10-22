@@ -8,6 +8,7 @@ __all__ = [
     # Microsoft based
     "wine",
     "winesteam",
+    "proton",
     "dosbox",
     # Multi-system
     "mame",
