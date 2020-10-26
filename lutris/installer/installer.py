@@ -33,7 +33,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.game_slug = installer["game_slug"]
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
-        self.steamid = installer.get("steamid")
         self.files = [
             InstallerFile(self.game_slug, file_id, file_meta)
             for file_desc in self.script.get("files", [])
@@ -244,7 +243,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             installer_slug=self.slug,
             parent_slug=self.requires,
             year=self.year,
-            steamid=self.steamid,
             configpath=configpath,
             service=service_id,
             service_id=self.service_appid,
