@@ -16,10 +16,9 @@ def fetch_script(game_slug, revision=None):
         raise ValueError("No game_slug provided. Can't query an installer")
     if revision:
         installer_url = settings.INSTALLER_REVISION_URL % (game_slug, revision)
-        key = None
     else:
         installer_url = settings.INSTALLER_URL % game_slug
-        key = "results"
+
     logger.debug("Fetching installer %s", installer_url)
     request = Request(installer_url)
     request.get()
@@ -27,9 +26,10 @@ def fetch_script(game_slug, revision=None):
     if response is None:
         raise RuntimeError("Couldn't get installer at %s" % installer_url)
 
-    if key:
-        return response[key]
-    return response
+    if not revision:
+        return response["results"]
+    # Revision requests return a single installer
+    return [response]
 
 
 def read_script(filename):
