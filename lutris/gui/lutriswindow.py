@@ -632,9 +632,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.emit("view-updated")
         return True
 
-    def on_icons_loaded(self, media_loader):
+    def on_icons_loaded(self, _media_loader):
         """Refresh the view when all icons are loaded"""
-        self.emit("view-updated")
+        GLib.idle_add(self.emit, "view-updated")
 
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
