@@ -31,7 +31,10 @@ class GameView:
         view.current_path = view.get_path_at_pos(event.x, event.y)
         if view.current_path:
             view.select()
-            selected_id = self.get_selected_id(self.get_model().get_iter(view.current_path))
+            _iter = self.get_model().get_iter(view.current_path)
+            if not _iter:
+                return
+            selected_id = self.get_selected_id(_iter)
             game_row = self.game_store.get_row_by_id(selected_id)
             game_id = None
             if self.service:
