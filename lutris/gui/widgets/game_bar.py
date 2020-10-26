@@ -68,7 +68,7 @@ class GameBar(Gtk.Fixed):
             x_offset += 120
         if self.game.lastplayed:
             self.put(self.get_last_played_label(), x_offset, y_offset)
-            x_offset += 95
+            x_offset += 120
         if self.game.playtime:
             self.put(self.get_playtime_label(), x_offset, y_offset)
 
