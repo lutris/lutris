@@ -195,7 +195,7 @@ class GameBar(Gtk.Fixed):
             else:
                 button.hide()
             buttons[action_id] = button
-            button.connect("clicked", callback)
+            button.connect("clicked", self.on_link_button_clicked, callback)
         return buttons
 
     def get_runner_buttons(self):
@@ -206,9 +206,15 @@ class GameBar(Gtk.Fixed):
                 name, label, callback = entry
                 button = get_link_button(label)
                 button.show()
-                button.connect("clicked", callback)
+                button.connect("clicked", self.on_link_button_clicked, callback)
                 buttons[name] = button
         return buttons
+
+    def on_link_button_clicked(self, button, callback):
+        """Callback for link buttons. Closes the popover then runs the actual action"""
+        popover = button.get_parent().get_parent()
+        popover.popdown()
+        callback(button)
 
     def on_install_clicked(self, button):
         """Handler for installing service games"""
