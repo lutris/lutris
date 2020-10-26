@@ -26,7 +26,7 @@ class InstallerFile:
         else:
             _url = self._file_meta
         if _url.startswith("/"):
-            return "file://" + self._url
+            return "file://" + _url
         return _url
 
     @property
@@ -34,15 +34,14 @@ class InstallerFile:
         if isinstance(self._file_meta, dict):
             if "filename" not in self._file_meta:
                 raise ScriptingError("missing field `filename` in file `%s`" % self.id)
-            return self.file_meta["filename"]
-        elif self._file_meta.startswith("N/A"):
+            return self._file_meta["filename"]
+        if self._file_meta.startswith("N/A"):
             if self.uses_pga_cache() and os.path.isdir(self.cache_path):
                 return self.cached_filename
             return ""
-        elif self.url.startswith(("$STEAM", "$WINESTEAM")):
+        if self.url.startswith(("$STEAM", "$WINESTEAM")):
             return self.url
-        else:
-            return os.path.basename(self._file_meta)
+        return os.path.basename(self._file_meta)
 
     @property
     def referer(self):

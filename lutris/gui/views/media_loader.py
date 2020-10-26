@@ -3,13 +3,12 @@ import concurrent.futures
 
 from gi.repository import GObject
 
-from lutris.util import system
 from lutris.util.log import logger
 
 
 class MediaLoader(GObject.Object):
     __gsignals__ = {
-        "icon-loaded": (GObject.SIGNAL_RUN_FIRST, None, (str, str, int, int)),
+        "icons-loaded": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
     num_workers = 3
@@ -28,10 +27,8 @@ class MediaLoader(GObject.Object):
             }
             for future in concurrent.futures.as_completed(future_downloads):
                 slug = future_downloads[future]
-                path = None
                 try:
-                    path = future.result()
+                    future.result()
                 except Exception as ex:  # pylint: disable=broad-except
                     logger.exception('%r failed: %s', slug, ex)
-                if system.path_exists(path):
-                    self.emit("icon-loaded", slug, path, service_media.size[0], service_media.size[1])
+        self.emit("icons-loaded")

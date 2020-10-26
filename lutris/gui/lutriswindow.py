@@ -188,6 +188,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_load(self, widget, data):
         """Finish initializing the view"""
         self.game_store = GameStore(self.service, self.service_media)
+        self.game_store.media_loader.connect("icons-loaded", self.on_icons_loaded)
         self.redraw_view()
         self._bind_zoom_adjustment()
         self.view.grab_focus()
@@ -630,6 +631,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.service and service.id == self.service.id:
             self.emit("view-updated")
         return True
+
+    def on_icons_loaded(self, media_loader):
+        """Refresh the view when all icons are loaded"""
+        self.emit("view-updated")
 
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
