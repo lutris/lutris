@@ -43,7 +43,6 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
     """Return a pixbuf from file `image` at `size` or fallback to `fallback`"""
     width, height = size
     pixbuf = None
-
     if system.path_exists(image):
         try:
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, width, height)
@@ -53,8 +52,9 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
     if system.path_exists(fallback):
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, height)
     if not pixbuf:
-        return None
+        return GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width, height)
     if is_installed:
+        pixbuf = pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.NEAREST)
         return pixbuf
     overlay = os.path.join(datapath.get(), "media/unavailable.png")
     transparent_pixbuf = get_overlay(overlay, size).copy()
