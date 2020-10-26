@@ -133,7 +133,8 @@ class DirectoryDialog(Gtk.FileChooserDialog):
             buttons=(_("_Cancel"), Gtk.ResponseType.CLOSE, _("_OK"), Gtk.ResponseType.OK),
             parent=parent,
         )
-        self.set_current_folder(default_path)
+        if default_path:
+            self.set_current_folder(default_path)
         self.result = self.run()
         self.folder = self.get_current_folder()
         self.destroy()
