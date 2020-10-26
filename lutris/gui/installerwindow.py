@@ -403,8 +403,12 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """
         self.set_status("")
         self.continue_button.set_sensitive(False)
-        self.continue_button.disconnect(self.continue_handler)
-        file_box.start_all()
+        try:
+            file_box.start_all()
+            self.continue_button.disconnect(self.continue_handler)
+        except PermissionError as ex:
+            self.continue_button.set_sensitive(True)
+            raise ScriptingError("Unable to get files: %s" % ex)
 
     def on_files_available(self, widget):
         """All files are available, continue the install"""

@@ -9,37 +9,54 @@ from lutris.util.log import logger
 
 
 class InstallerFile:
-
     """Representation of a file in the `files` sections of an installer"""
 
     def __init__(self, game_slug, file_id, file_meta):
         self.game_slug = game_slug
         self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
-        self.referer = None
-        self.checksum = None
-        if isinstance(file_meta, dict):
-            for field in ("url", "filename"):
-                if field not in file_meta:
-                    raise ScriptingError("missing field `%s` for file `%s`" % (field, file_id))
-            self.url = file_meta["url"]
-            self.filename = file_meta["filename"]
-            self.referer = file_meta.get("referer")
-            self.checksum = file_meta.get("checksum")
-        elif file_meta.startswith("N/A"):
-            self.url = file_meta
-            self.filename = ""
-            if self.uses_pga_cache() and os.path.isdir(self.cache_path):
-                self.filename = self.cached_filename
+        self._file_meta = file_meta
+
+    @property
+    def url(self):
+        _url = ""
+        if isinstance(self._file_meta, dict):
+            if "url" not in self._file_meta:
+                raise ScriptingError("missing field `url` for file `%s`" % self.id)
+            _url = self._file_meta["url"]
         else:
-            self.url = file_meta
-            self.filename = os.path.basename(file_meta)
-        self.dest_file = os.path.join(self.cache_path, self.filename)
+            _url = self._file_meta
+        if _url.startswith("/"):
+            return "file://" + self._url
+        return _url
 
-        if self.url.startswith(("$STEAM", "$WINESTEAM")):
-            self.filename = self.url
+    @property
+    def filename(self):
+        if isinstance(self._file_meta, dict):
+            if "filename" not in self._file_meta:
+                raise ScriptingError("missing field `filename` in file `%s`" % self.id)
+            return self.file_meta["filename"]
+        elif self._file_meta.startswith("N/A"):
+            if self.uses_pga_cache() and os.path.isdir(self.cache_path):
+                return self.cached_filename
+            return ""
+        elif self.url.startswith(("$STEAM", "$WINESTEAM")):
+            return self.url
+        else:
+            return os.path.basename(self._file_meta)
 
-        if self.url.startswith("/"):
-            self.url = "file://" + self.url
+    @property
+    def referer(self):
+        if isinstance(self._file_meta, dict):
+            return self._file_meta.get("referer")
+
+    @property
+    def checksum(self):
+        if isinstance(self._file_meta, dict):
+            return self._file_meta.get("checksum")
+
+    @property
+    def dest_file(self):
+        return os.path.join(self.cache_path, self.filename)
 
     def __str__(self):
         return "%s/%s" % (self.game_slug, self.id)
