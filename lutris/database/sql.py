@@ -1,12 +1,12 @@
-# Standard Library
+
 import sqlite3
 import time
+import threading
 
-# Lutris Modules
 from lutris.util.log import logger
 
-# Number of attempts to retry failed queries
-DB_RETRIES = 5
+# Prevent multiple access to the database (SQLite limitation)
+DB_LOCK = threading.RLock()
 
 
 class db_cursor(object):
@@ -26,20 +26,10 @@ class db_cursor(object):
 
 
 def cursor_execute(cursor, query, params=None):
-    """Function used to retry queries in case an error occurs"""
-    i = 0
-    if params is None:
-        params = ()
-    while True:
-        try:
-            return cursor.execute(query, params)
-        except sqlite3.OperationalError as ex:
-            i += 1
-            error_message = str(ex)
-            if i == DB_RETRIES or "database is locked" in error_message:
-                raise
-            logger.error("SQL query '%s' failed. %d retries remaining: %s", query, DB_RETRIES - i, ex)
-            time.sleep(0.5)
+    """Execute a SQL query, run it in a lock block"""
+    params = params or ()
+    with DB_LOCK:
+        return cursor.execute(query, params)
 
 
 def db_insert(db_path, table, fields):
