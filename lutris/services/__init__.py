@@ -10,7 +10,6 @@ def get_services():
     """Return a list of active services"""
     return {
         "lutris": LutrisService,
-        "xdg": XDGService,
         "gog": GOGService,
         "humblebundle": HumbleBundleService,
         "steam": SteamService
