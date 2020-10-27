@@ -1,9 +1,7 @@
 
 import sqlite3
-import time
 import threading
 
-from lutris.util.log import logger
 
 # Prevent multiple access to the database (SQLite limitation)
 DB_LOCK = threading.RLock()

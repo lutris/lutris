@@ -780,18 +780,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.emit("view-updated")
 
     def on_library_button_toggled(self, button):
-        if self.library_button.props.active:
-            self.website_button.props.active = False
-            self.library_button.set_sensitive(False)
-            self.website_button.set_sensitive(True)
-            self.update_store()
+        self.update_store()
 
     def on_website_button_toggled(self, button):
-        if self.website_button.props.active:
-            self.library_button.props.active = False
-            self.library_button.set_sensitive(True)
-            self.website_button.set_sensitive(False)
-            self.update_store()
+        self.update_store()
 
     def on_game_selection_changed(self, view, selection):
         if not selection:
