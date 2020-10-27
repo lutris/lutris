@@ -119,7 +119,7 @@ class Downloader:
             logger.info("%s returned a %s error", self.url, response.status_code)
         response.raise_for_status()
         self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
-        for chunk in response.iter_content(chunk_size=1024 * 1024):
+        for chunk in response.iter_content(chunk_size=8 * 1024 * 1024):
             if not self.file_pointer:
                 break
             if chunk:
