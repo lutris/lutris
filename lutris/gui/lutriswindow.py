@@ -600,12 +600,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.connect("view-updated", self.update_store)
 
         self.view.show_all()
-        self.update_store()
-
-        if len(self.game_store.store) > 0:
-            if self.current_view_type == 'grid':
-                self.view.select_path(Gtk.TreePath('0'))  # needed for gridview only
-            self.view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
+        self.view.grab_focus()
+        GLib.idle_add(self.update_store)
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
