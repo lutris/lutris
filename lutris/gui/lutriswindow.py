@@ -302,14 +302,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.service and self.service.id == service_name:
             return self.service
         if not service_name:
-            self.unset_service()
+            self.service = None
             return
         self.service = services.get_services()[service_name]()
         return self.service
-
-    def unset_service(self):
-        self.service = None
-        self.tabs_box.hide()
 
     @staticmethod
     def combine_games(service_game, lutris_game):
