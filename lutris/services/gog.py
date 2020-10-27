@@ -14,7 +14,7 @@ from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
-from lutris.util.http import HTTPError, Request
+from lutris.util.http import HTTPError, UnauthorizedAccess, Request
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -117,13 +117,20 @@ class GOGService(OnlineService):
         """Return whether the user is authenticated and if the service is available"""
         if not self.is_authenticated():
             return False
-        user_data = self.get_user_data()
+        try:
+            user_data = self.get_user_data()
+        except UnauthorizedAccess:
+            logger.warning("GOG token is invalid")
+            return False
         return user_data and "username" in user_data
 
     def load(self):
         """Load the user game library from the GOG API"""
         if self.is_loading:
             logger.warning("GOG games are already loading")
+            return
+        if not self.is_connected():
+            logger.error("User not connected to GOG")
             return
         self.is_loading = True
         self.emit("service-games-load")
@@ -364,11 +371,6 @@ class GOGService(OnlineService):
         return extra_files
 
     def get_installer_files(self, installer, installer_file_id):
-        if not self.is_connected():
-            self.login()
-        if not self.is_connected():
-            logger.warning("Not connected to GOG, not returning any files")
-            return []
         try:
             downloads = self.get_downloads(installer.service_appid)
             gog_installers = self.get_installers(downloads, installer.runner)

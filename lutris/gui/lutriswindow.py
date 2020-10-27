@@ -363,7 +363,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.tabs_box.hide()
         if service_name in services.get_services():
             self.set_service(service_name)
-            if self.service.online and not self.service.is_connected():
+            if self.service.online and not self.service.is_authenticated():
                 self.show_label(_("Connect your %s account to access your games") % self.service.name)
                 return []
             if service_name == "lutris":
