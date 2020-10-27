@@ -11,7 +11,6 @@ from lutris.database.games import get_games
 from lutris.game import Game
 from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
-from lutris.gui.widgets.utils import get_pixbuf_for_game
 from lutris.services.base import BaseService
 from lutris.util.strings import gtk_safe
 
@@ -173,20 +172,6 @@ class GameStore(GObject.Object):
                 game.playtime_text,
             )
         )
-
-    def set_service_media(self, service_media):
-        """Change the icon type"""
-        if service_media == self.service_media:
-            return
-        self.service_media = service_media
-        for row in self.store:
-            try:
-                slug = row[COL_SLUG]
-                is_installed = row[COL_INSTALLED]
-                row[COL_ICON] = get_pixbuf_for_game(slug, self.service_media.size, is_installed=is_installed)
-            except TypeError:
-                return
-        self.emit("icons-changed")
 
     def on_game_updated(self, game):
         if self.service:

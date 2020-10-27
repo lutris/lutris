@@ -34,7 +34,6 @@ class GameGridView(Gtk.IconView, GameView):
         self.connect_signals()
         self.connect("item-activated", self.on_item_activated)
         self.connect("selection-changed", self.on_selection_changed)
-        store.connect("icons-changed", self.on_icons_changed)
 
     def select(self):
         self.select_path(self.current_path)
@@ -59,10 +58,3 @@ class GameGridView(Gtk.IconView, GameView):
     def on_selection_changed(self, _view):
         """Handles selection changes"""
         self.emit("game-selected", self.get_selected_item())
-
-    def on_icons_changed(self, store):
-        cell_width = max(self.service_media.size[0], self.min_width)
-        self.set_item_width(cell_width)
-        if self.cell_renderer:
-            self.cell_renderer.props.width = cell_width
-        self.queue_draw()

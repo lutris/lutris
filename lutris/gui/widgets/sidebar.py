@@ -95,6 +95,8 @@ class SidebarRow(Gtk.ListBoxRow):
 
     def create_button_box(self):
         """Adds buttons in the button box based on the row's actions"""
+        for child in self.btn_box.get_children():
+            child.destroy()
         for action in self.get_actions():
             btn = Gtk.Button(tooltip_text=action[1], relief=Gtk.ReliefStyle.NONE, visible=True)
             image = Gtk.Image.new_from_icon_name(action[0], Gtk.IconSize.MENU)
@@ -128,6 +130,9 @@ class ServiceSidebarRow(SidebarRow):
     def on_refresh_clicked(self, button):
         """Reload the service games"""
         button.set_sensitive(False)
+        if self.service.online and not self.service.is_connected():
+            self.service.logout()
+            return
         self.service.wipe_game_cache()
         AsyncCall(self.service.load, self.service_load_cb)
 
@@ -157,16 +162,11 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
 
     def on_connect_clicked(self, button):
         button.set_sensitive(False)
-        buttons = self.get_buttons()
         if self.service.is_authenticated():
             self.service.logout()
-            new_button = buttons["connect"]
         else:
             self.service.login()
-            new_button = buttons["disconnect"]
-        button.set_tooltip_text(new_button[1])
-        button.set_image(Gtk.Image.new_from_icon_name(new_button[0], Gtk.IconSize.MENU))
-        button.set_sensitive(True)
+        self.create_button_box()
 
 
 class RunnerSidebarRow(SidebarRow):
@@ -259,6 +259,7 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
+        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         self.connect("realize", self.on_realize)
@@ -380,8 +381,14 @@ class LutrisSidebar(Gtk.ListBox):
             self.running_row.hide()
         return True
 
+    def on_service_logout(self, service):
+        self.service_rows[service.id].create_button_box()
+        self.service_rows[service.id].update_buttons()
+        return True
+
     def on_service_games_updating(self, service):
         self.service_rows[service.id].is_updating = True
+
         self.service_rows[service.id].update_buttons()
         return True
 

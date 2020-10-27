@@ -75,21 +75,23 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.application = application
         self.runtime_updater = RuntimeUpdater()
         self.threads_stoppers = []
-        self.icon_type = None
-        self.service = None
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
-
+        self.service = None
         self.game_actions = GameActions(application=application, window=self)
         self.search_timer_id = None
-        self.game_store = None
+        self.selected_category = settings.read_setting("selected_category", default="runner:all")
+        self.filters = self.load_filters()
+        self.set_service(self.filters.get("service"))
+        self.icon_type = self.load_icon_type()
+        self.game_store = GameStore(self.service, self.service_media)
         self.view = Gtk.Box()
 
         self.connect("delete-event", self.on_window_delete)
         self.connect("map-event", self.on_load)
         if self.maximized:
             self.maximize()
-        self.load_icon_type()
+
         self.init_template()
         self._init_actions()
 
@@ -99,12 +101,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
-
-        self.selected_category = settings.read_setting("selected_category", default="runner:all")
-        self.filters = self.load_filters()
-        self.set_service(self.filters.get("service"))
-
-        self.service_media = self.get_service_media(self.load_icon_type())
 
         self.sidebar = LutrisSidebar(self.application, selected=self.selected_category)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
@@ -185,9 +181,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
 
+    @property
+    def service_media(self):
+        return self.get_service_media(self.load_icon_type())
+
     def on_load(self, widget, data):
         """Finish initializing the view"""
-        self.game_store = GameStore(self.service, self.service_media)
         self.game_store.media_loader.connect("icons-loaded", self.on_icons_loaded)
         self.redraw_view()
         self._bind_zoom_adjustment()
@@ -215,7 +214,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @property
     def current_view_type(self):
         """Returns which kind of view is currently presented (grid or list)"""
-        return "grid" if isinstance(self.view, GameGridView) else "list"
+        return settings.read_setting("view_type") or "grid"
 
     @property
     def filter_installed(self):
@@ -306,16 +305,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.unset_service()
             return
         self.service = services.get_services()[service_name]()
-        if self.game_store:
-            self.game_store.service = self.service
-        self._bind_zoom_adjustment()
         return self.service
 
     def unset_service(self):
         self.service = None
-        if self.game_store:
-            self.game_store.service = None
-        self._bind_zoom_adjustment()
         self.tabs_box.hide()
 
     @staticmethod
@@ -362,7 +355,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         service_name = self.filters.get("service")
         self.tabs_box.hide()
         if service_name in services.get_services():
-            self.set_service(service_name)
             if self.service.online and not self.service.is_authenticated():
                 self.show_label(_("Connect your %s account to access your games") % self.service.name)
                 return []
@@ -371,7 +363,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 if self.website_button.props.active:
                     return self.get_api_games()
             return self.get_service_games(service_name)
-        self.unset_service()
         dynamic_categories = {
             "recent": self.get_recent_games,
             "running": self.get_running_games,
@@ -452,9 +443,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_store.store.clear()
         for child in self.blank_overlay.get_children():
             child.destroy()
+
         games = self.get_games_from_filters()
         self.view.service = self.service.id if self.service else None
-        self.reload_service_media()
         GLib.idle_add(self.update_revealer)
         for game in games:
             self.game_store.add_game(game)
@@ -493,9 +484,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         icon_type = media_services[media_index]
         if icon_type != self.icon_type:
             self.save_icon_type(icon_type)
-            self.reload_service_media()
             self.show_spinner()
-            AsyncCall(self.game_store.load_icons, self.icons_loaded_cb)
+            GLib.timeout_add(100, self._load_icons)
+
+    def _load_icons(self):
+        AsyncCall(self.game_store.load_icons, self.icons_loaded_cb)
+        return False
 
     def show_label(self, message):
         """Display a label in the middle of the UI"""
@@ -522,7 +516,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if error:
             logger.debug("Failed to reload icons")
         self.hide_overlay()
-        self.emit("view-updated")
+        self.redraw_view()
 
     @property
     def view_type(self):
@@ -569,19 +563,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         settings.write_setting(setting_key, self.icon_type)
         self.redraw_view()
 
-    def reload_service_media(self):
-        self.game_store.set_service_media(
-            self.get_service_media(
-                self.load_icon_type()
-            )
-        )
-
     def redraw_view(self):
         """Completely reconstruct the main view"""
+        if not self.game_store:
+            logger.error("No game store yet")
+            return
         if self.view:
             self.view.destroy()
-        self.reload_service_media()
-
+        self.game_store = GameStore(self.service, self.service_media)
         if self.view_type == "grid":
             self.view = GameGridView(
                 self.game_store,
@@ -773,7 +762,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.filters.pop(filter_type)
         if row:
             self.filters[row.type] = row.id
-        self.emit("view-updated")
+        service_name = self.filters.get("service")
+        self.set_service(service_name)
+        self._bind_zoom_adjustment()
+        self.redraw_view()
 
     def on_library_button_toggled(self, button):
         self.update_store()
