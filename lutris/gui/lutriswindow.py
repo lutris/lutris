@@ -540,13 +540,17 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         # Probably not ideal for non-english, but we want to limit
         # which keys actually start searching
+        if event.keyval == Gdk.KEY_Escape:
+            self.search_entry.set_text("")
+            self.view.grab_focus()
+            return Gtk.ApplicationWindow.do_key_press_event(self, event)
+
         if (  # pylint: disable=too-many-boolean-expressions
             not Gdk.KEY_0 <= event.keyval <= Gdk.KEY_z or event.state & Gdk.ModifierType.CONTROL_MASK
             or event.state & Gdk.ModifierType.SHIFT_MASK or event.state & Gdk.ModifierType.META_MASK
             or event.state & Gdk.ModifierType.MOD1_MASK or self.search_entry.has_focus()
         ):
             return Gtk.ApplicationWindow.do_key_press_event(self, event)
-
         self.search_entry.grab_focus()
         return self.search_entry.do_key_press_event(self.search_entry, event)
 

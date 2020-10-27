@@ -60,7 +60,7 @@ class Downloader:
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
         self.file_pointer = open(self.dest, "wb")
-        self.thread = jobs.AsyncCall(self.async_download, self.on_done)
+        self.thread = jobs.AsyncCall(self.async_download, self.download_cb)
         self.stop_request = self.thread.stop_request
 
     def check_progress(self):
@@ -83,7 +83,7 @@ class Downloader:
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
-    def on_done(self, _result, error):
+    def download_cb(self, _result, error):
         if error:
             logger.error("Download failed: %s", error)
             self.state = self.ERROR

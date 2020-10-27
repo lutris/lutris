@@ -52,6 +52,7 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
     if system.path_exists(fallback):
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, height)
     if not pixbuf:
+        logger.warning("Returning empty pixbuf for %s", image)
         return GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, width, height)
     if is_installed:
         pixbuf = pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.NEAREST)
