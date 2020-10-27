@@ -318,24 +318,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self._bind_zoom_adjustment()
         self.tabs_box.hide()
 
-    def switch_to_service(self, service_name):
-        """Switch the current service to service_name and return games if available"""
-
-        def combine_games(service_game, lutris_game):
-            if not lutris_game or service_game["appid"] != lutris_game["service_id"]:
-                return service_game
+    @staticmethod
+    def combine_games(service_game, lutris_game):
+        """Inject lutris game information into a service game"""
+        if lutris_game and service_game["appid"] == lutris_game["service_id"]:
             for field in ("platform", "runner", "year", "installed_at", "lastplayed", "playtime", "installed"):
                 service_game[field] = lutris_game[field]
-            return service_game
+        return service_game
 
-        self.set_service(service_name)
-        if service_name == "lutris":
-            self.tabs_box.show()  # Only the lutris service has the ability to search through all games.
-            if self.website_button.props.active:
-                return self.get_api_games()
-        else:
-            self.tabs_box.hide()
-
+    def get_service_games(self, service_name):
+        """Switch the current service to service_name and return games if available"""
         service_games = ServiceGameCollection.get_for_service(service_name)
         if service_name == "lutris":
             lutris_games = {g["slug"]: g for g in games_db.get_games()}
@@ -358,22 +350,27 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 return value
             return sort_defaults[self.view_sorting]
 
-        if service_games:
-            return [
-                combine_games(game, lutris_games.get(game["appid"])) for game in sorted(
-                    service_games,
-                    key=get_sort_value,
-                    reverse=not self.view_sorting_ascending
-                ) if self.game_matches(game)
-            ]
-        if self.service.online and not self.service.is_connected():
-            self.show_label(_("Connect your %s account to access your games") % self.service.name)
-        return
+        return [
+            self.combine_games(game, lutris_games.get(game["appid"])) for game in sorted(
+                service_games,
+                key=get_sort_value,
+                reverse=not self.view_sorting_ascending
+            ) if self.game_matches(game)
+        ]
 
     def get_games_from_filters(self):
         service_name = self.filters.get("service")
+        self.tabs_box.hide()
         if service_name in services.get_services():
-            return self.switch_to_service(service_name)
+            self.set_service(service_name)
+            if self.service.online and not self.service.is_connected():
+                self.show_label(_("Connect your %s account to access your games") % self.service.name)
+                return []
+            if service_name == "lutris":
+                self.tabs_box.show()  # Only the lutris service has the ability to search through all games.
+                if self.website_button.props.active:
+                    return self.get_api_games()
+            return self.get_service_games(service_name)
         self.unset_service()
         dynamic_categories = {
             "recent": self.get_recent_games,
@@ -437,6 +434,20 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             self.game_revealer.set_reveal_child(False)
 
+    def show_empty_label(self):
+        """Display a label when the view is empty"""
+        if self.filters.get("text"):
+            self.show_label(_("No games matching '%s' found ") % self.filters["text"])
+        elif self.view.service == "lutris" and self.website_button.props.active:
+            self.show_label(_("Use search to find games on lutris.net"))
+        else:
+            if self.filters.get("category") == "favorite":
+                self.show_label(_("Add games to your favorites to see them here."))
+            elif self.filters.get("installed"):
+                self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
+            else:
+                self.show_label(_("No games found"))
+
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()
         for child in self.blank_overlay.get_children():
@@ -444,23 +455,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         games = self.get_games_from_filters()
         self.view.service = self.service.id if self.service else None
         self.reload_service_media()
-        self.update_revealer()
-        if games is None:
-            return False
+        GLib.idle_add(self.update_revealer)
         for game in games:
             self.game_store.add_game(game)
         if not games:
-            if self.filters.get("text"):
-                self.show_label(_("No games matching '%s' found ") % self.filters["text"])
-            elif self.view.service == "lutris" and self.website_button.props.active:
-                self.show_label(_("Use search to find games on lutris.net"))
-            else:
-                if self.filters.get("category") == "favorite":
-                    self.show_label(_("Add games to your favorites to see them here."))
-                elif self.filters.get("installed"):
-                    self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
-                else:
-                    self.show_label(_("No games found"))
+            self.show_empty_label()
         self.search_timer_id = None
         return False
 
@@ -603,9 +602,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.view.show_all()
         self.update_store()
 
-        if self.current_view_type == 'grid':
-            self.view.select_path(Gtk.TreePath('0'))  # needed for gridview only
-        self.view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
+        if len(self.game_store.store) > 0:
+            if self.current_view_type == 'grid':
+                self.view.select_path(Gtk.TreePath('0'))  # needed for gridview only
+            self.view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)

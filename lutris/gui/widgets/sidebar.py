@@ -266,6 +266,9 @@ class LutrisSidebar(Gtk.ListBox):
         self.set_header_func(self._header_func)
         self.show_all()
 
+    def get_sidebar_icon(self, icon_name):
+        return Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+
     def on_realize(self, widget):
         self.active_platforms = games_db.get_used_platforms()
         self.runners = sorted(runners.__all__)
@@ -318,14 +321,18 @@ class LutrisSidebar(Gtk.ListBox):
 
         for runner_name in self.runners:
             icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
-            icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
             runner = runners.import_runner(runner_name)()
-            self.add(RunnerSidebarRow(runner_name, "runner", runner.human_name, icon, application=self.application))
+            self.add(RunnerSidebarRow(
+                runner_name,
+                "runner",
+                runner.human_name,
+                self.get_sidebar_icon(icon_name),
+                application=self.application
+            ))
 
         for platform in self.platforms:
             icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
-            icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
-            self.add(SidebarRow(platform, "platform", platform, icon))
+            self.add(SidebarRow(platform, "platform", platform, self.get_sidebar_icon(icon_name)))
 
         self.update()
         for row in self.get_children():

@@ -2,7 +2,6 @@
 import sqlite3
 import threading
 
-
 # Prevent multiple access to the database (SQLite limitation)
 DB_LOCK = threading.RLock()
 
