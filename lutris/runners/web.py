@@ -258,5 +258,7 @@ class web(Runner):
         if self.runner_config.get("user_agent"):
             command.append("--user-agent")
             command.append(self.runner_config.get("user_agent"))
+        if system.LINUX_SYSTEM.is_flatpak:
+            command.append("--no-sandbox")
 
         return {"command": command, "env": self.get_env(False)}
