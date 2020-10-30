@@ -29,6 +29,10 @@ class HumbleSmallIcon(HumbleBundleIcon):
     size = (35, 35)
 
 
+class HumbleBigIcon(HumbleBundleIcon):
+    size = (105, 105)
+
+
 class HumbleBundleGame(ServiceGame):
     """Service game for DRM free Humble Bundle games"""
     service = "humblebundle"
@@ -55,7 +59,9 @@ class HumbleBundleService(OnlineService):
     online = True
     medias = {
         "small_icon": HumbleSmallIcon,
-        "icon": HumbleBundleIcon
+        "icon": HumbleBundleIcon,
+        "big_icon": HumbleBigIcon
+
     }
     default_format = "icon"
 
