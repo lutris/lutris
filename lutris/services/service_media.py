@@ -59,9 +59,10 @@ class ServiceMedia:
         if not url:
             return
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
-        if not system.path_exists(cache_path):
-            try:
-                return download_file(url, cache_path)
-            except HTTPError:
-                return None
+        if system.path_exists(cache_path):
+            return
+        try:
+            return download_file(url, cache_path)
+        except HTTPError:
+            return None
         return cache_path

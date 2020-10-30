@@ -11,6 +11,7 @@ from lutris.database.games import get_games
 from lutris.game import Game
 from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
+from lutris.gui.widgets.utils import get_pixbuf
 from lutris.services.base import BaseService
 from lutris.util.strings import gtk_safe
 
@@ -89,6 +90,7 @@ class GameStore(GObject.Object):
             str,
         )
         self.media_loader = MediaLoader()
+        self.media_loader.connect("icon-loaded", self.on_icon_loaded)
 
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
@@ -194,3 +196,10 @@ class GameStore(GObject.Object):
             return True
         GLib.idle_add(self.load_icons)
         return True
+
+    def on_icon_loaded(self, _media_loader, rowid, path):
+        row = self.get_row_by_id(rowid)
+        if not row:
+            return
+        installed = rowid in self.installed_game_slugs
+        row[COL_ICON] = get_pixbuf(path, self.service_media.size, is_installed=installed)

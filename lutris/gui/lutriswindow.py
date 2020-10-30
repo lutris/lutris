@@ -187,7 +187,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_load(self, widget, data):
         """Finish initializing the view"""
-        self.game_store.media_loader.connect("icons-loaded", self.on_icons_loaded)
         self.redraw_view()
         self._bind_zoom_adjustment()
         self.view.grab_focus()
@@ -275,8 +274,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if not self.filters.get("text"):
             return []
         api_games = api.search_games(self.filters["text"])
-        GLib.idle_add(self.load_icons, {g["slug"]: g["banner_url"] for g in api_games}, LutrisBanner)
-        GLib.idle_add(self.load_icons, {g["slug"]: g["icon_url"] for g in api_games}, LutrisIcon)
+        if "icon" in self.icon_type:
+            GLib.idle_add(self.load_icons, {g["slug"]: g["icon_url"] for g in api_games}, LutrisIcon)
+        else:
+            GLib.idle_add(self.load_icons, {g["slug"]: g["banner_url"] for g in api_games}, LutrisBanner)
         return api_games
 
     def load_icons(self, media_urls, service_media):
@@ -602,10 +603,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.service and service.id == self.service.id:
             self.emit("view-updated")
         return True
-
-    def on_icons_loaded(self, _media_loader):
-        """Refresh the view when all icons are loaded"""
-        self.emit("view-updated")
 
     def on_dark_theme_state_change(self, action, value):
         """Callback for theme switching action"""
