@@ -223,15 +223,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @property
     def left_side_panel_visible(self):
         show_left_panel = (settings.read_setting("left_side_panel_visible").lower() != "false")
-        return show_left_panel or self.sidebar_visible
-
-    @property
-    def sidebar_visible(self):
-        """Deprecated: For compability only"""
-        return settings.read_setting("sidebar_visible") in [
-            "true",
-            None,
-        ]
+        return show_left_panel
 
     @property
     def use_dark_theme(self):
@@ -745,10 +737,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         left_side_panel_visible = value.get_boolean()
         settings.write_setting("left_side_panel_visible", bool(left_side_panel_visible))
         self.sidebar_revealer.set_reveal_child(left_side_panel_visible)
-        # Retrocompatibility with sidebar_visible :
-        # if we change the new attribute, we must set the old one to false
-        if self.sidebar_visible:
-            settings.write_setting("sidebar_visible", "false")
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
