@@ -476,7 +476,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             GLib.timeout_add(100, self._load_icons)
 
     def _load_icons(self):
-        AsyncCall(self.game_store.load_icons, self.icons_loaded_cb)
+        AsyncCall(self.game_store.load_icons, None)
         return False
 
     def show_label(self, message):
@@ -499,12 +499,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.blank_overlay.props.visible = False
         for child in self.blank_overlay.get_children():
             child.destroy()
-
-    def icons_loaded_cb(self, result, error):
-        if error:
-            logger.debug("Failed to reload icons")
-        self.hide_overlay()
-        self.redraw_view()
 
     @property
     def view_type(self):
