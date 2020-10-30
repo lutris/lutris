@@ -561,7 +561,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="active">True</property>
                             <property name="draw_indicator">False</property>
                             <signal name="toggled" handler="on_library_button_toggled" swapped="no"/>
                           </object>
