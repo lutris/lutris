@@ -33,11 +33,9 @@
 }
 
 row:selected {
-  background: transparent;
+  border-style: inset;
+  border-radius: 30px;
 }
 row:hover {
   background: rgba(0, 0, 0, 0.1);
-}
-row:selected, row:selected button label, row:selected label {
-  color: inherit;
 }

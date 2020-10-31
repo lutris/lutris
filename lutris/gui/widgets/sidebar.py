@@ -44,7 +44,6 @@ class SidebarRow(Gtk.ListBoxRow):
         self.name = name
         self.is_updating = False
         self.buttons = {}
-
         self.box = Gtk.Box(spacing=self.SPACING, margin_start=self.MARGIN, margin_end=self.MARGIN)
         self.connect("realize", self.on_realize)
         self.add(self.box)
