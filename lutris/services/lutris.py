@@ -22,19 +22,24 @@ from lutris.util.log import logger
 class LutrisBanner(ServiceMedia):
     service = 'lutris'
     size = (184, 69)
-    small_size = (120, 45)
     dest_path = settings.BANNER_PATH
     file_pattern = "%s.jpg"
     api_field = 'banner_url'
+    url_pattern = "https://lutris.net/games/banner/%s.jpg"
+
+    def get_media_urls(self):
+        return {
+            game["slug"]: self.url_pattern % game["slug"]
+            for game in get_games()
+        }
 
 
-class LutrisIcon(ServiceMedia):
-    service = 'lutris'
+class LutrisIcon(LutrisBanner):
     size = (32, 32)
-    small_size = (20, 20)
     dest_path = settings.ICON_PATH
     file_pattern = "lutris_%s.png"
     api_field = 'icon_url'
+    url_pattern = "https://lutris.net/games/icon/%s.png"
 
 
 class LutrisGame(ServiceGame):
