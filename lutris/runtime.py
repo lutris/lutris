@@ -104,7 +104,7 @@ class Runtime:
             response = request.get()
         except http.HTTPError as ex:
             logger.error("Failed to get components: %s", ex)
-            return
+            return []
         if not response.json:
             return []
         return response.json.get("components", [])
