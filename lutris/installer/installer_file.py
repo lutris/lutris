@@ -15,6 +15,7 @@ class InstallerFile:
         self.game_slug = game_slug
         self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
         self._file_meta = file_meta
+        self._dest_file = None  # Used to override the destination
 
     @property
     def url(self):
@@ -55,7 +56,13 @@ class InstallerFile:
 
     @property
     def dest_file(self):
+        if self._dest_file:
+            return self._dest_file
         return os.path.join(self.cache_path, self.filename)
+
+    @dest_file.setter
+    def dest_file(self, value):
+        self._dest_file = value
 
     def __str__(self):
         return "%s/%s" % (self.game_slug, self.id)
