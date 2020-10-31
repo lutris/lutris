@@ -33,7 +33,6 @@
 }
 
 row:selected {
-  border-style: inset;
   border-radius: 30px;
 }
 row:hover {
