@@ -14,6 +14,7 @@ from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
+from lutris.util import system
 from lutris.util.strings import slugify
 
 
@@ -306,11 +307,15 @@ def pick_download_url_from_download_info(download_info):
     if not download_info["download_struct"]:
         logger.warning("No downloads found")
         return
+    if system.LINUX_SYSTEM.is_64_bit:
+        bad_arch = "32"
+    else:
+        bad_arch = "64"
     if len(download_info["download_struct"]) > 1:
         logger.info("There are %s downloads available:", len(download_info["download_struct"]))
         sorted_downloads = []
         for _download in download_info["download_struct"]:
-            if "deb" in _download["name"] or "rpm" in _download["name"] or "32" in _download["name"]:
+            if "deb" in _download["name"] or "rpm" in _download["name"] or bad_arch in _download["name"]:
                 sorted_downloads.append(_download)
             else:
                 sorted_downloads.insert(0, _download)
