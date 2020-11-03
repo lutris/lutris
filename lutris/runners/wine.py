@@ -904,7 +904,7 @@ class wine(Runner):
         overrides = self.get_dll_overrides()
         if overrides:
             self.dll_overrides.update(overrides)
-            env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
+        env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
         return env
 
     def get_runtime_env(self):
