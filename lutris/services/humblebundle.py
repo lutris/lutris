@@ -1,4 +1,5 @@
 """Manage Humble Bundle libraries"""
+import concurrent.futures
 import json
 import os
 from gettext import gettext as _
@@ -165,9 +166,18 @@ class HumbleBundleService(OnlineService):
     def get_orders(self):
         """Return all orders"""
         gamekeys = self.get_gamekeys_from_local_orders()
+        orders = []
         if not gamekeys:
             gamekeys = self.make_api_request(self.api_url + "api/v1/user/order")
-        return [self.get_order(gamekey["gamekey"]) for gamekey in gamekeys]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            future_orders = [
+                executor.submit(self.get_order, gamekey["gamekey"])
+                for gamekey in gamekeys
+            ]
+            for order in future_orders:
+                orders.append(order.result())
+        logger.info("Loaded %s Humble Bundle orders", len(orders))
+        return orders
 
     @staticmethod
     def find_download_in_order(order, humbleid, platform):
