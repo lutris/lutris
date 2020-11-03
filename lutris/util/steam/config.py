@@ -71,9 +71,12 @@ def get_user_steam_id(steam_data_dir):
     user_config = read_user_config(steam_data_dir)
     if not user_config or "users" not in user_config:
         return
+    last_steam_id = None
     for steam_id in user_config["users"]:
+        last_steam_id = steam_id
         if get_config_value(user_config["users"][steam_id], "mostrecent") == "1":
             return steam_id
+    return last_steam_id
 
 
 def get_steam_library(steamid):
