@@ -786,7 +786,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                     self.service.install(game_id)
                 return
 
-        if self.service.id == "lutris":
+        if self.service and self.service.id == "lutris":
             db_game = games_db.get_game_by_field(game_id)
             if not db_game:
                 self.service.install(game_id)
