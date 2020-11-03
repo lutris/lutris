@@ -114,6 +114,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
 
+        self.connect("view-updated", self.update_store)
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
@@ -429,7 +430,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
-        logger.debug("Udating store")
         self.game_store.store.clear()
         for child in self.blank_overlay.get_children():
             child.destroy()
@@ -570,7 +570,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         for child in self.games_scrollwindow.get_children():
             child.destroy()
         self.games_scrollwindow.add(self.view)
-        self.connect("view-updated", self.update_store)
 
         self.view.show_all()
         self.view.grab_focus()
@@ -588,7 +587,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Shows or hide uninstalled games"""
         settings.write_setting("filter_installed", bool(filter_installed))
         self.filters["installed"] = filter_installed
-        self.emit("view-updated")
 
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
@@ -744,10 +742,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.redraw_view()
 
     def on_library_button_toggled(self, button):
-        self.update_store()
+        self.emit("view-updated")
 
     def on_website_button_toggled(self, button):
-        self.update_store()
+        self.emit("view-updated")
 
     def on_game_selection_changed(self, view, selection):
         if not selection:
