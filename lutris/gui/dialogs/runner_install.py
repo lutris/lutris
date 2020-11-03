@@ -151,9 +151,12 @@ class RunnerInstallDialog(Dialog):
 
     def get_installed_versions(self):
         """List versions available locally"""
+        runner_path = os.path.join(settings.RUNNER_DIR, self.runner)
+        if not os.path.exists(runner_path):
+            return {}
         return {
             tuple(p.rsplit("-", 1))
-            for p in os.listdir(os.path.join(settings.RUNNER_DIR, self.runner))
+            for p in os.listdir(runner_path)
             if "-" in p
         }
 
