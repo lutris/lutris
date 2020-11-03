@@ -178,7 +178,8 @@ class GOGService(OnlineService):
         token = request.json
         with open(self.token_path, "w") as token_file:
             token_file.write(json.dumps(token))
-        self.emit("service-login")
+        if not refresh_token:
+            self.emit("service-login")
 
     def load_token(self):
         """Load token from disk"""

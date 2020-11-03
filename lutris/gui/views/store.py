@@ -15,6 +15,7 @@ from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.services.base import BaseService
 from lutris.util.strings import gtk_safe
+from lutris.util.log import logger
 
 from . import (
     COL_ICON, COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT,
@@ -201,18 +202,25 @@ class GameStore(GObject.Object):
         return True
 
     def on_icon_loaded(self, _media_loader, rowid, path):
-        self._icon_updates[rowid] = (path, rowid in self.installed_game_slugs)
+        """Callback for the icon-loaded signal.
+        Stacks all icon updates together and set up a timed function
+        to update all of them at once.
+        """
+        self._icon_updates[rowid] = path
         if self._icon_update_timer:
             GLib.source_remove(self._icon_update_timer)
         self._icon_update_timer = GLib.timeout_add(2000, self.update_icons)
 
     def update_icons(self):
+        """Updates the store with newly updated icons"""
         icon_updates = copy(self._icon_updates)
         self._icon_updates = {}
+        logger.debug("Updating %s icons", len(icon_updates))
         for rowid in icon_updates:
             row = self.get_row_by_id(rowid)
             if not row:
                 continue
-            path, installed = icon_updates[rowid]
+            path = icon_updates[rowid]
+            installed = rowid in self.installed_game_slugs
             row[COL_ICON] = get_pixbuf(path, self.service_media.size, is_installed=installed)
         return False
