@@ -429,6 +429,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
+        logger.debug("Udating store")
         self.game_store.store.clear()
         for child in self.blank_overlay.get_children():
             child.destroy()

@@ -1,6 +1,7 @@
 """Store object for a list of games"""
 # pylint: disable=not-an-iterable
 import time
+from copy import copy
 
 from gi.repository import GLib, GObject, Gtk
 from gi.repository.GdkPixbuf import Pixbuf
@@ -71,6 +72,8 @@ class GameStore(GObject.Object):
         self.service_media = service_media
         self._installed_games = []
         self._installed_games_accessed = False
+        self._icon_updates = {}
+        self._icon_update_timer = None
 
         self.store = Gtk.ListStore(
             str,
@@ -198,8 +201,18 @@ class GameStore(GObject.Object):
         return True
 
     def on_icon_loaded(self, _media_loader, rowid, path):
-        row = self.get_row_by_id(rowid)
-        if not row:
-            return
-        installed = rowid in self.installed_game_slugs
-        row[COL_ICON] = get_pixbuf(path, self.service_media.size, is_installed=installed)
+        self._icon_updates[rowid] = (path, rowid in self.installed_game_slugs)
+        if self._icon_update_timer:
+            GLib.source_remove(self._icon_update_timer)
+        self._icon_update_timer = GLib.timeout_add(2000, self.update_icons)
+
+    def update_icons(self):
+        icon_updates = copy(self._icon_updates)
+        self._icon_updates = {}
+        for rowid in icon_updates:
+            row = self.get_row_by_id(rowid)
+            if not row:
+                continue
+            path, installed = icon_updates[rowid]
+            row[COL_ICON] = get_pixbuf(path, self.service_media.size, is_installed=installed)
+        return False

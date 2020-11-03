@@ -34,5 +34,4 @@ class MediaLoader(GObject.Object):
                 except Exception as ex:  # pylint: disable=broad-except
                     logger.exception('%r failed: %s', slug, ex)
                 if system.path_exists(path):
-                    print(path)
                     self.emit("icon-loaded", slug, path)
