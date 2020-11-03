@@ -452,7 +452,8 @@ class Application(Gtk.Application):
                 installer_file=installer_file,
                 revision=revision,
             )
-            self.show_installer_window(installers)
+            if installers:
+                self.show_installer_window(installers)
 
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
