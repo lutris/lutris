@@ -182,7 +182,10 @@ class DXVKManager:
                     shutil.move(wine_dll_path, wine_dll_path + ".orig")
                 else:
                     os.remove(wine_dll_path)
-            os.symlink(dxvk_dll_path, wine_dll_path)
+            try:
+                os.symlink(dxvk_dll_path, wine_dll_path)
+            except OSError:
+                logger.error("Failed linking %s to %s", dxvk_dll_path, wine_dll_path)
         else:
             self.disable_dxvk_dll(system_dir, dxvk_arch, dll)
 
