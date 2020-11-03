@@ -386,18 +386,17 @@ class ConfigBox(VBox):
         """Generate a file chooser button to select a file."""
         option_name = option["option"]
         label = Label(option["label"])
+        default_path = option.get("default_path") or (self.runner.default_path if self.runner else "")
         file_chooser = FileChooserEntry(
             title=_("Select file"),
             action=Gtk.FileChooserAction.OPEN,
             path=path,
-            default_path=option.get("default_path")
+            default_path=default_path
         )
         file_chooser.set_size_request(200, 30)
 
-        # WTF?
         if "default_path" in option:
-            config_key = option["default_path"]
-            default_path = self.lutris_config.system_config.get(config_key)
+            default_path = self.lutris_config.system_config.get(option["default_path"])
             if default_path and os.path.exists(default_path):
                 file_chooser.entry.set_text(default_path)
 
@@ -614,13 +613,13 @@ class GameBox(ConfigBox):
         if game.runner_name:
             if not game.runner:
                 try:
-                    runner = import_runner(game.runner_name)()
+                    self.runner = import_runner(game.runner_name)()
                 except InvalidRunner:
-                    runner = None
+                    self.runner = None
             else:
-                runner = game.runner
-            if runner:
-                self.options = runner.game_options
+                self.runner = game.runner
+            if self.runner:
+                self.options = self.runner.game_options
         else:
             logger.warning("No runner in game supplied to GameBox")
         self.generate_widgets("game")
@@ -634,11 +633,11 @@ class RunnerBox(ConfigBox):
         ConfigBox.__init__(self, game)
         self.lutris_config = lutris_config
         try:
-            runner = import_runner(self.lutris_config.runner_slug)()
+            self.runner = import_runner(self.lutris_config.runner_slug)()
         except InvalidRunner:
-            runner = None
-        if runner:
-            self.options = runner.get_runner_options()
+            self.runner = None
+        if self.runner:
+            self.options = self.runner.get_runner_options()
 
         if lutris_config.level == "game":
             self.generate_top_info_box(_(
@@ -653,6 +652,7 @@ class SystemBox(ConfigBox):
     def __init__(self, lutris_config):
         ConfigBox.__init__(self)
         self.lutris_config = lutris_config
+        self.runner = None
         runner_slug = self.lutris_config.runner_slug
 
         if runner_slug:

@@ -70,7 +70,6 @@ class mame(Runner):  # pylint: disable=invalid-name
             "option": "main_file",
             "type": "file",
             "label": _("ROM file"),
-            "default_path": "game_path",
         },
         {
             "option": "machine",
@@ -216,6 +215,14 @@ class mame(Runner):  # pylint: disable=invalid-name
             AsyncCall(write_mame_xml, notify_mame_xml)
 
         super().install(version=version, downloader=downloader, callback=on_runner_installed)
+
+    @property
+    def default_path(self):
+        """Return the default path, use the runner's rompath"""
+        main_file = self.game_config.get("main_file")
+        if main_file:
+            return os.path.dirname(main_file)
+        return self.runner_config.get("rompath")
 
     def write_xml_list(self):
         """Write the full game list in XML to disk"""

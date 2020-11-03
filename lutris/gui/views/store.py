@@ -14,8 +14,8 @@ from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.services.base import BaseService
-from lutris.util.strings import gtk_safe
 from lutris.util.log import logger
+from lutris.util.strings import gtk_safe
 
 from . import (
     COL_ICON, COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT,

@@ -12,9 +12,9 @@ from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
+from lutris.util import system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
-from lutris.util import system
 from lutris.util.strings import slugify
 
 

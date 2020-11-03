@@ -1,6 +1,9 @@
 """Automatically detects game executables in a folder"""
 import os
 
+from lutris.util import system
+from lutris.util.log import logger
+
 try:
     import magic
     MAGIC_AVAILABLE = True
@@ -8,8 +11,6 @@ except ImportError:
     MAGIC_AVAILABLE = False
     magic = None
 
-from lutris.util import system
-from lutris.util.log import logger
 
 if not hasattr(magic, "from_file"):
     logger.error("Your version of python-magic is too old.")
