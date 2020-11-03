@@ -1,10 +1,19 @@
 """Automatically detects game executables in a folder"""
 import os
 
-import magic
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+    magic = None
 
 from lutris.util import system
 from lutris.util.log import logger
+
+if not hasattr(magic, "from_file"):
+    logger.error("Your version of python-magic is too old.")
+    MAGIC_AVAILABLE = False
 
 
 def is_excluded_elf(filename):
@@ -21,6 +30,10 @@ def is_excluded_elf(filename):
 
 def find_linux_game_executable(path, make_executable=False):
     """Looks for a binary or shell script that launches the game in a directory"""
+    if not MAGIC_AVAILABLE:
+        logger.warning("Magic not available. Not finding Linux executables")
+        return ""
+
     for base, _dirs, files in os.walk(path):
         candidates = {}
         for _file in files:
@@ -85,6 +98,10 @@ def is_excluded_exe(filename):
 
 
 def find_windows_game_executable(path):
+    if not MAGIC_AVAILABLE:
+        logger.warning("Magic not available. Not finding Windows executables")
+        return ""
+
     for base, _dirs, files in os.walk(path):
         candidates = {}
         if is_excluded_dir(base):
