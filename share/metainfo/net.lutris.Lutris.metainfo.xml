@@ -5,11 +5,10 @@
   <project_license>GPL-3.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
   <translation type="gettext">lutris</translation>
-  <developer_name>Lutris Team</developer_name>
+  <developer_name translatable="no">Lutris Team</developer_name>
   <update_contact>strider@lutris.net</update_contact>
-  <name>Lutris</name>
+  <name translatable="no">Lutris</name>
   <summary>Play all your games by Lutris</summary>
-  <summary xml:lang="pt_BR">Jogue todos os seus jogos pelo Lutris</summary>
   <screenshots>
     <screenshot type="default">
       <caption>Main window</caption>
@@ -17,7 +16,6 @@
     </screenshot>
   </screenshots>
   <description><p></p>Lutris is an Open Source gaming platform. It installs and launches games so you can start playing without the hassle of setting up your games. Get your games from GOG, Steam, Battle.net, Origin, Uplay and many other sources running on any Linux powered gaming machine.</description>
-  <description xml:lang="pt_BR"><p>Lutris é uma plataforma de jogos de código aberto. Ele instala e inicia jogos para que você possa começar a jogar sem o incômodo de configurá-los. Obtenha seus jogos de GOG, Steam, Battle.net, Origin, Uplay e muitas outras fontes rodando em qualquer máquina de jogos com Linux.</p></description>
   <url type="homepage">https://lutris.net</url>
   <url type="donation">https://lutris.net/donate</url>
   <url type="help">https://forums.lutris.net</url>
