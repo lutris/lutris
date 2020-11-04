@@ -32,8 +32,9 @@ and commit your changes.
 ## Notes
 
 - Only commit changes for the translation file you actually edited.
-- Ignore or delete the first four lines (copyright notice) in the `$LANG.po` files.
+- Delete the first five lines (copyright notice) in the `$LANG.po` files.
 - Keep the `LINGUAS` file sorted alphabetically.
+- The files to translate might change, if the `ninja` commands fail, try to run `./po/generate-potfiles.sh`
 - Languages can't be tested without installing Lutris via meson:
   ```bash
   rm -Rf builddir
