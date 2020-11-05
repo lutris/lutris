@@ -119,7 +119,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
-        GObject.add_emission_hook(Game, "game-installed", self.on_game_collection_changed)
+        GObject.add_emission_hook(Game, "game-updated", self.on_game_collection_changed)
+        GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -434,7 +435,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.game_store.store.clear()
         for child in self.blank_overlay.get_children():
             child.destroy()
-
         games = self.get_games_from_filters()
         self.view.service = self.service.id if self.service else None
         GLib.idle_add(self.update_revealer)
@@ -770,6 +770,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Simple method used to refresh the view"""
         logger.debug("Game collection changed")
         self.emit("view-updated")
+        return True
 
     def on_game_activated(self, view, game_id):
         """Handles view activations (double click, enter press)"""

@@ -4,7 +4,7 @@ from gi.repository import Gtk, Pango
 
 from lutris.database.games import get_games
 from lutris.game import Game
-from lutris.gui.dialogs import Dialog, NoticeDialog, QuestionDialog
+from lutris.gui.dialogs import Dialog, QuestionDialog
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
@@ -12,11 +12,10 @@ from lutris.util.system import get_disk_size, is_removeable, reverse_expanduser
 
 
 class UninstallGameDialog(Dialog):
-    def __init__(self, game_id, callback, parent=None):
+    def __init__(self, game_id, parent=None):
         super().__init__(parent=parent)
         self.set_size_request(640, 128)
         self.game = Game(game_id)
-        self.callback = callback
         self.delete_files = False
         container = Gtk.VBox(visible=True)
         self.get_content_area().add(container)
@@ -95,10 +94,5 @@ class UninstallGameDialog(Dialog):
             self.folder_label.set_markup("Uninstalling game and deleting files...")
         else:
             self.folder_label.set_markup("Uninstalling game...")
-        AsyncCall(self.game.remove, self.delete_cb, self.delete_files)
-
-    def delete_cb(self, result, error):
-        if error:
-            logger.error(error)
-            NoticeDialog("Something went wrong while deleting the game")
+        self.game.remove(self.delete_files)
         self.destroy()

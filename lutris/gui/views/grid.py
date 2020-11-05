@@ -23,7 +23,7 @@ class GameGridView(Gtk.IconView, GameView):
         self.set_column_spacing(6)
         self.set_pixbuf_column(COL_ICON)
         self.set_item_padding(1)
-        self.cell_width = (max(service_media.size[0], self.min_width))
+        self.cell_width = max(service_media.size[0], self.min_width)
         if hide_text:
             self.cell_renderer = None
         else:

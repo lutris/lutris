@@ -9,7 +9,6 @@ from gi.repository.GdkPixbuf import Pixbuf
 from lutris import settings
 from lutris.database import sql
 from lutris.database.games import get_games
-from lutris.game import Game
 from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf
@@ -96,8 +95,6 @@ class GameStore(GObject.Object):
         self.media_loader = MediaLoader()
         self.media_loader.connect("icon-loaded", self.on_icon_loaded)
 
-        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
-        GObject.add_emission_hook(Game, "game-removed", self.on_game_updated)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
 
     @property
