@@ -124,6 +124,13 @@ def use_lutris_runtime(wine_path, force_disable=False):
     return True
 
 
+def is_mingw_build(wine_path):
+    """Returns whether a wine build is built with MingW"""
+    base_path = os.path.dirname(os.path.dirname(wine_path))
+    # A MingW build has an .exe file while a GCC one will have a .so
+    return system.path_exists(os.path.join(base_path, "lib/wine/iexplore.exe"))
+
+
 def is_installed_systemwide():
     """Return whether Wine is installed outside of Lutris"""
     for build in WINE_PATHS.values():
