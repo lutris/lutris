@@ -79,6 +79,7 @@ The following command line arguments are available::
 -v, --version              Print the version of Lutris and exit
 -d, --debug                Show debug messages
 -i, --install              Install a game from a yml file
+-b, --output-script        Generate a bash script to run a game without the client
 -e, --exec                 Execute a program with the lutris runtime
 -l, --list-games           List all games in database
 -o, --installed            Only list installed games
