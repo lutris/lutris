@@ -32,9 +32,9 @@
     font-weight: normal;
 }
 
-row:selected {
+.sidebar row:selected {
   border-radius: 30px;
 }
-row:hover {
+.sidebar row:hover {
   background: rgba(0, 0, 0, 0.1);
 }
