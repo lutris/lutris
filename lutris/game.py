@@ -634,7 +634,7 @@ class Game(GObject.Object):
         logger.info("Moving %s to %s", self, new_location)
         new_config = ""
         old_location = self.directory
-        if old_location:
+        if os.path.exists(old_location):
             game_directory = os.path.basename(old_location)
             target_directory = os.path.join(new_location, game_directory)
         else:
@@ -656,7 +656,7 @@ class Game(GObject.Object):
 
         if not system.path_exists(old_location):
             logger.warning("Location %s doesn't exist, files already moved?", old_location)
-            return
+            return target_directory
         if new_location.startswith(old_location):
             logger.warning("Can't move %s to one of its children %s", old_location, new_location)
             return target_directory
