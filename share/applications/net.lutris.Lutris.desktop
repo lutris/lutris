@@ -1,7 +1,6 @@
 [Desktop Entry]
-Version=1.0
 Name=Lutris
-Comment=Open gaming platform
+Comment=open source gaming platform
 Categories=Game;
 Keywords=gaming;wine;emulator;
 Exec=lutris %U
