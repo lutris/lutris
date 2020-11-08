@@ -346,13 +346,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         service_name = self.filters.get("service")
         self.tabs_box.hide()
         if service_name in services.get_services():
-            if self.service.online and not self.service.is_authenticated():
-                self.show_label(_("Connect your %s account to access your games") % self.service.name)
-                return []
             if service_name == "lutris":
                 self.tabs_box.show()  # Only the lutris service has the ability to search through all games.
                 if self.website_button.props.active:
                     return self.get_api_games()
+            if self.service.online and not self.service.is_authenticated():
+                self.show_label(_("Connect your %s account to access your games") % self.service.name)
+                return []
             return self.get_service_games(service_name)
         dynamic_categories = {
             "recent": self.get_recent_games,

@@ -21,8 +21,6 @@ from . import (
     COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER, COL_RUNNER_HUMAN_NAME, COL_SLUG, COL_YEAR
 )
 
-PGA_DB = settings.PGA_DB
-
 
 def try_lower(value):
     try:
@@ -178,14 +176,22 @@ class GameStore(GObject.Object):
 
     def on_game_updated(self, game):
         if self.service:
-            db_games = sql.filtered_query(PGA_DB, "service_games", filters=({
-                "service": self.service_media.service,
-                "appid": game.appid
-            }))
+            db_games = sql.filtered_query(
+                settings.PGA_DB,
+                "service_games",
+                filters=({
+                    "service": self.service_media.service,
+                    "appid": game.appid
+                })
+            )
         else:
-            db_games = sql.filtered_query(PGA_DB, "games", filters=({
-                "id": game.id
-            }))
+            db_games = sql.filtered_query(
+                settings.PGA_DB,
+                "games",
+                filters=({
+                    "id": game.id
+                })
+            )
 
         for db_game in db_games:
             GLib.idle_add(self.update, db_game)
