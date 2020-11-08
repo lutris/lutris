@@ -106,7 +106,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar)
 
-        self.sidebar_revealer.set_reveal_child(self.left_side_panel_visible)
+        self.sidebar_revealer.set_reveal_child(self.side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
         self.tabs_box.hide()
 
@@ -146,10 +146,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 default=self.view_sorting_ascending,
             ),
             "use-dark-theme": Action(self.on_dark_theme_state_change, type="b", default=self.use_dark_theme),
-            "show-left-side-panel": Action(
-                self.on_left_side_panel_state_change,
+            "show-side-panel": Action(
+                self.on_side_panel_state_change,
                 type="b",
-                default=self.left_side_panel_visible,
+                default=self.side_panel_visible,
                 accel="F9",
             ),
             "show-hidden-games": Action(
@@ -223,9 +223,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return settings.read_setting("filter_installed").lower() == "true"
 
     @property
-    def left_side_panel_visible(self):
-        show_left_panel = (settings.read_setting("left_side_panel_visible").lower() != "false")
-        return show_left_panel
+    def side_panel_visible(self):
+        return settings.read_setting("side_panel_visible").lower() != "false"
 
     @property
     def use_dark_theme(self):
@@ -722,12 +721,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         settings.write_setting("view_sorting_ascending", bool(value))
         self.emit("view-updated")
 
-    def on_left_side_panel_state_change(self, action, value):
-        """Callback to handle left side panel toggle"""
+    def on_side_panel_state_change(self, action, value):
+        """Callback to handle side panel toggle"""
         action.set_state(value)
-        left_side_panel_visible = value.get_boolean()
-        settings.write_setting("left_side_panel_visible", bool(left_side_panel_visible))
-        self.sidebar_revealer.set_reveal_child(left_side_panel_visible)
+        side_panel_visible = value.get_boolean()
+        settings.write_setting("side_panel_visible", bool(side_panel_visible))
+        self.sidebar_revealer.set_reveal_child(side_panel_visible)
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()
