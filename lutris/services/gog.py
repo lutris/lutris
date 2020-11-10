@@ -140,6 +140,7 @@ class GOGService(OnlineService):
         self.match_games()
         self.is_loading = False
         self.emit("service-games-loaded")
+        return games
 
     def request_token(self, url="", refresh_token=""):
         """Get authentication token from GOG"""

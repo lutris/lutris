@@ -10,9 +10,9 @@ from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris.services.base import BaseService
 from lutris.util.jobs import AsyncCall
-from lutris.util.log import logger
 
 TYPE = 0
 SLUG = 1
@@ -135,9 +135,11 @@ class ServiceSidebarRow(SidebarRow):
         self.service.wipe_game_cache()
         AsyncCall(self.service.load, self.service_load_cb)
 
-    def service_load_cb(self, _result, error):
+    def service_load_cb(self, games, error):
+        if not error and not games:
+            error = _("Failed to load games. Check that your profile is set to public during the sync.")
         if error:
-            logger.error("Service reload failed")
+            ErrorDialog(error)
         GLib.timeout_add(5000, self.enable_refresh_button)
 
     def enable_refresh_button(self):

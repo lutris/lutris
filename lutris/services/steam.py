@@ -105,15 +105,16 @@ class SteamService(BaseService):
             logger.error("Unable to find SteamID from Steam config")
             self.emit("service-games-loaded")
             return
-
-        for steam_game in get_steam_library(steamid):
+        steam_games = get_steam_library(steamid)
+        for steam_game in steam_games:
             game = SteamGame.new_from_steam_game(steam_game)
             game.save()
 
         self.match_games()
         self.is_loading = False
-        logger.debug("Steam games loaded")
+        logger.debug("%d Steam games loaded", len(steam_games))
         self.emit("service-games-loaded")
+        return steam_games
 
     def get_installer_files(self, installer, installer_file_id):
         steam_uri = "$WINESTEAM:%s:." if installer.runner == "winesteam" else "$STEAM:%s:."

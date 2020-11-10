@@ -126,7 +126,8 @@ class LutrisService(OnlineService):
             return
         self.emit("service-games-load")
         self.is_loading = True
-        for game in self.get_library():
+        lutris_games = self.get_library()
+        for game in lutris_games:
             lutris_game = LutrisGame.new_from_api(game)
             lutris_game.save()
         logger.debug("Matching with already installed games")
@@ -134,6 +135,7 @@ class LutrisService(OnlineService):
         self.is_loading = False
         logger.debug("Lutris games loaded")
         self.emit("service-games-loaded")
+        return lutris_games
 
     def install(self, db_game):
         if isinstance(db_game, dict):

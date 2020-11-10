@@ -110,6 +110,7 @@ class HumbleBundleService(OnlineService):
             game.save()
         self.is_loading = False
         self.emit("service-games-loaded")
+        return humble_games
 
     def make_api_request(self, url):
         """Make an authenticated request to the Humble API"""
