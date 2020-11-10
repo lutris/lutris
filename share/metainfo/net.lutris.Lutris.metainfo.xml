@@ -2,8 +2,8 @@
 <!-- Copyright 2020 Lutris -->
 <component type="desktop">
   <id>net.lutris.Lutris</id>
-  <project_license>GPL-3.0</project_license>
-  <metadata_license>GPL-3.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <metadata_license>GPL-3.0-or-later</metadata_license>
   <translation type="gettext">lutris</translation>
   <developer_name translatable="no">Lutris Team</developer_name>
   <update_contact>strider@lutris.net</update_contact>
