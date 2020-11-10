@@ -139,6 +139,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if not self.files:
             return
         if self.service:
+            if self.service.online and not self.service.is_connected():
+                logger.info("Not authenticated to %s", self.service.id)
+                return
             installer_file_id = self.pop_user_provided_file()
             if not installer_file_id:
                 logger.warning("Could not find a file for this service")
