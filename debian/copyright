@@ -5,6 +5,6 @@ Upstream-Source: https://github.com/lutris
 
 Files: *
 Copyright: 2009-2020 Mathieu Comandon <strider@strycore.com>
-License: GPL-3
+License: GPL-3.0-or-later
  On Debian systems, the complete text of the General Public License version 3
  can be found in "/usr/share/common-licenses/GPL-3".
