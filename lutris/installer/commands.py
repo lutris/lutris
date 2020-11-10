@@ -469,7 +469,7 @@ class CommandsMixin:
 
     def write_config(self, params):
         """Write a key-value pair into an INI type config file."""
-        if params.get("data", None):
+        if params.get("data"):
             self._check_required_params(["file", "data"], params, "write_config")
         else:
             self._check_required_params(["file", "section", "key", "value"], params, "write_config")
@@ -489,7 +489,7 @@ class CommandsMixin:
             parser.read(config_file_path)
 
         data = {}
-        if params.get("data", None):
+        if params.get("data"):
             data = params["data"]
         else:
             data[params["section"]] = {}
