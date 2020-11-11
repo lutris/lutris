@@ -8,9 +8,9 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
-from lutris.gui.dialogs import ErrorDialog
 from lutris.services.base import BaseService
 from lutris.util.jobs import AsyncCall
 
