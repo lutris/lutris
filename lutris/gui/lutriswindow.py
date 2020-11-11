@@ -438,7 +438,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.view.service = self.service.id if self.service else None
         GLib.idle_add(self.update_revealer)
         for game in games:
-            GLib.idle_add(self.game_store.add_game, game)
+            self.game_store.add_game(game)
         if not games:
             self.show_empty_label()
         self.search_timer_id = None
