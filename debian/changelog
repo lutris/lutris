@@ -64,7 +64,7 @@ lutris (0.5.8) groovy; urgency=medium
   * Refactor of several core components. New python packages
     `lutris.database` and `lutris.gui.installer`
 
- -- Mathieu Comandon <strider@strycore.com>  Sat, 17 Oct 2020 16:36:28 -0700
+ -- Mathieu Comandon <strider@strycore.com>  Sat, 14 Nov 2020 15:03:28 -0700
 
 lutris (0.5.7.1) focal; urgency=medium
 
