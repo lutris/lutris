@@ -1,4 +1,4 @@
-lutris (0.5.8) UNRELEASED; urgency=medium
+lutris (0.5.8) groovy; urgency=medium
 
   * 3rd party services are now available from the main window
   * The "Import games" window has been removed. The concept of
