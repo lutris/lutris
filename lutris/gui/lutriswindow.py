@@ -66,6 +66,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             default_width=width,
             default_height=height,
             window_position=Gtk.WindowPosition.NONE,
+            name="lutris",
             icon_name="lutris",
             application=application,
             **kwargs
