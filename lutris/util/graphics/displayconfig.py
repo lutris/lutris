@@ -113,12 +113,12 @@ class DisplayMode:
     @property
     def width(self):
         """width in physical pixels"""
-        return self.mode_info[2]
+        return int(self.mode_info[2])
 
     @property
     def height(self):
         """height in physical pixels"""
-        return self.mode_info[3]
+        return int(self.mode_info[3])
 
     @property
     def frequency(self):
