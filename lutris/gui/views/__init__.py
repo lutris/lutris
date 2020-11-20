@@ -23,6 +23,6 @@ COLUMN_NAMES = {
     COL_RUNNER_HUMAN_NAME: "runner",
     COL_PLATFORM: "platform",
     COL_LASTPLAYED_TEXT: "lastplayed",
-    COL_INSTALLED_AT_TEXT: "installed_at",
+    COL_INSTALLED_AT_TEXT: "installedat",
     COL_PLAYTIME_TEXT: "playtime",
 }
