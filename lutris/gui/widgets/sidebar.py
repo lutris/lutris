@@ -224,6 +224,7 @@ class SidebarHeader(Gtk.Box):
             manage_runners_button.props.relief = Gtk.ReliefStyle.NONE
             manage_runners_button.set_margin_right(16)
             manage_runners_button.get_style_context().add_class("sidebar-button")
+            manage_runners_button.set_tooltip_text(_('Manage Runners'))
             box.add(manage_runners_button)
         self.add(Gtk.Separator())
         self.show_all()
