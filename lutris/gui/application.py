@@ -462,7 +462,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
             game = Game(db_game["id"])
-            self.on_game_start(game)
+            self.on_game_launch(game)
         return 0
 
     def on_game_launch(self, game):
