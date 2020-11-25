@@ -13,8 +13,12 @@ except ImportError:
 
 
 if not hasattr(magic, "from_file"):
-    logger.error("Your version of python-magic is too old.")
-    MAGIC_AVAILABLE = False
+    if hasattr(magic, "detect_from_filename"):
+        magic.from_file = magic.detect_from_filename
+        MAGIC_AVAILABLE = True
+    else:
+        logger.error("Your version of python-magic is too old.")
+        MAGIC_AVAILABLE = False
 
 
 def is_excluded_elf(filename):
