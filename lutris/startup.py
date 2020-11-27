@@ -165,5 +165,4 @@ def init_lutris():
     while runtime_updater.current_updates:
         time.sleep(0.3)
     init_dxvk_versions()
-    run_all_checks()
     logger.info("Runtime updated. Initialization complete.")

@@ -41,7 +41,7 @@ from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
-from lutris.startup import init_lutris
+from lutris.startup import init_lutris, run_all_checks
 from lutris.util import datapath, log
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
@@ -313,6 +313,7 @@ class Application(Gtk.Application):
 
         logger.info("Lutris %s", settings.VERSION)
         migrate()
+        run_all_checks()
 
         # List game
         if options.contains("list-games"):
