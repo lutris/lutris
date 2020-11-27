@@ -30,7 +30,6 @@ class UninstallGameDialog(Dialog):
 
         self.folder_label = Gtk.Label(visible=True)
         self.folder_label.set_alignment(0, 0.5)
-        self.folder_label.set_margin_bottom(30)
 
         self.delete_button = Gtk.Button(_("Uninstall"), visible=True)
         self.delete_button.connect("clicked", self.on_delete_clicked)
@@ -49,7 +48,12 @@ class UninstallGameDialog(Dialog):
             )
         container.pack_start(self.folder_label, False, False, 4)
 
+        self.confirm_delete_button = Gtk.CheckButton()
+        self.confirm_delete_button.set_active(True)
+        container.pack_start(self.confirm_delete_button, False, False, 4)
+
         button_box = Gtk.HBox(visible=True)
+        button_box.set_margin_top(30)
         style_context = button_box.get_style_context()
         style_context.add_class("linked")
         cancel_button = Gtk.Button(_("Cancel"), visible=True)
@@ -65,8 +69,10 @@ class UninstallGameDialog(Dialog):
             return
         self.delete_files = True
         self.delete_button.set_sensitive(True)
-        self.folder_label.set_markup(
-            "This will delete all contents from <b>%s</b> (%s)" % (
+        self.folder_label.hide()
+        self.confirm_delete_button.show()
+        self.confirm_delete_button.set_label(
+            "Delete %s (%s)" % (
                 reverse_expanduser(self.game.directory),
                 human_size(folder_size)
             )
@@ -77,6 +83,8 @@ class UninstallGameDialog(Dialog):
 
     def on_delete_clicked(self, button):
         button.set_sensitive(False)
+        if not self.confirm_delete_button.get_active():
+            self.delete_files = False
         if self.delete_files and not hasattr(self.game.runner, "no_game_remove_warning"):
             dlg = QuestionDialog(
                 {
