@@ -314,7 +314,7 @@ def _get_screen_saver_inhibitor():
             return DBusScreenSaverInhibitor(name, path, interface)
         except GLib.Error as err:
             logger.warning("Failed to create DBusScreenSaverInhibitor for name %s, path %s, "
-                           "interface %s: %s", name, path, interface, err.message)
+                           "interface %s: %s", name, path, interface, str(err))
     return None
 
 
