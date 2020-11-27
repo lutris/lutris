@@ -36,19 +36,17 @@ from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.installer import get_installers
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
+from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, LutrisInitDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
-from lutris.startup import init_lutris, run_all_checks
+from lutris.startup import init_lutris
 from lutris.util import datapath, log
 from lutris.util.http import HTTPError, Request
-from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
-from lutris.util.wine.dxvk import init_dxvk_versions
 from lutris.services import get_services
 from lutris.database.services import ServiceGameCollection
 
@@ -71,11 +69,8 @@ class Application(Gtk.Application):
         GLib.set_application_name(_("Lutris"))
         self.window = None
 
-        try:
-            init_lutris()
-        except RuntimeError as ex:
-            ErrorDialog(str(ex))
-            return
+        init_dialog = LutrisInitDialog(init_lutris)
+        init_dialog.run()
 
         self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
@@ -318,8 +313,6 @@ class Application(Gtk.Application):
 
         logger.info("Lutris %s", settings.VERSION)
         migrate()
-        run_all_checks()
-        AsyncCall(init_dxvk_versions, None)
 
         # List game
         if options.contains("list-games"):

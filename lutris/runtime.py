@@ -177,7 +177,6 @@ class Runtime:
 
 
 class RuntimeUpdater:
-
     """Class handling the runtime updates"""
 
     current_updates = 0
@@ -191,18 +190,14 @@ class RuntimeUpdater:
         """Launch the update process"""
         if RUNTIME_DISABLED:
             logger.debug("Runtime disabled, not updating it.")
-            return []
-
-        if self.is_updating():
-            logger.debug("Runtime already updating")
-            return []
+            return 0
 
         for remote_runtime in self._iter_remote_runtimes():
             runtime = Runtime(remote_runtime["name"], self)
             downloader = runtime.download(remote_runtime)
             if downloader:
                 self.current_updates += 1
-        return None
+        return self.current_updates
 
     @staticmethod
     def _iter_remote_runtimes():
@@ -243,7 +238,7 @@ class RuntimeUpdater:
         logger.debug("Runtime %s is now updated and available", runtime.name)
         self.current_updates -= 1
         if self.current_updates == 0:
-            logger.info("Runtime updated")
+            logger.info("Runtime is fully updated.")
 
 
 def get_env(version=None, prefer_system_libs=False, wine_path=None):

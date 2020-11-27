@@ -25,7 +25,6 @@ from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
-from lutris.runtime import RuntimeUpdater
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisBanner, LutrisIcon, LutrisService
 from lutris.util import datapath
@@ -74,7 +73,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         update_desktop_icons()
         load_icon_theme()
         self.application = application
-        self.runtime_updater = RuntimeUpdater()
+
         self.threads_stoppers = []
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
@@ -195,7 +194,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self._bind_zoom_adjustment()
         self.view.grab_focus()
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
-        self.update_runtime()
 
     def load_filters(self):
         """Load the initial filters when creating the view"""
@@ -578,11 +576,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
-
-    def update_runtime(self):
-        """Check that the runtime is up to date"""
-        runtime_sync = AsyncCall(self.runtime_updater.update, None)
-        self.threads_stoppers.append(runtime_sync.stop_request.set)
 
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""

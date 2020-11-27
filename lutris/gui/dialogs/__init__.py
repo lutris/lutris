@@ -7,13 +7,14 @@ from gettext import gettext as _
 
 import gi
 gi.require_version("WebKit2", "4.0")
-from gi.repository import GObject, Gtk, WebKit2
+from gi.repository import GObject, Gtk, WebKit2, GLib
 
 from lutris import api, settings
 from lutris.database import sources as sources_db
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.log import logger
+from lutris.util.jobs import AsyncCall
 
 
 class Dialog(Gtk.Dialog):
@@ -165,6 +166,35 @@ class FileDialog(Gtk.FileChooserDialog):
         if response == Gtk.ResponseType.OK:
             self.filename = self.get_filename()
 
+        self.destroy()
+
+
+class LutrisInitDialog(Gtk.Dialog):
+    def __init__(self, init_lutris):
+        super().__init__()
+        self.set_size_request(320, 60)
+        self.set_border_width(24)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
+        label = Gtk.Label("Lutris is starting...")
+        vbox.add(label)
+        self.progress = Gtk.ProgressBar(visible=True)
+        self.progress.set_pulse_step(0.1)
+        vbox.add(self.progress)
+        self.get_content_area().add(vbox)
+        GLib.timeout_add(125, self.show_progress)
+        self.show_all()
+        AsyncCall(self.initialize, self.init_cb, init_lutris)
+
+    def show_progress(self):
+        self.progress.pulse()
+        return True
+
+    def initialize(self, init_lutris, *args):
+        init_lutris()
+
+    def init_cb(self, _result, error):
+        if error:
+            ErrorDialog(str(error))
         self.destroy()
 
 

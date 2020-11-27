@@ -1,6 +1,7 @@
 """Check to run at program start"""
 import os
 import sqlite3
+import time
 from gettext import gettext as _
 
 from lutris import runners, settings
@@ -9,10 +10,12 @@ from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
+from lutris.runtime import RuntimeUpdater
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import create_folder
+from lutris.util.wine.dxvk import init_dxvk_versions
 
 
 def init_dirs():
@@ -35,21 +38,6 @@ def init_dirs():
     ]
     for directory in directories:
         create_folder(directory)
-
-
-def init_lutris():
-    """Run full initialization of Lutris"""
-    runners.inject_runners(load_json_runners())
-    # Load runner names
-    runners.RUNNER_NAMES = runners.get_runner_names()
-    init_dirs()
-    try:
-        syncdb()
-    except sqlite3.DatabaseError:
-        raise RuntimeError(
-            "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
-            settings.PGA_DB
-        )
 
 
 def check_driver():
@@ -153,3 +141,29 @@ def run_all_checks():
     check_libs()
     check_vulkan()
     fill_missing_platforms()
+
+
+def init_lutris():
+    """Run full initialization of Lutris"""
+    logger.info("Initializing lutris")
+    runners.inject_runners(load_json_runners())
+    # Load runner names
+    runners.RUNNER_NAMES = runners.get_runner_names()
+    init_dirs()
+    try:
+        syncdb()
+    except sqlite3.DatabaseError:
+        raise RuntimeError(
+            "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
+            settings.PGA_DB
+        )
+    runtime_updater = RuntimeUpdater()
+    components_to_update = runtime_updater.update()
+    if not components_to_update:
+        logger.info("Runtime up-to-date. Initialization complete.")
+        return
+    while runtime_updater.current_updates:
+        time.sleep(0.3)
+    init_dxvk_versions()
+    run_all_checks()
+    logger.info("Runtime updated. Initialization complete.")
