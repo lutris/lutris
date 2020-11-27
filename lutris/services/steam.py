@@ -142,7 +142,7 @@ class SteamService(BaseService):
 
     def install(self, db_game):
         appid = db_game["appid"]
-        db_games = get_games(filters={"steamid": appid, "installed": "1"})
+        db_games = get_games(filters={"service_id": appid, "installed": "1", "service": "steam"})
         existing_game = self.match_existing_game(db_games, appid)
         if existing_game:
             logger.debug("Found steam game: %s", existing_game)
