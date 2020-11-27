@@ -201,7 +201,6 @@ def get_wine_versions():
     versions = []
     versions += get_system_wine_versions()
     versions += get_lutris_wine_versions()
-    versions += get_proton_versions()
     versions += get_pol_wine_versions()
     return versions
 
