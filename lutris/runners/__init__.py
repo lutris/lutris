@@ -10,6 +10,7 @@ __all__ = [
     "winesteam",
     "dosbox",
     # Multi-system
+    "easyrpg",
     "mame",
     "mednafen",
     "scummvm",
