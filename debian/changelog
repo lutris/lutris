@@ -1,3 +1,17 @@
+lutris (0.5.8.1) groovy; urgency=medium
+
+  * Remove Proton from available Wine versions
+  * Display a dialog until Lutris finishes initializing
+  * Allow to keep game files when uninstalling a game
+  * Remove custom sidebar CSS
+  * Fix popup menu not showing in list view
+  * Fix script loading for local files
+  * Fix installed at column setting name for list view
+  * Fix lutris not launching games with rungameid
+  * Fix installed Steam game for fresh lutris installs
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 27 Nov 2020 14:23:48 -0800
+
 lutris (0.5.8) groovy; urgency=medium
 
   * 3rd party services are now available from the main window
