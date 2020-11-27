@@ -219,17 +219,6 @@ class steam(Runner):
     def get_steamapps_dirs(self):
         """Return a list of the Steam library main + custom folders."""
         dirs = []
-        # Extra colon-separated compatibility tools dirs environment variable
-        if 'STEAM_EXTRA_COMPAT_TOOLS_PATHS' in os.environ:
-            dirs += os.getenv('STEAM_EXTRA_COMPAT_TOOLS_PATHS').split(':')
-        # Main steamapps dir and compatibilitytools.d dir
-        for data_dir in STEAM_DATA_DIRS:
-            for _dir in ["steamapps", "compatibilitytools.d"]:
-                abs_dir = os.path.join(os.path.expanduser(data_dir), _dir)
-                abs_dir = system.fix_path_case(abs_dir)
-                if abs_dir and os.path.isdir(abs_dir):
-                    dirs.append(abs_dir)
-
         # Custom dirs
         steam_config = self.get_steam_config()
         if steam_config:

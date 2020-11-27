@@ -35,28 +35,6 @@ def get_playonlinux():
         return pol_path
     return None
 
-
-def _iter_proton_locations():
-    """Iterate through all existing Proton locations"""
-    for path in [os.path.join(p, "common") for p in steam().get_steamapps_dirs()]:
-        if os.path.isdir(path):
-            yield path
-    for path in [os.path.join(p, "") for p in steam().get_steamapps_dirs()]:
-        if os.path.isdir(path):
-            yield path
-
-
-def get_proton_paths():
-    """Get the Folder that contains all the Proton versions. Can probably be improved"""
-    paths = set()
-    for path in _iter_proton_locations():
-        proton_versions = [p for p in os.listdir(path) if "Proton" in p]
-        for version in proton_versions:
-            if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
-                paths.add(path)
-    return list(paths)
-
-
 POL_PATH = get_playonlinux()
 
 
@@ -168,18 +146,6 @@ def get_lutris_wine_versions():
     return versions
 
 
-def get_proton_versions():
-    """Return the list of Proton versions installed in Steam"""
-    versions = []
-    for proton_path in get_proton_paths():
-        proton_versions = [p for p in os.listdir(proton_path) if "Proton" in p]
-        for version in proton_versions:
-            path = os.path.join(proton_path, version, "dist/bin/wine")
-            if os.path.isfile(path):
-                versions.append(version)
-    return versions
-
-
 def get_pol_wine_versions():
     """Return the list of wine versions installed by Play on Linux"""
     if not POL_PATH:
@@ -201,7 +167,6 @@ def get_wine_versions():
     versions = []
     versions += get_system_wine_versions()
     versions += get_lutris_wine_versions()
-    versions += get_proton_versions()
     versions += get_pol_wine_versions()
     return versions
 
@@ -283,7 +248,7 @@ def is_version_esync(path):
         logger.error("Invalid path '%s'", path)
         return False
     version_number, version_prefix, version_suffix = parse_version(version)
-    esync_compatible_versions = ["esync", "lutris", "tkg", "ge", "proton"]
+    esync_compatible_versions = ["esync", "lutris", "tkg", "ge"]
     for esync_version in esync_compatible_versions:
         if esync_version in version_prefix or esync_version in version_suffix:
             return True
@@ -315,7 +280,7 @@ def is_version_fsync(path):
         logger.error("Invalid path '%s'", path)
         return False
     _, version_prefix, version_suffix = parse_version(version)
-    fsync_compatible_versions = ["fsync", "lutris", "ge", "proton"]
+    fsync_compatible_versions = ["fsync", "lutris", "ge"]
     for fsync_version in fsync_compatible_versions:
         if fsync_version in version_prefix or fsync_version in version_suffix:
             return True
