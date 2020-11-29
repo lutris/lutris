@@ -258,7 +258,7 @@ msgstr "卸载运行环境"
 
 #: share/lutris/ui/runner-remove-all-versions-dialog.ui:19
 msgid "Remove ALL versions?"
-msgstr "是否删除<b>所有</b>已安装的版本？"
+msgstr "是否删除所有已安装的版本？"
 
 #: share/lutris/ui/runner-remove-all-versions-dialog.ui:23
 #: share/lutris/ui/runner-remove-confirm-dialog.ui:23
