@@ -3,16 +3,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-26 07:34+0500\n"
-"PO-Revision-Date: 2020-11-29 17:44+0500\n"
+"POT-Creation-Date: 2020-11-29 19:40+0500\n"
+"PO-Revision-Date: 2020-11-29 19:40+0500\n"
 "Last-Translator: Nikita Grishko <yakrobat@protonmail.com>\n"
 "Language-Team: Russian <>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<"
-"=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Lokalize 20.08.2\n"
 
 #: share/applications/net.lutris.Lutris.desktop:3
@@ -48,12 +48,12 @@ msgid ""
 "games from GOG, Steam, Battle.net, Origin, Uplay and many other sources "
 "running on any Linux powered gaming machine."
 msgstr ""
-"Lutris - это игровая платформа с открытым исходным кодом. Он сам"
-" устанавливает и запускает игры, благодаря чему вы можете сразу же начать"
-" играть без необходимости проходить через скучную процедуру по настройке и"
-" установке ваших игр. Вы можете играть в игры из GOG, Steam, Battle.net,"
-" Origin, Uplay и множества других источников которые работают на любых"
-" игровых машинах под управлением Linux."
+"Lutris - это игровая платформа с открытым исходным кодом. Он сам "
+"устанавливает и запускает игры, благодаря чему вы можете сразу же начать "
+"играть без необходимости проходить через скучную процедуру по настройке и "
+"установке ваших игр. Вы можете играть в игры из GOG, Steam, Battle.net, "
+"Origin, Uplay и множества других источников которые работают на любых "
+"игровых машинах под управлением Linux."
 
 #: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:183
 msgid "About Lutris"
@@ -128,9 +128,8 @@ msgstr "_Отмена"
 msgid "Appl_y"
 msgstr "_Применить"
 
-# Ошибка в оригинальной строке (nn)
 #: share/lutris/ui/dialog-pga-sources.ui:79
-msgid "<b>Personnal Game Archives sources</b>"
+msgid "<b>Personal Game Archives sources</b>"
 msgstr "<b>Источники личных достижений</b>"
 
 #: share/lutris/ui/dialog-pga-sources.ui:142 lutris/gui/config/boxes.py:514
@@ -286,8 +285,7 @@ msgid ""
 msgstr ""
 "Это действие удалит <b>ВСЕ</b> версии %s.\n"
 "\n"
-"Используйте кнопку Менеджер версий если вы хотите удалить только одну из"
-" них."
+"Используйте кнопку Менеджер версий если вы хотите удалить только одну из них."
 
 #: share/lutris/ui/runner-remove-confirm-dialog.ui:59
 msgid "This will remove <b>%s</b> and all associated data."
@@ -312,8 +310,8 @@ msgid ""
 "system:\n"
 "{libs}"
 msgstr ""
-"Требуются библиотеки для архитектуры {arch}, но они не установлены на вашей"
-" системе :\n"
+"Требуются библиотеки для архитектуры {arch}, но они не установлены на вашей "
+"системе :\n"
 "{libs}"
 
 #: lutris/game_actions.py:58 lutris/gui/widgets/game_bar.py:169
@@ -486,14 +484,14 @@ msgstr "<b>Ошибка: Другая версия Wine уже использу�
 msgid ""
 "Running Lutris as root is not recommended and may cause unexpected issues"
 msgstr ""
-"Запускать Lutris от имени суперпользователя не рекомендуется и может привести"
-" к неожиданным проблемам"
+"Запускать Lutris от имени суперпользователя не рекомендуется и может "
+"привести к неожиданным проблемам"
 
 #: lutris/gui/application.py:97
 msgid "Your Linux distribution is too old. Lutris won't function properly."
 msgstr ""
-"Ваш дистрибутив Linux слишком старый. Lutris не будет работать должным"
-" образом."
+"Ваш дистрибутив Linux слишком старый. Lutris не будет работать должным "
+"образом."
 
 #: lutris/gui/application.py:102
 msgid ""
@@ -503,11 +501,11 @@ msgid ""
 "numerical-id.\n"
 "To install a game, add lutris:install/game-identifier."
 msgstr ""
-"Вы можете запустить игру напрямую используя параметр"
-" lutris:rungame/game-identifier.\n"
-"Если несколько игр имеют идентичные идентификаторы то вы можете использовать"
-" численный ID (отображаются при запуске lutris --list-games) и запустить игру"
-" с помощью lutris:rungameid/numerical-id.\n"
+"Вы можете запустить игру напрямую используя параметр lutris:rungame/game-"
+"identifier.\n"
+"Если несколько игр имеют идентичные идентификаторы то вы можете использовать "
+"численный ID (отображаются при запуске lutris --list-games) и запустить игру "
+"с помощью lutris:rungameid/numerical-id.\n"
 "Чтобы установить игру используйте lutris:install/game-identifier."
 
 #: lutris/gui/application.py:115
@@ -526,10 +524,9 @@ msgstr "Установить игру из yml файла"
 msgid "Generate a bash script to run a game without the client"
 msgstr "Сгенерировать bash скрипт для запуска игры без клиента"
 
-# lutris runtime на Lutris Runtime
 #: lutris/gui/application.py:147
-msgid "Execute a program with the lutris runtime"
-msgstr "Запустить игру с использованием Lutris Runtime"
+msgid "Execute a program with the Lutris Runtime"
+msgstr "Запустить программу с использованием Lutris Runtime"
 
 #: lutris/gui/application.py:155
 msgid "List all games in database"
@@ -559,9 +556,8 @@ msgstr "Переустановить игру"
 msgid "Submit an issue"
 msgstr "Сообщить об ошибке"
 
-# uri в оригинальной строке должно быть написано заглавными буквами
 #: lutris/gui/application.py:204
-msgid "uri to open"
+msgid "URI to open"
 msgstr "URI для открытия"
 
 #: lutris/gui/application.py:357
@@ -595,8 +591,8 @@ msgstr "Нет доступных параметров"
 #: lutris/gui/config/boxes.py:105
 msgid "Reset option to global or default config"
 msgstr ""
-"Вернуть опцию в состояние указанное в глобальной конфигурации или указанное"
-" по умолчанию"
+"Вернуть опцию в состояние указанное в глобальной конфигурации или указанное "
+"по умолчанию"
 
 #: lutris/gui/config/boxes.py:126
 msgid "<b>Default</b>: "
@@ -607,8 +603,8 @@ msgid ""
 "<i>(Italic indicates that this option is modified in a lower configuration "
 "level.)</i>"
 msgstr ""
-"<i>(Курсивом указано, что этот параметр изменен в конфигурации на более"
-" низком уровне.)</i>"
+"<i>(Курсивом указано, что этот параметр изменен в конфигурации на более "
+"низком уровне.)</i>"
 
 #: lutris/gui/config/boxes.py:307
 #, python-format
@@ -641,24 +637,24 @@ msgid ""
 "If modified, these options supersede the same options from the base runner "
 "configuration."
 msgstr ""
-"В случае изменения эти параметры заменяют собой параметры из базовой"
-" конфигурации раннера."
+"В случае изменения эти параметры заменяют собой параметры из базовой "
+"конфигурации раннера."
 
 #: lutris/gui/config/boxes.py:665
 msgid ""
 "If modified, these options supersede the same options from the base runner "
 "configuration, which themselves supersede the global preferences."
 msgstr ""
-"В случае изменения эти параметры заменяют собой параметры из базовой"
-" конфигурации раннера, которые в свою очередь заменяют глобальные настройки."
+"В случае изменения эти параметры заменяют собой параметры из базовой "
+"конфигурации раннера, которые в свою очередь заменяют глобальные настройки."
 
 #: lutris/gui/config/boxes.py:671
 msgid ""
 "If modified, these options supersede the same options from the global "
 "preferences."
 msgstr ""
-"В случае изменения эти параметры заменяют собой параметры из глобальной"
-" конфигурации."
+"В случае изменения эти параметры заменяют собой параметры из глобальной "
+"конфигурации."
 
 #: lutris/gui/config/common.py:27
 msgid "Select a runner in the Game Info tab"
@@ -761,8 +757,8 @@ msgid ""
 "Are you sure you want to change the runner for this game ? This will reset "
 "the full configuration for this game and is not reversible."
 msgstr ""
-"Вы уверены что хотите изменить раннер для этой игры? Это действие полностью"
-" сбросит все настройки для этой игры. Это действие необратимо."
+"Вы уверены что хотите изменить раннер для этой игры? Это действие полностью "
+"сбросит все настройки для этой игры. Это действие необратимо."
 
 #: lutris/gui/config/common.py:409
 msgid "Confirm runner change"
@@ -787,8 +783,8 @@ msgstr "Следующие поля имеют недопустимые знач
 #: lutris/gui/config/common.py:488
 msgid "Current configuration is not valid, ignoring save request"
 msgstr ""
-"Текущая конфигурация не является допустимой, запрос на сохранение"
-" проигнорирован."
+"Текущая конфигурация не является допустимой, запрос на сохранение "
+"проигнорирован."
 
 #: lutris/gui/config/common.py:524
 msgid "Please choose a custom image"
@@ -826,10 +822,10 @@ msgid ""
 "If left empty, the installer files are discarded after the install "
 "completion."
 msgstr ""
-"В случае если путь указан, то он будет использоваться установщиками для"
-" локального кэширования загруженных файлов для будущего переиспользования. \n"
-"В противном случае установочные файлы будут удалены после завершению"
-" установки."
+"В случае если путь указан, то он будет использоваться установщиками для "
+"локального кэширования загруженных файлов для будущего переиспользования. \n"
+"В противном случае установочные файлы будут удалены после завершению "
+"установки."
 
 #: lutris/gui/dialogs/download.py:12
 msgid "Downloading file"
@@ -899,12 +895,11 @@ msgid ""
 "Please follow the instructions given in the <a href='https://github.com/"
 "lutris/lutris/wiki/Wine-Dependencies'>Lutris Wiki</a> to install Wine."
 msgstr ""
-"Установленный в системе Wine гарантирует, что все сборки Wine в Lutris будут"
-" иметь все необходимые зависимости.\n"
+"Установленный в системе Wine гарантирует, что все сборки Wine в Lutris будут "
+"иметь все необходимые зависимости.\n"
 "\n"
-"Для установки Wine проследуйте инструкциям приведенным в <a"
-" href='https://github.com/lutris/lutris/wiki/Wine-Dependencies'>Lutris Вики<"
-"/a>."
+"Для установки Wine проследуйте инструкциям приведенным в <a href='https://"
+"github.com/lutris/lutris/wiki/Wine-Dependencies'>Lutris Вики</a>."
 
 #: lutris/gui/dialogs/issue.py:27
 msgid "<b>Submit an issue</b>"
@@ -916,9 +911,9 @@ msgid ""
 "will be sent the Lutris team along with your system information. You can "
 "also save this information locally if you are offline."
 msgstr ""
-"Опишите возникшую у вас проблему в текстовом поле ниже. Эта информация будет"
-" отправлена команде Lutris вместе с информацией о вашей системе. Вы также"
-" можете сохранить эту информацию локально, если вы не в сети."
+"Опишите возникшую у вас проблему в текстовом поле ниже. Эта информация будет "
+"отправлена команде Lutris вместе с информацией о вашей системе. Вы также "
+"можете сохранить эту информацию локально, если вы не в сети."
 
 #: lutris/gui/dialogs/issue.py:55
 msgid "_Save"
@@ -1112,8 +1107,8 @@ msgstr "Выберите каталог к которому примонтиро
 msgid ""
 "Please review the files needed for the installation then click 'Continue'"
 msgstr ""
-"Пожалуйста проверьте файлы необходимые для установки, затем нажмите"
-" 'Продолжить'"
+"Пожалуйста проверьте файлы необходимые для установки, затем нажмите "
+"'Продолжить'"
 
 #: lutris/gui/installerwindow.py:494
 msgid "Remove game files"
@@ -1167,25 +1162,25 @@ msgid ""
 "Windows.\n"
 "Games and programs installed on Windows drives usually <b>don't work</b>."
 msgstr ""
-"<b>Предупреждение!</b> Выбранный путь находится на диске отформатированном"
-" Windows.\n"
-"Игры и программы установленные на диски отформатированные Windows обычно <b"
-">не работают</b>."
+"<b>Предупреждение!</b> Выбранный путь находится на диске отформатированном "
+"Windows.\n"
+"Игры и программы установленные на диски отформатированные Windows обычно "
+"<b>не работают</b>."
 
 #: lutris/gui/widgets/common.py:144
 msgid ""
 "<b>Warning!</b> The selected path contains files. Installation might not "
 "work properly."
 msgstr ""
-"<b>Предупреждение!</b> Выбранный путь содержит файлы. Установка может пройти"
-" некорректно."
+"<b>Предупреждение!</b> Выбранный путь содержит файлы. Установка может пройти "
+"некорректно."
 
 #: lutris/gui/widgets/common.py:152
 msgid ""
 "<b>Warning</b> The destination folder is not writable by the current user."
 msgstr ""
-"<b>Предупреждение!</b> Текущий пользователь не имеет права записи в целевой"
-" каталог"
+"<b>Предупреждение!</b> Текущий пользователь не имеет права записи в целевой "
+"каталог"
 
 #: lutris/gui/widgets/common.py:254
 msgid "Add"
@@ -1207,6 +1202,15 @@ msgstr "Загрузка прервана"
 #, python-brace-format
 msgid "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} remaining"
 msgstr "{downloaded:0.2f} / {size:0.2f}МБ ({speed:0.2f}МБ/c), {time} осталось"
+
+#: lutris/gui/widgets/game_bar.py:133
+#, python-format
+msgid ""
+"Platform:\n"
+"<b>%s</b>"
+msgstr ""
+"Платформа:\n"
+"<b>%s</b>"
 
 #: lutris/gui/widgets/game_bar.py:140
 #, python-format
@@ -1239,8 +1243,8 @@ msgid ""
 "Failed to load games. Check that your profile is set to public during the "
 "sync."
 msgstr ""
-"Не удалось загрузить игры. Убедитесь что во время синхронизации ваш профиль"
-" открыт."
+"Не удалось загрузить игры. Убедитесь что во время синхронизации ваш профиль "
+"открыт."
 
 #: lutris/gui/widgets/sidebar.py:154
 msgid "Disconnect"
@@ -1334,8 +1338,8 @@ msgid ""
 "folder.\n"
 "Some parts of the installation process may have not completed successfully."
 msgstr ""
-"Не удается найти исполняемый файл находящийся в %s, пожалуйста проверьте"
-" каталог назначения.\n"
+"Не удается найти исполняемый файл находящийся в %s, пожалуйста проверьте "
+"каталог назначения.\n"
 "Некоторые части процесса установки могли не завершиться успешно."
 
 #: lutris/installer/interpreter.py:354
@@ -1354,9 +1358,8 @@ msgstr "Atari800"
 msgid "Atari 8bit computers"
 msgstr "8-битные компьютеры Atari"
 
-# нет пробела между запятыми в оригинале
 #: lutris/runners/atari800.py:29
-msgid "Atari 400,800 and XL emulator"
+msgid "Atari 400, 800 and XL emulator"
 msgstr "Эмулятор Atari 400, 800 и XL"
 
 #: lutris/runners/atari800.py:44 lutris/runners/jzintv.py:19
@@ -1368,24 +1371,21 @@ msgstr "Эмулятор Atari 400, 800 и XL"
 msgid "ROM file"
 msgstr "Файл образа ПЗУ (ROM)"
 
-# Унифицировать до "Supported formats:" ???
 #: lutris/runners/atari800.py:46
 msgid ""
 "The game data, commonly called a ROM image. \n"
-"Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ and PRO."
+"Supported formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ and PRO."
 msgstr ""
 "Игровые данные обычно называемые образом ПЗУ (ROM). \n"
-"Поддерживаемые форматы образов: ATR, XFD, DCM, ATR.GZ, XFD.GZ и PRO."
+"Поддерживаемые форматы: ATR, XFD, DCM, ATR.GZ, XFD.GZ и PRO."
 
-# Bios должно писаться заглавными буквами
-#: lutris/runners/atari800.py:60 lutris/runners/jzintv.py:32
-msgid "Bios location"
+#: lutris/runners/atari800.py:60
+msgid "BIOS location"
 msgstr "Путь к BIOS"
 
-# Bios должно писаться заглавными буквами
 #: lutris/runners/atari800.py:62
 msgid ""
-"A folder containing the Atari 800 bios files.\n"
+"A folder containing the Atari 800 BIOS files.\n"
 "They are provided by Lutris so you shouldn't have to change this."
 msgstr ""
 "Каталог содержащий файлы BIOS для Atari 800.\n"
@@ -1421,8 +1421,10 @@ msgstr "Устройство"
 #: lutris/runners/mame.py:151 lutris/runners/mednafen.py:74
 #: lutris/runners/mupen64plus.py:28 lutris/runners/o2em.py:75
 #: lutris/runners/osmose.py:34 lutris/runners/pcsx2.py:28
-#: lutris/runners/pico8.py:38 lutris/runners/reicast.py:42
-#: lutris/runners/snes9x.py:36 lutris/runners/vice.py:57
+#: lutris/runners/pico8.py:38 lutris/runners/redream.py:25
+#: lutris/runners/reicast.py:42 lutris/runners/residualvm.py:42
+#: lutris/runners/scummvm.py:46 lutris/runners/snes9x.py:36
+#: lutris/runners/vice.py:57
 msgid "Fullscreen"
 msgstr "Полноэкранный режим"
 
@@ -1430,23 +1432,20 @@ msgstr "Полноэкранный режим"
 msgid "Fullscreen resolution"
 msgstr "Полноэкранное разрешение"
 
-# в оригинале нет пробела между Atari и 800
 #: lutris/runners/atari800.py:107
-msgid "Could not download Atari800 BIOS archive"
+msgid "Could not download Atari 800 BIOS archive"
 msgstr "Не удалось загрузить архив с BIOS для Atari 800"
 
-# не Gamecube а GameCube
 #: lutris/runners/dolphin.py:10
-msgid "Gamecube and Wii emulator"
+msgid "GameCube and Wii emulator"
 msgstr "Эмулятор GameCube и Wii"
 
 #: lutris/runners/dolphin.py:11
 msgid "Dolphin"
 msgstr "Dolphin"
 
-# не Gamecube а GameCube
 #: lutris/runners/dolphin.py:12 lutris/runners/dolphin.py:26
-msgid "Nintendo Gamecube"
+msgid "Nintendo GameCube"
 msgstr "Nintendo GameСube"
 
 #: lutris/runners/dolphin.py:12 lutris/runners/dolphin.py:26
@@ -1478,9 +1477,8 @@ msgstr "Закрывать Dolphin вместе с эмулятором"
 msgid "DOSBox"
 msgstr "DOSBox"
 
-# MS-Dos пишется заглавными буквами
 #: lutris/runners/dosbox.py:14
-msgid "MS-Dos emulator"
+msgid "MS-DOS emulator"
 msgstr "Эмулятор MS-DOS"
 
 #: lutris/runners/dosbox.py:15
@@ -1498,28 +1496,26 @@ msgid ""
 "config file."
 msgstr ""
 "CONF, EXE, COM или BAT файл для запуска.\n"
-"Его можно оставить пустым, если запуск исполняемого файла управляется через"
-" файл конфигурации."
+"Его можно оставить пустым, если запуск исполняемого файла управляется через "
+"файл конфигурации."
 
 #: lutris/runners/dosbox.py:33
 msgid "Configuration file"
 msgstr "Файл конфигурации"
 
-# Dosbox должен писаться как DOSBox
 #: lutris/runners/dosbox.py:35
 msgid ""
-"Start Dosbox with the options specified in this file. \n"
+"Start DOSBox with the options specified in this file. \n"
 "It can have a section in which you can put commands to execute on startup. "
-"Read Dosbox's documentation for more information."
+"Read DOSBox's documentation for more information."
 msgstr ""
 "Запустить DOSBox с параметрами указанными в этом файле. \n"
-"Он может содержать раздел, в котором вы можете помещать команды для"
-" выполнения при запуске. Ознакомьтесь с документацией DOSBox для получения"
-" дополнительной информации."
+"Он может содержать раздел, в котором вы можете помещать команды для "
+"выполнения при запуске. Ознакомьтесь с документацией DOSBox для получения "
+"дополнительной информации."
 
-# Лучше бы поменять на command line arguments
 #: lutris/runners/dosbox.py:44
-msgid "Command arguments"
+msgid "Command line arguments"
 msgstr "Аргументы командной строки"
 
 #: lutris/runners/dosbox.py:45
@@ -1553,17 +1549,15 @@ msgid ""
 "The algorithm used to scale up the game's base resolution, resulting in "
 "different visual styles. "
 msgstr ""
-"Алгоритм, используемый для увеличения базового разрешения игры. Разные"
-" алгоритмы по разному изменяют визуальный стиль игр."
+"Алгоритм, используемый для увеличения базового разрешения игры. Разные "
+"алгоритмы по разному изменяют визуальный стиль игр."
 
-# не Dosbox а DOSBox
 #: lutris/runners/dosbox.py:98
-msgid "Exit Dosbox with the game"
+msgid "Exit DOSBox with the game"
 msgstr "Закрывать DOSBox вместе с игрой"
 
-# не Dosbox в DOSBox
 #: lutris/runners/dosbox.py:101
-msgid "Shut down Dosbox when the game is quit."
+msgid "Shut down DOSBox when the game is quit."
 msgstr "Закрывать DOSBox при выходе из игры."
 
 #: lutris/runners/dosbox.py:105
@@ -1571,7 +1565,7 @@ msgid "Open game in fullscreen"
 msgstr "Открывать игру в полноэкранном режиме"
 
 #: lutris/runners/dosbox.py:108
-msgid "Tells Dosbox to launch the game in fullscreen."
+msgid "Tells DOSBox to launch the game in fullscreen."
 msgstr "Указывает DOSBox запускать игру в полноэкранном режиме."
 
 #: lutris/runners/fsuae.py:11
@@ -1638,6 +1632,134 @@ msgstr "Amiga 1200 но с процессором 68020"
 msgid "Amiga 4000 with 2 MB chip RAM and a 68040"
 msgstr "Amiga 4000 с чипом ОЗУ на 2 МБ и 68040"
 
+#: lutris/runners/fsuae.py:36
+msgid "68000"
+msgstr "68000"
+
+#: lutris/runners/fsuae.py:37
+msgid "68010"
+msgstr "68010"
+
+#: lutris/runners/fsuae.py:38
+msgid "68020 with 24-bit addressing"
+msgstr "68020 с 24-битной адресацией"
+
+#: lutris/runners/fsuae.py:39
+msgid "68020"
+msgstr "68020"
+
+#: lutris/runners/fsuae.py:40
+msgid "68030 without internal MMU"
+msgstr "68030 без внутреннего MMU"
+
+#: lutris/runners/fsuae.py:41
+msgid "68030"
+msgstr "68030"
+
+#: lutris/runners/fsuae.py:42
+msgid "68040 without internal FPU and MMU"
+msgstr "68040 без внутреннего FPU и MMU"
+
+#: lutris/runners/fsuae.py:43
+msgid "68040 without internal FPU"
+msgstr "68040 без внутреннего FPU"
+
+#: lutris/runners/fsuae.py:44
+msgid "68040 without internal MMU"
+msgstr "68040 без внутреннего MMU"
+
+#: lutris/runners/fsuae.py:45
+msgid "68040"
+msgstr "68040"
+
+#: lutris/runners/fsuae.py:46
+msgid "68060 without internal FPU and MMU"
+msgstr "68060 без внутреннего FPU и MMU"
+
+#: lutris/runners/fsuae.py:47
+msgid "68060 without internal FPU"
+msgstr "68060 без внутреннего FPU"
+
+#: lutris/runners/fsuae.py:48
+msgid "68060 without internal MMU"
+msgstr "68060 без внутреннего MMU"
+
+#: lutris/runners/fsuae.py:49
+msgid "68060"
+msgstr "68060"
+
+#: lutris/runners/fsuae.py:50 lutris/runners/mame.py:159
+#: lutris/runners/wine.py:82 lutris/runners/wine.py:435
+#: lutris/runners/wine.py:472 lutris/runners/winesteam.py:86
+#: lutris/sysoptions.py:72
+msgid "Auto"
+msgstr "Автоматически"
+
+#: lutris/runners/fsuae.py:53 lutris/runners/fsuae.py:60
+#: lutris/runners/fsuae.py:94
+msgid "0"
+msgstr "0"
+
+#: lutris/runners/fsuae.py:54 lutris/runners/fsuae.py:61
+#: lutris/runners/fsuae.py:95
+msgid "1 MB"
+msgstr "1 МБ"
+
+#: lutris/runners/fsuae.py:55 lutris/runners/fsuae.py:62
+#: lutris/runners/fsuae.py:96
+msgid "2 MB"
+msgstr "2 МБ"
+
+#: lutris/runners/fsuae.py:56 lutris/runners/fsuae.py:63
+#: lutris/runners/fsuae.py:97
+msgid "4 MB"
+msgstr "4 МБ"
+
+#: lutris/runners/fsuae.py:57 lutris/runners/fsuae.py:64
+#: lutris/runners/fsuae.py:98
+msgid "8 MB"
+msgstr "8 МБ"
+
+#: lutris/runners/fsuae.py:65 lutris/runners/fsuae.py:99
+msgid "16 MB"
+msgstr "16 МБ"
+
+#: lutris/runners/fsuae.py:66 lutris/runners/fsuae.py:100
+msgid "32 MB"
+msgstr "32 МБ"
+
+#: lutris/runners/fsuae.py:67 lutris/runners/fsuae.py:101
+msgid "64 MB"
+msgstr "64 МБ"
+
+#: lutris/runners/fsuae.py:68 lutris/runners/fsuae.py:102
+msgid "128 MB"
+msgstr "128 МБ"
+
+#: lutris/runners/fsuae.py:69 lutris/runners/fsuae.py:103
+msgid "256 MB"
+msgstr "256 МБ"
+
+#: lutris/runners/fsuae.py:70
+msgid "384 MB"
+msgstr "384 МБ"
+
+#: lutris/runners/fsuae.py:71
+msgid "512 MB"
+msgstr "512 МБ"
+
+#: lutris/runners/fsuae.py:72
+msgid "768 MB"
+msgstr "768 МБ"
+
+#: lutris/runners/fsuae.py:73
+msgid "1 GB"
+msgstr "1 ГБ"
+
+#: lutris/runners/fsuae.py:106
+msgid "Turbo"
+msgstr "Турбо"
+
 #: lutris/runners/fsuae.py:117
 msgid "Boot disk"
 msgstr "Загрузочный диск"
@@ -1652,10 +1774,10 @@ msgid ""
 "Amiga CD32 and CDTV models."
 msgstr ""
 "Основная дискета с загрузочными данными игры. \n"
-"FS-UAE поддерживает множество форматов образов дискет: ADF, IPF, DMS - самые"
-" распространенные. ADZ (сжатый ADF) а также ADF a виде zip архивов.\n"
-"Файлы оканчивающиеся на .hdf будут примонтированы как жесткие диски, ISO"
-" могут использоваться для моделей Amiga CD32 и CDTV."
+"FS-UAE поддерживает множество форматов образов дискет: ADF, IPF, DMS - самые "
+"распространенные. ADZ (сжатый ADF) а также ADF a виде zip архивов.\n"
+"Файлы оканчивающиеся на .hdf будут примонтированы как жесткие диски, ISO "
+"могут использоваться для моделей Amiga CD32 и CDTV."
 
 #: lutris/runners/fsuae.py:130
 msgid "Additionnal floppies"
@@ -1665,9 +1787,8 @@ msgstr "Дополнительные дискеты"
 msgid "The additional floppy disk image(s)."
 msgstr "Дополнительный образ (образы) дискет"
 
-# поменять CD-Rom на CD-ROM
 #: lutris/runners/fsuae.py:135
-msgid "CD-Rom image"
+msgid "CD-ROM image"
 msgstr "Образ CD-ROM"
 
 #: lutris/runners/fsuae.py:137
@@ -1686,17 +1807,16 @@ msgstr "Укажите модель Amiga которую вы хотите эм�
 msgid "Kickstart ROMs location"
 msgstr "Расположение ПЗУ Kickstart"
 
-# kickstart с большой буквы
 #: lutris/runners/fsuae.py:155
 msgid ""
-"Choose the folder containing original Amiga kickstart ROMs. Refer to FS-UAE "
+"Choose the folder containing original Amiga Kickstart ROMs. Refer to FS-UAE "
 "documentation to find how to acquire them. Without these, FS-UAE uses a "
 "bundled replacement ROM which is less compatible with Amiga software."
 msgstr ""
-"Выберите каталог содержащий оригинальные ПЗУ Amiga Kickstart. Обратитесь к"
-" документации FS-UAE, чтобы узнать, как их получить. Без них FS-UAE"
-" использует замещающее ПЗУ которое зачастую плохо работает с программным"
-" обеспечением Amiga."
+"Выберите каталог содержащий оригинальные ПЗУ Amiga Kickstart. Обратитесь к "
+"документации FS-UAE, чтобы узнать, как их получить. Без них FS-UAE "
+"использует замещающее ПЗУ которое зачастую плохо работает с программным "
+"обеспечением Amiga."
 
 #: lutris/runners/fsuae.py:164
 msgid "Extended Kickstart location"
@@ -1706,10 +1826,9 @@ msgstr "Расположение расширенного Kickstart"
 msgid "Location of extended Kickstart used for CD32"
 msgstr "Расположение расширенного образа Kickstart используемого для CD32"
 
-# Сделать s большой?
 #: lutris/runners/fsuae.py:171
-msgid "Fullscreen (F12 + s to switch)"
-msgstr "Полноэкранный режим (F12 + s для переключения)"
+msgid "Fullscreen (F12 + S to switch)"
+msgstr "Полноэкранный режим (F12 + S для переключения)"
 
 #: lutris/runners/fsuae.py:177 lutris/runners/o2em.py:81
 msgid "Scanlines display style"
@@ -1720,23 +1839,22 @@ msgid ""
 "Activates a display filter adding scanlines to imitate the displays of "
 "yesteryear."
 msgstr ""
-"Активирует фильтр отображения, добавляющий строки развертки, для имитации"
-" экранов прошлых лет."
+"Активирует фильтр отображения, добавляющий строки развертки, для имитации "
+"экранов прошлых лет."
 
 #: lutris/runners/fsuae.py:185
 msgid "CPU"
 msgstr "ЦП"
 
-# заменить ifwant на if you want и Amigamodels на Amiga models
 #: lutris/runners/fsuae.py:190
 msgid ""
-"Use this option to override the CPU model in the emulated Amiga. All "
-"Amigamodels imply a default CPU model, so you only need to use this option "
-"ifwant to use another CPU."
+"Use this option to override the CPU model in the emulated Amiga. All Amiga "
+"models imply a default CPU model, so you only need to use this option if you "
+"want to use another CPU."
 msgstr ""
-"Используйте эту опцию чтобы переопределить модель ЦП эмулируемой Amiga. Все"
-" модели Amiga подразумевают использования стандартного ЦП, поэтому"
-" используйте эту опцию только если вам нужно использовать другой ЦП."
+"Используйте эту опцию чтобы переопределить модель ЦП эмулируемой Amiga. Все "
+"модели Amiga подразумевают использования стандартного ЦП, поэтому "
+"используйте эту опцию только если вам нужно использовать другой ЦП."
 
 #: lutris/runners/fsuae.py:196
 msgid "Fast Memory"
@@ -1750,16 +1868,15 @@ msgstr "Укажите сколько быстрой памяти должна �
 msgid "Zorro III RAM"
 msgstr "Zorro III ОЗУ"
 
-# aprocessor на a processor, amultiple на a multiple, две точки в конце (..) на одну (.)
 #: lutris/runners/fsuae.py:210
 msgid ""
-"Override the amount of Zorro III Fast memory, specified in KB. Must be "
-"amultiple of 1024. The default value depends on [amiga_model]. Requires "
-"aprocessor with 32-bit address bus, (use for example the A1200/020 model).."
+"Override the amount of Zorro III Fast memory, specified in KB. Must be a "
+"multiple of 1024. The default value depends on [amiga_model]. Requires a "
+"processor with 32-bit address bus, (use for example the A1200/020 model)."
 msgstr ""
-"Переопределяет количество быстрой памяти Zorro III, указывается в КБ. Должно"
-" быть кратно 1024. Значение по умолчанию зависит от [amiga_model]. Требуется"
-" процессор с 32-битной адресной шиной, (например как в модели A1200/020)."
+"Переопределяет количество быстрой памяти Zorro III, указывается в КБ. Должно "
+"быть кратно 1024. Значение по умолчанию зависит от [amiga_model]. Требуется "
+"процессор с 32-битной адресной шиной, (например как в модели A1200/020)."
 
 #: lutris/runners/fsuae.py:216
 msgid "Floppy Drive Volume"
@@ -1770,14 +1887,13 @@ msgid ""
 "Set volume to 0 to disable floppy drive clicks when the drive is empty. Max "
 "volume is 100."
 msgstr ""
-"Установите объем на 0 чтобы отключить щелчки дисковода когда он пустой."
-" Максимальный объем - 100."
+"Установите объем на 0 чтобы отключить щелчки дисковода когда он пустой. "
+"Максимальный объем - 100."
 
 #: lutris/runners/fsuae.py:226
 msgid "Floppy Drive Speed"
 msgstr "Скорость флоппи-дисковода"
 
-# утонить 800 до 800%?
 #: lutris/runners/fsuae.py:232
 msgid ""
 "Set the speed of the emulated floppy drives, in percent. For example, you "
@@ -1785,11 +1901,11 @@ msgid ""
 "Turbo mode means that all floppy operations complete immediately. The "
 "default is 100 for most models."
 msgstr ""
-"Установите скорость эмулируемого флоппи-дисковода в процентах. Для примера,"
-" вы можете указать 800 для того чтобы получить 8-кратное увеличение скорости."
-" Используйте 0 для того чтобы включить турбо-режим. Турбо-режим заставляет"
-" все операции с флоппи-диском исполняться немедленно. Для большинства моделей"
-" по умолчанию используется значение 100."
+"Установите скорость эмулируемого флоппи-дисковода в процентах. Для примера, "
+"вы можете указать 800 для того чтобы получить 8-кратное увеличение скорости. "
+"Используйте 0 для того чтобы включить турбо-режим. Турбо-режим заставляет "
+"все операции с флоппи-диском исполняться немедленно. Для большинства моделей "
+"по умолчанию используется значение 100."
 
 #: lutris/runners/fsuae.py:240
 msgid "Graphics Card"
@@ -1800,8 +1916,8 @@ msgid ""
 "Use this option to enable a graphics card. This option is none by default, "
 "in which case only chipset graphics (OCS/ECS/AGA) support is available."
 msgstr ""
-"Use this option to enable a graphics card. This option is none by default, in"
-" which case only chipset graphics (OCS/ECS/AGA) support is available.будут"
+"Use this option to enable a graphics card. This option is none by default, "
+"in which case only chipset graphics (OCS/ECS/AGA) support is available.будут"
 
 #: lutris/runners/fsuae.py:252
 msgid "Graphics Card RAM"
@@ -1812,40 +1928,37 @@ msgid ""
 "Override the amount of graphics memory on the graphics card. The 0 MB option "
 "is not really valid, but exists for user interface reasons."
 msgstr ""
-"Переопределяет количество памяти доступной видеокарте. Параметр 0 МБ на самом"
-" деле недопустим, но существует по причинам, связанным с пользовательским"
-" интерфейсом."
+"Переопределяет количество памяти доступной видеокарте. Параметр 0 МБ на "
+"самом деле недопустим, но существует по причинам, связанным с "
+"пользовательским интерфейсом."
 
 #: lutris/runners/fsuae.py:264
 msgid "JIT Compiler"
 msgstr "JIT компилятор"
 
-# поменять на Enable Feral GameMode
 #: lutris/runners/fsuae.py:271
 msgid "Feral GameMode"
 msgstr "Feral GameMode"
 
-# .set на . Set
 #: lutris/runners/fsuae.py:275
 msgid ""
-"Automatically uses Feral GameMode daemon if available.set to true to disable "
-"the feature."
+"Automatically uses Feral GameMode daemon if available. Set to true to "
+"disable the feature."
 msgstr ""
-"Автоматически использует демон Feral GameMode, если он доступен. Установите"
-" значение true чтобы отключить эту функцию."
+"Автоматически использует демон Feral GameMode, если он доступен. Установите "
+"значение true чтобы отключить эту функцию."
 
 #: lutris/runners/fsuae.py:280
 msgid "CPU governor warning"
 msgstr "Предупреждение о регуляторе ЦП"
 
-# .set на . Set
 #: lutris/runners/fsuae.py:285
 msgid ""
-"Warn if running with a CPU governor other than performance.set to true to "
+"Warn if running with a CPU governor other than performance. Set to true to "
 "disable the warning."
 msgstr ""
-"Предупреждать при работе с регулятором (governor) ЦП, отличным от"
-" performance.  Установите значение true чтобы отключить это предупреждение."
+"Предупреждать при работе с регулятором (governor) ЦП, отличным от "
+"performance.  Установите значение true чтобы отключить это предупреждение."
 
 #: lutris/runners/fsuae.py:290
 msgid "UAE bsdsocket.library"
@@ -1873,15 +1986,16 @@ msgid ""
 "STX, IPF, RAW and CRT. The last three require the caps library (capslib). "
 "ZIP is supported, you don't need to uncompress the file."
 msgstr ""
-"Hatari поддерживает множество форматов образов дискет: ST, DIM, MSA, STX,"
-" IPF, RAW и CRT. Последние три требуют наличия caps library (capslib). ZIP"
-" архивы поддерживаются, поэтому файлы разархивировать не нужно."
+"Hatari поддерживает множество форматов образов дискет: ST, DIM, MSA, STX, "
+"IPF, RAW и CRT. Последние три требуют наличия caps library (capslib). ZIP "
+"архивы поддерживаются, поэтому файлы разархивировать не нужно."
 
 #: lutris/runners/hatari.py:42
 msgid "Floppy Disk B"
 msgstr "Флоппи-диск B"
 
-#: lutris/runners/hatari.py:52 lutris/runners/zdoom.py:76
+#: lutris/runners/hatari.py:52 lutris/runners/redream.py:74
+#: lutris/runners/zdoom.py:76
 msgid "None"
 msgstr "Нет"
 
@@ -1903,8 +2017,8 @@ msgid ""
 "applications with the best fidelity, minimizing risks of issues.\n"
 "TOS 1.02 is recommended for games."
 msgstr ""
-"TOS - это операционная система Atari ST, она необходима для правильного"
-" запуска приложений и минимизации риска ошибок.\n"
+"TOS - это операционная система Atari ST, она необходима для правильного "
+"запуска приложений и минимизации риска ошибок.\n"
 "Для игр рекомендуется использовать TOS 1.02 ."
 
 #: lutris/runners/hatari.py:78
@@ -1926,10 +2040,10 @@ msgid ""
 "display graphics in fullscreen. But people from the demo scene were able to "
 "remove them and some games made use of this technique."
 msgstr ""
-"Полезно для некоторых игр и демок использующих вылеты развертки (overscan)."
-" Atari ST отображала границы вокруг экрана потому что ей не хватало мощности"
-" для вывода графики на весь экран, но люди из демосцены сумели убрать их и в"
-" последующем некоторые игры использовали данную технику."
+"Полезно для некоторых игр и демок использующих вылеты развертки (overscan). "
+"Atari ST отображала границы вокруг экрана потому что ей не хватало мощности "
+"для вывода графики на весь экран, но люди из демосцены сумели убрать их и в "
+"последующем некоторые игры использовали данную технику."
 
 #: lutris/runners/hatari.py:106
 msgid "Display status bar"
@@ -1940,8 +2054,8 @@ msgid ""
 "Displays a status bar with some useful information, like green leds lighting "
 "up when the floppy disks are read."
 msgstr ""
-"Отображать строку состояния со всякой полезной информацией, например"
-" мигающими зелеными светодиодами зажигающимися при чтении флоппи-дисков."
+"Отображать строку состояния со всякой полезной информацией, например "
+"мигающими зелеными светодиодами зажигающимися при чтении флоппи-дисков."
 
 #: lutris/runners/hatari.py:118
 msgid "Joystick 1"
@@ -1975,37 +2089,41 @@ msgstr "Эмулятор Intellivision"
 msgid "Intellivision"
 msgstr "Intellivision"
 
-# Supported rom formats на Supported ROM formats
-# Унифицировать до "Supported formats:" ???
-# писать форматы с прописными буквами?
 #: lutris/runners/jzintv.py:22
 msgid ""
 "The game data, commonly called a ROM image. \n"
-"Supported rom formats: .rom, .bin+.cfg, .int, .itv \n"
+"Supported formats: ROM, BIN+CFG, INT, ITV \n"
 "The file extension must be lower-case."
 msgstr ""
 "Игровые данные обычно называемые образом ПЗУ (ROM). \n"
-"Поддерживаемые форматы образов: .rom, .bin+.cfg, .int, .itv \n"
+"Поддерживаемые форматы: ROM, BIN+CFG, INT, ITV \n"
 "Расширение файла должно быть записано в прописными буквами."
 
-# bios на BIOS
+#: lutris/runners/jzintv.py:32
+msgid "Bios location"
+msgstr "Путь к BIOS"
+
 #: lutris/runners/jzintv.py:34
 msgid ""
-"Choose the folder containing the Intellivision bios files (exec.bin and grom."
+"Choose the folder containing the Intellivision BIOS files (exec.bin and grom."
 "bin).\n"
 "These files contain code from the original hardware necessary to the "
 "emulation."
 msgstr ""
-"Выберите каталог, содержащий файлы BIOS Intellivision (exec.bin и grom.bin).\n"
+"Выберите каталог, содержащий файлы BIOS Intellivision (exec.bin и grom."
+"bin).\n"
 "Эти файлы содержат код оригинального оборудования, необходимый для эмуляции."
+
+#: lutris/runners/jzintv.py:48
+msgid "Resolution"
+msgstr "Разрешение"
 
 #: lutris/runners/libretro.py:59
 msgid "Libretro"
 msgstr "Libretro"
 
-# поменять на multi-system?
 #: lutris/runners/libretro.py:60
-msgid "Multi system emulator"
+msgid "Multi-system emulator"
 msgstr "Многосистемный эмулятор"
 
 #: lutris/runners/libretro.py:73
@@ -2077,9 +2195,9 @@ msgid ""
 "standard set of directories; this is useful when debugging a new library or "
 "using a nonstandard library for special purposes."
 msgstr ""
-"Каталог, в котором библиотеки следует искать в первую очередь, перед"
-" стандартным набор каталогов; это полезно при отладке новой библиотеки или"
-" использовании нестандартной библиотеки для особых целей."
+"Каталог, в котором библиотеки следует искать в первую очередь, перед "
+"стандартным набор каталогов; это полезно при отладке новой библиотеки или "
+"использовании нестандартной библиотеки для особых целей."
 
 #: lutris/runners/mame.py:59
 msgid "MAME"
@@ -2165,19 +2283,16 @@ msgstr "Жесткий диск 1"
 msgid "Hard Disk 2"
 msgstr "Жесткий диск 2"
 
-# CDROM на CD-ROM
 #: lutris/runners/mame.py:103
-msgid "CDROM"
+msgid "CD-ROM"
 msgstr "CD-ROM"
 
-# CDROM на CD-ROM
 #: lutris/runners/mame.py:104
-msgid "CDROM 1"
+msgid "CD-ROM 1"
 msgstr "CD-ROM 1"
 
-# CDROM на CD-ROM
 #: lutris/runners/mame.py:105
-msgid "CDROM 2"
+msgid "CD-ROM 2"
 msgstr "CD-ROM 2"
 
 #: lutris/runners/mame.py:107
@@ -2202,20 +2317,19 @@ msgstr "Перфолента 2"
 
 #: lutris/runners/mame.py:112
 msgid "Print Out"
-msgstr ""
+msgstr "Вывод"
 
 #: lutris/runners/mame.py:124
 msgid "Autoboot command"
 msgstr "Команда автозагрузки"
 
-# пробел после запятой
 #: lutris/runners/mame.py:125
 msgid ""
-"Autotype this command when the system has started,an enter keypress is "
+"Autotype this command when the system has started, an enter keypress is "
 "automatically added."
 msgstr ""
-"Автоматически вводить эту команду при старте системы, ввод перевода строки"
-" добавляется автоматически."
+"Автоматически вводить эту команду при старте системы, ввод перевода строки "
+"добавляется автоматически."
 
 #: lutris/runners/mame.py:131
 msgid "Delay before entering autoboot command"
@@ -2238,12 +2352,6 @@ msgstr ""
 msgid "Video backend"
 msgstr "Видео-бэкенд"
 
-#: lutris/runners/mame.py:159 lutris/runners/wine.py:82
-#: lutris/runners/wine.py:436 lutris/runners/wine.py:473
-#: lutris/runners/winesteam.py:86 lutris/sysoptions.py:72
-msgid "Auto"
-msgstr "Автоматически"
-
 #: lutris/runners/mame.py:163 lutris/runners/residualvm.py:53
 #: lutris/runners/vice.py:82
 msgid "Software"
@@ -2258,8 +2366,8 @@ msgid ""
 "Enable waiting for  the  start  of  VBLANK  before flipping  screens; "
 "reduces tearing effects."
 msgstr ""
-"Включить ожидание начала VBLANK перед перелистыванием экранов; уменьшает"
-" эффект разрыва экрана."
+"Включить ожидание начала VBLANK перед перелистыванием экранов; уменьшает "
+"эффект разрыва экрана."
 
 #: lutris/runners/mame.py:180
 msgid "Menu mode key"
@@ -2312,8 +2420,8 @@ msgid ""
 "Key to switch between Full Keyboard Mode and Partial Keyboard Mode (default: "
 "Scroll Lock)"
 msgstr ""
-"Клавиша для переключения между режимом полной клавиатуры и режимом частичной"
-" клавиатуры (по умолчанию: Scroll Lock)"
+"Клавиша для переключения между режимом полной клавиатуры и режимом частичной "
+"клавиатуры (по умолчанию: Scroll Lock)"
 
 #: lutris/runners/mame.py:209 lutris/runners/mame.py:249
 msgid "Arcade"
@@ -2327,10 +2435,11 @@ msgstr "Nintendo Game & Watch"
 msgid "Mednafen"
 msgstr "Mednafen"
 
-# Может лучше:  "Multi-system emulator supporting NES, GB(A), PC Engine and many more" ??
 #: lutris/runners/mednafen.py:17
-msgid "Multi-system emulator including NES, GB(A), PC Engine support."
-msgstr "Многосистемный эмулятор, поддерживающий NES, GB(A) и PC Engine."
+msgid "Multi-system emulator supporting NES, GB(A), PC Engine and many more."
+msgstr ""
+"Многосистемный эмулятор, поддерживающий NES, GB(A) и PC Engine и многие "
+"другие"
 
 #: lutris/runners/mednafen.py:19
 msgid "Nintendo Game Boy (Color)"
@@ -2469,7 +2578,7 @@ msgid "Aspect ratio"
 msgstr "Соотношение сторон"
 
 #: lutris/runners/mednafen.py:85 lutris/runners/wine.py:397
-#: lutris/runners/wine.py:417 lutris/runners/wine.py:497
+#: lutris/runners/wine.py:416 lutris/runners/wine.py:496
 #: lutris/sysoptions.py:234
 msgid "Disabled"
 msgstr "Отключено"
@@ -2478,7 +2587,7 @@ msgstr "Отключено"
 msgid "Stretched"
 msgstr "Растянуть"
 
-#: lutris/runners/mednafen.py:87
+#: lutris/runners/mednafen.py:87 lutris/runners/vice.py:69
 msgid "Preserve aspect ratio"
 msgstr "Сохранять соотношение сторон"
 
@@ -2540,7 +2649,7 @@ msgstr "O2EM"
 msgid "Magnavox Osyssey² Emulator"
 msgstr "Эмулятор Magnavox Osyssey²"
 
-#: lutris/runners/o2em.py:14
+#: lutris/runners/o2em.py:14 lutris/runners/o2em.py:30
 msgid "Magnavox Odyssey²"
 msgstr "Magnavox Odyssey²"
 
@@ -2556,27 +2665,20 @@ msgstr "Phillips Videopac+"
 msgid "Brandt Jopac"
 msgstr "Brandt Jopac"
 
-# Magnavox Odyssey² ???
-#: lutris/runners/o2em.py:30
-msgid "Magnavox Odyssey2"
-msgstr "Magnavox Odyssey2"
-
 #: lutris/runners/o2em.py:36 lutris/runners/wine.py:355
 msgid "Disable"
 msgstr "Отключить"
 
-# Arrow keys вместо Arrows keys?
 #: lutris/runners/o2em.py:37
-msgid "Arrows keys and right shift"
-msgstr "Клавиши со стрелками и правый shift"
+msgid "Arrow Keys and Right Shift"
+msgstr "Клавиши со стрелками и Правый Shift"
 
 #: lutris/runners/o2em.py:38
 msgid "W,S,A,D,SPACE"
 msgstr "W,S,A,D,SPACE"
 
-# поменять на BIOS?
 #: lutris/runners/o2em.py:55
-msgid "Bios"
+msgid "BIOS"
 msgstr "BIOS"
 
 #: lutris/runners/o2em.py:62
@@ -2607,14 +2709,14 @@ msgstr "Osmose"
 msgid "Sega Master System Emulator"
 msgstr "Эмулятор Sega Master System"
 
-# убрать files после GG?
 #: lutris/runners/osmose.py:25
 msgid ""
 "The game data, commonly called a ROM image.\n"
 "Supported formats: SMS and GG files. ZIP compressed ROMs are supported."
 msgstr ""
 "Игровые данные обычно называемые образом ПЗУ (ROM).\n"
-"Поддерживаемые форматы: SMS и GG. Образы сжатые ZIP также поддерживаются."
+"Поддерживаемые форматы: файлы SMS и GG. Образы сжатые ZIP также "
+"поддерживаются."
 
 #: lutris/runners/pcsx2.py:10
 msgid "PCSX2"
@@ -2649,17 +2751,15 @@ msgstr "Работает с картриджами PICO-8 fantasy console."
 msgid "PICO-8"
 msgstr "PICO-8"
 
-# Cartridge File/URL/ID ??
 #: lutris/runners/pico8.py:29
-msgid "Cartridge file/url/id"
+msgid "Cartridge file/URL/ID"
 msgstr "Файл/URL-адрес/ID картриджа"
 
-# URL и ID
 #: lutris/runners/pico8.py:30
-msgid "You can put a .p8.png file path, url, or BBS cartridge id here."
+msgid "You can put a .p8.png file path, URL, or BBS cartridge ID here."
 msgstr ""
-"Здесь можно указать путь к файлу .p8.png, URL-адрес или идентификатор"
-" картриджа BBS."
+"Здесь можно указать путь к файлу .p8.png, URL-адрес или идентификатор "
+"картриджа BBS."
 
 #: lutris/runners/pico8.py:40
 msgid "Launch in fullscreen."
@@ -2679,7 +2779,7 @@ msgstr "Начать в режиме splore"
 
 #: lutris/runners/pico8.py:58
 msgid "Extra arguments"
-msgstr "Extra arguments"
+msgstr "Дополнительные аргументы"
 
 #: lutris/runners/pico8.py:60
 msgid "Extra arguments to the executable"
@@ -2698,21 +2798,141 @@ msgstr "Имя движка (будет загружен) или путь к л�
 msgid "PICO-8 runner (%s)"
 msgstr "PICO-8 раннер (%s)"
 
-#: lutris/runners/reicast.py:17
-msgid "Reicast"
-msgstr "Reicast"
+#: lutris/runners/redream.py:11
+msgid "Redream"
+msgstr "Redream"
 
-#: lutris/runners/reicast.py:18
+#: lutris/runners/redream.py:12 lutris/runners/reicast.py:18
 msgid "Sega Dreamcast emulator"
 msgstr "Эмулятор Sega Dreamcast"
 
-#: lutris/runners/reicast.py:19
+#: lutris/runners/redream.py:13 lutris/runners/reicast.py:19
 msgid "Sega Dreamcast"
 msgstr "Sega Dreamcast"
 
-#: lutris/runners/reicast.py:29
+#: lutris/runners/redream.py:20 lutris/runners/reicast.py:29
 msgid "Disc image file"
 msgstr "Файл образа диска"
+
+#: lutris/runners/redream.py:21
+msgid ""
+"Game data file\n"
+"Supported formats: GDI, CDI, CHD"
+msgstr ""
+"Игровые данные.\n"
+"Поддерживаемые форматы: GDI, CDI, CHD"
+
+#: lutris/runners/redream.py:29
+msgid "Aspect Ratio"
+msgstr "Соотношение сторон"
+
+#: lutris/runners/redream.py:30
+msgid "4:3"
+msgstr "4:3"
+
+#: lutris/runners/redream.py:30
+msgid "Stretch"
+msgstr "Растянуть"
+
+#: lutris/runners/redream.py:36
+msgid "Region"
+msgstr "Регион"
+
+#: lutris/runners/redream.py:37
+msgid "USA"
+msgstr "США"
+
+#: lutris/runners/redream.py:37
+msgid "Europe"
+msgstr "Европа"
+
+#: lutris/runners/redream.py:37
+msgid "Japan"
+msgstr "Япония"
+
+#: lutris/runners/redream.py:43
+msgid "System Language"
+msgstr "Язык в системе"
+
+#: lutris/runners/redream.py:45
+msgid "English"
+msgstr "Английский"
+
+#: lutris/runners/redream.py:46
+msgid "German"
+msgstr "Немецкий"
+
+#: lutris/runners/redream.py:47
+msgid "French"
+msgstr "Французский"
+
+#: lutris/runners/redream.py:48
+msgid "Spanish"
+msgstr "Испанский"
+
+#: lutris/runners/redream.py:49
+msgid "Italian"
+msgstr "Итальянский"
+
+#: lutris/runners/redream.py:50
+msgid "Japanese"
+msgstr "Японский"
+
+#: lutris/runners/redream.py:59
+msgid "NTSC"
+msgstr "NTSC"
+
+#: lutris/runners/redream.py:60
+msgid "PAL"
+msgstr "PAL"
+
+#: lutris/runners/redream.py:61
+msgid "PAL-M (Brazil)"
+msgstr "PAL-M (Бразилия)"
+
+#: lutris/runners/redream.py:62
+msgid "PAL-N (Argentina, Paraguay, Uruguay)"
+msgstr "PAL-N (Аргентина, Парагвай, Уругвай)"
+
+#: lutris/runners/redream.py:69
+msgid "Time Sync"
+msgstr "Синхронизация времени"
+
+#: lutris/runners/redream.py:71
+msgid "Audio and video"
+msgstr "Аудио и видео"
+
+#: lutris/runners/redream.py:72
+msgid "Audio"
+msgstr "Аудио"
+
+#: lutris/runners/redream.py:73
+msgid "Video"
+msgstr "Видео"
+
+#: lutris/runners/redream.py:82
+msgid "Internal Video Resolution Scale"
+msgstr "Шкала разрешения внутреннего видео"
+
+#: lutris/runners/redream.py:95
+msgid "Only available in premium version."
+msgstr "Доступно только в премиум-версии."
+
+#: lutris/runners/redream.py:103
+msgid "Do you want to select a premium license file?"
+msgstr "Желаете выбрать выбрать файл премиум-лицензии?"
+
+#: lutris/runners/redream.py:104
+msgid "Use premium version?"
+msgstr "Использовать премиум-версию?"
+
+#: lutris/runners/redream.py:108
+msgid "Select a license file"
+msgstr "Выберите файл лицензии"
+
+#: lutris/runners/reicast.py:17
+msgid "Reicast"
+msgstr "Reicast"
 
 #: lutris/runners/reicast.py:30
 msgid ""
@@ -2745,8 +2965,8 @@ msgstr "Геймпад 4"
 #: lutris/runners/reicast.py:84
 msgid "You have to copy valid BIOS files to ~/.reicast/data before playing"
 msgstr ""
-"Перед игрой необходимо скопировать действительные файлы BIOS в"
-" ~/.reicast/data."
+"Перед игрой необходимо скопировать действительные файлы BIOS в ~/.reicast/"
+"data."
 
 #: lutris/runners/residualvm.py:14
 msgid "ResidualVM"
@@ -2757,8 +2977,8 @@ msgid ""
 "Runs various 3D point-and-click adventure games, like Grim Fandango and "
 "Escape from Monkey Island."
 msgstr ""
-"Запускает различные трехмерные приключенческие игры в жанре point-and-click,"
-" такие как Grim Fandango и Escape from Monkey Island."
+"Запускает различные трехмерные приключенческие игры в жанре point-and-click, "
+"такие как Grim Fandango и Escape from Monkey Island."
 
 #: lutris/runners/residualvm.py:25 lutris/runners/scummvm.py:23
 msgid "Game identifier"
@@ -2771,11 +2991,6 @@ msgstr "Расположение файлов игры"
 #: lutris/runners/residualvm.py:34 lutris/runners/scummvm.py:32
 msgid "Enable subtitles (if the game has voice)"
 msgstr "Включить субтитры (если в игре есть голос)"
-
-# поменять на просто Fullscreen?
-#: lutris/runners/residualvm.py:42 lutris/runners/scummvm.py:46
-msgid "Fullscreen mode"
-msgstr "Полноэкранный режим"
 
 #: lutris/runners/residualvm.py:48
 msgid "Renderer"
@@ -2839,9 +3054,10 @@ msgid ""
 "rectangular pixels. Activating this option for these games will preserve the "
 "4:3 aspect ratio they were made for."
 msgstr ""
-"Большинство игр, поддерживаемых ScummVM, были созданы для режимов отображения"
-" VGA с использованием прямоугольных пикселей. Активация этой опции для таких"
-" игр сохранит соотношение сторон 4:3, для которого они были созданы."
+"Большинство игр, поддерживаемых ScummVM, были созданы для режимов "
+"отображения VGA с использованием прямоугольных пикселей. Активация этой "
+"опции для таких игр сохранит соотношение сторон 4:3, для которого они были "
+"созданы."
 
 #: lutris/runners/scummvm.py:95
 msgid "Data directory"
@@ -2869,10 +3085,10 @@ msgid ""
 "modern screens have square pixels, which results in a vertically squeezed "
 "image. This option corrects this by displaying rectangular pixels."
 msgstr ""
-"Игры Super Nintendo были созданы для экранов формата 4:3 с прямоугольными"
-" пикселями, но современные экраны имеют квадратные пиксели, что приводит к"
-" вертикально сжатому изображению. Эта опция исправляет это, отображая"
-" прямоугольные пиксели."
+"Игры Super Nintendo были созданы для экранов формата 4:3 с прямоугольными "
+"пикселями, но современные экраны имеют квадратные пиксели, что приводит к "
+"вертикально сжатому изображению. Эта опция исправляет это, отображая "
+"прямоугольные пиксели."
 
 #: lutris/runners/snes9x.py:59
 msgid "Sound driver"
@@ -2892,8 +3108,9 @@ msgid ""
 "com. Example: 235320 is the app ID for <i>Original War</i> in: \n"
 "http://store.steampowered.com/app/<b>235320</b>/"
 msgstr ""
-"Идентификатор приложения можно получить на странице игры на steampowered.com."
-" Пример: 235320 - это идентификатор приложения для <i>Original War</i> в: \n"
+"Идентификатор приложения можно получить на странице игры на steampowered."
+"com. Пример: 235320 - это идентификатор приложения для <i>Original War</i> "
+"в: \n"
 "http://store.steampowered.com/app/<b>235320</b>/"
 
 #: lutris/runners/steam.py:64
@@ -2912,8 +3129,8 @@ msgstr "Режим без DRM (не запускать Steam)"
 msgid ""
 "Run the game directly without Steam, requires the game binary path to be set"
 msgstr ""
-"Запустить игру напрямую без Steam, требуется указать путь к двоичному файлу"
-" игры "
+"Запустить игру напрямую без Steam, требуется указать путь к двоичному файлу "
+"игры "
 
 #: lutris/runners/steam.py:81 lutris/runners/winesteam.py:120
 msgid "Game binary path"
@@ -2946,8 +3163,8 @@ msgid ""
 "Useful when playing with a Steam Controller."
 msgstr ""
 "Запускает Steam в режиме Big Picture.\n"
-"Работает только в том случае, если Steam не запущен или уже работает в режиме"
-" Big Picture.\n"
+"Работает только в том случае, если Steam не запущен или уже работает в "
+"режиме Big Picture.\n"
 "Полезно при игре с контроллером Steam."
 
 #: lutris/runners/steam.py:111
@@ -2959,8 +3176,8 @@ msgid ""
 "Launches Steam with STEAM_RUNTIME=0. Make sure you disabled Lutris Runtime "
 "and have the required libraries installed."
 msgstr ""
-"Запускает Steam с STEAM_RUNTIME=0. Убедитесь, что вы отключили Lutris Runtime"
-" и у вас установлены необходимые библиотеки."
+"Запускает Steam с STEAM_RUNTIME=0. Убедитесь, что вы отключили Lutris "
+"Runtime и у вас установлены необходимые библиотеки."
 
 #: lutris/runners/steam.py:122
 msgid "Start Steam with LSI"
@@ -2972,9 +3189,9 @@ msgid ""
 "disabled and you have LSI installed. https://github.com/solus-project/linux-"
 "steam-integration"
 msgstr ""
-"Запускает Steam с включенными патчами LSI. Убедитесь, что Lutris Runtime"
-" отключен и у вас установлен LSI. https://github.com/solus-project/linux-steam"
-"-integration"
+"Запускает Steam с включенными патчами LSI. Убедитесь, что Lutris Runtime "
+"отключен и у вас установлен LSI. https://github.com/solus-project/linux-"
+"steam-integration"
 
 #: lutris/runners/steam.py:137 lutris/runners/winesteam.py:157
 msgid "Extra command line arguments used when launching Steam"
@@ -3024,8 +3241,8 @@ msgid ""
 "D4M, T46, P00 and CRT."
 msgstr ""
 "Игровые данные обычно называемые образом ПЗУ (ROM).\n"
-"Поддерживаемые образы: X64, D64, G64, P64, D67, D71, D81, D80, D82, D1M, D2M,"
-" D4M, T46, P00 и CRT."
+"Поддерживаемые образы: X64, D64, G64, P64, D67, D71, D81, D80, D82, D1M, "
+"D2M, D4M, T46, P00 и CRT."
 
 #: lutris/runners/vice.py:51
 msgid "Use joysticks"
@@ -3034,11 +3251,6 @@ msgstr "Использовать джойстики"
 #: lutris/runners/vice.py:63
 msgid "Scale up display by 2"
 msgstr "Увеличить размер экрана в 2 раза"
-
-# поменять на Preserve aspect ratio?
-#: lutris/runners/vice.py:69
-msgid "Keep aspect ratio"
-msgstr "Сохранять соотношение сторон"
 
 #: lutris/runners/vice.py:75
 msgid "Enable sound emulation of disk drives"
@@ -3064,10 +3276,9 @@ msgstr "Полный URL-адрес или путь к HTML файлу"
 msgid "The full address of the game's web page or path to a HTML file."
 msgstr "Полный адрес веб-страницы игры или путь к HTML-файлу."
 
-# поменять на Launch in fullscreen?
 #: lutris/runners/web.py:31
 msgid "Open in fullscreen"
-msgstr "Запускать в полноэкранном режиме"
+msgstr "Open in fullscreen"
 
 #: lutris/runners/web.py:34
 msgid "Launch the game in fullscreen."
@@ -3088,8 +3299,8 @@ msgstr "Начальный размер окна игры, когда оно н�
 #: lutris/runners/web.py:60
 msgid "Disable window resizing (disables fullscreen and maximize)"
 msgstr ""
-"Отключить изменение размера окна (отключает полноэкранный режим и"
-" растягивание)"
+"Отключить изменение размера окна (отключает полноэкранный режим и "
+"растягивание)"
 
 #: lutris/runners/web.py:63
 msgid "You can't resize this window."
@@ -3112,8 +3323,8 @@ msgid ""
 "This also disables default keyboard shortcuts, like copy/paste and "
 "fullscreen toggling."
 msgstr ""
-"Это также отключает сочетания клавиш по умолчанию, такие как"
-" копирование/вставка и переключение в полноэкранный режим."
+"Это также отключает сочетания клавиш по умолчанию, такие как копирование/"
+"вставка и переключение в полноэкранный режим."
 
 #: lutris/runners/web.py:82
 msgid "Disable page scrolling and hide scrollbars"
@@ -3140,8 +3351,8 @@ msgid ""
 "Enable this option if you want clicked links to open inside the game window. "
 "By default all links open in your default web browser."
 msgstr ""
-"Включите эту опцию, если вы хотите, чтобы ссылки открывались внутри окна"
-" игры. По умолчанию все ссылки открываются в вашем браузере по умолчанию."
+"Включите эту опцию, если вы хотите, чтобы ссылки открывались внутри окна "
+"игры. По умолчанию все ссылки открываются в вашем браузере по умолчанию."
 
 #: lutris/runners/web.py:111
 msgid "Remove default <body> margin & padding"
@@ -3151,8 +3362,8 @@ msgstr "Убрать у <body> поля и отступы по умолчани�
 msgid ""
 "Sets margin and padding to zero on &lt;html&gt; and &lt;body&gt; elements."
 msgstr ""
-"Устанавливает поля и отступы на ноль для элементом &lt;html&gt; и"
-" &lt;body&gt;."
+"Устанавливает поля и отступы на ноль для элементом &lt;html&gt; и &lt;"
+"body&gt;."
 
 #: lutris/runners/web.py:119
 msgid "Enable Adobe Flash Player"
@@ -3169,8 +3380,8 @@ msgstr "Пользовательский User-Agent"
 #: lutris/runners/web.py:129
 msgid "Overrides the default User-Agent header used by the runner."
 msgstr ""
-"Переопределяет указанный по умолчанию заголовок User-Agent используемый"
-" раннером."
+"Переопределяет указанный по умолчанию заголовок User-Agent используемый "
+"раннером."
 
 #: lutris/runners/web.py:134
 msgid "Debug with Developer Tools"
@@ -3198,8 +3409,8 @@ msgid ""
 "If left blank, Lutris will launch your default browser (xdg-open)."
 msgstr ""
 "Выберите исполняемый файл браузера в вашей системе.\n"
-"Если оставить поле пустым, Lutris запустит ваш браузер по умолчанию"
-" (xdg-open)."
+"Если оставить поле пустым, Lutris запустит ваш браузер по умолчанию (xdg-"
+"open)."
 
 #: lutris/runners/web.py:163
 msgid "Web browser arguments"
@@ -3265,20 +3476,22 @@ msgid ""
 "Windows environment."
 msgstr ""
 "Префикс (также называемый «бутылка»), используемый Wine. \n"
-"Это каталог, содержащий набор файлов и папок, составляющих ограниченную среду"
-" Windows."
+"Это каталог, содержащий набор файлов и папок, составляющих ограниченную "
+"среду Windows."
 
 #: lutris/runners/wine.py:81 lutris/runners/winesteam.py:85
 msgid "Prefix architecture"
 msgstr "Архитектура префикса"
 
-#: lutris/runners/wine.py:82 lutris/runners/winesteam.py:86
+#: lutris/runners/wine.py:82 lutris/runners/wine.py:318
+#: lutris/runners/winesteam.py:86
 msgid "32-bit"
-msgstr "32-разрядная"
+msgstr "32-битный"
 
-#: lutris/runners/wine.py:82 lutris/runners/winesteam.py:86
+#: lutris/runners/wine.py:82 lutris/runners/wine.py:319
+#: lutris/runners/winesteam.py:86
 msgid "64-bit"
-msgstr "64-разрядная"
+msgstr "64-битный"
 
 #: lutris/runners/wine.py:84
 msgid "The architecture of the Windows environment"
@@ -3288,15 +3501,13 @@ msgstr "Архитектура среды Windows"
 msgid "Custom (select executable below)"
 msgstr "Пользовательский (выберите исполняемый файл ниже)"
 
-# WineHQ Devel?
 #: lutris/runners/wine.py:118
-msgid "WineHQ devel ({})"
-msgstr "WineHQ devel ({})"
+msgid "WineHQ Devel ({})"
+msgstr "WineHQ Devel ({})"
 
-# WineHQ Staging?
 #: lutris/runners/wine.py:119
-msgid "WineHQ staging ({})"
-msgstr "WineHQ staging ({})"
+msgid "WineHQ Staging ({})"
+msgstr "WineHQ Staging ({})"
 
 #: lutris/runners/wine.py:120
 msgid "Wine Development ({})"
@@ -3321,8 +3532,8 @@ msgid ""
 "on older versions."
 msgstr ""
 "Версия Wine, используемая для запуска игры. \n"
-"Обычно рекомендуется использовать последнюю версию, но некоторые игры лучше"
-" работают на старых версиях."
+"Обычно рекомендуется использовать последнюю версию, но некоторые игры лучше "
+"работают на старых версиях."
 
 #: lutris/runners/wine.py:197
 msgid "Custom Wine executable"
@@ -3333,8 +3544,8 @@ msgid ""
 "The Wine executable to be used if you have selected \"Custom\" as the Wine "
 "version."
 msgstr ""
-"Исполняемый файл Wine, который будет использоваться, если вы выбрали"
-" «Пользовательский» в качестве версии Wine."
+"Исполняемый файл Wine, который будет использоваться, если вы выбрали "
+"«Пользовательский» в качестве версии Wine."
 
 #: lutris/runners/wine.py:205
 msgid "Use system winetricks"
@@ -3355,9 +3566,9 @@ msgid ""
 "compatibility and performance in Direct3D 11, 10 and 9 applications by "
 "translating their calls to Vulkan."
 msgstr ""
-"Используйте DXVK и VKD3D, чтобы включить поддержку Direct3D 12 и повысить"
-" совместимость и производительность в приложениях Direct3D 11, 10 и 9 за счет"
-" преобразования их вызовов в вызовы Vulkan."
+"Используйте DXVK и VKD3D, чтобы включить поддержку Direct3D 12 и повысить "
+"совместимость и производительность в приложениях Direct3D 11, 10 и 9 за счет "
+"преобразования их вызовов в вызовы Vulkan."
 
 #: lutris/runners/wine.py:226
 msgid "DXVK version"
@@ -3372,8 +3583,8 @@ msgid ""
 "Enable eventfd-based synchronization (esync). This will increase performance "
 "in applications that take advantage of multi-core processors."
 msgstr ""
-"Включить синхронизацию основанную на eventfd (esync). Это повысит"
-" производительность приложений, использующих многоядерные процессоры."
+"Включить синхронизацию основанную на eventfd (esync). Это повысит "
+"производительность приложений, использующих многоядерные процессоры."
 
 #: lutris/runners/wine.py:255
 msgid "Enable Fsync"
@@ -3385,9 +3596,9 @@ msgid ""
 "in applications that take advantage of multi-core processors. Requires a "
 "custom kernel with the fsync patchset."
 msgstr ""
-"Включить синхронизацию на основе фьютекса (fsync). Это повысит"
-" производительность приложений, использующих многоядерные процессоры."
-" Требуется кастомное ядро с набором патчей fsync."
+"Включить синхронизацию на основе фьютекса (fsync). Это повысит "
+"производительность приложений, использующих многоядерные процессоры. "
+"Требуется кастомное ядро с набором патчей fsync."
 
 #: lutris/runners/wine.py:269
 msgid "Enable Gallium Nine"
@@ -3401,8 +3612,8 @@ msgid ""
 "Note: This feature is not supported by proprietary Nvidia driver."
 msgstr ""
 "Gallium Nine позволяет приложениям на Direct3D 9 работать быстрее.\n"
-"Перед включением этой опции убедитесь, что ваша текущая видеокарта"
-" поддерживает отслеживание состояния Gallium Nine.\n"
+"Перед включением этой опции убедитесь, что ваша текущая видеокарта "
+"поддерживает отслеживание состояния Gallium Nine.\n"
 "Примечание: Эта функция не поддерживается проприетарным драйвером Nvidia."
 
 #: lutris/runners/wine.py:283
@@ -3413,53 +3624,39 @@ msgstr "Путь к исполняемому файлу игры, для под�
 msgid "Locate the path for the game's executable for x360 support"
 msgstr "Укажите путь к исполняемому файлу игры для поддержки x360"
 
-# DInput вместо dinput?
 #: lutris/runners/wine.py:290
-msgid "x360ce dinput 8 mode"
+msgid "x360ce DInput 8 mode"
 msgstr "Режим DInput 8 для x360ce"
 
 #: lutris/runners/wine.py:293
 msgid "Configure x360ce with dinput8.dll, required for some games"
 msgstr "Настроить x360ce с помощью dinput8.dll, необходимой для некоторых игр"
 
-# xinput на XInput?
 #: lutris/runners/wine.py:298
-msgid "x360ce xinput 9.1.0 mode"
+msgid "x360ce XInput 9.1.0 mode"
 msgstr "Режим XInput 9.1.0 для x360ce"
 
 #: lutris/runners/wine.py:301
 msgid "Configure x360ce with xinput9_1_0.dll, required for some newer games"
 msgstr ""
-"Настроить x360ce с помощью xinput9_1_0.dll, необходимой для некоторых новых"
-" игр"
+"Настроить x360ce с помощью xinput9_1_0.dll, необходимой для некоторых новых "
+"игр"
 
-# xinput на XInput?
 #: lutris/runners/wine.py:306
-msgid "Use Dumb xinput Emulator (experimental)"
+msgid "Use Dumb XInput Emulator (experimental)"
 msgstr "Использовать глупый эмулятор XInput (экспериментальный)"
 
 #: lutris/runners/wine.py:309
 msgid "Use the dlls from kozec/dumbxinputemu"
 msgstr "Используйте библиотеки от kozec/dumbxinputemu"
 
-# Xinput на XInput
 #: lutris/runners/wine.py:314
-msgid "Xinput architecture"
+msgid "XInput architecture"
 msgstr "Архитектура XInput"
 
 #: lutris/runners/wine.py:317
-msgid "Same as wine prefix"
-msgstr "Такая же, что и префикс wine"
-
-# поменять на 32-bit
-#: lutris/runners/wine.py:318
-msgid "32 bit"
-msgstr "32-разрядная"
-
-# поменять на 64-bit
-#: lutris/runners/wine.py:319
-msgid "64 bit"
-msgstr "64-разрядная"
+msgid "Same as Wine prefix"
+msgstr "Такая же, что и префикс Wine"
 
 #: lutris/runners/wine.py:328
 msgid "Windowed (virtual desktop)"
@@ -3504,8 +3701,8 @@ msgid ""
 "<b>Force</b>: always warp the pointer"
 msgstr ""
 "Переопределить искажение ввода мыши по умолчанию\n"
-"<b>Включить</b>: (по умолчанию для Wine) искажение ввода при монопольном"
-" захвате мыши\n"
+"<b>Включить</b>: (по умолчанию для Wine) искажение ввода при монопольном "
+"захвате мыши\n"
 "<b>Отключить</b>: никогда не искажать ввод с мыши\n"
 "<b>Принудительно</b>: всегда искажать ввод с мыши"
 
@@ -3520,51 +3717,50 @@ msgid ""
 "<b>Backbuffer</b>: Render offscreen render targets in the backbuffer."
 msgstr ""
 "Выберите реализацию закадрового рендеринга.\n"
-"<b>FBO</b>: (по умолчанию для Wine) использовать объекты фреймбуфера для"
-" закадрового рендеринга \n"
+"<b>FBO</b>: (по умолчанию для Wine) использовать объекты фреймбуфера для "
+"закадрового рендеринга \n"
 "<b>Backbuffer</b>: рендеринг закадровых целей в бэк-буфер."
 
 #: lutris/runners/wine.py:394
 msgid "Strict Draw Ordering"
 msgstr "Строгий порядок отрисовки"
 
-#: lutris/runners/wine.py:397 lutris/runners/wine.py:417
-#: lutris/runners/wine.py:498
+#: lutris/runners/wine.py:397 lutris/runners/wine.py:416
+#: lutris/runners/wine.py:497
 msgid "Enabled"
 msgstr "Включено"
 
-# Set to "enabled" to enable излишне
 #: lutris/runners/wine.py:403
 msgid ""
 "This option ensures any pending drawing operations are submitted to the "
-"driver, but at a significant performance cost. Set to \"enabled\" to enable. "
-"This setting is deprecated since wine-2.6 and will likely be removed after "
-"wine-3.0. Use \"csmt\" instead."
+"driver, but at a significant performance cost. This setting is deprecated "
+"since Wine-2.6 and will likely be removed after Wine-3.0. Use \"csmt\" "
+"instead."
 msgstr ""
-"Этот параметр гарантирует, что все ожидающие операции отрисовки передаются"
-" драйверу, но со значительными потерями в производительности. Этот параметр"
-" устарел с версии Wine-2.6 и, вероятно, будет удален после Wine-3.0. Вместо"
-" этого используйте \"csmt\"."
+"Этот параметр гарантирует, что все ожидающие операции отрисовки передаются "
+"драйверу, но со значительными потерями в производительности. Этот параметр "
+"устарел с версии Wine-2.6 и, вероятно, будет удален после Wine-3.0. Вместо "
+"этого используйте \"csmt\"."
 
-#: lutris/runners/wine.py:414
+#: lutris/runners/wine.py:413
 msgid "Use GLSL"
 msgstr "Использовать GLSL"
 
-#: lutris/runners/wine.py:423
+#: lutris/runners/wine.py:422
 msgid ""
 "When set to \"disabled\", this disables the use of GLSL for shaders. In "
 "general disabling GLSL is not recommended, only use this for debugging "
 "purposes."
 msgstr ""
-"Если установлено значение «Отключено», эта опция отключает использование GLSL"
-" для шейдеров. В большинстве случаев отключение GLSL не рекомендуется,"
-" используйте эту опцию только для устранения ошибок."
+"Если установлено значение «Отключено», эта опция отключает использование "
+"GLSL для шейдеров. В большинстве случаев отключение GLSL не рекомендуется, "
+"используйте эту опцию только для устранения ошибок."
 
-#: lutris/runners/wine.py:432
+#: lutris/runners/wine.py:431
 msgid "Anti-aliasing Sample Count"
 msgstr "Количество семплов сглаживания"
 
-#: lutris/runners/wine.py:448
+#: lutris/runners/wine.py:447
 msgid ""
 "Override swapchain sample count. It can be used to force enable "
 "multisampling with applications that otherwise don't support it, like the "
@@ -3572,32 +3768,30 @@ msgid ""
 "might work in more cases than the driver setting though. Not all "
 "applications are compatible with all sample counts. "
 msgstr ""
-"Переопределяет количество выборок свопчейна. Эту опцию можно использовать для"
-" принудительного включения мультисэмплинга в приложениях, которые его не"
-" поддерживают. Эта опция работает также как аналогичные настройки в панелях"
-" управления, доступных в некоторых драйверах графических карт. Однако этот"
-" метод может работать в большем количестве случаев, нежели аналогичные опции"
-" драйверов. Не все приложения совместимы со всеми вариантами."
+"Переопределяет количество выборок свопчейна. Эту опцию можно использовать "
+"для принудительного включения мультисэмплинга в приложениях, которые его не "
+"поддерживают. Эта опция работает также как аналогичные настройки в панелях "
+"управления, доступных в некоторых драйверах графических карт. Однако этот "
+"метод может работать в большем количестве случаев, нежели аналогичные опции "
+"драйверов. Не все приложения совместимы со всеми вариантами."
 
-#: lutris/runners/wine.py:457
+#: lutris/runners/wine.py:456
 msgid "Use XVidMode to switch resolutions"
 msgstr "Используйте XVidMode для переключения разрешения"
 
-# wine на Wine
-#: lutris/runners/wine.py:461
+#: lutris/runners/wine.py:460
 msgid ""
-"Set this to \"Y\" to allow wine switch the resolution using XVidMode "
+"Set this to \"Y\" to allow Wine switch the resolution using XVidMode "
 "extension."
 msgstr ""
-"Установите значение «Y», чтобы разрешить Wine переключать разрешение с"
-" помощью расширения XVidMode."
+"Установите значение «Y», чтобы разрешить Wine переключать разрешение с "
+"помощью расширения XVidMode."
 
-# поменять на Sound driver?
-#: lutris/runners/wine.py:467
+#: lutris/runners/wine.py:466
 msgid "Audio driver"
-msgstr "Звуковой драйвер"
+msgstr "Аудио драйвер"
 
-#: lutris/runners/wine.py:481
+#: lutris/runners/wine.py:480
 msgid ""
 "Which audio backend to use.\n"
 "By default, Wine automatically picks the right one for your system."
@@ -3605,56 +3799,56 @@ msgstr ""
 "Какой звуковой бэкенд использовать.\n"
 "По умолчанию Wine автоматически выбирает подходящий для вашей системы."
 
-#: lutris/runners/wine.py:489
+#: lutris/runners/wine.py:488
 msgid "DLL overrides"
 msgstr "Переопределения DLL"
 
-#: lutris/runners/wine.py:490
+#: lutris/runners/wine.py:489
 msgid "Sets WINEDLLOVERRIDES when launching the game."
 msgstr "Устанавливает WINEDLLOVERRIDES при запуске игры."
 
-#: lutris/runners/wine.py:494
+#: lutris/runners/wine.py:493
 msgid "Output debugging info"
 msgstr "Вывод отладочной информации"
 
-#: lutris/runners/wine.py:499
+#: lutris/runners/wine.py:498
 msgid "Inherit from environment"
 msgstr "Наследовать от окружения"
 
-#: lutris/runners/wine.py:500
+#: lutris/runners/wine.py:499
 msgid "Show FPS"
 msgstr "Показывать FPS"
 
-#: lutris/runners/wine.py:501
+#: lutris/runners/wine.py:500
 msgid "Full (CAUTION: Will cause MASSIVE slowdown)"
 msgstr "Полностью (ВНИМАНИЕ: вызовет ЗНАЧИТЕЛЬНОЕ замедление)"
 
-#: lutris/runners/wine.py:504
+#: lutris/runners/wine.py:503
 msgid "Output debugging information in the game log (might affect performance)"
 msgstr ""
 "Вывод отладочной информации в лог игры (может повлиять на производительность)"
 
-#: lutris/runners/wine.py:509
+#: lutris/runners/wine.py:508
 msgid "Show crash dialogs"
 msgstr "Показывать диалоговое окно в случае сбоя"
 
-#: lutris/runners/wine.py:517
+#: lutris/runners/wine.py:516
 msgid "Autoconfigure joypads"
 msgstr "Автоматически настраивать джойстики"
 
-#: lutris/runners/wine.py:521
+#: lutris/runners/wine.py:520
 msgid ""
 "Automatically disables one of Wine's detected joypad to avoid having 2 "
 "controllers detected"
 msgstr ""
-"Автоматически отключает один из обнаруженных Wine джойстиков, чтобы избежать"
-" обнаружения 2 контроллеров"
+"Автоматически отключает один из обнаруженных Wine джойстиков, чтобы избежать "
+"обнаружения 2 контроллеров"
 
-#: lutris/runners/wine.py:530
-msgid "Create a sandbox for wine folders"
-msgstr "Создать песочницу для каталогов wine"
+#: lutris/runners/wine.py:529
+msgid "Create a sandbox for Wine folders"
+msgstr "Создать песочницу для каталогов Wine"
 
-#: lutris/runners/wine.py:536
+#: lutris/runners/wine.py:535
 msgid ""
 "Do not use $HOME for desktop integration folders.\n"
 "By default, it use the directories in the confined Windows environment."
@@ -3662,48 +3856,47 @@ msgstr ""
 "Указывает не использовать $HOME для интеграции с папками рабочего стола.\n"
 "По умолчанию используются каталоги из изолированной среды Windows."
 
-#: lutris/runners/wine.py:544
+#: lutris/runners/wine.py:543
 msgid "Sandbox directory"
 msgstr "Каталог песочницы"
 
-#: lutris/runners/wine.py:545
+#: lutris/runners/wine.py:544
 msgid "Custom directory for desktop integration folders."
 msgstr "Пользовательский каталог для папок интеграции рабочего стола."
 
-#: lutris/runners/wine.py:553
-msgid "Run EXE inside wine prefix"
+#: lutris/runners/wine.py:552
+msgid "Run EXE inside Wine prefix"
 msgstr "Запустить EXE внутри префикса Wine"
 
-#: lutris/runners/wine.py:555
+#: lutris/runners/wine.py:554
 msgid "Wine configuration"
 msgstr "Настройки Wine"
 
-#: lutris/runners/wine.py:557
+#: lutris/runners/wine.py:556
 msgid "Open Bash terminal"
 msgstr "Открыть терминал Bash"
 
-#: lutris/runners/wine.py:558
+#: lutris/runners/wine.py:557
 msgid "Open Wine console"
 msgstr "Открыть консоль Wine"
 
-#: lutris/runners/wine.py:559
+#: lutris/runners/wine.py:558
 msgid "Wine registry"
 msgstr "Реестр Wine"
 
-# wine на Wine?
-#: lutris/runners/wine.py:560
-msgid "Kill all wine processes"
+#: lutris/runners/wine.py:559
+msgid "Kill all Wine processes"
 msgstr "Убить все процессы Wine"
 
-#: lutris/runners/wine.py:561
+#: lutris/runners/wine.py:560
 msgid "Winetricks"
 msgstr "Winetricks"
 
-#: lutris/runners/wine.py:562
+#: lutris/runners/wine.py:561
 msgid "Wine Control Panel"
 msgstr "Панель управления Wine"
 
-#: lutris/runners/wine.py:720
+#: lutris/runners/wine.py:719
 msgid "Select an EXE or MSI file"
 msgstr "Выберите EXE или MSI файл"
 
@@ -3719,15 +3912,14 @@ msgstr "Wine Steam"
 msgid "Prefix"
 msgstr "Префикс"
 
-# game на games (мн ч)
 #: lutris/runners/winesteam.py:90
 msgid ""
 "The architecture of the Windows environment.\n"
-"32-bit is recommended unless running a 64-bit only game."
+"32-bit is recommended unless running 64-bit only games."
 msgstr ""
 "Архитектура среды Windows.\n"
-"Рекомендуется 32-разрядная версия, только если не планируется запускать"
-" только 64-разрядные игры."
+"Рекомендуется 32-битная версия, только если не планируется запускать только "
+"64-битные игры."
 
 #: lutris/runners/winesteam.py:103
 msgid "Do not launch game, only open Steam"
@@ -3738,8 +3930,8 @@ msgid ""
 "Opens Steam with the current settings without running the game, useful if a "
 "game has several launch options."
 msgstr ""
-"Открывает Steam с текущими настройками без запуска игры, полезно, если у игры"
-" есть несколько вариантов запуска."
+"Открывает Steam с текущими настройками без запуска игры, полезно, если у "
+"игры есть несколько вариантов запуска."
 
 #: lutris/runners/winesteam.py:128
 msgid "Remove game data (through Wine Steam)"
@@ -3756,30 +3948,28 @@ msgid ""
 "or will install it in its own custom Wine prefix."
 msgstr ""
 "Выберите каталог, содержащий Steam.exe\n"
-"По умолчанию Lutris будет искать установку Windows Steam в ~/.wine или"
-" установит его в своем собственном префиксе Wine."
+"По умолчанию Lutris будет искать установку Windows Steam в ~/.wine или "
+"установит его в своем собственном префиксе Wine."
 
 #: lutris/runners/winesteam.py:150
 msgid "Shut down Steam after the game has quit."
 msgstr "Закрывать Steam после выхода из игры."
 
-# 32bit на 32-bit
 #: lutris/runners/winesteam.py:163
-msgid "Default Wine prefix (32bit)"
-msgstr "Префикс Wine по умолчанию (32-разрядный)"
+msgid "Default Wine prefix (32-bit)"
+msgstr "Префикс Wine по умолчанию (32-битный)"
 
 #: lutris/runners/winesteam.py:165
-msgid "Default prefix location for Steam (32 bit)"
-msgstr "Расположение префикса по умолчанию для Steam (32-разрядный)"
+msgid "Default prefix location for Steam (32-bit)"
+msgstr "Расположение префикса по умолчанию для Steam (32-битный)"
 
-# 64bit на 64-bit
 #: lutris/runners/winesteam.py:171
-msgid "Default Wine prefix (64bit)"
-msgstr "Префикс Wine по умолчанию (64-разрядный)"
+msgid "Default Wine prefix (64-bit)"
+msgstr "Префикс Wine по умолчанию (64-битный)"
 
 #: lutris/runners/winesteam.py:173
-msgid "Default prefix location for Steam (64 bit)"
-msgstr "Расположение префикса по умолчанию для Steam (64-разрядный)"
+msgid "Default prefix location for Steam (64-bit)"
+msgstr "Расположение префикса по умолчанию для Steam (64-битный)"
 
 #: lutris/runners/winesteam.py:181
 #, python-format
@@ -3843,8 +4033,8 @@ msgid ""
 "Used to load one or more PWAD files which generally contain user-created "
 "levels."
 msgstr ""
-"Используется для загрузки одного или нескольких файлов PWAD, которые обычно"
-" содержат уровни, созданные пользователем."
+"Используется для загрузки одного или нескольких файлов PWAD, которые обычно "
+"содержат уровни, созданные пользователем."
 
 #: lutris/runners/zdoom.py:41
 msgid "Warp to map"
@@ -3905,8 +4095,8 @@ msgid ""
 "Used to load a user-created configuration file. If specified, the file must "
 "contain the wad directory list or launch will fail."
 msgstr ""
-"Используется для загрузки файла конфигурации, созданного пользователем. Если"
-" указано, файл должен содержать список каталогов wad, иначе запуск не удастся."
+"Используется для загрузки файла конфигурации, созданного пользователем. Если "
+"указано, файл должен содержать список каталогов wad, иначе запуск не удастся."
 
 #: lutris/services/gog.py:66
 msgid "GOG"
@@ -3924,10 +4114,9 @@ msgstr "(c) 2010-2020 Lutris Gaming Platform"
 msgid "The Lutris team"
 msgstr "Команда Lutris"
 
-# Nvidia на NVIDIA
 #: lutris/startup.py:90
-msgid "Your Nvidia driver is outdated."
-msgstr "Ваш драйвер Nvidia устарел."
+msgid "Your NVIDIA driver is outdated."
+msgstr "Ваш драйвер NVIDIA устарел."
 
 #: lutris/startup.py:91
 #, python-format
@@ -3937,10 +4126,10 @@ msgid ""
 "Please upgrade your driver as described in our <a href='https://github.com/"
 "lutris/lutris/wiki/Installing-drivers'>installation guide</a>"
 msgstr ""
-"В настоящее время вы используете драйвер %s, который не полностью"
-" поддерживает все функции необходимые для игр работающих на Vulkan и DXVK.\n"
-"Пожалуйста, обновите драйвер, как описано в нашем <a href='https://github.com/"
-"lutris/lutris/wiki/Installing-drivers'>руководстве по установке</a>"
+"В настоящее время вы используете драйвер %s, который не полностью "
+"поддерживает все функции необходимые для игр работающих на Vulkan и DXVK.\n"
+"Пожалуйста, обновите драйвер, как описано в нашем <a href='https://github."
+"com/lutris/lutris/wiki/Installing-drivers'>руководстве по установке</a>"
 
 #: lutris/startup.py:119
 msgid "Missing vulkan libraries"
@@ -3956,9 +4145,9 @@ msgid ""
 msgstr ""
 "Lutris не смог обнаружить поддержку Vulkan для архитектуры %s.\n"
 "Это помешает работе большого количества игр и программ.\n"
-"Чтобы установить его, воспользуйтесь следующим руководством: <a"
-" href='https://github.com/lutris/lutris/wiki/Installing-drivers'>Установка"
-" графический драйверов</a>"
+"Чтобы установить его, воспользуйтесь следующим руководством: <a "
+"href='https://github.com/lutris/lutris/wiki/Installing-drivers'>Установка "
+"графический драйверов</a>"
 
 #: lutris/startup.py:125
 msgid " and "
@@ -3989,15 +4178,14 @@ msgstr "Каталог по умолчанию, в который вы уста�
 msgid "Disable Lutris Runtime"
 msgstr "Отключить Lutris Runtime"
 
-# game. Which на game, which
 #: lutris/sysoptions.py:103
 msgid ""
-"The Lutris Runtime loads some libraries before running the game. Which can "
+"The Lutris Runtime loads some libraries before running the game, which can "
 "cause some incompatibilities in some cases. Check this option to disable it."
 msgstr ""
-"Lutris Runtime загружает некоторые библиотеки перед запуском игры, что в"
-" некоторых случаях может вызвать несовместимость. Установите этот флажок,"
-" чтобы отключить его."
+"Lutris Runtime загружает некоторые библиотеки перед запуском игры, что в "
+"некоторых случаях может вызвать несовместимость. Установите этот флажок, "
+"чтобы отключить его."
 
 #: lutris/sysoptions.py:110
 msgid "Prefer system libraries"
@@ -4041,8 +4229,8 @@ msgid ""
 "Some games don't correctly restores gamma on exit, making your display too "
 "bright. Select this option to correct it."
 msgstr ""
-"Некоторые игры некорректно восстанавливают гамму при выходе, из-за чего"
-" дисплей становится слишком ярким. Отметьте эту опцию, чтобы это исправить."
+"Некоторые игры некорректно восстанавливают гамму при выходе, из-за чего "
+"дисплей становится слишком ярким. Отметьте эту опцию, чтобы это исправить."
 
 #: lutris/sysoptions.py:152
 msgid "Disable desktop effects"
@@ -4053,8 +4241,8 @@ msgid ""
 "Disable desktop effects while game is running, reducing stuttering and "
 "increasing performance"
 msgstr ""
-"Отключить эффекты рабочего стола во время игры, для того чтобы уменьшить"
-" «дрожание» картинки и повысить производительность"
+"Отключить эффекты рабочего стола во время игры, для того чтобы уменьшить "
+"«дрожание» картинки и повысить производительность"
 
 #: lutris/sysoptions.py:161
 msgid "Disable screen saver"
@@ -4065,8 +4253,8 @@ msgid ""
 "Disable the screen saver while a game is running. Requires the screen "
 "saver's functionality to be exposed over DBus."
 msgstr ""
-"Отключает скринсейвер во время игры. Необходимо, чтобы функционал заставки"
-" был доступен через DBus."
+"Отключает скринсейвер во время игры. Необходимо, чтобы функционал заставки "
+"был доступен через DBus."
 
 #: lutris/sysoptions.py:173
 msgid "Reset PulseAudio"
@@ -4085,16 +4273,15 @@ msgid ""
 "Set the environment variable PULSE_LATENCY_MSEC=60 to improve audio quality "
 "on some games"
 msgstr ""
-"Установить переменную окружения PULSE_LATENCY_MSEC=60, чтобы улучшить"
-" качество звука в некоторых играх."
+"Установить переменную окружения PULSE_LATENCY_MSEC=60, чтобы улучшить "
+"качество звука в некоторых играх."
 
 #: lutris/sysoptions.py:192
 msgid "Switch to US keyboard layout"
 msgstr "Переключать на Американскую раскладку"
 
-# сделать qwert большими
 #: lutris/sysoptions.py:195
-msgid "Switch to US keyboard qwerty layout while game is running"
+msgid "Switch to US keyboard QWERTY layout while game is running"
 msgstr "Переключать на Американскую раскладку QWERTY во время игры"
 
 #: lutris/sysoptions.py:207
@@ -4109,26 +4296,26 @@ msgid ""
 "virtualgl works better for more games.Primus VK provide vulkan support under "
 "bumblebee."
 msgstr ""
-"Если у вас установлены пакеты primus или bumblebee, выберите, какая программа"
-" запуска будет запускать игру с помощью команды, переводя графический чип"
-" NVIDIA в режим высокой производительности. primusrun обычно имеет лучшую"
-" производительность, butoptirun/virtualgl лучше работает для большего"
-" количества игр. Primus VK обеспечивает поддержку vulkan под bumblebee."
+"Если у вас установлены пакеты primus или bumblebee, выберите, какая "
+"программа запуска будет запускать игру с помощью команды, переводя "
+"графический чип NVIDIA в режим высокой производительности. primusrun обычно "
+"имеет лучшую производительность, butoptirun/virtualgl лучше работает для "
+"большего количества игр. Primus VK обеспечивает поддержку vulkan под "
+"bumblebee."
 
 #: lutris/sysoptions.py:222
 msgid "Vulkan ICD loader"
 msgstr "Загрузчик Vulkan ICD"
 
 #: lutris/sysoptions.py:224
-#, fuzzy
 msgid ""
 "The ICD loader is a library that is placed between a Vulkan application and "
 "any number of Vulkan drivers, in order to support multiple drivers and the "
 "instance-level functionality that works across these drivers."
 msgstr ""
-"Загрузчик ICD - это библиотека, которая помещается между приложением Vulkan и"
-" любым количеством драйверов Vulkan. для поддержки множества драйверов и"
-" функциональности уровня экземпляра, которая работает с этими драйверами."
+"Загрузчик ICD - это библиотека, которая помещается между приложением Vulkan "
+"и любым количеством драйверов Vulkan. для поддержки множества драйверов и "
+"функциональности уровня экземпляра, которая работает с этими драйверами."
 
 #: lutris/sysoptions.py:232
 msgid "FPS counter (MangoHud)"
@@ -4144,7 +4331,7 @@ msgstr "Включить (OpenGL)"
 
 #: lutris/sysoptions.py:237
 msgid "Enabled (OpenGL, 32bit)"
-msgstr "Включить (OpenGL, 32-разрядный)"
+msgstr "Включить (OpenGL, 32-битный)"
 
 #: lutris/sysoptions.py:242
 msgid ""
@@ -4153,14 +4340,12 @@ msgid ""
 msgstr ""
 "Отображение FPS и другой информации в игре. Требуется установленный MangoHud."
 
-# Fps на FPS
 #: lutris/sysoptions.py:248
-msgid "Fps limit"
+msgid "FPS limit"
 msgstr "Ограничение FPS"
 
-# fps на FPS
 #: lutris/sysoptions.py:251
-msgid "Limit the game's fps to desired number"
+msgid "Limit the game's FPS to desired number"
 msgstr "Ограничивает FPS до выбранного значения"
 
 #: lutris/sysoptions.py:256
@@ -4172,22 +4357,19 @@ msgid ""
 "Enable ACO shader compiler, improving performance in a lot of games. "
 "Requires Mesa 19.3 or later."
 msgstr ""
-"Включает компилятор шейдеров ACO, улучшая производительность во многих играх."
-" Требуется Mesa 19.3 или новее."
+"Включает компилятор шейдеров ACO, улучшая производительность во многих "
+"играх. Требуется Mesa 19.3 или новее."
 
-# gamemode на GameMode
 #: lutris/sysoptions.py:266
-msgid "Enable Feral gamemode"
+msgid "Enable Feral GameMode"
 msgstr "Включить Feral GameMode"
 
-# почему host OS?
 #: lutris/sysoptions.py:267
 msgid "Request a set of optimisations be temporarily applied to the host OS"
-msgstr "Запросить временное применение набора оптимизаций к ОС"
+msgstr "Запросить временное применение набора оптимизаций к ОС хоста"
 
-# Prime render offload на Prime Render Offload
 #: lutris/sysoptions.py:279
-msgid "Enable NVIDIA Prime render offload"
+msgid "Enable NVIDIA Prime Render Offload"
 msgstr "Включить NVIDIA Prime Render Offload"
 
 #: lutris/sysoptions.py:280
@@ -4198,12 +4380,12 @@ msgid ""
 "toggling this switch. This will apply __NV_PRIME_RENDER_OFFLOAD=1 and "
 "__GLX_VENDOR_LIBRARY_NAME=nvidia environment variables."
 msgstr ""
-"Если у вас установлена последняя версия драйвера NVIDIA и правильно"
-" пропатченный xorg-сервер (см. https://download.nvidia.com/XFree86/Linux-x86_6"
-"4/435.17/README/primerenderoffload.html), включив эту опцию вы сможете"
-" запускать игры на своей графической карте NVIDIA. Для этого будут"
-" применяться переменные окружения __NV_PRIME_RENDER_OFFLOAD=1 и"
-" __GLX_VENDOR_LIBRARY_NAME=nvidia."
+"Если у вас установлена последняя версия драйвера NVIDIA и правильно "
+"пропатченный xorg-сервер (см. https://download.nvidia.com/XFree86/Linux-"
+"x86_64/435.17/README/primerenderoffload.html), включив эту опцию вы сможете "
+"запускать игры на своей графической карте NVIDIA. Для этого будут "
+"применяться переменные окружения __NV_PRIME_RENDER_OFFLOAD=1 и "
+"__GLX_VENDOR_LIBRARY_NAME=nvidia."
 
 #: lutris/sysoptions.py:296
 msgid "Use discrete graphics"
@@ -4215,10 +4397,10 @@ msgid ""
 "run the game with the 'DRI_PRIME=1' environment variable, activating your "
 "discrete graphic chip for high 3D performance."
 msgstr ""
-"Если у вас установлены графические драйверы с открытым исходным кодом (Mesa),"
-" при выборе этого параметра игра будет запускаться с переменной среды"
-" DRI_PRIME=1, задействуя дискретный графический чип для высокой"
-" производительности 3D."
+"Если у вас установлены графические драйверы с открытым исходным кодом "
+"(Mesa), при выборе этого параметра игра будет запускаться с переменной среды "
+"DRI_PRIME=1, задействуя дискретный графический чип для высокой "
+"производительности 3D."
 
 #: lutris/sysoptions.py:310
 msgid "SDL 1.2 Fullscreen Monitor"
@@ -4229,9 +4411,9 @@ msgid ""
 "Hint SDL 1.2 games to use a specific monitor when going fullscreen by "
 "setting the SDL_VIDEO_FULLSCREEN environment variable"
 msgstr ""
-"Подсказывает играм на SDL 1.2 что при переходе в полноэкранный режим нужно"
-" использования указанный монитор. Для этого используется переменная окружения"
-" SDL_VIDEO_FULLSCREEN."
+"Подсказывает играм на SDL 1.2 что при переходе в полноэкранный режим нужно "
+"использования указанный монитор. Для этого используется переменная окружения "
+"SDL_VIDEO_FULLSCREEN."
 
 #: lutris/sysoptions.py:327
 msgid "Turn off monitors except"
@@ -4244,8 +4426,8 @@ msgid ""
 "having display issues when running a game in fullscreen."
 msgstr ""
 "Во время игры отключать все экраны кроме указанных.\n"
-"Эта опция может быть полезна, если у вас система с двумя экранами и возникают"
-" проблемы с отображением при запуске игр в полноэкранном режиме."
+"Эта опция может быть полезна, если у вас система с двумя экранами и "
+"возникают проблемы с отображением при запуске игр в полноэкранном режиме."
 
 #: lutris/sysoptions.py:342
 msgid "Switch resolution to"
@@ -4267,16 +4449,15 @@ msgstr "Запустите игру в новом окне терминала."
 msgid "Terminal application"
 msgstr "Терминальное приложение"
 
-# path.Note на path. Note
 #: lutris/sysoptions.py:368
 msgid ""
-"The terminal emulator to be run with the previous option.Choose from the "
-"list of detected terminal apps or enter the terminal's command or path.Note: "
-"Not all terminal emulators are guaranteed to work."
+"The terminal emulator to be run with the previous option. Choose from the "
+"list of detected terminal apps or enter the terminal's command or path. "
+"Note: Not all terminal emulators are guaranteed to work."
 msgstr ""
-"Эмулятор терминала для запуска с предыдущим параметром. Выберите из списка"
-" обнаруженных терминальных приложений или введите команду терминала, или путь"
-" к ней. Примечание: Нет гарантий что все эмуляторы терминала будут работать."
+"Эмулятор терминала для запуска с предыдущим параметром. Выберите из списка "
+"обнаруженных терминальных приложений или введите команду терминала, или путь "
+"к ней. Примечание: Нет гарантий что все эмуляторы терминала будут работать."
 
 #: lutris/sysoptions.py:376
 msgid "Environment variables"
@@ -4294,8 +4475,8 @@ msgstr "Префикс команды"
 msgid ""
 "Command line instructions to add in front of the game's execution command."
 msgstr ""
-"Инструкции командной строки, которые нужно добавить перед командой запуска"
-" игры."
+"Инструкции командной строки, которые нужно добавить перед командой запуска "
+"игры."
 
 #: lutris/sysoptions.py:390
 msgid "Manual script"
@@ -4340,10 +4521,10 @@ msgid ""
 "Space-separated list, processes including spaces can be wrapped in quotation "
 "marks."
 msgstr ""
-"Какие процессы включать в мониторинг процессов. Эта опция используется для"
-" переопределения встроенного списка исключений.\n"
-"Список, разделяемый пробелами. Процессы, включающие пробелы, можно заключать"
-" в кавычки."
+"Какие процессы включать в мониторинг процессов. Эта опция используется для "
+"переопределения встроенного списка исключений.\n"
+"Список, разделяемый пробелами. Процессы, включающие пробелы, можно заключать "
+"в кавычки."
 
 #: lutris/sysoptions.py:436
 msgid "Exclude processes"
@@ -4356,10 +4537,10 @@ msgid ""
 "Space-separated list, processes including spaces can be wrapped in quotation "
 "marks."
 msgstr ""
-"Какие процессы исключать из мониторинга процессов. Например, фоновые"
-" процессы, которые остаются после закрытия игры.\n"
-"Список, разделяемый пробелами. Процессы, включающие пробелы, можно заключать"
-" в кавычки."
+"Какие процессы исключать из мониторинга процессов. Например, фоновые "
+"процессы, которые остаются после закрытия игры.\n"
+"Список, разделяемый пробелами. Процессы, включающие пробелы, можно заключать "
+"в кавычки."
 
 #: lutris/sysoptions.py:451
 msgid "Killswitch file"
@@ -4382,8 +4563,8 @@ msgid ""
 "SDL_GAMECONTROLLERCONFIG mapping string or path to a custom gamecontrollerdb."
 "txt file containing mappings."
 msgstr ""
-"Строка SDL_GAMECONTROLLERCONFIG с маппингами или путь к пользовательскому"
-" файлу gamecontrollerdb.txt содержащему маппинги."
+"Строка SDL_GAMECONTROLLERCONFIG с маппингами или путь к пользовательскому "
+"файлу gamecontrollerdb.txt содержащему маппинги."
 
 #: lutris/sysoptions.py:474
 msgid "Use Xephyr"
@@ -4404,8 +4585,8 @@ msgstr "24BPP (16M цветов)"
 #: lutris/sysoptions.py:488
 msgid "Run program in Xephyr to support 8BPP and 16BPP color modes"
 msgstr ""
-"Для поддержки цветовых режимов 8BPP и 16BPP, запускайте программу через"
-" Xephyr."
+"Для поддержки цветовых режимов 8BPP и 16BPP, запускайте программу через "
+"Xephyr."
 
 #: lutris/sysoptions.py:493
 msgid "Xephyr resolution"
@@ -4485,10 +4666,10 @@ msgid ""
 "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>How-to:-DXVK "
 "(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>"
 msgstr ""
-"Если у вас есть совместимое оборудование, следуйте процедурам установки,"
-" описанным в\n"
-"<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>Практическое"
-" руководство: DXVK (https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>"
+"Если у вас есть совместимое оборудование, следуйте процедурам установки, "
+"описанным в\n"
+"<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>Практическое "
+"руководство: DXVK (https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>"
 
 #: lutris/util/wine/wine.py:373
 msgid ""
@@ -4496,36 +4677,55 @@ msgid ""
 "<a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>How-to:-Esync "
 "(https://github.com/lutris/lutris/wiki/How-to:-Esync)</a>"
 msgstr ""
-"Ваши лимиты установлены неправильно. Увеличьте их, как описано здесь: <a"
-" href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>Практическое"
-" руководство: Esync (https://github.com/lutris/lutris/wiki/How-to:-Esync)</a>"
+"Ваши лимиты установлены неправильно. Увеличьте их, как описано здесь: <a "
+"href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>Практическое "
+"руководство: Esync (https://github.com/lutris/lutris/wiki/How-to:-Esync)</a>"
 
 #: lutris/util/wine/wine.py:382
 msgid ""
 "Your kernel is not patched for fsync. Please get a patched kernel to use "
 "fsync."
 msgstr ""
-"Ваше ядро не имеет патчей для fsync. Чтобы использовать fsync необходимо"
-" иметь пропатченное ядро."
+"Ваше ядро не имеет патчей для fsync. Чтобы использовать fsync необходимо "
+"иметь пропатченное ядро."
 
 #: lutris/util/wine/wine.py:396 lutris/util/wine/wine.py:416
 msgid "Incompatible Wine version detected"
 msgstr "Обнаружена несовместимая версия Wine"
 
-# esync-capable на Esync-capable
 #: lutris/util/wine/wine.py:398
 msgid ""
 "The Wine build you have selected does not support Esync.\n"
-"Please switch to an esync-capable version."
+"Please switch to an Esync-capable version."
 msgstr ""
 "Выбранная вами сборка Wine не поддерживает Esync.\n"
 "Пожалуйста, переключитесь на версию с поддержкой Esync."
 
-# fsync-capable на Fsync-capable
 #: lutris/util/wine/wine.py:418
 msgid ""
 "The Wine build you have selected does not support Fsync.\n"
-"Please switch to an fsync-capable version."
+"Please switch to an Fsync-capable version."
 msgstr ""
 "Выбранная вами сборка Wine не поддерживает Fsync.\n"
 "Пожалуйста, переключитесь на версию с поддержкой Fsync."
+
+#~ msgid "CDROM"
+#~ msgstr "CD-ROM"
+
+#~ msgid "Magnavox Odyssey2"
+#~ msgstr "Magnavox Odyssey2"
+
+#~ msgid "Bios"
+#~ msgstr "BIOS"
+
+#~ msgid "Fullscreen mode"
+#~ msgstr "Полноэкранный режим"
+
+#~ msgid "Keep aspect ratio"
+#~ msgstr "Сохранять соотношение сторон"
+
+#~ msgid "32 bit"
+#~ msgstr "32-битный"
+
+#~ msgid "64 bit"
+#~ msgstr "64-битный"
