@@ -132,7 +132,7 @@ class fsuae(Runner):
             "help": _("The additional floppy disk image(s)."),
         }, {
             "option": "cdrom_image",
-            "label": _("CD-Rom image"),
+            "label": _("CD-ROM image"),
             "type": "file",
             "help": _("CD-ROM image to use on non CD32/CDTV models")
         }
@@ -152,7 +152,7 @@ class fsuae(Runner):
             "label": _("Kickstart ROMs location"),
             "type": "file",
             "help": _(
-                "Choose the folder containing original Amiga kickstart "
+                "Choose the folder containing original Amiga Kickstart "
                 "ROMs. Refer to FS-UAE documentation to find how to "
                 "acquire them. Without these, FS-UAE uses a bundled "
                 "replacement ROM which is less compatible with Amiga "
@@ -168,7 +168,7 @@ class fsuae(Runner):
         },
         {
             "option": "gfx_fullscreen_amiga",
-            "label": _("Fullscreen (F12 + s to switch)"),
+            "label": _("Fullscreen (F12 + S to switch)"),
             "type": "bool",
             "default": False,
         },
@@ -187,8 +187,8 @@ class fsuae(Runner):
             "choices": cpumodel_choices,
             "default": "auto",
             "advanced": True,
-            "help": _("Use this option to override the CPU model in the emulated Amiga. All Amiga"
-                      "models imply a default CPU model, so you only need to use this option if"
+            "help": _("Use this option to override the CPU model in the emulated Amiga. All Amiga "
+                      "models imply a default CPU model, so you only need to use this option if you "
                       "want to use another CPU."),
         },
         {
@@ -207,9 +207,9 @@ class fsuae(Runner):
             "choices": zorroiii_choices,
             "default": "0",
             "advanced": True,
-            "help": _("Override the amount of Zorro III Fast memory, specified in KB. Must be a"
-                      "multiple of 1024. The default value depends on [amiga_model]. Requires a"
-                      "processor with 32-bit address bus, (use for example the A1200/020 model).."),
+            "help": _("Override the amount of Zorro III Fast memory, specified in KB. Must be a "
+                      "multiple of 1024. The default value depends on [amiga_model]. Requires a "
+                      "processor with 32-bit address bus, (use for example the A1200/020 model)."),
         },
         {
             "option": "fdvolume",
@@ -272,8 +272,8 @@ class fsuae(Runner):
             "type": "bool",
             "default": False,
             "advanced": True,
-            "help": _("Automatically uses Feral GameMode daemon if available."
-                      "set to true to disable the feature.")
+            "help": _("Automatically uses Feral GameMode daemon if available. "
+                      "Set to true to disable the feature.")
         },
         {
             "option": "govwarning",
@@ -282,8 +282,8 @@ class fsuae(Runner):
             "default": False,
             "advanced": True,
             "help":
-            _("Warn if running with a CPU governor other than performance."
-              "set to true to disable the warning.")
+            _("Warn if running with a CPU governor other than performance. "
+              "Set to true to disable the warning.")
         },
         {
             "option": "bsdsocket",

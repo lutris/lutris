@@ -26,7 +26,7 @@ class atari800(Runner):
     platforms = [_("Atari 8bit computers")]  # FIXME try to determine the actual computer used
     runner_executable = "atari800/bin/atari800"
     bios_url = "http://kent.dl.sourceforge.net/project/atari800/ROM/Original%20XL%20ROM/xf25.zip"
-    description = _("Atari 400,800 and XL emulator")
+    description = _("Atari 400, 800 and XL emulator")
     bios_checksums = {
         "xlxe_rom": "06daac977823773a3eea3422fd26a703",
         "basic_rom": "0bac0c6a50104045d902df4503a4c30b",
@@ -44,7 +44,7 @@ class atari800(Runner):
             _("ROM file"),
             "help": _(
                 "The game data, commonly called a ROM image. \n"
-                "Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "
+                "Supported formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "
                 "and PRO."
             ),
         }
@@ -57,9 +57,9 @@ class atari800(Runner):
             "type":
             "directory_chooser",
             "label":
-            _("Bios location"),
+            _("BIOS location"),
             "help": _(
-                "A folder containing the Atari 800 bios files.\n"
+                "A folder containing the Atari 800 BIOS files.\n"
                 "They are provided by Lutris so you shouldn't have to "
                 "change this."
             ),
@@ -104,7 +104,7 @@ class atari800(Runner):
             dlg = DownloadDialog(self.bios_url, bios_archive)
             dlg.run()
             if not system.path_exists(bios_archive):
-                ErrorDialog(_("Could not download Atari800 BIOS archive"))
+                ErrorDialog(_("Could not download Atari 800 BIOS archive"))
                 return
             extract.extract_archive(bios_archive, config_path)
             os.remove(bios_archive)

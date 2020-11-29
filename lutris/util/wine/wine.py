@@ -396,7 +396,7 @@ def esync_display_version_warning(on_launch=False):
         secondary_message=_(
             "The Wine build you have selected "
             "does not support Esync.\n"
-            "Please switch to an esync-capable version."
+            "Please switch to an Esync-capable version."
         ),
         checkbox_message=checkbox_message,
     )
@@ -416,7 +416,7 @@ def fsync_display_version_warning(on_launch=False):
         secondary_message=_(
             "The Wine build you have selected "
             "does not support Fsync.\n"
-            "Please switch to an fsync-capable version."
+            "Please switch to an Fsync-capable version."
         ),
         checkbox_message=checkbox_message,
     )

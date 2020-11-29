@@ -101,7 +101,7 @@ system_options = [  # pylint: disable=invalid-name
         "default":
         False,
         "help": _("The Lutris Runtime loads some libraries before running the "
-                  "game. Which can cause some incompatibilities in some cases. "
+                  "game, which can cause some incompatibilities in some cases. "
                   "Check this option to disable it."),
     },
     {
@@ -192,7 +192,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Switch to US keyboard layout"),
         "default": False,
         "advanced": True,
-        "help": _("Switch to US keyboard qwerty layout while game is running"),
+        "help": _("Switch to US keyboard QWERTY layout while game is running"),
     },
     {
         "option":
@@ -245,10 +245,10 @@ system_options = [  # pylint: disable=invalid-name
         "option": "fps_limit",
         "type": "string",
         "size": "small",
-        "label": _("Fps limit"),
+        "label": _("FPS limit"),
         "advanced": True,
         "condition": bool(system.find_executable("strangle")),
-        "help": _("Limit the game's fps to desired number"),
+        "help": _("Limit the game's FPS to desired number"),
     },
     {
         "option": "aco",
@@ -263,7 +263,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "default": system.LINUX_SYSTEM.gamemode_available(),
         "condition": system.LINUX_SYSTEM.gamemode_available,
-        "label": _("Enable Feral gamemode"),
+        "label": _("Enable Feral GameMode"),
         "help": _("Request a set of optimisations be temporarily applied to the host OS"),
     },
     {
@@ -276,7 +276,7 @@ system_options = [  # pylint: disable=invalid-name
         "condition":
         True,
         "label":
-        _("Enable NVIDIA Prime render offload"),
+        _("Enable NVIDIA Prime Render Offload"),
         "help": _("If you have the latest NVIDIA driver and the properly patched xorg-server (see "
                   "https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html"
                   "), you can launch a game on your NVIDIA GPU by toggling this switch. This will apply "
@@ -365,9 +365,9 @@ system_options = [  # pylint: disable=invalid-name
         system.get_default_terminal(),
         "advanced":
         True,
-        "help": _("The terminal emulator to be run with the previous option."
+        "help": _("The terminal emulator to be run with the previous option. "
                   "Choose from the list of detected terminal apps or enter "
-                  "the terminal's command or path."
+                  "the terminal's command or path. "
                   "Note: Not all terminal emulators are guaranteed to work."),
     },
     {

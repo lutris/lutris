@@ -139,7 +139,7 @@ class Application(Gtk.Application):
             ord("e"),
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
-            _("Execute a program with the lutris runtime"),
+            _("Execute a program with the Lutris Runtime"),
             None,
         )
         self.add_main_option(
@@ -196,7 +196,7 @@ class Application(Gtk.Application):
             0,
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING_ARRAY,
-            _("uri to open"),
+            _("URI to open"),
             "URI",
         )
 

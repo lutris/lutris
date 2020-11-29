@@ -75,7 +75,7 @@ def check_driver():
         if settings.read_setting(setting) != "True":
             DontShowAgainDialog(
                 setting,
-                _("Your Nvidia driver is outdated."),
+                _("Your NVIDIA driver is outdated."),
                 secondary_message=_("You are currently running driver %s which does not "
                                     "fully support all features for Vulkan and DXVK games.\n"
                                     "Please upgrade your driver as described in our "

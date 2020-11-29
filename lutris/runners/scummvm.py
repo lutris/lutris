@@ -43,7 +43,7 @@ class scummvm(Runner):
     runner_options = [
         {
             "option": "fullscreen",
-            "label": _("Fullscreen mode"),
+            "label": _("Fullscreen"),
             "type": "bool",
             "default": False,
         },

@@ -100,9 +100,9 @@ class mame(Runner):  # pylint: disable=invalid-name
                 (_("Hard Disk"), "hard"),
                 (_("Hard Disk 1"), "hard1"),
                 (_("Hard Disk 2"), "hard2"),
-                (_("CDROM"), "cdrm"),
-                (_("CDROM 1"), "cdrm1"),
-                (_("CDROM 2"), "cdrm2"),
+                (_("CD-ROM"), "cdrm"),
+                (_("CD-ROM 1"), "cdrm1"),
+                (_("CD-ROM 2"), "cdrm2"),
                 (_("Snapshot"), "dump"),
                 (_("Quickload"), "quickload"),
                 (_("Memory Card"), "memc"),
@@ -122,7 +122,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "option": "autoboot_command",
             "type": "string",
             "label": _("Autoboot command"),
-            "help": _("Autotype this command when the system has started,"
+            "help": _("Autotype this command when the system has started, "
                       "an enter keypress is automatically added."),
         },
         {

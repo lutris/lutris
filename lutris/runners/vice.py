@@ -66,7 +66,7 @@ class vice(Runner):
         {
             "option": "aspect_ratio",
             "type": "bool",
-            "label": _("Keep aspect ratio"),
+            "label": _("Preserve aspect ratio"),
             "default": True,
         },
         {
