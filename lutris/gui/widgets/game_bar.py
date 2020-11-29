@@ -130,7 +130,7 @@ class GameBar(Gtk.Fixed):
         platform_label.set_alignment(0, 0.5)
         platform = gtk_safe(self.game.platform)
         platform_label.set_tooltip_markup(platform)
-        platform_label.set_markup("Platform:\n<b>%s</b>" % platform)
+        platform_label.set_markup(_("Platform:\n<b>%s</b>") % platform)
         platform_label.set_property("ellipsize", Pango.EllipsizeMode.END)
         return platform_label
 
