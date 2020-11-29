@@ -45,7 +45,7 @@ class jzintv(Runner):
         {
             "option": "resolution",
             "type": "choice",
-            "label": "Resolution",
+            "label": _("Resolution"),
             "choices": (
                 ("320 x 200", "0"),
                 ("640 x 480", "1"),
