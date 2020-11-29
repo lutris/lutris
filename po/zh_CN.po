@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-29 11:37+0800\n"
-"PO-Revision-Date: 2020-11-29 11:36+0800\n"
+"POT-Creation-Date: 2020-11-29 23:12+0800\n"
+"PO-Revision-Date: 2020-11-29 23:12+0800\n"
 "Last-Translator: SwimmingTiger\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1171,6 +1171,15 @@ msgstr "下载中断"
 #, python-brace-format
 msgid "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} remaining"
 msgstr "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), 剩余时间: {time}"
+
+#: lutris/gui/widgets/game_bar.py:133
+#, python-format
+msgid ""
+"Platform:\n"
+"<b>%s</b>"
+msgstr ""
+"平台:\n"
+"<b>%s</b>"
 
 #: lutris/gui/widgets/game_bar.py:140
 #, python-format
