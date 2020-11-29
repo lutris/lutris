@@ -175,7 +175,7 @@ class LutrisInitDialog(Gtk.Dialog):
         self.set_size_request(320, 60)
         self.set_border_width(24)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
-        label = Gtk.Label("Lutris is starting...")
+        label = Gtk.Label(_("Lutris is starting..."))
         vbox.add(label)
         self.progress = Gtk.ProgressBar(visible=True)
         self.progress.set_pulse_step(0.1)
