@@ -7,9 +7,9 @@ from lutris.util import system
 
 
 class dolphin(Runner):
-    description = _("Gamecube and Wii emulator")
+    description = _("GameCube and Wii emulator")
     human_name = _("Dolphin")
-    platforms = [_("Nintendo Gamecube"), _("Nintendo Wii")]
+    platforms = [_("Nintendo GameCube"), _("Nintendo Wii")]
     runnable_alone = True
     runner_executable = "dolphin/dolphin-emu"
     game_options = [
@@ -23,7 +23,7 @@ class dolphin(Runner):
             "option": "platform",
             "type": "choice",
             "label": _("Platform"),
-            "choices": ((_("Nintendo Gamecube"), "0"), (_("Nintendo Wii"), "1")),
+            "choices": ((_("Nintendo GameCube"), "0"), (_("Nintendo Wii"), "1")),
         },
     ]
     runner_options = [

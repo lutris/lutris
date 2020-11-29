@@ -115,8 +115,8 @@ class wine(Runner):
         def get_wine_version_choices():
             version_choices = [(_("Custom (select executable below)"), "custom")]
             labels = {
-                "winehq-devel": _("WineHQ devel ({})"),
-                "winehq-staging": _("WineHQ staging ({})"),
+                "winehq-devel": _("WineHQ Devel ({})"),
+                "winehq-staging": _("WineHQ Staging ({})"),
                 "wine-development": _("Wine Development ({})"),
                 "system": _("System ({})"),
             }
@@ -287,7 +287,7 @@ class wine(Runner):
             },
             {
                 "option": "x360ce-dinput",
-                "label": _("x360ce dinput 8 mode"),
+                "label": _("x360ce DInput 8 mode"),
                 "type": "bool",
                 "default": False,
                 "help": _("Configure x360ce with dinput8.dll, required for some games"),
@@ -295,7 +295,7 @@ class wine(Runner):
             },
             {
                 "option": "x360ce-xinput9",
-                "label": _("x360ce xinput 9.1.0 mode"),
+                "label": _("x360ce XInput 9.1.0 mode"),
                 "type": "bool",
                 "default": False,
                 "help": _("Configure x360ce with xinput9_1_0.dll, required for some newer games"),
@@ -303,7 +303,7 @@ class wine(Runner):
             },
             {
                 "option": "dumbxinputemu",
-                "label": _("Use Dumb xinput Emulator (experimental)"),
+                "label": _("Use Dumb XInput Emulator (experimental)"),
                 "type": "bool",
                 "default": False,
                 "help": _("Use the dlls from kozec/dumbxinputemu"),
@@ -311,12 +311,12 @@ class wine(Runner):
             },
             {
                 "option": "xinput-arch",
-                "label": _("Xinput architecture"),
+                "label": _("XInput architecture"),
                 "type": "choice",
                 "choices": [
-                    (_("Same as wine prefix"), ""),
-                    (_("32 bit"), "win32"),
-                    (_("64 bit"), "win64"),
+                    (_("Same as Wine prefix"), ""),
+                    (_("32-bit"), "win32"),
+                    (_("64-bit"), "win64"),
                 ],
                 "default": "",
                 "advanced": True,
@@ -402,9 +402,8 @@ class wine(Runner):
                 "help": _(
                     "This option ensures any pending drawing operations are "
                     "submitted to the driver, but at a significant performance "
-                    'cost. Set to "enabled" to enable. This setting is deprecated '
-                    "since wine-2.6 and will likely be removed after wine-3.0. "
-                    'Use "csmt" instead.'
+                    "cost. This setting is deprecated since Wine-2.6 and will "
+                    'likely be removed after Wine-3.0. Use "csmt" instead.'
                 ),
             },
             {
@@ -458,7 +457,7 @@ class wine(Runner):
                 "type": "bool",
                 "default": False,
                 "advanced": True,
-                "help": _('Set this to "Y" to allow wine switch the resolution using XVidMode extension.'),
+                "help": _('Set this to "Y" to allow Wine switch the resolution using XVidMode extension.'),
             },
             {
                 "option":
@@ -527,7 +526,7 @@ class wine(Runner):
                 "type":
                 "bool",
                 "label":
-                _("Create a sandbox for wine folders"),
+                _("Create a sandbox for Wine folders"),
                 "default":
                 True,
                 "advanced":
@@ -550,14 +549,14 @@ class wine(Runner):
     @property
     def context_menu_entries(self):
         """Return the contexual menu entries for wine"""
-        menu_entries = [("wineexec", _("Run EXE inside wine prefix"), self.run_wineexec)]
+        menu_entries = [("wineexec", _("Run EXE inside Wine prefix"), self.run_wineexec)]
         if "Proton" not in self.get_version():
             menu_entries.append(("winecfg", _("Wine configuration"), self.run_winecfg))
         menu_entries += [
             ("wineshell", _("Open Bash terminal"), self.run_wine_terminal),
             ("wineconsole", _("Open Wine console"), self.run_wineconsole),
             ("wine-regedit", _("Wine registry"), self.run_regedit),
-            ("winekill", _("Kill all wine processes"), self.run_winekill),
+            ("winekill", _("Kill all Wine processes"), self.run_winekill),
             ("winetricks", _("Winetricks"), self.run_winetricks),
             ("winecpl", _("Wine Control Panel"), self.run_winecpl),
         ]

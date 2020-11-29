@@ -57,7 +57,7 @@ def get_core_choices():
 
 class libretro(Runner):
     human_name = _("Libretro")
-    description = _("Multi system emulator")
+    description = _("Multi-system emulator")
     runnable_alone = True
     runner_executable = "retroarch/retroarch"
 

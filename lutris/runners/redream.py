@@ -22,7 +22,7 @@ class redream(Runner):
         }
     ]
     runner_options = [
-        {"option": "fs", "type": "bool", "label": _("Fullscreen mode"), "default": False},
+        {"option": "fs", "type": "bool", "label": _("Fullscreen"), "default": False},
         {
             "option": "ar",
             "type": "choice",

@@ -20,7 +20,7 @@ class jzintv(Runner):
             "default_path": "game_path",
             "help": _(
                 "The game data, commonly called a ROM image. \n"
-                "Supported rom formats: .rom, .bin+.cfg, .int, .itv \n"
+                "Supported formats: ROM, BIN+CFG, INT, ITV \n"
                 "The file extension must be lower-case."
             ),
         }
@@ -31,7 +31,7 @@ class jzintv(Runner):
             "type": "directory_chooser",
             "label": _("Bios location"),
             "help": _(
-                "Choose the folder containing the Intellivision bios "
+                "Choose the folder containing the Intellivision BIOS "
                 "files (exec.bin and grom.bin).\n"
                 "These files contain code from the original hardware "
                 "necessary to the emulation."
