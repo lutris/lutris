@@ -44,6 +44,9 @@ class JsonRunner(Runner):
                 if self.runner_config.get(option["option"]) != "off":
                     arguments.append(option["argument"])
                     arguments.append(self.runner_config.get(option["option"]))
+            elif option["type"] == "string":
+                arguments.append(option["argument"])
+                arguments.append(self.runner_config.get(option["option"]))
             else:
                 raise RuntimeError("Unhandled type %s" % option["type"])
         main_file = self.game_config.get(self.entry_point_option)
