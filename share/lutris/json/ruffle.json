@@ -1,0 +1,48 @@
+{
+    "human_name": "Ruffle",
+    "description": "Emulates Flash games",
+    "platforms": ["Flash"],
+    "runner_executable": "ruffle/ruffle",
+    "download_url": "https://github.com/ruffle-rs/ruffle/releases/download/nightly-2020-12-03/ruffle_nightly_2020_12_03_linux.tar.gz",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "SWF file",
+            "default_path": "game_path"
+        }
+    ],
+    "runner_options": [
+        {
+            "option": "graphics",
+            "type": "choice",
+            "label": "Graphics backend",
+            "choices": [
+                ["Automatic", "default"],
+                ["Vulkan", "vulkan"],
+                ["Metal", "metal"],
+                ["DirectX 12", "dx12"],
+                ["DirectX 11", "dx11"]
+            ],
+            "default": "default",
+            "argument": "--graphics"
+        },
+        {
+            "option": "power",
+            "type": "choice",
+            "label": "Power preference",
+            "choices": [
+                ["Low", "low"],
+                ["High", "high"]
+            ],
+            "default": "high",
+            "argument": "--power"
+        },
+        {
+            "option": "proxy",
+            "type": "string",
+            "label": "Proxy",
+            "argument": "--proxy"
+        }
+    ]
+}
