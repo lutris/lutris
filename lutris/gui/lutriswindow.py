@@ -152,6 +152,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 default=self.side_panel_visible,
                 accel="F9",
             ),
+            "show-game-bar-stats": Action(
+                self.on_game_bar_stats_state_change,
+                type="b",
+                default=self.game_bar_stats_visible,
+            ),
             "show-hidden-games": Action(
                 self.hidden_state_change,
                 type="b",
@@ -224,6 +229,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @property
     def side_panel_visible(self):
         return settings.read_setting("side_panel_visible").lower() != "false"
+
+    @property
+    def game_bar_stats_visible(self):
+        return settings.read_setting("game_bar_stats_visible").lower() != "false"
 
     @property
     def use_dark_theme(self):
@@ -721,6 +730,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         side_panel_visible = value.get_boolean()
         settings.write_setting("side_panel_visible", bool(side_panel_visible))
         self.sidebar_revealer.set_reveal_child(side_panel_visible)
+
+    def on_game_bar_stats_state_change(self, action, value):
+        """Callback to handle game bar stats toggle"""
+        action.set_state(value)
+        settings.write_setting("game_bar_stats_visible", value.get_boolean())
+        self.game_bar.update_view()
 
     def on_sidebar_changed(self, widget):
         row = widget.get_selected_row()

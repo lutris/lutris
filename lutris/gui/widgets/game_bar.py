@@ -3,7 +3,7 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk, Pango
 
-from lutris import runners, services
+from lutris import runners, services, settings
 from lutris.database.games import get_game_by_field, get_game_for_service
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
@@ -58,6 +58,7 @@ class GameBar(Gtk.Fixed):
 
     def update_view(self):
         """Populate the view with widgets"""
+        visible = settings.read_setting("game_bar_stats_visible").lower() != "false"
         self.put(self.get_game_name_label(), 16, 8)
         x_offset = 140
         y_offset = 40
@@ -66,10 +67,10 @@ class GameBar(Gtk.Fixed):
             x_offset += 80
             self.put(self.get_platform_label(), x_offset, y_offset)
             x_offset += 120
-        if self.game.lastplayed:
+        if self.game.lastplayed and visible:
             self.put(self.get_last_played_label(), x_offset, y_offset)
             x_offset += 120
-        if self.game.playtime:
+        if self.game.playtime and visible:
             self.put(self.get_playtime_label(), x_offset, y_offset)
 
         self.play_button = self.get_play_button()
