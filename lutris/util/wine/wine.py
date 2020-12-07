@@ -283,21 +283,12 @@ def is_version_esync(path):
         logger.error("Invalid path '%s'", path)
         return False
     version_number, version_prefix, version_suffix = parse_version(version)
-    esync_compatible_versions = ["esync", "lutris", "tkg", "ge", "proton"]
+    esync_compatible_versions = ["esync", "lutris", "tkg", "ge", "proton", "staging"]
     for esync_version in esync_compatible_versions:
         if esync_version in version_prefix or esync_version in version_suffix:
             return True
-
     wine_ver = str(subprocess.check_output([path, "--version"])).lower()
-    version, *_ = wine_ver.split()
-    version_number, version_prefix, version_suffix = parse_version(version)
-
-    if "esync" in wine_ver:
-        return True
-    if "staging" in wine_ver and version_number[0] >= 4 and version_number[1] >= 6:
-        # Support for esync was merged in Wine Staging 4.6
-        return True
-    return False
+    return "esync" in wine_ver or "staging" in wine_ver
 
 
 def is_version_fsync(path):
