@@ -207,7 +207,7 @@ def merge_folders(source, destination):
             # logger.debug("Copying %s", filename)
             if not os.path.exists(dst_abspath):
                 os.makedirs(dst_abspath)
-            shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename))
+            shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
 
 
 def remove_folder(path):
