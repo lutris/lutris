@@ -14,15 +14,16 @@ class InstallerFilesBox(Gtk.ListBox):
         "files-available": (GObject.SIGNAL_RUN_LAST, None, ())
     }
 
-    def __init__(self, installer_files, parent):
+    def __init__(self, installer, parent):
         super().__init__()
         self.parent = parent
-        self.installer_files = installer_files
+        self.installer = installer
+        self.installer_files = installer.files
         self.ready_files = set()
         self.available_files = set()
         self.installer_files_boxes = {}
         self._file_queue = []
-        for installer_file in installer_files:
+        for installer_file in installer.files:
             installer_file_box = InstallerFileBox(installer_file)
             installer_file_box.connect("file-ready", self.on_file_ready)
             installer_file_box.connect("file-unready", self.on_file_unready)
@@ -48,7 +49,7 @@ class InstallerFilesBox(Gtk.ListBox):
     @property
     def is_ready(self):
         """Return True if all files are ready to be fetched"""
-        return len(self.ready_files) == len(self.installer_files)
+        return len(self.ready_files) == len(self.installer.files)
 
     def check_files_ready(self):
         """Checks if all installer files are ready and emit a signal if so"""

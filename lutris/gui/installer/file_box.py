@@ -11,7 +11,6 @@ from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.download_progress import DownloadProgressBox
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
-from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, gtk_safe
 
 
@@ -263,8 +262,6 @@ class InstallerFileBox(Gtk.VBox):
             return
         if self.start_func:
             return self.start_func()
-        else:
-            logger.info("No start function provided, this file can't be provided")
 
     def cache_file(self):
         """Copy file to the PGA cache"""

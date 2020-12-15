@@ -2,8 +2,11 @@
 import json
 import os
 import time
+from collections import defaultdict
 from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
+
+from lxml import etree
 
 from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGame
@@ -386,32 +389,53 @@ class GOGService(OnlineService):
             raise UnavailableGame("Couldn't load the download links for this game")
         if not links:
             raise UnavailableGame("Could not fing GOG game")
-
+        _installer_files = defaultdict(dict)  # keyed by filename
+        for index, link in enumerate(links):
+            filename = link["filename"]
+            if filename.lower().endswith(".xml"):
+                if filename != installer_file_id:
+                    filename = filename[:-4]
+                _installer_files[filename]["checksum_url"] = link["url"]
+                continue
+            _installer_files[filename]["id"] = link["id"]
+            _installer_files[filename]["url"] = link["url"]
+            _installer_files[filename]["filename"] = filename
+            _installer_files[filename]["total_size"] = link["total_size"]
         files = []
         file_id_provided = False  # Only assign installer_file_id once
-        for index, link in enumerate(links):
-            if isinstance(link, dict):
-                url = link["url"]
-            else:
-                url = link
-            filename = link["filename"]
+        for _file_id in _installer_files:
+            installer_file = _installer_files[_file_id]
+            if "url" not in installer_file:
+                raise ValueError("Invalid installer file %s" % installer_file)
+            filename = installer_file["filename"]
             if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
                 file_id = installer_file_id
                 file_id_provided = True
             else:
-                file_id = "gog_file_%s" % index
-            files.append(
-                InstallerFile(installer.game_slug, file_id, {
-                    "url": url,
-                    "filename": filename,
-                })
-            )
+                file_id = _file_id
+            files.append(InstallerFile(installer.game_slug, file_id, {
+                "url": installer_file["url"],
+                "filename": installer_file["filename"],
+                "checksum_url": installer_file.get("checksum_url")
+            }))
         if not file_id_provided:
             raise UnavailableGame("Unable to determine correct file to launch installer")
         if self.selected_extras:
             for extra_file in self.get_extra_files(downloads, installer):
                 files.append(extra_file)
         return files
+
+    def read_file_checksum(self, file_path):
+        """Return the MD5 checksum for a GOG file
+        Requires a GOG XML file as input
+        This has yet to be used.
+        """
+        if not file_path.endswith(".xml"):
+            raise ValueError("Pass a XML file to return the checksum")
+        with open(file_path) as checksum_file:
+            checksum_content = checksum_file.read()
+        root_elem = etree.fromstring(checksum_content)
+        return (root_elem.attrib["name"], root_elem.attrib["md5"])
 
     def generate_installer(self, db_game):
         details = json.loads(db_game["details"])

@@ -307,7 +307,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """Show installer screen with the file picker / downloader"""
         self.clean_widgets()
         self.set_status(_("Please review the files needed for the installation then click 'Continue'"))
-        installer_files_box = InstallerFilesBox(self.interpreter.installer.files, self)
+        installer_files_box = InstallerFilesBox(self.interpreter.installer, self)
         installer_files_box.connect("files-available", self.on_files_available)
         installer_files_box.connect("files-ready", self.on_files_ready)
         scrolledwindow = Gtk.ScrolledWindow(
@@ -392,10 +392,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.interpreter.extras = selected_extras
         GLib.idle_add(self.on_runners_ready)
 
-    def on_files_ready(self, _widget, is_ready):
+    def on_files_ready(self, _widget, files_ready):
         """Toggle state of continue button based on ready state"""
-        logger.debug("Files are ready: %s", is_ready)
-        self.continue_button.set_sensitive(is_ready)
+        logger.debug("Files are ready: %s", files_ready)
+        self.continue_button.set_sensitive(files_ready)
 
     def on_files_confirmed(self, _button, file_box):
         """Call this when the user confirms the install files

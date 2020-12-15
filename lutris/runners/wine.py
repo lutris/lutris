@@ -885,7 +885,8 @@ class wine(Runner):
             env["WINEDEBUG"] = show_debug
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
-        env["GST_PLUGIN_SYSTEM_PATH_1_0"] = os.path.join(WINE_DIR, self.get_version(), "lib64/gstreamer-1.0/") + ":" + os.path.join(WINE_DIR, self.get_version(), "lib/gstreamer-1.0/")
+        env["GST_PLUGIN_SYSTEM_PATH_1_0"] = os.path.join(WINE_DIR, self.get_version(
+        ), "lib64/gstreamer-1.0/") + ":" + os.path.join(WINE_DIR, self.get_version(), "lib/gstreamer-1.0/")
         if self.prefix_path:
             env["WINEPREFIX"] = self.prefix_path
 
