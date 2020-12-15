@@ -63,7 +63,6 @@ class HumbleBundleService(OnlineService):
         "small_icon": HumbleSmallIcon,
         "icon": HumbleBundleIcon,
         "big_icon": HumbleBigIcon
-
     }
     default_format = "icon"
 

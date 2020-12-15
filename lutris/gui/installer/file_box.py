@@ -63,8 +63,6 @@ class InstallerFileBox(Gtk.VBox):
                 and system.path_exists(self.installer_file.dest_file)
         ):
             os.remove(self.installer_file.dest_file)
-        self.start_func = download_progress.start
-        self.stop_func = download_progress.cancel
         return download_progress
 
     def get_file_provider_widget(self):
@@ -72,6 +70,8 @@ class InstallerFileBox(Gtk.VBox):
         box = Gtk.VBox(spacing=6)
         if self.provider == "download":
             download_progress = self.get_download_progress()
+            self.start_func = download_progress.start
+            self.stop_func = download_progress.cancel
             box.pack_start(download_progress, False, False, 0)
             return box
         if self.provider == "pga":
@@ -101,7 +101,7 @@ class InstallerFileBox(Gtk.VBox):
             info_box.add(self.state_label)
             steam_box.add(info_box)
             return steam_box
-        return Gtk.Label("?")
+        raise ValueError("Invalid provider %s" % self.provider)
 
     def get_file_label(self):
         """Return a human readable label for installer files"""
@@ -262,7 +262,7 @@ class InstallerFileBox(Gtk.VBox):
             self.cache_file()
             return
         if self.start_func:
-            self.start_func()
+            return self.start_func()
         else:
             logger.info("No start function provided, this file can't be provided")
 

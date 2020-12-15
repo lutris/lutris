@@ -7,6 +7,8 @@ from lutris.util.log import logger
 class InstallerFilesBox(Gtk.ListBox):
     """List box presenting all files needed for an installer"""
 
+    max_downloads = 5
+
     __gsignals__ = {
         "files-ready": (GObject.SIGNAL_RUN_LAST, None, (bool, )),
         "files-available": (GObject.SIGNAL_RUN_LAST, None, ())
@@ -19,6 +21,7 @@ class InstallerFilesBox(Gtk.ListBox):
         self.ready_files = set()
         self.available_files = set()
         self.installer_files_boxes = {}
+        self._file_queue = []
         for installer_file in installer_files:
             installer_file_box = InstallerFileBox(installer_file)
             installer_file_box.connect("file-ready", self.on_file_ready)
@@ -32,9 +35,15 @@ class InstallerFilesBox(Gtk.ListBox):
         self.check_files_ready()
 
     def start_all(self):
-        """Start all downloads"""
+        """Iterates through installer files while keeping the number
+        of simultaneously downloaded files down to a maximum number"""
+        started_downloads = 0
         for file_id in self.installer_files_boxes:
-            self.installer_files_boxes[file_id].start()
+            started_downloads += 1
+            if started_downloads <= self.max_downloads:
+                self.installer_files_boxes[file_id].start()
+            else:
+                self._file_queue.append(file_id)
 
     @property
     def is_ready(self):
@@ -66,6 +75,9 @@ class InstallerFilesBox(Gtk.ListBox):
         """A new file is available"""
         file_id = widget.installer_file.id
         self.available_files.add(file_id)
+        if self._file_queue:
+            next_file_id = self._file_queue.pop()
+            self.installer_files_boxes[next_file_id].start()
         if len(self.available_files) == len(self.installer_files):
             logger.info("All files available")
             self.emit("files-available")

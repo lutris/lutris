@@ -20,6 +20,7 @@ class DownloadProgressBox(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
 
         self.downloader = downloader
+        self.is_complete = False
         self.url = params.get("url")
         self.dest = params.get("dest")
         self.referer = params.get("referer")
@@ -108,6 +109,7 @@ class DownloadProgressBox(Gtk.Box):
         self._set_text(progress_text)
         if self.downloader.state == self.downloader.COMPLETED:
             self.cancel_button.set_sensitive(False)
+            self.is_complete = True
             self.emit("complete", {})
             return False
         return True
