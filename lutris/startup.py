@@ -159,10 +159,10 @@ def init_lutris():
         )
     runtime_updater = RuntimeUpdater()
     components_to_update = runtime_updater.update()
-    if not components_to_update:
-        logger.info("Runtime up-to-date. Initialization complete.")
-        return
     while runtime_updater.current_updates:
         time.sleep(0.3)
+    if components_to_update:
+        logger.info("Runtime updated. Initialization complete.")
+    else:
+        logger.info("Runtime up-to-date. Initialization complete.")
     init_dxvk_versions()
-    logger.info("Runtime updated. Initialization complete.")
