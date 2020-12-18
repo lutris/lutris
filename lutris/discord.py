@@ -96,7 +96,8 @@ class DiscordPresence(object):
                 state_text = "via %s" % self.runner_name if self.show_runner else "  "
                 logger.info("Attempting to update Discord status: %s, %s", self.game_name, state_text)
                 self.rpc_client.update(details="Playing %s" % self.game_name, state=state_text,
-                                       large_image="large_image", large_text="Using Lutris")
+                                       large_image="large_image", large_text="Using Lutris",
+                                       small_image="small_image")
             except PyPresenceException as ex:
                 logger.error("Unable to update Discord: %s", ex)
 
