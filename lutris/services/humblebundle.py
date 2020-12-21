@@ -307,20 +307,27 @@ def pick_download_url_from_download_info(download_info):
     if not download_info["download_struct"]:
         logger.warning("No downloads found")
         return
-    if system.LINUX_SYSTEM.is_64_bit:
-        bad_arch = "32"
-    else:
-        bad_arch = "64"
-    if len(download_info["download_struct"]) > 1:
-        logger.info("There are %s downloads available:", len(download_info["download_struct"]))
-        sorted_downloads = []
-        for _download in download_info["download_struct"]:
-            if "deb" in _download["name"] or "rpm" in _download["name"] or bad_arch in _download["name"]:
-                sorted_downloads.append(_download)
-            else:
-                sorted_downloads.insert(0, _download)
-        return sorted_downloads[0]["url"]["web"]
-    return download_info["download_struct"][0]["url"]["web"]
+
+    def humble_sort(download):
+        name = download["name"]
+        if "rpm" in name:
+            return -99  # Not supported as an extractor
+        bonus = 1
+        if "deb" not in name:
+            bonus = 2
+        if system.LINUX_SYSTEM.is_64_bit:
+            if "386" in name or "32" in name:
+                return -1 * bonus
+        else:
+            if "64" in name:
+                return -10 * bonus
+        return 1 * bonus
+
+    sorted_downloads = sorted(download_info["download_struct"], key=humble_sort, reverse=True)
+    logger.debug("Humble bundle installers:")
+    for download in sorted_downloads:
+        logger.debug(download["name"])
+    return sorted_downloads[0]["url"]["web"]
 
 
 def get_humble_download_link(humbleid, runner):

@@ -86,6 +86,8 @@ def guess_extractor(path):
         extractor = "gzip"
     elif path.endswith(".exe"):
         extractor = "exe"
+    elif path.endswith(".deb"):
+        extractor = "deb"
     elif is_7zip_supported(path, None):
         extractor = None
     else:
@@ -110,6 +112,8 @@ def get_archive_opener(extractor, path):
         opener = "innoextract"
     elif extractor == "exe":
         opener = "exe"
+    elif extractor == "deb":
+        opener = "deb"
     elif extractor is None or is_7zip_supported(path, extractor):
         opener = "7zip"
     else:
@@ -185,6 +189,8 @@ def _do_extract(archive, dest, opener, mode=None, extractor=None):
         extract_exe(archive, dest)
     elif opener == "innoextract":
         extract_gog(archive, dest)
+    elif opener == "deb":
+        extract_deb(archive, dest)
     else:
         handler = opener(archive, mode)
         handler.extractall(dest)
@@ -207,6 +213,19 @@ def extract_exe(path, dest):
             extract_7zip(path, dest)
         else:
             raise RuntimeError("specified exe is not an archive or GOG setup file")
+
+
+def extract_deb(archive, dest):
+    """Extract the contents of a deb file to a destination folder"""
+    extract_7zip(archive, dest, archive_type="ar")
+    debian_folder = os.path.join(dest, "debian")
+    os.makedirs(debian_folder)
+    shutil.move(os.path.join(dest, "control.tar.gz"), debian_folder)
+    data_file = os.path.join(dest, "data.tar.gz")
+    handler = tarfile.open(data_file, "r:gz")
+    handler.extractall(dest)
+    handler.close()
+    os.remove(data_file)
 
 
 def extract_gog(path, dest):
