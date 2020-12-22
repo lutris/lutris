@@ -50,6 +50,8 @@ def find_linux_game_executable(path, make_executable=False):
                 candidates["shell"] = abspath
             if "Bourne-Again shell script" in file_type:
                 candidates["bash"] = abspath
+            if "POSIX shell script executable" in file_type:
+                candidates["posix"] = abspath
             if "64-bit LSB executable" in file_type:
                 candidates["64bit"] = abspath
             if "32-bit LSB executable" in file_type:
@@ -61,6 +63,7 @@ def find_linux_game_executable(path, make_executable=False):
             return (
                 candidates.get("shell")
                 or candidates.get("bash")
+                or candidates.get("posix")
                 or candidates.get("64bit")
                 or candidates.get("32bit")
             )
