@@ -273,6 +273,10 @@ class HumbleBundleService(OnlineService):
                     {"extract": {"file": "humblegame", "format": "zip", "dst": "$CACHE"}},
                     {"merge": {"src": "$CACHE/data/", "dst": "$GAMEDIR"}},
                 ]
+            elif filename.endswith(".air"):
+                script = [
+                    {"move": {"src": "humblegame", "dst": "$GAMEDIR"}},
+                ]
             else:
                 script = [{"extract": {"file": "humblegame"}}]
                 system_config = {"gamemode": 'false'}  # Unity games crash with gamemode
