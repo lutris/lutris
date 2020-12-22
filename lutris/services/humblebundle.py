@@ -186,6 +186,17 @@ class HumbleBundleService(OnlineService):
         for product in order["subproducts"]:
             if product["machine_name"] != humbleid:
                 continue
+            available_platforms = [d["platform"] for d in product["downloads"]]
+            if platform not in available_platforms:
+                logger.warning("Requested platform %s not available in available platforms: %s",
+                               platform, available_platforms)
+
+                if "linux" in available_platforms:
+                    platform = "linux"
+                elif "windows" in available_platforms:
+                    platform = "windows"
+                else:
+                    platform = available_platforms[0]
             for download in product["downloads"]:
                 if download["platform"] != platform:
                     continue
@@ -317,16 +328,16 @@ def pick_download_url_from_download_info(download_info):
             bonus = 2
         if system.LINUX_SYSTEM.is_64_bit:
             if "386" in name or "32" in name:
-                return -1 * bonus
+                return -1
         else:
             if "64" in name:
-                return -10 * bonus
+                return -10
         return 1 * bonus
 
     sorted_downloads = sorted(download_info["download_struct"], key=humble_sort, reverse=True)
     logger.debug("Humble bundle installers:")
     for download in sorted_downloads:
-        logger.debug(download["name"])
+        logger.debug(download)
     return sorted_downloads[0]["url"]["web"]
 
 

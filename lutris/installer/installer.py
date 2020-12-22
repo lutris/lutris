@@ -146,7 +146,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             if not installer_file_id:
                 logger.warning("Could not find a file for this service")
                 return
-            logger.info("Should install %s", self.interpreter.extras)
             if self.service.has_extras:
                 self.service.selected_extras = self.interpreter.extras
             installer_files = self.service.get_installer_files(self, installer_file_id)
