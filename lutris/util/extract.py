@@ -130,8 +130,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
 
     opener, mode = get_archive_opener(extractor, path)
 
-    temp_name = ".extract-" + random_id()
-    temp_path = temp_dir = os.path.join(to_directory, temp_name)
+    temp_path = temp_dir = os.path.join(to_directory, ".extract-%s" % random_id())
     try:
         _do_extract(path, temp_path, opener, mode, extractor)
     except (OSError, zlib.error, tarfile.ReadError, EOFError) as ex:
@@ -183,7 +182,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
 def _do_extract(archive, dest, opener, mode=None, extractor=None):
     if opener == "gz":
         decompress_gz(archive, dest)
-    if opener == "7zip":
+    elif opener == "7zip":
         extract_7zip(archive, dest, archive_type=extractor)
     elif opener == "exe":
         extract_exe(archive, dest)
@@ -267,21 +266,19 @@ def decompress_gog(file_path, destination_path):
         raise RuntimeError("innoextract failed to extract GOG setup file")
 
 
-def decompress_gz(file_path, dest_path=None):
+def decompress_gz(file_path, dest_path):
     """Decompress a gzip file."""
     if dest_path:
         dest_filename = os.path.join(dest_path, os.path.basename(file_path[:-3]))
     else:
         dest_filename = file_path[:-3]
+    if not os.path.exists(os.path.dirname(dest_filename)):
+        os.makedirs(os.path.dirname(dest_filename))
 
-    gzipped_file = gzip.open(file_path, "rb")
-    file_content = gzipped_file.read()
-    gzipped_file.close()
-
-    dest_file = open(dest_filename, "wb")
-    dest_file.write(file_content)
-    dest_file.close()
-
+    with open(dest_filename, "wb") as dest_file:
+        gzipped_file = gzip.open(file_path, "rb")
+        dest_file.write(gzipped_file.read())
+        gzipped_file.close()
     return dest_path
 
 
