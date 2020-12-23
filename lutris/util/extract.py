@@ -221,7 +221,11 @@ def extract_deb(archive, dest):
     os.makedirs(debian_folder)
     shutil.move(os.path.join(dest, "control.tar.gz"), debian_folder)
     data_file = os.path.join(dest, "data.tar.gz")
-    handler = tarfile.open(data_file, "r:gz")
+    extractor = "r:gz"
+    if not os.path.exists(data_file):
+        data_file = os.path.join(dest, "data.tar.xz")
+        extractor = "r:xz"
+    handler = tarfile.open(data_file, extractor)
     handler.extractall(dest)
     handler.close()
     os.remove(data_file)
