@@ -242,6 +242,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             platform=runner_inst.get_platform(),
             directory=self.interpreter.target_path,
             installed=1,
+            hidden=0,
             installer_slug=self.slug,
             parent_slug=self.requires,
             year=self.year,
