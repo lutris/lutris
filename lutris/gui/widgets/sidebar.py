@@ -139,7 +139,7 @@ class ServiceSidebarRow(SidebarRow):
         if not error and not games:
             error = _("Failed to load games. Check that your profile is set to public during the sync.")
         if error:
-            ErrorDialog(error)
+            ErrorDialog(str(error))
         GLib.timeout_add(5000, self.enable_refresh_button)
 
     def enable_refresh_button(self):
