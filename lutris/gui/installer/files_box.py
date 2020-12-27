@@ -7,7 +7,7 @@ from lutris.util.log import logger
 class InstallerFilesBox(Gtk.ListBox):
     """List box presenting all files needed for an installer"""
 
-    max_downloads = 5
+    max_downloads = 3
 
     __gsignals__ = {
         "files-ready": (GObject.SIGNAL_RUN_LAST, None, (bool, )),
