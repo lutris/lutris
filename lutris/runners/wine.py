@@ -26,8 +26,8 @@ from lutris.util.wine.prefix import WinePrefixManager, find_prefix
 from lutris.util.wine.wine import (
     POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
     esync_display_version_warning, fsync_display_support_warning, fsync_display_version_warning, get_default_version,
-    get_overrides_env, get_real_executable, get_system_wine_version, get_wine_versions, is_esync_limit_set,
-    is_fsync_supported, is_version_esync, is_version_fsync
+    get_overrides_env, get_proton_paths, get_real_executable, get_system_wine_version, get_wine_versions,
+    is_esync_limit_set, is_fsync_supported, is_version_esync, is_version_fsync
 )
 from lutris.util.wine.x360ce import X360ce
 
@@ -625,6 +625,10 @@ class wine(Runner):
         # logger.debug("Getting path for Wine %s", version)
         if version in WINE_PATHS.keys():
             return system.find_executable(WINE_PATHS[version])
+        if "Proton" in version:
+            for proton_path in get_proton_paths():
+                if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
+                    return os.path.join(proton_path, version, "dist/bin/wine")
         if version.startswith("PlayOnLinux"):
             version, arch = version.split()[1].rsplit("-", 1)
             return os.path.join(POL_PATH, "wine", "linux-" + arch, version, "bin/wine")
@@ -910,8 +914,15 @@ class wine(Runner):
         wine_root = None
         if WINE_DIR:
             wine_root = os.path.dirname(os.path.dirname(wine_path))
+        for proton_path in get_proton_paths():
+            if proton_path in wine_path:
+                wine_root = os.path.dirname(os.path.dirname(wine_path))
+        if "-4." in wine_path or "/4." in wine_path:
+            version = "Ubuntu-18.04"
+        else:
+            version = "legacy"
         return runtime.get_env(
-            version="Ubuntu-18.04",
+            version=version,
             prefer_system_libs=self.system_config.get("prefer_system_libs", True),
             wine_path=wine_root,
         )
