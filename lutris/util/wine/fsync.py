@@ -1,5 +1,5 @@
 '''Module for detecting the availability of the Linux futex
-FUTEX_WAIT_MULTIPLE operation.
+FUTEX_WAIT_MULTIPLE operation, or the Linux futex2 syscalls.
 
 Based on https://gist.github.com/openglfreak/715d5ab5902497378f1996061dbbf8ec
 '''
@@ -236,6 +236,7 @@ def is_futex_wait_multiple_supported():
     futex_wait_multiple_supported = _CACHED_FUTEX_WAIT_MULTIPLE_SUPPORTED
     if futex_wait_multiple_supported is None:
         futex_wait_multiple_supported = _is_futex_wait_multiple_supported()
+        _CACHED_FUTEX_WAIT_MULTIPLE_SUPPORTED = futex_wait_multiple_supported
 
         def is_futex_wait_multiple_supported_cached():
             return futex_wait_multiple_supported
@@ -248,4 +249,53 @@ def is_futex_wait_multiple_supported():
     return futex_wait_multiple_supported
 
 
-is_fsync_supported = is_futex_wait_multiple_supported
+####################
+# futex2 detection #
+####################
+
+
+def _is_futex2_supported():
+    try:
+        for filename in ('wait', 'waitv', 'wake'):
+            with open('/sys/kernel/futex2/' + filename, 'rb') as file:
+                if not file.readline().strip().isdigit():
+                    return False
+    except OSError:
+        return False
+    return True
+
+
+_CACHED_FUTEX2_SUPPORTED = None
+
+
+def is_futex2_supported():
+    '''Checks whether the Linux futex2 syscall is supported on this
+    kernel.
+
+    Returns:
+        Whether this kernel supports the futex2 syscall.
+    '''
+    global _CACHED_FUTEX2_SUPPORTED  # pylint: disable=global-statement # noqa: E501
+    futex2_supported = _CACHED_FUTEX2_SUPPORTED
+    if futex2_supported is None:
+        futex2_supported = _is_futex2_supported()
+        _CACHED_FUTEX2_SUPPORTED = futex2_supported
+
+        def is_futex2_supported_cached():
+            return futex2_supported
+        global is_futex2_supported  # pylint: disable=global-variable-undefined # noqa: E501
+        is_futex2_supported_cached.__doc__ = \
+            getattr(is_futex2_supported, '__doc__', None)
+        is_futex2_supported = \
+            is_futex2_supported_cached
+
+    return futex2_supported
+
+
+##########################
+# Combined support check #
+##########################
+
+
+def is_fsync_supported():
+    return is_futex_wait_multiple_supported() or is_futex2_supported()
