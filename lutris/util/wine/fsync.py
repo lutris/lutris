@@ -232,6 +232,12 @@ def _get_futex_syscall():
 
 
 def _get_futex_wait_multiple_op(futex_syscall):
+    """Detects which (if any) futex opcode is used for the
+    FUTEX_WAIT_MULTIPLE operation on this kernel.
+
+    Returns:
+        The opcode number, or None if the operation is not supported.
+    """
     ret = futex_syscall(None, 31, 0, None, None, 0)
     if ret[1] != errno.ENOSYS:
         return 31
@@ -275,4 +281,10 @@ def is_futex2_supported():
 
 @functools.lru_cache(None)
 def is_fsync_supported():
+    """Checks whether the FUTEX_WAIT_MULTIPLE operation or the futex2
+    syscall is supported on this kernel.
+
+    Returns:
+        The result of the check.
+    """
     return is_futex_wait_multiple_supported() or is_futex2_supported()
