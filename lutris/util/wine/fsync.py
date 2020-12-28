@@ -250,21 +250,9 @@ def is_futex_wait_multiple_supported():
         Whether this kernel supports the FUTEX_WAIT_MULTIPLE operation.
     """
     try:
-        futex_syscall = _get_futex_syscall()
-        futex_wait_multiple_op = _get_futex_wait_multiple_op(futex_syscall)
+        return _get_futex_wait_multiple_op(_get_futex_syscall()) is not None
     except (AttributeError, RuntimeError):
         return False
-    if futex_wait_multiple_op is None:
-        return False
-
-    return futex_syscall(
-        None,
-        futex_wait_multiple_op,
-        0,
-        None,
-        None,
-        0
-    )[1] != errno.ENOSYS
 
 
 @functools.lru_cache(None)
