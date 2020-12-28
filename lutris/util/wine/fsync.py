@@ -195,7 +195,7 @@ def _get_futex_wait_multiple_op(futex_syscall):
     return None
 
 
-@functools.lru_cache(1)
+@functools.lru_cache(None)
 def is_futex_wait_multiple_supported():
     '''Checks whether the Linux futex FUTEX_WAIT_MULTIPLE operation is
     supported on this kernel.
@@ -221,7 +221,7 @@ def is_futex_wait_multiple_supported():
     )[1] != errno.ENOSYS
 
 
-@functools.lru_cache(1)
+@functools.lru_cache(None)
 def is_futex2_supported():
     '''Checks whether the Linux futex2 syscall is supported on this
     kernel.
@@ -239,6 +239,6 @@ def is_futex2_supported():
     return True
 
 
-@functools.lru_cache(1)
+@functools.lru_cache(None)
 def is_fsync_supported():
     return is_futex_wait_multiple_supported() or is_futex2_supported()
