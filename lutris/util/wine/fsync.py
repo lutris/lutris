@@ -11,10 +11,6 @@ import subprocess
 
 __all__ = ('is_fsync_supported',)
 
-###############
-# futex stuff #
-###############
-
 
 # pylint: disable=invalid-name,too-few-public-methods
 class timespec(ctypes.Structure):
@@ -189,11 +185,6 @@ def _get_futex_syscall():
     return _futex_syscall
 
 
-#################################
-# FUTEX_WAIT_MULTIPLE functions #
-#################################
-
-
 def _get_futex_wait_multiple_op(futex_syscall):
     ret = futex_syscall(None, 31, 0, None, None, 0)
     if ret[1] != errno.ENOSYS:
@@ -230,11 +221,6 @@ def is_futex_wait_multiple_supported():
     )[1] != errno.ENOSYS
 
 
-####################
-# futex2 detection #
-####################
-
-
 @functools.lru_cache(1)
 def is_futex2_supported():
     '''Checks whether the Linux futex2 syscall is supported on this
@@ -251,11 +237,6 @@ def is_futex2_supported():
     except OSError:
         return False
     return True
-
-
-##########################
-# Combined support check #
-##########################
 
 
 @functools.lru_cache(1)
