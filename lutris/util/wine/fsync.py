@@ -1,7 +1,53 @@
 """Module for detecting the availability of the Linux futex
 FUTEX_WAIT_MULTIPLE operation, or the Linux futex2 syscalls.
 
-Based on https://gist.github.com/openglfreak/715d5ab5902497378f1996061dbbf8ec
+Either of these is required for fsync to work in Wine. Fsync is an
+alternative implementation of the Windows synchronization primitives
+that are used to guard data from being accessed by multiple threads
+concurrently (which would be A Bad Thing™).
+
+Fsync improves upon the previous implementation in Wine of these
+primitives, known as esync, which in turn improved upon the original
+implementation known as "Server-side synchronization".
+
+The original implementation used a wineserver call for each
+synchronization operation, which required multiple context switches per
+operation.
+
+Esync instead used file descriptors for synchronization, which can be
+passed around between processes and therefore allowed synchronization
+to happen directly between the processes involved, instead of going
+through the wineserver. This made the synchronization operations
+faster and improved performance of games a bit.
+A problem with this implementation was that each created synchronization
+object required one file descriptor, and there is only a limited amount
+of these available for each process. Some games would run out of
+available file descriptors, and would stop working. This has been partly
+mitigated by raising the per-process file descriptor limit, but there
+are also games that leak synchronization objects continuously while
+running, and would eventually run out despite the raised limits.
+
+Fsync improved on esync by not requiring a file descriptor for each
+created synchronization object, and instead using the Linux kernel's
+futex interface for synchronizations. This matches Windows's
+implementation more closely and mitigated all the file descriptor
+related issues of esync. However, since the default futex interface was
+insufficient for implementing all required synchronization operations,
+a patch to the Linux kernel was needed, which usually meant that users
+needed to compile their own Linux kernel with the patch, or install a
+kernel provided by a third-party. It was attempted to get the kernel
+patch into the mainline Linux kernel, but it didn't get accepted.
+
+Instead, patches were written that would add a new set of system calls
+which extend the original futex system calls, dubbed "futex2", and the
+Wine fsync code was adjusted to make use of these new system calls.
+The new Wine fsync code is backwards-compatible with the old futex
+patch, therefore it makes sense for now to detect the presence of
+either patch in the running kernel. The detection of the old patch
+can probably be removed when the new patch is merged and in a stable
+Linux release.
+
+This module's code is based on https://gist.github.com/openglfreak/715d5ab5902497378f1996061dbbf8ec
 """
 import ctypes
 import errno
