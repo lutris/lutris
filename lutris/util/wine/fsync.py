@@ -5,6 +5,7 @@ Based on https://gist.github.com/openglfreak/715d5ab5902497378f1996061dbbf8ec
 '''
 import ctypes
 import errno
+import functools
 import os
 import subprocess
 
@@ -203,7 +204,14 @@ def _get_futex_wait_multiple_op(futex_syscall):
     return None
 
 
-def _is_futex_wait_multiple_supported():
+@functools.lru_cache(1)
+def is_futex_wait_multiple_supported():
+    '''Checks whether the Linux futex FUTEX_WAIT_MULTIPLE operation is
+    supported on this kernel.
+
+    Returns:
+        Whether this kernel supports the FUTEX_WAIT_MULTIPLE operation.
+    '''
     try:
         futex_syscall = _get_futex_syscall()
         futex_wait_multiple_op = _get_futex_wait_multiple_op(futex_syscall)
@@ -222,39 +230,19 @@ def _is_futex_wait_multiple_supported():
     )[1] != errno.ENOSYS
 
 
-_CACHED_FUTEX_WAIT_MULTIPLE_SUPPORTED = None
-
-
-def is_futex_wait_multiple_supported():
-    '''Checks whether the Linux futex FUTEX_WAIT_MULTIPLE operation is
-    supported on this kernel.
-
-    Returns:
-        Whether this kernel supports the FUTEX_WAIT_MULTIPLE operation.
-    '''
-    global _CACHED_FUTEX_WAIT_MULTIPLE_SUPPORTED  # pylint: disable=global-statement # noqa: E501
-    futex_wait_multiple_supported = _CACHED_FUTEX_WAIT_MULTIPLE_SUPPORTED
-    if futex_wait_multiple_supported is None:
-        futex_wait_multiple_supported = _is_futex_wait_multiple_supported()
-        _CACHED_FUTEX_WAIT_MULTIPLE_SUPPORTED = futex_wait_multiple_supported
-
-        def is_futex_wait_multiple_supported_cached():
-            return futex_wait_multiple_supported
-        global is_futex_wait_multiple_supported  # pylint: disable=global-variable-undefined # noqa: E501
-        is_futex_wait_multiple_supported_cached.__doc__ = \
-            getattr(is_futex_wait_multiple_supported, '__doc__', None)
-        is_futex_wait_multiple_supported = \
-            is_futex_wait_multiple_supported_cached
-
-    return futex_wait_multiple_supported
-
-
 ####################
 # futex2 detection #
 ####################
 
 
-def _is_futex2_supported():
+@functools.lru_cache(1)
+def is_futex2_supported():
+    '''Checks whether the Linux futex2 syscall is supported on this
+    kernel.
+
+    Returns:
+        Whether this kernel supports the futex2 syscall.
+    '''
     try:
         for filename in ('wait', 'waitv', 'wake'):
             with open('/sys/kernel/futex2/' + filename, 'rb') as file:
@@ -265,37 +253,11 @@ def _is_futex2_supported():
     return True
 
 
-_CACHED_FUTEX2_SUPPORTED = None
-
-
-def is_futex2_supported():
-    '''Checks whether the Linux futex2 syscall is supported on this
-    kernel.
-
-    Returns:
-        Whether this kernel supports the futex2 syscall.
-    '''
-    global _CACHED_FUTEX2_SUPPORTED  # pylint: disable=global-statement # noqa: E501
-    futex2_supported = _CACHED_FUTEX2_SUPPORTED
-    if futex2_supported is None:
-        futex2_supported = _is_futex2_supported()
-        _CACHED_FUTEX2_SUPPORTED = futex2_supported
-
-        def is_futex2_supported_cached():
-            return futex2_supported
-        global is_futex2_supported  # pylint: disable=global-variable-undefined # noqa: E501
-        is_futex2_supported_cached.__doc__ = \
-            getattr(is_futex2_supported, '__doc__', None)
-        is_futex2_supported = \
-            is_futex2_supported_cached
-
-    return futex2_supported
-
-
 ##########################
 # Combined support check #
 ##########################
 
 
+@functools.lru_cache(1)
 def is_fsync_supported():
     return is_futex_wait_multiple_supported() or is_futex2_supported()
