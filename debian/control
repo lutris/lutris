@@ -17,6 +17,7 @@ Architecture: all
 Depends: ${misc:Depends},
          ${python3:Depends},
          python3-yaml,
+         python3-lxml,
          python3-requests,
          python3-pil,
          python3-gi,
