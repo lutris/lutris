@@ -159,6 +159,6 @@ def download_file(url, dest, overwrite=False):
         request = Request(url).get()
     except HTTPError as ex:
         logger.error("Failed to get url %s: %s", url, ex)
-        return
+        return None
     request.write_to_file(dest)
     return dest

@@ -31,7 +31,6 @@ from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.timer import Timer
-from lutris.util.wine.dxvk import wait_for_dxvk_init
 
 HEARTBEAT_DELAY = 2000
 
@@ -471,7 +470,6 @@ class Game(GObject.Object):
         if not self.is_installed:
             self.emit("game-install")
             return
-        wait_for_dxvk_init()
         self.load_config()  # Reload the config before launching it.
 
         if self.id in LOG_BUFFERS:  # Reset game logs on each launch

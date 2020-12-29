@@ -133,14 +133,13 @@ class wine(Runner):
         def dxvk_choices(manager_class):
             version_choices = [
                 (_("Manual"), "manual"),
-                (manager_class.DXVK_LATEST, manager_class.DXVK_LATEST),
             ]
-            for version in manager_class.DXVK_PAST_RELEASES:
+            for version in manager_class.versions:
                 version_choices.append((version, version))
             return version_choices
 
         def get_dxvk_choices():
-            return dxvk_choices(dxvk.DXVKManager)
+            return dxvk_choices(dxvk.DXVKManager())
 
         def esync_limit_callback(widget, option, config):
             limits_set = is_esync_limit_set()
@@ -227,16 +226,8 @@ class wine(Runner):
                 "advanced": True,
                 "type": "choice_with_entry",
                 "choices": get_dxvk_choices,
-                "default": dxvk.DXVKManager.DXVK_LATEST,
+                "default": dxvk.DXVKManager().version,
             },
-            # Disabled until we get a working implementation if this option.
-            # {
-            #     "option": "dvxk_d3d9",
-            #     "label": _("Enable DX9 in DXVK"),
-            #     "type": "bool",
-            #     "default": True,
-            #     "help": _("Use DXVK to handle DirectX9 games")
-            # },
             {
                 "option": "esync",
                 "label": _("Enable Esync"),
@@ -842,14 +833,13 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
-        dxvk_manager = dxvk.DXVKManager
         self.setup_dxvk(
             "dxvk",
-            dxvk_manager=dxvk_manager(
+            dxvk_manager=dxvk.DXVKManager(
                 self.prefix_path,
                 arch=self.wine_arch,
                 version=self.runner_config.get("dxvk_version"),
-            ),
+            )
         )
 
         try:

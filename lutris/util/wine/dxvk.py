@@ -1,97 +1,37 @@
 """DXVK helper module"""
-# Standard Library
 import json
 import os
 import shutil
-import threading
-import time
-import urllib.request
 
-# Lutris Modules
 from lutris.settings import RUNTIME_DIR
 from lutris.util import system
-from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
+from lutris.util.http import download_file
 
-CACHE_MAX_AGE = 86400  # Re-download DXVK versions every day
-
-
-@system.run_once
-def init_dxvk_versions():
-
-    def get_dxvk_versions(base_name, tags_url):
-        """Get DXVK versions from GitHub"""
-        dxvk_path = os.path.join(RUNTIME_DIR, base_name)
-        if not os.path.isdir(dxvk_path):
-            os.mkdir(dxvk_path)
-        versions_path = os.path.join(dxvk_path, base_name + "_versions.json")
-        internet_available = True
-        try:
-            urllib.request.urlretrieve(tags_url, versions_path)
-        except Exception as ex:  # pylint: disable= broad-except
-            logger.error(ex)
-            internet_available = False
-        dxvk_versions = list()
-        with open(versions_path, "r") as dxvk_tags:
-            dxvk_json = json.load(dxvk_tags)
-            for x in dxvk_json:
-                version_name = x["tag_name"].replace("v", "")
-                if internet_available or version_name in os.listdir(dxvk_path):
-                    dxvk_versions.append(version_name)
-        if not dxvk_versions:  # We don't want to set manager.DXVK_VERSIONS, if the list is empty
-            raise IndexError
-        return dxvk_versions
-
-    def init_versions(manager):
-        try:
-            manager.DXVK_VERSIONS = get_dxvk_versions(manager.base_name, manager.DXVK_TAGS_URL)
-        except (IndexError, FileNotFoundError):
-            pass
-        manager.DXVK_LATEST, manager.DXVK_PAST_RELEASES = (
-            manager.DXVK_VERSIONS[0],
-            manager.DXVK_VERSIONS[1:9],
-        )
-
-    # prevent race condition with if statement
-    with DXVKManager.init_lock:
-        # don't start init twice
-        if not DXVKManager.init_started:
-            DXVKManager.init_started = True
-            init_versions(DXVKManager)
+DXVK_RELEASES_URL = "https://api.github.com/repos/lutris/dxvk/releases"
 
 
-def wait_for_dxvk_init():
-    # wait for finishing DXVK initialization and prevent race condition with if statement
-    with DXVKManager.init_lock:
-        # in case DXVK init never got started, start it to prevent waiting indefinitely
-        if not DXVKManager.init_started:
-            init_dxvk_versions()
+def fetch_dxvk_versions():
+    """Get DXVK versions from GitHub"""
+    dxvk_path = os.path.join(RUNTIME_DIR, "dxvk")
+    if not os.path.isdir(dxvk_path):
+        os.mkdir(dxvk_path)
+    versions_path = os.path.join(dxvk_path, "dxvk_versions.json")
+    logger.info("Downloading DXVK releases to %s", versions_path)
+    return download_file(DXVK_RELEASES_URL, versions_path)
 
 
 class UnavailableDXVKVersion(RuntimeError):
-
     """Exception raised when a version of DXVK is not found"""
 
 
 class DXVKManager:
-
     """Utility class to install DXVK dlls to a Wine prefix"""
-
-    DXVK_TAGS_URL = "https://api.github.com/repos/lutris/dxvk/releases"
-    DXVK_VERSIONS = ["1.7L-84bb768"]
-    DXVK_LATEST, DXVK_PAST_RELEASES = DXVK_VERSIONS[0], DXVK_VERSIONS[1:9]
-
-    init_started = False
-    init_lock = threading.RLock()
-
-    base_url = "https://github.com/lutris/dxvk/releases/download/v{}/dxvk-{}.tar.gz"
-    base_name = "dxvk"
-    base_dir = os.path.join(RUNTIME_DIR, base_name)
+    base_dir = os.path.join(RUNTIME_DIR, "dxvk")
     dxvk_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9", "d3d12")
-    latest_version = DXVK_LATEST
 
-    def __init__(self, prefix, arch="win64", version=None):
+    def __init__(self, prefix=None, arch="win64", version=None):
         self.prefix = prefix
         if not os.path.isdir(self.base_dir):
             os.makedirs(self.base_dir)
@@ -99,16 +39,31 @@ class DXVKManager:
         self.wine_arch = arch
 
     @property
+    def versions(self):
+        """Return available versions"""
+        self._versions = self.load_dxvk_versions()
+        if not self._versions:
+            logger.warning("Loading of DXVK versions failed, defaulting to locally available versions")
+            self._versions = os.listdir(self.base_dir)
+        return self._versions
+
+    @property
     def version(self):
         """Return version of DXVK (latest known version if not provided)"""
         if self._version:
             return self._version
-        return self.latest_version
+        return self.versions[0]
 
     @property
     def dxvk_path(self):
         """Return path to DXVK local cache"""
         return os.path.join(self.base_dir, self.version)
+
+    def load_dxvk_versions(self):
+        versions_path = os.path.join(self.base_dir, "dxvk_versions.json")
+        with open(versions_path, "r") as dxvk_version_file:
+            dxvk_versions = [v["tag_name"] for v in json.load(dxvk_version_file)]
+        return dxvk_versions
 
     @staticmethod
     def is_dxvk_dll(dll_path):
@@ -123,7 +78,6 @@ class DXVKManager:
                     block = file.read(2 * 1024 * 1024)  # 2 MiB
                     if not block:
                         break
-
                     if b'dxvk' in prev_block_end + block[:4]:
                         return True
                     if b'dxvk' in block:
@@ -143,26 +97,32 @@ class DXVKManager:
         return system.path_exists(os.path.join(self.dxvk_path, "x64", dll_name + ".dll")
                                   ) and system.path_exists(os.path.join(self.dxvk_path, "x32", dll_name + ".dll"))
 
+    def get_dxvk_download_url(self):
+        """Fetch the download URL for DXVK from the JSON version file"""
+        versions_path = os.path.join(self.base_dir, "dxvk_versions.json")
+        with open(versions_path, "r") as dxvk_version_file:
+            dxvk_releases = json.load(dxvk_version_file)
+        for release in dxvk_releases:
+            if release["tag_name"] != self.version:
+                continue
+            return release["assets"][0]["browser_download_url"]        
+
     def download(self):
         """Download DXVK to the local cache"""
-        dxvk_url = self.base_url.format(self.version, self.version)
         if self.is_available():
-            logger.warning("%s already available at %s", self.base_name.upper(), self.dxvk_path)
+            logger.warning("DXVK already available at %s", self.dxvk_path)
 
+        dxvk_url = self.get_dxvk_download_url()
+        if not dxvk_url:
+            logger.warning("Could not find a release for DXVK %s", self.version)
+            return
         dxvk_archive_path = os.path.join(self.base_dir, os.path.basename(dxvk_url))
-
-        downloader = Downloader(dxvk_url, dxvk_archive_path)
-        downloader.start()
-        while downloader.check_progress() < 1 and downloader.state != downloader.ERROR:
-            time.sleep(0.3)
-        if not system.path_exists(dxvk_archive_path):
-            raise UnavailableDXVKVersion("Failed to download %s %s" % (self.base_name.upper(), self.version))
-        if os.stat(dxvk_archive_path).st_size:
-            extract_archive(dxvk_archive_path, self.dxvk_path, merge_single=True)
-            os.remove(dxvk_archive_path)
-        else:
-            os.remove(dxvk_archive_path)
-            raise UnavailableDXVKVersion("Failed to download %s %s" % (self.base_name.upper(), self.version))
+        download_file(dxvk_url, dxvk_archive_path, overwrite=True)
+        if not system.path_exists(dxvk_archive_path) or not os.stat(dxvk_archive_path).st_size:
+            logger.error("Failed to download DXVK %s" % self.version)
+            return
+        extract_archive(dxvk_archive_path, self.dxvk_path, merge_single=True)
+        os.remove(dxvk_archive_path)
 
     def enable_dxvk_dll(self, system_dir, dxvk_arch, dll):
         """Copies DXVK dlls to the appropriate destination"""
@@ -170,12 +130,7 @@ class DXVKManager:
         dxvk_dll_path = os.path.join(self.dxvk_path, dxvk_arch, "%s.dll" % dll)
         if system.path_exists(dxvk_dll_path):
             wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
-            logger.debug(
-                "Replacing %s/%s with %s version",
-                system_dir,
-                dll,
-                self.base_name.upper(),
-            )
+            logger.debug("Replacing %s/%s with DXVK version", system_dir, dll)
             if system.path_exists(wine_dll_path):
                 if not self.is_dxvk_dll(wine_dll_path) and not os.path.islink(wine_dll_path):
                     # Backing up original version (may not be needed)
@@ -194,7 +149,7 @@ class DXVKManager:
         wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
         if system.path_exists(wine_dll_path + ".orig"):
             if system.path_exists(wine_dll_path):
-                logger.debug("Removing %s dll %s/%s", self.base_name.upper(), system_dir, dll)
+                logger.debug("Removing DXVK dll %s/%s", system_dir, dll)
                 os.remove(wine_dll_path)
             shutil.move(wine_dll_path + ".orig", wine_dll_path)
 
@@ -224,9 +179,3 @@ class DXVKManager:
         """Disable DXVK for the current prefix"""
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():
             self.disable_dxvk_dll(system_dir, dxvk_arch, dll)
-
-
-class DXVKManagerNoD3D9(DXVKManager):
-
-    """Modified DXVKManager without D3D9 support"""
-    dxvk_dlls = ("d3d11", "d3d10core")

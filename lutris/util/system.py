@@ -352,19 +352,6 @@ def reset_library_preloads():
                 logger.error("Failed to delete environment variable %s", key)
 
 
-def run_once(function):
-    """Decorator to use on functions intended to run only once"""
-    first_run = True
-
-    def fn_wrapper(*args):
-        nonlocal first_run
-        if first_run:
-            first_run = False
-            return function(*args)
-
-    return fn_wrapper
-
-
 def get_existing_parent(path):
     """Return the 1st existing parent for a folder (or itself if the path
     exists and is a directory). returns None, when none of the parents exists.
