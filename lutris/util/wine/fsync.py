@@ -73,7 +73,7 @@ class timespec(ctypes.Structure):
     ]
 
 
-# Hardcode some of the most commonly used architectures"s
+# Hardcode some of the most commonly used architectures's
 # futex syscall numbers.
 _NR_FUTEX_PER_ARCH = {
     ("i386", 32): 240,
@@ -214,7 +214,7 @@ def _get_futex_syscall():
         Raises:
             AttributeError: When the libc has no syscall() function.
             RuntimeError: When the syscall number could not be determined.
-            TypeError: If `uaddr` or `uaddr2` is not a pointer and can"t be
+            TypeError: If `uaddr` or `uaddr2` is not a pointer and can't be
                 converted into one.
         """
         error = futex_syscall(
