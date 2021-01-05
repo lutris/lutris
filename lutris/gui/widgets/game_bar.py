@@ -75,7 +75,7 @@ class GameBar(Gtk.Fixed):
         self.play_button = self.get_play_button()
         self.put(self.play_button, self.play_button_position[0], self.play_button_position[1])
 
-    def get_popover(self, buttons):
+    def get_popover(self, buttons, parent):
         """Return the popover widget containing a list of link buttons"""
         if not buttons:
             return None
@@ -86,6 +86,16 @@ class GameBar(Gtk.Fixed):
             vbox.pack_end(buttons[action], False, False, 1)
         popover.add(vbox)
         popover.set_position(Gtk.PositionType.TOP)
+        # Showing the popover as a non-modal introduces all sorts of incorrect behaviors
+        # actually only one, the popover doesn't close when a click is registered outside the menu.
+        # We are forced to use a non-modal because Wayland is broken and doesn't show popovers at
+        # all (This is also the case in the popovers in the Glade file).
+        # There is no explanation to why this is broken, only a confirmation that Wayland isn't
+        # production ready and therefore shouldn't be used by anyone who isn't a display manager developer.
+        # You can thank Wayland for making Lutris a little bit worse...
+        popover.set_modal(False)
+        popover.set_constrain_to(Gtk.PopoverConstraint.NONE)
+        popover.set_relative_to(parent)
         return popover
 
     def get_icon(self):
@@ -105,9 +115,9 @@ class GameBar(Gtk.Fixed):
         runner_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
         runner_icon.show()
         box = Gtk.HBox(visible=True)
-        popover = self.get_popover(self.get_runner_buttons())
+        runner_button = Gtk.Button(visible=True)
+        popover = self.get_popover(self.get_runner_buttons(), runner_button)
         if popover:
-            runner_button = Gtk.Button(visible=True)
             runner_button.set_image(runner_icon)
             popover_button = Gtk.MenuButton(visible=True)
             popover_button.set_size_request(32, 32)
@@ -163,7 +173,8 @@ class GameBar(Gtk.Fixed):
         popover_button = Gtk.MenuButton(visible=True)
         popover_button.set_size_request(32, 32)
         popover_button.props.direction = Gtk.ArrowType.UP
-        popover_button.set_popover(self.get_popover(self.get_game_buttons()))
+        popover = self.get_popover(self.get_game_buttons(), popover_button)
+        popover_button.set_popover(popover)
         if self.game.is_installed:
             if self.game.state == self.game.STATE_STOPPED:
                 button.set_label(_("Play"))

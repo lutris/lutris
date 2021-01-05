@@ -409,7 +409,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.game_bar = GameBar(game, self.game_actions, self.application)
             self.revealer_box.pack_start(self.game_bar, True, True, 0)
         elif self.game_bar:
-            self.game_bar.destroy()
+            # The game bar can't be destroyed here because the game gets unselected on Wayland
+            # whenever the game bar is interacted with. Instead, we keep the current game bar open
+            # when the game gets unselected, which is somewhat closer to what the intended behavior
+            # should be anyway. Might require closing the game bar manually in some cases.
+            pass
+            # self.game_bar.destroy()
         if self.revealer_box.get_children():
             self.game_revealer.set_reveal_child(True)
         else:

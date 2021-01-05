@@ -57,4 +57,6 @@ class GameGridView(Gtk.IconView, GameView):
 
     def on_selection_changed(self, _view):
         """Handles selection changes"""
-        self.emit("game-selected", self.get_selected_item())
+        selected_items = self.get_selected_item()
+        if selected_items:
+            self.emit("game-selected", selected_items)
