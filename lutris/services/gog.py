@@ -390,7 +390,7 @@ class GOGService(OnlineService):
         if not links:
             raise UnavailableGame("Could not fing GOG game")
         _installer_files = defaultdict(dict)  # keyed by filename
-        for index, link in enumerate(links):
+        for link in links:
             filename = link["filename"]
             if filename.lower().endswith(".xml"):
                 if filename != installer_file_id:

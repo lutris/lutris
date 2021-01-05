@@ -6,8 +6,8 @@ import shutil
 from lutris.settings import RUNTIME_DIR
 from lutris.util import system
 from lutris.util.extract import extract_archive
-from lutris.util.log import logger
 from lutris.util.http import download_file
+from lutris.util.log import logger
 
 DXVK_RELEASES_URL = "https://api.github.com/repos/lutris/dxvk/releases"
 
@@ -35,6 +35,7 @@ class DXVKManager:
         self.prefix = prefix
         if not os.path.isdir(self.base_dir):
             os.makedirs(self.base_dir)
+        self._versions = []
         self._version = version
         self.wine_arch = arch
 
@@ -105,7 +106,7 @@ class DXVKManager:
         for release in dxvk_releases:
             if release["tag_name"] != self.version:
                 continue
-            return release["assets"][0]["browser_download_url"]        
+            return release["assets"][0]["browser_download_url"]
 
     def download(self):
         """Download DXVK to the local cache"""
@@ -119,7 +120,7 @@ class DXVKManager:
         dxvk_archive_path = os.path.join(self.base_dir, os.path.basename(dxvk_url))
         download_file(dxvk_url, dxvk_archive_path, overwrite=True)
         if not system.path_exists(dxvk_archive_path) or not os.stat(dxvk_archive_path).st_size:
-            logger.error("Failed to download DXVK %s" % self.version)
+            logger.error("Failed to download DXVK %s", self.version)
             return
         extract_archive(dxvk_archive_path, self.dxvk_path, merge_single=True)
         os.remove(dxvk_archive_path)
@@ -170,7 +171,7 @@ class DXVKManager:
     def enable(self):
         """Enable DXVK for the current prefix"""
         if not system.path_exists(self.dxvk_path):
-            logger.error("%s %s is not available locally", self.base_name.upper(), self.version)
+            logger.error("DXVK %s is not available locally", self.version)
             return
         for system_dir, dxvk_arch, dll in self._iter_dxvk_dlls():
             self.enable_dxvk_dll(system_dir, dxvk_arch, dll)

@@ -15,7 +15,7 @@ from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import create_folder
-from lutris.util.wine.dxvk import fetch_dxvk_versions, DXVKManager
+from lutris.util.wine.dxvk import DXVKManager, fetch_dxvk_versions
 
 
 def init_dirs():

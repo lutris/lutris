@@ -201,7 +201,8 @@ def get_wine_versions():
     versions = []
     versions += get_system_wine_versions()
     versions += get_lutris_wine_versions()
-    versions += get_proton_versions()
+    if os.environ.get("LUTRIS_ENABLE_PROTON"):
+        versions += get_proton_versions()
     versions += get_pol_wine_versions()
     return versions
 
@@ -282,7 +283,7 @@ def is_version_esync(path):
     except IndexError:
         logger.error("Invalid path '%s'", path)
         return False
-    version_number, version_prefix, version_suffix = parse_version(version)
+    _version_number, version_prefix, version_suffix = parse_version(version)
     esync_compatible_versions = ["esync", "lutris", "tkg", "ge", "proton", "staging"]
     for esync_version in esync_compatible_versions:
         if esync_version in version_prefix or esync_version in version_suffix:
