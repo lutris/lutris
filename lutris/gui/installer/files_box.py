@@ -41,7 +41,7 @@ class InstallerFilesBox(Gtk.ListBox):
         started_downloads = 0
         for file_id in self.installer_files_boxes:
             started_downloads += 1
-            if started_downloads <= self.max_downloads:
+            if started_downloads <= self.max_downloads or self.installer_files_boxes[file_id].provider == "pga":
                 self.installer_files_boxes[file_id].start()
             else:
                 self._file_queue.append(file_id)
@@ -75,6 +75,7 @@ class InstallerFilesBox(Gtk.ListBox):
     def on_file_available(self, widget):
         """A new file is available"""
         file_id = widget.installer_file.id
+        logger.debug("%s is available", file_id)
         self.available_files.add(file_id)
         if self._file_queue:
             next_file_id = self._file_queue.pop()

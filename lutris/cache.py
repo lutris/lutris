@@ -23,13 +23,13 @@ def save_cache_path(path):
 def save_to_cache(source, destination):
     """Copy a file or folder to the cache"""
     if not source:
-        raise ValueError("No source given to save")
+        raise ValueError("Missing source")
     if os.path.dirname(source) == destination:
-        logger.info("File is already cached in %s, skipping", destination)
+        logger.info("Skipping caching of %s, already cached in %s", source, destination)
         return
     if os.path.isdir(source):
         # Copy folder recursively
         merge_folders(source, destination)
     else:
         shutil.copy(source, destination)
-    logger.debug("Copied %s to cache %s", source, destination)
+    logger.debug("Cached %s to %s", source, destination)
