@@ -1,3 +1,3 @@
 """Main Lutris package"""
 
-__version__ = "0.5.8.1"
+__version__ = "0.5.8.2"
