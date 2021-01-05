@@ -92,7 +92,7 @@ class DownloadProgressBox(Gtk.Box):
             if self.downloader.state == self.downloader.CANCELLED:
                 self._set_text(_("Download interrupted"))
             else:
-                self._set_text(self.downloader.error[:80])
+                self._set_text(str(self.downloader.error)[:80])
             if self.downloader.state == self.downloader.CANCELLED:
                 self.emit("cancel", {})
             return False
