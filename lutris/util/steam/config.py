@@ -21,13 +21,16 @@ STEAM_DATA_DIRS = (
 
 def get_steam_dir():
     """Main installation directory for Steam"""
+    return search_steam_dirs("steamapps")[: -len("steamapps")]
+
+def search_steam_dirs(file):
+    """Find the (last) file/dir in all the Steam directories"""
     for candidate in STEAM_DATA_DIRS:
         path = system.fix_path_case(
-            os.path.join(os.path.expanduser(candidate), "steamapps")
+            os.path.join(os.path.expanduser(candidate), file)
         )
         if path:
-            return path[: -len("steamapps")]
-
+            return path
 
 def get_default_acf(appid, name):
     """Return a default configuration usable to
@@ -46,8 +49,8 @@ def get_default_acf(appid, name):
     return {"AppState": appstate}
 
 
-def read_user_config(steam_data_dir):
-    config_filename = os.path.join(steam_data_dir, "config/loginusers.vdf")
+def read_user_config():
+    config_filename = search_steam_dirs("config/loginusers.vdf")
     if not system.path_exists(config_filename):
         return None
     with open(config_filename, "r") as steam_config_file:
@@ -66,9 +69,9 @@ def get_config_value(config, key):
     return config[keymap[key.lower()]]
 
 
-def get_user_steam_id(steam_data_dir):
+def get_user_steam_id():
     """Read user's SteamID from Steam config files"""
-    user_config = read_user_config(steam_data_dir)
+    user_config = read_user_config()
     if not user_config or "users" not in user_config:
         return
     last_steam_id = None

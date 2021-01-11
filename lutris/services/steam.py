@@ -99,8 +99,7 @@ class SteamService(BaseService):
         self.is_loading = True
         self.emit("service-games-load")
 
-        steam_dir = get_steam_dir()
-        steamid = get_user_steam_id(steam_dir)
+        steamid = get_user_steam_id()
         if not steamid:
             logger.error("Unable to find SteamID from Steam config")
             self.emit("service-games-loaded")
