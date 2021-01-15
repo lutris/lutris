@@ -62,6 +62,8 @@ class DXVKManager:
 
     def load_dxvk_versions(self):
         versions_path = os.path.join(self.base_dir, "dxvk_versions.json")
+        if not system.path_exists(versions_path):
+            return []
         with open(versions_path, "r") as dxvk_version_file:
             dxvk_versions = [v["tag_name"] for v in json.load(dxvk_version_file)]
         return dxvk_versions

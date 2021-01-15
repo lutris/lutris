@@ -1,12 +1,10 @@
 """Utilities for manipulating Wine"""
-# Standard Library
 import os
 import subprocess
 from collections import OrderedDict
 from functools import lru_cache
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris import runtime, settings
 from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
 from lutris.runners.steam import steam
