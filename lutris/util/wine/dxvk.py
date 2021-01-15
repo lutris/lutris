@@ -53,7 +53,8 @@ class DXVKManager:
         """Return version of DXVK (latest known version if not provided)"""
         if self._version:
             return self._version
-        return self.versions[0]
+        if self.versions:
+            return self.versions[0]
 
     @property
     def dxvk_path(self):
