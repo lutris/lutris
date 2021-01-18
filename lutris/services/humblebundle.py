@@ -88,7 +88,9 @@ class HumbleBundleService(OnlineService):
         dialog.show()
 
     def is_connected(self):
-        """Is the service connected?"""
+        """This doesn't actually check if the authentication
+        is valid like the GOG service does.
+        """
         return self.is_authenticated()
 
     def load(self):
@@ -96,11 +98,17 @@ class HumbleBundleService(OnlineService):
         if self.is_loading:
             logger.warning("Humble bundle games are already loading")
             return
+
         self.is_loading = True
+        try:
+            library = self.get_library()
+        except ValueError:
+            logger.error("Failed to get Humble Bundle library. Try logging out and back-in.")
+            return
         self.emit("service-games-load")
         humble_games = []
         seen = set()
-        for game in self.get_library():
+        for game in library:
             if game["human_name"] in seen:
                 continue
             humble_games.append(HumbleBundleGame.new_from_humble_game(game))
