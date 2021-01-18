@@ -129,6 +129,14 @@ def is_mingw_build(wine_path):
     return system.path_exists(os.path.join(base_path, "lib/wine/iexplore.exe"))
 
 
+def is_gstreamer_build(wine_path):
+    """Returns whether a wine build ships with gstreamer libraries.
+    This allows to set GST_PLUGIN_SYSTEM_PATH_1_0 for the builds that support it.
+    """
+    base_path = os.path.dirname(os.path.dirname(wine_path))
+    return system.path_exists(os.path.join(base_path, "lib64/gstreamer-1.0"))
+
+
 def is_installed_systemwide():
     """Return whether Wine is installed outside of Lutris"""
     for build in WINE_PATHS.values():
