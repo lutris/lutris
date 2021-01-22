@@ -86,14 +86,6 @@ class GameBar(Gtk.Fixed):
             vbox.pack_end(buttons[action], False, False, 1)
         popover.add(vbox)
         popover.set_position(Gtk.PositionType.TOP)
-        # Showing the popover as a non-modal introduces all sorts of incorrect behaviors
-        # actually only one, the popover doesn't close when a click is registered outside the menu.
-        # We are forced to use a non-modal because Wayland is broken and doesn't show popovers at
-        # all (This is also the case in the popovers in the Glade file).
-        # There is no explanation to why this is broken, only a confirmation that Wayland isn't
-        # production ready and therefore shouldn't be used by anyone who isn't a display manager developer.
-        # You can thank Wayland for making Lutris a little bit worse...
-        popover.set_modal(False)
         popover.set_constrain_to(Gtk.PopoverConstraint.NONE)
         popover.set_relative_to(parent)
         return popover

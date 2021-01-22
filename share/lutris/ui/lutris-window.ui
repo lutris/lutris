@@ -331,7 +331,6 @@
   <object class="GtkPopover" id="view_adjust_menu">
     <property name="can-focus">False</property>
     <property name="relative-to">viewoptions_menubutton</property>
-    <property name="modal">False</property>
     <child>
       <object class="GtkBox">
         <property name="width-request">160</property>
@@ -491,7 +490,6 @@
     <property name="can-focus">False</property>
     <property name="relative-to">header_bar</property>
     <property name="position">bottom</property>
-    <property name="modal">False</property>
     <child>
       <object class="GtkBox">
         <property name="width-request">160</property>

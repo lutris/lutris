@@ -88,7 +88,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.view = Gtk.Box()
 
         self.connect("delete-event", self.on_window_delete)
-        self.connect("map-event", self.on_load)
+        self.connect("realize", self.on_load)
         if self.maximized:
             self.maximize()
 
@@ -188,7 +188,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def service_media(self):
         return self.get_service_media(self.load_icon_type())
 
-    def on_load(self, widget, data):
+    def on_load(self, widget, data=None):
         """Finish initializing the view"""
         self.redraw_view()
         self._bind_zoom_adjustment()
