@@ -170,10 +170,12 @@ class FileDialog(Gtk.FileChooserDialog):
 
 
 class LutrisInitDialog(Gtk.Dialog):
+
     def __init__(self, init_lutris):
         super().__init__()
         self.set_size_request(320, 60)
         self.set_border_width(24)
+        self.set_decorated(False)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
         label = Gtk.Label(_("Lutris is starting..."))
         vbox.add(label)
