@@ -2,6 +2,7 @@
 import json
 import os
 import time
+import lutris.util.i18n as i18n
 from collections import defaultdict
 from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
@@ -330,10 +331,18 @@ class GOGService(OnlineService):
                 filter_os = "linux"
             gog_installers = [installer for installer in gog_installers if installer["os"] != filter_os]
 
-        # Keep only the english installer until we have locale detection
-        # and / or language selection implemented
+        language = self.determine_language_installer(gog_installers, language)
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
         return gog_installers
+
+    def determine_language_installer(self, gog_installers, default_language):
+        """Return locale language string if available in gog_installers"""
+
+        language = i18n.get_lang()
+        gog_installers = [installer for installer in gog_installers if installer["language"] == language]
+        if not gog_installers:
+            language = default_language
+        return language
 
     def query_download_links(self, download):
         """Convert files from the GOG API to a format compatible with lutris installers"""
