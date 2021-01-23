@@ -3,7 +3,7 @@ from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk, Pango
 
-from lutris import platforms, runners, services
+from lutris import runners, services
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
@@ -275,7 +275,7 @@ class LutrisSidebar(Gtk.ListBox):
     def on_realize(self, widget):
         self.active_platforms = games_db.get_used_platforms()
         self.runners = sorted(runners.__all__)
-        self.platforms = sorted(platforms.__all__)
+        self.platforms = sorted(runners.get_platforms())
         self.categories = categories_db.get_categories()
 
         self.add(
