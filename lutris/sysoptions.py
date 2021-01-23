@@ -327,7 +327,8 @@ system_options = [  # pylint: disable=invalid-name
         "type": "bool",
         "default": False,
         "advanced": True,
-        "help": _("Enable a terminal for text-based games"),
+        "help": _("Enable a terminal for text-based games. "
+                  "Only useful for ASCII based games. May cause issues with graphical games."),
     },
     {
         "option": "terminal_app",
