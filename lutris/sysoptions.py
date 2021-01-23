@@ -267,16 +267,11 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Request a set of optimisations be temporarily applied to the host OS"),
     },
     {
-        "option":
-        "prime",
-        "type":
-        "bool",
-        "default":
-        False,
-        "condition":
-        True,
-        "label":
-        _("Enable NVIDIA Prime Render Offload"),
+        "option": "prime",
+        "type": "bool",
+        "default": False,
+        "condition": True,
+        "label": _("Enable NVIDIA Prime Render Offload"),
         "help": _("If you have the latest NVIDIA driver and the properly patched xorg-server (see "
                   "https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html"
                   "), you can launch a game on your NVIDIA GPU by toggling this switch. This will apply "
@@ -284,53 +279,35 @@ system_options = [  # pylint: disable=invalid-name
                   "__GLX_VENDOR_LIBRARY_NAME=nvidia environment variables.")
     },
     {
-        "option":
-        "dri_prime",
-        "type":
-        "bool",
-        "default":
-        USE_DRI_PRIME,
-        "condition":
-        USE_DRI_PRIME,
-        "label":
-        _("Use discrete graphics"),
-        "advanced":
-        True,
+        "option": "dri_prime",
+        "type": "bool",
+        "default": USE_DRI_PRIME,
+        "condition": USE_DRI_PRIME,
+        "label": _("Use discrete graphics"),
+        "advanced": True,
         "help": _("If you have open source graphic drivers (Mesa), selecting this "
                   "option will run the game with the 'DRI_PRIME=1' environment variable, "
                   "activating your discrete graphic chip for high 3D "
                   "performance."),
     },
     {
-        "option":
-        "sdl_video_fullscreen",
-        "type":
-        "choice",
-        "label":
-        _("SDL 1.2 Fullscreen Monitor"),
-        "choices":
-        get_output_list,
-        "default":
-        "off",
-        "advanced":
-        True,
+        "option": "sdl_video_fullscreen",
+        "type": "choice",
+        "label": _("SDL 1.2 Fullscreen Monitor"),
+        "choices": get_output_list,
+        "default": "off",
+        "advanced": True,
         "help": _("Hint SDL 1.2 games to use a specific monitor when going "
                   "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
                   "environment variable"),
     },
     {
-        "option":
-        "display",
-        "type":
-        "choice",
-        "label":
-        _("Turn off monitors except"),
-        "choices":
-        get_output_choices,
-        "default":
-        "off",
-        "advanced":
-        True,
+        "option": "display",
+        "type": "choice",
+        "label": _("Turn off monitors except"),
+        "choices": get_output_choices,
+        "default": "off",
+        "advanced": True,
         "help": _("Only keep the selected screen active while the game is "
                   "running. \n"
                   "This is useful if you have a dual-screen setup, and are \n"
@@ -346,29 +323,22 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "option": "terminal",
-        "label": _("Run in a terminal"),
+        "label": _("CLI mode"),
         "type": "bool",
         "default": False,
         "advanced": True,
-        "help": _("Run the game in a new terminal window."),
+        "help": _("Enable a terminal for text-based games"),
     },
     {
-        "option":
-        "terminal_app",
-        "label":
-        _("Terminal application"),
-        "type":
-        "choice_with_entry",
-        "choices":
-        system.get_terminal_apps,
-        "default":
-        system.get_default_terminal(),
-        "advanced":
-        True,
-        "help": _("The terminal emulator to be run with the previous option. "
+        "option": "terminal_app",
+        "label": _("Text based games emulator"),
+        "type": "choice_with_entry",
+        "choices": system.get_terminal_apps,
+        "default": system.get_default_terminal(),
+        "advanced": True,
+        "help": _("The terminal emulator used with the CLI mode. "
                   "Choose from the list of detected terminal apps or enter "
-                  "the terminal's command or path. "
-                  "Note: Not all terminal emulators are guaranteed to work."),
+                  "the terminal's command or path."),
     },
     {
         "option": "env",
