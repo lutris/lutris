@@ -69,9 +69,6 @@ class Application(Gtk.Application):
         GLib.set_application_name(_("Lutris"))
         self.window = None
 
-        init_dialog = LutrisInitDialog(init_lutris)
-        init_dialog.run()
-
         self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
         self.tray = None
@@ -201,6 +198,7 @@ class Application(Gtk.Application):
         )
 
     def do_startup(self):  # pylint: disable=arguments-differ
+        """Sets up the application on first start."""
         Gtk.Application.do_startup(self)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -208,6 +206,9 @@ class Application(Gtk.Application):
         action.connect("activate", lambda *x: self.quit())
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
+
+        init_dialog = LutrisInitDialog(init_lutris)
+        init_dialog.run()
 
     def do_activate(self):  # pylint: disable=arguments-differ
         if not self.window:

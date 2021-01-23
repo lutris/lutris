@@ -27,7 +27,7 @@ from lutris.util.wine.wine import (
     POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
     esync_display_version_warning, fsync_display_support_warning, fsync_display_version_warning, get_default_version,
     get_overrides_env, get_proton_paths, get_real_executable, get_system_wine_version, get_wine_versions,
-    is_esync_limit_set, is_fsync_supported, is_version_esync, is_version_fsync, is_gstreamer_build
+    is_esync_limit_set, is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
 from lutris.util.wine.x360ce import X360ce
 
