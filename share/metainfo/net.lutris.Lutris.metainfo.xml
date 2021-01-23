@@ -24,7 +24,7 @@
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
-    <release date="2021-01-05" version="0.5.8.2" />
+    <release date="2021-01-22" version="0.5.8.3" />
   </releases>
   <content_rating type="oars-1.1" />
 </component>

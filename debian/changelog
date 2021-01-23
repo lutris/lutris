@@ -1,3 +1,15 @@
+lutris (0.5.8.3) groovy; urgency=medium
+
+  * Really fix popovers not showing on Wayland without making them non-modal
+  * Prevent GStreamer based configuration from being applied in incompatible
+    wine builds.
+  * Fix crash when wine runner accesses DXVK versions before they are
+    uploaded.
+  * Prevent init dialog from being closed while it downloads the runtime.
+
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 22 Jan 2021 16:24:51 -0800
+
 lutris (0.5.8.2) groovy; urgency=medium
 
   * Fix popover menus not appearing on Wayland
@@ -10,7 +22,7 @@ lutris (0.5.8.2) groovy; urgency=medium
   * Add support for deb file extraction
   * Add support for Adobe Air games from Humble Bundle (Installation only,
     Air runtime will come at a later stage)
-  * Add support for GStreamer enabled Wine builds. This will provide better 
+  * Add support for GStreamer enabled Wine builds. This will provide better
     compatibility for games using Media Foundation
 
  -- Mathieu Comandon <strider@strycore.com>  Mon, 04 Jan 2021 23:54:29 -0800
