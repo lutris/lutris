@@ -184,7 +184,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             if not required_game:
                 required_game = get_game_by_field(self.requires, field="slug")
             if not required_game:
-                raise ValueError("No game matched '%s' on installer_slug or slug", self.requires)
+                raise ValueError("No game matched '%s' on installer_slug or slug" % self.requires)
             base_config = LutrisConfig(
                 runner_slug=self.runner, game_config_id=required_game["configpath"]
             )
