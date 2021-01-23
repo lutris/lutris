@@ -26,7 +26,6 @@ release: build-source upload upload-ppa
 test:
 	rm tests/fixtures/pga.db -f
 	nosetests3
-	flake8 lutris
 
 cover:
 	rm tests/fixtures/pga.db -f
