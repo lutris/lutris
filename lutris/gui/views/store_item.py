@@ -133,7 +133,10 @@ class StoreItem:
     @property
     def playtime(self):
         """Playtime duration in hours"""
-        return self._game_data.get("playtime") or 0.0
+        try:
+            return float(self._game_data.get("playtime")) or 0.0
+        except ValueError:
+            return 0.0
 
     @property
     def playtime_text(self):
