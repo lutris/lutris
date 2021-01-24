@@ -70,6 +70,7 @@ class GOGService(OnlineService):
     name = _("GOG")
     icon = "gog"
     has_extras = True
+    has_lang_packs = False
     medias = {
         "banner_small": GogSmallBanner,
         "banner": GogMediumBanner,
@@ -322,6 +323,7 @@ class GOGService(OnlineService):
 
         # Filter out Mac installers
         gog_installers = [installer for installer in downloads["installers"] if installer["os"] != "mac"]
+        gog_lang_packs = [language_pack for language_pack in downloads["language_packs"] if language_pack["os"] != "mac"]
         available_platforms = {installer["os"] for installer in gog_installers}
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
@@ -330,9 +332,17 @@ class GOGService(OnlineService):
             else:
                 filter_os = "linux"
             gog_installers = [installer for installer in gog_installers if installer["os"] != filter_os]
-
+            gog_lang_packs = [language_pack for language_pack in gog_lang_packs if language_pack["os"] != filter_os]
         language = self.determine_language_installer(gog_installers, language)
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
+        gog_lang_packs = [language_pack for language_pack in gog_lang_packs if language_pack["language"] == language]
+        if gog_lang_packs:
+            self.has_lang_packs = True
+            for language_pack in gog_lang_packs:
+                for files in language_pack["files"]:
+                    gog_installer_files = gog_installers[0]["files"]
+                    gog_installer_files.append(files)
+                    gog_installers[0]["files"] = gog_installer_files
         return gog_installers
 
     def determine_language_installer(self, gog_installers, default_language):
