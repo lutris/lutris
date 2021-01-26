@@ -5,7 +5,11 @@ import os
 import subprocess
 import gi
 
-gi.require_version("GnomeDesktop", "3.0")
+try:
+    gi.require_version("GnomeDesktop", "3.0")
+    GNOME_DESKTOP_AVAILABLE=True
+except:
+    GNOME_DESKTOP_AVAILABLE=False
 
 try:
     from dbus.exceptions import DBusException
@@ -13,7 +17,10 @@ try:
 except ImportError:
     DBUS_AVAILABLE = False
 
-from gi.repository import Gdk, GLib, GnomeDesktop, Gio
+from gi.repository import Gdk, GLib, Gio
+
+if GNOME_DESKTOP_AVAILABLE:
+    from gi.repository GnomeDesktop
 
 from lutris.util import system
 from lutris.util.graphics.displayconfig import MutterDisplayManager
@@ -124,9 +131,12 @@ def get_display_manager():
             logger.exception("Failed to instanciate MutterDisplayConfig. Please report with exception: %s", ex)
     else:
         logger.error("DBus is not available, lutris was not properly installed.")
-    try:
-        return DisplayManager()
-    except (GLib.Error, NoScreenDetected):
+    if GNOME_DESKTOP_AVAILABLE:
+        try:
+            return DisplayManager()
+        except (GLib.Error, NoScreenDetected):
+            return LegacyDisplayManager()
+    else:
         return LegacyDisplayManager()
 
 
