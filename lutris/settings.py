@@ -30,6 +30,7 @@ sio = SettingsIO(CONFIG_FILE)
 PGA_DB = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
 SITE_URL = sio.read_setting("website") or "https://lutris.net"
 
+DRIVER_HOWTO_URL = "https://github.com/lutris/docs/blob/master/InstallingDrivers.md"
 INSTALLER_URL = SITE_URL + "/api/installers/%s"
 # XXX change this, should query on the installer, not the game.
 INSTALLER_REVISION_URL = SITE_URL + "/api/installers/games/%s/revisions/%s"
