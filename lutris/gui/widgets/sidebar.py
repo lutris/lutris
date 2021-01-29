@@ -235,7 +235,7 @@ class DummyRow():
     """Dummy row object"""
 
     def show(self):
-        """"""
+        """Just show a warning because this shouldn't be called at all"""
         logger.warning("DummyRow.show() called. Why?")
 
 
@@ -253,7 +253,8 @@ class LutrisSidebar(Gtk.ListBox):
         self.runners = None
         self.platforms = None
         self.categories = None
-        self.running_row = DummyRow()  # A dummy objects that allows inspecting why/when we have a show() call on the object.
+        # A dummy objects that allows inspecting why/when we have a show() call on the object.
+        self.running_row = DummyRow()
         if selected:
             self.selected_row_type, self.selected_row_id = selected.split(":")
         else:
