@@ -13,6 +13,7 @@ from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.services.base import BaseService
 from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
 
 TYPE = 0
 SLUG = 1
@@ -230,6 +231,14 @@ class SidebarHeader(Gtk.Box):
         self.show_all()
 
 
+class DummyRow():
+    """Dummy row object"""
+
+    def show(self):
+        """"""
+        logger.warning("DummyRow.show() called. Why?")
+
+
 class LutrisSidebar(Gtk.ListBox):
     __gtype_name__ = "LutrisSidebar"
 
@@ -244,7 +253,7 @@ class LutrisSidebar(Gtk.ListBox):
         self.runners = None
         self.platforms = None
         self.categories = None
-        self.running_row = None
+        self.running_row = DummyRow()  # A dummy objects that allows inspecting why/when we have a show() call on the object.
         if selected:
             self.selected_row_type, self.selected_row_id = selected.split(":")
         else:
