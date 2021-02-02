@@ -3538,8 +3538,8 @@ msgid ""
 "on older versions."
 msgstr ""
 "Diese Version von Wine wird zum Starten des Spiels genutzt.\n"
-"Die letzte Version zu nutzen ist überlicherweise empfohlen, aber einige "
-"Spiele funktionieren besser mit einer älteren Version."
+"Die Nutzung der aktuellsten Version ist überlicherweise empfohlen, aber einige "
+"Spiele funktionieren besser mit älteren Versionen."
 
 #: lutris/runners/wine.py:197
 msgid "Custom Wine executable"
@@ -3626,7 +3626,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:283
 msgid "Path to the game's executable, for x360ce support"
-msgstr "Patcht das ausführbare Teil des Spiels für die x360ce-Unterstützung"
+msgstr "Pfad zum ausführbaren Teil des Spiels für die x360ce-Unterstützung"
 
 #: lutris/runners/wine.py:285
 msgid "Locate the path for the game's executable for x360 support"
@@ -4406,7 +4406,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:296
 msgid "Use discrete graphics"
-msgstr "Nutze diskrete Grafiken"
+msgstr "Nutze die diskrete Grafikkarte"
 
 #: lutris/sysoptions.py:299
 msgid ""
@@ -4450,7 +4450,7 @@ msgstr "Auflösung setzen auf"
 
 #: lutris/sysoptions.py:345
 msgid "Switch to this screen resolution while the game is running."
-msgstr "Setze auf diese Bildauflösung, während das Spiel läuft."
+msgstr "Setze auf diese Bildauflösung während das Spiel läuft."
 
 #: lutris/sysoptions.py:349
 msgid "Run in a terminal"
@@ -4458,7 +4458,7 @@ msgstr "Starte in einer Konsole"
 
 #: lutris/sysoptions.py:353
 msgid "Run the game in a new terminal window."
-msgstr "Starte das Spiel in einen neuen Konsolenfenster."
+msgstr "Starte das Spiel in einem neuen Konsolenfenster."
 
 #: lutris/sysoptions.py:359
 msgid "Terminal application"
@@ -4476,11 +4476,11 @@ msgstr ""
 
 #: lutris/sysoptions.py:376
 msgid "Environment variables"
-msgstr "Umgebungsvariabeln"
+msgstr "Umgebungsvariablen"
 
 #: lutris/sysoptions.py:377
 msgid "Environment variables loaded at run time"
-msgstr "Umgebungsvariabeln die beim Start geladen werden"
+msgstr "Umgebungsvariablen, die beim Start geladen werden"
 
 #: lutris/sysoptions.py:382
 msgid "Command prefix"
@@ -4498,23 +4498,23 @@ msgstr "Manuelles Skript"
 
 #: lutris/sysoptions.py:392
 msgid "Script to execute from the game's contextual menu"
-msgstr "Skript das vom kontextabhängigen Spielmenü ausgeführt wird."
+msgstr "Skript, das vom kontextabhängigen Spielmenü ausgeführt wird."
 
 #: lutris/sysoptions.py:397
 msgid "Pre-launch script"
-msgstr "Vorstartskript"
+msgstr "vorgelagertes Skript"
 
 #: lutris/sysoptions.py:399
 msgid "Script to execute before the game starts"
-msgstr "Skript das vor dem Spielstart ausgeführt wird."
+msgstr "Skript, das vor dem Spielstart ausgeführt wird."
 
 #: lutris/sysoptions.py:404
 msgid "Wait for pre-launch script completion"
-msgstr "Warte auf den Abschluss des Vorstartskript"
+msgstr "Warte auf den Abschluss des vorgelegarten Skripts"
 
 #: lutris/sysoptions.py:407
 msgid "Run the game only once the pre-launch script has exited"
-msgstr "Starte das Spiel erst, wenn das Vorstartskript beendet wurde"
+msgstr "Starte das Spiel erst, wenn das vorgelagerte Skript beendet wurde"
 
 #: lutris/sysoptions.py:412
 msgid "Post-exit script"
@@ -4705,7 +4705,7 @@ msgid ""
 "fsync."
 msgstr ""
 "Dein Systemkern ist nicht für fsync gepatcht. Bitte verwende einen "
-"gepatchten Systenkern, um fsync zu nutzen."
+"gepatchten Systemkern, um fsync zu nutzen."
 
 #: lutris/util/wine/wine.py:386 lutris/util/wine/wine.py:406
 msgid "Incompatible Wine version detected"
