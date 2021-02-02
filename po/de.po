@@ -4502,7 +4502,7 @@ msgstr "Skript, das vom kontextabhängigen Spielmenü ausgeführt wird."
 
 #: lutris/sysoptions.py:397
 msgid "Pre-launch script"
-msgstr "vorgelagertes Skript"
+msgstr "Vorgelagertes Skript"
 
 #: lutris/sysoptions.py:399
 msgid "Script to execute before the game starts"
