@@ -51,7 +51,7 @@ msgstr "Lutris.net'e bağlan"
 
 #: share/lutris/ui/dialog-lutris-login.ui:26
 msgid "Forgot password?"
-msgstr "Şifrenizi mi unuttunuz ?"
+msgstr "Şifrenizi mi unuttunuz?"
 
 #: share/lutris/ui/dialog-lutris-login.ui:95
 msgid "Password"
@@ -67,7 +67,7 @@ msgstr "<b>Kişisel Oyun Arşivi kaynakları</b>"
 
 #: share/lutris/ui/dialog-uninstall-game.ui:22
 msgid "Uninstall game"
-msgstr "Oyunu Sil"
+msgstr "Oyunu sil"
 
 #: share/lutris/ui/dialog-uninstall-game.ui:89
 msgid "Are you sure you want to uninstall {game}?"
