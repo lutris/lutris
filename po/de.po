@@ -220,7 +220,7 @@ msgstr "Einstellungen"
 
 #: share/lutris/ui/lutris-window.ui:590
 msgid "Manage runners"
-msgstr "Läufer verwalten"
+msgstr "Ausführungsmodule verwalten"
 
 #: share/lutris/ui/lutris-window.ui:615
 msgid "Discord"
@@ -252,15 +252,15 @@ msgstr "Versionen verwalten"
 
 #: share/lutris/ui/runner-entry.ui:127
 msgid "Install Runner"
-msgstr "Läufer installieren"
+msgstr "Ausführungsmodul installieren"
 
 #: share/lutris/ui/runner-entry.ui:149
 msgid "Configure Runner"
-msgstr "Läufer konfigurieren"
+msgstr "Ausführungsmodul konfigurieren"
 
 #: share/lutris/ui/runner-entry.ui:172
 msgid "Remove Runner"
-msgstr "Läufer entfernen"
+msgstr "Ausführungsmodul entfernen"
 
 #: share/lutris/ui/runner-remove-all-versions-dialog.ui:19
 msgid "Remove ALL versions?"
@@ -294,15 +294,15 @@ msgstr "Dies wird <b>%s</b> und alle dazugehörigen Daten entfernen."
 
 #: share/lutris/ui/runners-dialog.ui:16 lutris/gui/widgets/sidebar.py:227
 msgid "Manage Runners"
-msgstr "Läufer verwalten"
+msgstr "Ausführungsmodule verwalten"
 
 #: share/lutris/ui/runners-dialog.ui:24
 msgid "Refresh Runners"
-msgstr "Läufer neuladen"
+msgstr "Ausführungsmodule neuladen"
 
 #: share/lutris/ui/runners-dialog.ui:40
 msgid "Open Runners Folder"
-msgstr "Öffne Läufer-Ordner"
+msgstr "Öffne Ordner des Ausführungsmodule"
 
 #: lutris/exceptions.py:27
 #, python-brace-format
@@ -407,11 +407,11 @@ msgstr ""
 
 #: lutris/game.py:169
 msgid "Error the runner is not installed"
-msgstr "Fehler: Läufer ist nicht installiert"
+msgstr "Fehler: Ausführungsmodul ist nicht installiert"
 
 #: lutris/game.py:171
 msgid "A bios file is required to run this game"
-msgstr "Damit das Spiel läuft, wird eine Bios-Datei benötigt"
+msgstr "Damit das Spiel läuft, wird eine BIOS-Datei benötigt"
 
 #: lutris/game.py:175
 msgid "The file {} could not be found"
@@ -459,7 +459,7 @@ msgstr "Ein Fehler hat die Ausführung des Spiel verhindert"
 
 #: lutris/game.py:481
 msgid "Invalid game configuration: Missing runner"
-msgstr "Ungültige Spielkonfiguration: Fehlender Läufer"
+msgstr "Ungültige Spielkonfiguration: Fehlendes Ausführungsmodul"
 
 #: lutris/game.py:528
 msgid "<b>Error lauching the game:</b>\n"
@@ -637,16 +637,16 @@ msgid ""
 "configuration."
 msgstr ""
 "Wenn hier Optionen modifiziert werden, ersetzten diese die selben Optionen bei der "
-"Basis-Läufer-Konfiguration."
+"Konfiguration des Basis-Ausführungsmoduls"
 
 #: lutris/gui/config/boxes.py:665
 msgid ""
 "If modified, these options supersede the same options from the base runner "
 "configuration, which themselves supersede the global preferences."
 msgstr ""
-"Wenn hier Optionen modifiziert werden, ersetzten diese die selben Optionen bei der "
-"Basis-Läufer-Konfiguration, dabei ersetzten die widerum die allgemeinen "
-"Einstellungen."
+"Wenn hier Optionen modifiziert werden, ersetzen diese die selben Optionen bei der "
+"Konfiguration des Basis-Ausführungsmodul, die wiederum die allgemeinen "
+"Einstellungen ersetzen."
 
 #: lutris/gui/config/boxes.py:671
 msgid ""
@@ -658,7 +658,7 @@ msgstr ""
 
 #: lutris/gui/config/common.py:27
 msgid "Select a runner in the Game Info tab"
-msgstr "Wähle im Spielinforeiter einen Läufer aus"
+msgstr "Wähle im Spielinforeiter ein Ausführungsmodul aus"
 
 #: lutris/gui/config/common.py:98
 msgid "Game info"
@@ -666,11 +666,11 @@ msgstr "Spielinfo"
 
 #: lutris/gui/config/common.py:103
 msgid "Minimize client when a game is launched"
-msgstr "Klient minimieren, wenn ein Spiel startet"
+msgstr "Anwendung minimieren, wenn ein Spiel startet"
 
 #: lutris/gui/config/common.py:104
 msgid "Hide text under icons"
-msgstr "Text unter Icons verstecken"
+msgstr "Text unter Symbolen verstecken"
 
 #: lutris/gui/config/common.py:105
 msgid "Show Tray Icon"
@@ -706,11 +706,11 @@ msgstr "Verschieben"
 
 #: lutris/gui/config/common.py:192 lutris/gui/views/list.py:46
 msgid "Runner"
-msgstr "Läufer"
+msgstr "Ausführungsmodul"
 
 #: lutris/gui/config/common.py:198
 msgid "Install runners"
-msgstr "Läufer installieren"
+msgstr "Ausführungsmodul installieren"
 
 #: lutris/gui/config/common.py:217
 msgid "Remove custom banner"
@@ -726,7 +726,7 @@ msgstr "Veröffentlichungsjahr"
 
 #: lutris/gui/config/common.py:280
 msgid "Select a runner from the list"
-msgstr "Wähle einen Läufer aus der Liste"
+msgstr "Wähle ein Ausführungsmodul aus der Liste"
 
 #: lutris/gui/config/common.py:288
 msgid "Apply"
@@ -738,7 +738,7 @@ msgstr "Spieleinstellungen"
 
 #: lutris/gui/config/common.py:344
 msgid "Runner options"
-msgstr "Läuferoptionen"
+msgstr "Optionen des Ausführungsmoduls"
 
 #: lutris/gui/config/common.py:351
 msgid "System options"
@@ -757,16 +757,16 @@ msgid ""
 "Are you sure you want to change the runner for this game ? This will reset "
 "the full configuration for this game and is not reversible."
 msgstr ""
-"Bist du dir sicher, dass du den Läufer für dieses Spiel ändern willst ? Dies "
+"Bist du dir sicher, dass du das Ausführungsmodul für dieses Spiel ändern willst ? Dies "
 "wird alle Einstellungen für dieses Spiel unwiderruflich zurücksetzen."
 
 #: lutris/gui/config/common.py:409
 msgid "Confirm runner change"
-msgstr "Läuferänderung bestätigen"
+msgstr "Änderung am Ausführungsmodul bestätigen"
 
 #: lutris/gui/config/common.py:457
 msgid "Runner not provided"
-msgstr "Kein Läufer bereitgestellt"
+msgstr "Kein Ausführungsmodul bereitgestellt"
 
 #: lutris/gui/config/common.py:460
 msgid "Please fill in the name"
@@ -940,16 +940,16 @@ msgstr "Warte auf Rückmeldung von %s"
 #: lutris/gui/dialogs/runner_install.py:60
 #, python-format
 msgid "Unable to get runner versions: %s"
-msgstr "Nicht in der Lage die Läuferversionen zu besorgen: %s"
+msgstr "Nicht in der Lage die Version des Ausführungsmoduls zu besorgen: %s"
 
 #: lutris/gui/dialogs/runner_install.py:74
 msgid "Unable to get runner versions from lutris.net"
-msgstr "Nicht in der Lage die Läuferversionen von lutris.net zu besorgen"
+msgstr "Nicht in der Lage die Version des Ausführungsmoduls von lutris.net zu besorgen"
 
 #: lutris/gui/dialogs/runner_install.py:83
 #, python-format
 msgid "%s version management"
-msgstr "%s Versionen-Verwaltung"
+msgstr "%s Versionsverwaltung"
 
 #: lutris/gui/dialogs/runner_install.py:142
 #, python-format
@@ -980,7 +980,7 @@ msgstr "Entpacken…"
 
 #: lutris/gui/dialogs/runner_install.py:274
 msgid "Failed to retrieve the runner archive"
-msgstr "Das Abrufen des Läuferarchivs scheiterte"
+msgstr "Das Abrufen des Archives von Ausführungsmodulen scheiterte"
 
 #: lutris/gui/dialogs/runners.py:58
 msgid "Multiple platforms"
@@ -1266,7 +1266,7 @@ msgstr "Starten"
 
 #: lutris/gui/widgets/sidebar.py:221 lutris/gui/widgets/sidebar.py:255
 msgid "Runners"
-msgstr "Läufer"
+msgstr "Ausführungsmodule"
 
 #: lutris/gui/widgets/sidebar.py:253
 msgid "Library"
@@ -3029,19 +3029,19 @@ msgstr "Pfad nach EBOOT.BIN"
 
 #: lutris/runners/runner.py:145
 msgid "Custom executable for the runner"
-msgstr "Benutzerdefinierte ausführbare Programmdatei als Läufer"
+msgstr "Benutzerdefinierte ausführbare Datei als Ausführungsmodul"
 
 #: lutris/runners/runner.py:291
 msgid ""
 "The required runner is not installed.\n"
 "Do you wish to install it now?"
 msgstr ""
-"Der nötige Läufer ist nicht installiert.\n"
+"Das nötige Ausführungsmodul ist nicht installiert.\n"
 "Willst du es jetzt installieren?"
 
 #: lutris/runners/runner.py:293
 msgid "Required runner unavailable"
-msgstr "Benötigter Läufer nicht verfügbar"
+msgstr "Benötigtes Ausführungsmodul nicht verfügbar"
 
 #: lutris/runners/scummvm.py:14
 msgid "Runs various 2D point-and-click adventure games."
@@ -3387,11 +3387,11 @@ msgstr "Benutzerdefinierter Benutzeragent"
 
 #: lutris/runners/web.py:129
 msgid "Overrides the default User-Agent header used by the runner."
-msgstr "Überschreibe den Standard-Benutzeragent der vom Läufer benutzt wird."
+msgstr "Überschreibe den vorgegebenen Benutzeragent, der vom Ausführungsmodul benutzt wird."
 
 #: lutris/runners/web.py:134
 msgid "Debug with Developer Tools"
-msgstr "Mit Entwicklerwerkzeuge diagnostizieren"
+msgstr "Mit Entwicklerwerkzeugen diagnostizieren"
 
 #: lutris/runners/web.py:137
 msgid "Let's you debug the page."
@@ -3984,7 +3984,7 @@ msgstr "Standardpräfixort für Steam (64-Bit)"
 #: lutris/runners/winesteam.py:181
 #, python-format
 msgid "Winesteam runner (%s)"
-msgstr "Winesteam-Läufer (%s)"
+msgstr "Winesteam Ausführungsmodul (%s)"
 
 #: lutris/runners/yuzu.py:14
 msgid "Yuzu"
@@ -4627,11 +4627,11 @@ msgstr "Aktiviert die Statusweitergabe an Discord, dass das Spiel gespielt wird.
 
 #: lutris/sysoptions.py:519
 msgid "Discord Show Runner"
-msgstr "Discord: Zeige Läufer"
+msgstr "Discord: Zeige Ausführungsmodul"
 
 #: lutris/sysoptions.py:522
 msgid "Embed the runner name in the Discord status"
-msgstr "Läufername im Discord-Status einbetten"
+msgstr "Name des Ausführungsmoduls im Discord-Status einbetten"
 
 #: lutris/sysoptions.py:527
 msgid "Discord Custom Game Name"
@@ -4645,12 +4645,12 @@ msgstr ""
 
 #: lutris/sysoptions.py:534
 msgid "Discord Custom Runner Name"
-msgstr "Discord: Selbstdefinierter Läufername"
+msgstr "Discord: Selbstdefinierter Name des Ausführungsmoduls"
 
 #: lutris/sysoptions.py:536
 msgid "Custom runner name to override with and pass to Discord"
 msgstr ""
-"Selbstdefinierter Läufername, welches das vorhandene überschreibt und an "
+"Selbstdefinierter Name des Ausführungsmoduls, welches den vorhandenen Namen überschreibt und an "
 "Discord weitergibt."
 
 #: lutris/sysoptions.py:541
