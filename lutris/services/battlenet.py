@@ -18,21 +18,20 @@ class BattleNetService(OnlineService):
     @property
     def oauth_url(self):
         """Return the URL used for OAuth sign in"""
-        if self.region == 'cn':
+        if self.region == "cn":
             return "https://www.battlenet.com.cn/oauth"
-        return f"https://{self.region}.battle.net/oauth"
+        return "https://%s.battle.net/oauth" % self.region
 
     @property
     def api_url(self):
         """Main API endpoint"""
-        if self.region == 'cn':
+        if self.region == "cn":
             return "https://gateway.battlenet.com.cn"
-        return f"https://{self.region}.api.blizzard.com"
+        return "https://%s.api.blizzard.com" % self.region
 
     @property
     def login_url(self):
         """Battle.net login URL"""
-        if self.region == 'cn':
-            return 'https://www.battlenet.com.cn/login/zh'
-        else:
-            return f'https://{self.region}.battle.net/login/en'
+        if self.region == "cn":
+            return "https://www.battlenet.com.cn/login/zh"
+        return "https://%s.battle.net/login/en" % self.region

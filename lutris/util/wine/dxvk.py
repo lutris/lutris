@@ -66,7 +66,15 @@ class DXVKManager:
         if not system.path_exists(versions_path):
             return []
         with open(versions_path, "r") as dxvk_version_file:
-            dxvk_versions = [v["tag_name"] for v in json.load(dxvk_version_file)]
+            try:
+                dxvk_versions = [v["tag_name"] for v in json.load(dxvk_version_file)]
+            except KeyError:
+                logger.warning(
+                    "Invalid versions file %s, deleting so it is downloaded on next start.",
+                    versions_path
+                )
+                os.remove(versions_path)
+                return []
         return dxvk_versions
 
     @staticmethod

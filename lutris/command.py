@@ -83,16 +83,22 @@ class MonitoredCommand:
     def stdout(self):
         return self._stdout.getvalue()
 
-    @property
-    def wrapper_command(self):
+    def get_wrapper_command(self):
         """Return launch arguments for the wrapper script"""
-
-        return [
+        wrapper_command = [
             WRAPPER_SCRIPT,
             self._title,
             str(len(self.include_processes)),
             str(len(self.exclude_processes)),
-        ] + self.include_processes + self.exclude_processes + self.command
+        ] + self.include_processes + self.exclude_processes
+        if not self.terminal:
+            return wrapper_command + self.command
+
+        terminal_path = system.find_executable(self.terminal)
+        if not terminal_path:
+            raise RuntimeError("Couldn't find terminal %s" % self.terminal)
+        script_path = get_terminal_script(self.command, self.cwd, self.env)
+        return wrapper_command + [terminal_path, "-e", script_path]
 
     def set_log_buffer(self, log_buffer):
         """Attach a TextBuffer to this command enables the buffer handler"""
@@ -127,20 +133,11 @@ class MonitoredCommand:
 
     def start(self):
         """Run the thread."""
-        for key, value in self.env.items():
-            logger.debug("%s=\"%s\"", key, value)
-        logger.debug(" ".join(self.wrapper_command))
-
-        if self.terminal:
-            terminal = system.find_executable(self.terminal)
-            if not terminal:
-                logger.error("Couldn't find terminal %s", self.terminal)
-                return
-            script_path = get_terminal_script(self.wrapper_command, self.cwd, self.env)
-            self.game_process = self.execute_process([terminal, "-e", script_path])
-        else:
-            env = self.get_child_environment()
-            self.game_process = self.execute_process(self.wrapper_command, env)
+        # for key, value in self.env.items():
+        #     logger.debug("%s=\"%s\"", key, value)
+        wrapper_command = self.get_wrapper_command()
+        env = self.get_child_environment()
+        self.game_process = self.execute_process(wrapper_command, env)
 
         if not self.game_process:
             logger.error("No game process available")
@@ -177,7 +174,7 @@ class MonitoredCommand:
         if self.prevent_on_stop:  # stop() already in progress
             return False
         if self.game_process.returncode is None:
-            logger.debug("Process hasn't terminated yet")
+            logger.debug("Waiting for process to give a return code")
             self.game_process.wait()
         logger.debug("Process %s has terminated with code %s", pid, self.game_process.returncode)
         self.is_running = False
@@ -239,10 +236,10 @@ class MonitoredCommand:
             # process already dead.
             pass
 
-        if hasattr(self, "stop_func"):
-            resume_stop = self.stop_func()
-            if not resume_stop:
-                return False
+        resume_stop = self.stop_func()
+        if not resume_stop:
+            logger.warning("Stop execution halted by demand of stop_func")
+            return False
 
         if self.stdout_monitor:
             GLib.source_remove(self.stdout_monitor)
