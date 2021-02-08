@@ -6,8 +6,7 @@ python:
   - "3.8"
   - "3.9"
 env:
-  - PIPENV_VERBOSITY=-1
-  - LUTRIS_SKIP_INIT=1
+  - PIPENV_VERBOSITY=-1 LUTRIS_SKIP_INIT=1
 virtualenv:
   system_site_packages: true
 services:
