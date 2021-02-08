@@ -12,8 +12,10 @@ from lutris.util.steam.vdf import vdf_parse
 STEAM_DATA_DIRS = (
     "~/.steam",
     "~/.local/share/steam",
+    "~/.local/share/Steam",
     "~/.steam/steam",
     "~/.var/app/com.valvesoftware.Steam/data/steam",
+    "~/.steam/debian-installation",
     "/usr/share/steam",
     "/usr/local/share/steam",
 )
