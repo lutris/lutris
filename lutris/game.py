@@ -173,7 +173,7 @@ class Game(GObject.Object):
             if filename:
                 message_text = _("The file {} could not be found").format(filename.replace("&", "&amp;"))
             else:
-                message_text = _("No file provided")
+                message_text = _("This game has no executable set. The install process didn't finish properly.")
             dialogs.ErrorDialog(message_text)
         elif message["error"] == "NOT_EXECUTABLE":
             message_text = message["file"].replace("&", "&amp;")

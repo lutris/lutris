@@ -2,8 +2,11 @@ dist: bionic
 language: python
 python:
   - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
 env:
-  - PIPENV_VERBOSITY=-1
+  - PIPENV_VERBOSITY=-1 LUTRIS_SKIP_INIT=1
 virtualenv:
   system_site_packages: true
 services:
