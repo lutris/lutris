@@ -21,6 +21,8 @@ import os
 import signal
 import sys
 import tempfile
+
+from datetime import datetime, timedelta
 from gettext import gettext as _
 
 import gi
@@ -554,6 +556,9 @@ class Application(Gtk.Application):
                 "name": game["name"],
                 "runner": game["runner"],
                 "platform": game["platform"],
+                "year": game["year"],
+                "playtime": str(timedelta(hours=game["playtime"])),
+                "lastplayed": str(datetime.fromtimestamp(game["lastplayed"])),
                 "directory": game["directory"],
             } for game in game_list
         ]
