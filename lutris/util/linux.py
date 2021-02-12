@@ -193,9 +193,9 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         with the supported architectures from the Lutris API
         """
         machine = platform.machine()
-        if "64" in machine:
+        if machine == "x86_64":
             return "x86_64"
-        if "86" in machine:
+        if machine == "i386" or machine == "i686":
             return "i386"
         if "armv7" in machine:
             return "armv7"
