@@ -124,7 +124,7 @@ class CabInstaller:
         arch = self.get_arch_from_manifest(root)
         registry_keys = root.findall("{urn:schemas-microsoft-com:asm.v3}registryKeys")
         if registry_keys:
-            for registry_key in registry_keys[0].getchildren():
+            for registry_key in list(registry_keys[0]):
                 key = self.process_key(registry_key.attrib["keyName"])
                 out += "[%s]\n" % key
                 for reg_value in registry_key.findall("{urn:schemas-microsoft-com:asm.v3}registryValue"):
