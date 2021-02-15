@@ -253,7 +253,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @property
     def sort_params(self):
         _sort_params = [("installed", "COLLATE NOCASE DESC")]
-        _sort_params.append((self.view_sorting, "COLLATE NOCASE ASC" if self.view_sorting_ascending else "COLLATE NOCASE DESC"))
+        _sort_params.append((
+            self.view_sorting,
+            "COLLATE NOCASE ASC"
+            if self.view_sorting_ascending
+            else "COLLATE NOCASE DESC"
+        ))
         return _sort_params
 
     def get_running_games(self):

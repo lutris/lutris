@@ -25,6 +25,7 @@ def get_steam_dir():
     """Main installation directory for Steam"""
     return search_steam_dirs("steamapps")[: -len("steamapps")]
 
+
 def search_steam_dirs(file):
     """Find the (last) file/dir in all the Steam directories"""
     for candidate in STEAM_DATA_DIRS:
@@ -33,6 +34,7 @@ def search_steam_dirs(file):
         )
         if path:
             return path
+
 
 def get_default_acf(appid, name):
     """Return a default configuration usable to

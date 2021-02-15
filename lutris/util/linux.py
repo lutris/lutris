@@ -195,7 +195,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         machine = platform.machine()
         if machine == "x86_64":
             return "x86_64"
-        if machine == "i386" or machine == "i686":
+        if machine in ("i386", "i686"):
             return "i386"
         if "armv7" in machine:
             return "armv7"
