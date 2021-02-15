@@ -30,20 +30,7 @@ class Request:
         headers=None,
         cookies=None,
     ):
-
-        if not url:
-            raise ValueError("An URL is required!")
-        if url == "None":
-            raise ValueError("You'd better stop that right now.")
-
-        if url.startswith("//"):
-            url = "https:" + url
-
-        if url.startswith("/"):
-            logger.error("Stop using relative URLs!: %s", url)
-            url = SITE_URL + url
-
-        self.url = url
+        self.url = self._clean_url(url)
         self.status_code = None
         self.content = b""
         self.timeout = timeout
@@ -64,6 +51,20 @@ class Request:
             self.opener = urllib.request.build_opener(cookie_processor)
         else:
             self.opener = None
+
+    @staticmethod
+    def _clean_url(url):
+        """Checks that a given URL is valid and return a usable version"""
+        if not url:
+            raise ValueError("An URL is required!")
+        if url == "None":
+            raise ValueError("You'd better stop that right now.")
+        if url.startswith("//"):
+            url = "https:" + url
+        if url.startswith("/"):
+            logger.error("Stop using relative URLs!: %s", url)
+            url = SITE_URL + url
+        return url
 
     @property
     def user_agent(self):
