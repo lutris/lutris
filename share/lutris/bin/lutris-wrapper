@@ -164,7 +164,7 @@ def main():
             time.sleep(0.1)
         reap_children()
         #  The game is no longer running. We kill other processes
-        for child in watcher.iterate_monitored_processes():
+        for child in watcher.iterate_children():
             kill_pid(child.pid)
         reap_children()
     except NoMoreChildren:
