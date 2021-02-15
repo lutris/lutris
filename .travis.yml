@@ -41,7 +41,9 @@ install:
   - pip install --upgrade pip pypresence~=3.3.2 pipenv
   - pipenv install --dev --deploy --ignore-pipfile
 script:
-  - make check
+  - pipenv run isort -y -rc lutris
+  - pipenv run flake8 lutris
+  - pipenv run pylint --rcfile=.pylintrc --output-format=colorized lutris
   - nosetests
 
 # Cache the pip dependencies
