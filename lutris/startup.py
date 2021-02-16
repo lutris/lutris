@@ -165,6 +165,10 @@ def init_lutris():
             "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
             settings.PGA_DB
         )
+
+    if os.environ.get("LUTRIS_SKIP_INIT"):
+        logger.info("Skipping initialization")
+        return
     runtime_updater = RuntimeUpdater()
     components_to_update = runtime_updater.update()
     if components_to_update:
