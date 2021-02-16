@@ -8,7 +8,7 @@ python:
 env:
   - PIPENV_VERBOSITY=-1 LUTRIS_SKIP_INIT=1
 virtualenv:
-  system_site_packages: true
+  system_site_packages: false
 services:
   - xvfb
 addons:
