@@ -36,6 +36,13 @@ class LutrisWrapperTestCase(unittest.TestCase):
         try:
             # Wait for the "Hello World" message that indicates that the process
             # tree has started. This message arrives on stdout.
+            for line in wrapper_proc.stdout:
+                if line.strip() == b'Hello World':
+                    # We found the output we're looking for.
+                    break
+            else:
+                self.fail("stdout EOF unexpectedly")
+
             # Wait a short while to see if lutris-wrapper will exit (it shouldn't)
             try:
                 wrapper_proc.wait(0.5)
@@ -47,14 +54,8 @@ class LutrisWrapperTestCase(unittest.TestCase):
                 self.fail("Process exited unexpectedly")
         finally:
             if wrapper_proc.returncode is None:
-                wrapper_proc.kill()
-                wrapper_proc.wait(3)
-            for line in wrapper_proc.stdout:
-                if line.strip() == b'Hello World':
-                    # We found the output we're looking for.
-                    break
-            else:
-                self.fail("stdout EOF unexpectedly")
+                wrapper_proc.terminate()
+                wrapper_proc.wait(30)
             wrapper_proc.stdout.close()
 
     def test_cleanup_children(self):

@@ -117,7 +117,8 @@ def main():
         signal.signal(signal.SIGTERM, hard_sig_handler)
         signal.signal(signal.SIGINT, hard_sig_handler)
         for child in watcher.iterate_children():
-            kill_pid(child.pid)
+            kill_pid(child.pid, signum == signal.SIGKILL)
+        log("--terminated processes--")
 
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
@@ -159,21 +160,36 @@ def main():
 
     log("Start monitoring process.")
     try:
+        # The initial wait loop:
+        #  the initial process may have been excluded. Wait for the game
+        #  to be considered "started".
+        if not watcher.is_alive():
+            log("Waiting for game to start (first non-excluded process started)")
+            while not watcher.is_alive():
+                reap_children()
+                time.sleep(0.1)
+
         while watcher.is_alive():
             reap_children()
             time.sleep(0.1)
+
+        log("Monitored process exited.")
         reap_children()
+
         #  The game is no longer running. We kill other processes
         for child in watcher.iterate_children():
-            kill_pid(child.pid)
+            kill_pid(child.pid, True)
+
         reap_children()
+        log("All monitored processes have exited.")
+
     except NoMoreChildren:
         log("All processes have quit")
+
     if returncode is None:
-        log("Failed to read return code from process")
-        returncode = -1
-    else:
-        log("Process exited with returncode %s" % returncode)
+        returncode = 0
+        log("Monitored process didn't return an exit code.")
+    log("Exit with returncode %s" % returncode)
     sys.exit(returncode)
 
 
