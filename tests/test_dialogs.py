@@ -7,15 +7,16 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from lutris.database import games as games_db
 from lutris.game import Game
-from lutris.startup import init_lutris
 # from lutris import settings
 from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.application import Application
 from lutris.gui.views.store import sort_func
+from lutris.util.test_config import setup_test_environment
 from lutris import runners
 
 TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
+setup_test_environment()
 
 
 class TestGameDialogCommon(TestCase):
@@ -30,7 +31,6 @@ class TestGameDialogCommon(TestCase):
 
 class TestGameDialog(TestCase):
     def setUp(self):
-        init_lutris()
         lutris_application = Application()
         lutris_window = lutris_application.window
         self.dlg = AddGameDialog(lutris_window)
