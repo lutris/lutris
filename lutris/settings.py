@@ -1,5 +1,6 @@
 """Internal settings."""
 import os
+import sys
 from gettext import gettext as _
 
 from gi.repository import GLib
@@ -27,7 +28,12 @@ COVERART_PATH = os.path.join(DATA_DIR, "coverart")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
 sio = SettingsIO(CONFIG_FILE)
-PGA_DB = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
+if "nosetests" in sys.argv[0]:
+    PGA_DB = "/tmp/pga.db"
+else:
+    PGA_DB = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
+if "home" in PGA_DB:
+    raise ValueError(sys.argv)
 SITE_URL = sio.read_setting("website") or "https://lutris.net"
 
 DRIVER_HOWTO_URL = "https://github.com/lutris/docs/blob/master/InstallingDrivers.md"

@@ -5,7 +5,7 @@ import time
 
 from gi.repository import GLib
 
-from lutris.settings import RUNTIME_DIR, RUNTIME_URL
+from lutris import settings
 from lutris.util import http, jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -29,7 +29,7 @@ class Runtime:
         """Return the local path for the runtime folder"""
         if not self.name:
             return None
-        return os.path.join(RUNTIME_DIR, self.name)
+        return os.path.join(settings.RUNTIME_DIR, self.name)
 
     def get_updated_at(self):
         """Return the modification date of the runtime folder"""
@@ -64,7 +64,7 @@ class Runtime:
 
     def should_update_component(self, filename, remote_modified_at):
         """Should an individual component be updated?"""
-        file_path = os.path.join(RUNTIME_DIR, self.name, filename)
+        file_path = os.path.join(settings.RUNTIME_DIR, self.name, filename)
         if not system.path_exists(file_path):
             return True
         locally_modified_at = time.gmtime(os.path.getmtime(file_path))
@@ -82,7 +82,7 @@ class Runtime:
         if not self.should_update(remote_updated_at):
             return None
 
-        archive_path = os.path.join(RUNTIME_DIR, os.path.basename(url))
+        archive_path = os.path.join(settings.RUNTIME_DIR, os.path.basename(url))
         downloader = Downloader(url, archive_path, overwrite=True)
         downloader.start()
         GLib.timeout_add(100, self.check_download_progress, downloader)
@@ -90,7 +90,7 @@ class Runtime:
 
     def download_component(self, component):
         """Download an individual file from a runtime item"""
-        file_path = os.path.join(RUNTIME_DIR, self.name, component["filename"])
+        file_path = os.path.join(settings.RUNTIME_DIR, self.name, component["filename"])
         try:
             http.download_file(component["url"], file_path)
         except http.HTTPError:
@@ -99,7 +99,7 @@ class Runtime:
 
     def get_runtime_components(self):
         """Fetch runtime components from the API"""
-        request = http.Request(RUNTIME_URL + "/" + self.name)
+        request = http.Request(settings.RUNTIME_URL + "/" + self.name)
         try:
             response = request.get()
         except http.HTTPError as ex:
@@ -159,7 +159,7 @@ class Runtime:
         system.remove_folder(initial_path)
 
         # Extract the runtime archive
-        jobs.AsyncCall(extract_archive, self.on_extracted, path, RUNTIME_DIR, merge_single=False)
+        jobs.AsyncCall(extract_archive, self.on_extracted, path, settings.RUNTIME_DIR, merge_single=False)
         return False
 
     def on_extracted(self, result, error):
@@ -201,7 +201,7 @@ class RuntimeUpdater:
 
     @staticmethod
     def _iter_remote_runtimes():
-        request = http.Request(RUNTIME_URL)
+        request = http.Request(settings.RUNTIME_URL)
         try:
             response = request.get()
         except http.HTTPError as ex:
@@ -258,7 +258,7 @@ def get_env(version=None, prefer_system_libs=False, wine_path=None):
         key: value
         for key, value in {
             "STEAM_RUNTIME":
-            os.path.join(RUNTIME_DIR, "steam") if not RUNTIME_DISABLED else None,
+            os.path.join(settings.RUNTIME_DIR, "steam") if not RUNTIME_DISABLED else None,
             "LD_LIBRARY_PATH":
             ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)),
         }.items() if value
@@ -313,7 +313,7 @@ def get_runtime_paths(version=None, prefer_system_libs=True, wine_path=None):
             paths += get_winelib_paths(wine_path)
         paths += list(LINUX_SYSTEM.iter_lib_folders())
     # Then resolve absolute paths for the runtime
-    paths += [os.path.join(RUNTIME_DIR, path) for path in runtime_paths]
+    paths += [os.path.join(settings.RUNTIME_DIR, path) for path in runtime_paths]
     return paths
 
 

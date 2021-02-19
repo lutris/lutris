@@ -15,7 +15,6 @@ from lutris.gui.views.store import sort_func
 from lutris.util.test_config import setup_test_environment
 from lutris import runners
 
-TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
 setup_test_environment()
 
 

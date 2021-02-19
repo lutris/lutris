@@ -1,5 +1,9 @@
 from unittest import TestCase
 from lutris.runners import wine
+from lutris.util.test_config import setup_test_environment
+
+
+setup_test_environment()
 
 
 class TestDllOverrides(TestCase):
