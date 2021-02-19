@@ -3,7 +3,6 @@ from lutris.database import sql
 from lutris.util.log import logger
 
 
-
 class ServiceGameCollection:
 
     @classmethod

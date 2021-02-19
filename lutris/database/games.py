@@ -17,7 +17,14 @@ def get_games(
     excludes=None,
     sorts=None
 ):
-    return sql.filtered_query(settings.PGA_DB, "games", searches=searches, filters=filters, excludes=excludes, sorts=sorts)
+    return sql.filtered_query(
+        settings.PGA_DB,
+        "games",
+        searches=searches,
+        filters=filters,
+        excludes=excludes,
+        sorts=sorts
+    )
 
 
 def get_games_where(**conditions):
