@@ -40,11 +40,15 @@ class InstallerFilesBox(Gtk.ListBox):
         of simultaneously downloaded files down to a maximum number"""
         started_downloads = 0
         for file_id in self.installer_files_boxes:
-            started_downloads += 1
-            if started_downloads <= self.max_downloads or self.installer_files_boxes[file_id].provider == "pga":
-                self.installer_files_boxes[file_id].start()
+            if self.installer_files_boxes[file_id].provider == "download":
+                started_downloads += 1
+                if started_downloads <= self.max_downloads:
+                    self.installer_files_boxes[file_id].start()
+                else:
+                    self._file_queue.append(file_id)
             else:
-                self._file_queue.append(file_id)
+                self.installer_files_boxes[file_id].start()
+
 
     @property
     def is_ready(self):
