@@ -1,7 +1,5 @@
-# Standard Library
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 

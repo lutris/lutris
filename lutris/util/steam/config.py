@@ -23,10 +23,12 @@ STEAM_DATA_DIRS = (
 
 def get_steam_dir():
     """Main installation directory for Steam"""
-    return search_steam_dirs("steamapps")[: -len("steamapps")]
+    steam_dir = search_in_steam_dirs("steamapps")
+    if steam_dir:
+        return steam_dir[:-len("steamapps")]
 
 
-def search_steam_dirs(file):
+def search_in_steam_dirs(file):
     """Find the (last) file/dir in all the Steam directories"""
     for candidate in STEAM_DATA_DIRS:
         path = system.fix_path_case(
@@ -54,7 +56,7 @@ def get_default_acf(appid, name):
 
 
 def read_user_config():
-    config_filename = search_steam_dirs("config/loginusers.vdf")
+    config_filename = search_in_steam_dirs("config/loginusers.vdf")
     if not system.path_exists(config_filename):
         return None
     with open(config_filename, "r") as steam_config_file:
