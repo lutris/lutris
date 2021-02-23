@@ -232,11 +232,13 @@ class SidebarHeader(Gtk.Box):
 
 
 class DummyRow():
-    """Dummy row object"""
+    """Dummy class for rows that may not be initialized."""
 
     def show(self):
-        """Just show a warning because this shouldn't be called at all"""
-        logger.warning("DummyRow.show() called. Why?")
+        """Dummy method for showing the row"""
+
+    def hide(self):
+        """Dummy method for hiding the row"""
 
 
 class LutrisSidebar(Gtk.ListBox):
