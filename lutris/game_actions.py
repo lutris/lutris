@@ -14,7 +14,7 @@ from lutris.gui import dialogs
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.dialogs.log import LogWindow
-from lutris.gui.dialogs.uninstall_game import UninstallGameDialog
+from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.util import xdgshortcuts
 from lutris.util.log import LOG_BUFFERS, logger
@@ -122,9 +122,9 @@ class GameActions:
                 self.game.is_installed
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
-            "remove": self.game.is_installed,
+            "remove": True,
             "view": True,
-            "hide": not self.game.is_hidden,
+            "hide": self.game.is_installed and not self.game.is_hidden,
             "unhide": self.game.is_hidden,
         }
 
@@ -235,4 +235,7 @@ class GameActions:
 
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""
-        UninstallGameDialog(game_id=self.game.id, parent=self.window)
+        if self.game.is_installed:
+            UninstallGameDialog(game_id=self.game.id, parent=self.window)
+        else:
+            RemoveGameDialog(game_id=self.game.id, parent=self.window)

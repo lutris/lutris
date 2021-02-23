@@ -49,7 +49,6 @@ class InstallerFilesBox(Gtk.ListBox):
             else:
                 self.installer_files_boxes[file_id].start()
 
-
     @property
     def is_ready(self):
         """Return True if all files are ready to be fetched"""

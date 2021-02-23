@@ -240,6 +240,14 @@ class Game(GObject.Object):
         self.runner = None
         self.emit("game-removed")
 
+    def delete(self):
+        """Completely remove a game from the library"""
+        if self.is_installed:
+            raise RuntimeError("Uninstall the game before deleting")
+        games_db.delete_game(self.id)
+        self.emit("game-removed")
+
+
     def set_platform_from_runner(self):
         """Set the game's platform from the runner"""
         if not self.runner:
