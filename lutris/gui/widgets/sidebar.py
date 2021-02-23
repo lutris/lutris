@@ -271,7 +271,8 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
-        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
+        GObject.add_emission_hook(BaseService, "service-login", self.on_service_auth_changed)
+        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         self.connect("realize", self.on_realize)
@@ -393,7 +394,7 @@ class LutrisSidebar(Gtk.ListBox):
             self.running_row.hide()
         return True
 
-    def on_service_logout(self, service):
+    def on_service_auth_changed(self, service):
         self.service_rows[service.id].create_button_box()
         self.service_rows[service.id].update_buttons()
         return True
