@@ -73,7 +73,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         update_desktop_icons()
         load_icon_theme()
         self.application = application
-
+        self.window_x = settings.read_setting("window_x")
+        self.window_y = settings.read_setting("window_y")
+        if self.window_x and self.window_y:
+            self.move(int(self.window_x), int(self.window_y))
         self.threads_stoppers = []
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
@@ -88,6 +91,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.view = Gtk.Box()
 
         self.connect("delete-event", self.on_window_delete)
+        self.connect("configure-event", self.on_window_configure)
         self.connect("realize", self.on_load)
         if self.maximized:
             self.maximize()
@@ -631,6 +635,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.hide()
             return True
 
+    def on_window_configure(self, *_args):
+        """Callback triggered when the window is moved, resized..."""
+        self.window_x, self.window_y = self.get_position()
+
     @GtkTemplate.Callback
     def on_destroy(self, *_args):
         """Signal for window close."""
@@ -642,6 +650,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         width, height = self.window_size
         settings.write_setting("width", width)
         settings.write_setting("height", height)
+        if self.window_x and self.window_y:
+            settings.write_setting("window_x", self.window_x)
+            settings.write_setting("window_y", self.window_y)
         settings.write_setting("maximized", self.maximized)
 
     @GtkTemplate.Callback
