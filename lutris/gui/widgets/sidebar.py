@@ -230,6 +230,16 @@ class SidebarHeader(Gtk.Box):
         self.show_all()
 
 
+class DummyRow():
+    """Dummy class for rows that may not be initialized."""
+
+    def show(self):
+        """Dummy method for showing the row"""
+
+    def hide(self):
+        """Dummy method for hiding the row"""
+
+
 class LutrisSidebar(Gtk.ListBox):
     __gtype_name__ = "LutrisSidebar"
 
