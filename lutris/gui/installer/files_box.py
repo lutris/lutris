@@ -49,6 +49,16 @@ class InstallerFilesBox(Gtk.ListBox):
             else:
                 self.installer_files_boxes[file_id].start()
 
+    def stop_all(self):
+        """Stops all ongoing files gathering.
+        Iterates through installer files, and call the "stop" command
+        if they've been started and not available yet.
+        """
+        self._file_queue.clear()
+        for file_id, file_box in self.installer_files_boxes.items():
+            if file_box.started and file_id not in self.available_files and file_box.stop_func is not None:
+                file_box.stop_func()
+
     @property
     def is_ready(self):
         """Return True if all files are ready to be fetched"""

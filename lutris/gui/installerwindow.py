@@ -41,6 +41,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.log_buffer = None
         self.log_textview = None
 
+        self._cancel_files_func = None
+
         self.title_label = InstallerLabel()
         self.title_label.set_selectable(False)
         self.vbox.add(self.title_label)
@@ -306,6 +308,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         installer_files_box = InstallerFilesBox(self.interpreter.installer, self)
         installer_files_box.connect("files-available", self.on_files_available)
         installer_files_box.connect("files-ready", self.on_files_ready)
+        self._cancel_files_func = installer_files_box.stop_all
         scrolledwindow = Gtk.ScrolledWindow(
             hexpand=True,
             vexpand=True,
@@ -409,6 +412,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def on_files_available(self, widget):
         """All files are available, continue the install"""
         logger.info("All files are available, continuing install")
+        self._cancel_files_func = None
         self.continue_button.hide()
         self.interpreter.game_files = widget.get_game_files()
         self.clean_widgets()
@@ -498,8 +502,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             }
         )
         if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
-            logger.debug("User cancelled installation")
+            logger.debug("User aborted installation cancellation")
             return True
+        if self._cancel_files_func:
+            self._cancel_files_func()
         if self.interpreter:
             self.interpreter.revert()
             self.interpreter.cleanup()
