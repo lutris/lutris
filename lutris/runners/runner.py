@@ -333,29 +333,27 @@ class Runner:  # pylint: disable=too-many-public-methods
             logger.error("Failed to get runner information")
             return
 
-        versions = runner_info.get("versions") or []
-        arch = system.LINUX_SYSTEM.arch
-        if version:
-            if version.endswith("-i386") or version.endswith("-x86_64"):
-                version, arch = version.rsplit("-", 1)
-            versions = [v for v in versions if v["version"] == version]
-        versions_for_arch = [v for v in versions if v["architecture"] == arch]
-        if len(versions_for_arch) == 1:
-            return versions_for_arch[0]
+        system_architecture = system.LINUX_SYSTEM.arch
+        runner_versions = runner_info.get("versions") or []
 
-        if len(versions_for_arch) > 1:
-            default_version = [v for v in versions_for_arch if v["default"] is True]
-            if default_version:
-                return default_version[0]
-        elif len(versions) == 1 and system.LINUX_SYSTEM.is_64_bit:
-            return versions[0]
-        elif len(versions) > 1 and system.LINUX_SYSTEM.is_64_bit:
-            default_version = [v for v in versions if v["default"] is True]
-            if default_version:
-                return default_version[0]
-        # If we didn't find a proper version yet, return the first available.
-        if len(versions_for_arch) >= 1:
-            return versions_for_arch[0]
+        compatible_runner_versions = list(
+            filter(lambda runner_version: True if runner_version.get("architecture") == system_architecture else False,
+                   runner_versions))
+
+        logger.debug(compatible_runner_versions)
+
+        runner_info_for_provided_version = []
+        if version:
+            runner_info_for_provided_version = [v for v in compatible_runner_versions if v["version"] == version]
+        if len(runner_info_for_provided_version) != 0:
+            logger.info("Using provided version compatible for architecture")
+            return runner_info_for_provided_version[0]
+        elif len(compatible_runner_versions) > 0:
+            logger.info("Using latest version compatible for architecture")
+            return compatible_runner_versions[len(compatible_runner_versions) - 1]
+
+        logger.error("The system architecture does not match any architecture currently provided by Lutris.net")
+        return {}
 
     def install(self, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""
@@ -445,3 +443,9 @@ class Runner:  # pylint: disable=too-many-public-methods
                 output = item
                 break
         return output
+
+    def has_system_architecture(runner_info):
+        if runner_info["architecture"] == system.LINUX_SYSTEM.arch:
+            return True
+        else:
+            return False
