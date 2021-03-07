@@ -137,7 +137,11 @@ class ServiceSidebarRow(SidebarRow):
 
     def service_load_cb(self, games, error):
         if not error and not games:
-            error = _("Failed to load games. Check that your profile is set to public during the sync.")
+            error = _(
+                "Failed to load games. "
+                "Check that your profile is set to public during the sync. \n"
+                "You can also provide your private Steam Web API Key in the preferences."
+            )
         if error:
             ErrorDialog(str(error))
         GLib.timeout_add(5000, self.enable_refresh_button)

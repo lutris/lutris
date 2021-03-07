@@ -100,12 +100,19 @@ class GameDialogCommon:
     def _build_prefs_tab(self):
         prefs_box = VBox()
         settings_options = {
-            "hide_client_on_game_start": _("Minimize client when a game is launched"),
-            "hide_text_under_icons": _("Hide text under icons"),
-            "show_tray_icon": _("Show Tray Icon"),
+            "hide_client_on_game_start": {"label": _("Minimize client when a game is launched"), "type": "bool"},
+            "hide_text_under_icons": {"label": _("Hide text under icons"), "type": "bool"},
+            "show_tray_icon": {"label": _("Show Tray Icon"), "type": "bool"},
+            "private_steam_key": {"label": _("Private Steam Web API Key"), "type": "string"},
         }
-        for setting_key, label in settings_options.items():
-            prefs_box.pack_start(self._get_setting_box(setting_key, label), False, False, 6)
+        for setting_key, info in settings_options.items():
+            prefs_box.pack_start(
+                child=self._get_setting_box(setting_key, info["label"], type_=info["type"]),
+                expand=False,
+                fill=False,
+                padding=6
+            )
+
         info_sw = self.build_scrolled_window(prefs_box)
         self._add_notebook_tab(info_sw, _("Lutris preferences"))
 
@@ -131,18 +138,53 @@ class GameDialogCommon:
     def _copy_text(self, widget):  # pylint: disable=unused-argument
         self.clipboard.set_text(self._clipboard_buffer, -1)
 
-    def _get_setting_box(self, setting_key, label):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+    def _get_settings_checkbox(self, setting_key: str, label: str) -> Gtk.CheckButton:
         checkbox = Gtk.CheckButton(label=label)
         if settings.read_setting(setting_key).lower() == "true":
             checkbox.set_active(True)
+
         checkbox.connect("toggled", self._on_setting_change, setting_key)
-        box.pack_start(checkbox, True, True, 0)
+        return checkbox
+
+    def _get_settings_string(self, setting_key: str, label: str) -> Gtk.Table:
+        table = Gtk.Table(rows=1, columns=3, homogeneous=True)
+        label_box = Label(message=label)
+        value: str = settings.read_setting(setting_key)
+        entry = Gtk.Entry()
+
+        if value:
+            entry.set_text(value)
+        else:
+            entry.set_text(_("Steam Web API Key"))
+
+        entry.connect("changed", self._on_setting_change_entry, setting_key)
+
+        table.attach(label_box, 0, 1, 0, 1)
+        table.attach(entry, 1, 3, 0, 1)
+
+        return table
+
+    def _get_setting_box(self, setting_key: str, label: str, type_: str = "bool"):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+
+        if type_ == "bool":
+            setting_box = self._get_settings_checkbox(setting_key, label)
+        elif type_ == "string":
+            setting_box = self._get_settings_string(setting_key, label)
+        else:
+            logger.warning("%s not supported yet", type_)
+            setting_box = None
+
+        box.pack_start(setting_box, True, True, 0)
         return box
 
     def _on_setting_change(self, widget, setting_key):
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, widget.get_active())
+
+    def _on_setting_change_entry(self, widget: Gtk.Entry, setting_key: str):
+        """Save a setting when a string option is changed"""
+        settings.write_setting(setting_key, widget.get_text())
 
     def _get_name_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
