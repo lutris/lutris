@@ -25,7 +25,9 @@ class Downloader:
 
     (INIT, DOWNLOADING, CANCELLED, ERROR, COMPLETED) = list(range(5))
 
-    def __init__(self, url, dest, overwrite=False, referer=None, callback=None):
+    def __init__(
+        self, url: str, dest: str, overwrite: bool = False, referer=None, callback=None
+    ):
         self.url = url
         self.dest = dest
         self.overwrite = overwrite
@@ -52,7 +54,7 @@ class Downloader:
         self.time_left_check_time = 0
         self.file_pointer = None
 
-    def start(self):
+    def start(self) -> None:
         """Start download job."""
         logger.debug("Starting download of:\n %s", self.url)
         self.state = self.DOWNLOADING

@@ -1,10 +1,12 @@
 import json
 import os
+from typing import Optional
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
-from lutris.util.http import HTTPError, download_file
+from lutris.util.downloader import Downloader
+from lutris.util.http import HTTPError
 
 PGA_DB = settings.PGA_DB
 
@@ -54,15 +56,18 @@ class ServiceMedia:
             medias[game["slug"]] = self.url_pattern % details[self.api_field]
         return medias
 
-    def download(self, slug, url):
+    def download(
+        self, slug: str, url: str, force_download: bool = False
+    ) -> Optional[str]:
         """Downloads the banner if not present"""
         if not url:
             return
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
-        if system.path_exists(cache_path):
+        if system.path_exists(cache_path) and not force_download:
             return
         try:
-            return download_file(url, cache_path)
+            downloader = Downloader(url=url, dest=cache_path)
+            downloader.start()
         except HTTPError:
             return None
         return cache_path

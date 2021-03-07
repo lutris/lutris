@@ -3,8 +3,10 @@ import time
 
 from lutris.database.games import get_service_games
 from lutris.game import Game
+from lutris.gui.widgets import utils
 from lutris.gui.widgets.utils import get_pixbuf, get_pixbuf_for_game
 from lutris.runners import RUNNER_NAMES
+from lutris.services.lutris import download_lutris_media
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
@@ -94,8 +96,17 @@ class StoreItem:
             image_path = self._game_data["icon"]
         else:
             image_path = self.service_media.get_absolute_path(self.slug or self.id)
+
+        if not system.path_exists(image_path):
+            download_lutris_media(self.slug)
+
         if system.path_exists(image_path):
-            return get_pixbuf(image_path, self.service_media.size, is_installed=self.installed)
+            return get_pixbuf(
+                image_path,
+                self.service_media.size,
+                is_installed=self.installed,
+                fallback=utils.get_default_icon(self.service_media.size),
+            )
         return get_pixbuf_for_game(
             self._game_data["slug"],
             self.service_media.size,

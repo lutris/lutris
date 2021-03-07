@@ -49,7 +49,7 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
             pixbuf = pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.NEAREST)
         except GLib.GError:
             logger.error("Unable to load icon from image %s", image)
-    if system.path_exists(fallback):
+    if not pixbuf and system.path_exists(fallback):
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, height)
     if not pixbuf:
         logger.warning("Returning empty pixbuf for %s", image)

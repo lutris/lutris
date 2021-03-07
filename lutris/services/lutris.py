@@ -150,7 +150,7 @@ class LutrisService(OnlineService):
         application.show_installer_window(installers)
 
 
-def download_lutris_media(slug):
+def download_lutris_media(slug: str) -> None:
     """Downloads the banner and icon for a given lutris game"""
     url = settings.SITE_URL + "/api/games/%s" % slug
     request = http.Request(url)

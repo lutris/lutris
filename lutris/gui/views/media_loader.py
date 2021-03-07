@@ -1,8 +1,10 @@
 """Loads game media in parallel"""
 import concurrent.futures
+from typing import Dict
 
 from gi.repository import GObject
 
+from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.log import logger
 
@@ -14,7 +16,7 @@ class MediaLoader(GObject.Object):
 
     num_workers = 3
 
-    def download_icons(self, media_urls, service_media):
+    def download_icons(self, media_urls: Dict[str, str], service_media: ServiceMedia):
         """Download a list of media files concurrently.
 
         Limits the number of simultaneous downloads to avoid API throttling
