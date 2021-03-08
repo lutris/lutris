@@ -13,7 +13,6 @@ from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.services.base import BaseService
 from lutris.util.jobs import AsyncCall
-from lutris.util.log import logger
 
 TYPE = 0
 SLUG = 1
