@@ -443,6 +443,14 @@ class wine(Runner):
                 ),
             },
             {
+                "option": "gstreamer",
+                "label": _("Override GStreamer Library Path"),
+                "type": "bool",
+                "default": True,
+                "advanced": True,
+                "help": _('Override the path to the GStreamer library'),
+            },
+            {
                 "option": "UseXVidMode",
                 "label": _("Use XVidMode to switch resolutions"),
                 "type": "bool",
@@ -875,7 +883,7 @@ class wine(Runner):
             env["WINEDEBUG"] = show_debug
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
-        if is_gstreamer_build(self.get_executable()):
+        if is_gstreamer_build(self.get_executable()) and self.runner_config.get("gstreamer"):
             env["GST_PLUGIN_SYSTEM_PATH_1_0"] = (
                 os.path.join(WINE_DIR, self.get_version(), "lib64/gstreamer-1.0/")
                 + ":"
