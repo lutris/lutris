@@ -1,0 +1,25 @@
+{
+    "human_name": "Colem",
+    "description": "Portable ColecoVision and Coleco Adam Emulator",
+    "platforms": ["ColecoVision"],
+    "runner_executable": "colem/colem",
+    "download_url": "https://fms.komkon.org/ColEm/ColEm56-Ubuntu-x86-bin.tgz",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Rom file",
+            "help": "ColecoVision rom file"
+        }
+    ],
+    "runner_options": [
+
+        {
+            "option": "config",
+            "type": "bool",
+            "label": "Sound",
+            "default": true,
+            "argument": "-sound 22050"
+        }
+    ]
+}
