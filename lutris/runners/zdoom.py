@@ -111,6 +111,15 @@ class zdoom(Runner):
             logger.warning("FluidSynth is not installed, you might not have any music")
         return True
 
+    @property
+    def working_dir(self):
+        wad = self.game_config.get("main_file")
+        if wad:
+            return os.path.dirname(os.path.expanduser(wad))
+        wad_files = self.game_config.get("files")
+        if wad_files:
+            return os.path.dirname(os.path.expanduser(wad_files[0]))
+
     def play(self):  # noqa: C901
         command = [self.get_executable()]
 
