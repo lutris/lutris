@@ -35,6 +35,7 @@ class DolphinService(BaseService):
         for game in dolphin_games:
             game.save()
         self.emit("service-games-loaded")
+        return dolphin_games
 
 
 class DolphinGame(ServiceGame):

@@ -13,6 +13,7 @@ from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.services.base import BaseService
 from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
 
 TYPE = 0
 SLUG = 1
@@ -136,7 +137,10 @@ class ServiceSidebarRow(SidebarRow):
         AsyncCall(self.service.load, self.service_load_cb)
 
     def service_load_cb(self, games, error):
-        if not error and not games:
+        if games is None:
+            logger.warning("No game returned from the service")
+        if not error and not games and self.service.id == "steam":
+            # This should not be handled here, the steam service should raise an error
             error = _("Failed to load games. Check that your profile is set to public during the sync.")
         if error:
             ErrorDialog(str(error))
@@ -402,7 +406,6 @@ class LutrisSidebar(Gtk.ListBox):
 
     def on_service_games_updating(self, service):
         self.service_rows[service.id].is_updating = True
-
         self.service_rows[service.id].update_buttons()
         return True
 

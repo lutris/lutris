@@ -98,6 +98,7 @@ class XDGService(BaseService):
         for game in xdg_games:
             game.save()
         self.emit("service-games-loaded")
+        return xdg_games
 
     def generate_installer(self, db_game):
         details = json.loads(db_game["details"])
