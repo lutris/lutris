@@ -49,7 +49,6 @@ class DolphinCacheReader:
         while self.offset < len(self.cache_content):
             game = {}
             for key, i in self.structure.items():
-                print(key, i)
                 if i == 's':
                     game[key] = self.get_string()
                 elif i == 'b':
