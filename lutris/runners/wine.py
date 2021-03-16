@@ -876,11 +876,10 @@ class wine(Runner):
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
         if is_gstreamer_build(self.get_executable()):
-            env["GST_PLUGIN_SYSTEM_PATH_1_0"] = (
-                os.path.join(WINE_DIR, self.get_version(), "lib64/gstreamer-1.0/")
-                + ":"
-                + os.path.join(WINE_DIR, self.get_version(), "lib/gstreamer-1.0/")
-            )
+            path_64 = os.path.join(WINE_DIR, self.get_version(), "lib64/gstreamer-1.0/")
+            path_32 = os.path.join(WINE_DIR, self.get_version(), "lib/gstreamer-1.0/")
+            if os.path.exists(path_64) or os.path.exists(path_32):
+                env["GST_PLUGIN_SYSTEM_PATH_1_0"] = path_64 + ":" + path_32
         if self.prefix_path:
             env["WINEPREFIX"] = self.prefix_path
 
