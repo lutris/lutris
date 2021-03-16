@@ -1,4 +1,5 @@
 import os
+import json
 from gettext import gettext as _
 
 from lutris import settings
@@ -22,6 +23,7 @@ class DolphinService(BaseService):
     id = "dolphin"
     icon = "dolphin"
     name = _("Dolphin")
+    local = True
     medias = {
         "icon": DolphinBanner
     }
@@ -37,11 +39,27 @@ class DolphinService(BaseService):
         self.emit("service-games-loaded")
         return dolphin_games
 
+    def generate_installer(self, db_game):
+        details = json.loads(db_game["details"])
+        return {
+            "name": db_game["name"],
+            "version": "Dolphin",
+            "slug": db_game["slug"],
+            "game_slug": slugify(db_game["name"]),
+            "runner": "dolphin",
+            "script": {
+                "game": {
+                    "main_file": details["path"],
+                },
+            }
+        }
+
 
 class DolphinGame(ServiceGame):
     """Game for the Dolphin emulator"""
 
     service = "dolphin"
+    runner = "dolphin"
     installer_slug = "dolphin"
 
     @classmethod
@@ -50,8 +68,9 @@ class DolphinGame(ServiceGame):
         service_game = cls()
         service_game.name = cls.get_game_name(cache_entry)
         service_game.appid = str(cache_entry["code_1"])
-        service_game.slug = slugify(cache_entry["name_long"])
+        service_game.slug = slugify(cls.get_game_name(cache_entry))
         service_game.icon = ""
+        service_game.details = json.dumps({"path": cache_entry["path"]})
         return service_game
 
     @staticmethod

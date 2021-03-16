@@ -24,6 +24,7 @@ class BaseService(GObject.Object):
     name = NotImplemented
     icon = NotImplemented
     online = False
+    local = False
     medias = {}
     default_format = "icon"
 

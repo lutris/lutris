@@ -40,6 +40,7 @@ class XDGService(BaseService):
     name = _("Local")
     icon = "linux"
     online = False
+    local = True
     medias = {
         "icon": XDGMedia
     }
@@ -141,7 +142,6 @@ class XDGGame(ServiceGame):
         service_game.icon = cls.get_app_icon(xdg_app)
         service_game.appid = get_appid(xdg_app)
         service_game.slug = cls.get_slug(xdg_app)
-        service_game.runner = "linux"
         exe, args = cls.get_command_args(xdg_app)
         service_game.details = json.dumps({
             "exe": exe,
