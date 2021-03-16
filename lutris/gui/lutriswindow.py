@@ -307,7 +307,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if not service_name:
             self.service = None
             return
-        self.service = services.get_services()[service_name]()
+        try:
+            self.service = services.get_services()[service_name]()
+        except KeyError:
+            logger.error("Non existent service '%s'" % service_name)
+            self.service = None
         return self.service
 
     @staticmethod
