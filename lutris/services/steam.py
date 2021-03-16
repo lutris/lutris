@@ -82,7 +82,6 @@ class SteamService(BaseService):
     id = "steam"
     name = _("Steam")
     icon = "steam"
-    online = False
     medias = {
         "banner": SteamBanner,
         "banner_large": SteamBannerLarge,

@@ -22,7 +22,6 @@ from lutris.util.system import path_exists
 
 
 class GameActions:
-
     """Regroup a list of callbacks for a game"""
 
     def __init__(self, application=None, window=None):

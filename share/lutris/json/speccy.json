@@ -1,0 +1,60 @@
+{
+    "human_name": "Speccy",
+    "description": "Portable Sinclair ZX Spectrum Emulator",
+    "platforms": ["ZX Spectrum"],
+    "runner_executable": "speccy/speccy",
+    "download_url": "https://fms.komkon.org/Speccy/Speccy58-Ubuntu-x86-bin.tgz",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Rom file",
+            "help": "The ZX Spectrum Rom in .sna/.z80/.tap/.tzx format to load"
+        }
+    ],
+    "runner_options": [
+
+        {
+            "option": "16kb",
+            "type": "bool",
+            "label": "16kB ZX Spectrum",
+            "default": false,
+            "argument": "-16"
+        },
+        {
+            "option": "48kb",
+            "type": "bool",
+            "label": "48kB ZX Spectrum",
+            "default": true,
+            "argument": "-48"
+        },
+        {
+            "option": "128kb",
+            "type": "bool",
+            "label": "128kB ZX Spectrum",
+            "default": false,
+            "argument": "-128"
+        },
+        {
+            "option": "2plus",
+            "type": "bool",
+            "label": "128kB ZX Spectrum +2",
+            "default": false,
+            "argument": "-2+"
+        },
+        {
+            "option": "2aplus",
+            "type": "bool",
+            "label": "128kB ZX Spectrum +2A",
+            "default": false,
+            "argument": "-2a+"
+        },
+        {
+            "option": "3plus",
+            "type": "bool",
+            "label": "128kB ZX Spectrum +3",
+            "default": false,
+            "argument": "-3a"
+        }
+    ]
+}

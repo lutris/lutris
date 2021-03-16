@@ -1,6 +1,6 @@
-# pylint: disable=no-member,wrong-import-position
+# pylint: disable=wrong-import-position
 #
-# Copyright (C) 2020 Mathieu Comandon <strider@strycore.com>
+# Copyright (C) 2021 Mathieu Comandon <strider@strycore.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -477,7 +477,10 @@ class Application(Gtk.Application):
         if game.service:
             service = get_services()[game.service]()
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
-            service.install(db_game)
+            game_id = service.install(db_game)
+            if game_id:
+                game = Game(game_id)
+                game.launch()
             return True
 
         installers = get_installers(game_slug=game.slug)

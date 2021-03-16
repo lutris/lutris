@@ -41,6 +41,7 @@ setup(
         'lutris.runners.commands',
         'lutris.services',
         'lutris.util',
+        'lutris.util.dolphin',
         'lutris.util.graphics',
         'lutris.util.mame',
         'lutris.util.steam',

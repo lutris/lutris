@@ -149,24 +149,25 @@ class GameBar(Gtk.Fixed):
         last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%x"))
         return last_played_label
 
-    def get_play_button(self):
-        """Return the widget for install/play/stop and game config"""
-        if not self.game.is_installed and self.service:
-            button = Gtk.Button(visible=True)
-            button.set_size_request(120, 36)
-            button.set_label(_("Install"))
-            button.connect("clicked", self.on_install_clicked)
-            return button
-        box = Gtk.HBox(visible=True)
-        style_context = box.get_style_context()
-        style_context.add_class("linked")
-        button = Gtk.Button(visible=True)
-        button.set_size_request(84, 32)
+    def get_popover_button(self):
+        """Return the popover button+menu for the Play button"""
         popover_button = Gtk.MenuButton(visible=True)
         popover_button.set_size_request(32, 32)
         popover_button.props.direction = Gtk.ArrowType.UP
         popover = self.get_popover(self.get_game_buttons(), popover_button)
         popover_button.set_popover(popover)
+        return popover_button
+
+    def get_popover_box(self):
+        """Return a container for a button + a popover button attached to it"""
+        box = Gtk.HBox(visible=True)
+        style_context = box.get_style_context()
+        style_context.add_class("linked")
+        return box
+
+    def get_play_button(self):
+        """Return the widget for install/play/stop and game config"""
+        button = Gtk.Button(visible=True)
         if self.game.is_installed:
             if self.game.state == self.game.STATE_STOPPED:
                 button.set_label(_("Play"))
@@ -180,8 +181,16 @@ class GameBar(Gtk.Fixed):
         else:
             button.set_label(_("Install"))
             button.connect("clicked", self.game_actions.on_install_clicked)
+            if self.service:
+                if self.service.local:
+                    # Local services don't show an install dialog, they can be launched directly
+                    button.set_label(_("Play"))
+                button.set_size_request(120, 32)
+                return button
+        button.set_size_request(84, 32)
+        box = self.get_popover_box()
         box.add(button)
-        box.add(popover_button)
+        box.add(self.get_popover_button())
         return box
 
     def get_game_buttons(self):

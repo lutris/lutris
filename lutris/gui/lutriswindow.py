@@ -307,7 +307,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if not service_name:
             self.service = None
             return
-        self.service = services.get_services()[service_name]()
+        try:
+            self.service = services.get_services()[service_name]()
+        except KeyError:
+            logger.error("Non existent service '%s'", service_name)
+            self.service = None
         return self.service
 
     @staticmethod
@@ -788,26 +792,26 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_game_activated(self, view, game_id):
         """Handles view activations (double click, enter press)"""
-        if self.service and self.service.id != "lutris":
-            db_game = games_db.get_game_for_service(self.service.id, game_id)
-            if db_game:
-                game_id = db_game["id"]
-            else:
-                db_game = ServiceGameCollection.get_game(self.service.id, game_id)
+        if self.service:
+            if self.service.id != "lutris":
+                db_game = games_db.get_game_for_service(self.service.id, game_id)
                 if db_game:
-                    self.service.install(db_game)
+                    game_id = db_game["id"]
                 else:
+                    db_game = ServiceGameCollection.get_game(self.service.id, game_id)
+                    if db_game:
+                        game_id = self.service.install(db_game)
+                    else:
+                        game_id = self.service.install(game_id)
+            else:
+                db_game = games_db.get_game_by_field(game_id)
+                if not db_game:
                     self.service.install(game_id)
-                return
-
-        if self.service and self.service.id == "lutris":
-            db_game = games_db.get_game_by_field(game_id)
-            if not db_game:
-                self.service.install(game_id)
-                return
-            if db_game["installed"] != 1:
-                self.service.install(game_id)
-                return
-            game_id = db_game["id"]
-        game = Game(game_id)
-        game.emit("game-launch")
+                    return
+                if db_game["installed"] != 1:
+                    self.service.install(game_id)
+                    return
+                game_id = db_game["id"]
+        if game_id:
+            game = Game(game_id)
+            game.emit("game-launch")

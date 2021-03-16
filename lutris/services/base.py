@@ -5,8 +5,9 @@ import shutil
 from gi.repository import Gio, GObject
 
 from lutris import api, settings
+from lutris.config import write_game_config
 from lutris.database import sql
-from lutris.database.games import get_games
+from lutris.database.games import add_game, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer import fetch_script
@@ -24,6 +25,7 @@ class BaseService(GObject.Object):
     name = NotImplemented
     icon = NotImplemented
     online = False
+    local = False
     medias = {}
     default_format = "icon"
 
@@ -116,6 +118,8 @@ class BaseService(GObject.Object):
         """Install a service game"""
         appid = db_game["appid"]
         logger.debug("Installing %s from service %s", appid, self.id)
+        if self.local:
+            return self.simple_install(db_game)
         service_installers = self.get_installers_from_api(appid)
         # Check if the game is not already installed
         for service_installer in service_installers:
@@ -129,9 +133,33 @@ class BaseService(GObject.Object):
             installer = self.generate_installer(db_game)
             if installer:
                 service_installers.append(installer)
-        if service_installers:
-            application = Gio.Application.get_default()
-            application.show_installer_window(service_installers, service=self, appid=appid)
+        if not service_installers:
+            logger.error("No installer found for %s", db_game)
+            return
+
+        application = Gio.Application.get_default()
+        application.show_installer_window(service_installers, service=self, appid=appid)
+
+    def simple_install(self, db_game):
+        """A simplified version of the install method for local services"""
+        installer = self.generate_installer(db_game)
+        configpath = write_game_config(db_game["slug"], installer["script"])
+        game_id = add_game(
+            name=installer["name"],
+            runner=installer["runner"],
+            slug=installer["game_slug"],
+            directory=self.get_game_directory(installer),
+            installed=1,
+            installer_slug=installer["slug"],
+            configpath=configpath,
+            service=self.id,
+            service_id=db_game["appid"],
+        )
+        return game_id
+
+    def get_game_directory(self, _installer):
+        """Specific services should implement this"""
+        return ""
 
 
 class OnlineService(BaseService):
