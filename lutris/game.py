@@ -247,7 +247,6 @@ class Game(GObject.Object):
         games_db.delete_game(self.id)
         self.emit("game-removed")
 
-
     def set_platform_from_runner(self):
         """Set the game's platform from the runner"""
         if not self.runner:
@@ -256,7 +255,6 @@ class Game(GObject.Object):
         self.platform = self.runner.get_platform()
         if not self.platform:
             logger.warning("Can't get platform for runner %s", self.runner.human_name)
-
 
     def save(self, save_config=False):
         """

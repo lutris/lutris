@@ -129,9 +129,12 @@ class BaseService(GObject.Object):
             installer = self.generate_installer(db_game)
             if installer:
                 service_installers.append(installer)
-        if service_installers:
-            application = Gio.Application.get_default()
-            application.show_installer_window(service_installers, service=self, appid=appid)
+        if not service_installers:
+            logger.error("No installer found for %s", db_game)
+            return
+
+        application = Gio.Application.get_default()
+        application.show_installer_window(service_installers, service=self, appid=appid)
 
 
 class OnlineService(BaseService):
