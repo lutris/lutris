@@ -130,12 +130,11 @@ def get_games_by_slug(slug):
     return sql.db_select(settings.PGA_DB, "games", condition=("slug", slug))
 
 
-def add_game(name, **game_data):
+def add_game(**game_data):
     """Add a game to the PGA database."""
-    game_data["name"] = name
     game_data["installed_at"] = int(time.time())
     if "slug" not in game_data:
-        game_data["slug"] = slugify(name)
+        game_data["slug"] = slugify(game_data["name"])
     return sql.db_insert(settings.PGA_DB, "games", game_data)
 
 

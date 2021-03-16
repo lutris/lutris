@@ -27,11 +27,12 @@ class DolphinCacheReader:
         'maker_short': 'a',
         'maker_long': 'a',
         'description': 'a',
-        'some_other_name': 's',
-        'code_1': 's',
-        'code_2': 's',
-        'field_c': 32,
-        'field_d': 1,
+        'real_name': 's',
+        'game_id': 's',
+        'game_tdbid': 's',
+        'field_c': 6,
+        'platform': 1,
+        'field_d': 26,
         'rel_date': 's',
         'field_e': 8,
         'banner': 'i',
@@ -83,6 +84,7 @@ class DolphinCacheReader:
         if has_image:
             image = self.cache_content[self.offset:self.offset + 12288]
             self.offset += 12288
+            image = ''
         return image
 
     def get_raw(self, word_len):

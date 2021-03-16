@@ -477,7 +477,10 @@ class Application(Gtk.Application):
         if game.service:
             service = get_services()[game.service]()
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
-            service.install(db_game)
+            game_id = service.install(db_game)
+            if game_id:
+                game = Game(game_id)
+                game.launch()
             return True
 
         installers = get_installers(game_slug=game.slug)

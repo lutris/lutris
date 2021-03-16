@@ -2,10 +2,7 @@
 import json
 import os
 
-import yaml
-
-from lutris import settings
-from lutris.config import LutrisConfig, make_game_config_id
+from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.game import Game
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
@@ -215,16 +212,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
         return config
 
-    def write_game_config(self):
-        configpath = make_game_config_id(self.slug)
-        config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
-        config = self.get_game_config()
-        yaml_config = yaml.safe_dump(config, default_flow_style=False)
-        with open(config_filename, "w") as config_file:
-            logger.debug("Writing game config to %s", config_filename)
-            config_file.write(yaml_config)
-        return configpath
-
     def save(self):
         """Write the game configuration in the DB and config file"""
         if self.extends:
@@ -233,7 +220,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 self.extends,
             )
             return
-        configpath = self.write_game_config()
+        configpath = write_game_config(self.slug, self.get_game_config())
         runner_inst = import_runner(self.runner)()
         if self.service:
             service_id = self.service.id

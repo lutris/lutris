@@ -1,10 +1,10 @@
 """Handle the game, runner and global system configurations."""
 
-# Standard Library
 import os
 import time
 
-# Lutris Modules
+import yaml
+
 from lutris import settings, sysoptions
 from lutris.runners import InvalidRunner, import_runner
 from lutris.util.log import logger
@@ -15,6 +15,17 @@ from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 def make_game_config_id(game_slug):
     """Return an unique config id to avoid clashes between multiple games"""
     return "{}-{}".format(game_slug, int(time.time()))
+
+
+def write_game_config(game_slug, config):
+    """Writes a game config to disk"""
+    configpath = make_game_config_id(game_slug)
+    config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
+    yaml_config = yaml.safe_dump(config, default_flow_style=False)
+    with open(config_filename, "w") as config_file:
+        logger.debug("Writing game config to %s", config_filename)
+        config_file.write(yaml_config)
+    return configpath
 
 
 class LutrisConfig:

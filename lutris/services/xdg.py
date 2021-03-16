@@ -118,6 +118,10 @@ class XDGService(BaseService):
             }
         }
 
+    def get_game_directory(self, installer):
+        """Pull install location from installer"""
+        return os.path.dirname(installer["script"]["game"]["exe"])
+
 
 class XDGGame(ServiceGame):
     """XDG game (Linux game with a desktop launcher)"""

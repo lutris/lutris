@@ -182,6 +182,9 @@ class GameBar(Gtk.Fixed):
             button.set_label(_("Install"))
             button.connect("clicked", self.game_actions.on_install_clicked)
             if self.service:
+                if self.service.local:
+                    # Local services don't show an install dialog, they can be launched directly
+                    button.set_label(_("Play"))
                 button.set_size_request(120, 32)
                 return button
         button.set_size_request(84, 32)

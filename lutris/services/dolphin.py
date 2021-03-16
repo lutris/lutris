@@ -1,5 +1,5 @@
-import os
 import json
+import os
 from gettext import gettext as _
 
 from lutris import settings
@@ -50,9 +50,14 @@ class DolphinService(BaseService):
             "script": {
                 "game": {
                     "main_file": details["path"],
+                    "platform": details["platform"]
                 },
             }
         }
+
+    def get_game_directory(self, installer):
+        """Pull install location from installer"""
+        return os.path.dirname(installer["script"]["game"]["main_file"])
 
 
 class DolphinGame(ServiceGame):
@@ -66,11 +71,14 @@ class DolphinGame(ServiceGame):
     def new_from_cache(cls, cache_entry):
         """Create a service game from an entry from the Dolphin cache"""
         service_game = cls()
-        service_game.name = cls.get_game_name(cache_entry)
-        service_game.appid = str(cache_entry["code_1"])
-        service_game.slug = slugify(cls.get_game_name(cache_entry))
+        service_game.name = cache_entry["real_name"]
+        service_game.appid = str(cache_entry["game_id"])
+        service_game.slug = slugify(cache_entry["real_name"])
         service_game.icon = ""
-        service_game.details = json.dumps({"path": cache_entry["path"]})
+        service_game.details = json.dumps({
+            "path": cache_entry["path"],
+            "platform": cache_entry["platform"][:-1]
+        })
         return service_game
 
     @staticmethod
