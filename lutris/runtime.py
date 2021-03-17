@@ -93,7 +93,8 @@ class Runtime:
         file_path = os.path.join(settings.RUNTIME_DIR, self.name, component["filename"])
         try:
             http.download_file(component["url"], file_path)
-        except http.HTTPError:
+        except http.HTTPError as ex:
+            logger.error("Failed to download runtime component %s: %s", component, ex)
             return
         return file_path
 
@@ -152,6 +153,12 @@ class Runtime:
         Arguments:
             path (str): local path to the runtime archive
         """
+        stats = os.stat(path)
+        if not stats.st_size:
+            logger.error("Download failed: file %s is empty, Deleting file.", path)
+            os.unlink(path)
+            self.updater.notify_finish(self)
+            return False
         directory, _filename = os.path.split(path)
 
         # Delete the existing runtime path
@@ -167,6 +174,7 @@ class Runtime:
         if error:
             logger.error("Runtime update failed")
             logger.error(error)
+            self.updater.notify_finish(self)
             return False
         archive_path, _destination_path = result
         logger.debug("Deleting runtime archive %s", archive_path)
