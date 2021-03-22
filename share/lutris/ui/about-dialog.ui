@@ -14,8 +14,8 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="skip_pager_hint">True</property>
     <property name="program_name">Lutris</property>
-    <property name="copyright">© 2010, 2020 Mathieu Comandon</property>
-    <property name="comments" translatable="yes">Open Source Gaming Platform</property>
+    <property name="copyright">© 2010, 2021 Mathieu Comandon</property>
+    <property name="comments" translatable="yes">Video game preservation platform</property>
     <property name="website">https://lutris.net</property>
     <property name="website_label">https://lutris.net</property>
     <property name="license" translatable="yes">This program is free software: you can redistribute it and/or modify

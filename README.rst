@@ -4,19 +4,14 @@ Lutris
 
 |LiberaPayBadge|_
 
+Lutris helps you install and play video games from all eras and from most
+gaming systems. By leveraging and combining existing emulators, engine
+re-implementations and compatibility layers, it gives you a central interface
+to launch all your games.
 
-
-Lutris is an open source gaming platform that makes gaming on Linux easier by
-managing, installing and providing optimal settings for games.
-
-Lutris does not sell games. For commercial games, you must own a copy to install
-the game on Lutris.
-The platform uses programs referred to as 'runners' to launch games,
-Those runners (with the exception of Steam and web browsers) are provided and
-managed by Lutris, so you don't need to install them with your package manager.
-
-Scripts written by the community allow access to a library of games.
-Using scripts, games can be played without manual setup.
+The client can connect with existing services like Humble Bundle, GOG and Steam
+to make your game libraries easily available. Game downloads and installations
+are automated and can be modified through user made scripts.
 
 Running Lutris
 ==============

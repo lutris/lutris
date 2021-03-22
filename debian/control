@@ -42,7 +42,8 @@ Recommends: python3-evdev,
             libwine-development,
             winetricks,
 Suggests: gamemode,
-Description: open source gaming platform
- Lutris goal is to make gaming on Linux as easy as possible by taking care of
- installing and setting up the game for the user. The only thing you have to do
- is play the game. It aims to support every game that is playable on Linux.
+Description: video game preservation platform
+ Lutris helps you install and play video games from all eras and from most
+ gaming systems. By leveraging and combining existing emulators, engine
+ re-implementations and compatibility layers, it gives you a central interface
+ to launch all your games.

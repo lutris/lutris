@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Lutris
-Comment=open source gaming platform
+Comment=video game preservation platform
 Categories=Game;
 Keywords=gaming;wine;emulator;
 Exec=lutris %U
