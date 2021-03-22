@@ -3,6 +3,7 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk, Pango
 
+from lutris.util.log import logger
 from lutris import runners, services
 from lutris.database.games import get_game_by_field, get_game_for_service
 from lutris.game import Game
@@ -26,10 +27,13 @@ class GameBar(Gtk.Fixed):
         self.set_margin_bottom(12)
         self.game_actions = game_actions
         self.db_game = db_game
+        self.service = None
         if db_game.get("service"):
-            self.service = services.get_services()[db_game["service"]]()
-        else:
-            self.service = None
+            try:
+                self.service = services.get_services()[db_game["service"]]()
+            except KeyError:
+                logger.warning("Non existent service '%s'", db_game["service"])
+
         game_id = None
         if "service_id" in db_game:
             self.appid = db_game["service_id"]
