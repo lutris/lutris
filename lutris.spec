@@ -8,7 +8,7 @@
 Name:           lutris
 Version:        0.5.8.3
 Release:        7%{?dist}
-Summary:        Install and play any video game easily
+Summary:        Video game preservation platform
 
 License:        GPL-3.0+
 Group:          Amusements/Games/Other
@@ -70,11 +70,10 @@ Requires:       mesa-libGL
 
 
 %description
-Lutris is a gaming platform for GNU/Linux. Its goal is to make
-gaming on Linux as easy as possible by taking care of installing
-and setting up the game for the user. The only thing you have to
-do is play the game. It aims to support every game that is playable
-on Linux.
+Lutris helps you install and play video games from all eras and
+from most gaming systems. By leveraging and combining existing
+emulators, engine re-implementations and compatibility layers,
+it gives you a central interface to launch all your games.
 
 %prep
 %setup -q -n %{name}

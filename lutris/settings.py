@@ -10,7 +10,7 @@ from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
 VERSION = __version__
-COPYRIGHT = _("(c) 2010-2020 Lutris Gaming Platform")
+COPYRIGHT = _("(c) 2010-2021 Lutris Team")
 AUTHORS = [_("The Lutris team")]
 
 # Paths
