@@ -97,7 +97,7 @@ def get_steam_library(steamid):
         "IPlayerService/GetOwnedGames/v0001/"
         "?key={}&steamid={}&format=json&include_appinfo=1"
         "&include_played_free_games=1".format(
-            settings.DEFAULT_STEAM_API_ID, steamid
+            settings.STEAM_API_KEY, steamid
         )
     )
     response = requests.get(steam_games_url)

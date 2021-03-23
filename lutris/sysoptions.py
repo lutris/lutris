@@ -1,14 +1,10 @@
 """Options list for system config."""
-# Standard Library
 import glob
-# pylint: disable=invalid-name
 import os
 from collections import OrderedDict
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris import runners
-from lutris.discord import DiscordPresence
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
 
@@ -79,8 +75,6 @@ def get_vk_icd_choices():
 
     return choices
 
-
-discord_presence = DiscordPresence()
 
 system_options = [  # pylint: disable=invalid-name
     {
@@ -474,49 +468,6 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Open Xephyr in fullscreen (at the desktop resolution)"),
     },
 ]
-
-discord_options = [
-    {
-        "option": "discord_rpc_enabled",
-        "type": "bool",
-        "label": _("Discord Rich Presence"),
-        "default": False,
-        "condition": discord_presence.available,
-        "help": _("Enable status to Discord of this game being played"),
-    },
-    {
-        "option": "discord_show_runner",
-        "type": "bool",
-        "label": _("Discord Show Runner"),
-        "default": True,
-        "condition": discord_presence.available,
-        "help": _("Embed the runner name in the Discord status"),
-    },
-    {
-        "option": "discord_custom_game_name",
-        "type": "string",
-        "label": _("Discord Custom Game Name"),
-        "condition": discord_presence.available,
-        "help": _("Custom name to override with and pass to Discord"),
-    },
-    {
-        "option": "discord_custom_runner_name",
-        "type": "string",
-        "label": _("Discord Custom Runner Name"),
-        "condition": discord_presence.available,
-        "help": _("Custom runner name to override with and pass to Discord"),
-    },
-    {
-        "option": "discord_client_id",
-        "type": "string",
-        "label": _("Discord Client ID"),
-        "condition": discord_presence.available,
-        "help": _("Custom Discord Client ID for passing status"),
-    },
-]
-
-if discord_presence.available:
-    system_options += discord_options
 
 
 def with_runner_overrides(runner_slug):

@@ -21,7 +21,6 @@ from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
-from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
 from lutris.util import audio, jobs, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
@@ -203,15 +202,8 @@ class Game(GObject.Object):
         self.config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
         self.runner = self._get_runner()
         if self.discord_presence.available:
-            self.discord_presence.client_id = (
-                self.config.system_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
-            )
-            self.discord_presence.game_name = (self.config.system_config.get("discord_custom_game_name") or self.name)
-            self.discord_presence.show_runner = self.config.system_config.get("discord_show_runner", True)
-            self.discord_presence.runner_name = (
-                self.config.system_config.get("discord_custom_runner_name") or self.runner_name
-            )
-            self.discord_presence.rpc_enabled = self.config.system_config.get("discord_rpc_enabled", True)
+            self.discord_presence.client_id = DISCORD_CLIENT_ID
+            self.discord_presence.game_name = self.name
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
