@@ -138,18 +138,11 @@ class GameActions:
                 return self.game
         logger.warning("Game %s not in %s", self.game_id, ids)
 
-    def on_game_stop(self, caller):  # pylint: disable=unused-argument
+    def on_game_stop(self, _caller):
         """Stops the game"""
-        matched_game = self.get_running_game()
-        if not matched_game:
-            return
-        if not matched_game.game_thread:
-            logger.warning("Game %s doesn't appear to be running, not killing it", self.game_id)
-            return
-        try:
-            os.kill(matched_game.game_thread.game_process.pid, signal.SIGTERM)
-        except ProcessLookupError as ex:
-            logger.debug("Failed to kill game process: %s", ex)
+        game = self.get_running_game()
+        if game:
+            game.force_stop()
 
     def on_show_logs(self, _widget):
         """Display game log"""

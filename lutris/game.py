@@ -503,6 +503,17 @@ class Game(GObject.Object):
         self.emit("game-started")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
+    def force_stop(self):
+        """Forces termination of a running game"""
+        if not self.game_thread:
+            logger.warning("%s isn't running", self)
+        else:
+            try:
+                os.kill(matched_game.game_thread.game_process.pid, signal.SIGTERM)
+            except ProcessLookupError as ex:
+                logger.debug("Failed to kill game process: %s", ex)
+        self.stop_game()
+
     def stop_game(self):
         """Cleanup after a game as stopped"""
         self.state = self.STATE_STOPPED

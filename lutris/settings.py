@@ -43,8 +43,6 @@ GAME_URL = SITE_URL + "/games/%s/"
 RUNTIME_URL = SITE_URL + "/api/runtimes"
 
 STEAM_API_KEY = sio.read_setting("steam_api_key") or "34C9698CEB394AB4401D65927C6B3752"
-
-# Discord settings
 DISCORD_CLIENT_ID = sio.read_setting("discord_client_id") or "618290412402114570"
 
 
