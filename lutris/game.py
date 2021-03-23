@@ -4,6 +4,7 @@
 import os
 import shlex
 import shutil
+import signal
 import subprocess
 import time
 from gettext import gettext as _
@@ -202,7 +203,7 @@ class Game(GObject.Object):
         self.config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
         self.runner = self._get_runner()
         if self.discord_presence.available:
-            self.discord_presence.client_id = DISCORD_CLIENT_ID
+            self.discord_presence.client_id = settings.DISCORD_CLIENT_ID
             self.discord_presence.game_name = self.name
 
     def set_desktop_compositing(self, enable):
@@ -509,7 +510,7 @@ class Game(GObject.Object):
             logger.warning("%s isn't running", self)
         else:
             try:
-                os.kill(matched_game.game_thread.game_process.pid, signal.SIGTERM)
+                os.kill(self.game_thread.game_process.pid, signal.SIGTERM)
             except ProcessLookupError as ex:
                 logger.debug("Failed to kill game process: %s", ex)
         self.stop_game()

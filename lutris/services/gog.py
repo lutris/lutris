@@ -2,13 +2,13 @@
 import json
 import os
 import time
-import lutris.util.i18n as i18n
 from collections import defaultdict
 from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
 
 from lxml import etree
 
+import lutris.util.i18n as i18n
 from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGame
 from lutris.gui.dialogs import WebConnectDialog

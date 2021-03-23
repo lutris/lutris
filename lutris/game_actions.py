@@ -3,7 +3,6 @@
 # Standard Library
 # pylint: disable=too-many-public-methods
 import os
-import signal
 from gettext import gettext as _
 
 from gi.repository import Gio
