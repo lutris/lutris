@@ -144,7 +144,7 @@ class SteamService(BaseService):
         existing_game = self.match_existing_game(db_games, appid)
         if existing_game:
             logger.debug("Found steam game: %s", existing_game)
-            game = Game(existing_game["id"])
+            game = Game(existing_game.id)
             game.save()
             return
         service_installers = self.get_installers_from_api(appid)
