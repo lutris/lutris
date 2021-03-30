@@ -2,6 +2,7 @@
 import os
 import shlex
 import stat
+import uuid
 
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
@@ -71,6 +72,9 @@ def get_launch_parameters(runner, gameplay_info):
     env.update(gameplay_info.get("env") or {})
 
     # Set environment variables dependent on gameplay info
+
+    # Process identifier
+    env["LUTRIS_GAME_UUID"] = str(uuid.uuid4())
 
     # LD_PRELOAD
     ld_preload = gameplay_info.get("ld_preload")

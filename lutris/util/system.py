@@ -382,3 +382,8 @@ def get_disk_size(path):
             if os.path.isfile(os.path.join(base, f))
         ])
     return total_size
+
+
+def get_running_pid_list():
+    """Return the list of PIDs from processes currently running"""
+    return [p for p in os.listdir("/proc") if p[0].isdigit()]

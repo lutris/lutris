@@ -1,6 +1,13 @@
 """Class to manipulate a process"""
-# Standard Library
 import os
+
+from lutris.util.log import logger
+
+IGNORED_PROCESSES = (
+    "tracker-store",
+    "tracker-extract",
+    "kworker",
+)
 
 
 class InvalidPid(Exception):
@@ -91,6 +98,18 @@ class Process:
         return os.readlink(cwd_path)
 
     @property
+    def environ(self):
+        """Return the process' environment variables"""
+        environ_path = "/proc/{}/environ".format(self.pid)
+        try:
+            with open(environ_path) as environ_file:
+                _environ_text = environ_file.read().split("\x00")
+        except PermissionError:
+            logger.error("Failed to read %s", environ_path)
+            return {}
+        return dict([line.split("=", 1) for line in _environ_text if line])
+
+    @property
     def children(self):
         """Return the child processes of this process"""
         _children = []
@@ -104,3 +123,16 @@ class Process:
         for child in self.children:
             yield child
             yield from child.iter_children()
+
+    def wait_for_finish(self):
+        """Waits until the process finishes
+        This only works if self.pid is a child process of Lutris
+        """
+        try:
+            pid, ret_status = os.waitpid(int(self.pid) * -1, 0)
+        except OSError as ex:
+            logger.error("Failed to get exit status for PID %s", self.pid)
+            logger.error(ex)
+            return -1
+        logger.info("PID %s exited with code %s", pid, ret_status)
+        return ret_status
