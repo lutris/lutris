@@ -522,11 +522,20 @@ class Game(GObject.Object):
 
     def get_game_pids(self):
         """Return a list of processes belonging to the Lutris game"""
-        new_pids = set(system.get_running_pid_list()) - set(self.prelaunch_pids)
-        return [
+        new_pids = self.get_new_pids()
+        game_pids = []
+        game_folder = self.runner.game_path
+        for pid in new_pids:
+            if game_folder in Process(pid).cmdline:
+                game_pids.append(pid)
+        return set(game_pids + [
             pid for pid in new_pids
             if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid
-        ]
+        ])
+
+    def get_new_pids(self):
+        """Return list of PIDs started since the game was launched"""
+        return set(system.get_running_pid_list()) - set(self.prelaunch_pids)
 
     def stop_game(self):
         """Cleanup after a game as stopped"""
