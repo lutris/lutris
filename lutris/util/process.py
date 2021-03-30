@@ -31,6 +31,15 @@ class Process:
     def __str__(self):
         return "{} ({}:{})".format(self.name, self.pid, self.state)
 
+    def _read_content(self, file_path):
+        """Return the contents from a file in /proc"""
+        try:
+            with open(file_path) as proc_file:
+                content = proc_file.read()
+        except (ProcessLookupError, FileNotFoundError, PermissionError):
+            return ""
+        return content
+
     def get_stat(self, parsed=True):
         stat_filename = "/proc/{}/stat".format(self.pid)
         try:
@@ -87,9 +96,9 @@ class Process:
     def cmdline(self):
         """Return command line used to run the process `pid`."""
         cmdline_path = "/proc/{}/cmdline".format(self.pid)
-        with open(cmdline_path) as cmdline_file:
-            _cmdline = cmdline_file.read().replace("\x00", " ")
-        return _cmdline
+        _cmdline_content = self._read_content(cmdline_path)
+        if _cmdline_content:
+            return _cmdline_content.replace("\x00", " ").replace("\\", "/")
 
     @property
     def cwd(self):
@@ -101,13 +110,10 @@ class Process:
     def environ(self):
         """Return the process' environment variables"""
         environ_path = "/proc/{}/environ".format(self.pid)
-        try:
-            with open(environ_path) as environ_file:
-                _environ_text = environ_file.read().split("\x00")
-        except PermissionError:
-            logger.error("Failed to read %s", environ_path)
+        _environ_text = self._read_content(environ_path)
+        if not _environ_text:
             return {}
-        return dict([line.split("=", 1) for line in _environ_text if line])
+        return dict([line.split("=", 1) for line in _environ_text.split("\x00") if line])
 
     @property
     def children(self):

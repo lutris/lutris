@@ -527,7 +527,8 @@ class Game(GObject.Object):
         game_pids = []
         game_folder = self.runner.game_path
         for pid in new_pids:
-            if game_folder in Process(pid).cmdline:
+            cmdline = Process(pid).cmdline or ""
+            if game_folder in cmdline or "pressure-vessel" in cmdline:
                 game_pids.append(pid)
         return set(game_pids + [
             pid for pid in new_pids
@@ -575,6 +576,7 @@ class Game(GObject.Object):
             return False
         game_pids = self.get_game_pids()
         if not self.game_thread.is_running and not game_pids:
+
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False

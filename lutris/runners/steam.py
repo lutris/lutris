@@ -11,7 +11,7 @@ from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.steam.appmanifest import get_path_from_appmanifest
+from lutris.util.steam.appmanifest import get_appmanifest_from_appid, get_path_from_appmanifest
 from lutris.util.steam.config import STEAM_DATA_DIRS, get_default_acf, get_steam_dir, read_config
 from lutris.util.steam.vdf import to_vdf
 from lutris.util.strings import split_arguments
@@ -172,6 +172,18 @@ class steam(Runner):
     def library_folders(self):
         """Return a list Steam library paths"""
         return self.get_steamapps_dirs()
+
+    def get_appmanifest(self):
+        """Return an AppManifest instance for the game"""
+        appmanifests = []
+        for apps_path in self.get_steamapps_dirs():
+            appmanifest = get_appmanifest_from_appid(apps_path, self.appid)
+            if appmanifest:
+                appmanifests.append(appmanifest)
+        if len(appmanifests) > 1:
+            logger.warning("More than one AppManifest for %s returning only 1st", self.appid)
+        if appmanifests:
+            return appmanifests[0]
 
     def get_executable(self):
         if system.LINUX_SYSTEM.is_flatpak:
