@@ -511,11 +511,12 @@ class Game(GObject.Object):
 
     def force_stop(self):
         """Forces termination of a running game"""
-        if not self.game_thread:
-            logger.warning("%s isn't running", self)
-        else:
+        pids = self.get_game_pids()
+        if self.game_thread and self.game_thread.game_process:
+            pids.add(self.game_thread.game_process.pid)
+        for pid in pids:
             try:
-                os.kill(self.game_thread.game_process.pid, signal.SIGTERM)
+                os.kill(int(pid), signal.SIGTERM)
             except ProcessLookupError as ex:
                 logger.debug("Failed to kill game process: %s", ex)
         self.stop_game()
