@@ -103,6 +103,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         return ""
 
     @property
+    def library_folders(self):
+        """Return a list of paths where a game might be installed"""
+        return []
+
+    @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         return self.game_path or os.path.expanduser("~/")

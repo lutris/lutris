@@ -168,6 +168,11 @@ class steam(Runner):
         """Main installation directory for Steam"""
         return get_steam_dir()
 
+    @property
+    def library_folders(self):
+        """Return a list Steam library paths"""
+        return self.get_steamapps_dirs()
+
     def get_executable(self):
         if system.LINUX_SYSTEM.is_flatpak:
             # Use xdg-open for Steam URIs in Flatpak
