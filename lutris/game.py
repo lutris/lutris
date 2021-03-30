@@ -30,6 +30,7 @@ from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
+from lutris.util.process import Process
 from lutris.util.timer import Timer
 
 HEARTBEAT_DELAY = 2000
@@ -84,7 +85,9 @@ class Game(GObject.Object):
 
         if self.game_config_id:
             self.load_config()
+        self.game_uuid = None
         self.game_thread = None
+        self.prelaunch_pids = []
         self.prelaunch_executor = None
         self.heartbeat = None
         self.killswitch = None
@@ -410,6 +413,7 @@ class Game(GObject.Object):
             return
         command, env = get_launch_parameters(self.runner, gameplay_info)
         env["game_name"] = self.name  # What is this used for??
+        self.game_uuid = env["LUTRIS_GAME_UUID"]
         self.game_runtime_config = {
             "args": command,
             "env": env,
@@ -481,6 +485,7 @@ class Game(GObject.Object):
             logger.error("Game is not launchable")
             return
         self.state = self.STATE_LAUNCHING
+        self.prelaunch_pids = system.get_running_pid_list()
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
@@ -515,8 +520,22 @@ class Game(GObject.Object):
                 logger.debug("Failed to kill game process: %s", ex)
         self.stop_game()
 
+    def get_game_pids(self):
+        """Return a list of processes belonging to the Lutris game"""
+        new_pids = set(system.get_running_pid_list()) - set(self.prelaunch_pids)
+        return [
+            pid for pid in new_pids
+            if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid
+        ]
+
     def stop_game(self):
         """Cleanup after a game as stopped"""
+        duration = self.timer.duration
+        logger.debug("%s has run for %s seconds", self, duration)
+        if duration < 5:
+            logger.warning("The game has run for a very short time, did it crash?")
+            # Inspect why it could have crashed
+
         self.state = self.STATE_STOPPED
         self.emit("game-stop")
         if not self.timer.finished:
@@ -540,7 +559,12 @@ class Game(GObject.Object):
         # The killswitch file should be set to a device (ie. /dev/input/js0)
         # When that device is unplugged, the game is forced to quit.
         killswitch_engage = self.killswitch and not system.path_exists(self.killswitch)
-        if not self.game_thread.is_running or killswitch_engage:
+        if killswitch_engage:
+            logger.warning("File descriptor no longer present, force quit the game")
+            self.force_stop()
+            return False
+        game_pids = self.get_game_pids()
+        if not self.game_thread.is_running and not game_pids:
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
