@@ -402,17 +402,20 @@ class CommandsMixin:
             data[key] = value
 
         task = import_task(runner_name, task_name)
-        thread = task(**data)
+        command = task(**data)
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
-        if isinstance(thread, MonitoredCommand):
+        if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
-            GLib.idle_add(self.parent.attach_logger, thread)
-            self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
+            GLib.idle_add(self.parent.attach_logger, command)
+            self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
             return "STOP"
         return None
 
-    def _monitor_task(self, thread):
-        if not thread.is_running:
+    def _monitor_task(self, command):
+        if not command.is_running:
+            logger.debug("Return code: %s", command.return_code)
+            if command.return_code != "0":
+                raise ScriptingError("Command exited with code %s", command.return_code)
             self._iter_commands()
             return False
         return True

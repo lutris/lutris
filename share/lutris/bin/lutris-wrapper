@@ -188,8 +188,12 @@ def main():
 
     if returncode is None:
         returncode = 0
-        log("Monitored process didn't return an exit code.")
-    log("Exit with returncode %s" % returncode)
+        log("No return code")
+    else:
+        log("Exit with return code %s" % returncode)
+    if "LUTRIS_GAME_UUID" in os.environ:
+        with open("/tmp/lutris-%s" % os.environ["LUTRIS_GAME_UUID"], "w") as status_file:
+            status_file.write("%s" % returncode)
     sys.exit(returncode)
 
 
