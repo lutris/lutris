@@ -179,6 +179,7 @@ class MonitoredCommand:
                 return_code = return_code_file.read()
             os.unlink(return_code_path)
         else:
+            return_code = ''
             logger.warning("No file %s", return_code_path)
         return return_code
 
