@@ -413,7 +413,6 @@ class Game(GObject.Object):
             return
         command, env = get_launch_parameters(self.runner, gameplay_info)
         env["game_name"] = self.name  # What is this used for??
-        self.game_uuid = env["LUTRIS_GAME_UUID"]
         self.game_runtime_config = {
             "args": command,
             "env": env,
@@ -503,6 +502,7 @@ class Game(GObject.Object):
         )
         if hasattr(self.runner, "stop"):
             self.game_thread.stop_func = self.runner.stop
+        self.game_uuid = self.game_thread.env["LUTRIS_GAME_UUID"]
         self.game_thread.start()
         self.timer.start()
         self.state = self.STATE_RUNNING
