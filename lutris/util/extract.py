@@ -63,6 +63,7 @@ def is_7zip_supported(path, extractor):
         "wim",
         "xar",
         "z",
+        "auto",
     )
     if extractor:
         return extractor.lower() in supported_extractors
@@ -88,10 +89,8 @@ def guess_extractor(path):
         extractor = "exe"
     elif path.endswith(".deb"):
         extractor = "deb"
-    elif is_7zip_supported(path, None):
-        extractor = None
     else:
-        raise RuntimeError("Could not extract `%s` - no appropriate extractor found" % path)
+        extractor = None
     return extractor
 
 
@@ -114,10 +113,8 @@ def get_archive_opener(extractor, path):
         opener = "exe"
     elif extractor == "deb":
         opener = "deb"
-    elif extractor is None or is_7zip_supported(path, extractor):
-        opener = "7zip"
     else:
-        raise RuntimeError("Could not extract `%s` - unknown format specified" % path)
+        opener = "7zip"
     return opener, mode
 
 
@@ -293,6 +290,6 @@ def extract_7zip(path, dest, archive_type=None):
     if not system.path_exists(_7zip_path):
         raise OSError("7zip is not found in the lutris runtime or on the system")
     command = [_7zip_path, "x", path, "-o{}".format(dest), "-aoa"]
-    if archive_type:
+    if archive_type and archive_type != "auto":
         command.append("-t{}".format(archive_type))
     subprocess.call(command)
