@@ -241,7 +241,7 @@ def check_inno_exe(path):
     if not system.path_exists(_innoextract_path):
         _innoextract_path = system.find_executable("innoextract")
     if not system.path_exists(_innoextract_path):
-        return False  # Can't find innoextract
+        raise OSError("innoextract is not found in the lutris runtime or on the system")
     command = [_innoextract_path, "-i", path]
     return_code = subprocess.call(command)
     if return_code != 0:
