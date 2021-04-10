@@ -107,17 +107,6 @@ class steam(Runner):
             ),
         },
         {
-            "option": "steam_native_runtime",
-            "label": _("Disable Steam Runtime (use native libraries)"),
-            "type": "bool",
-            "default": False,
-            "help": _(
-                "Launches Steam with STEAM_RUNTIME=0. "
-                "Make sure you disabled Lutris Runtime and "
-                "have the required libraries installed."
-            ),
-        },
-        {
             "option": "lsi_steam",
             "label": _("Start Steam with LSI"),
             "type": "bool",
@@ -214,16 +203,6 @@ class steam(Runner):
         if self.runner_config.get("start_in_big_picture"):
             args.append("-bigpicture")
         return args + split_arguments(self.runner_config.get("args") or "")
-
-    def get_env(self):
-        env = super(steam, self).get_env()
-
-        if not self.runner_config.get("lsi_steam") and self.runner_config.get(
-            "steam_native_runtime"
-        ):
-            env["STEAM_RUNTIME"] = "0"
-
-        return env
 
     def get_game_path_from_appid(self, appid):
         """Return the game directory."""

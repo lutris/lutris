@@ -250,7 +250,7 @@ class RuntimeUpdater:
 
 
 def get_env(version=None, prefer_system_libs=False, wine_path=None):
-    """Return a dict containing LD_LIBRARY_PATH and STEAM_RUNTIME env vars
+    """Return a dict containing LD_LIBRARY_PATH env var
 
     Params:
         version (str): Version of the runtime to use, such as "Ubuntu-18.04" or "legacy"
@@ -261,12 +261,9 @@ def get_env(version=None, prefer_system_libs=False, wine_path=None):
     Returns:
         dict
     """
-    # Adding the STEAM_RUNTIME here is probably unneeded and unwanted
     return {
         key: value
         for key, value in {
-            "STEAM_RUNTIME":
-            os.path.join(settings.RUNTIME_DIR, "steam") if not RUNTIME_DISABLED else None,
             "LD_LIBRARY_PATH":
             ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)),
         }.items() if value

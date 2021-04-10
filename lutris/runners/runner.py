@@ -209,8 +209,6 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if self.use_runtime():
             runtime_env = self.get_runtime_env()
-            if "STEAM_RUNTIME" in runtime_env and "STEAM_RUNTIME" not in env:
-                env["STEAM_RUNTIME"] = runtime_env["STEAM_RUNTIME"]
             if "LD_LIBRARY_PATH" in runtime_env:
                 runtime_ld_library_path = runtime_env["LD_LIBRARY_PATH"]
 
