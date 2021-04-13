@@ -21,7 +21,6 @@ from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_version_exe
 
 
 class CommandsMixin:
-
     """The directives for the `installer:` part of the install script."""
 
     def __init__(self):
@@ -523,3 +522,83 @@ class CommandsMixin:
         self.abort_current_task = None
         logger.debug("Process %s returned: %s", func, result)
         return result
+
+    def _extract_gog_game(self, file_id):
+        self.extract({
+            "src": file_id,
+            "dst": "$GAMEDIR",
+            "extractor": "innoextract"
+        })
+        support_path = os.path.join(self.target_path, "__support/app")
+        if system.path_exists(support_path):
+            self.merge({"src": support_path, "dst": self.target_path})
+
+    def _get_scummvm_arguments(self, gog_config_path):
+        """Return a ScummVM configuration from the GOG config files"""
+        with open(gog_config_path) as gog_config_file:
+            gog_config = json.loads(gog_config_file.read())
+        game_tasks = [task for task in gog_config["playTasks"] if task["category"] == "game"]
+        arguments = game_tasks[0]["arguments"]
+        logger.info("ScummVM arguments from GOG: %s", arguments)
+        if "-c " in arguments:
+            config_path = arguments.split("\"")[1].replace("..\\", "")
+            config_section = arguments.split()[-1]
+        else:
+            raise RuntimeError("Unable to read config path from arguments: '%s'" % arguments)
+        parser = EvilConfigParser(allow_no_value=True, dict_type=MultiOrderedDict, strict=False)
+        parser.optionxform = str  # Preserve text case
+        base_dir = os.path.dirname(gog_config_path)
+        scummvm_config_path = os.path.join(base_dir, config_path)
+        if not system.path_exists(scummvm_config_path):
+            raise RuntimeError("ScummVM config file %s not found" % scummvm_config_path)
+        parser.read(scummvm_config_path)
+        game_id = parser.get(config_section, "gameid")
+        return {
+            "game_id": game_id,
+            "path": base_dir,
+        }
+
+    def autosetup_gog_game(self, file_id):
+        """Automatically guess the best way to install a GOG game by inspecting its contents.
+        This chooses the right runner (DOSBox, Wine) for Windows game files.
+        Linux setup files don't use innosetup, they can be unzipped instead.
+        """
+        file_path = self.game_files[file_id]
+        file_list = extract.get_innoextract_list(file_path)
+        dosbox_found = False
+        scummvm_found = False
+        for filename in file_list:
+            if "dosbox/dosbox.exe" in filename.lower():
+                dosbox_found = True
+            if "scummvm/scummvm.exe" in filename.lower():
+                scummvm_found = True
+        if dosbox_found:
+            self._extract_gog_game(file_id)
+            dosbox_config = {
+                "working_dir": "$GAMEDIR/DOSBOX",
+            }
+            for filename in os.listdir(self.target_path):
+                if filename.endswith("_single.conf"):
+                    dosbox_config["main_file"] = filename
+                elif filename.endswith(".conf"):
+                    dosbox_config["config_file"] = filename
+            self.installer.script["game"] = dosbox_config
+            self.installer.runner = "dosbox"
+        elif scummvm_found:
+            self._extract_gog_game(file_id)
+            arguments = None
+            for filename in os.listdir(self.target_path):
+                if filename.startswith("goggame") and filename.endswith(".info"):
+                    arguments = self._get_scummvm_arguments(os.path.join(self.target_path, filename))
+            if not arguments:
+                raise RuntimeError("Unable to get ScummVM arguments")
+            logger.info("ScummVM config: %s", arguments)
+            self.installer.script["game"] = arguments
+            self.installer.runner = "scummvm"
+        else:
+            return self.task({
+                "name": "wineexec",
+                "prefix": "$GAMEDIR",
+                "executable": file_id,
+                "args": "/SP- /NOCANCEL"
+            })

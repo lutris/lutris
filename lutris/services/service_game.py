@@ -1,6 +1,5 @@
 """Service game module"""
 from lutris import settings
-from lutris.util.log import logger
 from lutris.database import sql
 from lutris.database.services import ServiceGameCollection
 from lutris.services.service_media import ServiceMedia

@@ -461,8 +461,7 @@ class GOGService(OnlineService):
             runner = "wine"
             game_config = {"exe": AUTO_WIN32_EXE}
             script = [
-                {"task": {"name": "create_prefix", "prefix": "$GAMEDIR"}},
-                {"task": {"name": "wineexec", "executable": "goginstaller", "args": "args: /SP- /NOCANCEL"}},
+                {"autosetup_gog_game": "goginstaller"},
             ]
         return {
             "name": db_game["name"],

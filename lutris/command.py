@@ -1,12 +1,12 @@
 """Threading module, used to launch games while monitoring them."""
 import contextlib
 import fcntl
-import uuid
 import io
 import os
 import shlex
 import subprocess
 import sys
+import uuid
 
 from gi.repository import GLib
 

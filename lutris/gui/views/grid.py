@@ -2,10 +2,10 @@
 # pylint: disable=no-member
 from gi.repository import Gtk
 
-from lutris.util.log import logger
 from lutris.gui.views import COL_ICON, COL_NAME
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
+from lutris.util.log import logger
 
 
 class GameGridView(Gtk.IconView, GameView):
