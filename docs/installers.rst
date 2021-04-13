@@ -424,12 +424,15 @@ then it must be prefixed by either ``$CACHE`` or ``$GAMEDIR`` to move a file or
 directory from the download cache or the game's install dir, respectively.
 
 The ``dst`` parameter should be prefixed by either ``$GAMEDIR`` or ``$HOME``
-to move files to path relative to the game dir or the current user's home
+to move files to path relative to the game dir or the current user's home.
 
 If the source is a ``file ID``, it will be updated with the new destination
 path. It can then be used in following commands to access the moved file.
 
-The ``move`` command cannot overwrite files.
+The ``move`` command cannot overwrite files. If the destination directory
+doesn't exist, it will be created. Be sure to give the full path of the
+destination (including filename), not just the destination folder.
+
 
 Example::
 
