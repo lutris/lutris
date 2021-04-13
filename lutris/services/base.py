@@ -54,6 +54,7 @@ class BaseService(GObject.Object):
         """Match a service game to a lutris game referenced by its slug"""
         if not service_game:
             return
+        logger.debug("Matching service game %s with API game %s", service_game, api_game)
         conditions = {"appid": service_game["appid"], "service": self.id}
         sql.db_update(
             PGA_DB,
@@ -67,6 +68,7 @@ class BaseService(GObject.Object):
             excludes={"service": self.id}
         )
         for game in unmatched_lutris_games:
+            logger.debug("Updating unmatched game %s", game)
             sql.db_update(
                 PGA_DB,
                 "games",
@@ -79,6 +81,7 @@ class BaseService(GObject.Object):
         service_games = {
             str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
         }
+        logger.debug("Matching games %s", service_games)
         lutris_games = api.get_api_games(list(service_games.keys()), service=self.id)
         for lutris_game in lutris_games:
             for provider_game in lutris_game["provider_games"]:
