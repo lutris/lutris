@@ -280,7 +280,7 @@ class CommandsMixin:
             if params.get("optional"):
                 logger.info("Optional path %s not present", src)
                 return
-            raise ScriptingError("I can't move %s, it does not exist" % src)
+            raise ScriptingError("Invalid source for 'move' operation: %s" % src)
 
         if os.path.isfile(src):
             if os.path.dirname(src) == dst:
