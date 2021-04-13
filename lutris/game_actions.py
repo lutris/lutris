@@ -157,6 +157,8 @@ class GameActions:
     def on_install_clicked(self, *_args):
         """Install a game"""
         # Install the currently selected game in the UI
+        if not self.game.slug:
+            raise RuntimeError("No game to install: %s" % self.game.id)
         self.game.emit("game-install")
 
     def on_add_manually(self, _widget, *_args):

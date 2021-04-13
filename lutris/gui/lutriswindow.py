@@ -792,26 +792,31 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_game_activated(self, view, game_id):
         """Handles view activations (double click, enter press)"""
+        initial_game_id = game_id
         if self.service:
-            if self.service.id != "lutris":
-                db_game = games_db.get_game_for_service(self.service.id, game_id)
-                if db_game:
-                    game_id = db_game["id"]
-                else:
-                    db_game = ServiceGameCollection.get_game(self.service.id, game_id)
-                    if db_game:
-                        game_id = self.service.install(db_game)
-                    else:
-                        game_id = self.service.install(game_id)
-            else:
-                db_game = games_db.get_game_by_field(game_id)
+            logger.debug("Looking up %s game %s", self.service.id, game_id)
+            db_game = games_db.get_game_for_service(self.service.id, game_id)
+            if self.service.id == "lutris":
                 if not db_game:
                     self.service.install(game_id)
                     return
-                if db_game["installed"] != 1:
+                if not db_game["installed"]:
                     self.service.install(game_id)
                     return
                 game_id = db_game["id"]
+            else:
+                if db_game and db_game["installed"]:
+                    game_id = db_game["id"]
+                else:
+                    service_game = ServiceGameCollection.get_game(self.service.id, game_id)
+                    if not service_game:
+                        logger.error("No game %s found for %s". game_id, self.service.id)
+                        return
+                    game_id = self.service.install(service_game)
+        else:
+            logger.debug("No service for view")
         if game_id:
             game = Game(game_id)
             game.emit("game-launch")
+        else:
+            logger.warning("No game found for %s", initial_game_id)

@@ -483,8 +483,8 @@ class Application(Gtk.Application):
                 game.launch()
             return True
         if not game.slug:
-            logger.error("%s doesn't have a slug set, can't query installers", game)
-            return True
+            raise ValueError("Invalid game passed: %s" % game)
+            # return True
         installers = get_installers(game_slug=game.slug)
         if installers:
             self.show_installer_window(installers)

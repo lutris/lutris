@@ -470,8 +470,7 @@ class Game(GObject.Object):
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
         if not self.is_installed:
-            self.emit("game-install")
-            return
+            raise RuntimeError("Tried to launch a game that isn't installed")
         self.load_config()  # Reload the config before launching it.
 
         if self.id in LOG_BUFFERS:  # Reset game logs on each launch

@@ -2,6 +2,7 @@
 # pylint: disable=no-member
 from gi.repository import Gtk
 
+from lutris.util.log import logger
 from lutris.gui.views import COL_ICON, COL_NAME
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
@@ -53,6 +54,7 @@ class GameGridView(Gtk.IconView, GameView):
             selected_id = self.get_selected_id(selected_item)
         else:
             selected_id = None
+        logger.debug("Item activated: %s", selected_id)
         self.emit("game-activated", selected_id)
 
     def on_selection_changed(self, _view):

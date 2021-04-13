@@ -98,11 +98,13 @@ class BaseService(GObject.Object):
     def match_existing_game(self, db_games, appid):
         """Checks if a game is already installed and populates the service info"""
         for _game in db_games:
-            logger.info("Found existing installation of %s (%s)", _game["name"], _game["installed"])
+            logger.debug("Matching %s with existing install: %s", appid, _game)
             game = Game(_game["id"])
             game.appid = appid
             game.service = self.id
             game.save()
+            service_game = ServiceGameCollection.get_game(self.id, appid)
+            sql.db_update(PGA_DB, "service_games", {"lutris_slug": game["slug"]}, {"id": service_game["id"]})
             return game
 
     def get_installers_from_api(self, appid):
