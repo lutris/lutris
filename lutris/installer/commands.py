@@ -529,6 +529,10 @@ class CommandsMixin:
             "dst": "$GAMEDIR",
             "extractor": "innoextract"
         })
+        app_path = os.path.join(self.target_path, "app")
+        if system.path_exists(app_path):
+            for app_content in os.listdir(app_path):
+                self.move({"src": os.path.join(app_path, app_content), "dst": self.target_path})
         support_path = os.path.join(self.target_path, "__support/app")
         if system.path_exists(support_path):
             self.merge({"src": support_path, "dst": self.target_path})
@@ -556,6 +560,7 @@ class CommandsMixin:
         return {
             "game_id": game_id,
             "path": base_dir,
+            "arguments": "-c \"%s\"" % config_path
         }
 
     def autosetup_gog_game(self, file_id):
