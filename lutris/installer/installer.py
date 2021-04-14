@@ -26,7 +26,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.year = installer.get("year")
         self.runner = installer["runner"]
         self.script = installer.get("script")
-        self.game_name = self.script.get("custom-name") or installer["name"]
+        self.game_name = installer["name"]
         self.game_slug = installer["game_slug"]
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)

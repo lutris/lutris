@@ -100,15 +100,6 @@ recommended to put this information directly in the ``game`` section. If you
 see an existing installer with keys like ``exe`` or ``main_file`` sitting at
 the root level, please move them to the ``game`` section.
 
-Customizing the game's name
----------------------------
-
-Use the ``custom-name`` directive to override the name of the game. Use this
-only if the installer provides a significantly different game from the base
-one.
-
-Example: ``custom-name: Quake Champions: Doom Edition``
-
 Requiring additional binaries
 -----------------------------
 
