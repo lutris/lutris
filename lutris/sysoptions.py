@@ -128,16 +128,11 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Restrict the game to a single CPU core."),
     },
     {
-        "option":
-        "restore_gamma",
-        "type":
-        "bool",
-        "default":
-        False,
-        "label":
-        _("Restore gamma on game exit"),
-        "advanced":
-        True,
+        "option": "restore_gamma",
+        "type": "bool",
+        "default": False,
+        "label": _("Restore gamma on game exit"),
+        "advanced": True,
         "help": _("Some games don't correctly restores gamma on exit, making "
                   "your display too bright. Select this option to correct it."),
     },
@@ -189,18 +184,12 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Switch to US keyboard QWERTY layout while game is running"),
     },
     {
-        "option":
-        "optimus",
-        "type":
-        "choice",
-        "default":
-        "off",
-        "choices":
-        get_optirun_choices,
-        "label":
-        _("Optimus launcher (NVIDIA Optimus laptops)"),
-        "advanced":
-        True,
+        "option": "optimus",
+        "type": "choice",
+        "default": "off",
+        "choices": get_optirun_choices,
+        "label": _("Optimus launcher (NVIDIA Optimus laptops)"),
+        "advanced": True,
         "help": _("If you have installed the primus or bumblebee packages, "
                   "select what launcher will run the game with the command, "
                   "activating your NVIDIA graphic chip for high 3D "
@@ -340,6 +329,13 @@ system_options = [  # pylint: disable=invalid-name
         "type": "mapping",
         "label": _("Environment variables"),
         "help": _("Environment variables loaded at run time"),
+    },
+    {
+        "option": "antimicro_config",
+        "type": "file",
+        "label": _("AntiMicroX Profile"),
+        "advanced": True,
+        "help": _("Path to an AntiMicroX profile file"),
     },
     {
         "option": "prefix_command",

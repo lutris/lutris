@@ -87,6 +87,7 @@ class Game(GObject.Object):
             self.load_config()
         self.game_uuid = None
         self.game_thread = None
+        self.antimicro_thread = None
         self.prelaunch_pids = []
         self.prelaunch_executor = None
         self.heartbeat = None
@@ -339,6 +340,17 @@ class Game(GObject.Object):
         time.sleep(3)
         return display
 
+    def start_antimicrox(self, antimicro_config):
+        """Start Antimicrox with a given config path"""
+        antimicro_path = system.find_executable("antimicrox")
+        if not antimicro_path:
+            logger.warning("Antimicrox is not installed.")
+            return
+        logger.info("Starting Antic")
+        antimicro_command = [antimicro_path, "--hidden", "--tray", "--profile", antimicro_config]
+        self.antimicro_thread = MonitoredCommand(antimicro_command)
+        self.antimicro_thread.start()
+
     @staticmethod
     def set_keyboard_layout(layout):
         setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
@@ -451,8 +463,11 @@ class Game(GObject.Object):
         if xephyr != "off":
             env["DISPLAY"] = self.start_xephyr()
 
-        # Execution control
+        antimicro_config = self.runner.system_config.get("antimicro_config")
+        if system.path_exists(antimicro_config):
+            self.start_antimicrox(antimicro_config)
 
+        # Execution control
         self.killswitch = self.get_killswitch()
 
         if self.runner.system_config.get("prelaunch_command"):
@@ -573,11 +588,9 @@ class Game(GObject.Object):
             return False
         game_pids = self.get_game_pids()
         if not self.game_thread.is_running and not game_pids:
-
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
-
         return True
 
     def stop(self):
@@ -627,6 +640,9 @@ class Game(GObject.Object):
         self.save(save_config=False)
 
         os.chdir(os.path.expanduser("~"))
+
+        if self.antimicro_thread:
+            self.antimicro_thread.stop()
 
         if self.resolution_changed or self.runner.system_config.get("reset_desktop"):
             DISPLAY_MANAGER.set_resolution(self.original_outputs)
