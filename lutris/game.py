@@ -422,17 +422,14 @@ class Game(GObject.Object):
         }
 
         # Audio control
-
         if self.runner.system_config.get("reset_pulse"):
             audio.reset_pulse()
 
         # Input control
-
         if self.runner.system_config.get("use_us_layout"):
             self.set_keyboard_layout("us")
 
         # Display control
-
         self.original_outputs = DISPLAY_MANAGER.get_config()
 
         if self.runner.system_config.get("disable_compositor"):
@@ -580,9 +577,6 @@ class Game(GObject.Object):
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
-
-        if self.discord_presence.available:
-            self.discord_presence.update_discord_rich_presence()
 
         return True
 
