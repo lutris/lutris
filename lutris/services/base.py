@@ -104,7 +104,7 @@ class BaseService(GObject.Object):
             game.service = self.id
             game.save()
             service_game = ServiceGameCollection.get_game(self.id, appid)
-            sql.db_update(PGA_DB, "service_games", {"lutris_slug": game["slug"]}, {"id": service_game["id"]})
+            sql.db_update(PGA_DB, "service_games", {"lutris_slug": game.slug}, {"id": service_game["id"]})
             return game
 
     def get_installers_from_api(self, appid):
