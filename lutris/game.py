@@ -17,7 +17,6 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.discord import DiscordPresence
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
@@ -80,7 +79,6 @@ class Game(GObject.Object):
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
-        self.discord_presence = DiscordPresence()
         self.playtime = game_data.get("playtime") or 0.0
 
         if self.game_config_id:
@@ -206,9 +204,6 @@ class Game(GObject.Object):
             return
         self.config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
         self.runner = self._get_runner()
-        if self.discord_presence.available:
-            self.discord_presence.client_id = settings.DISCORD_CLIENT_ID
-            self.discord_presence.game_name = self.name
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
@@ -630,9 +625,6 @@ class Game(GObject.Object):
                     cwd=self.directory,
                 )
                 postexit_thread.start()
-
-        if self.discord_presence.available:
-            self.discord_presence.clear_discord_rich_presence()
 
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
