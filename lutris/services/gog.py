@@ -95,6 +95,16 @@ class GOGService(OnlineService):
         super().__init__()
         self.selected_extras = None
 
+        gog_locales = {
+            "en": "en-US",
+            "de": "de-DE",
+            "fr": "fr-FR",
+            "pl": "pl-PL",
+            "ru": "ru-RU",
+            "zh": "zh-Hans",
+        }
+        self.locale = gog_locales.get(i18n.get_lang(), "en-US")
+
     @property
     def login_url(self):
         """Return authentication URL"""
@@ -271,7 +281,7 @@ class GOGService(OnlineService):
         if not product_id:
             raise ValueError("Missing product ID")
         logger.info("Getting game details for %s", product_id)
-        url = "{}/products/{}?expand=downloads".format(self.api_url, product_id)
+        url = "{}/products/{}?expand=downloads&locale={}".format(self.api_url, product_id, self.locale)
         return self.make_api_request(url)
 
     def get_download_info(self, downlink):
