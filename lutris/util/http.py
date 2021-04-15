@@ -133,11 +133,12 @@ class Request:
 
     @property
     def json(self):
-        if self.content:
+        _raw_json = self.text
+        if _raw_json:
             try:
-                return json.loads(self.text)
+                return json.loads(_raw_json)
             except json.decoder.JSONDecodeError:
-                raise ValueError("Invalid response ({}:{}): {}".format(self.url, self.status_code, self.text[:80]))
+                raise ValueError("JSON response from %s could not be decoded: '%s'" % (self.url, _raw_json[:80]))
         return {}
 
     @property
