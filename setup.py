@@ -57,9 +57,6 @@ setup(
         'requests',
         'python-magic'
     ],
-    extras_require={
-        'Discord': ['pypresence~=3.3.2']
-    },
     url='https://lutris.net',
     description='Video game preservation platform',
     long_description="""Lutris helps you install and play video games from all eras
