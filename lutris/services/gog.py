@@ -469,7 +469,7 @@ class GOGService(OnlineService):
             "slug": details["slug"],
             "game_slug": slugify(db_game["name"]),
             "runner": runner,
-            "humbleid": db_game["appid"],
+            "gogid": db_game["appid"],
             "script": {
                 "game": game_config,
                 "system": system_config,
