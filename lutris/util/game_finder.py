@@ -12,13 +12,15 @@ except ImportError:
     magic = None
 
 
-if not hasattr(magic, "from_file"):
-    if hasattr(magic, "detect_from_filename"):
-        magic.from_file = magic.detect_from_filename  # pylint: disable=no-member
-        MAGIC_AVAILABLE = True
-    else:
-        logger.error("Your version of python-magic is too old.")
-        MAGIC_AVAILABLE = False
+if not MAGIC_AVAILABLE:
+    logger.error("Magic not available. Unable to automatically find game executables. Please install python-magic")
+else:
+    if not hasattr(magic, "from_file"):
+        if hasattr(magic, "detect_from_filename"):
+            magic.from_file = lambda f: magic.detect_from_filename(f).name  # pylint: disable=no-member
+        else:
+            logger.error("Your version of python-magic is too old.")
+            MAGIC_AVAILABLE = False
 
 
 def is_excluded_elf(filename):
