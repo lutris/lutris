@@ -3988,7 +3988,7 @@ msgstr "Winesteam Starter (%s)"
 
 #: lutris/runners/yuzu.py:14
 msgid "Yuzu"
-msgstr "Zuzu"
+msgstr "Yuzu"
 
 #: lutris/runners/yuzu.py:15
 msgid "Nintendo Switch"
