@@ -5,6 +5,7 @@ import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime
 from ssl import CertificateError
 
 from lutris.settings import PROJECT, SITE_URL, VERSION
@@ -148,18 +149,27 @@ class Request:
         return ""
 
 
-def download_file(url, dest, overwrite=False):
-    """Save a remote resource locally"""
-    if system.path_exists(dest):
-        if overwrite:
-            os.remove(dest)
-        else:
-            return dest
+def download_file(url, dest, overwrite=False, max_age=None):
+    """Save a remote resource locally.
+
+    `max_age` is the maximum time we're willing to hold a stale version
+    of the file locally before updating it from the url.
+    """
+    if not overwrite and system.path_exists(dest):
+        return dest
+    # Check whether the file qualifies for an update.
+    if overwrite and max_age and system.path_exists(dest):
+        mtime = datetime.fromtimestamp(os.path.getmtime(dest))
+        if datetime.now() <= mtime + max_age:
+            return dest  # Not old enough to update.
     if not url:
         return None
     try:
         request = Request(url).get()
     except HTTPError as ex:
+        if system.path_exists(dest):
+            logger.warning("Failed to get url %s, using old version of file %s", url, dest)
+            return dest
         logger.error("Failed to get url %s: %s", url, ex)
         return None
     request.write_to_file(dest)
