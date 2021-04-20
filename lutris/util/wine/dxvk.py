@@ -1,4 +1,5 @@
 """DXVK helper module"""
+import datetime
 import json
 import os
 import shutil
@@ -19,7 +20,7 @@ def fetch_dxvk_versions():
         os.mkdir(dxvk_path)
     versions_path = os.path.join(dxvk_path, "dxvk_versions.json")
     logger.info("Downloading DXVK releases to %s", versions_path)
-    return download_file(DXVK_RELEASES_URL, versions_path)
+    return download_file(DXVK_RELEASES_URL, versions_path, overwrite=True, max_age=datetime.timedelta(days=1))
 
 
 class UnavailableDXVKVersion(RuntimeError):
