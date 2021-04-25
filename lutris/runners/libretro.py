@@ -1,14 +1,11 @@
 """libretro runner"""
-# Standard Library
 import os
 from gettext import gettext as _
 from operator import itemgetter
 from zipfile import ZipFile
 
-# Third Party Libraries
 import requests
 
-# Lutris Modules
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system

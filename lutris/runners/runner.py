@@ -112,6 +112,12 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Return the working directory to use when running the game."""
         return self.game_path or os.path.expanduser("~/")
 
+
+    @property
+    def discord_client_id(self):
+        if self.game_data.get("discord_client_id"):
+            return self.game_data.get("discord_client_id")
+
     def get_platform(self):
         return self.platforms[0]
 
