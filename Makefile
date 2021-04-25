@@ -71,7 +71,7 @@ requirements:
 style: isort autopep8  ## Format code
 
 isort:
-	$(PIPENV) run isort -y -rc lutris
+	$(PIPENV) run isort -rc lutris
 
 autopep8:
 	$(PIPENV) run autopep8 --in-place --recursive --ignore E402 setup.py lutris

@@ -414,7 +414,7 @@ class CommandsMixin:
         if not command.is_running:
             logger.debug("Return code: %s", command.return_code)
             if command.return_code != "0":
-                raise ScriptingError("Command exited with code %s", command.return_code)
+                raise ScriptingError("Command exited with code %s" % command.return_code)
             self._iter_commands()
             return False
         return True

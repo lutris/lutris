@@ -142,7 +142,7 @@ def read_config(steam_data_dir):
 
 
 def get_steamapps_paths_for_platform(platform_name):
-    from lutris.runners import winesteam, steam  # pylint: disable=import-outside-toplevel
+    from lutris.runners import steam, winesteam  # pylint: disable=import-outside-toplevel
 
     runners = {"linux": steam.steam, "windows": winesteam.winesteam}
     runner = runners[platform_name]()
