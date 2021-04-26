@@ -44,7 +44,8 @@ setup(
         'lutris.util.dolphin',
         'lutris.util.graphics',
         'lutris.util.mame',
-        'lutris.util.steam',
+        'lutris.util.steam'
+        'lutris.util.retroarch',
         'lutris.util.wine'
     ],
     scripts=['bin/lutris'],

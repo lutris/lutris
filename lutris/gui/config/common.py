@@ -3,33 +3,31 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gdk, Gtk, Pango
+from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.game import Game
+from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import Dialog, DirectoryDialog, ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
-from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
 from lutris.runners import import_runner
 from lutris.util import resources, system
-from lutris.util.linux import gather_system_info_str
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
 
 # pylint: disable=too-many-instance-attributes, no-member
-class GameDialogCommon:
-
-    """Mixin for config dialogs"""
+class GameDialogCommon(Dialog):
+    """Base class for config dialogs"""
     no_runner_label = _("Select a runner in the Game Info tab")
 
-    def __init__(self):
+    def __init__(self, title, parent=None):
+        super().__init__(title, parent=parent)
+        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.notebook = None
-        self.vbox = None
-        self.action_area = None
         self.name_entry = None
         self.runner_box = None
 
@@ -46,16 +44,13 @@ class GameDialogCommon:
         self.icon_button = None
         self.game_box = None
         self.system_box = None
-        self.system_sw = None
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
-        self.clipboard = None
-        self._clipboard_buffer = None
 
     @staticmethod
     def build_scrolled_window(widget):
-        """Return a scrolled window for containing config widgets"""
+        """Return a scrolled window containing config widgets"""
         scrolled_window = Gtk.ScrolledWindow()
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled_window.add(widget)
@@ -63,18 +58,16 @@ class GameDialogCommon:
 
     def build_notebook(self):
         self.notebook = Gtk.Notebook()
+        self.notebook.set_show_border(False)
         self.vbox.pack_start(self.notebook, True, True, 10)
 
     def build_tabs(self, config_level):
+        """Build tabs (for game and runner levels)"""
         self.timer_id = None
         if config_level == "game":
             self._build_info_tab()
             self._build_game_tab()
-        if config_level in ("game", "runner"):
-            self._build_runner_tab(config_level)
-        if config_level == "system":
-            self._build_prefs_tab()
-            self._build_sysinfo_tab()
+        self._build_runner_tab(config_level)
         self._build_system_tab(config_level)
 
     def _build_info_tab(self):
@@ -96,53 +89,6 @@ class GameDialogCommon:
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, _("Game info"))
-
-    def _build_prefs_tab(self):
-        prefs_box = VBox()
-        settings_options = {
-            "hide_client_on_game_start": _("Minimize client when a game is launched"),
-            "hide_text_under_icons": _("Hide text under icons"),
-            "show_tray_icon": _("Show Tray Icon"),
-        }
-        for setting_key, label in settings_options.items():
-            prefs_box.pack_start(self._get_setting_box(setting_key, label), False, False, 6)
-        info_sw = self.build_scrolled_window(prefs_box)
-        self._add_notebook_tab(info_sw, _("Lutris preferences"))
-
-    def _build_sysinfo_tab(self):
-        sysinfo_box = Gtk.VBox()
-        sysinfo_view = LogTextView()
-        sysinfo_view.set_cursor_visible(False)
-        sysinfo_str = gather_system_info_str()
-
-        text_buffer = sysinfo_view.get_buffer()
-        text_buffer.set_text(sysinfo_str)
-        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-        self._clipboard_buffer = sysinfo_str
-
-        button_copy = Gtk.Button(_("Copy System Info"))
-        button_copy.connect("clicked", self._copy_text)
-
-        sysinfo_box.add(sysinfo_view)
-        sysinfo_box.add(button_copy)
-        info_sw = self.build_scrolled_window(sysinfo_box)
-        self._add_notebook_tab(info_sw, _("System Information"))
-
-    def _copy_text(self, widget):  # pylint: disable=unused-argument
-        self.clipboard.set_text(self._clipboard_buffer, -1)
-
-    def _get_setting_box(self, setting_key, label):
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        checkbox = Gtk.CheckButton(label=label)
-        if settings.read_setting(setting_key).lower() == "true":
-            checkbox.set_active(True)
-        checkbox.connect("toggled", self._on_setting_change, setting_key)
-        box.pack_start(checkbox, True, True, 0)
-        return box
-
-    def _on_setting_change(self, widget, setting_key):
-        """Save a setting when an option is toggled"""
-        settings.write_setting(setting_key, widget.get_active())
 
     def _get_name_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
@@ -347,8 +293,10 @@ class GameDialogCommon:
         if not self.lutris_config:
             raise RuntimeError("Lutris config not loaded yet")
         self.system_box = SystemBox(self.lutris_config)
-        self.system_sw = self.build_scrolled_window(self.system_box)
-        self._add_notebook_tab(self.system_sw, _("System options"))
+        self._add_notebook_tab(
+            self.build_scrolled_window(self.system_box),
+            _("System options")
+        )
 
     def _add_notebook_tab(self, widget, label):
         self.notebook.append_page(widget, Gtk.Label(label=label))

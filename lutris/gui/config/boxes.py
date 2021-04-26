@@ -393,7 +393,7 @@ class ConfigBox(VBox):
             path=path,
             default_path=default_path
         )
-        file_chooser.set_size_request(200, 30)
+        # file_chooser.set_size_request(200, 30)
 
         if "default_path" in option:
             default_path = self.lutris_config.system_config.get(option["default_path"])
