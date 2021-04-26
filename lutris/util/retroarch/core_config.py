@@ -98,7 +98,7 @@ RECOMMENDED_CORES = {
             }
         ],
     },
-    "mupen64plus": {
+    "mupen64plus_next": {
         "platforms": ["n64"],
         "extensions": [
             ".z64",

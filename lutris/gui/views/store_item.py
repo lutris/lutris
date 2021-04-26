@@ -75,8 +75,6 @@ class StoreItem:
             game_inst = Game(self._game_data["id"])
             if game_inst.platform:
                 _platform = game_inst.platform
-            else:
-                logger.debug("Game %s has no platform", self)
         return gtk_safe(_platform)
 
     @property

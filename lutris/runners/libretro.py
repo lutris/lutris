@@ -99,10 +99,13 @@ class libretro(Runner):
 
     def get_platform(self):
         game_core = self.game_config.get("core")
-        if game_core:
-            for core in LIBRETRO_CORES:
-                if core[1] == game_core:
-                    return core[2]
+        if not game_core:
+            logger.warning("Game don't have a core set")
+            return
+        for core in LIBRETRO_CORES:
+            if core[1] == game_core:
+                return core[2]
+        logger.warning("'%s' not found in Libretro cores", game_core)
         return ""
 
     def get_core_path(self, core):

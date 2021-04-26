@@ -246,7 +246,7 @@ class Game(GObject.Object):
             return
         self.platform = self.runner.get_platform()
         if not self.platform:
-            logger.warning("Can't get platform for runner %s", self.runner.human_name)
+            logger.warning("The %s runner didn't provide a platform for %s", self.runner.human_name, self)
 
     def save(self, save_config=False):
         """
