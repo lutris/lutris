@@ -244,6 +244,7 @@ class Application(Gtk.Application):
             window_inst = window_class(application=self, **kwargs)
         window_inst.connect("destroy", self.on_app_window_destroyed, str(kwargs))
         self.app_windows[window_key] = window_inst
+        window_inst.show()
         return window_inst
 
     def show_installer_window(self, installers, service=None, appid=None):

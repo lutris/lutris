@@ -10,7 +10,6 @@ gi.require_version("WebKit2", "4.0")
 from gi.repository import GObject, Gtk, WebKit2, GLib
 
 from lutris import api, settings
-from lutris.database import sources as sources_db
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util import datapath
 from lutris.util.log import logger
@@ -237,68 +236,6 @@ class InstallOrPlayDialog(Gtk.Dialog):
         logger.debug("Action %s confirmed", self.action)
         self.action_confirmed = True
         self.destroy()
-
-
-class PgaSourceDialog(GtkBuilderDialog):
-    glade_file = "dialog-pga-sources.ui"
-    dialog_object = "pga_dialog"
-
-    def __init__(self, parent=None):
-        super(PgaSourceDialog, self).__init__(parent=parent)
-
-        # GtkBuilder Objects
-        self.sources_selection = self.builder.get_object("sources_selection")
-        self.sources_treeview = self.builder.get_object("sources_treeview")
-        self.remove_source_button = self.builder.get_object("remove_source_button")
-
-        # Treeview setup
-        self.sources_liststore = Gtk.ListStore(str)
-        renderer = Gtk.CellRendererText()
-        renderer.set_padding(4, 10)
-        uri_column = Gtk.TreeViewColumn("URI", renderer, text=0)
-        self.sources_treeview.append_column(uri_column)
-        self.sources_treeview.set_model(self.sources_liststore)
-        sources = sources_db.read_sources()
-        for __, source in enumerate(sources):
-            self.sources_liststore.append((source, ))
-
-        self.remove_source_button.set_sensitive(False)
-        self.dialog.show_all()
-
-    @property
-    def sources_list(self):
-        return [source[0] for source in self.sources_liststore]
-
-    def on_apply(self, widget, data=None):
-        sources_db.write_sources(self.sources_list)
-        self.on_close(widget, data)
-
-    def on_add_source_button_clicked(self, widget, data=None):  # pylint: disable=unused-argument
-        chooser = Gtk.FileChooserDialog(
-            _("Select directory"),
-            self.dialog,
-            Gtk.FileChooserAction.SELECT_FOLDER,
-            (_("_Cancel"), Gtk.ResponseType.CANCEL, _("_OK"), Gtk.ResponseType.OK),
-        )
-        chooser.set_local_only(False)
-        response = chooser.run()
-        if response == Gtk.ResponseType.OK:
-            uri = chooser.get_uri()
-            if uri not in self.sources_list:
-                self.sources_liststore.append((uri, ))
-        chooser.destroy()
-
-    def on_remove_source_button_clicked(self, widget, data=None):  # pylint: disable=unused-argument
-        """Remove a source."""
-        (model, treeiter) = self.sources_selection.get_selected()
-        if treeiter:
-            # TODO : Add confirmation
-            model.remove(treeiter)
-
-    def on_sources_selection_changed(self, widget, data=None):  # pylint: disable=unused-argument
-        """Set sensitivity of remove source button."""
-        _, treeiter = self.sources_selection.get_selected()
-        self.remove_source_button.set_sensitive(treeiter is not None)
 
 
 class ClientLoginDialog(GtkBuilderDialog):

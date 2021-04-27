@@ -40,7 +40,6 @@ class winesteam(wine.wine):
     human_name = _("Wine Steam")
     platforms = [_("Windows")]
     runnable_alone = True
-    depends_on = wine.wine
     default_arch = WINE_DEFAULT_ARCH
     game_options = [
         {

@@ -6,7 +6,7 @@ class LogTextView(Gtk.TextView):
     # pylint: disable=no-member
 
     def __init__(self, buffer=None, autoscroll=True):
-        super().__init__()
+        super().__init__(visible=True)
 
         if buffer:
             self.set_buffer(buffer)

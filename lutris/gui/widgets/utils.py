@@ -97,7 +97,6 @@ def get_icon(icon_name, icon_format="image", size=None, icon_type="runner"):
     filename = icon_name.lower().replace(" ", "") + ".png"
     icon_path = os.path.join(settings.RUNTIME_DIR, "icons/hicolor/64x64/apps", filename)
     if not os.path.exists(icon_path):
-        logger.error("Unable to find icon '%s'", icon_path)
         return None
     if icon_format == "image":
         icon = Gtk.Image()

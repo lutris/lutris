@@ -191,8 +191,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         runners_to_install = []
         required_runners = []
         runner = self.get_runner_class(self.installer.runner)
-        if runner.depends_on is not None:
-            required_runners.append(runner.depends_on())
         required_runners.append(runner())
 
         for command in self.installer.script.get("installer", []):

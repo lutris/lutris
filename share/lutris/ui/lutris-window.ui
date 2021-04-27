@@ -532,20 +532,6 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="receives-default">False</property>
-            <property name="action-name">win.use-dark-theme</property>
-            <property name="text" translatable="yes">Use _Dark Theme</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="receives-default">False</property>
             <property name="action-name">win.show-side-panel</property>
             <property name="text" translatable="yes">Show Side _Panel</property>
             <accelerator key="0xffffff" signal="clicked"/>
@@ -554,17 +540,6 @@
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkSeparator">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -579,20 +554,6 @@
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">5</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkModelButton">
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="receives-default">False</property>
-            <property name="action-name">win.manage-runners</property>
-            <property name="text" translatable="yes">Manage runners</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">6</property>
           </packing>
         </child>
         <child>

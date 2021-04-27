@@ -14,8 +14,7 @@ from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
 from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.config.system import SystemConfigDialog
-from lutris.gui.dialogs.runners import RunnersDialog
+from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.views import COL_ID, COL_NAME
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
@@ -133,7 +132,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         actions = {
             "add-game": Action(self.on_add_game_button_clicked),
             "preferences": Action(self.on_preferences_activate),
-            "manage-runners": Action(self.on_manage_runners, ),
             "about": Action(self.on_about_clicked),
             "show-installed-only": Action(  # delete?
                 self.on_show_installed_state_change,
@@ -149,7 +147,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 type="b",
                 default=self.view_sorting_ascending,
             ),
-            "use-dark-theme": Action(self.on_dark_theme_state_change, type="b", default=self.use_dark_theme),
             "show-side-panel": Action(
                 self.on_side_panel_state_change,
                 type="b",
@@ -228,11 +225,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @property
     def side_panel_visible(self):
         return settings.read_setting("side_panel_visible").lower() != "false"
-
-    @property
-    def use_dark_theme(self):
-        """Return whether to use the dark theme variant (if the theme provides one)"""
-        return settings.read_setting("dark_theme", default="false").lower() == "true"
 
     @property
     def show_tray_icon(self):
@@ -464,7 +456,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def set_dark_theme(self):
         """Enables or disables dark theme"""
         gtksettings = Gtk.Settings.get_default()
-        gtksettings.set_property("gtk-application-prefer-dark-theme", self.use_dark_theme)
+        gtksettings.set_property(
+            "gtk-application-prefer-dark-theme",
+            settings.read_setting("dark_theme", default="false").lower() == "true"
+        )
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
@@ -662,11 +657,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_preferences_activate(self, *_args):
         """Callback when preferences is activated."""
-        self.application.show_window(SystemConfigDialog)
-
-    @GtkTemplate.Callback
-    def on_manage_runners(self, *args):
-        self.application.show_window(RunnersDialog, transient_for=self)
+        self.application.show_window(PreferencesDialog)
 
     def on_show_installed_state_change(self, action, value):
         """Callback to handle uninstalled game filter switch"""

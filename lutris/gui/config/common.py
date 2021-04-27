@@ -51,13 +51,13 @@ class GameDialogCommon(Dialog):
     @staticmethod
     def build_scrolled_window(widget):
         """Return a scrolled window containing config widgets"""
-        scrolled_window = Gtk.ScrolledWindow()
+        scrolled_window = Gtk.ScrolledWindow(visible=True)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled_window.add(widget)
         return scrolled_window
 
     def build_notebook(self):
-        self.notebook = Gtk.Notebook()
+        self.notebook = Gtk.Notebook(visible=True)
         self.notebook.set_show_border(False)
         self.vbox.pack_start(self.notebook, True, True, 10)
 
@@ -140,10 +140,6 @@ class GameDialogCommon(Dialog):
 
         self.runner_dropdown = self._get_runner_dropdown()
         runner_box.pack_start(self.runner_dropdown, True, True, 0)
-
-        install_runners_btn = Gtk.Button(_("Install runners"))
-        install_runners_btn.connect("clicked", self.on_install_runners_clicked)
-        runner_box.pack_start(install_runners_btn, True, True, 0)
 
         return runner_box
 
@@ -249,18 +245,6 @@ class GameDialogCommon(Dialog):
         new_directory = self.game.move(new_location.folder)
         if new_directory:
             self.directory_entry.set_text(new_directory)
-
-    def on_install_runners_clicked(self, _button):
-        """Messed up callback requiring an import in the method to avoid a circular dependency"""
-        from lutris.gui.dialogs.runners import RunnersDialog
-        runners_dialog = RunnersDialog()
-        runners_dialog.connect("runner-installed", self.on_runner_installed)
-
-    def on_runner_installed(self, _dialog):
-        """Callback triggered when new runners are installed"""
-        active_id = self.runner_dropdown.get_active_id()
-        self.runner_dropdown.set_model(self._get_runner_liststore())
-        self.runner_dropdown.set_active_id(active_id)
 
     def _build_game_tab(self):
         if self.game and self.runner_name:

@@ -30,7 +30,6 @@ class Runner:  # pylint: disable=too-many-public-methods
     system_options_override = []
     context_menu_entries = []
     require_libs = []
-    depends_on = None
     runner_executable = None
     entry_point_option = "main_file"
     download_url = None
@@ -265,7 +264,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         return True
 
     def install_dialog(self):
-        """Ask the user if she wants to install the runner.
+        """Ask the user if they want to install the runner.
 
         Return success of runner installation.
         """
@@ -279,7 +278,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if Gtk.ResponseType.YES == dialog.result:
 
             from lutris.gui.dialogs import ErrorDialog
-            from lutris.gui.dialogs.runners import simple_downloader
+            from lutris.gui.dialogs.download import simple_downloader
             try:
                 if hasattr(self, "get_version"):
                     version = self.get_version(use_default=False)  # pylint: disable=no-member
