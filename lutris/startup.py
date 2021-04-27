@@ -11,6 +11,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
+from lutris.services import DEFAULT_SERVICES
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -165,6 +166,9 @@ def init_lutris():
             "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
             settings.PGA_DB
         )
+    for service in DEFAULT_SERVICES:
+        if not settings.read_setting(service, section="services"):
+            settings.write_setting(service, True, section="services")
 
     if os.environ.get("LUTRIS_SKIP_INIT"):
         logger.info("Skipping initialization")

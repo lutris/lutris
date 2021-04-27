@@ -1,6 +1,8 @@
 """Reads the Dolphin game database, stored in a binary format"""
 import os
 
+from lutris.util.log import logger
+
 DOLPHIN_GAME_CACHE_FILE = os.path.expanduser("~/.cache/dolphin-emu/gamelist.cache")
 
 
@@ -44,23 +46,29 @@ class DolphinCacheReader:
         with open(DOLPHIN_GAME_CACHE_FILE, "rb") as dolphin_cache_file:
             self.cache_content = dolphin_cache_file.read()
 
+    def get_game(self):
+        game = {}
+        for key, i in self.structure.items():
+            if i == 's':
+                game[key] = self.get_string()
+            elif i == 'b':
+                game[key] = self.get_boolean()
+            elif i == 'a':
+                game[key] = self.get_array()
+            elif i == 'i':
+                game[key] = self.get_image()
+            else:
+                game[key] = self.get_raw(i)
+        return game
+
     def get_games(self):
         self.offset += self.header_size
         games = []
         while self.offset < len(self.cache_content):
-            game = {}
-            for key, i in self.structure.items():
-                if i == 's':
-                    game[key] = self.get_string()
-                elif i == 'b':
-                    game[key] = self.get_boolean()
-                elif i == 'a':
-                    game[key] = self.get_array()
-                elif i == 'i':
-                    game[key] = self.get_image()
-                else:
-                    game[key] = self.get_raw(i)
-            games.append(game)
+            try:
+                games.append(self.get_game())
+            except Exception as ex:
+                logger.error("Failed to read Dolphin database: %s", ex)
         return games
 
     def get_boolean(self):

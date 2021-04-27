@@ -10,7 +10,7 @@ from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.legacy import get_game_launcher
 from lutris.runners import import_runner
-from lutris.services import get_services
+from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
 from lutris.util.log import logger
 
@@ -43,12 +43,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if initial:
             return initial
         if "steam" in self.runner:
-            return get_services()["steam"]()
+            return SERVICES["steam"]()
         version = self.version.lower()
         if "humble" in version:
-            return get_services()["humblebundle"]()
+            return SERVICES["humblebundle"]()
         if "gog" in version:
-            return get_services()["gog"]()
+            return SERVICES["gog"]()
 
     def get_appid(self, installer, initial=None):
         if initial:

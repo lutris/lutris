@@ -8,6 +8,7 @@ from lutris.gui.config.boxes import SystemBox
 from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.config.preferences_box import PreferencesBox
 from lutris.gui.config.runners_box import RunnersBox
+from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.config.sysinfo_box import SysInfoBox
 
 
@@ -24,6 +25,7 @@ class PreferencesDialog(GameDialogCommon):
         sidebar.connect("row-selected", self.on_sidebar_activated)
         sidebar.add(self.get_sidebar_button("prefs-stack", "Interface", "view-grid-symbolic"))
         sidebar.add(self.get_sidebar_button("runners-stack", "Runners", "applications-utilities-symbolic"))
+        sidebar.add(self.get_sidebar_button("services-stack", "Services", "application-x-addon-symbolic"))
         sidebar.add(self.get_sidebar_button("sysinfo-stack", "Hardware information", "computer-symbolic"))
         sidebar.add(self.get_sidebar_button("system-stack", "Global options", "emblem-system-symbolic"))
         hbox.pack_start(sidebar, False, False, 0)
@@ -32,27 +34,27 @@ class PreferencesDialog(GameDialogCommon):
         self.stack.set_interpolate_size(True)
         hbox.add(self.stack)
         self.vbox.pack_start(hbox, True, True, 0)
-        self.stack.add_titled(
+        self.stack.add_named(
             self.build_scrolled_window(PreferencesBox()),
-            "prefs-stack",
-            _("Lutris preferences")
+            "prefs-stack"
         )
-        self.stack.add_titled(
+        self.stack.add_named(
             self.build_scrolled_window(RunnersBox()),
-            "runners-stack",
-            _("Runners")
+            "runners-stack"
         )
-        self.stack.add_titled(
+        self.stack.add_named(
+            self.build_scrolled_window(ServicesBox()),
+            "services-stack"
+        )
+        self.stack.add_named(
             self.build_scrolled_window(SysInfoBox()),
-            "sysinfo-stack",
-            _("System Information")
+            "sysinfo-stack"
         )
         self.system_box = SystemBox(self.lutris_config)
         self.system_box.show_all()
-        self.stack.add_titled(
+        self.stack.add_named(
             self.build_scrolled_window(self.system_box),
-            "system-stack",
-            _("System options")
+            "system-stack"
         )
         self.build_action_area(self.on_save)
         self.action_area.set_margin_bottom(12)

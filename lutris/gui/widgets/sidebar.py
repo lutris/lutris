@@ -322,7 +322,7 @@ class LutrisSidebar(Gtk.ListBox):
         # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
         self.add(self.running_row)
 
-        service_classes = services.get_services()
+        service_classes = services.get_enabled_services()
         for service_name in service_classes:
             service = service_classes[service_name]()
             row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow

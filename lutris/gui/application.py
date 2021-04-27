@@ -49,7 +49,7 @@ from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
-from lutris.services import get_services
+from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
 
 from .lutriswindow import LutrisWindow
@@ -476,7 +476,7 @@ class Application(Gtk.Application):
     def on_game_install(self, game):
         """Request installation of a game"""
         if game.service:
-            service = get_services()[game.service]()
+            service = get_enabled_services()[game.service]()
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
             game_id = service.install(db_game)
             if game_id:

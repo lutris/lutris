@@ -1,6 +1,5 @@
 """Service package"""
-import os
-
+from lutris import settings
 from lutris.services.dolphin import DolphinService
 from lutris.services.gog import GOGService
 from lutris.services.humblebundle import HumbleBundleService
@@ -8,17 +7,21 @@ from lutris.services.lutris import LutrisService
 from lutris.services.steam import SteamService
 from lutris.services.xdg import XDGService
 
+DEFAULT_SERVICES = ["lutris", "gog", "humblebundle", "steam"]
 
-def get_services():
-    """Return a list of active services"""
-    enabled_services = {
-        "lutris": LutrisService,
-        "gog": GOGService,
-        "humblebundle": HumbleBundleService,
-        "steam": SteamService
+
+SERVICES = {
+    "lutris": LutrisService,
+    "gog": GOGService,
+    "humblebundle": HumbleBundleService,
+    "steam": SteamService,
+    "dolphin": DolphinService,
+    "xdg": XDGService,
+}
+
+
+def get_enabled_services():
+    return {
+        key: _class for key, _class in SERVICES.items()
+        if settings.read_setting(key, section="services").lower() == "true"
     }
-    if os.environ.get("LUTRIS_ENABLE_DOLPHIN"):
-        enabled_services["dolphin"] = DolphinService
-    if os.environ.get("LUTRIS_ENABLE_XDG"):
-        enabled_services["xdg"] = XDGService
-    return enabled_services

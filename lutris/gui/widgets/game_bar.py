@@ -30,7 +30,7 @@ class GameBar(Gtk.Fixed):
         self.service = None
         if db_game.get("service"):
             try:
-                self.service = services.get_services()[db_game["service"]]()
+                self.service = services.SERVICES[db_game["service"]]()
             except KeyError:
                 logger.warning("Non existent service '%s'", db_game["service"])
 

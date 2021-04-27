@@ -300,7 +300,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.service = None
             return
         try:
-            self.service = services.get_services()[service_name]()
+            self.service = services.SERVICES[service_name]()
         except KeyError:
             logger.error("Non existent service '%s'", service_name)
             self.service = None
@@ -349,7 +349,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def get_games_from_filters(self):
         service_name = self.filters.get("service")
         self.tabs_box.hide()
-        if service_name in services.get_services():
+        if service_name in services.SERVICES:
             if service_name == "lutris":
                 self.tabs_box.show()  # Only the lutris service has the ability to search through all games.
                 if self.website_button.props.active:
