@@ -20,7 +20,7 @@ setup_test_environment()
 
 class TestGameDialogCommon(TestCase):
     def test_get_runner_liststore(self):
-        dlg = GameDialogCommon()
+        dlg = GameDialogCommon("test")
         list_store = dlg._get_runner_liststore()
         self.assertTrue(
             list_store[1][0].startswith(runners.get_installed()[0].human_name)
