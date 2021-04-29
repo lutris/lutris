@@ -11,7 +11,7 @@ from lxml import etree
 import lutris.util.i18n as i18n
 from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGame
-from lutris.gui.dialogs import WebConnectDialog
+from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService

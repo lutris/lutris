@@ -6,7 +6,7 @@ from gettext import gettext as _
 
 from lutris import settings
 from lutris.exceptions import UnavailableGame
-from lutris.gui.dialogs import WebConnectDialog
+from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
@@ -51,7 +51,6 @@ class HumbleBundleGame(ServiceGame):
 
 
 class HumbleBundleService(OnlineService):
-
     """Service for Humble Bundle"""
 
     id = "humblebundle"
@@ -77,8 +76,8 @@ class HumbleBundleService(OnlineService):
     supported_platforms = ("linux", "windows")
     is_loading = False
 
-    def request_token(self, url="", refresh_token=""):
-        """Dummy function, should not be here. Fix in WebConnectDialog"""
+    def login_callback(self, url):
+        """Called after the user has logged in successfully"""
         self.emit("service-login")
 
     def login(self, parent=None):

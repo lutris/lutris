@@ -11,6 +11,7 @@ from lutris.database.games import add_game, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer import fetch_script
+from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
 
@@ -181,14 +182,14 @@ class OnlineService(BaseService):
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""
-        return all([os.path.exists(path) for path in self.credential_files])
+        return all([system.path_exists(path) for path in self.credential_files])
 
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""
         logger.debug("Wiping %s cache", self.id)
         if os.path.isdir(self.cache_path):
             shutil.rmtree(self.cache_path)
-        elif os.path.exists(self.cache_path):
+        elif system.path_exists(self.cache_path):
             os.remove(self.cache_path)
         super().wipe_game_cache()
 
@@ -205,7 +206,7 @@ class OnlineService(BaseService):
 
     def load_cookies(self):
         """Load cookies from disk"""
-        if not os.path.exists(self.cookies_path):
+        if not system.path_exists(self.cookies_path):
             logger.warning("No cookies found in %s, please authenticate first", self.cookies_path)
             return
         cookiejar = WebkitCookieJar(self.cookies_path)
