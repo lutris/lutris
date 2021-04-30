@@ -2,8 +2,6 @@
 import os
 
 from lutris import settings
-from lutris.util import system
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.services.battlenet import BattleNetService
 from lutris.services.bethesda import BethesdaService
 from lutris.services.dolphin import DolphinService
@@ -17,7 +15,9 @@ from lutris.services.origin import OriginService
 from lutris.services.steam import SteamService
 from lutris.services.ubisoft import UbisoftConnectService
 from lutris.services.xdg import XDGService
+from lutris.util import system
 from lutris.util.dolphin.cache_reader import DOLPHIN_GAME_CACHE_FILE
+from lutris.util.linux import LINUX_SYSTEM
 
 DEFAULT_SERVICES = ["lutris", "gog", "humblebundle", "steam"]
 
@@ -35,6 +35,7 @@ def get_services():
     if system.path_exists(DOLPHIN_GAME_CACHE_FILE):
         _services["dolphin"]: DolphinService
     return _services
+
 
 SERVICES = get_services()
 

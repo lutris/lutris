@@ -3,9 +3,9 @@ import os
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
-from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
+from lutris.util.log import logger
 
 PGA_DB = settings.PGA_DB
 
@@ -41,12 +41,12 @@ class ServiceMedia:
         return self.url_pattern % service_game[self.api_field]
 
     def get_media_url(self, details):
-            if self.api_field not in details:
-                logger.warning("No field '%s' in API game %s", self.api_field, details)
-                return
-            if not details[self.api_field]:
-                return
-            return self.url_pattern % details[self.api_field]
+        if self.api_field not in details:
+            logger.warning("No field '%s' in API game %s", self.api_field, details)
+            return
+        if not details[self.api_field]:
+            return
+        return self.url_pattern % details[self.api_field]
 
     def get_media_urls(self):
         """Return URLs for icons and logos from a service"""

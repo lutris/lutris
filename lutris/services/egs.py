@@ -18,7 +18,7 @@ from lutris.util.strings import slugify
 
 class DieselGameMedia(ServiceMedia):
     service = "egs"
-    file_pattern = "%s"
+    file_pattern = "%s.jpg"
 
     def get_media_url(self, detail):
         for image in detail["keyImages"]:
@@ -48,7 +48,7 @@ class EGSGame(ServiceGame):
     def new_from_api(cls, egs_game):
         """Convert an EGS game to a service game"""
         service_game = cls()
-        service_game.appid = egs_game["id"]
+        service_game.appid = egs_game["appName"]
         service_game.slug = slugify(egs_game["title"])
         service_game.name = egs_game["title"]
         service_game.details = json.dumps(egs_game)
@@ -181,8 +181,9 @@ class EpicGamesStoreService(OnlineService):
             auth_file.write(json.dumps(response_content, indent=2))
         self.session_data = response_content
 
-
-    def get_game_details(self, namespace, catalog_item_id):
+    def get_game_details(self, asset):
+        namespace = asset["namespace"]
+        catalog_item_id = asset["catalogItemId"]
         response = self.session.get(
             '%s/catalog/api/shared/namespace/%s/bulk/items' % (self.catalog_url, namespace),
             params={
@@ -194,7 +195,9 @@ class EpicGamesStoreService(OnlineService):
             }
         )
         response.raise_for_status()
-        return response.json()[catalog_item_id]
+        # Merge the details with the initial asset to keep 'appName'
+        asset.update(response.json()[catalog_item_id])
+        return asset
 
     def get_library(self):
         self.resume_session()
@@ -208,7 +211,7 @@ class EpicGamesStoreService(OnlineService):
         for asset in assets:
             if asset["namespace"] == "ue":
                 continue
-            game_details = self.get_game_details(asset["namespace"], asset["catalogItemId"])
+            game_details = self.get_game_details(asset)
             games.append(game_details)
         return games
 
@@ -233,3 +236,11 @@ class EpicGamesStoreService(OnlineService):
         self.is_loading = False
         self.emit("service-games-loaded")
         return egs_games
+
+
+def get_launch_arguments(app_name):
+    return (
+        "-opengl"
+        " -SkipBuildPatchPrereq"
+        " -com.epicgames.launcher://apps/%s?action=launch&silent=true"
+    ) % app_name
