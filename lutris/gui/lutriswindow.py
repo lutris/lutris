@@ -808,6 +808,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             logger.debug("No service for view")
         if game_id:
             game = Game(game_id)
-            game.emit("game-launch")
+            if game.is_installed:
+                game.emit("game-launch")
+            else:
+                game.emit("game-install")
         else:
             logger.warning("No game found for %s", initial_game_id)
