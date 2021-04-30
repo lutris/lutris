@@ -64,6 +64,9 @@ class Request:
         if url.startswith("/"):
             logger.error("Stop using relative URLs!: %s", url)
             url = SITE_URL + url
+        # That's for a single URL in EGS... not sure if we need more escaping
+        # The url received should already be receiving an escaped string
+        url = url.replace(" ", "%20")
         return url
 
     @property

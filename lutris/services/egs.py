@@ -16,12 +16,27 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 
 
-class DieselGameBoxTall(ServiceMedia):
-    """EGS icon"""
+class DieselGameMedia(ServiceMedia):
     service = "egs"
-    size = (255, 340)
-    dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box_tall")
     file_pattern = "%s"
+
+    def get_media_url(self, detail):
+        for image in detail["keyImages"]:
+            if image["type"] == self.api_field:
+                return image["url"]
+
+
+class DieselGameBoxTall(DieselGameMedia):
+    """EGS tall game box"""
+    size = (256, 284)
+    dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box_tall")
+    api_field = "DieselGameBoxTall"
+
+
+class DieselGameBox(DieselGameMedia):
+    """EGS game box"""
+    size = (256, 144)
+    dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box")
     api_field = "DieselGameBoxTall"
 
 
@@ -48,9 +63,10 @@ class EpicGamesStoreService(OnlineService):
     icon = "egs"
     online = True
     medias = {
+        "game_box": DieselGameBox,
         "box_tall": DieselGameBoxTall,
     }
-    default_format = "box_tall"
+    default_format = "game_box"
     requires_login_page = True
     cookies_path = os.path.join(settings.CACHE_DIR, ".egs.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".egs.token")
@@ -72,7 +88,13 @@ class EpicGamesStoreService(OnlineService):
 
     def __init__(self):
         super().__init__()
-        self.session = None
+        self.session = requests.session()
+        self.session.headers['User-Agent'] = self.user_agent
+        if os.path.exists(self.token_path):
+            with open(self.token_path) as token_file:
+                self.session_data = json.loads(token_file.read())
+        else:
+            self.session_data = {}
 
     @property
     def http_basic_auth(self):
@@ -80,29 +102,6 @@ class EpicGamesStoreService(OnlineService):
             '34a02cf8f4414e29b15921876da36f9a',
             'daafbccc737745039dffe53d94fc76cf'
         )
-
-    @property
-    def exchange_code(self):
-        if not os.path.exists(self.token_path):
-            return ''
-        with open(self.token_path) as auth_file:
-            content = json.loads(auth_file.read())
-        return content.get('exchange_code')
-
-    @property
-    def refresh_token(self):
-        if not os.path.exists(self.token_path):
-            return ''
-        with open(self.token_path) as auth_file:
-            content = json.loads(auth_file.read())
-        return content.get('refresh_token')
-
-    def write_refresh_token(self, refresh_token):
-        with open(self.token_path) as auth_file:
-            content = json.loads(auth_file.read())
-        content["refresh_token"] = refresh_token
-        with open(self.token_path, "w") as auth_file:
-            auth_file.write(json.dumps(content))
 
     def login(self, parent=None):
         logger.debug("Connecting to EGS")
@@ -114,7 +113,9 @@ class EpicGamesStoreService(OnlineService):
         return self.is_authenticated()
 
     def login_callback(self, content):
-        """Store session ID and exchange token to auth file"""
+        """Once the user logs in in a browser window, Epic redirects
+        to a page containing a Session ID which we can use to finish the authentication.
+        Store session ID and exchange token to auth file"""
         logger.debug("Login to EGS successful")
         logger.debug(content)
         content_json = json.loads(content.decode())
@@ -137,17 +138,12 @@ class EpicGamesStoreService(OnlineService):
         if response.status_code != 200:
             logger.error("Failed to connec to EGS (Status %s): %s", response.status_code, response.json())
             return
-        logger.debug("received %s", response.json())
-        credentials = {
-            'session_id': session_id,
-            'exchange_code': response.json()['code']
-        }
-        with open(self.token_path, "w") as auth_file:
-            auth_file.write(json.dumps(credentials))
+
+        self.start_session(response.json()['code'])
         self.emit("service-login")
 
-    def oauth_verify(self, access_token):
-        self.session.headers['Authorization'] = 'bearer %s' % access_token
+    def resume_session(self):
+        self.session.headers['Authorization'] = 'bearer %s' % self.session_data["access_token"]
         response = self.session.get('%s/account/api/oauth/verify' % self.oauth_url)
         if response.status_code >= 500:
             response.raise_for_status()
@@ -155,18 +151,17 @@ class EpicGamesStoreService(OnlineService):
         response_content = response.json()
         if 'errorMessage' in response_content:
             raise RuntimeError(response_content)
-        logger.debug(response_content)
         return response_content
 
-    def start_session(self):
-        self.session = requests.session()
-        self.session.headers['User-Agent'] = self.user_agent
-        if self.refresh_token:
-            grant_type = 'refresh_token'
-            token = self.refresh_token
-        else:
+    def start_session(self, exchange_code=None):
+        if exchange_code:
             grant_type = 'exchange_code'
-            token = self.exchange_code
+            token = exchange_code
+
+        else:
+            grant_type = 'refresh_token'
+            token = self.session_data["refresh_token"]
+
         response = self.session.post(
             'https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token',
             data={
@@ -180,11 +175,12 @@ class EpicGamesStoreService(OnlineService):
             response.raise_for_status()
 
         response_content = response.json()
-        logger.debug(response_content)
         if 'error' in response_content:
             raise RuntimeError(response_content)
-        self.oauth_verify(response_content["access_token"])
-        self.write_refresh_token(response_content["access_token"])
+        with open(self.token_path, "w") as auth_file:
+            auth_file.write(json.dumps(response_content, indent=2))
+        self.session_data = response_content
+
 
     def get_game_details(self, namespace, catalog_item_id):
         response = self.session.get(
@@ -201,7 +197,7 @@ class EpicGamesStoreService(OnlineService):
         return response.json()[catalog_item_id]
 
     def get_library(self):
-        self.start_session()
+        self.resume_session()
         response = self.session.get(
             '%s/launcher/api/public/assets/Windows' % self.launcher_url,
             params={'label': 'Live'}
@@ -223,10 +219,17 @@ class EpicGamesStoreService(OnlineService):
             return
         self.is_loading = True
         self.emit("service-games-load")
-        library = self.get_library()
+        try:
+            library = self.get_library()
+        except Exception as ex:  # pylint=disable:broad-except
+            self.is_loading = False
+            logger.error("Failed to load EGS library: %s", ex)
+            return
         egs_games = []
         for game in library:
-            egs_games.append(EGSGame.new_from_api(game))
+            egs_game = EGSGame.new_from_api(game)
+            egs_game.save()
+            egs_games.append(egs_game)
         self.is_loading = False
         self.emit("service-games-loaded")
         return egs_games

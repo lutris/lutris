@@ -26,11 +26,9 @@ def get_services():
     """Return a mapping of available services"""
     _services = {
         "lutris": LutrisService,
+        "xdg": XDGService,
         "gog": GOGService,
         "humblebundle": HumbleBundleService,
-        "steam": SteamService,
-        "xdg": XDGService,
-        "dolphin": DolphinService,
     }
     if LINUX_SYSTEM.has_steam:
         _services["steam"] = SteamService

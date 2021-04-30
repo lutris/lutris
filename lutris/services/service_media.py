@@ -3,6 +3,7 @@ import os
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
+from lutris.util.log import logger
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
 
@@ -39,6 +40,14 @@ class ServiceMedia:
     def get_url(self, service_game):
         return self.url_pattern % service_game[self.api_field]
 
+    def get_media_url(self, details):
+            if self.api_field not in details:
+                logger.warning("No field '%s' in API game %s", self.api_field, details)
+                return
+            if not details[self.api_field]:
+                return
+            return self.url_pattern % details[self.api_field]
+
     def get_media_urls(self):
         """Return URLs for icons and logos from a service"""
         if self.source == "local":
@@ -49,9 +58,10 @@ class ServiceMedia:
             if not game["details"]:
                 continue
             details = json.loads(game["details"])
-            if not details[self.api_field]:
+            media_url = self.get_media_url(details)
+            if not media_url:
                 continue
-            medias[game["slug"]] = self.url_pattern % details[self.api_field]
+            medias[game["slug"]] = media_url
         return medias
 
     def download(self, slug, url):
