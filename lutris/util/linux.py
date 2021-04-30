@@ -1,5 +1,4 @@
 """Linux specific platform code"""
-# Standard Library
 import json
 import os
 import platform
@@ -10,7 +9,6 @@ import subprocess
 import sys
 from collections import Counter, defaultdict
 
-# Lutris Modules
 from lutris.util import system
 from lutris.util.disks import get_drive_for_path
 from lutris.util.graphics import drivers, glxinfo, vkquery
@@ -85,7 +83,6 @@ SYSTEM_COMPONENTS = {
 
 
 class LinuxSystem:  # pylint: disable=too-many-public-methods
-
     """Global cache for system commands"""
 
     _cache = {}
@@ -220,9 +217,14 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         return False
 
     @property
+    def has_steam(self):
+        """Return whether Steam is installed locally"""
+        return bool(system.find_executable("steam"))
+
+    @property
     def is_flatpak(self):
         """Check is we are running inside Flatpak sandbox"""
-        return os.path.exists(self.flatpak_info_path)
+        return system.path_exists(self.flatpak_info_path)
 
     @property
     def runtime_architectures(self):

@@ -22,7 +22,7 @@ class DolphinBanner(ServiceMedia):
 class DolphinService(BaseService):
     id = "dolphin"
     icon = "dolphin"
-    name = _("Dolphin")
+    name = _("Dolphin (experimental)")
     local = True
     medias = {
         "icon": DolphinBanner

@@ -2,6 +2,8 @@
 import os
 
 from lutris import settings
+from lutris.util import system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.services.battlenet import BattleNetService
 from lutris.services.bethesda import BethesdaService
 from lutris.services.dolphin import DolphinService
@@ -15,17 +17,29 @@ from lutris.services.origin import OriginService
 from lutris.services.steam import SteamService
 from lutris.services.ubisoft import UbisoftConnectService
 from lutris.services.xdg import XDGService
+from lutris.util.dolphin.cache_reader import DOLPHIN_GAME_CACHE_FILE
 
 DEFAULT_SERVICES = ["lutris", "gog", "humblebundle", "steam"]
 
-SERVICES = {
-    "lutris": LutrisService,
-    "gog": GOGService,
-    "humblebundle": HumbleBundleService,
-    "steam": SteamService,
-    "dolphin": DolphinService,
-    "xdg": XDGService,
-}
+
+def get_services():
+    """Return a mapping of available services"""
+    _services = {
+        "lutris": LutrisService,
+        "gog": GOGService,
+        "humblebundle": HumbleBundleService,
+        "steam": SteamService,
+        "xdg": XDGService,
+        "dolphin": DolphinService,
+    }
+    if LINUX_SYSTEM.has_steam:
+        _services["steam"] = SteamService
+    if system.path_exists(DOLPHIN_GAME_CACHE_FILE):
+        _services["dolphin"]: DolphinService
+    return _services
+
+SERVICES = get_services()
+
 
 # Those services are not yet ready to be used
 WIP_SERVICES = {
