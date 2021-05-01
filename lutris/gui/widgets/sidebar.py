@@ -133,6 +133,7 @@ class ServiceSidebarRow(SidebarRow):
         if self.service.online and not self.service.is_connected():
             self.service.logout()
             return
+
         self.service.wipe_game_cache()
         AsyncCall(self.service.load, self.service_load_cb)
 
@@ -144,6 +145,7 @@ class ServiceSidebarRow(SidebarRow):
             error = _("Failed to load games. Check that your profile is set to public during the sync.")
         if error:
             ErrorDialog(str(error))
+        AsyncCall(self.service.add_installed_games, None)
         GLib.timeout_add(5000, self.enable_refresh_button)
 
     def enable_refresh_button(self):

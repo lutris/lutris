@@ -8,10 +8,15 @@ from gettext import gettext as _
 import requests
 
 from lutris import settings
+from lutris.config import LutrisConfig, write_game_config
+from lutris.database.games import add_game, get_game_by_field
+from lutris.database.services import ServiceGameCollection
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
+from lutris.util import system
+from lutris.util.egs.egs_launcher import EGSLauncher
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -236,6 +241,47 @@ class EpicGamesStoreService(OnlineService):
         self.is_loading = False
         self.emit("service-games-loaded")
         return egs_games
+
+    def install_from_egs(self, egs_game, manifest):
+        """Create a new Lutris game based on an existing EGS install"""
+        app_name = manifest["AppName"]
+        service_game = ServiceGameCollection.get_game("egs", app_name)
+        lutris_game_id = "egs-" + app_name
+        existing_game = get_game_by_field(lutris_game_id, "slug")
+        if existing_game:
+            return
+        game_config = LutrisConfig(game_config_id=egs_game["configpath"]).game_level
+        game_config["game"]["args"] = get_launch_arguments(app_name)
+        configpath = write_game_config(lutris_game_id, game_config)
+        game_id = add_game(
+            name=service_game["name"],
+            runner=egs_game["runner"],
+            slug="egs-" + app_name,
+            directory=egs_game["directory"],
+            installed=1,
+            installer_slug="egs-" + app_name,
+            configpath=configpath,
+            service=self.id,
+            service_id=app_name,
+        )
+        return game_id
+
+    def add_installed_games(self):
+        """Scan an existing EGS install for games"""
+        egs_game = get_game_by_field("epic-games-store", "slug")
+        if not egs_game:
+            logger.error("EGS is not installed in Lutris")
+            return
+
+        egs_prefix = egs_game["directory"].split("drive_c")[0]
+        logger.info("EGS detected in %s", egs_prefix)
+        if not system.path_exists(os.path.join(egs_prefix, "drive_c")):
+            logger.error("Invalid install of EGS at %s", egs_prefix)
+            return
+        egs_launcher = EGSLauncher(egs_prefix)
+        for manifest in egs_launcher.iter_manifests():
+            self.install_from_egs(egs_game, manifest)
+        logger.debug("All EGS games imported")
 
 
 def get_launch_arguments(app_name):

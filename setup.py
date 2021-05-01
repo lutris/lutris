@@ -42,6 +42,7 @@ setup(
         'lutris.services',
         'lutris.util',
         'lutris.util.dolphin',
+        'lutris.util.egs',
         'lutris.util.graphics',
         'lutris.util.mame',
         'lutris.util.steam',

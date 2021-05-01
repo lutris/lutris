@@ -45,6 +45,7 @@ __all__ = [
 ADDON_RUNNERS = {}
 RUNNER_PLATFORMS = {}
 
+
 class InvalidRunner(Exception):
 
     def __init__(self, message):
