@@ -328,6 +328,7 @@ def get_paths(version=None, prefer_system_libs=True, wine_path=None):
         paths = get_runtime_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)
     else:
         paths = []
+    # Put existing LD_LIBRARY_PATH at the end
     if os.environ.get("LD_LIBRARY_PATH"):
         paths.append(os.environ["LD_LIBRARY_PATH"])
     return paths
