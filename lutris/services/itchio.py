@@ -10,5 +10,5 @@ class ItchIoService(OnlineService):
     """Service class for Itch.io"""
 
     id = "itchio"
-    name = _("Itch.io")
+    name = _("Itch.io (Not implemented)")
     icon = "itchio"

@@ -10,5 +10,5 @@ class UbisoftConnectService(OnlineService):
     """Service class for Ubisoft Connect"""
 
     id = "ubisoft"
-    name = _("Ubisoft Connect")
+    name = _("Ubisoft Connect (Not implemented)")
     icon = "ubisoft"

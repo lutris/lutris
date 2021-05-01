@@ -1,6 +1,4 @@
-"""Epic Games Store service.
-Not ready yet.
-"""
+"""Epic Games Store service"""
 import json
 import os
 from gettext import gettext as _
@@ -26,7 +24,7 @@ class DieselGameMedia(ServiceMedia):
     file_pattern = "%s.jpg"
 
     def get_media_url(self, detail):
-        for image in detail["keyImages"]:
+        for image in detail.get("keyImages", []):
             if image["type"] == self.api_field:
                 return image["url"]
 
