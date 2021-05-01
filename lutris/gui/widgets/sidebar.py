@@ -283,7 +283,7 @@ class LutrisSidebar(Gtk.ListBox):
     def on_realize(self, widget):
         self.active_platforms = games_db.get_used_platforms()
         self.runners = sorted(runners.__all__)
-        self.platforms = sorted(runners.get_platforms())
+        self.platforms = sorted(runners.RUNNER_PLATFORMS)
         self.categories = categories_db.get_categories()
 
         self.add(

@@ -43,7 +43,7 @@ __all__ = [
     "zdoom",
 ]
 ADDON_RUNNERS = {}
-
+RUNNER_PLATFORMS = {}
 
 class InvalidRunner(Exception):
 
