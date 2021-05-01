@@ -15,17 +15,24 @@ MAME_CACHE_DIR = os.path.join(settings.CACHE_DIR, "mame")
 MAME_XML_PATH = os.path.join(MAME_CACHE_DIR, "mame.xml")
 
 
-def write_mame_xml():
+def write_mame_xml(force=False):
     if not system.path_exists(MAME_CACHE_DIR):
         system.create_folder(MAME_CACHE_DIR)
-    if not system.path_exists(MAME_XML_PATH):
-        logger.info("Getting full game list from MAME...")
-        mame_inst = mame()
-        mame_inst.write_xml_list()
+    if system.path_exists(MAME_XML_PATH) and not force:
+        return False
+    logger.info("Writing full game list from MAME to %s", MAME_XML_PATH)
+    mame_inst = mame()
+    mame_inst.write_xml_list()
+    return True
 
 
-def notify_mame_xml(*args, **kwargs):
-    logger.info("MAME XML written")
+
+
+def notify_mame_xml(result, error):
+    if error:
+        logger.error("Failed writing MAME XML")
+    elif result:
+        logger.info("Finished writing MAME XML")
 
 
 def get_system_choices(include_year=True):
@@ -34,7 +41,6 @@ def get_system_choices(include_year=True):
         mame_inst = mame()
         if mame_inst.is_installed():
             AsyncCall(write_mame_xml, notify_mame_xml)
-            logger.warning("MAME XML generation launched in the background, not returning anything this time")
         return []
     for system_id, info in sorted(
         get_supported_systems(MAME_XML_PATH).items(),

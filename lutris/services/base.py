@@ -147,7 +147,7 @@ class BaseService(GObject.Object):
         application.show_installer_window(service_installers, service=self, appid=appid)
 
     def simple_install(self, db_game):
-        """A simplified version of the install method for local services"""
+        """A simplified version of the install method, used when a game doesn't need any setup"""
         installer = self.generate_installer(db_game)
         configpath = write_game_config(db_game["slug"], installer["script"])
         game_id = add_game(
@@ -162,6 +162,11 @@ class BaseService(GObject.Object):
             service_id=db_game["appid"],
         )
         return game_id
+
+    def add_installed_games(self):
+        """Services can implement this method to scan for locally
+        installed games and add them to lutris.
+        """
 
     def get_game_directory(self, _installer):
         """Specific services should implement this"""
@@ -186,11 +191,12 @@ class OnlineService(BaseService):
 
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""
-        logger.debug("Wiping %s cache", self.id)
-        if os.path.isdir(self.cache_path):
-            shutil.rmtree(self.cache_path)
-        elif system.path_exists(self.cache_path):
-            os.remove(self.cache_path)
+        if self.cache_path:
+            logger.debug("Deleting %s cache %s", self.id, self.cache_path)
+            if os.path.isdir(self.cache_path):
+                shutil.rmtree(self.cache_path)
+            elif system.path_exists(self.cache_path):
+                os.remove(self.cache_path)
         super().wipe_game_cache()
 
     def logout(self):
