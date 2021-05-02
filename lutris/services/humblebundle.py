@@ -6,7 +6,6 @@ from gettext import gettext as _
 
 from lutris import settings
 from lutris.exceptions import UnavailableGame
-from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
@@ -71,7 +70,7 @@ class HumbleBundleService(OnlineService):
 
     cookies_path = os.path.join(settings.CACHE_DIR, ".humblebundle.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".humblebundle.token")
-    cache_path = os.path.join(settings.CACHE_DIR, "humblebundle-library/")
+    cache_path = os.path.join(settings.CACHE_DIR, "humblebundle/library/")
 
     supported_platforms = ("linux", "windows")
     is_loading = False
@@ -79,12 +78,6 @@ class HumbleBundleService(OnlineService):
     def login_callback(self, url):
         """Called after the user has logged in successfully"""
         self.emit("service-login")
-
-    def login(self, parent=None):
-        """Connect to Humble Bundle"""
-        dialog = WebConnectDialog(self, parent)
-        dialog.set_modal(True)
-        dialog.show()
 
     def is_connected(self):
         """This doesn't actually check if the authentication

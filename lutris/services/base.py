@@ -10,6 +10,7 @@ from lutris.database import sql
 from lutris.database.games import add_game, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
+from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.installer import fetch_script
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
@@ -179,11 +180,18 @@ class OnlineService(BaseService):
     online = True
     cookies_path = NotImplemented
     cache_path = NotImplemented
+    requires_login_page = False
 
     @property
     def credential_files(self):
         """Return a list of all files used for authentication"""
         return [self.cookies_path]
+
+    def login(self, parent=None):
+        logger.debug("Connecting to %s", self.name)
+        dialog = WebConnectDialog(self, parent)
+        dialog.set_modal(True)
+        dialog.show()
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""

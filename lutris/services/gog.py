@@ -11,7 +11,6 @@ from lxml import etree
 import lutris.util.i18n as i18n
 from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGame
-from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
@@ -109,13 +108,6 @@ class GOGService(OnlineService):
     @property
     def credential_files(self):
         return [self.cookies_path, self.token_path]
-
-    def login(self, parent=None):
-        """Connect to GOG"""
-        logger.debug("Connecting to GOG")
-        dialog = WebConnectDialog(self, parent)
-        dialog.set_modal(True)
-        dialog.show()
 
     def is_connected(self):
         """Return whether the user is authenticated and if the service is available"""

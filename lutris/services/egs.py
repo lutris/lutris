@@ -9,7 +9,6 @@ from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
-from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -105,12 +104,6 @@ class EpicGamesStoreService(OnlineService):
             '34a02cf8f4414e29b15921876da36f9a',
             'daafbccc737745039dffe53d94fc76cf'
         )
-
-    def login(self, parent=None):
-        logger.debug("Connecting to EGS")
-        dialog = WebConnectDialog(self, parent)
-        dialog.set_modal(True)
-        dialog.show()
 
     def is_connected(self):
         return self.is_authenticated()
