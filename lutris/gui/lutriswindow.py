@@ -444,6 +444,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         for child in self.blank_overlay.get_children():
             child.destroy()
         games = self.get_games_from_filters()
+        logger.debug("Showing %d games", len(games))
         self.view.service = self.service.id if self.service else None
         GLib.idle_add(self.update_revealer)
         for game in games:
