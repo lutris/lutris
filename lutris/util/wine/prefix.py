@@ -12,7 +12,11 @@ from lutris.util.xdgshortcuts import get_xdg_entry
 DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
 DEFAULT_DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
 DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES"]
-
+DEFAULT_DLL_OVERRIDES = {
+    "winemenubuilder": "d",
+    "nvapi": "d",
+    "nvapi64": "d"
+}
 
 def is_prefix(path):
     """Return True if the path is prefix"""
@@ -49,7 +53,8 @@ class WinePrefixManager:
 
     def setup_defaults(self):
         """Sets the defaults for newly created prefixes"""
-        self.override_dll("winemenubuilder.exe", "")
+        for dll, value in DEFAULT_DLL_OVERRIDES.items():
+            self.override_dll(dll, value)
         try:
             self.desktop_integration()
         except OSError as ex:
