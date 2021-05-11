@@ -18,6 +18,7 @@ DEFAULT_DLL_OVERRIDES = {
     "nvapi64": "d"
 }
 
+
 def is_prefix(path):
     """Return True if the path is prefix"""
     return os.path.isdir(os.path.join(path, "drive_c")) \

@@ -22,7 +22,7 @@ from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, split_arguments
 from lutris.util.wine import dxvk, nine
-from lutris.util.wine.prefix import WinePrefixManager, find_prefix, DEFAULT_DLL_OVERRIDES
+from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.wine import (
     POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
     esync_display_version_warning, fsync_display_support_warning, fsync_display_version_warning, get_default_version,

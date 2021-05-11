@@ -39,6 +39,7 @@ setup(
         'lutris.migrations',
         'lutris.runners',
         'lutris.runners.commands',
+        'lutris.scanners',
         'lutris.services',
         'lutris.util',
         'lutris.util.dolphin',
