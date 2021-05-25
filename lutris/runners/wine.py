@@ -506,7 +506,7 @@ class wine(Runner):
                 "type": "bool",
                 "label": _("Autoconfigure joypads"),
                 "advanced": True,
-                "default": True,
+                "default": False,
                 "help":
                 _("Automatically disables one of Wine's detected joypad "
                   "to avoid having 2 controllers detected"),
@@ -828,7 +828,7 @@ class wine(Runner):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
             create_prefix(self.prefix_path, arch=self.wine_arch)
         prefix_manager = WinePrefixManager(self.prefix_path)
-        if self.runner_config.get("autoconf_joypad", True):
+        if self.runner_config.get("autoconf_joypad", False):
             prefix_manager.configure_joypads()
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
