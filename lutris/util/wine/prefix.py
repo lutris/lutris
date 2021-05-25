@@ -233,12 +233,25 @@ class WinePrefixManager:
         )
 
     def configure_joypads(self):
-        joypads = joypad.get_joypads()
+        """Disables some joypad devices"""
         key = self.hkcu_prefix + "/Software/Wine/DirectInput/Joysticks"
         self.clear_registry_key(key)
-        for device, joypad_name in joypads:
-            if "event" in device:
-                disabled_joypad = "{} (js)".format(joypad_name)
-            else:
-                disabled_joypad = "{} (event)".format(joypad_name)
-            self.set_registry_key(key, disabled_joypad, "disabled")
+        for device, joypad_name in joypad.get_joypads():
+            # Attempt at disabling mice that register as joysticks.
+            # Although, those devices aren't returned by `get_joypads`
+            # A better way would be to read /dev/input files directly.
+            if "HARPOON RGB" in joypad_name:
+                self.set_registry_key(key, "{} (js)".format(joypad_name), "disabled")
+                self.set_registry_key(key, "{} (event)".format(joypad_name), "disabled")
+
+        # This part of the code below avoids having 2 joystick interfaces
+        # showing up simulatenously. It is not sure if it's still needed
+        # so it is disabled for now. Street Fighter IV now runs in Proton
+        # without this sort of hack.
+        #
+        # for device, joypad_name in joypads:
+        #     if "event" in device:
+        #         disabled_joypad = "{} (js)".format(joypad_name)
+        #     else:
+        #         disabled_joypad = "{} (event)".format(joypad_name)
+        #     self.set_registry_key(key, disabled_joypad, "disabled")
