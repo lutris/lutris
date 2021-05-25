@@ -161,9 +161,17 @@ class GameActions:
             raise RuntimeError("No game to install: %s" % self.game.id)
         self.game.emit("game-install")
 
+    def on_locate_installed_game(self, _button, game):
+        """Show the user a dialog to import an existing install to a DRM free service
+
+        Params:
+            game (Game): Game instance without a database ID, populated with a fields the service can provides
+        """
+        AddGameDialog(self.window, game=game)
+
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""
-        AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
+        return AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""

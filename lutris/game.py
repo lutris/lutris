@@ -64,11 +64,11 @@ class Game(GObject.Object):
 
         # Load attributes from database
         game_data = games_db.get_game_by_field(game_id, "id")
+
         self.slug = game_data.get("slug") or ""
         self.runner_name = game_data.get("runner") or ""
         self.directory = game_data.get("directory") or ""
         self.name = game_data.get("name") or ""
-
         self.game_config_id = game_data.get("configpath") or ""
         self.is_installed = bool(game_data.get("installed") and self.game_config_id)
         self.is_hidden = bool(game_data.get("hidden"))
@@ -103,7 +103,7 @@ class Game(GObject.Object):
         return self.__str__()
 
     def __str__(self):
-        value = self.name
+        value = self.name or "Game (no name)"
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value

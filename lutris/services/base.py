@@ -28,6 +28,7 @@ class BaseService(GObject.Object):
     icon = NotImplemented
     online = False
     local = False
+    drm_free = False  # DRM free games can be added to Lutris from an existing install
     medias = {}
     default_format = "icon"
 

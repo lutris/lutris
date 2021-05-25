@@ -42,7 +42,6 @@ def find_prefix(path):
 
 
 class WinePrefixManager:
-
     """Class to allow modification of Wine prefixes without the use of Wine"""
 
     hkcu_prefix = "HKEY_CURRENT_USER"

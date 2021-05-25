@@ -7,7 +7,6 @@ from lutris import runners, services
 from lutris.database.games import get_game_by_field, get_game_for_service
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
-from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 
@@ -32,7 +31,7 @@ class GameBar(Gtk.Fixed):
             try:
                 self.service = services.SERVICES[db_game["service"]]()
             except KeyError:
-                logger.warning("Non existent service '%s'", db_game["service"])
+                pass
 
         game_id = None
         if "service_id" in db_game:
@@ -51,8 +50,10 @@ class GameBar(Gtk.Fixed):
             game_actions.set_game(self.game)
         else:
             self.game = Game()
-        self.game_name = db_game["name"]
-        self.game_slug = db_game["slug"]
+            self.game.name = db_game["name"]
+            self.game.slug = db_game["slug"]
+            self.game.appid = self.appid
+            self.game.service = self.service.id if self.service else None
         self.update_view()
 
     def clear_view(self):
@@ -96,14 +97,14 @@ class GameBar(Gtk.Fixed):
 
     def get_icon(self):
         """Return the game icon"""
-        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(self.game_slug, (32, 32)))
+        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(self.game.slug, (32, 32)))
         icon.show()
         return icon
 
     def get_game_name_label(self):
         """Return the label with the game's title"""
         title_label = Gtk.Label(visible=True)
-        title_label.set_markup("<span font_desc='16'><b>%s</b></span>" % gtk_safe(self.game_name))
+        title_label.set_markup("<span font_desc='16'><b>%s</b></span>" % gtk_safe(self.game.name))
         return title_label
 
     def get_runner_button(self):
@@ -169,6 +170,13 @@ class GameBar(Gtk.Fixed):
         style_context.add_class("linked")
         return box
 
+    def get_locate_installed_game_button(self):
+        """Return a button to locate an existing install"""
+        button = Gtk.Button("Locate installed game", visible=True)
+        button.set_relief(Gtk.ReliefStyle.NONE)
+        button.connect("clicked", self.game_actions.on_locate_installed_game, self.game)
+        return button
+
     def get_play_button(self):
         """Return the widget for install/play/stop and game config"""
         button = Gtk.Button(visible=True)
@@ -190,6 +198,11 @@ class GameBar(Gtk.Fixed):
                     # Local services don't show an install dialog, they can be launched directly
                     button.set_label(_("Play"))
                 button.set_size_request(120, 32)
+                if self.service.drm_free:
+                    box = Gtk.HBox(spacing=24, visible=True)
+                    box.add(button)
+                    box.add(self.get_locate_installed_game_button())
+                    return box
                 return button
         button.set_size_request(84, 32)
         box = self.get_popover_box()

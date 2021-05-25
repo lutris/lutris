@@ -57,6 +57,7 @@ class HumbleBundleService(OnlineService):
     name = _("Humble Bundle")
     icon = "humblebundle"
     online = True
+    drm_free = True
     medias = {
         "small_icon": HumbleSmallIcon,
         "icon": HumbleBundleIcon,
