@@ -1,11 +1,9 @@
 """Manipulate Wine registry files"""
-# Standard Library
 import os
 import re
 from collections import OrderedDict
 from datetime import datetime
 
-# Lutris Modules
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH

@@ -8,9 +8,10 @@ from gi.repository import GObject, Gtk
 from lutris.cache import save_to_cache
 from lutris.gui.installer.widgets import InstallerLabel
 from lutris.gui.widgets.common import FileChooserEntry
-from lutris.gui.widgets.download_progress import DownloadProgressBox
+from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
+from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, gtk_safe
 
 
@@ -54,8 +55,9 @@ class InstallerFileBox(Gtk.VBox):
             "url": self.installer_file.url,
             "dest": self.installer_file.dest_file,
             "referer": self.installer_file.referer
-        }, cancelable=True)
+        })
         download_progress.connect("complete", self.on_download_complete)
+        download_progress.connect("cancel", self.on_download_cancelled)
         download_progress.show()
         if (
                 not self.installer_file.uses_pga_cache()
@@ -70,7 +72,7 @@ class InstallerFileBox(Gtk.VBox):
         if self.provider == "download":
             download_progress = self.get_download_progress()
             self.start_func = download_progress.start
-            self.stop_func = download_progress.cancel
+            self.stop_func = download_progress.on_cancel_clicked
             box.pack_start(download_progress, False, False, 0)
             return box
         if self.provider == "pga":
@@ -268,8 +270,10 @@ class InstallerFileBox(Gtk.VBox):
         if self.cache_to_pga:
             save_to_cache(self.installer_file.dest_file, self.installer_file.cache_path)
 
-    def on_download_cancelled(self):
+    def on_download_cancelled(self, downloader):
         """Handle cancellation of installers"""
+        logger.error("Download from %s cancelled", downloader)
+        downloader.set_retry_button()
 
     def on_download_complete(self, widget, _data=None):
         """Action called on a completed download."""

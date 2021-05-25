@@ -1,8 +1,10 @@
 from gettext import gettext as _
+from urllib.parse import urlparse
 
 from gi.repository import GLib, GObject, Gtk, Pango
 
 from lutris.util.downloader import Downloader
+from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 
@@ -12,7 +14,7 @@ class DownloadProgressBox(Gtk.Box):
 
     __gsignals__ = {
         "complete": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT, )),
-        "cancel": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT, )),
+        "cancel": (GObject.SignalFlags.RUN_LAST, None, ()),
         "error": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT, )),
     }
 
@@ -24,9 +26,8 @@ class DownloadProgressBox(Gtk.Box):
         self.url = params.get("url")
         self.dest = params.get("dest")
         self.referer = params.get("referer")
-        title = params.get("title", _("Downloading {}").format(self.url))
 
-        self.main_label = Gtk.Label(title)
+        self.main_label = Gtk.Label(self.get_title())
         self.main_label.set_alignment(0, 0)
         self.main_label.set_property("wrap", True)
         self.main_label.set_margin_bottom(10)
@@ -44,7 +45,7 @@ class DownloadProgressBox(Gtk.Box):
         progress_box.pack_start(self.progressbar, True, True, 0)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_("_Cancel"))
-        self.cancel_button.connect("clicked", self.cancel)
+        self.cancel_cb_id = self.cancel_button.connect("clicked", self.on_cancel_clicked)
         if not cancelable:
             self.cancel_button.set_sensitive(False)
         progress_box.pack_end(self.cancel_button, False, False, 0)
@@ -58,6 +59,11 @@ class DownloadProgressBox(Gtk.Box):
         self.show_all()
         self.cancel_button.hide()
 
+    def get_title(self):
+        """Return the main label text for the widget"""
+        parsed = urlparse(self.url)
+        return "%s%s" % (parsed.netloc, parsed.path)
+
     def start(self):
         """Start downloading a file."""
         if not self.downloader:
@@ -67,7 +73,7 @@ class DownloadProgressBox(Gtk.Box):
                 from lutris.gui.dialogs import ErrorDialog
 
                 ErrorDialog(ex.args[0])
-                self.emit("cancel", {})
+                self.emit("cancel")
                 return None
 
         timer_id = GLib.timeout_add(500, self._progress)
@@ -77,12 +83,28 @@ class DownloadProgressBox(Gtk.Box):
             self.downloader.start()
         return timer_id
 
-    def cancel(self, _widget=None):
+    def set_retry_button(self):
+        """Transform the cancel button into a retry button"""
+        self.cancel_button.set_label(_("Retry"))
+        self.cancel_button.disconnect(self.cancel_cb_id)
+        self.cancel_cb_id = self.cancel_button.connect("clicked", self.on_retry_clicked)
+        self.cancel_button.set_sensitive(True)
+
+    def on_retry_clicked(self, button):
+        logger.debug("Retrying download")
+        button.set_label(_("Cancel"))
+        button.disconnect(self.cancel_cb_id)
+        self.cancel_cb_id = button.connect("clicked", self.on_cancel_clicked)
+        self.downloader.reset()
+        self.start()
+
+    def on_cancel_clicked(self, _widget=None):
         """Cancel the current download."""
+        logger.debug("Download cancel requested")
         if self.downloader:
             self.downloader.cancel()
         self.cancel_button.set_sensitive(False)
-        self.emit("cancel", {})
+        self.emit("cancel")
 
     def _progress(self):
         """Show download progress."""
@@ -91,10 +113,9 @@ class DownloadProgressBox(Gtk.Box):
             self.progressbar.set_fraction(0)
             if self.downloader.state == self.downloader.CANCELLED:
                 self._set_text(_("Download interrupted"))
+                self.emit("cancel")
             else:
                 self._set_text(str(self.downloader.error)[:80])
-            if self.downloader.state == self.downloader.CANCELLED:
-                self.emit("cancel", {})
             return False
         self.progressbar.set_fraction(progress)
         megabytes = 1024 * 1024

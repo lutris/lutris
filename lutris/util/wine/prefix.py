@@ -236,7 +236,7 @@ class WinePrefixManager:
         """Disables some joypad devices"""
         key = self.hkcu_prefix + "/Software/Wine/DirectInput/Joysticks"
         self.clear_registry_key(key)
-        for device, joypad_name in joypad.get_joypads():
+        for _device, joypad_name in joypad.get_joypads():
             # Attempt at disabling mice that register as joysticks.
             # Although, those devices aren't returned by `get_joypads`
             # A better way would be to read /dev/input files directly.
