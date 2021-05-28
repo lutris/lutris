@@ -27,7 +27,7 @@ class yuzu(Runner):
     runner_options = [
         {
             "option": "prod_keys",
-            "label": _("Ecryption keys"),
+            "label": _("Encryption keys"),
             "type": "file",
             "help": _("File containing the encryption keys."),
         }, {
