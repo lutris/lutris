@@ -34,3 +34,4 @@ secretstorage==3.1.2 ; sys_platform == 'linux'
 six==1.15.0
 urllib3==1.25.10
 wrapt==1.12.1
+lxml
