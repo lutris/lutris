@@ -139,6 +139,9 @@ class GOGService(OnlineService):
         self.emit("service-games-loaded")
         return games
 
+    def login_callback(self, url):
+        return self.request_token(url)
+
     def request_token(self, url="", refresh_token=""):
         """Get authentication token from GOG"""
         if refresh_token:
