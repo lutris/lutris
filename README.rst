@@ -135,7 +135,7 @@ pre-releases, or simply chat with the developers?
 You can always reach us on:
 
 * Discord: https://discordapp.com/invite/Pnt5CuY
-* IRC: #lutris on the Freenode servers
+* IRC: ircs://irc.libera.chat:6697/lutris
 * Github: https://github.com/lutris
 * Twitter: https://twitter.com/LutrisGaming
 
