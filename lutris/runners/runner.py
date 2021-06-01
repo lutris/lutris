@@ -425,3 +425,9 @@ class Runner:  # pylint: disable=too-many-public-methods
                 output = item
                 break
         return output
+
+    def has_system_architecture(runner_info):
+        if runner_info["architecture"] == system.LINUX_SYSTEM.arch:
+            return True
+        else:
+            return False
