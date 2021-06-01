@@ -319,7 +319,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         runner_versions = runner_info.get("versions") or []
 
         compatible_runner_versions = list(
-            filter(lambda runner_version: bool(runner_version.get("architecture") == system_architecture),
+            filter(lambda runner_version: True if runner_version.get("architecture") == system_architecture else False,
                    runner_versions))
 
         logger.debug(compatible_runner_versions)
