@@ -333,10 +333,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         elif len(compatible_runner_versions) > 0:
             logger.info("Using latest version compatible for architecture")
             return compatible_runner_versions[len(compatible_runner_versions) - 1]
-        else:
-            logger.error(
-                "The architecture of the system does not match any runner architecture currently provided by Lutris.net")
-            return {}
+
+        logger.error("The system architecture does not match any architecture currently provided by Lutris.net")
+        return {}
 
     def install(self, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""
