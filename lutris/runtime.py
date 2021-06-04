@@ -9,8 +9,8 @@ from lutris import settings
 from lutris.util import http, jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.system import LINUX_SYSTEM
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").lower() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
@@ -220,7 +220,7 @@ class RuntimeUpdater:
 
             # Skip 32bit runtimes on 64 bit systems except the main runtime
             if (
-                runtime["architecture"] == "i386" and system.LINUX_SYSTEM.is_64_bit
+                runtime["architecture"] == "i386" and LINUX_SYSTEM.is_64_bit
                 and not runtime["name"].startswith(("Ubuntu", "lib32"))
             ):
                 logger.debug(
@@ -231,7 +231,7 @@ class RuntimeUpdater:
                 continue
 
             # Skip 64bit runtimes on 32 bit systems
-            if runtime["architecture"] == "x86_64" and not system.LINUX_SYSTEM.is_64_bit:
+            if runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
                 logger.debug(
                     "Skipping runtime %s for %s",
                     runtime["name"],
@@ -299,7 +299,7 @@ def get_runtime_paths(version=None, prefer_system_libs=True, wine_path=None):
         "steam/i386/usr/lib",
     ]
 
-    if system.LINUX_SYSTEM.is_64_bit:
+    if LINUX_SYSTEM.is_64_bit:
         if version == "legacy":
             lutris_runtime_path = "lib64"
         else:

@@ -11,7 +11,7 @@ from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
-from lutris.util import system
+from lutris.util import linux
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -331,7 +331,7 @@ def pick_download_url_from_download_info(download_info):
         bonus = 1
         if "deb" not in name:
             bonus = 2
-        if system.LINUX_SYSTEM.is_64_bit:
+        if linux.LINUX_SYSTEM.is_64_bit:
             if "386" in name or "32" in name:
                 return -1
         else:

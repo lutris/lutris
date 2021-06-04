@@ -5,12 +5,10 @@ import platform
 import re
 import resource
 import shutil
-import subprocess
 import sys
 from collections import Counter, defaultdict
 
 from lutris.util import system
-from lutris.util.disks import get_drive_for_path
 from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
 
@@ -160,12 +158,12 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     @staticmethod
     def get_drives():
         """Return a list of drives with their filesystems"""
-        try:
-            output = subprocess.check_output(["lsblk", "-f", "--json"]).decode()
-        except subprocess.CalledProcessError as ex:
-            logger.error("Failed to get drive information: %s", ex)
-            return None
-        return [drive for drive in json.loads(output)["blockdevices"] if drive["fstype"] != "squashfs"]
+        lsblk_output = system.read_process_output(["lsblk", "-f", "--json"])
+        return [
+            drive
+            for drive in json.loads(lsblk_output)["blockdevices"]
+            if drive["fstype"] != "squashfs"
+        ]
 
     @staticmethod
     def get_ram_info():
@@ -243,7 +241,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     def get_fs_type_for_path(self, path):
         """Return the filesystem type a given path uses"""
-        path_drive = get_drive_for_path(path)
+        path_drive = system.get_drive_for_path(path)
         for drive in self.get_drives():
             for partition in drive.get("children", []):
                 if "/dev/%s" % partition["name"] == path_drive:
@@ -312,11 +310,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         if not ldconfig:
             logger.error("Could not detect ldconfig on this system")
             return []
-        try:
-            output = (subprocess.check_output([ldconfig, "-p"]).decode("utf-8", errors="ignore").split("\n"))
-        except subprocess.CalledProcessError as ex:
-            logger.error("Failed to get libraries from ldconfig: %s", ex)
-            return []
+        output = system.read_process_output([ldconfig, "-p"]).split("\n")
         return [line.strip("\t") for line in output if line.startswith("\t")]
 
     def get_shared_libraries(self):
@@ -490,3 +484,16 @@ def gather_system_info_str():
             output += '{}{}{}\n'.format(key + ":", tabs, dictionary[key])
         output += '\n'
     return output
+
+
+def get_terminal_apps():
+    """Return the list of installed terminal emulators"""
+    return LINUX_SYSTEM.get_terminals()
+
+
+def get_default_terminal():
+    """Return the default terminal emulator"""
+    terms = get_terminal_apps()
+    if terms:
+        return terms[0]
+    logger.error("Couldn't find a terminal emulator.")

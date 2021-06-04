@@ -1,11 +1,9 @@
 """Gallium Nine helper module"""
-# Standard Library
 import os
 import shutil
 
-# Lutris Modules
 from lutris.runners.commands.wine import wineexec
-from lutris.util import system
+from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.wine.cabinstall import CabInstaller
 
@@ -37,7 +35,7 @@ class NineManager:
         """
         for mesa_file in NineManager.mesa_files:
             if not any(
-                [os.path.exists(os.path.join(lib, "d3d", mesa_file)) for lib in system.LINUX_SYSTEM.iter_lib_folders()]
+                [os.path.exists(os.path.join(lib, "d3d", mesa_file)) for lib in linux.LINUX_SYSTEM.iter_lib_folders()]
             ):
                 return False
 
@@ -53,7 +51,7 @@ class NineManager:
             if not any(
                 [
                     os.path.exists(os.path.join(lib, "wine/fakedlls", nine_file))
-                    for lib in system.LINUX_SYSTEM.iter_lib_folders()
+                    for lib in linux.LINUX_SYSTEM.iter_lib_folders()
                 ]
             ):
                 return False
@@ -95,7 +93,7 @@ class NineManager:
 
     def prepare_prefix(self):
         for nine_file in NineManager.nine_files:
-            for lib in system.LINUX_SYSTEM.iter_lib_folders():
+            for lib in linux.LINUX_SYSTEM.iter_lib_folders():
                 nine_file_path = os.path.join(lib, "wine/fakedlls", nine_file)
 
                 if (os.path.exists(nine_file_path) and CabInstaller.get_arch_from_dll(nine_file_path) == "win32"):

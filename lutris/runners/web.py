@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 from lutris import settings
 from lutris.database.games import get_game_by_field
 from lutris.runners.runner import Runner
-from lutris.util import datapath, resources, system
+from lutris.util import datapath, linux, resources, system
 from lutris.util.strings import split_arguments
 
 DEFAULT_ICON = os.path.join(datapath.get(), "media/default_icon.png")
@@ -258,7 +258,7 @@ class web(Runner):
         if self.runner_config.get("user_agent"):
             command.append("--user-agent")
             command.append(self.runner_config.get("user_agent"))
-        if system.LINUX_SYSTEM.is_flatpak:
+        if linux.LINUX_SYSTEM.is_flatpak:
             command.append("--no-sandbox")
 
         return {"command": command, "env": self.get_env(False)}

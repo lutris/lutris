@@ -5,7 +5,7 @@ from collections import OrderedDict
 from gettext import gettext as _
 
 from lutris import runners
-from lutris.util import system
+from lutris.util import linux, system
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
 
 VULKAN_DATA_DIRS = [
@@ -236,8 +236,8 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "gamemode",
         "type": "bool",
-        "default": system.LINUX_SYSTEM.gamemode_available(),
-        "condition": system.LINUX_SYSTEM.gamemode_available,
+        "default": linux.LINUX_SYSTEM.gamemode_available(),
+        "condition": linux.LINUX_SYSTEM.gamemode_available,
         "label": _("Enable Feral GameMode"),
         "help": _("Request a set of optimisations be temporarily applied to the host OS"),
     },
@@ -309,8 +309,8 @@ system_options = [  # pylint: disable=invalid-name
         "option": "terminal_app",
         "label": _("Text based games emulator"),
         "type": "choice_with_entry",
-        "choices": system.get_terminal_apps,
-        "default": system.get_default_terminal(),
+        "choices": linux.get_terminal_apps,
+        "default": linux.get_default_terminal(),
         "advanced": True,
         "help": _("The terminal emulator used with the CLI mode. "
                   "Choose from the list of detected terminal apps or enter "

@@ -316,7 +316,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return
 
         versions = runner_info.get("versions") or []
-        arch = system.LINUX_SYSTEM.arch
+        arch = LINUX_SYSTEM.arch
         if version:
             if version.endswith("-i386") or version.endswith("-x86_64"):
                 version, arch = version.rsplit("-", 1)
@@ -329,9 +329,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             default_version = [v for v in versions_for_arch if v["default"] is True]
             if default_version:
                 return default_version[0]
-        elif len(versions) == 1 and system.LINUX_SYSTEM.is_64_bit:
+        elif len(versions) == 1 and LINUX_SYSTEM.is_64_bit:
             return versions[0]
-        elif len(versions) > 1 and system.LINUX_SYSTEM.is_64_bit:
+        elif len(versions) > 1 and LINUX_SYSTEM.is_64_bit:
             default_version = [v for v in versions if v["default"] is True]
             if default_version:
                 return default_version[0]

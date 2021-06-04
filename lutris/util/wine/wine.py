@@ -1,6 +1,5 @@
 """Utilities for manipulating Wine"""
 import os
-import subprocess
 from collections import OrderedDict
 from functools import lru_cache
 from gettext import gettext as _
@@ -8,13 +7,13 @@ from gettext import gettext as _
 from lutris import runtime, settings
 from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
 from lutris.runners.steam import steam
-from lutris.util import system
+from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, version_sort
 from lutris.util.wine import fsync
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-WINE_DEFAULT_ARCH = "win64" if system.LINUX_SYSTEM.is_64_bit else "win32"
+WINE_DEFAULT_ARCH = "win64" if linux.LINUX_SYSTEM.is_64_bit else "win32"
 WINE_PATHS = {
     "winehq-devel": "/opt/wine-devel/bin/wine",
     "winehq-staging": "/opt/wine-staging/bin/wine",
@@ -157,7 +156,7 @@ def get_system_wine_versions():
     """Return the list of wine versions installed on the system"""
     versions = []
     for build in sorted(WINE_PATHS.keys()):
-        version = get_system_wine_version(WINE_PATHS[build])
+        version = get_wine_version(WINE_PATHS[build])
         if version:
             versions.append(build)
     return versions
@@ -230,7 +229,7 @@ def is_esync_limit_set():
     if ESYNC_LIMIT_CHECK in ("0", "off"):
         logger.info("fd limit check for esync was manually disabled")
         return True
-    return system.LINUX_SYSTEM.has_enough_file_descriptors()
+    return linux.LINUX_SYSTEM.has_enough_file_descriptors()
 
 
 def is_fsync_supported():
@@ -252,9 +251,10 @@ def get_default_version():
     return
 
 
-def get_system_wine_version(wine_path="wine"):
+def get_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
     if wine_path != "wine" and not system.path_exists(wine_path):
+        logger.warning("Non existent Wine path: %s", wine_path)
         return
     if wine_path == "wine" and not system.find_executable("wine"):
         return
@@ -263,16 +263,13 @@ def get_system_wine_version(wine_path="wine"):
         if wine_stats.st_size < 2000:
             # This version is a script, ignore it
             return
-    try:
-        version = subprocess.check_output([wine_path, "--version"]).decode().strip()
-    except (OSError, subprocess.CalledProcessError) as ex:
-        logger.exception("Error reading wine version for %s: %s", wine_path, ex)
+    version = system.read_process_output([wine_path, "--version"])
+    if not version:
+        logger.error("Error reading wine version for %s", wine_path)
         return
-    else:
-        if version.startswith("wine-"):
-            version = version[5:]
-        return version
-    return
+    if version.startswith("wine-"):
+        version = version[5:]
+    return version
 
 
 def is_version_esync(path):
@@ -294,8 +291,8 @@ def is_version_esync(path):
     for esync_version in esync_compatible_versions:
         if esync_version in version_prefix or esync_version in version_suffix:
             return True
-    wine_ver = str(subprocess.check_output([path, "--version"])).lower()
-    return "esync" in wine_ver or "staging" in wine_ver
+    wine_version = get_wine_version(path).lower()
+    return "esync" in wine_version or "staging" in wine_version
 
 
 def is_version_fsync(path):
@@ -317,11 +314,7 @@ def is_version_fsync(path):
     for fsync_version in fsync_compatible_versions:
         if fsync_version in version_prefix or fsync_version in version_suffix:
             return True
-
-    wine_ver = str(subprocess.check_output([path, "--version"])).lower()
-    if "fsync" in wine_ver:
-        return True
-    return False
+    return "fsync" in get_wine_version(path).lower()
 
 
 def get_real_executable(windows_executable, working_dir=None):

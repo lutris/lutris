@@ -1,15 +1,13 @@
 """Steam for Linux runner"""
-# Standard Library
 import os
 import subprocess
 import time
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris.command import MonitoredCommand
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
-from lutris.util import system
+from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import get_appmanifest_from_appid, get_path_from_appmanifest
 from lutris.util.steam.config import STEAM_DATA_DIRS, get_default_acf, get_steam_dir, read_config
@@ -136,7 +134,7 @@ class steam(Runner):
 
     @property
     def runnable_alone(self):
-        return not system.LINUX_SYSTEM.is_flatpak
+        return not linux.LINUX_SYSTEM.is_flatpak
 
     @property
     def appid(self):
@@ -175,7 +173,7 @@ class steam(Runner):
             return appmanifests[0]
 
     def get_executable(self):
-        if system.LINUX_SYSTEM.is_flatpak:
+        if linux.LINUX_SYSTEM.is_flatpak:
             # Use xdg-open for Steam URIs in Flatpak
             return system.find_executable("xdg-open")
         if self.runner_config.get("lsi_steam") and system.find_executable("lsi-steam"):
@@ -198,7 +196,7 @@ class steam(Runner):
     def launch_args(self):
         """Provide launch arguments for Steam"""
         args = [self.get_executable()]
-        if system.LINUX_SYSTEM.is_flatpak:
+        if linux.LINUX_SYSTEM.is_flatpak:
             return args
         if self.runner_config.get("start_in_big_picture"):
             args.append("-bigpicture")
@@ -309,8 +307,7 @@ class steam(Runner):
             command = [binary_path]
         else:
             # Start through steam
-
-            if system.LINUX_SYSTEM.is_flatpak:
+            if linux.LINUX_SYSTEM.is_flatpak:
                 if game_args:
                     steam_uri = "steam://run/%s//%s/" % (self.appid, game_args)
                 else:

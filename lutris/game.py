@@ -21,7 +21,7 @@ from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
-from lutris.util import audio, jobs, strings, system, xdgshortcuts
+from lutris.util import audio, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
 )
@@ -293,7 +293,7 @@ class Game(GObject.Object):
             if runtime_updater.is_updating():
                 logger.warning("Runtime updates: %s", runtime_updater.current_updates)
                 dialogs.ErrorDialog(_("Runtime currently updating"), _("Game might not work as expected"))
-        if ("wine" in self.runner_name and not wine.get_system_wine_version() and not LINUX_SYSTEM.is_flatpak):
+        if ("wine" in self.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
             root_window = None
@@ -375,7 +375,7 @@ class Game(GObject.Object):
         Remember that only games using text mode should use the terminal.
         """
         if self.runner.system_config.get("terminal"):
-            terminal = self.runner.system_config.get("terminal_app", system.get_default_terminal())
+            terminal = self.runner.system_config.get("terminal_app", linux.get_default_terminal())
             if terminal and not system.find_executable(terminal):
                 raise GameConfigError(_("The selected terminal application could not be launched:\n%s") % terminal)
             return terminal

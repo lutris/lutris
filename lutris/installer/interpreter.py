@@ -20,7 +20,7 @@ from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import unpack_dependencies
-from lutris.util.wine.wine import get_system_wine_version, get_wine_version_exe
+from lutris.util.wine.wine import get_wine_version, get_wine_version_exe
 
 
 class ScriptInterpreter(GObject.Object, CommandsMixin):
@@ -233,7 +233,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 logger.info("Runner %s needs to be installed", runner)
                 runners_to_install.append(runner)
 
-        if self.installer.runner.startswith("wine") and not get_system_wine_version():
+        if self.installer.runner.startswith("wine") and not get_wine_version():
             WineNotInstalledWarning(parent=self.parent)
         return runners_to_install
 

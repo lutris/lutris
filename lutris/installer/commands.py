@@ -14,7 +14,7 @@ from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
 from lutris.installer.errors import ScriptingError
 from lutris.runners import import_task
-from lutris.util import disks, extract, selective_merge, system
+from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_version_exe
@@ -131,7 +131,7 @@ class CommandsMixin:
             raise ScriptingError("Unable to find executable %s" % file_ref)
 
         if terminal:
-            terminal = system.get_default_terminal()
+            terminal = linux.get_default_terminal()
 
         if not working_dir or not os.path.exists(working_dir):
             working_dir = self.target_path
@@ -223,7 +223,7 @@ class CommandsMixin:
         if extra_path:
             drives = [extra_path]
         else:
-            drives = disks.get_mounted_discs()
+            drives = system.get_mounted_discs()
         for drive in drives:
             required_abspath = os.path.join(drive, requires)
             required_abspath = system.fix_path_case(required_abspath)

@@ -3,12 +3,12 @@ from gettext import gettext as _
 from gi.repository import GObject, Gtk
 
 from lutris import runners
-from lutris.util.log import logger
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import ICON_SIZE, get_icon
+from lutris.util.log import logger
 
 
 class RunnerBox(Gtk.Box):
