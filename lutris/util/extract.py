@@ -258,7 +258,7 @@ def check_inno_exe(path):
 def get_innoextract_list(file_path):
     """Return the list of files contained in a GOG archive"""
     output = system.read_process_output([get_innoextract_path(), "-lmq", file_path])
-    return [line[3:] for line in output.decode().split("\n") if line]
+    return [line[3:] for line in output.split("\n") if line]
 
 
 def decompress_gog(file_path, destination_path):

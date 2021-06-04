@@ -4,7 +4,6 @@ from gettext import gettext as _
 
 from gi.repository import GLib, Gtk
 
-from lutris import settings
 from lutris.exceptions import UnavailableGame
 from lutris.game import Game
 from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, QuestionDialog
@@ -38,9 +37,6 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.appid = appid
         self.install_in_progress = False
         self.interpreter = None
-
-        self.desktop_shortcut_box = None
-        self.menu_shortcut_box = None
 
         self.log_buffer = None
         self.log_textview = None
@@ -422,23 +418,21 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.clean_widgets()
         self.install_in_progress = False
 
-        self.desktop_shortcut_box = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
-        self.menu_shortcut_box = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
-        self.widget_box.pack_start(self.desktop_shortcut_box, False, False, 5)
-        self.widget_box.pack_start(self.menu_shortcut_box, False, False, 5)
+        desktop_shortcut_button = Gtk.Button(_("Create desktop shortcut"), visible=True)
+        desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
+        self.widget_box.pack_start(desktop_shortcut_button, False, False, 5)
+
+        menu_shortcut_button = Gtk.Button(_("Create application menu shortcut"), visible=True)
+        menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
+        self.widget_box.pack_start(menu_shortcut_button, False, False, 5)
+
         self.widget_box.show()
-
-        if settings.read_setting("create_desktop_shortcut") == "True":
-            self.desktop_shortcut_box.set_active(True)
-        if settings.read_setting("create_menu_shortcut") == "True":
-            self.menu_shortcut_box.set_active(True)
-
-        self.connect("delete-event", self.create_shortcuts)
 
         self.eject_button.hide()
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
+
         self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
@@ -473,21 +467,22 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 self.interpreter.cleanup()
             self.destroy()
 
-    def create_shortcuts(self, *args):
-        """Create desktop and global menu shortcuts."""
+    def on_create_desktop_shortcut_clicked(self, _widget):
+        self.create_shortcut(desktop=True)
+
+    def on_create_menu_shortcut_clicked(self, _widget):
+        self.create_shortcut()
+
+    def create_shortcut(self, desktop=False):
+        """Create desktop or global menu shortcuts."""
         game_slug = self.interpreter.installer.game_slug
         game_id = self.interpreter.installer.game_id
         game_name = self.interpreter.installer.game_name
-        create_desktop_shortcut = self.desktop_shortcut_box.get_active()
-        create_menu_shortcut = self.menu_shortcut_box.get_active()
 
-        if create_desktop_shortcut:
+        if desktop:
             xdgshortcuts.create_launcher(game_slug, game_id, game_name, desktop=True)
-        if create_menu_shortcut:
+        else:
             xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
-
-        settings.write_setting("create_desktop_shortcut", create_desktop_shortcut)
-        settings.write_setting("create_menu_shortcut", create_menu_shortcut)
 
     def cancel_installation(self, _widget=None):
         """Ask a confirmation before cancelling the install"""
