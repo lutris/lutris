@@ -3,6 +3,7 @@ from gettext import gettext as _
 from gi.repository import GObject, Gtk
 
 from lutris import runners
+from lutris.util.log import logger
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.dialogs.download import simple_downloader
@@ -95,16 +96,20 @@ class RunnerBox(Gtk.Box):
 
     def on_install_clicked(self, widget):
         """Install a runner."""
+        logger.debug("Install of %s requested", self.runner)
         try:
             self.runner.install(downloader=simple_downloader)
         except (
             runners.RunnerInstallationError,
             runners.NonInstallableRunnerError,
         ) as ex:
+            logger.error(ex)
             ErrorDialog(ex.message)
             return
         if self.runner.is_installed():
             self.emit("runner-installed")
+        else:
+            logger.error("Runner failed to install")
 
     def on_configure_clicked(self, widget):
         RunnerConfigDialog(self.runner)
