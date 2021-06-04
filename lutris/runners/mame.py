@@ -289,8 +289,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             device = self.game_config.get("device")
             if not device:
                 return {'error': "CUSTOM", "text": "No device is set for machine %s" % self.game_config["machine"]}
-            rom = self.game_config["main_file"]
-            command += ["-" + device, rom]
+            rom = self.game_config.get("main_file")
+            if rom:
+                command += ["-" + device, rom]
         else:
             rompath = os.path.dirname(self.game_config.get("main_file"))
             if not rompath:
