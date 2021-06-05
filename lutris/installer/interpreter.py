@@ -391,6 +391,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "RESOLUTION_WIDTH": self.current_resolution[0],
             "RESOLUTION_HEIGHT": self.current_resolution[1],
         }
+        replacements.update(self.installer.variables)
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:
             alias = input_data["alias"]

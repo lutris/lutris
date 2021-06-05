@@ -30,6 +30,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.game_slug = installer["game_slug"]
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
+        self.variables = installer.get("variables", {})
         self.files = [
             InstallerFile(self.game_slug, file_id, file_meta)
             for file_desc in self.script.get("files", [])
@@ -209,7 +210,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                                                                    make_executable=True)
             elif AUTO_WIN32_EXE in config["game"].get("exe", ""):
                 config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
-
         return config
 
     def save(self):
