@@ -8,10 +8,12 @@ from gi.repository import Gtk, Pango
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
 from lutris.game import Game
+from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import Dialog, DirectoryDialog, ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
+from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
 from lutris.runners import import_runner
 from lutris.util import resources, system
@@ -242,9 +244,20 @@ class GameDialogCommon(Dialog):
 
     def on_move_clicked(self, _button):
         new_location = DirectoryDialog("Select new location for the game", default_path=self.game.directory)
-        new_directory = self.game.move(new_location.folder)
+        if not new_location.folder or new_location.folder == self.game.directory:
+            return
+        move_dialog = dialogs.MoveDialog(self.game, new_location.folder)
+        move_dialog.connect("game-moved", self.on_game_moved)
+        move_dialog.move()
+
+    def on_game_moved(self, dialog):
+        """Show a notification when the game is moved"""
+        new_directory = dialog.new_directory
         if new_directory:
             self.directory_entry.set_text(new_directory)
+            send_notification("Finished moving game", "%s moved to %s" % (dialog.game, new_directory))
+        else:
+            send_notification("Failed to move game", "Lutris could not move %s" % dialog.game)
 
     def _build_game_tab(self):
         if self.game and self.runner_name:

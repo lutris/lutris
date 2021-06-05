@@ -369,3 +369,45 @@ class WineNotInstalledWarning(DontShowAgainDialog):
             ),
             parent=parent,
         )
+
+
+class MoveDialog(Gtk.Dialog):
+    __gsignals__ = {
+        "game-moved": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
+
+    def __init__(self, game, destination):
+        super().__init__()
+
+        self.game = game
+        self.destination = destination
+        self.new_directory = None
+
+        self.set_size_request(320, 60)
+        self.set_border_width(24)
+        self.set_decorated(False)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
+        label = Gtk.Label(_("Moving %s to %s..." % (game, destination)))
+        vbox.add(label)
+        self.progress = Gtk.ProgressBar(visible=True)
+        self.progress.set_pulse_step(0.1)
+        vbox.add(self.progress)
+        self.get_content_area().add(vbox)
+        GLib.timeout_add(125, self.show_progress)
+        self.show_all()
+
+    def move(self):
+        AsyncCall(self._move_game, self.on_game_moved)
+
+    def show_progress(self):
+        self.progress.pulse()
+        return True
+
+    def _move_game(self):
+        self.new_directory = self.game.move(self.destination)
+
+    def on_game_moved(self, _result, error):
+        if error:
+            ErrorDialog(str(error))
+        self.emit("game-moved")
+        self.destroy()
