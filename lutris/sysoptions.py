@@ -182,7 +182,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Reduce PulseAudio latency"),
         "default": False,
         "advanced": True,
-        "condition": system.find_executable("pulseaudio"),
+        "condition": system.find_executable("pulseaudio") or system.find_executable("pipewire-pulse"),
         "help": _("Set the environment variable PULSE_LATENCY_MSEC=60 "
                   "to improve audio quality on some games"),
     },
