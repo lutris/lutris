@@ -3,6 +3,7 @@ import os
 from lutris.config import write_game_config
 from lutris.database.games import add_game, get_games
 from lutris.game import Game
+from lutris.util.log import logger
 from lutris.util.retroarch.core_config import RECOMMENDED_CORES
 from lutris.util.strings import slugify
 
@@ -30,7 +31,20 @@ EXTRA_FLAGS = [
 ]
 
 
+def clean_rom_name(name):
+    """Remove known flags from ROM filename and apply formatting"""
+    for flag in ROM_FLAGS:
+        name = name.replace(" (%s)" % flag, "")
+    for flag in EXTRA_FLAGS:
+        name = name.replace("[%s]" % flag, "")
+    if ", The" in name:
+        name = "The %s" % name.replace(", The", "")
+    name = name.strip()
+    return name
+
+
 def scan_directory(dirname):
+    """Add a directory of ROMs as Lutris games"""
     files = os.listdir(dirname)
     folder_extentions = {os.path.splitext(filename)[1] for filename in files}
     core_matches = {}
@@ -43,14 +57,7 @@ def scan_directory(dirname):
         name, ext = os.path.splitext(filename)
         if ext not in core_matches:
             continue
-        for flag in ROM_FLAGS:
-            name = name.replace(" (%s)" % flag, "")
-        for flag in EXTRA_FLAGS:
-            name = name.replace("[%s]" % flag, "")
-        if ", The" in name:
-            name = "The %s" % name.replace(", The", "")
-        name = name.strip()
-        print("Importing '%s'" % name)
+        logger.info("Importing '%s'", name)
         slug = slugify(name)
         core = core_matches[ext]
         config = {
@@ -60,7 +67,7 @@ def scan_directory(dirname):
             }
         }
         installer_slug = "%s-libretro-%s" % (slug, core)
-        existing_game = get_games(filters={"installer_slug": installer_slug, "installed": "1"})
+        existing_game = get_games(filters={"installer_slug": installer_slug})
         if existing_game:
             game = Game(existing_game[0]["id"])
             game.remove()
@@ -74,6 +81,5 @@ def scan_directory(dirname):
             installer_slug=installer_slug,
             configpath=configpath
         )
-        print("Imported %s" % name)
         added_games.append(game_id)
     return added_games
