@@ -1,4 +1,5 @@
-from lutris.util import system
+import os
+
 from lutris.util.log import logger
 
 
@@ -25,11 +26,12 @@ class RetroConfig:
                 "be read because of character encoding issues",
                 self.config_path
             )
+            return []
 
     def load_config(self):
         """Load the configuration from file"""
         self._config = []
-        if not system.path_exists(self.config_path):
+        if not os.path.isfile(self.config_path):
             raise OSError("Specified config file {} does not exist".format(self.config_path))
         with open(self.config_path, "r") as config_file:
             for line in config_file.readlines():

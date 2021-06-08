@@ -13,6 +13,7 @@ from lutris.services.lutris import LutrisService
 from lutris.services.mame import MAMEService
 from lutris.services.origin import OriginService
 from lutris.services.steam import SteamService
+from lutris.services.steamwindows import SteamWindowsService
 from lutris.services.ubisoft import UbisoftConnectService
 from lutris.services.xdg import XDGService
 from lutris.util import system
@@ -32,8 +33,9 @@ def get_services():
     }
     if LINUX_SYSTEM.has_steam:
         _services["steam"] = SteamService
+    _services["steamwindows"] = SteamWindowsService
     if system.path_exists(DOLPHIN_GAME_CACHE_FILE):
-        _services["dolphin"]: DolphinService
+        _services["dolphin"] = DolphinService
     return _services
 
 

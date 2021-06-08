@@ -50,35 +50,22 @@ class SteamGame(ServiceGame):
 
     service = "steam"
     installer_slug = "steam"
-    excluded_appids = [
-        "228980",  # Steamworks Common Redistributables
-        "1070560",  # Steam Linux Runtime
-    ]
+    runner = "steam"
 
     @classmethod
     def new_from_steam_game(cls, steam_game, game_id=None):
         """Return a Steam game instance from an AppManifest"""
-        game = SteamGame()
+        game = cls()
         game.appid = steam_game["appid"]
         game.game_id = steam_game["appid"]
         game.name = steam_game["name"]
         game.slug = slugify(steam_game["name"])
-        game.runner = "steam"
+        game.runner = cls.runner
         game.details = json.dumps(steam_game)
         return game
 
-    @classmethod
-    def is_importable(cls, appmanifest):
-        """Return whether a Steam game should be imported"""
-        if appmanifest.steamid in cls.excluded_appids:
-            return False
-        if re.match(r"^Proton \d*", appmanifest.name):
-            return False
-        return True
-
 
 class SteamService(BaseService):
-
     id = "steam"
     name = _("Steam")
     icon = "steam-client"
@@ -89,6 +76,12 @@ class SteamService(BaseService):
     }
     default_format = "banner"
     is_loading = False
+    runner = "steam"
+    excluded_appids = [
+        "228980",  # Steamworks Common Redistributables
+        "1070560",  # Steam Linux Runtime
+    ]
+    game_class = SteamGame
 
     def load(self):
         """Return importable Steam games"""
@@ -105,7 +98,10 @@ class SteamService(BaseService):
             return
         steam_games = get_steam_library(steamid)
         for steam_game in steam_games:
-            game = SteamGame.new_from_steam_game(steam_game)
+            if steam_game["appid"] in self.excluded_appids:
+                continue
+            print(self.game_class)
+            game = self.game_class.new_from_steam_game(steam_game)
             game.save()
 
         self.match_games()
@@ -129,9 +125,9 @@ class SteamService(BaseService):
         return {
             "name": db_game["name"],
             "version": "Steam",
-            "slug": slugify(db_game["name"]) + "-steam",
+            "slug": slugify(db_game["name"]) + "-" + self.id,
             "game_slug": slugify(db_game["name"]),
-            "runner": "steam",
+            "runner": self.runner,
             "appid": db_game["appid"],
             "script": {
                 "game": {"appid": db_game["appid"]}
