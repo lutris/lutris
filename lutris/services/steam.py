@@ -1,7 +1,6 @@
 """Steam service"""
 import json
 import os
-import re
 from gettext import gettext as _
 
 from gi.repository import Gio
@@ -78,6 +77,7 @@ class SteamService(BaseService):
     is_loading = False
     runner = "steam"
     excluded_appids = [
+        "221410",  # Steam for Linux
         "228980",  # Steamworks Common Redistributables
         "1070560",  # Steam Linux Runtime
     ]
@@ -100,7 +100,6 @@ class SteamService(BaseService):
         for steam_game in steam_games:
             if steam_game["appid"] in self.excluded_appids:
                 continue
-            print(self.game_class)
             game = self.game_class.new_from_steam_game(steam_game)
             game.save()
 
@@ -124,7 +123,7 @@ class SteamService(BaseService):
         """Generate a basic Steam installer"""
         return {
             "name": db_game["name"],
-            "version": "Steam",
+            "version": self.name,
             "slug": slugify(db_game["name"]) + "-" + self.id,
             "game_slug": slugify(db_game["name"]),
             "runner": self.runner,
@@ -136,7 +135,7 @@ class SteamService(BaseService):
 
     def install(self, db_game):
         appid = db_game["appid"]
-        db_games = get_games(filters={"service_id": appid, "installed": "1", "service": "steam"})
+        db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.id})
         existing_game = self.match_existing_game(db_games, appid)
         if existing_game:
             logger.debug("Found steam game: %s", existing_game)

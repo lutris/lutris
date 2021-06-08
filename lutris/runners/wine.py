@@ -575,10 +575,10 @@ class wine(Runner):
             logger.warning("The game doesn't have an executable")
             return
         if exe and os.path.isabs(exe):
-            return exe
+            return system.fix_path_case(exe)
         if not self.game_path:
             return
-        exe = os.path.join(self.game_path, exe)
+        exe = system.fix_path_case(os.path.join(self.game_path, exe))
         if system.path_exists(exe):
             return exe
 
