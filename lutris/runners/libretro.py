@@ -33,16 +33,16 @@ def get_libretro_cores():
                 logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
         # Parse info files to fetch display name and platform/system
         if os.path.exists(info_path):
-            with os.scandir(info_path) as it:
-                for entry in it:
-                    if entry.is_file():
-                        core_identifier = entry.name.replace("_libretro.info", "")
-                        core_config = RetroConfig(entry)
-                        if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
-                            core_label = core_config["display_name"] or ""
-                            core_system = core_config["systemname"] or ""
-                            cores.append((core_label, core_identifier, core_system))
-                cores.sort(key=itemgetter(0))
+            for info_file in os.listdir(info_path):
+                if "_libretro.info" not in info_file:
+                    continue
+                core_identifier = info_file.replace("_libretro.info", "")
+                core_config = RetroConfig(os.path.join(info_path, info_file))
+                if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
+                    core_label = core_config["display_name"] or ""
+                    core_system = core_config["systemname"] or ""
+                    cores.append((core_label, core_identifier, core_system))
+            cores.sort(key=itemgetter(0))
     if not cores:
         logger.warning("No cores found")
     return cores
