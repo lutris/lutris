@@ -145,7 +145,7 @@ class GameActions:
 
     def on_show_logs(self, _widget):
         """Display game log"""
-        _buffer = LOG_BUFFERS.get(self.game.id)
+        _buffer = LOG_BUFFERS.get(str(self.game.id))
         if not _buffer:
             logger.info("No log for game %s", self.game)
         return LogWindow(
