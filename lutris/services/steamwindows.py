@@ -2,10 +2,10 @@ from gettext import gettext as _
 
 from gi.repository import Gio
 
-from lutris.services.steam import SteamService, SteamGame
 from lutris.database.games import get_game_by_field, get_games
-from lutris.util.log import logger
 from lutris.game import Game
+from lutris.services.steam import SteamGame, SteamService
+from lutris.util.log import logger
 from lutris.util.strings import slugify
 
 STEAM_INSTALLER = "steam-wine"  # Lutris installer used to setup the Steam client
