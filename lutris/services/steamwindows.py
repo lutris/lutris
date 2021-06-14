@@ -23,8 +23,9 @@ class SteamWindowsService(SteamService):
     runner = "wine"
     game_class = SteamWindowsGame
 
-    def generate_installer(self, db_game, steam_game):
+    def generate_installer(self, db_game, steam_db_game):
         """Generate a basic Steam installer"""
+        steam_game = Game(steam_db_game["id"])
         return {
             "name": db_game["name"],
             "version": self.name,
@@ -34,7 +35,11 @@ class SteamWindowsService(SteamService):
             "appid": db_game["appid"],
             "script": {
                 "requires": "steam-wine",
-                "game": {"appid": db_game["appid"]}
+                "game": {
+                    "exe": steam_game.config.game_config["exe"],
+                    "args": "-no-cef-sandbox -applaunch %s" % db_game["appid"],
+                    "prefix": steam_game.config.game_config["prefix"],
+                }
             }
         }
 

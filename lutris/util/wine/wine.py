@@ -254,7 +254,6 @@ def get_default_version():
 def get_wine_version(wine_path="wine"):
     """Return the version of Wine installed on the system."""
     if wine_path != "wine" and not system.path_exists(wine_path):
-        logger.warning("Non existent Wine path: %s", wine_path)
         return
     if wine_path == "wine" and not system.find_executable("wine"):
         return
