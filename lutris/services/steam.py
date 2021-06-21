@@ -143,6 +143,7 @@ class SteamService(BaseService):
             installed=1,
             installer_slug=lutris_game_id,
             configpath=configpath,
+            platform="Linux",
             service=self.id,
             service_id=appid,
         )

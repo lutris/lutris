@@ -8,8 +8,8 @@ class RunnerConfigDialog(GameDialogCommon):
     """Runner config edit dialog."""
 
     def __init__(self, runner, parent=None):
-        self.runner_name = runner.__class__.__name__
         super().__init__(_("Configure %s") % runner.human_name, parent=parent)
+        self.runner_name = runner.__class__.__name__
         self.saved = False
         self.lutris_config = LutrisConfig(runner_slug=self.runner_name)
         self.build_notebook()
