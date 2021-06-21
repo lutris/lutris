@@ -127,7 +127,6 @@ class SteamService(BaseService):
             return
         service_game = ServiceGameCollection.get_game(self.id, appid)
         if not service_game:
-            logger.error("Unable to find %s (%s) in Steam library", appid, manifest.name)
             return
         lutris_game_id = "%s-%s" % (self.id, appid)
         existing_game = get_game_by_field(lutris_game_id, "slug")

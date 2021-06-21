@@ -28,5 +28,4 @@ def download_icons(media_urls, service_media):
                 path = None
             if system.path_exists(path):
                 icons[slug] = path
-    logger.warning("%s icons loaded", len(icons))
     return icons

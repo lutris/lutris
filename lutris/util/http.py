@@ -128,7 +128,7 @@ class Request:
 
     def write_to_file(self, path):
         content = self.content
-        logger.info("Writing to %s", path)
+        logger.debug("Writing to %s", path)
         if not content:
             logger.warning("No content to write")
             return
