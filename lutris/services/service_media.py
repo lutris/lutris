@@ -76,7 +76,7 @@ class ServiceMedia:
         if system.path_exists(cache_path):
             cache_stats = os.stat(cache_path)
             # Empty files have a life time between 1 and 2 weeks, retry them after
-            if time.time() - cache_stats < 3600 * 24 * random.choice(range(7, 15)):
+            if time.time() - cache_stats.st_mtime < 3600 * 24 * random.choice(range(7, 15)):
                 return
             os.unlink(cache_stats)
         try:
