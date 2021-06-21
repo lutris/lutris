@@ -1,6 +1,6 @@
 """Handle Steam configuration"""
 import os
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 
 import requests
 
@@ -141,33 +141,6 @@ def read_config(steam_data_dir):
         logger.error("Steam config %s is empty: %s", config_filename, ex)
 
 
-def get_steamapps_paths_for_platform(platform_name):
-    from lutris.runners import steam, winesteam  # pylint: disable=import-outside-toplevel
-
-    runners = {"linux": steam.steam, "windows": winesteam.winesteam}
-    runner = runners[platform_name]()
-    return runner.get_steamapps_dirs()
-
-
-def get_steamapps_paths(flat=False, platform=None):
-    base_platforms = ["linux", "windows"]
-    if flat:
-        steamapps_paths = []
-    else:
-        steamapps_paths = defaultdict(list)
-
-    if platform:
-        if platform not in base_platforms:
-            raise ValueError("Illegal value for Steam platform: %s" % platform)
-        platforms = [platform]
-    else:
-        platforms = base_platforms
-
-    for _platform in platforms:
-        folders = get_steamapps_paths_for_platform(_platform)
-        if flat:
-            steamapps_paths += folders
-        else:
-            steamapps_paths[_platform] = folders
-
-    return steamapps_paths
+def get_steamapps_paths():
+    from lutris.runners import steam  # pylint: disable=import-outside-toplevel
+    return steam.steam().get_steamapps_dirs()

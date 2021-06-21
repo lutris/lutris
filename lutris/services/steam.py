@@ -6,14 +6,17 @@ from gettext import gettext as _
 from gi.repository import Gio
 
 from lutris import settings
-from lutris.database.games import get_games
+from lutris.config import LutrisConfig, write_game_config
+from lutris.database.games import add_game, get_game_by_field, get_games
+from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
-from lutris.util.steam.config import get_steam_library, get_user_steam_id
+from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
+from lutris.util.steam.config import get_steam_library, get_steamapps_paths, get_user_steam_id
 from lutris.util.strings import slugify
 
 
@@ -114,6 +117,45 @@ class SteamService(BaseService):
                 "filename": appid
             })
         ]
+
+    def install_from_steam(self, manifest):
+        """Create a new Lutris game based on an existing Steam install"""
+        if not manifest.is_installed():
+            return
+        appid = manifest.steamid
+        if appid in self.excluded_appids:
+            return
+        service_game = ServiceGameCollection.get_game(self.id, appid)
+        if not service_game:
+            logger.error("Unable to find %s (%s) in Steam library", appid, manifest.name)
+            return
+        lutris_game_id = "%s-%s" % (self.id, appid)
+        existing_game = get_game_by_field(lutris_game_id, "slug")
+        if existing_game:
+            return
+        game_config = LutrisConfig().game_level
+        game_config["game"]["appid"] = appid
+        configpath = write_game_config(lutris_game_id, game_config)
+        game_id = add_game(
+            name=service_game["name"],
+            runner="steam",
+            slug=lutris_game_id,
+            installed=1,
+            installer_slug=lutris_game_id,
+            configpath=configpath,
+            service=self.id,
+            service_id=appid,
+        )
+        return game_id
+
+    def add_installed_games(self):
+        games = []
+        steamapps_paths = get_steamapps_paths()
+        for steamapps_path in steamapps_paths:
+            for appmanifest_file in get_appmanifests(steamapps_path):
+                app_manifest_path = os.path.join(steamapps_path, appmanifest_file)
+                self.install_from_steam(AppManifest(app_manifest_path))
+        return games
 
     def generate_installer(self, db_game):
         """Generate a basic Steam installer"""

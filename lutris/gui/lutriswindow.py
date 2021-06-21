@@ -120,7 +120,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.connect("view-updated", self.update_store)
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
-        GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_collection_changed)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
@@ -581,13 +580,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Shows or hide uninstalled games"""
         settings.write_setting("filter_installed", bool(filter_installed))
         self.filters["installed"] = filter_installed
-
-    def on_service_games_updating(self, service):
-        """Request a view update when service games are loaded"""
-        if not self.service or service.id != self.service.id:
-            return
-        self.show_spinner()
-        return True
 
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
