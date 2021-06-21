@@ -15,6 +15,10 @@ from lutris.util.log import logger
 class HTTPError(Exception):
     """Exception raised on request failures"""
 
+    def __init__(self, message, code=None):
+        super().__init__(message)
+        self.code = code
+
 
 class UnauthorizedAccess(Exception):
     """Exception raised for 401 HTTP errors"""
@@ -87,7 +91,7 @@ class Request:
         except (urllib.error.HTTPError, CertificateError) as error:
             if error.code == 401:
                 raise UnauthorizedAccess("Access to %s denied" % self.url)
-            raise HTTPError("Request to %s failed: %s" % (self.url, error))
+            raise HTTPError("%s" % error, code=error.code)
         except (socket.timeout, urllib.error.URLError) as error:
             raise HTTPError("Unable to connect to server %s: %s" % (self.url, error))
         try:
@@ -151,7 +155,7 @@ class Request:
         return ""
 
 
-def download_file(url, dest, overwrite=False):
+def download_file(url, dest, overwrite=False, raise_errors=False):
     """Save a remote resource locally"""
     if system.path_exists(dest):
         if overwrite:
@@ -163,6 +167,8 @@ def download_file(url, dest, overwrite=False):
     try:
         request = Request(url).get()
     except HTTPError as ex:
+        if raise_errors:
+            raise
         logger.error("Failed to get url %s: %s", url, ex)
         return None
     request.write_to_file(dest)

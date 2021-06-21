@@ -11,6 +11,7 @@ from lutris.database.games import add_game, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
+from lutris.gui.views.media_loader import download_icons
 from lutris.installer import fetch_script
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
@@ -44,6 +45,25 @@ class BaseService(GObject.Object):
         if self._matcher:
             return self._matcher
         return self.id
+
+    def reload(self):
+        """Refresh the service's games"""
+        self.emit("service-games-load")
+        self.wipe_game_cache()
+        self.load()
+        self.load_icons()
+        self.add_installed_games()
+        self.emit("service-games-loaded")
+
+    def load(self):
+        logger.warning("Load method not implemented")
+
+    def load_icons(self):
+        """Download all game media from the service"""
+        for icon_type in self.medias:
+            service_media = self.medias[icon_type]()
+            media_urls = service_media.get_media_urls()
+            download_icons(media_urls, service_media)
 
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)

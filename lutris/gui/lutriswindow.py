@@ -282,9 +282,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             GLib.idle_add(self.load_icons, {g["slug"]: g["banner_url"] for g in api_games}, LutrisBanner)
         return api_games
 
-    def load_icons(self, media_urls, service_media):
-        self.game_store.media_loader.download_icons(media_urls, service_media())
-
     def game_matches(self, game):
         if self.filters.get("installed"):
             if game["appid"] not in games_db.get_service_games(self.service.id):
@@ -374,12 +371,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             excludes=excludes,
             sorts=self.sort_params
         )
-
-    def on_service_games_updating(self, service):
-        if not self.service or service.id != self.service.id:
-            return
-        self.show_spinner()
-        return True
 
     def get_sql_filters(self):
         """Return the current filters for the view"""
@@ -488,11 +479,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if icon_type != self.icon_type:
             self.save_icon_type(icon_type)
             self.show_spinner()
-            GLib.timeout_add(100, self._load_icons)
-
-    def _load_icons(self):
-        AsyncCall(self.game_store.load_icons, None)
-        return False
 
     def show_label(self, message):
         """Display a label in the middle of the UI"""
@@ -596,6 +582,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         settings.write_setting("filter_installed", bool(filter_installed))
         self.filters["installed"] = filter_installed
 
+    def on_service_games_updating(self, service):
+        """Request a view update when service games are loaded"""
+        if not self.service or service.id != self.service.id:
+            return
+        self.show_spinner()
+        return True
+
     def on_service_games_updated(self, service):
         """Request a view update when service games are loaded"""
         if self.service and service.id == self.service.id:
@@ -603,7 +596,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return True
 
     def on_service_login(self, service):
-        AsyncCall(service.load, None)
+        AsyncCall(service.reload, None)
         return True
 
     def on_service_logout(self, service):

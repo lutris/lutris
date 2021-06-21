@@ -130,13 +130,11 @@ class GOGService(OnlineService):
             logger.error("User not connected to GOG")
             return
         self.is_loading = True
-        self.emit("service-games-load")
         games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
         for game in games:
             game.save()
         self.match_games()
         self.is_loading = False
-        self.emit("service-games-loaded")
         return games
 
     def login_callback(self, url):

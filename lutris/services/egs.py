@@ -217,7 +217,6 @@ class EpicGamesStoreService(OnlineService):
             logger.warning("EGS games are already loading")
             return
         self.is_loading = True
-        self.emit("service-games-load")
         try:
             library = self.get_library()
         except Exception as ex:  # pylint=disable:broad-except
@@ -230,7 +229,6 @@ class EpicGamesStoreService(OnlineService):
             egs_game.save()
             egs_games.append(egs_game)
         self.is_loading = False
-        self.emit("service-games-loaded")
         return egs_games
 
     def install_from_egs(self, egs_game, manifest):

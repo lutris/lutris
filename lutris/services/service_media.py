@@ -1,5 +1,7 @@
 import json
 import os
+import random
+import time
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
@@ -69,10 +71,20 @@ class ServiceMedia:
         if not url:
             return
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
-        if system.path_exists(cache_path):
+        if system.path_exists(cache_path, exclude_empty=True):
             return
+        if system.path_exists(cache_path):
+            cache_stats = os.stat(cache_path)
+            # Empty files have a life time between 1 and 2 weeks, retry them after
+            if time.time() - cache_stats < 3600 * 24 * random.choice(range(7, 15)):
+                return
+            os.unlink(cache_stats)
         try:
-            return download_file(url, cache_path)
-        except HTTPError:
+            return download_file(url, cache_path, raise_errors=True)
+        except HTTPError as ex:
+            if ex.code == 404:
+                open(cache_path, "a").close()
+            else:
+                logger.error(ex.code)
             return None
         return cache_path

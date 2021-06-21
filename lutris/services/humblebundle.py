@@ -98,7 +98,6 @@ class HumbleBundleService(OnlineService):
         except ValueError:
             logger.error("Failed to get Humble Bundle library. Try logging out and back-in.")
             return
-        self.emit("service-games-load")
         humble_games = []
         seen = set()
         for game in library:
@@ -109,7 +108,6 @@ class HumbleBundleService(OnlineService):
         for game in humble_games:
             game.save()
         self.is_loading = False
-        self.emit("service-games-loaded")
         return humble_games
 
     def make_api_request(self, url):

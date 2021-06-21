@@ -89,24 +89,20 @@ class SteamService(BaseService):
             logger.warning("Steam games are already loading")
             return
         self.is_loading = True
-        self.emit("service-games-load")
-
         steamid = get_user_steam_id()
         if not steamid:
             logger.error("Unable to find SteamID from Steam config")
-            self.emit("service-games-loaded")
             return
         steam_games = get_steam_library(steamid)
+        if not steam_games:
+            raise RuntimeError(_("Failed to load games. Check that your profile is set to public during the sync."))
         for steam_game in steam_games:
             if steam_game["appid"] in self.excluded_appids:
                 continue
             game = self.game_class.new_from_steam_game(steam_game)
             game.save()
-
         self.match_games()
         self.is_loading = False
-        logger.debug("%d Steam games loaded", len(steam_games))
-        self.emit("service-games-loaded")
         return steam_games
 
     def get_installer_files(self, installer, installer_file_id):

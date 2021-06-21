@@ -10,7 +10,7 @@ from lutris.api import read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
-from lutris.gui.views.media_loader import MediaLoader
+from lutris.gui.views.media_loader import download_icons
 from lutris.installer import fetch_script
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
@@ -124,7 +124,6 @@ class LutrisService(OnlineService):
         if self.is_loading:
             logger.warning("Lutris games are already loading")
             return
-        self.emit("service-games-load")
         self.is_loading = True
         lutris_games = self.get_library()
         for game in lutris_games:
@@ -134,7 +133,6 @@ class LutrisService(OnlineService):
         self.match_games()
         self.is_loading = False
         logger.debug("Lutris games loaded")
-        self.emit("service-games-loaded")
         return lutris_games
 
     def install(self, db_game):
@@ -162,10 +160,8 @@ def download_lutris_media(slug):
     response_data = response.json
     icon_url = response_data.get("icon_url")
     if icon_url:
-        icon_loader = MediaLoader()
-        icon_loader.download_icons({slug: icon_url}, LutrisIcon())
+        download_icons({slug: icon_url}, LutrisIcon())
 
     banner_url = response_data.get("banner_url")
     if banner_url:
-        banner_loader = MediaLoader()
-        banner_loader.download_icons({slug: banner_url}, LutrisBanner())
+        download_icons({slug: banner_url}, LutrisBanner())

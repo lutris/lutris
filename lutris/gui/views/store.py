@@ -1,7 +1,5 @@
 """Store object for a list of games"""
-# pylint: disable=not-an-iterable
 import time
-from copy import copy
 
 from gi.repository import GLib, GObject, Gtk
 from gi.repository.GdkPixbuf import Pixbuf
@@ -9,11 +7,8 @@ from gi.repository.GdkPixbuf import Pixbuf
 from lutris import settings
 from lutris.database import sql
 from lutris.database.games import get_games
-from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
-from lutris.gui.widgets.utils import get_pixbuf
-from lutris.services.base import BaseService
-from lutris.util.log import logger
+# pylint: disable=not-an-iterable
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -71,7 +66,6 @@ class GameStore(GObject.Object):
         self._installed_games = []
         self._installed_games_accessed = False
         self._icon_updates = {}
-        self._icon_update_timer = None
 
         self.store = Gtk.ListStore(
             str,
@@ -90,10 +84,6 @@ class GameStore(GObject.Object):
             float,
             str,
         )
-        self.media_loader = MediaLoader()
-        self.media_loader.connect("icon-loaded", self.on_icon_loaded)
-
-        GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
 
     @property
     def installed_game_slugs(self):
@@ -102,11 +92,6 @@ class GameStore(GObject.Object):
         if self._installed_games_accessed - previous_access > 1:
             self._installed_games = [g["slug"] for g in get_games(filters={"installed": "1"})]
         return self._installed_games
-
-    def load_icons(self):
-        """Downloads the icons for a service"""
-        media_urls = self.service_media.get_media_urls()
-        self.media_loader.download_icons(media_urls, self.service_media)
 
     def add_games(self, games):
         """Add games to the store"""
@@ -196,34 +181,3 @@ class GameStore(GObject.Object):
         for db_game in db_games:
             GLib.idle_add(self.update, db_game)
         return True
-
-    def on_service_games_updated(self, service):
-        """Reload icons when service games are loaded"""
-        if not self.service or service.id != self.service.id:
-            return True
-        GLib.idle_add(self.load_icons)
-        return True
-
-    def on_icon_loaded(self, _media_loader, rowid, path):
-        """Callback for the icon-loaded signal.
-        Stacks all icon updates together and set up a timed function
-        to update all of them at once.
-        """
-        self._icon_updates[rowid] = path
-        if self._icon_update_timer:
-            GLib.source_remove(self._icon_update_timer)
-        self._icon_update_timer = GLib.timeout_add(2000, self.update_icons)
-
-    def update_icons(self):
-        """Updates the store with newly updated icons"""
-        icon_updates = copy(self._icon_updates)
-        self._icon_updates = {}
-        logger.debug("Updating %s icons", len(icon_updates))
-        for rowid in icon_updates:
-            row = self.get_row_by_id(rowid)
-            if not row:
-                continue
-            path = icon_updates[rowid]
-            installed = rowid in self.installed_game_slugs
-            row[COL_ICON] = get_pixbuf(path, self.service_media.size, is_installed=installed)
-        return False

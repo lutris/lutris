@@ -13,7 +13,6 @@ from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.services.base import BaseService
 from lutris.util.jobs import AsyncCall
-from lutris.util.log import logger
 
 TYPE = 0
 SLUG = 1
@@ -133,20 +132,12 @@ class ServiceSidebarRow(SidebarRow):
         if self.service.online and not self.service.is_connected():
             self.service.logout()
             return
+        AsyncCall(self.service.reload, self.service_load_cb)
 
-        self.service.wipe_game_cache()
-        AsyncCall(self.service.load, self.service_load_cb)
-
-    def service_load_cb(self, games, error):
-        if games is None:
-            logger.warning("No game returned from the service")
-        if not error and not games and self.service.id == "steam":
-            # This should not be handled here, the steam service should raise an error
-            error = _("Failed to load games. Check that your profile is set to public during the sync.")
+    def service_load_cb(self, _result, error):
         if error:
             ErrorDialog(str(error))
-        AsyncCall(self.service.add_installed_games, None)
-        GLib.timeout_add(5000, self.enable_refresh_button)
+        GLib.timeout_add(2000, self.enable_refresh_button)
 
     def enable_refresh_button(self):
         self.buttons["refresh"].set_sensitive(True)

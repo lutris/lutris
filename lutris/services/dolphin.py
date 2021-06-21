@@ -30,13 +30,11 @@ class DolphinService(BaseService):
 
     def load(self):
         if not system.path_exists(DOLPHIN_GAME_CACHE_FILE):
-            self.emit("service-games-loaded")
             return
         cache_reader = DolphinCacheReader()
         dolphin_games = [DolphinGame.new_from_cache(game) for game in cache_reader.get_games()]
         for game in dolphin_games:
             game.save()
-        self.emit("service-games-loaded")
         return dolphin_games
 
     def generate_installer(self, db_game):
