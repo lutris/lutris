@@ -78,7 +78,7 @@ class ServiceMedia:
             # Empty files have a life time between 1 and 2 weeks, retry them after
             if time.time() - cache_stats.st_mtime < 3600 * 24 * random.choice(range(7, 15)):
                 return
-            os.unlink(cache_stats)
+            os.unlink(cache_path)
         try:
             return download_file(url, cache_path, raise_errors=True)
         except HTTPError as ex:
