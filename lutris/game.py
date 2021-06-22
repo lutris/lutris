@@ -144,7 +144,7 @@ class Game(GObject.Object):
     @property
     def log_buffer(self):
         """Access the log buffer object, creating it if necessary"""
-        _log_buffer = LOG_BUFFERS.get(self.id)
+        _log_buffer = LOG_BUFFERS.get(str(self.id))
         if _log_buffer:
             return _log_buffer
         _log_buffer = Gtk.TextBuffer()
@@ -152,7 +152,7 @@ class Game(GObject.Object):
         if self.game_thread:
             self.game_thread.set_log_buffer(self._log_buffer)
             _log_buffer.set_text(self.game_thread.stdout)
-        LOG_BUFFERS[self.id] = _log_buffer
+        LOG_BUFFERS[str(self.id)] = _log_buffer
         return _log_buffer
 
     @property
@@ -480,8 +480,8 @@ class Game(GObject.Object):
             raise RuntimeError("Tried to launch a game that isn't installed")
         self.load_config()  # Reload the config before launching it.
 
-        if self.id in LOG_BUFFERS:  # Reset game logs on each launch
-            LOG_BUFFERS.pop(self.id)
+        if str(self.id) in LOG_BUFFERS:  # Reset game logs on each launch
+            LOG_BUFFERS.pop(str(self.id))
 
         if not self.runner:
             dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
