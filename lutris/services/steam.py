@@ -138,7 +138,7 @@ class SteamService(BaseService):
         game_id = add_game(
             name=service_game["name"],
             runner="steam",
-            slug=lutris_game_id,
+            slug=slugify(service_game["name"]),
             installed=1,
             installer_slug=lutris_game_id,
             configpath=configpath,

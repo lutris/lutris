@@ -154,7 +154,7 @@ def run_all_checks():
 
 def init_lutris():
     """Run full initialization of Lutris"""
-    logger.info("Initializing lutris")
+    logger.info("Starting Lutris %s", settings.VERSION)
     runners.inject_runners(load_json_runners())
     # Load runner names and platforms
     runners.RUNNER_NAMES = runners.get_runner_names()
@@ -184,4 +184,4 @@ def init_lutris():
     if not dxvk_manager.is_available():
         logger.info("DXVK %s not available, downloading...", dxvk_manager.version)
         dxvk_manager.download()
-    logger.info("Runtime updated. Initialization complete.")
+    logger.info("Startup complete")

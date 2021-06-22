@@ -315,7 +315,6 @@ class Application(Gtk.Application):
             logger.setLevel(logging.NOTSET)
             return 0
 
-        logger.info("Lutris %s", settings.VERSION)
         migrate()
         run_all_checks()
 

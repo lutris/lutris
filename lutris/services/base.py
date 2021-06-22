@@ -13,11 +13,35 @@ from lutris.game import Game
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.gui.views.media_loader import download_icons
 from lutris.installer import fetch_script
+from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
 
 PGA_DB = settings.PGA_DB
+
+
+class LutrisBanner(ServiceMedia):
+    service = 'lutris'
+    size = (184, 69)
+    dest_path = settings.BANNER_PATH
+    file_pattern = "%s.jpg"
+    api_field = 'banner_url'
+    url_pattern = "https://lutris.net/games/banner/%s.jpg"
+
+    def get_media_urls(self):
+        return {
+            game["slug"]: self.url_pattern % game["slug"]
+            for game in get_games()
+        }
+
+
+class LutrisIcon(LutrisBanner):
+    size = (32, 32)
+    dest_path = settings.ICON_PATH
+    file_pattern = "lutris_%s.png"
+    api_field = 'icon_url'
+    url_pattern = "https://lutris.net/games/icon/%s.png"
 
 
 class BaseService(GObject.Object):
@@ -64,6 +88,11 @@ class BaseService(GObject.Object):
             service_media = self.medias[icon_type]()
             media_urls = service_media.get_media_urls()
             download_icons(media_urls, service_media)
+        if self.id != "lutris":
+            for service_media_class in (LutrisIcon, LutrisBanner):
+                service_media = service_media_class()
+                media_urls = service_media.get_media_urls()
+                download_icons(media_urls, service_media)
 
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)
@@ -77,7 +106,6 @@ class BaseService(GObject.Object):
         """Match a service game to a lutris game referenced by its slug"""
         if not service_game:
             return
-        logger.debug("Matching service game %s with API game %s", service_game, api_game)
         conditions = {"appid": service_game["appid"], "service": self.id}
         sql.db_update(
             PGA_DB,

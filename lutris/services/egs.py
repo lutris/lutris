@@ -245,7 +245,7 @@ class EpicGamesStoreService(OnlineService):
         game_id = add_game(
             name=service_game["name"],
             runner=egs_game["runner"],
-            slug="egs-" + app_name,
+            slug=slugify(service_game["name"]),
             directory=egs_game["directory"],
             installed=1,
             installer_slug="egs-" + app_name,

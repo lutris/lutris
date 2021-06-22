@@ -18,7 +18,6 @@ def fetch_dxvk_versions():
     if not os.path.isdir(dxvk_path):
         os.mkdir(dxvk_path)
     versions_path = os.path.join(dxvk_path, "dxvk_versions.json")
-    logger.info("Downloading DXVK releases to %s", versions_path)
     return download_file(DXVK_RELEASES_URL, versions_path, overwrite=True)
 
 
