@@ -76,6 +76,7 @@ SYSTEM_COMPONENTS = {
         "WINE": ["libsqlite3.so.0"],
         "RADEON": ["libvulkan_radeon.so"],
         "GAMEMODE": ["libgamemodeauto.so"],
+        "GNUTLS": ["libgnutls.so.30"],
     },
 }
 
@@ -100,7 +101,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     ]
 
     recommended_no_file_open = 524288
-    required_components = ["OPENGL", "VULKAN"]
+    required_components = ["OPENGL", "VULKAN", "GNUTLS"]
     optional_components = ["WINE", "GAMEMODE"]
 
     flatpak_info_path = "/.flatpak-info"
@@ -369,7 +370,6 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
 
 class SharedLibrary:
-
     """Representation of a Linux shared library"""
 
     default_arch = "i386"
