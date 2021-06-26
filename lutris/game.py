@@ -357,7 +357,7 @@ class Game(GObject.Object):
     def start_prelaunch_command(self):
         """Start the prelaunch command specified in the system options"""
         prelaunch_command = self.runner.system_config.get("prelaunch_command")
-        command_array = shlex.split(prelaunch_command)
+        command_array = shlex.split(shlex.quote(prelaunch_command))
         if not system.path_exists(command_array[0]):
             logger.warning("Command %s not found", command_array[0])
             return
@@ -615,7 +615,7 @@ class Game(GObject.Object):
         # Check for post game script
         postexit_command = self.runner.system_config.get("postexit_command")
         if postexit_command:
-            command_array = shlex.split(postexit_command)
+            command_array = shlex.split(shlex.quote(postexit_command))
             if system.path_exists(command_array[0]):
                 logger.info("Running post-exit command: %s", postexit_command)
                 postexit_thread = MonitoredCommand(
