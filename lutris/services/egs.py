@@ -25,21 +25,28 @@ class DieselGameMedia(ServiceMedia):
     def get_media_url(self, detail):
         for image in detail.get("keyImages", []):
             if image["type"] == self.api_field:
-                return image["url"]
+                return image["url"] + "?w=%s&resize=1&h=%s" % (self.size[0], self.size[1])
 
 
 class DieselGameBoxTall(DieselGameMedia):
     """EGS tall game box"""
-    size = (256, 284)
+    size = (200, 267)
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box_tall")
     api_field = "DieselGameBoxTall"
 
 
 class DieselGameBox(DieselGameMedia):
     """EGS game box"""
-    size = (256, 144)
+    size = (316, 178)
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box")
-    api_field = "DieselGameBoxTall"
+    api_field = "DieselGameBox"
+
+
+class DieselGameBoxLogo(DieselGameMedia):
+    """EGS game box"""
+    size = (200, 100)
+    dest_path = os.path.join(settings.CACHE_DIR, "egs/game_logo")
+    api_field = "DieselGameBoxLogo"
 
 
 class EGSGame(ServiceGame):
@@ -67,8 +74,9 @@ class EpicGamesStoreService(OnlineService):
     medias = {
         "game_box": DieselGameBox,
         "box_tall": DieselGameBoxTall,
+        "logo": DieselGameBoxLogo,
     }
-    default_format = "game_box"
+    default_format = "box_tall"
     requires_login_page = True
     cookies_path = os.path.join(settings.CACHE_DIR, ".egs.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".egs.token")
@@ -234,9 +242,13 @@ class EpicGamesStoreService(OnlineService):
     def install_from_egs(self, egs_game, manifest):
         """Create a new Lutris game based on an existing EGS install"""
         app_name = manifest["AppName"]
+        logger.info("Installing %s", app_name)
         service_game = ServiceGameCollection.get_game("egs", app_name)
+        if not service_game:
+            logger.error("Can't find the game %s", app_name)
+            return
         lutris_game_id = "egs-" + app_name
-        existing_game = get_game_by_field(lutris_game_id, "slug")
+        existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
             return
         game_config = LutrisConfig(game_config_id=egs_game["configpath"]).game_level
@@ -248,7 +260,7 @@ class EpicGamesStoreService(OnlineService):
             slug=slugify(service_game["name"]),
             directory=egs_game["directory"],
             installed=1,
-            installer_slug="egs-" + app_name,
+            installer_slug=lutris_game_id,
             configpath=configpath,
             service=self.id,
             service_id=app_name,

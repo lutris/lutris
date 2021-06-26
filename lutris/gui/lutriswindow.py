@@ -1,5 +1,6 @@
 """Main window for the Lutris interface."""
 # pylint: disable=no-member
+from lutris.services import service_media
 import os
 from collections import namedtuple
 from gettext import gettext as _
@@ -24,6 +25,7 @@ from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.gui.views.media_loader import download_icons
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisBanner, LutrisIcon, LutrisService
 from lutris.util import datapath
@@ -276,10 +278,24 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return []
         api_games = api.search_games(self.filters["text"])
         if "icon" in self.icon_type:
-            GLib.idle_add(self.load_icons, {g["slug"]: g["icon_url"] for g in api_games}, LutrisIcon)
+            api_field = "icon_url"
+            _service_media = LutrisIcon
         else:
-            GLib.idle_add(self.load_icons, {g["slug"]: g["banner_url"] for g in api_games}, LutrisBanner)
+            api_field = "banner_url"
+            _service_media = LutrisBanner
+        AsyncCall(
+            download_icons,
+            self.icons_download_cb,
+            {g["slug"]: g[api_field] for g in api_games},
+            _service_media()
+        )
         return api_games
+
+    def icons_download_cb(self, result, error):
+        if error:
+            logger.error("Failed to download icons: %s", error)
+            return
+        self.game_store.update_icons(result)
 
     def game_matches(self, game):
         if self.filters.get("installed"):

@@ -30,6 +30,7 @@ def get_services():
         "xdg": XDGService,
         "gog": GOGService,
         "humblebundle": HumbleBundleService,
+        "egs": EpicGamesStoreService,
     }
     if LINUX_SYSTEM.has_steam:
         _services["steam"] = SteamService
@@ -46,7 +47,6 @@ SERVICES = get_services()
 WIP_SERVICES = {
     "battlenet": BattleNetService,
     "bethesda": BethesdaService,
-    "egs": EpicGamesStoreService,
     "itchio": ItchIoService,
     "mame": MAMEService,
     "origin": OriginService,

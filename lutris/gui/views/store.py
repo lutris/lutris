@@ -4,6 +4,7 @@ import time
 from gi.repository import GLib, GObject, Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
+from lutris.gui.widgets.utils import get_pixbuf
 from lutris import settings
 from lutris.database import sql
 from lutris.database.games import get_games
@@ -98,6 +99,11 @@ class GameStore(GObject.Object):
         for game in list(games):
             GLib.idle_add(self.add_game, game)
 
+    def get_row_by_slug(self, slug):
+        for model_row in self.store:
+            if model_row[COL_SLUG] == slug:
+                return model_row
+
     def get_row_by_id(self, _id):
         if not _id:
             return
@@ -181,3 +187,12 @@ class GameStore(GObject.Object):
         for db_game in db_games:
             GLib.idle_add(self.update, db_game)
         return True
+
+    def update_icons(self, icon_updates):
+        """Updates the store with new icon paths keyed by slug"""
+        for slug in icon_updates:
+            row = self.get_row_by_slug(slug)
+            if not row:
+                continue
+            installed = slug in self.installed_game_slugs
+            row[COL_ICON] = get_pixbuf(icon_updates[slug], self.service_media.size, is_installed=installed)
