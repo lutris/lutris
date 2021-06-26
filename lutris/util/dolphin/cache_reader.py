@@ -1,13 +1,10 @@
 """Reads the Dolphin game database, stored in a binary format"""
 import os
-import sys
-from PIL import Image
 
 from lutris.util.log import logger
 
 DOLPHIN_GAME_CACHE_FILE = os.path.expanduser("~/.cache/dolphin-emu/gamelist.cache")
 CACHE_REVISION = 20
-
 
 
 def get_hex_string(string):
@@ -21,6 +18,7 @@ def get_word_len(string):
 
 # https://github.com/dolphin-emu/dolphin/blob/90a994f93780ef8a7cccfc02e00576692e0f2839/Source/Core/UICommon/GameFile.h#L140
 # https://github.com/dolphin-emu/dolphin/blob/90a994f93780ef8a7cccfc02e00576692e0f2839/Source/Core/UICommon/GameFile.cpp#L318
+
 
 class DolphinCacheReader:
     header_size = 20
@@ -113,7 +111,7 @@ class DolphinCacheReader:
     def get_image(self):
         data_len = get_word_len(self.cache_content[self.offset:self.offset + 4])
         self.offset += 4
-        res = self.cache_content[self.offset:self.offset + data_len * 4] # vector<u32>
+        res = self.cache_content[self.offset:self.offset + data_len * 4]  # vector<u32>
         self.offset += data_len * 4
         width = get_word_len(self.cache_content[self.offset:self.offset + 4])
         self.offset += 4

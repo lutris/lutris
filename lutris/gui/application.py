@@ -215,7 +215,7 @@ class Application(Gtk.Application):
     def do_activate(self):  # pylint: disable=arguments-differ
         if not self.window:
             self.window = LutrisWindow(application=self)
-            screen = self.window.props.screen
+            screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         if not self.run_in_background:
             self.window.present()

@@ -28,3 +28,4 @@ urllib3 = '>=1.25'
 wrapt = '>=1.11'
 keyring = "*"
 lxml = '>=4.5.2'
+Pillow = "*"

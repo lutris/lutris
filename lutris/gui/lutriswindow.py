@@ -1,6 +1,4 @@
 """Main window for the Lutris interface."""
-# pylint: disable=no-member
-from lutris.services import service_media
 import os
 from collections import namedtuple
 from gettext import gettext as _
@@ -19,13 +17,14 @@ from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.views import COL_ID, COL_NAME
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
+from lutris.gui.views.media_loader import download_icons
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
-from lutris.gui.views.media_loader import download_icons
+# pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisBanner, LutrisIcon, LutrisService
 from lutris.util import datapath

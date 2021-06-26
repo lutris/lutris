@@ -4,11 +4,11 @@ import time
 from gi.repository import GLib, GObject, Gtk
 from gi.repository.GdkPixbuf import Pixbuf
 
-from lutris.gui.widgets.utils import get_pixbuf
 from lutris import settings
 from lutris.database import sql
 from lutris.database.games import get_games
 from lutris.gui.views.store_item import StoreItem
+from lutris.gui.widgets.utils import get_pixbuf
 # pylint: disable=not-an-iterable
 from lutris.util.strings import gtk_safe
 

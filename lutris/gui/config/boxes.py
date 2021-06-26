@@ -145,7 +145,7 @@ class ConfigBox(VBox):
             if option.get("advanced"):
                 hbox.get_style_context().add_class("advanced")
                 show_advanced = settings.read_setting("show_advanced_options")
-                if not show_advanced == "True":
+                if show_advanced != "True":
                     hbox.set_no_show_all(True)
             hbox.pack_start(self.wrapper, True, True, 0)
             self.pack_start(hbox, False, False, 0)
