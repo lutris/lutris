@@ -122,7 +122,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
-        GObject.add_emission_hook(Game, "game-updated", self.on_game_collection_changed)
+        GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
 
     def _init_actions(self):
@@ -765,6 +765,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             game = games_db.get_game_by_field(int(game_id), "id")
         if not game:
+            logger.warning("Inspect this...")
             game = {
                 "id": game_id,
                 "appid": game_id,
@@ -775,6 +776,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         GLib.idle_add(self.update_revealer, game)
         return False
+
+    def on_game_updated(self, game):
+        self.game_store.update(games_db.get_game_by_field(game.id, "id"))
+        return True
 
     def on_game_collection_changed(self, _sender):
         """Simple method used to refresh the view"""
