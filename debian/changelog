@@ -1,3 +1,18 @@
+lutris (0.5.8.4) groovy; urgency=medium
+
+  * Fix Steam icon showing too big on some systems
+  * Fix DXVK not updating
+  * Fix Python 3.9 compatibility
+  * Update sidebar on service login
+  * Remember position of window except on Wayland maybe
+  * GST plugin path is now only set if it exists
+  * Default to 7zip when not given an archive extractor
+  * Switch IRC to Libera chat
+  * Fix libretro info file loading
+  * Let pipewire users toggle "Reduce PulseAudio latency" 
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 02 Jul 2021 20:06:23 -0700
+
 lutris (0.5.8.3) groovy; urgency=medium
 
   * Really fix popovers not showing on Wayland without making them non-modal
