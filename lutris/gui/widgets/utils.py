@@ -166,16 +166,6 @@ def image2pixbuf(image):
     return GdkPixbuf.Pixbuf.new_from_data(image_array, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4)
 
 
-def get_builder_from_file(glade_file):
-    ui_filename = os.path.join(datapath.get(), "ui", glade_file)
-    if not os.path.exists(ui_filename):
-        raise ValueError("ui file does not exists: %s" % ui_filename)
-
-    builder = Gtk.Builder()
-    builder.add_from_file(ui_filename)
-    return builder
-
-
 def get_link_button(text):
     """Return a transparent text button for the side panels"""
     button = Gtk.Button(text, visible=True)
