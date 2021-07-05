@@ -234,7 +234,12 @@ class Application(Gtk.Application):
         Returns:
             Gtk.Window: the existing window instance or a newly created one
         """
-        window_key = str(window_class) + str(kwargs)
+        if "appid" in kwargs:
+            window_key = str(window_class) + kwargs["appid"]
+        elif "runner" in kwargs:
+            window_key = str(window_class) + kwargs["runner"].name
+        else:
+            window_key = str(window_class) + str(kwargs)
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
             return self.app_windows[window_key]
@@ -244,6 +249,7 @@ class Application(Gtk.Application):
             window_inst = window_class(application=self, **kwargs)
         window_inst.connect("destroy", self.on_app_window_destroyed, str(kwargs))
         self.app_windows[window_key] = window_inst
+        logger.debug("Showing window %s", window_key)
         window_inst.show()
         return window_inst
 
@@ -260,8 +266,10 @@ class Application(Gtk.Application):
         window_key = str(app_window.__class__) + kwargs_str
         try:
             del self.app_windows[window_key]
+            logger.debug("Removed window %s", window_key)
         except KeyError:
-            pass
+            logger.warning("Failed to remove window %s", window_key)
+            logger.info("Available windows: %s", ", ".join(self.app_windows.keys()))
         return True
 
     @staticmethod
