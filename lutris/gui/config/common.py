@@ -456,7 +456,6 @@ class GameDialogCommon(Dialog):
         self.game.game_config_id = self.lutris_config.game_config_id
         self.game.runner = runner
         self.game.runner_name = self.runner_name
-        self.game.directory = runner.game_path
         self.game.is_installed = True
         self.game.config = self.lutris_config
         self.game.save(save_config=True)
