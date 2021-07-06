@@ -55,6 +55,7 @@ class BaseService(GObject.Object):
     local = False
     drm_free = False  # DRM free games can be added to Lutris from an existing install
     medias = {}
+    extra_medias = {}
     default_format = "icon"
 
     __gsignals__ = {
@@ -84,10 +85,19 @@ class BaseService(GObject.Object):
 
     def load_icons(self):
         """Download all game media from the service"""
-        for icon_type in self.medias:
-            service_media = self.medias[icon_type]()
+        all_medias = self.medias.copy()
+        all_medias.update(self.extra_medias)
+        # Download icons
+        for icon_type in all_medias:
+            service_media = all_medias[icon_type]()
             media_urls = service_media.get_media_urls()
             download_icons(media_urls, service_media)
+
+        # Process icons
+        for icon_type in all_medias:
+            service_media = all_medias[icon_type]()
+            service_media.render()
+
         if self.id != "lutris":
             for service_media_class in (LutrisIcon, LutrisBanner):
                 service_media = service_media_class()

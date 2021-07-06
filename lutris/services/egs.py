@@ -9,6 +9,7 @@ from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
+from lutris.gui.widgets.utils import Image, paste_overlay, thumbnail_image
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -17,10 +18,42 @@ from lutris.util.egs.egs_launcher import EGSLauncher
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
+EGS_GAME_ART_PATH = os.path.expanduser("~/.cache/lutris/egs/game_box")
+EGS_GAME_BOX_PATH = os.path.expanduser("~/.cache/lutris/egs/game_box_tall")
+EGS_LOGO_PATH = os.path.expanduser("~/.cache/lutris/egs/game_logo")
+EGS_BANNERS_PATH = os.path.expanduser("~/.cache/lutris/egs/banners")
+EGS_BOX_ART_PATH = os.path.expanduser("~/.cache/lutris/egs/boxart")
+BANNER_SIZE = (316, 178)
+BOX_ART_SIZE = (200, 267)
+
 
 class DieselGameMedia(ServiceMedia):
     service = "egs"
     file_pattern = "%s.jpg"
+    min_logo_x = 300
+    min_logo_y = 150
+
+    def _render_filename(self, filename):
+        game_box_path = os.path.join(self.dest_path, filename)
+        logo_path = os.path.join(EGS_LOGO_PATH, filename.replace(".jpg", ".png"))
+        has_logo = os.path.exists(logo_path)
+        thumb_image = Image.open(game_box_path)
+        thumb_image = thumb_image.convert("RGBA")
+        thumb_image = thumbnail_image(thumb_image, self.size)
+        if has_logo:
+            logo_image = Image.open(logo_path)
+            logo_image = logo_image.convert("RGBA")
+            logo_width, logo_height = logo_image.size
+            if logo_width > self.min_logo_x:
+                logo_image = logo_image.resize((self.min_logo_x, int(
+                    logo_height * (self.min_logo_x / logo_width))), resample=Image.BICUBIC)
+            elif logo_height > self.min_logo_y:
+                logo_image = logo_image.resize(
+                    (int(logo_width * (self.min_logo_y / logo_height)), self.min_logo_y), resample=Image.BICUBIC)
+            thumb_image = paste_overlay(thumb_image, logo_image)
+        thumb_path = os.path.join(self.dest_path, filename)
+        thumb_image = thumb_image.convert("RGB")
+        thumb_image.save(thumb_path)
 
     def get_media_url(self, detail):
         for image in detail.get("keyImages", []):
@@ -31,13 +64,21 @@ class DieselGameMedia(ServiceMedia):
 class DieselGameBoxTall(DieselGameMedia):
     """EGS tall game box"""
     size = (200, 267)
+    min_logo_x = 100
+    min_logo_y = 100
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box_tall")
     api_field = "DieselGameBoxTall"
 
+    def render(self):
+        for filename in os.listdir(self.dest_path):
+            self._render_filename(filename)
 
-class DieselGameBox(DieselGameMedia):
+
+class DieselGameBox(DieselGameBoxTall):
     """EGS game box"""
     size = (316, 178)
+    min_logo_x = 300
+    min_logo_y = 150
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box")
     api_field = "DieselGameBox"
 
@@ -45,6 +86,8 @@ class DieselGameBox(DieselGameMedia):
 class DieselGameBoxLogo(DieselGameMedia):
     """EGS game box"""
     size = (200, 100)
+    file_pattern = "%s.png"
+    visible = False
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_logo")
     api_field = "DieselGameBoxLogo"
 
@@ -74,6 +117,8 @@ class EpicGamesStoreService(OnlineService):
     medias = {
         "game_box": DieselGameBox,
         "box_tall": DieselGameBoxTall,
+    }
+    extra_medias = {
         "logo": DieselGameBoxLogo,
     }
     default_format = "box_tall"

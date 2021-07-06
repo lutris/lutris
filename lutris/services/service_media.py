@@ -18,6 +18,7 @@ class ServiceMedia:
     service = NotImplemented
     size = NotImplemented
     source = "remote"  # set to local if the files don't need to be downloaded
+    visible = True  # This media should be displayed as an option in the UI
     small_size = None
     dest_path = None
     file_pattern = NotImplemented
@@ -88,3 +89,6 @@ class ServiceMedia:
                 logger.error(ex.code)
             return None
         return cache_path
+
+    def render(self):
+        """Used if the media requires extra processing"""
