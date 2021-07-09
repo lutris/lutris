@@ -17,6 +17,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import create_folder
 from lutris.util.wine.dxvk import DXVKManager
+from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 
 
 def init_dirs():
@@ -179,6 +180,7 @@ def init_lutris():
     if components_to_update:
         while runtime_updater.current_updates:
             time.sleep(0.3)
-    dxvk_manager = DXVKManager()
-    dxvk_manager.upgrade()
+    for dll_manager_class in (DXVKManager, DXVKNVAPIManager):
+        dll_manager = dll_manager_class()
+        dll_manager.upgrade()
     logger.info("Startup complete")

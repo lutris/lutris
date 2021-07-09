@@ -21,7 +21,9 @@ from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, split_arguments
-from lutris.util.wine import dxvk, nine
+from lutris.util.wine import nine
+from lutris.util.wine.dxvk import DXVKManager
+from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.wine import (
     POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
@@ -130,17 +132,6 @@ class wine(Runner):
                 version_choices.append((label, version))
             return version_choices
 
-        def dxvk_choices(manager_class):
-            version_choices = [
-                (_("Manual"), "manual"),
-            ]
-            for version in manager_class.versions:
-                version_choices.append((version, version))
-            return version_choices
-
-        def get_dxvk_choices():
-            return dxvk_choices(dxvk.DXVKManager())
-
         def esync_limit_callback(widget, option, config):
             limits_set = is_esync_limit_set()
             wine_path = self.get_path_for_version(config["version"])
@@ -225,8 +216,23 @@ class wine(Runner):
                 "label": _("DXVK version"),
                 "advanced": True,
                 "type": "choice_with_entry",
-                "choices": get_dxvk_choices,
-                "default": dxvk.DXVKManager().version,
+                "choices": DXVKManager().version_choices,
+                "default": DXVKManager().version,
+            },
+            {
+                "option": "dxvk_nvapi",
+                "label": _("Enable DXVK-NVAPI"),
+                "type": "bool",
+                "default": False,
+                "advanced": True,
+            },
+            {
+                "option": "dxvk_nvapi_version",
+                "label": _("DXVK NVAPI version"),
+                "advanced": True,
+                "type": "choice_with_entry",
+                "choices": DXVKNVAPIManager().version_choices,
+                "default": DXVKNVAPIManager().version,
             },
             {
                 "option": "esync",
@@ -795,34 +801,25 @@ class wine(Runner):
 
                 prefix_manager.set_registry_key(path, key, value)
 
-    def toggle_dxvk(self, enable, version=None, dxvk_manager: dxvk.DXVKManager = None):
+    def setup_dlls(self, manager_class, enable, version):
+        """Enable or disable DLLs"""
+        dll_manager = manager_class(
+            self.prefix_path,
+            arch=self.wine_arch,
+            version=version,
+        )
         # manual version only sets the dlls to native
-        if version.lower() != "manual":
+        if dll_manager.version.lower() != "manual":
             if enable:
-                if not dxvk_manager.is_available():
-                    logger.info("DXVK %s is not available yet, downloading...", version)
-                    dxvk_manager.download()
-                dxvk_manager.enable()
+                dll_manager.enable()
             else:
-                dxvk_manager.disable()
+                dll_manager.disable()
 
         if enable:
-            for dll in dxvk_manager.dxvk_dlls:
+            for dll in dll_manager.managed_dlls:
                 # We have to make sure that the dll exists before setting it to native
-                if dxvk_manager.dxvk_dll_exists(dll):
+                if dll_manager.dll_exists(dll):
                     self.dll_overrides[dll] = "n"
-
-    def setup_dxvk(self, base_name, dxvk_manager: dxvk.DXVKManager = None):
-        if not dxvk_manager:
-            return
-        try:
-            self.toggle_dxvk(
-                bool(self.runner_config.get(base_name)),
-                version=dxvk_manager.version,
-                dxvk_manager=dxvk_manager,
-            )
-        except dxvk.UnavailableDXVKVersion:
-            raise GameConfigError("Unable to get " + base_name.upper() + " %s" % dxvk_manager.version)
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
@@ -833,15 +830,16 @@ class wine(Runner):
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
         self.setup_x360ce(self.runner_config.get("x360ce-path"))
-        self.setup_dxvk(
-            "dxvk",
-            dxvk_manager=dxvk.DXVKManager(
-                self.prefix_path,
-                arch=self.wine_arch,
-                version=self.runner_config.get("dxvk_version"),
-            )
+        self.setup_dlls(
+            DXVKManager,
+            bool(self.runner_config.get("dxvk")),
+            self.runner_config.get("dxvk_version")
         )
-
+        self.setup_dlls(
+            DXVKNVAPIManager,
+            bool(self.runner_config.get("dxvk_nvapi")),
+            self.runner_config.get("dxvk_nvapi_version")
+        )
         try:
             self.setup_nine(
                 bool(self.runner_config.get("gallium_nine")),

@@ -5,10 +5,6 @@ from lutris.settings import RUNTIME_DIR
 from lutris.util.wine.dll_manager import DLLManager
 
 
-class UnavailableDXVKVersion(RuntimeError):
-    """Exception raised when a version of DXVK is not found"""
-
-
 class DXVKManager(DLLManager):
     component = "DXVK"
     base_dir = os.path.join(RUNTIME_DIR, "dxvk")

@@ -1,7 +1,8 @@
-"""DXVK helper module"""
+"""Injects sets of DLLs into a prefix"""
 import json
 import os
 import shutil
+from gettext import gettext as _
 
 from lutris.util import system
 from lutris.util.extract import extract_archive
@@ -46,6 +47,15 @@ class DLLManager:
     def path(self):
         """Path to local folder containing DDLs"""
         return os.path.join(self.base_dir, self.version)
+
+    @property
+    def version_choices(self):
+        _choices = [
+            (_("Manual"), "manual"),
+        ]
+        for version in self.versions:
+            _choices.append((version, version))
+        return _choices
 
     def load_versions(self):
         if not system.path_exists(self.versions_path):
