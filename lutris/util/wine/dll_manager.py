@@ -17,6 +17,10 @@ class DLLManager:
     managed_dlls = NotImplemented
     versions_path = NotImplemented
     releases_url = NotImplemented
+    archs = {
+        32: "x32",
+        64: "x64"
+    }
 
     def __init__(self, prefix=None, arch="win64", version=None):
         self.prefix = prefix
@@ -82,9 +86,16 @@ class DLLManager:
         return system.path_exists(self.path)
 
     def dll_exists(self, dll_name):
-        """Check if the dll is provided by the component"""
-        return system.path_exists(os.path.join(self.path, "x64", dll_name + ".dll")) \
-            and system.path_exists(os.path.join(self.path, "x32", dll_name + ".dll"))
+        """Check if the dll is provided by the component
+        The DLL might not be available for all archs so
+        only check if one exists for the supported architectures
+        """
+        return any(
+            [
+                system.path_exists(os.path.join(self.path, arch, dll_name + ".dll"))
+                for arch in self.archs.values()
+            ]
+        )
 
     def get_download_url(self):
         """Fetch the download URL from the JSON version file"""
@@ -144,11 +155,11 @@ class DLLManager:
         windows_path = os.path.join(self.prefix, "drive_c/windows")
         if self.wine_arch == "win64":
             system_dirs = {
-                "x64": os.path.join(windows_path, "system32"),
-                "x32": os.path.join(windows_path, "syswow64"),
+                self.archs[64]: os.path.join(windows_path, "system32"),
+                self.archs[32]: os.path.join(windows_path, "syswow64"),
             }
         elif self.wine_arch == "win32":
-            system_dirs = {"x32": os.path.join(windows_path, "system32")}
+            system_dirs = {self.archs[32]: os.path.join(windows_path, "system32")}
 
         for arch, system_dir in system_dirs.items():
             for dll in self.managed_dlls:
