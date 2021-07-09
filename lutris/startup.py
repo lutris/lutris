@@ -16,7 +16,7 @@ from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import create_folder
-from lutris.util.wine.dxvk import DXVKManager, fetch_dxvk_versions
+from lutris.util.wine.dxvk import DXVKManager
 
 
 def init_dirs():
@@ -179,9 +179,6 @@ def init_lutris():
     if components_to_update:
         while runtime_updater.current_updates:
             time.sleep(0.3)
-    fetch_dxvk_versions()
     dxvk_manager = DXVKManager()
-    if not dxvk_manager.is_available():
-        logger.info("DXVK %s not available, downloading...", dxvk_manager.version)
-        dxvk_manager.download()
+    dxvk_manager.upgrade()
     logger.info("Startup complete")
