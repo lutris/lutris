@@ -135,8 +135,8 @@ class MonitoredCommand:
 
     def start(self):
         """Run the thread."""
-        # for key, value in self.env.items():
-        #     logger.debug("%s=\"%s\"", key, value)
+        for key, value in self.env.items():
+            logger.debug("%s=\"%s\"", key, value)
         wrapper_command = self.get_wrapper_command()
         env = self.get_child_environment()
         self.game_process = self.execute_process(wrapper_command, env)
