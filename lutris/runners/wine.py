@@ -241,6 +241,7 @@ class wine(Runner):
                 "callback": esync_limit_callback,
                 "callback_on": True,
                 "active": True,
+                "default": True,
                 "help": _(
                     "Enable eventfd-based synchronization (esync). "
                     "This will increase performance in applications "
