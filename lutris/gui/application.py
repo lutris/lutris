@@ -234,9 +234,9 @@ class Application(Gtk.Application):
         Returns:
             Gtk.Window: the existing window instance or a newly created one
         """
-        if "appid" in kwargs:
+        if kwargs.get("appid"):
             window_key = str(window_class) + kwargs["appid"]
-        elif "runner" in kwargs:
+        elif kwargs.get("runner"):
             window_key = str(window_class) + kwargs["runner"].name
         else:
             window_key = str(window_class) + str(kwargs)
