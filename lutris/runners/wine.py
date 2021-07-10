@@ -223,7 +223,7 @@ class wine(Runner):
                 "option": "dxvk_nvapi",
                 "label": _("Enable DXVK-NVAPI"),
                 "type": "bool",
-                "default": False,
+                "default": True,
                 "advanced": True,
             },
             {
