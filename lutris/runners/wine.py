@@ -225,6 +225,9 @@ class wine(Runner):
                 "type": "bool",
                 "default": True,
                 "advanced": True,
+                "help": _(
+                    "Enable emulation of Nvidia's NVAPI, an interface which " 
+                    "provides additional features to various graphics APIs."),
             },
             {
                 "option": "dxvk_nvapi_version",
