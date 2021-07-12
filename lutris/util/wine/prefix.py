@@ -222,14 +222,6 @@ class WinePrefixManager:
         if desktop_size:
             self.set_registry_key(path, "WineDesktop", desktop_size)
 
-    def use_xvid_mode(self, enabled):
-        """Set this to "Y" to allow wine switch the resolution using XVidMode extension."""
-        self.set_registry_key(
-            self.hkcu_prefix + "/Software/Wine/X11 Driver",
-            "UseXVidMode",
-            "Y" if enabled else "N",
-        )
-
     def configure_joypads(self):
         """Disables some joypad devices"""
         key = self.hkcu_prefix + "/Software/Wine/DirectInput/Joysticks"

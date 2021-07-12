@@ -86,9 +86,6 @@ class wine(Runner):
     reg_keys = {
         "Audio": r"%s/Drivers" % reg_prefix,
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
-        "OffscreenRenderingMode": r"%s/Direct3D" % reg_prefix,
-        "StrictDrawOrdering": r"%s/Direct3D" % reg_prefix,
-        "SampleCount": r"%s/Direct3D" % reg_prefix,
         "Desktop": "MANAGED",
         "WineDesktop": "MANAGED",
         "ShowCrashDialog": "MANAGED",
@@ -308,98 +305,6 @@ class wine(Runner):
             },
             {
                 "option":
-                "OffscreenRenderingMode",
-                "label":
-                _("Offscreen Rendering Mode"),
-                "type":
-                "choice",
-                "choices": [("FBO", "fbo"), ("BackBuffer", "backbuffer")],
-                "default":
-                "fbo",
-                "advanced":
-                True,
-                "help": _(
-                    "Select the offscreen rendering implementation.\n"
-                    "<b>FBO</b>: (Wine default) Use framebuffer objects "
-                    "for offscreen rendering \n"
-                    "<b>Backbuffer</b>: Render offscreen render targets "
-                    "in the backbuffer."
-                ),
-            },
-            {
-                "option":
-                "StrictDrawOrdering",
-                "label":
-                _("Strict Draw Ordering"),
-                "type":
-                "choice",
-                "choices": [(_("Enabled"), "enabled"), (_("Disabled"), "disabled")],
-                "default":
-                "disabled",
-                "advanced":
-                True,
-                "help": _(
-                    "This option ensures any pending drawing operations are "
-                    "submitted to the driver, but at a significant performance "
-                    "cost. This setting is deprecated since Wine-2.6 and will "
-                    'likely be removed after Wine-3.0. Use "csmt" instead.'
-                ),
-            },
-            {
-                "option":
-                "UseGLSL",
-                "label":
-                _("Use GLSL"),
-                "type":
-                "choice",
-                "choices": [(_("Enabled"), "enabled"), (_("Disabled"), "disabled")],
-                "default":
-                "enabled",
-                "advanced":
-                True,
-                "help": _(
-                    'When set to "disabled", this disables the use of GLSL for shaders. '
-                    "In general disabling GLSL is not recommended, "
-                    "only use this for debugging purposes."
-                ),
-            },
-            {
-                "option":
-                "SampleCount",
-                "label":
-                _("Anti-aliasing Sample Count"),
-                "type":
-                "choice",
-                "choices": [
-                    (_("Auto"), "auto"),
-                    ("0", "0"),
-                    ("2", "2"),
-                    ("4", "4"),
-                    ("8", "8"),
-                    ("16", "16"),
-                ],
-                "default":
-                "auto",
-                "advanced":
-                True,
-                "help": _(
-                    "Override swapchain sample count. It can be used to force enable multisampling "
-                    "with applications that otherwise don't support it, like the similar control "
-                    "panel setting available with some GPU drivers. This one might work in more "
-                    "cases than the driver setting though. "
-                    "Not all applications are compatible with all sample counts. "
-                ),
-            },
-            {
-                "option": "UseXVidMode",
-                "label": _("Use XVidMode to switch resolutions"),
-                "type": "bool",
-                "default": False,
-                "advanced": True,
-                "help": _('Set this to "Y" to allow Wine switch the resolution using XVidMode extension.'),
-            },
-            {
-                "option":
                 "Audio",
                 "label":
                 _("Audio driver"),
@@ -460,16 +365,11 @@ class wine(Runner):
                   "to avoid having 2 controllers detected"),
             },
             {
-                "option":
-                "sandbox",
-                "type":
-                "bool",
-                "label":
-                _("Create a sandbox for Wine folders"),
-                "default":
-                True,
-                "advanced":
-                True,
+                "option": "sandbox",
+                "type": "bool",
+                "label": _("Create a sandbox for Wine folders"),
+                "default": True,
+                "advanced": True,
                 "help": _(
                     "Do not use $HOME for desktop integration folders.\n"
                     "By default, it use the directories in the confined "
@@ -721,7 +621,6 @@ class wine(Runner):
         # any calls to regedit.
         managed_keys = {
             "ShowCrashDialog": prefix_manager.set_crash_dialogs,
-            "UseXVidMode": prefix_manager.use_xvid_mode,
             "Desktop": prefix_manager.set_virtual_desktop,
             "WineDesktop": prefix_manager.set_desktop_size,
         }
