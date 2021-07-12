@@ -122,27 +122,31 @@ class GameStore(GObject.Object):
             self.store.remove(row.iter)
 
     def update(self, db_game):
-        """Update game informations."""
-        game = StoreItem(db_game, self.service_media)
-        row = self.get_row_by_id(game.id)
+        """Update game informations
+        Return whether a row was updated
+        """
+        store_item = StoreItem(db_game, self.service_media)
+        row = self.get_row_by_id(store_item.id)
         if not row:
-            logger.warning("No row found for %s", game)
+            row = self.get_row_by_id(db_game["service_id"])
+        if not row:
+            logger.warning("No row found for %s", store_item)
             return False
-        row[COL_ID] = game.id
-        row[COL_SLUG] = game.slug
-        row[COL_NAME] = gtk_safe(game.name)
-        row[COL_ICON] = game.get_pixbuf()
-        row[COL_YEAR] = game.year
-        row[COL_RUNNER] = game.runner
-        row[COL_RUNNER_HUMAN_NAME] = gtk_safe(game.runner_text)
-        row[COL_PLATFORM] = gtk_safe(game.platform)
-        row[COL_LASTPLAYED] = game.lastplayed
-        row[COL_LASTPLAYED_TEXT] = game.lastplayed_text
-        row[COL_INSTALLED] = game.installed
-        row[COL_INSTALLED_AT] = game.installed_at
-        row[COL_INSTALLED_AT_TEXT] = game.installed_at_text
-        row[COL_PLAYTIME] = game.playtime
-        row[COL_PLAYTIME_TEXT] = game.playtime_text
+        row[COL_ID] = str(store_item.id)
+        row[COL_SLUG] = store_item.slug
+        row[COL_NAME] = gtk_safe(store_item.name)
+        row[COL_ICON] = store_item.get_pixbuf()
+        row[COL_YEAR] = store_item.year
+        row[COL_RUNNER] = store_item.runner
+        row[COL_RUNNER_HUMAN_NAME] = gtk_safe(store_item.runner_text)
+        row[COL_PLATFORM] = gtk_safe(store_item.platform)
+        row[COL_LASTPLAYED] = store_item.lastplayed
+        row[COL_LASTPLAYED_TEXT] = store_item.lastplayed_text
+        row[COL_INSTALLED] = store_item.installed
+        row[COL_INSTALLED_AT] = store_item.installed_at
+        row[COL_INSTALLED_AT_TEXT] = store_item.installed_at_text
+        row[COL_PLAYTIME] = store_item.playtime
+        row[COL_PLAYTIME_TEXT] = store_item.playtime_text
         return True
 
     def add_game(self, db_game):

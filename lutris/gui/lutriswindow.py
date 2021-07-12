@@ -413,7 +413,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def update_revealer(self, game=None):
         if game:
-            logger.debug("Updating game bar with %s", game)
             if self.game_bar:
                 self.game_bar.destroy()
             self.game_bar = GameBar(game, self.game_actions, self.application)
