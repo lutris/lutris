@@ -224,6 +224,14 @@ class Application(Gtk.Application):
             # accordingly
             self.run_in_background = False
 
+    def get_window_key(self, **kwargs):
+        if kwargs.get("appid"):
+            return kwargs["appid"]
+        elif kwargs.get("runner"):
+            return kwargs["runner"].name
+        return str(kwargs)
+
+
     def show_window(self, window_class, **kwargs):
         """Instanciate a window keeping 1 instance max
 
@@ -234,12 +242,7 @@ class Application(Gtk.Application):
         Returns:
             Gtk.Window: the existing window instance or a newly created one
         """
-        if kwargs.get("appid"):
-            window_key = str(window_class) + kwargs["appid"]
-        elif kwargs.get("runner"):
-            window_key = str(window_class) + kwargs["runner"].name
-        else:
-            window_key = str(window_class) + str(kwargs)
+        window_key = str(window_class) + self.get_window_key(**kwargs)
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
             return self.app_windows[window_key]
@@ -247,7 +250,7 @@ class Application(Gtk.Application):
             window_inst = window_class(parent=self.window, **kwargs)
         else:
             window_inst = window_class(application=self, **kwargs)
-        window_inst.connect("destroy", self.on_app_window_destroyed, str(kwargs))
+        window_inst.connect("destroy", self.on_app_window_destroyed, self.get_window_key(**kwargs))
         self.app_windows[window_key] = window_inst
         logger.debug("Showing window %s", window_key)
         window_inst.show()
@@ -261,9 +264,9 @@ class Application(Gtk.Application):
             appid=appid
         )
 
-    def on_app_window_destroyed(self, app_window, kwargs_str):
+    def on_app_window_destroyed(self, app_window, window_key):
         """Remove the reference to the window when it has been destroyed"""
-        window_key = str(app_window.__class__) + kwargs_str
+        window_key = str(app_window.__class__) + window_key
         try:
             del self.app_windows[window_key]
             logger.debug("Removed window %s", window_key)
