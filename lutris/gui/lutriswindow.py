@@ -191,7 +191,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_load(self, widget, data=None):
         """Finish initializing the view"""
-        self.redraw_view()
         self._bind_zoom_adjustment()
         self.view.grab_focus()
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
@@ -553,6 +552,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return self.icon_type
 
     def save_icon_type(self, icon_type):
+        """Save icon type to settings"""
         self.icon_type = icon_type
         setting_key = "icon_type_%sview" % self.current_view_type
         if self.service and self.service.id != "lutris":
@@ -713,6 +713,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_toggle_viewtype(self, *args):
         view_type = "list" if self.current_view_type == "grid" else "grid"
+        logger.debug("View type changed to %s", view_type)
         self.set_viewtype_icon(view_type)
         settings.write_setting("view_type", view_type)
         self.redraw_view()
@@ -740,6 +741,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.sidebar_revealer.set_reveal_child(side_panel_visible)
 
     def on_sidebar_changed(self, widget):
+        """Handler called when the selected element of the sidebar changes"""
+        logger.debug("Sidebar changed")
         row = widget.get_selected_row()
         self.selected_category = "%s:%s" % (row.type, row.id)
         for filter_type in ("category", "dynamic_category", "service", "runner", "platform"):
