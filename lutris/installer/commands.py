@@ -532,7 +532,11 @@ class CommandsMixin:
         app_path = os.path.join(self.target_path, "app")
         if system.path_exists(app_path):
             for app_content in os.listdir(app_path):
-                self.move({"src": os.path.join(app_path, app_content), "dst": self.target_path})
+                source_path = os.path.join(app_path, app_content)
+                if os.path.exists(os.path.join(self.target_path, app_content)):
+                    self.merge({"src": source_path, "dst": self.target_path})
+                else:
+                    self.move({"src": source_path, "dst": self.target_path})
         support_path = os.path.join(self.target_path, "__support/app")
         if system.path_exists(support_path):
             self.merge({"src": support_path, "dst": self.target_path})
