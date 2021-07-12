@@ -451,10 +451,11 @@ class winesteam(wine.wine):
 
     def play(self):
         """Run a game"""
-        if self.runner_config.get("x360ce-path"):
-            self.setup_x360ce(self.runner_config["x360ce-path"])
         try:
-            return {"env": self.get_env(os_env=False), "command": self.get_command()}
+            return {
+                "env": self.get_env(os_env=False),
+                "command": self.get_command()
+            }
         except FileNotFoundError as ex:
             return {"error": "FILE_NOT_FOUND", "file": ex.filename}
 

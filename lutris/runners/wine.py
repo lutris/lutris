@@ -31,7 +31,6 @@ from lutris.util.wine.wine import (
     get_overrides_env, get_proton_paths, get_real_executable, get_wine_version, get_wine_versions, is_esync_limit_set,
     is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
-from lutris.util.wine.x360ce import X360ce
 
 MIN_SAFE_VERSION = "5.0"  # Wine installers must run with at least this version
 
@@ -226,7 +225,7 @@ class wine(Runner):
                 "default": True,
                 "advanced": True,
                 "help": _(
-                    "Enable emulation of Nvidia's NVAPI, an interface which " 
+                    "Enable emulation of Nvidia's NVAPI, an interface which "
                     "provides additional features to various graphics APIs."),
             },
             {
@@ -278,49 +277,6 @@ class wine(Runner):
                     "tracker before enabling this option.\n"
                     "Note: This feature is not supported by proprietary Nvidia driver."
                 ),
-            },
-            {
-                "option": "x360ce-path",
-                "label": _("Path to the game's executable, for x360ce support"),
-                "type": "directory_chooser",
-                "help": _("Locate the path for the game's executable for x360 support"),
-                "advanced": True,
-            },
-            {
-                "option": "x360ce-dinput",
-                "label": _("x360ce DInput 8 mode"),
-                "type": "bool",
-                "default": False,
-                "help": _("Configure x360ce with dinput8.dll, required for some games"),
-                "advanced": True,
-            },
-            {
-                "option": "x360ce-xinput9",
-                "label": _("x360ce XInput 9.1.0 mode"),
-                "type": "bool",
-                "default": False,
-                "help": _("Configure x360ce with xinput9_1_0.dll, required for some newer games"),
-                "advanced": True,
-            },
-            {
-                "option": "dumbxinputemu",
-                "label": _("Use Dumb XInput Emulator (experimental)"),
-                "type": "bool",
-                "default": False,
-                "help": _("Use the dlls from kozec/dumbxinputemu"),
-                "advanced": True,
-            },
-            {
-                "option": "xinput-arch",
-                "label": _("XInput architecture"),
-                "type": "choice",
-                "choices": [
-                    (_("Same as Wine prefix"), ""),
-                    (_("32-bit"), "win32"),
-                    (_("64-bit"), "win64"),
-                ],
-                "default": "",
-                "advanced": True,
             },
             {
                 "option":
@@ -833,7 +789,7 @@ class wine(Runner):
             prefix_manager.configure_joypads()
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
-        self.setup_x360ce(self.runner_config.get("x360ce-path"))
+
         self.setup_dlls(
             DXVKManager,
             bool(self.runner_config.get("dxvk")),
@@ -944,43 +900,6 @@ class wine(Runner):
         # unknown reason.
         pids = pids | system.get_pids_using_file(os.path.join(os.path.dirname(exe), "wineserver"))
         return pids
-
-    def setup_x360ce(self, x360ce_path):
-        if not x360ce_path:
-            return
-        x360ce_path = os.path.expanduser(x360ce_path)
-        if not os.path.isdir(x360ce_path):
-            logger.error("%s is not a valid path for x360ce", x360ce_path)
-            return
-        mode = "dumbxinputemu" if self.runner_config.get("dumbxinputemu") else "x360ce"
-        dll_files = ["xinput1_3.dll"]
-        if self.runner_config.get("x360ce-xinput9"):
-            dll_files.append("xinput9_1_0.dll")
-
-        for dll_file in dll_files:
-            xinput_dest_path = os.path.join(x360ce_path, dll_file)
-            xinput_arch = self.runner_config.get("xinput-arch") or self.wine_arch
-            dll_path = os.path.join(RUNTIME_DIR, mode, xinput_arch)
-            if not system.path_exists(xinput_dest_path):
-                source_file = dll_file if mode == "dumbxinputemu" else "xinput1_3.dll"
-                shutil.copyfile(os.path.join(dll_path, source_file), xinput_dest_path)
-
-        if mode == "x360ce":
-            if self.runner_config.get("x360ce-dinput"):
-                dinput8_path = os.path.join(dll_path, "dinput8.dll")
-                dinput8_dest_path = os.path.join(x360ce_path, "dinput8.dll")
-                shutil.copyfile(dinput8_path, dinput8_dest_path)
-
-            x360ce_config = X360ce()
-            x360ce_config.populate_controllers()
-            x360ce_config.write(os.path.join(x360ce_path, "x360ce.ini"))
-
-        # X360 DLL handling
-        self.dll_overrides["xinput1_3"] = "native"
-        if self.runner_config.get("x360ce-xinput9"):
-            self.dll_overrides["xinput9_1_0"] = "native"
-        if self.runner_config.get("x360ce-dinput"):
-            self.dll_overrides["dinput8"] = "native"
 
     def setup_nine(self, with_nine, with_dxvk):
         nine_manager = nine.NineManager(
