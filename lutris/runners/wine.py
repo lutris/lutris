@@ -67,7 +67,7 @@ class wine(Runner):
             "type": "directory_chooser",
             "label": _("Wine prefix"),
             "help": _(
-                'The prefix (also named "bottle") used by Wine.\n'
+                'The prefix used by Wine.\n'
                 "It's a directory containing a set of files and "
                 "folders making up a confined Windows environment."
             ),
