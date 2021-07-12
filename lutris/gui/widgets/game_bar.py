@@ -47,13 +47,13 @@ class GameBar(Gtk.Fixed):
                 game_id = game["id"]
         if game_id:
             self.game = application.get_game_by_id(game_id) or Game(game_id)
-            game_actions.set_game(self.game)
         else:
             self.game = Game()
             self.game.name = db_game["name"]
             self.game.slug = db_game["slug"]
             self.game.appid = self.appid
             self.game.service = self.service.id if self.service else None
+        game_actions.set_game(self.game)
         self.update_view()
 
     def clear_view(self):

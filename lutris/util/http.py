@@ -97,7 +97,7 @@ class Request:
         try:
             self.total_size = int(request.info().get("Content-Length").strip())
         except AttributeError:
-            logger.warning("Failed to read response's content length")
+            logger.warning("Failed to read content length on response from %s", self.url)
             self.total_size = 0
 
         self.response_headers = request.getheaders()

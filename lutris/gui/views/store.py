@@ -1,4 +1,5 @@
 """Store object for a list of games"""
+# pylint: disable=not-an-iterable
 import time
 
 from gi.repository import GLib, GObject, Gtk
@@ -9,8 +10,8 @@ from lutris.database import sql
 from lutris.database.games import get_games
 from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf
-# pylint: disable=not-an-iterable
 from lutris.util.strings import gtk_safe
+from lutris.util.log import logger
 
 from . import (
     COL_ICON, COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT,
@@ -125,7 +126,8 @@ class GameStore(GObject.Object):
         game = StoreItem(db_game, self.service_media)
         row = self.get_row_by_id(game.id)
         if not row:
-            return
+            logger.warning("No row found for %s", game)
+            return False
         row[COL_ID] = game.id
         row[COL_SLUG] = game.slug
         row[COL_NAME] = gtk_safe(game.name)
@@ -141,6 +143,7 @@ class GameStore(GObject.Object):
         row[COL_INSTALLED_AT_TEXT] = game.installed_at_text
         row[COL_PLAYTIME] = game.playtime
         row[COL_PLAYTIME_TEXT] = game.playtime_text
+        return True
 
     def add_game(self, db_game):
         """Add a PGA game to the store"""

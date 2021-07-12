@@ -413,6 +413,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def update_revealer(self, game=None):
         if game:
+            logger.debug("Updating game bar with %s", game)
             if self.game_bar:
                 self.game_bar.destroy()
             self.game_bar = GameBar(game, self.game_actions, self.application)
@@ -781,7 +782,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return False
 
     def on_game_updated(self, game):
-        self.game_store.update(games_db.get_game_by_field(game.id, "id"))
+        db_game = games_db.get_game_by_field(game.id, "id")
+        updated = self.game_store.update(db_game)
+        if not updated:
+            logger.warning("Couldn't update view for %s", db_game)
         return True
 
     def on_game_collection_changed(self, _sender):
