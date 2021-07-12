@@ -1,5 +1,6 @@
-from lutris.util.wine.dll_manager import DLLManager
 from lutris.util.nvidia import get_nvidia_dll_path
+from lutris.util.wine.dll_manager import DLLManager
+
 
 class DLSSManager(DLLManager):
     component = "DLSS"

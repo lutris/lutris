@@ -2,18 +2,15 @@
 # pylint: disable=too-many-lines
 import os
 import shlex
-import shutil
 from gettext import gettext as _
 
 from lutris import runtime
-from lutris.exceptions import GameConfigError
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
     set_regedit_file, winecfg, wineexec, winekill, winetricks
 )
 from lutris.runners.runner import Runner
-from lutris.settings import RUNTIME_DIR
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.graphics import drivers
@@ -21,7 +18,6 @@ from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, split_arguments
-from lutris.util.wine import nine
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
@@ -262,20 +258,6 @@ class wine(Runner):
                     "This will increase performance in applications "
                     "that take advantage of multi-core processors. "
                     "Requires a custom kernel with the fsync patchset."
-                ),
-            },
-            {
-                "option": "gallium_nine",
-                "label": _("Enable Gallium Nine"),
-                "type": "bool",
-                "default": False,
-                "condition": nine.NineManager.is_available(),
-                "advanced": True,
-                "help": _(
-                    "Gallium Nine allows to run Direct3D 9 applications faster.\n"
-                    "Make sure your active graphics card supports Gallium Nine state "
-                    "tracker before enabling this option.\n"
-                    "Note: This feature is not supported by proprietary Nvidia driver."
                 ),
             },
             {
@@ -800,13 +782,6 @@ class wine(Runner):
             bool(self.runner_config.get("dxvk_nvapi")),
             self.runner_config.get("dxvk_nvapi_version")
         )
-        try:
-            self.setup_nine(
-                bool(self.runner_config.get("gallium_nine")),
-                bool(self.runner_config.get("dxvk"))
-            )
-        except nine.NineUnavailable as ex:
-            raise GameConfigError("Unable to configure GalliumNine: %s" % ex)
         return True
 
     def get_dll_overrides(self):
@@ -900,19 +875,6 @@ class wine(Runner):
         # unknown reason.
         pids = pids | system.get_pids_using_file(os.path.join(os.path.dirname(exe), "wineserver"))
         return pids
-
-    def setup_nine(self, with_nine, with_dxvk):
-        nine_manager = nine.NineManager(
-            self.get_executable(),
-            self.prefix_path,
-            self.wine_arch,
-        )
-
-        # Do not restore D3D9 settings if DXVK is using it
-        if with_nine:
-            nine_manager.enable()
-        elif not with_dxvk:
-            nine_manager.disable()
 
     def sandbox(self, wine_prefix):
         if self.runner_config.get("sandbox", True):
