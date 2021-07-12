@@ -781,7 +781,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         return False
 
     def on_game_updated(self, game):
-        db_game = games_db.get_game_by_field(game.id, "id")
+        if not self.service:
+            db_game = games_db.get_game_by_field(game.id, "id")
+        else:
+            db_game = ServiceGameCollection.get_game(self.service.id, game.appid)
         updated = self.game_store.update(db_game)
         if not updated:
             logger.warning("Couldn't update view for %s", db_game)
@@ -813,7 +816,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 else:
                     service_game = ServiceGameCollection.get_game(self.service.id, game_id)
                     if not service_game:
-                        logger.error("No game %s found for %s". game_id, self.service.id)
+                        logger.error("No game %s found for %s", game_id, self.service.id)
                         return
                     game_id = self.service.install(service_game)
         else:

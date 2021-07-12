@@ -227,10 +227,9 @@ class Application(Gtk.Application):
     def get_window_key(self, **kwargs):
         if kwargs.get("appid"):
             return kwargs["appid"]
-        elif kwargs.get("runner"):
+        if kwargs.get("runner"):
             return kwargs["runner"].name
         return str(kwargs)
-
 
     def show_window(self, window_class, **kwargs):
         """Instanciate a window keeping 1 instance max

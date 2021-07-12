@@ -37,6 +37,7 @@ class StoreItem:
             if "appid" in self._game_data:
                 return self._game_data["appid"]
             return self._game_data["slug"]
+
         return self._game_data["id"]
 
     @property
@@ -94,10 +95,13 @@ class StoreItem:
         else:
             image_path = self.service_media.get_absolute_path(self.slug)
             if not system.path_exists(image_path):
-                service_game = ServiceGameCollection.get_game(
-                    self._game_data.get("service"),
-                    self._game_data.get("service_id")
-                )
+                service = self._game_data.get("service")
+                appid = self._game_data.get("service_id")
+                if appid:
+                    service_game = ServiceGameCollection.get_game(service, appid)
+                else:
+                    service_game = None
+                    logger.warning(self._game_data)
                 if service_game:
                     image_path = self.service_media.get_absolute_path(service_game["slug"])
         if system.path_exists(image_path):
