@@ -768,7 +768,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         else:
             game = games_db.get_game_by_field(int(game_id), "id")
         if not game:
-            logger.warning("Inspect this...")
             game = {
                 "id": game_id,
                 "appid": game_id,
@@ -776,6 +775,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 "slug": game_id,
                 "service": self.service.id if self.service else None,
             }
+            logger.warning("No game found. Replacing with placeholder %s", game)
 
         GLib.idle_add(self.update_revealer, game)
         return False
