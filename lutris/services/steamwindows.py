@@ -4,6 +4,7 @@ from gi.repository import Gio
 
 from lutris.database.games import get_game_by_field, get_games
 from lutris.game import Game
+from lutris.installer import get_installers
 from lutris.services.steam import SteamGame, SteamService
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -22,6 +23,7 @@ class SteamWindowsService(SteamService):
     name = _("Steam for Windows")
     runner = "wine"
     game_class = SteamWindowsGame
+    client_installer = "steam-wine"
 
     def generate_installer(self, db_game, steam_db_game):
         """Generate a basic Steam installer"""
@@ -34,7 +36,7 @@ class SteamWindowsService(SteamService):
             "runner": self.runner,
             "appid": db_game["appid"],
             "script": {
-                "requires": "steam-wine",
+                "requires": self.client_installer,
                 "game": {
                     "exe": steam_game.config.game_config["exe"],
                     "args": "-no-cef-sandbox -applaunch %s" % db_game["appid"],
@@ -44,22 +46,24 @@ class SteamWindowsService(SteamService):
         }
 
     def install(self, db_game):
-        steam_game = get_game_by_field("steam-wine", "installer_slug")
+        steam_game = get_game_by_field(self.client_installer, "installer_slug")
         if not steam_game:
-            logger.error("Steam for Windows is not installed in Lutris")
-            return
-
-        appid = db_game["appid"]
-        db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.id})
-        existing_game = self.match_existing_game(db_games, appid)
-        if existing_game:
-            logger.debug("Found steam game: %s", existing_game)
-            game = Game(existing_game.id)
-            game.save()
-            return
+            installers = get_installers(
+                game_slug=self.client_installer,
+            )
+        else:
+            installers = [self.generate_installer(db_game, steam_game)]
+            appid = db_game["appid"]
+            db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.id})
+            existing_game = self.match_existing_game(db_games, appid)
+            if existing_game:
+                logger.debug("Found steam game: %s", existing_game)
+                game = Game(existing_game.id)
+                game.save()
+                return
         application = Gio.Application.get_default()
         application.show_installer_window(
-            [self.generate_installer(db_game, steam_game)],
+            installers,
             service=self,
             appid=appid
         )

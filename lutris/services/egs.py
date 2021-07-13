@@ -4,12 +4,15 @@ import os
 from gettext import gettext as _
 
 import requests
+from gi.repository import Gio
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
+from lutris.game import Game
 from lutris.gui.widgets.utils import Image, paste_overlay, thumbnail_image
+from lutris.installer import get_installers
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -114,6 +117,8 @@ class EpicGamesStoreService(OnlineService):
     name = _("Epic Games Store")
     icon = "egs"
     online = True
+    runner = "wine"
+    client_installer = "epic-games-store-latest"
     medias = {
         "game_box": DieselGameBox,
         "box_tall": DieselGameBoxTall,
@@ -292,7 +297,7 @@ class EpicGamesStoreService(OnlineService):
         if not service_game:
             logger.error("Can't find the game %s", app_name)
             return
-        lutris_game_id = "egs-" + app_name
+        lutris_game_id = slugify(service_game["name"]) + "-" + self.id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
             return
@@ -329,10 +334,53 @@ class EpicGamesStoreService(OnlineService):
             self.install_from_egs(egs_game, manifest)
         logger.debug("All EGS games imported")
 
+    def generate_installer(self, db_game, egs_db_game):
+        egs_game = Game(egs_db_game["id"])
+        egs_exe = egs_game.config.game_config["exe"]
+        if not os.path.isabs(egs_exe):
+            egs_exe = os.path.join(egs_game.config.game_config["prefix"], egs_exe)
+        return {
+            "name": db_game["name"],
+            "version": self.name,
+            "slug": slugify(db_game["name"]) + "-" + self.id,
+            "game_slug": slugify(db_game["name"]),
+            "runner": self.runner,
+            "appid": db_game["appid"],
+            "script": {
+                "requires": self.client_installer,
+                "game": {
+                    "args": get_launch_arguments(db_game["appid"]),
+                },
+                "installer": [
+                    {"task": {
+                        "name": "wineexec",
+                        "executable": egs_exe,
+                        "args": get_launch_arguments(db_game["appid"], "install"),
+                        "prefix": egs_game.config.game_config["prefix"]
+                    }}
+                ]
+            }
+        }
 
-def get_launch_arguments(app_name):
+    def install(self, db_game):
+        egs_game = get_game_by_field(self.client_installer, "installer_slug")
+        application = Gio.Application.get_default()
+        if not egs_game:
+            installers = get_installers(
+                game_slug=self.client_installer,
+            )
+            application.show_installer_window(installers)
+        else:
+            application.show_installer_window(
+                [self.generate_installer(db_game, egs_game)],
+                service=self,
+                appid=db_game["appid"]
+            )
+
+
+def get_launch_arguments(app_name, action="launch"):
     return (
         "-opengl"
         " -SkipBuildPatchPrereq"
-        " -com.epicgames.launcher://apps/%s?action=launch&silent=true"
-    ) % app_name
+        " -com.epicgames.launcher://apps/%s?action=%s"
+    ) % (app_name, action)

@@ -229,6 +229,8 @@ class Application(Gtk.Application):
             return kwargs["appid"]
         if kwargs.get("runner"):
             return kwargs["runner"].name
+        if kwargs.get("installers"):
+            return kwargs["installers"][0]["game_slug"]
         return str(kwargs)
 
     def show_window(self, window_class, **kwargs):

@@ -88,8 +88,7 @@ class wine(Runner):
         "MouseWarpOverride": r"%s/DirectInput" % reg_prefix,
         "Desktop": "MANAGED",
         "WineDesktop": "MANAGED",
-        "ShowCrashDialog": "MANAGED",
-        "UseXVidMode": "MANAGED",
+        "ShowCrashDialog": "MANAGED"
     }
 
     core_processes = (
