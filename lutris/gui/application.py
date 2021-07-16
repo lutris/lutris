@@ -43,7 +43,7 @@ from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
-from lutris.startup import init_lutris, run_all_checks
+from lutris.startup import init_lutris, run_all_checks, update_runtime
 from lutris.util import datapath, log
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
@@ -208,8 +208,8 @@ class Application(Gtk.Application):
         action.connect("activate", lambda *x: self.quit())
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
-
-        init_dialog = LutrisInitDialog(init_lutris)
+        init_lutris()
+        init_dialog = LutrisInitDialog(update_runtime)
         init_dialog.run()
 
     def do_activate(self):  # pylint: disable=arguments-differ

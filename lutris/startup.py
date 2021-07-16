@@ -172,6 +172,9 @@ def init_lutris():
         if not settings.read_setting(service, section="services"):
             settings.write_setting(service, True, section="services")
 
+
+def update_runtime():
+    """Update runtime components"""
     if os.environ.get("LUTRIS_SKIP_INIT"):
         logger.info("Skipping initialization")
         return
