@@ -9,7 +9,7 @@ class DXVKManager(DLLManager):
     component = "DXVK"
     base_dir = os.path.join(RUNTIME_DIR, "dxvk")
     versions_path = os.path.join(base_dir, "dxvk_versions.json")
-    managed_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9", "d3d12")
+    managed_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9", )
     releases_url = "https://api.github.com/repos/lutris/dxvk/releases"
 
     @staticmethod

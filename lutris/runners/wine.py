@@ -21,6 +21,7 @@ from lutris.util.strings import parse_version, split_arguments
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
+from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
     POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
     esync_display_version_warning, fsync_display_support_warning, fsync_display_version_warning, get_default_version,
@@ -191,14 +192,14 @@ class wine(Runner):
             },
             {
                 "option": "dxvk",
-                "label": _("Enable DXVK/VKD3D"),
+                "label": _("Enable DXVK"),
                 "type": "extended_bool",
                 "callback": dxvk_vulkan_callback,
                 "callback_on": True,
                 "default": True,
                 "active": True,
                 "help": _(
-                    "Use DXVK and VKD3D to enable support for Direct3D 12 and "
+                    "Use DXVK to "
                     "increase compatibility and performance in Direct3D 11, 10 "
                     "and 9 applications by translating their calls to Vulkan."),
             },
@@ -209,6 +210,27 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": DXVKManager().version_choices,
                 "default": DXVKManager().version,
+            },
+
+            {
+                "option": "vkd3d",
+                "label": _("Enable VKD3D"),
+                "type": "extended_bool",
+                "callback": dxvk_vulkan_callback,
+                "callback_on": True,
+                "default": True,
+                "active": True,
+                "help": _(
+                    "Use VKD3D to enable support for Direct3D 12 "
+                    "applications by translating their calls to Vulkan."),
+            },
+            {
+                "option": "vkd3d_version",
+                "label": _("VKD3D version"),
+                "advanced": True,
+                "type": "choice_with_entry",
+                "choices": VKD3DManager().version_choices,
+                "default": VKD3DManager().version,
             },
             {
                 "option": "dxvk_nvapi",
@@ -674,6 +696,11 @@ class wine(Runner):
             DXVKManager,
             bool(self.runner_config.get("dxvk")),
             self.runner_config.get("dxvk_version")
+        )
+        self.setup_dlls(
+            VKD3DManager,
+            bool(self.runner_config.get("vkd3d")),
+            self.runner_config.get("vkd3d_version")
         )
         self.setup_dlls(
             DXVKNVAPIManager,
