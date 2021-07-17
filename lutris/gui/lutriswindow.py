@@ -790,7 +790,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return True
         updated = self.game_store.update(db_game)
         if not updated:
-            logger.warning("Couldn't update view for %s", db_game)
+            self.game_store.add_game(db_game)
         return True
 
     def on_game_collection_changed(self, _sender):

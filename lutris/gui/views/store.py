@@ -10,7 +10,6 @@ from lutris.database import sql
 from lutris.database.games import get_games
 from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf
-from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -130,7 +129,6 @@ class GameStore(GObject.Object):
         if not row:
             row = self.get_row_by_id(db_game["service_id"])
         if not row:
-            logger.warning("No row found for %s", store_item)
             return False
         row[COL_ID] = str(store_item.id)
         row[COL_SLUG] = store_item.slug

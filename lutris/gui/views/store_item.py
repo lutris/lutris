@@ -101,7 +101,6 @@ class StoreItem:
                     service_game = ServiceGameCollection.get_game(service, appid)
                 else:
                     service_game = None
-                    logger.warning(self._game_data)
                 if service_game:
                     image_path = self.service_media.get_absolute_path(service_game["slug"])
         if system.path_exists(image_path):
