@@ -6,7 +6,7 @@ from gi.repository import GLib, GObject
 
 from lutris.config import LutrisConfig
 from lutris.installer.errors import ScriptingError
-from lutris.runners import steam, winesteam
+from lutris.runners import steam
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam.log import get_app_state_log
@@ -41,7 +41,7 @@ class SteamInstaller(GObject.Object):
 
         self.file_id = file_id
         try:
-            runner_id, appid, path = self.steam_uri.split(":", 2)
+            _steam, appid, path = self.steam_uri.split(":", 2)
         except ValueError:
             raise ScriptingError("Malformed steam path: %s" % self.steam_uri)
 
@@ -74,8 +74,6 @@ class SteamInstaller(GObject.Object):
         else:
             logger.debug("Installing steam game %s", self.appid)
             self.runner.config = LutrisConfig(runner_slug=self.runner.name)
-            # FIXME Find a way to bring back arch support
-            # steam_runner.config.game_config["arch"] = self.steam_data["arch"]
             AsyncCall(self.runner.install_game, self.on_steam_game_installed, self.appid)
             self.install_start_time = time.localtime()
             self.steam_poll = GLib.timeout_add(2000, self._monitor_steam_game_install)

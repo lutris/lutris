@@ -209,7 +209,7 @@ class RuntimeUpdater:
 
     @staticmethod
     def _iter_remote_runtimes():
-        request = http.Request(settings.RUNTIME_URL)
+        request = http.Request(settings.RUNTIME_URL + "?enabled=1")
         try:
             response = request.get()
         except http.HTTPError as ex:
@@ -284,13 +284,7 @@ def get_winelib_paths(wine_path):
 def get_runtime_paths(version=None, prefer_system_libs=True, wine_path=None):
     """Return Lutris runtime paths"""
     version = version or DEFAULT_RUNTIME
-    if version.startswith("Ubuntu"):
-        lutris_runtime_path = "%s-i686" % version
-    elif version == "legacy":
-        lutris_runtime_path = "lib32"
-    else:
-        raise ValueError("Invalid runtime version %s" % version)
-
+    lutris_runtime_path = "%s-i686" % version
     runtime_paths = [
         lutris_runtime_path,
         "steam/i386/lib/i386-linux-gnu",
@@ -300,10 +294,7 @@ def get_runtime_paths(version=None, prefer_system_libs=True, wine_path=None):
     ]
 
     if LINUX_SYSTEM.is_64_bit:
-        if version == "legacy":
-            lutris_runtime_path = "lib64"
-        else:
-            lutris_runtime_path = "%s-x86_64" % version
+        lutris_runtime_path = "%s-x86_64" % version
         runtime_paths += [
             lutris_runtime_path,
             "steam/amd64/lib/x86_64-linux-gnu",
