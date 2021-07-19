@@ -12,6 +12,7 @@ from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.util.strings import gtk_safe
 
+
 from . import (
     COL_ICON, COL_ID, COL_INSTALLED, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT,
     COL_NAME, COL_PLATFORM, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER, COL_RUNNER_HUMAN_NAME, COL_SLUG, COL_YEAR
@@ -109,7 +110,7 @@ class GameStore(GObject.Object):
             return
         for model_row in self.store:
             try:
-                if model_row[COL_ID] == _id:
+                if model_row[COL_ID] == str(_id):
                     return model_row
             except TypeError:
                 return
