@@ -86,15 +86,14 @@ class InstallerFileBox(Gtk.VBox):
         if self.provider == "steam":
             steam_installer = SteamInstaller(self.installer_file.url,
                                              self.installer_file.id)
-            steam_installer.connect("game-installed", self.on_download_complete)
-            steam_installer.connect("state-changed", self.on_state_changed)
+            steam_installer.connect("steam-game-installed", self.on_download_complete)
+            steam_installer.connect("steam-state-changed", self.on_state_changed)
             self.start_func = steam_installer.install_steam_game
             self.stop_func = steam_installer.stop_func
 
             steam_box = Gtk.HBox(spacing=6)
             info_box = Gtk.VBox(spacing=6)
-            steam_label = InstallerLabel(_("Steam game for {platform} (appid: <b>{appid}</b>)").format(
-                platform=steam_installer.platform,
+            steam_label = InstallerLabel(_("Steam game <b>{appid}</b>").format(
                 appid=steam_installer.appid
             ))
             info_box.add(steam_label)
@@ -277,6 +276,7 @@ class InstallerFileBox(Gtk.VBox):
 
     def on_download_complete(self, widget, _data=None):
         """Action called on a completed download."""
+        logger.info("Download completed")
         if isinstance(widget, SteamInstaller):
             self.installer_file.dest_file = widget.get_steam_data_path()
         self.emit("file-available")

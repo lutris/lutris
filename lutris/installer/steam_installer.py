@@ -16,19 +16,15 @@ class SteamInstaller(GObject.Object):
     """Handles installation of Steam games"""
 
     __gsignals__ = {
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-        "state-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "steam-game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "steam-state-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
     }
 
     def __init__(self, steam_uri, file_id):
         """
         Params:
             steam_uri: Colon separated game info containing:
-                    - $STEAM or $WINESTEAM depending on the version of Steam
-                        Since Steam for Linux can download games for any
-                        platform, using $WINESTEAM has little value except in
-                        some cases where the game needs to be started by Steam
-                        in order to get a CD key (ie. Doom 3 or UT2004)
+                    - $STEAM
                     - The Steam appid
                     - The relative path of files to retrieve
             file_id: The lutris installer internal id for the game files
@@ -51,19 +47,8 @@ class SteamInstaller(GObject.Object):
 
         self.appid = appid
         self.path = path
-        if runner_id == "$WINESTEAM":
-            self.platform = "windows"
-        else:
-            self.platform = "linux"
-
-    @property
-    def runner(self):
-        """Return the runner instance used by this install"""
-        if not self._runner:
-            if self.platform == "windows":
-                self._runner = winesteam.winesteam()
-            self._runner = steam.steam()
-        return self._runner
+        self.platform = "linux"
+        self.runner = steam.steam()
 
     @property
     def steam_rel_path(self):
@@ -114,8 +99,9 @@ class SteamInstaller(GObject.Object):
         )
         if states and states != self.prev_states:
             self.state = states[-1].split(",")[-1]
-            self.emit("state-changed", self.state)  # Broadcast new state to listeners
             logger.debug("Steam installation status: %s", states)
+            self.emit("state-changed", self.state)  # Broadcast new state to listeners
+
         self.prev_states = states
         if self.state == "Fully Installed":
             logger.info("Steam game %s has been installed successfully", self.appid)

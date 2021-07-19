@@ -1,16 +1,13 @@
 """Dialog used to install versions of a runner"""
-import gettext
-# Standard Library
 # pylint: disable=no-member
+import gettext
 import os
 import random
 from collections import defaultdict
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import GLib, Gtk
 
-# Lutris Modules
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
@@ -242,8 +239,6 @@ class RunnerInstallDialog(Dialog):
     def get_usage_stats(self):
         """Return the usage for each version"""
         runner_games = get_games_by_runner(self.runner)
-        if self.runner == "wine":
-            runner_games += get_games_by_runner("winesteam")
         version_usage = defaultdict(list)
         for db_game in runner_games:
             if not db_game["installed"]:

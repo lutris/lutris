@@ -40,8 +40,10 @@ class InstallerFile:
             if self.uses_pga_cache() and os.path.isdir(self.cache_path):
                 return self.cached_filename
             return ""
-        if self.url.startswith(("$STEAM", "$WINESTEAM")):
+        if self.url.startswith("$STEAM"):
             return self.url
+        if self.url.startswith("$WINESTEAM"):
+            raise ScriptingError("Usage of $WINESTEAM location is deprecated")
         return os.path.basename(self._file_meta)
 
     @property
@@ -89,7 +91,7 @@ class InstallerFile:
     @property
     def provider(self):
         """Return file provider used"""
-        if self.url.startswith(("$WINESTEAM", "$STEAM")):
+        if self.url.startswith("$STEAM"):
             return "steam"
         if self.is_cached:
             return "pga"
@@ -103,7 +105,7 @@ class InstallerFile:
     def providers(self):
         """Return all supported providers"""
         _providers = set()
-        if self.url.startswith(("$WINESTEAM", "$STEAM")):
+        if self.url.startswith("$STEAM"):
             _providers.add("steam")
         if self.is_cached:
             _providers.add("pga")

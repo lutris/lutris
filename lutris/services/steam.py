@@ -109,7 +109,7 @@ class SteamService(BaseService):
         return steam_games
 
     def get_installer_files(self, installer, installer_file_id):
-        steam_uri = "$WINESTEAM:%s:." if installer.runner == "winesteam" else "$STEAM:%s:."
+        steam_uri = "$STEAM:%s:."
         appid = str(installer.script["game"]["appid"])
         return [
             InstallerFile(installer.game_slug, "steam_game", {
