@@ -197,7 +197,7 @@ class RuntimeUpdater:
     def update(self):
         """Launch the update process"""
         if RUNTIME_DISABLED:
-            logger.debug("Runtime disabled, not updating it.")
+            logger.warning("Runtime disabled, not updating it.")
             return 0
 
         for remote_runtime in self._iter_remote_runtimes():

@@ -70,7 +70,7 @@ class SteamInstaller(GObject.Object):
         """Launch installation of a steam game"""
         if self.runner.get_game_path_from_appid(appid=self.appid):
             logger.info("Steam game %s is already installed", self.appid)
-            self.emit("game-installed", self.appid)
+            self.emit("steam-game-installed", self.appid)
         else:
             logger.debug("Installing steam game %s", self.appid)
             self.runner.config = LutrisConfig(runner_slug=self.runner.name)
@@ -98,11 +98,13 @@ class SteamInstaller(GObject.Object):
         if states and states != self.prev_states:
             self.state = states[-1].split(",")[-1]
             logger.debug("Steam installation status: %s", states)
-            self.emit("state-changed", self.state)  # Broadcast new state to listeners
+            self.emit("steam-state-changed", self.state)  # Broadcast new state to listeners
 
         self.prev_states = states
+        logger.debug(self.state)
+        logger.debug(states)
         if self.state == "Fully Installed":
             logger.info("Steam game %s has been installed successfully", self.appid)
-            self.emit("game-installed", self.appid)
+            self.emit("steam-game-installed", self.appid)
             return False
         return True

@@ -279,5 +279,6 @@ class InstallerFileBox(Gtk.VBox):
         logger.info("Download completed")
         if isinstance(widget, SteamInstaller):
             self.installer_file.dest_file = widget.get_steam_data_path()
+        else:
+            self.cache_file()
         self.emit("file-available")
-        self.cache_file()
