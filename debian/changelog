@@ -1,3 +1,28 @@
+lutris (0.5.9) hirsute; urgency=medium
+
+  * Add initial support for Epic Games Store
+  * Add support for Steam for Windows as a game source
+  * 3rd party services can be enabled or disabled in the preferences
+  * The main preferences window has now tabs on the left side
+  * Runner configuration is now available from the main preferences window
+  * Removed support for Gallium 9
+  * Removed support for X360CE
+  * Removed legacy WineD3D options
+  * Added support for DLSS
+  * VKD3D is a separate option from DXVK
+  * Esync is enabled by default
+  * Dolphin is available as a game source (reads games from the emulator's
+    local database of games)
+  * Scan for installed games when using Steam source
+  * Improved automatic installers for GOG, detection of DOSBOX and ScummVM
+    games.
+  * DRM free services (Humble, GOG) can locate existing installations of games
+  * Use 7zip as the default extractor when not given an archive type
+  * Improve process monitoring, allowing for monitoring of Steam games
+
+
+ -- Mathieu Comandon <strider@strycore.com>  Mon, 19 Jul 2021 19:13:39 -0700
+
 lutris (0.5.8.3) groovy; urgency=medium
 
   * Really fix popovers not showing on Wayland without making them non-modal
