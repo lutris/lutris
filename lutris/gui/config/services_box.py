@@ -1,6 +1,6 @@
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import GLib, Gtk
 
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
@@ -11,16 +11,22 @@ from lutris.services import SERVICES
 class ServicesBox(BaseConfigBox):
     def __init__(self):
         super().__init__()
-        self.add(self.get_section_label(_("Enabled integrations")))
-        listbox = Gtk.ListBox(visible=True)
-        self.pack_start(listbox, False, False, 12)
+        self.add(self.get_section_label(_("Enable integrations with game sources")))
+        self.add(self.get_description_label(
+            _("Access your game libraries from various sources. "
+              "Changes require a restart to take effect.")
+        ))
+        self.listbox = Gtk.ListBox(visible=True)
+        self.pack_start(self.listbox, False, False, 12)
+        GLib.idle_add(self.populate_services)
 
+    def populate_services(self):
         for service_key in SERVICES:
             list_box_row = Gtk.ListBoxRow(visible=True)
             list_box_row.set_selectable(False)
             list_box_row.set_activatable(False)
             list_box_row.add(self._get_service_box(service_key))
-            listbox.add(list_box_row)
+            self.listbox.add(list_box_row)
 
     def _get_service_box(self, service_key):
         box = Gtk.Box(
