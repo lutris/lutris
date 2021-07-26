@@ -123,9 +123,9 @@ class DLLManager:
         extract_archive(archive_path, self.path, merge_single=True)
         os.remove(archive_path)
 
-    def enable_dll(self, system_dir, arch, dll):
+    def enable_dll(self, system_dir, arch, dll_path):
         """Copies dlls to the appropriate destination"""
-        dll_path = os.path.join(self.path, arch, "%s.dll" % dll)
+        dll = os.path.basename(dll_path)
         if system.path_exists(dll_path):
             wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
             logger.debug("Replacing %s/%s with %s version", system_dir, dll, self.component)
@@ -171,7 +171,8 @@ class DLLManager:
             logger.error("%s %s is not available locally", self.component, self.version)
             return
         for system_dir, arch, dll in self._iter_dlls():
-            self.enable_dll(system_dir, arch, dll)
+            dll_path = os.path.join(self.path, arch, "%s.dll" % dll)
+            self.enable_dll(system_dir, arch, dll_path)
 
     def disable(self):
         """Disable DLLs for the current prefix"""
