@@ -110,9 +110,9 @@ def get_gamescope_args(launch_arguments, system_config):
     if system_config.get("gamescope_game_res"):
         game_width, game_height = system_config["gamescope_game_res"].lower().split("x")
         launch_arguments.insert(0, game_height)
-        launch_arguments.insert(0, "-H")
+        launch_arguments.insert(0, "-h")
         launch_arguments.insert(0, game_width)
-        launch_arguments.insert(0, "-W")
+        launch_arguments.insert(0, "-w")
     launch_arguments.insert(0, "gamescope")
     return launch_arguments
 
