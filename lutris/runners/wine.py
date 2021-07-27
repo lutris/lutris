@@ -234,13 +234,13 @@ class wine(Runner):
             },
             {
                 "option": "dxvk_nvapi",
-                "label": _("Enable DXVK-NVAPI"),
+                "label": _("Enable DXVK-NVAPI / DLSS"),
                 "type": "bool",
                 "default": True,
                 "advanced": True,
                 "help": _(
-                    "Enable emulation of Nvidia's NVAPI, an interface which "
-                    "provides additional features to various graphics APIs."),
+                    "Enable emulation of Nvidia's NVAPI to enable DLSS support"
+                ),
             },
             {
                 "option": "dxvk_nvapi_version",
@@ -279,14 +279,20 @@ class wine(Runner):
                 ),
             },
             {
-                "option":
-                "Desktop",
-                "label":
-                _("Windowed (virtual desktop)"),
-                "type":
-                "bool",
-                "default":
-                False,
+                "option": "fsr",
+                "label": _("Enable AMD FidelityFX Super Resolution (FSR)"),
+                "type": "bool",
+                "default": False,
+                "help": _(
+                    "Use FSR to upscale the game window to native resolution.\n"
+                    "Requires Wine FShack >= 6.13"
+                ),
+            },
+            {
+                "option": "Desktop",
+                "label": _("Windowed (virtual desktop)"),
+                "type": "bool",
+                "default": False,
                 "help": _(
                     "Run the whole Windows desktop in a window.\n"
                     "Otherwise, run it fullscreen.\n"
@@ -301,21 +307,16 @@ class wine(Runner):
                 "help": _("The size of the virtual desktop in pixels."),
             },
             {
-                "option":
-                "MouseWarpOverride",
-                "label":
-                _("Mouse Warp Override"),
-                "type":
-                "choice",
+                "option": "MouseWarpOverride",
+                "label": _("Mouse Warp Override"),
+                "type": "choice",
                 "choices": [
                     (_("Enable"), "enable"),
                     (_("Disable"), "disable"),
                     (_("Force"), "force"),
                 ],
-                "default":
-                "enable",
-                "advanced":
-                True,
+                "default": "enable",
+                "advanced": True,
                 "help": _(
                     "Override the default mouse pointer warping behavior\n"
                     "<b>Enable</b>: (Wine default) warp the pointer when the "
@@ -325,22 +326,17 @@ class wine(Runner):
                 ),
             },
             {
-                "option":
-                "Audio",
-                "label":
-                _("Audio driver"),
-                "type":
-                "choice",
-                "advanced":
-                True,
+                "option": "Audio",
+                "label": _("Audio driver"),
+                "type": "choice",
+                "advanced": True,
                 "choices": [
                     (_("Auto"), "auto"),
                     ("ALSA", "alsa"),
                     ("PulseAudio", "pulse"),
                     ("OSS", "oss"),
                 ],
-                "default":
-                "auto",
+                "default": "auto",
                 "help": _(
                     "Which audio backend to use.\n"
                     "By default, Wine automatically picks the right one "
@@ -746,6 +742,9 @@ class wine(Runner):
 
         if not ("WINEFSYNC" in env and env["WINEFSYNC"] == "1"):
             env["WINEFSYNC"] = "1" if self.runner_config.get("fsync") else "0"
+
+        if self.runner_config.get("fsr"):
+            env["WINE_FULLSCREEN_FSR"] = "1"
 
         # On AMD, mimic the video memory management behavior of Windows DX12
         # drivers more closely, otherwise d3d12 games will crash and have other
