@@ -87,10 +87,34 @@ def get_launch_parameters(runner, gameplay_info):
 
     # Feral gamemode
     gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
-    if gamemode and system.find_executable("gamemoderun"):
+    if gamemode:
         launch_arguments.insert(0, "gamemoderun")
 
+    # Gamescope
+    gamescope = system_config.get("gamescope") and system.find_executable("gamescope")
+    if gamescope:
+        launch_arguments = get_gamescope_args(launch_arguments, system_config)
+
     return launch_arguments, env
+
+
+def get_gamescope_args(launch_arguments, system_config):
+    """Insert gamescope at the start of the launch arguments"""
+    launch_arguments.insert(0, "--")
+    if system_config.get("gamescope_output_res"):
+        output_width, output_height = system_config["gamescope_output_res"].lower().split("x")
+        launch_arguments.insert(0, output_height)
+        launch_arguments.insert(0, "-H")
+        launch_arguments.insert(0, output_width)
+        launch_arguments.insert(0, "-W")
+    if system_config.get("gamescope_game_res"):
+        game_width, game_height = system_config["gamescope_game_res"].lower().split("x")
+        launch_arguments.insert(0, game_height)
+        launch_arguments.insert(0, "-H")
+        launch_arguments.insert(0, game_width)
+        launch_arguments.insert(0, "-W")
+    launch_arguments.insert(0, "gamescope")
+    return launch_arguments
 
 
 def export_bash_script(runner, gameplay_info, script_path):
