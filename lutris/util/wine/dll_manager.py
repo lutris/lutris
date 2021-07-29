@@ -127,7 +127,7 @@ class DLLManager:
         """Copies dlls to the appropriate destination"""
         dll = os.path.basename(dll_path)
         if system.path_exists(dll_path):
-            wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
+            wine_dll_path = os.path.join(system_dir, dll)
             logger.debug("Replacing %s/%s with %s version", system_dir, dll, self.component)
             if system.path_exists(wine_dll_path):
                 if not self.is_managed_dll(wine_dll_path) and not os.path.islink(wine_dll_path):
