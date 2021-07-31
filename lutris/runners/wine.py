@@ -239,7 +239,7 @@ class wine(Runner):
                 "default": True,
                 "advanced": True,
                 "help": _(
-                    "Enable emulation of Nvidia's NVAPI to enable DLSS support"
+                    "Enable emulation of Nvidia's NVAPI and add DLSS support, if available."
                 ),
             },
             {
@@ -285,7 +285,8 @@ class wine(Runner):
                 "default": False,
                 "help": _(
                     "Use FSR to upscale the game window to native resolution.\n"
-                    "Requires Wine FShack >= 6.13"
+                    "Requires Lutris Wine FShack >= 6.13 and setting the game to a lower resolution.\n"
+                    "Does not work with games running in borderless window mode or that perform their own upscaling."
                 ),
             },
             {
