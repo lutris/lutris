@@ -28,7 +28,9 @@ def get_mangohud_conf(system_config):
 def get_launch_parameters(runner, gameplay_info):
     system_config = runner.system_config
     launch_arguments = gameplay_info["command"]
-    env = {}
+    env = {
+        "DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1": "1"
+    }
 
     # Optimus
     optimus = system_config.get("optimus")
