@@ -32,6 +32,11 @@ def get_launch_parameters(runner, gameplay_info):
         "DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1": "1"
     }
 
+    # Steam compatibility
+    if os.environ.get("SteamAppId"):
+        logger.info("Game launched from steam (AppId: %s)", os.environ["SteamAppId"])
+        env["LC_ALL"] = ""
+
     # Optimus
     optimus = system_config.get("optimus")
     if optimus == "primusrun" and system.find_executable("primusrun"):
