@@ -6,6 +6,7 @@ lutris (0.5.9) hirsute; urgency=medium
   * Add FidelityFX Super Resolution (FSR) option for compatible Wine versions
   * Add workaround for locale issues when Lutris is launched from Steam
   * Add gamescope option
+  * Lutris games can now be launched from Steam
   * 3rd party services can be enabled or disabled in the preferences
   * The main preferences window has now tabs on the left side
   * Runner configuration is now available from the main preferences window
