@@ -1,7 +1,7 @@
 """Options list for system config."""
 import glob
 import os
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from gettext import gettext as _
 
 from lutris import runners
@@ -66,13 +66,17 @@ def get_optirun_choices():
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
     choices = [(_("Auto"), "")]
-
+    icd_files = defaultdict(list)
     # Add loaders
     for data_dir in VULKAN_DATA_DIRS:
         path = os.path.join(data_dir, "icd.d", "*.json")
         for loader in glob.glob(path):
-            choices.append((os.path.basename(loader), loader))
+            icd_key = os.path.basename(loader).split(".")[0]
+            icd_files[icd_key].append(os.path.join(path, loader))
 
+    for icd_key in icd_files:
+        files = ":".join(icd_files[icd_key])
+        choices.append((icd_key.capitalize().replace("_icd", " ICD"), files))
     return choices
 
 
