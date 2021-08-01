@@ -773,12 +773,8 @@ class wine(Runner):
         for proton_path in get_proton_paths():
             if proton_path in wine_path:
                 wine_root = os.path.dirname(os.path.dirname(wine_path))
-        if "-4." in wine_path or "/4." in wine_path:
-            version = "Ubuntu-18.04"
-        else:
-            version = "legacy"
         return runtime.get_env(
-            version=version,
+            version="Ubuntu-18.04",
             prefer_system_libs=self.system_config.get("prefer_system_libs", True),
             wine_path=wine_root,
         )
