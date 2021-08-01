@@ -176,9 +176,6 @@ def init_lutris():
 
 def update_runtime():
     """Update runtime components"""
-    if os.environ.get("LUTRIS_SKIP_INIT"):
-        logger.info("Skipping initialization")
-        return
     runtime_updater = RuntimeUpdater()
     components_to_update = runtime_updater.update()
     if components_to_update:

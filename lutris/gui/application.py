@@ -209,6 +209,9 @@ class Application(Gtk.Application):
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
         init_lutris()
+        if os.environ.get("LUTRIS_SKIP_INIT"):
+            logger.debug("Skipping initialization")
+            return
         init_dialog = LutrisInitDialog(update_runtime)
         init_dialog.run()
 
