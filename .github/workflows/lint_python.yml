@@ -12,7 +12,7 @@ jobs:
       - run: black --check . || true
       - run: flake8 . --count --max-complexity=15 --max-line-length=120 --show-source --statistics
       - run: isort --check-only --profile black . || true
-      - run: sudo apt-get install libdbus-1-dev libgirepository1.0-dev
+      - run: sudo apt-get install --fix-missing libdbus-1-dev libgirepository1.0-dev
                       gir1.2-gnomedesktop-3.0 gir1.2-gtk-3.0 gir1.2-webkit2-4.0
       - run: pip install PyGObject -r requirements.txt  # -r requirements-dev.txt
       - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
