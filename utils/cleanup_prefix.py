@@ -13,6 +13,7 @@ KNOWN_DIRS = [
     "windows",
 ]
 
+
 def delete_known_dirs(prefix_path):
     for known_dir in KNOWN_DIRS:
         full_path = os.path.join(prefix_path, "drive_c", known_dir)
@@ -32,8 +33,10 @@ def remove_empty_dirs(dirname):
         os.rmdir(folder)
     return empty_folders
 
-dirname = sys.argv[1]
-delete_known_dirs(dirname)
-empty_folders = True
-while empty_folders:
-    empty_folders = remove_empty_dirs(dirname)
+
+if __name__ == "__main__":
+    dirname = sys.argv[1]
+    delete_known_dirs(dirname)
+    empty_folders = True
+    while empty_folders:
+        empty_folders = remove_empty_dirs(dirname)
