@@ -379,6 +379,14 @@ def get_disk_size(path):
     return total_size
 
 
+def get_locale_list():
+    """Return list of available locales"""
+    locale_getter = subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE)
+    output = locale_getter.communicate()
+    locales = output[0].decode('ASCII').split() # locale names use only ascii characters
+    return locales
+
+
 def get_running_pid_list():
     """Return the list of PIDs from processes currently running"""
     return [p for p in os.listdir("/proc") if p[0].isdigit()]

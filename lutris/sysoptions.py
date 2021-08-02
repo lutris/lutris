@@ -29,6 +29,24 @@ def get_resolution_choices():
     return resolution_choices
 
 
+def get_locale_choices():
+    """Return list of available locales as label, value tuples
+    suitable for inclusion in drop-downs.
+    """
+    locales = system.get_locale_list()
+
+    # adds "(recommended)" string to utf8 locales
+    locales_humanized = locales.copy()
+    for index, locale in enumerate(locales_humanized):
+        if "utf8" in locale:
+            locales_humanized[index] += " " + _("(recommended)")
+
+    locale_choices = list(zip(locales_humanized, locales))
+    locale_choices.insert(0, (_("System"), ""))
+
+    return locale_choices
+
+
 def get_output_choices():
     """Return list of outputs for drop-downs"""
     displays = DISPLAY_MANAGER.get_display_names()
@@ -347,6 +365,17 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("The terminal emulator used with the CLI mode. "
                   "Choose from the list of detected terminal apps or enter "
                   "the terminal's command or path."),
+    },
+    {
+        "option": "locale",
+        "type": "choice",
+        "label": _("Locale"),
+        "choices": (
+            get_locale_choices()
+        ),
+        "default": "",
+        "advanced": False,
+        "help": _("Can be used to force certain locale for an app. Fixes encoding issues in legacy software."),
     },
     {
         "option": "env",

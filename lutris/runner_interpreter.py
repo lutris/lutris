@@ -37,6 +37,10 @@ def get_launch_parameters(runner, gameplay_info):
         logger.info("Game launched from steam (AppId: %s)", os.environ["SteamAppId"])
         env["LC_ALL"] = ""
 
+    # Set correct LC_ALL depending on user settings
+    if system_config["locale"] != "":
+        env["LC_ALL"] = system_config["locale"]
+
     # Optimus
     optimus = system_config.get("optimus")
     if optimus == "primusrun" and system.find_executable("primusrun"):
