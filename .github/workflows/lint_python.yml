@@ -12,6 +12,7 @@ jobs:
       - run: black --check . || true
       - run: flake8 . --count --max-complexity=15 --max-line-length=120 --show-source --statistics
       - run: isort --check-only --profile black . || true
+      - run: sudo apt-get install libdbus-1-dev
       - run: pip install PyGObject -r requirements.txt  # -r requirements-dev.txt
       - run: mypy --install-types --non-interactive . || true
       - run: pytest . || true
