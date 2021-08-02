@@ -19,9 +19,6 @@ jobs:
       - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
       - uses: GabrielBB/xvfb-action@v1
         with:
-          run: pytest . || true
-      - uses: GabrielBB/xvfb-action@v1
-        with:
-          run: pytest --doctest-modules . || true
+          run: pytest .
       - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true
       - run: safety check || true
