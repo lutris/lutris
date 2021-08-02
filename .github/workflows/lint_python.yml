@@ -14,8 +14,8 @@ jobs:
       - run: isort --check-only . || true
       - run: sudo apt-get update -y
       - run: sudo apt-get install libdbus-1-dev libgirepository1.0-dev
-                 gir1.2-gnomedesktop-3.0 gir1.2-gtk-3.0 gir1.2-webkit2-4.0
-      - run: pip install Pillow PyGObject -r requirements.txt  # -r requirements-dev.txt
+                 gir1.2-gnomedesktop-3.0 gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-webkit2-4.0
+      - run: pip install lxml Pillow PyGObject -r requirements.txt  # -r requirements-dev.txt
       - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
       - uses: GabrielBB/xvfb-action@v1
         with:
