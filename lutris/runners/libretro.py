@@ -1,14 +1,11 @@
 """libretro runner"""
-# Standard Library
 import os
 from gettext import gettext as _
 from operator import itemgetter
 from zipfile import ZipFile
 
-# Third Party Libraries
 import requests
 
-# Lutris Modules
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -20,35 +17,42 @@ def get_default_config_path(path=""):
     return os.path.join(settings.RUNNER_DIR, "retroarch", path)
 
 
+def get_libretro_cores():
+    cores = []
+    runner_path = get_default_config_path()
+    if os.path.exists(runner_path):
+        # Get core identifiers from info dir
+        info_path = get_default_config_path("info")
+        if not os.path.exists(info_path):
+            req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
+            if req.status_code == requests.codes.ok:  # pylint: disable=no-member
+                open(get_default_config_path('info.zip'), 'wb').write(req.content)
+                with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
+                    info_zip.extractall(info_path)
+            else:
+                logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
+                return []
+        # Parse info files to fetch display name and platform/system
+        for info_file in os.listdir(info_path):
+            if "_libretro.info" not in info_file:
+                continue
+            core_identifier = info_file.replace("_libretro.info", "")
+            core_config = RetroConfig(os.path.join(info_path, info_file))
+            if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
+                core_label = core_config["display_name"] or ""
+                core_system = core_config["systemname"] or ""
+                cores.append((core_label, core_identifier, core_system))
+        cores.sort(key=itemgetter(0))
+    if not cores:
+        logger.warning("No cores found")
+    return cores
+
+
 # List of supported libretro cores
 # First element is the human readable name for the core with the platform's short name
 # Second element is the core identifier
 # Third element is the platform's long name
-LIBRETRO_CORES = []
-runner_path = get_default_config_path()
-if os.path.exists(runner_path):
-    # Get core identifiers from info dir
-    info_path = get_default_config_path("info")
-    if not os.path.exists(info_path):
-        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
-        if req.status_code == requests.codes.ok:  # pylint: disable=no-member
-            open(get_default_config_path('info.zip'), 'wb').write(req.content)
-            with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
-                info_zip.extractall(info_path)
-        else:
-            logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
-    # Parse info files to fetch display name and platform/system
-    if os.path.exists(info_path):
-        with os.scandir(info_path) as it:
-            for entry in it:
-                if entry.is_file():
-                    core_identifier = entry.name.replace("_libretro.info", "")
-                    core_config = RetroConfig(entry)
-                    if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
-                        core_label = core_config["display_name"] or ""
-                        core_system = core_config["systemname"] or ""
-                        LIBRETRO_CORES.append((core_label, core_identifier, core_system))
-            LIBRETRO_CORES.sort(key=itemgetter(0))
+LIBRETRO_CORES = get_libretro_cores()
 
 
 def get_core_choices():
@@ -57,7 +61,7 @@ def get_core_choices():
 
 class libretro(Runner):
     human_name = _("Libretro")
-    description = _("Multi system emulator")
+    description = _("Multi-system emulator")
     runnable_alone = True
     runner_executable = "retroarch/retroarch"
 
@@ -102,10 +106,13 @@ class libretro(Runner):
 
     def get_platform(self):
         game_core = self.game_config.get("core")
-        if game_core:
-            for core in LIBRETRO_CORES:
-                if core[1] == game_core:
-                    return core[2]
+        if not game_core:
+            logger.warning("Game don't have a core set")
+            return
+        for core in LIBRETRO_CORES:
+            if core[1] == game_core:
+                return core[2]
+        logger.warning("'%s' not found in Libretro cores", game_core)
         return ""
 
     def get_core_path(self, core):

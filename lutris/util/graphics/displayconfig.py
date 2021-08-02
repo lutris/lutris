@@ -113,12 +113,12 @@ class DisplayMode:
     @property
     def width(self):
         """width in physical pixels"""
-        return self.mode_info[2]
+        return int(self.mode_info[2])
 
     @property
     def height(self):
         """height in physical pixels"""
-        return self.mode_info[3]
+        return int(self.mode_info[3])
 
     @property
     def frequency(self):
@@ -580,6 +580,9 @@ class MutterDisplayConfig():
     def apply_monitors_config(self, display_configs):
         """Set the selected display to the desired resolution"""
         # Reload resources
+        if not display_configs:
+            logger.error("No display config given, not applying anything")
+            return
         self.resources = self.interface.GetResources()
         self.current_state = DisplayState(self.interface)
         monitors_config = [
@@ -637,8 +640,10 @@ class MutterDisplayManager:
                 DisplayConfig([(output.monitors[0].name, mode.id)], output.monitors[0].name, (0, 0), 0, True, 1.0)
             ]
             self.display_config.apply_monitors_config(config)
-        else:
+        elif resolution:
             self.display_config.apply_monitors_config(resolution)
+        else:
+            return
 
         # Load a fresh config since the current one has changed
         self.display_config = MutterDisplayConfig()

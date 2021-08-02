@@ -30,7 +30,6 @@ class Runner:  # pylint: disable=too-many-public-methods
     system_options_override = []
     context_menu_entries = []
     require_libs = []
-    depends_on = None
     runner_executable = None
     entry_point_option = "main_file"
     download_url = None
@@ -103,29 +102,14 @@ class Runner:  # pylint: disable=too-many-public-methods
         return ""
 
     @property
+    def library_folders(self):
+        """Return a list of paths where a game might be installed"""
+        return []
+
+    @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         return self.game_path or os.path.expanduser("~/")
-
-    @property
-    def discord_rpc_enabled(self):
-        if self.game_data.get("discord_rpc_enabled"):
-            return self.game_data.get("discord_rpc_enabled")
-
-    @property
-    def discord_show_runner(self):
-        if self.game_data.get("discord_show_runner"):
-            return self.game_data.get("discord_show_runner")
-
-    @property
-    def discord_custom_game_name(self):
-        if self.game_data.get("discord_custom_game_name"):
-            return self.game_data.get("discord_custom_game_name")
-
-    @property
-    def discord_custom_runner_name(self):
-        if self.game_data.get("discord_custom_runner_name"):
-            return self.game_data.get("discord_custom_runner_name")
 
     @property
     def discord_client_id(self):
@@ -204,8 +188,6 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if self.use_runtime():
             runtime_env = self.get_runtime_env()
-            if "STEAM_RUNTIME" in runtime_env and "STEAM_RUNTIME" not in env:
-                env["STEAM_RUNTIME"] = runtime_env["STEAM_RUNTIME"]
             if "LD_LIBRARY_PATH" in runtime_env:
                 runtime_ld_library_path = runtime_env["LD_LIBRARY_PATH"]
 
@@ -282,7 +264,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         return True
 
     def install_dialog(self):
-        """Ask the user if she wants to install the runner.
+        """Ask the user if they want to install the runner.
 
         Return success of runner installation.
         """
@@ -295,8 +277,8 @@ class Runner:  # pylint: disable=too-many-public-methods
         )
         if Gtk.ResponseType.YES == dialog.result:
 
-            from lutris.gui.dialogs.runners import simple_downloader
             from lutris.gui.dialogs import ErrorDialog
+            from lutris.gui.dialogs.download import simple_downloader
             try:
                 if hasattr(self, "get_version"):
                     version = self.get_version(use_default=False)  # pylint: disable=no-member
@@ -334,7 +316,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return
 
         versions = runner_info.get("versions") or []
-        arch = system.LINUX_SYSTEM.arch
+        arch = LINUX_SYSTEM.arch
         if version:
             if version.endswith("-i386") or version.endswith("-x86_64"):
                 version, arch = version.rsplit("-", 1)
@@ -347,9 +329,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             default_version = [v for v in versions_for_arch if v["default"] is True]
             if default_version:
                 return default_version[0]
-        elif len(versions) == 1 and system.LINUX_SYSTEM.is_64_bit:
+        elif len(versions) == 1 and LINUX_SYSTEM.is_64_bit:
             return versions[0]
-        elif len(versions) > 1 and system.LINUX_SYSTEM.is_64_bit:
+        elif len(versions) > 1 and LINUX_SYSTEM.is_64_bit:
             default_version = [v for v in versions if v["default"] is True]
             if default_version:
                 return default_version[0]

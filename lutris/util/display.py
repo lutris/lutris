@@ -297,21 +297,25 @@ def _get_screen_saver_inhibitor():
     """Return the appropriate screen saver inhibitor instance.
     Returns None if the required interface isn't available."""
     desktop_environment = get_desktop_environment()
+    # Candidates are triples (name, path, interface)
+    candidates = [("org.freedesktop.ScreenSaver",
+                   "/org/freedesktop/ScreenSaver",
+                   "org.freedesktop.ScreenSaver")]
     if desktop_environment is DesktopEnvironment.MATE:
-        name = "org.mate.ScreenSaver"
-        path = "/"
+        candidates.append(("org.mate.ScreenSaver",
+                           "/",
+                           "org.mate.ScreenSaver"))
     elif desktop_environment is DesktopEnvironment.XFCE:
-        name = "org.xfce.ScreenSaver"
-        path = "/"
-    else:
-        name = "org.freedesktop.ScreenSaver"
-        path = "/org/freedesktop/ScreenSaver"
-    interface = name
-    try:
-        return DBusScreenSaverInhibitor(name, path, interface)
-    except GLib.Error as err:
-        logger.error("Error during creation of DBusScreenSaverInhibitor: %s", err.message)  # pylint: disable=no-member
-        return None
+        candidates.append(("org.xfce.ScreenSaver",
+                           "/",
+                           "org.xfce.ScreenSaver"))
+    for (name, path, interface) in candidates:
+        try:
+            return DBusScreenSaverInhibitor(name, path, interface)
+        except GLib.Error as err:
+            logger.warning("Failed to create DBusScreenSaverInhibitor for name %s, path %s, "
+                           "interface %s: %s", name, path, interface, str(err))
+    return None
 
 
 SCREEN_SAVER_INHIBITOR = _get_screen_saver_inhibitor()

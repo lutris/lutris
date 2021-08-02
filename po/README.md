@@ -1,6 +1,6 @@
 # i18n
 
-Translations are not implemented yet, see github issue #728. Please read the notes before opening a PR.
+Please read the notes below before opening a PR.
 
 ## Updating a translations
 
@@ -34,13 +34,9 @@ and commit your changes.
 - Only commit changes for the translation file you actually edited.
 - Delete the first five lines (copyright notice) in the `$LANG.po` files.
 - Keep the `LINGUAS` file sorted alphabetically.
-- The files to translate might change, if the `ninja` commands fail, try to run `./po/generate-potfiles.sh`
+- The files to translate might change, run `./po/generate-potfiles.sh` to check if there are changes in the files list. If that is the case, commit the change.
 - Languages can't be tested without installing Lutris via meson:
   ```bash
-  rm -Rf builddir
-  meson builddir --prefix=~/.local
-  ninja install -C builddir
-
   rm -Rf builddir
   meson builddir --prefix=~/.local
   ninja install -C builddir

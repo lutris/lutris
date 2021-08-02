@@ -35,12 +35,12 @@ def fetch_script(game_slug, revision=None):
 def read_script(filename):
     """Return scripts from a local file"""
     logger.debug("Loading script(s) from %s", filename)
-    scripts = yaml.safe_load(open(filename, "r").read())
-    if isinstance(scripts, list):
-        return scripts
-    if "results" in scripts:
-        return scripts["results"]
-    return scripts
+    script = yaml.safe_load(open(filename, "r").read())
+    if isinstance(script, list):
+        return script
+    if "results" in script:
+        return script["results"]
+    return [script]
 
 
 def get_installers(game_slug, installer_file=None, revision=None):

@@ -3,19 +3,19 @@
 <component type="desktop">
   <id>net.lutris.Lutris</id>
   <project_license>GPL-3.0-or-later</project_license>
-  <metadata_license>GPL-3.0-or-later</metadata_license>
+  <metadata_license>CC0-1.0</metadata_license>
   <translation type="gettext">lutris</translation>
   <developer_name translatable="no">Lutris Team</developer_name>
   <update_contact>strider@lutris.net</update_contact>
   <name translatable="no">Lutris</name>
-  <summary>Play all your games by Lutris</summary>
+  <summary>Video game preservation platform</summary>
   <screenshots>
     <screenshot type="default">
       <caption>Main window</caption>
       <image>https://lutris.net/static/images/lutris-window.png</image>
     </screenshot>
   </screenshots>
-  <description><p>Lutris is an Open Source gaming platform. It installs and launches games so you can start playing without the hassle of setting up your games. Get your games from GOG, Steam, Battle.net, Origin, Uplay and many other sources running on any Linux powered gaming machine.</p></description>
+  <description><p>Lutris helps you install and play video games from all eras and from most gaming systems. By leveraging and combining existing emulators, engine re-implementations and compatibility layers, it gives you a central interface to launch all your games.</p></description>
   <url type="homepage">https://lutris.net</url>
   <url type="donation">https://lutris.net/donate</url>
   <url type="help">https://forums.lutris.net</url>
@@ -24,7 +24,7 @@
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
-    <release date="2020-10-19" version="0.5.8" />
+    <release date="2021-06-19" version="0.5.9" />
   </releases>
   <content_rating type="oars-1.1" />
 </component>

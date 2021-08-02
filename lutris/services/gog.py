@@ -2,12 +2,15 @@
 import json
 import os
 import time
+from collections import defaultdict
 from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
 
+from lxml import etree
+
+import lutris.util.i18n as i18n
 from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGame
-from lutris.gui.dialogs import WebConnectDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
@@ -66,6 +69,7 @@ class GOGService(OnlineService):
     name = _("GOG")
     icon = "gog"
     has_extras = True
+    drm_free = True
     medias = {
         "banner_small": GogSmallBanner,
         "banner": GogMediumBanner,
@@ -106,13 +110,6 @@ class GOGService(OnlineService):
     def credential_files(self):
         return [self.cookies_path, self.token_path]
 
-    def login(self, parent=None):
-        """Connect to GOG"""
-        logger.debug("Connecting to GOG")
-        dialog = WebConnectDialog(self, parent)
-        dialog.set_modal(True)
-        dialog.show()
-
     def is_connected(self):
         """Return whether the user is authenticated and if the service is available"""
         if not self.is_authenticated():
@@ -133,14 +130,15 @@ class GOGService(OnlineService):
             logger.error("User not connected to GOG")
             return
         self.is_loading = True
-        self.emit("service-games-load")
         games = [GOGGame.new_from_gog_game(game) for game in self.get_library()]
         for game in games:
             game.save()
         self.match_games()
         self.is_loading = False
-        self.emit("service-games-loaded")
         return games
+
+    def login_callback(self, url):
+        return self.request_token(url)
 
     def request_token(self, url="", refresh_token=""):
         """Get authentication token from GOG"""
@@ -327,10 +325,18 @@ class GOGService(OnlineService):
                 filter_os = "linux"
             gog_installers = [installer for installer in gog_installers if installer["os"] != filter_os]
 
-        # Keep only the english installer until we have locale detection
-        # and / or language selection implemented
+        language = self.determine_language_installer(gog_installers, language)
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
         return gog_installers
+
+    def determine_language_installer(self, gog_installers, default_language):
+        """Return locale language string if available in gog_installers"""
+
+        language = i18n.get_lang()
+        gog_installers = [installer for installer in gog_installers if installer["language"] == language]
+        if not gog_installers:
+            language = default_language
+        return language
 
     def query_download_links(self, download):
         """Convert files from the GOG API to a format compatible with lutris installers"""
@@ -386,32 +392,53 @@ class GOGService(OnlineService):
             raise UnavailableGame("Couldn't load the download links for this game")
         if not links:
             raise UnavailableGame("Could not fing GOG game")
-
+        _installer_files = defaultdict(dict)  # keyed by filename
+        for link in links:
+            filename = link["filename"]
+            if filename.lower().endswith(".xml"):
+                if filename != installer_file_id:
+                    filename = filename[:-4]
+                _installer_files[filename]["checksum_url"] = link["url"]
+                continue
+            _installer_files[filename]["id"] = link["id"]
+            _installer_files[filename]["url"] = link["url"]
+            _installer_files[filename]["filename"] = filename
+            _installer_files[filename]["total_size"] = link["total_size"]
         files = []
         file_id_provided = False  # Only assign installer_file_id once
-        for index, link in enumerate(links):
-            if isinstance(link, dict):
-                url = link["url"]
-            else:
-                url = link
-            filename = link["filename"]
+        for _file_id in _installer_files:
+            installer_file = _installer_files[_file_id]
+            if "url" not in installer_file:
+                raise ValueError("Invalid installer file %s" % installer_file)
+            filename = installer_file["filename"]
             if filename.lower().endswith((".exe", ".sh")) and not file_id_provided:
                 file_id = installer_file_id
                 file_id_provided = True
             else:
-                file_id = "gog_file_%s" % index
-            files.append(
-                InstallerFile(installer.game_slug, file_id, {
-                    "url": url,
-                    "filename": filename,
-                })
-            )
+                file_id = _file_id
+            files.append(InstallerFile(installer.game_slug, file_id, {
+                "url": installer_file["url"],
+                "filename": installer_file["filename"],
+                "checksum_url": installer_file.get("checksum_url")
+            }))
         if not file_id_provided:
             raise UnavailableGame("Unable to determine correct file to launch installer")
         if self.selected_extras:
             for extra_file in self.get_extra_files(downloads, installer):
                 files.append(extra_file)
         return files
+
+    def read_file_checksum(self, file_path):
+        """Return the MD5 checksum for a GOG file
+        Requires a GOG XML file as input
+        This has yet to be used.
+        """
+        if not file_path.endswith(".xml"):
+            raise ValueError("Pass a XML file to return the checksum")
+        with open(file_path) as checksum_file:
+            checksum_content = checksum_file.read()
+        root_elem = etree.fromstring(checksum_content)
+        return (root_elem.attrib["name"], root_elem.attrib["md5"])
 
     def generate_installer(self, db_game):
         details = json.loads(db_game["details"])
@@ -428,8 +455,7 @@ class GOGService(OnlineService):
             runner = "wine"
             game_config = {"exe": AUTO_WIN32_EXE}
             script = [
-                {"task": {"name": "create_prefix", "prefix": "$GAMEDIR"}},
-                {"task": {"name": "wineexec", "executable": "goginstaller", "args": "args: /SP- /NOCANCEL"}},
+                {"autosetup_gog_game": "goginstaller"},
             ]
         return {
             "name": db_game["name"],

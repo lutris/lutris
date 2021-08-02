@@ -8,10 +8,9 @@ import stat
 import string
 import subprocess
 
-from gi.repository import GLib
+from gi.repository import Gio, GLib
 
 from lutris import settings
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 # Home folders that should never get deleted. This should be localized and return the
@@ -79,6 +78,18 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
     return stdout.decode(errors="replace").strip()
 
 
+def read_process_output(command, timeout=2):
+    """Return the output of a command as a string"""
+    try:
+        return subprocess.check_output(
+            command,
+            timeout=timeout
+        ).decode("utf-8", errors="ignore").strip()
+    except (OSError, subprocess.CalledProcessError) as ex:
+        logger.error("%s command failed: %s", command, ex)
+        return ""
+
+
 def get_md5_hash(filename):
     """Return the md5 hash of a file."""
     md5 = hashlib.md5()
@@ -115,9 +126,6 @@ def find_executable(exec_name):
     """Return the absolute path of an executable"""
     if not exec_name:
         return None
-    cached = LINUX_SYSTEM.get(exec_name)
-    if cached:
-        return cached
     return shutil.which(exec_name)
 
 
@@ -298,19 +306,6 @@ def get_pids_using_file(path):
     return set(fuser_output.split())
 
 
-def get_terminal_apps():
-    """Return the list of installed terminal emulators"""
-    return LINUX_SYSTEM.get_terminals()
-
-
-def get_default_terminal():
-    """Return the default terminal emulator"""
-    terms = get_terminal_apps()
-    if terms:
-        return terms[0]
-    logger.error("Couldn't find a terminal emulator.")
-
-
 def reverse_expanduser(path):
     """Replace '/home/username' with '~' in given path."""
     if not path:
@@ -352,19 +347,6 @@ def reset_library_preloads():
                 logger.error("Failed to delete environment variable %s", key)
 
 
-def run_once(function):
-    """Decorator to use on functions intended to run only once"""
-    first_run = True
-
-    def fn_wrapper(*args):
-        nonlocal first_run
-        if first_run:
-            first_run = False
-            return function(*args)
-
-    return fn_wrapper
-
-
 def get_existing_parent(path):
     """Return the 1st existing parent for a folder (or itself if the path
     exists and is a directory). returns None, when none of the parents exists.
@@ -395,3 +377,54 @@ def get_disk_size(path):
             if os.path.isfile(os.path.join(base, f))
         ])
     return total_size
+
+
+def get_running_pid_list():
+    """Return the list of PIDs from processes currently running"""
+    return [p for p in os.listdir("/proc") if p[0].isdigit()]
+
+
+def get_mounted_discs():
+    """Return a list of mounted discs and ISOs
+
+    :rtype: list of Gio.Mount
+    """
+    volumes = Gio.VolumeMonitor.get()
+    drives = []
+
+    for mount in volumes.get_mounts():
+        if mount.get_volume():
+            device = mount.get_volume().get_identifier("unix-device")
+            if not device:
+                logger.debug("No device for mount %s", mount.get_name())
+                continue
+
+            # Device is a disk drive or ISO image
+            if "/dev/sr" in device or "/dev/loop" in device:
+                drives.append(mount.get_root().get_path())
+    return drives
+
+
+def find_mount_point(path):
+    """Return the mount point a file is located on"""
+    path = os.path.abspath(path)
+    while not os.path.ismount(path):
+        path = os.path.dirname(path)
+    return path
+
+
+def get_mountpoint_drives():
+    """Return a mapping of mount points with their corresponding drives"""
+    mounts = read_process_output(["mount", "-v"]).split("\n")
+    mount_map = []
+    for mount in mounts:
+        mount_parts = mount.split()
+        if len(mount_parts) < 3:
+            continue
+        mount_map.append((mount_parts[2], mount_parts[0]))
+    return dict(mount_map)
+
+
+def get_drive_for_path(path):
+    """Return the physical drive a file is located on"""
+    return get_mountpoint_drives().get(find_mount_point(path))

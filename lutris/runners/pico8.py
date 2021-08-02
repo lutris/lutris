@@ -26,8 +26,8 @@ class pico8(Runner):
         {
             "option": "main_file",
             "type": "string",
-            "label": _("Cartridge file/url/id"),
-            "help": _("You can put a .p8.png file path, url, or BBS cartridge id here."),
+            "label": _("Cartridge file/URL/ID"),
+            "help": _("You can put a .p8.png file path, URL, or BBS cartridge ID here."),
         }
     ]
 

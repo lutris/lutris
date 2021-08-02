@@ -7,19 +7,23 @@ from lutris.util.log import logger
 class InstallerFilesBox(Gtk.ListBox):
     """List box presenting all files needed for an installer"""
 
+    max_downloads = 3
+
     __gsignals__ = {
         "files-ready": (GObject.SIGNAL_RUN_LAST, None, (bool, )),
         "files-available": (GObject.SIGNAL_RUN_LAST, None, ())
     }
 
-    def __init__(self, installer_files, parent):
+    def __init__(self, installer, parent):
         super().__init__()
         self.parent = parent
-        self.installer_files = installer_files
+        self.installer = installer
+        self.installer_files = installer.files
         self.ready_files = set()
         self.available_files = set()
         self.installer_files_boxes = {}
-        for installer_file in installer_files:
+        self._file_queue = []
+        for installer_file in installer.files:
             installer_file_box = InstallerFileBox(installer_file)
             installer_file_box.connect("file-ready", self.on_file_ready)
             installer_file_box.connect("file-unready", self.on_file_unready)
@@ -32,14 +36,23 @@ class InstallerFilesBox(Gtk.ListBox):
         self.check_files_ready()
 
     def start_all(self):
-        """Start all downloads"""
+        """Iterates through installer files while keeping the number
+        of simultaneously downloaded files down to a maximum number"""
+        started_downloads = 0
         for file_id in self.installer_files_boxes:
-            self.installer_files_boxes[file_id].start()
+            if self.installer_files_boxes[file_id].provider == "download":
+                started_downloads += 1
+                if started_downloads <= self.max_downloads:
+                    self.installer_files_boxes[file_id].start()
+                else:
+                    self._file_queue.append(file_id)
+            else:
+                self.installer_files_boxes[file_id].start()
 
     @property
     def is_ready(self):
         """Return True if all files are ready to be fetched"""
-        return len(self.ready_files) == len(self.installer_files)
+        return len(self.ready_files) == len(self.installer.files)
 
     def check_files_ready(self):
         """Checks if all installer files are ready and emit a signal if so"""
@@ -65,7 +78,11 @@ class InstallerFilesBox(Gtk.ListBox):
     def on_file_available(self, widget):
         """A new file is available"""
         file_id = widget.installer_file.id
+        logger.debug("%s is available", file_id)
         self.available_files.add(file_id)
+        if self._file_queue:
+            next_file_id = self._file_queue.pop()
+            self.installer_files_boxes[next_file_id].start()
         if len(self.available_files) == len(self.installer_files):
             logger.info("All files available")
             self.emit("files-available")

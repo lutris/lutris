@@ -6,13 +6,12 @@ from gettext import gettext as _
 
 from lutris import settings
 from lutris.exceptions import UnavailableGame
-from lutris.gui.dialogs import WebConnectDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
-from lutris.util import system
+from lutris.util import linux
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -51,7 +50,6 @@ class HumbleBundleGame(ServiceGame):
 
 
 class HumbleBundleService(OnlineService):
-
     """Service for Humble Bundle"""
 
     id = "humblebundle"
@@ -59,11 +57,11 @@ class HumbleBundleService(OnlineService):
     name = _("Humble Bundle")
     icon = "humblebundle"
     online = True
+    drm_free = True
     medias = {
         "small_icon": HumbleSmallIcon,
         "icon": HumbleBundleIcon,
         "big_icon": HumbleBigIcon
-
     }
     default_format = "icon"
 
@@ -73,23 +71,19 @@ class HumbleBundleService(OnlineService):
 
     cookies_path = os.path.join(settings.CACHE_DIR, ".humblebundle.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".humblebundle.token")
-    cache_path = os.path.join(settings.CACHE_DIR, "humblebundle-library/")
+    cache_path = os.path.join(settings.CACHE_DIR, "humblebundle/library/")
 
     supported_platforms = ("linux", "windows")
     is_loading = False
 
-    def request_token(self, url="", refresh_token=""):
-        """Dummy function, should not be here. Fix in WebConnectDialog"""
+    def login_callback(self, url):
+        """Called after the user has logged in successfully"""
         self.emit("service-login")
 
-    def login(self, parent=None):
-        """Connect to Humble Bundle"""
-        dialog = WebConnectDialog(self, parent)
-        dialog.set_modal(True)
-        dialog.show()
-
     def is_connected(self):
-        """Is the service connected?"""
+        """This doesn't actually check if the authentication
+        is valid like the GOG service does.
+        """
         return self.is_authenticated()
 
     def load(self):
@@ -97,11 +91,16 @@ class HumbleBundleService(OnlineService):
         if self.is_loading:
             logger.warning("Humble bundle games are already loading")
             return
+
         self.is_loading = True
-        self.emit("service-games-load")
+        try:
+            library = self.get_library()
+        except ValueError:
+            logger.error("Failed to get Humble Bundle library. Try logging out and back-in.")
+            return
         humble_games = []
         seen = set()
-        for game in self.get_library():
+        for game in library:
             if game["human_name"] in seen:
                 continue
             humble_games.append(HumbleBundleGame.new_from_humble_game(game))
@@ -109,7 +108,6 @@ class HumbleBundleService(OnlineService):
         for game in humble_games:
             game.save()
         self.is_loading = False
-        self.emit("service-games-loaded")
         return humble_games
 
     def make_api_request(self, url):
@@ -187,6 +185,17 @@ class HumbleBundleService(OnlineService):
         for product in order["subproducts"]:
             if product["machine_name"] != humbleid:
                 continue
+            available_platforms = [d["platform"] for d in product["downloads"]]
+            if platform not in available_platforms:
+                logger.warning("Requested platform %s not available in available platforms: %s",
+                               platform, available_platforms)
+
+                if "linux" in available_platforms:
+                    platform = "linux"
+                elif "windows" in available_platforms:
+                    platform = "windows"
+                else:
+                    platform = available_platforms[0]
             for download in product["downloads"]:
                 if download["platform"] != platform:
                     continue
@@ -263,6 +272,10 @@ class HumbleBundleService(OnlineService):
                     {"extract": {"file": "humblegame", "format": "zip", "dst": "$CACHE"}},
                     {"merge": {"src": "$CACHE/data/", "dst": "$GAMEDIR"}},
                 ]
+            elif filename.endswith(".air"):
+                script = [
+                    {"move": {"src": "humblegame", "dst": "$GAMEDIR"}},
+                ]
             else:
                 script = [{"extract": {"file": "humblegame"}}]
                 system_config = {"gamemode": 'false'}  # Unity games crash with gamemode
@@ -308,20 +321,27 @@ def pick_download_url_from_download_info(download_info):
     if not download_info["download_struct"]:
         logger.warning("No downloads found")
         return
-    if system.LINUX_SYSTEM.is_64_bit:
-        bad_arch = "32"
-    else:
-        bad_arch = "64"
-    if len(download_info["download_struct"]) > 1:
-        logger.info("There are %s downloads available:", len(download_info["download_struct"]))
-        sorted_downloads = []
-        for _download in download_info["download_struct"]:
-            if "deb" in _download["name"] or "rpm" in _download["name"] or bad_arch in _download["name"]:
-                sorted_downloads.append(_download)
-            else:
-                sorted_downloads.insert(0, _download)
-        return sorted_downloads[0]["url"]["web"]
-    return download_info["download_struct"][0]["url"]["web"]
+
+    def humble_sort(download):
+        name = download["name"]
+        if "rpm" in name:
+            return -99  # Not supported as an extractor
+        bonus = 1
+        if "deb" not in name:
+            bonus = 2
+        if linux.LINUX_SYSTEM.is_64_bit:
+            if "386" in name or "32" in name:
+                return -1
+        else:
+            if "64" in name:
+                return -10
+        return 1 * bonus
+
+    sorted_downloads = sorted(download_info["download_struct"], key=humble_sort, reverse=True)
+    logger.debug("Humble bundle installers:")
+    for download in sorted_downloads:
+        logger.debug(download)
+    return sorted_downloads[0]["url"]["web"]
 
 
 def get_humble_download_link(humbleid, runner):

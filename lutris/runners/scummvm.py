@@ -43,19 +43,15 @@ class scummvm(Runner):
     runner_options = [
         {
             "option": "fullscreen",
-            "label": _("Fullscreen mode"),
+            "label": _("Fullscreen"),
             "type": "bool",
-            "default": False,
+            "default": True,
         },
         {
-            "option":
-            "aspect",
-            "label":
-            _("Aspect ratio correction"),
-            "type":
-            "bool",
-            "default":
-            True,
+            "option": "aspect",
+            "label": _("Aspect ratio correction"),
+            "type": "bool",
+            "default": True,
             "help": _(
                 "Most games supported by ScummVM were made for VGA "
                 "display modes using rectangular pixels. Activating "
@@ -64,14 +60,10 @@ class scummvm(Runner):
             ),
         },
         {
-            "option":
-            "gfx-mode",
-            "label":
-            _("Graphic scaler"),
-            "type":
-            "choice",
-            "default":
-            "3x",
+            "option": "gfx-mode",
+            "label": _("Graphic scaler"),
+            "type": "choice",
+            "default": "3x",
             "choices": [
                 ("1x", "1x"),
                 ("2x", "2x"),

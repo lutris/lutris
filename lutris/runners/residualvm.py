@@ -13,10 +13,7 @@ RESIDUALVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".residualvmrc")
 class residualvm(Runner):
     human_name = _("ResidualVM")
     platforms = [_("Linux")]  # TODO
-    description = _(
-        "Runs various 3D point-and-click adventure games, "
-        "like Grim Fandango and Escape from Monkey Island."
-    )
+    description = _("3D point-and-click adventure games engine")
     runner_executable = "residualvm/residualvm"
     game_options = [
         {
@@ -39,7 +36,7 @@ class residualvm(Runner):
     runner_options = [
         {
             "option": "fullscreen",
-            "label": _("Fullscreen mode"),
+            "label": _("Fullscreen"),
             "type": "bool",
             "default": False,
         },

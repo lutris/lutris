@@ -1,11 +1,10 @@
 """XrandR based display management"""
-# Standard Library
 import re
 import subprocess
 from collections import namedtuple
 
-# Lutris Modules
 from lutris.util.log import logger
+from lutris.util.system import read_process_output
 
 Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate"))
 
@@ -13,13 +12,7 @@ Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary"
 def _get_vidmodes():
     """Return video modes from XrandR"""
     logger.debug("Retrieving video modes from XrandR")
-    try:
-        xrandr_output = subprocess.check_output(["xrandr"])
-    except subprocess.CalledProcessError as ex:
-        logger.error("Unable to read xrandr: %s", ex)
-        return ""
-
-    return xrandr_output.decode().split("\n")
+    return read_process_output(["xrandr"]).split("\n")
 
 
 def get_outputs():  # pylint: disable=too-many-locals

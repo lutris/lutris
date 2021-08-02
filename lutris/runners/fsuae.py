@@ -33,44 +33,44 @@ class fsuae(Runner):
         (_("Commodore CDTV"), "CDTV"),
     ]
     cpumodel_choices = [
-        ("68000", "68000"),
-        ("68010", "68010"),
-        ("68020 with 24-bit addressing", "68EC020"),
-        ("68020", "68020"),
-        ("68030 without internal MMU", "68EC030"),
-        ("68030", "68030"),
-        ("68040 without internal FPU and MMU", "68EC040"),
-        ("68040 without internal FPU", "68LC040"),
-        ("68040 without internal MMU", "68040-NOMMU"),
-        ("68040", "68040"),
-        ("68060 without internal FPU and MMU", "68EC060"),
-        ("68060 without internal FPU", "68LC060"),
-        ("68060 without internal MMU", "68060-NOMMU"),
-        ("68060", "68060"),
-        ("auto", "auto"),
+        (_("68000"), "68000"),
+        (_("68010"), "68010"),
+        (_("68020 with 24-bit addressing"), "68EC020"),
+        (_("68020"), "68020"),
+        (_("68030 without internal MMU"), "68EC030"),
+        (_("68030"), "68030"),
+        (_("68040 without internal FPU and MMU"), "68EC040"),
+        (_("68040 without internal FPU"), "68LC040"),
+        (_("68040 without internal MMU"), "68040-NOMMU"),
+        (_("68040"), "68040"),
+        (_("68060 without internal FPU and MMU"), "68EC060"),
+        (_("68060 without internal FPU"), "68LC060"),
+        (_("68060 without internal MMU"), "68060-NOMMU"),
+        (_("68060"), "68060"),
+        (_("Auto"), "auto"),
     ]
     memory_choices = [
-        ("0", "0"),
-        ("1 MB", "1024"),
-        ("2 MB", "2048"),
-        ("4 MB", "4096"),
-        ("8 MB", "8192"),
+        (_("0"), "0"),
+        (_("1 MB"), "1024"),
+        (_("2 MB"), "2048"),
+        (_("4 MB"), "4096"),
+        (_("8 MB"), "8192"),
     ]
     zorroiii_choices = [
-        ("0", "0"),
-        ("1 MB", "1024"),
-        ("2 MB", "2048"),
-        ("4 MB", "4096"),
-        ("8 MB", "8192"),
-        ("16 MB", "16384"),
-        ("32 MB", "32768"),
-        ("64 MB", "65536"),
-        ("128 MB", "131072"),
-        ("256 MB", "262144"),
-        ("384 MB", "393216"),
-        ("512 MB", "524288"),
-        ("768 MB", "786432"),
-        ("1 GB", "1048576"),
+        (_("0"), "0"),
+        (_("1 MB"), "1024"),
+        (_("2 MB"), "2048"),
+        (_("4 MB"), "4096"),
+        (_("8 MB"), "8192"),
+        (_("16 MB"), "16384"),
+        (_("32 MB"), "32768"),
+        (_("64 MB"), "65536"),
+        (_("128 MB"), "131072"),
+        (_("256 MB"), "262144"),
+        (_("384 MB"), "393216"),
+        (_("512 MB"), "524288"),
+        (_("768 MB"), "786432"),
+        (_("1 GB"), "1048576"),
     ]
     flsound_choices = [
         ("0", "0"),
@@ -91,19 +91,19 @@ class fsuae(Runner):
         ("Picasso IV Zorro III", "picasso-iv-z3"),
     ]
     gpumem_choices = [
-        ("0", "0"),
-        ("1 MB", "1024"),
-        ("2 MB", "2048"),
-        ("4 MB", "4096"),
-        ("8 MB", "8192"),
-        ("16 MB", "16384"),
-        ("32 MB", "32768"),
-        ("64 MB", "65536"),
-        ("128 MB", "131072"),
-        ("256 MB", "262144"),
+        (_("0"), "0"),
+        (_("1 MB"), "1024"),
+        (_("2 MB"), "2048"),
+        (_("4 MB"), "4096"),
+        (_("8 MB"), "8192"),
+        (_("16 MB"), "16384"),
+        (_("32 MB"), "32768"),
+        (_("64 MB"), "65536"),
+        (_("128 MB"), "131072"),
+        (_("256 MB"), "262144"),
     ]
     flspeed_choices = [
-        ("Turbo", "0"),
+        (_("Turbo"), "0"),
         ("100%", "100"),
         ("200%", "200"),
         ("400%", "400"),
@@ -132,7 +132,7 @@ class fsuae(Runner):
             "help": _("The additional floppy disk image(s)."),
         }, {
             "option": "cdrom_image",
-            "label": _("CD-Rom image"),
+            "label": _("CD-ROM image"),
             "type": "file",
             "help": _("CD-ROM image to use on non CD32/CDTV models")
         }
@@ -152,7 +152,7 @@ class fsuae(Runner):
             "label": _("Kickstart ROMs location"),
             "type": "file",
             "help": _(
-                "Choose the folder containing original Amiga kickstart "
+                "Choose the folder containing original Amiga Kickstart "
                 "ROMs. Refer to FS-UAE documentation to find how to "
                 "acquire them. Without these, FS-UAE uses a bundled "
                 "replacement ROM which is less compatible with Amiga "
@@ -168,7 +168,7 @@ class fsuae(Runner):
         },
         {
             "option": "gfx_fullscreen_amiga",
-            "label": _("Fullscreen (F12 + s to switch)"),
+            "label": _("Fullscreen (F12 + S to switch)"),
             "type": "bool",
             "default": False,
         },
@@ -187,8 +187,8 @@ class fsuae(Runner):
             "choices": cpumodel_choices,
             "default": "auto",
             "advanced": True,
-            "help": _("Use this option to override the CPU model in the emulated Amiga. All Amiga"
-                      "models imply a default CPU model, so you only need to use this option if"
+            "help": _("Use this option to override the CPU model in the emulated Amiga. All Amiga "
+                      "models imply a default CPU model, so you only need to use this option if you "
                       "want to use another CPU."),
         },
         {
@@ -207,9 +207,9 @@ class fsuae(Runner):
             "choices": zorroiii_choices,
             "default": "0",
             "advanced": True,
-            "help": _("Override the amount of Zorro III Fast memory, specified in KB. Must be a"
-                      "multiple of 1024. The default value depends on [amiga_model]. Requires a"
-                      "processor with 32-bit address bus, (use for example the A1200/020 model).."),
+            "help": _("Override the amount of Zorro III Fast memory, specified in KB. Must be a "
+                      "multiple of 1024. The default value depends on [amiga_model]. Requires a "
+                      "processor with 32-bit address bus, (use for example the A1200/020 model)."),
         },
         {
             "option": "fdvolume",
@@ -272,8 +272,8 @@ class fsuae(Runner):
             "type": "bool",
             "default": False,
             "advanced": True,
-            "help": _("Automatically uses Feral GameMode daemon if available."
-                      "set to true to disable the feature.")
+            "help": _("Automatically uses Feral GameMode daemon if available. "
+                      "Set to true to disable the feature.")
         },
         {
             "option": "govwarning",
@@ -282,8 +282,8 @@ class fsuae(Runner):
             "default": False,
             "advanced": True,
             "help":
-            _("Warn if running with a CPU governor other than performance."
-              "set to true to disable the warning.")
+            _("Warn if running with a CPU governor other than performance. "
+              "Set to true to disable the warning.")
         },
         {
             "option": "bsdsocket",

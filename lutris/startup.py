@@ -1,6 +1,7 @@
 """Check to run at program start"""
 import os
 import sqlite3
+import time
 from gettext import gettext as _
 
 from lutris import runners, settings
@@ -9,10 +10,15 @@ from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
+from lutris.runtime import RuntimeUpdater
+from lutris.services import DEFAULT_SERVICES
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import create_folder
+from lutris.util.wine.dxvk import DXVKManager
+from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
+from lutris.util.wine.vkd3d import VKD3DManager
 
 
 def init_dirs():
@@ -35,21 +41,6 @@ def init_dirs():
     ]
     for directory in directories:
         create_folder(directory)
-
-
-def init_lutris():
-    """Run full initialization of Lutris"""
-    runners.inject_runners(load_json_runners())
-    # Load runner names
-    runners.RUNNER_NAMES = runners.get_runner_names()
-    init_dirs()
-    try:
-        syncdb()
-    except sqlite3.DatabaseError:
-        raise RuntimeError(
-            "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
-            settings.PGA_DB
-        )
 
 
 def check_driver():
@@ -87,12 +78,16 @@ def check_driver():
         if settings.read_setting(setting) != "True":
             DontShowAgainDialog(
                 setting,
-                _("Your Nvidia driver is outdated."),
-                secondary_message=_("You are currently running driver %s which does not "
-                                    "fully support all features for Vulkan and DXVK games.\n"
-                                    "Please upgrade your driver as described in our "
-                                    "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
-                                    "installation guide</a>") % driver_info["nvrm"]["version"],
+                _("Your NVIDIA driver is outdated."),
+                secondary_message=_(
+                    "You are currently running driver %s which does not "
+                    "fully support all features for Vulkan and DXVK games.\n"
+                    "Please upgrade your driver as described in our "
+                    "<a href='%s'>installation guide</a>"
+                ) % (
+                    driver_info["nvrm"]["version"],
+                    settings.DRIVER_HOWTO_URL,
+                )
             )
 
 
@@ -117,12 +112,16 @@ def check_libs(all_components=False):
             DontShowAgainDialog(
                 setting,
                 _("Missing vulkan libraries"),
-                secondary_message=_("Lutris was unable to detect Vulkan support for "
-                                    "the %s architecture.\n"
-                                    "This will prevent many games and programs from working.\n"
-                                    "To install it, please use the following guide: "
-                                    "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
-                                    "Installing Graphics Drivers</a>") % _(" and ").join(missing_vulkan_libs),
+                secondary_message=_(
+                    "Lutris was unable to detect Vulkan support for "
+                    "the %s architecture.\n"
+                    "This will prevent many games and programs from working.\n"
+                    "To install it, please use the following guide: "
+                    "<a href='%s'>Installing Graphics Drivers</a>"
+                ) % (
+                    _(" and ").join(missing_vulkan_libs),
+                    settings.DRIVER_HOWTO_URL,
+                )
             )
 
 
@@ -153,3 +152,36 @@ def run_all_checks():
     check_libs()
     check_vulkan()
     fill_missing_platforms()
+
+
+def init_lutris():
+    """Run full initialization of Lutris"""
+    logger.info("Starting Lutris %s", settings.VERSION)
+    runners.inject_runners(load_json_runners())
+    # Load runner names and platforms
+    runners.RUNNER_NAMES = runners.get_runner_names()
+    runners.RUNNER_PLATFORMS = runners.get_platforms()
+    init_dirs()
+    try:
+        syncdb()
+    except sqlite3.DatabaseError:
+        raise RuntimeError(
+            "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
+            settings.PGA_DB
+        )
+    for service in DEFAULT_SERVICES:
+        if not settings.read_setting(service, section="services"):
+            settings.write_setting(service, True, section="services")
+
+
+def update_runtime():
+    """Update runtime components"""
+    runtime_updater = RuntimeUpdater()
+    components_to_update = runtime_updater.update()
+    if components_to_update:
+        while runtime_updater.current_updates:
+            time.sleep(0.3)
+    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager):
+        dll_manager = dll_manager_class()
+        dll_manager.upgrade()
+    logger.info("Startup complete")

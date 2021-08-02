@@ -2,10 +2,13 @@ dist: bionic
 language: python
 python:
   - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
 env:
-  - PIPENV_VERBOSITY=-1
+  - PIPENV_VERBOSITY=-1 LUTRIS_SKIP_INIT=1
 virtualenv:
-  system_site_packages: true
+  system_site_packages: false
 services:
   - xvfb
 addons:
@@ -20,6 +23,7 @@ addons:
       - python3-setproctitle
       - python3-distro
       - python3-magic
+      - python3-lxml
       - gir1.2-gtk-3.0
       - psmisc
       - gir1.2-glib-2.0
@@ -37,7 +41,9 @@ install:
   - pip install --upgrade pip pypresence~=3.3.2 pipenv
   - pipenv install --dev --deploy --ignore-pipfile
 script:
-  - make check
+  - pipenv run isort -y -rc lutris
+  - pipenv run flake8 lutris
+  - pipenv run pylint --rcfile=.pylintrc --output-format=colorized lutris
   - nosetests
 
 # Cache the pip dependencies

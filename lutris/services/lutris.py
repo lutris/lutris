@@ -10,36 +10,12 @@ from lutris.api import read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
-from lutris.gui.views.media_loader import MediaLoader
+from lutris.gui.views.media_loader import download_icons
 from lutris.installer import fetch_script
-from lutris.services.base import OnlineService
+from lutris.services.base import LutrisBanner, LutrisIcon, OnlineService
 from lutris.services.service_game import ServiceGame
-from lutris.services.service_media import ServiceMedia
 from lutris.util import http
 from lutris.util.log import logger
-
-
-class LutrisBanner(ServiceMedia):
-    service = 'lutris'
-    size = (184, 69)
-    dest_path = settings.BANNER_PATH
-    file_pattern = "%s.jpg"
-    api_field = 'banner_url'
-    url_pattern = "https://lutris.net/games/banner/%s.jpg"
-
-    def get_media_urls(self):
-        return {
-            game["slug"]: self.url_pattern % game["slug"]
-            for game in get_games()
-        }
-
-
-class LutrisIcon(LutrisBanner):
-    size = (32, 32)
-    dest_path = settings.ICON_PATH
-    file_pattern = "lutris_%s.png"
-    api_field = 'icon_url'
-    url_pattern = "https://lutris.net/games/icon/%s.png"
 
 
 class LutrisGame(ServiceGame):
@@ -124,7 +100,6 @@ class LutrisService(OnlineService):
         if self.is_loading:
             logger.warning("Lutris games are already loading")
             return
-        self.emit("service-games-load")
         self.is_loading = True
         lutris_games = self.get_library()
         for game in lutris_games:
@@ -134,7 +109,6 @@ class LutrisService(OnlineService):
         self.match_games()
         self.is_loading = False
         logger.debug("Lutris games loaded")
-        self.emit("service-games-loaded")
         return lutris_games
 
     def install(self, db_game):
@@ -162,10 +136,8 @@ def download_lutris_media(slug):
     response_data = response.json
     icon_url = response_data.get("icon_url")
     if icon_url:
-        icon_loader = MediaLoader()
-        icon_loader.download_icons({slug: icon_url}, LutrisIcon())
+        download_icons({slug: icon_url}, LutrisIcon())
 
     banner_url = response_data.get("banner_url")
     if banner_url:
-        banner_loader = MediaLoader()
-        banner_loader.download_icons({slug: banner_url}, LutrisBanner())
+        download_icons({slug: banner_url}, LutrisBanner())

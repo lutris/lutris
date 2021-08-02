@@ -1,10 +1,9 @@
-# Standard Library
 import os
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import display, system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
 
@@ -107,9 +106,18 @@ class zdoom(Runner):
         return executable
 
     def prelaunch(self):
-        if not system.LINUX_SYSTEM.get_soundfonts():
+        if not LINUX_SYSTEM.get_soundfonts():
             logger.warning("FluidSynth is not installed, you might not have any music")
         return True
+
+    @property
+    def working_dir(self):
+        wad = self.game_config.get("main_file")
+        if wad:
+            return os.path.dirname(os.path.expanduser(wad))
+        wad_files = self.game_config.get("files")
+        if wad_files:
+            return os.path.dirname(os.path.expanduser(wad_files[0]))
 
     def play(self):  # noqa: C901
         command = [self.get_executable()]

@@ -1,9 +1,8 @@
 """Runner for MAME"""
 import os
-import subprocess
 from gettext import gettext as _
 
-from lutris import settings
+from lutris import runtime, settings
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.jobs import AsyncCall
@@ -15,17 +14,25 @@ MAME_CACHE_DIR = os.path.join(settings.CACHE_DIR, "mame")
 MAME_XML_PATH = os.path.join(MAME_CACHE_DIR, "mame.xml")
 
 
-def write_mame_xml():
+def write_mame_xml(force=False):
     if not system.path_exists(MAME_CACHE_DIR):
         system.create_folder(MAME_CACHE_DIR)
-    if not system.path_exists(MAME_XML_PATH):
-        logger.info("Getting full game list from MAME...")
-        mame_inst = mame()
-        mame_inst.write_xml_list()
+    if system.path_exists(MAME_XML_PATH, exclude_empty=True) and not force:
+        return False
+    logger.info("Writing full game list from MAME to %s", MAME_XML_PATH)
+    mame_inst = mame()
+    mame_inst.write_xml_list()
+    if system.get_disk_size(MAME_XML_PATH) == 0:
+        logger.warning("MAME did not write anything to %s", MAME_XML_PATH)
+        return False
+    return True
 
 
-def notify_mame_xml(*args, **kwargs):
-    logger.info("MAME XML written")
+def notify_mame_xml(result, error):
+    if error:
+        logger.error("Failed writing MAME XML")
+    elif result:
+        logger.info("Finished writing MAME XML")
 
 
 def get_system_choices(include_year=True):
@@ -34,7 +41,6 @@ def get_system_choices(include_year=True):
         mame_inst = mame()
         if mame_inst.is_installed():
             AsyncCall(write_mame_xml, notify_mame_xml)
-            logger.warning("MAME XML generation launched in the background, not returning anything this time")
         return []
     for system_id, info in sorted(
         get_supported_systems(MAME_XML_PATH).items(),
@@ -100,9 +106,9 @@ class mame(Runner):  # pylint: disable=invalid-name
                 (_("Hard Disk"), "hard"),
                 (_("Hard Disk 1"), "hard1"),
                 (_("Hard Disk 2"), "hard2"),
-                (_("CDROM"), "cdrm"),
-                (_("CDROM 1"), "cdrm1"),
-                (_("CDROM 2"), "cdrm2"),
+                (_("CD-ROM"), "cdrm"),
+                (_("CD-ROM 1"), "cdrm1"),
+                (_("CD-ROM 2"), "cdrm2"),
                 (_("Snapshot"), "dump"),
                 (_("Quickload"), "quickload"),
                 (_("Memory Card"), "memc"),
@@ -122,7 +128,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "option": "autoboot_command",
             "type": "string",
             "label": _("Autoboot command"),
-            "help": _("Autotype this command when the system has started,"
+            "help": _("Autotype this command when the system has started, "
                       "an enter keypress is automatically added."),
         },
         {
@@ -228,13 +234,16 @@ class mame(Runner):  # pylint: disable=invalid-name
         """Write the full game list in XML to disk"""
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
-        with open(self.xml_path, "w") as xml_file:
-            output = system.execute([self.get_executable(), "-listxml"])
-            if output:
+        output = system.execute(
+            [self.get_executable(), "-listxml"],
+            env=runtime.get_env()
+        )
+        if output:
+            with open(self.xml_path, "w") as xml_file:
                 xml_file.write(output)
-            else:
-                logger.warning("Couldn't get any output for mame -listxml")
             logger.info("MAME XML list written to %s", self.xml_path)
+        else:
+            logger.warning("Couldn't get any output for mame -listxml")
 
     def get_platform(self):
         selected_platform = self.game_config.get("platform")
@@ -254,9 +263,9 @@ class mame(Runner):  # pylint: disable=invalid-name
                 os.makedirs(self.config_dir)
             except OSError:
                 pass
-            subprocess.Popen(
+            system.execute(
                 [self.get_executable(), "-createconfig", "-inipath", self.config_dir],
-                stdout=subprocess.PIPE,
+                env=runtime.get_env(),
                 cwd=self.working_dir
             )
         return True
@@ -280,8 +289,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             device = self.game_config.get("device")
             if not device:
                 return {'error': "CUSTOM", "text": "No device is set for machine %s" % self.game_config["machine"]}
-            rom = self.game_config["main_file"]
-            command += ["-" + device, rom]
+            rom = self.game_config.get("main_file")
+            if rom:
+                command += ["-" + device, rom]
         else:
             rompath = os.path.dirname(self.game_config.get("main_file"))
             if not rompath:

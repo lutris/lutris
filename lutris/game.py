@@ -4,6 +4,7 @@
 import os
 import shlex
 import shutil
+import signal
 import subprocess
 import time
 from gettext import gettext as _
@@ -16,13 +17,11 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.discord import DiscordPresence
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
-from lutris.settings import DEFAULT_DISCORD_CLIENT_ID
-from lutris.util import audio, jobs, strings, system, xdgshortcuts
+from lutris.util import audio, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
 )
@@ -30,8 +29,8 @@ from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
+from lutris.util.process import Process
 from lutris.util.timer import Timer
-from lutris.util.wine.dxvk import wait_for_dxvk_init
 
 HEARTBEAT_DELAY = 2000
 
@@ -65,11 +64,11 @@ class Game(GObject.Object):
 
         # Load attributes from database
         game_data = games_db.get_game_by_field(game_id, "id")
+
         self.slug = game_data.get("slug") or ""
         self.runner_name = game_data.get("runner") or ""
         self.directory = game_data.get("directory") or ""
         self.name = game_data.get("name") or ""
-
         self.game_config_id = game_data.get("configpath") or ""
         self.is_installed = bool(game_data.get("installed") and self.game_config_id)
         self.is_hidden = bool(game_data.get("hidden"))
@@ -80,12 +79,14 @@ class Game(GObject.Object):
         self.has_custom_icon = bool(game_data.get("has_custom_icon"))
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
-        self.discord_presence = DiscordPresence()
         self.playtime = game_data.get("playtime") or 0.0
 
         if self.game_config_id:
             self.load_config()
+        self.game_uuid = None
         self.game_thread = None
+        self.antimicro_thread = None
+        self.prelaunch_pids = []
         self.prelaunch_executor = None
         self.heartbeat = None
         self.killswitch = None
@@ -102,7 +103,7 @@ class Game(GObject.Object):
         return self.__str__()
 
     def __str__(self):
-        value = self.name
+        value = self.name or "Game (no name)"
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
@@ -143,7 +144,7 @@ class Game(GObject.Object):
     @property
     def log_buffer(self):
         """Access the log buffer object, creating it if necessary"""
-        _log_buffer = LOG_BUFFERS.get(self.id)
+        _log_buffer = LOG_BUFFERS.get(str(self.id))
         if _log_buffer:
             return _log_buffer
         _log_buffer = Gtk.TextBuffer()
@@ -151,7 +152,7 @@ class Game(GObject.Object):
         if self.game_thread:
             self.game_thread.set_log_buffer(self._log_buffer)
             _log_buffer.set_text(self.game_thread.stdout)
-        LOG_BUFFERS[self.id] = _log_buffer
+        LOG_BUFFERS[str(self.id)] = _log_buffer
         return _log_buffer
 
     @property
@@ -174,7 +175,7 @@ class Game(GObject.Object):
             if filename:
                 message_text = _("The file {} could not be found").format(filename.replace("&", "&amp;"))
             else:
-                message_text = _("No file provided")
+                message_text = _("This game has no executable set. The install process didn't finish properly.")
             dialogs.ErrorDialog(message_text)
         elif message["error"] == "NOT_EXECUTABLE":
             message_text = message["file"].replace("&", "&amp;")
@@ -203,16 +204,6 @@ class Game(GObject.Object):
             return
         self.config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
         self.runner = self._get_runner()
-        if self.discord_presence.available:
-            self.discord_presence.client_id = (
-                self.config.system_config.get("discord_client_id") or DEFAULT_DISCORD_CLIENT_ID
-            )
-            self.discord_presence.game_name = (self.config.system_config.get("discord_custom_game_name") or self.name)
-            self.discord_presence.show_runner = self.config.system_config.get("discord_show_runner", True)
-            self.discord_presence.runner_name = (
-                self.config.system_config.get("discord_custom_runner_name") or self.runner_name
-            )
-            self.discord_presence.rpc_enabled = self.config.system_config.get("discord_rpc_enabled", True)
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
@@ -241,6 +232,13 @@ class Game(GObject.Object):
         self.runner = None
         self.emit("game-removed")
 
+    def delete(self):
+        """Completely remove a game from the library"""
+        if self.is_installed:
+            raise RuntimeError("Uninstall the game before deleting")
+        games_db.delete_game(self.id)
+        self.emit("game-removed")
+
     def set_platform_from_runner(self):
         """Set the game's platform from the runner"""
         if not self.runner:
@@ -248,8 +246,7 @@ class Game(GObject.Object):
             return
         self.platform = self.runner.get_platform()
         if not self.platform:
-            logger.warning("Can't get platform for runner %s", self.runner.human_name)
-
+            logger.warning("The %s runner didn't provide a platform for %s", self.runner.human_name, self)
 
     def save(self, save_config=False):
         """
@@ -296,7 +293,7 @@ class Game(GObject.Object):
             if runtime_updater.is_updating():
                 logger.warning("Runtime updates: %s", runtime_updater.current_updates)
                 dialogs.ErrorDialog(_("Runtime currently updating"), _("Game might not work as expected"))
-        if ("wine" in self.runner_name and not wine.get_system_wine_version() and not LINUX_SYSTEM.is_flatpak):
+        if ("wine" in self.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
             root_window = None
@@ -338,6 +335,17 @@ class Game(GObject.Object):
         time.sleep(3)
         return display
 
+    def start_antimicrox(self, antimicro_config):
+        """Start Antimicrox with a given config path"""
+        antimicro_path = system.find_executable("antimicrox")
+        if not antimicro_path:
+            logger.warning("Antimicrox is not installed.")
+            return
+        logger.info("Starting Antic")
+        antimicro_command = [antimicro_path, "--hidden", "--tray", "--profile", antimicro_config]
+        self.antimicro_thread = MonitoredCommand(antimicro_command)
+        self.antimicro_thread.start()
+
     @staticmethod
     def set_keyboard_layout(layout):
         setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
@@ -367,7 +375,7 @@ class Game(GObject.Object):
         Remember that only games using text mode should use the terminal.
         """
         if self.runner.system_config.get("terminal"):
-            terminal = self.runner.system_config.get("terminal_app", system.get_default_terminal())
+            terminal = self.runner.system_config.get("terminal_app", linux.get_default_terminal())
             if terminal and not system.find_executable(terminal):
                 raise GameConfigError(_("The selected terminal application could not be launched:\n%s") % terminal)
             return terminal
@@ -421,17 +429,14 @@ class Game(GObject.Object):
         }
 
         # Audio control
-
         if self.runner.system_config.get("reset_pulse"):
             audio.reset_pulse()
 
         # Input control
-
         if self.runner.system_config.get("use_us_layout"):
             self.set_keyboard_layout("us")
 
         # Display control
-
         self.original_outputs = DISPLAY_MANAGER.get_config()
 
         if self.runner.system_config.get("disable_compositor"):
@@ -453,8 +458,11 @@ class Game(GObject.Object):
         if xephyr != "off":
             env["DISPLAY"] = self.start_xephyr()
 
-        # Execution control
+        antimicro_config = self.runner.system_config.get("antimicro_config")
+        if system.path_exists(antimicro_config):
+            self.start_antimicrox(antimicro_config)
 
+        # Execution control
         self.killswitch = self.get_killswitch()
 
         if self.runner.system_config.get("prelaunch_command"):
@@ -469,13 +477,11 @@ class Game(GObject.Object):
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
         if not self.is_installed:
-            self.emit("game-install")
-            return
-        wait_for_dxvk_init()
+            raise RuntimeError("Tried to launch a game that isn't installed")
         self.load_config()  # Reload the config before launching it.
 
-        if self.id in LOG_BUFFERS:  # Reset game logs on each launch
-            LOG_BUFFERS.pop(self.id)
+        if str(self.id) in LOG_BUFFERS:  # Reset game logs on each launch
+            LOG_BUFFERS.pop(str(self.id))
 
         if not self.runner:
             dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
@@ -484,6 +490,7 @@ class Game(GObject.Object):
             logger.error("Game is not launchable")
             return
         self.state = self.STATE_LAUNCHING
+        self.prelaunch_pids = system.get_running_pid_list()
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
@@ -501,14 +508,52 @@ class Game(GObject.Object):
         )
         if hasattr(self.runner, "stop"):
             self.game_thread.stop_func = self.runner.stop
+        self.game_uuid = self.game_thread.env["LUTRIS_GAME_UUID"]
         self.game_thread.start()
         self.timer.start()
         self.state = self.STATE_RUNNING
         self.emit("game-started")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
 
+    def force_stop(self):
+        """Forces termination of a running game"""
+        pids = self.get_game_pids()
+        if self.game_thread and self.game_thread.game_process:
+            pids.add(self.game_thread.game_process.pid)
+        for pid in pids:
+            try:
+                os.kill(int(pid), signal.SIGTERM)
+            except ProcessLookupError as ex:
+                logger.debug("Failed to kill game process: %s", ex)
+        self.stop_game()
+
+    def get_game_pids(self):
+        """Return a list of processes belonging to the Lutris game"""
+        new_pids = self.get_new_pids()
+        game_pids = []
+        game_folder = self.runner.game_path or ""
+        for pid in new_pids:
+            cmdline = Process(pid).cmdline or ""
+            # pressure-vessel: This could potentially pick up PIDs not started by lutris?
+            if game_folder in cmdline or "pressure-vessel" in cmdline:
+                game_pids.append(pid)
+        return set(game_pids + [
+            pid for pid in new_pids
+            if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid
+        ])
+
+    def get_new_pids(self):
+        """Return list of PIDs started since the game was launched"""
+        return set(system.get_running_pid_list()) - set(self.prelaunch_pids)
+
     def stop_game(self):
         """Cleanup after a game as stopped"""
+        duration = self.timer.duration
+        logger.debug("%s has run for %s seconds", self, duration)
+        if duration < 5:
+            logger.warning("The game has run for a very short time, did it crash?")
+            # Inspect why it could have crashed
+
         self.state = self.STATE_STOPPED
         self.emit("game-stop")
         if not self.timer.finished:
@@ -532,14 +577,15 @@ class Game(GObject.Object):
         # The killswitch file should be set to a device (ie. /dev/input/js0)
         # When that device is unplugged, the game is forced to quit.
         killswitch_engage = self.killswitch and not system.path_exists(self.killswitch)
-        if not self.game_thread.is_running or killswitch_engage:
+        if killswitch_engage:
+            logger.warning("File descriptor no longer present, force quit the game")
+            self.force_stop()
+            return False
+        game_pids = self.get_game_pids()
+        if not self.game_thread.is_running and not game_pids:
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
-
-        if self.discord_presence.available:
-            self.discord_presence.update_discord_rich_presence()
-
         return True
 
     def stop(self):
@@ -580,15 +626,15 @@ class Game(GObject.Object):
                 )
                 postexit_thread.start()
 
-        if self.discord_presence.available:
-            self.discord_presence.clear_discord_rich_presence()
-
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
         self.save(save_config=False)
 
         os.chdir(os.path.expanduser("~"))
+
+        if self.antimicro_thread:
+            self.antimicro_thread.stop()
 
         if self.resolution_changed or self.runner.system_config.get("reset_desktop"):
             DISPLAY_MANAGER.set_resolution(self.original_outputs)

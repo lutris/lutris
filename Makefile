@@ -26,7 +26,6 @@ release: build-source upload upload-ppa
 test:
 	rm tests/fixtures/pga.db -f
 	nosetests3
-	flake8 lutris
 
 cover:
 	rm tests/fixtures/pga.db -f
@@ -72,7 +71,7 @@ requirements:
 style: isort autopep8  ## Format code
 
 isort:
-	$(PIPENV) run isort -y -rc lutris
+	$(PIPENV) run isort -rc lutris
 
 autopep8:
 	$(PIPENV) run autopep8 --in-place --recursive --ignore E402 setup.py lutris

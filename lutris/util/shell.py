@@ -24,6 +24,7 @@ def get_terminal_script(command, cwd, env):
             cd "%s"
             %s
             exec %s
+            exit $?
             """ % (cwd, exported_environment, command)
             )
         )
@@ -60,6 +61,8 @@ def get_bash_rc_file(cwd, env, aliases=None):
 
 
 def get_shell_command(cwd, env, aliases=None):
+    """Generates a scripts whichs opens a bash shell configured with given
+    environment variables and aliases.
+    """
     bashrc_file = get_bash_rc_file(cwd, env, aliases)
-    script_path = get_terminal_script(["bash", "--rcfile", bashrc_file], cwd, env)
-    return script_path
+    return get_terminal_script(["bash", "--rcfile", bashrc_file], cwd, env)

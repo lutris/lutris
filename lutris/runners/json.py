@@ -39,7 +39,8 @@ class JsonRunner(Runner):
             if option["option"] not in self.runner_config:
                 continue
             if option["type"] == "bool":
-                arguments.append(option["argument"])
+                if self.runner_config.get(option["option"]):
+                    arguments.append(option["argument"])
             elif option["type"] == "choice":
                 if self.runner_config.get(option["option"]) != "off":
                     arguments.append(option["argument"])

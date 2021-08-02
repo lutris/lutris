@@ -8,7 +8,7 @@ from gi.repository import GObject, Gtk
 from lutris.cache import save_to_cache
 from lutris.gui.installer.widgets import InstallerLabel
 from lutris.gui.widgets.common import FileChooserEntry
-from lutris.gui.widgets.download_progress import DownloadProgressBox
+from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
 from lutris.util.log import logger
@@ -55,16 +55,15 @@ class InstallerFileBox(Gtk.VBox):
             "url": self.installer_file.url,
             "dest": self.installer_file.dest_file,
             "referer": self.installer_file.referer
-        }, cancelable=True)
+        })
         download_progress.connect("complete", self.on_download_complete)
+        download_progress.connect("cancel", self.on_download_cancelled)
         download_progress.show()
         if (
                 not self.installer_file.uses_pga_cache()
                 and system.path_exists(self.installer_file.dest_file)
         ):
             os.remove(self.installer_file.dest_file)
-        self.start_func = download_progress.start
-        self.stop_func = download_progress.cancel
         return download_progress
 
     def get_file_provider_widget(self):
@@ -72,6 +71,8 @@ class InstallerFileBox(Gtk.VBox):
         box = Gtk.VBox(spacing=6)
         if self.provider == "download":
             download_progress = self.get_download_progress()
+            self.start_func = download_progress.start
+            self.stop_func = download_progress.on_cancel_clicked
             box.pack_start(download_progress, False, False, 0)
             return box
         if self.provider == "pga":
@@ -85,15 +86,14 @@ class InstallerFileBox(Gtk.VBox):
         if self.provider == "steam":
             steam_installer = SteamInstaller(self.installer_file.url,
                                              self.installer_file.id)
-            steam_installer.connect("game-installed", self.on_download_complete)
-            steam_installer.connect("state-changed", self.on_state_changed)
+            steam_installer.connect("steam-game-installed", self.on_download_complete)
+            steam_installer.connect("steam-state-changed", self.on_state_changed)
             self.start_func = steam_installer.install_steam_game
             self.stop_func = steam_installer.stop_func
 
             steam_box = Gtk.HBox(spacing=6)
             info_box = Gtk.VBox(spacing=6)
-            steam_label = InstallerLabel(_("Steam game for {platform} (appid: <b>{appid}</b>)").format(
-                platform=steam_installer.platform,
+            steam_label = InstallerLabel(_("Steam game <b>{appid}</b>").format(
                 appid=steam_installer.appid
             ))
             info_box.add(steam_label)
@@ -101,7 +101,7 @@ class InstallerFileBox(Gtk.VBox):
             info_box.add(self.state_label)
             steam_box.add(info_box)
             return steam_box
-        return Gtk.Label("?")
+        raise ValueError("Invalid provider %s" % self.provider)
 
     def get_file_label(self):
         """Return a human readable label for installer files"""
@@ -262,21 +262,23 @@ class InstallerFileBox(Gtk.VBox):
             self.cache_file()
             return
         if self.start_func:
-            self.start_func()
-        else:
-            logger.info("No start function provided, this file can't be provided")
+            return self.start_func()
 
     def cache_file(self):
         """Copy file to the PGA cache"""
         if self.cache_to_pga:
             save_to_cache(self.installer_file.dest_file, self.installer_file.cache_path)
 
-    def on_download_cancelled(self):
+    def on_download_cancelled(self, downloader):
         """Handle cancellation of installers"""
+        logger.error("Download from %s cancelled", downloader)
+        downloader.set_retry_button()
 
     def on_download_complete(self, widget, _data=None):
         """Action called on a completed download."""
+        logger.info("Download completed")
         if isinstance(widget, SteamInstaller):
             self.installer_file.dest_file = widget.get_steam_data_path()
+        else:
+            self.cache_file()
         self.emit("file-available")
-        self.cache_file()

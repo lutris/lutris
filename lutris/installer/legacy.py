@@ -1,4 +1,4 @@
-from lutris.util import system
+from lutris.util import linux
 
 
 def get_game_launcher(script):
@@ -8,7 +8,7 @@ def get_game_launcher(script):
     added.
     """
     launcher_value = None
-    exe = "exe64" if "exe64" in script and system.LINUX_SYSTEM.is_64_bit else "exe"
+    exe = "exe64" if "exe64" in script and linux.LINUX_SYSTEM.is_64_bit else "exe"
     for launcher in (exe, "iso", "rom", "disk", "main_file"):
         if launcher not in script:
             continue

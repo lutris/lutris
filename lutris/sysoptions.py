@@ -1,15 +1,11 @@
 """Options list for system config."""
-# Standard Library
 import glob
-# pylint: disable=invalid-name
 import os
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris import runners
-from lutris.discord import DiscordPresence
-from lutris.util import system
+from lutris.util import linux, system
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
 
 VULKAN_DATA_DIRS = [
@@ -70,17 +66,19 @@ def get_optirun_choices():
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
     choices = [(_("Auto"), "")]
-
+    icd_files = defaultdict(list)
     # Add loaders
     for data_dir in VULKAN_DATA_DIRS:
         path = os.path.join(data_dir, "icd.d", "*.json")
         for loader in glob.glob(path):
-            choices.append((os.path.basename(loader), loader))
+            icd_key = os.path.basename(loader).split(".")[0]
+            icd_files[icd_key].append(os.path.join(path, loader))
 
+    for icd_key in icd_files:
+        files = ":".join(icd_files[icd_key])
+        choices.append((icd_key.capitalize().replace("_icd", " ICD"), files))
     return choices
 
-
-discord_presence = DiscordPresence()
 
 system_options = [  # pylint: disable=invalid-name
     {
@@ -101,7 +99,7 @@ system_options = [  # pylint: disable=invalid-name
         "default":
         False,
         "help": _("The Lutris Runtime loads some libraries before running the "
-                  "game. Which can cause some incompatibilities in some cases. "
+                  "game, which can cause some incompatibilities in some cases. "
                   "Check this option to disable it."),
     },
     {
@@ -126,6 +124,34 @@ system_options = [  # pylint: disable=invalid-name
                   "into play to save your bacon."),
     },
     {
+        "option": "gamescope",
+        "type": "bool",
+        "label": _("Enable gamescope"),
+        "default": False,
+        "advanced": True,
+        "condition": bool(system.find_executable("gamescope")),
+        "help": _("Use gamescope to draw the game window isolated from your desktop.\n"
+                  "Use <Ctrl><Super>F to toggle fullscreen"),
+    },
+    {
+        "option": "gamescope_output_res",
+        "type": "string",
+        "label": _("Gamescope output resolution"),
+        "default": False,
+        "advanced": True,
+        "condition": bool(system.find_executable("gamescope")),
+        "help": _("Resolution of the window on your desktop"),
+    },
+    {
+        "option": "gamescope_game_res",
+        "type": "string",
+        "label": _("Gamescope game resolution"),
+        "default": False,
+        "advanced": True,
+        "condition": bool(system.find_executable("gamescope")),
+        "help": _("Resolution of the screen visible to the game"),
+    },
+    {
         "option": "single_cpu",
         "type": "bool",
         "label": _("Restrict to single core"),
@@ -134,16 +160,11 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Restrict the game to a single CPU core."),
     },
     {
-        "option":
-        "restore_gamma",
-        "type":
-        "bool",
-        "default":
-        False,
-        "label":
-        _("Restore gamma on game exit"),
-        "advanced":
-        True,
+        "option": "restore_gamma",
+        "type": "bool",
+        "default": False,
+        "label": _("Restore gamma on game exit"),
+        "advanced": True,
         "help": _("Some games don't correctly restores gamma on exit, making "
                   "your display too bright. Select this option to correct it."),
     },
@@ -182,7 +203,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Reduce PulseAudio latency"),
         "default": False,
         "advanced": True,
-        "condition": system.find_executable("pulseaudio"),
+        "condition": system.find_executable("pulseaudio") or system.find_executable("pipewire-pulse"),
         "help": _("Set the environment variable PULSE_LATENCY_MSEC=60 "
                   "to improve audio quality on some games"),
     },
@@ -192,21 +213,15 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Switch to US keyboard layout"),
         "default": False,
         "advanced": True,
-        "help": _("Switch to US keyboard qwerty layout while game is running"),
+        "help": _("Switch to US keyboard QWERTY layout while game is running"),
     },
     {
-        "option":
-        "optimus",
-        "type":
-        "choice",
-        "default":
-        "off",
-        "choices":
-        get_optirun_choices,
-        "label":
-        _("Optimus launcher (NVIDIA Optimus laptops)"),
-        "advanced":
-        True,
+        "option": "optimus",
+        "type": "choice",
+        "default": "off",
+        "choices": get_optirun_choices,
+        "label": _("Optimus launcher (NVIDIA Optimus laptops)"),
+        "advanced": True,
         "help": _("If you have installed the primus or bumblebee packages, "
                   "select what launcher will run the game with the command, "
                   "activating your NVIDIA graphic chip for high 3D "
@@ -245,38 +260,25 @@ system_options = [  # pylint: disable=invalid-name
         "option": "fps_limit",
         "type": "string",
         "size": "small",
-        "label": _("Fps limit"),
+        "label": _("FPS limit"),
         "advanced": True,
         "condition": bool(system.find_executable("strangle")),
-        "help": _("Limit the game's fps to desired number"),
-    },
-    {
-        "option": "aco",
-        "type": "bool",
-        "label": _("Enable ACO shader compiler"),
-        "condition": system.LINUX_SYSTEM.is_feature_supported("ACO"),
-        "help": _("Enable ACO shader compiler, improving performance in a lot of games. "
-                  "Requires Mesa 19.3 or later.")
+        "help": _("Limit the game's FPS to desired number"),
     },
     {
         "option": "gamemode",
         "type": "bool",
-        "default": system.LINUX_SYSTEM.gamemode_available(),
-        "condition": system.LINUX_SYSTEM.gamemode_available,
-        "label": _("Enable Feral gamemode"),
+        "default": linux.LINUX_SYSTEM.gamemode_available(),
+        "condition": linux.LINUX_SYSTEM.gamemode_available,
+        "label": _("Enable Feral GameMode"),
         "help": _("Request a set of optimisations be temporarily applied to the host OS"),
     },
     {
-        "option":
-        "prime",
-        "type":
-        "bool",
-        "default":
-        False,
-        "condition":
-        True,
-        "label":
-        _("Enable NVIDIA Prime render offload"),
+        "option": "prime",
+        "type": "bool",
+        "default": False,
+        "condition": True,
+        "label": _("Enable NVIDIA Prime Render Offload"),
         "help": _("If you have the latest NVIDIA driver and the properly patched xorg-server (see "
                   "https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html"
                   "), you can launch a game on your NVIDIA GPU by toggling this switch. This will apply "
@@ -284,53 +286,35 @@ system_options = [  # pylint: disable=invalid-name
                   "__GLX_VENDOR_LIBRARY_NAME=nvidia environment variables.")
     },
     {
-        "option":
-        "dri_prime",
-        "type":
-        "bool",
-        "default":
-        USE_DRI_PRIME,
-        "condition":
-        USE_DRI_PRIME,
-        "label":
-        _("Use discrete graphics"),
-        "advanced":
-        True,
+        "option": "dri_prime",
+        "type": "bool",
+        "default": USE_DRI_PRIME,
+        "condition": USE_DRI_PRIME,
+        "label": _("Use discrete graphics"),
+        "advanced": True,
         "help": _("If you have open source graphic drivers (Mesa), selecting this "
                   "option will run the game with the 'DRI_PRIME=1' environment variable, "
                   "activating your discrete graphic chip for high 3D "
                   "performance."),
     },
     {
-        "option":
-        "sdl_video_fullscreen",
-        "type":
-        "choice",
-        "label":
-        _("SDL 1.2 Fullscreen Monitor"),
-        "choices":
-        get_output_list,
-        "default":
-        "off",
-        "advanced":
-        True,
+        "option": "sdl_video_fullscreen",
+        "type": "choice",
+        "label": _("SDL 1.2 Fullscreen Monitor"),
+        "choices": get_output_list,
+        "default": "off",
+        "advanced": True,
         "help": _("Hint SDL 1.2 games to use a specific monitor when going "
                   "fullscreen by setting the SDL_VIDEO_FULLSCREEN "
                   "environment variable"),
     },
     {
-        "option":
-        "display",
-        "type":
-        "choice",
-        "label":
-        _("Turn off monitors except"),
-        "choices":
-        get_output_choices,
-        "default":
-        "off",
-        "advanced":
-        True,
+        "option": "display",
+        "type": "choice",
+        "label": _("Turn off monitors except"),
+        "choices": get_output_choices,
+        "default": "off",
+        "advanced": True,
         "help": _("Only keep the selected screen active while the game is "
                   "running. \n"
                   "This is useful if you have a dual-screen setup, and are \n"
@@ -346,35 +330,36 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "option": "terminal",
-        "label": _("Run in a terminal"),
+        "label": _("CLI mode"),
         "type": "bool",
         "default": False,
         "advanced": True,
-        "help": _("Run the game in a new terminal window."),
+        "help": _("Enable a terminal for text-based games. "
+                  "Only useful for ASCII based games. May cause issues with graphical games."),
     },
     {
-        "option":
-        "terminal_app",
-        "label":
-        _("Terminal application"),
-        "type":
-        "choice_with_entry",
-        "choices":
-        system.get_terminal_apps,
-        "default":
-        system.get_default_terminal(),
-        "advanced":
-        True,
-        "help": _("The terminal emulator to be run with the previous option."
+        "option": "terminal_app",
+        "label": _("Text based games emulator"),
+        "type": "choice_with_entry",
+        "choices": linux.get_terminal_apps,
+        "default": linux.get_default_terminal(),
+        "advanced": True,
+        "help": _("The terminal emulator used with the CLI mode. "
                   "Choose from the list of detected terminal apps or enter "
-                  "the terminal's command or path."
-                  "Note: Not all terminal emulators are guaranteed to work."),
+                  "the terminal's command or path."),
     },
     {
         "option": "env",
         "type": "mapping",
         "label": _("Environment variables"),
         "help": _("Environment variables loaded at run time"),
+    },
+    {
+        "option": "antimicro_config",
+        "type": "file",
+        "label": _("AntiMicroX Profile"),
+        "advanced": True,
+        "help": _("Path to an AntiMicroX profile file"),
     },
     {
         "option": "prefix_command",
@@ -503,49 +488,6 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Open Xephyr in fullscreen (at the desktop resolution)"),
     },
 ]
-
-discord_options = [
-    {
-        "option": "discord_rpc_enabled",
-        "type": "bool",
-        "label": _("Discord Rich Presence"),
-        "default": False,
-        "condition": discord_presence.available,
-        "help": _("Enable status to Discord of this game being played"),
-    },
-    {
-        "option": "discord_show_runner",
-        "type": "bool",
-        "label": _("Discord Show Runner"),
-        "default": True,
-        "condition": discord_presence.available,
-        "help": _("Embed the runner name in the Discord status"),
-    },
-    {
-        "option": "discord_custom_game_name",
-        "type": "string",
-        "label": _("Discord Custom Game Name"),
-        "condition": discord_presence.available,
-        "help": _("Custom name to override with and pass to Discord"),
-    },
-    {
-        "option": "discord_custom_runner_name",
-        "type": "string",
-        "label": _("Discord Custom Runner Name"),
-        "condition": discord_presence.available,
-        "help": _("Custom runner name to override with and pass to Discord"),
-    },
-    {
-        "option": "discord_client_id",
-        "type": "string",
-        "label": _("Discord Client ID"),
-        "condition": discord_presence.available,
-        "help": _("Custom Discord Client ID for passing status"),
-    },
-]
-
-if discord_presence.available:
-    system_options += discord_options
 
 
 def with_runner_overrides(runner_slug):

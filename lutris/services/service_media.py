@@ -1,10 +1,13 @@
 import json
 import os
+import random
+import time
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
+from lutris.util.log import logger
 
 PGA_DB = settings.PGA_DB
 
@@ -15,6 +18,7 @@ class ServiceMedia:
     service = NotImplemented
     size = NotImplemented
     source = "remote"  # set to local if the files don't need to be downloaded
+    visible = True  # This media should be displayed as an option in the UI
     small_size = None
     dest_path = None
     file_pattern = NotImplemented
@@ -39,6 +43,14 @@ class ServiceMedia:
     def get_url(self, service_game):
         return self.url_pattern % service_game[self.api_field]
 
+    def get_media_url(self, details):
+        if self.api_field not in details:
+            logger.warning("No field '%s' in API game %s", self.api_field, details)
+            return
+        if not details[self.api_field]:
+            return
+        return self.url_pattern % details[self.api_field]
+
     def get_media_urls(self):
         """Return URLs for icons and logos from a service"""
         if self.source == "local":
@@ -49,9 +61,10 @@ class ServiceMedia:
             if not game["details"]:
                 continue
             details = json.loads(game["details"])
-            if not details[self.api_field]:
+            media_url = self.get_media_url(details)
+            if not media_url:
                 continue
-            medias[game["slug"]] = self.url_pattern % details[self.api_field]
+            medias[game["slug"]] = media_url
         return medias
 
     def download(self, slug, url):
@@ -59,10 +72,23 @@ class ServiceMedia:
         if not url:
             return
         cache_path = os.path.join(self.dest_path, self.get_filename(slug))
-        if system.path_exists(cache_path):
+        if system.path_exists(cache_path, exclude_empty=True):
             return
+        if system.path_exists(cache_path):
+            cache_stats = os.stat(cache_path)
+            # Empty files have a life time between 1 and 2 weeks, retry them after
+            if time.time() - cache_stats.st_mtime < 3600 * 24 * random.choice(range(7, 15)):
+                return
+            os.unlink(cache_path)
         try:
-            return download_file(url, cache_path)
-        except HTTPError:
+            return download_file(url, cache_path, raise_errors=True)
+        except HTTPError as ex:
+            if ex.code == 404:
+                open(cache_path, "a").close()
+            else:
+                logger.error(ex.code)
             return None
         return cache_path
+
+    def render(self):
+        """Used if the media requires extra processing"""

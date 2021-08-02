@@ -16,7 +16,7 @@ msgstr "Lutris Hakkında"
 
 #: share/lutris/ui/about-dialog.ui:17
 msgid "Open Source Gaming Platform"
-msgstr "Açık Kaynak Oyun Arayüzü"
+msgstr "Açık Kaynak Oyun Platformu"
 
 #: share/lutris/ui/about-dialog.ui:20
 msgid ""
@@ -33,18 +33,17 @@ msgid ""
 "You should have received a copy of the GNU General Public License\n"
 "along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 msgstr ""
-"This program is free software: you can redistribute it and/or modify\n"
-"it under the terms of the GNU General Public License as published by\n"
-"the Free Software Foundation, either version 3 of the License, or\n"
-"(at your option) any later version.\n"
+"Bu program ücretsiz bir yazılımdır: Lisans’ın 3. sürümünü ya da\n"
+"daha güncel bir sürümünü (sizin seçiminizde) Özgür Yazılım Vakfı\n"
+"tarafından yayınlanmış GNU Genel Kamu Lisansı\n"
+"şartları altında düzenleyebilir ve/ya yeniden yayınlayabilirsiniz.\n"
 "\n"
-"This program is distributed in the hope that it will be useful,\n"
-"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-"GNU General Public License for more details.\n"
+"Bu program faydalı olması amacı ve umuduyla HİÇBİR GARANTİ OLMADAN\n"
+"(SATILABİLİRLİK veya BELİRLİ BİR AMACA UYGUNLUK garantisi dahil)\n"
+"yayınlanmıştır. Daha fazla detay için GNU Genel Kamu Lisansını inceleyiniz.\n"
 "\n"
-"You should have received a copy of the GNU General Public License\n"
-"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+"Programla birlikte GNU Genel Kamu Lisansı’nın bir kopyasını almış olmalısınız. \n"
+"Aksi takdirde <http://www.gnu.org/licenses/> sayfasını ziyaret ediniz.\n"
 
 #: share/lutris/ui/dialog-lutris-login.ui:8
 msgid "Connect to lutris.net"
@@ -52,7 +51,7 @@ msgstr "Lutris.net'e bağlan"
 
 #: share/lutris/ui/dialog-lutris-login.ui:26
 msgid "Forgot password?"
-msgstr "Şifrenizi mi unuttunuz ?"
+msgstr "Şifrenizi mi unuttunuz?"
 
 #: share/lutris/ui/dialog-lutris-login.ui:95
 msgid "Password"
@@ -68,11 +67,11 @@ msgstr "<b>Kişisel Oyun Arşivi kaynakları</b>"
 
 #: share/lutris/ui/dialog-uninstall-game.ui:22
 msgid "Uninstall game"
-msgstr "Oyunu Sil"
+msgstr "Oyunu sil"
 
 #: share/lutris/ui/dialog-uninstall-game.ui:89
 msgid "Are you sure you want to uninstall {game}?"
-msgstr "{game} oyununu silmek istediğinizden emin misiniz?"
+msgstr "{game} adlı oyunu silmek istediğinizden emin misiniz?"
 
 #: share/lutris/ui/dialog-uninstall-game.ui:102
 msgid ""
@@ -91,7 +90,7 @@ msgstr "isim"
 
 #: share/lutris/ui/runner-entry.ui:52
 msgid "description"
-msgstr "tanım"
+msgstr "açıklama"
 
 #: share/lutris/ui/runner-entry.ui:69
 msgid "platforms"

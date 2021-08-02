@@ -1,17 +1,15 @@
 """Steam for Linux runner"""
-# Standard Library
 import os
 import subprocess
 import time
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris.command import MonitoredCommand
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
-from lutris.util import system
+from lutris.util import linux, system
 from lutris.util.log import logger
-from lutris.util.steam.appmanifest import get_path_from_appmanifest
+from lutris.util.steam.appmanifest import get_appmanifest_from_appid, get_path_from_appmanifest
 from lutris.util.steam.config import STEAM_DATA_DIRS, get_default_acf, get_steam_dir, read_config
 from lutris.util.steam.vdf import to_vdf
 from lutris.util.strings import split_arguments
@@ -107,17 +105,6 @@ class steam(Runner):
             ),
         },
         {
-            "option": "steam_native_runtime",
-            "label": _("Disable Steam Runtime (use native libraries)"),
-            "type": "bool",
-            "default": False,
-            "help": _(
-                "Launches Steam with STEAM_RUNTIME=0. "
-                "Make sure you disabled Lutris Runtime and "
-                "have the required libraries installed."
-            ),
-        },
-        {
             "option": "lsi_steam",
             "label": _("Start Steam with LSI"),
             "type": "bool",
@@ -147,7 +134,7 @@ class steam(Runner):
 
     @property
     def runnable_alone(self):
-        return not system.LINUX_SYSTEM.is_flatpak
+        return not linux.LINUX_SYSTEM.is_flatpak
 
     @property
     def appid(self):
@@ -168,8 +155,25 @@ class steam(Runner):
         """Main installation directory for Steam"""
         return get_steam_dir()
 
+    @property
+    def library_folders(self):
+        """Return a list Steam library paths"""
+        return self.get_steamapps_dirs()
+
+    def get_appmanifest(self):
+        """Return an AppManifest instance for the game"""
+        appmanifests = []
+        for apps_path in self.get_steamapps_dirs():
+            appmanifest = get_appmanifest_from_appid(apps_path, self.appid)
+            if appmanifest:
+                appmanifests.append(appmanifest)
+        if len(appmanifests) > 1:
+            logger.warning("More than one AppManifest for %s returning only 1st", self.appid)
+        if appmanifests:
+            return appmanifests[0]
+
     def get_executable(self):
-        if system.LINUX_SYSTEM.is_flatpak:
+        if linux.LINUX_SYSTEM.is_flatpak:
             # Use xdg-open for Steam URIs in Flatpak
             return system.find_executable("xdg-open")
         if self.runner_config.get("lsi_steam") and system.find_executable("lsi-steam"):
@@ -192,21 +196,11 @@ class steam(Runner):
     def launch_args(self):
         """Provide launch arguments for Steam"""
         args = [self.get_executable()]
-        if system.LINUX_SYSTEM.is_flatpak:
+        if linux.LINUX_SYSTEM.is_flatpak:
             return args
         if self.runner_config.get("start_in_big_picture"):
             args.append("-bigpicture")
         return args + split_arguments(self.runner_config.get("args") or "")
-
-    def get_env(self):
-        env = super(steam, self).get_env()
-
-        if not self.runner_config.get("lsi_steam") and self.runner_config.get(
-            "steam_native_runtime"
-        ):
-            env["STEAM_RUNTIME"] = "0"
-
-        return env
 
     def get_game_path_from_appid(self, appid):
         """Return the game directory."""
@@ -313,8 +307,7 @@ class steam(Runner):
             command = [binary_path]
         else:
             # Start through steam
-
-            if system.LINUX_SYSTEM.is_flatpak:
+            if linux.LINUX_SYSTEM.is_flatpak:
                 if game_args:
                     steam_uri = "steam://run/%s//%s/" % (self.appid, game_args)
                 else:

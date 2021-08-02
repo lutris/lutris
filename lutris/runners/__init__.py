@@ -1,4 +1,5 @@
 """Runner loaders"""
+from collections import defaultdict
 
 __all__ = [
     # Native
@@ -10,6 +11,7 @@ __all__ = [
     "winesteam",
     "dosbox",
     # Multi-system
+    "easyrpg",
     "mame",
     "mednafen",
     "scummvm",
@@ -41,6 +43,7 @@ __all__ = [
     "zdoom",
 ]
 ADDON_RUNNERS = {}
+RUNNER_PLATFORMS = {}
 
 
 class InvalidRunner(Exception):
@@ -109,6 +112,16 @@ def get_runner_names():
     return {
         runner: import_runner(runner)().human_name for runner in __all__
     }
+
+
+def get_platforms():
+    """Return a dictionary of all supported platforms with their runners"""
+    platforms = defaultdict(list)
+    for runner_name in __all__:
+        runner = import_runner(runner_name)()
+        for platform in runner.platforms:
+            platforms[platform].append(runner_name)
+    return platforms
 
 
 RUNNER_NAMES = {}  # This needs to be initialized at startup with get_runner_names

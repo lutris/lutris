@@ -6,7 +6,7 @@ from gi.repository import GLib, GObject
 
 from lutris.config import LutrisConfig
 from lutris.installer.errors import ScriptingError
-from lutris.runners import steam, winesteam
+from lutris.runners import steam
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam.log import get_app_state_log
@@ -16,19 +16,15 @@ class SteamInstaller(GObject.Object):
     """Handles installation of Steam games"""
 
     __gsignals__ = {
-        "game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
-        "state-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "steam-game-installed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "steam-state-changed": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
     }
 
     def __init__(self, steam_uri, file_id):
         """
         Params:
             steam_uri: Colon separated game info containing:
-                    - $STEAM or $WINESTEAM depending on the version of Steam
-                        Since Steam for Linux can download games for any
-                        platform, using $WINESTEAM has little value except in
-                        some cases where the game needs to be started by Steam
-                        in order to get a CD key (ie. Doom 3 or UT2004)
+                    - $STEAM
                     - The Steam appid
                     - The relative path of files to retrieve
             file_id: The lutris installer internal id for the game files
@@ -45,25 +41,14 @@ class SteamInstaller(GObject.Object):
 
         self.file_id = file_id
         try:
-            runner_id, appid, path = self.steam_uri.split(":", 2)
+            _steam, appid, path = self.steam_uri.split(":", 2)
         except ValueError:
             raise ScriptingError("Malformed steam path: %s" % self.steam_uri)
 
         self.appid = appid
         self.path = path
-        if runner_id == "$WINESTEAM":
-            self.platform = "windows"
-        else:
-            self.platform = "linux"
-
-    @property
-    def runner(self):
-        """Return the runner instance used by this install"""
-        if not self._runner:
-            if self.platform == "windows":
-                self._runner = winesteam.winesteam()
-            self._runner = steam.steam()
-        return self._runner
+        self.platform = "linux"
+        self.runner = steam.steam()
 
     @property
     def steam_rel_path(self):
@@ -85,12 +70,10 @@ class SteamInstaller(GObject.Object):
         """Launch installation of a steam game"""
         if self.runner.get_game_path_from_appid(appid=self.appid):
             logger.info("Steam game %s is already installed", self.appid)
-            self.emit("game-installed", self.appid)
+            self.emit("steam-game-installed", self.appid)
         else:
             logger.debug("Installing steam game %s", self.appid)
             self.runner.config = LutrisConfig(runner_slug=self.runner.name)
-            # FIXME Find a way to bring back arch support
-            # steam_runner.config.game_config["arch"] = self.steam_data["arch"]
             AsyncCall(self.runner.install_game, self.on_steam_game_installed, self.appid)
             self.install_start_time = time.localtime()
             self.steam_poll = GLib.timeout_add(2000, self._monitor_steam_game_install)
@@ -114,11 +97,14 @@ class SteamInstaller(GObject.Object):
         )
         if states and states != self.prev_states:
             self.state = states[-1].split(",")[-1]
-            self.emit("state-changed", self.state)  # Broadcast new state to listeners
             logger.debug("Steam installation status: %s", states)
+            self.emit("steam-state-changed", self.state)  # Broadcast new state to listeners
+
         self.prev_states = states
+        logger.debug(self.state)
+        logger.debug(states)
         if self.state == "Fully Installed":
             logger.info("Steam game %s has been installed successfully", self.appid)
-            self.emit("game-installed", self.appid)
+            self.emit("steam-game-installed", self.appid)
             return False
         return True

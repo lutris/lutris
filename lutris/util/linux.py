@@ -1,18 +1,14 @@
 """Linux specific platform code"""
-# Standard Library
 import json
 import os
 import platform
 import re
 import resource
 import shutil
-import subprocess
 import sys
 from collections import Counter, defaultdict
 
-# Lutris Modules
 from lutris.util import system
-from lutris.util.disks import get_drive_for_path
 from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
 
@@ -80,12 +76,12 @@ SYSTEM_COMPONENTS = {
         "WINE": ["libsqlite3.so.0"],
         "RADEON": ["libvulkan_radeon.so"],
         "GAMEMODE": ["libgamemodeauto.so"],
+        "GNUTLS": ["libgnutls.so.30"],
     },
 }
 
 
 class LinuxSystem:  # pylint: disable=too-many-public-methods
-
     """Global cache for system commands"""
 
     _cache = {}
@@ -105,7 +101,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     ]
 
     recommended_no_file_open = 524288
-    required_components = ["OPENGL", "VULKAN"]
+    required_components = ["OPENGL", "VULKAN", "GNUTLS"]
     optional_components = ["WINE", "GAMEMODE"]
 
     flatpak_info_path = "/.flatpak-info"
@@ -163,12 +159,12 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     @staticmethod
     def get_drives():
         """Return a list of drives with their filesystems"""
-        try:
-            output = subprocess.check_output(["lsblk", "-f", "--json"]).decode()
-        except subprocess.CalledProcessError as ex:
-            logger.error("Failed to get drive information: %s", ex)
-            return None
-        return [drive for drive in json.loads(output)["blockdevices"] if drive["fstype"] != "squashfs"]
+        lsblk_output = system.read_process_output(["lsblk", "-f", "--json"])
+        return [
+            drive
+            for drive in json.loads(lsblk_output)["blockdevices"]
+            if drive["fstype"] != "squashfs"
+        ]
 
     @staticmethod
     def get_ram_info():
@@ -193,9 +189,9 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         with the supported architectures from the Lutris API
         """
         machine = platform.machine()
-        if "64" in machine:
+        if machine == "x86_64":
             return "x86_64"
-        if "86" in machine:
+        if machine in ("i386", "i686"):
             return "i386"
         if "armv7" in machine:
             return "armv7"
@@ -220,9 +216,14 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         return False
 
     @property
+    def has_steam(self):
+        """Return whether Steam is installed locally"""
+        return bool(system.find_executable("steam"))
+
+    @property
     def is_flatpak(self):
         """Check is we are running inside Flatpak sandbox"""
-        return os.path.exists(self.flatpak_info_path)
+        return system.path_exists(self.flatpak_info_path)
 
     @property
     def runtime_architectures(self):
@@ -241,7 +242,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     def get_fs_type_for_path(self, path):
         """Return the filesystem type a given path uses"""
-        path_drive = get_drive_for_path(path)
+        path_drive = system.get_drive_for_path(path)
         for drive in self.get_drives():
             for partition in drive.get("children", []):
                 if "/dev/%s" % partition["name"] == path_drive:
@@ -310,11 +311,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         if not ldconfig:
             logger.error("Could not detect ldconfig on this system")
             return []
-        try:
-            output = (subprocess.check_output([ldconfig, "-p"]).decode("utf-8", errors="ignore").split("\n"))
-        except subprocess.CalledProcessError as ex:
-            logger.error("Failed to get libraries from ldconfig: %s", ex)
-            return []
+        output = system.read_process_output([ldconfig, "-p"]).split("\n")
         return [line.strip("\t") for line in output if line.startswith("\t")]
 
     def get_shared_libraries(self):
@@ -373,7 +370,6 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
 
 class SharedLibrary:
-
     """Representation of a Linux shared library"""
 
     default_arch = "i386"
@@ -488,3 +484,16 @@ def gather_system_info_str():
             output += '{}{}{}\n'.format(key + ":", tabs, dictionary[key])
         output += '\n'
     return output
+
+
+def get_terminal_apps():
+    """Return the list of installed terminal emulators"""
+    return LINUX_SYSTEM.get_terminals()
+
+
+def get_default_terminal():
+    """Return the default terminal emulator"""
+    terms = get_terminal_apps()
+    if terms:
+        return terms[0]
+    logger.error("Couldn't find a terminal emulator.")

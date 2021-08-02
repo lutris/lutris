@@ -25,10 +25,9 @@ come in a future update.
 
 Note that Lutris is not a playground or a toy project. One cannot submit new
 features that aren't on the roadmap and submit a pull request for them without
-agreeing on a design first with the development team. You can submit such pull
-requests but they will have to be updated with necessary changes from code
-reviews of the development team. This is not only about writing good code but
-also about providing good design for the overall product. Make sure to post all
+agreeing on a design first with the development team. Please get in touch with
+the developers before writing any code, so that you don't waste your efforts on
+something that isn't going to be merged. Make sure to post all
 the relevant information in a ticket or on the pull request. New features must
 at all times have a valid use case based on an actual game, be very specific
 about why you are implementing a feature otherwise it will get rejected.

@@ -5,15 +5,43 @@ import shutil
 from gi.repository import Gio, GObject
 
 from lutris import api, settings
+from lutris.config import write_game_config
 from lutris.database import sql
-from lutris.database.games import get_games
+from lutris.database.games import add_game, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
+from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
+from lutris.gui.views.media_loader import download_icons
 from lutris.installer import fetch_script
+from lutris.services.service_media import ServiceMedia
+from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
 
 PGA_DB = settings.PGA_DB
+
+
+class LutrisBanner(ServiceMedia):
+    service = 'lutris'
+    size = (184, 69)
+    dest_path = settings.BANNER_PATH
+    file_pattern = "%s.jpg"
+    api_field = 'banner_url'
+    url_pattern = "https://lutris.net/games/banner/%s.jpg"
+
+    def get_media_urls(self):
+        return {
+            game["slug"]: self.url_pattern % game["slug"]
+            for game in get_games()
+        }
+
+
+class LutrisIcon(LutrisBanner):
+    size = (32, 32)
+    dest_path = settings.ICON_PATH
+    file_pattern = "lutris_%s.png"
+    api_field = 'icon_url'
+    url_pattern = "https://lutris.net/games/icon/%s.png"
 
 
 class BaseService(GObject.Object):
@@ -24,7 +52,11 @@ class BaseService(GObject.Object):
     name = NotImplemented
     icon = NotImplemented
     online = False
+    local = False
+    drm_free = False  # DRM free games can be added to Lutris from an existing install
+    client_installer = None  # ID of a script needed to install the client used by the service
     medias = {}
+    extra_medias = {}
     default_format = "icon"
 
     __gsignals__ = {
@@ -39,6 +71,39 @@ class BaseService(GObject.Object):
         if self._matcher:
             return self._matcher
         return self.id
+
+    def reload(self):
+        """Refresh the service's games"""
+        self.emit("service-games-load")
+        self.wipe_game_cache()
+        self.load()
+        self.load_icons()
+        self.add_installed_games()
+        self.emit("service-games-loaded")
+
+    def load(self):
+        logger.warning("Load method not implemented")
+
+    def load_icons(self):
+        """Download all game media from the service"""
+        all_medias = self.medias.copy()
+        all_medias.update(self.extra_medias)
+        # Download icons
+        for icon_type in all_medias:
+            service_media = all_medias[icon_type]()
+            media_urls = service_media.get_media_urls()
+            download_icons(media_urls, service_media)
+
+        # Process icons
+        for icon_type in all_medias:
+            service_media = all_medias[icon_type]()
+            service_media.render()
+
+        if self.id != "lutris":
+            for service_media_class in (LutrisIcon, LutrisBanner):
+                service_media = service_media_class()
+                media_urls = service_media.get_media_urls()
+                download_icons(media_urls, service_media)
 
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)
@@ -65,6 +130,7 @@ class BaseService(GObject.Object):
             excludes={"service": self.id}
         )
         for game in unmatched_lutris_games:
+            logger.debug("Updating unmatched game %s", game)
             sql.db_update(
                 PGA_DB,
                 "games",
@@ -77,6 +143,7 @@ class BaseService(GObject.Object):
         service_games = {
             str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
         }
+        logger.debug("Matching games %s", service_games)
         lutris_games = api.get_api_games(list(service_games.keys()), service=self.id)
         for lutris_game in lutris_games:
             for provider_game in lutris_game["provider_games"]:
@@ -93,11 +160,13 @@ class BaseService(GObject.Object):
     def match_existing_game(self, db_games, appid):
         """Checks if a game is already installed and populates the service info"""
         for _game in db_games:
-            logger.info("Found existing installation of %s (%s)", _game["name"], _game["installed"])
+            logger.debug("Matching %s with existing install: %s", appid, _game)
             game = Game(_game["id"])
             game.appid = appid
             game.service = self.id
             game.save()
+            service_game = ServiceGameCollection.get_game(self.id, appid)
+            sql.db_update(PGA_DB, "service_games", {"lutris_slug": game.slug}, {"id": service_game["id"]})
             return game
 
     def get_installers_from_api(self, appid):
@@ -116,6 +185,8 @@ class BaseService(GObject.Object):
         """Install a service game"""
         appid = db_game["appid"]
         logger.debug("Installing %s from service %s", appid, self.id)
+        if self.local:
+            return self.simple_install(db_game)
         service_installers = self.get_installers_from_api(appid)
         # Check if the game is not already installed
         for service_installer in service_installers:
@@ -129,9 +200,38 @@ class BaseService(GObject.Object):
             installer = self.generate_installer(db_game)
             if installer:
                 service_installers.append(installer)
-        if service_installers:
-            application = Gio.Application.get_default()
-            application.show_installer_window(service_installers, service=self, appid=appid)
+        if not service_installers:
+            logger.error("No installer found for %s", db_game)
+            return
+
+        application = Gio.Application.get_default()
+        application.show_installer_window(service_installers, service=self, appid=appid)
+
+    def simple_install(self, db_game):
+        """A simplified version of the install method, used when a game doesn't need any setup"""
+        installer = self.generate_installer(db_game)
+        configpath = write_game_config(db_game["slug"], installer["script"])
+        game_id = add_game(
+            name=installer["name"],
+            runner=installer["runner"],
+            slug=installer["game_slug"],
+            directory=self.get_game_directory(installer),
+            installed=1,
+            installer_slug=installer["slug"],
+            configpath=configpath,
+            service=self.id,
+            service_id=db_game["appid"],
+        )
+        return game_id
+
+    def add_installed_games(self):
+        """Services can implement this method to scan for locally
+        installed games and add them to lutris.
+        """
+
+    def get_game_directory(self, _installer):
+        """Specific services should implement this"""
+        return ""
 
 
 class OnlineService(BaseService):
@@ -140,23 +240,31 @@ class OnlineService(BaseService):
     online = True
     cookies_path = NotImplemented
     cache_path = NotImplemented
+    requires_login_page = False
 
     @property
     def credential_files(self):
         """Return a list of all files used for authentication"""
         return [self.cookies_path]
 
+    def login(self, parent=None):
+        logger.debug("Connecting to %s", self.name)
+        dialog = WebConnectDialog(self, parent)
+        dialog.set_modal(True)
+        dialog.show()
+
     def is_authenticated(self):
         """Return whether the service is authenticated"""
-        return all([os.path.exists(path) for path in self.credential_files])
+        return all([system.path_exists(path) for path in self.credential_files])
 
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""
-        logger.debug("Wiping %s cache", self.id)
-        if os.path.isdir(self.cache_path):
-            shutil.rmtree(self.cache_path)
-        elif os.path.exists(self.cache_path):
-            os.remove(self.cache_path)
+        if self.cache_path:
+            logger.debug("Deleting %s cache %s", self.id, self.cache_path)
+            if os.path.isdir(self.cache_path):
+                shutil.rmtree(self.cache_path)
+            elif system.path_exists(self.cache_path):
+                os.remove(self.cache_path)
         super().wipe_game_cache()
 
     def logout(self):
@@ -172,7 +280,7 @@ class OnlineService(BaseService):
 
     def load_cookies(self):
         """Load cookies from disk"""
-        if not os.path.exists(self.cookies_path):
+        if not system.path_exists(self.cookies_path):
             logger.warning("No cookies found in %s, please authenticate first", self.cookies_path)
             return
         cookiejar = WebkitCookieJar(self.cookies_path)

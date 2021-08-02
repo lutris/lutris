@@ -2,6 +2,7 @@
 import time
 
 from lutris.database.games import get_service_games
+from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf, get_pixbuf_for_game
 from lutris.runners import RUNNER_NAMES
@@ -36,6 +37,7 @@ class StoreItem:
             if "appid" in self._game_data:
                 return self._game_data["appid"]
             return self._game_data["slug"]
+
         return self._game_data["id"]
 
     @property
@@ -75,8 +77,6 @@ class StoreItem:
             game_inst = Game(self._game_data["id"])
             if game_inst.platform:
                 _platform = game_inst.platform
-            else:
-                logger.debug("Game %s has no platform", self)
         return gtk_safe(_platform)
 
     @property
@@ -93,7 +93,16 @@ class StoreItem:
         if self._game_data.get("icon"):
             image_path = self._game_data["icon"]
         else:
-            image_path = self.service_media.get_absolute_path(self.slug or self.id)
+            image_path = self.service_media.get_absolute_path(self.slug)
+            if not system.path_exists(image_path):
+                service = self._game_data.get("service")
+                appid = self._game_data.get("service_id")
+                if appid:
+                    service_game = ServiceGameCollection.get_game(service, appid)
+                else:
+                    service_game = None
+                if service_game:
+                    image_path = self.service_media.get_absolute_path(service_game["slug"])
         if system.path_exists(image_path):
             return get_pixbuf(image_path, self.service_media.size, is_installed=self.installed)
         return get_pixbuf_for_game(
@@ -133,7 +142,10 @@ class StoreItem:
     @property
     def playtime(self):
         """Playtime duration in hours"""
-        return self._game_data.get("playtime") or 0.0
+        try:
+            return float(self._game_data.get("playtime", 0))
+        except (TypeError, ValueError):
+            return 0.0
 
     @property
     def playtime_text(self):

@@ -1,43 +1,41 @@
-import unittest
 import os
+import unittest
 from sqlite3 import OperationalError
+from lutris import settings
 from lutris.database import schema
 from lutris.database import games as games_db
 from lutris.database import sql
+from lutris.util.test_config import setup_test_environment
 
-TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
+setup_test_environment()
 
 
 class DatabaseTester(unittest.TestCase):
     def setUp(self):
-        schema.PGA_DB = TEST_PGA_PATH
-        games_db.PGA_DB = TEST_PGA_PATH
-        if os.path.exists(TEST_PGA_PATH):
-            os.remove(TEST_PGA_PATH)
+        if os.path.exists(settings.PGA_DB):
+            os.remove(settings.PGA_DB)
         schema.syncdb()
 
     def tearDown(self):
-        if os.path.exists(TEST_PGA_PATH):
-            os.remove(TEST_PGA_PATH)
+        if os.path.exists(settings.PGA_DB):
+            os.remove(settings.PGA_DB)
 
 
 class TestPersonnalGameArchive(DatabaseTester):
-    def setUp(self):
-        super(TestPersonnalGameArchive, self).setUp()
-        self.game_id = games_db.add_game(name="LutrisTest", runner="Linux")
-
     def test_add_game(self):
+        games_db.add_game(name="LutrisTest", runner="Linux")
         game_list = games_db.get_games()
         game_names = [item['name'] for item in game_list]
         self.assertTrue("LutrisTest" in game_names)
 
     def test_delete_game(self):
-        games_db.delete_game(self.game_id)
+        game_id = games_db.add_game(name="LutrisTest", runner="Linux")
+        games_db.delete_game(game_id)
         game_list = games_db.get_games()
         self.assertEqual(len(game_list), 0)
-        self.game_id = games_db.add_game(name="LutrisTest", runner="Linux")
 
     def test_get_game_list(self):
+        self.game_id = games_db.add_game(name="LutrisTest", runner="Linux")
         game_list = games_db.get_games()
         self.assertEqual(game_list[0]['id'], self.game_id)
         self.assertEqual(game_list[0]['slug'], 'lutristest')
@@ -81,16 +79,15 @@ class TestDbCreator(DatabaseTester):
             {'name': 'name', 'type': 'TEXT'}
         ]
         schema.create_table('testing', fields)
-        sql.db_insert(TEST_PGA_PATH, 'testing', {'name': "testok"})
-        results = sql.db_select(TEST_PGA_PATH, 'testing',
+        sql.db_insert(settings.PGA_DB, 'testing', {'name': "testok"})
+        results = sql.db_select(settings.PGA_DB, 'testing',
                                 fields=['id', 'name'])
         self.assertEqual(results[0]['name'], "testok")
 
 
 class TestMigration(DatabaseTester):
     def setUp(self):
-        super(TestMigration, self).setUp()
-        schema.syncdb()
+        super().setUp()
         self.tablename = "basetable"
         self.schema = [
             {
@@ -121,7 +118,7 @@ class TestMigration(DatabaseTester):
             'name': 'counter',
             'type': 'INTEGER'
         }
-        sql.add_field(TEST_PGA_PATH, self.tablename, field)
+        sql.add_field(settings.PGA_DB, self.tablename, field)
         _schema = schema.get_schema(self.tablename)
         self.assertEqual(_schema[2]['name'], 'counter')
         self.assertEqual(_schema[2]['type'], 'INTEGER')
@@ -133,7 +130,7 @@ class TestMigration(DatabaseTester):
             'type': 'TEXT'
         }
         with self.assertRaises(OperationalError):
-            sql.add_field(TEST_PGA_PATH, self.tablename, field)
+            sql.add_field(settings.PGA_DB, self.tablename, field)
 
     def test_cant_create_empty_table(self):
         with self.assertRaises(OperationalError):

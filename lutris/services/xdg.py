@@ -40,6 +40,7 @@ class XDGService(BaseService):
     name = _("Local")
     icon = "linux"
     online = False
+    local = True
     medias = {
         "icon": XDGMedia
     }
@@ -97,7 +98,7 @@ class XDGService(BaseService):
         xdg_games = [XDGGame.new_from_xdg_app(app) for app in self.iter_xdg_games()]
         for game in xdg_games:
             game.save()
-        self.emit("service-games-loaded")
+        return xdg_games
 
     def generate_installer(self, db_game):
         details = json.loads(db_game["details"])
@@ -115,6 +116,10 @@ class XDGService(BaseService):
                 "system": {"disable_runtime": True}
             }
         }
+
+    def get_game_directory(self, installer):
+        """Pull install location from installer"""
+        return os.path.dirname(installer["script"]["game"]["exe"])
 
 
 class XDGGame(ServiceGame):
@@ -140,7 +145,6 @@ class XDGGame(ServiceGame):
         service_game.icon = cls.get_app_icon(xdg_app)
         service_game.appid = get_appid(xdg_app)
         service_game.slug = cls.get_slug(xdg_app)
-        service_game.runner = "linux"
         exe, args = cls.get_command_args(xdg_app)
         service_game.details = json.dumps({
             "exe": exe,

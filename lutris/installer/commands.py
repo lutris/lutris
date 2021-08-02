@@ -14,14 +14,13 @@ from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
 from lutris.installer.errors import ScriptingError
 from lutris.runners import import_task
-from lutris.util import disks, extract, selective_merge, system
+from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_version_exe
 
 
 class CommandsMixin:
-
     """The directives for the `installer:` part of the install script."""
 
     def __init__(self):
@@ -132,7 +131,7 @@ class CommandsMixin:
             raise ScriptingError("Unable to find executable %s" % file_ref)
 
         if terminal:
-            terminal = system.get_default_terminal()
+            terminal = linux.get_default_terminal()
 
         if not working_dir or not os.path.exists(working_dir):
             working_dir = self.target_path
@@ -224,7 +223,7 @@ class CommandsMixin:
         if extra_path:
             drives = [extra_path]
         else:
-            drives = disks.get_mounted_discs()
+            drives = system.get_mounted_discs()
         for drive in drives:
             required_abspath = os.path.join(drive, requires)
             required_abspath = system.fix_path_case(required_abspath)
@@ -280,7 +279,7 @@ class CommandsMixin:
             if params.get("optional"):
                 logger.info("Optional path %s not present", src)
                 return
-            raise ScriptingError("I can't move %s, it does not exist" % src)
+            raise ScriptingError("Invalid source for 'move' operation: %s" % src)
 
         if os.path.isfile(src):
             if os.path.dirname(src) == dst:
@@ -402,17 +401,20 @@ class CommandsMixin:
             data[key] = value
 
         task = import_task(runner_name, task_name)
-        thread = task(**data)
+        command = task(**data)
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
-        if isinstance(thread, MonitoredCommand):
+        if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
-            GLib.idle_add(self.parent.attach_logger, thread)
-            self.heartbeat = GLib.timeout_add(1000, self._monitor_task, thread)
+            GLib.idle_add(self.parent.attach_logger, command)
+            self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
             return "STOP"
         return None
 
-    def _monitor_task(self, thread):
-        if not thread.is_running:
+    def _monitor_task(self, command):
+        if not command.is_running:
+            logger.debug("Return code: %s", command.return_code)
+            if command.return_code != "0":
+                raise ScriptingError("Command exited with code %s" % command.return_code)
             self._iter_commands()
             return False
         return True
@@ -520,3 +522,92 @@ class CommandsMixin:
         self.abort_current_task = None
         logger.debug("Process %s returned: %s", func, result)
         return result
+
+    def _extract_gog_game(self, file_id):
+        self.extract({
+            "src": file_id,
+            "dst": "$GAMEDIR",
+            "extractor": "innoextract"
+        })
+        app_path = os.path.join(self.target_path, "app")
+        if system.path_exists(app_path):
+            for app_content in os.listdir(app_path):
+                source_path = os.path.join(app_path, app_content)
+                if os.path.exists(os.path.join(self.target_path, app_content)):
+                    self.merge({"src": source_path, "dst": self.target_path})
+                else:
+                    self.move({"src": source_path, "dst": self.target_path})
+        support_path = os.path.join(self.target_path, "__support/app")
+        if system.path_exists(support_path):
+            self.merge({"src": support_path, "dst": self.target_path})
+
+    def _get_scummvm_arguments(self, gog_config_path):
+        """Return a ScummVM configuration from the GOG config files"""
+        with open(gog_config_path) as gog_config_file:
+            gog_config = json.loads(gog_config_file.read())
+        game_tasks = [task for task in gog_config["playTasks"] if task["category"] == "game"]
+        arguments = game_tasks[0]["arguments"]
+        logger.info("ScummVM arguments from GOG: %s", arguments)
+        if "-c " in arguments:
+            config_path = arguments.split("\"")[1].replace("..\\", "")
+            config_section = arguments.split()[-1]
+        else:
+            raise RuntimeError("Unable to read config path from arguments: '%s'" % arguments)
+        parser = EvilConfigParser(allow_no_value=True, dict_type=MultiOrderedDict, strict=False)
+        parser.optionxform = str  # Preserve text case
+        base_dir = os.path.dirname(gog_config_path)
+        scummvm_config_path = os.path.join(base_dir, config_path)
+        if not system.path_exists(scummvm_config_path):
+            raise RuntimeError("ScummVM config file %s not found" % scummvm_config_path)
+        parser.read(scummvm_config_path)
+        game_id = parser.get(config_section, "gameid")
+        return {
+            "game_id": game_id,
+            "path": base_dir,
+            "arguments": "-c \"%s\"" % config_path
+        }
+
+    def autosetup_gog_game(self, file_id):
+        """Automatically guess the best way to install a GOG game by inspecting its contents.
+        This chooses the right runner (DOSBox, Wine) for Windows game files.
+        Linux setup files don't use innosetup, they can be unzipped instead.
+        """
+        file_path = self.game_files[file_id]
+        file_list = extract.get_innoextract_list(file_path)
+        dosbox_found = False
+        scummvm_found = False
+        for filename in file_list:
+            if "dosbox/dosbox.exe" in filename.lower():
+                dosbox_found = True
+            if "scummvm/scummvm.exe" in filename.lower():
+                scummvm_found = True
+        if dosbox_found:
+            self._extract_gog_game(file_id)
+            dosbox_config = {
+                "working_dir": "$GAMEDIR/DOSBOX",
+            }
+            for filename in os.listdir(self.target_path):
+                if filename.endswith("_single.conf"):
+                    dosbox_config["main_file"] = filename
+                elif filename.endswith(".conf"):
+                    dosbox_config["config_file"] = filename
+            self.installer.script["game"] = dosbox_config
+            self.installer.runner = "dosbox"
+        elif scummvm_found:
+            self._extract_gog_game(file_id)
+            arguments = None
+            for filename in os.listdir(self.target_path):
+                if filename.startswith("goggame") and filename.endswith(".info"):
+                    arguments = self._get_scummvm_arguments(os.path.join(self.target_path, filename))
+            if not arguments:
+                raise RuntimeError("Unable to get ScummVM arguments")
+            logger.info("ScummVM config: %s", arguments)
+            self.installer.script["game"] = arguments
+            self.installer.runner = "scummvm"
+        else:
+            return self.task({
+                "name": "wineexec",
+                "prefix": "$GAMEDIR",
+                "executable": file_id,
+                "args": "/SP- /NOCANCEL"
+            })

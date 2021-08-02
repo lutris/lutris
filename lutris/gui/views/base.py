@@ -31,7 +31,7 @@ class GameView:
         view.current_path = view.get_path_at_pos(event.x, event.y)
         if view.current_path:
             view.select()
-            _iter = self.get_model().get_iter(view.current_path)
+            _iter = self.get_model().get_iter(view.current_path[0])
             if not _iter:
                 return
             selected_id = self.get_selected_id(_iter)

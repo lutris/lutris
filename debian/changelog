@@ -1,4 +1,77 @@
-lutris (0.5.8) UNRELEASED; urgency=medium
+lutris (0.5.9) hirsute; urgency=medium
+
+  * Add initial support for Epic Games Store
+  * Add support for Steam for Windows as a game source
+  * Add support for DXVK-NVAPI and DLSS
+  * Add FidelityFX Super Resolution (FSR) option for compatible Wine versions
+  * Add workaround for locale issues when Lutris is launched from Steam
+  * Add gamescope option
+  * Lutris games can now be launched from Steam
+  * 3rd party services can be enabled or disabled in the preferences
+  * The main preferences window has now tabs on the left side
+  * Runner configuration is now available from the main preferences window
+  * VKD3D is a separate option from DXVK
+  * Esync is enabled by default
+  * Dolphin is available as a game source (reads games from the emulator's
+    local database of games)
+  * Scan for installed games when using Steam source
+  * Improved automatic installers for GOG, detection of DOSBOX and ScummVM
+    games.
+  * DRM free services (Humble, GOG) can locate existing installations of games
+  * Use 7zip as the default extractor when not given an archive type
+  * Improve process monitoring, allowing for monitoring of Steam games
+  * Disable AMD switchable graphics layer by default (breaks games)
+  * Removed support for Gallium 9
+  * Removed support for X360CE
+  * Removed legacy WineD3D options
+
+
+ -- Mathieu Comandon <strider@strycore.com>  Mon, 19 Jul 2021 19:13:39 -0700
+
+lutris (0.5.8.3) groovy; urgency=medium
+
+  * Really fix popovers not showing on Wayland without making them non-modal
+  * Prevent GStreamer based configuration from being applied in incompatible
+    wine builds.
+  * Fix crash when wine runner accesses DXVK versions before they are
+    uploaded.
+  * Prevent init dialog from being closed while it downloads the runtime.
+
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 22 Jan 2021 16:24:51 -0800
+
+lutris (0.5.8.2) groovy; urgency=medium
+
+  * Fix popover menus not appearing on Wayland
+  * Fix game bar getting unselected on Wayland (Forces the last game to stay
+    selected)
+  * Update Chinese, Dutch, German and Russian translations
+  * Download DXVK when Lutris starts
+  * Add fsync2 feature detection
+  * Limit simultaneous downloads to 3
+  * Add support for deb file extraction
+  * Add support for Adobe Air games from Humble Bundle (Installation only,
+    Air runtime will come at a later stage)
+  * Add support for GStreamer enabled Wine builds. This will provide better
+    compatibility for games using Media Foundation
+
+ -- Mathieu Comandon <strider@strycore.com>  Mon, 04 Jan 2021 23:54:29 -0800
+
+lutris (0.5.8.1) groovy; urgency=medium
+
+  * Remove Proton from available Wine versions
+  * Display a dialog until Lutris finishes initializing
+  * Allow to keep game files when uninstalling a game
+  * Remove custom sidebar CSS
+  * Fix popup menu not showing in list view
+  * Fix script loading for local files
+  * Fix installed at column setting name for list view
+  * Fix lutris not launching games with rungameid
+  * Fix installed Steam game for fresh lutris installs
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 27 Nov 2020 14:23:48 -0800
+
+lutris (0.5.8) groovy; urgency=medium
 
   * 3rd party services are now available from the main window
   * The "Import games" window has been removed. The concept of
@@ -64,7 +137,7 @@ lutris (0.5.8) UNRELEASED; urgency=medium
   * Refactor of several core components. New python packages
     `lutris.database` and `lutris.gui.installer`
 
- -- Mathieu Comandon <strider@strycore.com>  Sat, 17 Oct 2020 16:36:28 -0700
+ -- Mathieu Comandon <strider@strycore.com>  Sat, 14 Nov 2020 15:03:28 -0700
 
 lutris (0.5.7.1) focal; urgency=medium
 

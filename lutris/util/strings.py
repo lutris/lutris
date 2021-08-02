@@ -121,8 +121,13 @@ def get_formatted_playtime(playtime):
     if not playtime:
         return NO_PLAYTIME
 
-    hours = math.floor(playtime)
+    try:
+        playtime = float(playtime)
+    except ValueError:
+        logger.warning("Invalid playtime value '%s'", playtime)
+        return NO_PLAYTIME
 
+    hours = math.floor(playtime)
     if hours:
         hours_text = "%d hour%s" % (hours, "s" if hours > 1 else "")
     else:
@@ -137,6 +142,8 @@ def get_formatted_playtime(playtime):
     formatted_time = " and ".join([text for text in (hours_text, minutes_text) if text])
     if formatted_time:
         return formatted_time
+    if playtime:
+        return "Less than a minute"
     return NO_PLAYTIME
 
 

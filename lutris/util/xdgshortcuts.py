@@ -1,16 +1,14 @@
 """XDG shortcuts handling"""
-# Standard Library
 import os
 import shutil
 import stat
 from textwrap import dedent
 
-# Third Party Libraries
 from gi.repository import GLib
 
-# Lutris Modules
 from lutris.settings import CACHE_DIR
 from lutris.util import system
+from lutris.util.log import logger
 
 
 def get_xdg_entry(directory):
@@ -48,6 +46,7 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
 
 def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
     """Create a .desktop file."""
+
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
     launcher_content = dedent(
         """
@@ -55,7 +54,7 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
         Type=Application
         Name={}
         Icon={}
-        Exec=lutris lutris:rungameid/{}
+        Exec=env LUTRIS_SKIP_INIT=1 lutris lutris:rungameid/{}
         Categories=Game
         """.format(game_name, "lutris_{}".format(game_slug), game_id)
     )
@@ -78,12 +77,16 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
     if desktop:
         if not os.path.exists(desktop_dir):
             os.mkdir(desktop_dir)
-        shutil.copy(tmp_launcher_path, os.path.join(desktop_dir, launcher_filename))
+        launcher_path = os.path.join(desktop_dir, launcher_filename)
+        logger.debug("Creating Desktop icon in %s", launcher_path)
+        shutil.copy(tmp_launcher_path, launcher_path)
     if menu:
         menu_path = os.path.join(GLib.get_user_data_dir(), "applications")
         if not os.path.exists(menu_path):
             os.mkdir(menu_path)
-        shutil.copy(tmp_launcher_path, os.path.join(menu_path, launcher_filename))
+        launcher_path = os.path.join(menu_path, launcher_filename)
+        logger.debug("Creating menu launcher in %s", launcher_path)
+        shutil.copy(tmp_launcher_path, launcher_path)
     os.remove(tmp_launcher_path)
 
 

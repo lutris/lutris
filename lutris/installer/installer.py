@@ -2,10 +2,7 @@
 import json
 import os
 
-import yaml
-
-from lutris import settings
-from lutris.config import LutrisConfig, make_game_config_id
+from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.game import Game
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
@@ -13,7 +10,7 @@ from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.legacy import get_game_launcher
 from lutris.runners import import_runner
-from lutris.services import get_services
+from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
 from lutris.util.log import logger
 
@@ -29,10 +26,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.year = installer.get("year")
         self.runner = installer["runner"]
         self.script = installer.get("script")
-        self.game_name = self.script.get("custom-name") or installer["name"]
+        self.game_name = installer["name"]
         self.game_slug = installer["game_slug"]
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
+        self.variables = installer.get("variables", {})
         self.files = [
             InstallerFile(self.game_slug, file_id, file_meta)
             for file_desc in self.script.get("files", [])
@@ -46,12 +44,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if initial:
             return initial
         if "steam" in self.runner:
-            return get_services()["steam"]()
+            return SERVICES["steam"]()
         version = self.version.lower()
         if "humble" in version:
-            return get_services()["humblebundle"]()
+            return SERVICES["humblebundle"]()
         if "gog" in version:
-            return get_services()["gog"]()
+            return SERVICES["gog"]()
 
     def get_appid(self, installer, initial=None):
         if initial:
@@ -146,7 +144,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             if not installer_file_id:
                 logger.warning("Could not find a file for this service")
                 return
-            logger.info("Should install %s", self.interpreter.extras)
             if self.service.has_extras:
                 self.service.selected_extras = self.interpreter.extras
             installer_files = self.service.get_installer_files(self, installer_file_id)
@@ -182,6 +179,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if self.requires:
             # Load the base game config
             required_game = get_game_by_field(self.requires, field="installer_slug")
+            if not required_game:
+                required_game = get_game_by_field(self.requires, field="slug")
+            if not required_game:
+                raise ValueError("No game matched '%s' on installer_slug or slug" % self.requires)
             base_config = LutrisConfig(
                 runner_slug=self.runner, game_config_id=required_game["configpath"]
             )
@@ -209,18 +210,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                                                                    make_executable=True)
             elif AUTO_WIN32_EXE in config["game"].get("exe", ""):
                 config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
-
         return config
-
-    def write_game_config(self):
-        configpath = make_game_config_id(self.slug)
-        config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
-        config = self.get_game_config()
-        yaml_config = yaml.safe_dump(config, default_flow_style=False)
-        with open(config_filename, "w") as config_file:
-            logger.debug("Writing game config to %s", config_filename)
-            config_file.write(yaml_config)
-        return configpath
 
     def save(self):
         """Write the game configuration in the DB and config file"""
@@ -230,7 +220,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 self.extends,
             )
             return
-        configpath = self.write_game_config()
+        configpath = write_game_config(self.slug, self.get_game_config())
         runner_inst = import_runner(self.runner)()
         if self.service:
             service_id = self.service.id
@@ -243,6 +233,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             platform=runner_inst.get_platform(),
             directory=self.interpreter.target_path,
             installed=1,
+            hidden=0,
             installer_slug=self.slug,
             parent_slug=self.requires,
             year=self.year,

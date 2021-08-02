@@ -40,7 +40,6 @@ class winesteam(wine.wine):
     human_name = _("Wine Steam")
     platforms = [_("Windows")]
     runnable_alone = True
-    depends_on = wine.wine
     default_arch = WINE_DEFAULT_ARCH
     game_options = [
         {
@@ -89,7 +88,7 @@ class winesteam(wine.wine):
             "help": _(
                 "The architecture of the Windows environment.\n"
                 "32-bit is recommended unless running "
-                "a 64-bit only game."
+                "64-bit only games."
             ),
         },
         {
@@ -160,17 +159,17 @@ class winesteam(wine.wine):
             {
                 "option": "default_win32_prefix",
                 "type": "directory_chooser",
-                "label": _("Default Wine prefix (32bit)"),
+                "label": _("Default Wine prefix (32-bit)"),
                 "default": os.path.join(settings.RUNNER_DIR, "winesteam/prefix"),
-                "help": _("Default prefix location for Steam (32 bit)"),
+                "help": _("Default prefix location for Steam (32-bit)"),
                 "advanced": True,
             },
             {
                 "option": "default_win64_prefix",
                 "type": "directory_chooser",
-                "label": _("Default Wine prefix (64bit)"),
+                "label": _("Default Wine prefix (64-bit)"),
                 "default": os.path.join(settings.RUNNER_DIR, "winesteam/prefix64"),
-                "help": _("Default prefix location for Steam (64 bit)"),
+                "help": _("Default prefix location for Steam (64-bit)"),
                 "advanced": True,
             },
         ]
@@ -452,10 +451,11 @@ class winesteam(wine.wine):
 
     def play(self):
         """Run a game"""
-        if self.runner_config.get("x360ce-path"):
-            self.setup_x360ce(self.runner_config["x360ce-path"])
         try:
-            return {"env": self.get_env(os_env=False), "command": self.get_command()}
+            return {
+                "env": self.get_env(os_env=False),
+                "command": self.get_command()
+            }
         except FileNotFoundError as ex:
             return {"error": "FILE_NOT_FOUND", "file": ex.filename}
 

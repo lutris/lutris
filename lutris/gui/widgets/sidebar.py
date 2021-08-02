@@ -3,14 +3,14 @@ from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk, Pango
 
-from lutris import platforms, runners, services
+from lutris import runners, services
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
+from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
-from lutris.gui.dialogs.runners import RunnersDialog
 from lutris.services.base import BaseService
 from lutris.util.jobs import AsyncCall
 
@@ -132,15 +132,12 @@ class ServiceSidebarRow(SidebarRow):
         if self.service.online and not self.service.is_connected():
             self.service.logout()
             return
-        self.service.wipe_game_cache()
-        AsyncCall(self.service.load, self.service_load_cb)
+        AsyncCall(self.service.reload, self.service_load_cb)
 
-    def service_load_cb(self, games, error):
-        if not error and not games:
-            error = _("Failed to load games. Check that your profile is set to public during the sync.")
+    def service_load_cb(self, _result, error):
         if error:
-            ErrorDialog(error)
-        GLib.timeout_add(5000, self.enable_refresh_button)
+            ErrorDialog(str(error))
+        GLib.timeout_add(2000, self.enable_refresh_button)
 
     def enable_refresh_button(self):
         self.buttons["refresh"].set_sensitive(True)
@@ -218,15 +215,18 @@ class SidebarHeader(Gtk.Box):
         box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_right=9)
         box.add(label)
         self.add(box)
-        if name == _("Runners"):
-            manage_runners_button = Gtk.Button.new_from_icon_name("emblem-system-symbolic", Gtk.IconSize.MENU)
-            manage_runners_button.props.action_name = "win.manage-runners"
-            manage_runners_button.props.relief = Gtk.ReliefStyle.NONE
-            manage_runners_button.set_margin_right(16)
-            manage_runners_button.get_style_context().add_class("sidebar-button")
-            box.add(manage_runners_button)
         self.add(Gtk.Separator())
         self.show_all()
+
+
+class DummyRow():
+    """Dummy class for rows that may not be initialized."""
+
+    def show(self):
+        """Dummy method for showing the row"""
+
+    def hide(self):
+        """Dummy method for hiding the row"""
 
 
 class LutrisSidebar(Gtk.ListBox):
@@ -243,7 +243,8 @@ class LutrisSidebar(Gtk.ListBox):
         self.runners = None
         self.platforms = None
         self.categories = None
-        self.running_row = None
+        # A dummy objects that allows inspecting why/when we have a show() call on the object.
+        self.running_row = DummyRow()
         if selected:
             self.selected_row_type, self.selected_row_id = selected.split(":")
         else:
@@ -254,13 +255,14 @@ class LutrisSidebar(Gtk.ListBox):
             "runners": SidebarHeader(_("Runners")),
             "platforms": SidebarHeader(_("Platforms")),
         }
-        GObject.add_emission_hook(RunnersDialog, "runner-installed", self.update)
-        GObject.add_emission_hook(RunnersDialog, "runner-removed", self.update)
+        GObject.add_emission_hook(RunnerBox, "runner-installed", self.update)
+        GObject.add_emission_hook(RunnerBox, "runner-removed", self.update)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-updated", self.update)
         GObject.add_emission_hook(Game, "game-removed", self.update)
-        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
+        GObject.add_emission_hook(BaseService, "service-login", self.on_service_auth_changed)
+        GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         self.connect("realize", self.on_realize)
@@ -274,7 +276,7 @@ class LutrisSidebar(Gtk.ListBox):
     def on_realize(self, widget):
         self.active_platforms = games_db.get_used_platforms()
         self.runners = sorted(runners.__all__)
-        self.platforms = sorted(platforms.__all__)
+        self.platforms = sorted(runners.RUNNER_PLATFORMS)
         self.categories = categories_db.get_categories()
 
         self.add(
@@ -313,7 +315,7 @@ class LutrisSidebar(Gtk.ListBox):
         # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
         self.add(self.running_row)
 
-        service_classes = services.get_services()
+        service_classes = services.get_enabled_services()
         for service_name in service_classes:
             service = service_classes[service_name]()
             row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow
@@ -382,14 +384,13 @@ class LutrisSidebar(Gtk.ListBox):
             self.running_row.hide()
         return True
 
-    def on_service_logout(self, service):
+    def on_service_auth_changed(self, service):
         self.service_rows[service.id].create_button_box()
         self.service_rows[service.id].update_buttons()
         return True
 
     def on_service_games_updating(self, service):
         self.service_rows[service.id].is_updating = True
-
         self.service_rows[service.id].update_buttons()
         return True
 

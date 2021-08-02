@@ -11,7 +11,7 @@ from lutris.util import system
 
 class dosbox(Runner):
     human_name = _("DOSBox")
-    description = _("MS-Dos emulator")
+    description = _("MS-DOS emulator")
     platforms = [_("MS-DOS")]
     runnable_alone = True
     runner_executable = "dosbox/bin/dosbox"
@@ -32,16 +32,16 @@ class dosbox(Runner):
             "type": "file",
             "label": _("Configuration file"),
             "help": _(
-                "Start Dosbox with the options specified in this file. \n"
+                "Start DOSBox with the options specified in this file. \n"
                 "It can have a section in which you can put commands "
-                "to execute on startup. Read Dosbox's documentation "
+                "to execute on startup. Read DOSBox's documentation "
                 "for more information."
             ),
         },
         {
             "option": "args",
             "type": "string",
-            "label": _("Command arguments"),
+            "label": _("Command line arguments"),
             "help": _("Command line arguments used when launching DOSBox"),
             "validator": shlex.split,
         },
@@ -95,17 +95,17 @@ class dosbox(Runner):
         },
         {
             "option": "exit",
-            "label": _("Exit Dosbox with the game"),
+            "label": _("Exit DOSBox with the game"),
             "type": "bool",
             "default": True,
-            "help": _("Shut down Dosbox when the game is quit."),
+            "help": _("Shut down DOSBox when the game is quit."),
         },
         {
             "option": "fullscreen",
             "label": _("Open game in fullscreen"),
             "type": "bool",
             "default": False,
-            "help": _("Tells Dosbox to launch the game in fullscreen."),
+            "help": _("Tells DOSBox to launch the game in fullscreen."),
         },
     ]
 

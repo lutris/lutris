@@ -1,5 +1,3 @@
-# pylint: disable=missing-docstring
-# Standard Library
 import os
 import re
 import shutil
@@ -7,12 +5,11 @@ import subprocess
 import tempfile
 import xml.etree.ElementTree
 
-# Lutris Modules
 from lutris.util.log import logger
+from lutris.util.system import execute, read_process_output
 
 
 class CabInstaller:
-
     """Extract and install contents of cab files
 
     Based on an implementation by tonix64: https://github.com/tonix64/python-installcab
@@ -45,7 +42,7 @@ class CabInstaller:
 
     @staticmethod
     def get_arch_from_dll(dll_path):
-        if "x86-64" in subprocess.check_output(["file", dll_path]).decode():
+        if "x86-64" in read_process_output(["file", dll_path]):
             return "win64"
         return "win32"
 
@@ -124,7 +121,7 @@ class CabInstaller:
         arch = self.get_arch_from_manifest(root)
         registry_keys = root.findall("{urn:schemas-microsoft-com:asm.v3}registryKeys")
         if registry_keys:
-            for registry_key in registry_keys[0].getchildren():
+            for registry_key in list(registry_keys[0]):
                 key = self.process_key(registry_key.attrib["keyName"])
                 out += "[%s]\n" % key
                 for reg_value in registry_key.findall("{urn:schemas-microsoft-com:asm.v3}registryValue"):
@@ -197,7 +194,7 @@ class CabInstaller:
         Returns:
             list: Files extracted from the cab file
         """
-        subprocess.check_output(["cabextract", "-F", "*%s*" % component, "-d", self.tmpdir, cabfile])
+        execute(["cabextract", "-F", "*%s*" % component, "-d", self.tmpdir, cabfile])
         return [os.path.join(r, file) for r, d, f in os.walk(self.tmpdir) for file in f]
 
     def install(self, cabfile, component):

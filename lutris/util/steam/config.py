@@ -1,6 +1,6 @@
 """Handle Steam configuration"""
 import os
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 
 import requests
 
@@ -12,8 +12,10 @@ from lutris.util.steam.vdf import vdf_parse
 STEAM_DATA_DIRS = (
     "~/.steam",
     "~/.local/share/steam",
+    "~/.local/share/Steam",
     "~/.steam/steam",
     "~/.var/app/com.valvesoftware.Steam/data/steam",
+    "~/.steam/debian-installation",
     "/usr/share/steam",
     "/usr/local/share/steam",
 )
@@ -21,12 +23,19 @@ STEAM_DATA_DIRS = (
 
 def get_steam_dir():
     """Main installation directory for Steam"""
+    steam_dir = search_in_steam_dirs("steamapps")
+    if steam_dir:
+        return steam_dir[:-len("steamapps")]
+
+
+def search_in_steam_dirs(file):
+    """Find the (last) file/dir in all the Steam directories"""
     for candidate in STEAM_DATA_DIRS:
         path = system.fix_path_case(
-            os.path.join(os.path.expanduser(candidate), "steamapps")
+            os.path.join(os.path.expanduser(candidate), file)
         )
         if path:
-            return path[: -len("steamapps")]
+            return path
 
 
 def get_default_acf(appid, name):
@@ -46,8 +55,8 @@ def get_default_acf(appid, name):
     return {"AppState": appstate}
 
 
-def read_user_config(steam_data_dir):
-    config_filename = os.path.join(steam_data_dir, "config/loginusers.vdf")
+def read_user_config():
+    config_filename = search_in_steam_dirs("config/loginusers.vdf")
     if not system.path_exists(config_filename):
         return None
     with open(config_filename, "r") as steam_config_file:
@@ -66,9 +75,9 @@ def get_config_value(config, key):
     return config[keymap[key.lower()]]
 
 
-def get_user_steam_id(steam_data_dir):
+def get_user_steam_id():
     """Read user's SteamID from Steam config files"""
-    user_config = read_user_config(steam_data_dir)
+    user_config = read_user_config()
     if not user_config or "users" not in user_config:
         return
     last_steam_id = None
@@ -88,7 +97,7 @@ def get_steam_library(steamid):
         "IPlayerService/GetOwnedGames/v0001/"
         "?key={}&steamid={}&format=json&include_appinfo=1"
         "&include_played_free_games=1".format(
-            settings.DEFAULT_STEAM_API_ID, steamid
+            settings.STEAM_API_KEY, steamid
         )
     )
     response = requests.get(steam_games_url)
@@ -132,33 +141,6 @@ def read_config(steam_data_dir):
         logger.error("Steam config %s is empty: %s", config_filename, ex)
 
 
-def get_steamapps_paths_for_platform(platform_name):
-    from lutris.runners import winesteam, steam  # pylint: disable=import-outside-toplevel
-
-    runners = {"linux": steam.steam, "windows": winesteam.winesteam}
-    runner = runners[platform_name]()
-    return runner.get_steamapps_dirs()
-
-
-def get_steamapps_paths(flat=False, platform=None):
-    base_platforms = ["linux", "windows"]
-    if flat:
-        steamapps_paths = []
-    else:
-        steamapps_paths = defaultdict(list)
-
-    if platform:
-        if platform not in base_platforms:
-            raise ValueError("Illegal value for Steam platform: %s" % platform)
-        platforms = [platform]
-    else:
-        platforms = base_platforms
-
-    for _platform in platforms:
-        folders = get_steamapps_paths_for_platform(_platform)
-        if flat:
-            steamapps_paths += folders
-        else:
-            steamapps_paths[_platform] = folders
-
-    return steamapps_paths
+def get_steamapps_paths():
+    from lutris.runners import steam  # pylint: disable=import-outside-toplevel
+    return steam.steam().get_steamapps_dirs()

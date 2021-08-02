@@ -8,3 +8,9 @@ Copyright: 2009-2020 Mathieu Comandon <strider@strycore.com>
 License: GPL-3.0-or-later
  On Debian systems, the complete text of the General Public License version 3
  can be found in "/usr/share/common-licenses/GPL-3".
+
+Files: share/metainfo/net.lutris.Lutris.metainfo.xml
+Copyright: Lutris Team <strider@lutris.net>
+License: CC0-1.0
+ On Debian systems, the complete text of the CC0-1.0 license
+ can be found in "/usr/share/common-licenses/CC0-1.0".

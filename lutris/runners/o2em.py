@@ -27,14 +27,14 @@ class o2em(Runner):
     }
 
     bios_choices = [
-        (_("Magnavox Odyssey2"), "o2rom"),
+        (_("Magnavox Odyssey²"), "o2rom"),
         (_("Phillips C52"), "c52"),
         (_("Phillips Videopac+"), "g7400"),
         (_("Brandt Jopac"), "jopac"),
     ]
     controller_choices = [
         (_("Disable"), "0"),
-        (_("Arrows keys and right shift"), "1"),
+        (_("Arrow Keys and Right Shift"), "1"),
         (_("W,S,A,D,SPACE"), "2"),
         (_("Joystick"), "3"),
     ]
@@ -52,7 +52,7 @@ class o2em(Runner):
             "option": "bios",
             "type": "choice",
             "choices": bios_choices,
-            "label": _("Bios"),
+            "label": _("BIOS"),
             "default": "o2rom",
         },
         {

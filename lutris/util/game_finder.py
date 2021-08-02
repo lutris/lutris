@@ -12,9 +12,15 @@ except ImportError:
     magic = None
 
 
-if not hasattr(magic, "from_file"):
-    logger.error("Your version of python-magic is too old.")
-    MAGIC_AVAILABLE = False
+if not MAGIC_AVAILABLE:
+    logger.error("Magic not available. Unable to automatically find game executables. Please install python-magic")
+else:
+    if not hasattr(magic, "from_file"):
+        if hasattr(magic, "detect_from_filename"):
+            magic.from_file = lambda f: magic.detect_from_filename(f).name  # pylint: disable=no-member
+        else:
+            logger.error("Your version of python-magic is too old.")
+            MAGIC_AVAILABLE = False
 
 
 def is_excluded_elf(filename):
@@ -46,6 +52,8 @@ def find_linux_game_executable(path, make_executable=False):
                 candidates["shell"] = abspath
             if "Bourne-Again shell script" in file_type:
                 candidates["bash"] = abspath
+            if "POSIX shell script executable" in file_type:
+                candidates["posix"] = abspath
             if "64-bit LSB executable" in file_type:
                 candidates["64bit"] = abspath
             if "32-bit LSB executable" in file_type:
@@ -57,6 +65,7 @@ def find_linux_game_executable(path, make_executable=False):
             return (
                 candidates.get("shell")
                 or candidates.get("bash")
+                or candidates.get("posix")
                 or candidates.get("64bit")
                 or candidates.get("32bit")
             )

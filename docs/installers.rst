@@ -100,15 +100,6 @@ recommended to put this information directly in the ``game`` section. If you
 see an existing installer with keys like ``exe`` or ``main_file`` sitting at
 the root level, please move them to the ``game`` section.
 
-Customizing the game's name
----------------------------
-
-Use the ``custom-name`` directive to override the name of the game. Use this
-only if the installer provides a significantly different game from the base
-one.
-
-Example: ``custom-name: Quake Champions: Doom Edition``
-
 Requiring additional binaries
 -----------------------------
 
@@ -199,7 +190,7 @@ Example: ``main_file: game.rom``.
 Can also be used to pass the URL for web based games: ``main_file: http://www...``
 
 ``args``: Pass additional arguments to the command.
-Can be used with linux, wine, winesteam, dosbox, scummvm, pico8 and zdoom runners.
+Can be used with linux, wine, dosbox, scummvm, pico8 and zdoom runners.
 Example: ``args: -c $GAMEDIR/exult.cfg``
 
 ``working_dir``: Set the working directory for the game executable.
@@ -208,21 +199,18 @@ the executable resides in.
 This directive can be used for Linux, Wine and Dosbox installers.
 Example: ``$GAMEDIR/path/to/game``
 
-Wine and other wine based runners like WineSteam
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Wine and other wine based runners
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``arch``: Sets the architecture of a Wine prefix. By default it is set to ``win64``,
 the value can be set to ``win32`` to setup the game in a 32-bit prefix.
 
 ``prefix``: Path to the Wine prefix. For Wine games, it should be set to
-``$GAMEDIR``. For WineSteam games, set it to ``$GAMEDIR/prefix`` to isolate the
-prefix files from the game files. This is only needed if the Steam game
-needs customization. If not provided, Lutris will use WineSteam's default prefix
-where Steam for Windows is installed.
+``$GAMEDIR``.
 
 
-DRM free Steam and WineSteam
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+DRM free Steam
+^^^^^^^^^^^^^^
 
 Lutris has the ability to run Steam games without launching the Steam client.
 This is only possible with certain games lacking the Steam DRM.
@@ -377,8 +365,8 @@ Examples::
         referer: www.mywebsite.com
 
 
-If the game makes use of (Windows) Steam data, the value should be
-``$WINESTEAM:appid:path/to/data``. This will check that the data is available
+If the game makes use of Steam data, the value should be
+``$STEAM:appid:path/to/data``. This will check that the data is available
 or install it otherwise.
 
 
@@ -424,12 +412,15 @@ then it must be prefixed by either ``$CACHE`` or ``$GAMEDIR`` to move a file or
 directory from the download cache or the game's install dir, respectively.
 
 The ``dst`` parameter should be prefixed by either ``$GAMEDIR`` or ``$HOME``
-to move files to path relative to the game dir or the current user's home
+to move files to path relative to the game dir or the current user's home.
 
 If the source is a ``file ID``, it will be updated with the new destination
 path. It can then be used in following commands to access the moved file.
 
-The ``move`` command cannot overwrite files.
+The ``move`` command cannot overwrite files. If the destination directory
+doesn't exist, it will be created. Be sure to give the full path of the
+destination (including filename), not just the destination folder.
+
 
 Example::
 
@@ -608,8 +599,8 @@ with ``wine.wineexec`` as the task's ``name``)
 
 Currently, the following tasks are implemented:
 
-*   wine / winesteam: ``create_prefix`` Creates an empty Wine prefix at the
-    specified path. The other wine/winesteam directives below include the
+*   wine: ``create_prefix`` Creates an empty Wine prefix at the
+    specified path. The other wine directives below include the
     creation of the prefix, so in most cases you won't need to use the
     create_prefix command. Parameters are:
 
@@ -632,7 +623,7 @@ Currently, the following tasks are implemented:
             name: create_prefix
             arch: win64
 
-*   wine / winesteam: ``wineexec`` Runs a windows executable. Parameters are
+*   wine: ``wineexec`` Runs a windows executable. Parameters are
     ``executable`` (``file ID`` or path), ``args`` (optional arguments passed
     to the executable), ``prefix`` (optional WINEPREFIX),
     ``arch`` (optional WINEARCH, required when you created win64 prefix), ``blocking`` (if true, do not run the process in a thread), ``working_dir`` (optional working directory), ``include_processes``  (optional space-separated list of processes to include to
@@ -647,7 +638,7 @@ Currently, the following tasks are implemented:
             executable: drive_c/Program Files/Game/Game.exe
             args: --windowed
 
-*   wine / winesteam: ``winetricks`` Runs winetricks with the ``app`` argument.
+*   wine: ``winetricks`` Runs winetricks with the ``app`` argument.
     ``prefix`` is an optional WINEPREFIX path. You can run many tricks at once by adding more to the ``app`` parameter (space-separated).
 
     By default Winetricks will run in silent mode but that can cause issues
@@ -662,7 +653,7 @@ Currently, the following tasks are implemented:
 
     For a full list of available ``winetricks`` see here: https://github.com/Winetricks/winetricks/tree/master/files/verbs
 
-*   wine / winesteam: ``eject_disk`` runs eject_disk in your ``prefix`` argument. Parameters are
+*   wine: ``eject_disk`` runs eject_disk in your ``prefix`` argument. Parameters are
     ``prefix`` (optional wineprefix path).
 
     Example:
@@ -672,7 +663,7 @@ Currently, the following tasks are implemented:
         - task:
             name: eject_disc
 
-*   wine / winesteam: ``set_regedit`` Modifies the Windows registry. Parameters
+*   wine: ``set_regedit`` Modifies the Windows registry. Parameters
     are ``path`` (the registry path, use backslashes), ``key``, ``value``,
     ``type`` (optional value type, default is REG_SZ (string)), ``prefix``
     (optional WINEPREFIX), ``arch``
@@ -689,7 +680,7 @@ Currently, the following tasks are implemented:
             value: '00000000'
             type: REG_DWORD
 
-*   wine / winesteam: ``delete_registry_key`` Deletes registry key in the Windows registry. Parameters
+*   wine: ``delete_registry_key`` Deletes registry key in the Windows registry. Parameters
     are ``key``, ``prefix``
     (optional WINEPREFIX), ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
 
@@ -704,7 +695,7 @@ Currently, the following tasks are implemented:
             value: '00000000'
             type: REG_DWORD
 
-* wine / winesteam: ``set_regedit_file`` Apply a regedit file to the
+* wine: ``set_regedit_file`` Apply a regedit file to the
   registry, Parameters are ``filename`` (regfile name),
   ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
 
@@ -715,7 +706,7 @@ Currently, the following tasks are implemented:
         name: set_regedit_file
         filename: myregfile
 
-* wine / winesteam: ``winekill`` Stops processes running in Wine prefix. Parameters
+* wine: ``winekill`` Stops processes running in Wine prefix. Parameters
   are ``prefix`` (optional WINEPREFIX),
   ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
 
@@ -802,7 +793,6 @@ Example Linux game::
       installer:
       - chmodx: $GAMEDIR/mygame
       system:
-        terminal: true
         env:
           SOMEENV: true
 
@@ -833,9 +823,7 @@ Example wine game::
         overrides:
           ddraw.dll: n
       system:
-        terminal: true
         env:
-          WINEDLLOVERRIDES: d3d11=
           SOMEENV: true
 
 Example gog wine game, some installer crash with with /SILENT or /VERYSILENT
@@ -865,15 +853,6 @@ there is undocumented gog option ``/NOGUI``, you need to use it when you use
           args: /SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR="C:/game"
           executable: installer
           name: wineexec
-      wine:
-        Desktop: true
-        overrides:
-          ddraw.dll: n
-      system:
-        terminal: true
-        env:
-          SOMEENV: true
-
 
 Example gog wine game, alternative (requires innoextract)::
 
@@ -899,13 +878,6 @@ Example gog wine game, alternative (requires innoextract)::
           description: Extracting game data
           dst: $GAMEDIR/drive_c/Games/YourGame
           src: $CACHE/app
-      wine:
-        Desktop: true
-        overrides:
-          ddraw.dll: n
-      system:
-        env:
-          SOMEENV: true
 
 
 Example gog linux game (mojosetup options found here https://www.reddit.com/r/linux_gaming/comments/42l258/fully_automated_gog_games_install_howto/)::
@@ -929,8 +901,7 @@ Example gog linux game (mojosetup options found here https://www.reddit.com/r/li
           file: installer
           description: Installing game, it will take a while...
           args: -- --i-agree-to-all-licenses --noreadme --nooptions --noprompt --destination=$GAMEDIR
-      system:
-        terminal: true
+
 
 Example gog linux game, alternative::
 
@@ -954,35 +925,7 @@ Example gog linux game, alternative::
       - merge:
           dst: $GAMEDIR
           src: $CACHE/GOG/data/noarch/
-      system:
-        terminal: true
 
-
-Example winesteam game::
-
-    name: My Game
-    game_slug: my-game
-    version: Installer
-    slug: my-game-installer
-    runner: winesteam
-
-    script:
-      game:
-        appid: 227300
-        args: --some-args
-        prefix: $GAMEDIR/prefix
-        arch: win64
-      installer:
-      - task:
-          description: Setting up wine prefix
-          name: create_prefix
-          prefix: $GAMEDIR/prefix
-          arch: win64
-      winesteam:
-        Desktop: true
-        WineDesktop: 1024x768
-        overrides:
-          ddraw.dll: n
 
 Example steam Linux game::
 

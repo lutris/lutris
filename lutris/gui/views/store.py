@@ -1,7 +1,6 @@
 """Store object for a list of games"""
 # pylint: disable=not-an-iterable
 import time
-from copy import copy
 
 from gi.repository import GLib, GObject, Gtk
 from gi.repository.GdkPixbuf import Pixbuf
@@ -9,11 +8,8 @@ from gi.repository.GdkPixbuf import Pixbuf
 from lutris import settings
 from lutris.database import sql
 from lutris.database.games import get_games
-from lutris.gui.views.media_loader import MediaLoader
 from lutris.gui.views.store_item import StoreItem
 from lutris.gui.widgets.utils import get_pixbuf
-from lutris.services.base import BaseService
-from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -71,7 +67,6 @@ class GameStore(GObject.Object):
         self._installed_games = []
         self._installed_games_accessed = False
         self._icon_updates = {}
-        self._icon_update_timer = None
 
         self.store = Gtk.ListStore(
             str,
@@ -90,10 +85,6 @@ class GameStore(GObject.Object):
             float,
             str,
         )
-        self.media_loader = MediaLoader()
-        self.media_loader.connect("icon-loaded", self.on_icon_loaded)
-
-        GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
 
     @property
     def installed_game_slugs(self):
@@ -103,22 +94,22 @@ class GameStore(GObject.Object):
             self._installed_games = [g["slug"] for g in get_games(filters={"installed": "1"})]
         return self._installed_games
 
-    def load_icons(self):
-        """Downloads the icons for a service"""
-        media_urls = self.service_media.get_media_urls()
-        self.media_loader.download_icons(media_urls, self.service_media)
-
     def add_games(self, games):
         """Add games to the store"""
         for game in list(games):
             GLib.idle_add(self.add_game, game)
+
+    def get_row_by_slug(self, slug):
+        for model_row in self.store:
+            if model_row[COL_SLUG] == slug:
+                return model_row
 
     def get_row_by_id(self, _id):
         if not _id:
             return
         for model_row in self.store:
             try:
-                if model_row[COL_ID] == _id:
+                if model_row[COL_ID] == str(_id):
                     return model_row
             except TypeError:
                 return
@@ -130,26 +121,31 @@ class GameStore(GObject.Object):
             self.store.remove(row.iter)
 
     def update(self, db_game):
-        """Update game informations."""
-        game = StoreItem(db_game, self.service_media)
-        row = self.get_row_by_id(game.id)
+        """Update game informations
+        Return whether a row was updated
+        """
+        store_item = StoreItem(db_game, self.service_media)
+        row = self.get_row_by_id(store_item.id)
         if not row:
-            return
-        row[COL_ID] = game.id
-        row[COL_SLUG] = game.slug
-        row[COL_NAME] = gtk_safe(game.name)
-        row[COL_ICON] = game.get_pixbuf()
-        row[COL_YEAR] = game.year
-        row[COL_RUNNER] = game.runner
-        row[COL_RUNNER_HUMAN_NAME] = gtk_safe(game.runner_text)
-        row[COL_PLATFORM] = gtk_safe(game.platform)
-        row[COL_LASTPLAYED] = game.lastplayed
-        row[COL_LASTPLAYED_TEXT] = game.lastplayed_text
-        row[COL_INSTALLED] = game.installed
-        row[COL_INSTALLED_AT] = game.installed_at
-        row[COL_INSTALLED_AT_TEXT] = game.installed_at_text
-        row[COL_PLAYTIME] = game.playtime
-        row[COL_PLAYTIME_TEXT] = game.playtime_text
+            row = self.get_row_by_id(db_game["service_id"])
+        if not row:
+            return False
+        row[COL_ID] = str(store_item.id)
+        row[COL_SLUG] = store_item.slug
+        row[COL_NAME] = gtk_safe(store_item.name)
+        row[COL_ICON] = store_item.get_pixbuf()
+        row[COL_YEAR] = store_item.year
+        row[COL_RUNNER] = store_item.runner
+        row[COL_RUNNER_HUMAN_NAME] = gtk_safe(store_item.runner_text)
+        row[COL_PLATFORM] = gtk_safe(store_item.platform)
+        row[COL_LASTPLAYED] = store_item.lastplayed
+        row[COL_LASTPLAYED_TEXT] = store_item.lastplayed_text
+        row[COL_INSTALLED] = store_item.installed
+        row[COL_INSTALLED_AT] = store_item.installed_at
+        row[COL_INSTALLED_AT_TEXT] = store_item.installed_at_text
+        row[COL_PLAYTIME] = store_item.playtime
+        row[COL_PLAYTIME_TEXT] = store_item.playtime_text
+        return True
 
     def add_game(self, db_game):
         """Add a PGA game to the store"""
@@ -197,33 +193,11 @@ class GameStore(GObject.Object):
             GLib.idle_add(self.update, db_game)
         return True
 
-    def on_service_games_updated(self, service):
-        """Reload icons when service games are loaded"""
-        if not self.service or service.id != self.service.id:
-            return True
-        GLib.idle_add(self.load_icons)
-        return True
-
-    def on_icon_loaded(self, _media_loader, rowid, path):
-        """Callback for the icon-loaded signal.
-        Stacks all icon updates together and set up a timed function
-        to update all of them at once.
-        """
-        self._icon_updates[rowid] = path
-        if self._icon_update_timer:
-            GLib.source_remove(self._icon_update_timer)
-        self._icon_update_timer = GLib.timeout_add(2000, self.update_icons)
-
-    def update_icons(self):
-        """Updates the store with newly updated icons"""
-        icon_updates = copy(self._icon_updates)
-        self._icon_updates = {}
-        logger.debug("Updating %s icons", len(icon_updates))
-        for rowid in icon_updates:
-            row = self.get_row_by_id(rowid)
+    def update_icons(self, icon_updates):
+        """Updates the store with new icon paths keyed by slug"""
+        for slug in icon_updates:
+            row = self.get_row_by_slug(slug)
             if not row:
                 continue
-            path = icon_updates[rowid]
-            installed = rowid in self.installed_game_slugs
-            row[COL_ICON] = get_pixbuf(path, self.service_media.size, is_installed=installed)
-        return False
+            installed = slug in self.installed_game_slugs
+            row[COL_ICON] = get_pixbuf(icon_updates[slug], self.service_media.size, is_installed=installed)

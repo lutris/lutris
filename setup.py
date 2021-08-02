@@ -39,11 +39,15 @@ setup(
         'lutris.migrations',
         'lutris.runners',
         'lutris.runners.commands',
+        'lutris.scanners',
         'lutris.services',
         'lutris.util',
+        'lutris.util.dolphin',
+        'lutris.util.egs',
         'lutris.util.graphics',
         'lutris.util.mame',
         'lutris.util.steam',
+        'lutris.util.retroarch',
         'lutris.util.wine'
     ],
     scripts=['bin/lutris'],
@@ -56,15 +60,12 @@ setup(
         'requests',
         'python-magic'
     ],
-    extras_require={
-        'Discord': ['pypresence~=3.3.2']
-    },
     url='https://lutris.net',
-    description='Install and play any video game on Linux',
-    long_description="""Lutris is a gaming platform for GNU/Linux. Its goal is
-    to make gaming on Linux as easy as possible by taking care of installing
-    and setting up the game for the user. The only thing you have to do is play
-    the game. It aims to support every game that is playable on Linux.""",
+    description='Video game preservation platform',
+    long_description="""Lutris helps you install and play video games from all eras
+    and from most gaming systems. By leveraging and combining existing emulators,
+    engine re-implementations and compatibility layers, it gives you a central
+    interface to launch all your games.""",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: End Users/Desktop',

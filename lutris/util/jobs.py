@@ -33,7 +33,7 @@ class AsyncCall(threading.Thread):
         try:
             result = self.function(*args, **kwargs)
         except Exception as ex:  # pylint: disable=broad-except
-            logger.error("Error while completing task %s: %s", self.function, ex)
+            logger.error("Error while completing task %s: %s %s", self.function, type(ex), ex)
             error = ex
             _ex_type, _ex_value, trace = sys.exc_info()
             traceback.print_tb(trace)

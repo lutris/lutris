@@ -1,6 +1,6 @@
-# pylint: disable=no-member,wrong-import-position
+# pylint: disable=wrong-import-position
 #
-# Copyright (C) 2020 Mathieu Comandon <strider@strycore.com>
+# Copyright (C) 2021 Mathieu Comandon <strider@strycore.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@ import os
 import signal
 import sys
 import tempfile
+
+from datetime import datetime, timedelta
 from gettext import gettext as _
 
 import gi
@@ -36,20 +38,18 @@ from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.installer import get_installers
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog
+from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, LutrisInitDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
-from lutris.startup import init_lutris, run_all_checks
+from lutris.startup import init_lutris, run_all_checks, update_runtime
 from lutris.util import datapath, log
 from lutris.util.http import HTTPError, Request
-from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
-from lutris.util.wine.dxvk import init_dxvk_versions
-from lutris.services import get_services
+from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
 
 from .lutriswindow import LutrisWindow
@@ -70,12 +70,6 @@ class Application(Gtk.Application):
 
         GLib.set_application_name(_("Lutris"))
         self.window = None
-
-        try:
-            init_lutris()
-        except RuntimeError as ex:
-            ErrorDialog(str(ex))
-            return
 
         self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
@@ -144,7 +138,7 @@ class Application(Gtk.Application):
             ord("e"),
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
-            _("Execute a program with the lutris runtime"),
+            _("Execute a program with the Lutris Runtime"),
             None,
         )
         self.add_main_option(
@@ -201,11 +195,12 @@ class Application(Gtk.Application):
             0,
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING_ARRAY,
-            _("uri to open"),
+            _("URI to open"),
             "URI",
         )
 
     def do_startup(self):  # pylint: disable=arguments-differ
+        """Sets up the application on first start."""
         Gtk.Application.do_startup(self)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -213,11 +208,17 @@ class Application(Gtk.Application):
         action.connect("activate", lambda *x: self.quit())
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
+        init_lutris()
+        if os.environ.get("LUTRIS_SKIP_INIT"):
+            logger.debug("Skipping initialization")
+            return
+        init_dialog = LutrisInitDialog(update_runtime)
+        init_dialog.run()
 
     def do_activate(self):  # pylint: disable=arguments-differ
         if not self.window:
             self.window = LutrisWindow(application=self)
-            screen = self.window.props.screen
+            screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         if not self.run_in_background:
             self.window.present()
@@ -225,6 +226,15 @@ class Application(Gtk.Application):
             # Reset run in background to False. Future calls will set it
             # accordingly
             self.run_in_background = False
+
+    def get_window_key(self, **kwargs):
+        if kwargs.get("appid"):
+            return kwargs["appid"]
+        if kwargs.get("runner"):
+            return kwargs["runner"].name
+        if kwargs.get("installers"):
+            return kwargs["installers"][0]["game_slug"]
+        return str(kwargs)
 
     def show_window(self, window_class, **kwargs):
         """Instanciate a window keeping 1 instance max
@@ -236,7 +246,7 @@ class Application(Gtk.Application):
         Returns:
             Gtk.Window: the existing window instance or a newly created one
         """
-        window_key = str(window_class) + str(kwargs)
+        window_key = str(window_class) + self.get_window_key(**kwargs)
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
             return self.app_windows[window_key]
@@ -244,8 +254,10 @@ class Application(Gtk.Application):
             window_inst = window_class(parent=self.window, **kwargs)
         else:
             window_inst = window_class(application=self, **kwargs)
-        window_inst.connect("destroy", self.on_app_window_destroyed, str(kwargs))
+        window_inst.connect("destroy", self.on_app_window_destroyed, self.get_window_key(**kwargs))
         self.app_windows[window_key] = window_inst
+        logger.debug("Showing window %s", window_key)
+        window_inst.show()
         return window_inst
 
     def show_installer_window(self, installers, service=None, appid=None):
@@ -256,13 +268,15 @@ class Application(Gtk.Application):
             appid=appid
         )
 
-    def on_app_window_destroyed(self, app_window, kwargs_str):
+    def on_app_window_destroyed(self, app_window, window_key):
         """Remove the reference to the window when it has been destroyed"""
-        window_key = str(app_window.__class__) + kwargs_str
+        window_key = str(app_window.__class__) + window_key
         try:
             del self.app_windows[window_key]
+            logger.debug("Removed window %s", window_key)
         except KeyError:
-            pass
+            logger.warning("Failed to remove window %s", window_key)
+            logger.info("Available windows: %s", ", ".join(self.app_windows.keys()))
         return True
 
     @staticmethod
@@ -316,10 +330,8 @@ class Application(Gtk.Application):
             logger.setLevel(logging.NOTSET)
             return 0
 
-        logger.info("Lutris %s", settings.VERSION)
         migrate()
         run_all_checks()
-        AsyncCall(init_dxvk_versions, None)
 
         # List game
         if options.contains("list-games"):
@@ -462,7 +474,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
             game = Game(db_game["id"])
-            self.on_game_start(game)
+            self.on_game_launch(game)
         return 0
 
     def on_game_launch(self, game):
@@ -478,11 +490,16 @@ class Application(Gtk.Application):
     def on_game_install(self, game):
         """Request installation of a game"""
         if game.service:
-            service = get_services()[game.service]()
+            service = get_enabled_services()[game.service]()
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
-            service.install(db_game)
+            game_id = service.install(db_game)
+            if game_id:
+                game = Game(game_id)
+                game.launch()
             return True
-
+        if not game.slug:
+            raise ValueError("Invalid game passed: %s" % game)
+            # return True
         installers = get_installers(game_slug=game.slug)
         if installers:
             self.show_installer_window(installers)
@@ -559,6 +576,9 @@ class Application(Gtk.Application):
                 "name": game["name"],
                 "runner": game["runner"],
                 "platform": game["platform"],
+                "year": game["year"],
+                "playtime": str(timedelta(hours=game["playtime"])),
+                "lastplayed": str(datetime.fromtimestamp(game["lastplayed"])),
                 "directory": game["directory"],
             } for game in game_list
         ]

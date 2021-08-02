@@ -20,7 +20,7 @@ from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import unpack_dependencies
-from lutris.util.wine.wine import get_system_wine_version, get_wine_version_exe
+from lutris.util.wine.wine import get_wine_version, get_wine_version_exe
 
 
 class ScriptInterpreter(GObject.Object, CommandsMixin):
@@ -191,8 +191,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         runners_to_install = []
         required_runners = []
         runner = self.get_runner_class(self.installer.runner)
-        if runner.depends_on is not None:
-            required_runners.append(runner.depends_on())
         required_runners.append(runner())
 
         for command in self.installer.script.get("installer", []):
@@ -235,7 +233,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 logger.info("Runner %s needs to be installed", runner)
                 runners_to_install.append(runner)
 
-        if self.installer.runner.startswith("wine") and not get_system_wine_version():
+        if self.installer.runner.startswith("wine") and not get_wine_version():
             WineNotInstalledWarning(parent=self.parent)
         return runners_to_install
 
@@ -393,6 +391,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "RESOLUTION_WIDTH": self.current_resolution[0],
             "RESOLUTION_HEIGHT": self.current_resolution[1],
         }
+        replacements.update(self.installer.variables)
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:
             alias = input_data["alias"]

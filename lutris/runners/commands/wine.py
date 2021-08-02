@@ -8,7 +8,7 @@ from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.runners import import_runner
-from lutris.util import system
+from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.shell import get_shell_command
 from lutris.util.strings import split_arguments
@@ -408,5 +408,5 @@ def open_wine_terminal(terminal, wine_path, prefix, env):
     }
     env["WINEPREFIX"] = prefix
     shell_command = get_shell_command(prefix, env, aliases)
-    terminal = terminal or system.get_default_terminal()
-    system.execute([system.get_default_terminal(), "-e", shell_command])
+    terminal = terminal or linux.get_default_terminal()
+    system.execute([linux.get_default_terminal(), "-e", shell_command])

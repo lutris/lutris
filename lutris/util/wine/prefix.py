@@ -1,8 +1,6 @@
 """Wine prefix management"""
-# Standard Library
 import os
 
-# Lutris Modules
 from lutris.util import joypad, system
 from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.log import logger
@@ -12,6 +10,11 @@ from lutris.util.xdgshortcuts import get_xdg_entry
 DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
 DEFAULT_DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
 DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES"]
+DEFAULT_DLL_OVERRIDES = {
+    "winemenubuilder": "",
+    "nvapi": "",
+    "nvapi64": ""
+}
 
 
 def is_prefix(path):
@@ -37,7 +40,6 @@ def find_prefix(path):
 
 
 class WinePrefixManager:
-
     """Class to allow modification of Wine prefixes without the use of Wine"""
 
     hkcu_prefix = "HKEY_CURRENT_USER"
@@ -49,7 +51,8 @@ class WinePrefixManager:
 
     def setup_defaults(self):
         """Sets the defaults for newly created prefixes"""
-        self.override_dll("winemenubuilder.exe", "")
+        for dll, value in DEFAULT_DLL_OVERRIDES.items():
+            self.override_dll(dll, value)
         try:
             self.desktop_integration()
         except OSError as ex:
@@ -219,21 +222,26 @@ class WinePrefixManager:
         if desktop_size:
             self.set_registry_key(path, "WineDesktop", desktop_size)
 
-    def use_xvid_mode(self, enabled):
-        """Set this to "Y" to allow wine switch the resolution using XVidMode extension."""
-        self.set_registry_key(
-            self.hkcu_prefix + "/Software/Wine/X11 Driver",
-            "UseXVidMode",
-            "Y" if enabled else "N",
-        )
-
     def configure_joypads(self):
-        joypads = joypad.get_joypads()
+        """Disables some joypad devices"""
         key = self.hkcu_prefix + "/Software/Wine/DirectInput/Joysticks"
         self.clear_registry_key(key)
-        for device, joypad_name in joypads:
-            if "event" in device:
-                disabled_joypad = "{} (js)".format(joypad_name)
-            else:
-                disabled_joypad = "{} (event)".format(joypad_name)
-            self.set_registry_key(key, disabled_joypad, "disabled")
+        for _device, joypad_name in joypad.get_joypads():
+            # Attempt at disabling mice that register as joysticks.
+            # Although, those devices aren't returned by `get_joypads`
+            # A better way would be to read /dev/input files directly.
+            if "HARPOON RGB" in joypad_name:
+                self.set_registry_key(key, "{} (js)".format(joypad_name), "disabled")
+                self.set_registry_key(key, "{} (event)".format(joypad_name), "disabled")
+
+        # This part of the code below avoids having 2 joystick interfaces
+        # showing up simulatenously. It is not sure if it's still needed
+        # so it is disabled for now. Street Fighter IV now runs in Proton
+        # without this sort of hack.
+        #
+        # for device, joypad_name in joypads:
+        #     if "event" in device:
+        #         disabled_joypad = "{} (js)".format(joypad_name)
+        #     else:
+        #         disabled_joypad = "{} (event)".format(joypad_name)
+        #     self.set_registry_key(key, disabled_joypad, "disabled")
