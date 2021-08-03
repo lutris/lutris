@@ -14,10 +14,7 @@ data_files = []
 for directory, _, filenames in os.walk(u'share'):
     dest = directory[6:]
     if filenames:
-        files = []
-        for filename in filenames:
-            filename = os.path.join(directory, filename)
-            files.append(filename)
+        files = [os.path.join(directory, filename) for filename in filenames]
         data_files.append((os.path.join('share', dest), files))
 
 setup(
