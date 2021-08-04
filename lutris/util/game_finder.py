@@ -29,10 +29,7 @@ def is_excluded_elf(filename):
         "uninstall"
     )
     _fn = filename.lower()
-    for exclude in excluded:
-        if exclude in _fn:
-            return True
-    return False
+    return any(exclude in _fn for exclude in excluded)
 
 
 def find_linux_game_executable(path, make_executable=False):
@@ -84,11 +81,7 @@ def is_excluded_dir(path):
         "users",
         "GameSpy Arcade"
     )
-    skip = False
-    for dir_name in path.split("/"):
-        if dir_name in excluded:
-            skip = True
-    return skip
+    return any(dir_name in excluded for dir_name in path.split("/"))
 
 
 def is_excluded_exe(filename):
@@ -101,10 +94,7 @@ def is_excluded_exe(filename):
         "dosbox.exe",
     )
     _fn = filename.lower()
-    for exclude in excluded:
-        if exclude in _fn:
-            return True
-    return False
+    return any(exclude in _fn for exclude in excluded)
 
 
 def find_windows_game_executable(path):
