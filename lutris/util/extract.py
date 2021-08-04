@@ -71,13 +71,13 @@ def is_7zip_supported(path, extractor):
 
 def guess_extractor(path):
     """Guess what extractor should be used from a file name"""
-    if path.endswith(".tar.gz") or path.endswith(".tgz"):
+    if path.endswith((".tar.gz", ".tgz")):
         extractor = "tgz"
-    elif path.endswith(".tar.xz") or path.endswith(".txz"):
+    elif path.endswith((".tar.xz", ".txz")):
         extractor = "txz"
     elif path.endswith(".tar"):
         extractor = "tar"
-    elif path.endswith(".tar.bz2") or path.endswith(".tbz"):
+    elif path.endswith((".tar.bz2", ".tbz")):
         extractor = "bz2"
     elif path.endswith(".gz"):
         extractor = "gzip"
