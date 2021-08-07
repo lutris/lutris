@@ -10,7 +10,7 @@ from lutris.runners.runner import Runner
 from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import get_appmanifest_from_appid, get_path_from_appmanifest
-from lutris.util.steam.config import STEAM_DATA_DIRS, get_default_acf, get_steam_dir, read_config
+from lutris.util.steam.config import STEAM_DATA_DIRS, get_default_acf, get_steam_dir, read_config, read_library_folders
 from lutris.util.steam.vdf import to_vdf
 from lutris.util.strings import split_arguments
 
@@ -144,6 +144,10 @@ class steam(Runner):
         """Return the "Steam" part of Steam's config.vdf as a dict."""
         return read_config(self.steam_data_dir)
 
+    def get_library_config(self):
+        """Return the "libraryfolders" part of Steam's libraryfolders.vdf as a dict """
+        return read_library_folders(self.steam_data_dir)
+
     @property
     def game_path(self):
         if not self.appid:
@@ -234,6 +238,21 @@ class steam(Runner):
                 if path and os.path.isdir(path):
                     dirs.append(path)
                 i += 1
+
+        # New Custom dirs
+        if library_config := self.get_library_config():
+            paths = []
+            for entry in library_config.values():
+                if "mounted" in entry:
+                    if entry.get("path") and entry.get("mounted") == "1":
+                        path = system.fix_path_case(entry.get("path") + "/steamapps")
+                        paths.append(path)
+                else:
+                    path = system.fix_path_case(entry.get("path") + "/steamapps")
+                    paths.append(path)
+            for path in paths:
+                if path and os.path.isdir(path):
+                    dirs.append(path)
 
         # Deduplicate directories with the same Device.Inode
         unique_dirs = {}
