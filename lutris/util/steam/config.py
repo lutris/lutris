@@ -141,6 +141,30 @@ def read_config(steam_data_dir):
         logger.error("Steam config %s is empty: %s", config_filename, ex)
 
 
+def read_library_folders(steam_data_dir):
+    """Read the Steam Library Folders config and return it as an object"""
+    def get_entry_case_insensitive(library_dict, path):
+        for key, value in library_dict.items():
+            if key.lower() == path[0].lower():
+                if len(path) <= 1:
+                    return value
+                return get_entry_case_insensitive(library_dict[key], path[1:])
+            raise KeyError(path[0])
+    if not steam_data_dir:
+        return None
+    library_filename = os.path.join(steam_data_dir, "config/libraryfolders.vdf")
+    if not system.path_exists(library_filename):
+        return None
+    with open(library_filename, "r") as steam_library_file:
+        library = vdf_parse(steam_library_file, {})
+        # The contentstatsid key is unused and causes problems when looking for library paths.
+        library["libraryfolders"].pop("contentstatsid")
+    try:
+        return get_entry_case_insensitive(library, ["libraryfolders"])
+    except KeyError as ex:
+        logger.error("Steam libraryfolders %s is empty: %s", library_filename, ex)
+
+
 def get_steamapps_paths():
     from lutris.runners import steam  # pylint: disable=import-outside-toplevel
     return steam.steam().get_steamapps_dirs()
