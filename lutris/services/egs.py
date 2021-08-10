@@ -365,7 +365,7 @@ class EpicGamesStoreService(OnlineService):
     def install(self, db_game):
         egs_game = get_game_by_field(self.client_installer, "installer_slug")
         application = Gio.Application.get_default()
-        if not egs_game:
+        if not egs_game or not egs_game["installed"]:
             installers = get_installers(
                 game_slug=self.client_installer,
             )
