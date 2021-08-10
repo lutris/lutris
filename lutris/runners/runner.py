@@ -171,10 +171,6 @@ class Runner:  # pylint: disable=too-many-public-methods
             env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
             env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
 
-        # Enable ACO compiler for AMD GPUs
-        if self.system_config.get("aco"):
-            env["RADV_PERFTEST"] = "aco"
-
         # Set PulseAudio latency to 60ms
         if self.system_config.get("pulse_latency"):
             env["PULSE_LATENCY_MSEC"] = "60"
