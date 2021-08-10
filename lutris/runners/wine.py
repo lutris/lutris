@@ -747,6 +747,9 @@ class wine(Runner):
         if self.runner_config.get("fsr"):
             env["WINE_FULLSCREEN_FSR"] = "1"
 
+        if self.runner_config.get("dxvk_nvapi"):
+            env["DXVK_NVAPIHACK"] = "0"
+
         overrides = self.get_dll_overrides()
         if overrides:
             self.dll_overrides.update(overrides)
