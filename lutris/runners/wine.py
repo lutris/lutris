@@ -747,17 +747,6 @@ class wine(Runner):
         if self.runner_config.get("fsr"):
             env["WINE_FULLSCREEN_FSR"] = "1"
 
-        # On AMD, mimic the video memory management behavior of Windows DX12
-        # drivers more closely, otherwise d3d12 games will crash and have other
-        # funky issues.
-        # RADV_DEBUG is a comma separated list. If it is already set, we want to
-        # append to it.
-        if self.runner_config.get("dxvk") and drivers.is_amd():
-            if "RADV_DEBUG" not in env or not env["RADV_DEBUG"]:
-                env["RADV_DEBUG"] = "zerovram"
-            elif "zerovram" not in env["RADV_DEBUG"]:
-                env["RADV_DEBUG"] += ",zerovram"
-
         overrides = self.get_dll_overrides()
         if overrides:
             self.dll_overrides.update(overrides)
