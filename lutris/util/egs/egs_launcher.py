@@ -15,7 +15,7 @@ class EGSLauncher:
         manifests_path = os.path.join(self.prefix_path, 'drive_c', self.manifests_paths)
         if not os.path.exists(manifests_path):
             logger.warning("No valid path for EGS games manifests in %s", manifests_path)
-            return
+            return []
         for manifest in os.listdir(manifests_path):
             if not manifest.endswith(".item"):
                 continue
