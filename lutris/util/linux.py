@@ -282,7 +282,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     def get_lib_folders(self):
         """Return shared library folders, sorted by most used to least used"""
         lib_folder_counter = Counter(lib.dirname for lib_list in self.shared_libraries.values() for lib in lib_list)
-        return [path[0] for path in reversed(lib_folder_counter.most_common())]
+        return [path[0] for path in lib_folder_counter.most_common()]
 
     def iter_lib_folders(self):
         """Loop over existing 32/64 bit library folders"""
