@@ -788,6 +788,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         updated = self.game_store.update(db_game)
         if not updated:
             self.game_store.add_game(db_game)
+        self.on_game_collection_changed(db_game)
         return True
 
     def on_game_collection_changed(self, _sender):
