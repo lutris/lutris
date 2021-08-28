@@ -387,6 +387,12 @@ class CommandsMixin:
                 or WINE_DEFAULT_ARCH
             if task_name == "wineexec" and self.script_env:
                 data["env"] = self.script_env
+            else:
+                data["env"] = {}
+
+            data["env"]["WINEDLLOVERRIDES"] = (
+                "winemenubuilder=d;" + data["env"].get("WINEDLLOVERRIDES", "")
+            ).strip(";")
 
         for key in data:
             value = data[key]
