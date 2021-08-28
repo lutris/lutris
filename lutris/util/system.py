@@ -246,6 +246,17 @@ def create_folder(path):
     return path
 
 
+def list_unique_folders(folders):
+    """Deduplicate directories with the same Device.Inode"""
+    unique_dirs = {}
+    for folder in folders:
+        folder_stat = os.stat(folder)
+        identifier = "%s.%s" % (folder_stat.st_dev, folder_stat.st_ino)
+        if identifier not in unique_dirs:
+            unique_dirs[identifier] = folder
+    return unique_dirs.values()
+
+
 def is_removeable(path):
     """Check if a folder is safe to remove (not system or home, ...)"""
     if not path_exists(path):
