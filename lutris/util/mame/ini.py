@@ -26,7 +26,7 @@ class MameIni:
 
     def read(self):
         """Reads the content of the ini file"""
-        with open(self.ini_path, "r") as ini_file:
+        with open(self.ini_path) as ini_file:
             for line in ini_file.readlines():
                 self.lines.append(line)
                 print(line)
@@ -40,7 +40,7 @@ class MameIni:
             for line in self.lines:
                 config_key, _value = self.parse(line)
                 if config_key and self.config[config_key]:
-                    ini_file.write("%-26s%s\n" % (config_key, self.config[config_key]))
+                    ini_file.write("{:<26}{}\n".format(config_key, self.config[config_key]))
                 elif config_key:
                     ini_file.write("%s\n" % config_key)
                 else:

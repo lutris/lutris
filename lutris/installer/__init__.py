@@ -35,7 +35,7 @@ def fetch_script(game_slug, revision=None):
 def read_script(filename):
     """Return scripts from a local file"""
     logger.debug("Loading script(s) from %s", filename)
-    script = yaml.safe_load(open(filename, "r").read())
+    script = yaml.safe_load(open(filename).read())
     if isinstance(script, list):
         return script
     if "results" in script:

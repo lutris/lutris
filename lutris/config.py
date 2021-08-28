@@ -101,7 +101,7 @@ class LutrisConfig:
         self.initialize_config()
 
     def __repr__(self):
-        return "LutrisConfig(level=%s, game_config_id=%s, runner=%s)" % (
+        return "LutrisConfig(level={}, game_config_id={}, runner={})".format(
             self.level,
             self.game_config_id,
             self.runner_slug,
@@ -252,4 +252,4 @@ class LutrisConfig:
                     runner = runner()
 
                 options = getattr(runner, attribute_name)
-        return dict((opt["option"], opt) for opt in options)
+        return {opt["option"]: opt for opt in options}

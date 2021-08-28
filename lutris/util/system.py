@@ -97,7 +97,7 @@ def get_md5_hash(filename):
         with open(filename, "rb") as _file:
             for chunk in iter(lambda: _file.read(8192), b""):
                 md5.update(chunk)
-    except IOError:
+    except OSError:
         logger.warning("Error reading %s", filename)
         return False
     return md5.hexdigest()
@@ -187,7 +187,7 @@ def substitute(string_template, variables):
     # We support dashes in identifiers but they are not valid in python
     # identifers, which is a requirement for the templating engine we use
     # Replace the dashes with underscores in the mapping and template
-    variables = dict((k.replace("-", "_"), v) for k, v in variables.items())
+    variables = {k.replace("-", "_"): v for k, v in variables.items()}
     for identifier in identifiers:
         string_template = string_template.replace("${}".format(identifier), "${}".format(identifier.replace("-", "_")))
 
@@ -251,7 +251,7 @@ def list_unique_folders(folders):
     unique_dirs = {}
     for folder in folders:
         folder_stat = os.stat(folder)
-        identifier = "%s.%s" % (folder_stat.st_dev, folder_stat.st_ino)
+        identifier = "{}.{}".format(folder_stat.st_dev, folder_stat.st_ino)
         if identifier not in unique_dirs:
             unique_dirs[identifier] = folder
     return unique_dirs.values()
@@ -312,7 +312,7 @@ def get_pids_using_file(path):
     fuser_path = find_executable("fuser")
     if not fuser_path:
         logger.warning("fuser not available, please install psmisc")
-        return set([])
+        return set()
     fuser_output = execute([fuser_path, path], quiet=True)
     return set(fuser_output.split())
 
@@ -382,11 +382,11 @@ def get_disk_size(path):
     """Return the disk size in bytes of a folder"""
     total_size = 0
     for base, _dirs, files in os.walk(path):
-        total_size += sum([
+        total_size += sum(
             os.stat(os.path.join(base, f)).st_size
             for f in files
             if os.path.isfile(os.path.join(base, f))
-        ])
+        )
     return total_size
 
 

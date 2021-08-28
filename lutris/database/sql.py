@@ -1,4 +1,3 @@
-
 import sqlite3
 import threading
 
@@ -8,7 +7,7 @@ from lutris.util.log import logger
 DB_LOCK = threading.RLock()
 
 
-class db_cursor(object):
+class db_cursor:
 
     def __init__(self, db_path):
         self.db_path = db_path
@@ -43,7 +42,7 @@ def db_insert(db_path, table, fields):
     with db_cursor(db_path) as cursor:
         cursor_execute(
             cursor,
-            "insert into {0}({1}) values ({2})".format(table, columns, placeholders),
+            "insert into {}({}) values ({})".format(table, columns, placeholders),
             field_values,
         )
         inserted_id = cursor.lastrowid
@@ -61,14 +60,14 @@ def db_update(db_path, table, updated_fields, conditions):
     condition_value = tuple(conditions.values())
 
     with db_cursor(db_path) as cursor:
-        query = "UPDATE {0} SET {1} WHERE {2}".format(table, columns, condition_field)
+        query = "UPDATE {} SET {} WHERE {}".format(table, columns, condition_field)
         result = cursor_execute(cursor, query, field_values + condition_value)
     return result
 
 
 def db_delete(db_path, table, field, value):
     with db_cursor(db_path) as cursor:
-        cursor_execute(cursor, "delete from {0} where {1}=?".format(table, field), (value, ))
+        cursor_execute(cursor, "delete from {} where {}=?".format(table, field), (value, ))
 
 
 def db_select(db_path, table, fields=None, condition=None):
@@ -120,7 +119,7 @@ def db_query(db_path, query, params=()):
 
 
 def add_field(db_path, tablename, field):
-    query = "ALTER TABLE %s ADD COLUMN %s %s" % (
+    query = "ALTER TABLE {} ADD COLUMN {} {}".format(
         tablename,
         field["name"],
         field["type"],
@@ -155,7 +154,7 @@ def filtered_query(
         query += " WHERE " + " AND ".join(sql_filters)
     if sorts:
         query += " ORDER BY %s" % ", ".join(
-            ["%s %s" % (sort[0], sort[1]) for sort in sorts]
+            ["{} {}".format(sort[0], sort[1]) for sort in sorts]
         )
     else:
         query += " ORDER BY slug ASC"

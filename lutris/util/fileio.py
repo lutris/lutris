@@ -45,7 +45,7 @@ class EvilConfigParser(RawConfigParser):  # pylint: disable=too-many-ancestors
                     # Duplicated keys writing support inside
                     key = "=".join((key, str(value).replace("\n", "\n%s=" % key)))
                 fp.write("{}\n".format(key).encode("utf-8"))
-            fp.write("\n".encode("utf-8"))
+            fp.write(b"\n")
 
 
 class MultiOrderedDict(OrderedDict):
@@ -56,4 +56,4 @@ class MultiOrderedDict(OrderedDict):
         if isinstance(value, list) and key in self:
             self[key].extend(value)
         else:
-            super(MultiOrderedDict, self).__setitem__(key, value)
+            super().__setitem__(key, value)

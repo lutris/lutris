@@ -175,7 +175,7 @@ def get_schema(tablename):
 
 def field_to_string(name="", type="", indexed=False, unique=False):  # pylint: disable=redefined-builtin
     """Converts a python based table definition to it's SQL statement"""
-    field_query = "%s %s" % (name, type)
+    field_query = "{} {}".format(name, type)
     if indexed:
         field_query += " PRIMARY KEY"
     if unique:
@@ -186,7 +186,7 @@ def field_to_string(name="", type="", indexed=False, unique=False):  # pylint: d
 def create_table(name, schema):
     """Creates a new table in the database"""
     fields = ", ".join([field_to_string(**f) for f in schema])
-    query = "CREATE TABLE IF NOT EXISTS %s (%s)" % (name, fields)
+    query = "CREATE TABLE IF NOT EXISTS {} ({})".format(name, fields)
     logger.debug("[PGAQuery] %s", query)
     with sql.db_cursor(settings.PGA_DB) as cursor:
         cursor.execute(query)

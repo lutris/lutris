@@ -49,7 +49,7 @@ class LogWindow(GObject.Object):
     def on_save_clicked(self, _button):
         """Handler to save log to a file"""
         now = datetime.now()
-        log_filename = "%s (%s).log" % (self.title, now.strftime("%Y-%m-%d-%H-%M"))
+        log_filename = "{} ({}).log".format(self.title, now.strftime("%Y-%m-%d-%H-%M"))
         file_dialog = FileDialog(
             message="Save the logs to...",
             default_path=os.path.expanduser("~/%s" % log_filename),

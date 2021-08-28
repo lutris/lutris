@@ -61,7 +61,7 @@ class DieselGameMedia(ServiceMedia):
     def get_media_url(self, detail):
         for image in detail.get("keyImages", []):
             if image["type"] == self.api_field:
-                return image["url"] + "?w=%s&resize=1&h=%s" % (self.size[0], self.size[1])
+                return image["url"] + "?w={}&resize=1&h={}".format(self.size[0], self.size[1])
 
 
 class DieselGameBoxTall(DieselGameMedia):
@@ -239,7 +239,7 @@ class EpicGamesStoreService(OnlineService):
         namespace = asset["namespace"]
         catalog_item_id = asset["catalogItemId"]
         response = self.session.get(
-            '%s/catalog/api/shared/namespace/%s/bulk/items' % (self.catalog_url, namespace),
+            '{}/catalog/api/shared/namespace/{}/bulk/items'.format(self.catalog_url, namespace),
             params={
                 "id": catalog_item_id,
                 "includeDLCDetails": True,

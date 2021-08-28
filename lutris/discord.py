@@ -14,7 +14,7 @@ except ImportError:
     PyPresenceException = None
 
 
-class DiscordPresence(object):
+class DiscordPresence:
 
     """Provide rich presence integration with Discord for games"""
 

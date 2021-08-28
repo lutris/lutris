@@ -246,7 +246,7 @@ class GOGService(OnlineService):
         """Return the user's library of GOG games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached GOG library")
-            with open(self.cache_path, "r") as gog_cache:
+            with open(self.cache_path) as gog_cache:
                 return json.load(gog_cache)
 
         total_pages = 1

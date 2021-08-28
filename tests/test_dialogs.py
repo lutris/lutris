@@ -105,14 +105,14 @@ class TestGameDialog(TestCase):
 
 
 class TestSort(TestCase):
-    class FakeModel(object):
+    class FakeModel:
         def __init__(self, rows):
             self.rows = rows
 
         def get_value(self, row_index, col_name):
             return self.rows[row_index].cols.get(col_name)
 
-    class FakeRow(object):
+    class FakeRow:
         def __init__(self, coldict):
             self.cols = coldict
 

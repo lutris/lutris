@@ -51,13 +51,13 @@ class TestWineRegistry(TestCase):
 
     def test_render_user_reg(self):
         content = self.registry.render()
-        with open(self.registry_path, 'r') as registry_file:
+        with open(self.registry_path) as registry_file:
             original_content = registry_file.read()
         self.assertEqual(content, original_content)
 
     def test_can_render_system_reg(self):
         registry_path = os.path.join(FIXTURES_PATH, 'system.reg')
-        with open(registry_path, 'r') as registry_file:
+        with open(registry_path) as registry_file:
             original_content = registry_file.read()
         system_reg = WineRegistry(registry_path)
         content = system_reg.render()

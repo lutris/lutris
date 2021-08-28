@@ -77,7 +77,7 @@ class OriginService(OnlineService):
         token_data = response.json()
         if "error" in token_data:
             raise RuntimeError(
-                "%s (Error code: %s)" % (token_data["error"], token_data["error_number"])
+                "{} (Error code: {})".format(token_data["error"], token_data["error_number"])
             )
         return token_data
 
@@ -104,7 +104,7 @@ class OriginService(OnlineService):
 
     def get_library(self, user_id):
         """Request the user's library"""
-        url = "%s/ecommerce2/consolidatedentitlements/%s?machine_hash=1" % (
+        url = "{}/ecommerce2/consolidatedentitlements/{}?machine_hash=1".format(
             self.api_url,
             user_id
         )

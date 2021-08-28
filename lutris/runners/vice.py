@@ -130,7 +130,7 @@ class vice(Runner):
             if callback:
                 callback()
 
-        super(vice, self).install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed)
 
     def get_roms_path(self, machine=None):
         if not machine:

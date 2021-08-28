@@ -67,7 +67,7 @@ class InstallerFile:
         self._dest_file = value
 
     def __str__(self):
-        return "%s/%s" % (self.game_slug, self.id)
+        return "{}/{}".format(self.game_slug, self.id)
 
     @property
     def human_url(self):

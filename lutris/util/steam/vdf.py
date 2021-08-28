@@ -43,12 +43,12 @@ def to_vdf(dict_data, level=0):
     for key in dict_data:
         value = dict_data[key]
         if isinstance(value, dict):
-            vdf_data += '%s"%s"\n' % ("\t" * level, key)
+            vdf_data += '{}"{}"\n'.format("\t" * level, key)
             vdf_data += "%s{\n" % ("\t" * level)
             vdf_data += to_vdf(value, level + 1)
             vdf_data += "%s}\n" % ("\t" * level)
         else:
-            vdf_data += '%s"%s"\t\t"%s"\n' % ("\t" * level, key, value)
+            vdf_data += '{}"{}"\t\t"{}"\n'.format("\t" * level, key, value)
     return vdf_data
 
 

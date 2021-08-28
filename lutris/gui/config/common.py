@@ -224,7 +224,7 @@ class GameDialogCommon(Dialog):
         runner_liststore.append((_("Select a runner from the list"), ""))
         for runner in runners.get_installed():
             description = runner.description
-            runner_liststore.append(("%s (%s)" % (runner.human_name, description), runner.name))
+            runner_liststore.append(("{} ({})".format(runner.human_name, description), runner.name))
         return runner_liststore
 
     def on_slug_change_clicked(self, widget):
@@ -255,7 +255,7 @@ class GameDialogCommon(Dialog):
         new_directory = dialog.new_directory
         if new_directory:
             self.directory_entry.set_text(new_directory)
-            send_notification("Finished moving game", "%s moved to %s" % (dialog.game, new_directory))
+            send_notification("Finished moving game", "{} moved to {}".format(dialog.game, new_directory))
         else:
             send_notification("Failed to move game", "Lutris could not move %s" % dialog.game)
 

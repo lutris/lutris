@@ -127,7 +127,7 @@ class steam(Runner):
     system_options_override = [{"option": "disable_runtime", "default": True}]
 
     def __init__(self, config=None):
-        super(steam, self).__init__(config)
+        super().__init__(config)
         self.own_game_remove_method = _("Remove game data (through Steam)")
         self.no_game_remove_warning = True
         self.original_steampid = None
@@ -320,7 +320,7 @@ class steam(Runner):
             # Start through steam
             if linux.LINUX_SYSTEM.is_flatpak:
                 if game_args:
-                    steam_uri = "steam://run/%s//%s/" % (self.appid, game_args)
+                    steam_uri = "steam://run/{}//{}/".format(self.appid, game_args)
                 else:
                     steam_uri = "steam://rungameid/%s" % self.appid
                 return {

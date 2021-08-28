@@ -19,7 +19,7 @@ def get_registries():
 
 
 def check_registry(registry_path):
-    with open(registry_path, 'r') as registry_file:
+    with open(registry_path) as registry_file:
         original_content = registry_file.read()
 
     try:

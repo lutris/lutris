@@ -11,7 +11,7 @@ if sys.version_info < (3, 4):
 
 data_files = []
 
-for directory, _, filenames in os.walk(u'share'):
+for directory, _, filenames in os.walk('share'):
     dest = directory[6:]
     if filenames:
         files = [os.path.join(directory, filename) for filename in filenames]

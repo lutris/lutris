@@ -104,7 +104,7 @@ def unpack_dependencies(string):
     dependencies = [dep.strip() for dep in string.split(",") if dep.strip()]
     for index, dependency in enumerate(dependencies):
         if "|" in dependency:
-            dependencies[index] = tuple([option.strip() for option in dependency.split("|") if option.strip()])
+            dependencies[index] = tuple(option.strip() for option in dependency.split("|") if option.strip())
     return [dependency for dependency in dependencies if dependency]
 
 
@@ -174,4 +174,4 @@ def human_size(size):
     while size > 1024:
         size = size / 1024
         unit_index += 1
-    return "%0.1f %s" % (size, units[unit_index])
+    return "{:0.1f} {}".format(size, units[unit_index])

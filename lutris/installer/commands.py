@@ -51,13 +51,13 @@ class CommandsMixin:
                         param_present = True
                 if not param_present:
                     raise ScriptingError(
-                        "One of %s parameter is mandatory for the %s command" % (" or ".join(param), command_name),
+                        "One of {} parameter is mandatory for the {} command".format(" or ".join(param), command_name),
                         command_data,
                     )
             else:
                 if param not in command_data:
                     raise ScriptingError(
-                        "The %s parameter is mandatory for the %s command" % (param, command_name),
+                        "The {} parameter is mandatory for the {} command".format(param, command_name),
                         command_data,
                     )
 
@@ -298,7 +298,7 @@ class CommandsMixin:
                 action = shutil.move
             self._killable_process(action, src, dst)
         except shutil.Error:
-            raise ScriptingError("Can't move %s \nto destination %s" % (src, dst))
+            raise ScriptingError("Can't move {} \nto destination {}".format(src, dst))
 
     def rename(self, params):
         """Rename file or folder."""
@@ -344,7 +344,7 @@ class CommandsMixin:
         filename = self._substitute(data["file"])
         logger.debug("Substituting variables for file %s", filename)
         tmp_filename = filename + ".tmp"
-        with open(filename, "r") as source_file:
+        with open(filename) as source_file:
             with open(tmp_filename, "w") as dest_file:
                 line = "."
                 while line:

@@ -128,7 +128,7 @@ class SteamService(BaseService):
         service_game = ServiceGameCollection.get_game(self.id, appid)
         if not service_game:
             return
-        lutris_game_id = "%s-%s" % (self.id, appid)
+        lutris_game_id = "{}-{}".format(self.id, appid)
         existing_game = get_game_by_field(lutris_game_id, "slug")
         if existing_game:
             return

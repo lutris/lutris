@@ -97,7 +97,7 @@ class WineRegistry:
         """Return an array of the unprocessed contents of a registry file"""
         if not system.path_exists(reg_filename):
             return []
-        with open(reg_filename, "r") as reg_file:
+        with open(reg_filename) as reg_file:
 
             try:
                 registry_content = reg_file.readlines()
@@ -241,7 +241,7 @@ class WineRegistryKey:
             self.timestamp = float("{}.{}".format(ts_parts[0], ts_parts[1]))
 
     def __str__(self):
-        return "{0} {1}".format(self.raw_name, self.raw_timestamp)
+        return "{} {}".format(self.raw_name, self.raw_timestamp)
 
     def parse(self, line):
         """Parse a registry line, populating meta and subkeys"""

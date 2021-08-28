@@ -80,7 +80,7 @@ def detect_prefix_arch(prefix_path=None):
         # No prefix_path exists or invalid prefix
         logger.debug("Prefix not found: %s", prefix_path)
         return None
-    with open(registry_path, "r") as registry:
+    with open(registry_path) as registry:
         for _line_no in range(5):
             line = registry.readline()
             if "win64" in line:
@@ -196,7 +196,7 @@ def get_pol_wine_versions():
             continue
         for version in os.listdir(builds_path):
             if system.path_exists(os.path.join(builds_path, version, "bin/wine")):
-                versions.append("PlayOnLinux %s-%s" % (version, arch))
+                versions.append("PlayOnLinux {}-{}".format(version, arch))
     return versions
 
 

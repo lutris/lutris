@@ -66,7 +66,7 @@ def scan_directory(dirname):
                 "main_file": os.path.join(dirname, filename)
             }
         }
-        installer_slug = "%s-libretro-%s" % (slug, core)
+        installer_slug = "{}-libretro-{}".format(slug, core)
         existing_game = get_games(filters={"installer_slug": installer_slug})
         if existing_game:
             game = Game(existing_game[0]["id"])

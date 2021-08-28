@@ -20,7 +20,7 @@ def read_api_key():
     """Read the API token from disk"""
     if not system.path_exists(API_KEY_FILE_PATH):
         return None
-    with open(API_KEY_FILE_PATH, "r") as token_file:
+    with open(API_KEY_FILE_PATH) as token_file:
         api_string = token_file.read()
     try:
         username, token = api_string.split(":")

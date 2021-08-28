@@ -82,7 +82,7 @@ class Request:
         try:
             req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         except ValueError as ex:
-            raise HTTPError("Failed to create HTTP request to %s: %s" % (self.url, ex))
+            raise HTTPError("Failed to create HTTP request to {}: {}".format(self.url, ex))
         try:
             if self.opener:
                 request = self.opener.open(req, timeout=self.timeout)
@@ -93,7 +93,7 @@ class Request:
                 raise UnauthorizedAccess("Access to %s denied" % self.url)
             raise HTTPError("%s" % error, code=error.code)
         except (socket.timeout, urllib.error.URLError) as error:
-            raise HTTPError("Unable to connect to server %s: %s" % (self.url, error))
+            raise HTTPError("Unable to connect to server {}: {}".format(self.url, error))
         try:
             self.total_size = int(request.info().get("Content-Length").strip())
         except AttributeError:
@@ -145,7 +145,7 @@ class Request:
             try:
                 return json.loads(_raw_json)
             except json.decoder.JSONDecodeError:
-                raise ValueError("JSON response from %s could not be decoded: '%s'" % (self.url, _raw_json[:80]))
+                raise ValueError("JSON response from {} could not be decoded: '{}'".format(self.url, _raw_json[:80]))
         return {}
 
     @property

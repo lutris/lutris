@@ -26,7 +26,7 @@ class StoreItem:
         return self.name
 
     def __repr__(self):
-        return "<Store id=%s slug=%s>" % (self.id, self.slug)
+        return "<Store id={} slug={}>".format(self.id, self.slug)
 
     @property
     def id(self):  # pylint: disable=invalid-name

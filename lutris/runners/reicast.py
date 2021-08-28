@@ -33,7 +33,7 @@ class reicast(Runner):
     ]
 
     def __init__(self, config=None):
-        super(reicast, self).__init__(config)
+        super().__init__(config)
 
         self.runner_options = [
             {
@@ -83,7 +83,7 @@ class reicast(Runner):
             system.create_folder("~/.reicast/data")
             NoticeDialog(_("You have to copy valid BIOS files to ~/.reicast/data before playing"))
 
-        super(reicast, self).install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed)
 
     def get_joypads(self):
         """Return list of joypad in a format usable in the options"""
@@ -119,7 +119,7 @@ class reicast(Runner):
 
         config_path = os.path.expanduser("~/.reicast/emu.cfg")
         if system.path_exists(config_path):
-            with open(config_path, "r") as config_file:
+            with open(config_path) as config_file:
                 parser.read_file(config_file)
 
         for section in config:

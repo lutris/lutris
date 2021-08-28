@@ -11,7 +11,7 @@ def _get_last_content_log(steam_data_dir):
     path = os.path.join(steam_data_dir, "logs/content_log.txt")
     log = []
     try:
-        with open(path, "r") as logfile:
+        with open(path) as logfile:
             line = logfile.readline()
             while line:
                 # Strip old logs
@@ -21,7 +21,7 @@ def _get_last_content_log(steam_data_dir):
                 else:
                     log.append(line)
                     line = logfile.readline()
-    except IOError:
+    except OSError:
         return []
     return log
 

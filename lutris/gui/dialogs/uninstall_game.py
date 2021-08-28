@@ -72,7 +72,7 @@ class UninstallGameDialog(Dialog):
         self.folder_label.hide()
         self.confirm_delete_button.show()
         self.confirm_delete_button.set_label(
-            "Delete %s (%s)" % (
+            "Delete {} ({})".format(
                 reverse_expanduser(self.game.directory),
                 human_size(folder_size)
             )

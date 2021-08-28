@@ -13,7 +13,7 @@ def read_yaml_from_file(filename):
     if not path_exists(filename):
         return {}
 
-    with open(filename, "r") as yaml_file:
+    with open(filename) as yaml_file:
         try:
             yaml_content = yaml.safe_load(yaml_file) or {}
         except (yaml.scanner.ScannerError, yaml.parser.ParserError):

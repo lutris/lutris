@@ -16,7 +16,7 @@ class Output:
         self._output = output_info
 
     def __repr__(self):
-        return "<Output: %s %s (%s)>" % (self.vendor, self.product, self.display_name)
+        return "<Output: {} {} ({})>".format(self.vendor, self.product, self.display_name)
 
     @property
     def output_id(self):
@@ -95,10 +95,10 @@ class DisplayMode:
         self.mode_info = mode_info
 
     def __str__(self):
-        return "%sx%s@%s" % (self.width, self.height, self.frequency)
+        return "{}x{}@{}".format(self.width, self.height, self.frequency)
 
     def __repr__(self):
-        return "<DisplayMode: %sx%s@%s>" % (self.width, self.height, self.frequency)
+        return "<DisplayMode: {}x{}@{}>".format(self.width, self.height, self.frequency)
 
     @property
     def id(self):  # pylint: disable=invalid-name
@@ -143,7 +143,7 @@ class CRTC():
         self.crtc_info = crtc_info
 
     def __repr__(self):
-        return "%s %s %s" % (self.id, self.geometry_str, self.current_mode)
+        return "{} {} {}".format(self.id, self.geometry_str, self.current_mode)
 
     @property
     def id(self):  # pylint: disable=invalid-name
@@ -264,7 +264,7 @@ class Monitor:
 
     def get_mode_for_resolution(self, resolution):
         """Return an appropriate mode for a given resolution"""
-        width, height = [int(i) for i in resolution.split("x")]
+        width, height = (int(i) for i in resolution.split("x"))
         for mode in self.get_modes():
             if mode.width == width and mode.height == height:
                 return mode
@@ -564,7 +564,7 @@ class MutterDisplayConfig():
 
     def get_mode_for_resolution(self, resolution):
         """Return an appropriate mode for a given resolution"""
-        width, height = [int(i) for i in resolution.split("x")]
+        width, height = (int(i) for i in resolution.split("x"))
         for mode in self.modes:
             if mode.width == width and mode.height == height:
                 return mode
@@ -616,7 +616,7 @@ class MutterDisplayManager:
 
     def get_resolutions(self):
         """Return available resolutions"""
-        resolutions = ["%sx%s" % (mode.width, mode.height) for mode in self.display_config.modes]
+        resolutions = ["{}x{}".format(mode.width, mode.height) for mode in self.display_config.modes]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
     def get_current_resolution(self):

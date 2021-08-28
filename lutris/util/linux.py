@@ -407,7 +407,7 @@ class SharedLibrary:
         return os.path.dirname(self.path)
 
     def __str__(self):
-        return "%s (%s)" % (self.name, self.arch)
+        return "{} ({})".format(self.name, self.arch)
 
 
 LINUX_SYSTEM = LinuxSystem()

@@ -47,7 +47,7 @@ class AppManifest:
         self.appmanifest_data = {}
 
         if path_exists(appmanifest_path):
-            with open(appmanifest_path, "r") as appmanifest_file:
+            with open(appmanifest_path) as appmanifest_file:
                 self.appmanifest_data = vdf_parse(appmanifest_file, {})
         else:
             logger.error("Path to AppManifest file %s doesn't exist", appmanifest_path)
@@ -115,7 +115,7 @@ class AppManifest:
             return "linux"
         if self.steamapps_path in steamapps_paths["windows"]:
             return "windows"
-        raise ValueError("Can't find %s in %s" % (self.steamapps_path, steamapps_paths))
+        raise ValueError("Can't find {} in {}".format(self.steamapps_path, steamapps_paths))
 
     def get_runner_name(self):
         """Runner used by the Steam game"""
@@ -127,7 +127,7 @@ def get_appmanifest_from_appid(steamapps_path, appid):
     if not steamapps_path:
         raise ValueError("steamapps_path is mandatory")
     if not path_exists(steamapps_path):
-        raise IOError("steamapps_path must be a valid directory")
+        raise OSError("steamapps_path must be a valid directory")
     if not appid:
         raise ValueError("Missing mandatory appid")
     appmanifest_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)

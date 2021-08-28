@@ -744,7 +744,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Handler called when the selected element of the sidebar changes"""
         logger.debug("Sidebar changed")
         row = widget.get_selected_row()
-        self.selected_category = "%s:%s" % (row.type, row.id)
+        self.selected_category = "{}:{}".format(row.type, row.id)
         for filter_type in ("category", "dynamic_category", "service", "runner", "platform"):
             if filter_type in self.filters:
                 self.filters.pop(filter_type)

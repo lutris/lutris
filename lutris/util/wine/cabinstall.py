@@ -127,7 +127,7 @@ class CabInstaller:
                 for reg_value in registry_key.findall("{urn:schemas-microsoft-com:asm.v3}registryValue"):
                     name, value = self.process_value(reg_value, arch)
                     if value is not None:
-                        out += "%s=%s\n" % (name, value)
+                        out += "{}={}\n".format(name, value)
                 out += "\n"
         return (out, arch)
 

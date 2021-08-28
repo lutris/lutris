@@ -165,7 +165,7 @@ class WinePrefixManager:
                         # There is supposedly a None value in there
                         # The current code shouldn't allow that
                         # Just raise a exception with the values
-                        raise RuntimeError("Missing value desktop_dir=%s or item=%s" % (desktop_dir, item))
+                        raise RuntimeError("Missing value desktop_dir={} or item={}".format(desktop_dir, item))
 
                     os.makedirs(src_path, exist_ok=True)
                     os.symlink(src_path, path)

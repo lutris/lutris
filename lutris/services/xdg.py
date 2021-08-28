@@ -59,8 +59,7 @@ class XDGService(BaseService):
     @property
     def lutris_games(self):
         """Iterates through Lutris games imported from XDG"""
-        for game in get_games_where(runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1):
-            yield game
+        yield from get_games_where(runner=XDGGame.runner, installer_slug=XDGGame.installer_slug, installed=1)
 
     @classmethod
     def _is_importable(cls, app):

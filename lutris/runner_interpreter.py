@@ -132,7 +132,7 @@ def export_bash_script(runner, gameplay_info, script_path):
     script_content = "#!/bin/bash\n\n\n"
     script_content += "# Environment variables\n"
     for env_var in env:
-        script_content += "export %s=\"%s\"\n" % (env_var, env[env_var])
+        script_content += "export {}=\"{}\"\n".format(env_var, env[env_var])
     script_content += "\n# Command\n"
     script_content += " ".join([shlex.quote(c) for c in command])
     with open(script_path, "w") as script_file:

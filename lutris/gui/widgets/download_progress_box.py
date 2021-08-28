@@ -62,7 +62,7 @@ class DownloadProgressBox(Gtk.Box):
     def get_title(self):
         """Return the main label text for the widget"""
         parsed = urlparse(self.url)
-        return "%s%s" % (parsed.netloc, parsed.path)
+        return "{}{}".format(parsed.netloc, parsed.path)
 
     def start(self):
         """Start downloading a file."""
@@ -136,5 +136,5 @@ class DownloadProgressBox(Gtk.Box):
         return True
 
     def _set_text(self, text):
-        markup = u"<span size='10000'>{}</span>".format(gtk_safe(text))
+        markup = "<span size='10000'>{}</span>".format(gtk_safe(text))
         self.progress_label.set_markup(markup)
