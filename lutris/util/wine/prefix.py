@@ -12,8 +12,6 @@ DEFAULT_DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "
 DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES"]
 DEFAULT_DLL_OVERRIDES = {
     "winemenubuilder": "",
-    "nvapi": "",
-    "nvapi64": ""
 }
 
 
