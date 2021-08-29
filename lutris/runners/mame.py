@@ -158,6 +158,14 @@ class mame(Runner):  # pylint: disable=invalid-name
             "default": True,
         },
         {
+            "option": "crt",
+            "type": "bool",
+            "label": _("CRT effect ()"),
+            "help": _("Applies a CRT effect to the screen."
+                      "Requires OpenGL renderer."),
+            "default": False,
+        },
+        {
             "option": "video",
             "type": "choice",
             "label": _("Video backend"),
@@ -168,14 +176,14 @@ class mame(Runner):  # pylint: disable=invalid-name
                 ("SDL2", "accel"),
                 (_("Software"), "soft"),
             ),
-            "default": "",
+            "default": "opengl",
         },
         {
             "option": "waitvsync",
             "type": "bool",
             "label": _("Wait for VSync"),
             "help":
-            _("Enable waiting for  the  start  of  VBLANK  before "
+            _("Enable waiting for  the  start  of  vblank  before "
               "flipping  screens; reduces tearing effects."),
             "advanced": True,
             "default": False,
@@ -280,6 +288,11 @@ class mame(Runner):  # pylint: disable=invalid-name
             command.append("-waitvsync")
         if self.runner_config.get("uimodekey"):
             command += ["-uimodekey", self.runner_config["uimodekey"]]
+        if self.runner_config.get("crt"):
+            command += ["-gl_glsl", "-glsl_shader_mame0", os.path.join(self.working_dir, "shaders/CRT-geom/Gaussx")]
+            command += ["-gl_glsl", "-glsl_shader_mame1", os.path.join(self.working_dir, "shaders/CRT-geom/Gaussy")]
+            command += ["-gl_glsl", "-glsl_shader_mame2", os.path.join(self.working_dir, "shaders/CRT-geom/CRT-geom-halation")]
+            command += ["-nounevenstretch"]
 
         if self.game_config.get("machine"):
             rompath = self.runner_config.get("rompath")
