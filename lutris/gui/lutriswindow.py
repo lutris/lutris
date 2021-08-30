@@ -786,7 +786,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return False
         return True
 
-
     def on_game_updated(self, game):
         """Updates an individual entry in the view when a game is updated"""
         if game.appid and self.service:
