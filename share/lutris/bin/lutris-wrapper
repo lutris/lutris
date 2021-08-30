@@ -60,7 +60,7 @@ def set_child_subreaper():
 
 def log(log_message):
     """Generic log function that can be adjusted for any log output method
-    (stdout, file, logging, t2s, Discord, ...)
+    (stdout, file, logging, ...)
     """
     line = str(log_message) + "\n"
     try:
@@ -168,20 +168,11 @@ def main():
             while not watcher.is_alive():
                 reap_children()
                 time.sleep(0.1)
-
         while watcher.is_alive():
             reap_children()
             time.sleep(0.1)
-
         log("Monitored process exited.")
         reap_children()
-
-        #  The game is no longer running. We kill other processes
-        for child in watcher.iterate_children():
-            kill_pid(child.pid, True)
-
-        reap_children()
-        log("All monitored processes have exited.")
 
     except NoMoreChildren:
         log("All processes have quit")
