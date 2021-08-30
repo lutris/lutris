@@ -288,10 +288,16 @@ class mame(Runner):  # pylint: disable=invalid-name
             command.append("-waitvsync")
         if self.runner_config.get("uimodekey"):
             command += ["-uimodekey", self.runner_config["uimodekey"]]
+
         if self.runner_config.get("crt"):
-            command += ["-gl_glsl", "-glsl_shader_mame0", os.path.join(self.working_dir, "shaders/CRT-geom/Gaussx")]
-            command += ["-gl_glsl", "-glsl_shader_mame1", os.path.join(self.working_dir, "shaders/CRT-geom/Gaussy")]
-            command += ["-gl_glsl", "-glsl_shader_mame2", os.path.join(self.working_dir, "shaders/CRT-geom/CRT-geom-halation")]
+            shader_path = os.path.join(self.working_dir, "shaders/CRT-geom")
+            shaders = ["Gaussx", "Gaussy", "CRT-geom-halation"]
+            for index, shader in enumerate(shaders):
+                command += [
+                    "-gl_glsl",
+                    "-glsl_shader_mame%s" % index,
+                    os.path.join(shader_path, shader)
+                ]
             command += ["-nounevenstretch"]
 
         if self.game_config.get("machine"):
