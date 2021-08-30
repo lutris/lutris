@@ -76,8 +76,10 @@ class DieselGameBoxTall(DieselGameMedia):
         for filename in os.listdir(self.dest_path):
             self._render_filename(filename)
 
+
 class DieselGameBoxSmall(DieselGameBoxTall):
     size = (100, 133)
+
 
 class DieselGameBox(DieselGameBoxTall):
     """EGS game box"""
@@ -87,8 +89,10 @@ class DieselGameBox(DieselGameBoxTall):
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box")
     api_field = "DieselGameBox"
 
+
 class DieselGameBannerSmall(DieselGameBox):
     size = (158, 89)
+
 
 class DieselGameBoxLogo(DieselGameMedia):
     """EGS game box"""

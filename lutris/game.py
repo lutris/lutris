@@ -131,15 +131,11 @@ class Game(GObject.Object):
         categories_db.remove_category_from_game(self.id, favorite["id"])
         self.emit("game-updated")
 
-    def hide(self):
+    def set_hidden(self, is_hidden):
         """Do not show this game in the UI"""
-        self.is_hidden = True
+        self.is_hidden = is_hidden
         self.save()
-
-    def unhide(self):
-        """Remove the game from hidden games"""
-        self.is_hidden = False
-        self.save()
+        self.emit("game-updated")
 
     @property
     def log_buffer(self):
