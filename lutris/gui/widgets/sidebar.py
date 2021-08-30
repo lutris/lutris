@@ -9,6 +9,7 @@ from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
+from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.services.base import BaseService
@@ -257,6 +258,7 @@ class LutrisSidebar(Gtk.ListBox):
         }
         GObject.add_emission_hook(RunnerBox, "runner-installed", self.update)
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update)
+        GObject.add_emission_hook(ServicesBox, "services-changed", self.on_services_changed)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-updated", self.update)
@@ -397,4 +399,10 @@ class LutrisSidebar(Gtk.ListBox):
     def on_service_games_updated(self, service):
         self.service_rows[service.id].is_updating = False
         self.service_rows[service.id].update_buttons()
+        return True
+
+    def on_services_changed(self, _widget):
+        for child in self.get_children():
+            child.destroy()
+        self.on_realize(self)
         return True

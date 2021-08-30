@@ -1,6 +1,6 @@
 from gettext import gettext as _
 
-from gi.repository import GLib, Gtk
+from gi.repository import GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
@@ -9,6 +9,10 @@ from lutris.services import SERVICES
 
 
 class ServicesBox(BaseConfigBox):
+    __gsignals__ = {
+        "services-changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
+
     def __init__(self):
         super().__init__()
         self.add(self.get_section_label(_("Enable integrations with game sources")))
@@ -65,3 +69,4 @@ class ServicesBox(BaseConfigBox):
     def _on_service_change(self, widget, state, setting_key):
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, state, section="services")
+        self.emit("services-changed")
