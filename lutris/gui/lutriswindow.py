@@ -743,13 +743,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_sidebar_changed(self, widget):
         """Handler called when the selected element of the sidebar changes"""
         logger.debug("Sidebar changed")
-        row = widget.get_selected_row()
-        self.selected_category = "%s:%s" % (row.type, row.id)
         for filter_type in ("category", "dynamic_category", "service", "runner", "platform"):
             if filter_type in self.filters:
                 self.filters.pop(filter_type)
+
+        row = widget.get_selected_row()
         if row:
+            self.selected_category = "%s:%s" % (row.type, row.id)
             self.filters[row.type] = row.id
+
         service_name = self.filters.get("service")
         self.set_service(service_name)
         self._bind_zoom_adjustment()
@@ -780,11 +782,21 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GLib.idle_add(self.update_revealer, game)
         return False
 
+    def is_game_displayed(self, game):
+        """Return whether a game should be displayed on the view"""
+        if game.is_hidden and not self.show_hidden_games:
+            return False
+        return True
+
     def on_game_updated(self, game):
+        """Updates an individual entry in the view when a game is updated"""
         if game.appid and self.service:
             db_game = ServiceGameCollection.get_game(self.service.id, game.appid)
         else:
             db_game = games_db.get_game_by_field(game.id, "id")
+        if not self.is_game_displayed(game):
+            self.game_store.remove_game(db_game["id"])
+            return True
         updated = self.game_store.update(db_game)
         if not updated:
             self.game_store.add_game(db_game)

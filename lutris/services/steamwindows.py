@@ -1,3 +1,4 @@
+import os
 from gettext import gettext as _
 
 from gi.repository import Gio
@@ -6,6 +7,7 @@ from lutris.database.games import get_game_by_field, get_games
 from lutris.game import Game
 from lutris.installer import get_installers
 from lutris.services.steam import SteamGame, SteamService
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -25,9 +27,8 @@ class SteamWindowsService(SteamService):
     game_class = SteamWindowsGame
     client_installer = "steam-wine"
 
-    def generate_installer(self, db_game, steam_db_game):
+    def generate_installer(self, db_game, steam_game):
         """Generate a basic Steam installer"""
-        steam_game = Game(steam_db_game["id"])
         return {
             "name": db_game["name"],
             "version": self.name,
@@ -45,8 +46,13 @@ class SteamWindowsService(SteamService):
             }
         }
 
+    def get_steam(self):
+        db_entry = get_game_by_field(self.client_installer, "installer_slug")
+        if db_entry:
+            return Game(db_entry["id"])
+
     def install(self, db_game):
-        steam_game = get_game_by_field(self.client_installer, "installer_slug")
+        steam_game = self.get_steam()
         if not steam_game:
             installers = get_installers(
                 game_slug=self.client_installer,
@@ -67,3 +73,19 @@ class SteamWindowsService(SteamService):
             service=self,
             appid=appid
         )
+
+    @property
+    def steamapps_paths(self):
+        """Return steamapps paths"""
+        steam_game = self.get_steam()
+        if not steam_game:
+            return []
+        dirs = []
+        steam_path = steam_game.config.game_config["exe"]
+        steam_data_dir = os.path.dirname(steam_path)
+        if steam_data_dir:
+            main_dir = os.path.join(steam_data_dir, "steamapps")
+            main_dir = system.fix_path_case(main_dir)
+            if main_dir and os.path.isdir(main_dir):
+                dirs.append(os.path.abspath(main_dir))
+        return dirs

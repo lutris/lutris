@@ -278,6 +278,18 @@ class mame(Runner):  # pylint: disable=invalid-name
             )
         return True
 
+    def get_shader_params(self, shader_dir, shaders):
+        """Returns a list of CLI parameters to apply a list of shaders"""
+        params = []
+        shader_path = os.path.join(self.working_dir, "shaders", shader_dir)
+        for index, shader in enumerate(shaders):
+            params += [
+                "-gl_glsl",
+                "-glsl_shader_mame%s" % index,
+                os.path.join(shader_path, shader)
+            ]
+        return params
+
     def play(self):
         command = [self.get_executable(), "-skip_gameinfo", "-inipath", self.config_dir]
         if self.runner_config.get("video"):
@@ -288,10 +300,9 @@ class mame(Runner):  # pylint: disable=invalid-name
             command.append("-waitvsync")
         if self.runner_config.get("uimodekey"):
             command += ["-uimodekey", self.runner_config["uimodekey"]]
+
         if self.runner_config.get("crt"):
-            command += ["-gl_glsl", "-glsl_shader_mame0", os.path.join(self.working_dir, "shaders/CRT-geom/Gaussx")]
-            command += ["-gl_glsl", "-glsl_shader_mame1", os.path.join(self.working_dir, "shaders/CRT-geom/Gaussy")]
-            command += ["-gl_glsl", "-glsl_shader_mame2", os.path.join(self.working_dir, "shaders/CRT-geom/CRT-geom-halation")]
+            command += self.get_shader_params("CRT-geom", ["Gaussx", "Gaussy", "CRT-geom-halation"])
             command += ["-nounevenstretch"]
 
         if self.game_config.get("machine"):

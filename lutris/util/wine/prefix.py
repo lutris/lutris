@@ -117,16 +117,10 @@ class WinePrefixManager:
         """Overwrite desktop integration"""
         # pylint: disable=too-many-branches
         # TODO: reduce complexity (18)
-        user = os.getenv("USER")
-        if not user:
-            user = 'lutrisuser'
+        user = os.getenv("USER") or 'lutrisuser'
         user_dir = os.path.join(self.path, "drive_c/users/", user)
         desktop_folders = self.get_desktop_folders()
-
-        if desktop_dir:
-            desktop_dir = os.path.expanduser(desktop_dir)
-        else:
-            desktop_dir = user_dir
+        desktop_dir = os.path.expanduser(desktop_dir) if desktop_dir else user_dir
 
         if system.path_exists(user_dir):
             # Replace or restore desktop integration symlinks
@@ -175,13 +169,6 @@ class WinePrefixManager:
                         os.rename(old_path, path)
                     else:
                         os.makedirs(path, exist_ok=True)
-
-            # Security: Remove other symlinks.
-            for item in os.listdir(user_dir):
-                path = os.path.join(user_dir, item)
-                if item not in desktop_folders and os.path.islink(path):
-                    os.unlink(path)
-                    os.makedirs(path)
 
     def set_crash_dialogs(self, enabled):
         """Enable or diable Wine crash dialogs"""

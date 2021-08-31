@@ -187,11 +187,11 @@ class GameActions:
 
     def on_hide_game(self, _widget):
         """Add a game to the list of hidden games"""
-        self.game.hide()
+        self.game.set_hidden(True)
 
     def on_unhide_game(self, _widget):
         """Removes a game from the list of hidden games"""
-        self.game.unhide()
+        self.game.set_hidden(False)
 
     def on_execute_script_clicked(self, _widget):
         """Execute the game's associated script"""
