@@ -148,10 +148,13 @@ class SteamService(BaseService):
         )
         return game_id
 
+    @property
+    def steamapps_paths(self):
+        return get_steamapps_paths()
+
     def add_installed_games(self):
         games = []
-        steamapps_paths = get_steamapps_paths()
-        for steamapps_path in steamapps_paths:
+        for steamapps_path in self.steamapps_paths:
             for appmanifest_file in get_appmanifests(steamapps_path):
                 app_manifest_path = os.path.join(steamapps_path, appmanifest_file)
                 self.install_from_steam(AppManifest(app_manifest_path))
