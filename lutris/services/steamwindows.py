@@ -77,8 +77,10 @@ class SteamWindowsService(SteamService):
     @property
     def steamapps_paths(self):
         """Return steamapps paths"""
-        dirs = []
         steam_game = self.get_steam()
+        if not steam_game:
+            return []
+        dirs = []
         steam_path = steam_game.config.game_config["exe"]
         steam_data_dir = os.path.dirname(steam_path)
         if steam_data_dir:
