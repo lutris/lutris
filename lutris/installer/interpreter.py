@@ -88,10 +88,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             self.installer.script.get('system', {}).get('env', {}).items()
         }
 
-    # --------------------------
-    # "Initial validation" stage
-    # --------------------------
-
     @staticmethod
     def _get_installed_dependency(dependency):
         """Return whether a dependency is installed"""
@@ -390,6 +386,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "RESOLUTION": "x".join(self.current_resolution),
             "RESOLUTION_WIDTH": self.current_resolution[0],
             "RESOLUTION_HEIGHT": self.current_resolution[1],
+            "WINEBIN": self.get_wine_path(),
         }
         replacements.update(self.installer.variables)
         # Add 'INPUT_<id>' replacements for user inputs with an id

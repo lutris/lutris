@@ -362,6 +362,11 @@ class CommandsMixin:
             runner_name = self.installer.runner
         return runner_name, task_name
 
+    def get_wine_path(self):
+        """Return absolute path of wine version used during the install"""
+        wine_version = self._get_runner_version()
+        return get_wine_version_exe(wine_version)
+
     def task(self, data):
         """Directive triggering another function specific to a runner.
 
@@ -373,12 +378,10 @@ class CommandsMixin:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
         runner_name, task_name = self._get_task_runner_and_name(data.pop("name"))
 
-        wine_version = None
-
         if runner_name.startswith("wine"):
-            wine_version = self._get_runner_version()
-            if wine_version:
-                data["wine_path"] = get_wine_version_exe(wine_version)
+            wine_path = self.get_wine_path()
+            if wine_path:
+                data["wine_path"] = wine_path
             data["prefix"] = data.get("prefix") \
                 or self.installer.script.get("game", {}).get("prefix") \
                 or "$GAMEDIR"
