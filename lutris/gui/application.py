@@ -492,10 +492,18 @@ class Application(Gtk.Application):
         if game.service:
             service = get_enabled_services()[game.service]()
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
-            game_id = service.install(db_game)
+
+            try:
+                game_id = service.install(db_game)
+            except ValueError as e:
+                logger.debug(e)
+                game_id = None
+
             if game_id:
                 game = Game(game_id)
                 game.launch()
+            else:
+                ErrorDialog(message=_("Could not retrieve game installer."), parent=self.window)
             return True
         if not game.slug:
             raise ValueError("Invalid game passed: %s" % game)
