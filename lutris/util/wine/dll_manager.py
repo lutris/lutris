@@ -67,7 +67,7 @@ class DLLManager:
         with open(self.versions_path, "r") as version_file:
             try:
                 versions = [v["tag_name"] for v in json.load(version_file)]
-            except KeyError:
+            except (KeyError, json.decoder.JSONDecodeError):
                 logger.warning(
                     "Invalid versions file %s, deleting so it is downloaded on next start.",
                     self.versions_path
