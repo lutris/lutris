@@ -389,6 +389,9 @@ class Game(GObject.Object):
         """Return the information provided by a runner's play method.
         Checks for possible errors.
         """
+        if not self.runner:
+            logger.warning("Trying to launch %s without a runner", self)
+            return {}
         gameplay_info = self.runner.play()
         if "error" in gameplay_info:
             self.show_error_message(gameplay_info)
@@ -669,6 +672,7 @@ class Game(GObject.Object):
         """Output the launch argument in a bash script"""
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:
+            logger.error("Unable to retrieve game information for %s. Can't write a script", self)
             return
         export_bash_script(self.runner, gameplay_info, script_path)
 
