@@ -19,6 +19,7 @@ from lutris.util.system import create_folder
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.vkd3d import VKD3DManager
+from lutris.util.wine.d3d_extras import D3DExtrasManager
 
 
 def init_dirs():
@@ -181,7 +182,7 @@ def update_runtime():
     if components_to_update:
         while runtime_updater.current_updates:
             time.sleep(0.3)
-    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager):
+    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager):
         dll_manager = dll_manager_class()
         dll_manager.upgrade()
     logger.info("Startup complete")
