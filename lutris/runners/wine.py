@@ -21,6 +21,7 @@ from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
+from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.wine import (
     POL_PATH, WINE_DIR, WINE_PATHS, detect_arch, display_vulkan_error, esync_display_limit_warning,
     esync_display_version_warning, fsync_display_support_warning, fsync_display_version_warning, get_default_version,
@@ -230,6 +231,25 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": VKD3DManager().version_choices,
                 "default": VKD3DManager().version,
+            },
+            {
+                "option": "d3d_extras",
+                "label": _("Enable D3D Extras"),
+                "type": "bool",
+                "default": True,
+                "advanced": True,
+                "help": _(
+                    "Replace Wine's D3DX and D3DCOMPILER libraries with alternative ones. "
+                    "Needed for proper functionality of DXVK with some games."
+                ),
+            },
+            {
+                "option": "d3d_extras_version",
+                "label": _("D3D Extras version"),
+                "advanced": True,
+                "type": "choice_with_entry",
+                "choices": D3DExtrasManager().version_choices,
+                "default": D3DExtrasManager().version,
             },
             {
                 "option": "dxvk_nvapi",
@@ -702,6 +722,11 @@ class wine(Runner):
             DXVKNVAPIManager,
             bool(self.runner_config.get("dxvk_nvapi")),
             self.runner_config.get("dxvk_nvapi_version")
+        )
+        self.setup_dlls(
+            D3DExtrasManager,
+            bool(self.runner_config.get("d3d_extras")),
+            self.runner_config.get("d3d_extras_version")
         )
         return True
 
