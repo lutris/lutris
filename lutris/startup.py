@@ -16,10 +16,10 @@ from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import create_folder
+from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.vkd3d import VKD3DManager
-from lutris.util.wine.d3d_extras import D3DExtrasManager
 
 
 def init_dirs():
