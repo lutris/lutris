@@ -27,6 +27,7 @@ __all__ = [
     "snes9x",
     "mupen64plus",
     "dolphin",
+    "ryujinx",
     "yuzu",
     # Sony
     "pcsx2",
