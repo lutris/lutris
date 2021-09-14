@@ -373,7 +373,21 @@ class Runner:  # pylint: disable=too-many-public-methods
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
         if not dest:
             dest = settings.RUNNER_DIR
-        downloader(
+        #Verifying is the link is AppImage and if not it wont Unarchive it
+        AppImage = "AppImage"
+        if tarball_filename.endswith(AppImage):
+            runner_archive = os.path.join(settings.RUNNER_DIR, tarball_filename)
+            dest = "settings.RUNNER_DIR + tarball_filename"
+            downloader(
+            url, runner_archive, {
+                "archive": runner_archive,
+                "dest": dest,
+                "merge_single": merge_single,
+                "callback": callback,
+            }
+        )
+        else:
+            downloader(
             url, runner_archive, self.extract, {
                 "archive": runner_archive,
                 "dest": dest,
