@@ -9,6 +9,7 @@ from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
 
+
 class duckstation(Runner):
     human_name = _("DuckStation")
     platforms = [_("PSX")]
