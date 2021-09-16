@@ -386,7 +386,7 @@ class Runner:  # pylint: disable=too-many-public-methods
                 "callback": callback,
             }
         )
-         else:
+        else:
         downloader(
             url, runner_archive, self.extract, {
                 "archive": runner_archive,
