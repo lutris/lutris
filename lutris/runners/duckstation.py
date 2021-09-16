@@ -38,8 +38,7 @@ class duckstation(Runner):
             "help": _("File containing the title keys."),
         }
     ]
-    system_options_override = [{"option": "disable_runtime", "default": True}]
-    
+        
     @property
     def duckstation_data_dir(self):
         """Return dir where duckstation files lie."""
