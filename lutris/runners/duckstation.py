@@ -38,7 +38,7 @@ class duckstation(Runner):
             "help": _("File containing the title keys."),
         }
     ]
-        
+
     @property
     def duckstation_data_dir(self):
         """Return dir where duckstation files lie."""
