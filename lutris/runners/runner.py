@@ -379,22 +379,23 @@ class Runner:  # pylint: disable=too-many-public-methods
             runner_archive = os.path.join(settings.RUNNER_DIR, tarball_filename)
             dest = "settings.RUNNER_DIR + tarball_filename"
             downloader(
-            url, runner_archive, self.run, {
+             url, runner_archive, self.run, {
                 "archive": runner_archive,
                 "dest": dest,
                 "merge_single": merge_single,
                 "callback": callback,
-                }
-          )
+             }
+            )
           else:
             downloader(
-            url, runner_archive, self.extract, {
+             url, runner_archive, self.extract, {
                 "archive": runner_archive,
                 "dest": dest,
                 "merge_single": merge_single,
                 "callback": callback,
-                }
-          )
+             }
+           )
+
     def extract(self, archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):
             raise RunnerInstallationError("Failed to extract {}".format(archive))
