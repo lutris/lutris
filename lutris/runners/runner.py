@@ -373,7 +373,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
         if not dest:
             dest = settings.RUNNER_DIR
-        #Verifying is the link is AppImage and if not it wont Unarchive it
+        # Verifying is the link is AppImage and if not it wont Unarchive it
         AppImage = "AppImage"
         if tarball_filename.endswith(AppImage):
             runner_archive = os.path.join(settings.RUNNER_DIR, tarball_filename)

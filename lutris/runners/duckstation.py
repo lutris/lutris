@@ -8,8 +8,6 @@ from shutil import copyfile
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.settings import RUNNER_DIR
-
 
 class duckstation(Runner):
     human_name = _("DuckStation")
