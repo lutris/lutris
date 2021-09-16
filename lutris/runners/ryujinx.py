@@ -10,7 +10,6 @@ from lutris.util import system
 from lutris.util.log import logger
 
 
-
 class ryujinx(Runner):
     human_name = _("Ryujinx")
     platforms = [_("Nintendo Switch")]
