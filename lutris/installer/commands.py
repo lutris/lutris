@@ -389,10 +389,7 @@ class CommandsMixin:
                 or self.installer.script.get("game", {}).get("arch") \
                 or WINE_DEFAULT_ARCH
             if task_name == "wineexec":
-                data["env"] = self.script_env or {}
-                data["env"]["WINEDLLOVERRIDES"] = (
-                    "winemenubuilder=d;" + data["env"].get("WINEDLLOVERRIDES", "")
-                ).strip(";")
+                data["env"] = self.script_env
 
         for key in data:
             value = data[key]

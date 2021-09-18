@@ -419,8 +419,10 @@ def get_overrides_env(overrides):
     Output a string of dll overrides usable with WINEDLLOVERRIDES
     See: https://wiki.winehq.org/Wine_User%27s_Guide#WINEDLLOVERRIDES.3DDLL_Overrides
     """
-    if not overrides:
-        return ""
+    default_overrides = {
+        "winemenubuilder": ""
+    }
+    overrides.update(default_overrides)
     override_buckets = OrderedDict([("n,b", []), ("b,n", []), ("b", []), ("n", []), ("d", []), ("", [])])
     for dll, value in overrides.items():
         if not value:
