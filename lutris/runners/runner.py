@@ -378,23 +378,23 @@ class Runner:  # pylint: disable=too-many-public-methods
         if tarball_filename.endswith(AppImage):
             runner_archive = os.path.join(settings.RUNNER_DIR, tarball_filename)
             dest = "settings.RUNNER_DIR + tarball_filename"
-        downloader(
-            url, runner_archive, self.run, {
-                "archive": runner_archive,
-                "dest": dest,
-                "merge_single": merge_single,
-                "callback": callback,
-            }
-        )
+            downloader(
+                url, runner_archive, self.run, {
+                    "archive": runner_archive,
+                    "dest": dest,
+                    "merge_single": merge_single,
+                    "callback": callback,
+                }
+            )
         if not tarball_filename.endswith(AppImage):
-        downloader(
-            url, runner_archive, self.extract, {
-                "archive": runner_archive,
-                "dest": dest,
-                "merge_single": merge_single,
-                "callback": callback,
-            }
-        )
+            downloader(
+                url, runner_archive, self.extract, {
+                    "archive": runner_archive,
+                    "dest": dest,
+                    "merge_single": merge_single,
+                    "callback": callback,
+                }
+            )
 
     def extract(self, archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):
