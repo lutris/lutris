@@ -30,6 +30,7 @@ __all__ = [
     "ryujinx",
     "yuzu",
     # Sony
+    "duckstation",
     "pcsx2",
     "rpcs3",
     # Sega
