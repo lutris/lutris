@@ -126,7 +126,7 @@ class EpicGamesStoreService(OnlineService):
     icon = "egs"
     online = True
     runner = "wine"
-    client_installer = "epic-games-store-latest"
+    client_installer = "epic-games-store"
     medias = {
         "game_box_small": DieselGameBoxSmall,
         "game_banner_small": DieselGameBannerSmall,
@@ -367,16 +367,21 @@ class EpicGamesStoreService(OnlineService):
                         "name": "wineexec",
                         "executable": egs_exe,
                         "args": get_launch_arguments(db_game["appid"], "install"),
-                        "prefix": egs_game.config.game_config["prefix"]
+                        "prefix": egs_game.config.game_config["prefix"],
+                        "description": (
+                            "The Epic Game Store will now open. Please launch the "
+                            "installation of %s then close the EGS client once the game has been downloaded." % db_game["name"]
+                        )
                     }}
                 ]
             }
         }
 
     def install(self, db_game):
-        egs_game = get_game_by_field(self.client_installer, "installer_slug")
+        egs_game = get_game_by_field(self.client_installer, "slug")
         application = Gio.Application.get_default()
         if not egs_game or not egs_game["installed"]:
+            logger.warning("EGS (%s) not installed", self.client_installer)
             installers = get_installers(
                 game_slug=self.client_installer,
             )
