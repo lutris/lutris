@@ -12,7 +12,7 @@ from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
-from lutris.services.base import BaseService
+from lutris.services.base import AuthTokenExpired, BaseService
 from lutris.util.jobs import AsyncCall
 
 TYPE = 0
@@ -137,7 +137,11 @@ class ServiceSidebarRow(SidebarRow):
 
     def service_load_cb(self, _result, error):
         if error:
-            ErrorDialog(str(error))
+            if isinstance(error, AuthTokenExpired):
+                self.service.logout()
+                self.service.login()
+            else:
+                ErrorDialog(str(error))
         GLib.timeout_add(2000, self.enable_refresh_button)
 
     def enable_refresh_button(self):
