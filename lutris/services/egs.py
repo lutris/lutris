@@ -20,7 +20,6 @@ from lutris.util import system
 from lutris.util.egs.egs_launcher import EGSLauncher
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.util.i18n import get_lang_and_country
 
 EGS_GAME_ART_PATH = os.path.expanduser("~/.cache/lutris/egs/game_box")
 EGS_GAME_BOX_PATH = os.path.expanduser("~/.cache/lutris/egs/game_box_tall")
@@ -193,6 +192,7 @@ class EpicGamesStoreService(OnlineService):
             'X-Requested-With': 'XMLHttpRequest',
             'User-Agent': self.user_agent
         })
+
         _session.get('https://www.epicgames.com/id/api/set-sid', params={'sid': session_id})
         _session.get('https://www.epicgames.com/id/api/csrf')
         response = _session.post(
