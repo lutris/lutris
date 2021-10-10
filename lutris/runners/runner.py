@@ -306,17 +306,17 @@ class Runner:  # pylint: disable=too-many-public-methods
             return self.is_installed()
         return False
     
-    def install_runner_cli(runner_name):
+    def prepare_runner_cli(runner_name):
         """
         import and save the runner given in application file located in lutris/gui/application.py
         provided using lutris -r <runner>
         """
         Runner = import_runner(runner_name)
-        return Runner().install_dialog_cli()
+        return Runner().install_cli()
 
-    def install_dialog_cli(self):
+    def install_cli(self):
         """
-        install the runner provided in install_runner_cli()
+        install the runner provided in prepare_runner_cli()
         """
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):
