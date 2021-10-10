@@ -10,7 +10,7 @@ from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import UnavailableLibraries
 from lutris.gui import dialogs
-from lutris.runners import RunnerInstallationError
+from lutris.runners import RunnerInstallationError, import_runner
 from lutris.util import system
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import Request
@@ -286,6 +286,37 @@ class Runner:  # pylint: disable=too-many-public-methods
 
             return self.is_installed()
         return False
+    
+    def install_runner_cli(runner_name):
+        """
+        import and save the runner given in application file located in lutris/gui/application.py
+        provided using lutris -r <runner>
+        """
+        Runner = import_runner(runner_name)
+        return Runner().install_dialog_cli()
+
+    def install_dialog_cli(self):
+        """
+        install the runner provided in install_runner_cli()
+        """
+        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
+        if os.path.isdir(runner_path):
+            print(self.name + " is already installed!")
+            exit()
+        else:
+            from lutris.gui.dialogs.download import simple_downloader
+            self.install(version=None, downloader=simple_downloader, callback=None)
+            print(self.name + " is now installed :)")
+
+    def uninstall_runner_cli(runner_name):
+        """
+        uninstall the runner given in application file located in lutris/gui/application.py
+        provided using lutris -u <runner>
+        """
+        Runner.name = runner_name
+        Runner().uninstall()
+        print("Runner is uninstalled")
+        exit()
 
     def is_installed(self):
         """Return whether the runner is installed"""

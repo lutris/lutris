@@ -32,6 +32,8 @@ gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gio, GLib, Gtk, GObject
 
+from lutris.runners import get_runner_names 
+from lutris.runners.runner import Runner
 from lutris import settings
 from lutris.api import parse_installer_url
 from lutris.command import exec_command
@@ -171,6 +173,30 @@ class Application(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.NONE,
             _("List all known Steam library folders"),
+            None,
+        )
+        self.add_main_option(
+            "list-runners",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("List all known runners"),
+            None,
+        )
+        self.add_main_option(
+            "install-runner",
+            ord("r"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Install a Runner"),
+            None,
+        )
+        self.add_main_option(
+            "uninstall-runner",
+            ord("u"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Uninstall a Runner"),
             None,
         )
         self.add_main_option(
@@ -350,6 +376,23 @@ class Application(Gtk.Application):
         # List Steam folders
         if options.contains("list-steam-folders"):
             self.print_steam_folders(command_line)
+            return 0
+
+        # List Runners 
+        if options.contains("list-runners"):
+            self.print_runners(command_line)
+            return 0
+
+        # install Runner
+        if options.contains("install-runner"):
+            command = options.lookup_value("install-runner").get_string()
+            self.install_runner(command,command_line)
+            return 0
+
+        # Uninstall Runner
+        if options.contains("uninstall-runner"):
+            command = options.lookup_value("uninstall-runner").get_string()
+            self.uninstall_runner(command,command_line)
             return 0
 
         # Execute command in Lutris context
@@ -626,6 +669,18 @@ class Application(Gtk.Application):
         for platform in ("linux", "windows"):
             for path in steamapps_paths[platform]:
                 self._print(command_line, path)
+
+    def print_runners(self,command_line):
+        runnersName = Runner.list_installed_cli()
+        print("\tRunners:")
+        for name in runnersName:
+            print(name)
+
+    def install_runner(self, command, command_line):
+        runnersName = Runner.install_runner_cli(command)
+
+    def uninstall_runner(self, command, command_line):
+        runnersName = Runner.uninstall_runner_cli(command)
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
