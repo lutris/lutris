@@ -21,6 +21,10 @@ from lutris.util.log import logger
 PGA_DB = settings.PGA_DB
 
 
+class AuthTokenExpired(Exception):
+    """Exception raised when a token is no longer valid"""
+
+
 class LutrisBanner(ServiceMedia):
     service = 'lutris'
     size = (184, 69)

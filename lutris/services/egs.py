@@ -13,7 +13,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.widgets.utils import Image, paste_overlay, thumbnail_image
 from lutris.installer import get_installers
-from lutris.services.base import OnlineService
+from lutris.services.base import AuthTokenExpired, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
@@ -32,6 +32,7 @@ BOX_ART_SIZE = (200, 267)
 
 class DieselGameMedia(ServiceMedia):
     service = "egs"
+    remote_size = (200, 267)
     file_pattern = "%s.jpg"
     min_logo_x = 300
     min_logo_y = 150
@@ -42,7 +43,7 @@ class DieselGameMedia(ServiceMedia):
         has_logo = os.path.exists(logo_path)
         thumb_image = Image.open(game_box_path)
         thumb_image = thumb_image.convert("RGBA")
-        thumb_image = thumbnail_image(thumb_image, self.size)
+        thumb_image = thumbnail_image(thumb_image, self.remote_size)
         if has_logo:
             logo_image = Image.open(logo_path)
             logo_image = logo_image.convert("RGBA")
@@ -61,12 +62,16 @@ class DieselGameMedia(ServiceMedia):
     def get_media_url(self, detail):
         for image in detail.get("keyImages", []):
             if image["type"] == self.api_field:
-                return image["url"] + "?w=%s&resize=1&h=%s" % (self.size[0], self.size[1])
+                return image["url"] + "?w=%s&resize=1&h=%s" % (
+                    self.remote_size[0],
+                    self.remote_size[1]
+                )
 
 
 class DieselGameBoxTall(DieselGameMedia):
     """EGS tall game box"""
     size = (200, 267)
+    remote_size = size
     min_logo_x = 100
     min_logo_y = 100
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box_tall")
@@ -79,11 +84,13 @@ class DieselGameBoxTall(DieselGameMedia):
 
 class DieselGameBoxSmall(DieselGameBoxTall):
     size = (100, 133)
+    remote_size = (200, 267)
 
 
 class DieselGameBox(DieselGameBoxTall):
     """EGS game box"""
     size = (316, 178)
+    remote_size = size
     min_logo_x = 300
     min_logo_y = 150
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box")
@@ -92,11 +99,13 @@ class DieselGameBox(DieselGameBoxTall):
 
 class DieselGameBannerSmall(DieselGameBox):
     size = (158, 89)
+    remote_size = (316, 178)
 
 
 class DieselGameBoxLogo(DieselGameMedia):
     """EGS game box"""
     size = (200, 100)
+    remote_size = size
     file_pattern = "%s.png"
     visible = False
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_logo")
@@ -126,7 +135,7 @@ class EpicGamesStoreService(OnlineService):
     icon = "egs"
     online = True
     runner = "wine"
-    client_installer = "epic-games-store-latest"
+    client_installer = "epic-games-store"
     medias = {
         "game_box_small": DieselGameBoxSmall,
         "game_banner_small": DieselGameBannerSmall,
@@ -192,6 +201,7 @@ class EpicGamesStoreService(OnlineService):
             'X-Requested-With': 'XMLHttpRequest',
             'User-Agent': self.user_agent
         })
+
         _session.get('https://www.epicgames.com/id/api/set-sid', params={'sid': session_id})
         _session.get('https://www.epicgames.com/id/api/csrf')
         response = _session.post(
@@ -221,7 +231,6 @@ class EpicGamesStoreService(OnlineService):
         if exchange_code:
             grant_type = 'exchange_code'
             token = exchange_code
-
         else:
             grant_type = 'refresh_token'
             token = self.session_data["refresh_token"]
@@ -289,8 +298,8 @@ class EpicGamesStoreService(OnlineService):
             library = self.get_library()
         except Exception as ex:  # pylint=disable:broad-except
             self.is_loading = False
-            logger.error("Failed to load EGS library: %s", ex)
-            return
+            logger.warning("EGS Token expired")
+            raise AuthTokenExpired from ex
         egs_games = []
         for game in library:
             egs_game = EGSGame.new_from_api(game)
@@ -302,10 +311,10 @@ class EpicGamesStoreService(OnlineService):
     def install_from_egs(self, egs_game, manifest):
         """Create a new Lutris game based on an existing EGS install"""
         app_name = manifest["AppName"]
-        logger.info("Installing %s", app_name)
+        logger.debug("Installing EGS game %s", app_name)
         service_game = ServiceGameCollection.get_game("egs", app_name)
         if not service_game:
-            logger.error("Can't find the game %s", app_name)
+            logger.error("Aborting install, %s is not present in the game library.", app_name)
             return
         lutris_game_id = slugify(service_game["name"]) + "-" + self.id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
@@ -366,16 +375,22 @@ class EpicGamesStoreService(OnlineService):
                         "name": "wineexec",
                         "executable": egs_exe,
                         "args": get_launch_arguments(db_game["appid"], "install"),
-                        "prefix": egs_game.config.game_config["prefix"]
+                        "prefix": egs_game.config.game_config["prefix"],
+                        "description": (
+                            "The Epic Game Store will now open. Please launch "
+                            "the installation of %s then close the EGS client "
+                            "once the game has been downloaded." % db_game["name"]
+                        )
                     }}
                 ]
             }
         }
 
     def install(self, db_game):
-        egs_game = get_game_by_field(self.client_installer, "installer_slug")
+        egs_game = get_game_by_field(self.client_installer, "slug")
         application = Gio.Application.get_default()
         if not egs_game or not egs_game["installed"]:
+            logger.warning("EGS (%s) not installed", self.client_installer)
             installers = get_installers(
                 game_slug=self.client_installer,
             )
