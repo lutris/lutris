@@ -286,7 +286,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
             return self.is_installed()
         return False
-    
+
     def prepare_runner_cli(runner_name):
         """
         import and save the runner given in application file located in lutris/gui/application.py

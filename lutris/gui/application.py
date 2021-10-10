@@ -32,7 +32,7 @@ gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gio, GLib, Gtk, GObject
 
-from lutris.runners import get_runner_names 
+from lutris.runners import get_runner_names
 from lutris.runners.runner import Runner
 from lutris import settings
 from lutris.api import parse_installer_url
@@ -378,7 +378,7 @@ class Application(Gtk.Application):
             self.print_steam_folders(command_line)
             return 0
 
-        # List Runners 
+        # List Runners
         if options.contains("list-runners"):
             self.print_runners(command_line)
             return 0
@@ -386,13 +386,13 @@ class Application(Gtk.Application):
         # install Runner
         if options.contains("install-runner"):
             command = options.lookup_value("install-runner").get_string()
-            self.install_runner(command,command_line)
+            self.install_runner(command, command_line)
             return 0
 
         # Uninstall Runner
         if options.contains("uninstall-runner"):
             command = options.lookup_value("uninstall-runner").get_string()
-            self.uninstall_runner(command,command_line)
+            self.uninstall_runner(command, command_line)
             return 0
 
         # Execute command in Lutris context
@@ -670,17 +670,17 @@ class Application(Gtk.Application):
             for path in steamapps_paths[platform]:
                 self._print(command_line, path)
 
-    def print_runners(self,command_line):
+    def print_runners(self, command_line):
         runnersName = get_runner_names()
         print("Runners:")
         for name in runnersName:
             print(name)
 
     def install_runner(self, command, command_line):
-        runnersName = Runner.prepare_runner_cli(command)
+        Runner.prepare_runner_cli(command)
 
     def uninstall_runner(self, command, command_line):
-        runnersName = Runner.uninstall_runner_cli(command)
+        Runner.uninstall_runner_cli(command)
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
