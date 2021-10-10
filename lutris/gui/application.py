@@ -671,7 +671,7 @@ class Application(Gtk.Application):
                 self._print(command_line, path)
 
     def print_runners(self,command_line):
-        runnersName = Runner.list_installed_cli()
+        runnersName = get_runner_names()
         print("\tRunners:")
         for name in runnersName:
             print(name)
