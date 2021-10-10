@@ -672,12 +672,12 @@ class Application(Gtk.Application):
 
     def print_runners(self,command_line):
         runnersName = get_runner_names()
-        print("\tRunners:")
+        print("Runners:")
         for name in runnersName:
             print(name)
 
     def install_runner(self, command, command_line):
-        runnersName = Runner.install_runner_cli(command)
+        runnersName = Runner.prepare_runner_cli(command)
 
     def uninstall_runner(self, command, command_line):
         runnersName = Runner.uninstall_runner_cli(command)
