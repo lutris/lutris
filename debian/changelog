@@ -25,8 +25,7 @@ lutris (0.5.9) hirsute; urgency=medium
   * Removed support for X360CE
   * Removed legacy WineD3D options
 
-
- -- Mathieu Comandon <strider@strycore.com>  Mon, 19 Jul 2021 19:13:39 -0700
+ -- Mathieu Comandon <strider@strycore.com>  Mon, 11 Oct 2021 12:33:39 -0700
 
 lutris (0.5.8.3) groovy; urgency=medium
 
