@@ -240,7 +240,8 @@ class steam(Runner):
                 i += 1
 
         # New Custom dirs
-        if library_config := self.get_library_config():
+        if library_config = self.get_library_config()
+        if library_config:
             paths = []
             for entry in library_config.values():
                 if "mounted" in entry:
