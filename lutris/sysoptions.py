@@ -131,7 +131,7 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "condition": bool(system.find_executable("gamescope")),
         "help": _("Use gamescope to draw the game window isolated from your desktop.\n"
-                  "Use <Ctrl><Super>F to toggle fullscreen"),
+                  "Use Ctrl+Super+F to toggle fullscreen"),
     },
     {
         "option": "gamescope_output_res",
