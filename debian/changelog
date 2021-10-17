@@ -1,3 +1,15 @@
+lutris (0.5.9.1) hirsute; urgency=medium
+
+  * Fix possible escaping error for gamescope option
+  * Remove walrus operator to restore compatibility with Python 3.7 / Ubuntu 18.04
+  * Remove log file being written in the home folder
+  * Fix install button for community installer
+  * Fix markup error on gamescope option
+  * Update URL for Ryujinx build
+  * Fix Steam sync creating duplicate games
+
+ -- Mathieu Comandon <strider@strycore.com>  Sat, 16 Oct 2021 18:08:26 -0700
+
 lutris (0.5.9) hirsute; urgency=medium
 
   * Add initial support for Epic Games Store
