@@ -212,11 +212,12 @@ class Game(GObject.Object):
                 disable_compositing()
                 self.compositor_disabled = True
 
-    def remove(self, delete_files=False):
+    def remove(self, delete_files=False, no_signal=False):
         """Uninstall a game
 
         Params:
             delete_files (bool): Delete the game files
+            no_signal (bool): Don't emit game-removed signal (if running in a thread)
         """
         sql.db_update(settings.PGA_DB, "games", {"installed": 0, "runner": ""}, {"id": self.id})
         if self.config:
@@ -226,6 +227,8 @@ class Game(GObject.Object):
             self.runner.remove_game_data(game_path=self.directory)
         self.is_installed = False
         self.runner = None
+        if no_signal:
+            return
         self.emit("game-removed")
 
     def delete(self):

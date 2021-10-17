@@ -1,6 +1,7 @@
 """Steam service"""
 import json
 import os
+from collections import defaultdict
 from gettext import gettext as _
 
 from gi.repository import Gio
@@ -129,7 +130,7 @@ class SteamService(BaseService):
         if not service_game:
             return
         lutris_game_id = "%s-%s" % (self.id, appid)
-        existing_game = get_game_by_field(lutris_game_id, "slug")
+        existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
             return
         game_config = LutrisConfig().game_level
@@ -153,12 +154,36 @@ class SteamService(BaseService):
         return get_steamapps_paths()
 
     def add_installed_games(self):
-        games = []
+        """Syncs installed Steam games with Lutris"""
+        installed_appids = []
         for steamapps_path in self.steamapps_paths:
             for appmanifest_file in get_appmanifests(steamapps_path):
                 app_manifest_path = os.path.join(steamapps_path, appmanifest_file)
-                self.install_from_steam(AppManifest(app_manifest_path))
-        return games
+                app_manifest = AppManifest(app_manifest_path)
+                installed_appids.append(app_manifest.steamid)
+                self.install_from_steam(app_manifest)
+
+        db_games = get_games(filters={"runner": "steam"})
+        for db_game in db_games:
+            steam_game = Game(db_game["id"])
+            appid = steam_game.config.game_level["game"]["appid"]
+            if appid not in installed_appids:
+                steam_game.remove(no_signal=True)
+
+        db_appids = defaultdict(list)
+        db_games = get_games(filters={"service": "steam"})
+        for db_game in db_games:
+            db_appids[db_game["service_id"]].append(db_game["id"])
+
+        for appid in db_appids:
+            game_ids = db_appids[appid]
+            if len(game_ids) == 1:
+                continue
+            for game_id in game_ids:
+                steam_game = Game(game_id)
+                if not steam_game.playtime:
+                    steam_game.remove(no_signal=True)
+                    steam_game.delete()
 
     def generate_installer(self, db_game):
         """Generate a basic Steam installer"""
