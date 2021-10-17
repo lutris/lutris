@@ -5,6 +5,7 @@ from collections import namedtuple
 
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
+from lutris.util.linux import LINUX_SYSTEM
 
 Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate"))
 
@@ -12,7 +13,7 @@ Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary"
 def _get_vidmodes():
     """Return video modes from XrandR"""
     logger.debug("Retrieving video modes from XrandR")
-    return read_process_output(["xrandr"]).split("\n")
+    return read_process_output([LINUX_SYSTEM.get("xrandr")]).split("\n")
 
 
 def get_outputs():  # pylint: disable=too-many-locals
@@ -76,7 +77,7 @@ def turn_off_except(display):
     for output in get_outputs():
         if output.name != display:
             logger.info("Turning off %s", output[0])
-            subprocess.Popen(["xrandr", "--output", output.name, "--off"])
+            subprocess.Popen([LINUX_SYSTEM.get("xrandr"), "--output", output.name, "--off"])
 
 
 def get_resolutions():
@@ -111,7 +112,7 @@ def change_resolution(resolution):
             logger.warning("Resolution %s doesn't exist.", resolution)
         else:
             logger.info("Changing resolution to %s", resolution)
-            subprocess.Popen(["xrandr", "-s", resolution])
+            subprocess.Popen([LINUX_SYSTEM.get("xrandr"), "-s", resolution])
     else:
         for display in resolution:
             logger.debug("Switching to %s on %s", display.mode, display.name)
@@ -128,7 +129,7 @@ def change_resolution(resolution):
             logger.info("Switching resolution of %s to %s", display.name, display.mode)
             subprocess.Popen(
                 [
-                    "xrandr",
+                    LINUX_SYSTEM.get("xrandr"),
                     "--output",
                     display.name,
                     "--mode",

@@ -25,12 +25,12 @@ release: build-source upload upload-ppa
 
 test:
 	rm tests/fixtures/pga.db -f
-	nosetests3
+	nosetests
 
 cover:
 	rm tests/fixtures/pga.db -f
 	rm tests/coverage/ -rf
-	nosetests3 --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+	nosetests --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
 
 pgp-renew:
 	osc signkey --extend home:strycore
