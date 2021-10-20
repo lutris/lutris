@@ -36,12 +36,9 @@ class atari800(Runner):
     }
     game_options = [
         {
-            "option":
-            "main_file",
-            "type":
-            "file",
-            "label":
-            _("ROM file"),
+            "option": "main_file",
+            "type": "file",
+            "label": _("ROM file"),
             "help": _(
                 "The game data, commonly called a ROM image. \n"
                 "Supported formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "

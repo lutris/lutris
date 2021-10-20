@@ -107,7 +107,8 @@ def get_launch_parameters(runner, gameplay_info):
 
 def get_gamescope_args(launch_arguments, system_config):
     """Insert gamescope at the start of the launch arguments"""
-    launch_arguments.insert(0, "-f --")
+    launch_arguments.insert(0, "--")
+    launch_arguments.insert(0, "-f")
     if system_config.get("gamescope_output_res"):
         output_width, output_height = system_config["gamescope_output_res"].lower().split("x")
         launch_arguments.insert(0, output_height)

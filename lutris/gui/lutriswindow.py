@@ -742,7 +742,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_sidebar_changed(self, widget):
         """Handler called when the selected element of the sidebar changes"""
-        logger.debug("Sidebar changed")
         for filter_type in ("category", "dynamic_category", "service", "runner", "platform"):
             if filter_type in self.filters:
                 self.filters.pop(filter_type)
@@ -804,7 +803,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_game_collection_changed(self, _sender):
         """Simple method used to refresh the view"""
-        logger.debug("Game collection changed")
         self.emit("view-updated")
         return True
 
