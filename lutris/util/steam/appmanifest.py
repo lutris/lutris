@@ -37,7 +37,6 @@ APP_STATE_FLAGS = [
 
 
 class AppManifest:
-
     """Representation of an AppManifest file from Steam"""
 
     def __init__(self, appmanifest_path):

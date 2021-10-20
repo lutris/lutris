@@ -3,12 +3,14 @@ import locale
 
 from lutris.util.log import logger
 
+
 def get_user_locale():
     user_locale, _user_encoding = locale.getlocale()
     if not user_locale:
         logger.error("Unable to get locale")
         return
     return user_locale
+
 
 def get_lang():
     """Return the 2 letter language code used by the system"""

@@ -70,8 +70,8 @@ def log(log_message):
         pass
 
     # File output
-    with open(os.path.expanduser("~/lutris.log"), "a") as logfile:
-        logfile.write(line)
+    # with open(os.path.expanduser("~/lutris.log"), "a") as logfile:
+    #     logfile.write(line)
 
 
 def kill_pid(pid, sigkill=False):
