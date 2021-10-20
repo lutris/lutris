@@ -32,10 +32,11 @@ gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gio, GLib, Gtk, GObject
 
+from lutris.util.wine.wine import get_wine_versions 
 from lutris.runners import get_runner_names
 from lutris.runners.runner import Runner
 from lutris import settings
-from lutris.api import parse_installer_url
+from lutris.api import parse_installer_url, get_runners
 from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game
@@ -183,6 +184,22 @@ class Application(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.NONE,
             _("List all known runners"),
+            None,
+        )
+        self.add_main_option(
+            "list-wine-runners",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("List all known Wine runners"),
+            None,
+        )
+        self.add_main_option(
+            "install-wine-runner",
+            ord("w"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Install a Wine Runner"),
             None,
         )
         self.add_main_option(
@@ -393,6 +410,17 @@ class Application(Gtk.Application):
         # List Runners
         if options.contains("list-runners"):
             self.print_runners(command_line)
+            return 0
+
+        # List Runners
+        if options.contains("list-wine-runners"):
+            self.print_wine_runners(command_line)
+            return 0
+
+        # install Runner
+        if options.contains("install-wine-runner"):
+            version = options.lookup_value("install-wine-runner").get_string()
+            self.install_wine_runner(version, command_line)
             return 0
 
         # install Runner
@@ -723,11 +751,36 @@ class Application(Gtk.Application):
         for name in runnersName:
             print(name)
 
+    def print_wine_runners(self, command_line):
+        runnersName = get_runners("wine")
+        for i in runnersName["versions"]:
+            if  i ["version"]:
+                print(i)
+
+    def install_wine_runner(self, version, command_line):
+        installed = get_wine_versions()
+        for i in installed: 
+            if i.startswith(version):
+                print("This Wine version is already installed")
+                exit()
+        else:
+            Runner.prepare_wine_runner_cli(version)
+
     def install_runner(self, command, command_line):
         Runner.prepare_runner_cli(command)
 
     def uninstall_runner(self, command, command_line):
-        Runner.uninstall_runner_cli(command)
+        if command == "wine":
+            print("Are sure you want to delete Wine and all of the installed runners?[Y/N]")
+            ans = input()
+            if ans == "y" or ans == "Y":
+                Runner.uninstall_runner_cli(command)
+            elif ans == "n" or ans == "N":
+                exit()
+        elif command.startswith("lutris"):
+            Runner.wine_runner_uninstall(command)
+        else:
+            Runner.uninstall_runner_cli(command)
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")

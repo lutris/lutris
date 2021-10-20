@@ -306,6 +306,30 @@ class Runner:  # pylint: disable=too-many-public-methods
             return self.is_installed()
         return False
 
+    def prepare_wine_runner_cli(version):
+        """
+        import and save the runner given in application file located in lutris/gui/application.py
+        provided using lutris -r <runner>
+        """
+        Runner = import_runner("wine")
+        return Runner().install_wine_cli(version)
+
+    def install_wine_cli(self, version):
+        """
+        install the runner provided in prepare_runner_cli()
+        """
+        from lutris.gui.dialogs.download import simple_downloader
+        self.install(version=version, downloader=simple_downloader, callback=None)
+        print("Wine Runner '"+ version + "' is now installed :)")
+
+    def wine_runner_uninstall(version):
+        version = version+"-x86_64"
+        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+        runner_path = os.path.join(WINE_DIR, version)
+        if os.path.isdir(runner_path):
+            system.remove_folder(runner_path)
+        print("Wine Runner is Removed")
+
     def prepare_runner_cli(runner_name):
         """
         import and save the runner given in application file located in lutris/gui/application.py
@@ -318,6 +342,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         """
         install the runner provided in prepare_runner_cli()
         """
+        if self.name == "wine":
+           print("Please use the Wine flag To install a wine Runner") 
+           exit()
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):
             print(self.name + " is already installed!")
