@@ -1188,7 +1188,7 @@ msgstr ""
 
 #: lutris/gui/widgets/common.py:254
 msgid "Add"
-msgstr "Hizufügen"
+msgstr "Hinzufügen"
 
 #: lutris/gui/widgets/common.py:258
 msgid "Delete"
