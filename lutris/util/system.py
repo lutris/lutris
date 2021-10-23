@@ -78,14 +78,16 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
     return stdout.decode(errors="replace").strip()
 
 
-def read_process_output(command, timeout=2):
+def read_process_output(command, timeout=5):
     """Return the output of a command as a string"""
     try:
         return subprocess.check_output(
             command,
-            timeout=timeout
-        ).decode("utf-8", errors="ignore").strip()
-    except (OSError, subprocess.CalledProcessError) as ex:
+            timeout=timeout,
+            encoding="utf-8",
+            errors="ignore"
+        ).strip()
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
         logger.error("%s command failed: %s", command, ex)
         return ""
 
