@@ -694,13 +694,13 @@ class Game(GObject.Object):
             logger.info("Previous location wasn't set. Cannot continue moving")
             return target_directory
 
-        with open(self.config.game_config_path) as config_file:
+        with open(self.config.game_config_path, encoding='utf-8') as config_file:
             for line in config_file.readlines():
                 if target_directory in line:
                     new_config += line
                 else:
                     new_config += line.replace(old_location, target_directory)
-        with open(self.config.game_config_path, "w") as config_file:
+        with open(self.config.game_config_path, "w", encoding='utf-8') as config_file:
             config_file.write(new_config)
 
         if not system.path_exists(old_location):

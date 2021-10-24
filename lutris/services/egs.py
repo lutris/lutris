@@ -170,7 +170,7 @@ class EpicGamesStoreService(OnlineService):
         self.session = requests.session()
         self.session.headers['User-Agent'] = self.user_agent
         if os.path.exists(self.token_path):
-            with open(self.token_path) as token_file:
+            with open(self.token_path, encoding='utf-8') as token_file:
                 self.session_data = json.loads(token_file.read())
         else:
             self.session_data = {}
@@ -250,7 +250,7 @@ class EpicGamesStoreService(OnlineService):
         response_content = response.json()
         if 'error' in response_content:
             raise RuntimeError(response_content)
-        with open(self.token_path, "w") as auth_file:
+        with open(self.token_path, "w", encoding='utf-8') as auth_file:
             auth_file.write(json.dumps(response_content, indent=2))
         self.session_data = response_content
 

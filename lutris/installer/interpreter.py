@@ -173,11 +173,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 logger.debug("Creating destination path %s", self.target_path)
                 os.makedirs(self.target_path)
                 self.game_dir_created = True
-            except PermissionError:
+            except PermissionError as err:
                 raise ScriptingError(
                     "Lutris does not have the necessary permissions to install to path:",
                     self.target_path,
-                )
+                ) from err
 
     def get_runners_to_install(self):
         """Check if the runner is installed before starting the installation
@@ -251,15 +251,15 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
             logger.error(ex.message)
-            raise ScriptingError(ex.message)
+            raise ScriptingError(ex.message) from ex
 
     def get_runner_class(self, runner_name):
         """Runner the runner class from its name"""
         try:
             runner = import_runner(runner_name)
-        except InvalidRunner:
+        except InvalidRunner as err:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
-            raise ScriptingError("Invalid runner provided %s" % runner_name)
+            raise ScriptingError("Invalid runner provided %s" % runner_name) from err
         return runner
 
     def launch_installer_commands(self):
@@ -290,8 +290,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         elif self.current_command < len(commands):
             try:
                 command = commands[self.current_command]
-            except KeyError:
-                raise ScriptingError("Installer commands are not formatted correctly")
+            except KeyError as err:
+                raise ScriptingError("Installer commands are not formatted correctly") from err
             self.current_command += 1
             method, params = self._map_command(command)
             if isinstance(params, dict):

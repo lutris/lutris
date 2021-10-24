@@ -42,7 +42,7 @@ def set_regedit(
     }
     # Make temporary reg file
     reg_path = os.path.join(settings.CACHE_DIR, "winekeys.reg")
-    with open(reg_path, "w") as reg_file:
+    with open(reg_path, "w", encoding='utf-8') as reg_file:
         reg_file.write('REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type]))
     logger.debug("Setting [%s]:%s=%s", path, key, formatted_value[type])
     set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)

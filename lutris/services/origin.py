@@ -57,7 +57,7 @@ class OriginService(OnlineService):
         token = self.get_access_token()
         if not token:
             raise RuntimeError("Failed to get access token")
-        with open(self.token_path, "w") as token_file:
+        with open(self.token_path, "w", encoding='utf-8') as token_file:
             token_file.write(json.dumps(token, indent=2))
         self.emit("service-login")
 

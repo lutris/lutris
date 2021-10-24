@@ -22,7 +22,7 @@ def write_game_config(game_slug, config):
     configpath = make_game_config_id(game_slug)
     config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
     yaml_config = yaml.safe_dump(config, default_flow_style=False)
-    with open(config_filename, "w") as config_file:
+    with open(config_filename, "w", encoding='utf-8') as config_file:
         logger.debug("Writing game config to %s", config_filename)
         config_file.write(yaml_config)
     return configpath

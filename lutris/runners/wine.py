@@ -104,7 +104,7 @@ class wine(Runner):
     )
 
     def __init__(self, config=None):  # noqa: C901
-        super(wine, self).__init__(config)
+        super().__init__(config)
         self.dll_overrides = DEFAULT_DLL_OVERRIDES
 
         def get_wine_version_choices():
@@ -117,7 +117,7 @@ class wine(Runner):
             }
             versions = get_wine_versions()
             for version in versions:
-                if version in labels.keys():
+                if version in labels:
                     version_number = get_wine_version(WINE_PATHS[version])
                     label = labels[version].format(version_number)
                 else:
@@ -506,7 +506,7 @@ class wine(Runner):
             return option
         if self.game_exe:
             return os.path.dirname(self.game_exe)
-        return super(wine, self).working_dir
+        return super().working_dir
 
     @property
     def wine_arch(self):
@@ -530,7 +530,7 @@ class wine(Runner):
     def get_path_for_version(self, version):
         """Return the absolute path of a wine executable for a given version"""
         # logger.debug("Getting path for Wine %s", version)
-        if version in WINE_PATHS.keys():
+        if version in WINE_PATHS:
             return system.find_executable(WINE_PATHS[version])
         if "Proton" in version:
             for proton_path in get_proton_paths():
@@ -695,10 +695,10 @@ class wine(Runner):
 
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or "auto"
-            if not value or value == "auto" and key not in managed_keys.keys():
+            if not value or value == "auto" and key not in managed_keys:
                 prefix_manager.clear_registry_subkeys(path, key)
             elif key in self.runner_config:
-                if key in managed_keys.keys():
+                if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
                         value = None
@@ -782,7 +782,7 @@ class wine(Runner):
         # Always false to runner.get_env, the default value
         # of os_env is inverted in the wine class,
         # the OS env is read later.
-        env = super(wine, self).get_env(False)
+        env = super().get_env(False)
         if os_env:
             env.update(os.environ.copy())
         show_debug = self.runner_config.get("show_debug", "-all")

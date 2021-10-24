@@ -140,12 +140,12 @@ class libretro(Runner):
                 if callback:
                     callback()
             else:
-                super(libretro, self).install(version, downloader, callback)
+                super().install(version, downloader, callback)
 
         if not self.is_retroarch_installed():
-            super(libretro, self).install(version=None, downloader=downloader, callback=install_core)
+            super().install(version=None, downloader=downloader, callback=install_core)
         else:
-            super(libretro, self).install(version, downloader, callback)
+            super().install(version, downloader, callback)
 
     def get_run_data(self):
         return {
@@ -170,7 +170,7 @@ class libretro(Runner):
         # TODO: review later
         # Create retroarch.cfg if it doesn't exist.
         if not system.path_exists(config_file):
-            f = open(config_file, "w")
+            f = open(config_file, "w", encoding='utf-8')
             f.write("# Lutris RetroArch Configuration")
             f.close()
 
@@ -281,11 +281,11 @@ class libretro(Runner):
     # Checks whether the retroarch or libretro directories can be uninstalled.
     def can_uninstall(self):
         retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
-        return os.path.isdir(retroarch_path) or super(libretro, self).can_uninstall()
+        return os.path.isdir(retroarch_path) or super().can_uninstall()
 
     # Remove the `retroarch` directory.
     def uninstall(self):
         retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
         if os.path.isdir(retroarch_path):
             system.remove_folder(retroarch_path)
-        super(libretro, self).uninstall()
+        super().uninstall()

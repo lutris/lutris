@@ -111,7 +111,7 @@ class atari800(Runner):
             if callback:
                 callback()
 
-        super(atari800, self).install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed)
 
     def find_good_bioses(self, bios_path):
         """ Check for correct bios files """
