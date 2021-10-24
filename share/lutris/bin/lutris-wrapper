@@ -4,16 +4,17 @@ Starts a game in a contained process tree, waits for the game to start,
 gently tries to close other game processes when the main game has exited.
 """
 
+import ctypes
+import logging
 import os
+import signal
+import subprocess
 import sys
 import time
-import subprocess
-import signal
-import logging
-import ctypes
 from ctypes.util import find_library
-from lutris.util.process_watcher import ProcessWatcher
+
 from lutris.util.log import logger
+from lutris.util.process_watcher import ProcessWatcher
 
 try:
     from setproctitle import setproctitle
