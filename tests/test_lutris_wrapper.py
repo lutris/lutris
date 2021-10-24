@@ -1,9 +1,8 @@
-import sys
 import os
 import os.path
-import unittest
 import subprocess
-
+import sys
+import unittest
 
 if os.path.isfile('share/lutris/bin/lutris-wrapper'):
     lutris_wrapper_bin = 'share/lutris/bin/lutris-wrapper'
