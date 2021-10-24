@@ -41,7 +41,7 @@ def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, wo
 
 def makeconfig(path, drives, commands):
     system.create_folder(os.path.dirname(path))
-    with open(path, "w") as config_file:
+    with open(path, "w", encoding='utf-8') as config_file:
         config_file.write("[autoexec]\n")
         for drive in drives:
             config_file.write('mount {} "{}"\n'.format(drive, drives[drive]))

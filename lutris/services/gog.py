@@ -185,7 +185,7 @@ class GOGService(OnlineService):
             return
 
         token = request.json
-        with open(self.token_path, "w") as token_file:
+        with open(self.token_path, "w", encoding='utf-8') as token_file:
             token_file.write(json.dumps(token))
         if not refresh_token:
             self.emit("service-login")
@@ -194,7 +194,7 @@ class GOGService(OnlineService):
         """Load token from disk"""
         if not os.path.exists(self.token_path):
             raise AuthenticationError("No GOG token available")
-        with open(self.token_path) as token_file:
+        with open(self.token_path, encoding='utf-8') as token_file:
             token_content = json.loads(token_file.read())
         return token_content
 
@@ -246,7 +246,7 @@ class GOGService(OnlineService):
         """Return the user's library of GOG games"""
         if system.path_exists(self.cache_path):
             logger.debug("Returning cached GOG library")
-            with open(self.cache_path, "r") as gog_cache:
+            with open(self.cache_path, "r", encoding='utf-8') as gog_cache:
                 return json.load(gog_cache)
 
         total_pages = 1
@@ -257,7 +257,7 @@ class GOGService(OnlineService):
             page += 1
             total_pages = products_response["totalPages"]
             games += products_response["products"]
-        with open(self.cache_path, "w") as gog_cache:
+        with open(self.cache_path, "w", encoding='utf-8') as gog_cache:
             json.dump(games, gog_cache)
         return games
 
@@ -291,7 +291,7 @@ class GOGService(OnlineService):
             response = self.make_api_request(downlink)
         except HTTPError as ex:
             logger.error("HTTP error: %s", ex)
-            raise UnavailableGame
+            raise UnavailableGame from ex
         if not response:
             raise UnavailableGame
         for field in ("checksum", "downlink"):
@@ -398,8 +398,8 @@ class GOGService(OnlineService):
                 logger.warning("More than 1 GOG installer found, picking first.")
             _installer = gog_installers[0]
             links = self.query_download_links(_installer)
-        except HTTPError:
-            raise UnavailableGame("Couldn't load the download links for this game")
+        except HTTPError as err:
+            raise UnavailableGame("Couldn't load the download links for this game") from err
         if not links:
             raise UnavailableGame("Could not fing GOG game")
         _installer_files = defaultdict(dict)  # keyed by filename
@@ -445,7 +445,7 @@ class GOGService(OnlineService):
         """
         if not file_path.endswith(".xml"):
             raise ValueError("Pass a XML file to return the checksum")
-        with open(file_path) as checksum_file:
+        with open(file_path, encoding='utf-8') as checksum_file:
             checksum_content = checksum_file.read()
         root_elem = etree.fromstring(checksum_content)
         return (root_elem.attrib["name"], root_elem.attrib["md5"])

@@ -247,7 +247,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             env=runtime.get_env()
         )
         if output:
-            with open(self.xml_path, "w") as xml_file:
+            with open(self.xml_path, "w", encoding='utf-8') as xml_file:
                 xml_file.write(output)
             logger.info("MAME XML list written to %s", self.xml_path)
         else:

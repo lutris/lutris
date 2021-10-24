@@ -152,7 +152,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
             if system.path_exists(path):
-                with open(path, "r") as controllerdb_file:
+                with open(path, "r", encoding='utf-8') as controllerdb_file:
                     sdl_gamecontrollerconfig = controllerdb_file.read()
             env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
@@ -389,7 +389,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             extract_archive(archive, dest, merge_single=merge_single)
         except ExtractFailure as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
-            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex))
+            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex)) from ex
         os.remove(archive)
 
         if self.name == "wine":

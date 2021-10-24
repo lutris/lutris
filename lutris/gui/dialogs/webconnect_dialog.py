@@ -85,7 +85,7 @@ class WebPopupDialog(Dialog):
     def __init__(self, webview, parent=None):
         # pylint: disable=no-member
         self.parent = parent
-        super(WebPopupDialog, self).__init__(title=_('Loading...'), parent=parent)
+        super().__init__(title=_('Loading...'), parent=parent)
         self.webview = webview
         self.webview.connect("ready-to-show", self.on_ready_webview)
         self.webview.connect("notify::title", self.on_available_webview_title)

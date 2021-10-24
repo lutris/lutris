@@ -82,7 +82,7 @@ class Request:
         try:
             req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         except ValueError as ex:
-            raise HTTPError("Failed to create HTTP request to %s: %s" % (self.url, ex))
+            raise HTTPError("Failed to create HTTP request to %s: %s" % (self.url, ex)) from ex
         try:
             if self.opener:
                 request = self.opener.open(req, timeout=self.timeout)
@@ -90,10 +90,10 @@ class Request:
                 request = urllib.request.urlopen(req, timeout=self.timeout)
         except (urllib.error.HTTPError, CertificateError) as error:
             if error.code == 401:
-                raise UnauthorizedAccess("Access to %s denied" % self.url)
-            raise HTTPError("%s" % error, code=error.code)
+                raise UnauthorizedAccess("Access to %s denied" % self.url) from error
+            raise HTTPError("%s" % error, code=error.code) from error
         except (socket.timeout, urllib.error.URLError) as error:
-            raise HTTPError("Unable to connect to server %s: %s" % (self.url, error))
+            raise HTTPError("Unable to connect to server %s: %s" % (self.url, error)) from error
         try:
             self.total_size = int(request.info().get("Content-Length").strip())
         except AttributeError:
@@ -116,8 +116,8 @@ class Request:
                 return self
             try:
                 chunk = request.read(self.buffer_size)
-            except (socket.timeout, ConnectionResetError):
-                raise HTTPError("Request timed out")
+            except (socket.timeout, ConnectionResetError) as err:
+                raise HTTPError("Request timed out") from err
             self.downloaded_size += len(chunk)
             if not chunk:
                 return
@@ -144,8 +144,8 @@ class Request:
         if _raw_json:
             try:
                 return json.loads(_raw_json)
-            except json.decoder.JSONDecodeError:
-                raise ValueError("JSON response from %s could not be decoded: '%s'" % (self.url, _raw_json[:80]))
+            except json.decoder.JSONDecodeError as err:
+                raise ValueError(f"JSON response from {self.url} could not be decoded: '{_raw_json[:80]}'") from err
         return {}
 
     @property

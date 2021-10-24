@@ -202,8 +202,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if "game" in self.script:
             try:
                 config["game"].update(self.script["game"])
-            except ValueError:
-                raise ScriptingError("Invalid 'game' section", self.script["game"])
+            except ValueError as err:
+                raise ScriptingError("Invalid 'game' section", self.script["game"]) from err
             config["game"] = self._substitute_config(config["game"])
             if AUTO_ELF_EXE in config["game"].get("exe", ""):
                 config["game"]["exe"] = find_linux_game_executable(self.interpreter.target_path,

@@ -146,7 +146,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         """Parse the output of /proc/cpuinfo"""
         cpus = [{}]
         cpu_index = 0
-        with open("/proc/cpuinfo") as cpuinfo:
+        with open("/proc/cpuinfo", encoding='utf-8') as cpuinfo:
             for line in cpuinfo.readlines():
                 if not line.strip():
                     cpu_index += 1
@@ -170,7 +170,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     def get_ram_info():
         """Parse the output of /proc/meminfo and return RAM information in kB"""
         mem = {}
-        with open("/proc/meminfo") as meminfo:
+        with open("/proc/meminfo", encoding='utf-8') as meminfo:
             for line in meminfo.readlines():
                 key, value = line.split(":", 1)
                 mem[key.strip()] = value.strip('kB \n')
@@ -200,7 +200,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     @staticmethod
     def get_kernel_version():
         """Get kernel info from /proc/version"""
-        with open("/proc/version") as kernel_info:
+        with open("/proc/version", encoding='utf-8') as kernel_info:
             info = kernel_info.readlines()[0]
             version = info.split(" ")[2]
         return version
@@ -476,12 +476,11 @@ def gather_system_info_str():
     system_info_readable["Graphics"] = graphics_dict
 
     output = ''
-    for section in system_info_readable:
-        output += '[{}]\n'.format(section)
-        dictionary = system_info_readable[section]
-        for key in dictionary:
+    for section, dictionary in system_info_readable.items():
+        output += f'[{section}]\n'
+        for key, value in dictionary.items():
             tabs = " " * (16 - len(key))
-            output += '{}{}{}\n'.format(key + ":", tabs, dictionary[key])
+            output += f'{key}:{tabs}{value}\n'
         output += '\n'
     return output
 

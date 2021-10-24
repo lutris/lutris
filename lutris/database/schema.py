@@ -222,5 +222,5 @@ def migrate(table, schema):
 def syncdb():
     """Update the database to the current version, making necessary changes
     for backwards compatibility."""
-    for table in DATABASE:
-        migrate(table, DATABASE[table])
+    for table_name, table_data in DATABASE.items():
+        migrate(table_name, table_data)

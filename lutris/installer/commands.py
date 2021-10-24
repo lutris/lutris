@@ -297,8 +297,8 @@ class CommandsMixin:
             else:
                 action = shutil.move
             self._killable_process(action, src, dst)
-        except shutil.Error:
-            raise ScriptingError("Can't move %s \nto destination %s" % (src, dst))
+        except shutil.Error as err:
+            raise ScriptingError("Can't move %s \nto destination %s" % (src, dst)) from err
 
     def rename(self, params):
         """Rename file or folder."""
@@ -327,8 +327,8 @@ class CommandsMixin:
         """Process raw 'src' and 'dst' data."""
         try:
             src_ref = params["src"]
-        except KeyError:
-            raise ScriptingError("Missing parameter src")
+        except KeyError as err:
+            raise ScriptingError("Missing parameter src") from err
         src = self.game_files.get(src_ref) or self._substitute(src_ref)
         if not src:
             raise ScriptingError("Wrong value for 'src' param", src_ref)
@@ -344,8 +344,8 @@ class CommandsMixin:
         filename = self._substitute(data["file"])
         logger.debug("Substituting variables for file %s", filename)
         tmp_filename = filename + ".tmp"
-        with open(filename, "r") as source_file:
-            with open(tmp_filename, "w") as dest_file:
+        with open(filename, "r", encoding='utf-8') as source_file:
+            with open(tmp_filename, "w", encoding='utf-8') as dest_file:
                 line = "."
                 while line:
                     line = source_file.readline()
@@ -438,7 +438,7 @@ class CommandsMixin:
         if not mode.startswith(("a", "w")):
             raise ScriptingError("Wrong value for write_file mode: '%s'" % mode)
 
-        with open(dest_file_path, mode) as dest_file:
+        with open(dest_file_path, mode, encoding='utf-8') as dest_file:
             dest_file.write(self._substitute(params["content"]))
 
     def write_json(self, params):
@@ -457,10 +457,10 @@ class CommandsMixin:
 
         if not os.path.exists(filename):
             # create an empty file
-            with open(filename, "a+"):
+            with open(filename, "a+", encoding='utf-8'):
                 pass
 
-        with open(filename, "r+" if merge else "w") as json_file:
+        with open(filename, "r+" if merge else "w", encoding='utf-8') as json_file:
             json_data = {}
             if merge:
                 try:
@@ -546,7 +546,7 @@ class CommandsMixin:
 
     def _get_scummvm_arguments(self, gog_config_path):
         """Return a ScummVM configuration from the GOG config files"""
-        with open(gog_config_path) as gog_config_file:
+        with open(gog_config_path, encoding='utf-8') as gog_config_file:
             gog_config = json.loads(gog_config_file.read())
         game_tasks = [task for task in gog_config["playTasks"] if task["category"] == "game"]
         arguments = game_tasks[0]["arguments"]

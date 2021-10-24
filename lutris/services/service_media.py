@@ -84,7 +84,7 @@ class ServiceMedia:
             return download_file(url, cache_path, raise_errors=True)
         except HTTPError as ex:
             if ex.code == 404:
-                open(cache_path, "a").close()
+                open(cache_path, "a", encoding='utf-8').close()
             else:
                 logger.error(ex.code)
             return None
