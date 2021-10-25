@@ -103,9 +103,10 @@ class residualvm(Runner):
 
     def get_game_list(self):
         """Return the entire list of games supported by ResidualVM."""
-        residual_output = subprocess.Popen([self.get_executable(), "--list-games"],
-                                           stdout=subprocess.PIPE).communicate()[0]
-        game_list = str.split(residual_output, "\n")
+        with subprocess.Popen([self.get_executable(), "--list-games"],
+                              stdout=subprocess.PIPE, encoding="utf-8", universal_newlines=True) as residualvm_process:
+            residual_output = residualvm_process.communicate()[0]
+            game_list = str.split(residual_output, "\n")
         game_array = []
         game_list_start = False
         for game in game_list:

@@ -298,7 +298,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                 # Ignore paths where 64-bit path is link to supposed 32-bit path
                 if os.path.realpath(lib_paths[0]) == os.path.realpath(lib_paths[1]):
                     continue
-            if all([os.path.exists(path) for path in lib_paths]):
+            if all(os.path.exists(path) for path in lib_paths):
                 if lib_paths[0] not in exported_lib_folders:
                     yield lib_paths[0]
                 if len(lib_paths) != 1:

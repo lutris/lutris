@@ -87,14 +87,12 @@ class DLLManager:
 
     def dll_exists(self, dll_name):
         """Check if the dll is provided by the component
-        The DLL might not be available for all archs so
-        only check if one exists for the supported architectures
+        The DLL might not be available for all architectures so
+        only check if one exists for the supported ones
         """
         return any(
-            [
-                system.path_exists(os.path.join(self.path, arch, dll_name + ".dll"))
-                for arch in self.archs.values()
-            ]
+            system.path_exists(os.path.join(self.path, arch, dll_name + ".dll"))
+            for arch in self.archs.values()
         )
 
     def get_download_url(self):

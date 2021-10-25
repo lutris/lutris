@@ -79,4 +79,4 @@ class RetroConfig:
         self._config.append((key, self.serialize_value(value)))
 
     def keys(self):
-        return list([key for (key, _value) in self.config])
+        return [key for (key, _value) in self.config]

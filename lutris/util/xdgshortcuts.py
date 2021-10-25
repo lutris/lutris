@@ -61,9 +61,9 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
 
     launcher_filename = get_xdg_basename(game_slug, game_id)
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
-    tmp_launcher = open(tmp_launcher_path, "w", encoding='utf-8')
-    tmp_launcher.write(launcher_content)
-    tmp_launcher.close()
+    with open(tmp_launcher_path, "w", encoding='utf-8') as tmp_launcher:
+        tmp_launcher.write(launcher_content)
+        tmp_launcher.close()
     os.chmod(
         tmp_launcher_path,
         stat.S_IREAD
