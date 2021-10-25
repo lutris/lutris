@@ -59,8 +59,8 @@ class DieselGameMedia(ServiceMedia):
         thumb_image = thumb_image.convert("RGB")
         thumb_image.save(thumb_path)
 
-    def get_media_url(self, detail):
-        for image in detail.get("keyImages", []):
+    def get_media_url(self, details):
+        for image in details.get("keyImages", []):
             if image["type"] == self.api_field:
                 return image["url"] + "?w=%s&resize=1&h=%s" % (
                     self.remote_size[0],

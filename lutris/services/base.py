@@ -257,7 +257,7 @@ class OnlineService(BaseService):
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""
-        return all([system.path_exists(path) for path in self.credential_files])
+        return all(system.path_exists(path) for path in self.credential_files)
 
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""

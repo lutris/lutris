@@ -218,9 +218,9 @@ def extract_deb(archive, dest):
     if not os.path.exists(data_file):
         data_file = os.path.join(dest, "data.tar.xz")
         extractor = "r:xz"
-    handler = tarfile.open(data_file, extractor)
-    handler.extractall(dest)
-    handler.close()
+    with tarfile.open(data_file, extractor) as handler:
+        handler.extractall(dest)
+        handler.close()
     os.remove(data_file)
 
 

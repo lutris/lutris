@@ -284,7 +284,7 @@ class steam(Runner):
                 shutdown()
                 time.sleep(5)
         command = [self.get_executable(), "steam://install/%s" % appid]
-        subprocess.Popen(command)
+        subprocess.Popen(command)  # pylint: disable=consider-using-with
 
     def prelaunch(self):
         def has_steam_shutdown(times=10):

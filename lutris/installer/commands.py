@@ -518,13 +518,13 @@ class CommandsMixin:
 
     def _killable_process(self, func, *args, **kwargs):
         """Run function `func` in a separate, killable process."""
-        process = multiprocessing.Pool(1)
-        result_obj = process.apply_async(func, args, kwargs)
-        self.abort_current_task = process.terminate
-        result = result_obj.get()  # Wait process end & reraise exceptions
-        self.abort_current_task = None
-        logger.debug("Process %s returned: %s", func, result)
-        return result
+        with multiprocessing.Pool(1) as process:
+            result_obj = process.apply_async(func, args, kwargs)
+            self.abort_current_task = process.terminate
+            result = result_obj.get()  # Wait process end & re-raise exceptions
+            self.abort_current_task = None
+            logger.debug("Process %s returned: %s", func, result)
+            return result
 
     def _extract_gog_game(self, file_id):
         self.extract({
