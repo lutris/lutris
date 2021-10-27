@@ -586,6 +586,7 @@ class Application(Gtk.Application):
                 "platform": game["platform"] or None,
                 "year": game["year"] or None,
                 "directory": game["directory"] or None,
+                "hidden": True if game["hidden"] else False,
                 "playtime": (
                     str(timedelta(hours=game["playtime"]))
                     if game["playtime"] else None
