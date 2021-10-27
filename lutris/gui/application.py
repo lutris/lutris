@@ -583,11 +583,17 @@ class Application(Gtk.Application):
                 "slug": game["slug"],
                 "name": game["name"],
                 "runner": game["runner"],
-                "platform": game["platform"],
-                "year": game["year"],
-                "playtime": str(timedelta(hours=game["playtime"])),
-                "lastplayed": str(datetime.fromtimestamp(game["lastplayed"])),
-                "directory": game["directory"],
+                "platform": game["platform"] or None,
+                "year": game["year"] or None,
+                "directory": game["directory"] or None,
+                "playtime": (
+                    str(timedelta(hours=game["playtime"]))
+                    if game["playtime"] else None
+                ),
+                "lastplayed": (
+                    str(datetime.fromtimestamp(game["lastplayed"]))
+                    if game["lastplayed"] else None
+                )
             } for game in game_list
         ]
         self._print(command_line, json.dumps(games, indent=2))
