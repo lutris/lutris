@@ -290,7 +290,9 @@ def is_version_esync(path):
     for esync_version in esync_compatible_versions:
         if esync_version in version_prefix or esync_version in version_suffix:
             return True
-    wine_version = get_wine_version(path).lower()
+    wine_version = get_wine_version(path)
+    if wine_version is not None:
+        wine_version = wine_version.lower()
     return "esync" in wine_version or "staging" in wine_version
 
 
