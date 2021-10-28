@@ -290,7 +290,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def prepare_wine_runner_cli(version):
         """
         import and save the runner given in application file located in lutris/gui/application.py
-        provided using lutris -r <runner>
+        provided using lutris -w <runner>
         """
         Runner = import_runner("wine")
         return Runner().install_wine_cli(version)
@@ -299,12 +299,22 @@ class Runner:  # pylint: disable=too-many-public-methods
         """
         install the runner provided in prepare_runner_cli()
         """
-        from lutris.gui.dialogs.download import simple_downloader
-        self.install(version=version, downloader=simple_downloader, callback=None)
-        print("Wine Runner '"+ version + "' is now installed :)")
+        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+        runner_path = os.path.join(WINE_DIR, version + ("-x86_64"))
+        if os.path.isdir(runner_path):
+            print("This Wine Version is Already Installed")
+        else:
+            from lutris.gui.dialogs import ErrorDialog
+            from lutris.gui.dialogs.download import simple_downloader
+            try:
+                self.install(downloader=simple_downloader, version=version)
+            except RunnerInstallationError as ex:
+                ErrorDialog(ex.message)
+
+            print("Wine " + version + " is Installed")
 
     def wine_runner_uninstall(version):
-        version = version+"-x86_64"
+        version = version + "-x86_64"
         WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
         runner_path = os.path.join(WINE_DIR, version)
         if os.path.isdir(runner_path):
@@ -324,15 +334,20 @@ class Runner:  # pylint: disable=too-many-public-methods
         install the runner provided in prepare_runner_cli()
         """
         if self.name == "wine":
-           print("Please use the Wine flag To install a wine Runner") 
-           exit()
+            print("Please use the Wine flag To install a wine Runner")
+            exit()
         runner_path = os.path.join(settings.RUNNER_DIR, self.name)
+
         if os.path.isdir(runner_path):
             print(self.name + " is already installed!")
-            exit()
         else:
+            from lutris.gui.dialogs import ErrorDialog
             from lutris.gui.dialogs.download import simple_downloader
-            self.install(version=None, downloader=simple_downloader, callback=None)
+            try:
+                self.install(version=None, downloader=simple_downloader, callback=None)
+            except RunnerInstallationError as ex:
+                ErrorDialog(ex.message)
+
             print(self.name + " is now installed :)")
 
     def uninstall_runner_cli(runner_name):
@@ -341,9 +356,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         provided using lutris -u <runner>
         """
         Runner.name = runner_name
-        Runner().uninstall()
-        print("Runner is uninstalled")
-        exit()
+        if Runner().can_uninstall() is True:
+            Runner().uninstall()
+            print(runner_name + " is uninstalled")
+        elif Runner().can_uninstall() is False:
+            print("Runner is not Installed or cannot be uninstalled. Please Check Your Input")
 
     def is_installed(self):
         """Return whether the runner is installed"""

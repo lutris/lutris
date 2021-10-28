@@ -32,7 +32,6 @@ gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gio, GLib, Gtk, GObject
 
-from lutris.util.wine.wine import get_wine_versions 
 from lutris.runners import get_runner_names
 from lutris.runners.runner import Runner
 from lutris import settings
@@ -397,30 +396,30 @@ class Application(Gtk.Application):
 
         # List Runners
         if options.contains("list-runners"):
-            self.print_runners(command_line)
+            self.print_runners()
             return 0
 
-        # List Runners
+        # List Wine Runners
         if options.contains("list-wine-runners"):
-            self.print_wine_runners(command_line)
+            self.print_wine_runners()
             return 0
 
-        # install Runner
+        # install Wine Runner
         if options.contains("install-wine-runner"):
             version = options.lookup_value("install-wine-runner").get_string()
-            self.install_wine_runner(version, command_line)
+            self.install_wine_runner(version)
             return 0
 
         # install Runner
         if options.contains("install-runner"):
-            command = options.lookup_value("install-runner").get_string()
-            self.install_runner(command, command_line)
+            runner = options.lookup_value("install-runner").get_string()
+            self.install_runner(runner)
             return 0
 
         # Uninstall Runner
         if options.contains("uninstall-runner"):
-            command = options.lookup_value("uninstall-runner").get_string()
-            self.uninstall_runner(command, command_line)
+            runner = options.lookup_value("uninstall-runner").get_string()
+            self.uninstall_runner(runner)
             return 0
 
         # Execute command in Lutris context
@@ -698,42 +697,36 @@ class Application(Gtk.Application):
             for path in steamapps_paths[platform]:
                 self._print(command_line, path)
 
-    def print_runners(self, command_line):
+    def print_runners(self):
         runnersName = get_runner_names()
         print("Runners:")
         for name in runnersName:
             print(name)
 
-    def print_wine_runners(self, command_line):
+    def print_wine_runners(self):
         runnersName = get_runners("wine")
         for i in runnersName["versions"]:
-            if  i ["version"]:
+            if i["version"]:
                 print(i)
 
-    def install_wine_runner(self, version, command_line):
-        installed = get_wine_versions()
-        for i in installed: 
-            if i.startswith(version):
-                print("This Wine version is already installed")
-                exit()
-        else:
-            Runner.prepare_wine_runner_cli(version)
+    def install_wine_runner(self, version):
+        Runner.prepare_wine_runner_cli(version)
 
-    def install_runner(self, command, command_line):
-        Runner.prepare_runner_cli(command)
+    def install_runner(self, runner):
+        Runner.prepare_runner_cli(runner)
 
-    def uninstall_runner(self, command, command_line):
-        if command == "wine":
+    def uninstall_runner(self, runner):
+        if runner in "wine":
             print("Are sure you want to delete Wine and all of the installed runners?[Y/N]")
             ans = input()
-            if ans == "y" or ans == "Y":
-                Runner.uninstall_runner_cli(command)
-            elif ans == "n" or ans == "N":
-                exit()
-        elif command.startswith("lutris"):
-            Runner.wine_runner_uninstall(command)
+            if ans == "y" or ans == "Y" or ans == "yes" or ans == "Yes" or ans == "YES":
+                Runner.uninstall_runner_cli(runner)
+            elif ans == "n" or ans == "N" or ans == "no" or ans == "No" or ans == "NO":
+                print("Not Removing Wine")
+        elif runner.startswith("lutris"):
+            Runner.wine_runner_uninstall(runner)
         else:
-            Runner.uninstall_runner_cli(command)
+            Runner.uninstall_runner_cli(runner)
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
