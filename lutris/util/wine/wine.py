@@ -315,7 +315,10 @@ def is_version_fsync(path):
     for fsync_version in fsync_compatible_versions:
         if fsync_version in version_prefix or fsync_version in version_suffix:
             return True
-    return "fsync" in get_wine_version(path).lower()
+    wine_version = get_wine_version(path)
+    if wine_version is not None:
+        return "fsync" in wine_version.lower()
+    return False
 
 
 def get_real_executable(windows_executable, working_dir=None):
