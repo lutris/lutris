@@ -338,7 +338,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         runner_path = os.path.join(WINE_DIR, version)
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
-        print("Wine Runner is Removed")
+            print("Wine Runner is Removed")
+        else:
+            print("Couldn't not remove the Runner, Please Check Your Input")
 
     def prepare_runner_cli(runner_name):
         """
