@@ -327,10 +327,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             from lutris.gui.dialogs.download import simple_downloader
             try:
                 self.install(downloader=simple_downloader, version=version)
+                print("Wine " + version + " is Installed")
             except RunnerInstallationError as ex:
                 ErrorDialog(ex.message)
-
-            print("Wine " + version + " is Installed")
 
     def wine_runner_uninstall(version):
         version = version + "-x86_64"
@@ -340,7 +339,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             system.remove_folder(runner_path)
             print("Wine Runner is Removed")
         else:
-            print("Couldn't not remove the Runner, Please Check Your Input")
+            print("Wrong Input! Please Check if the Runner is installed. Or check if You have provided the right version name")
 
     def prepare_runner_cli(runner_name):
         """
@@ -366,10 +365,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             from lutris.gui.dialogs.download import simple_downloader
             try:
                 self.install(version=None, downloader=simple_downloader, callback=None)
+                print(self.name + " is now installed :)")
             except RunnerInstallationError as ex:
                 ErrorDialog(ex.message)
-
-            print(self.name + " is now installed :)")
 
     def uninstall_runner_cli(runner_name):
         """
