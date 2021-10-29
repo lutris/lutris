@@ -192,14 +192,6 @@ class Application(Gtk.Application):
             None,
         )
         self.add_main_option(
-            "install-wine-runner",
-            ord("w"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Install a Wine Runner"),
-            None,
-        )
-        self.add_main_option(
             "install-runner",
             ord("r"),
             GLib.OptionFlags.NONE,
@@ -402,12 +394,6 @@ class Application(Gtk.Application):
         # List Wine Runners
         if options.contains("list-wine-runners"):
             self.print_wine_runners()
-            return 0
-
-        # install Wine Runner
-        if options.contains("install-wine-runner"):
-            version = options.lookup_value("install-wine-runner").get_string()
-            self.install_wine_runner(version)
             return 0
 
         # install Runner
@@ -709,11 +695,11 @@ class Application(Gtk.Application):
             if i["version"]:
                 print(i)
 
-    def install_wine_runner(self, version):
-        Runner.prepare_wine_runner_cli(version)
-
     def install_runner(self, runner):
-        Runner.prepare_runner_cli(runner)
+        if runner.startswith("lutris"):
+            Runner.prepare_wine_runner_cli(runner)
+        else:
+            Runner.prepare_runner_cli(runner)
 
     def uninstall_runner(self, runner):
         if runner in "wine":
