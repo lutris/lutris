@@ -108,6 +108,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.sidebar = LutrisSidebar(self.application, selected=self.selected_category)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
+        # "realize" is order sensitive- must connect after sidebar itself connects the same signal
+        self.sidebar.connect("realize", self.on_sidebar_realize)
         self.sidebar_scrolled.add(self.sidebar)
 
         self.sidebar_revealer.set_reveal_child(self.side_panel_visible)
@@ -194,6 +196,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self._bind_zoom_adjustment()
         self.view.grab_focus()
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
+
+    def on_sidebar_realize(self, widget, data=None):
+        """Grab the initial focus after the sidebar is initialized - so the view is ready."""
+        self.view.grab_focus()
 
     def load_filters(self):
         """Load the initial filters when creating the view"""
