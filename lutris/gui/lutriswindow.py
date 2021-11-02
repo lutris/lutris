@@ -109,6 +109,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.sidebar = LutrisSidebar(self.application, selected=self.selected_category)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
         self.sidebar_scrolled.add(self.sidebar)
+        
+        # This must wait until the selected-rows-changed signal is connected
+        self.sidebar.initialize_rows()
 
         self.sidebar_revealer.set_reveal_child(self.side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
