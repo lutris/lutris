@@ -313,7 +313,7 @@ class Runner:  # pylint: disable=too-many-public-methods
                 ErrorDialog(ex.message)
 
     def wine_runner_uninstall(version):
-        version = version + "-x86_64"
+        version = f"{version}{'' if '-x86_64' in version else '-x86_64'}"
         WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
         runner_path = os.path.join(WINE_DIR, version)
         if os.path.isdir(runner_path):
