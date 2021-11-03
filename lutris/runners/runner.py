@@ -363,7 +363,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             print(f"Runner '{runner_name}' is not installed."}
             return
         if runner.can_uninstall():
-            Runner().uninstall()
+            runner.uninstall()
             print(f"{runner_name} has been uninstalled.")
         else:
             print(f"Runner '{runner_name}' cannot be uninstalled.")
