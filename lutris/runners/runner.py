@@ -300,7 +300,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         install the runner provided in prepare_runner_cli()
         """
         WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-        runner_path = os.path.join(WINE_DIR, version + ("-x86_64"))
+        runner_path = os.path.join(WINE_DIR, f"{version}{'' if '-x86_64' in version else '-x86_64'}")
         if os.path.isdir(runner_path):
             print("This Wine Version is Already Installed")
         else:
