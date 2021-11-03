@@ -308,7 +308,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             from lutris.gui.dialogs.download import simple_downloader
             try:
                 self.install(downloader=simple_downloader, version=version)
-                print("Wine " + version + " is Installed")
+                print(f"Wine version '{version}' has been installed.")
             except RunnerInstallationError as ex:
                 ErrorDialog(ex.message)
 
