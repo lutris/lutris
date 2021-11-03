@@ -749,7 +749,7 @@ class Application(Gtk.Application):
             Runner.prepare_runner_cli(runner)
 
     def uninstall_runner(self, runner):
-        if runner in "wine":
+        if "wine" in runner:
             print("Are sure you want to delete Wine and all of the installed runners?[Y/N]")
             ans = input()
             if ans == "y" or ans == "Y" or ans == "yes" or ans == "Yes" or ans == "YES":
