@@ -752,7 +752,7 @@ class Application(Gtk.Application):
         if "wine" in runner:
             print("Are sure you want to delete Wine and all of the installed runners?[Y/N]")
             ans = input()
-            if ans == "y" or ans == "Y" or ans == "yes" or ans == "Yes" or ans == "YES":
+            if ans.lower() in ("y", "yes"):
                 Runner.uninstall_runner_cli(runner)
             elif ans == "n" or ans == "N" or ans == "no" or ans == "No" or ans == "NO":
                 print("Not Removing Wine")
