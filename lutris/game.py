@@ -224,7 +224,7 @@ class Game(GObject.Object):
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         if delete_files and self.runner:
-            self.runner.remove_game_data(game_path=self.directory)
+            self.runner.remove_game_data(app_id=self.appid, game_path=self.directory)
         self.is_installed = False
         self.runner = None
         if no_signal:

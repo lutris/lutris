@@ -237,7 +237,7 @@ class Application(Gtk.Application):
         return str(kwargs)
 
     def show_window(self, window_class, **kwargs):
-        """Instanciate a window keeping 1 instance max
+        """Instantiate a window keeping 1 instance max
 
         Params:
             window_class (Gtk.Window): class to create the instance from
@@ -307,7 +307,7 @@ class Application(Gtk.Application):
             # Switch back the log output to stderr (the default in Python)
             # to avoid messing with any output from command line options.
 
-            # Use when targetting Python 3.7 minimum
+            # Use when targeting Python 3.7 minimum
             # console_handler.setStream(sys.stderr)
 
             # Until then...

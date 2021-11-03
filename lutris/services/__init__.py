@@ -6,6 +6,7 @@ from lutris.services.battlenet import BattleNetService
 from lutris.services.bethesda import BethesdaService
 from lutris.services.dolphin import DolphinService
 from lutris.services.egs import EpicGamesStoreService
+from lutris.services.flathub import FlathubService
 from lutris.services.gog import GOGService
 from lutris.services.humblebundle import HumbleBundleService
 from lutris.services.itchio import ItchIoService
@@ -51,6 +52,7 @@ WIP_SERVICES = {
     "mame": MAMEService,
     "origin": OriginService,
     "ubisoft": UbisoftConnectService,
+    "flathub": FlathubService
 }
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):

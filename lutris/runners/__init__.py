@@ -6,6 +6,7 @@ __all__ = [
     "linux",
     "steam",
     "web",
+    "flatpak",
     # Microsoft based
     "wine",
     "winesteam",
