@@ -754,7 +754,7 @@ class Application(Gtk.Application):
             ans = input()
             if ans.lower() in ("y", "yes"):
                 Runner.uninstall_runner_cli(runner)
-            elif ans == "n" or ans == "N" or ans == "no" or ans == "No" or ans == "NO":
+            else:
                 print("Not Removing Wine")
         elif runner.startswith("lutris"):
             Runner.wine_runner_uninstall(runner)
