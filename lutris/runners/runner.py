@@ -372,7 +372,12 @@ class Runner:  # pylint: disable=too-many-public-methods
         uninstall the runner given in application file located in lutris/gui/application.py
         provided using lutris -u <runner>
         """
-        Runner.name = runner_name
+        try:
+            runner_class = import_runner(runner_name)
+            runner = runner_class()
+        except InvalidRunner:
+            logger.error("Failed to import Runner: %s", runner_name)
+            return
         if not runner.is_installed():
             print(f"Runner '{runner_name}' is not installed."}
             return
