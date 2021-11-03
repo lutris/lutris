@@ -309,7 +309,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def prepare_wine_runner_cli(version):
         """
         import and save the runner given in application file located in lutris/gui/application.py
-        provided using lutris -w <runner>
+        provided using lutris -r <runner>
         """
         Runner = import_runner("wine")
         return Runner().install_wine_cli(version)
@@ -337,9 +337,10 @@ class Runner:  # pylint: disable=too-many-public-methods
         runner_path = os.path.join(WINE_DIR, version)
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
-            print("Wine Runner is Removed")
+            print(f"Wine version '{version}' has been removed.")
         else:
-            print("Wrong Input! Please Check if the Runner is installed. Or check if You have provided the right version name")
+            print(f"Specified version of Wine is not installed: {version}. Please check if the Wine Runner and specified version are installed (--list-wine-runners can be used for that), and that the version specified is in the correct format.")
+
 
     def prepare_runner_cli(runner_name):
         """
@@ -353,11 +354,8 @@ class Runner:  # pylint: disable=too-many-public-methods
         """
         install the runner provided in prepare_runner_cli()
         """
-        if self.name == "wine":
-            print("Please use the Wine flag To install a wine Runner")
-            exit()
-        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
 
+        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
         if os.path.isdir(runner_path):
             print(self.name + " is already installed!")
         else:
@@ -375,11 +373,14 @@ class Runner:  # pylint: disable=too-many-public-methods
         provided using lutris -u <runner>
         """
         Runner.name = runner_name
-        if Runner().can_uninstall() is True:
+        if not runner.is_installed():
+            print(f"Runner '{runner_name}' is not installed."}
+            return
+        if runner.can_uninstall():
             Runner().uninstall()
-            print(runner_name + " is uninstalled")
-        elif Runner().can_uninstall() is False:
-            print("Runner is not Installed or cannot be uninstalled. Please Check Your Input")
+            print(f"{runner_name} has been uninstalled.")
+        else:
+            print(f"Runner '{runner_name}' cannot be uninstalled.")
 
     def is_installed(self):
         """Return whether the runner is installed"""
