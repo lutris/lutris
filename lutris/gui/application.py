@@ -32,8 +32,7 @@ gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gio, GLib, Gtk, GObject
 
-from lutris.runners import get_runner_names
-from lutris.runners.runner import Runner
+from lutris.runners import get_runner_names, import_runner, InvalidRunner, RunnerInstallationError
 from lutris import settings
 from lutris.api import parse_installer_url, get_runners
 from lutris.command import exec_command
@@ -46,7 +45,7 @@ from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
 from lutris.startup import init_lutris, run_all_checks, update_runtime
-from lutris.util import datapath, log
+from lutris.util import datapath, log, system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -697,22 +696,89 @@ class Application(Gtk.Application):
 
     def install_runner(self, runner):
         if runner.startswith("lutris"):
-            Runner.prepare_wine_runner_cli(runner)
+            self.install_wine_cli(runner)
         else:
-            Runner.prepare_runner_cli(runner)
+            self.install_cli(runner)
 
     def uninstall_runner(self, runner):
         if "wine" in runner:
             print("Are sure you want to delete Wine and all of the installed runners?[Y/N]")
             ans = input()
             if ans.lower() in ("y", "yes"):
-                Runner.uninstall_runner_cli(runner)
+                self.uninstall_runner_cli(runner)
             else:
                 print("Not Removing Wine")
         elif runner.startswith("lutris"):
-            Runner.wine_runner_uninstall(runner)
+            self.wine_runner_uninstall(runner)
         else:
-            Runner.uninstall_runner_cli(runner)
+            self.uninstall_runner_cli(runner)
+
+    def install_wine_cli(self, version):
+        """
+        Downloads wine runner using lutris -r <runner>
+        """
+        runner = import_runner("wine")
+
+        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+        runner_path = os.path.join(WINE_DIR, f"{version}{'' if '-x86_64' in version else '-x86_64'}")
+        if os.path.isdir(runner_path):
+            print(f"Wine version '{version}' is already installed.")
+        else:
+            from lutris.gui.dialogs import ErrorDialog
+            from lutris.gui.dialogs.download import simple_downloader
+            try:
+                runner().install(downloader=simple_downloader, version=version)
+                print(f"Wine version '{version}' has been installed.")
+            except RunnerInstallationError as ex:
+                ErrorDialog(ex.message)
+
+    def wine_runner_uninstall(self, version):
+        version = f"{version}{'' if '-x86_64' in version else '-x86_64'}"
+        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+        runner_path = os.path.join(WINE_DIR, version)
+        if os.path.isdir(runner_path):
+            system.remove_folder(runner_path)
+            print(f"Wine version '{version}' has been removed.")
+        else:
+            print(f"Specified version of Wine is not installed: {version}. Please check if the Wine Runner and specified version are installed (--list-wine-runners can be used for that), and that the version specified is in the correct format.")
+
+    def install_cli(self, runner_name):
+        """
+        install the runner provided in prepare_runner_cli()
+        """
+
+        runner = import_runner(runner_name)
+        runner_path = os.path.join(settings.RUNNER_DIR, runner_name)
+        if os.path.isdir(runner_path):
+            print(runner_name + " is already installed!")
+        else:
+            from lutris.gui.dialogs import ErrorDialog
+            from lutris.gui.dialogs.download import simple_downloader
+            try:
+                runner().install(version=None, downloader=simple_downloader, callback=None)
+                print(runner_name + " is now installed :)")
+            except RunnerInstallationError as ex:
+                ErrorDialog(ex.message)
+
+    def uninstall_runner_cli(self, runner_name):
+        """
+        uninstall the runner given in application file located in lutris/gui/application.py
+        provided using lutris -u <runner>
+        """
+        try:
+            runner_class = import_runner(runner_name)
+            runner = runner_class()
+        except InvalidRunner:
+            logger.error("Failed to import Runner: %s", runner_name)
+            return
+        if not runner.is_installed():
+            print(f"Runner '{runner_name}' is not installed.")
+            return
+        if runner.can_uninstall():
+            runner.uninstall()
+            print(f"{runner_name} has been uninstalled.")
+        else:
+            print(f"Runner '{runner_name}' cannot be uninstalled.")
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")

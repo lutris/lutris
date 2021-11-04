@@ -10,7 +10,7 @@ from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import UnavailableLibraries
 from lutris.gui import dialogs
-from lutris.runners import RunnerInstallationError, import_runner
+from lutris.runners import RunnerInstallationError
 from lutris.util import system
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import Request
@@ -286,87 +286,6 @@ class Runner:  # pylint: disable=too-many-public-methods
 
             return self.is_installed()
         return False
-
-    def prepare_wine_runner_cli(version):
-        """
-        import and save the runner given in application file located in lutris/gui/application.py
-        provided using lutris -r <runner>
-        """
-        Runner = import_runner("wine")
-        return Runner().install_wine_cli(version)
-
-    def install_wine_cli(self, version):
-        """
-        install the runner provided in prepare_runner_cli()
-        """
-        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-        runner_path = os.path.join(WINE_DIR, f"{version}{'' if '-x86_64' in version else '-x86_64'}")
-        if os.path.isdir(runner_path):
-            print("This Wine Version is Already Installed")
-        else:
-            from lutris.gui.dialogs import ErrorDialog
-            from lutris.gui.dialogs.download import simple_downloader
-            try:
-                self.install(downloader=simple_downloader, version=version)
-                print(f"Wine version '{version}' has been installed.")
-            except RunnerInstallationError as ex:
-                ErrorDialog(ex.message)
-
-    def wine_runner_uninstall(version):
-        version = f"{version}{'' if '-x86_64' in version else '-x86_64'}"
-        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-        runner_path = os.path.join(WINE_DIR, version)
-        if os.path.isdir(runner_path):
-            system.remove_folder(runner_path)
-            print(f"Wine version '{version}' has been removed.")
-        else:
-            print(f"Specified version of Wine is not installed: {version}. Please check if the Wine Runner and specified version are installed (--list-wine-runners can be used for that), and that the version specified is in the correct format.")
-
-
-    def prepare_runner_cli(runner_name):
-        """
-        import and save the runner given in application file located in lutris/gui/application.py
-        provided using lutris -r <runner>
-        """
-        Runner = import_runner(runner_name)
-        return Runner().install_cli()
-
-    def install_cli(self):
-        """
-        install the runner provided in prepare_runner_cli()
-        """
-
-        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
-        if os.path.isdir(runner_path):
-            print(self.name + " is already installed!")
-        else:
-            from lutris.gui.dialogs import ErrorDialog
-            from lutris.gui.dialogs.download import simple_downloader
-            try:
-                self.install(version=None, downloader=simple_downloader, callback=None)
-                print(self.name + " is now installed :)")
-            except RunnerInstallationError as ex:
-                ErrorDialog(ex.message)
-
-    def uninstall_runner_cli(runner_name):
-        """
-        uninstall the runner given in application file located in lutris/gui/application.py
-        provided using lutris -u <runner>
-        """
-        try:
-            runner_class = import_runner(runner_name)
-            runner = runner_class()
-        except InvalidRunner:
-            logger.error("Failed to import Runner: %s", runner_name)
-            return
-        if not runner.is_installed():
-            print(f"Runner '{runner_name}' is not installed."}
-            return
-        if runner.can_uninstall():
-            runner.uninstall()
-            print(f"{runner_name} has been uninstalled.")
-        else:
-            print(f"Runner '{runner_name}' cannot be uninstalled.")
 
     def is_installed(self):
         """Return whether the runner is installed"""
