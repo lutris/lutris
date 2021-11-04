@@ -74,7 +74,7 @@ def get_vk_icd_choices():
         for loader in glob.glob(path):
             icd_key = os.path.basename(loader).split(".")[0]
             icd_files[icd_key].append(os.path.join(path, loader))
-            if not "amd_icd" in loader:
+            if "amd_icd" not in loader:
                 loaders.append(loader)
             else:
                 amdvlk.append(loader)
@@ -84,12 +84,13 @@ def get_vk_icd_choices():
     choices = [(_("Auto"), loader_files)]
 
     for icd_key in icd_files:
-        if not "amd_icd" in icd_key:
+        if "amd_icd" not in icd_key:
             files = ":".join(icd_files[icd_key])
             choices.append((icd_key.capitalize().replace("_icd", " ICD"), files))
 
     choices.append(("AMDVLK/AMDGPU-PRO", amdvlk_files))
     return choices
+
 
 system_options = [  # pylint: disable=invalid-name
     {
