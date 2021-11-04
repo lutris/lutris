@@ -237,7 +237,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "vk_icd",
         "type": "choice",
-        "default": "",
+        "default": get_vk_icd_choices()[0][1],
         "choices": get_vk_icd_choices,
         "label": _("Vulkan ICD loader"),
         "advanced": True,
