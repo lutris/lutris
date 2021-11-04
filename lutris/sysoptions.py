@@ -66,6 +66,7 @@ def get_optirun_choices():
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
     loaders = []
+    amdvlk = []
     icd_files = defaultdict(list)
     # Add loaders
     for data_dir in VULKAN_DATA_DIRS:
@@ -73,17 +74,22 @@ def get_vk_icd_choices():
         for loader in glob.glob(path):
             icd_key = os.path.basename(loader).split(".")[0]
             icd_files[icd_key].append(os.path.join(path, loader))
-            loaders.append(loader)
+            if not "amd_icd" in loader:
+                loaders.append(loader)
+            else:
+                amdvlk.append(loader)
 
     loader_files = ":".join(loaders)
+    amdvlk_files = ":".join(amdvlk)
     choices = [(_("Auto"), loader_files)]
 
     for icd_key in icd_files:
-        files = ":".join(icd_files[icd_key])
-        choices.append((icd_key.capitalize().replace("_icd", " ICD"), files))
+        if not "amd_icd" in icd_key:
+            files = ":".join(icd_files[icd_key])
+            choices.append((icd_key.capitalize().replace("_icd", " ICD"), files))
 
+    choices.append(("AMDVLK/AMDGPU-PRO", amdvlk_files))
     return choices
-
 
 system_options = [  # pylint: disable=invalid-name
     {
