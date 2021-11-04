@@ -177,7 +177,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         # Vulkan ICD files
         vk_icd = self.system_config.get("vk_icd")
-        if vk_icd and vk_icd != "off" and system.path_exists(vk_icd):
+        if vk_icd:
             env["VK_ICD_FILENAMES"] = vk_icd
 
         runtime_ld_library_path = None
