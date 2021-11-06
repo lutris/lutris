@@ -729,7 +729,7 @@ class Application(Gtk.Application):
                 runner = import_runner("wine")
                 runner().install(downloader=simple_downloader, version=version)
                 print(f"Wine version '{version}' has been installed.")
-            except RunnerInstallationError as ex:
+            except (InvalidRunner, RunnerInstallationError) as ex:
                 ErrorDialog(ex.message)
 
     def wine_runner_uninstall(self, version):
@@ -757,7 +757,7 @@ class Application(Gtk.Application):
                 runner = import_runner(runner_name)
                 runner().install(version=None, downloader=simple_downloader, callback=None)
                 print(f"'{runner_name}' has been installed")
-            except RunnerInstallationError as ex:
+            except (InvalidRunner, RunnerInstallationError) as ex:
                 ErrorDialog(ex.message)
 
     def uninstall_runner_cli(self, runner_name):
