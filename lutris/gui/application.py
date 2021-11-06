@@ -717,7 +717,6 @@ class Application(Gtk.Application):
         """
         Downloads wine runner using lutris -r <runner>
         """
-        runner = import_runner("wine")
 
         WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
         runner_path = os.path.join(WINE_DIR, f"{version}{'' if '-x86_64' in version else '-x86_64'}")
@@ -727,6 +726,7 @@ class Application(Gtk.Application):
             from lutris.gui.dialogs import ErrorDialog
             from lutris.gui.dialogs.download import simple_downloader
             try:
+                runner = import_runner("wine")
                 runner().install(downloader=simple_downloader, version=version)
                 print(f"Wine version '{version}' has been installed.")
             except RunnerInstallationError as ex:
@@ -747,16 +747,16 @@ class Application(Gtk.Application):
         install the runner provided in prepare_runner_cli()
         """
 
-        runner = import_runner(runner_name)
         runner_path = os.path.join(settings.RUNNER_DIR, runner_name)
         if os.path.isdir(runner_path):
-            print(runner_name + " is already installed!")
+            print(f"'{runner_name}' is already installed.")
         else:
             from lutris.gui.dialogs import ErrorDialog
             from lutris.gui.dialogs.download import simple_downloader
             try:
+                runner = import_runner(runner_name)
                 runner().install(version=None, downloader=simple_downloader, callback=None)
-                print(runner_name + " is now installed :)")
+                print(f"'{runner_name}' has been installed")
             except RunnerInstallationError as ex:
                 ErrorDialog(ex.message)
 
@@ -776,7 +776,7 @@ class Application(Gtk.Application):
             return
         if runner.can_uninstall():
             runner.uninstall()
-            print(f"{runner_name} has been uninstalled.")
+            print(f"'{runner_name}' has been uninstalled.")
         else:
             print(f"Runner '{runner_name}' cannot be uninstalled.")
 
