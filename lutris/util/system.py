@@ -1,5 +1,6 @@
 """System utilities"""
 import hashlib
+import inspect
 import os
 import re
 import shutil
@@ -189,7 +190,7 @@ def substitute(string_template, variables):
     identifiers = variables.keys()
 
     # We support dashes in identifiers but they are not valid in python
-    # identifers, which is a requirement for the templating engine we use
+    # identifiers, which is a requirement for the templating engine we use
     # Replace the dashes with underscores in the mapping and template
     variables = dict((k.replace("-", "_"), v) for k, v in variables.items())
     for identifier in identifiers:
@@ -204,22 +205,12 @@ def substitute(string_template, variables):
 def merge_folders(source, destination):
     """Merges the content of source to destination"""
     logger.debug("Merging %s into %s", source, destination)
-    source = os.path.abspath(source)
-    for (dirpath, dirnames, filenames) in os.walk(source):
-        source_relpath = dirpath[len(source):].strip("/")
-        dst_abspath = os.path.join(destination, source_relpath)
-        for dirname in dirnames:
-            new_dir = os.path.join(dst_abspath, dirname)
-            logger.debug("creating dir: %s", new_dir)
-            try:
-                os.mkdir(new_dir)
-            except OSError:
-                pass
-        for filename in filenames:
-            # logger.debug("Copying %s", filename)
-            if not os.path.exists(dst_abspath):
-                os.makedirs(dst_abspath)
-            shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
+    # Check if dirs_exist_ok is defined ( Python >= 3.8)
+    sig = inspect.signature(shutil.copytree)
+    if "dirs_exist_ok" in sig.parameters:
+        shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True, dirs_exist_ok=True)
+    else:
+        shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True)
 
 
 def remove_folder(path):
@@ -245,8 +236,7 @@ def create_folder(path):
     if not path:
         return
     path = os.path.expanduser(path)
-    if not os.path.exists(path):
-        os.makedirs(path)
+    os.makedirs(path, exist_ok=True)
     return path
 
 
