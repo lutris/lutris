@@ -135,8 +135,7 @@ class HumbleBundleService(OnlineService):
             with open(cache_filename, encoding='utf-8') as cache_file:
                 return json.load(cache_file)
         response = self.make_api_request(self.api_url + "api/v1/order/%s?all_tpkds=true" % gamekey)
-        if not os.path.exists(self.cache_path):
-            os.makedirs(self.cache_path)
+        os.makedirs(self.cache_path, exist_ok=True)
         with open(cache_filename, "w", encoding='utf-8') as cache_file:
             json.dump(response, cache_file)
         return response

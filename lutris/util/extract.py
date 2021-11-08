@@ -277,8 +277,7 @@ def decompress_gz(file_path, dest_path):
         dest_filename = os.path.join(dest_path, os.path.basename(file_path[:-3]))
     else:
         dest_filename = file_path[:-3]
-    if not os.path.exists(os.path.dirname(dest_filename)):
-        os.makedirs(os.path.dirname(dest_filename))
+    os.makedirs(os.path.dirname(dest_filename), exist_ok=True)
 
     with open(dest_filename, "wb") as dest_file:
         gzipped_file = gzip.open(file_path, "rb")

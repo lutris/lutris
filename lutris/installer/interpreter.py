@@ -266,8 +266,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         """Run the pre-installation steps and launch install."""
         if self.target_path and os.path.exists(self.target_path):
             os.chdir(self.target_path)
-        if not os.path.exists(self.cache_path):
-            os.mkdir(self.cache_path)
+        os.makedirs(self.cache_path, exist_ok=True)
 
         # Copy extras to game folder
         for extra in self.extras:

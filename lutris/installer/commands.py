@@ -6,6 +6,7 @@ import os
 import shlex
 import shutil
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import GLib
 
@@ -253,8 +254,7 @@ class CommandsMixin:
                 logger.info("Optional path %s not present", src)
                 return
             raise ScriptingError("Source does not exist: %s" % src, params)
-        if not os.path.exists(dst):
-            os.makedirs(dst)
+        os.makedirs(dst, exist_ok=True)
         if os.path.isfile(src):
             # If single file, copy it and change reference in game file so it
             # can be used as executable. Skip copying if the source is the same
@@ -431,8 +431,7 @@ class CommandsMixin:
 
         # Create dir if necessary
         basedir = os.path.dirname(dest_file_path)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        os.makedirs(basedir, exist_ok=True)
 
         mode = params.get("mode", "w")
         if not mode.startswith(("a", "w")):
@@ -450,15 +449,12 @@ class CommandsMixin:
 
         # Create dir if necessary
         basedir = os.path.dirname(filename)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        os.makedirs(basedir, exist_ok=True)
 
         merge = params.get("merge", True)
 
-        if not os.path.exists(filename):
-            # create an empty file
-            with open(filename, "a+", encoding='utf-8'):
-                pass
+        # create an empty file if it doesn't exist
+        Path(filename).touch(exist_ok=True)
 
         with open(filename, "r+" if merge else "w", encoding='utf-8') as json_file:
             json_data = {}
@@ -483,8 +479,7 @@ class CommandsMixin:
 
         # Create dir if necessary
         basedir = os.path.dirname(config_file_path)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        os.makedirs(basedir, exist_ok=True)
 
         merge = params.get("merge", True)
 
