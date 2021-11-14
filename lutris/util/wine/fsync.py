@@ -285,12 +285,134 @@ def is_futex2_supported():
     return True
 
 
+# Hardcode some of the most commonly used architectures's
+# futex_waitv syscall numbers.
+_NR_FUTEX_WAITV_PER_ARCH = {
+    ("i386", 32): 449,
+    ("i686", 32): 449,
+    ("x86_64", 32): 449,
+    ("x86_64", 64): 449,
+    ("aarch64", 64): 449,
+    ("aarch64_be", 64): 449,
+    ("armv8b", 32): 449,
+    ("armv8l", 32): 449,
+}
+
+
+def _get_futex_waitv_syscall_nr():
+    """Get the syscall number of the Linux futex_waitv() syscall.
+
+    Returns:
+        The futex_waitv() syscall number.
+
+    Raises:
+        RuntimeError: When the syscall number could not be determined.
+    """
+    bits = ctypes.sizeof(ctypes.c_void_p) * 8
+
+    try:
+        return _NR_FUTEX_WAITV_PER_ARCH[(os.uname()[4], bits)]
+    except KeyError:
+        pass
+
+    return _get_syscall_nr_from_headers('futex_waitv')
+
+
+# pylint: disable=invalid-name,too-few-public-methods
+class futex_waitv(ctypes.Structure):
+    """Linux kernel compatible futex_waitv type.
+
+    Fields:
+        val: The expected value.
+        uaddr: The address to wait for.
+        flags: The type and size of the futex.
+    """
+    __slots__ = ()
+    _fields_ = [
+        ("val", ctypes.c_uint64),
+        ("uaddr", ctypes.c_void_p),
+        ("flags", ctypes.c_uint),
+    ]
+
+
+def _get_futex_waitv_syscall():
+    """Create a function that can be used to execute the Linux
+    futex_waitv() syscall.
+
+    Returns:
+        A proxy function for the Linux futex_waitv() syscall.
+
+    Raises:
+        AttributeError: When the libc has no syscall() function.
+        RuntimeError: When the syscall number could not be determined.
+    """
+    futex_waitv_syscall = ctypes.CDLL(None, use_errno=True).syscall
+    futex_waitv_syscall.argtypes = (ctypes.c_long, ctypes.POINTER(futex_waitv),
+                                    ctypes.c_uint, ctypes.c_uint,
+                                    ctypes.POINTER(timespec))
+    futex_waitv_syscall.restype = ctypes.c_long
+    futex_waitv_syscall_nr = _get_futex_waitv_syscall_nr()
+
+    # pylint: disable=too-many-arguments
+    def _futex_waitv_syscall(waiters, nr_futexes, flags, timeout):
+        """Invoke the Linux futex_waitv() syscall with the provided
+        arguments.
+
+        Args:
+            See the description of the futex_waitv() syscall for the
+            parameter meanings.
+            `waiters` is automatically converted to a pointer.
+            If timeout is None, a zero timeout is passed.
+
+        Returns:
+            A tuple of the return value of the syscall and the error code
+            in case an error occurred.
+
+        Raises:
+            AttributeError: When the libc has no syscall() function.
+            RuntimeError: When the syscall number could not be determined.
+            TypeError: If `waiters` is not a pointer and can't be
+                converted into one.
+        """
+        error = futex_waitv_syscall(
+            futex_waitv_syscall_nr,
+            _coerce_to_pointer(waiters),
+            nr_futexes,
+            flags,
+            _coerce_to_pointer(timeout)
+        )
+        return error, (ctypes.get_errno() if error == -1 else 0)
+
+    return _futex_waitv_syscall
+
+
+@functools.lru_cache(None)
+def is_futex_waitv_supported():
+    """Checks whether the Linux 5.16 futex_waitv syscall is supported on
+    this kernel.
+
+    Returns:
+        Whether this kernel supports the futex_waitv syscall.
+    """
+    try:
+        ret = _get_futex_waitv_syscall()(None, 0, 0, None)
+        return ret[1] != errno.ENOSYS
+    except (AttributeError, RuntimeError):
+        return False
+
+
 @functools.lru_cache(None)
 def is_fsync_supported():
-    """Checks whether the FUTEX_WAIT_MULTIPLE operation or the futex2
-    syscall is supported on this kernel.
+    """Checks whether the FUTEX_WAIT_MULTIPLE operation, the futex2
+    syscalls, or the futex_waitv syscall is supported on this kernel.
 
     Returns:
         The result of the check.
     """
-    return is_futex_wait_multiple_supported() or is_futex2_supported()
+    if is_futex_waitv_supported():
+        return True
+    if is_futex2_supported():
+        return True
+    if is_futex_wait_multiple_supported():
+        return True
+    return False
