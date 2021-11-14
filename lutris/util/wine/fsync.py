@@ -73,6 +73,60 @@ class timespec(ctypes.Structure):
     ]
 
 
+def _get_syscall_nr_from_headers(syscall_name):
+    bits = ctypes.sizeof(ctypes.c_void_p) * 8
+
+    try:
+        with subprocess.Popen(
+                ("cpp", "-m" + str(bits), "-E", "-P", "-x", "c", "-"),
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                close_fds=True,
+                universal_newlines=True,
+        ) as popen:
+            stdout, stderr = popen.communicate(
+                "#include <sys/syscall.h>\n"
+                "__NR_" + syscall_name + "\n"
+            )
+    except FileNotFoundError as ex:
+        raise RuntimeError(
+            "failed to determine " + syscall_name + " syscall number: "
+            "cpp not installed or not in PATH"
+        ) from ex
+
+    if popen.returncode:
+        raise RuntimeError(
+            "failed to determine " + syscall_name + " syscall number: "
+            "cpp returned nonzero exit code",
+            stderr
+        )
+
+    if not stdout:
+        raise RuntimeError(
+            "failed to determine " + syscall_name + " syscall number: "
+            "no output from cpp"
+        )
+
+    last_line = stdout.splitlines()[-1]
+
+    if last_line == "__NR_futex":
+        raise RuntimeError(
+            "failed to determine " + syscall_name + " syscall number: "
+            "__NR_" + syscall_name + " not expanded"
+        )
+
+    try:
+        return int(last_line)
+    except ValueError as ex:
+        raise RuntimeError(
+            "failed to determine " + syscall_name + " syscall number: "
+            "__NR_" + syscall_name + " not a valid number: " + last_line
+        ) from ex
+
+    assert False
+
+
 # Hardcode some of the most commonly used architectures's
 # futex syscall numbers.
 _NR_FUTEX_PER_ARCH = {
@@ -103,55 +157,7 @@ def _get_futex_syscall_nr():
     except KeyError:
         pass
 
-    try:
-        with subprocess.Popen(
-                ("cpp", "-m" + str(bits), "-E", "-P", "-x", "c", "-"),
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                close_fds=True,
-                universal_newlines=True,
-        ) as popen:
-            stdout, stderr = popen.communicate(
-                "#include <sys/syscall.h>\n"
-                "__NR_futex\n"
-            )
-    except FileNotFoundError as ex:
-        raise RuntimeError(
-            "failed to determine futex syscall number: "
-            "cpp not installed or not in PATH"
-        ) from ex
-
-    if popen.returncode:
-        raise RuntimeError(
-            "failed to determine futex syscall number: "
-            "cpp returned nonzero exit code",
-            stderr
-        )
-
-    if not stdout:
-        raise RuntimeError(
-            "failed to determine futex syscall number: "
-            "no output from cpp"
-        )
-
-    last_line = stdout.splitlines()[-1]
-
-    if last_line == "__NR_futex":
-        raise RuntimeError(
-            "failed to determine futex syscall number: "
-            "__NR_futex not expanded"
-        )
-
-    try:
-        return int(last_line)
-    except ValueError as ex:
-        raise RuntimeError(
-            "failed to determine futex syscall number: "
-            "__NR_futex not a valid number: " + last_line
-        ) from ex
-
-    assert False
+    return _get_syscall_nr_from_headers('futex')
 
 
 def _is_ctypes_obj(obj):
