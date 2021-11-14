@@ -1,6 +1,7 @@
 """Options list for system config."""
 import glob
 import os
+import subprocess
 from collections import OrderedDict, defaultdict
 from gettext import gettext as _
 
@@ -63,10 +64,24 @@ def get_optirun_choices():
     return choices
 
 
+def get_gpu_vendor_cmd(nvidia_files):
+    """Run glxinfo command to get vendor based on certain conditions"""
+    glxinfocmd = "glxinfo | grep -i opengl | grep -i vendor"
+
+    if USE_DRI_PRIME == 1:
+        glxinfocmd = "DRI_PRIME=1 glxinfo | grep -i opengl | grep -i vendor"
+    elif nvidia_files == 1:
+        glxinfocmd = "__GLX_VENDOR_LIBRARY_NAME=nvidia glxinfo | grep -i opengl | grep -i vendor"
+    return glxinfocmd
+
+
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
-    loaders = []
+    intel = []
+    amdradv = []
+    nvidia = []
     amdvlk = []
+    choices = [(_("Auto: WARNING -- No Vulkan Loader detected!"), "")]
     icd_files = defaultdict(list)
     # Add loaders
     for data_dir in VULKAN_DATA_DIRS:
@@ -74,21 +89,42 @@ def get_vk_icd_choices():
         for loader in glob.glob(path):
             icd_key = os.path.basename(loader).split(".")[0]
             icd_files[icd_key].append(os.path.join(path, loader))
-            if "amd_icd" not in loader:
-                loaders.append(loader)
-            else:
+            if "intel" in loader:
+                intel.append(loader)
+            elif "radeon" in loader:
+                amdradv.append(loader)
+            elif "nvidia" in loader:
+                nvidia.append(loader)
+            elif "amd_icd" in loader:
                 amdvlk.append(loader)
 
-    loader_files = ":".join(loaders)
+    intel_files = ":".join(intel)
+    amdradv_files = ":".join(amdradv)
+    nvidia_files = ":".join(nvidia)
     amdvlk_files = ":".join(amdvlk)
-    choices = [(_("Auto"), loader_files)]
 
-    for icd_key in icd_files:
-        if "amd_icd" not in icd_key:
-            files = ":".join(icd_files[icd_key])
-            choices.append((icd_key.capitalize().replace("_icd", " ICD"), files))
+    glxinfocmd = get_gpu_vendor_cmd(0)
+    if nvidia_files:
+        glxinfocmd = get_gpu_vendor_cmd(1)
+    glxvendorget = subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    glxvendor = glxvendorget.communicate()[0].decode("utf-8")
+    default_gpu = glxvendor
 
-    choices.append(("AMDVLK/AMDGPU-PRO", amdvlk_files))
+    if "Intel" in default_gpu:
+        choices = [(_("Auto: Intel Open Source (MESA: ANV)"), intel_files)]
+    elif "AMD" in default_gpu:
+        choices = [(_("Auto: AMD RADV Open Source (MESA: RADV)"), amdradv_files)]
+    elif "NVIDIA" in default_gpu:
+        choices = [(_("Auto: Nvidia Proprietary"), nvidia_files)]
+
+    if intel_files:
+        choices.append(("Intel Open Source (MESA: ANV)", intel_files))
+    if amdradv_files:
+        choices.append(("AMD RADV Open Source (MESA: RADV)", amdradv_files))
+    if nvidia_files:
+        choices.append(("Nvidia Proprietary", nvidia_files))
+    if amdvlk_files:
+        choices.append(("AMDVLK/AMDGPU-PRO Proprietary", amdvlk_files))
     return choices
 
 
