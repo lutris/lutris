@@ -17,6 +17,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import create_folder
 from lutris.util.wine.d3d_extras import D3DExtrasManager
+from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.vkd3d import VKD3DManager
@@ -182,7 +183,7 @@ def update_runtime():
     if components_to_update:
         while runtime_updater.current_updates:
             time.sleep(0.3)
-    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager):
+    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager):
         dll_manager = dll_manager_class()
         dll_manager.upgrade()
     logger.info("Startup complete")
