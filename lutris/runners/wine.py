@@ -18,6 +18,7 @@ from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, split_arguments
 from lutris.util.wine.d3d_extras import D3DExtrasManager
+from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
@@ -268,6 +269,26 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": DXVKNVAPIManager().version_choices,
                 "default": DXVKNVAPIManager().version,
+            },
+            {
+                "option": "dgvoodoo2",
+                "label": _("Enable dgvoodoo2"),
+                "type": "bool",
+                "default": False,
+                "advanced": False,
+                "help": _(
+                    "dgvoodoo2 is an alternative translation layer for rendering old games "
+                    "that utilize D3D1-7 and Glide APIs. As it translates to D3D11, it's "
+                    "recommended to use it in combination with DXVK. Only 32-bit apps are supported."
+                ),
+            },
+            {
+                "option": "dgvoodoo2_version",
+                "label": _("dgvoodoo2 version"),
+                "advanced": True,
+                "type": "choice_with_entry",
+                "choices": dgvoodoo2Manager().version_choices,
+                "default": dgvoodoo2Manager().version,
             },
             {
                 "option": "esync",
@@ -737,6 +758,11 @@ class wine(Runner):
             D3DExtrasManager,
             bool(self.runner_config.get("d3d_extras")),
             self.runner_config.get("d3d_extras_version")
+        )
+        self.setup_dlls(
+            dgvoodoo2Manager,
+            bool(self.runner_config.get("dgvoodoo2")),
+            self.runner_config.get("dgvoodoo2_version")
         )
         return True
 
