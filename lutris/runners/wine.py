@@ -4,7 +4,7 @@ import os
 import shlex
 from gettext import gettext as _
 
-from lutris import runtime
+from lutris import runtime, settings
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -308,6 +308,16 @@ class wine(Runner):
                     "Does not work with games running in borderless window mode or that perform their own upscaling."
                 ),
             },
+            {
+                "option": "battleye",
+                "label": _("Enable BattlEye Anti-Cheat"),
+                "type": "bool",
+                "default": False,
+                "help": _(
+                    "Enable support for BattlEye Anti-Cheat in supported games\n"
+                    "Requires Lutris Wine 6.21-2 and newer or any other compatible Wine build.\n"
+                ),
+            },            
             {
                 "option": "Desktop",
                 "label": _("Windowed (virtual desktop)"),
@@ -773,6 +783,9 @@ class wine(Runner):
 
         if self.runner_config.get("dxvk_nvapi"):
             env["DXVK_NVAPIHACK"] = "0"
+
+        if self.runner_config.get("battleye"):
+            env["PROTON_BATTLEYE_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "battleye_runtime")
 
         overrides = self.get_dll_overrides()
         if overrides:
