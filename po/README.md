@@ -2,6 +2,8 @@
 
 Please read the notes below before opening a PR.
 
+Note: All the commands below need to be run in the project root directory, not in the `po` directory. Otherwise you may get `Not the project root` error in meson.
+
 ## Updating a translations
 
 ```bash
