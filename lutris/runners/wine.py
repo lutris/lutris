@@ -338,7 +338,7 @@ class wine(Runner):
                     "Enable support for BattlEye Anti-Cheat in supported games\n"
                     "Requires Lutris Wine 6.21-2 and newer or any other compatible Wine build.\n"
                 ),
-            },            
+            },
             {
                 "option": "Desktop",
                 "label": _("Windowed (virtual desktop)"),
