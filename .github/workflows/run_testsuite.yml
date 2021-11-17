@@ -18,11 +18,11 @@ jobs:
         if: runner.os == 'Linux'
         run: >-
           sudo apt-get update
-          
-          sudo apt-get install -y at-spi2-core gir1.2-glib-2.0
+
+          sudo apt-get install -y make at-spi2-core gir1.2-glib-2.0
           gir1.2-gnomedesktop-3.0 gir1.2-gtk-3.0 gir1.2-notify-0.7
           gir1.2-webkit2-4.0 libdbus-1-dev libgirepository1.0-dev psmisc
-      - run: pip install --upgrade pip pipenv
+      - run: pip install --upgrade pip poetry
       - run: echo LUTRIS_SKIP_INIT=1 >.env
-      - run: pipenv install --dev --deploy
-      - run: xvfb-run --auto-servernum pipenv run nosetests
+      - run: make dev
+      - run: xvfb-run --auto-servernum poetry run nosetests
