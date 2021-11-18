@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-19 00:07+0800\n"
-"PO-Revision-Date: 2021-11-19 00:05+0800\n"
+"POT-Creation-Date: 2021-11-19 01:01+0800\n"
+"PO-Revision-Date: 2021-11-19 00:48+0800\n"
 "Last-Translator: Yidaozhan Ya <yidaozhan_ya@outlook.com>\n"
 "Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
 "Language: zh_CN\n"
@@ -157,7 +157,7 @@ msgstr "安装时间"
 
 #: share/lutris/ui/lutris-window.ui:478 lutris/gui/views/list.py:52
 msgid "Play Time"
-msgstr "游戏时间"
+msgstr "游玩时间"
 
 #: share/lutris/ui/lutris-window.ui:507
 msgid "_Installed Games Only"
@@ -260,7 +260,7 @@ msgstr "删除应用列表快捷方式"
 msgid "Install another version"
 msgstr "安装其他版本"
 
-#: lutris/game_actions.py:87 lutris/gui/dialogs/uninstall_game.py:137
+#: lutris/game_actions.py:87 lutris/gui/dialogs/uninstall_game.py:139
 msgid "Remove"
 msgstr "卸载"
 
@@ -610,8 +610,8 @@ msgstr "系统选项"
 msgid "Show advanced options"
 msgstr "显示高级选项"
 
-#: lutris/gui/config/common.py:313 lutris/gui/dialogs/uninstall_game.py:59
-#: lutris/gui/dialogs/uninstall_game.py:133
+#: lutris/gui/config/common.py:313 lutris/gui/dialogs/uninstall_game.py:60
+#: lutris/gui/dialogs/uninstall_game.py:135
 #: lutris/gui/widgets/download_progress_box.py:95
 msgid "Cancel"
 msgstr "取消"
@@ -931,11 +931,39 @@ msgstr "正在解压..."
 msgid "Failed to retrieve the runner archive"
 msgstr "下载运行环境安装包失败"
 
+#: lutris/gui/dialogs/uninstall_game.py:27
+#, python-format
+msgid "<span font_desc='14'><b>Uninstall %s</b></span>"
+msgstr "<span font_desc='14'><b>卸载 %s</b></span>"
+
 #: lutris/gui/dialogs/uninstall_game.py:34
 msgid "Uninstall"
 msgstr "卸载"
 
-#: lutris/gui/dialogs/uninstall_game.py:92
+#: lutris/gui/dialogs/uninstall_game.py:38
+msgid "No file will be deleted"
+msgstr "没有可删除的文件"
+
+#: lutris/gui/dialogs/uninstall_game.py:41
+#, python-format
+msgid "The folder %s is used by other games and will be kept."
+msgstr "目录 %s 已被其他游戏使用，所以将被保留。"
+
+#: lutris/gui/dialogs/uninstall_game.py:44
+msgid "<i>Calculating size…</i>"
+msgstr "<i>正在计算文件大小...</i>"
+
+#: lutris/gui/dialogs/uninstall_game.py:48
+#, python-format
+msgid "Content of %s are protected and will not be deleted."
+msgstr "目录 %s 中的内容受到保护，无法被删除。"
+
+#: lutris/gui/dialogs/uninstall_game.py:76
+#, python-format
+msgid "Delete %s (%s)"
+msgstr "删除 %s (%s)"
+
+#: lutris/gui/dialogs/uninstall_game.py:93
 #, python-format
 msgid ""
 "Please confirm.\n"
@@ -946,9 +974,31 @@ msgstr ""
 "<b>所有</b>位于 <b>%s</b>\n"
 "的内容<b>都将被删除</b>（<b>您的游戏存档可能在里面</b>）！"
 
-#: lutris/gui/dialogs/uninstall_game.py:95
+#: lutris/gui/dialogs/uninstall_game.py:96
 msgid "Permanently delete files?"
 msgstr "彻底删除文件夹？！"
+
+#: lutris/gui/dialogs/uninstall_game.py:103
+msgid "Uninstalling game and deleting files..."
+msgstr "正在卸载游戏并删除文件..."
+
+#: lutris/gui/dialogs/uninstall_game.py:105
+msgid "Uninstalling game..."
+msgstr "正在卸载游戏..."
+
+#: lutris/gui/dialogs/uninstall_game.py:122
+#, python-format
+msgid "<span font_desc='14'><b>Remove %s</b></span>"
+msgstr "<span font_desc='14'><b>从游戏库中移除 %s</b></span>"
+
+#: lutris/gui/dialogs/uninstall_game.py:128
+#, python-format
+msgid ""
+"Completely remove %s from the library?\n"
+"All play time will be lost."
+msgstr ""
+"是否完全从游戏库中移除 %s？\n"
+"Lutris 记录的游戏游玩时间也会一并删除。"
 
 #: lutris/gui/dialogs/webconnect_dialog.py:88
 msgid "Loading..."
