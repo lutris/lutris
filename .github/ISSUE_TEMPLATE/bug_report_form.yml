@@ -24,14 +24,14 @@ body:
     id: howtoreproduce
     attributes:
       label: How to Reproduce
-      description: "Steps to reproduce the behavior."
-      placeholder: "Tells us how we can replicate your problem"
+      description: "Steps to reproduce the behavior and what should be observed in the end."
+      placeholder: "Tell us step by step how we can replicate your problem and what we should see in the end"
       value: |
           Steps to reproduce the behavior:
-          1. Go to '...'
+          1. Go to '....'
           2. Click on '....'
           3. Do '....'
-          4. See error
+          4. See '....'
     validations:
       required: true
   - type: textarea
@@ -72,7 +72,7 @@ body:
     attributes:
       label: Media (optional)
       description: "Screenshots or a Peek recorded GIF that showcases the problem."
-      placeholder: Attach a GIF or a screenshot of the issue here by selecting or drag-and-dropping it in this text form, if applicable
+      placeholder: If applicable, click on this form to activate it, then attach a GIF or a screenshot of the issue here by selecting or drag-and-dropping it
   - type: markdown
     id: peekinfo
     attributes:
