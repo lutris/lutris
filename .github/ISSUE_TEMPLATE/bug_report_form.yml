@@ -84,7 +84,7 @@ body:
       label: "Checklist:"
       description: "By submitting this issue, you confirm that:"
       options:
-        - label: "I'm not asking for support with a game, an installer script or the wine runner."
+        - label: "I'm not asking for support with a game or the wine runner."
           required: true
         - label: "I have followed the above mentioned guides and have all the graphics and wine dependencies installed."
           required: true
