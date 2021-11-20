@@ -152,9 +152,9 @@ class EpicGamesStoreService(OnlineService):
     cache_path = os.path.join(settings.CACHE_DIR, "egs-library.json")
     login_url = "https://www.epicgames.com/id/login?redirectUrl=https://www.epicgames.com/id/api/redirect"
     redirect_uri = "https://www.epicgames.com/id/api/redirect"
-    launcher_url = "https://launcher-public-service-prod06.ol.epicgames.com"
     oauth_url = 'https://account-public-service-prod03.ol.epicgames.com'
     catalog_url = 'https://catalog-public-service-prod06.ol.epicgames.com'
+    library_url = 'https://library-service.live.use1a.on.epicgames.com'
     is_loading = False
 
     user_agent = (
@@ -275,16 +275,28 @@ class EpicGamesStoreService(OnlineService):
     def get_library(self):
         self.resume_session()
         response = self.session.get(
-            '%s/launcher/api/public/assets/Windows' % self.launcher_url,
-            params={'label': 'Live'}
+            '%s/library/api/public/items' % self.library_url,
+            params={'includeMetadata': 'true'}
         )
         response.raise_for_status()
-        assets = response.json()
+        resData = response.json()
+        records = resData['records']
+        
+        while cursor := resData['responseMetadata'].get('nextCursor', None):
+            response = self.session.get(
+                '%s/library/api/public/items' % self.library_url,
+                params={'includeMetadata': 'true',
+                        'cursor': cursor}
+            )
+            response.raise_for_status()
+            resData = response.json()
+            records.extend(resData['records'])
+
         games = []
-        for asset in assets:
-            if asset["namespace"] == "ue":
+        for record in records:
+            if record["namespace"] == "ue":
                 continue
-            game_details = self.get_game_details(asset)
+            game_details = self.get_game_details(record)
             games.append(game_details)
         return games
 
