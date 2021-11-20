@@ -281,8 +281,8 @@ class EpicGamesStoreService(OnlineService):
         response.raise_for_status()
         resData = response.json()
         records = resData['records']
-        
-        while cursor := resData['responseMetadata'].get('nextCursor', None):
+        cursor = resData['responseMetadata'].get('nextCursor', None)
+        while cursor:
             response = self.session.get(
                 '%s/library/api/public/items' % self.library_url,
                 params={'includeMetadata': 'true',
@@ -291,6 +291,7 @@ class EpicGamesStoreService(OnlineService):
             response.raise_for_status()
             resData = response.json()
             records.extend(resData['records'])
+            cursor = resData['responseMetadata'].get('nextCursor', None)
 
         games = []
         for record in records:
