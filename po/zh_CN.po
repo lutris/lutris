@@ -4466,7 +4466,7 @@ msgstr "无法读取您的 Steam 游戏库，请检查您的 Steam 个人资料�
 
 #: lutris/services/steamwindows.py:25
 msgid "Steam for Windows"
-msgstr "Windows 版 Steam"
+msgstr "Wine Steam"
 
 #: lutris/services/tosec.py:11
 msgid "TOSEC"
