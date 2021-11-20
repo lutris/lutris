@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-20 16:06+0800\n"
-"PO-Revision-Date: 2021-11-20 16:02+0800\n"
+"POT-Creation-Date: 2021-11-20 17:20+0800\n"
+"PO-Revision-Date: 2021-11-20 17:15+0800\n"
 "Last-Translator: Yidaozhan Ya <yidaozhan_ya@outlook.com>\n"
 "Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
 "Language: zh_CN\n"
@@ -1066,6 +1066,11 @@ msgstr "启动 (_L)"
 msgid "_Close"
 msgstr "关闭 (_C)"
 
+#: lutris/gui/installerwindow.py:117
+#, python-format
+msgid "Missing field \"%s\" in install script"
+msgstr "安装脚本缺少字段“%s”"
+
 #: lutris/gui/installerwindow.py:123
 #, python-format
 msgid "<b>Install %s</b>"
@@ -1104,6 +1109,11 @@ msgstr "选择安装光盘的挂载文件夹"
 msgid ""
 "Please review the files needed for the installation then click 'Continue'"
 msgstr "请检查安装所需的文件，然后点击“继续”"
+
+#: lutris/gui/installerwindow.py:410
+#, python-format
+msgid "Unable to get files: %s"
+msgstr "无法读取文件：%s"
 
 #: lutris/gui/installerwindow.py:493
 msgid "Remove game files"
@@ -1283,12 +1293,52 @@ msgstr "显示 Lutris"
 msgid "Quit"
 msgstr "退出"
 
-#: lutris/installer/commands.py:168
+#: lutris/installer/commands.py:55
+#, python-brace-format
+msgid "One of {params} parameter is mandatory for the {cmd} command"
+msgstr "{cmd} 命令必须有以下参数之一：{params}"
+
+#: lutris/installer/commands.py:56 lutris/installer/interpreter.py:115
+#: lutris/installer/interpreter.py:138
+msgid " or "
+msgstr " 或 "
+
+#: lutris/installer/commands.py:62
+#, python-brace-format
+msgid "The {param} parameter is mandatory for the {cmd} command"
+msgstr "{cmd} 命令必须有 {param} 参数"
+
+#: lutris/installer/commands.py:79
+#, python-format
+msgid "Invalid file '%s'. Can't make it executable"
+msgstr "文件 %s 没有可执行权限，尝试添加可执行权限失败"
+
+#: lutris/installer/commands.py:92
+msgid ""
+"Parameters file and command can't be used at the same time for the execute "
+"command"
+msgstr "“execute”命令不能同时有“file”和“command”参数"
+
+#: lutris/installer/commands.py:120
+msgid "No parameters supplied to execute command."
+msgstr "“execute”命令缺少“file”或“command”参数"
+
+#: lutris/installer/commands.py:134
+#, python-format
+msgid "Unable to find executable %s"
+msgstr "无法找到可执行文件 %s"
+
+#: lutris/installer/commands.py:164
+#, python-format
+msgid "%s does not exist"
+msgstr "%s 不存在"
+
+#: lutris/installer/commands.py:170
 #, python-format
 msgid "Extracting %s"
 msgstr "正在解压 %s"
 
-#: lutris/installer/commands.py:210
+#: lutris/installer/commands.py:212
 msgid ""
 "Insert or mount game disc and click Autodetect or\n"
 "use Browse if the disc is mounted on a non standard location."
@@ -1296,7 +1346,7 @@ msgstr ""
 "插入或挂载游戏光盘，然后点击“自动检测”。\n"
 "如果光盘挂载在非标准位置，请使用“浏览”。"
 
-#: lutris/installer/commands.py:214
+#: lutris/installer/commands.py:216
 #, python-format
 msgid ""
 "\n"
@@ -1310,9 +1360,125 @@ msgstr ""
 "Lutris 正在寻找包含以下文件或文件夹的已挂载磁盘驱动器或磁盘映像：\n"
 "<i>%s</i>"
 
+#: lutris/installer/commands.py:258
+#, python-format
+msgid "Source does not exist: %s"
+msgstr "原文件不存在：%s"
+
+#: lutris/installer/commands.py:284
+#, python-format
+msgid "Invalid source for 'move' operation: %s"
+msgstr "“move”操作的原文件无效：%s"
+
+#: lutris/installer/commands.py:303
+#, python-brace-format
+msgid ""
+"Can't move {src} \n"
+"to destination {dst}"
+msgstr ""
+"无法把 {src}\n"
+"移动到目标位置 {dst}"
+
+#: lutris/installer/commands.py:310
+#, python-format
+msgid "Rename error, source path does not exist: %s"
+msgstr "重命名失败，原文件不存在：%s"
+
+#: lutris/installer/commands.py:317
+#, python-format
+msgid "Rename error, destination already exists: %s"
+msgstr "重命名失败，目标文件已存在：%s"
+
+#: lutris/installer/commands.py:333
+msgid "Missing parameter src"
+msgstr "缺少参数“src”"
+
+#: lutris/installer/commands.py:336
+msgid "Wrong value for 'src' param"
+msgstr "“src”参数的值不正确"
+
+#: lutris/installer/commands.py:340
+msgid "Wrong value for 'dst' param"
+msgstr "“dst”参数的值不正确"
+
+#: lutris/installer/commands.py:422
+#, python-format
+msgid "Command exited with code %s"
+msgstr "命令以错误代码 %s 退出"
+
+#: lutris/installer/commands.py:440
+#, python-format
+msgid "Wrong value for write_file mode: '%s'"
+msgstr "“write_file”命令的“mode”参数值“%s”不正确"
+
+#: lutris/installer/installer_file.py:26
+#, python-format
+msgid "missing field `url` for file `%s`"
+msgstr "文件“%s”缺少“url”字段"
+
+#: lutris/installer/installer_file.py:38
+#, python-format
+msgid "missing field `filename` in file `%s`"
+msgstr "文件“%s”缺少“filename”字段"
+
+#: lutris/installer/installer_file.py:47
+msgid "Usage of $WINESTEAM location is deprecated"
+msgstr "变量“$WINESTEAM”已被废弃，无法使用"
+
+#: lutris/installer/installer_file.py:178
+msgid "Invalid checksum, expected format (type:hash) "
+msgstr "“checksum”参数无效，格式应为“算法:哈希值”"
+
+#: lutris/installer/installer_file.py:181
+msgid " checksum mismatch "
+msgstr "校验和不匹配"
+
+#: lutris/installer/installer.py:162
+msgid "Game config key must be a string"
+msgstr "游戏配置“key”必须是字符串"
+
+#: lutris/installer/installer.py:207
+msgid "Invalid 'game' section"
+msgstr "“game”配置节无效"
+
+#: lutris/installer/interpreter.py:52
+msgid "This installer doesn't have a 'script' section"
+msgstr "安装脚本缺少“script”配置节"
+
+#: lutris/installer/interpreter.py:56
+msgid ""
+"Invalid script: \n"
+"{}"
+msgstr ""
+"无效的安装脚本：\n"
+"{}"
+
+#: lutris/installer/interpreter.py:115 lutris/installer/interpreter.py:118
+#, python-format
+msgid "This installer requires %s on your system"
+msgstr "要使用此安装脚本，您需要将 %s 安装到您的系统中。"
+
+#: lutris/installer/interpreter.py:178
+msgid "Lutris does not have the necessary permissions to install to path:"
+msgstr "Lutris 没有安装到以下路径所需的权限："
+
+#: lutris/installer/interpreter.py:262
+#, python-format
+msgid "Invalid runner provided %s"
+msgstr "无效的运行环境 %s"
+
 #: lutris/installer/interpreter.py:282
 msgid "Installing game data"
 msgstr "安装游戏数据..."
+
+#: lutris/installer/interpreter.py:293
+msgid "Installer commands are not formatted correctly"
+msgstr "安装脚本命令格式不正确"
+
+#: lutris/installer/interpreter.py:324
+#, python-format
+msgid "The command \"%s\" does not exist."
+msgstr "命令“%s”不存在"
 
 #: lutris/installer/interpreter.py:341
 #, python-format
@@ -1328,6 +1494,11 @@ msgstr ""
 #: lutris/installer/interpreter.py:347
 msgid "Installation completed!"
 msgstr "安装完成"
+
+#: lutris/installer/steam_installer.py:47
+#, python-format
+msgid "Malformed steam path: %s"
+msgstr "Steam 路径不正确：%s"
 
 #: lutris/runners/atari800.py:19
 msgid "Desktop resolution"
