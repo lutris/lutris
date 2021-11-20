@@ -157,15 +157,15 @@ class mednafen(Runner):
         joy_ids = []
         if not self.is_installed:
             return []
-        output = subprocess.Popen(
+        with subprocess.Popen(
             [self.get_executable(), "dummy"],
             stdout=subprocess.PIPE,
             universal_newlines=True,
-        ).communicate()[0]
-        ouput = output.split("\n")
+        ) as mednafen_process:
+            output = mednafen_process.communicate()[0].split("\n")
         found = False
         joy_list = []
-        for line in ouput:
+        for line in output:
             if found and "Joystick" in line:
                 joy_list.append(line)
             else:

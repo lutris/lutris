@@ -46,7 +46,7 @@ class AppManifest:
         self.appmanifest_data = {}
 
         if path_exists(appmanifest_path):
-            with open(appmanifest_path, "r") as appmanifest_file:
+            with open(appmanifest_path, "r", encoding='utf-8') as appmanifest_file:
                 self.appmanifest_data = vdf_parse(appmanifest_file, {})
         else:
             logger.error("Path to AppManifest file %s doesn't exist", appmanifest_path)

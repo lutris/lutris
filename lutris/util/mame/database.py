@@ -109,7 +109,7 @@ def get_supported_systems(xml_path, force=False):
     """
     systems_cache_path = os.path.join(CACHE_DIR, "systems.json")
     if os.path.exists(systems_cache_path) and not force:
-        with open(systems_cache_path, "r") as systems_cache_file:
+        with open(systems_cache_path, "r", encoding='utf-8') as systems_cache_file:
             try:
                 systems = json.load(systems_cache_file)
             except json.JSONDecodeError:
@@ -123,7 +123,7 @@ def get_supported_systems(xml_path, force=False):
     }
     if not systems:
         return {}
-    with open(systems_cache_path, "w") as systems_cache_file:
+    with open(systems_cache_path, "w", encoding='utf-8') as systems_cache_file:
         json.dump(systems, systems_cache_file, indent=2)
     return systems
 

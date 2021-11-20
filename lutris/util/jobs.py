@@ -19,7 +19,7 @@ class AsyncCall(threading.Thread):
         self.source_id = None
         self.stop_request = threading.Event()
 
-        super(AsyncCall, self).__init__(target=self.target, args=args, kwargs=kwargs)
+        super().__init__(target=self.target, args=args, kwargs=kwargs)
         self.function = func
         self.callback = callback if callback else lambda r, e: None
         self.daemon = kwargs.pop("daemon", True)

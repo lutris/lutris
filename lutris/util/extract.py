@@ -128,7 +128,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
         _do_extract(path, temp_path, opener, mode, extractor)
     except (OSError, zlib.error, tarfile.ReadError, EOFError) as ex:
         logger.error("Extraction failed: %s", ex)
-        raise ExtractFailure(str(ex))
+        raise ExtractFailure(str(ex)) from ex
     if merge_single:
         extracted = os.listdir(temp_path)
         if len(extracted) == 1:
@@ -164,7 +164,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
                             destination_path,
                             ex,
                         )
-                        raise ExtractFailure(str(ex))
+                        raise ExtractFailure(str(ex)) from ex
             else:
                 shutil.move(source_path, destination_path)
         system.remove_folder(temp_dir)
@@ -218,9 +218,9 @@ def extract_deb(archive, dest):
     if not os.path.exists(data_file):
         data_file = os.path.join(dest, "data.tar.xz")
         extractor = "r:xz"
-    handler = tarfile.open(data_file, extractor)
-    handler.extractall(dest)
-    handler.close()
+    with tarfile.open(data_file, extractor) as handler:
+        handler.extractall(dest)
+        handler.close()
     os.remove(data_file)
 
 
@@ -277,8 +277,7 @@ def decompress_gz(file_path, dest_path):
         dest_filename = os.path.join(dest_path, os.path.basename(file_path[:-3]))
     else:
         dest_filename = file_path[:-3]
-    if not os.path.exists(os.path.dirname(dest_filename)):
-        os.makedirs(os.path.dirname(dest_filename))
+    os.makedirs(os.path.dirname(dest_filename), exist_ok=True)
 
     with open(dest_filename, "wb") as dest_file:
         gzipped_file = gzip.open(file_path, "rb")

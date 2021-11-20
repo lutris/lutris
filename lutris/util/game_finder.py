@@ -57,8 +57,8 @@ def find_linux_game_executable(path, make_executable=False):
                 candidates["32bit"] = abspath
         if candidates:
             if make_executable:
-                for file_type in candidates:
-                    system.make_executable(candidates[file_type])
+                for candidate in candidates.values():
+                    system.make_executable(candidate)
             return (
                 candidates.get("shell")
                 or candidates.get("bash")

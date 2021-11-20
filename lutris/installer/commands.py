@@ -6,6 +6,7 @@ import os
 import shlex
 import shutil
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import GLib
 
@@ -253,8 +254,7 @@ class CommandsMixin:
                 logger.info("Optional path %s not present", src)
                 return
             raise ScriptingError("Source does not exist: %s" % src, params)
-        if not os.path.exists(dst):
-            os.makedirs(dst)
+        os.makedirs(dst, exist_ok=True)
         if os.path.isfile(src):
             # If single file, copy it and change reference in game file so it
             # can be used as executable. Skip copying if the source is the same
@@ -297,8 +297,8 @@ class CommandsMixin:
             else:
                 action = shutil.move
             self._killable_process(action, src, dst)
-        except shutil.Error:
-            raise ScriptingError("Can't move %s \nto destination %s" % (src, dst))
+        except shutil.Error as err:
+            raise ScriptingError("Can't move %s \nto destination %s" % (src, dst)) from err
 
     def rename(self, params):
         """Rename file or folder."""
@@ -327,8 +327,8 @@ class CommandsMixin:
         """Process raw 'src' and 'dst' data."""
         try:
             src_ref = params["src"]
-        except KeyError:
-            raise ScriptingError("Missing parameter src")
+        except KeyError as err:
+            raise ScriptingError("Missing parameter src") from err
         src = self.game_files.get(src_ref) or self._substitute(src_ref)
         if not src:
             raise ScriptingError("Wrong value for 'src' param", src_ref)
@@ -344,8 +344,8 @@ class CommandsMixin:
         filename = self._substitute(data["file"])
         logger.debug("Substituting variables for file %s", filename)
         tmp_filename = filename + ".tmp"
-        with open(filename, "r") as source_file:
-            with open(tmp_filename, "w") as dest_file:
+        with open(filename, "r", encoding='utf-8') as source_file:
+            with open(tmp_filename, "w", encoding='utf-8') as dest_file:
                 line = "."
                 while line:
                     line = source_file.readline()
@@ -431,14 +431,13 @@ class CommandsMixin:
 
         # Create dir if necessary
         basedir = os.path.dirname(dest_file_path)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        os.makedirs(basedir, exist_ok=True)
 
         mode = params.get("mode", "w")
         if not mode.startswith(("a", "w")):
             raise ScriptingError("Wrong value for write_file mode: '%s'" % mode)
 
-        with open(dest_file_path, mode) as dest_file:
+        with open(dest_file_path, mode, encoding='utf-8') as dest_file:
             dest_file.write(self._substitute(params["content"]))
 
     def write_json(self, params):
@@ -450,17 +449,14 @@ class CommandsMixin:
 
         # Create dir if necessary
         basedir = os.path.dirname(filename)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        os.makedirs(basedir, exist_ok=True)
 
         merge = params.get("merge", True)
 
-        if not os.path.exists(filename):
-            # create an empty file
-            with open(filename, "a+"):
-                pass
+        # create an empty file if it doesn't exist
+        Path(filename).touch(exist_ok=True)
 
-        with open(filename, "r+" if merge else "w") as json_file:
+        with open(filename, "r+" if merge else "w", encoding='utf-8') as json_file:
             json_data = {}
             if merge:
                 try:
@@ -483,8 +479,7 @@ class CommandsMixin:
 
         # Create dir if necessary
         basedir = os.path.dirname(config_file_path)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        os.makedirs(basedir, exist_ok=True)
 
         merge = params.get("merge", True)
 
@@ -518,13 +513,13 @@ class CommandsMixin:
 
     def _killable_process(self, func, *args, **kwargs):
         """Run function `func` in a separate, killable process."""
-        process = multiprocessing.Pool(1)
-        result_obj = process.apply_async(func, args, kwargs)
-        self.abort_current_task = process.terminate
-        result = result_obj.get()  # Wait process end & reraise exceptions
-        self.abort_current_task = None
-        logger.debug("Process %s returned: %s", func, result)
-        return result
+        with multiprocessing.Pool(1) as process:
+            result_obj = process.apply_async(func, args, kwargs)
+            self.abort_current_task = process.terminate
+            result = result_obj.get()  # Wait process end & re-raise exceptions
+            self.abort_current_task = None
+            logger.debug("Process %s returned: %s", func, result)
+            return result
 
     def _extract_gog_game(self, file_id):
         self.extract({
@@ -546,7 +541,7 @@ class CommandsMixin:
 
     def _get_scummvm_arguments(self, gog_config_path):
         """Return a ScummVM configuration from the GOG config files"""
-        with open(gog_config_path) as gog_config_file:
+        with open(gog_config_path, encoding='utf-8') as gog_config_file:
             gog_config = json.loads(gog_config_file.read())
         game_tasks = [task for task in gog_config["playTasks"] if task["category"] == "game"]
         arguments = game_tasks[0]["arguments"]

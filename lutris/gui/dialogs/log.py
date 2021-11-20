@@ -64,5 +64,5 @@ class LogWindow(GObject.Object):
             self.buffer.get_end_iter(),
             True
         )
-        with open(log_path, "w") as log_file:
+        with open(log_path, "w", encoding='utf-8') as log_file:
             log_file.write(text)
