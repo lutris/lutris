@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-19 01:01+0800\n"
-"PO-Revision-Date: 2021-11-19 00:48+0800\n"
+"POT-Creation-Date: 2021-11-20 16:06+0800\n"
+"PO-Revision-Date: 2021-11-20 16:02+0800\n"
 "Last-Translator: Yidaozhan Ya <yidaozhan_ya@outlook.com>\n"
 "Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
 "Language: zh_CN\n"
@@ -92,11 +92,11 @@ msgstr "忘记密码？"
 #: share/lutris/ui/dialog-lutris-login.ui:43 lutris/gui/dialogs/issue.py:52
 #: lutris/gui/installerwindow.py:73
 msgid "C_ancel"
-msgstr "取消（_A）"
+msgstr "取消 (_A)"
 
 #: share/lutris/ui/dialog-lutris-login.ui:57
 msgid "_Connect"
-msgstr "登录（_C）"
+msgstr "登录 (_C)"
 
 #: share/lutris/ui/dialog-lutris-login.ui:95
 msgid "Password"
@@ -161,15 +161,15 @@ msgstr "游玩时间"
 
 #: share/lutris/ui/lutris-window.ui:507
 msgid "_Installed Games Only"
-msgstr "仅显示已安装游戏（_I）"
+msgstr "仅显示已安装游戏 (_I)"
 
 #: share/lutris/ui/lutris-window.ui:522
 msgid "Show _Hidden Games"
-msgstr "显示已隐藏的游戏（_H）"
+msgstr "显示已隐藏的游戏 (_H)"
 
 #: share/lutris/ui/lutris-window.ui:536
 msgid "Show Side _Panel"
-msgstr "显示边栏（_P）"
+msgstr "显示边栏 (_P)"
 
 #: share/lutris/ui/lutris-window.ui:551
 msgid "Preferences"
@@ -521,11 +521,11 @@ msgstr "批量选择文件"
 #: lutris/gui/widgets/common.py:99
 #: lutris/gui/widgets/download_progress_box.py:47
 msgid "_Cancel"
-msgstr "取消（_C）"
+msgstr "取消 (_C)"
 
 #: lutris/gui/config/boxes.py:514
 msgid "_Add"
-msgstr "添加（_A）"
+msgstr "添加 (_A)"
 
 #: lutris/gui/config/boxes.py:644
 msgid ""
@@ -795,7 +795,7 @@ msgstr "正在下载 %s"
 #: lutris/gui/dialogs/issue.py:74 lutris/gui/dialogs/runner_install.py:33
 #: lutris/gui/widgets/common.py:99
 msgid "_OK"
-msgstr "确定（_O）"
+msgstr "确定 (_O)"
 
 #: lutris/gui/dialogs/__init__.py:146
 msgid "Please choose a file"
@@ -871,7 +871,7 @@ msgstr ""
 
 #: lutris/gui/dialogs/issue.py:55
 msgid "_Save"
-msgstr "保存（_S）"
+msgstr "保存 (_S)"
 
 #: lutris/gui/dialogs/issue.py:71
 msgid "Select a location to save the issue"
@@ -1044,27 +1044,27 @@ msgstr "中止并回滚安装"
 
 #: lutris/gui/installerwindow.py:75
 msgid "_Eject"
-msgstr "弹出（_E）"
+msgstr "弹出 (_E)"
 
 #: lutris/gui/installerwindow.py:76
 msgid "_View source"
-msgstr "查看来源（_V）"
+msgstr "查看来源 (_V)"
 
 #: lutris/gui/installerwindow.py:77
 msgid "_Install"
-msgstr "安装（_I）"
+msgstr "安装 (_I)"
 
 #: lutris/gui/installerwindow.py:78
 msgid "_Continue"
-msgstr "继续（_C）"
+msgstr "继续 (_C)"
 
 #: lutris/gui/installerwindow.py:79
 msgid "_Launch"
-msgstr "启动（_L）"
+msgstr "启动 (_L)"
 
 #: lutris/gui/installerwindow.py:80
 msgid "_Close"
-msgstr "关闭（_C）"
+msgstr "关闭 (_C)"
 
 #: lutris/gui/installerwindow.py:123
 #, python-format
@@ -4137,7 +4137,7 @@ msgid ""
 "or will install it in its own custom Wine prefix."
 msgstr ""
 "选择一个包含 Steam.exe 的文件夹\n"
-"默认情况下，Lutris将在 ~/.wine 中查找 Windows Steam 安装或将其安装在其自己的"
+"默认情况下，Lutris 将在 ~/.wine 中查找 Windows Steam 安装或将其安装在其自己的"
 "自定义 Wine 容器中。"
 
 #: lutris/runners/winesteam.py:149
