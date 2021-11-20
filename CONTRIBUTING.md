@@ -70,7 +70,7 @@ Set up your development environment
 -----------------------------------
 
 To ensure you have the proper dependencies installed run: `make dev`
-This will use pipenv to create a virtual environment installing all necessary
+This will use poetry to create a virtual environment installing all necessary
 python packages to get you up and running.
 
 This project includes .editorconfig so you're good to go if you're using any
@@ -94,8 +94,6 @@ When writing docstrings, you should follow the Google style
 (See: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
 You should always provide docstrings, otherwise your code wouldn't pass a
 Pylint check.
-
-Do *not* add type annotations, those are not supported in Python 3.4.
 
 Writing tests
 -------------

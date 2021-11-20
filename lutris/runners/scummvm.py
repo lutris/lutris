@@ -150,9 +150,10 @@ class scummvm(Runner):
 
     def get_game_list(self):
         """Return the entire list of games supported by ScummVM."""
-        scumm_output = subprocess.Popen([self.get_executable(), "--list-games"],
-                                        stdout=subprocess.PIPE).communicate()[0]
-        game_list = str.split(scumm_output, "\n")
+        with subprocess.Popen([self.get_executable(), "--list-games"],
+                              stdout=subprocess.PIPE, encoding="utf-8", universal_newlines=True) as scummvm_process:
+            scumm_output = scummvm_process.communicate()[0]
+            game_list = str.split(scumm_output, "\n")
         game_array = []
         game_list_start = False
         for game in game_list:

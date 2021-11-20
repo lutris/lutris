@@ -349,9 +349,10 @@ class Game(GObject.Object):
     def set_keyboard_layout(layout):
         setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
         xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
-        xkbcomp = subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE)
-        subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin).communicate()
-        xkbcomp.communicate()
+        with subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE) as xkbcomp:
+            with subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin) as setxkbmap:
+                setxkbmap.communicate()
+                xkbcomp.communicate()
 
     def start_prelaunch_command(self):
         """Start the prelaunch command specified in the system options"""
@@ -649,7 +650,8 @@ class Game(GObject.Object):
             self.screen_saver_inhibitor_cookie = None
 
         if self.runner.system_config.get("use_us_layout"):
-            subprocess.Popen(["setxkbmap"], env=os.environ).communicate()
+            with subprocess.Popen(["setxkbmap"], env=os.environ) as setxkbmap:
+                setxkbmap.communicate()
 
         if self.runner.system_config.get("restore_gamma"):
             restore_gamma()
@@ -694,13 +696,13 @@ class Game(GObject.Object):
             logger.info("Previous location wasn't set. Cannot continue moving")
             return target_directory
 
-        with open(self.config.game_config_path) as config_file:
+        with open(self.config.game_config_path, encoding='utf-8') as config_file:
             for line in config_file.readlines():
                 if target_directory in line:
                     new_config += line
                 else:
                     new_config += line.replace(old_location, target_directory)
-        with open(self.config.game_config_path, "w") as config_file:
+        with open(self.config.game_config_path, "w", encoding='utf-8') as config_file:
             config_file.write(new_config)
 
         if not system.path_exists(old_location):

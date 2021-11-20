@@ -76,7 +76,8 @@ def turn_off_except(display):
     for output in get_outputs():
         if output.name != display:
             logger.info("Turning off %s", output[0])
-            subprocess.Popen(["xrandr", "--output", output.name, "--off"])
+            with subprocess.Popen(["xrandr", "--output", output.name, "--off"]) as xrandr:
+                xrandr.communicate()
 
 
 def get_resolutions():
@@ -111,7 +112,8 @@ def change_resolution(resolution):
             logger.warning("Resolution %s doesn't exist.", resolution)
         else:
             logger.info("Changing resolution to %s", resolution)
-            subprocess.Popen(["xrandr", "-s", resolution])
+            with subprocess.Popen(["xrandr", "-s", resolution]) as xrandr:
+                xrandr.communicate()
     else:
         for display in resolution:
             logger.debug("Switching to %s on %s", display.mode, display.name)
@@ -126,7 +128,7 @@ def change_resolution(resolution):
             else:
                 rotation = "normal"
             logger.info("Switching resolution of %s to %s", display.name, display.mode)
-            subprocess.Popen(
+            with subprocess.Popen(
                 [
                     "xrandr",
                     "--output",
@@ -140,7 +142,8 @@ def change_resolution(resolution):
                     "--rate",
                     display.rate,
                 ]
-            ).communicate()
+            ) as xrandr:
+                xrandr.communicate()
 
 
 class LegacyDisplayManager:  # pylint: disable=too-few-public-methods

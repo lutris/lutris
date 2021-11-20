@@ -155,11 +155,11 @@ class WinePrefixManager:
                 if desktop_dir != user_dir:
                     try:
                         src_path = os.path.join(desktop_dir, item)
-                    except TypeError:
+                    except TypeError as ex:
                         # There is supposedly a None value in there
                         # The current code shouldn't allow that
                         # Just raise a exception with the values
-                        raise RuntimeError("Missing value desktop_dir=%s or item=%s" % (desktop_dir, item))
+                        raise RuntimeError("Missing value desktop_dir=%s or item=%s" % (desktop_dir, item)) from ex
 
                     os.makedirs(src_path, exist_ok=True)
                     os.symlink(src_path, path)
