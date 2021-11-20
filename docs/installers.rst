@@ -77,6 +77,7 @@ Available variables are:
 * ``$RESOLUTION``: Full resolution of the user's main display (eg. ``1920x1080``)
 * ``$RESOLUTION_WIDTH``: Resolution width of the user's main display (eg. ``1920``)
 * ``$RESOLUTION_HEIGHT``: Resolution height of the user's main display (eg. ``1080``)
+* ``$WINEBIN``: Absolute path to the Lutris provided Wine binary used to install the game.
 
 You can also reference files from the ``files`` section by their identifier,
 they will resolve to the absolute path of the downloaded or user provided file.
