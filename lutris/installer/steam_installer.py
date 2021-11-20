@@ -1,6 +1,7 @@
 """Collection of installer files"""
 import os
 import time
+from gettext import gettext as _
 
 from gi.repository import GLib, GObject
 
@@ -43,7 +44,7 @@ class SteamInstaller(GObject.Object):
         try:
             _steam, appid, path = self.steam_uri.split(":", 2)
         except ValueError as err:
-            raise ScriptingError("Malformed steam path: %s" % self.steam_uri) from err
+            raise ScriptingError(_("Malformed steam path: %s") % self.steam_uri) from err
 
         self.appid = appid
         self.path = path
