@@ -37,4 +37,3 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
             download_icons({slug: url}, service_media)
 
         Gtk.CellRendererPixbuf.do_render(self, cr, widget, background_area, cell_area, flags)
-  
