@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-20 17:20+0800\n"
+"POT-Creation-Date: 2021-11-21 12:41+0800\n"
 "PO-Revision-Date: 2021-11-20 17:15+0800\n"
 "Last-Translator: Yidaozhan Ya <yidaozhan_ya@outlook.com>\n"
 "Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
@@ -1008,6 +1008,11 @@ msgstr "载入中..."
 #, python-brace-format
 msgid "Steam game <b>{appid}</b>"
 msgstr "Steam 游戏（应用 ID：<b>{appid}</b>）"
+
+#: lutris/gui/installer/file_box.py:111
+#, python-brace-format
+msgid "{file} on {host}"
+msgstr "{file}（来自 {host}）"
 
 #: lutris/gui/installer/file_box.py:138 lutris/gui/installer/file_box.py:182
 msgid "Download"
