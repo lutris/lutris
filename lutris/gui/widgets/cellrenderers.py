@@ -1,6 +1,7 @@
 from gi.repository import GObject, Gtk, Pango
-from gi.repository.GdkPixbuf import Pixbuf
+
 from lutris.gui.views.media_loader import download_icons
+
 
 class GridViewCellRendererText(Gtk.CellRendererText):
     """CellRendererText adjusted for grid view display, removes extra padding"""
@@ -20,7 +21,6 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
 
     @GObject.Property(type=str)
     def slug(self):
-        'Read-write integer property.'
         return self._slug
 
     @slug.setter
@@ -28,11 +28,13 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         self._slug = value
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
+        service_media = self.service_media
         slug = self._slug
 
-        media_urls = self.service_media.get_media_urls()
-        url = media_urls[slug]
-        download_icons({slug: url}, self.service_media)
-        
+        if not service_media.exists(slug):
+            media_urls = service_media.get_media_urls()
+            url = media_urls[slug]
+            download_icons({slug: url}, service_media)
+
         Gtk.CellRendererPixbuf.do_render(self, cr, widget, background_area, cell_area, flags)
   
