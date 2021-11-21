@@ -23,6 +23,7 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         self.game_store = game_store
         self.service_media = service_media
         self.pending_download_slugs = set()
+        self.ongoing_download_slugs = set()
 
     @GObject.Property(type=str)
     def slug(self):
@@ -36,14 +37,20 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         service_media = self.service_media
         slug = self._slug
 
-        if not service_media.exists(slug):
+        if not service_media.exists(slug) and slug not in self.ongoing_download_slugs:
             self.pending_download_slugs.add(slug)
 
         Gtk.CellRendererPixbuf.do_render(self, cr, widget, background_area, cell_area, flags)
 
     def download_icons(self):
         service_media = self.service_media
-        slugs = [slug for slug in self.pending_download_slugs if not service_media.exists(slug)]
+        slugs = [
+            slug for slug
+            in self.pending_download_slugs
+            if slug not in self.ongoing_download_slugs
+            if not service_media.exists(slug)
+        ]
+
         self.pending_download_slugs = set()
 
         if len(slugs) > 0:
@@ -55,15 +62,19 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
                 if slug in slugs
             }
 
+            self.ongoing_download_slugs.update(slugs)
+
+            def icons_download_cb( result, error):
+                self.ongoing_download_slugs.difference_update(slugs)
+
+                if error:
+                    logger.error("Failed to download icons: %s", error)
+                    return
+                self.game_store.update_icons(result)
+
             AsyncCall(
                 download_icons,
-                self.icons_download_cb,
+                icons_download_cb,
                 urls_needed,
                 service_media
             )
-
-    def icons_download_cb(self, result, error):
-        if error:
-            logger.error("Failed to download icons: %s", error)
-            return
-        self.game_store.update_icons(result)
