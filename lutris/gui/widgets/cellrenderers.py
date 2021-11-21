@@ -24,6 +24,7 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         self.service_media = service_media
         self.pending_download_slugs = set()
         self.ongoing_download_slugs = set()
+        self.failed_slugs = set()
 
     @GObject.Property(type=str)
     def slug(self):
@@ -48,6 +49,7 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
             slug for slug
             in self.pending_download_slugs
             if slug not in self.ongoing_download_slugs
+            if slug not in self.failed_slugs
             if not service_media.exists(slug)
         ]
 
@@ -68,6 +70,7 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
                 self.ongoing_download_slugs.difference_update(slugs)
 
                 if error:
+                    self.failed_slugs.update(slugs)
                     logger.error("Failed to download icons: %s", error)
                     return
                 self.game_store.update_icons(result)
