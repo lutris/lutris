@@ -47,9 +47,11 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         if len(slugs) > 0:
             media_urls = service_media.get_media_urls()
 
-            d = {slug: url
+            urls_needed = {
+                slug: url
                 for slug, url in media_urls.items()
-                if slug in slugs}
+                if slug in slugs
+            }
 
-            icons = download_icons(d, service_media)
+            icons = download_icons(urls_needed, service_media)
             self.game_store.update_icons(icons)
