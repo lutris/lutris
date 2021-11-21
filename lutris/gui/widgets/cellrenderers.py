@@ -25,6 +25,7 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         self.pending_download_slugs = set()
         self.ongoing_download_slugs = set()
         self.failed_slugs = set()
+        self._slug = ""
 
     @GObject.Property(type=str)
     def slug(self):
@@ -38,7 +39,7 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         service_media = self.service_media
         slug = self._slug
 
-        if not service_media.exists(slug) and slug not in self.ongoing_download_slugs:
+        if slug and not service_media.exists(slug) and slug not in self.ongoing_download_slugs:
             self.pending_download_slugs.add(slug)
 
         Gtk.CellRendererPixbuf.do_render(self, cr, widget, background_area, cell_area, flags)
