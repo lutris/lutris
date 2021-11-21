@@ -66,7 +66,7 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
 
             self.ongoing_download_slugs.update(slugs)
 
-            def icons_download_cb( result, error):
+            def icons_download_cb(result, error):
                 self.ongoing_download_slugs.difference_update(slugs)
 
                 if error:
