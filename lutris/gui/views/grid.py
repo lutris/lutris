@@ -2,9 +2,9 @@
 # pylint: disable=no-member
 from gi.repository import Gtk
 
-from lutris.gui.views import COL_ICON, COL_NAME
+from lutris.gui.views import COL_ICON, COL_NAME, COL_SLUG
 from lutris.gui.views.base import GameView
-from lutris.gui.widgets.cellrenderers import GridViewCellRendererText
+from lutris.gui.widgets.cellrenderers import GridViewCellRendererText, GridViewCellRendererBanner
 from lutris.util.log import logger
 
 
@@ -25,6 +25,11 @@ class GameGridView(Gtk.IconView, GameView):
         self.set_pixbuf_column(COL_ICON)
         self.set_item_padding(1)
         self.cell_width = max(service_media.size[0], self.min_width)
+        self.clear()
+        self.icon_renderer = GridViewCellRendererBanner(service_media)
+        self.pack_start(self.icon_renderer, True)
+        self.add_attribute(self.icon_renderer, "pixbuf", COL_ICON)
+        self.add_attribute(self.icon_renderer, "slug", COL_SLUG)        
         if hide_text:
             self.cell_renderer = None
         else:
