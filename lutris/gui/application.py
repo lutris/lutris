@@ -585,8 +585,8 @@ class Application(Gtk.Application):
                 "runner": game["runner"],
                 "platform": game["platform"],
                 "year": game["year"],
-                "playtime": str(timedelta(hours=game["playtime"])),
-                "lastplayed": str(datetime.fromtimestamp(game["lastplayed"])),
+                "playtime": str(timedelta(hours=game["playtime"] or 0)),
+                "lastplayed": str(datetime.fromtimestamp(game["lastplayed"])) if game["lastplayed"] is not None else None,
                 "directory": game["directory"],
             } for game in game_list
         ]
