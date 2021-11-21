@@ -26,7 +26,7 @@ class GameGridView(Gtk.IconView, GameView):
         self.set_item_padding(1)
         self.cell_width = max(service_media.size[0], self.min_width)
         self.clear()
-        self.icon_renderer = GridViewCellRendererBanner(service_media)
+        self.icon_renderer = GridViewCellRendererBanner(store, service_media)
         self.pack_start(self.icon_renderer, True)
         self.add_attribute(self.icon_renderer, "pixbuf", COL_ICON)
         self.add_attribute(self.icon_renderer, "slug", COL_SLUG)
@@ -38,6 +38,7 @@ class GameGridView(Gtk.IconView, GameView):
             self.add_attribute(self.cell_renderer, "markup", COL_NAME)
 
         self.connect_signals()
+        self.connect("draw", self.on_draw)
         self.connect("item-activated", self.on_item_activated)
         self.connect("selection-changed", self.on_selection_changed)
 
@@ -67,3 +68,6 @@ class GameGridView(Gtk.IconView, GameView):
         selected_items = self.get_selected_item()
         if selected_items:
             self.emit("game-selected", selected_items)
+
+    def on_draw(self, _view, cr):
+        self.icon_renderer.download_icons()

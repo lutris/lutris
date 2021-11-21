@@ -14,10 +14,13 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         self.props.yalign = 0
         self.props.wrap_width = width
 
+
 class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
-    def __init__(self, service_media, *args, **kwargs):
+    def __init__(self, game_store, service_media, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.game_store = game_store
         self.service_media = service_media
+        self.pending_download_slugs = set()
 
     @GObject.Property(type=str)
     def slug(self):
@@ -32,8 +35,21 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         slug = self._slug
 
         if not service_media.exists(slug):
-            media_urls = service_media.get_media_urls()
-            url = media_urls[slug]
-            download_icons({slug: url}, service_media)
+            self.pending_download_slugs.add(slug)
 
         Gtk.CellRendererPixbuf.do_render(self, cr, widget, background_area, cell_area, flags)
+
+    def download_icons(self):
+        service_media = self.service_media
+        slugs = [slug for slug in self.pending_download_slugs if not service_media.exists(slug)]
+        self.pending_download_slugs = set()
+
+        if len(slugs) > 0:
+            media_urls = service_media.get_media_urls()
+
+            d = {slug: url
+                for slug, url in media_urls.items()
+                if slug in slugs}
+
+            icons = download_icons(d, service_media)
+            self.game_store.update_icons(icons)
