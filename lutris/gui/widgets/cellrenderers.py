@@ -1,6 +1,8 @@
 from gi.repository import GObject, Gtk, Pango
 
 from lutris.gui.views.media_loader import download_icons
+from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -53,5 +55,15 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
                 if slug in slugs
             }
 
-            icons = download_icons(urls_needed, service_media)
-            self.game_store.update_icons(icons)
+            AsyncCall(
+                download_icons,
+                self.icons_download_cb,
+                urls_needed,
+                service_media
+            )
+
+    def icons_download_cb(self, result, error):
+        if error:
+            logger.error("Failed to download icons: %s", error)
+            return
+        self.game_store.update_icons(result)
