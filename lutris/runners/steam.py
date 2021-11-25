@@ -127,7 +127,7 @@ class steam(Runner):
     system_options_override = [{"option": "disable_runtime", "default": True}]
 
     def __init__(self, config=None):
-        super(steam, self).__init__(config)
+        super().__init__(config)
         self.own_game_remove_method = _("Remove game data (through Steam)")
         self.no_game_remove_warning = True
         self.original_steampid = None
@@ -278,13 +278,13 @@ class steam(Runner):
             if not steamapps_path:
                 raise RuntimeError("Could not find Steam path, is Steam installed?")
             acf_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
-            with open(acf_path, "w") as acf_file:
+            with open(acf_path, "w", encoding='utf-8') as acf_file:
                 acf_file.write(acf_content)
             if is_running():
                 shutdown()
                 time.sleep(5)
         command = [self.get_executable(), "steam://install/%s" % appid]
-        subprocess.Popen(command)
+        subprocess.Popen(command)  # pylint: disable=consider-using-with
 
     def prelaunch(self):
         def has_steam_shutdown(times=10):

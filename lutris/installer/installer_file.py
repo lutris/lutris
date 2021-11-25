@@ -173,8 +173,8 @@ class InstallerFile:
             return
         try:
             hash_type, expected_hash = self.checksum.split(':', 1)
-        except ValueError:
-            raise ScriptingError("Invalid checksum, expected format (type:hash) ", self.checksum)
+        except ValueError as err:
+            raise ScriptingError("Invalid checksum, expected format (type:hash) ", self.checksum) from err
 
         if system.get_file_checksum(self.dest_file, hash_type) != expected_hash:
             raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", self.checksum)

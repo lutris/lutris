@@ -39,5 +39,5 @@ class SettingsIO:
             self.config.add_section(section)
         self.config.set(section, key, str(value))
 
-        with open(self.config_file, "w") as config_file:
+        with open(self.config_file, "w", encoding='utf-8') as config_file:
             self.config.write(config_file)

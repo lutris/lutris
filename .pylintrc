@@ -15,7 +15,7 @@ ignore-patterns=
 
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
-#init-hook=
+init-hook="import gi; gi.require_version('Gdk', '3.0'); gi.require_version('Gtk', '3.0'); gi.require_version('GnomeDesktop', '3.0')"
 
 # Use multiple processes to speed up Pylint.
 jobs=4
@@ -76,7 +76,9 @@ disable=
     unsupported-membership-test,
     protected-access,
     wrong-import-position,
-    import-outside-toplevel
+    import-outside-toplevel,
+    duplicate-code,
+    consider-using-f-string
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

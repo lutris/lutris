@@ -2,10 +2,11 @@
 import json
 import os
 import re
-import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+
+import requests
 
 from lutris import settings
 from lutris.util import http, system
@@ -20,7 +21,7 @@ def read_api_key():
     """Read the API token from disk"""
     if not system.path_exists(API_KEY_FILE_PATH):
         return None
-    with open(API_KEY_FILE_PATH, "r") as token_file:
+    with open(API_KEY_FILE_PATH, "r", encoding='utf-8') as token_file:
         api_string = token_file.read()
     try:
         username, token = api_string.split(":")
@@ -32,21 +33,22 @@ def read_api_key():
 
 def connect(username, password):
     """Connect to the Lutris API"""
-    credentials = urllib.parse.urlencode({"username": username, "password": password}).encode("utf-8")
     login_url = settings.SITE_URL + "/api/accounts/token"
+    credentials = {"username": username, "password": password}
     try:
-        request = urllib.request.urlopen(login_url, credentials, 10)
-    except (socket.timeout, urllib.error.URLError) as ex:
+        response = requests.post(url=login_url, data=credentials, timeout=10)
+        response.raise_for_status()
+        json_dict = response.json()
+        if "token" in json_dict:
+            token = json_dict["token"]
+            with open(API_KEY_FILE_PATH, "w", encoding='utf-8') as token_file:
+                token_file.write(f"{username}:{token}")
+            get_user_info()
+            return token
+    except (requests.RequestException, requests.ConnectionError, requests.HTTPError, requests.TooManyRedirects,
+            requests.Timeout) as ex:
         logger.error("Unable to connect to server (%s): %s", login_url, ex)
         return False
-    response = json.loads(request.read().decode())
-    if "token" in response:
-        token = response["token"]
-        with open(API_KEY_FILE_PATH, "w") as token_file:
-            token_file.write(":".join((username, token)))
-        get_user_info()
-        return response["token"]
-    return False
 
 
 def disconnect():
@@ -67,7 +69,7 @@ def get_user_info():
     account_info = response.json
     if not account_info:
         logger.warning("Unable to fetch user info for %s", credentials["username"])
-    with open(USER_INFO_FILE_PATH, "w") as token_file:
+    with open(USER_INFO_FILE_PATH, "w", encoding='utf-8') as token_file:
         json.dump(account_info, token_file, indent=2)
 
 

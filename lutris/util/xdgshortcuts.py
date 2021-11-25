@@ -61,9 +61,9 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
 
     launcher_filename = get_xdg_basename(game_slug, game_id)
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
-    tmp_launcher = open(tmp_launcher_path, "w")
-    tmp_launcher.write(launcher_content)
-    tmp_launcher.close()
+    with open(tmp_launcher_path, "w", encoding='utf-8') as tmp_launcher:
+        tmp_launcher.write(launcher_content)
+        tmp_launcher.close()
     os.chmod(
         tmp_launcher_path,
         stat.S_IREAD
@@ -75,15 +75,13 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
     )
 
     if desktop:
-        if not os.path.exists(desktop_dir):
-            os.mkdir(desktop_dir)
+        os.makedirs(desktop_dir, exist_ok=True)
         launcher_path = os.path.join(desktop_dir, launcher_filename)
         logger.debug("Creating Desktop icon in %s", launcher_path)
         shutil.copy(tmp_launcher_path, launcher_path)
     if menu:
         menu_path = os.path.join(GLib.get_user_data_dir(), "applications")
-        if not os.path.exists(menu_path):
-            os.mkdir(menu_path)
+        os.makedirs(menu_path, exist_ok=True)
         launcher_path = os.path.join(menu_path, launcher_filename)
         logger.debug("Creating menu launcher in %s", launcher_path)
         shutil.copy(tmp_launcher_path, launcher_path)

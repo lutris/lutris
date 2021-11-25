@@ -59,7 +59,7 @@ def read_user_config():
     config_filename = search_in_steam_dirs("config/loginusers.vdf")
     if not system.path_exists(config_filename):
         return None
-    with open(config_filename, "r") as steam_config_file:
+    with open(config_filename, "r", encoding='utf-8') as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     return config
 
@@ -133,7 +133,7 @@ def read_config(steam_data_dir):
     config_filename = os.path.join(steam_data_dir, "config/config.vdf")
     if not system.path_exists(config_filename):
         return None
-    with open(config_filename, "r") as steam_config_file:
+    with open(config_filename, "r", encoding='utf-8') as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
         return get_entry_case_insensitive(config, ["InstallConfigStore", "Software", "Valve", "Steam"])
@@ -155,7 +155,7 @@ def read_library_folders(steam_data_dir):
     library_filename = os.path.join(steam_data_dir, "config/libraryfolders.vdf")
     if not system.path_exists(library_filename):
         return None
-    with open(library_filename, "r") as steam_library_file:
+    with open(library_filename, "r", encoding='utf-8') as steam_library_file:
         library = vdf_parse(steam_library_file, {})
         # The contentstatsid key is unused and causes problems when looking for library paths.
         library["libraryfolders"].pop("contentstatsid")

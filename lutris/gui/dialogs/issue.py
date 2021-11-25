@@ -84,7 +84,7 @@ class IssueReportWindow(BaseApplicationWindow):
             return
         issue_path = os.path.join(target_path, "lutris-issue-report.json")
         issue_info = self.get_issue_info()
-        with open(issue_path, "w") as issue_file:
+        with open(issue_path, "w", encoding='utf-8') as issue_file:
             json.dump(issue_info, issue_file, indent=2)
         dialog.destroy()
         NoticeDialog(_("Issue saved in %s") % issue_path)
