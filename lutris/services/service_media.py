@@ -2,6 +2,7 @@ import json
 import os
 import random
 import time
+from pathlib import Path
 from typing import Optional
 
 from lutris import settings
@@ -39,7 +40,7 @@ class ServiceMedia:
 
     def exists(self, slug):
         """Whether the icon for the specified slug exists locally"""
-        return system.path_exists(self.get_absolute_path(slug))
+        return system.path_exists(self.get_absolute_path(slug), exclude_empty=True)
 
     def get_url(self, service_game):
         return self.url_pattern % service_game[self.api_field]
@@ -85,6 +86,8 @@ class ServiceMedia:
             return download_file(url, cache_path, raise_errors=True)
         except HTTPError as ex:
             logger.error(ex)
+            # Prevent redownload (for a couple of weeks) if an error occurred.
+            Path(cache_path).touch()
             return
 
     def render(self):
