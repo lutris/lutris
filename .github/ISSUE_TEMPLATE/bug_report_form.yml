@@ -46,8 +46,8 @@ body:
     id: logs
     attributes:
       label: Log output
-      description: "Close Lutris, launch it in the terminal using the command `lutris -d`, reproduce your issue, then paste the output from the terminal here."
-      placeholder: "Output from the `lutris -d` command after reproducing the issue"
+      description: "Close Lutris, launch it in the terminal using the command `lutris -d`, reproduce your issue, then paste all of the output from the terminal here. Do not shortnen/prune the output."
+      placeholder: "Full output from the `lutris -d` command after reproducing the issue"
       render: shell
     validations:
       required: true
