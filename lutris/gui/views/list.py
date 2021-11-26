@@ -143,6 +143,7 @@ class GameListView(Gtk.TreeView, GameView):
     def on_draw(self, _view, cr):
         self.image_cell.download_icons()
 
+
 class GameListColumnToggleMenu(Gtk.Menu):
 
     def __init__(self, columns):
