@@ -38,7 +38,6 @@ class GameGridView(Gtk.IconView, GameView):
             self.add_attribute(self.cell_renderer, "markup", COL_NAME)
 
         self.connect_signals()
-        self.connect("draw", self.on_draw)
         self.connect("item-activated", self.on_item_activated)
         self.connect("selection-changed", self.on_selection_changed)
 
@@ -68,6 +67,3 @@ class GameGridView(Gtk.IconView, GameView):
         selected_items = self.get_selected_item()
         if selected_items:
             self.emit("game-selected", selected_items)
-
-    def on_draw(self, _view, cr):
-        self.icon_renderer.download_icons()

@@ -26,6 +26,8 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         self.ongoing_download_slugs = set()
         self.failed_slugs = set()
         self._slug = ""
+        self.draw_widget = None
+        self.draw_connection_id = None
 
     @GObject.Property(type=str)
     def slug(self):
@@ -41,6 +43,10 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
 
         if slug and not service_media.exists(slug) and slug not in self.ongoing_download_slugs:
             self.pending_download_slugs.add(slug)
+
+            if self.draw_connection_id is None:
+                self.draw_widget = widget
+                self.draw_connection_id = widget.connect("draw", self.on_widget_draw)
 
         Gtk.CellRendererPixbuf.do_render(self, cr, widget, background_area, cell_area, flags)
 
@@ -82,3 +88,9 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
                 urls_needed,
                 service_media
             )
+
+    def on_widget_draw(self, _view, cr):
+        self.draw_widget.disconnect(self.draw_connection_id)
+        self.draw_widget = None
+        self.draw_connection_id = None
+        self.download_icons()
