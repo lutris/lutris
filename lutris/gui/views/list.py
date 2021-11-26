@@ -9,10 +9,11 @@ from gi.repository import Gtk, Pango
 from lutris import settings
 from lutris.gui.views import (
     COL_ICON, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_NAME, COL_PLATFORM,
-    COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_YEAR, COLUMN_NAMES
+    COL_SLUG, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_YEAR, COLUMN_NAMES
 )
 from lutris.gui.views.base import GameView
 from lutris.gui.views.store import sort_func
+from lutris.gui.widgets.cellrenderers import GridViewCellRendererBanner
 
 
 class GameListView(Gtk.TreeView, GameView):
@@ -30,8 +31,8 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_rules_hint(True)
 
         # Icon column
-        image_cell = Gtk.CellRendererPixbuf()
-        column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
+        self.image_cell = GridViewCellRendererBanner(store, service_media)
+        column = Gtk.TreeViewColumn("", self.image_cell, pixbuf=COL_ICON, slug=COL_SLUG)
         column.set_reorderable(True)
         column.set_sort_indicator(False)
         self.append_column(column)
@@ -55,6 +56,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
         self.connect_signals()
+        self.connect("draw", self.on_draw)
         self.connect("row-activated", self.on_row_activated)
         self.get_selection().connect("changed", self.on_cursor_changed)
 
@@ -138,6 +140,8 @@ class GameListView(Gtk.TreeView, GameView):
                 "list view",
             )
 
+    def on_draw(self, _view, cr):
+        self.image_cell.download_icons()
 
 class GameListColumnToggleMenu(Gtk.Menu):
 
