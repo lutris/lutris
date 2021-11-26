@@ -56,7 +56,6 @@ class GameListView(Gtk.TreeView, GameView):
         self.get_selection().set_mode(Gtk.SelectionMode.SINGLE)
 
         self.connect_signals()
-        self.connect("draw", self.on_draw)
         self.connect("row-activated", self.on_row_activated)
         self.get_selection().connect("changed", self.on_cursor_changed)
 
@@ -139,9 +138,6 @@ class GameListView(Gtk.TreeView, GameView):
                 col.get_fixed_width(),
                 "list view",
             )
-
-    def on_draw(self, _view, cr):
-        self.image_cell.download_icons()
 
 
 class GameListColumnToggleMenu(Gtk.Menu):
