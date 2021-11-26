@@ -9,7 +9,7 @@ from gi.repository import Gtk, Pango
 from lutris import settings
 from lutris.gui.views import (
     COL_ICON, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_NAME, COL_PLATFORM,
-    COL_SLUG, COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_YEAR, COLUMN_NAMES
+    COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_SLUG, COL_YEAR, COLUMN_NAMES
 )
 from lutris.gui.views.base import GameView
 from lutris.gui.views.store import sort_func
