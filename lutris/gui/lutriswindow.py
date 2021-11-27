@@ -17,7 +17,6 @@ from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.views import COL_ID, COL_NAME
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
-from lutris.gui.views.media_loader import download_icons
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.game_bar import GameBar
@@ -26,7 +25,7 @@ from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 # pylint: disable=no-member
 from lutris.services.base import BaseService
-from lutris.services.lutris import LutrisBanner, LutrisIcon, LutrisService
+from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -274,20 +273,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Return games from the lutris API"""
         if not self.filters.get("text"):
             return []
-        api_games = api.search_games(self.filters["text"])
-        if "icon" in self.icon_type:
-            api_field = "icon_url"
-            _service_media = LutrisIcon
-        else:
-            api_field = "banner_url"
-            _service_media = LutrisBanner
-        AsyncCall(
-            download_icons,
-            self.icons_download_cb,
-            {g["slug"]: g[api_field] for g in api_games},
-            _service_media()
-        )
-        return api_games
+        return api.search_games(self.filters["text"])
 
     def icons_download_cb(self, result, error):
         if error:
