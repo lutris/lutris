@@ -79,6 +79,13 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
                 self.failed_slugs.update(slugs)
                 logger.error("Failed to download icons: %s", error)
                 return
+
+            # Give the EGS service media chance to resize the banners it needs to-
+            # but do this only when we're done downloading. It's going to examine
+            # every banner file!
+            if len(self.ongoing_download_slugs) == 0 and len(self.pending_download_slugs) == 0:
+                service_media.render()
+
             self.game_store.update_icons(result)
 
         print(f'Render download: {len(urls_needed)}')
