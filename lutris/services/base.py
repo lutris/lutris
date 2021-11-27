@@ -187,7 +187,7 @@ class BaseService(GObject.Object):
         """Install a service game, or starts the installer of the game.
 
         Args:
-            db_name (dict or str): Database fields of the game to add, or (for Lutris service only
+            db_game (dict or str): Database fields of the game to add, or (for Lutris service only
                 the slug of the game.)
 
         Returns:
