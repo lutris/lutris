@@ -81,7 +81,6 @@ class BaseService(GObject.Object):
         self.emit("service-games-load")
         self.wipe_game_cache()
         self.load()
-        self.load_icons()
         self.add_installed_games()
         self.emit("service-games-loaded")
 
