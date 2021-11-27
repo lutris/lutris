@@ -506,8 +506,6 @@ class Application(Gtk.Application):
             if game_id:
                 game = Game(game_id)
                 game.launch()
-            else:
-                ErrorDialog(message=_("Could not retrieve game installer."), parent=self.window)
             return True
         if not game.slug:
             raise ValueError("Invalid game passed: %s" % game)
