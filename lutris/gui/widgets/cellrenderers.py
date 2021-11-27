@@ -88,8 +88,6 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
 
             self.game_store.update_icons(result)
 
-        print(f'Render download: {len(urls_needed)}')
-
         AsyncCall(
             download_icons,
             icons_download_cb,
