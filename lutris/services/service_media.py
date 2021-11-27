@@ -58,6 +58,17 @@ class ServiceMedia:
             return
         return self.url_pattern % details[self.api_field]
 
+    def get_media_urls_for(self, slugs):
+        """Returns URLS for icons and logos, but for a specific
+        list of slugs."""
+        media_urls = self.get_media_urls()
+
+        return {
+            slug: url
+            for slug, url in media_urls.items()
+            if slug in slugs
+        }
+
     def get_media_urls(self):
         """Return URLs for icons and logos from a service"""
         if self.source == "local":
