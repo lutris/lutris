@@ -1,4 +1,4 @@
-from gi.repository import GObject, Gtk, Pango
+from gi.repository import GLib, GObject, Gtk, Pango
 
 from lutris.gui.views.media_loader import download_icons
 from lutris.util.jobs import AsyncCall
@@ -25,9 +25,10 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         self.pending_download_slugs = set()
         self.ongoing_download_slugs = set()
         self.failed_slugs = set()
-        self._slug = ""
         self.draw_widget = None
         self.draw_connection_id = None
+        self.download_timer_running = False
+        self._slug = ""
 
     @GObject.Property(type=str)
     def slug(self):
@@ -81,6 +82,8 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
                 return
             self.game_store.update_icons(result)
 
+        print(f'Render download: {len(urls_needed)}')
+
         AsyncCall(
             download_icons,
             icons_download_cb,
@@ -92,4 +95,11 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         self.draw_widget.disconnect(self.draw_connection_id)
         self.draw_widget = None
         self.draw_connection_id = None
+        if not self.download_timer_running:
+            self.download_timer_running = True
+            GLib.timeout_add(500, self.on_widget_timeout)
+
+    def on_widget_timeout(self):
+        self.download_timer_running = False
         self.download_icons()
+        return False
