@@ -14,7 +14,6 @@ from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.installer.legacy import get_game_launcher
 from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
-from lutris.services.lutris import download_lutris_media
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.jobs import AsyncCall
@@ -346,7 +345,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         else:
             install_complete_text = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
             self.parent.set_status(install_complete_text)
-        download_lutris_media(self.installer.game_slug)
         self.parent.on_install_finished()
 
     def cleanup(self):
