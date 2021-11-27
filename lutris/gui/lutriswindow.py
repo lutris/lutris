@@ -808,7 +808,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_game_activated(self, view, game_id):
         """Handles view activations (double click, enter press)"""
-        initial_game_id = game_id
         if self.service:
             logger.debug("Looking up %s game %s", self.service.id, game_id)
             db_game = games_db.get_game_for_service(self.service.id, game_id)
@@ -837,5 +836,3 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 game.emit("game-launch")
             else:
                 game.emit("game-install")
-        else:
-            logger.warning("No game found for %s", initial_game_id)
