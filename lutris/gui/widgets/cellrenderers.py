@@ -60,18 +60,23 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
 
             if not self.download_timer_running:
                 self.download_timer_running = True
-                GLib.timeout_add(500, self.on_widget_timeout)
+                GLib.timeout_add(500, self._download_pending)
 
         Gtk.CellRendererPixbuf.do_render(self, cr, widget, background_area, cell_area, flags)
 
-    def on_widget_timeout(self):
+    def _download_pending(self):
+        """This is the timer function that is called shortly after rendering
+        detects a needed download. It starts the downloads required."""
         self.download_timer_running = False
-        self.download_icons()
-        return False
+        slugs = self.dequeue_pending_slugs()
+        if len(slugs) > 0:
+            self.download_for_slugs(slugs)
+        return False # one-shot timer
 
-    def download_icons(self):
-        # We need to work out which slugs to download; we'll recheck
-        # that they are still needed, and are not downloading or failed.
+    def dequeue_pending_slugs(self):
+        """Returns which slugs to download; we'll recheck that they
+        are still needed, and are not downloading already or failed.
+        But we clear the pending set in any case."""
         service_media = self.service_media
         slugs = [
             slug for slug
@@ -81,20 +86,15 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
             if not service_media.exists(slug)
         ]
 
-        self.pending_download_slugs = set()
+        self.pending_download_slugs.clear()
+        return slugs
 
-        if len(slugs) == 0:
-            return
-
-        # Work out the URLs for the slugs
+    def download_for_slugs(self, slugs):
+        """Starts the download of the banners or icons for the slugs given."""
+        service_media = self.service_media
         urls_needed = service_media.get_media_urls_for(slugs)
 
-        if len(urls_needed) == 0:
-            return
-
-        self.ongoing_download_slugs.update(slugs)
-
-        def icons_download_cb(result, error):
+        def slugs_download_cb(result, error):
             """This is called when the download completes and records the 'icons';
             that will cause the UI to update and the cells, ultimately, to rerender."""
             self.ongoing_download_slugs.difference_update(slugs)
@@ -112,9 +112,11 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
 
             self.game_store.update_icons(result)
 
+        self.ongoing_download_slugs.update(slugs)
+
         AsyncCall(
             download_icons,
-            icons_download_cb,
+            slugs_download_cb,
             urls_needed,
             service_media
         )
