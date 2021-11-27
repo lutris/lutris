@@ -33,6 +33,12 @@ class LutrisBanner(ServiceMedia):
     api_field = 'banner_url'
     url_pattern = "https://lutris.net/games/banner/%s.jpg"
 
+    def get_media_urls_for(self, slugs):
+        return {
+            slug: self.url_pattern % slug
+            for slug in slugs
+        }
+
     def get_media_urls(self):
         return {
             game["slug"]: self.url_pattern % game["slug"]

@@ -62,32 +62,31 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
 
         self.pending_download_slugs = set()
 
-        if len(slugs) > 0:
-            media_urls = service_media.get_media_urls()
+        if len(slugs) == 0:
+            return
 
-            urls_needed = {
-                slug: url
-                for slug, url in media_urls.items()
-                if slug in slugs
-            }
+        urls_needed = service_media.get_media_urls_for(slugs)
 
-            self.ongoing_download_slugs.update(slugs)
+        if len(urls_needed) == 0:
+            return
 
-            def icons_download_cb(result, error):
-                self.ongoing_download_slugs.difference_update(slugs)
+        self.ongoing_download_slugs.update(slugs)
 
-                if error:
-                    self.failed_slugs.update(slugs)
-                    logger.error("Failed to download icons: %s", error)
-                    return
-                self.game_store.update_icons(result)
+        def icons_download_cb(result, error):
+            self.ongoing_download_slugs.difference_update(slugs)
 
-            AsyncCall(
-                download_icons,
-                icons_download_cb,
-                urls_needed,
-                service_media
-            )
+            if error:
+                self.failed_slugs.update(slugs)
+                logger.error("Failed to download icons: %s", error)
+                return
+            self.game_store.update_icons(result)
+
+        AsyncCall(
+            download_icons,
+            icons_download_cb,
+            urls_needed,
+            service_media
+        )
 
     def on_widget_draw(self, _view, cr):
         self.draw_widget.disconnect(self.draw_connection_id)
