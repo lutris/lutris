@@ -414,5 +414,5 @@ class LutrisSidebar(Gtk.ListBox):
     def on_services_changed(self, _widget):
         for child in self.get_children():
             child.destroy()
-        self.on_realize(self)
+        self.initialize_rows()
         return True
