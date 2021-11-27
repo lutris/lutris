@@ -11,7 +11,6 @@ from lutris.database.games import add_game, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
-from lutris.gui.views.media_loader import download_icons
 from lutris.installer import fetch_script
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system

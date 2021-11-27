@@ -10,7 +10,6 @@ from lutris.api import read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
-from lutris.gui.views.media_loader import download_icons
 from lutris.installer import fetch_script
 from lutris.services.base import LutrisBanner, LutrisIcon, OnlineService
 from lutris.services.service_game import ServiceGame
