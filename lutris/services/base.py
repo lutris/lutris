@@ -79,7 +79,6 @@ class BaseService(GObject.Object):
     drm_free = False  # DRM free games can be added to Lutris from an existing install
     client_installer = None  # ID of a script needed to install the client used by the service
     medias = {}
-    extra_medias = {}
     default_format = "icon"
 
     __gsignals__ = {
@@ -105,27 +104,6 @@ class BaseService(GObject.Object):
 
     def load(self):
         logger.warning("Load method not implemented")
-
-    def load_icons(self):
-        """Download all game media from the service"""
-        all_medias = self.medias.copy()
-        all_medias.update(self.extra_medias)
-        # Download icons
-        for icon_type in all_medias:
-            service_media = all_medias[icon_type]()
-            media_urls = service_media.get_media_urls()
-            download_icons(media_urls, service_media)
-
-        # Process icons
-        for icon_type in all_medias:
-            service_media = all_medias[icon_type]()
-            service_media.render()
-
-        if self.id != "lutris":
-            for service_media_class in (LutrisIcon, LutrisBanner):
-                service_media = service_media_class()
-                media_urls = service_media.get_media_urls()
-                download_icons(media_urls, service_media)
 
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)

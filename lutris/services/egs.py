@@ -142,9 +142,6 @@ class EpicGamesStoreService(OnlineService):
         "game_box": DieselGameBox,
         "box_tall": DieselGameBoxTall,
     }
-    extra_medias = {
-        "logo": DieselGameBoxLogo,
-    }
     default_format = "game_banner_small"
     requires_login_page = True
     cookies_path = os.path.join(settings.CACHE_DIR, ".egs.auth")
