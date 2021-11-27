@@ -1,10 +1,9 @@
 import os
 from collections import OrderedDict
 from unittest import TestCase
-from lutris.util import system
+
+from lutris.util import fileio, strings, system
 from lutris.util.steam import vdf
-from lutris.util import strings
-from lutris.util import fileio
 
 
 class TestFileUtils(TestCase):

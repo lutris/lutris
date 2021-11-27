@@ -132,7 +132,7 @@ class CabInstaller:
         return (out, arch)
 
     def get_wineprefix_arch(self):
-        with open(os.path.join(self.prefix, "system.reg")) as reg_file:
+        with open(os.path.join(self.prefix, "system.reg"), encoding='utf-8') as reg_file:
             for line in reg_file.readlines():
                 if line.startswith("#arch=win32"):
                     return "win32"
@@ -173,7 +173,7 @@ class CabInstaller:
                 outdata, arch = self.get_registry_from_manifest(file_path)
                 if outdata:
                     out += outdata
-                    with open(os.path.join(self.tmpdir, file_path + ".reg"), "w") as reg_file:
+                    with open(os.path.join(self.tmpdir, file_path + ".reg"), "w", encoding='utf-8') as reg_file:
                         reg_file.write(out)
                     reg_files.append((file_path + ".reg", arch))
             if file_path.endswith(".dll"):

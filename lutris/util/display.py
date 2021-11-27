@@ -30,7 +30,7 @@ def restore_gamma():
     """Restores gamma to a normal level."""
     xgamma_path = system.find_executable("xgamma")
     try:
-        subprocess.Popen([xgamma_path, "-gamma", "1.0"])
+        subprocess.Popen([xgamma_path, "-gamma", "1.0"])  # pylint: disable=consider-using-with
     except (FileNotFoundError, TypeError):
         logger.warning("xgamma is not available on your system")
     except PermissionError:

@@ -131,7 +131,7 @@ class dosbox(Runner):
             return os.path.expanduser(option)
         if self.main_file:
             return os.path.dirname(self.main_file)
-        return super(dosbox, self).working_dir
+        return super().working_dir
 
     def play(self):
         main_file = self.main_file

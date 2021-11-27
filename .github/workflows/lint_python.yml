@@ -6,19 +6,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-      - run: pip install --upgrade pip wheel
-      - run: pip install bandit black flake8 isort mypy pytest pyupgrade safety
-      - run: bandit --recursive --skip B101,B105,B107,B108,B303,B310,B311,B314,B320,B404,B405,B410,B602,B603,B607,B608 .
-      - run: black --check . || true
-      - run: flake8 . --count --max-complexity=15 --max-line-length=120 --show-source --statistics
-      - run: isort --check-only . || true
       - run: sudo apt-get update -y
-      - run: sudo apt-get install libdbus-1-dev libgirepository1.0-dev
+      - run: sudo apt-get install make libdbus-1-dev libgirepository1.0-dev
                  gir1.2-gnomedesktop-3.0 gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-webkit2-4.0
-      - run: pip install lxml Pillow PyGObject -r requirements.txt  # -r requirements-dev.txt
-      - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
+      - run: pip install --upgrade pip wheel poetry
+      - run: make dev
+      - run: make isort-check
+      - run: make flake8
+      - run: make black || true
+      - run: make mypy || true
       - uses: GabrielBB/xvfb-action@v1
         with:
-          run: pytest .
-      - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true
-      - run: safety check || true
+          run: poetry run pytest .
+      - run: shopt -s globstar && poetry run pyupgrade --py36-plus **/*.py || true
+      - run: poetry run safety check || true

@@ -64,7 +64,7 @@ class DLLManager:
     def load_versions(self):
         if not system.path_exists(self.versions_path):
             return []
-        with open(self.versions_path, "r") as version_file:
+        with open(self.versions_path, "r", encoding='utf-8') as version_file:
             try:
                 versions = [v["tag_name"] for v in json.load(version_file)]
             except (KeyError, json.decoder.JSONDecodeError):
@@ -87,19 +87,17 @@ class DLLManager:
 
     def dll_exists(self, dll_name):
         """Check if the dll is provided by the component
-        The DLL might not be available for all archs so
-        only check if one exists for the supported architectures
+        The DLL might not be available for all architectures so
+        only check if one exists for the supported ones
         """
         return any(
-            [
-                system.path_exists(os.path.join(self.path, arch, dll_name + ".dll"))
-                for arch in self.archs.values()
-            ]
+            system.path_exists(os.path.join(self.path, arch, dll_name + ".dll"))
+            for arch in self.archs.values()
         )
 
     def get_download_url(self):
         """Fetch the download URL from the JSON version file"""
-        with open(self.versions_path, "r") as version_file:
+        with open(self.versions_path, "r", encoding='utf-8') as version_file:
             releases = json.load(version_file)
         for release in releases:
             if release["tag_name"] != self.version:
