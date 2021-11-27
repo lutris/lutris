@@ -18,15 +18,16 @@ class GridViewCellRendererText(Gtk.CellRendererText):
 
 
 class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
+    pending_download_slugs = set()
+    ongoing_download_slugs = set()
+    failed_slugs = set()
+    download_timer_running = False
+    _slug = ""
+
     def __init__(self, game_store, service_media, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.game_store = game_store
         self.service_media = service_media
-        self.pending_download_slugs = set()
-        self.ongoing_download_slugs = set()
-        self.failed_slugs = set()
-        self.download_timer_running = False
-        self._slug = ""
 
     @GObject.Property(type=str)
     def slug(self):
