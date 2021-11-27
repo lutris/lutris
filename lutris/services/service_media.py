@@ -40,7 +40,16 @@ class ServiceMedia:
 
     def exists(self, slug):
         """Whether the icon for the specified slug exists locally"""
-        return system.path_exists(self.get_absolute_path(slug), exclude_empty=True)
+        cache_path = os.path.join(self.get_absolute_path(slug))
+        if system.path_exists(cache_path, exclude_empty=True):
+            return True
+        # Empty files are placeholders; once they are old enough we'll
+        # treat them as absent, and the download code will replace them.
+        if system.path_exists(cache_path):
+            cache_stats = os.stat(cache_path)
+            if time.time() - cache_stats.st_mtime < 3600 * 24 * random.choice(range(7, 15)):
+                return True
+        return False
 
     def get_url(self, service_game):
         return self.url_pattern % service_game[self.api_field]
