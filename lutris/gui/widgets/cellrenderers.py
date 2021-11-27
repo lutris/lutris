@@ -25,8 +25,6 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         self.pending_download_slugs = set()
         self.ongoing_download_slugs = set()
         self.failed_slugs = set()
-        self.draw_widget = None
-        self.draw_connection_id = None
         self.download_timer_running = False
         self._slug = ""
 
@@ -45,9 +43,9 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         if slug and not service_media.exists(slug) and slug not in self.ongoing_download_slugs:
             self.pending_download_slugs.add(slug)
 
-            if self.draw_connection_id is None:
-                self.draw_widget = widget
-                self.draw_connection_id = widget.connect("draw", self.on_widget_draw)
+            if not self.download_timer_running:
+                self.download_timer_running = True
+                GLib.timeout_add(500, self.on_widget_timeout)
 
         Gtk.CellRendererPixbuf.do_render(self, cr, widget, background_area, cell_area, flags)
 
@@ -90,14 +88,6 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
             urls_needed,
             service_media
         )
-
-    def on_widget_draw(self, _view, cr):
-        self.draw_widget.disconnect(self.draw_connection_id)
-        self.draw_widget = None
-        self.draw_connection_id = None
-        if not self.download_timer_running:
-            self.download_timer_running = True
-            GLib.timeout_add(500, self.on_widget_timeout)
 
     def on_widget_timeout(self):
         self.download_timer_running = False
