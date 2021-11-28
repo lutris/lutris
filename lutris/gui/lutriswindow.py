@@ -349,13 +349,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 "installed_at": 0.0,
                 "playtime": 0.0,
             }
+            view_sorting = self.view_sorting
             lutris_game = lutris_games.get(game["appid"])
             if not lutris_game:
-                return sort_defaults[self.view_sorting]
-            value = lutris_game[self.view_sorting]
+                return sort_defaults.get(view_sorting, "")
+            value = lutris_game.get(view_sorting)
             if value:
                 return value
-            return sort_defaults[self.view_sorting]
+            # Users may have obsolete view_sorting settings, so
+            # we must tolerate them. We treat them all all blank.
+            return sort_defaults.get(view_sorting, "")
 
         return [
             self.combine_games(game, lutris_games.get(game["appid"])) for game in sorted(
