@@ -394,6 +394,10 @@ class LutrisSidebar(Gtk.ListBox):
         """Hide the "running" section when no games are running"""
         if not self.application.running_games.get_n_items():
             self.running_row.hide()
+
+            if self.get_selected_row() == self.running_row:
+                self.select_row(self.get_children()[0])
+
         return True
 
     def on_service_auth_changed(self, service):
