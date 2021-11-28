@@ -31,11 +31,11 @@ class GameGridView(Gtk.IconView, GameView):
         self.add_attribute(icon_renderer, "pixbuf", COL_ICON)
         self.add_attribute(icon_renderer, "slug", COL_SLUG)
         if hide_text:
-            cell_renderer  = None
+            cell_renderer = None
         else:
-            cell_renderer  = GridViewCellRendererText(self.cell_width)
+            cell_renderer = GridViewCellRendererText(self.cell_width)
             self.pack_end(cell_renderer , False)
-            self.add_attribute(cell_renderer , "markup", COL_NAME)
+            self.add_attribute(cell_renderer, "markup", COL_NAME)
 
         self.connect_signals()
         self.connect("item-activated", self.on_item_activated)

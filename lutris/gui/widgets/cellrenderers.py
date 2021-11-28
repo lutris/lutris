@@ -71,7 +71,7 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         slugs = self.dequeue_pending_slugs()
         if len(slugs) > 0:
             self.download_for_slugs(slugs)
-        return False # one-shot timer
+        return False  # one-shot timer
 
     def dequeue_pending_slugs(self):
         """Returns which slugs to download; we'll recheck that they
