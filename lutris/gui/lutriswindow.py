@@ -815,7 +815,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_game_stop(self, game):
         """Updates the game list when a game stops; this keeps the 'running' page updated."""
-        self.update_store()
+        selected_row = self.sidebar.get_selected_row()
+        # Only update the running page- we lose the selected when we do this,
+        # but on the running page this is okay.
+        if selected_row is not None and selected_row.id == "running":
+            self.update_store()
         return True
 
     def on_game_collection_changed(self, _sender):
