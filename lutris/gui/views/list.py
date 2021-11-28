@@ -31,8 +31,8 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_rules_hint(True)
 
         # Icon column
-        self.image_cell = GridViewCellRendererBanner(store, service_media)
-        column = Gtk.TreeViewColumn("", self.image_cell, pixbuf=COL_ICON, slug=COL_SLUG)
+        image_cell = GridViewCellRendererBanner(store, service_media)
+        column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON, slug=COL_SLUG)
         column.set_reorderable(True)
         column.set_sort_indicator(False)
         self.append_column(column)

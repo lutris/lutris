@@ -26,16 +26,16 @@ class GameGridView(Gtk.IconView, GameView):
         self.set_item_padding(1)
         self.cell_width = max(service_media.size[0], self.min_width)
         self.clear()
-        self.icon_renderer = GridViewCellRendererBanner(store, service_media)
-        self.pack_start(self.icon_renderer, True)
-        self.add_attribute(self.icon_renderer, "pixbuf", COL_ICON)
-        self.add_attribute(self.icon_renderer, "slug", COL_SLUG)
+        icon_renderer = GridViewCellRendererBanner(store, service_media)
+        self.pack_start(icon_renderer, True)
+        self.add_attribute(icon_renderer, "pixbuf", COL_ICON)
+        self.add_attribute(icon_renderer, "slug", COL_SLUG)
         if hide_text:
-            self.cell_renderer = None
+            cell_renderer  = None
         else:
-            self.cell_renderer = GridViewCellRendererText(self.cell_width)
-            self.pack_end(self.cell_renderer, False)
-            self.add_attribute(self.cell_renderer, "markup", COL_NAME)
+            cell_renderer  = GridViewCellRendererText(self.cell_width)
+            self.pack_end(cell_renderer , False)
+            self.add_attribute(cell_renderer , "markup", COL_NAME)
 
         self.connect_signals()
         self.connect("item-activated", self.on_item_activated)
