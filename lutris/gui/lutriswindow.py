@@ -348,7 +348,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             if value:
                 return value
             # Users may have obsolete view_sorting settings, so
-            # we must tolerate them. We treat them all all blank.
+            # we must tolerate them. We treat them all as blank.
             return sort_defaults.get(view_sorting, "")
 
         return [
