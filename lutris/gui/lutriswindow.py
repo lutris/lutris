@@ -128,6 +128,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
+        GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
 
     def _init_actions(self):
@@ -810,6 +811,11 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         updated = self.game_store.update(db_game)
         if not updated:
             self.game_store.add_game(db_game)
+        return True
+
+    def on_game_stop(self, game):
+        """Updates the game list when a game stops; this keeps the 'running' page updated."""
+        self.update_store()
         return True
 
     def on_game_collection_changed(self, _sender):
