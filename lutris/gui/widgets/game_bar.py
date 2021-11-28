@@ -6,7 +6,7 @@ from gi.repository import GObject, Gtk, Pango
 from lutris import runners, services
 from lutris.database.games import get_game_by_field, get_game_for_service
 from lutris.game import Game
-from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_link_button
 from lutris.util.strings import gtk_safe
 
 
@@ -99,12 +99,6 @@ class GameBar(Gtk.Box):
         popover.set_constrain_to(Gtk.PopoverConstraint.NONE)
         popover.set_relative_to(parent)
         return popover
-
-    def get_icon(self):
-        """Return the game icon"""
-        icon = Gtk.Image.new_from_pixbuf(get_pixbuf_for_game(self.game.slug, (32, 32)))
-        icon.show()
-        return icon
 
     def get_game_name_label(self):
         """Return the label with the game's title"""
