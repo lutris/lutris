@@ -34,7 +34,7 @@ class GameGridView(Gtk.IconView, GameView):
             cell_renderer = None
         else:
             cell_renderer = GridViewCellRendererText(self.cell_width)
-            self.pack_end(cell_renderer , False)
+            self.pack_end(cell_renderer, False)
             self.add_attribute(cell_renderer, "markup", COL_NAME)
 
         self.connect_signals()
