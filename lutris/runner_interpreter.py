@@ -107,7 +107,8 @@ def get_launch_parameters(runner, gameplay_info):
 
 def get_gamescope_args(launch_arguments, system_config):
     """Insert gamescope at the start of the launch arguments"""
-    launch_arguments.insert(0, "-f --")
+    launch_arguments.insert(0, "--")
+    launch_arguments.insert(0, "-f")
     if system_config.get("gamescope_output_res"):
         output_width, output_height = system_config["gamescope_output_res"].lower().split("x")
         launch_arguments.insert(0, output_height)
@@ -131,11 +132,11 @@ def export_bash_script(runner, gameplay_info, script_path):
     env["TERM"] = "xterm"
     script_content = "#!/bin/bash\n\n\n"
     script_content += "# Environment variables\n"
-    for env_var in env:
-        script_content += "export %s=\"%s\"\n" % (env_var, env[env_var])
+    for name, value in env.items():
+        script_content += f'export {name}="{value}"\n'
     script_content += "\n# Command\n"
     script_content += " ".join([shlex.quote(c) for c in command])
-    with open(script_path, "w") as script_file:
+    with open(script_path, "w", encoding='utf-8') as script_file:
         script_file.write(script_content)
 
     os.chmod(script_path, os.stat(script_path).st_mode | stat.S_IEXEC)

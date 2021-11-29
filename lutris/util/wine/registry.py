@@ -97,7 +97,7 @@ class WineRegistry:
         """Return an array of the unprocessed contents of a registry file"""
         if not system.path_exists(reg_filename):
             return []
-        with open(reg_filename, "r") as reg_file:
+        with open(reg_filename, "r", encoding='utf-8') as reg_file:
 
             try:
                 registry_content = reg_file.readlines()
@@ -158,7 +158,7 @@ class WineRegistry:
                 "Invalid Wine prefix path %s, make sure to "
                 "create the prefix before saving to a registry" % prefix_path
             )
-        with open(path, "w") as registry_file:
+        with open(path, "w", encoding='utf-8') as registry_file:
             registry_file.write(self.render())
 
     def query(self, path, subkey):

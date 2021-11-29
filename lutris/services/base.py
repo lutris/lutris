@@ -21,6 +21,10 @@ from lutris.util.log import logger
 PGA_DB = settings.PGA_DB
 
 
+class AuthTokenExpired(Exception):
+    """Exception raised when a token is no longer valid"""
+
+
 class LutrisBanner(ServiceMedia):
     service = 'lutris'
     size = (184, 69)
@@ -117,12 +121,11 @@ class BaseService(GObject.Object):
         """Match a service game to a lutris game referenced by its slug"""
         if not service_game:
             return
-        conditions = {"appid": service_game["appid"], "service": self.id}
         sql.db_update(
             PGA_DB,
             "service_games",
             {"lutris_slug": api_game["slug"]},
-            conditions=conditions
+            conditions={"appid": service_game["appid"], "service": self.id}
         )
         unmatched_lutris_games = get_games(
             searches={"installer_slug": self.matcher},
@@ -143,7 +146,6 @@ class BaseService(GObject.Object):
         service_games = {
             str(game["appid"]): game for game in ServiceGameCollection.get_for_service(self.id)
         }
-        logger.debug("Matching games %s", service_games)
         lutris_games = api.get_api_games(list(service_games.keys()), service=self.id)
         for lutris_game in lutris_games:
             for provider_game in lutris_game["provider_games"]:
@@ -255,7 +257,7 @@ class OnlineService(BaseService):
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""
-        return all([system.path_exists(path) for path in self.credential_files])
+        return all(system.path_exists(path) for path in self.credential_files)
 
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""

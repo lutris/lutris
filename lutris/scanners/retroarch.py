@@ -46,11 +46,11 @@ def clean_rom_name(name):
 def scan_directory(dirname):
     """Add a directory of ROMs as Lutris games"""
     files = os.listdir(dirname)
-    folder_extentions = {os.path.splitext(filename)[1] for filename in files}
+    folder_extensions = {os.path.splitext(filename)[1] for filename in files}
     core_matches = {}
-    for core in RECOMMENDED_CORES:
-        for ext in RECOMMENDED_CORES[core].get("extensions", []):
-            if ext in folder_extentions:
+    for core, core_data in RECOMMENDED_CORES.items():
+        for ext in core_data.get("extensions", []):
+            if ext in folder_extensions:
                 core_matches[ext] = core
     added_games = []
     for filename in files:

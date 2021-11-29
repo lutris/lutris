@@ -74,7 +74,7 @@ class pico8(Runner):
     runner_executable = "pico8/web.py"
 
     def __init__(self, config=None):
-        super(pico8, self).__init__(config)
+        super().__init__(config)
 
         self.runnable_alone = self.is_native
 

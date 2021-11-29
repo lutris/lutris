@@ -4,7 +4,7 @@ import os
 import shlex
 from gettext import gettext as _
 
-from lutris import runtime
+from lutris import runtime, settings
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -18,6 +18,7 @@ from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, split_arguments
 from lutris.util.wine.d3d_extras import D3DExtrasManager
+from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
@@ -103,7 +104,7 @@ class wine(Runner):
     )
 
     def __init__(self, config=None):  # noqa: C901
-        super(wine, self).__init__(config)
+        super().__init__(config)
         self.dll_overrides = DEFAULT_DLL_OVERRIDES
 
         def get_wine_version_choices():
@@ -116,7 +117,7 @@ class wine(Runner):
             }
             versions = get_wine_versions()
             for version in versions:
-                if version in labels.keys():
+                if version in labels:
                     version_number = get_wine_version(WINE_PATHS[version])
                     label = labels[version].format(version_number)
                 else:
@@ -270,6 +271,26 @@ class wine(Runner):
                 "default": DXVKNVAPIManager().version,
             },
             {
+                "option": "dgvoodoo2",
+                "label": _("Enable dgvoodoo2"),
+                "type": "bool",
+                "default": False,
+                "advanced": False,
+                "help": _(
+                    "dgvoodoo2 is an alternative translation layer for rendering old games "
+                    "that utilize D3D1-7 and Glide APIs. As it translates to D3D11, it's "
+                    "recommended to use it in combination with DXVK. Only 32-bit apps are supported."
+                ),
+            },
+            {
+                "option": "dgvoodoo2_version",
+                "label": _("dgvoodoo2 version"),
+                "advanced": True,
+                "type": "choice_with_entry",
+                "choices": dgvoodoo2Manager().version_choices,
+                "default": dgvoodoo2Manager().version,
+            },
+            {
                 "option": "esync",
                 "label": _("Enable Esync"),
                 "type": "extended_bool",
@@ -306,6 +327,16 @@ class wine(Runner):
                     "Use FSR to upscale the game window to native resolution.\n"
                     "Requires Lutris Wine FShack >= 6.13 and setting the game to a lower resolution.\n"
                     "Does not work with games running in borderless window mode or that perform their own upscaling."
+                ),
+            },
+            {
+                "option": "battleye",
+                "label": _("Enable BattlEye Anti-Cheat"),
+                "type": "bool",
+                "default": False,
+                "help": _(
+                    "Enable support for BattlEye Anti-Cheat in supported games\n"
+                    "Requires Lutris Wine 6.21-2 and newer or any other compatible Wine build.\n"
                 ),
             },
             {
@@ -475,7 +506,7 @@ class wine(Runner):
             return option
         if self.game_exe:
             return os.path.dirname(self.game_exe)
-        return super(wine, self).working_dir
+        return super().working_dir
 
     @property
     def wine_arch(self):
@@ -499,7 +530,7 @@ class wine(Runner):
     def get_path_for_version(self, version):
         """Return the absolute path of a wine executable for a given version"""
         # logger.debug("Getting path for Wine %s", version)
-        if version in WINE_PATHS.keys():
+        if version in WINE_PATHS:
             return system.find_executable(WINE_PATHS[version])
         if "Proton" in version:
             for proton_path in get_proton_paths():
@@ -664,10 +695,10 @@ class wine(Runner):
 
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or "auto"
-            if not value or value == "auto" and key not in managed_keys.keys():
+            if not value or value == "auto" and key not in managed_keys:
                 prefix_manager.clear_registry_subkeys(path, key)
             elif key in self.runner_config:
-                if key in managed_keys.keys():
+                if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
                         value = None
@@ -728,6 +759,11 @@ class wine(Runner):
             bool(self.runner_config.get("d3d_extras")),
             self.runner_config.get("d3d_extras_version")
         )
+        self.setup_dlls(
+            dgvoodoo2Manager,
+            bool(self.runner_config.get("dgvoodoo2")),
+            self.runner_config.get("dgvoodoo2_version")
+        )
         return True
 
     def get_dll_overrides(self):
@@ -746,7 +782,7 @@ class wine(Runner):
         # Always false to runner.get_env, the default value
         # of os_env is inverted in the wine class,
         # the OS env is read later.
-        env = super(wine, self).get_env(False)
+        env = super().get_env(False)
         if os_env:
             env.update(os.environ.copy())
         show_debug = self.runner_config.get("show_debug", "-all")
@@ -773,6 +809,9 @@ class wine(Runner):
 
         if self.runner_config.get("dxvk_nvapi"):
             env["DXVK_NVAPIHACK"] = "0"
+
+        if self.runner_config.get("battleye"):
+            env["PROTON_BATTLEYE_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "battleye_runtime")
 
         overrides = self.get_dll_overrides()
         if overrides:

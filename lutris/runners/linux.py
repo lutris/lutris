@@ -69,7 +69,7 @@ class linux(Runner):
     ]
 
     def __init__(self, config=None):
-        super(linux, self).__init__(config)
+        super().__init__(config)
         self.ld_preload = None
 
     @property
@@ -104,7 +104,7 @@ class linux(Runner):
             return os.path.expanduser(option)
         if self.game_exe:
             return os.path.dirname(self.game_exe)
-        return super(linux, self).working_dir
+        return super().working_dir
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""

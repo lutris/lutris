@@ -6,7 +6,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.9
+Version:        0.5.9.1
 Release:        7%{?dist}
 Summary:        Video game preservation platform
 
@@ -91,7 +91,7 @@ it gives you a central interface to launch all your games.
 
 #desktop icon
 %if 0%{?suse_version}
-%suse_update_desktop_file -r -i %{appid} Network FileTransfer
+%suse_update_desktop_file -r -i %{appid} Game Network
 %endif
 
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
@@ -114,7 +114,6 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 
 %files
 %{_bindir}/%{name}
-%{_mandir}/%{name}.1
 %{_datadir}/%{name}/
 %{_datadir}/metainfo/%{appid}.metainfo.xml
 %{_datadir}/applications/%{appid}.desktop

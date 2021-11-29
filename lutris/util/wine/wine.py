@@ -80,7 +80,7 @@ def detect_prefix_arch(prefix_path=None):
         # No prefix_path exists or invalid prefix
         logger.debug("Prefix not found: %s", prefix_path)
         return None
-    with open(registry_path, "r") as registry:
+    with open(registry_path, "r", encoding='utf-8') as registry:
         for _line_no in range(5):
             line = registry.readline()
             if "win64" in line:

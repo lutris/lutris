@@ -65,7 +65,8 @@ def get_optirun_choices():
 
 def get_vk_icd_choices():
     """Return available Vulkan ICD loaders"""
-    choices = [(_("Auto"), "")]
+    loaders = []
+    amdvlk = []
     icd_files = defaultdict(list)
     # Add loaders
     for data_dir in VULKAN_DATA_DIRS:
@@ -73,10 +74,21 @@ def get_vk_icd_choices():
         for loader in glob.glob(path):
             icd_key = os.path.basename(loader).split(".")[0]
             icd_files[icd_key].append(os.path.join(path, loader))
+            if "amd_icd" not in loader:
+                loaders.append(loader)
+            else:
+                amdvlk.append(loader)
+
+    loader_files = ":".join(loaders)
+    amdvlk_files = ":".join(amdvlk)
+    choices = [(_("Auto"), loader_files)]
 
     for icd_key in icd_files:
-        files = ":".join(icd_files[icd_key])
-        choices.append((icd_key.capitalize().replace("_icd", " ICD"), files))
+        if "amd_icd" not in icd_key:
+            files = ":".join(icd_files[icd_key])
+            choices.append((icd_key.capitalize().replace("_icd", " ICD"), files))
+
+    choices.append(("AMDVLK/AMDGPU-PRO", amdvlk_files))
     return choices
 
 
@@ -131,7 +143,7 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "condition": bool(system.find_executable("gamescope")),
         "help": _("Use gamescope to draw the game window isolated from your desktop.\n"
-                  "Use <Ctrl><Super>F to toggle fullscreen"),
+                  "Use Ctrl+Super+F to toggle fullscreen"),
     },
     {
         "option": "gamescope_output_res",
@@ -232,7 +244,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "vk_icd",
         "type": "choice",
-        "default": "",
+        "default": get_vk_icd_choices()[0][1],
         "choices": get_vk_icd_choices,
         "label": _("Vulkan ICD loader"),
         "advanced": True,

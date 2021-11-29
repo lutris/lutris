@@ -67,7 +67,7 @@ class Downloader:
         self.last_check_time = get_time()
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
-        self.file_pointer = open(self.dest, "wb")
+        self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
         self.thread = jobs.AsyncCall(self.async_download, self.download_cb)
         self.stop_request = self.thread.stop_request
 

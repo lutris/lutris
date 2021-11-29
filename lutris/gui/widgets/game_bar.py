@@ -159,8 +159,7 @@ class GameBar(Gtk.Fixed):
         popover_button = Gtk.MenuButton(visible=True)
         popover_button.set_size_request(32, 32)
         popover_button.props.direction = Gtk.ArrowType.UP
-        popover = self.get_popover(self.get_game_buttons(), popover_button)
-        popover_button.set_popover(popover)
+
         return popover_button
 
     def get_popover_box(self):
@@ -172,14 +171,17 @@ class GameBar(Gtk.Fixed):
 
     def get_locate_installed_game_button(self):
         """Return a button to locate an existing install"""
-        button = Gtk.Button("Locate installed game", visible=True)
-        button.set_relief(Gtk.ReliefStyle.NONE)
+        button = get_link_button("Locate installed game")
+        button.show()
         button.connect("clicked", self.game_actions.on_locate_installed_game, self.game)
-        return button
+        return {"locate": button}
 
     def get_play_button(self):
         """Return the widget for install/play/stop and game config"""
         button = Gtk.Button(visible=True)
+        button.set_size_request(120, 32)
+        box = self.get_popover_box()
+        popover_button = self.get_popover_button()
         if self.game.is_installed:
             if self.game.state == self.game.STATE_STOPPED:
                 button.set_label(_("Play"))
@@ -197,17 +199,19 @@ class GameBar(Gtk.Fixed):
                 if self.service.local:
                     # Local services don't show an install dialog, they can be launched directly
                     button.set_label(_("Play"))
-                button.set_size_request(120, 32)
                 if self.service.drm_free:
-                    box = Gtk.HBox(spacing=24, visible=True)
+                    button.set_size_request(84, 32)
                     box.add(button)
-                    box.add(self.get_locate_installed_game_button())
+                    popover = self.get_popover(self.get_locate_installed_game_button(), popover_button)
+                    popover_button.set_popover(popover)
+                    box.add(popover_button)
                     return box
                 return button
         button.set_size_request(84, 32)
-        box = self.get_popover_box()
         box.add(button)
-        box.add(self.get_popover_button())
+        popover = self.get_popover(self.get_game_buttons(), popover_button)
+        popover_button.set_popover(popover)
+        box.add(popover_button)
         return box
 
     def get_game_buttons(self):

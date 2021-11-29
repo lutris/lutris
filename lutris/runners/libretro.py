@@ -26,7 +26,8 @@ def get_libretro_cores():
         if not os.path.exists(info_path):
             req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
             if req.status_code == requests.codes.ok:  # pylint: disable=no-member
-                open(get_default_config_path('info.zip'), 'wb').write(req.content)
+                with open(get_default_config_path('info.zip'), 'wb') as info_zip:
+                    info_zip.write(req.content)
                 with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
                     info_zip.extractall(info_path)
             else:
@@ -140,12 +141,12 @@ class libretro(Runner):
                 if callback:
                     callback()
             else:
-                super(libretro, self).install(version, downloader, callback)
+                super().install(version, downloader, callback)
 
         if not self.is_retroarch_installed():
-            super(libretro, self).install(version=None, downloader=downloader, callback=install_core)
+            super().install(version=None, downloader=downloader, callback=install_core)
         else:
-            super(libretro, self).install(version, downloader, callback)
+            super().install(version, downloader, callback)
 
     def get_run_data(self):
         return {
@@ -170,9 +171,9 @@ class libretro(Runner):
         # TODO: review later
         # Create retroarch.cfg if it doesn't exist.
         if not system.path_exists(config_file):
-            f = open(config_file, "w")
-            f.write("# Lutris RetroArch Configuration")
-            f.close()
+            with open(config_file, "w", encoding='utf-8') as f:
+                f.write("# Lutris RetroArch Configuration")
+                f.close()
 
             # Build the default config settings.
             retro_config = RetroConfig(config_file)
@@ -281,11 +282,11 @@ class libretro(Runner):
     # Checks whether the retroarch or libretro directories can be uninstalled.
     def can_uninstall(self):
         retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
-        return os.path.isdir(retroarch_path) or super(libretro, self).can_uninstall()
+        return os.path.isdir(retroarch_path) or super().can_uninstall()
 
     # Remove the `retroarch` directory.
     def uninstall(self):
         retroarch_path = os.path.join(settings.RUNNER_DIR, 'retroarch')
         if os.path.isdir(retroarch_path):
             system.remove_folder(retroarch_path)
-        super(libretro, self).uninstall()
+        super().uninstall()

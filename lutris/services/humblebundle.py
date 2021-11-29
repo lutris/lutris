@@ -132,12 +132,11 @@ class HumbleBundleService(OnlineService):
         # logger.debug("Getting Humble Bundle order %s", gamekey)
         cache_filename = self.order_path(gamekey)
         if os.path.exists(cache_filename):
-            with open(cache_filename) as cache_file:
+            with open(cache_filename, encoding='utf-8') as cache_file:
                 return json.load(cache_file)
         response = self.make_api_request(self.api_url + "api/v1/order/%s?all_tpkds=true" % gamekey)
-        if not os.path.exists(self.cache_path):
-            os.makedirs(self.cache_path)
-        with open(cache_filename, "w") as cache_file:
+        os.makedirs(self.cache_path, exist_ok=True)
+        with open(cache_filename, "w", encoding='utf-8') as cache_file:
             json.dump(response, cache_file)
         return response
 
@@ -221,7 +220,7 @@ class HumbleBundleService(OnlineService):
             link = get_humble_download_link(installer.service_appid, installer.runner)
         except Exception as ex:
             logger.exception("Failed to get Humble Bundle game: %s", ex)
-            raise UnavailableGame
+            raise UnavailableGame from ex
         if not link:
             raise UnavailableGame("No game found on Humble Bundle")
         filename = link.split("?")[0].split("/")[-1]

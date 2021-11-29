@@ -42,8 +42,8 @@ class SteamInstaller(GObject.Object):
         self.file_id = file_id
         try:
             _steam, appid, path = self.steam_uri.split(":", 2)
-        except ValueError:
-            raise ScriptingError("Malformed steam path: %s" % self.steam_uri)
+        except ValueError as err:
+            raise ScriptingError("Malformed steam path: %s" % self.steam_uri) from err
 
         self.appid = appid
         self.path = path
