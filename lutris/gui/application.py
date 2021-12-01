@@ -508,7 +508,7 @@ class Application(Gtk.Application):
 
     def on_game_install(self, game):
         """Request installation of a game"""
-        if game.service and game.service != "lutris":
+        if not game.is_installed and game.service and game.service != "lutris":
             service = get_enabled_services()[game.service]()
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
 

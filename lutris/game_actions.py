@@ -102,7 +102,7 @@ class GameActions:
             "show_logs": self.game.is_installed,
             "favorite": not self.game.is_favorite,
             "deletefavorite": self.game.is_favorite,
-            "install_more": not self.game.service and self.game.is_installed,
+            "install_more": self.game.is_installed,
             "execute-script": bool(
                 self.game.is_installed and self.game.runner
                 and self.game.runner.system_config.get("manual_command")
