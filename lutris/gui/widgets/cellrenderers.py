@@ -107,8 +107,9 @@ class CellRendererBanner(Gtk.CellRendererPixbuf):
             # Give the EGS service media chance to resize the banners it needs to-
             # but do this only when we're done downloading. It's going to examine
             # every banner file!
-            if len(CellRendererBanner.ongoing_download_slugs) == 0 and len(CellRendererBanner.pending_download_slugs) == 0:
-                service_media.render()
+            if len(CellRendererBanner.ongoing_download_slugs) == 0:
+                if len(CellRendererBanner.pending_download_slugs) == 0:
+                    service_media.render()
 
             self.game_store.update_icons(result)
 
