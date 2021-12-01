@@ -13,7 +13,7 @@ from lutris.gui.views import (
 )
 from lutris.gui.views.base import GameView
 from lutris.gui.views.store import sort_func
-from lutris.gui.widgets.cellrenderers import GridViewCellRendererBanner
+from lutris.gui.widgets.cellrenderers import CellRendererBanner
 
 
 class GameListView(Gtk.TreeView, GameView):
@@ -31,7 +31,7 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_rules_hint(True)
 
         # Icon column
-        image_cell = GridViewCellRendererBanner(store, service_media)
+        image_cell = CellRendererBanner(store, service_media)
         column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON, slug=COL_SLUG)
         column.set_reorderable(True)
         column.set_sort_indicator(False)
