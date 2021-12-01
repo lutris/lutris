@@ -17,7 +17,7 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         self.props.wrap_width = width
 
 
-class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
+class CellRendererBanner(Gtk.CellRendererPixbuf):
     """A renderer that causes banners and icons to download if they are to be drawn
     but do not exist (according to the service-media; we always get a pixbuf,
     which may be a placeholder, but if we get the slug, we'll double check it."""
@@ -56,10 +56,10 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         slug = self._slug
 
         if slug and not service_media.exists(slug) and slug not in self.ongoing_download_slugs:
-            self.pending_download_slugs.add(slug)
+            CellRendererBanner.pending_download_slugs.add(slug)
 
-            if not self.download_timer_running:
-                self.download_timer_running = True
+            if not CellRendererBanner.download_timer_running:
+                CellRendererBanner.download_timer_running = True
                 GLib.timeout_add(500, self._download_pending)
 
         Gtk.CellRendererPixbuf.do_render(self, cr, widget, background_area, cell_area, flags)
@@ -67,7 +67,7 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
     def _download_pending(self):
         """This is the timer function that is called shortly after rendering
         detects a needed download. It starts the downloads required."""
-        self.download_timer_running = False
+        CellRendererBanner.download_timer_running = False
         slugs = self.dequeue_pending_slugs()
         if len(slugs) > 0:
             self.download_for_slugs(slugs)
@@ -81,12 +81,12 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         slugs = [
             slug for slug
             in self.pending_download_slugs
-            if slug not in self.ongoing_download_slugs
-            if slug not in self.failed_slugs
+            if slug not in CellRendererBanner.ongoing_download_slugs
+            if slug not in CellRendererBanner.failed_slugs
             if not service_media.exists(slug)
         ]
 
-        self.pending_download_slugs.clear()
+        CellRendererBanner.pending_download_slugs.clear()
         return slugs
 
     def download_for_slugs(self, slugs):
@@ -97,22 +97,22 @@ class GridViewCellRendererBanner(Gtk.CellRendererPixbuf):
         def slugs_download_cb(result, error):
             """This is called when the download completes and records the 'icons';
             that will cause the UI to update and the cells, ultimately, to rerender."""
-            self.ongoing_download_slugs.difference_update(slugs)
+            CellRendererBanner.ongoing_download_slugs.difference_update(slugs)
 
             if error:
-                self.failed_slugs.update(slugs)
+                CellRendererBanner.failed_slugs.update(slugs)
                 logger.error("Failed to download icons: %s", error)
                 return
 
             # Give the EGS service media chance to resize the banners it needs to-
             # but do this only when we're done downloading. It's going to examine
             # every banner file!
-            if len(self.ongoing_download_slugs) == 0 and len(self.pending_download_slugs) == 0:
+            if len(CellRendererBanner.ongoing_download_slugs) == 0 and len(CellRendererBanner.pending_download_slugs) == 0:
                 service_media.render()
 
             self.game_store.update_icons(result)
 
-        self.ongoing_download_slugs.update(slugs)
+        CellRendererBanner.ongoing_download_slugs.update(slugs)
 
         AsyncCall(
             download_icons,

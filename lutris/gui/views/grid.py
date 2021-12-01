@@ -4,7 +4,7 @@ from gi.repository import Gtk
 
 from lutris.gui.views import COL_ICON, COL_NAME, COL_SLUG
 from lutris.gui.views.base import GameView
-from lutris.gui.widgets.cellrenderers import GridViewCellRendererBanner, GridViewCellRendererText
+from lutris.gui.widgets.cellrenderers import CellRendererBanner, GridViewCellRendererText
 from lutris.util.log import logger
 
 
@@ -26,7 +26,7 @@ class GameGridView(Gtk.IconView, GameView):
         self.set_item_padding(1)
         self.cell_width = max(service_media.size[0], self.min_width)
         self.clear()
-        icon_renderer = GridViewCellRendererBanner(store, service_media)
+        icon_renderer = CellRendererBanner(store, service_media)
         self.pack_start(icon_renderer, True)
         self.add_attribute(icon_renderer, "pixbuf", COL_ICON)
         self.add_attribute(icon_renderer, "slug", COL_SLUG)
