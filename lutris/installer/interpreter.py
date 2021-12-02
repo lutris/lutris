@@ -17,6 +17,7 @@ from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInsta
 from lutris.services.lutris import download_lutris_media
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.fileio import get_unused_directory_path
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import unpack_dependencies
@@ -70,7 +71,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             service_dir = self.service.id
         else:
             service_dir = ""
-        return os.path.expanduser(os.path.join(games_dir, service_dir, self.installer.game_slug))
+
+        target_path = os.path.expanduser(os.path.join(games_dir, service_dir, self.installer.game_slug))
+        return get_unused_directory_path(target_path)
 
     @property
     def cache_path(self):
