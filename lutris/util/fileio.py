@@ -1,7 +1,30 @@
 # Standard Library
+import os
 import re
 from collections import OrderedDict
 from configparser import RawConfigParser
+
+
+def get_unused_directory_path(path):
+    """Generates a path to a directory that does not exist, or if it does
+    is empty. This is used to make sure multiple installations of the same game
+    do not overwrite each other.
+
+    If 'path' is an empty directory or missing entirely, this will return
+    'path'. It otherwise appends a number to make it unique."""
+    def is_usable_path(path):
+        if not os.path.exists(path):
+            return True
+        return os.path.isdir(path) and not os.listdir(path)
+
+    index = 1
+    unused_path = path
+
+    while not is_usable_path(unused_path):
+        index += 1  # suffixes start at 2
+        unused_path = f"{path}-{index}"
+
+    return unused_path
 
 
 class EvilConfigParser(RawConfigParser):  # pylint: disable=too-many-ancestors
