@@ -112,7 +112,7 @@ def get_service_games(service):
 
 def get_game_by_field(value, field="slug"):
     """Query a game based on a database field"""
-    if field not in ("slug", "installer_slug", "id", "configpath"):
+    if field not in ("slug", "installer_slug", "id", "configpath", "name"):
         raise ValueError("Can't query by field '%s'" % field)
     game_result = sql.db_select(settings.PGA_DB, "games", condition=(field, value))
     if game_result:
