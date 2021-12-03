@@ -337,7 +337,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             path = self._substitute(launcher_value)
             if not os.path.isabs(path) and self.target_path:
                 path = os.path.join(self.target_path, path)
-        self.installer.save()
+        self.installer.save(assign_unique_name=True)
         if path and not os.path.isfile(path) and self.installer.runner not in ("web", "browser"):
             self.parent.set_status(
                 _(

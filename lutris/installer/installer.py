@@ -212,7 +212,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
         return config
 
-    def save(self):
+    def save(self, assign_unique_name=False):
         """Write the game configuration in the DB and config file"""
         if self.extends:
             logger.info(
@@ -226,8 +226,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             service_id = self.service.id
         else:
             service_id = None
+
+        assigned_name = self.get_unusued_game_name()
+
         self.game_id = add_or_update(
-            name=self.game_name,
+            name=assigned_name,
             runner=self.runner,
             slug=self.game_slug,
             platform=runner_inst.get_platform(),
@@ -245,6 +248,23 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # This is a bit redundant but used to trigger the game-updated signal
         game = Game(self.game_id)
         game.save()
+
+    def get_unusued_game_name(self):
+        """Returns the game's name, but if this name is already used by an installed
+        name, this adds a number to it to make it unique."""
+        def is_name_in_use(name):
+            """Queries the database to see if a given is in use by an installed
+            game."""
+            existing_game = get_game_by_field(assigned_name, "name")
+            return existing_game and existing_game["installed"]
+
+        assigned_name = self.game_name
+        assigned_index = 1
+        while is_name_in_use(assigned_name):
+            assigned_index += 1
+            assigned_name = f"{self.game_name} {assigned_index}"
+
+        return assigned_name
 
     def get_game_launcher_config(self, game_files):
         """Game options such as exe or main_file can be added at the root of the
