@@ -38,6 +38,11 @@ class GameActions:
             self._game.connect("game-error", self.window.on_game_error)
         return self._game
 
+    def refresh_game(self):
+        """Discard the cached game and fetch it again so it is up to date."""
+        self._game = None
+        return self.game
+
     @property
     def is_game_running(self):
         return bool(self.application.get_game_by_id(self.game_id))
@@ -159,7 +164,8 @@ class GameActions:
         # Install the currently selected game in the UI
         if not self.game.slug:
             raise RuntimeError("No game to install: %s" % self.game.id)
-        self.game.emit("game-install")
+        # Make sure we install with non-cached game data
+        self.refresh_game().emit("game-install")
 
     def on_locate_installed_game(self, _button, game):
         """Show the user a dialog to import an existing install to a DRM free service
