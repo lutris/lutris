@@ -235,7 +235,9 @@ system_options = [  # pylint: disable=invalid-name
         "advanced": True,
         "help": _("Use per-game GL shader disk caches for NVidia hardware. "
                   "This allows larger total caches. Turn this off for a single "
-                  "shared cache, with a smaller total size."),
+                  "shared cache, with a smaller total size. This will apply "
+                  "__GL_SHADER_DISK_CACHE=1 and "
+                  "__GL_SHADER_DISK_CACHE_PATH=$GAMEDIR environment variables."),
     },
     {
         "option": "optimus",
