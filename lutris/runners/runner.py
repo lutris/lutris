@@ -147,6 +147,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         if os_env:
             env.update(os.environ.copy())
 
+        # By default we'll set NVidia's shader disk cache to be
+        # per-game, so it overflows less readily.
+        env["__GL_SHADER_DISK_CACHE"] = "1"
+        env["__GL_SHADER_DISK_CACHE_PATH"] = self.game_path
+
         # Override SDL2 controller configuration
         sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")
         if sdl_gamecontrollerconfig:
