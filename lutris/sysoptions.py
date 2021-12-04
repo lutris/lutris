@@ -228,6 +228,16 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Switch to US keyboard QWERTY layout while game is running"),
     },
     {
+        "option": "nvidia_separate_glshaderdiskcache",
+        "type": "bool",
+        "default": True,
+        "label": _("Separate GL Shader Disk Caches (NVIDIA)"),
+        "advanced": True,
+        "help": _("Use per-game GL shader disk caches for NVidia hardware. "
+                  "This allows larger total caches. Turn this off for a single "
+                  "shared cache, with a smaller total size."),
+    },
+    {
         "option": "optimus",
         "type": "choice",
         "default": "off",
