@@ -14,11 +14,11 @@ class GameBar(Gtk.Box):
     def __init__(self, db_game, game_actions, application):
         """Create the game bar with a database row"""
         super().__init__(orientation=Gtk.Orientation.VERTICAL, visible=True,
-            margin_top=12,
-            margin_left=12,
-            margin_bottom=12,
-            margin_right=12,
-            spacing=6)
+                         margin_top=12,
+                         margin_left=12,
+                         margin_bottom=12,
+                         margin_right=12,
+                         spacing=6)
         GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
         GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
@@ -109,6 +109,7 @@ class GameBar(Gtk.Box):
     def get_game_name_label(self):
         """Return the label with the game's title"""
         title_label = Gtk.Label(visible=True)
+        title_label.set_ellipsize(Pango.EllipsizeMode.END)
         title_label.set_markup("<span font_desc='16'><b>%s</b></span>" % gtk_safe(self.game.name))
         return title_label
 
