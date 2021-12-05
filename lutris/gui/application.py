@@ -209,13 +209,17 @@ class Application(Gtk.Application):
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
         init_lutris()
+
+    @staticmethod
+    def update_runtime():
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
-            return
-        init_dialog = LutrisInitDialog(update_runtime)
-        init_dialog.run()
+        else:
+            init_dialog = LutrisInitDialog(update_runtime)
+            init_dialog.run()
 
     def do_activate(self):  # pylint: disable=arguments-differ
+        self.update_runtime()
         if not self.window:
             self.window = LutrisWindow(application=self)
             screen = self.window.props.screen  # pylint: disable=no-member
@@ -614,6 +618,7 @@ class Application(Gtk.Application):
         """Execute an arbitrary command in a Lutris context
         with the runtime enabled and monitored by a MonitoredCommand
         """
+        self.update_runtime()
         logger.info("Running command '%s'", command)
         monitored_command = exec_command(command)
         try:
