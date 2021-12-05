@@ -618,7 +618,7 @@ class Application(Gtk.Application):
         """Execute an arbitrary command in a Lutris context
         with the runtime enabled and monitored by a MonitoredCommand
         """
-        self.update_runtime()
+        Application.update_runtime()
         logger.info("Running command '%s'", command)
         monitored_command = exec_command(command)
         try:
