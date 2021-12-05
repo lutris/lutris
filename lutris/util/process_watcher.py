@@ -23,7 +23,6 @@ SYSTEM_PROCESSES = {
     "rundll32.exe",
     "mscorsvw.exe",
     "iexplore.exe",
-    "start.exe",
     "winedbg.exe",
 }
 
