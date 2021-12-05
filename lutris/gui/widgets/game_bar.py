@@ -132,8 +132,8 @@ class GameBar(Gtk.Box):
             style_context = box.get_style_context()
             style_context.add_class("linked")
         else:
-            runner_icon.set_margin_top(8)
-            runner_icon.set_margin_left(48)
+            runner_icon.set_margin_left(49)
+            runner_icon.set_margin_right(6)
             box.add(runner_icon)
         return box
 
@@ -150,12 +150,16 @@ class GameBar(Gtk.Box):
     def get_playtime_label(self):
         """Return the label containing the playtime info"""
         playtime_label = Gtk.Label(visible=True)
+        playtime_label.set_size_request(120, -1)
+        playtime_label.set_alignment(0, 0.5)
         playtime_label.set_markup(_("Time played:\n<b>%s</b>") % self.game.formatted_playtime)
         return playtime_label
 
     def get_last_played_label(self):
         """Return the label containing the last played info"""
         last_played_label = Gtk.Label(visible=True)
+        last_played_label.set_size_request(120, -1)
+        last_played_label.set_alignment(0, 0.5)
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
         last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%x"))
         return last_played_label
