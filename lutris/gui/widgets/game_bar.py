@@ -10,12 +10,15 @@ from lutris.gui.widgets.utils import get_link_button, get_pixbuf_for_game
 from lutris.util.strings import gtk_safe
 
 
-class GameBar(Gtk.Fixed):
-    play_button_position = (12, 42)
-
+class GameBar(Gtk.Box):
     def __init__(self, db_game, game_actions, application):
         """Create the game bar with a database row"""
-        super().__init__(visible=True)
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, visible=True,
+            margin_top=12,
+            margin_left=12,
+            margin_bottom=12,
+            margin_right=12,
+            spacing=6)
         GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
         GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
@@ -63,22 +66,24 @@ class GameBar(Gtk.Fixed):
 
     def update_view(self):
         """Populate the view with widgets"""
-        self.put(self.get_game_name_label(), 16, 8)
-        x_offset = 140
-        y_offset = 40
-        if self.game.is_installed:
-            self.put(self.get_runner_button(), x_offset, y_offset + 2)
-            x_offset += 80
-            self.put(self.get_platform_label(), x_offset, y_offset)
-            x_offset += 120
-        if self.game.lastplayed:
-            self.put(self.get_last_played_label(), x_offset, y_offset)
-            x_offset += 120
-        if self.game.playtime:
-            self.put(self.get_playtime_label(), x_offset, y_offset)
+        game_label = self.get_game_name_label()
+        game_label.set_halign(Gtk.Align.START)
+        self.pack_start(game_label, False, False, 0)
+
+        hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+        self.pack_start(hbox, False, False, 0)
 
         self.play_button = self.get_play_button()
-        self.put(self.play_button, self.play_button_position[0], self.play_button_position[1])
+        hbox.pack_start(self.play_button, False, False, 0)
+
+        if self.game.is_installed:
+            hbox.pack_start(self.get_runner_button(), False, False, 0)
+            hbox.pack_start(self.get_platform_label(), False, False, 0)
+        if self.game.lastplayed:
+            hbox.pack_start(self.get_last_played_label(), False, False, 0)
+        if self.game.playtime:
+            hbox.pack_start(self.get_playtime_label(), False, False, 0)
+        hbox.show_all()
 
     def get_popover(self, buttons, parent):
         """Return the popover widget containing a list of link buttons"""
