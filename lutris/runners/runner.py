@@ -13,7 +13,7 @@ from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import system
 from lutris.util.extract import ExtractFailure, extract_archive
-from lutris.util.http import Request, HTTPError
+from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -313,10 +313,12 @@ class Runner:  # pylint: disable=too-many-public-methods
 
             if not runner_info:
                 logger.error("Failed to get runner information")
-                return
         except HTTPError as ex:
             logger.error("Unable to get runner information: %s", ex)
-            return    
+            runner_info = None
+
+        if not runner_info:
+            return
 
         versions = runner_info.get("versions") or []
         arch = LINUX_SYSTEM.arch
