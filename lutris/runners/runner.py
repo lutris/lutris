@@ -13,7 +13,7 @@ from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import system
 from lutris.util.extract import ExtractFailure, extract_archive
-from lutris.util.http import Request
+from lutris.util.http import Request, HTTPError
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -298,18 +298,25 @@ class Runner:  # pylint: disable=too-many-public-methods
             version (str): Optional version to lookup, will return this one if found
 
         Returns:
-            dict: Dict containing version, architecture and url for the runner
+            dict: Dict containing version, architecture and url for the runner, None
+            if the data can't be retrieved.
         """
         logger.info(
             "Getting runner information for %s%s",
             self.name,
             " (version: %s)" % version if version else "",
         )
-        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
-        runner_info = request.get().json
-        if not runner_info:
-            logger.error("Failed to get runner information")
-            return
+
+        try:
+            request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
+            runner_info = request.get().json
+
+            if not runner_info:
+                logger.error("Failed to get runner information")
+                return
+        except HTTPError as ex:
+            logger.error("Unable to get runner information: %s", ex)
+            return    
 
         versions = runner_info.get("versions") or []
         arch = LINUX_SYSTEM.arch
