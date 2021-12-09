@@ -168,18 +168,6 @@ class InstallerFileBox(Gtk.VBox):
         else:
             self.emit("file-ready")
 
-    def get_source_button_label(self):
-        """Return the label for the source button"""
-        provider_labels = {
-            "download": _("Download"),
-            "pga": _("Cache"),
-            "user": _("Local"),
-            "steam": _("Steam"),
-        }
-        if self.provider in provider_labels:
-            return provider_labels[self.provider]
-        raise ValueError("Unsupported provider %s" % self.provider)
-
     def get_file_provider_label(self):
         """Return the label displayed before the download starts"""
         if self.provider == "user":
