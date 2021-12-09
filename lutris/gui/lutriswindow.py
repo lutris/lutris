@@ -274,7 +274,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Return games from the lutris API"""
         if not self.filters.get("text"):
             return []
-        api_games = api.search_games(self.filters["text"])
+        api_games = api.search_games(self.filters["text"]) or []
+
+        public_games = [game for game
+                        in api_games
+                        if game.get("is_public", True)]
+
         if "icon" in self.icon_type:
             api_field = "icon_url"
             _service_media = LutrisIcon
@@ -284,10 +289,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         AsyncCall(
             download_icons,
             self.icons_download_cb,
-            {g["slug"]: g[api_field] for g in api_games},
+            {g["slug"]: g[api_field] for g in public_games},
             _service_media()
         )
-        return api_games
+        return public_games
 
     def icons_download_cb(self, result, error):
         if error:
