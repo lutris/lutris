@@ -474,7 +474,7 @@
             <property name="can-focus">True</property>
             <property name="receives-default">False</property>
             <property name="action-name">win.add-game</property>
-            <property name="text" translatable="yes">Add Game</property>
+            <property name="text" translatable="yes">Add a game manually</property>
           </object>
           <packing>
             <property name="expand">False</property>
