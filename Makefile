@@ -82,7 +82,7 @@ autopep8:
 # Static analysis
 # ===============
 
-check: isort-check flake8 pylint bandit black
+check: isort-check flake8 pylint
 
 isort-check:
 	poetry run isort lutris -c
