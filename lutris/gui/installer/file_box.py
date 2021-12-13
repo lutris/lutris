@@ -108,7 +108,7 @@ class InstallerFileBox(Gtk.VBox):
         url = self.installer_file.url
         if url.startswith("http"):
             parsed = urlparse(url)
-            label = "%s on %s" % (self.installer_file.filename, parsed.netloc)
+            label = _("{file} on {host}").format(file=self.installer_file.filename, host=parsed.netloc)
         elif url.startswith("N/A"):
             label = url[3:].lstrip(":")
         else:
