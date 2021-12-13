@@ -485,7 +485,7 @@ reference a ``file id`` or a path, ``args`` to add command arguments,
 to set the directory to execute the command in (defaults to the install path).
 The command is executed within the Lutris Runtime (resolving most shared
 library dependencies). The file is made executable if necessary, no need to run
-chmodx before. You can also use ``env`` (environment variables), ``exclude_processes`` (space-separated list of processes to exclude from being monitored when determening if the execute phase finished), ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusition list) and ``disable_runtime`` (run a process without the Lutris Runtime, useful for running system binaries).
+chmodx before. You can also use ``env`` (environment variables), ``exclude_processes`` (space-separated list of processes to exclude from being monitored when determining if the execute phase finished), ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusion list) and ``disable_runtime`` (run a process without the Lutris Runtime, useful for running system binaries).
 
 Example::
 
@@ -634,8 +634,8 @@ Currently, the following tasks are implemented:
     ``blocking`` (if true, do not run the process in a thread), 
     ``description`` (a message be shown to the user during the execution of the task), 
     ``working_dir`` (optional working directory), 
-    ``exclude_processes`` (optional space-separated list of processes to exclude from being monitored when determening if the execute phase finished), 
-    ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusition list), 
+    ``exclude_processes`` (optional space-separated list of processes to exclude from being monitored when determining if the execute phase finished), 
+    ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusion list), 
     ``env`` (optional environment variables), 
     ``overrides`` (optional DLL overrides).
 
