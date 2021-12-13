@@ -271,7 +271,6 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
-        self.connect("realize", self.on_realize)
         self.set_filter_func(self._filter_func)
         self.set_header_func(self._header_func)
         self.show_all()
@@ -279,7 +278,12 @@ class LutrisSidebar(Gtk.ListBox):
     def get_sidebar_icon(self, icon_name):
         return Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
 
-    def on_realize(self, widget):
+    def initialize_rows(self):
+        """
+        Select the initial row; this triggers the initialization of the game view
+        so we must do this even if this sidebar is never realized, but only after
+        the sidebar's signals are connected.
+        """
         self.active_platforms = games_db.get_used_platforms()
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(runners.RUNNER_PLATFORMS)
@@ -345,10 +349,12 @@ class LutrisSidebar(Gtk.ListBox):
             self.add(SidebarRow(platform, "platform", platform, self.get_sidebar_icon(icon_name)))
 
         self.update()
+
         for row in self.get_children():
             if row.type == self.selected_row_type and row.id == self.selected_row_id:
                 self.select_row(row)
                 break
+
         self.show_all()
         self.running_row.hide()
 
@@ -408,5 +414,5 @@ class LutrisSidebar(Gtk.ListBox):
     def on_services_changed(self, _widget):
         for child in self.get_children():
             child.destroy()
-        self.on_realize(self)
+        self.initialize_rows()
         return True
