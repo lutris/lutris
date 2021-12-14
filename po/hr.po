@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-10 20:12+0100\n"
-"PO-Revision-Date: 2021-12-10 20:22+0100\n"
+"POT-Creation-Date: 2021-12-14 13:41+0100\n"
+"PO-Revision-Date: 2021-12-14 14:33+0100\n"
 "Last-Translator: gogo <trebelnik2@gmail.com>\n"
 "Language-Team: \n"
 "Language: hr\n"
@@ -153,7 +153,7 @@ msgstr "Godina"
 
 #: share/lutris/ui/lutris-window.ui:448 lutris/gui/views/list.py:48
 msgid "Last Played"
-msgstr "Posljednji puta igrano"
+msgstr "Posljednje igranje"
 
 #: share/lutris/ui/lutris-window.ui:463 lutris/gui/views/list.py:50
 msgid "Installed At"
@@ -264,7 +264,7 @@ msgstr "Obriši prečac izbornika aplikacija"
 msgid "Install another version"
 msgstr "Instaliraj drugu inačicu"
 
-#: lutris/game_actions.py:87 lutris/gui/dialogs/uninstall_game.py:137
+#: lutris/game_actions.py:87 lutris/gui/dialogs/uninstall_game.py:139
 msgid "Remove"
 msgstr "Ukloni"
 
@@ -455,27 +455,27 @@ msgstr "Prijavi problem"
 msgid "URI to open"
 msgstr "URI za otvoriti"
 
-#: lutris/gui/application.py:369
+#: lutris/gui/application.py:373
 #, python-format
 msgid "%s is not a valid URI"
 msgstr "%s nije valjan URI"
 
-#: lutris/gui/application.py:387
+#: lutris/gui/application.py:391
 #, python-format
 msgid "Failed to download %s"
 msgstr "Neuspjelo preuzimanje %s"
 
-#: lutris/gui/application.py:395
+#: lutris/gui/application.py:399
 #, python-brace-format
 msgid "download {url} to {file} started"
 msgstr "preuzimanje {url} u {file} je započelo"
 
-#: lutris/gui/application.py:406
+#: lutris/gui/application.py:410
 #, python-format
 msgid "No such file: %s"
 msgstr "Nema takve datoteke: %s"
 
-#: lutris/gui/application.py:506
+#: lutris/gui/application.py:510
 msgid "Could not retrieve game installer."
 msgstr "Nemoguće preuzimanje instalacijskog programa igre."
 
@@ -628,8 +628,8 @@ msgstr "Mogućnosti sustava"
 msgid "Show advanced options"
 msgstr "Prikaži napredne mogućnosti"
 
-#: lutris/gui/config/common.py:313 lutris/gui/dialogs/uninstall_game.py:59
-#: lutris/gui/dialogs/uninstall_game.py:133
+#: lutris/gui/config/common.py:313 lutris/gui/dialogs/uninstall_game.py:60
+#: lutris/gui/dialogs/uninstall_game.py:135
 #: lutris/gui/widgets/download_progress_box.py:95
 msgid "Cancel"
 msgstr "Odustani"
@@ -707,6 +707,26 @@ msgstr "Mogućnosti sučelja"
 msgid "Lutris settings"
 msgstr "Lutris postavke"
 
+#: lutris/gui/config/preferences_dialog.py:26
+msgid "Interface"
+msgstr "Sučelje"
+
+#: lutris/gui/config/preferences_dialog.py:27 lutris/gui/widgets/sidebar.py:260
+msgid "Runners"
+msgstr "Pokretači"
+
+#: lutris/gui/config/preferences_dialog.py:28
+msgid "Services"
+msgstr "Usluge"
+
+#: lutris/gui/config/preferences_dialog.py:29
+msgid "Hardware information"
+msgstr "Informacije hardvera"
+
+#: lutris/gui/config/preferences_dialog.py:30
+msgid "Global options"
+msgstr "Globalne mogućnosti"
+
 #: lutris/gui/config/runner_box.py:88 lutris/gui/widgets/sidebar.py:203
 #, python-format
 msgid "Manage %s versions"
@@ -757,6 +777,10 @@ msgstr "Prikaži ikonu trake sustava"
 #: lutris/gui/config/sysinfo_box.py:38
 msgid "Copy to clipboard"
 msgstr "Kopiraj u međuspremnik"
+
+#: lutris/gui/config/sysinfo_box.py:41
+msgid "<b>System information</b>"
+msgstr "<b>Informacije sustava</b>"
 
 #: lutris/gui/dialogs/cache.py:11
 msgid "Cache configuration"
@@ -935,11 +959,39 @@ msgstr "Raspakiravanje…"
 msgid "Failed to retrieve the runner archive"
 msgstr "Neuspjelo preuzimanje arhive pokretača"
 
+#: lutris/gui/dialogs/uninstall_game.py:27
+#, python-format
+msgid "<span font_desc='14'><b>Uninstall %s</b></span>"
+msgstr "<span font_desc='14'><b>Deinstaliraj %s</b></span>"
+
 #: lutris/gui/dialogs/uninstall_game.py:34
 msgid "Uninstall"
 msgstr "Deinstaliraj"
 
-#: lutris/gui/dialogs/uninstall_game.py:92
+#: lutris/gui/dialogs/uninstall_game.py:38
+msgid "No file will be deleted"
+msgstr "Nijedna datoteka neće biti obrisana"
+
+#: lutris/gui/dialogs/uninstall_game.py:41
+#, python-format
+msgid "The folder %s is used by other games and will be kept."
+msgstr "Mapu %s koristi druga igra i neće biti uklonjena."
+
+#: lutris/gui/dialogs/uninstall_game.py:44
+msgid "<i>Calculating size…</i>"
+msgstr "<i>Izračunavanje veličine…</i>"
+
+#: lutris/gui/dialogs/uninstall_game.py:48
+#, python-format
+msgid "Content of %s are protected and will not be deleted."
+msgstr "Sadržaj %s je zaštićen i neće biti obrisan."
+
+#: lutris/gui/dialogs/uninstall_game.py:76
+#, python-format
+msgid "Delete %s (%s)"
+msgstr "Obriši %s (%s)"
+
+#: lutris/gui/dialogs/uninstall_game.py:93
 #, python-format
 msgid ""
 "Please confirm.\n"
@@ -950,9 +1002,31 @@ msgstr ""
 "Sve u <b>%s</b>\n"
 "će biti obrisano."
 
-#: lutris/gui/dialogs/uninstall_game.py:95
+#: lutris/gui/dialogs/uninstall_game.py:96
 msgid "Permanently delete files?"
 msgstr "Trajno obriši datoteke?"
+
+#: lutris/gui/dialogs/uninstall_game.py:103
+msgid "Uninstalling game and deleting files..."
+msgstr "Deinstalacija igre i brisanje datoteka..."
+
+#: lutris/gui/dialogs/uninstall_game.py:105
+msgid "Uninstalling game..."
+msgstr "Deinstalacija igre..."
+
+#: lutris/gui/dialogs/uninstall_game.py:122
+#, python-format
+msgid "<span font_desc='14'><b>Remove %s</b></span>"
+msgstr "<span font_desc='14'><b>Ukloni %s</b></span>"
+
+#: lutris/gui/dialogs/uninstall_game.py:128
+#, python-format
+msgid ""
+"Completely remove %s from the library?\n"
+"All play time will be lost."
+msgstr ""
+"Potpuno ukloni %s iz igroteke?\n"
+"Sva vremena igranja će biti uklonjena."
 
 #: lutris/gui/dialogs/webconnect_dialog.py:88
 msgid "Loading..."
@@ -962,6 +1036,11 @@ msgstr "Učitavanje..."
 #, python-brace-format
 msgid "Steam game <b>{appid}</b>"
 msgstr "Steam igra <b>{appid}</b>"
+
+#: lutris/gui/installer/file_box.py:111
+#, python-brace-format
+msgid "{file} on {host}"
+msgstr "{file} na {host}"
 
 #: lutris/gui/installer/file_box.py:138 lutris/gui/installer/file_box.py:182
 msgid "Download"
@@ -1020,6 +1099,11 @@ msgstr "_Pokreni"
 msgid "_Close"
 msgstr "_Zatvori"
 
+#: lutris/gui/installerwindow.py:117
+#, python-format
+msgid "Missing field \"%s\" in install script"
+msgstr "Polje \"%s\" nedostaje u instalacijskoj skripti"
+
 #: lutris/gui/installerwindow.py:123
 #, python-format
 msgid "<b>Install %s</b>"
@@ -1059,6 +1143,11 @@ msgid ""
 "Please review the files needed for the installation then click 'Continue'"
 msgstr "Pregledajte datoteke potrebne za instalaciju zatim kliknite 'Nastavi'"
 
+#: lutris/gui/installerwindow.py:410
+#, python-format
+msgid "Unable to get files: %s"
+msgstr "Nemoguće dobivanje datoteka: %s"
+
 #: lutris/gui/installerwindow.py:493
 msgid "Remove game files"
 msgstr "Ukloni datoteke igre"
@@ -1071,30 +1160,30 @@ msgstr "Sigurno želite prekinuti instalaciju?"
 msgid "Cancel installation?"
 msgstr "Prekini instalaciju?"
 
-#: lutris/gui/lutriswindow.py:368
+#: lutris/gui/lutriswindow.py:377
 #, python-format
 msgid "Connect your %s account to access your games"
 msgstr "Povežite se sa svojim %s računom za pristup vašim igrama"
 
-#: lutris/gui/lutriswindow.py:435
+#: lutris/gui/lutriswindow.py:444
 #, python-format
 msgid "No games matching '%s' found "
 msgstr "Nema podudarajućih igra '%s' pronađenih "
 
-#: lutris/gui/lutriswindow.py:437
+#: lutris/gui/lutriswindow.py:446
 msgid "Use search to find games on lutris.net"
 msgstr "Koristite pretragu za pronalazak igra na lutris.net"
 
-#: lutris/gui/lutriswindow.py:440
+#: lutris/gui/lutriswindow.py:449
 msgid "Add games to your favorites to see them here."
 msgstr "Dodajte igre u svoje omiljene kako bi ih tamo vidjeli."
 
-#: lutris/gui/lutriswindow.py:442
+#: lutris/gui/lutriswindow.py:451
 msgid "No installed games found. Press Ctrl+H so show all games."
 msgstr ""
 "Nema pronađenih instaliranih igra. Pritisnite Ctrl+H za prikaz svih igra."
 
-#: lutris/gui/lutriswindow.py:444
+#: lutris/gui/lutriswindow.py:453
 msgid "No games found"
 msgstr "Nema pronađenih igara"
 
@@ -1175,7 +1264,7 @@ msgid ""
 "Last played:\n"
 "<b>%s</b>"
 msgstr ""
-"Posljednji puta igrano:\n"
+"Posljednje igranje:\n"
 "<b>%s</b>"
 
 #: lutris/gui/widgets/game_bar.py:190
@@ -1210,27 +1299,23 @@ msgstr "Igroteka"
 msgid "Sources"
 msgstr "Izvori"
 
-#: lutris/gui/widgets/sidebar.py:260
-msgid "Runners"
-msgstr "Pokretači"
-
 #: lutris/gui/widgets/sidebar.py:261
 msgid "Platforms"
 msgstr "Platforme"
 
-#: lutris/gui/widgets/sidebar.py:292
+#: lutris/gui/widgets/sidebar.py:296
 msgid "Games"
 msgstr "Igre"
 
-#: lutris/gui/widgets/sidebar.py:301
+#: lutris/gui/widgets/sidebar.py:305
 msgid "Recent"
 msgstr "Nedavno"
 
-#: lutris/gui/widgets/sidebar.py:310
+#: lutris/gui/widgets/sidebar.py:314
 msgid "Favorites"
 msgstr "Omiljeno"
 
-#: lutris/gui/widgets/sidebar.py:318
+#: lutris/gui/widgets/sidebar.py:322
 msgid "Running"
 msgstr "Pokrenuto"
 
@@ -1242,12 +1327,54 @@ msgstr "Prikaži Lutris"
 msgid "Quit"
 msgstr "Zatvori"
 
-#: lutris/installer/commands.py:168
+#: lutris/installer/commands.py:55
+#, python-brace-format
+msgid "One of {params} parameter is mandatory for the {cmd} command"
+msgstr "Jedan od {params} parametara je obavezan za {cmd} naredbu"
+
+#: lutris/installer/commands.py:56 lutris/installer/interpreter.py:115
+#: lutris/installer/interpreter.py:138
+msgid " or "
+msgstr " ili "
+
+#: lutris/installer/commands.py:62
+#, python-brace-format
+msgid "The {param} parameter is mandatory for the {cmd} command"
+msgstr "{param} parametar je obavezan za {cmd} naredbu"
+
+#: lutris/installer/commands.py:79
+#, python-format
+msgid "Invalid file '%s'. Can't make it executable"
+msgstr "Nevaljana datoteka '%s'. Ne može biti izvršna datoteka"
+
+#: lutris/installer/commands.py:92
+msgid ""
+"Parameters file and command can't be used at the same time for the execute "
+"command"
+msgstr ""
+"Datoteka parametara i naredba ne mogu se koristiti istovremeno za pokretanje "
+"naredbe"
+
+#: lutris/installer/commands.py:120
+msgid "No parameters supplied to execute command."
+msgstr "Nema navedenih parametra za pokretanje naredbe."
+
+#: lutris/installer/commands.py:134
+#, python-format
+msgid "Unable to find executable %s"
+msgstr "Nemoguć pronalazak izvršne datoteke %s"
+
+#: lutris/installer/commands.py:164
+#, python-format
+msgid "%s does not exist"
+msgstr "%s ne postoji"
+
+#: lutris/installer/commands.py:170
 #, python-format
 msgid "Extracting %s"
 msgstr "Raspakiravanje %s"
 
-#: lutris/installer/commands.py:210
+#: lutris/installer/commands.py:212
 msgid ""
 "Insert or mount game disc and click Autodetect or\n"
 "use Browse if the disc is mounted on a non standard location."
@@ -1255,7 +1382,7 @@ msgstr ""
 "Umetnite ili montirajte disk igre i kliknite Automatski otkrij ili\n"
 "koristite Pregledaj ako je disk montiran na nestandardnoj lokaciji."
 
-#: lutris/installer/commands.py:214
+#: lutris/installer/commands.py:216
 #, python-format
 msgid ""
 "\n"
@@ -1270,9 +1397,125 @@ msgstr ""
 "koji sadrže sljedeću datoteku ili mapu:\n"
 "<i>%s</i>"
 
+#: lutris/installer/commands.py:258
+#, python-format
+msgid "Source does not exist: %s"
+msgstr "Izvor ne postoji: %s"
+
+#: lutris/installer/commands.py:284
+#, python-format
+msgid "Invalid source for 'move' operation: %s"
+msgstr "Nevaljani izvor za 'move' radnju: %s"
+
+#: lutris/installer/commands.py:303
+#, python-brace-format
+msgid ""
+"Can't move {src} \n"
+"to destination {dst}"
+msgstr ""
+"Nemoguće je premjestiti {src} \n"
+"u odredište {dst}"
+
+#: lutris/installer/commands.py:310
+#, python-format
+msgid "Rename error, source path does not exist: %s"
+msgstr "Greška preimenovanja, putanja izvora ne postoji: %s"
+
+#: lutris/installer/commands.py:317
+#, python-format
+msgid "Rename error, destination already exists: %s"
+msgstr "Greška preimenovanja, putanja izvora več postoji: %s"
+
+#: lutris/installer/commands.py:333
+msgid "Missing parameter src"
+msgstr "Parametar src nedostaje"
+
+#: lutris/installer/commands.py:336
+msgid "Wrong value for 'src' param"
+msgstr "Nevaljana vrijednost za 'src' parametar"
+
+#: lutris/installer/commands.py:340
+msgid "Wrong value for 'dst' param"
+msgstr "Nevaljana vrijednost za 'dst' parametar"
+
+#: lutris/installer/commands.py:422
+#, python-format
+msgid "Command exited with code %s"
+msgstr "Naredba je završila s kôdom %s"
+
+#: lutris/installer/commands.py:440
+#, python-format
+msgid "Wrong value for write_file mode: '%s'"
+msgstr "Nevaljana vrijednost write_file način: '%s'"
+
+#: lutris/installer/installer_file.py:26
+#, python-format
+msgid "missing field `url` for file `%s`"
+msgstr "nedostaje polje `url` za datoteku `%s`"
+
+#: lutris/installer/installer_file.py:38
+#, python-format
+msgid "missing field `filename` in file `%s`"
+msgstr "nedostaje polje `filename` u datoteci `%s`"
+
+#: lutris/installer/installer_file.py:47
+msgid "Usage of $WINESTEAM location is deprecated"
+msgstr "Korištenje $WINESTEAM lokacije je zastarjelo"
+
+#: lutris/installer/installer_file.py:178
+msgid "Invalid checksum, expected format (type:hash) "
+msgstr "Nevaljani kontrolni zbroj, očekivani format je (type:hash) "
+
+#: lutris/installer/installer_file.py:181
+msgid " checksum mismatch "
+msgstr " kontrolni zbroj se ne podudara "
+
+#: lutris/installer/installer.py:162
+msgid "Game config key must be a string"
+msgstr "Ključ podešavanja igre mora biti izraz"
+
+#: lutris/installer/installer.py:207
+msgid "Invalid 'game' section"
+msgstr "Nevaljani 'game' odjeljak"
+
+#: lutris/installer/interpreter.py:52
+msgid "This installer doesn't have a 'script' section"
+msgstr "Instalacijski program nema 'script' odjeljak"
+
+#: lutris/installer/interpreter.py:56
+msgid ""
+"Invalid script: \n"
+"{}"
+msgstr ""
+"Nevaljana skripta: \n"
+"{}"
+
+#: lutris/installer/interpreter.py:115 lutris/installer/interpreter.py:118
+#, python-format
+msgid "This installer requires %s on your system"
+msgstr "Instalacijski program zahtijeva %s na vašem sustavu"
+
+#: lutris/installer/interpreter.py:178
+msgid "Lutris does not have the necessary permissions to install to path:"
+msgstr "Lutris nema potrebne dozvole za instalaciju u putanju:"
+
+#: lutris/installer/interpreter.py:262
+#, python-format
+msgid "Invalid runner provided %s"
+msgstr "Nevaljani pokretač naveden %s"
+
 #: lutris/installer/interpreter.py:282
 msgid "Installing game data"
 msgstr "Instalacija podataka igre"
+
+#: lutris/installer/interpreter.py:293
+msgid "Installer commands are not formatted correctly"
+msgstr "Naredbe instalacijskog programa nisu oblikovane pravilno"
+
+#: lutris/installer/interpreter.py:324
+#, python-format
+msgid "The command \"%s\" does not exist."
+msgstr "Naredba \"%s\" ne postoji."
 
 #: lutris/installer/interpreter.py:341
 #, python-format
@@ -1288,6 +1531,11 @@ msgstr ""
 #: lutris/installer/interpreter.py:347
 msgid "Installation completed!"
 msgstr "Instalacija završena!"
+
+#: lutris/installer/steam_installer.py:47
+#, python-format
+msgid "Malformed steam path: %s"
+msgstr "Oštećena steam putanja: %s"
 
 #: lutris/runners/atari800.py:19
 msgid "Desktop resolution"
@@ -5025,9 +5273,6 @@ msgstr ""
 
 #~ msgid "Copy System Info"
 #~ msgstr "Kopiraj informacije sustava"
-
-#~ msgid "System Information"
-#~ msgstr "Informacije sustava"
 
 #~ msgid "Install runners"
 #~ msgstr "Instaliraj pokretače"
