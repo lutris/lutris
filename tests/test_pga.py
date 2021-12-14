@@ -16,6 +16,7 @@ class DatabaseTester(unittest.TestCase):
             os.remove(settings.PGA_DB)
         schema.syncdb()
 
+
 class TestPersonnalGameArchive(DatabaseTester):
     def test_add_game(self):
         games_db.add_game(name="LutrisTest", runner="Linux")
