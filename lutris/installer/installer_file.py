@@ -1,5 +1,6 @@
 """Manipulates installer files"""
 import os
+from gettext import gettext as _
 from urllib.parse import urlparse
 
 from lutris import cache, settings
@@ -22,7 +23,7 @@ class InstallerFile:
         _url = ""
         if isinstance(self._file_meta, dict):
             if "url" not in self._file_meta:
-                raise ScriptingError("missing field `url` for file `%s`" % self.id)
+                raise ScriptingError(_("missing field `url` for file `%s`") % self.id)
             _url = self._file_meta["url"]
         else:
             _url = self._file_meta
@@ -34,7 +35,7 @@ class InstallerFile:
     def filename(self):
         if isinstance(self._file_meta, dict):
             if "filename" not in self._file_meta:
-                raise ScriptingError("missing field `filename` in file `%s`" % self.id)
+                raise ScriptingError(_("missing field `filename` in file `%s`") % self.id)
             return self._file_meta["filename"]
         if self._file_meta.startswith("N/A"):
             if self.uses_pga_cache() and os.path.isdir(self.cache_path):
@@ -43,7 +44,7 @@ class InstallerFile:
         if self.url.startswith("$STEAM"):
             return self.url
         if self.url.startswith("$WINESTEAM"):
-            raise ScriptingError("Usage of $WINESTEAM location is deprecated")
+            raise ScriptingError(_("Usage of $WINESTEAM location is deprecated"))
         return os.path.basename(self._file_meta)
 
     @property
@@ -173,11 +174,11 @@ class InstallerFile:
             return
         try:
             hash_type, expected_hash = self.checksum.split(':', 1)
-        except ValueError:
-            raise ScriptingError("Invalid checksum, expected format (type:hash) ", self.checksum)
+        except ValueError as err:
+            raise ScriptingError(_("Invalid checksum, expected format (type:hash) "), self.checksum) from err
 
         if system.get_file_checksum(self.dest_file, hash_type) != expected_hash:
-            raise ScriptingError(hash_type.capitalize() + " checksum mismatch ", self.checksum)
+            raise ScriptingError(hash_type.capitalize() + _(" checksum mismatch "), self.checksum)
 
     @property
     def is_cached(self):

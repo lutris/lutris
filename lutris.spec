@@ -91,7 +91,7 @@ it gives you a central interface to launch all your games.
 
 #desktop icon
 %if 0%{?suse_version}
-%suse_update_desktop_file -r -i %{appid} Network FileTransfer
+%suse_update_desktop_file -r -i %{appid} Game Network
 %endif
 
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}

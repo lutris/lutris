@@ -2,6 +2,7 @@ import json
 import os
 import random
 import time
+from typing import Optional
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
@@ -67,7 +68,7 @@ class ServiceMedia:
             medias[game["slug"]] = media_url
         return medias
 
-    def download(self, slug, url):
+    def download(self, slug: str, url: str) -> Optional[str]:
         """Downloads the banner if not present"""
         if not url:
             return
@@ -78,17 +79,13 @@ class ServiceMedia:
             cache_stats = os.stat(cache_path)
             # Empty files have a life time between 1 and 2 weeks, retry them after
             if time.time() - cache_stats.st_mtime < 3600 * 24 * random.choice(range(7, 15)):
-                return
+                return cache_path
             os.unlink(cache_path)
         try:
             return download_file(url, cache_path, raise_errors=True)
         except HTTPError as ex:
-            if ex.code == 404:
-                open(cache_path, "a").close()
-            else:
-                logger.error(ex.code)
-            return None
-        return cache_path
+            logger.error(ex)
+            return
 
     def render(self):
         """Used if the media requires extra processing"""

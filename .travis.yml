@@ -6,7 +6,7 @@ python:
   - "3.8"
   - "3.9"
 env:
-  - PIPENV_VERBOSITY=-1 LUTRIS_SKIP_INIT=1
+  - LUTRIS_SKIP_INIT=1
 virtualenv:
   system_site_packages: false
 services:
@@ -38,12 +38,12 @@ before_install:
   - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
   - sleep 3 # Give xvfb some time to start
 install:
-  - pip install --upgrade pip pypresence~=3.3.2 pipenv
-  - pipenv install --dev --deploy --ignore-pipfile
+  - pip install --upgrade pip pypresence~=3.3.2 poetry
+  - poetry install --no-root
 script:
-  - pipenv run isort -y -rc lutris
-  - pipenv run flake8 lutris
-  - pipenv run pylint --rcfile=.pylintrc --output-format=colorized lutris
+  - make isort-check
+  - make flake8
+  - make pylint
   - nosetests
 
 # Cache the pip dependencies

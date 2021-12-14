@@ -30,7 +30,7 @@ def restore_gamma():
     """Restores gamma to a normal level."""
     xgamma_path = system.find_executable("xgamma")
     try:
-        subprocess.Popen([xgamma_path, "-gamma", "1.0"])
+        subprocess.Popen([xgamma_path, "-gamma", "1.0"])  # pylint: disable=consider-using-with
     except (FileNotFoundError, TypeError):
         logger.warning("xgamma is not available on your system")
     except PermissionError:
@@ -167,7 +167,7 @@ def get_desktop_environment():
 def _get_command_output(*command):
     """Some rogue function that gives no shit about residing in the correct module"""
     try:
-        return subprocess.Popen(
+        return subprocess.Popen(  # pylint: disable=consider-using-with
             command,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
@@ -237,7 +237,11 @@ def _run_command(*command):
     are you lost little _run_command?
     """
     try:
-        return subprocess.Popen(command, stdin=subprocess.DEVNULL, close_fds=True)
+        return subprocess.Popen(  # pylint: disable=consider-using-with
+            command,
+            stdin=subprocess.DEVNULL,
+            close_fds=True
+        )
     except FileNotFoundError:
         logger.error("Oh no")
 

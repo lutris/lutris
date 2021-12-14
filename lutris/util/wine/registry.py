@@ -97,7 +97,7 @@ class WineRegistry:
         """Return an array of the unprocessed contents of a registry file"""
         if not system.path_exists(reg_filename):
             return []
-        with open(reg_filename, "r") as reg_file:
+        with open(reg_filename, "r", encoding='utf-8') as reg_file:
 
             try:
                 registry_content = reg_file.readlines()
@@ -158,7 +158,7 @@ class WineRegistry:
                 "Invalid Wine prefix path %s, make sure to "
                 "create the prefix before saving to a registry" % prefix_path
             )
-        with open(path, "w") as registry_file:
+        with open(path, "w", encoding='utf-8') as registry_file:
             registry_file.write(self.render())
 
     def query(self, path, subkey):
@@ -297,7 +297,11 @@ class WineRegistryKey:
 
     @staticmethod
     def decode_unicode(string):
-        chunks = re.split(r"[^\\]\\x", string)
+        # There may be a r"\\" in front of r"\x", so replace the r"\\" to r"\x005c"
+        # to avoid missing matches. Example: r"C:\\users\\x1234\\\x0041\x0042CD".
+        # Note the difference between r"\\x1234", r"\\\x0041" and r"\x0042".
+        # It should be r"C:\users\x1234\ABCD" after decoding.
+        chunks = re.split(r"\\x", string.replace(r"\\", r"\x005c"))
         out = chunks.pop(0).encode().decode("unicode_escape")
         for chunk in chunks:
             # We have seen file with unicode characters escaped on 1 byte (\xfa),

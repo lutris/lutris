@@ -59,8 +59,8 @@ class DieselGameMedia(ServiceMedia):
         thumb_image = thumb_image.convert("RGB")
         thumb_image.save(thumb_path)
 
-    def get_media_url(self, detail):
-        for image in detail.get("keyImages", []):
+    def get_media_url(self, details):
+        for image in details.get("keyImages", []):
             if image["type"] == self.api_field:
                 return image["url"] + "?w=%s&resize=1&h=%s" % (
                     self.remote_size[0],
@@ -152,9 +152,9 @@ class EpicGamesStoreService(OnlineService):
     cache_path = os.path.join(settings.CACHE_DIR, "egs-library.json")
     login_url = "https://www.epicgames.com/id/login?redirectUrl=https://www.epicgames.com/id/api/redirect"
     redirect_uri = "https://www.epicgames.com/id/api/redirect"
-    launcher_url = "https://launcher-public-service-prod06.ol.epicgames.com"
     oauth_url = 'https://account-public-service-prod03.ol.epicgames.com'
     catalog_url = 'https://catalog-public-service-prod06.ol.epicgames.com'
+    library_url = 'https://library-service.live.use1a.on.epicgames.com'
     is_loading = False
 
     user_agent = (
@@ -170,7 +170,7 @@ class EpicGamesStoreService(OnlineService):
         self.session = requests.session()
         self.session.headers['User-Agent'] = self.user_agent
         if os.path.exists(self.token_path):
-            with open(self.token_path) as token_file:
+            with open(self.token_path, encoding='utf-8') as token_file:
                 self.session_data = json.loads(token_file.read())
         else:
             self.session_data = {}
@@ -250,7 +250,7 @@ class EpicGamesStoreService(OnlineService):
         response_content = response.json()
         if 'error' in response_content:
             raise RuntimeError(response_content)
-        with open(self.token_path, "w") as auth_file:
+        with open(self.token_path, "w", encoding='utf-8') as auth_file:
             auth_file.write(json.dumps(response_content, indent=2))
         self.session_data = response_content
 
@@ -275,16 +275,29 @@ class EpicGamesStoreService(OnlineService):
     def get_library(self):
         self.resume_session()
         response = self.session.get(
-            '%s/launcher/api/public/assets/Windows' % self.launcher_url,
-            params={'label': 'Live'}
+            '%s/library/api/public/items' % self.library_url,
+            params={'includeMetadata': 'true'}
         )
         response.raise_for_status()
-        assets = response.json()
+        resData = response.json()
+        records = resData['records']
+        cursor = resData['responseMetadata'].get('nextCursor', None)
+        while cursor:
+            response = self.session.get(
+                '%s/library/api/public/items' % self.library_url,
+                params={'includeMetadata': 'true',
+                        'cursor': cursor}
+            )
+            response.raise_for_status()
+            resData = response.json()
+            records.extend(resData['records'])
+            cursor = resData['responseMetadata'].get('nextCursor', None)
+
         games = []
-        for asset in assets:
-            if asset["namespace"] == "ue":
+        for record in records:
+            if record["namespace"] == "ue":
                 continue
-            game_details = self.get_game_details(asset)
+            game_details = self.get_game_details(record)
             games.append(game_details)
         return games
 

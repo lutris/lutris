@@ -6,6 +6,7 @@ import os
 import shlex
 import shutil
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import GLib
 
@@ -51,13 +52,15 @@ class CommandsMixin:
                         param_present = True
                 if not param_present:
                     raise ScriptingError(
-                        "One of %s parameter is mandatory for the %s command" % (" or ".join(param), command_name),
+                        _("One of {params} parameter is mandatory for the {cmd} command").format(
+                            params=_(" or ").join(param), cmd=command_name),
                         command_data,
                     )
             else:
                 if param not in command_data:
                     raise ScriptingError(
-                        "The %s parameter is mandatory for the %s command" % (param, command_name),
+                        _("The {param} parameter is mandatory for the {cmd} command").format(
+                            param=param, cmd=command_name),
                         command_data,
                     )
 
@@ -73,7 +76,7 @@ class CommandsMixin:
         """Make filename executable"""
         filename = self._substitute(filename)
         if not system.path_exists(filename):
-            raise ScriptingError("Invalid file '%s'. Can't make it executable" % filename)
+            raise ScriptingError(_("Invalid file '%s'. Can't make it executable") % filename)
         system.make_executable(filename)
 
     def execute(self, data):
@@ -86,8 +89,8 @@ class CommandsMixin:
             self._check_required_params([("file", "command")], data, "execute")
             if "command" in data and "file" in data:
                 raise ScriptingError(
-                    "Parameters file and command can't be used "
-                    "at the same time for the execute command",
+                    _("Parameters file and command can't be used "
+                      "at the same time for the execute command"),
                     data,
                 )
             file_ref = data.get("file", "")
@@ -114,7 +117,7 @@ class CommandsMixin:
             include_processes = []
             exclude_processes = []
         else:
-            raise ScriptingError("No parameters supplied to execute command.", data)
+            raise ScriptingError(_("No parameters supplied to execute command."), data)
 
         if command:
             file_ref = "bash"
@@ -128,7 +131,7 @@ class CommandsMixin:
             system.make_executable(file_ref)
         exec_path = system.find_executable(file_ref)
         if not exec_path:
-            raise ScriptingError("Unable to find executable %s" % file_ref)
+            raise ScriptingError(_("Unable to find executable %s") % file_ref)
 
         if terminal:
             terminal = linux.get_default_terminal()
@@ -158,7 +161,7 @@ class CommandsMixin:
         filenames = glob.glob(filespec)
 
         if not filenames:
-            raise ScriptingError("%s does not exist" % filespec)
+            raise ScriptingError(_("%s does not exist") % filespec)
         if "dst" in data:
             dest_path = self._substitute(data["dst"])
         else:
@@ -252,9 +255,8 @@ class CommandsMixin:
             if params.get("optional"):
                 logger.info("Optional path %s not present", src)
                 return
-            raise ScriptingError("Source does not exist: %s" % src, params)
-        if not os.path.exists(dst):
-            os.makedirs(dst)
+            raise ScriptingError(_("Source does not exist: %s") % src, params)
+        os.makedirs(dst, exist_ok=True)
         if os.path.isfile(src):
             # If single file, copy it and change reference in game file so it
             # can be used as executable. Skip copying if the source is the same
@@ -279,7 +281,7 @@ class CommandsMixin:
             if params.get("optional"):
                 logger.info("Optional path %s not present", src)
                 return
-            raise ScriptingError("Invalid source for 'move' operation: %s" % src)
+            raise ScriptingError(_("Invalid source for 'move' operation: %s") % src)
 
         if os.path.isfile(src):
             if os.path.dirname(src) == dst:
@@ -297,22 +299,22 @@ class CommandsMixin:
             else:
                 action = shutil.move
             self._killable_process(action, src, dst)
-        except shutil.Error:
-            raise ScriptingError("Can't move %s \nto destination %s" % (src, dst))
+        except shutil.Error as err:
+            raise ScriptingError(_("Can't move {src} \nto destination {dst}").format(src=src, dst=dst)) from err
 
     def rename(self, params):
         """Rename file or folder."""
         self._check_required_params(["src", "dst"], params, "rename")
         src, dst = self._get_move_paths(params)
         if not os.path.exists(src):
-            raise ScriptingError("Rename error, source path does not exist: %s" % src)
+            raise ScriptingError(_("Rename error, source path does not exist: %s") % src)
         if os.path.isdir(dst):
             try:
                 os.rmdir(dst)  # Remove if empty
             except OSError:
                 pass
         if os.path.exists(dst):
-            raise ScriptingError("Rename error, destination already exists: %s" % src)
+            raise ScriptingError(_("Rename error, destination already exists: %s") % src)
         dst_dir = os.path.dirname(dst)
 
         # Pre-move on dest filesystem to avoid error with
@@ -327,15 +329,15 @@ class CommandsMixin:
         """Process raw 'src' and 'dst' data."""
         try:
             src_ref = params["src"]
-        except KeyError:
-            raise ScriptingError("Missing parameter src")
+        except KeyError as err:
+            raise ScriptingError(_("Missing parameter src")) from err
         src = self.game_files.get(src_ref) or self._substitute(src_ref)
         if not src:
-            raise ScriptingError("Wrong value for 'src' param", src_ref)
+            raise ScriptingError(_("Wrong value for 'src' param"), src_ref)
         dst_ref = params["dst"]
         dst = self._substitute(dst_ref)
         if not dst:
-            raise ScriptingError("Wrong value for 'dst' param", dst_ref)
+            raise ScriptingError(_("Wrong value for 'dst' param"), dst_ref)
         return src.rstrip("/"), dst.rstrip("/")
 
     def substitute_vars(self, data):
@@ -344,8 +346,8 @@ class CommandsMixin:
         filename = self._substitute(data["file"])
         logger.debug("Substituting variables for file %s", filename)
         tmp_filename = filename + ".tmp"
-        with open(filename, "r") as source_file:
-            with open(tmp_filename, "w") as dest_file:
+        with open(filename, "r", encoding='utf-8') as source_file:
+            with open(tmp_filename, "w", encoding='utf-8') as dest_file:
                 line = "."
                 while line:
                     line = source_file.readline()
@@ -417,7 +419,7 @@ class CommandsMixin:
         if not command.is_running:
             logger.debug("Return code: %s", command.return_code)
             if command.return_code != "0":
-                raise ScriptingError("Command exited with code %s" % command.return_code)
+                raise ScriptingError(_("Command exited with code %s") % command.return_code)
             self._iter_commands()
             return False
         return True
@@ -431,14 +433,13 @@ class CommandsMixin:
 
         # Create dir if necessary
         basedir = os.path.dirname(dest_file_path)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        os.makedirs(basedir, exist_ok=True)
 
         mode = params.get("mode", "w")
         if not mode.startswith(("a", "w")):
-            raise ScriptingError("Wrong value for write_file mode: '%s'" % mode)
+            raise ScriptingError(_("Wrong value for write_file mode: '%s'") % mode)
 
-        with open(dest_file_path, mode) as dest_file:
+        with open(dest_file_path, mode, encoding='utf-8') as dest_file:
             dest_file.write(self._substitute(params["content"]))
 
     def write_json(self, params):
@@ -450,17 +451,14 @@ class CommandsMixin:
 
         # Create dir if necessary
         basedir = os.path.dirname(filename)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        os.makedirs(basedir, exist_ok=True)
 
         merge = params.get("merge", True)
 
-        if not os.path.exists(filename):
-            # create an empty file
-            with open(filename, "a+"):
-                pass
+        # create an empty file if it doesn't exist
+        Path(filename).touch(exist_ok=True)
 
-        with open(filename, "r+" if merge else "w") as json_file:
+        with open(filename, "r+" if merge else "w", encoding='utf-8') as json_file:
             json_data = {}
             if merge:
                 try:
@@ -483,8 +481,7 @@ class CommandsMixin:
 
         # Create dir if necessary
         basedir = os.path.dirname(config_file_path)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        os.makedirs(basedir, exist_ok=True)
 
         merge = params.get("merge", True)
 
@@ -518,13 +515,13 @@ class CommandsMixin:
 
     def _killable_process(self, func, *args, **kwargs):
         """Run function `func` in a separate, killable process."""
-        process = multiprocessing.Pool(1)
-        result_obj = process.apply_async(func, args, kwargs)
-        self.abort_current_task = process.terminate
-        result = result_obj.get()  # Wait process end & reraise exceptions
-        self.abort_current_task = None
-        logger.debug("Process %s returned: %s", func, result)
-        return result
+        with multiprocessing.Pool(1) as process:
+            result_obj = process.apply_async(func, args, kwargs)
+            self.abort_current_task = process.terminate
+            result = result_obj.get()  # Wait process end & re-raise exceptions
+            self.abort_current_task = None
+            logger.debug("Process %s returned: %s", func, result)
+            return result
 
     def _extract_gog_game(self, file_id):
         self.extract({
@@ -546,7 +543,7 @@ class CommandsMixin:
 
     def _get_scummvm_arguments(self, gog_config_path):
         """Return a ScummVM configuration from the GOG config files"""
-        with open(gog_config_path) as gog_config_file:
+        with open(gog_config_path, encoding='utf-8') as gog_config_file:
             gog_config = json.loads(gog_config_file.read())
         game_tasks = [task for task in gog_config["playTasks"] if task["category"] == "game"]
         arguments = game_tasks[0]["arguments"]

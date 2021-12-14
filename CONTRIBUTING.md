@@ -70,7 +70,7 @@ Set up your development environment
 -----------------------------------
 
 To ensure you have the proper dependencies installed run: `make dev`
-This will use pipenv to create a virtual environment installing all necessary
+This will use poetry to create a virtual environment installing all necessary
 python packages to get you up and running.
 
 This project includes .editorconfig so you're good to go if you're using any
@@ -95,8 +95,6 @@ When writing docstrings, you should follow the Google style
 You should always provide docstrings, otherwise your code wouldn't pass a
 Pylint check.
 
-Do *not* add type annotations, those are not supported in Python 3.4.
-
 Writing tests
 -------------
 
@@ -110,9 +108,9 @@ Running tests
 Be sure to test your changes thoroughly, never submit changes without running
 the code. At the very least, run the test suite and check that nothing broke.
 You can run the test suite by typing `make test` in the source directory.
-In order to run the test, you'll need to install nosetests and flake8:
+In order to run the test, you'll need to install nose2 and flake8:
 
-    pip3 install nose flake8
+    pip3 install nose2 flake8
 
 QAing your changes
 ------------------

@@ -1,19 +1,21 @@
 import os
 from unittest import TestCase
+
 import gi
 
 gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk
+
+from lutris import runners
 from lutris.database import games as games_db
 from lutris.game import Game
+from lutris.gui.application import Application
+from lutris.gui.config.add_game import AddGameDialog
 # from lutris import settings
 from lutris.gui.config.common import GameDialogCommon
-from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.application import Application
 from lutris.gui.views.store import sort_func
 from lutris.util.test_config import setup_test_environment
-from lutris import runners
 
 setup_test_environment()
 

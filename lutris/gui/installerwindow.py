@@ -114,7 +114,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             for item in ["name", "runner", "version"]:
                 if item not in script:
                     logger.error("Invalid script: %s", script)
-                    raise ScriptingError('Missing field "%s" in install script' % item)
+                    raise ScriptingError(_('Missing field "%s" in install script') % item)
 
     def choose_installer(self):
         """Stage where we choose an install script."""
@@ -173,7 +173,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 )
             self.destroy()
             return
-        self.title_label.set_markup(_(u"<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
+        self.title_label.set_markup(_("<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
         self.select_install_folder()
 
     def select_install_folder(self):
@@ -293,7 +293,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         try:
             self.interpreter.installer.prepare_game_files()
         except UnavailableGame as ex:
-            raise ScriptingError(str(ex))
+            raise ScriptingError(str(ex)) from ex
 
         if not self.interpreter.installer.files:
             logger.debug("Installer doesn't require files")
@@ -407,7 +407,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.continue_button.disconnect(self.continue_handler)
         except PermissionError as ex:
             self.continue_button.set_sensitive(True)
-            raise ScriptingError("Unable to get files: %s" % ex)
+            raise ScriptingError(_("Unable to get files: %s") % ex) from ex
 
     def on_files_available(self, widget):
         """All files are available, continue the install"""

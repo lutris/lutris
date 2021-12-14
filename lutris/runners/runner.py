@@ -13,7 +13,7 @@ from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import system
 from lutris.util.extract import ExtractFailure, extract_archive
-from lutris.util.http import Request
+from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -147,12 +147,17 @@ class Runner:  # pylint: disable=too-many-public-methods
         if os_env:
             env.update(os.environ.copy())
 
+        # By default we'll set NVidia's shader disk cache to be
+        # per-game, so it overflows less readily.
+        env["__GL_SHADER_DISK_CACHE"] = "1"
+        env["__GL_SHADER_DISK_CACHE_PATH"] = self.game_path
+
         # Override SDL2 controller configuration
         sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
             if system.path_exists(path):
-                with open(path, "r") as controllerdb_file:
+                with open(path, "r", encoding='utf-8') as controllerdb_file:
                     sdl_gamecontrollerconfig = controllerdb_file.read()
             env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
@@ -177,7 +182,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         # Vulkan ICD files
         vk_icd = self.system_config.get("vk_icd")
-        if vk_icd and vk_icd != "off" and system.path_exists(vk_icd):
+        if vk_icd:
             env["VK_ICD_FILENAMES"] = vk_icd
 
         runtime_ld_library_path = None
@@ -298,17 +303,26 @@ class Runner:  # pylint: disable=too-many-public-methods
             version (str): Optional version to lookup, will return this one if found
 
         Returns:
-            dict: Dict containing version, architecture and url for the runner
+            dict: Dict containing version, architecture and url for the runner, None
+            if the data can't be retrieved.
         """
         logger.info(
             "Getting runner information for %s%s",
             self.name,
             " (version: %s)" % version if version else "",
         )
-        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
-        runner_info = request.get().json
+
+        try:
+            request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
+            runner_info = request.get().json
+
+            if not runner_info:
+                logger.error("Failed to get runner information")
+        except HTTPError as ex:
+            logger.error("Unable to get runner information: %s", ex)
+            runner_info = None
+
         if not runner_info:
-            logger.error("Failed to get runner information")
             return
 
         versions = runner_info.get("versions") or []
@@ -389,7 +403,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             extract_archive(archive, dest, merge_single=merge_single)
         except ExtractFailure as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
-            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex))
+            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex)) from ex
         os.remove(archive)
 
         if self.name == "wine":
@@ -401,7 +415,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             callback()
 
     @staticmethod
-    def remove_game_data(game_path=None):
+    def remove_game_data(app_id=None, game_path=None):
         system.remove_folder(game_path)
 
     def can_uninstall(self):
