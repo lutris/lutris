@@ -25,4 +25,4 @@ jobs:
       - run: pip install --upgrade pip poetry
       - run: echo LUTRIS_SKIP_INIT=1 >.env
       - run: make dev
-      - run: xvfb-run --auto-servernum poetry run nosetests
+      - run: xvfb-run --auto-servernum poetry run nose2

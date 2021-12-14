@@ -108,9 +108,9 @@ Running tests
 Be sure to test your changes thoroughly, never submit changes without running
 the code. At the very least, run the test suite and check that nothing broke.
 You can run the test suite by typing `make test` in the source directory.
-In order to run the test, you'll need to install nosetests and flake8:
+In order to run the test, you'll need to install nose2 and flake8:
 
-    pip3 install nose flake8
+    pip3 install nose2 flake8
 
 QAing your changes
 ------------------
