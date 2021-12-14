@@ -210,7 +210,7 @@ class Application(Gtk.Application):
         self.add_accelerator("<Primary>q", "app.quit")
 
     def do_activate(self):  # pylint: disable=arguments-differ
-        self.show_update_runtime_dialog()
+        Application.show_update_runtime_dialog()
         if not self.window:
             self.window = LutrisWindow(application=self)
             screen = self.window.props.screen  # pylint: disable=no-member
