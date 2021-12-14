@@ -25,10 +25,12 @@ test:
 	rm tests/fixtures/pga.db -f
 	nose2
 
+
 cover:
 	rm tests/fixtures/pga.db -f
 	rm tests/coverage/ -rf
 	nose2 --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+
 
 pgp-renew:
 	osc signkey --extend home:strycore
