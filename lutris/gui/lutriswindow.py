@@ -107,7 +107,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.sidebar = LutrisSidebar(self.application, selected=self.selected_category)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
+        # "realize" is order sensitive- must connect after sidebar itself connects the same signal
+        self.sidebar.connect("realize", self.on_sidebar_realize)
         self.sidebar_scrolled.add(self.sidebar)
+
+        # This must wait until the selected-rows-changed signal is connected
+        self.sidebar.initialize_rows()
 
         self.sidebar_revealer.set_reveal_child(self.side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
@@ -122,6 +127,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
+        GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
 
     def _init_actions(self):
@@ -193,6 +199,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self._bind_zoom_adjustment()
         self.view.grab_focus()
         self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
+
+    def on_sidebar_realize(self, widget, data=None):
+        """Grab the initial focus after the sidebar is initialized - so the view is ready."""
+        self.view.grab_focus()
 
     def load_filters(self):
         """Load the initial filters when creating the view"""
@@ -326,13 +336,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 "installed_at": 0.0,
                 "playtime": 0.0,
             }
+            view_sorting = self.view_sorting
             lutris_game = lutris_games.get(game["appid"])
             if not lutris_game:
-                return sort_defaults[self.view_sorting]
-            value = lutris_game[self.view_sorting]
+                return sort_defaults.get(view_sorting, "")
+            value = lutris_game.get(view_sorting)
             if value:
                 return value
-            return sort_defaults[self.view_sorting]
+            # Users may have obsolete view_sorting settings, so
+            # we must tolerate them. We treat them all as blank.
+            return sort_defaults.get(view_sorting, "")
 
         return [
             self.combine_games(game, lutris_games.get(game["appid"])) for game in sorted(
@@ -571,7 +584,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.games_scrollwindow.add(self.view)
 
         self.view.show_all()
-        self.view.grab_focus()
         GLib.idle_add(self.update_store)
 
     def set_viewtype_icon(self, view_type):
@@ -771,6 +783,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Return whether a game should be displayed on the view"""
         if game.is_hidden and not self.show_hidden_games:
             return False
+
+        # Stopped games do not get displayed on the running page
+        if game.state == game.STATE_STOPPED:
+            selected_row = self.sidebar.get_selected_row()
+            if selected_row is not None and selected_row.id == "running":
+                return False
+
         return True
 
     def on_game_updated(self, game):
@@ -787,6 +806,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.game_store.add_game(db_game)
         return True
 
+    def on_game_stopped(self, game):
+        """Updates the game list when a game stops; this keeps the 'running' page updated."""
+        selected_row = self.sidebar.get_selected_row()
+        # Only update the running page- we lose the selected when we do this,
+        # but on the running page this is okay.
+        if selected_row is not None and selected_row.id == "running":
+            self.game_store.remove_game(game.id)
+        return True
+
     def on_game_collection_changed(self, _sender):
         """Simple method used to refresh the view"""
         self.emit("view-updated")
@@ -794,7 +822,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_game_activated(self, view, game_id):
         """Handles view activations (double click, enter press)"""
-        initial_game_id = game_id
         if self.service:
             logger.debug("Looking up %s game %s", self.service.id, game_id)
             db_game = games_db.get_game_for_service(self.service.id, game_id)
@@ -823,5 +850,3 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 game.emit("game-launch")
             else:
                 game.emit("game-install")
-        else:
-            logger.warning("No game found for %s", initial_game_id)

@@ -123,10 +123,6 @@ def get_default_icon(size):
     return os.path.join(datapath.get(), "media/default_banner.png")
 
 
-def get_pixbuf_for_game(image_abspath, size, is_installed=True):
-    return get_pixbuf(image_abspath, size, fallback=get_default_icon(size), is_installed=is_installed)
-
-
 def convert_to_background(background_path, target_size=(320, 1080)):
     """Converts a image to a pane background"""
     coverart = Image.open(background_path)

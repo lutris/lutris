@@ -166,7 +166,17 @@ class BaseService(GObject.Object):
         return service_installers
 
     def install(self, db_game):
-        """Install a service game"""
+        """Install a service game, or starts the installer of the game.
+
+        Args:
+            db_game (dict or str): Database fields of the game to add, or (for Lutris service only
+                the slug of the game.)
+
+        Returns:
+            str: The slug of the game that was installed, to be run. None if the game should not be
+                run now. Many installers start from here, but continue running after this returns;
+                they return None.
+        """
         appid = db_game["appid"]
         logger.debug("Installing %s from service %s", appid, self.id)
         if self.local:
