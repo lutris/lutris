@@ -84,7 +84,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if self.requires:
             # Game is an extension of an existing game, folder exists
             return False
-        if self.runner in ("steam", "winesteam"):
+        if self.runner == "steam":
             # Steam games installs in their steamapps directory
             return False
         if (
@@ -117,7 +117,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 errors.append("Missing libretro core in game section")
 
         # Check that Steam games have an AppID
-        if self.runner in ("steam", "winesteam"):
+        if self.runner == "steam":
             if not self.script.get("game", {}).get("appid"):
                 errors.append("Missing appid for Steam game")
 

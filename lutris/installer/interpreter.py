@@ -182,7 +182,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def get_runners_to_install(self):
         """Check if the runner is installed before starting the installation
         Install the required runner(s) if necessary. This should handle runner
-        dependencies (wine for winesteam) or runners used for installer tasks.
+        dependencies or runners used for installer tasks.
         """
         runners_to_install = []
         required_runners = []
