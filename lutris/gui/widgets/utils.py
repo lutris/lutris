@@ -59,19 +59,20 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
         return pixbuf
     overlay = os.path.join(datapath.get(), "media/unavailable.png")
     transparent_pixbuf = get_overlay(overlay, size).copy()
-    pixbuf.composite(
-        transparent_pixbuf,
-        0,
-        0,
-        size[0],
-        size[1],
-        0,
-        0,
-        1,
-        1,
-        GdkPixbuf.InterpType.NEAREST,
-        100,
-    )
+    if pixbuf:
+        pixbuf.composite(
+            transparent_pixbuf,
+            0,
+            0,
+            size[0],
+            size[1],
+            0,
+            0,
+            1,
+            1,
+            GdkPixbuf.InterpType.NEAREST,
+            100,
+        )
     return transparent_pixbuf
 
 
