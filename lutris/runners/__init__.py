@@ -8,7 +8,6 @@ __all__ = [
     "web",
     # Microsoft based
     "wine",
-    "winesteam",
     "dosbox",
     # Multi-system
     "easyrpg",

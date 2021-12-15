@@ -31,7 +31,7 @@ class CommandsMixin:
     def _get_runner_version(self):
         """Return the version of the runner used for the installer"""
         if (
-                self.installer.runner in ("wine", "winesteam")
+                self.installer.runner == "wine"
                 and self.installer.script.get(self.installer.runner)
         ):
             return self.installer.script[self.installer.runner].get("version")

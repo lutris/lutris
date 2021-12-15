@@ -43,8 +43,6 @@ class InstallerFile:
             return ""
         if self.url.startswith("$STEAM"):
             return self.url
-        if self.url.startswith("$WINESTEAM"):
-            raise ScriptingError(_("Usage of $WINESTEAM location is deprecated"))
         return os.path.basename(self._file_meta)
 
     @property

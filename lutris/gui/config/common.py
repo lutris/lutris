@@ -405,8 +405,8 @@ class GameDialogCommon(Dialog):
         if not self.name_entry.get_text():
             ErrorDialog(_("Please fill in the name"))
             return False
-        if (self.runner_name in ("steam", "winesteam") and self.lutris_config.game_config.get("appid") is None):
-            ErrorDialog(_("Steam AppId not provided"))
+        if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
+            ErrorDialog(_("Steam AppID not provided"))
             return False
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
