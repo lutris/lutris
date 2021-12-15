@@ -3,9 +3,9 @@ import re
 import subprocess
 from collections import namedtuple
 
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
-from lutris.util.linux import LINUX_SYSTEM
 
 Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate"))
 

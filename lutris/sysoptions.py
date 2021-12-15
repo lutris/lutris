@@ -106,8 +106,8 @@ def get_vk_icd_choices():
     glxinfocmd = get_gpu_vendor_cmd(0)
     if nvidia_files:
         glxinfocmd = get_gpu_vendor_cmd(1)
-    glxvendorget = subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    glxvendor = glxvendorget.communicate()[0].decode("utf-8")
+    with subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as glxvendorget:
+        glxvendor = glxvendorget.communicate()[0].decode("utf-8")
     default_gpu = glxvendor
 
     if "Intel" in default_gpu:
