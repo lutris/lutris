@@ -604,7 +604,7 @@ class Application(Gtk.Application):
     def print_steam_list(self, command_line):
         steamapps_paths = get_steamapps_paths()
         for platform in ("linux", "windows"):
-            for path in steamapps_paths[platform]:
+            for path in steamapps_paths[platform] if steamapps_paths else []:
                 appmanifest_files = get_appmanifests(path)
                 for appmanifest_file in appmanifest_files:
                     appmanifest = AppManifest(os.path.join(path, appmanifest_file))
@@ -634,7 +634,7 @@ class Application(Gtk.Application):
     def print_steam_folders(self, command_line):
         steamapps_paths = get_steamapps_paths()
         for platform in ("linux", "windows"):
-            for path in steamapps_paths[platform]:
+            for path in steamapps_paths[platform] if steamapps_paths else []:
                 self._print(command_line, path)
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
