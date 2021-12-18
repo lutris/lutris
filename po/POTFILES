@@ -125,7 +125,6 @@ lutris/runners/steam.py
 lutris/runners/vice.py
 lutris/runners/web.py
 lutris/runners/wine.py
-lutris/runners/winesteam.py
 lutris/runners/yuzu.py
 lutris/runners/zdoom.py
 lutris/runtime.py
