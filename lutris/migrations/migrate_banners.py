@@ -13,14 +13,11 @@ def migrate():
         # init_lutris() creates the new banners directrory
         if os.path.isdir(src_dir) and os.path.isdir(dest_dir):
             for filename in os.listdir(src_dir):
-                try:
-                    src_file = os.path.join(src_dir, filename)
-                    dest_file = os.path.join(dest_dir, filename)
+                src_file = os.path.join(src_dir, filename)
+                dest_file = os.path.join(dest_dir, filename)
 
-                    if not os.path.exists(dest_file):
-                        os.rename(src_file, dest_file)
-                except OSError as ex:  # Skip what we can't migrate
-                    logger.exception("Failed to migrate banner %s: %s", filename, ex)
+                if not os.path.exists(dest_file):
+                    os.rename(src_file, dest_file)
 
             if not os.listdir(src_dir):
                 os.rmdir(src_dir)
