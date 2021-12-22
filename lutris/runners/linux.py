@@ -109,7 +109,7 @@ class linux(Runner):
     @property
     def nvidia_shader_cache_path(self):
         """Linux programs should get individual shader caches if possible."""
-        return self.game_path or self.cache_dir
+        return self.game_path or self.shader_cache_dir
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""

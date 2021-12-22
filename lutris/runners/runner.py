@@ -112,10 +112,10 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.game_path or os.path.expanduser("~/")
 
     @property
-    def cache_dir(self):
+    def shader_cache_dir(self):
         """Return the cache directory for this runner to use. We create
         this if it does not exist."""
-        path = os.path.join(settings.CACHE_DIR, self.name)
+        path = os.path.join(settings.SHADER_CACHE_DIR, self.name)
         if not os.path.isdir(path):
             os.mkdir(path)
         return path
@@ -124,7 +124,7 @@ class Runner:  # pylint: disable=too-many-public-methods
     def nvidia_shader_cache_path(self):
         """The path to place in __GL_SHADER_DISK_CACHE_PATH; NVidia
         will place its cache cache in a subdirectory here."""
-        return self.cache_dir
+        return self.shader_cache_dir
 
     @property
     def discord_client_id(self):

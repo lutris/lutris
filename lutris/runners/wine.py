@@ -511,7 +511,7 @@ class wine(Runner):
     @property
     def nvidia_shader_cache_path(self):
         """WINE should give each game its own shader cache if possible."""
-        return self.game_path or self.cache_dir
+        return self.game_path or self.shader_cache_dir
 
     @property
     def wine_arch(self):
