@@ -114,7 +114,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             for item in ["name", "runner", "version"]:
                 if item not in script:
                     logger.error("Invalid script: %s", script)
-                    raise ScriptingError('Missing field "%s" in install script' % item)
+                    raise ScriptingError(_('Missing field "%s" in install script') % item)
 
     def choose_installer(self):
         """Stage where we choose an install script."""
@@ -407,7 +407,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.continue_button.disconnect(self.continue_handler)
         except PermissionError as ex:
             self.continue_button.set_sensitive(True)
-            raise ScriptingError("Unable to get files: %s" % ex) from ex
+            raise ScriptingError(_("Unable to get files: %s") % ex) from ex
 
     def on_files_available(self, widget):
         """All files are available, continue the install"""
