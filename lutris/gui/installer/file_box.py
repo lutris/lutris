@@ -35,7 +35,6 @@ class InstallerFileBox(Gtk.VBox):
         self.set_margin_left(12)
         self.set_margin_right(12)
         self.provider = self.installer_file.provider
-        self.popover = self.get_popover()
         self.file_provider_widget = None
         self.add(self.get_widgets())
 
@@ -108,43 +107,35 @@ class InstallerFileBox(Gtk.VBox):
         url = self.installer_file.url
         if url.startswith("http"):
             parsed = urlparse(url)
-            label = "%s on %s" % (self.installer_file.filename, parsed.netloc)
+            label = _("{file} on {host}").format(file=self.installer_file.filename, host=parsed.netloc)
         elif url.startswith("N/A"):
             label = url[3:].lstrip(":")
         else:
             label = url
         return add_url_tags(gtk_safe(label))
 
-    def get_popover(self):
-        """Return the popover widget to select file source"""
-        popover = Gtk.Popover()
-        popover.add(self.get_popover_menu())
-        popover.set_position(Gtk.PositionType.BOTTOM)
-        return popover
-
-    def get_source_radiobutton(self, last_widget, label, source):
-        """Return a radio button for the popover menu"""
-        button = Gtk.RadioButton.new_with_label_from_widget(last_widget, label)
-        if self.provider == source:
-            button.set_active(True)
-        button.connect("toggled", self.on_source_changed, source)
-        return button
-
-    def get_popover_menu(self):
-        """Create the menu going into the popover"""
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        last_widget = None
+    def get_combobox_model(self):
+        """"Return the combobox's model"""
+        model = Gtk.ListStore(str, str)
         if "download" in self.installer_file.providers:
-            download_button = self.get_source_radiobutton(last_widget, _("Download"), "download")
-            vbox.pack_start(download_button, False, True, 10)
-            last_widget = download_button
+            model.append(["download", "Download"])
         if "pga" in self.installer_file.providers:
-            pga_button = self.get_source_radiobutton(last_widget, _("Use cache"), "pga")
-            vbox.pack_start(pga_button, False, True, 10)
-            last_widget = pga_button
-        user_button = self.get_source_radiobutton(last_widget, _("Select file"), "user")
-        vbox.pack_start(user_button, False, True, 10)
-        return vbox
+            model.append(["pga", "Use Cache"])
+        if "steam" in self.installer_file.providers:
+            model.append(["steam", "Steam"])
+        model.append(["user", "Select File"])
+        return model
+
+    def get_combobox(self):
+        """Return the combobox widget to select file source"""
+        combobox = Gtk.ComboBox.new_with_model(self.get_combobox_model())
+        combobox.set_id_column(0)
+        renderer_text = Gtk.CellRendererText()
+        combobox.pack_start(renderer_text, True)
+        combobox.add_attribute(renderer_text, "text", 1)
+        combobox.connect("changed", self.on_source_changed)
+        combobox.set_active_id(self.provider)
+        return combobox
 
     def replace_file_provider_widget(self):
         """Replace the file provider label and the source button with the actual widget"""
@@ -161,32 +152,21 @@ class InstallerFileBox(Gtk.VBox):
         widget_box.reorder_child(self.file_provider_widget, 0)
         widget_box.show_all()
 
-    def on_source_changed(self, _button, source):
+    def on_source_changed(self, combobox):
         """Change the source to a new provider, emit a new state"""
-        if source == self.provider or not hasattr(self, "popover"):
+        tree_iter = combobox.get_active_iter()
+        if tree_iter is None:
+            return
+        model = combobox.get_model()
+        source = model[tree_iter][0]
+        if source == self.provider:
             return
         self.provider = source
         self.replace_file_provider_widget()
-        self.popover.popdown()
-        button = self.popover.get_relative_to()
-        if button:
-            button.set_label(self.get_source_button_label())
         if self.provider == "user":
             self.emit("file-unready")
         else:
             self.emit("file-ready")
-
-    def get_source_button_label(self):
-        """Return the label for the source button"""
-        provider_labels = {
-            "download": _("Download"),
-            "pga": _("Cache"),
-            "user": _("Local"),
-            "steam": _("Steam"),
-        }
-        if self.provider in provider_labels:
-            return provider_labels[self.provider]
-        raise ValueError("Unsupported provider %s" % self.provider)
 
     def get_file_provider_label(self):
         """Return the label displayed before the download starts"""
@@ -224,16 +204,9 @@ class InstallerFileBox(Gtk.VBox):
         source_box.props.valign = Gtk.Align.START
         box.pack_start(source_box, False, False, 0)
         source_box.pack_start(InstallerLabel(_("Source:")), False, False, 0)
-        button = Gtk.Button.new_with_label(self.get_source_button_label())
-        button.connect("clicked", self.on_file_source_select)
-        source_box.pack_start(button, False, False, 0)
+        combobox = self.get_combobox()
+        source_box.pack_start(combobox, False, False, 0)
         return box
-
-    def on_file_source_select(self, button):
-        """Open the popover to switch to a different source"""
-        self.popover.set_relative_to(button)
-        self.popover.show_all()
-        self.popover.popup()
 
     def on_location_changed(self, widget):
         """Open a file picker when the browse button is clicked"""
