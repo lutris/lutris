@@ -379,7 +379,6 @@ class LutrisSidebar(Gtk.ListBox):
         else:
             row.set_header(None)
 
-
     def update(self, *_args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = games_db.get_used_platforms()
