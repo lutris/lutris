@@ -368,8 +368,6 @@ class LutrisSidebar(Gtk.ListBox):
         return row.id in self.active_platforms
 
     def _header_func(self, row, before):
-        if row.get_header():
-            return
         if not before:
             row.set_header(self.row_headers["library"])
         elif before.type in ("category", "dynamic_category") and row.type == "service":
@@ -378,6 +376,9 @@ class LutrisSidebar(Gtk.ListBox):
             row.set_header(self.row_headers["runners"])
         elif before.type == "runner" and row.type == "platform":
             row.set_header(self.row_headers["platforms"])
+        else:
+            row.set_header(None)
+
 
     def update(self, *_args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
