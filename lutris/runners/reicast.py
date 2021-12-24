@@ -81,7 +81,7 @@ class reicast(Runner):
                 shutil.copy(os.path.join(mapping_source, mapping_file), mapping_path)
 
             system.create_folder("~/.reicast/data")
-            NoticeDialog(_("You have to copy valid BIOS files to ~/.reicast/data before playing"))
+            NoticeDialog.display(_("You have to copy valid BIOS files to ~/.reicast/data before playing"))
 
         super().install(version, downloader, on_runner_installed)
 

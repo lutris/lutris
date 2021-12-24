@@ -82,8 +82,14 @@ class NoticeDialog(Gtk.MessageDialog):
     def __init__(self, message, parent=None):
         super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
-        self.run()
-        self.destroy()
+
+    @staticmethod
+    def display(message, parent=None):
+        dialog = NoticeDialog(message, parent=parent)
+        try:
+            dialog.run()
+        finally:
+            dialog.destroy()
 
 
 class ErrorDialog(Gtk.MessageDialog):
@@ -299,7 +305,7 @@ class ClientLoginDialog(GtkBuilderDialog):
         username, password = self.get_credentials()
         token = api.connect(username, password)
         if not token:
-            NoticeDialog(_("Login failed"), parent=self.parent)
+            NoticeDialog.display(_("Login failed"), parent=self.parent)
         else:
             self.emit("connected", username)
             self.dialog.destroy()

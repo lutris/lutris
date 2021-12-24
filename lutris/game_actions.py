@@ -208,11 +208,11 @@ class GameActions:
         """Callback to open a game folder in the file browser"""
         path = self.game.get_browse_dir()
         if not path:
-            dialogs.NoticeDialog(_("This game has no installation directory"))
+            dialogs.NoticeDialog.display(_("This game has no installation directory"))
         elif path_exists(path):
             open_uri("file://%s" % path)
         else:
-            dialogs.NoticeDialog(_("Can't open %s \nThe folder doesn't exist.") % path)
+            dialogs.NoticeDialog.display(_("Can't open %s \nThe folder doesn't exist.") % path)
 
     def on_create_menu_shortcut(self, *_args):
         """Add the selected game to the system's Games menu."""
