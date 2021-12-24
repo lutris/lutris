@@ -66,7 +66,7 @@ class RunnerBox(Gtk.Box):
 
         if not self.runner.is_installed():
             self.runner_label_box.set_sensitive(False)
-        
+
         self.action_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
         self.action_alignment.show()
         self.action_alignment.add(self.get_action_button())
