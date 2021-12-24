@@ -757,8 +757,8 @@ msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
 
 #: lutris/gui/config/sysinfo_box.py:41
-msgid "<b>System information</b>"
-msgstr "<b>系统信息</b>"
+msgid "System information"
+msgstr "系统信息"
 
 #: lutris/gui/dialogs/cache.py:11
 msgid "Cache configuration"
