@@ -135,6 +135,18 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         self.folder = self.get_current_folder()
         self.destroy()
 
+    @staticmethod
+    def display(message, default_path=None, parent=None):
+        """Simple method to ask for a directory; returns None if cancelled."""
+        dialog = DirectoryDialog(message, default_path=default_path, parent=parent)
+        try:
+            if dialog.result == Gtk.ResponseType.OK:
+                return dialog.folder
+            else:
+                return None
+        finally:
+            dialog.destroy()
+
 
 class FileDialog(Gtk.FileChooserDialog):
 

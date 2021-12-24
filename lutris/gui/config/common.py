@@ -244,10 +244,10 @@ class GameDialogCommon(Dialog):
         self.slug_change_button.set_label(_("Change"))
 
     def on_move_clicked(self, _button):
-        new_location = DirectoryDialog("Select new location for the game", default_path=self.game.directory)
-        if not new_location.folder or new_location.folder == self.game.directory:
+        new_location = DirectoryDialog.display("Select new location for the game", default_path=self.game.directory)
+        if not new_location or new_location == self.game.directory:
             return
-        move_dialog = dialogs.MoveDialog(self.game, new_location.folder)
+        move_dialog = dialogs.MoveDialog(self.game, new_location)
         move_dialog.connect("game-moved", self.on_game_moved)
         move_dialog.move()
 
