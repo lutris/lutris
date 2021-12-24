@@ -17,7 +17,7 @@ class PreferencesDialog(GameDialogCommon):
     def __init__(self, parent=None):
         super().__init__(_("Lutris settings"), parent=parent)
         self.set_border_width(0)
-        self.set_default_size(960, 600)
+        self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
 
         hbox = Gtk.HBox(visible=True)
