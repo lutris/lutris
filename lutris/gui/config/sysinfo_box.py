@@ -2,11 +2,12 @@ from gettext import gettext as _
 
 from gi.repository import Gdk, Gtk
 
+from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.util.linux import gather_system_info_str
 
 
-class SysInfoBox(Gtk.Fixed):
+class SysInfoBox(BaseConfigBox):
     settings_options = {
         "hide_client_on_game_start": _("Minimize client when a game is launched"),
         "hide_text_under_icons": _("Hide text under icons"),
@@ -14,13 +15,12 @@ class SysInfoBox(Gtk.Fixed):
     }
 
     def __init__(self):
-        super().__init__(visible=True)
-        self.set_margin_top(40)
-        self.set_margin_right(30)
-        self.set_margin_left(30)
+        super().__init__()
+
+        self.add(self.get_section_label(_("System information")))
 
         sysinfo_frame = Gtk.Frame(visible=True)
-        sysinfo_frame.set_size_request(550, 455)
+
         scrolled_window = Gtk.ScrolledWindow(visible=True)
         scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
 
@@ -37,11 +37,11 @@ class SysInfoBox(Gtk.Fixed):
 
         button_copy = Gtk.Button(_("Copy to clipboard"), visible=True)
         button_copy.connect("clicked", self._copy_text)
-        sysinfo_label = Gtk.Label(visible=True)
-        sysinfo_label.set_markup(_("<b>System information</b>"))
-        self.put(sysinfo_label, 60, 0)
-        self.put(sysinfo_frame, 60, 24)
-        self.put(button_copy, 60, 486)
+        button_copy.set_margin_top(8)
+        button_copy.set_halign(Gtk.Align.START)
+
+        self.pack_start(sysinfo_frame, True, True, 0)
+        self.add(button_copy)
 
     def _copy_text(self, widget):  # pylint: disable=unused-argument
         self.clipboard.set_text(self._clipboard_buffer, -1)

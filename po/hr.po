@@ -779,8 +779,8 @@ msgid "Copy to clipboard"
 msgstr "Kopiraj u međuspremnik"
 
 #: lutris/gui/config/sysinfo_box.py:41
-msgid "<b>System information</b>"
-msgstr "<b>Informacije sustava</b>"
+msgid "System information"
+msgstr "Informacije sustava"
 
 #: lutris/gui/dialogs/cache.py:11
 msgid "Cache configuration"
