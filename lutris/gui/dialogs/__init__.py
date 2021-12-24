@@ -142,8 +142,8 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         try:
             if dialog.result == Gtk.ResponseType.OK:
                 return dialog.folder
-            else:
-                return None
+
+            return None
         finally:
             dialog.destroy()
 
