@@ -365,7 +365,7 @@ def display_vulkan_error(on_launch):
 
 
 def esync_display_limit_warning():
-    ErrorDialog(_(
+    ErrorDialog.display(_(
         "Your limits are not set correctly."
         " Please increase them as described here:"
         " <a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>"
@@ -374,7 +374,7 @@ def esync_display_limit_warning():
 
 
 def fsync_display_support_warning():
-    ErrorDialog(_(
+    ErrorDialog.display(_(
         "Your kernel is not patched for fsync."
         " Please get a patched kernel to use fsync."
     ))

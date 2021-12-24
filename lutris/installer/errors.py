@@ -48,7 +48,7 @@ def error_handler(error_type, value, traceback):
         message = value.message
         if value.faulty_data:
             message += "\n<b>%s</b>" % gtk_safe(value.faulty_data)
-        ErrorDialog(message)
+        ErrorDialog.display(message)
     else:
         _excepthook(error_type, value, traceback)
 

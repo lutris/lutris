@@ -285,7 +285,7 @@ class Runner:  # pylint: disable=too-many-public-methods
                 else:
                     self.install(downloader=simple_downloader)
             except RunnerInstallationError as ex:
-                ErrorDialog(ex.message)
+                ErrorDialog.display(ex.message)
 
             return self.is_installed()
         return False

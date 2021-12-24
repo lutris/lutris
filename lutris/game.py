@@ -19,6 +19,7 @@ from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
+from lutris.gui.dialogs import ErrorDialog
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
 from lutris.util import audio, jobs, linux, strings, system, xdgshortcuts
@@ -161,26 +162,26 @@ class Game(GObject.Object):
         """Display an error message based on the runner's output."""
         if message["error"] == "CUSTOM":
             message_text = message["text"].replace("&", "&amp;")
-            dialogs.ErrorDialog(message_text)
+            ErrorDialog.display(message_text)
         elif message["error"] == "RUNNER_NOT_INSTALLED":
-            dialogs.ErrorDialog(_("Error the runner is not installed"))
+            ErrorDialog.display(_("Error the runner is not installed"))
         elif message["error"] == "NO_BIOS":
-            dialogs.ErrorDialog(_("A bios file is required to run this game"))
+            ErrorDialog.display(_("A bios file is required to run this game"))
         elif message["error"] == "FILE_NOT_FOUND":
             filename = message["file"]
             if filename:
                 message_text = _("The file {} could not be found").format(filename.replace("&", "&amp;"))
             else:
                 message_text = _("This game has no executable set. The install process didn't finish properly.")
-            dialogs.ErrorDialog(message_text)
+            ErrorDialog.display(message_text)
         elif message["error"] == "NOT_EXECUTABLE":
             message_text = message["file"].replace("&", "&amp;")
-            dialogs.ErrorDialog(_("The file %s is not executable") % message_text)
+            ErrorDialog.display(_("The file %s is not executable") % message_text)
         elif message["error"] == "PATH_NOT_SET":
             message_text = _("The path '%s' is not set. please set it in the options.") % message["path"]
-            dialogs.ErrorDialog(message_text)
+            ErrorDialog.display(message_text)
         else:
-            dialogs.ErrorDialog(_("Unhandled error: %s") % message["error"])
+            ErrorDialog.display(_("Unhandled error: %s") % message["error"])
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
@@ -291,7 +292,7 @@ class Game(GObject.Object):
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
                 logger.warning("Runtime updates: %s", runtime_updater.current_updates)
-                dialogs.ErrorDialog(_("Runtime currently updating"), _("Game might not work as expected"))
+                ErrorDialog.display(_("Runtime currently updating"), _("Game might not work as expected"))
         if ("wine" in self.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
             # TODO find a reference to the root window or better yet a way not
             # to have Gtk dependent code in this class.
@@ -411,10 +412,10 @@ class Game(GObject.Object):
         """
         if error:
             logger.error(error)
-            dialogs.ErrorDialog(str(error))
+            ErrorDialog.display(str(error))
         if not prelaunched:
             logger.error("Game prelaunch unsuccessful")
-            dialogs.ErrorDialog(_("An error prevented the game from running"))
+            ErrorDialog.display(_("An error prevented the game from running"))
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
@@ -488,7 +489,7 @@ class Game(GObject.Object):
             log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
 
         if not self.runner:
-            dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
+            ErrorDialog.display(_("Invalid game configuration: Missing runner"))
             return
         if not self.is_launchable():
             logger.error("Game is not launchable")
@@ -574,7 +575,7 @@ class Game(GObject.Object):
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
-            dialogs.ErrorDialog(_("<b>Error lauching the game:</b>\n") + self.game_thread.error)
+            ErrorDialog.display(_("<b>Error lauching the game:</b>\n") + self.game_thread.error)
             self.on_game_quit()
             return False
 
@@ -666,13 +667,13 @@ class Game(GObject.Object):
             error = "error while loading shared lib"
             error_line = strings.lookup_string_in_text(error, self.game_thread.stdout)
             if error_line:
-                dialogs.ErrorDialog(_("<b>Error: Missing shared library.</b>\n\n%s") % error_line)
+                ErrorDialog.display(_("<b>Error: Missing shared library.</b>\n\n%s") % error_line)
 
         if self.game_thread.return_code == 1:
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
-                dialogs.ErrorDialog(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
+                ErrorDialog.display(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
     def write_script(self, script_path):
         """Output the launch argument in a bash script"""

@@ -72,7 +72,7 @@ class DownloadProgressBox(Gtk.Box):
             except RuntimeError as ex:
                 from lutris.gui.dialogs import ErrorDialog
 
-                ErrorDialog(ex.args[0])
+                ErrorDialog.display(ex.args[0])
                 self.emit("cancel")
                 return None
 

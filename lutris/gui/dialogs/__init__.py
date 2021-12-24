@@ -102,8 +102,14 @@ class ErrorDialog(Gtk.MessageDialog):
         self.set_markup(message[:256])
         if secondary:
             self.format_secondary_text(secondary[:256])
-        self.run()
-        self.destroy()
+
+    @staticmethod
+    def display(message, secondary=None, parent=None):
+        dialog = ErrorDialog(message, secondary=secondary, parent=parent)
+        try:
+            dialog.run()
+        finally:
+            dialog.destroy()
 
 
 class QuestionDialog(Gtk.MessageDialog):
@@ -221,7 +227,7 @@ class LutrisInitDialog(Gtk.Dialog):
 
     def init_cb(self, _result, error):
         if error:
-            ErrorDialog(str(error))
+            ErrorDialog.display(str(error))
         self.destroy()
 
 
@@ -438,6 +444,6 @@ class MoveDialog(Gtk.Dialog):
 
     def on_game_moved(self, _result, error):
         if error:
-            ErrorDialog(str(error))
+            ErrorDialog.display(str(error))
         self.emit("game-moved")
         self.destroy()

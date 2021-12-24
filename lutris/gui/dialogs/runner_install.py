@@ -54,7 +54,7 @@ class RunnerInstallDialog(Dialog):
         """Clear the box and display versions from runner_info"""
         if error:
             logger.error(error)
-            ErrorDialog(_("Unable to get runner versions: %s") % error)
+            ErrorDialog.display(_("Unable to get runner versions: %s") % error)
             return
 
         self.runner_info = runner_info
@@ -68,7 +68,7 @@ class RunnerInstallDialog(Dialog):
             })
 
         if not self.runner_info:
-            ErrorDialog(_("Unable to get runner versions from lutris.net"))
+            ErrorDialog.display(_("Unable to get runner versions from lutris.net"))
             return
 
         for child_widget in self.vbox.get_children():
@@ -205,7 +205,7 @@ class RunnerInstallDialog(Dialog):
         dest_path = self.get_dest_path(row)
         url = row[self.COL_URL]
         if not url:
-            ErrorDialog("Version %s is not longer available" % row[self.COL_VER])
+            ErrorDialog.display("Version %s is not longer available" % row[self.COL_VER])
             return
         downloader = Downloader(row[self.COL_URL], dest_path, overwrite=True)
         GLib.timeout_add(100, self.get_progress, downloader, row)
@@ -266,7 +266,7 @@ class RunnerInstallDialog(Dialog):
     def on_extracted(self, row_info, error):
         """Called when a runner archive is extracted"""
         if error or not row_info:
-            ErrorDialog(_("Failed to retrieve the runner archive"), parent=self)
+            ErrorDialog.display(_("Failed to retrieve the runner archive"), parent=self)
             return
         src, row = row_info
         os.remove(src)

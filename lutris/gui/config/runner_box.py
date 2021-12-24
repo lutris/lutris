@@ -101,7 +101,7 @@ class RunnerBox(Gtk.Box):
             runners.NonInstallableRunnerError,
         ) as ex:
             logger.error(ex)
-            ErrorDialog(ex.message)
+            ErrorDialog.display(ex.message)
             return
         if self.runner.is_installed():
             self.emit("runner-installed")

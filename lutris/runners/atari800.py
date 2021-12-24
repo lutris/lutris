@@ -101,7 +101,7 @@ class atari800(Runner):
             dlg = DownloadDialog(self.bios_url, bios_archive)
             dlg.run()
             if not system.path_exists(bios_archive):
-                ErrorDialog(_("Could not download Atari 800 BIOS archive"))
+                ErrorDialog.display(_("Could not download Atari 800 BIOS archive"))
                 return
             extract.extract_archive(bios_archive, config_path)
             os.remove(bios_archive)

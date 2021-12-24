@@ -400,13 +400,13 @@ class GameDialogCommon(Dialog):
 
     def is_valid(self):
         if not self.runner_name:
-            ErrorDialog(_("Runner not provided"))
+            ErrorDialog.display(_("Runner not provided"))
             return False
         if not self.name_entry.get_text():
-            ErrorDialog(_("Please fill in the name"))
+            ErrorDialog.display(_("Please fill in the name"))
             return False
         if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
-            ErrorDialog(_("Steam AppID not provided"))
+            ErrorDialog.display(_("Steam AppID not provided"))
             return False
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
@@ -424,7 +424,7 @@ class GameDialogCommon(Dialog):
                     except Exception:
                         invalid_fields.append(option.get("label"))
         if invalid_fields:
-            ErrorDialog(_("The following fields have invalid values: ") + ", ".join(invalid_fields))
+            ErrorDialog.display(_("The following fields have invalid values: ") + ", ".join(invalid_fields))
             return False
         return True
 

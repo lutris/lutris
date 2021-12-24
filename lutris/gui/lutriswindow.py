@@ -711,7 +711,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_game_error(self, game, error):
         """Called when a game has sent the 'game-error' signal"""
         logger.error("%s crashed", game)
-        dialogs.ErrorDialog(error, parent=self)
+        dialogs.ErrorDialog.display(error, parent=self)
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):

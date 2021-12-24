@@ -78,7 +78,7 @@ class Application(Gtk.Application):
         self.run_in_background = False
 
         if os.geteuid() == 0:
-            ErrorDialog(_("Running Lutris as root is not recommended and may cause unexpected issues"))
+            ErrorDialog.display(_("Running Lutris as root is not recommended and may cause unexpected issues"))
 
         try:
             self.css_provider.load_from_path(os.path.join(datapath.get(), "ui", "lutris.css"))
@@ -88,7 +88,7 @@ class Application(Gtk.Application):
         if hasattr(self, "add_main_option"):
             self.add_arguments()
         else:
-            ErrorDialog(_("Your Linux distribution is too old. Lutris won't function properly."))
+            ErrorDialog.display(_("Your Linux distribution is too old. Lutris won't function properly."))
 
     def add_arguments(self):
         if hasattr(self, "set_option_context_summary"):
