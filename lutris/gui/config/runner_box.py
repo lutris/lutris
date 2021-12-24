@@ -126,13 +126,11 @@ class RunnerBox(Gtk.Box):
     def on_runner_installed(self, widget):
         """Called after the runnner is installed"""
         self.runner_label_box.set_sensitive(True)
-        self.configure_button.show()
         self.action_alignment.get_children()[0].destroy()
         self.action_alignment.add(self.get_action_button())
 
     def on_runner_removed(self, widget):
         """Called after the runner is removed"""
         self.runner_label_box.set_sensitive(False)
-        self.configure_button.hide()
         self.action_alignment.get_children()[0].destroy()
         self.action_alignment.add(self.get_action_button())
