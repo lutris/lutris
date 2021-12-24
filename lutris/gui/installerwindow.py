@@ -245,6 +245,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def on_browse_clicked(self, widget, callback_data):
         folder = DirectoryDialog.display(_("Select the folder where the disc is mounted"), parent=self)
+        if not folder:
+            return
         callback = callback_data["callback"]
         requires = callback_data["requires"]
         callback(widget, requires, folder)
