@@ -87,7 +87,7 @@ class UninstallGameDialog(Dialog):
         if not self.confirm_delete_button.get_active():
             self.delete_files = False
         if self.delete_files and not hasattr(self.game.runner, "no_game_remove_warning"):
-            dlg = QuestionDialog(
+            answer = QuestionDialog.display(
                 {
                     "question": _(
                         "Please confirm.\nEverything under <b>%s</b>\n"
@@ -96,7 +96,7 @@ class UninstallGameDialog(Dialog):
                     "title": _("Permanently delete files?"),
                 }
             )
-            if dlg.result != Gtk.ResponseType.YES:
+            if not answer:
                 button.set_sensitive(True)
                 return
         if self.delete_files:

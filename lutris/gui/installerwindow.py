@@ -158,13 +158,13 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             )
 
         except MissingGameDependency as ex:
-            dlg = QuestionDialog(
+            answer = QuestionDialog.display(
                 {
                     "question": _("This game requires %s. Do you want to install it?") % ex.slug,
                     "title": _("Missing dependency"),
                 }
             )
-            if dlg.result == Gtk.ResponseType.YES:
+            if answer:
                 InstallerWindow(
                     installers=self.installers,
                     service=self.service,
@@ -493,14 +493,14 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         if self.interpreter:
             remove_checkbox.set_active(self.interpreter.game_dir_created)
             remove_checkbox.show()
-        confirm_cancel_dialog = QuestionDialog(
+        confirm_cancel_answer = QuestionDialog.display(
             {
                 "question": _("Are you sure you want to cancel the installation?"),
                 "title": _("Cancel installation?"),
                 "widgets": [remove_checkbox]
             }
         )
-        if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
+        if not confirm_cancel_answer:
             logger.debug("User aborted installation cancellation")
             return True
         if self._cancel_files_func:

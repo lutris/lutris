@@ -98,13 +98,13 @@ class redream(Runner):
 
     def install(self, version=None, downloader=None, callback=None):
         def on_runner_installed(*args):
-            dlg = QuestionDialog(
+            answer = QuestionDialog.display(
                 {
                     "question": _("Do you want to select a premium license file?"),
                     "title": _("Use premium version?"),
                 }
             )
-            if dlg.result == dlg.YES:
+            if answer:
                 license_filename = FileDialog.display(_("Select a license file"))
 
                 if not license_filename:

@@ -2,8 +2,6 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gtk
-
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
@@ -269,14 +267,14 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         Return success of runner installation.
         """
-        dialog = dialogs.QuestionDialog(
+        answer = dialogs.QuestionDialog.display(
             {
                 "question": _("The required runner is not installed.\n"
                               "Do you wish to install it now?"),
                 "title": _("Required runner unavailable"),
             }
         )
-        if Gtk.ResponseType.YES == dialog.result:
+        if answer:
 
             from lutris.gui.dialogs import ErrorDialog
             from lutris.gui.dialogs.download import simple_downloader

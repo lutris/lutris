@@ -168,13 +168,13 @@ class RunnerInstallDialog(Dialog):
     def on_installed_toggled(self, _widget, path):
         row = self.runner_store[path]
         if row[self.COL_VER] in self.installing:
-            confirm_dlg = QuestionDialog(
+            confirm_answer = QuestionDialog.display(
                 {
                     "question": _("Do you want to cancel the download?"),
                     "title": _("Download starting"),
                 }
             )
-            if confirm_dlg.result == confirm_dlg.YES:
+            if confirm_answer:
                 self.cancel_install(row)
         elif row[self.COL_INSTALLED]:
             self.uninstall_runner(row)

@@ -112,14 +112,13 @@ class RunnerBox(Gtk.Box):
         RunnerConfigDialog(self.runner)
 
     def on_remove_clicked(self, widget):
-        dialog = QuestionDialog(
+        answer = QuestionDialog.display(
             {
                 "title": _("Do you want to uninstall %s?") % self.runner.human_name,
                 "question": _("This will remove <b>%s</b> and all associated data." % self.runner.human_name)
-
             }
         )
-        if Gtk.ResponseType.YES == dialog.result:
+        if answer:
             self.runner.uninstall()
             self.emit("runner-removed")
 

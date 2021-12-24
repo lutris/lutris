@@ -132,13 +132,13 @@ class hatari(Runner):
 
         def on_runner_installed(*args):
             bios_path = system.create_folder("~/.hatari/bios")
-            dlg = QuestionDialog(
+            answer = QuestionDialog.display(
                 {
                     "question": _("Do you want to select an Atari ST BIOS file?"),
                     "title": _("Use BIOS file?"),
                 }
             )
-            if dlg.result == dlg.YES:
+            if answer:
                 bios_filename = FileDialog.display(_("Select a BIOS file"))
 
                 if not bios_filename:

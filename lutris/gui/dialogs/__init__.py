@@ -114,8 +114,15 @@ class QuestionDialog(Gtk.MessageDialog):
         if "widgets" in dialog_settings:
             for widget in dialog_settings["widgets"]:
                 self.get_message_area().add(widget)
-        self.result = self.run()
-        self.destroy()
+
+    @staticmethod
+    def display(dialog_settings):
+        """Static method to ask a question; returns True or False, True for Yes, Accept or OK."""
+        dialog = QuestionDialog(dialog_settings)
+        try:
+            return dialog.run() in (Gtk.ResponseType.YES, Gtk.ResponseType.ACCEPT, Gtk.ResponseType.OK)
+        finally:
+            dialog.destroy()
 
 
 class DirectoryDialog(Gtk.FileChooserDialog):

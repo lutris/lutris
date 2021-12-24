@@ -345,7 +345,7 @@ class GameDialogCommon(Dialog):
         """Action called when runner drop down is changed."""
         new_runner_index = widget.get_active()
         if self.runner_index and new_runner_index != self.runner_index:
-            dlg = QuestionDialog(
+            answer = QuestionDialog.display(
                 {
                     "question":
                     _("Are you sure you want to change the runner for this game ? "
@@ -356,7 +356,7 @@ class GameDialogCommon(Dialog):
                 }
             )
 
-            if dlg.result == Gtk.ResponseType.YES:
+            if answer:
                 self.runner_index = new_runner_index
                 self._switch_runner(widget)
             else:
