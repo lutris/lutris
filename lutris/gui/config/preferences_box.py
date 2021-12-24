@@ -3,10 +3,10 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.gui.widgets.common import VBox
+from lutris.gui.config.base_config_box import BaseConfigBox
 
 
-class PreferencesBox(VBox):
+class PreferencesBox(BaseConfigBox):
     settings_options = {
         "hide_client_on_game_start": _("Minimize client when a game is launched"),
         "hide_text_under_icons": _("Hide text under icons (requires restart)"),
@@ -14,21 +14,11 @@ class PreferencesBox(VBox):
         "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)")
     }
 
-    def _get_section_label(self, text):
-        label = Gtk.Label(visible=True)
-        label.set_markup("<b>%s</b>" % text)
-        label.set_alignment(0, 0.5)
-        return label
-
     def __init__(self):
-        super().__init__(visible=True)
-        self.set_margin_top(50)
-        self.set_margin_bottom(50)
-        self.set_margin_right(80)
-        self.set_margin_left(80)
-        self.add(self._get_section_label(_("Interface options")))
+        super().__init__()
+        self.add(self.get_section_label(_("Interface options")))
         listbox = Gtk.ListBox(visible=True)
-        self.pack_start(listbox, False, False, 12)
+        self.add(listbox)
         for setting_key, label in self.settings_options.items():
             list_box_row = Gtk.ListBoxRow(visible=True)
             list_box_row.set_selectable(False)
