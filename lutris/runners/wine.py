@@ -623,10 +623,10 @@ class wine(Runner):
 
     def run_wineexec(self, *args):
         """Ask the user for an arbitrary exe file to run in the game's prefix"""
-        dlg = FileDialog(_("Select an EXE or MSI file"), default_path=self.game_path)
-        filename = dlg.filename
+        filename = FileDialog.display(_("Select an EXE or MSI file"), default_path=self.game_path)
         if not filename:
             return
+
         self.prelaunch()
         self._run_executable(filename)
 

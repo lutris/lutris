@@ -105,10 +105,11 @@ class redream(Runner):
                 }
             )
             if dlg.result == dlg.YES:
-                license_dlg = FileDialog(_("Select a license file"))
-                license_filename = license_dlg.filename
+                license_filename = FileDialog.display(_("Select a license file"))
+
                 if not license_filename:
                     return
+
                 shutil.copy(
                     license_filename, os.path.join(settings.RUNNER_DIR, "redream")
                 )

@@ -131,17 +131,14 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         )
         if default_path:
             self.set_current_folder(default_path)
-        self.result = self.run()
-        self.folder = self.get_current_folder()
-        self.destroy()
 
     @staticmethod
     def display(message, default_path=None, parent=None):
         """Simple method to ask for a directory; returns None if cancelled."""
         dialog = DirectoryDialog(message, default_path=default_path, parent=parent)
         try:
-            if dialog.result == Gtk.ResponseType.OK:
-                return dialog.folder
+            if dialog.run() == Gtk.ResponseType.OK:
+                return dialog.get_current_folder()
 
             return None
         finally:
@@ -152,7 +149,7 @@ class FileDialog(Gtk.FileChooserDialog):
 
     """Ask the user to select a file."""
 
-    def __init__(self, message=None, default_path=None, mode="open"):
+    def __init__(self, message=None, default_path=None, mode="open", parent=None):
         self.filename = None
         if not message:
             message = _("Please choose a file")
@@ -165,15 +162,23 @@ class FileDialog(Gtk.FileChooserDialog):
             None,
             action,
             (_("_Cancel"), Gtk.ResponseType.CANCEL, _("_OK"), Gtk.ResponseType.OK),
+            parent=parent
         )
         if default_path and os.path.exists(default_path):
             self.set_current_folder(default_path)
         self.set_local_only(False)
-        response = self.run()
-        if response == Gtk.ResponseType.OK:
-            self.filename = self.get_filename()
 
-        self.destroy()
+    @staticmethod
+    def display(message=None, default_path=None, mode="open", parent=None):
+        """Simple method to ask for a file; returns None if cancelled."""
+        dialog = FileDialog(message=message, default_path=default_path, mode=mode, parent=parent)
+        try:
+            if dialog.run() == Gtk.ResponseType.OK:
+                return dialog.get_filename()
+
+            return None
+        finally:
+            dialog.destroy()
 
 
 class LutrisInitDialog(Gtk.Dialog):

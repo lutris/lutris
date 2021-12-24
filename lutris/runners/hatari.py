@@ -139,10 +139,11 @@ class hatari(Runner):
                 }
             )
             if dlg.result == dlg.YES:
-                bios_dlg = FileDialog(_("Select a BIOS file"))
-                bios_filename = bios_dlg.filename
+                bios_filename = FileDialog.display(_("Select a BIOS file"))
+
                 if not bios_filename:
                     return
+
                 shutil.copy(bios_filename, bios_path)
                 bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
                 config = LutrisConfig(runner_slug="hatari")
