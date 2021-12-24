@@ -123,6 +123,7 @@ class DirectoryDialog(Gtk.FileChooserDialog):
     """Ask the user to select a directory."""
 
     def __init__(self, message, default_path=None, parent=None):
+        self.folder = None
         super().__init__(
             title=message,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
@@ -132,7 +133,8 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         if default_path:
             self.set_current_folder(default_path)
         self.result = self.run()
-        self.folder = self.get_current_folder()
+        if self.result == Gtk.ResponseType.OK:
+            self.folder = self.get_current_folder()
         self.destroy()
 
 
