@@ -49,17 +49,24 @@ class RunnerBox(Gtk.Box):
         desc_label = Gtk.Label(visible=True)
         desc_label.set_alignment(0, 0.5)
         desc_label.set_text(self.runner.description)
+        desc_label.set_line_wrap(True)
         self.runner_label_box.pack_start(desc_label, False, False, 0)
 
         self.pack_start(self.runner_label_box, True, True, 0)
 
         self.configure_button = Gtk.Button.new_from_icon_name("preferences-system-symbolic", Gtk.IconSize.BUTTON)
         self.configure_button.set_margin_right(12)
+        self.configure_button.set_margin_left(12)
         self.configure_button.connect("clicked", self.on_configure_clicked)
         self.configure_button.show()
-        self.pack_start(self.configure_button, False, False, 0)
+        configure_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
+        configure_alignment.show()
+        configure_alignment.add(self.configure_button)
+        self.pack_start(configure_alignment, False, False, 0)
+
         if not self.runner.is_installed():
             self.runner_label_box.set_sensitive(False)
+        
         self.action_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
         self.action_alignment.show()
         self.action_alignment.add(self.get_action_button())
