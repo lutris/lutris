@@ -670,7 +670,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_preferences_activate(self, *_args):
         """Callback when preferences is activated."""
-        self.application.show_window(PreferencesDialog)
+        PreferencesDialog(parent=self).run()
 
     def on_show_installed_state_change(self, action, value):
         """Callback to handle uninstalled game filter switch"""
@@ -720,7 +720,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             runner = self.filters["runner"]
         else:
             runner = None
-        AddGameDialog(self, runner=runner)
+        AddGameDialog(self, runner=runner).run()
         return True
 
     def on_toggle_viewtype(self, *args):

@@ -254,6 +254,7 @@ class Application(Gtk.Application):
             self.app_windows[window_key].present()
             return self.app_windows[window_key]
         if issubclass(window_class, Gtk.Dialog):
+            logger.debug("%s is being used as a modeless window, but it is a dialog.", window_class)
             window_inst = window_class(parent=self.window, **kwargs)
         else:
             window_inst = window_class(application=self, **kwargs)

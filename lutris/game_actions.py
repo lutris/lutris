@@ -167,15 +167,15 @@ class GameActions:
         Params:
             game (Game): Game instance without a database ID, populated with a fields the service can provides
         """
-        AddGameDialog(self.window, game=game)
+        AddGameDialog(self.window, game=game).run()
 
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""
-        return AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
+        AddGameDialog(self.window, game=self.game, runner=self.game.runner_name).run()
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
-        EditGameConfigDialog(self.window, self.game)
+        EditGameConfigDialog(self.window, self.game).run()
 
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""

@@ -196,12 +196,12 @@ class RunnerSidebarRow(SidebarRow):
 
     def on_configure_runner(self, *_args):
         """Show runner configuration"""
-        self.application.show_window(RunnerConfigDialog, runner=self.runner)
+        RunnerConfigDialog(self.runner, parent=self.get_toplevel()).run()
 
     def on_manage_versions(self, *_args):
         """Manage runner versions"""
         dlg_title = _("Manage %s versions") % self.runner.name
-        RunnerInstallDialog(dlg_title, self.get_toplevel(), self.runner.name)
+        RunnerInstallDialog(dlg_title, self.get_toplevel(), self.runner.name).run()
 
 
 class SidebarHeader(Gtk.Box):
