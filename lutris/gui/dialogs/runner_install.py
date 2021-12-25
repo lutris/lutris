@@ -170,6 +170,7 @@ class RunnerInstallDialog(Dialog):
         if row[self.COL_VER] in self.installing:
             confirm_dlg = QuestionDialog(
                 {
+                    "parent": self,
                     "question": _("Do you want to cancel the download?"),
                     "title": _("Download starting"),
                 }

@@ -89,6 +89,7 @@ class UninstallGameDialog(Dialog):
         if self.delete_files and not hasattr(self.game.runner, "no_game_remove_warning"):
             dlg = QuestionDialog(
                 {
+                    "parent": self,
                     "question": _(
                         "Please confirm.\nEverything under <b>%s</b>\n"
                         "will be deleted."

@@ -108,7 +108,8 @@ class QuestionDialog(Gtk.MessageDialog):
     NO = Gtk.ResponseType.NO
 
     def __init__(self, dialog_settings):
-        super().__init__(message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO)
+        super().__init__(message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO,
+                         parent=dialog_settings.get("parent"))
         self.set_markup(dialog_settings["question"])
         self.set_title(dialog_settings["title"])
         if "widgets" in dialog_settings:

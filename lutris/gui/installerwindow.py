@@ -496,6 +496,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             remove_checkbox.show()
         confirm_cancel_dialog = QuestionDialog(
             {
+                "parent": self,
                 "question": _("Are you sure you want to cancel the installation?"),
                 "title": _("Cancel installation?"),
                 "widgets": [remove_checkbox]

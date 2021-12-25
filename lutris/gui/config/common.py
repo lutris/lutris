@@ -347,6 +347,7 @@ class GameDialogCommon(Dialog):
         if self.runner_index and new_runner_index != self.runner_index:
             dlg = QuestionDialog(
                 {
+                    "parent": self,
                     "question":
                     _("Are you sure you want to change the runner for this game ? "
                       "This will reset the full configuration for this game and "
