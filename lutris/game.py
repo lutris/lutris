@@ -682,29 +682,39 @@ class Game(GObject.Object):
             return
         export_bash_script(self.runner, gameplay_info, script_path)
 
+    def change_location(self, new_location):
+        """Updates the game and its config file with a new directory, but
+        does not move the game files themselves."""
+        if self.directory != new_location:
+            new_config = ""
+            old_location = self.directory
+
+            self.directory = new_location
+            self.save()
+
+            if not old_location:
+                logger.info("Previous location wasn't set. Cannot update game config file")
+                return new_location
+
+            with open(self.config.game_config_path, encoding='utf-8') as config_file:
+                for line in config_file.readlines():
+                    if new_location in line:
+                        new_config += line
+                    else:
+                        new_config += line.replace(old_location, new_location)
+            with open(self.config.game_config_path, "w", encoding='utf-8') as config_file:
+                config_file.write(new_config)
+
     def move(self, new_location):
         logger.info("Moving %s to %s", self, new_location)
-        new_config = ""
         old_location = self.directory
         if os.path.exists(old_location):
             game_directory = os.path.basename(old_location)
             target_directory = os.path.join(new_location, game_directory)
         else:
             target_directory = new_location
-        self.directory = target_directory
-        self.save()
-        if not old_location:
-            logger.info("Previous location wasn't set. Cannot continue moving")
-            return target_directory
 
-        with open(self.config.game_config_path, encoding='utf-8') as config_file:
-            for line in config_file.readlines():
-                if target_directory in line:
-                    new_config += line
-                else:
-                    new_config += line.replace(old_location, target_directory)
-        with open(self.config.game_config_path, "w", encoding='utf-8') as config_file:
-            config_file.write(new_config)
+        self.change_location(target_directory)
 
         if not system.path_exists(old_location):
             logger.warning("Location %s doesn't exist, files already moved?", old_location)

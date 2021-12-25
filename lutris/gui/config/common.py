@@ -130,6 +130,9 @@ class GameDialogCommon(Dialog):
         self.directory_entry.set_text(self.game.directory)
         self.directory_entry.set_sensitive(False)
         box.pack_start(self.directory_entry, True, True, 0)
+        change_button = Gtk.Button(_("Change"), visible=True)
+        change_button.connect("clicked", self.on_change_clicked)
+        box.pack_start(change_button, False, False, 0)
         move_button = Gtk.Button(_("Move"), visible=True)
         move_button.connect("clicked", self.on_move_clicked)
         box.pack_start(move_button, False, False, 0)
@@ -242,6 +245,13 @@ class GameDialogCommon(Dialog):
         self.slug = self.slug_entry.get_text()
         self.slug_entry.set_sensitive(False)
         self.slug_change_button.set_label(_("Change"))
+
+    def on_change_clicked(self, _button):
+        dialog = DirectoryDialog("Select new location for the game",
+                                 default_path=self.game.directory, parent=self)
+        if dialog.result == Gtk.ResponseType.OK and dialog.folder:
+            self.game.change_location(dialog.folder)
+            self.directory_entry.set_text(self.game.directory)
 
     def on_move_clicked(self, _button):
         new_location = DirectoryDialog("Select new location for the game", default_path=self.game.directory)
