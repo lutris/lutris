@@ -276,7 +276,15 @@ class LutrisSidebar(Gtk.ListBox):
         self.show_all()
 
     def get_sidebar_icon(self, icon_name):
-        return Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+        icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+        
+        # We can wind up with an icon of the wrong size, if that's what is
+        # available. So we'll fix that.
+        icon_size = Gtk.IconSize.lookup(Gtk.IconSize.MENU)
+        if icon_size[0]:
+            icon.set_pixel_size(icon_size[2])
+        
+        return icon
 
     def initialize_rows(self):
         """
