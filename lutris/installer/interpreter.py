@@ -354,7 +354,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         os.chdir(os.path.expanduser("~"))
         system.remove_folder(self.cache_path)
 
-    def revert(self):
+    def revert(self, remove_game_dir=True):
         """Revert installation in case of an error"""
         logger.info("Cancelling installation of %s", self.installer.game_name)
         if self.installer.runner.startswith("wine"):
@@ -365,7 +365,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         if self.abort_current_task:
             self.abort_current_task()
 
-        if self.game_dir_created:
+        if self.target_path and remove_game_dir:
             system.remove_folder(self.target_path)
 
     def _substitute(self, template_string):
