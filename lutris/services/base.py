@@ -53,6 +53,19 @@ class LutrisIcon(LutrisBanner):
     url_pattern = "https://lutris.net/games/icon/%s.png"
 
 
+class LutrisCoverart(ServiceMedia):
+    service = 'lutris'
+    size = (264, 352)
+    file_pattern = "%s.jpg"
+    dest_path = settings.COVERART_PATH
+    api_field = 'coverart'
+    url_pattern = "%s"
+
+
+class LutrisCoverartMedium(LutrisCoverart):
+    size = (176, 234)
+
+
 class BaseService(GObject.Object):
     """Base class for local services"""
     id = NotImplemented

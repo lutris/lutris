@@ -11,7 +11,7 @@ from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
 from lutris.installer import fetch_script
-from lutris.services.base import LutrisBanner, LutrisIcon, OnlineService
+from lutris.services.base import LutrisBanner, LutrisCoverart, LutrisCoverartMedium, LutrisIcon, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.util import http
 from lutris.util.log import logger
@@ -42,6 +42,8 @@ class LutrisService(OnlineService):
     medias = {
         "icon": LutrisIcon,
         "banner": LutrisBanner,
+        "coverart_med": LutrisCoverartMedium,
+        "coverart_big": LutrisCoverart,
     }
     default_format = "banner"
 
