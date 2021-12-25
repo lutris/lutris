@@ -24,7 +24,7 @@ GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, "games")
 
 TMP_PATH = os.path.join(CACHE_DIR, "tmp")
 BANNER_PATH = os.path.join(CACHE_DIR, "banners")
-COVERART_PATH = os.path.join(DATA_DIR, "coverart")
+COVERART_PATH = os.path.join(CACHE_DIR, "coverart")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
 sio = SettingsIO(CONFIG_FILE)
