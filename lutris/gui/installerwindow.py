@@ -491,7 +491,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def cancel_installation(self, _widget=None):
         """Ask a confirmation before cancelling the install"""
         remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
-        if self.interpreter:
+        if self.interpreter and self.interpreter.target_path:
             remove_checkbox.set_active(self.interpreter.game_dir_created)
             remove_checkbox.show()
         confirm_cancel_dialog = QuestionDialog(
@@ -507,8 +507,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         if self._cancel_files_func:
             self._cancel_files_func()
         if self.interpreter:
-            self.interpreter.revert()
-            self.interpreter.cleanup()
+            self.interpreter.revert(remove_game_dir=remove_checkbox.get_active())
+            self.interpreter.cleanup()  # still remove temporary downloads in any case
         self.destroy()
 
     def on_source_clicked(self, _button):
