@@ -427,6 +427,11 @@ class Runner:  # pylint: disable=too-many-public-methods
             from lutris.util.wine.wine import get_wine_versions
             get_wine_versions.cache_clear()
 
+        if self.runner_executable:
+            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+            if os.path.isfile(runner_executable):
+                system.make_executable(runner_executable)
+
         if callback:
             callback()
 
