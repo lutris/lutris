@@ -788,9 +788,9 @@ class Application(Gtk.Application):
             print(f"Wine version '{version}' has been removed.")
         else:
             print(f"""
-                Specified version of Wine is not installed: {version}.
-                Please check if the Wine Runner and specified version are installed (for that use --list-wine-runners).
-                Also, check that the version specified is in the correct format.
+Specified version of Wine is not installed: {version}.
+Please check if the Wine Runner and specified version are installed (for that use --list-wine-runners).
+Also, check that the version specified is in the correct format.
                 """)
 
     def install_cli(self, runner_name):
