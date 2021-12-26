@@ -12,6 +12,7 @@ from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
+from lutris.gui.widgets.utils import has_stock_icon
 from lutris.services.base import AuthTokenExpired, BaseService
 from lutris.util.jobs import AsyncCall
 
@@ -276,7 +277,8 @@ class LutrisSidebar(Gtk.ListBox):
         self.show_all()
 
     def get_sidebar_icon(self, icon_name):
-        icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+        name = icon_name if has_stock_icon(icon_name) else "package-x-generic-symbolic"
+        icon = Gtk.Image.new_from_icon_name(name, Gtk.IconSize.MENU)
 
         # We can wind up with an icon of the wrong size, if that's what is
         # available. So we'll fix that.
