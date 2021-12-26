@@ -787,7 +787,11 @@ class Application(Gtk.Application):
             system.remove_folder(runner_path)
             print(f"Wine version '{version}' has been removed.")
         else:
-            print(f"Specified version of Wine is not installed: {version}. Please check if the Wine Runner and specified version are installed (--list-wine-runners can be used for that), and that the version specified is in the correct format.")
+            print(f"""
+                Specified version of Wine is not installed: {version}.
+                Please check if the Wine Runner and specified version are installed (for that use --list-wine-runners).
+                Also, check that the version specified is in the correct format.
+                """)
 
     def install_cli(self, runner_name):
         """
