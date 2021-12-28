@@ -105,7 +105,7 @@ class wine(Runner):
 
     def __init__(self, config=None):  # noqa: C901
         super().__init__(config)
-        self.dll_overrides = DEFAULT_DLL_OVERRIDES
+        self.dll_overrides = DEFAULT_DLL_OVERRIDES.copy()  # we'll modify this, so we better copy it
 
         def get_wine_version_choices():
             version_choices = [(_("Custom (select executable below)"), "custom")]
