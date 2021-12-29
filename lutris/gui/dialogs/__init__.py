@@ -180,8 +180,9 @@ class LutrisInitDialog(Gtk.Dialog):
         self.progress.set_pulse_step(0.1)
         vbox.add(self.progress)
         self.get_content_area().add(vbox)
-        GLib.timeout_add(125, self.show_progress)
+        self.progress_timeout = GLib.timeout_add(125, self.show_progress)
         self.show_all()
+        self.connect("destroy", self.on_destroy)
         AsyncCall(self.initialize, self.init_cb, init_lutris)
 
     def show_progress(self):
@@ -195,6 +196,10 @@ class LutrisInitDialog(Gtk.Dialog):
         if error:
             ErrorDialog(str(error))
         self.destroy()
+
+    def on_destroy(self, window):
+        GLib.source_remove(self.progress_timeout)
+        return True
 
 
 class InstallOrPlayDialog(Gtk.Dialog):
