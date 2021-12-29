@@ -203,14 +203,13 @@ class GameBar(Gtk.Box):
                 if self.service.local:
                     # Local services don't show an install dialog, they can be launched directly
                     button.set_label(_("Play"))
-                if self.service.drm_free:
-                    button.set_size_request(84, 32)
-                    box.add(button)
-                    popover = self.get_popover(self.get_locate_installed_game_button(), popover_button)
-                    popover_button.set_popover(popover)
-                    box.add(popover_button)
-                    return box
-                return button
+
+                button.set_size_request(84, 32)
+                box.add(button)
+                popover = self.get_popover(self.get_locate_installed_game_button(), popover_button)
+                popover_button.set_popover(popover)
+                box.add(popover_button)
+                return box
         button.set_size_request(84, 32)
         box.add(button)
         popover = self.get_popover(self.get_game_buttons(), popover_button)

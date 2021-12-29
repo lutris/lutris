@@ -68,7 +68,6 @@ class GOGService(OnlineService):
     name = _("GOG")
     icon = "gog"
     has_extras = True
-    drm_free = True
     medias = {
         "banner_small": GogSmallBanner,
         "banner": GogMediumBanner,
