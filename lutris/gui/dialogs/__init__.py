@@ -199,8 +199,8 @@ class LutrisInitDialog(Gtk.Dialog):
 
 class InstallOrPlayDialog(Gtk.Dialog):
 
-    def __init__(self, game_name):
-        Gtk.Dialog.__init__(self, _("%s is already installed") % game_name)
+    def __init__(self, game_name, parent):
+        Gtk.Dialog.__init__(self, _("%s is already installed") % game_name, parent=parent)
         self.connect("delete-event", lambda *x: self.destroy())
 
         self.action = "play"
