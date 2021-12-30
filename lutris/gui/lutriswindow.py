@@ -389,14 +389,19 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return dynamic_categories[self.filters["dynamic_category"]]()
         if self.filters.get("category") and self.filters["category"] != "all":
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
-            return games_db.get_games_by_ids(game_ids)
+        else:
+            game_ids = []
         searches, filters, excludes = self.get_sql_filters()
-        return games_db.get_games(
+        games = games_db.get_games(
             searches=searches,
             filters=filters,
             excludes=excludes,
             sorts=self.sort_params
         )
+        if game_ids:
+            return [game for game in games if game["id"] in game_ids]
+        else:
+            return games
 
     def get_sql_filters(self):
         """Return the current filters for the view"""
