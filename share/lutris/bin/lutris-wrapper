@@ -126,9 +126,10 @@ def main():
 
     returncode = None
     try:
+        log(f"Executing process: {' '.join(args)}")
         process_pid = subprocess.Popen(args).pid
     except FileNotFoundError:
-        log("Failed to execute process. Check that the file exists")
+        log(f"Failed to execute process. Check that the file exists: {args[0]}")
         return
     log("Started initial process %d from %s" % (process_pid, " ".join(args)))
 
