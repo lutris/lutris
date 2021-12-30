@@ -290,8 +290,11 @@ def is_version_esync(path):
     for esync_version in esync_compatible_versions:
         if esync_version in version_prefix or esync_version in version_suffix:
             return True
-    wine_version = get_wine_version(path).lower()
-    return "esync" in wine_version or "staging" in wine_version
+    wine_version = get_wine_version(path)
+    if wine_version:
+        wine_version = wine_version.lower()
+        return "esync" in wine_version or "staging" in wine_version
+    return False
 
 
 def is_version_fsync(path):
@@ -313,7 +316,10 @@ def is_version_fsync(path):
     for fsync_version in fsync_compatible_versions:
         if fsync_version in version_prefix or fsync_version in version_suffix:
             return True
-    return "fsync" in get_wine_version(path).lower()
+    wine_version = get_wine_version(path)
+    if wine_version:
+        return "fsync" in wine_version.lower()
+    return False
 
 
 def get_real_executable(windows_executable, working_dir=None):

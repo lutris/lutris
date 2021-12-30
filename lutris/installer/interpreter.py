@@ -50,11 +50,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.runners_to_install = []
         self.installer = LutrisInstaller(installer, self, service=self.service, appid=self.appid)
         if not self.installer.script:
-            raise ScriptingError("This installer doesn't have a 'script' section")
+            raise ScriptingError(_("This installer doesn't have a 'script' section"))
         script_errors = self.installer.get_errors()
         if script_errors:
             raise ScriptingError(
-                "Invalid script: \n{}".format("\n".join(script_errors)), self.installer.script
+                _("Invalid script: \n{}").format("\n".join(script_errors)), self.installer.script
             )
 
         self.current_resolution = DISPLAY_MANAGER.get_current_resolution()
@@ -115,10 +115,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     for dependency_option in dependency
                 }
                 if not any(installed_binaries.values()):
-                    raise ScriptingError("This installer requires %s on your system" % " or ".join(dependency))
+                    raise ScriptingError(_("This installer requires %s on your system") % _(" or ").join(dependency))
             else:
                 if not system.find_executable(dependency):
-                    raise ScriptingError("This installer requires %s on your system" % dependency)
+                    raise ScriptingError(_("This installer requires %s on your system") % dependency)
 
     def _check_dependency(self):
         """When a game is a mod or an extension of another game, check that the base
@@ -138,7 +138,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 if not installed_games:
                     if len(dependency) == 1:
                         raise MissingGameDependency(slug=dependency)
-                    raise ScriptingError(error_message.format(" or ".join(dependency)))
+                    raise ScriptingError(error_message.format(_(" or ").join(dependency)))
                 if index == 0:
                     self.target_path = installed_games[0]["directory"]
                     self.requires = installed_games[0]["installer_slug"]
@@ -178,14 +178,14 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 self.game_dir_created = True
             except PermissionError as err:
                 raise ScriptingError(
-                    "Lutris does not have the necessary permissions to install to path:",
+                    _("Lutris does not have the necessary permissions to install to path:"),
                     self.target_path,
                 ) from err
 
     def get_runners_to_install(self):
         """Check if the runner is installed before starting the installation
         Install the required runner(s) if necessary. This should handle runner
-        dependencies (wine for winesteam) or runners used for installer tasks.
+        dependencies or runners used for installer tasks.
         """
         runners_to_install = []
         required_runners = []
@@ -262,7 +262,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             runner = import_runner(runner_name)
         except InvalidRunner as err:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
-            raise ScriptingError("Invalid runner provided %s" % runner_name) from err
+            raise ScriptingError(_("Invalid runner provided %s") % runner_name) from err
         return runner
 
     def launch_installer_commands(self):
@@ -293,7 +293,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             try:
                 command = commands[self.current_command]
             except KeyError as err:
-                raise ScriptingError("Installer commands are not formatted correctly") from err
+                raise ScriptingError(_("Installer commands are not formatted correctly")) from err
             self.current_command += 1
             method, params = self._map_command(command)
             if isinstance(params, dict):
@@ -324,7 +324,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         method."""
         command_name, command_params = self._get_command_name_and_params(command_data)
         if not hasattr(self, command_name):
-            raise ScriptingError('The command "%s" does not exist.' % command_name)
+            raise ScriptingError(_('The command "%s" does not exist.') % command_name)
         return getattr(self, command_name), command_params
 
     def _finish_install(self):

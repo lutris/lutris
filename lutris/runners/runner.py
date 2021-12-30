@@ -13,7 +13,7 @@ from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import system
 from lutris.util.extract import ExtractFailure, extract_archive
-from lutris.util.http import Request
+from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -146,6 +146,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         env = {}
         if os_env:
             env.update(os.environ.copy())
+
+        # By default we'll set NVidia's shader disk cache to be
+        # per-game, so it overflows less readily.
+        env["__GL_SHADER_DISK_CACHE"] = "1"
+        env["__GL_SHADER_DISK_CACHE_PATH"] = self.game_path
 
         # Override SDL2 controller configuration
         sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")
@@ -298,17 +303,26 @@ class Runner:  # pylint: disable=too-many-public-methods
             version (str): Optional version to lookup, will return this one if found
 
         Returns:
-            dict: Dict containing version, architecture and url for the runner
+            dict: Dict containing version, architecture and url for the runner, None
+            if the data can't be retrieved.
         """
         logger.info(
             "Getting runner information for %s%s",
             self.name,
             " (version: %s)" % version if version else "",
         )
-        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
-        runner_info = request.get().json
+
+        try:
+            request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
+            runner_info = request.get().json
+
+            if not runner_info:
+                logger.error("Failed to get runner information")
+        except HTTPError as ex:
+            logger.error("Unable to get runner information: %s", ex)
+            runner_info = None
+
         if not runner_info:
-            logger.error("Failed to get runner information")
             return
 
         versions = runner_info.get("versions") or []

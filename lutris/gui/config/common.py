@@ -14,8 +14,9 @@ from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import Dialog, DirectoryDialog, ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
-from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
+from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf
 from lutris.runners import import_runner
+from lutris.services.lutris import LutrisBanner, LutrisIcon
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -190,9 +191,9 @@ class GameDialogCommon(Dialog):
 
     def _set_image(self, image_format):
         image = Gtk.Image()
-        size = BANNER_SIZE if image_format == "banner" else ICON_SIZE
+        service_media = LutrisBanner() if image_format == "banner" else LutrisIcon()
         game_slug = self.game.slug if self.game else ""
-        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, size))
+        image.set_from_pixbuf(service_media.get_pixbuf_for_game(game_slug))
         if image_format == "banner":
             self.banner_button.set_image(image)
         else:
@@ -404,8 +405,8 @@ class GameDialogCommon(Dialog):
         if not self.name_entry.get_text():
             ErrorDialog(_("Please fill in the name"))
             return False
-        if (self.runner_name in ("steam", "winesteam") and self.lutris_config.game_config.get("appid") is None):
-            ErrorDialog(_("Steam AppId not provided"))
+        if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
+            ErrorDialog(_("Steam AppID not provided"))
             return False
         invalid_fields = []
         runner_class = import_runner(self.runner_name)

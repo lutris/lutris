@@ -23,12 +23,12 @@ CACHE_DIR = os.path.join(GLib.get_user_cache_dir(), "lutris")
 GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, "games")
 
 TMP_PATH = os.path.join(CACHE_DIR, "tmp")
-BANNER_PATH = os.path.join(DATA_DIR, "banners")
+BANNER_PATH = os.path.join(CACHE_DIR, "banners")
 COVERART_PATH = os.path.join(DATA_DIR, "coverart")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
 sio = SettingsIO(CONFIG_FILE)
-if "nosetests" in sys.argv[0] or "pytest" in sys.argv[0]:
+if "nosetests" in sys.argv[0] or "nose2" in sys.argv[0] or "pytest" in sys.argv[0]:
     PGA_DB = "/tmp/pga.db"
 else:
     PGA_DB = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")

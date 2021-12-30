@@ -322,7 +322,7 @@ class wine(Runner):
                 "option": "fsr",
                 "label": _("Enable AMD FidelityFX Super Resolution (FSR)"),
                 "type": "bool",
-                "default": False,
+                "default": True,
                 "help": _(
                     "Use FSR to upscale the game window to native resolution.\n"
                     "Requires Lutris Wine FShack >= 6.13 and setting the game to a lower resolution.\n"

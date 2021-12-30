@@ -16,7 +16,7 @@ from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.util import xdgshortcuts
-from lutris.util.log import LOG_BUFFERS, logger
+from lutris.util.log import logger
 from lutris.util.system import path_exists
 
 
@@ -150,7 +150,7 @@ class GameActions:
 
     def on_show_logs(self, _widget):
         """Display game log"""
-        _buffer = LOG_BUFFERS.get(str(self.game.id))
+        _buffer = self.game.log_buffer
         if not _buffer:
             logger.info("No log for game %s", self.game)
         return LogWindow(

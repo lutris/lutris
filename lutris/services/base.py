@@ -48,6 +48,19 @@ class LutrisIcon(LutrisBanner):
     url_pattern = "https://lutris.net/games/icon/%s.png"
 
 
+class LutrisCoverart(ServiceMedia):
+    service = 'lutris'
+    size = (264, 352)
+    file_pattern = "%s.jpg"
+    dest_path = settings.COVERART_PATH
+    api_field = 'coverart'
+    url_pattern = "%s"
+
+
+class LutrisCoverartMedium(LutrisCoverart):
+    size = (176, 234)
+
+
 class BaseService(GObject.Object):
     """Base class for local services"""
     id = NotImplemented
@@ -184,7 +197,17 @@ class BaseService(GObject.Object):
         return service_installers
 
     def install(self, db_game):
-        """Install a service game"""
+        """Install a service game, or starts the installer of the game.
+
+        Args:
+            db_game (dict or str): Database fields of the game to add, or (for Lutris service only
+                the slug of the game.)
+
+        Returns:
+            str: The slug of the game that was installed, to be run. None if the game should not be
+                run now. Many installers start from here, but continue running after this returns;
+                they return None.
+        """
         appid = db_game["appid"]
         logger.debug("Installing %s from service %s", appid, self.id)
         if self.local:

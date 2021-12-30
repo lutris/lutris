@@ -1,6 +1,7 @@
 """Lutris installer class"""
 import json
 import os
+from gettext import gettext as _
 
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
@@ -83,7 +84,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if self.requires:
             # Game is an extension of an existing game, folder exists
             return False
-        if self.runner in ("steam", "winesteam"):
+        if self.runner == "steam":
             # Steam games installs in their steamapps directory
             return False
         if (
@@ -116,7 +117,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 errors.append("Missing libretro core in game section")
 
         # Check that Steam games have an AppID
-        if self.runner in ("steam", "winesteam"):
+        if self.runner == "steam":
             if not self.script.get("game", {}).get("appid"):
                 errors.append("Missing appid for Steam game")
 
@@ -158,7 +159,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         config = {}
         for key in script_config:
             if not isinstance(key, str):
-                raise ScriptingError("Game config key must be a string", key)
+                raise ScriptingError(_("Game config key must be a string"), key)
             value = script_config[key]
             if str(value).lower() == 'true':
                 value = True
@@ -203,7 +204,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             try:
                 config["game"].update(self.script["game"])
             except ValueError as err:
-                raise ScriptingError("Invalid 'game' section", self.script["game"]) from err
+                raise ScriptingError(_("Invalid 'game' section"), self.script["game"]) from err
             config["game"] = self._substitute_config(config["game"])
             if AUTO_ELF_EXE in config["game"].get("exe", ""):
                 config["game"]["exe"] = find_linux_game_executable(self.interpreter.target_path,
