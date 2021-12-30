@@ -17,8 +17,8 @@ class LogWindow(GObject.Object):
         builder = Gtk.Builder()
         builder.add_from_file(ui_filename)
         builder.connect_signals(self)
-        window = builder.get_object("log_window")
-        window.set_title(title)
+        self.window = builder.get_object("log_window")
+        self.window.set_title(title)
         self.title = title
 
         self.buffer = buffer
@@ -35,8 +35,8 @@ class LogWindow(GObject.Object):
         save_button = builder.get_object("save_button")
         save_button.connect("clicked", self.on_save_clicked)
 
-        window.connect("key-press-event", self.on_key_press_event)
-        window.show_all()
+        self.window.connect("key-press-event", self.on_key_press_event)
+        self.window.show_all()
 
     def on_key_press_event(self, widget, event):
         shift = (event.state & Gdk.ModifierType.SHIFT_MASK)
@@ -53,7 +53,8 @@ class LogWindow(GObject.Object):
         file_dialog = FileDialog(
             message="Save the logs to...",
             default_path=os.path.expanduser("~/%s" % log_filename),
-            mode="save"
+            mode="save",
+            parent=self.window
         )
         log_path = file_dialog.filename
         if not log_path:
