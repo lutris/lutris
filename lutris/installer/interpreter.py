@@ -84,10 +84,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         susbtituted. This value can be used to provide the same environment
         variable as set for the game during the install process.
         """
-        return {
+        env = self.runner.get_env()
+        env.update({
             key: self._substitute(value) for key, value in
             self.installer.script.get('system', {}).get('env', {}).items()
-        }
+        })
+        return env
 
     @staticmethod
     def _get_installed_dependency(dependency):
