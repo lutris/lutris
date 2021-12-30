@@ -48,6 +48,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.current_command = 0  # Current installer command when iterating through them
         self.runners_to_install = []
         self.installer = LutrisInstaller(installer, self, service=self.service, appid=self.appid)
+        self.runner = self.get_runner_class(self.installer.runner)()
         if not self.installer.script:
             raise ScriptingError(_("This installer doesn't have a 'script' section"))
         script_errors = self.installer.get_errors()
@@ -185,9 +186,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         dependencies or runners used for installer tasks.
         """
         runners_to_install = []
-        required_runners = []
-        runner = self.get_runner_class(self.installer.runner)
-        required_runners.append(runner())
+        required_runners = [self.runner]
 
         for command in self.installer.script.get("installer", []):
             command_name, command_params = self._get_command_name_and_params(command)
