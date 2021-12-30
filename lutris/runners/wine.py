@@ -740,6 +740,12 @@ class wine(Runner):
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
             create_prefix(self.prefix_path, arch=self.wine_arch)
+        self.preconfigure()
+
+    def preconfigure(self):
+        """Configures WINE for use. This is the part of prelaunch that we
+        apply even during installations; it does not include running prelaunch
+        scripts, nor will it create the prefix."""
         prefix_manager = WinePrefixManager(self.prefix_path)
         if self.runner_config.get("autoconf_joypad", False):
             prefix_manager.configure_joypads()
