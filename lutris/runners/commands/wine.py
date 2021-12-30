@@ -201,6 +201,7 @@ def wineexec(  # noqa: C901
     disable_runtime=False,
     env=None,
     overrides=None,
+    preconfigure=False,
 ):
     """
     Execute a Wine command.
@@ -216,6 +217,7 @@ def wineexec(  # noqa: C901
         blocking (bool): if true, do not run the process in a thread
         config (LutrisConfig): LutrisConfig object for the process context
         watch (list): list of process names to monitor (even when in a ignore list)
+        preconfigure (bool): True to run preconfigure() before the command
 
     Returns:
         Process results if the process is running in blocking mode or
@@ -291,9 +293,14 @@ def wineexec(  # noqa: C901
     if blocking:
         return system.execute(command_parameters, env=wineenv, cwd=working_dir)
     wine = import_runner("wine")
+    runner = wine()
+
+    if preconfigure:
+        runner.preconfigure()
+
     command = MonitoredCommand(
         command_parameters,
-        runner=wine(),
+        runner=runner,
         env=wineenv,
         cwd=working_dir,
         include_processes=include_processes,
