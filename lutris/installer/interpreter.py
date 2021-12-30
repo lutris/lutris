@@ -384,7 +384,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "RESOLUTION": "x".join(self.current_resolution),
             "RESOLUTION_WIDTH": self.current_resolution[0],
             "RESOLUTION_HEIGHT": self.current_resolution[1],
-            "WINEBIN": self.get_wine_path(),
+            "WINEBIN": self.get_wine_path(self.runner),
         }
         replacements.update(self.installer.variables)
         # Add 'INPUT_<id>' replacements for user inputs with an id
