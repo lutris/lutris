@@ -276,7 +276,7 @@ class ClientLoginDialog(GtkBuilderDialog):
         username, password = self.get_credentials()
         token = api.connect(username, password)
         if not token:
-            NoticeDialog(_("Login failed"), parent=self.parent)
+            NoticeDialog(_("Login failed"), parent=self.dialog)
         else:
             self.emit("connected", username)
             self.dialog.destroy()
