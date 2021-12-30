@@ -22,7 +22,11 @@ from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_version_exe
 
 
 class CommandsMixin:
-    """The directives for the `installer:` part of the install script."""
+    """
+    The directives for the `installer:` part of the install script.
+    This mixin is used by the ScriptInterpreter class and uses its
+    fields and properties.
+    """
 
     def __init__(self):
         if isinstance(self, CommandsMixin):
@@ -364,9 +368,9 @@ class CommandsMixin:
             runner_name = self.installer.runner
         return runner_name, task_name
 
-    def get_wine_path(self):
+    def get_wine_path(self, runner):
         """Return absolute path of wine version used during the install"""
-        wine_version = self._get_runner_version()
+        wine_version = self._get_runner_version() or runner.get_version()
         return get_wine_version_exe(wine_version)
 
     def task(self, data):
@@ -381,7 +385,7 @@ class CommandsMixin:
         runner_name, task_name = self._get_task_runner_and_name(data.pop("name"))
 
         if runner_name.startswith("wine"):
-            wine_path = self.get_wine_path()
+            wine_path = self.get_wine_path(self.runner)
             if wine_path:
                 data["wine_path"] = wine_path
             data["prefix"] = data.get("prefix") \
