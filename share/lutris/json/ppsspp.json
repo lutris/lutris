@@ -19,6 +19,13 @@
             "label": "Fullscreen",
             "default": true,
             "argument": "--fullscreen"
+        },
+        {
+            "option": "pausexit",
+            "type": "bool",
+            "label": "Exit on Pause Menu",
+            "default": true,
+            "argument": "--pause-menu-exit"
         }
     ]
 }

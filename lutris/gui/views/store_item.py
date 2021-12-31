@@ -4,7 +4,7 @@ import time
 from lutris.database.games import get_service_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.gui.widgets.utils import get_pixbuf, get_pixbuf_for_game
+from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import RUNNER_NAMES
 from lutris.util import system
 from lutris.util.log import logger
@@ -105,9 +105,8 @@ class StoreItem:
                     image_path = self.service_media.get_absolute_path(service_game["slug"])
         if system.path_exists(image_path):
             return get_pixbuf(image_path, self.service_media.size, is_installed=self.installed)
-        return get_pixbuf_for_game(
+        return self.service_media.get_pixbuf_for_game(
             self._game_data["slug"],
-            self.service_media.size,
             self.installed
         )
 

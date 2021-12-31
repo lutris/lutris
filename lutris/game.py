@@ -484,7 +484,8 @@ class Game(GObject.Object):
         self.load_config()  # Reload the config before launching it.
 
         if str(self.id) in LOG_BUFFERS:  # Reset game logs on each launch
-            LOG_BUFFERS.pop(str(self.id))
+            log_buffer = LOG_BUFFERS[str(self.id)]
+            log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
 
         if not self.runner:
             dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))

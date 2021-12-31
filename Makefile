@@ -23,12 +23,14 @@ release: build-source upload upload-ppa
 
 test:
 	rm tests/fixtures/pga.db -f
-	nosetests
+	nose2
+
 
 cover:
 	rm tests/fixtures/pga.db -f
 	rm tests/coverage/ -rf
-	nosetests --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+	nose2 --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+
 
 pgp-renew:
 	osc signkey --extend home:strycore
@@ -82,7 +84,7 @@ autopep8:
 # Static analysis
 # ===============
 
-check: isort-check flake8 pylint bandit black
+check: isort-check flake8 pylint
 
 isort-check:
 	poetry run isort lutris -c
