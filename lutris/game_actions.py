@@ -191,7 +191,7 @@ class GameActions:
                 "parent": self.window,
                 "question": _(
                     "Do you wish to duplicate %s?\nThe configuration will be duplicated, "
-                    "but the games files will <b>not by duplicated</b>."
+                    "but the games files will <b>not be duplicated</b>."
                 ) % gtk_safe(self.game.name),
                 "title": _("Duplicate game?"),
             }
