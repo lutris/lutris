@@ -4,7 +4,7 @@ import os
 from gettext import gettext as _
 
 from lutris.config import LutrisConfig, write_game_config
-from lutris.database.games import add_or_update, get_game_by_field
+from lutris.database.games import add_or_update, get_game_by_field, get_unusued_game_name
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
@@ -241,7 +241,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         else:
             service_id = None
 
-        assigned_name = self.get_unusued_game_name()
+        if assign_unique_name:
+            assigned_name = get_unusued_game_name(self.game_name)
+        else:
+            assigned_name = self.game_name
 
         self.game_id = add_or_update(
             name=assigned_name,
@@ -260,23 +263,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             id=self.game_id,
         )
         return self.game_id
-
-    def get_unusued_game_name(self):
-        """Returns the game's name, but if this name is already used by an installed
-        name, this adds a number to it to make it unique."""
-        def is_name_in_use(name):
-            """Queries the database to see if a given is in use by an installed
-            game."""
-            existing_game = get_game_by_field(assigned_name, "name")
-            return existing_game and existing_game["installed"]
-
-        assigned_name = self.game_name
-        assigned_index = 1
-        while is_name_in_use(assigned_name):
-            assigned_index += 1
-            assigned_name = f"{self.game_name} {assigned_index}"
-
-        return assigned_name
 
     def get_game_launcher_config(self, game_files):
         """Game options such as exe or main_file can be added at the root of the
