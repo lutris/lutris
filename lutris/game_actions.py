@@ -14,7 +14,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
-from lutris.gui.dialogs import ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
