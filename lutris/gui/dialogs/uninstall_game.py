@@ -35,7 +35,7 @@ class UninstallGameDialog(Dialog):
         self.delete_button.connect("clicked", self.on_delete_clicked)
 
         if not self.game.directory:
-            self.folder_label.set_markup("No file will be deleted")
+            self.folder_label.set_markup(_("No file will be deleted"))
         elif len(get_games(filters={"directory": self.game.directory, "installed": 1})) > 1:
             self.folder_label.set_markup("The folder %s is used by other games and will be kept." % self.game.directory)
         elif is_removeable(self.game.directory):
