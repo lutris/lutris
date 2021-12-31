@@ -38,6 +38,7 @@ def duplicate_game_config(game_slug, source_config_id):
     copyfile(src_path, dest_path)
     return new_config_id
 
+
 class LutrisConfig:
 
     """Class where all the configuration handling happens.

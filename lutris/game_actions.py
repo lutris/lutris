@@ -4,7 +4,6 @@
 # pylint: disable=too-many-public-methods
 import os
 from gettext import gettext as _
-from shutil import copyfile
 
 from gi.repository import Gio
 
