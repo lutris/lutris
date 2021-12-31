@@ -1,9 +1,7 @@
-"""Steam appmanifest file hnadling"""
-# Standard Library
+"""Steam appmanifest file handling"""
 import os
 import re
 
-# Lutris Modules
 from lutris.util.log import logger
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.util.steam.vdf import vdf_parse
@@ -104,7 +102,6 @@ class AppManifest:
         install_path = fix_path_case(os.path.join(self.steamapps_path, "common", self.installdir))
         if install_path:
             return install_path
-
         return None
 
     def get_platform(self):
@@ -115,10 +112,6 @@ class AppManifest:
         if self.steamapps_path in steamapps_paths["windows"]:
             return "windows"
         raise ValueError("Can't find %s in %s" % (self.steamapps_path, steamapps_paths))
-
-    def get_runner_name(self):
-        """Runner used by the Steam game"""
-        return "steam" if self.get_platform() == "linux" else "winesteam"
 
 
 def get_appmanifest_from_appid(steamapps_path, appid):

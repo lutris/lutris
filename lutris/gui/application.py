@@ -208,14 +208,9 @@ class Application(Gtk.Application):
         action.connect("activate", lambda *x: self.quit())
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
-        init_lutris()
-        if os.environ.get("LUTRIS_SKIP_INIT"):
-            logger.debug("Skipping initialization")
-            return
-        init_dialog = LutrisInitDialog(update_runtime)
-        init_dialog.run()
 
     def do_activate(self):  # pylint: disable=arguments-differ
+        Application.show_update_runtime_dialog()
         if not self.window:
             self.window = LutrisWindow(application=self)
             screen = self.window.props.screen  # pylint: disable=no-member
@@ -226,6 +221,14 @@ class Application(Gtk.Application):
             # Reset run in background to False. Future calls will set it
             # accordingly
             self.run_in_background = False
+
+    @staticmethod
+    def show_update_runtime_dialog():
+        if os.environ.get("LUTRIS_SKIP_INIT"):
+            logger.debug("Skipping initialization")
+        else:
+            init_dialog = LutrisInitDialog(update_runtime)
+            init_dialog.run()
 
     def get_window_key(self, **kwargs):
         if kwargs.get("appid"):
@@ -330,6 +333,7 @@ class Application(Gtk.Application):
             logger.setLevel(logging.NOTSET)
             return 0
 
+        init_lutris()
         migrate()
         run_all_checks()
 
@@ -502,8 +506,6 @@ class Application(Gtk.Application):
             if game_id:
                 game = Game(game_id)
                 game.launch()
-            else:
-                ErrorDialog(message=_("Could not retrieve game installer."), parent=self.window)
             return True
         if not game.slug:
             raise ValueError("Invalid game passed: %s" % game)
@@ -583,11 +585,18 @@ class Application(Gtk.Application):
                 "slug": game["slug"],
                 "name": game["name"],
                 "runner": game["runner"],
-                "platform": game["platform"],
-                "year": game["year"],
-                "playtime": str(timedelta(hours=game["playtime"])),
-                "lastplayed": str(datetime.fromtimestamp(game["lastplayed"])),
-                "directory": game["directory"],
+                "platform": game["platform"] or None,
+                "year": game["year"] or None,
+                "directory": game["directory"] or None,
+                "hidden": bool(game["hidden"]),
+                "playtime": (
+                    str(timedelta(hours=game["playtime"]))
+                    if game["playtime"] else None
+                ),
+                "lastplayed": (
+                    str(datetime.fromtimestamp(game["lastplayed"]))
+                    if game["lastplayed"] else None
+                )
             } for game in game_list
         ]
         self._print(command_line, json.dumps(games, indent=2))
@@ -595,7 +604,7 @@ class Application(Gtk.Application):
     def print_steam_list(self, command_line):
         steamapps_paths = get_steamapps_paths()
         for platform in ("linux", "windows"):
-            for path in steamapps_paths[platform]:
+            for path in steamapps_paths[platform] if steamapps_paths else []:
                 appmanifest_files = get_appmanifests(path)
                 for appmanifest_file in appmanifest_files:
                     appmanifest = AppManifest(os.path.join(path, appmanifest_file))
@@ -614,6 +623,7 @@ class Application(Gtk.Application):
         """Execute an arbitrary command in a Lutris context
         with the runtime enabled and monitored by a MonitoredCommand
         """
+        Application.show_update_runtime_dialog()
         logger.info("Running command '%s'", command)
         monitored_command = exec_command(command)
         try:
@@ -624,7 +634,7 @@ class Application(Gtk.Application):
     def print_steam_folders(self, command_line):
         steamapps_paths = get_steamapps_paths()
         for platform in ("linux", "windows"):
-            for path in steamapps_paths[platform]:
+            for path in steamapps_paths[platform] if steamapps_paths else []:
                 self._print(command_line, path)
 
     def do_shutdown(self):  # pylint: disable=arguments-differ

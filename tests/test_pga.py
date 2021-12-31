@@ -16,10 +16,6 @@ class DatabaseTester(unittest.TestCase):
             os.remove(settings.PGA_DB)
         schema.syncdb()
 
-    def tearDown(self):
-        if os.path.exists(settings.PGA_DB):
-            os.remove(settings.PGA_DB)
-
 
 class TestPersonnalGameArchive(DatabaseTester):
     def test_add_game(self):

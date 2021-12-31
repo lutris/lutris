@@ -24,7 +24,7 @@ class UninstallGameDialog(Dialog):
         title_label.set_line_wrap(True)
         title_label.set_alignment(0, 0.5)
         title_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        title_label.set_markup("<span font_desc='14'><b>Uninstall %s</b></span>" % gtk_safe(self.game.name))
+        title_label.set_markup(_("<span font_desc='14'><b>Uninstall %s</b></span>") % gtk_safe(self.game.name))
 
         container.pack_start(title_label, False, False, 4)
 
@@ -40,11 +40,11 @@ class UninstallGameDialog(Dialog):
             self.folder_label.set_markup("The folder %s is used by other games and will be kept." % self.game.directory)
         elif is_removeable(self.game.directory):
             self.delete_button.set_sensitive(False)
-            self.folder_label.set_markup("<i>Calculating size…</i>")
+            self.folder_label.set_markup(_("<i>Calculating size…</i>"))
             AsyncCall(get_disk_size, self.folder_size_cb, self.game.directory)
         else:
             self.folder_label.set_markup(
-                "Content of %s are protected and will not be deleted." % reverse_expanduser(self.game.directory)
+                _("Content of %s are protected and will not be deleted.") % reverse_expanduser(self.game.directory)
             )
         container.pack_start(self.folder_label, False, False, 4)
 
@@ -72,7 +72,7 @@ class UninstallGameDialog(Dialog):
         self.folder_label.hide()
         self.confirm_delete_button.show()
         self.confirm_delete_button.set_label(
-            "Delete %s (%s)" % (
+            _("Delete %s (%s)") % (
                 reverse_expanduser(self.game.directory),
                 human_size(folder_size)
             )
@@ -99,9 +99,9 @@ class UninstallGameDialog(Dialog):
                 button.set_sensitive(True)
                 return
         if self.delete_files:
-            self.folder_label.set_markup("Uninstalling game and deleting files...")
+            self.folder_label.set_markup(_("Uninstalling game and deleting files..."))
         else:
-            self.folder_label.set_markup("Uninstalling game...")
+            self.folder_label.set_markup(_("Uninstalling game..."))
         self.game.remove(self.delete_files)
         self.destroy()
 
@@ -118,12 +118,13 @@ class RemoveGameDialog(Dialog):
         title_label.set_line_wrap(True)
         title_label.set_alignment(0, 0.5)
         title_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        title_label.set_markup("<span font_desc='14'><b>Remove %s</b></span>" % gtk_safe(self.game.name))
+        title_label.set_markup(_("<span font_desc='14'><b>Remove %s</b></span>") % gtk_safe(self.game.name))
         container.pack_start(title_label, False, False, 4)
 
         self.delete_label = Gtk.Label(visible=True)
         self.delete_label.set_alignment(0, 0.5)
-        self.delete_label.set_markup("Completely remove %s from the library?\nAll play time will be lost." % self.game)
+        self.delete_label.set_markup(
+            _("Completely remove %s from the library?\nAll play time will be lost.") % self.game)
         container.pack_start(self.delete_label, False, False, 4)
 
         button_box = Gtk.HBox(visible=True)

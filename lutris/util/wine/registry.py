@@ -297,7 +297,11 @@ class WineRegistryKey:
 
     @staticmethod
     def decode_unicode(string):
-        chunks = re.split(r"[^\\]\\x", string)
+        # There may be a r"\\" in front of r"\x", so replace the r"\\" to r"\x005c"
+        # to avoid missing matches. Example: r"C:\\users\\x1234\\\x0041\x0042CD".
+        # Note the difference between r"\\x1234", r"\\\x0041" and r"\x0042".
+        # It should be r"C:\users\x1234\ABCD" after decoding.
+        chunks = re.split(r"\\x", string.replace(r"\\", r"\x005c"))
         out = chunks.pop(0).encode().decode("unicode_escape")
         for chunk in chunks:
             # We have seen file with unicode characters escaped on 1 byte (\xfa),
