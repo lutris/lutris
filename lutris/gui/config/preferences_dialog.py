@@ -20,6 +20,10 @@ class PreferencesDialog(GameDialogCommon):
         self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
 
+        # The default border of 2px is unsightly for this
+        # window.
+        self.vbox.set_border_width(0)
+
         hbox = Gtk.HBox(visible=True)
         sidebar = Gtk.ListBox(visible=True)
         sidebar.connect("row-selected", self.on_sidebar_activated)
