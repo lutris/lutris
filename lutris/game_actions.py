@@ -5,7 +5,7 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gio
+from gi.repository import Gio, Gtk
 
 from lutris.command import MonitoredCommand
 from lutris.config import duplicate_game_config
@@ -14,11 +14,13 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
+from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.util import xdgshortcuts
 from lutris.util.log import LOG_BUFFERS, logger
+from lutris.util.strings import gtk_safe
 from lutris.util.system import path_exists
 
 
@@ -184,6 +186,19 @@ class GameActions:
         return AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
 
     def on_game_duplicate(self, _widget):
+        confirm_dlg = QuestionDialog(
+            {
+                "parent": self.window,
+                "question": _(
+                    "Do you wish to duplicate %s?\nThe configuration will be duplicated, "
+                    "but the games files will <b>not by duplicated</b>."
+                ) % gtk_safe(self.game.name),
+                "title": _("Duplicate game?"),
+            }
+        )
+        if confirm_dlg.result != Gtk.ResponseType.YES:
+            return
+
         assigned_name = get_unusued_game_name(self.game.name)
         old_config_id = self.game.game_config_id
         if old_config_id:
