@@ -162,7 +162,7 @@ class GameActions:
         self.game.emit("game-install")
 
     def on_locate_installed_game(self, _button, game):
-        """Show the user a dialog to import an existing install to a DRM free service
+        """Show the user a dialog to import an existing install of a game
 
         Params:
             game (Game): Game instance without a database ID, populated with a fields the service can provides
