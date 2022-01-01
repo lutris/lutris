@@ -74,11 +74,10 @@ class linux(Runner):
 
     @property
     def game_exe(self):
-        """Return the game's executable's path. The file may not exist, but
-        this returns None if the exe path is not defined."""
+        """Return the game's executable's path."""
         exe = self.game_config.get("exe")
         if not exe:
-            return None
+            return
         if os.path.isabs(exe):
             return exe
         if self.game_path:
@@ -91,7 +90,7 @@ class linux(Runner):
         """
         exe_path = self.game_exe
         working_dir = self.game_config.get("working_dir")
-        if exe_path and working_dir:
+        if working_dir:
             parts = exe_path.split(os.path.expanduser(working_dir))
             if len(parts) == 2:
                 return "." + parts[1]

@@ -34,7 +34,7 @@ def search_in_steam_dirs(file):
         path = system.fix_path_case(
             os.path.join(os.path.expanduser(candidate), file)
         )
-        if path and system.path_exists(path):
+        if path:
             return path
 
 
