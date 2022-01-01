@@ -358,6 +358,26 @@ class wine(Runner):
                 "help": _("The size of the virtual desktop in pixels."),
             },
             {
+                "option": "Dpi",
+                "label": _("Enable DPI Scaling"),
+                "type": "bool",
+                "default": False,
+                "help": _(
+                    "Enables the Windows application's DPI scaling.\n"
+                    "Otherwise, disables DPI scaling by using 96 DPI.\n"
+                    "This corresponds to Wine's Screen Resolution option."
+                ),
+            },
+            {
+                "option": "ExplicitDpi",
+                "label": _("DPI"),
+                "type": "string",
+                "help": _(
+                    "The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
+                    "If blank or 'auto', Lutris will auto-detect this."
+                ),
+            },
+            {
                 "option": "MouseWarpOverride",
                 "label": _("Mouse Warp Override"),
                 "type": "choice",
@@ -720,9 +740,26 @@ class wine(Runner):
 
                 prefix_manager.set_registry_key(path, key, value)
 
-        dpi = get_default_dpi()
+        # We always configure the DPI, because if the user turns off DPI scaling, but it
+        # had been on the only way to implement that is to save 96 DPI into the registry.
+        dpi = self.get_dpi()
         prefix_manager.set_registry_key("HKEY_CURRENT_USER/Software/Wine/Fonts", "LogPixels", dpi)
         prefix_manager.set_registry_key("HKEY_CURRENT_USER/Control Panel/Desktop", "LogPixels", dpi)
+
+    def get_dpi(self):
+        """Return the DPI to be used by Wine; returns 96 to disable scaling,
+        as this is Window's unscaled default DPI."""
+        if bool(self.runner_config.get("Dpi")):
+            explicit_dpi = self.runner_config.get("ExplicitDpi")
+            if explicit_dpi == "auto":
+                explicit_dpi = None
+            try:
+                explicit_dpi = int(explicit_dpi)
+            except ValueError:
+                explicit_dpi = None
+            return explicit_dpi or get_default_dpi()
+
+        return 96
 
     def setup_dlls(self, manager_class, enable, version):
         """Enable or disable DLLs"""
