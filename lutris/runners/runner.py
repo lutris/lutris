@@ -141,6 +141,15 @@ class Runner:  # pylint: disable=too-many-public-methods
             raise ValueError("runner_executable not set for {}".format(self.name))
         return os.path.join(settings.RUNNER_DIR, self.runner_executable)
 
+    def get_runner_path(self):
+        """Gets the Lutris runner directory that contains this runner, which
+        is what we remove for uninstallation."""
+        if self.runner_executable:
+            parts = os.path.split(self.runner_executable)  # ignore runner config
+            if parts:
+                return os.path.join(settings.RUNNER_DIR, parts[0])
+        return os.path.join(settings.RUNNER_DIR, self.name)
+
     def get_env(self, os_env=False):
         """Return environment variables used for a game."""
         env = {}
@@ -360,7 +369,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         )
         opts = {"downloader": downloader, "callback": callback}
         if self.download_url:
-            opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name)
+            opts["dest"] = self.get_runner_path()
             return self.download_and_extract(self.download_url, **opts)
         runner = self.get_runner_version(version)
         if not runner:
@@ -371,7 +380,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(
-                settings.RUNNER_DIR, self.name, "{}-{}".format(runner["version"], runner["architecture"])
+                self.get_runner_path(), "{}-{}".format(runner["version"], runner["architecture"])
             )
 
         if self.name == "libretro" and version:
@@ -419,11 +428,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         system.remove_folder(game_path)
 
     def can_uninstall(self):
-        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
+        runner_path = self.get_runner_path()
         return os.path.isdir(runner_path)
 
     def uninstall(self):
-        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
+        runner_path = self.get_runner_path()
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
 
