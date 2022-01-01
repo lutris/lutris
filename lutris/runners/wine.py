@@ -733,9 +733,7 @@ class wine(Runner):
 
         # We always configure the DPI, because if the user turns off DPI scaling, but it
         # had been on the only way to implement that is to save 96 DPI into the registry.
-        dpi = self.get_dpi()
-        prefix_manager.set_registry_key("HKEY_CURRENT_USER/Software/Wine/Fonts", "LogPixels", dpi)
-        prefix_manager.set_registry_key("HKEY_CURRENT_USER/Control Panel/Desktop", "LogPixels", dpi)
+        prefix_manager.set_dpi(self.get_dpi())
 
     def get_dpi(self):
         """Return the DPI to be used by Wine; returns 96 to disable scaling,
