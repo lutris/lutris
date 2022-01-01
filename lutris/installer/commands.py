@@ -234,7 +234,7 @@ class CommandsMixin:
         for drive in drives:
             required_abspath = os.path.join(drive, requires)
             required_abspath = system.fix_path_case(required_abspath)
-            if required_abspath:
+            if required_abspath and system.path_exists(required_abspath):
                 logger.debug("Found %s on cdrom %s", requires, drive)
                 self.game_disc = drive
                 self._iter_commands()
