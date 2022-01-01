@@ -282,14 +282,14 @@ def fix_path_case(path):
         current_path = os.path.join(current_path, part)
         if not os.path.exists(current_path) and os.path.isdir(parent_path):
             try:
-                path_contents = os.listdir(current_path)
+                path_contents = os.listdir(parent_path)
             except OSError:
-                logger.error("Can't read contents of %s", current_path)
+                logger.error("Can't read contents of %s", parent_path)
                 path_contents = []
             for filename in path_contents:
                 if filename.lower() == part.lower():
-                    current_path = os.path.join(current_path, filename)
-                    continue
+                    current_path = os.path.join(parent_path, filename)
+                    break
 
     # Only return the path if we got the same number of elements
     if len(parts) == len(current_path.strip("/").split("/")):
