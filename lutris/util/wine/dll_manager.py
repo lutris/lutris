@@ -105,21 +105,25 @@ class DLLManager:
             return release["assets"][0]["browser_download_url"]
 
     def download(self):
-        """Download component to the local cache"""
+        """Download component to the local cache; returns True if successful but False
+        if the component could not be downloaded."""
         if self.is_available():
             logger.warning("%s already available at %s", self.component, self.path)
 
         url = self.get_download_url()
         if not url:
             logger.warning("Could not find a release for %s %s", self.component, self.version)
-            return
+            return False
         archive_path = os.path.join(self.base_dir, os.path.basename(url))
+        logger.info(f"Downloading {url} to {archive_path}")
         download_file(url, archive_path, overwrite=True)
         if not system.path_exists(archive_path) or not os.stat(archive_path).st_size:
             logger.error("Failed to download %s %s", self.component, self.version)
-            return
+            return False
+        logger.info(f"Extracting {archive_path} to {self.path}")
         extract_archive(archive_path, self.path, merge_single=True)
         os.remove(archive_path)
+        return True
 
     def enable_dll(self, system_dir, arch, dll_path):
         """Copies dlls to the appropriate destination"""
@@ -165,9 +169,10 @@ class DLLManager:
 
     def enable(self):
         """Enable Dlls for the current prefix"""
-        if not system.path_exists(self.path):
-            logger.error("%s %s is not available locally", self.component, self.version)
-            return
+        if not self.is_available():
+            if not self.download():
+                logger.error("%s %s coult not be enabled because it is not available locally", self.component, self.version)
+                return
         for system_dir, arch, dll in self._iter_dlls():
             dll_path = os.path.join(self.path, arch, "%s.dll" % dll)
             self.enable_dll(system_dir, arch, dll_path)
