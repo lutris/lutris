@@ -115,12 +115,12 @@ class DLLManager:
             logger.warning("Could not find a release for %s %s", self.component, self.version)
             return False
         archive_path = os.path.join(self.base_dir, os.path.basename(url))
-        logger.info(f"Downloading {url} to {archive_path}")
+        logger.info("Downloading %s to %s", url, archive_path)
         download_file(url, archive_path, overwrite=True)
         if not system.path_exists(archive_path) or not os.stat(archive_path).st_size:
             logger.error("Failed to download %s %s", self.component, self.version)
             return False
-        logger.info(f"Extracting {archive_path} to {self.path}")
+        logger.info("Extracting %s to %s", archive_path, self.path)
         extract_archive(archive_path, self.path, merge_single=True)
         os.remove(archive_path)
         return True
@@ -171,7 +171,8 @@ class DLLManager:
         """Enable Dlls for the current prefix"""
         if not self.is_available():
             if not self.download():
-                logger.error("%s %s coult not be enabled because it is not available locally", self.component, self.version)
+                logger.error("%s %s could not be enabled because it is not available locally",
+                             self.component, self.version)
                 return
         for system_dir, arch, dll in self._iter_dlls():
             dll_path = os.path.join(self.path, arch, "%s.dll" % dll)
