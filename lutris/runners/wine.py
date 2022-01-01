@@ -485,18 +485,18 @@ class wine(Runner):
 
     @property
     def game_exe(self):
-        """Return the game's executable's path, which may not exist. None
-        if there is no exe path defined."""
+        """Return the game's executable's path."""
         exe = self.game_config.get("exe")
         if not exe:
             logger.warning("The game doesn't have an executable")
-            return None
-        if os.path.isabs(exe):
+            return
+        if exe and os.path.isabs(exe):
             return system.fix_path_case(exe)
         if not self.game_path:
-            logger.warning("The game has an executable, but not a game path")
-            return None
-        return system.fix_path_case(os.path.join(self.game_path, exe))
+            return
+        exe = system.fix_path_case(os.path.join(self.game_path, exe))
+        if system.path_exists(exe):
+            return exe
 
     @property
     def working_dir(self):
@@ -505,9 +505,7 @@ class wine(Runner):
         if option:
             return option
         if self.game_exe:
-            game_dir = os.path.dirname(self.game_exe)
-            if os.path.isdir(game_dir):
-                return game_dir
+            return os.path.dirname(self.game_exe)
         return super().working_dir
 
     @property
@@ -886,7 +884,7 @@ class wine(Runner):
                 if not display_vulkan_error(True):
                     return {"error": "VULKAN_NOT_FOUND"}
 
-        if not game_exe or not system.path_exists(game_exe):
+        if not system.path_exists(game_exe):
             return {"error": "FILE_NOT_FOUND", "file": game_exe}
 
         if launch_info["env"].get("WINEESYNC") == "1":

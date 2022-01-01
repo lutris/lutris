@@ -270,26 +270,28 @@ def is_removeable(path):
 
 
 def fix_path_case(path):
-    """Do a case insensitive check, return the real path with correct case. If the path is
-    not for a real file, this corrects as many components as do exist."""
+    """Do a case insensitive check, return the real path with correct case."""
     if not path or os.path.exists(path):
         # If a path isn't provided or it exists as is, return it.
         return path
     parts = path.strip("/").split("/")
     current_path = "/"
     for part in parts:
-        parent_path = current_path
-        current_path = os.path.join(current_path, part)
-        if not os.path.exists(current_path) and os.path.isdir(parent_path):
-            try:
-                path_contents = os.listdir(current_path)
-            except OSError:
-                logger.error("Can't read contents of %s", current_path)
-                path_contents = []
-            for filename in path_contents:
-                if filename.lower() == part.lower():
-                    current_path = os.path.join(current_path, filename)
-                    continue
+        if not os.path.exists(current_path):
+            return
+        tested_path = os.path.join(current_path, part)
+        if os.path.exists(tested_path):
+            current_path = tested_path
+            continue
+        try:
+            path_contents = os.listdir(current_path)
+        except OSError:
+            logger.error("Can't read contents of %s", current_path)
+            path_contents = []
+        for filename in path_contents:
+            if filename.lower() == part.lower():
+                current_path = os.path.join(current_path, filename)
+                continue
 
     # Only return the path if we got the same number of elements
     if len(parts) == len(current_path.strip("/").split("/")):
