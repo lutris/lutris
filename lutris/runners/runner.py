@@ -1,6 +1,7 @@
 """Base module for runners"""
 import os
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import Gtk
 
@@ -144,11 +145,13 @@ class Runner:  # pylint: disable=too-many-public-methods
     def get_runner_path(self):
         """Gets the Lutris runner directory that contains this runner, which
         is what we remove for uninstallation."""
-        if self.runner_executable:
-            parts = os.path.split(self.runner_executable)  # ignore runner config
+        name = self.name
+        if self.runner_executable:  # ignore runner config
+            parts = list(Path(self.runner_executable).parts)
             if parts:
-                return os.path.join(settings.RUNNER_DIR, parts[0])
-        return os.path.join(settings.RUNNER_DIR, self.name)
+                name = parts[0]
+
+        return os.path.join(settings.RUNNER_DIR, name or self.name)
 
     def get_env(self, os_env=False):
         """Return environment variables used for a game."""
@@ -435,6 +438,8 @@ class Runner:  # pylint: disable=too-many-public-methods
         runner_path = self.get_runner_path()
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
+        elif os.path.isfile(runner_path):
+            os.remove(runner_path)
 
     def find_option(self, options_group, option_name):
         """Retrieve an option dict if it exists in the group"""
