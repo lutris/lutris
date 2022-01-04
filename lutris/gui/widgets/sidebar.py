@@ -139,7 +139,7 @@ class ServiceSidebarRow(SidebarRow):
         if error:
             if isinstance(error, AuthTokenExpired):
                 self.service.logout()
-                self.service.login()
+                self.service.login(parent=self.get_toplevel())
             else:
                 ErrorDialog(str(error))
         GLib.timeout_add(2000, self.enable_refresh_button)
@@ -168,7 +168,7 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
         if self.service.is_authenticated():
             self.service.logout()
         else:
-            self.service.login()
+            self.service.login(parent=self.get_toplevel())
         self.create_button_box()
 
 
