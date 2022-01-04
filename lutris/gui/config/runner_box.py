@@ -86,9 +86,9 @@ class RunnerBox(Gtk.Box):
     def on_versions_clicked(self, widget):
         RunnerInstallDialog(
             _("Manage %s versions") % self.runner.name,
-            None,
-            self.runner.name
-        )
+            self.get_toplevel(),
+            self.runner.name,
+        ).run()
         # connect a runner-installed signal from the above dialog?
 
     def on_install_clicked(self, widget):
