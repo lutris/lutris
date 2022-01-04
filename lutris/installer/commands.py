@@ -158,7 +158,10 @@ class CommandsMixin:
         src_param = data.get("file") or data.get("src")
         filespec = self._get_file(src_param)
 
-        filenames = glob.glob(filespec)
+        if os.path.exists(filespec):
+            filenames = [filespec]
+        else:
+            filenames = glob.glob(filespec)
 
         if not filenames:
             raise ScriptingError(_("%s does not exist") % filespec)
