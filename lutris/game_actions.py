@@ -39,8 +39,10 @@ class GameActions:
         return self._game
 
     def refresh_game(self):
-        """Discard the cached game and fetch it again so it is up to date."""
-        self._game = None
+        """Discard the cached game and fetch it again so it is up to date,
+        provide that refetch is possible."""
+        if self.game_id is not None:
+            self._game = None
         return self.game
 
     @property
