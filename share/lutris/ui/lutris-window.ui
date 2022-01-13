@@ -212,12 +212,13 @@
             <property name="can-focus">False</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkButton">
+              <object class="GtkMenuButton">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
                 <property name="tooltip-text" translatable="yes">Add Game</property>
                 <property name="action-name">win.add-game</property>
+                <property name="use-popover">False</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
