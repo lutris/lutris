@@ -117,7 +117,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.sidebar_revealer.set_reveal_child(self.side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
-        self.tabs_box.hide()
 
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
