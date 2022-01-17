@@ -27,6 +27,9 @@ class AsyncCall(threading.Thread):
         self.start()
 
     def await_completion(self, timeout):
+        """Block waiting for the call to complete for a time.
+        If it completes in time,  invokes the callback synchronously
+        and returns True. Returns False if it times out."""
         self.join(timeout)
         if not self.is_alive():
             self.complete()
@@ -52,6 +55,8 @@ class AsyncCall(threading.Thread):
     def complete(self):
         callback_args = self.completion_callback_args
         if callback_args is not None:
+            # Make sure we don't call the callback twice, even if
+            # await_completion succeeds.
             self.completion_callback_args = None
             self.callback(*callback_args)
 
