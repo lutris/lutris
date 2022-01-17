@@ -31,7 +31,3 @@
 .panel-button label {
     font-weight: normal;
 }
-
-.sidebar row:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
