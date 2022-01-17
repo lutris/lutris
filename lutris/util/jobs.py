@@ -60,6 +60,7 @@ class AsyncCall(threading.Thread):
             self.completion_callback_args = None
             self.callback(*callback_args)
 
+
 def synchronized_call(func, event, result):
     """Calls func, stores the result by reference, set an event when finished"""
     result.append(func())

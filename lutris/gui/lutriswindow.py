@@ -467,9 +467,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def update_store_cb(self, games, error):
         self.hide_overlay()
-        
+
         if error:
-            ErrorDialog(str(error))
+            dialogs.ErrorDialog(str(error))
         else:
             self.game_store.store.clear()
             logger.debug("Showing %d games", len(games))
