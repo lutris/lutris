@@ -32,6 +32,7 @@ class AsyncCall(threading.Thread):
         and returns True. Returns False if it times out."""
         self.join(timeout)
         if not self.is_alive():
+            GLib.source_remove(self.source_id)
             self.complete()
             return True
         return False
@@ -54,11 +55,7 @@ class AsyncCall(threading.Thread):
 
     def complete(self):
         callback_args = self.completion_callback_args
-        if callback_args is not None:
-            # Make sure we don't call the callback twice, even if
-            # await_completion succeeds.
-            self.completion_callback_args = None
-            self.callback(*callback_args)
+        self.callback(*callback_args)
 
 
 def synchronized_call(func, event, result):
