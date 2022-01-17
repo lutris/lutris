@@ -517,23 +517,28 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.save_icon_type(icon_type)
 
     def show_label(self, message):
-        """Display a label in the middle of the UI"""
+        """Display a label in the middle of the UI, instead of the game view"""
+        label = Gtk.Label(message, visible=True)
         for child in self.blank_overlay.get_children():
             child.destroy()
-        label = Gtk.Label(message, visible=True)
         self.blank_overlay.add(label)
-        self.blank_overlay.props.visible = True
+        self.blank_overlay.show()
+        self.games_scrollwindow.hide()
 
     def show_spinner(self):
+        """Display a spinner in the middle of the UI, instead of the game view"""
         spinner = Gtk.Spinner(visible=True)
         spinner.start()
         for child in self.blank_overlay.get_children():
             child.destroy()
         self.blank_overlay.add(spinner)
-        self.blank_overlay.props.visible = True
+        self.blank_overlay.show()
+        self.games_scrollwindow.hide()
 
     def hide_overlay(self):
-        self.blank_overlay.props.visible = False
+        """Restore the game view, and remove the spinner or label."""
+        self.games_scrollwindow.show()
+        self.blank_overlay.hide()
         for child in self.blank_overlay.get_children():
             child.destroy()
 
