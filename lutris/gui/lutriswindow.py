@@ -462,18 +462,25 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
-        self.game_store.store.clear()
-        for child in self.blank_overlay.get_children():
-            child.destroy()
-        games = self.get_games_from_filters()
-        logger.debug("Showing %d games", len(games))
-        self.view.service = self.service.id if self.service else None
-        GLib.idle_add(self.update_revealer)
-        for game in games:
-            self.game_store.add_game(game)
-        if not games:
-            self.show_empty_label()
-        self.search_timer_id = None
+        thread = AsyncCall(self.get_games_from_filters, self.update_store_cb)
+        if thread.await_completion(.25):
+            self.show_spinner()
+
+    def update_store_cb(self, games, error):
+        self.hide_overlay()
+        
+        if error:
+            ErrorDialog(str(error))
+        else:
+            self.game_store.store.clear()
+            logger.debug("Showing %d games", len(games))
+            self.view.service = self.service.id if self.service else None
+            GLib.idle_add(self.update_revealer)
+            for game in games:
+                self.game_store.add_game(game)
+            if not games:
+                self.show_empty_label()
+            self.search_timer_id = None
         return False
 
     def set_dark_theme(self):
@@ -509,7 +516,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         icon_type = media_services[media_index]
         if icon_type != self.icon_type:
             self.save_icon_type(icon_type)
-            self.show_spinner()
 
     def show_label(self, message):
         """Display a label in the middle of the UI"""
@@ -603,7 +609,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.games_scrollwindow.add(self.view)
 
         self.view.show_all()
-        GLib.idle_add(self.update_store)
+        self.update_store()
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
