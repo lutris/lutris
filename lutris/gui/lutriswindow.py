@@ -463,7 +463,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def update_store(self, *_args, **_kwargs):
         thread = AsyncCall(self.get_games_from_filters, self.update_store_cb)
-        if thread.await_completion(.25):
+        if not thread.await_completion(.25):
             self.show_spinner()
 
     def update_store_cb(self, games, error):
@@ -480,7 +480,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.game_store.add_game(game)
             if not games:
                 self.show_empty_label()
-            self.search_timer_id = None
+        self.search_timer_id = None
         return False
 
     def set_dark_theme(self):
