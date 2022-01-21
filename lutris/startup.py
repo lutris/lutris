@@ -33,7 +33,7 @@ def init_dirs():
         os.path.join(settings.DATA_DIR, "covers"),
         settings.ICON_PATH,
         os.path.join(settings.CACHE_DIR, "banners"),
-        os.path.join(settings.DATA_DIR, "coverart"),
+        os.path.join(settings.CACHE_DIR, "coverart"),
         os.path.join(settings.DATA_DIR, "runners"),
         os.path.join(settings.DATA_DIR, "lib"),
         settings.RUNTIME_DIR,
