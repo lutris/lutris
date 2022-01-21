@@ -477,10 +477,10 @@ def gather_system_info_str():
 
     output = ''
     for section, dictionary in system_info_readable.items():
-        output += f'[{section}]\n'
+        output += '[%s]\n' % section
         for key, value in dictionary.items():
             tabs = " " * (16 - len(key))
-            output += f'{key}:{tabs}{value}\n'
+            output += '%s:%s%s\n' % (key, tabs, value)
         output += '\n'
     return output
 
