@@ -114,7 +114,10 @@ class GameActions:
             "favorite": not self.game.is_favorite,
             "deletefavorite": self.game.is_favorite,
             "install_more": self.game.is_installed,
-            "execute-script": bool(self.game.is_installed and self.game.runner.system_config.get("manual_command")),
+            "execute-script": bool(
+                self.game.is_installed and self.game.runner
+                and self.game.runner.system_config.get("manual_command")
+            ),
             "desktop-shortcut": (
                 self.game.is_installed
                 and not xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)

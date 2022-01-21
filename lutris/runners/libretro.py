@@ -135,18 +135,19 @@ class libretro(Runner):
         return self.is_retroarch_installed() and is_core_installed
 
     def install(self, version=None, downloader=None, callback=None):
+        captured_super = super()  # super() does not work inside install_core()
 
         def install_core():
             if not version:
                 if callback:
                     callback()
             else:
-                super().install(version, downloader, callback)
+                captured_super.install(version, downloader, callback)
 
         if not self.is_retroarch_installed():
-            super().install(version=None, downloader=downloader, callback=install_core)
+            captured_super.install(version=None, downloader=downloader, callback=install_core)
         else:
-            super().install(version, downloader, callback)
+            captured_super.install(version, downloader, callback)
 
     def get_run_data(self):
         return {

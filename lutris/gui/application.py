@@ -514,8 +514,7 @@ class Application(Gtk.Application):
         if installers:
             self.show_installer_window(installers)
         else:
-            logger.debug("Should generate automagical installer here but....")
-            logger.debug("Wait? how did you get here?")
+            ErrorDialog(_("There is no installer available for %s.") % game.name, parent=self.window)
         return True
 
     def get_running_game_ids(self):

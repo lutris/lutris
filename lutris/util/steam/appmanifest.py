@@ -100,7 +100,7 @@ class AppManifest:
         if not self.installdir:
             return None
         install_path = fix_path_case(os.path.join(self.steamapps_path, "common", self.installdir))
-        if install_path:
+        if install_path and path_exists(install_path):
             return install_path
         return None
 

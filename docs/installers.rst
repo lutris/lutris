@@ -459,7 +459,7 @@ should be extracted in some other location than the ``$GAMEDIR``, you can specif
 
 You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
-be. Accepted values for ``format`` are: zip, tgz, gzip, bz2, and gog (innoextract).
+be. Accepted values for ``format`` are: tgz, tar, zip, 7z, rar, txz, bz2, gzip, deb, exe and gog(innoextract), as well as all other formats supported by 7zip.
 
 Example::
 

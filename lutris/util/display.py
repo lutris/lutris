@@ -26,6 +26,16 @@ class NoScreenDetected(Exception):
     """Raise this when unable to detect screens"""
 
 
+def get_default_dpi():
+    """Computes the DPI to use for the primary monitor
+    which we pass to WINE."""
+    display = Gdk.Display.get_default()
+    monitor = display.get_primary_monitor()
+    scale = monitor.get_scale_factor()
+    dpi = 96 * scale
+    return int(dpi)
+
+
 def restore_gamma():
     """Restores gamma to a normal level."""
     xgamma_path = system.find_executable("xgamma")

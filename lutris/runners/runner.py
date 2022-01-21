@@ -112,9 +112,30 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.game_path or os.path.expanduser("~/")
 
     @property
+    def shader_cache_dir(self):
+        """Return the cache directory for this runner to use. We create
+        this if it does not exist."""
+        path = os.path.join(settings.SHADER_CACHE_DIR, self.name)
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        return path
+
+    @property
+    def nvidia_shader_cache_path(self):
+        """The path to place in __GL_SHADER_DISK_CACHE_PATH; NVidia
+        will place its cache cache in a subdirectory here."""
+        return self.shader_cache_dir
+
+    @property
     def discord_client_id(self):
         if self.game_data.get("discord_client_id"):
             return self.game_data.get("discord_client_id")
+
+    def get_version(self, use_default=True):
+        """Returns the version of the runner to use, if applicable, and None
+        for most runners where it isn't. If use_default is False, this ignores
+        system-wide policy and returns only the value from the runner config."""
+        return None
 
     def get_platform(self):
         return self.platforms[0]
@@ -150,7 +171,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         # By default we'll set NVidia's shader disk cache to be
         # per-game, so it overflows less readily.
         env["__GL_SHADER_DISK_CACHE"] = "1"
-        env["__GL_SHADER_DISK_CACHE_PATH"] = self.game_path
+        env["__GL_SHADER_DISK_CACHE_PATH"] = self.nvidia_shader_cache_path
 
         # Override SDL2 controller configuration
         sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")
@@ -162,8 +183,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
         # Set monitor to use for SDL 1 games
-        if self.system_config.get("sdl_video_fullscreen"):
-            env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = self.system_config["sdl_video_fullscreen"]
+        sdl_video_fullscreen = self.system_config.get("sdl_video_fullscreen")
+        if sdl_video_fullscreen and sdl_video_fullscreen != "off":
+            env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
 
         # DRI Prime
         if self.system_config.get("dri_prime"):
@@ -277,12 +299,11 @@ class Runner:  # pylint: disable=too-many-public-methods
             }
         )
         if Gtk.ResponseType.YES == dialog.result:
-
             from lutris.gui.dialogs import ErrorDialog
             from lutris.gui.dialogs.download import simple_downloader
             try:
-                if hasattr(self, "get_version"):
-                    version = self.get_version(use_default=False)  # pylint: disable=no-member
+                version = self.get_version(use_default=False)  # pylint: disable=assignment-from-none
+                if version:
                     self.install(downloader=simple_downloader, version=version)
                 else:
                     self.install(downloader=simple_downloader)
@@ -296,8 +317,8 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Return whether the runner is installed"""
         return system.path_exists(self.get_executable())
 
-    def get_runner_version(self, version=None):
-        """Get the appropriate version for a runner
+    def get_runner_version_info(self, version=None):
+        """Get the appropriate version info dict for a runner
 
         Params:
             version (str): Optional version to lookup, will return this one if found
@@ -362,7 +383,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.download_url:
             opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name)
             return self.download_and_extract(self.download_url, **opts)
-        runner = self.get_runner_version(version)
+        runner = self.get_runner_version_info(version)
         if not runner:
             raise RunnerInstallationError("Failed to retrieve {} ({}) information".format(self.name, version))
         if not downloader:
@@ -410,6 +431,11 @@ class Runner:  # pylint: disable=too-many-public-methods
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
             get_wine_versions.cache_clear()
+
+        if self.runner_executable:
+            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+            if os.path.isfile(runner_executable):
+                system.make_executable(runner_executable)
 
         if callback:
             callback()

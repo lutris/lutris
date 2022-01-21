@@ -33,5 +33,10 @@
 }
 
 .sidebar row:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgb(229, 229, 229);
+  color: black;
+}
+
+.sidebar row:hover button {
+  color: black;
 }

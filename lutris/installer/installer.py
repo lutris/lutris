@@ -44,12 +44,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     def get_service(self, initial=None):
         if initial:
             return initial
-        if "steam" in self.runner:
+        if "steam" in self.runner and "steam" in SERVICES:
             return SERVICES["steam"]()
         version = self.version.lower()
-        if "humble" in version:
+        if "humble" in version and "humblebundle" in SERVICES:
             return SERVICES["humblebundle"]()
-        if "gog" in version:
+        if "gog" in version and "gog" in SERVICES:
             return SERVICES["gog"]()
 
     def get_appid(self, installer, initial=None):

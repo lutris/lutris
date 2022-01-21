@@ -69,7 +69,6 @@
                     <property name="can-focus">False</property>
                     <child>
                       <object class="GtkBox" id="tabs_box">
-                        <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="homogeneous">True</property>
                         <child>
@@ -77,8 +76,8 @@
                             <property name="label" translatable="yes">Your Library</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
-                            <property name="active">True</property>
                             <property name="receives-default">False</property>
+                            <property name="active">True</property>
                             <property name="draw-indicator">False</property>
                             <signal name="toggled" handler="on_game_collection_changed" swapped="no"/>
                           </object>
@@ -212,13 +211,12 @@
             <property name="can-focus">False</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkMenuButton">
+              <object class="GtkButton">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
                 <property name="tooltip-text" translatable="yes">Add Game</property>
                 <property name="action-name">win.add-game</property>
-                <property name="use-popover">False</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
