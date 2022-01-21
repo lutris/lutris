@@ -3,7 +3,7 @@ import importlib
 from lutris import settings
 from lutris.util.log import logger
 
-MIGRATION_VERSION = 11  # Never decrease this number
+MIGRATION_VERSION = 12  # Never decrease this number
 
 # Replace deprecated migrations with empty lists
 MIGRATIONS = [
@@ -11,7 +11,8 @@ MIGRATIONS = [
     ["mess_to_mame"],
     ["migrate_hidden_ids"],
     ["migrate_steam_appids"],
-    ["migrate_banners"]
+    ["migrate_banners"],
+    ["migrate_coverart"]
 ]
 
 
