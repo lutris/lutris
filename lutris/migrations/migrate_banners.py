@@ -18,6 +18,8 @@ def migrate():
 
                 if not os.path.exists(dest_file):
                     os.rename(src_file, dest_file)
+                else:
+                    os.unlink(src_file)
 
             if not os.listdir(src_dir):
                 os.rmdir(src_dir)
