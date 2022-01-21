@@ -178,7 +178,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         # Set monitor to use for SDL 1 games
         sdl_video_fullscreen = self.system_config.get("sdl_video_fullscreen")
-        if sdl_video_fullscreen and sdl_video_fullscreen != "unset":
+        if sdl_video_fullscreen and sdl_video_fullscreen != "off":
             env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
 
         # DRI Prime

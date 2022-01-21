@@ -43,7 +43,7 @@ def get_output_list():
     """Return a list of output with their index.
     This is used to indicate to SDL 1.2 which monitor to use.
     """
-    choices = [(_("Off"), "off"), (_("Unset"), "unset")]
+    choices = [(_("Off"), "off")]
     displays = DISPLAY_MANAGER.get_display_names()
     for index, output in enumerate(displays):
         # Display name can't be used because they might not be in the right order
