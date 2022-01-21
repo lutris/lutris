@@ -112,6 +112,21 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.game_path or os.path.expanduser("~/")
 
     @property
+    def shader_cache_dir(self):
+        """Return the cache directory for this runner to use. We create
+        this if it does not exist."""
+        path = os.path.join(settings.SHADER_CACHE_DIR, self.name)
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        return path
+
+    @property
+    def nvidia_shader_cache_path(self):
+        """The path to place in __GL_SHADER_DISK_CACHE_PATH; NVidia
+        will place its cache cache in a subdirectory here."""
+        return self.shader_cache_dir
+
+    @property
     def discord_client_id(self):
         if self.game_data.get("discord_client_id"):
             return self.game_data.get("discord_client_id")
@@ -150,7 +165,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         # By default we'll set NVidia's shader disk cache to be
         # per-game, so it overflows less readily.
         env["__GL_SHADER_DISK_CACHE"] = "1"
-        env["__GL_SHADER_DISK_CACHE_PATH"] = self.game_path
+        env["__GL_SHADER_DISK_CACHE_PATH"] = self.nvidia_shader_cache_path
 
         # Override SDL2 controller configuration
         sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")

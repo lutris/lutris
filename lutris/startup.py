@@ -38,6 +38,7 @@ def init_dirs():
         os.path.join(settings.DATA_DIR, "lib"),
         settings.RUNTIME_DIR,
         settings.CACHE_DIR,
+        settings.SHADER_CACHE_DIR,
         os.path.join(settings.CACHE_DIR, "installer"),
         os.path.join(settings.CACHE_DIR, "tmp"),
     ]
