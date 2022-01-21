@@ -46,7 +46,7 @@ class ryujinx(Runner):
         candidates = ("~/.local/share/ryujinx", )
         for candidate in candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
-            if path:
+            if path and system.path_exists(path):
                 return path[:-len("nand")]
 
     def play(self):

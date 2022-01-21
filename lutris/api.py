@@ -42,7 +42,7 @@ def connect(username, password):
         if "token" in json_dict:
             token = json_dict["token"]
             with open(API_KEY_FILE_PATH, "w", encoding='utf-8') as token_file:
-                token_file.write(f"{username}:{token}")
+                token_file.write("%s:%s" % (username, token))
             get_user_info()
             return token
     except (requests.RequestException, requests.ConnectionError, requests.HTTPError, requests.TooManyRedirects,

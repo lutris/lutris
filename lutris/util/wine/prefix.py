@@ -207,6 +207,11 @@ class WinePrefixManager:
         if desktop_size:
             self.set_registry_key(path, "WineDesktop", desktop_size)
 
+    def set_dpi(self, dpi):
+        """Sets the DPI for WINE to use. 96 DPI is effectively unscaled."""
+        self.set_registry_key(self.hkcu_prefix + "/Software/Wine/Fonts", "LogPixels", dpi)
+        self.set_registry_key(self.hkcu_prefix + "/Control Panel/Desktop", "LogPixels", dpi)
+
     def configure_joypads(self):
         """Disables some joypad devices"""
         key = self.hkcu_prefix + "/Software/Wine/DirectInput/Joysticks"

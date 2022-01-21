@@ -513,5 +513,6 @@ class GameDialogCommon(Dialog):
             dest_path = resources.get_icon_path(self.game.slug)
         else:
             raise ValueError("Unsupported image type %s" % image_type)
-        os.remove(dest_path)
+        if os.path.isfile(dest_path):
+            os.remove(dest_path)
         self._set_image(image_type)

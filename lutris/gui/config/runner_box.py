@@ -56,10 +56,11 @@ class RunnerBox(Gtk.Box):
         self.configure_button = Gtk.Button.new_from_icon_name("preferences-system-symbolic", Gtk.IconSize.BUTTON)
         self.configure_button.set_margin_right(12)
         self.configure_button.connect("clicked", self.on_configure_clicked)
-        self.configure_button.show()
         self.pack_start(self.configure_button, False, False, 0)
         if not self.runner.is_installed():
             self.runner_label_box.set_sensitive(False)
+        else:
+            self.configure_button.show()
         self.action_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
         self.action_alignment.show()
         self.action_alignment.add(self.get_action_button())
@@ -126,13 +127,11 @@ class RunnerBox(Gtk.Box):
     def on_runner_installed(self, widget):
         """Called after the runnner is installed"""
         self.runner_label_box.set_sensitive(True)
-        self.configure_button.show()
         self.action_alignment.get_children()[0].destroy()
         self.action_alignment.add(self.get_action_button())
 
     def on_runner_removed(self, widget):
         """Called after the runner is removed"""
         self.runner_label_box.set_sensitive(False)
-        self.configure_button.hide()
         self.action_alignment.get_children()[0].destroy()
         self.action_alignment.add(self.get_action_button())

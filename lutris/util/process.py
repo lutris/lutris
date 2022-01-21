@@ -22,6 +22,7 @@ class Process:
     def __init__(self, pid):
         try:
             self.pid = int(pid)
+            self.error_cache = []
         except ValueError as err:
             raise InvalidPid("'%s' is not a valid pid" % pid) from err
 
@@ -116,7 +117,9 @@ class Process:
         try:
             return dict([line.split("=", 1) for line in _environ_text.split("\x00") if line])
         except ValueError:
-            logger.error("Failed to parse environment variables: %s", _environ_text)
+            if environ_path not in self.error_cache:
+                logger.error("Failed to parse environment variables: %s", _environ_text)
+                self.error_cache.append(environ_path)
             return {}
 
     @property

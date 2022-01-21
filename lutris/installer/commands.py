@@ -22,7 +22,11 @@ from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_wine_version_exe
 
 
 class CommandsMixin:
-    """The directives for the `installer:` part of the install script."""
+    """
+    The directives for the `installer:` part of the install script.
+    This mixin is used by the ScriptInterpreter class and uses its
+    fields and properties.
+    """
 
     def __init__(self):
         if isinstance(self, CommandsMixin):
@@ -158,7 +162,10 @@ class CommandsMixin:
         src_param = data.get("file") or data.get("src")
         filespec = self._get_file(src_param)
 
-        filenames = glob.glob(filespec)
+        if os.path.exists(filespec):
+            filenames = [filespec]
+        else:
+            filenames = glob.glob(filespec)
 
         if not filenames:
             raise ScriptingError(_("%s does not exist") % filespec)
@@ -230,7 +237,7 @@ class CommandsMixin:
         for drive in drives:
             required_abspath = os.path.join(drive, requires)
             required_abspath = system.fix_path_case(required_abspath)
-            if required_abspath:
+            if required_abspath and system.path_exists(required_abspath):
                 logger.debug("Found %s on cdrom %s", requires, drive)
                 self.game_disc = drive
                 self._iter_commands()
@@ -364,9 +371,9 @@ class CommandsMixin:
             runner_name = self.installer.runner
         return runner_name, task_name
 
-    def get_wine_path(self):
+    def get_wine_path(self, runner):
         """Return absolute path of wine version used during the install"""
-        wine_version = self._get_runner_version()
+        wine_version = self._get_runner_version() or runner.get_version()
         return get_wine_version_exe(wine_version)
 
     def task(self, data):
@@ -381,7 +388,7 @@ class CommandsMixin:
         runner_name, task_name = self._get_task_runner_and_name(data.pop("name"))
 
         if runner_name.startswith("wine"):
-            wine_path = self.get_wine_path()
+            wine_path = self.get_wine_path(self.runner)
             if wine_path:
                 data["wine_path"] = wine_path
             data["prefix"] = data.get("prefix") \
@@ -391,7 +398,11 @@ class CommandsMixin:
                 or self.installer.script.get("game", {}).get("arch") \
                 or WINE_DEFAULT_ARCH
             if task_name == "wineexec":
+                # When winexec is used as from a script, it gets
+                # the same prelaunch setup the game would. Otherwise the
+                # caller does this.
                 data["env"] = self.script_env
+                data["preconfigure"] = True
 
         for key in data:
             value = data[key]
