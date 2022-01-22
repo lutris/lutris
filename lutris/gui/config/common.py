@@ -3,7 +3,7 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gtk, Pango
+from gi.repository import Gdk, GLib, Gtk, Pango
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
@@ -29,6 +29,7 @@ class GameDialogCommon(Dialog):
 
     def __init__(self, title, parent=None):
         super().__init__(title, parent=parent)
+        self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.notebook = None
         self.name_entry = None
@@ -50,6 +51,15 @@ class GameDialogCommon(Dialog):
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
+
+        GLib.idle_add(self.clear_transient_for)
+
+    def clear_transient_for(self):
+        # we need the parent set to be centered over the parent, but
+        # we don't want to be transient really- we want other windows
+        # able to come to the front.
+        self.set_transient_for(None)
+        return False
 
     @staticmethod
     def build_scrolled_window(widget):

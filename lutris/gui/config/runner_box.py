@@ -110,7 +110,7 @@ class RunnerBox(Gtk.Box):
             logger.error("Runner failed to install")
 
     def on_configure_clicked(self, widget):
-        RunnerConfigDialog(self.runner)
+        RunnerConfigDialog(self.runner, parent=self.get_toplevel())
 
     def on_remove_clicked(self, widget):
         dialog = QuestionDialog(
