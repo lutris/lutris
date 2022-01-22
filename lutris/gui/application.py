@@ -254,7 +254,11 @@ class Application(Gtk.Application):
             self.app_windows[window_key].present()
             return self.app_windows[window_key]
         if issubclass(window_class, Gtk.Dialog):
-            window_inst = window_class(parent=self.window, **kwargs)
+            if "parent" in kwargs:
+                window_inst = window_class(**kwargs)
+            else:
+                window_inst = window_class(parent=self.window, **kwargs)
+            window_inst.set_application(self)
         else:
             window_inst = window_class(application=self, **kwargs)
         window_inst.connect("destroy", self.on_app_window_destroyed, self.get_window_key(**kwargs))
