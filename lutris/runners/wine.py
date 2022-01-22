@@ -782,7 +782,7 @@ class wine(Runner):
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
             create_prefix(self.prefix_path, arch=self.wine_arch)
-        self.preconfigure()
+        return self.preconfigure()
 
     def preconfigure(self):
         """Configures WINE for use. This is the part of prelaunch that we
