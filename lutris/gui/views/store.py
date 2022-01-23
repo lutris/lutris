@@ -133,7 +133,10 @@ class GameStore(GObject.Object):
         row[COL_ID] = str(store_item.id)
         row[COL_SLUG] = store_item.slug
         row[COL_NAME] = gtk_safe(store_item.name)
-        row[COL_ICON] = store_item.get_pixbuf()
+        if settings.SHOW_MEDIA:
+            row[COL_ICON] = store_item.get_pixbuf()
+        else:
+            row[COL_ICON] = None
         row[COL_YEAR] = store_item.year
         row[COL_RUNNER] = store_item.runner
         row[COL_RUNNER_HUMAN_NAME] = gtk_safe(store_item.runner_text)
@@ -155,7 +158,7 @@ class GameStore(GObject.Object):
                 str(game.id),
                 game.slug,
                 game.name,
-                game.get_pixbuf(),
+                game.get_pixbuf() if settings.SHOW_MEDIA else None,
                 game.year,
                 game.runner,
                 game.runner_text,
@@ -195,6 +198,8 @@ class GameStore(GObject.Object):
 
     def update_icons(self, icon_updates):
         """Updates the store with new icon paths keyed by slug"""
+        if not settings.SHOW_MEDIA:
+            return
         for slug in icon_updates:
             row = self.get_row_by_slug(slug)
             if not row:
