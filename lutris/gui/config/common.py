@@ -52,6 +52,11 @@ class GameDialogCommon(Dialog):
         self.runner_index = None
         self.lutris_config = None
 
+        # These are independent windows, but start centered over
+        # a parent like a dialog. Not modal, not really transient,
+        # and does not share modality with other windows - so it
+        # needs its own window group.
+        Gtk.WindowGroup().add_window(self)
         GLib.idle_add(self.clear_transient_for)
 
     def clear_transient_for(self):
@@ -254,7 +259,8 @@ class GameDialogCommon(Dialog):
         self.slug_change_button.set_label(_("Change"))
 
     def on_move_clicked(self, _button):
-        new_location = DirectoryDialog("Select new location for the game", default_path=self.game.directory)
+        new_location = DirectoryDialog("Select new location for the game",
+                                       default_path=self.game.directory, parent=self)
         if not new_location.folder or new_location.folder == self.game.directory:
             return
         move_dialog = dialogs.MoveDialog(self.game, new_location.folder)
@@ -357,6 +363,7 @@ class GameDialogCommon(Dialog):
         if self.runner_index and new_runner_index != self.runner_index:
             dlg = QuestionDialog(
                 {
+                    "parent": self,
                     "question":
                     _("Are you sure you want to change the runner for this game ? "
                       "This will reset the full configuration for this game and "
@@ -410,13 +417,13 @@ class GameDialogCommon(Dialog):
 
     def is_valid(self):
         if not self.runner_name:
-            ErrorDialog(_("Runner not provided"))
+            ErrorDialog(_("Runner not provided"), parent=self)
             return False
         if not self.name_entry.get_text():
-            ErrorDialog(_("Please fill in the name"))
+            ErrorDialog(_("Please fill in the name"), parent=self)
             return False
         if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
-            ErrorDialog(_("Steam AppID not provided"))
+            ErrorDialog(_("Steam AppID not provided"), parent=self)
             return False
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
@@ -434,7 +441,7 @@ class GameDialogCommon(Dialog):
                     except Exception:
                         invalid_fields.append(option.get("label"))
         if invalid_fields:
-            ErrorDialog(_("The following fields have invalid values: ") + ", ".join(invalid_fields))
+            ErrorDialog(_("The following fields have invalid values: ") + ", ".join(invalid_fields), parent=self)
             return False
         return True
 
