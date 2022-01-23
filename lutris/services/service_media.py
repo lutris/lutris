@@ -42,9 +42,6 @@ class ServiceMedia:
         """Whether the icon for the specified slug exists locally"""
         return system.path_exists(self.get_absolute_path(slug))
 
-    def get_url(self, service_game):
-        return self.url_pattern % service_game[self.api_field]
-
     def get_pixbuf_for_game(self, slug, is_installed=True):
         image_abspath = self.get_absolute_path(slug)
         return get_pixbuf(image_abspath, self.size, fallback=get_default_icon(self.size), is_installed=is_installed)
