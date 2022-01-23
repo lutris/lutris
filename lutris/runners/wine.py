@@ -509,7 +509,7 @@ class wine(Runner):
         if there is no exe path defined."""
         exe = self.game_config.get("exe")
         if not exe:
-            logger.warning("The game doesn't have an executable")
+            logger.error("The game doesn't have an executable")
             return None
         if os.path.isabs(exe):
             return system.fix_path_case(exe)
