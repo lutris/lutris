@@ -111,6 +111,8 @@ class QuestionDialog(Gtk.MessageDialog):
         super().__init__(message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO)
         self.set_markup(dialog_settings["question"])
         self.set_title(dialog_settings["title"])
+        if "parent" in dialog_settings:
+            self.set_transient_for(dialog_settings["parent"])
         if "widgets" in dialog_settings:
             for widget in dialog_settings["widgets"]:
                 self.get_message_area().add(widget)
