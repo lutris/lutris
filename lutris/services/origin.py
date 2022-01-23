@@ -1,6 +1,4 @@
-"""EA Origin service.
-Not ready yet.
-"""
+"""EA Origin service."""
 import json
 import os
 import random
@@ -69,7 +67,7 @@ class OriginGame(ServiceGame):
     @classmethod
     def new_from_api(cls, offer):
         origin_game = OriginGame()
-        origin_game.appid = offer["itemId"]
+        origin_game.appid = offer["offerId"]
         origin_game.slug = offer["gameNameFacetKey"]
         origin_game.name = offer["i18n"]["displayName"]
         origin_game.details = json.dumps(offer)
@@ -131,7 +129,7 @@ class OriginService(OnlineService):
             return ""
         with open(self.token_path) as token_file:
             token_data = json.load(token_file)
-            return token_data["access_token"]
+            return token_data.get("access_token", "")
 
     def get_access_token(self):
         """Request an access token from EA"""
@@ -255,7 +253,7 @@ class OriginService(OnlineService):
         logger.debug("All EGS games imported")
 
     def install_from_origin(self, origin_game, manifest):
-        offer_id = manifest["id"]
+        offer_id = manifest["id"].split("@")[0]
         logger.debug("Installing Origin game %s", offer_id)
         service_game = ServiceGameCollection.get_game("origin", offer_id)
         if not service_game:
@@ -266,7 +264,7 @@ class OriginService(OnlineService):
         if existing_game:
             return
         game_config = LutrisConfig(game_config_id=origin_game["configpath"]).game_level
-        game_config["game"]["args"] = get_launch_arguments(offer_id)
+        game_config["game"]["args"] = get_launch_arguments(manifest["id"])
         configpath = write_game_config(lutris_game_id, game_config)
         game_id = add_game(
             name=service_game["name"],
