@@ -7,14 +7,14 @@ from gettext import gettext as _
 from xml.etree import ElementTree
 
 import requests
-
 from gi.repository import Gio
+
 from lutris import settings
-from lutris.game import Game
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
-from lutris.installer import get_installers
 from lutris.database.services import ServiceGameCollection
+from lutris.game import Game
+from lutris.installer import get_installers
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -328,6 +328,7 @@ class OriginService(OnlineService):
                 service=self,
                 appid=db_game["appid"]
             )
+
 
 def get_launch_arguments(offer_id, action="launch"):
     if action == "launch":

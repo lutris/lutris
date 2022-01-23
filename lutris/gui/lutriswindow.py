@@ -399,8 +399,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         )
         if game_ids:
             return [game for game in games if game["id"] in game_ids]
-        else:
-            return games
+        return games
 
     def get_sql_filters(self):
         """Return the current filters for the view"""
