@@ -8,9 +8,12 @@ from xml.etree import ElementTree
 
 import requests
 
+from gi.repository import Gio
 from lutris import settings
+from lutris.game import Game
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
+from lutris.installer import get_installers
 from lutris.database.services import ServiceGameCollection
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
@@ -80,6 +83,8 @@ class OriginService(OnlineService):
     id = "origin"
     name = _("Origin")
     icon = "origin"
+    client_installer = "origin"
+    runner = "wine"
     online = True
     medias = {
         "packArtSmall": OriginPackArtSmall,
@@ -279,5 +284,53 @@ class OriginService(OnlineService):
         )
         return game_id
 
+    def generate_installer(self, db_game, origin_db_game):
+        origin_game = Game(origin_db_game["id"])
+        origin_exe = origin_game.config.game_config["exe"]
+        if not os.path.isabs(origin_exe):
+            origin_exe = os.path.join(origin_game.config.game_config["prefix"], origin_exe)
+        return {
+            "name": db_game["name"],
+            "version": self.name,
+            "slug": slugify(db_game["name"]) + "-" + self.id,
+            "game_slug": slugify(db_game["name"]),
+            "runner": self.runner,
+            "appid": db_game["appid"],
+            "script": {
+                "requires": self.client_installer,
+                "game": {
+                    "args": get_launch_arguments(db_game["appid"]),
+                },
+                "installer": [
+                    {"task": {
+                        "name": "wineexec",
+                        "executable": origin_exe,
+                        "args": get_launch_arguments(db_game["appid"], "download"),
+                        "prefix": origin_game.config.game_config["prefix"],
+                        "description": (
+                            "Origin will now open and install %s." % db_game["name"]
+                        )
+                    }}
+                ]
+            }
+        }
+
+    def install(self, db_game):
+        origin_game = get_game_by_field(self.client_installer, "slug")
+        application = Gio.Application.get_default()
+        if not origin_game or not origin_game["installed"]:
+            logger.warning("Installing the Origin client")
+            installers = get_installers(game_slug=self.client_installer)
+            application.show_installer_window(installers)
+        else:
+            application.show_installer_window(
+                [self.generate_installer(db_game, origin_game)],
+                service=self,
+                appid=db_game["appid"]
+            )
+
 def get_launch_arguments(offer_id, action="launch"):
-    return "origin2://game/%s?offerIds=%s&autoDownload=1" % (action, offer_id)
+    if action == "launch":
+        return "origin2://game/launch?offerIds=%s&autoDownload=1" % offer_id
+    if action == "download":
+        return "origin2://game/download?offerId=%s" % offer_id
