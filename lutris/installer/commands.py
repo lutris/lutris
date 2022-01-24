@@ -394,11 +394,7 @@ class CommandsMixin:
                 or self.installer.script.get("game", {}).get("arch") \
                 or WINE_DEFAULT_ARCH
             if task_name == "wineexec":
-                # When winexec is used as from a script, it gets
-                # the same prelaunch setup the game would. Otherwise the
-                # caller does this.
                 data["env"] = self.script_env
-                data["preconfigure"] = True
 
         for key in data:
             value = data[key]
