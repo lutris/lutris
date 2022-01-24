@@ -131,12 +131,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.game_data.get("discord_client_id"):
             return self.game_data.get("discord_client_id")
 
-    def get_version(self, use_default=True):
-        """Returns the version of the runner to use, if applicable, and None
-        for most runners where it isn't. If use_default is False, this ignores
-        system-wide policy and returns only the value from the runner config."""
-        return None
-
     def get_platform(self):
         return self.platforms[0]
 
@@ -299,11 +293,12 @@ class Runner:  # pylint: disable=too-many-public-methods
             }
         )
         if Gtk.ResponseType.YES == dialog.result:
+
             from lutris.gui.dialogs import ErrorDialog
             from lutris.gui.dialogs.download import simple_downloader
             try:
-                version = self.get_version(use_default=False)  # pylint: disable=assignment-from-none
-                if version:
+                if hasattr(self, "get_version"):
+                    version = self.get_version(use_default=False)  # pylint: disable=no-member
                     self.install(downloader=simple_downloader, version=version)
                 else:
                     self.install(downloader=simple_downloader)

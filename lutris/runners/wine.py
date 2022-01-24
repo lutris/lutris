@@ -547,14 +547,12 @@ class wine(Runner):
 
     def get_version(self, use_default=True):
         """Return the Wine version to use. use_default can be set to false to
-        use only the runner's config, you get None if it is not specified. By
-        default, we'll fall back on the system-wide default."""
+        force the installation of a specific wine version"""
         runner_version = self.runner_config.get("version")
         if runner_version:
             return runner_version
         if use_default:
             return get_default_version()
-        return None
 
     def get_path_for_version(self, version):
         """Return the absolute path of a wine executable for a given version"""
@@ -591,7 +589,7 @@ class wine(Runner):
             wine_path = self.get_path_for_version(default_version)
             if wine_path:
                 # Update the version in the config
-                if version == self.get_version(use_default=False):
+                if version == self.runner_config.get("version"):
                     self.runner_config["version"] = default_version
                     # TODO: runner_config is a dict so we have to instanciate a
                     # LutrisConfig object to save it.
