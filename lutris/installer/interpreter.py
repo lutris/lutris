@@ -204,12 +204,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 # Force the wine version to be installed
                 params["fallback"] = False
                 params["min_version"] = wine.MIN_SAFE_VERSION
-                version = self._get_runner_version() or runner.get_version(use_default=False)
+                version = self._get_runner_version()
                 if version:
                     params["version"] = version
                 else:
                     # Looking up default wine version
-                    default_wine = runner.get_runner_version_info() or {}
+                    default_wine = runner.get_runner_version() or {}
                     if "version" in default_wine:
                         logger.debug("Default wine version is %s", default_wine["version"])
                         # Set the version to both the is_installed params and
@@ -244,7 +244,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         logger.debug("Installing %s", runner.name)
         try:
             runner.install(
-                version=self._get_runner_version() or runner.get_version(use_default=False),
+                version=self._get_runner_version(),
                 downloader=simple_downloader,
                 callback=self.install_runners,
             )

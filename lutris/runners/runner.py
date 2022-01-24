@@ -312,8 +312,8 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Return whether the runner is installed"""
         return system.path_exists(self.get_executable())
 
-    def get_runner_version_info(self, version=None):
-        """Get the appropriate version info dict for a runner
+    def get_runner_version(self, version=None):
+        """Get the appropriate version for a runner
 
         Params:
             version (str): Optional version to lookup, will return this one if found
@@ -378,7 +378,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.download_url:
             opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name)
             return self.download_and_extract(self.download_url, **opts)
-        runner = self.get_runner_version_info(version)
+        runner = self.get_runner_version(version)
         if not runner:
             raise RunnerInstallationError("Failed to retrieve {} ({}) information".format(self.name, version))
         if not downloader:
