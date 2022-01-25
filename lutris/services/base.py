@@ -72,6 +72,7 @@ class BaseService(GObject.Object):
     local = False
     drm_free = False  # DRM free games can be added to Lutris from an existing install
     client_installer = None  # ID of a script needed to install the client used by the service
+    scripts = {} # Mapping of Javascript snippets to handle redirections during auth
     medias = {}
     extra_medias = {}
     default_format = "icon"
