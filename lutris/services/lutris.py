@@ -127,7 +127,7 @@ class LutrisService(OnlineService):
 
 
 def download_lutris_media(slug):
-    """Downloads the banner and icon for a given lutris game"""
+    """Download all media types for a single lutris game"""
     url = settings.SITE_URL + "/api/games/%s" % slug
     request = http.Request(url)
     try:

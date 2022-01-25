@@ -116,12 +116,6 @@ class BaseService(GObject.Object):
             service_media = all_medias[icon_type]()
             service_media.render()
 
-        if self.id != "lutris":
-            for service_media_class in (LutrisIcon, LutrisBanner):
-                service_media = service_media_class()
-                media_urls = service_media.get_media_urls()
-                download_icons(media_urls, service_media)
-
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)
         sql.db_delete(PGA_DB, "service_games", "service", self.id)
