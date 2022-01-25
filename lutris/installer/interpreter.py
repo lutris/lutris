@@ -385,6 +385,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "RESOLUTION": "x".join(self.current_resolution),
             "RESOLUTION_WIDTH": self.current_resolution[0],
             "RESOLUTION_HEIGHT": self.current_resolution[1],
+            "RESOLUTION_WIDTH_HEX": hex(int(self.current_resolution[0])),
+            "RESOLUTION_HEIGHT_HEX": hex(int(self.current_resolution[1])),
             "WINEBIN": self.get_wine_path(),
         }
         replacements.update(self.installer.variables)
