@@ -117,6 +117,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.sidebar_revealer.set_reveal_child(self.side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
+        self.tabs_box.hide()
 
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
@@ -460,24 +461,17 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
-        thread = AsyncCall(self.get_games_from_filters, self.update_store_cb)
-        if not thread.await_completion(.25):
-            self.show_spinner()
-
-    def update_store_cb(self, games, error):
-        self.hide_overlay()
-
-        if error:
-            dialogs.ErrorDialog(str(error))
-        else:
-            self.game_store.store.clear()
-            logger.debug("Showing %d games", len(games))
-            self.view.service = self.service.id if self.service else None
-            GLib.idle_add(self.update_revealer)
-            for game in games:
-                self.game_store.add_game(game)
-            if not games:
-                self.show_empty_label()
+        self.game_store.store.clear()
+        for child in self.blank_overlay.get_children():
+            child.destroy()
+        games = self.get_games_from_filters()
+        logger.debug("Showing %d games", len(games))
+        self.view.service = self.service.id if self.service else None
+        GLib.idle_add(self.update_revealer)
+        for game in games:
+            self.game_store.add_game(game)
+        if not games:
+            self.show_empty_label()
         self.search_timer_id = None
         return False
 
@@ -514,30 +508,26 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         icon_type = media_services[media_index]
         if icon_type != self.icon_type:
             self.save_icon_type(icon_type)
+            self.show_spinner()
 
     def show_label(self, message):
-        """Display a label in the middle of the UI, instead of the game view"""
-        label = Gtk.Label(message, visible=True)
+        """Display a label in the middle of the UI"""
         for child in self.blank_overlay.get_children():
             child.destroy()
+        label = Gtk.Label(message, visible=True)
         self.blank_overlay.add(label)
-        self.blank_overlay.show()
-        self.games_scrollwindow.hide()
+        self.blank_overlay.props.visible = True
 
     def show_spinner(self):
-        """Display a spinner in the middle of the UI, instead of the game view"""
         spinner = Gtk.Spinner(visible=True)
         spinner.start()
         for child in self.blank_overlay.get_children():
             child.destroy()
         self.blank_overlay.add(spinner)
-        self.blank_overlay.show()
-        self.games_scrollwindow.hide()
+        self.blank_overlay.props.visible = True
 
     def hide_overlay(self):
-        """Restore the game view, and remove the spinner or label."""
-        self.games_scrollwindow.show()
-        self.blank_overlay.hide()
+        self.blank_overlay.props.visible = False
         for child in self.blank_overlay.get_children():
             child.destroy()
 
@@ -612,7 +602,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.games_scrollwindow.add(self.view)
 
         self.view.show_all()
-        self.update_store()
+        GLib.idle_add(self.update_store)
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)

@@ -69,6 +69,7 @@
                     <property name="can-focus">False</property>
                     <child>
                       <object class="GtkBox" id="tabs_box">
+                        <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="homogeneous">True</property>
                         <child>
@@ -76,8 +77,8 @@
                             <property name="label" translatable="yes">Your Library</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
-                            <property name="receives-default">False</property>
                             <property name="active">True</property>
+                            <property name="receives-default">False</property>
                             <property name="draw-indicator">False</property>
                             <signal name="toggled" handler="on_game_collection_changed" swapped="no"/>
                           </object>
