@@ -608,20 +608,18 @@ class Application(Gtk.Application):
 
     def print_steam_list(self, command_line):
         steamapps_paths = get_steamapps_paths()
-        for platform in ("linux", "windows"):
-            for path in steamapps_paths[platform] if steamapps_paths else []:
-                appmanifest_files = get_appmanifests(path)
-                for appmanifest_file in appmanifest_files:
-                    appmanifest = AppManifest(os.path.join(path, appmanifest_file))
-                    self._print(
-                        command_line,
-                        "  {:8} | {:<60} | {:10} | {}".format(
-                            appmanifest.steamid,
-                            appmanifest.name or "-",
-                            platform,
-                            ", ".join(appmanifest.states),
-                        ),
-                    )
+        for path in steamapps_paths if steamapps_paths else []:
+            appmanifest_files = get_appmanifests(path)
+            for appmanifest_file in appmanifest_files:
+                appmanifest = AppManifest(os.path.join(path, appmanifest_file))
+                self._print(
+                    command_line,
+                    "  {:8} | {:<60} | {}".format(
+                        appmanifest.steamid,
+                        appmanifest.name or "-",
+                        ", ".join(appmanifest.states),
+                    ),
+                )
 
     @staticmethod
     def execute_command(command):
