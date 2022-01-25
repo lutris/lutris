@@ -17,6 +17,6 @@ UBISOFT_APPID = "b8fde481-327d-4031-85ce-7c10a202a700"
 CLUB_APPID = "314d4fef-e568-454a-ae06-43e3bece12a6"
 
 LOGIN_URL = (
-    f"https://connect.ubisoft.com/login?appId={CLUB_APPID}&genomeId={CLUB_GENOME_ID}"
+    f"https://connect.ubisoft.com/login?appId={UBISOFT_APPID}&genomeId={CLUB_GENOME_ID}"
     "&lang=en-US&nextUrl=https:%2F%2Fconnect.ubisoft.com%2Fready"
 )
