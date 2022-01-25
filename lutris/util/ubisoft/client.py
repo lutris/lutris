@@ -8,16 +8,17 @@ from datetime import datetime
 import requests
 
 from lutris.util.log import logger
-from lutris.util.ubisoft.consts import CHROME_USERAGENT, CLUB_APPID
+from lutris.util.ubisoft.consts import CHROME_USERAGENT, CLUB_APPID, UBISOFT_APPID
 
 
 def parse_date(date_str):
-    raise ValueError(date_str)
+    date_example = "2022-01-25T05:44:59.192453"
+    return datetime.strptime(date_str[:len(date_example)], "%Y-%m-%dT%H:%M:%S.%f")
 
 
 class UbisoftConnectClient():
-    def __init__(self, plugin):
-        self._plugin = plugin
+    def __init__(self, service):
+        self._service = service
         self._auth_lost_callback = None
         self.token = None
         self.session_id = None
@@ -26,13 +27,13 @@ class UbisoftConnectClient():
         self.user_id = None
         self.user_name = None
         self.__refresh_in_progress = False
-        headers = {
+        self._session = requests.session()
+        self._session.headers.update({
             'Authorization': None,
             'Ubi-AppId': CLUB_APPID,
             "User-Agent": CHROME_USERAGENT,
             'Ubi-SessionId': None
-        }
-        self._session = requests.session(cookie_jar=None, headers=headers)
+        })
 
     def close(self):
         # If closing is attempted while plugin is inside refresh workflow then give it a chance to finish it.
@@ -65,7 +66,7 @@ class UbisoftConnectClient():
         logger.info("Response status: %s", response)
         return response.json()
 
-    async def _do_request_safe(self, method, *args, **kwargs):
+    def _do_request_safe(self, method, *args, **kwargs):
         result = {}
         try:
             refresh_needed = False
@@ -76,11 +77,11 @@ class UbisoftConnectClient():
                     or datetime.now() > datetime.fromtimestamp(int(self.refresh_time))
                 )
             if refresh_needed:
-                await self._refresh_auth()
-                result = await self._do_request(method, *args, **kwargs)
+                self._refresh_auth()
+                result = self._do_request(method, *args, **kwargs)
             else:
                 try:
-                    result = await self._do_request(method, *args, **kwargs)
+                    result = self._do_request(method, *args, **kwargs)
                 except Exception:
                     # fallback for another reason than expired time or wrong calculation due to changing time zones
                     logger.debug('Fallback refresh')
@@ -100,7 +101,7 @@ class UbisoftConnectClient():
     def _do_options_request(self):
         self._do_request('options', "https://public-ubiservices.ubi.com/v3/profiles/sessions", headers={
             "Origin": "https://connect.ubisoft.com",
-            "Referer": "https://connect.ubisoft.com/login?appId=314d4fef-e568-454a-ae06-43e3bece12a6",
+            "Referer": f"https://connect.ubisoft.com/login?appId={UBISOFT_APPID}",
             "User-Agent": CHROME_USERAGENT,
         })
 
@@ -113,11 +114,11 @@ class UbisoftConnectClient():
             self.__refresh_in_progress = True
             try:
                 self._refresh_ticket()
-                self._plugin.store_credentials(self.get_credentials())
+                self._service.store_credentials(self.get_credentials())
             except:
                 self._refresh_remember_me()
                 self._refresh_ticket()
-                self._plugin.store_credentials(self.get_credentials())
+                self._service.store_credentials(self.get_credentials())
             finally:
                 self.__refresh_in_progress = False
 
@@ -205,7 +206,7 @@ class UbisoftConnectClient():
             user_data = {"username": self.user_name,
                          "userId": self.user_id}
         self.post_sessions()
-        self._plugin.store_credentials(self.get_credentials())
+        self._service.store_credentials(self.get_credentials())
         return user_data
 
     def authorise_with_local_storage(self, storage_jsons):
@@ -221,7 +222,7 @@ class UbisoftConnectClient():
 
         self.restore_credentials(user_data)
         self.post_sessions()
-        self._plugin.store_credentials(self.get_credentials())
+        self._service.store_credentials(self.get_credentials())
         return user_data
 
     # Deprecated 0.39

@@ -2,7 +2,6 @@ import json
 import os
 import random
 import time
-from typing import Optional
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
@@ -70,7 +69,7 @@ class ServiceMedia:
             medias[game["slug"]] = media_url
         return medias
 
-    def download(self, slug: str, url: str) -> Optional[str]:
+    def download(self, slug, url):
         """Downloads the banner if not present"""
         if not url:
             return
@@ -86,8 +85,7 @@ class ServiceMedia:
         try:
             return download_file(url, cache_path, raise_errors=True)
         except HTTPError as ex:
-            logger.error(ex)
-            return
+            logger.error("Failed to download %s: %s", url, ex)
 
     def render(self):
         """Used if the media requires extra processing"""

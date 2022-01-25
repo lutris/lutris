@@ -31,7 +31,8 @@ def get_services():
         "gog": GOGService,
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
-        "origin": OriginService
+        "origin": OriginService,
+        "ubisoft": UbisoftConnectService,
     }
     if LINUX_SYSTEM.has_steam:
         _services["steam"] = SteamService
@@ -50,7 +51,7 @@ WIP_SERVICES = {
     "bethesda": BethesdaService,
     "itchio": ItchIoService,
     "mame": MAMEService,
-    "ubisoft": UbisoftConnectService,
+
 }
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
