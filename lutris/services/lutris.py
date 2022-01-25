@@ -143,3 +143,7 @@ def download_lutris_media(slug):
     banner_url = response_data.get("banner_url")
     if banner_url:
         download_icons({slug: banner_url}, LutrisBanner())
+
+    cover_url = response_data.get("coverart")
+    if cover_url:
+        download_icons({slug: cover_url}, LutrisCoverart())

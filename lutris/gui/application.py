@@ -614,7 +614,7 @@ class Application(Gtk.Application):
                 appmanifest = AppManifest(os.path.join(path, appmanifest_file))
                 self._print(
                     command_line,
-                    "  {:8} | {:<60} | {}".format(
+                    " {:8} | {:<60} | {}".format(
                         appmanifest.steamid,
                         appmanifest.name or "-",
                         ", ".join(appmanifest.states),
