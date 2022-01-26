@@ -5,7 +5,7 @@ UBISOFT_REGISTRY_LAUNCHER_INSTALLS = "SOFTWARE\\Ubisoft\\Launcher\\Installs"
 
 UBISOFT_SETTINGS_YAML = 'AppDataSomething/Ubisoft Game Launcher/settings.yml'
 
-UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES = ["gamename", "l1", '', 'ubisoft game', 'name']
+UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES = ["gamename", "l1", "l2", "thumbimage", '', 'ubisoft game', 'name']
 
 CHROME_USERAGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "

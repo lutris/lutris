@@ -243,21 +243,21 @@ class UbisoftParser(object):
 
         return fav, hidden
 
-    def _get_game_name_from_yaml(self, game_yaml):
-        game_name = ''
+    def _get_field_from_yaml(self, game_yaml, field="name"):
+        field_value = ''
 
-        if 'name' in game_yaml['root']:
-            game_name = game_yaml['root']['name']
+        if field in game_yaml['root']:
+            field_value = game_yaml['root'][field]
         # Fallback 1
-        if game_name.lower() in UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES:
+        if field == "name" and field_value.lower() in UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES:
             if 'installer' in game_yaml['root'] and 'game_identifier' in game_yaml['root']['installer']:
-                game_name = game_yaml['root']['installer']['game_identifier']
+                field_value = game_yaml['root']['installer']['game_identifier']
         # Fallback 2
-        if game_name.lower() in UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES:
-            if 'localizations' in game_yaml and 'default' in game_yaml['localizations'] and 'GAMENAME' in \
+        if field_value.lower() in UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES:
+            if 'localizations' in game_yaml and 'default' in game_yaml['localizations'] and field_value in \
                     game_yaml['localizations']['default']:
-                game_name = game_yaml['localizations']['default']['GAMENAME']
-        return game_name
+                field_value = game_yaml['localizations']['default'][field_value]
+        return field_value
 
     def _get_steam_game_properties_from_yaml(self, game_yaml):
         path = ''
@@ -287,8 +287,8 @@ class UbisoftParser(object):
         install_id = str(install_id)
         if 'space_id' in game_yaml['root']:
             space_id = game_yaml['root']['space_id']
-        game_name = self._get_game_name_from_yaml(game_yaml)
-        thumb_image = game_yaml["root"]["thumb_image"]
+        game_name = self._get_field_from_yaml(game_yaml, "name")
+        thumb_image = self._get_field_from_yaml(game_yaml, "thumb_image")
         return {
             "spaceId": space_id,
             "launchId": launch_id,
