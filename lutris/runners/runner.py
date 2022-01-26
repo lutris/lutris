@@ -205,14 +205,12 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if self.use_runtime():
             runtime_env = self.get_runtime_env()
-            if "LD_LIBRARY_PATH" in runtime_env:
-                runtime_ld_library_path = runtime_env["LD_LIBRARY_PATH"]
+            runtime_ld_library_path = runtime_env.get("LD_LIBRARY_PATH")
 
         if runtime_ld_library_path:
             ld_library_path = env.get("LD_LIBRARY_PATH")
-            if not ld_library_path:
-                ld_library_path = "$LD_LIBRARY_PATH"
-            env["LD_LIBRARY_PATH"] = ":".join([runtime_ld_library_path, ld_library_path])
+            env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+                runtime_ld_library_path, ld_library_path]))
 
         # Apply user overrides at the end
         env.update(self.system_config.get("env") or {})
