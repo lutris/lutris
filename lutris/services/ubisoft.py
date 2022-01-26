@@ -21,7 +21,7 @@ from lutris.util.ubisoft.parser import UbisoftParser
 class UbisoftCover(ServiceMedia):
     """Ubisoft connect cover art"""
     service = "ubisoft"
-    size = (160, 212)
+    size = (160, 186)
     dest_path = os.path.join(settings.CACHE_DIR, "ubisoft/covers")
     file_pattern = "%s.jpg"
     api_field = "id"
