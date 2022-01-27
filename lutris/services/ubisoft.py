@@ -184,7 +184,7 @@ class UbisoftConnectService(OnlineService):
             installer_slug=lutris_game_id,
             configpath=configpath,
             service=self.id,
-            service_id=app_name,
+            service_id=game["appid"],
         )
         return game_id
 
