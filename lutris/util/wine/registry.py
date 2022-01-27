@@ -82,8 +82,11 @@ class WineRegistry:
         self.reg_filename = reg_filename
         if reg_filename:
             if not system.path_exists(reg_filename):
-                logger.error("Unexisting registry %s", reg_filename)
+                logger.error("No registry file at %s", reg_filename)
             self.parse_reg_file(reg_filename)
+
+    def __str__(self):
+        return "Windows Registry @ %s" % self.reg_filename
 
     @property
     def prefix_path(self):
@@ -102,10 +105,7 @@ class WineRegistry:
             try:
                 registry_content = reg_file.readlines()
             except Exception:  # pylint: disable=broad-except
-                logger.exception(
-                    "Failed to registry read %s, please send attach this file in a bug report",
-                    reg_filename,
-                )
+                logger.exception("Failed to registry read %s", reg_filename)
                 registry_content = []
         return registry_content
 

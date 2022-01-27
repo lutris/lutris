@@ -271,15 +271,15 @@ class UbisoftParser(object):
         return path, third_party_id
 
     def _get_registry_properties_from_yaml(self, game_yaml):
-        special_registry_path = ''
+        game_registry_path = ''
         exe = ''
         registry_path = game_yaml['root']['start_game']['online']['executables'][0]['working_directory']['register']
-        if "Uninstall" in registry_path:
-            registry_path = registry_path.split("HKEY_LOCAL_MACHINE\\")[1]
-            registry_path = registry_path.split("\\InstallLocation")[0]
-            special_registry_path = registry_path
+        game_registry_path = registry_path
+        try:
             exe = game_yaml['root']['start_game']['online']['executables'][0]['path']['relative']
-        return special_registry_path, exe
+        except KeyError:
+            exe = game_yaml['root']['start_game']['online']['executables'][0]['path']['register']
+        return game_registry_path, exe
 
     def _parse_game(self, game_yaml, install_id, launch_id):
         space_id = ''
@@ -289,26 +289,36 @@ class UbisoftParser(object):
             space_id = game_yaml['root']['space_id']
         game_name = self._get_field_from_yaml(game_yaml, "name")
         thumb_image = self._get_field_from_yaml(game_yaml, "thumb_image")
+        registry_path, exe = self._get_registry_properties_from_yaml(game_yaml)
         return {
             "spaceId": space_id,
             "launchId": launch_id,
             "installId": install_id,
             "name": game_name,
             "thumbImage": thumb_image,
+            "registryPath": registry_path,
+            "exe": exe
         }
+
+    def _iter_configuration_items(self):
+        configuration_records = self._parse_configuration()
+        for _, game in configuration_records.items():
+            if game["size"]:
+                yield game
+
+    def _parse_configuration_item(self, conf_item):
+        stream = self.configuration_raw[
+            conf_item['offset']: conf_item['offset'] + conf_item['size']
+        ].decode("utf8", errors='ignore')
+        if stream and 'start_game' in stream:
+            return yaml.load(stream.replace('\t', ' '))
 
     def parse_games(self, configuration_data):
         self.configuration_raw = configuration_data
-
-        configuration_records = self._parse_configuration()
-        for _, game in configuration_records.items():
-            if game['size']:
-                stream = self.configuration_raw[
-                    game['offset']: game['offset'] + game['size']
-                ].decode("utf8", errors='ignore')
-                if stream and 'start_game' in stream:
-                    yaml_object = yaml.load(stream.replace('\t', ' '))
-                    yield self._parse_game(yaml_object, game['install_id'], game['launch_id'])
+        for game in self._iter_configuration_items():
+            yaml_object = self._parse_configuration_item(game)
+            if game:
+                yield self._parse_game(yaml_object, game['install_id'], game['launch_id'])
 
     def get_owned_local_games(self, ownership_data):
         self.ownership_raw = ownership_data
