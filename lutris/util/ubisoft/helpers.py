@@ -79,6 +79,8 @@ def get_game_installed_status(path, exe=None, special_registry_path=None):
 
 def get_ubisoft_registry(prefix, fullpath):
     """Get a value from the registry in a Ubisoft Connect prefix"""
+    if not fullpath:
+        return ""
     if fullpath.startswith("HKEY"):
         path, key = fullpath.rsplit('\\', maxsplit=1)
         path = convert_ubisoft_key(path)

@@ -6,7 +6,9 @@ from gettext import gettext as _
 from urllib.parse import unquote
 
 from lutris import settings
-from lutris.database.games import get_game_by_field
+from lutris.config import LutrisConfig, write_game_config
+from lutris.database.games import add_game, get_game_by_field
+from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
@@ -15,7 +17,9 @@ from lutris.util.log import logger
 from lutris.util.strings import slugify
 from lutris.util.ubisoft import consts
 from lutris.util.ubisoft.client import UbisoftConnectClient
+from lutris.util.ubisoft.helpers import get_ubisoft_registry
 from lutris.util.ubisoft.parser import UbisoftParser
+from lutris.util.wine.prefix import WinePrefixManager
 
 
 class UbisoftCover(ServiceMedia):
@@ -159,6 +163,43 @@ class UbisoftConnectService(OnlineService):
             credentials = json.load(auth_file)
         return credentials
 
+    def install_from_ubisoft(self, ubisoft_connect, game):
+        app_name = game["name"]
+        logger.debug("Installing Ubisoft Connect game %s", app_name)
+        lutris_game_id = slugify(game["name"]) + "-" + self.id
+        existing_game = get_game_by_field(lutris_game_id, "installer_slug")
+        if existing_game:
+            return
+        game_config = LutrisConfig(game_config_id=ubisoft_connect["configpath"]).game_level
+        game_config["game"]["args"] = f"uplay://launch/{game['appid']}"
+        configpath = write_game_config(lutris_game_id, game_config)
+        game_id = add_game(
+            name=game["name"],
+            runner=self.runner,
+            slug=slugify(game["name"]),
+            directory=ubisoft_connect["directory"],
+            installed=1,
+            installer_slug=lutris_game_id,
+            configpath=configpath,
+            service=self.id,
+            service_id=app_name,
+        )
+        return game_id
+
+    def add_installed_games(self):
+        ubisoft_connect = get_game_by_field(self.client_installer, "slug")
+        if not ubisoft_connect:
+            logger.warning("Ubisoft Connect not installed")
+            return
+        prefix_path = ubisoft_connect["directory"].split("drive_c")[0]
+        prefix = WinePrefixManager(prefix_path)
+        for game in ServiceGameCollection.get_for_service(self.id):
+            details = json.loads(game["details"])
+            install_path = get_ubisoft_registry(prefix, details.get("registryPath"))
+            exe = get_ubisoft_registry(prefix, details.get("exe"))
+            if install_path and exe:
+                self.install_from_ubisoft(ubisoft_connect, game)
+
     def generate_installer(self, db_game):
         ubi_db_game = get_game_by_field("ubisoft-connect", "slug")
         ubisoft_connect = Game(ubi_db_game["id"])
@@ -184,8 +225,9 @@ class UbisoftConnectService(OnlineService):
                         "args": f"uplay://install/{db_game['appid']}",
                         "prefix": ubisoft_connect.config.game_config["prefix"],
                         "description": (
-                            "Ubisoft will now open and install %s." % db_game["name"]
-                        )
+                            "Ubisoft will now open and install %s. "
+                            "Close Ubisoft Connect to complete the install process."
+                        ) % db_game["name"]
                     }}
                 ]
             }

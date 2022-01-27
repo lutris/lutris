@@ -311,13 +311,13 @@ class UbisoftParser(object):
             conf_item['offset']: conf_item['offset'] + conf_item['size']
         ].decode("utf8", errors='ignore')
         if stream and 'start_game' in stream:
-            return yaml.load(stream.replace('\t', ' '))
+            return yaml.load(stream.replace('\t', ' '), Loader=yaml.FullLoader)
 
     def parse_games(self, configuration_data):
         self.configuration_raw = configuration_data
         for game in self._iter_configuration_items():
             yaml_object = self._parse_configuration_item(game)
-            if game:
+            if yaml_object:
                 yield self._parse_game(yaml_object, game['install_id'], game['launch_id'])
 
     def get_owned_local_games(self, ownership_data):
