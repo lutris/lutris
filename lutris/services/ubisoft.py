@@ -165,11 +165,13 @@ class UbisoftConnectService(OnlineService):
 
     def install_from_ubisoft(self, ubisoft_connect, game):
         app_name = game["name"]
-        logger.debug("Installing Ubisoft Connect game %s", app_name)
+
         lutris_game_id = slugify(game["name"]) + "-" + self.id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
+            logger.debug("Ubisoft Connect game %s is already installed", app_name)
             return
+        logger.debug("Installing Ubisoft Connect game %s", app_name)
         game_config = LutrisConfig(game_config_id=ubisoft_connect["configpath"]).game_level
         game_config["game"]["args"] = f"uplay://launch/{game['appid']}"
         configpath = write_game_config(lutris_game_id, game_config)
