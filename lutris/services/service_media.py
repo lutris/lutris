@@ -31,11 +31,17 @@ class ServiceMedia:
             os.makedirs(self.dest_path)
 
     def get_filename(self, slug):
-        return self.file_pattern % slug
+        if isinstance(self.file_pattern, str):
+            return self.file_pattern % slug
+        else:
+            return str('')
 
     def get_absolute_path(self, slug):
         """Return the abolute path of a local media"""
-        return os.path.join(self.dest_path, self.get_filename(slug))
+        if (isinstance(self.dest_path, str)):
+            return os.path.join(self.dest_path, self.get_filename(slug))
+        else:
+            return str('')
 
     def exists(self, slug):
         """Whether the icon for the specified slug exists locally"""
