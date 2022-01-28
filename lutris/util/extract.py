@@ -79,6 +79,8 @@ def guess_extractor(path):
         extractor = "txz"
     elif path.endswith((".tar.bz2", ".tbz2", ".tbz")):
         extractor = "tbz2"
+    elif path.endswith(".tar.zst", ".tzst"):
+        extractor = "tzst"
     elif path.endswith(".gz"):
         extractor = "gzip"
     elif path.endswith(".exe"):
@@ -101,6 +103,8 @@ def get_archive_opener(extractor):
         opener, mode = tarfile.open, "r:xz"
     elif extractor == "tbz2":
         opener, mode = tarfile.open, "r:bz2"
+    elif extractor == "tzst":
+        opener, mode = tarfile.open, "r:zst"  # Note: not supported by tarfile yet
     elif extractor == "gzip":
         opener = "gz"
     elif extractor == "gog":
