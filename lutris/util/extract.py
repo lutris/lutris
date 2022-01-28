@@ -71,12 +71,12 @@ def is_7zip_supported(path, extractor):
 
 def guess_extractor(path):
     """Guess what extractor should be used from a file name"""
-    if path.endswith((".tar.gz", ".tgz")):
+    if path.endswith(".tar"):
+        extractor = "tar"
+    elif path.endswith((".tar.gz", ".tgz")):
         extractor = "tgz"
     elif path.endswith((".tar.xz", ".txz")):
         extractor = "txz"
-    elif path.endswith(".tar"):
-        extractor = "tar"
     elif path.endswith((".tar.bz2", ".tbz")):
         extractor = "bz2"
     elif path.endswith(".gz"):
@@ -93,12 +93,12 @@ def guess_extractor(path):
 def get_archive_opener(extractor):
     """Return the archive opener and optional mode for an extractor"""
     mode = None
-    if extractor == "tgz":
+    if extractor == "tar":
+        opener, mode = tarfile.open, "r:"
+    elif extractor == "tgz":
         opener, mode = tarfile.open, "r:gz"
     elif extractor == "txz":
         opener, mode = tarfile.open, "r:xz"
-    elif extractor == "tar":
-        opener, mode = tarfile.open, "r:"
     elif extractor == "bz2":
         opener, mode = tarfile.open, "r:bz2"
     elif extractor == "gzip":
