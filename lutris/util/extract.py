@@ -90,7 +90,7 @@ def guess_extractor(path):
     return extractor
 
 
-def get_archive_opener(extractor, path):
+def get_archive_opener(extractor):
     """Return the archive opener and optional mode for an extractor"""
     mode = None
     if extractor == "tgz":
@@ -121,7 +121,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
     if extractor is None:
         extractor = guess_extractor(path)
 
-    opener, mode = get_archive_opener(extractor, path)
+    opener, mode = get_archive_opener(extractor)
 
     temp_path = temp_dir = os.path.join(to_directory, ".extract-%s" % random_id())
     try:
