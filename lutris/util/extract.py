@@ -79,7 +79,7 @@ def guess_extractor(path):
         extractor = "txz"
     elif path.endswith((".tar.bz2", ".tbz2", ".tbz")):
         extractor = "tbz2"
-    elif path.endswith(".tar.zst", ".tzst"):
+    elif path.endswith((".tar.zst", ".tzst")):
         extractor = "tzst"
     elif path.endswith(".gz"):
         extractor = "gzip"
@@ -216,16 +216,21 @@ def extract_deb(archive, dest):
     extract_7zip(archive, dest, archive_type="ar")
     debian_folder = os.path.join(dest, "debian")
     os.makedirs(debian_folder)
-    shutil.move(os.path.join(dest, "control.tar.gz"), debian_folder)
-    data_file = os.path.join(dest, "data.tar.gz")
-    extractor = "r:gz"
-    if not os.path.exists(data_file):
-        data_file = os.path.join(dest, "data.tar.xz")
-        extractor = "r:xz"
-    with tarfile.open(data_file, extractor) as handler:
-        handler.extractall(dest)
-        handler.close()
-    os.remove(data_file)
+
+    control_file_exts = [".gz", ".xz", ".zst", ""]
+    for extension in control_file_exts:
+        control_tar_path = os.path.join(dest, "control.tar{}".format(extension))
+        if os.path.exists(control_tar_path):
+            shutil.move(control_tar_path, debian_folder)
+            break
+
+    data_file_exts = [".gz", ".xz", ".zst", ".bz2", ".lzma", ""]
+    for extension in data_file_exts:
+        data_tar_path = os.path.join(dest, "data.tar{}".format(extension))
+        if os.path.exists(data_tar_path):
+            extract_archive(data_tar_path, dest)
+            os.remove(data_tar_path)
+            break
 
 
 def extract_gog(path, dest):
