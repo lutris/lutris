@@ -689,6 +689,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.set_viewtype_icon(view_type)
         settings.write_setting("view_type", view_type)
         self.redraw_view()
+        self._bind_zoom_adjustment()
 
     def on_icontype_state_change(self, action, value):
         action.set_state(value)
