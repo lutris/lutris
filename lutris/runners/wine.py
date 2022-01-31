@@ -493,8 +493,10 @@ class wine(Runner):
     def prefix_path(self):
         """Return the absolute path of the Wine prefix"""
         _prefix_path = self.game_config.get("prefix") \
-            or os.environ.get("WINEPREFIX") \
-            or find_prefix(self.game_exe)
+            or os.environ.get("WINEPREFIX")
+        if not _prefix_path and self.game_config.get("exe"):
+            # Find prefix from game if we have one
+            _prefix_path = find_prefix(self.game_exe)
         if not _prefix_path:
             logger.warning(
                 "Wine prefix not provided, defaulting to ~/.wine."

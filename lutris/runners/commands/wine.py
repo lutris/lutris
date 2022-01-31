@@ -8,6 +8,7 @@ from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.runners import import_runner
+from lutris.runner_interpreter import get_launch_parameters
 from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.shell import get_shell_command
@@ -234,6 +235,7 @@ def wineexec(  # noqa: C901
         exclude_processes = shlex.split(exclude_processes)
 
     wine = import_runner("wine")()
+
     if not wine_path:
         wine_path = wine.get_executable()
     if not wine_path:
@@ -263,8 +265,8 @@ def wineexec(  # noqa: C901
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    wine_config = config or LutrisConfig(runner_slug="wine")
-    disable_runtime = disable_runtime or wine_config.system_config["disable_runtime"]
+    wine_system_config = config.system_config if config else wine.system_config
+    disable_runtime = disable_runtime or wine_system_config["disable_runtime"]
     if use_lutris_runtime(wine_path=wineenv["WINE"], force_disable=disable_runtime):
         if WINE_DIR in wine_path:
             wine_root_path = os.path.dirname(os.path.dirname(wine_path))
@@ -274,7 +276,7 @@ def wineexec(  # noqa: C901
             wine_root_path = None
         wineenv["LD_LIBRARY_PATH"] = ":".join(
             runtime.get_paths(
-                prefer_system_libs=wine_config.system_config["prefer_system_libs"],
+                prefer_system_libs=wine_system_config["prefer_system_libs"],
                 wine_path=wine_root_path,
             )
         )
@@ -282,10 +284,9 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    wineenv.update(wine.get_env())
-
-    if env:
-        wineenv.update(env)
+    baseenv = wine.get_env()
+    baseenv.update(wineenv)
+    baseenv.update(env)
 
     command_parameters = [wine_path]
     if executable:
@@ -300,7 +301,7 @@ def wineexec(  # noqa: C901
     command = MonitoredCommand(
         command_parameters,
         runner=wine,
-        env=wineenv,
+        env=baseenv,
         cwd=working_dir,
         include_processes=include_processes,
         exclude_processes=exclude_processes,
