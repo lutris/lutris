@@ -12,6 +12,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
+from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.views import COL_ID, COL_NAME
@@ -280,7 +281,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             reverse=True
         )
 
-    def get_api_games(self):
+    def query_api_games(self):
         """Return games from the lutris API"""
         if not self.filters.get("text"):
             return []
@@ -376,7 +377,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             if service_name == "lutris":
                 self.tabs_box.show()  # Only the lutris service has the ability to search through all games.
                 if self.website_button.props.active:
-                    return self.get_api_games()
+                    return self.query_api_games()
             if self.service.online and not self.service.is_authenticated():
                 self.show_label(_("Connect your %s account to access your games") % self.service.name)
                 return []
@@ -720,6 +721,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
+        if os.environ.get("LUTRIS_NEW_ADD_GAME"):
+            add_game_window = AddGamesWindow()
+            add_game_window.present()
+            return True
         if "runner" in self.filters:
             runner = self.filters["runner"]
         else:
