@@ -206,8 +206,20 @@ def parse_installer_url(url):
     else:
         raise ValueError("Invalid lutris url %s" % url)
 
+    # To link to service games, format a slug like <service>:<appid>
+    if ":" in game_slug:
+        service, appid = game_slug.split(":", maxsplit=1)
+    else:
+        service, appid = "", ""
+
     revision = None
     if parsed_url.query:
         query = dict(urllib.parse.parse_qsl(parsed_url.query))
         revision = query.get("revision")
-    return {"game_slug": game_slug, "revision": revision, "action": action}
+    return {
+        "game_slug": game_slug,
+        "revision": revision,
+        "action": action,
+        "service": service,
+        "appid": appid
+    }

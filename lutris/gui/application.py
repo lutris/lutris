@@ -381,6 +381,8 @@ class Application(Gtk.Application):
 
         game_slug = installer_info["game_slug"]
         action = installer_info["action"]
+        service = installer_info["service"]
+        appid = installer_info["appid"]
 
         if options.contains("output-script"):
             action = "write-script"
@@ -417,7 +419,7 @@ class Application(Gtk.Application):
                 return 1
 
         db_game = None
-        if game_slug:
+        if game_slug and not service:
             if action == "rungameid":
                 # Force db_game to use game id
                 self.run_in_background = True
@@ -464,10 +466,18 @@ class Application(Gtk.Application):
                     action = "rungame"
                 elif dlg.action == "install":
                     action = "install"
-            elif game_slug or installer_file:
+            elif game_slug or installer_file or service:
                 # No game found, default to install if a game_slug or
                 # installer_file is provided
                 action = "install"
+
+        if service:
+            service_game = ServiceGameCollection.get_game(service, appid)
+            if service_game:
+                service = get_enabled_services()[service]()
+                service.install(service_game)
+                return 0
+
         if action == "install":
             installers = get_installers(
                 game_slug=game_slug,
@@ -558,7 +568,7 @@ class Application(Gtk.Application):
 
     @staticmethod
     def get_lutris_action(url):
-        installer_info = {"game_slug": None, "revision": None, "action": None}
+        installer_info = {"game_slug": None, "revision": None, "action": None, "service": None, "appid": None}
 
         if url:
             url = url.get_strv()
