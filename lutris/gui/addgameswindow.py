@@ -1,9 +1,12 @@
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import Gio, GLib, Gtk
 
+from lutris import api
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.widgets.window import BaseApplicationWindow
+from lutris.installer import get_installers
+from lutris.util.strings import gtk_safe
 
 
 class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
@@ -46,11 +49,13 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def __init__(self, application=None):
         super().__init__(application=application)
-        self.set_default_size(560, 450)
-
-        title_label = Gtk.Label(visible=True)
-        title_label.set_markup(f"<b>{self.title_text}</b>")
-        self.vbox.pack_start(title_label, False, False, 18)
+        self.set_default_size(640, 450)
+        self.search_timer_id = None
+        self.text_query = None
+        self.result_label = None
+        self.title_label = Gtk.Label(visible=True)
+        self.title_label.set_markup(f"<b>{self.title_text}</b>")
+        self.vbox.pack_start(self.title_label, False, False, 12)
 
         self.listbox = Gtk.ListBox(visible=True)
         self.listbox.set_activate_on_single_click(True)
@@ -101,8 +106,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def build_row(self, icon_name, text, subtext):
         row = self._get_row()
         box = self._get_box()
-        icon = self._get_icon(icon_name)
-        box.pack_start(icon, False, False, 0)
+        if icon_name:
+            icon = self._get_icon(icon_name)
+            box.pack_start(icon, False, False, 0)
         label = self._get_label(f"<b>{text}</b>\n{subtext}")
         box.pack_start(label, True, True, 0)
         next_icon = self._get_icon("go-next-symbolic", small=True)
@@ -112,18 +118,73 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def search_installers(self):
         """Search installers with the Lutris API"""
-        print("open search")
+        self.title_label.set_markup("<b>Search Lutris.net</b>")
+        self.listbox.destroy()
+        entry = Gtk.Entry(visible=True)
+        self.vbox.add(entry)
+        self.result_label = self._get_label("")
+        self.vbox.add(self.result_label)
+        entry.connect("changed", self._on_search_updated)
+        self.listbox = Gtk.ListBox()
+        self.listbox.connect("row-activated", self._on_game_selected)
+        scroll = Gtk.ScrolledWindow(visible=True)
+        scroll.set_vexpand(True)
+        scroll.add(self.listbox)
+        self.vbox.add(scroll)
+        entry.grab_focus()
+
+    def _on_search_updated(self, entry):
+        if self.search_timer_id:
+            GLib.source_remove(self.search_timer_id)
+        self.text_query = entry.get_text().strip()
+        self.search_timer_id = GLib.timeout_add(750, self.update_search_results)
+
+    def _on_game_selected(self, listbox, row):
+        game_slug = row.api_info["slug"]
+        installers = get_installers(game_slug=game_slug)
+        application = Gio.Application.get_default()
+        application.show_installer_window(installers)
+        self.destroy()
+
+    def update_search_results(self):
+        if not self.text_query:
+            return
+        api_games = api.search_games(self.text_query)
+        total_count = api_games.get("count", 0)
+        count = len(api_games.get('results', []))
+
+        if not count:
+            self.result_label.set_markup(_("No results"))
+        elif count == total_count:
+            self.result_label.set_markup(_(f"Showing <b>{count}</b> results"))
+        else:
+            self.result_label.set_markup(_(f"<b>{total_count}</b> results, only displaying first {count}"))
+        for row in self.listbox.get_children():
+            row.destroy()
+        for game in api_games.get("results", []):
+            platforms = ",".join(gtk_safe(platform["name"]) for platform in game["platforms"])
+            year = game['year'] or ""
+            if platforms and year:
+                platforms = ", " + platforms
+
+            row = self.build_row("", gtk_safe(game['name']), f"{year}{platforms}")
+            row.api_info = game
+            self.listbox.add(row)
+        self.listbox.show()
 
     def scan_folder(self):
         """Import a folder of ROMs"""
+        self.title_label.set_markup(_("<b>Scan a folder</b>"))
         print("open scan")
 
     def install_from_setup(self):
         """Install from a setup file"""
+        self.title_label.set_markup(_("<b>Select setup file</b>"))
         print("choose setup file")
 
     def install_from_script(self):
         """Install from a YAML file"""
+
         print("Choose YAML file")
 
     def add_local_game(self):

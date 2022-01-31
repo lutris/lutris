@@ -286,6 +286,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if not self.filters.get("text"):
             return []
         api_games = api.search_games(self.filters["text"])
+        api_games = api_games.get("results", [])
         if "icon" in self.icon_type:
             api_field = "icon_url"
             _service_media = LutrisIcon

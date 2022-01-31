@@ -152,17 +152,16 @@ def get_api_games(game_slugs=None, page=1, service=None):
 
 def search_games(query):
     if not query:
-        return []
-    query = query.lower().strip()[:32]
-    url = "/api/games?%s" % urllib.parse.urlencode({"search": query})
+        return {}
+    query = query.lower().strip()[:255]
+    url = "/api/games?%s" % urllib.parse.urlencode({"search": query, "with-installers": True})
     response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
     try:
         response.get()
     except http.HTTPError as ex:
         logger.error("Unable to get games from API: %s", ex)
-        return None
-    response_data = response.json
-    return response_data.get("results", [])
+        return {}
+    return response.json
 
 
 def get_bundle(bundle):

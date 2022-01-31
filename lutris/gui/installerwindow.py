@@ -108,6 +108,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def validate_scripts(self):
         """Auto-fixes some script aspects and checks for mandatory fields"""
+        if not self.installers:
+            raise ScriptingError("No installer available")
         for script in self.installers:
             for item in ["description", "notes"]:
                 script[item] = script.get(item) or ""
