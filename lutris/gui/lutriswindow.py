@@ -13,7 +13,6 @@ from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
-from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.views import COL_ID, COL_NAME
 from lutris.gui.views.grid import GameGridView
