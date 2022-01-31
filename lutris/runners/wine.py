@@ -779,6 +779,7 @@ class wine(Runner):
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
+            logger.warning("No valid prefix detected in %s, creating one...", self.prefix_path)
             create_prefix(self.prefix_path, arch=self.wine_arch)
 
         prefix_manager = WinePrefixManager(self.prefix_path)

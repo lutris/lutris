@@ -130,7 +130,6 @@ class DLLManager:
         dll = os.path.basename(dll_path)
         if system.path_exists(dll_path):
             wine_dll_path = os.path.join(system_dir, dll)
-            logger.debug("Replacing %s/%s with %s version", system_dir, dll, self.component)
             if system.path_exists(wine_dll_path):
                 if not self.is_managed_dll(wine_dll_path) and not os.path.islink(wine_dll_path):
                     # Backing up original version (may not be needed)
@@ -149,7 +148,6 @@ class DLLManager:
         wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
         if system.path_exists(wine_dll_path + ".orig"):
             if system.path_exists(wine_dll_path):
-                logger.debug("Removing %s dll %s/%s", self.component, system_dir, dll)
                 os.remove(wine_dll_path)
             shutil.move(wine_dll_path + ".orig", wine_dll_path)
 

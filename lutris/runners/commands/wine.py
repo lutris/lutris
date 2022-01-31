@@ -232,9 +232,10 @@ def wineexec(  # noqa: C901
         include_processes = shlex.split(include_processes)
     if isinstance(exclude_processes, str):
         exclude_processes = shlex.split(exclude_processes)
+
+    wine = import_runner("wine")()
     if not wine_path:
-        wine = import_runner("wine")
-        wine_path = wine().get_executable()
+        wine_path = wine.get_executable()
     if not wine_path:
         raise RuntimeError("Wine is not installed")
 
@@ -281,6 +282,8 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
+    wineenv.update(wine.get_env())
+
     if env:
         wineenv.update(env)
 
@@ -288,12 +291,15 @@ def wineexec(  # noqa: C901
     if executable:
         command_parameters.append(executable)
     command_parameters += split_arguments(args)
+
+    wine.prelaunch()
+
     if blocking:
         return system.execute(command_parameters, env=wineenv, cwd=working_dir)
-    wine = import_runner("wine")
+
     command = MonitoredCommand(
         command_parameters,
-        runner=wine(),
+        runner=wine,
         env=wineenv,
         cwd=working_dir,
         include_processes=include_processes,

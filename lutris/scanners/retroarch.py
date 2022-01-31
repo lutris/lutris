@@ -7,7 +7,6 @@ from lutris.util.log import logger
 from lutris.util.retroarch.core_config import RECOMMENDED_CORES
 from lutris.util.strings import slugify
 
-
 SCANNERS = {
     "mesen": "NES",
     "gambatte": "Gameboy / Gameboy Color",
