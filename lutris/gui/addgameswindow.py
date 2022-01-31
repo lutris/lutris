@@ -3,11 +3,10 @@ from gettext import gettext as _
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import api
-from lutris.installer import AUTO_WIN32_EXE
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.dialogs import FileDialog
 from lutris.gui.widgets.window import BaseApplicationWindow
-from lutris.installer import get_installers
+from lutris.installer import AUTO_WIN32_EXE, get_installers
 from lutris.util.strings import gtk_safe, slugify
 
 
@@ -21,12 +20,12 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             _("Query our website for community installers"),
             "search_installers"
         ),
-        (
-            "folder-new-symbolic",
-            _("Scan a folder for games"),
-            _("Mass-import a folder of games"),
-            "scan_folder"
-        ),
+        # (
+        #     "folder-new-symbolic",
+        #     _("Scan a folder for games"),
+        #     _("Mass-import a folder of games"),
+        #     "scan_folder"
+        # ),
         (
             "media-optical-dvd-symbolic",
             _("Install a Windows game from media"),

@@ -9,7 +9,6 @@ from lutris import settings
 from lutris.database import sql
 from lutris.database.games import get_games
 from lutris.gui.views.store_item import StoreItem
-from lutris.gui.widgets.utils import get_pixbuf
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -195,14 +194,3 @@ class GameStore(GObject.Object):
         for db_game in db_games:
             GLib.idle_add(self.update, db_game)
         return True
-
-    def update_icons(self, icon_updates):
-        """Updates the store with new icon paths keyed by slug"""
-        if not settings.SHOW_MEDIA:
-            return
-        for slug in icon_updates:
-            row = self.get_row_by_slug(slug)
-            if not row:
-                continue
-            installed = slug in self.installed_game_slugs
-            row[COL_ICON] = get_pixbuf(icon_updates[slug], self.service_media.size, is_installed=installed)
