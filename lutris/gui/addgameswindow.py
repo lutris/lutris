@@ -3,10 +3,12 @@ from gettext import gettext as _
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import api
+from lutris.installer import AUTO_WIN32_EXE
 from lutris.gui.config.add_game import AddGameDialog
+from lutris.gui.dialogs import FileDialog
 from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import get_installers
-from lutris.util.strings import gtk_safe
+from lutris.util.strings import gtk_safe, slugify
 
 
 class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
@@ -27,7 +29,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         ),
         (
             "media-optical-dvd-symbolic",
-            _("Install game from media"),
+            _("Install a Windows game from media"),
             _("Launch a setup file from an optical drive or download"),
             "install_from_setup"
         ),
@@ -180,12 +182,47 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def install_from_setup(self):
         """Install from a setup file"""
         self.title_label.set_markup(_("<b>Select setup file</b>"))
-        print("choose setup file")
+        self.listbox.destroy()
+        label = self._get_label("Game name")
+        self.vbox.add(label)
+        entry = Gtk.Entry(visible=True)
+        self.vbox.add(entry)
+        button = Gtk.Button(_("Continue"), visible=True)
+        button.connect("clicked", self._on_install_setup_continue, entry)
+        self.vbox.add(button)
+
+    def _on_install_setup_continue(self, button, entry):
+        name = entry.get_text().strip()
+        installer = {
+            "name": name,
+            "version": "Setup file",
+            "slug": slugify(name) + "-setup",
+            "game_slug": slugify(name),
+            "runner": "wine",
+            "script": {
+                "game": {
+                    "exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"
+                },
+                "files": [
+                    {"setupfile": "N/A:Select the setup file"}
+                ],
+                "installer": [
+                    {"task": {"name": "wineexec", "executable": "setupfile"}}
+                ]
+            }
+        }
+        application = Gio.Application.get_default()
+        application.show_installer_window([installer])
+        self.destroy()
 
     def install_from_script(self):
         """Install from a YAML file"""
-
-        print("Choose YAML file")
+        script_dlg = FileDialog(_("Select a Lutris installer"))
+        if script_dlg.filename:
+            installers = get_installers(script_dlg.filename)
+            application = Gio.Application.get_default()
+            application.show_installer_window(installers)
+        self.destroy()
 
     def add_local_game(self):
         """Manually configure game"""
