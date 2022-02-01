@@ -558,7 +558,6 @@ class wine(Runner):
 
     def get_path_for_version(self, version):
         """Return the absolute path of a wine executable for a given version"""
-        # logger.debug("Getting path for Wine %s", version)
         if version in WINE_PATHS:
             return system.find_executable(WINE_PATHS[version])
         if "Proton" in version:

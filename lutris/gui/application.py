@@ -251,7 +251,7 @@ class Application(Gtk.Application):
         Returns:
             Gtk.Window: the existing window instance or a newly created one
         """
-        window_key = str(window_class) + self.get_window_key(**kwargs)
+        window_key = str(window_class.__name__) + self.get_window_key(**kwargs)
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
             return self.app_windows[window_key]
@@ -279,7 +279,7 @@ class Application(Gtk.Application):
 
     def on_app_window_destroyed(self, app_window, window_key):
         """Remove the reference to the window when it has been destroyed"""
-        window_key = str(app_window.__class__) + window_key
+        window_key = str(app_window.__class__.__name__) + window_key
         try:
             del self.app_windows[window_key]
             logger.debug("Removed window %s", window_key)
