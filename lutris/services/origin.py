@@ -30,6 +30,9 @@ class OriginLauncher:
 
     def iter_manifests(self):
         manifests_path = os.path.join(self.prefix_path, 'drive_c', self.manifests_paths)
+        if not os.path.exists(manifests_path):
+            logger.warning("No directory in %s", manifests_path)
+            return
         for game_folder in os.listdir(manifests_path):
             for manifest in os.listdir(os.path.join(manifests_path, game_folder)):
                 if not manifest.endswith(".mfst"):
