@@ -4,9 +4,11 @@ from gi.repository import Gio, GLib, Gtk
 
 from lutris import api
 from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.dialogs import FileDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, FileDialog
 from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import AUTO_WIN32_EXE, get_installers
+from lutris.scanners.lutris import scan_directory
+from lutris.util.jobs import AsyncCall
 from lutris.util.strings import gtk_safe, slugify
 
 
@@ -20,12 +22,12 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             _("Query our website for community installers"),
             "search_installers"
         ),
-        # (
-        #     "folder-new-symbolic",
-        #     _("Scan a folder for games"),
-        #     _("Mass-import a folder of games"),
-        #     "scan_folder"
-        # ),
+        (
+            "folder-new-symbolic",
+            _("Scan a folder for games"),
+            _("Mass-import a folder of games"),
+            "scan_folder"
+        ),
         (
             "media-optical-dvd-symbolic",
             _("Install a Windows game from media"),
@@ -112,8 +114,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             box.pack_start(icon, False, False, 0)
         label = self._get_label(f"<b>{text}</b>\n{subtext}")
         box.pack_start(label, True, True, 0)
-        next_icon = self._get_icon("go-next-symbolic", small=True)
-        box.pack_start(next_icon, False, False, 0)
+        if icon_name:
+            next_icon = self._get_icon("go-next-symbolic", small=True)
+            box.pack_start(next_icon, False, False, 0)
         row.add(box)
         return row
 
@@ -133,6 +136,47 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         scroll.add(self.listbox)
         self.vbox.add(scroll)
         entry.grab_focus()
+
+    def scan_folder(self):
+        """Scan a folder of already installed games"""
+        self.title_label.set_markup("<b>Import games from a folder</b>")
+        self.listbox.destroy()
+        script_dlg = DirectoryDialog(_("Select folder to scan"))
+        if not script_dlg.folder:
+            self.destroy()
+            return
+        spinner = Gtk.Spinner(visible=True)
+        spinner.start()
+        self.vbox.pack_start(spinner, False, False, 18)
+        AsyncCall(scan_directory, self._on_folder_scanned, script_dlg.folder)
+
+    def _on_folder_scanned(self, result, error):
+        if error:
+            ErrorDialog(error)
+            self.destroy()
+            return
+        for child in self.vbox.get_children():
+            child.destroy()
+        installed, missing = result
+        installed_label = self._get_label("Installed games")
+        self.vbox.add(installed_label)
+        installed_listbox = Gtk.ListBox(visible=True)
+        installed_scroll = Gtk.ScrolledWindow(visible=True)
+        installed_scroll.set_vexpand(True)
+        installed_scroll.add(installed_listbox)
+        self.vbox.add(installed_scroll)
+        for folder in installed:
+            installed_listbox.add(self.build_row("", gtk_safe(folder), ""))
+
+        missing_label = self._get_label("No match found")
+        self.vbox.add(missing_label)
+        missing_listbox = Gtk.ListBox(visible=True)
+        missing_scroll = Gtk.ScrolledWindow(visible=True)
+        missing_scroll.set_vexpand(True)
+        missing_scroll.add(missing_listbox)
+        self.vbox.add(missing_scroll)
+        for folder in missing:
+            missing_listbox.add(self.build_row("", gtk_safe(folder), ""))
 
     def _on_search_updated(self, entry):
         if self.search_timer_id:
@@ -172,11 +216,6 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             row.api_info = game
             self.listbox.add(row)
         self.listbox.show()
-
-    def scan_folder(self):
-        """Import a folder of ROMs"""
-        self.title_label.set_markup(_("<b>Scan a folder</b>"))
-        print("open scan")
 
     def install_from_setup(self):
         """Install from a setup file"""

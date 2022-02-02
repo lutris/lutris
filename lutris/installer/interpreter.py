@@ -30,7 +30,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         "runners-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, installer, parent):
+    def __init__(self, installer, parent=None):
         super().__init__()
         self.target_path = None
         self.parent = parent
@@ -276,6 +276,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self._iter_commands()
 
     def _iter_commands(self, result=None, exception=None):
+
         if result == "STOP" or self.cancelled:
             return
 
@@ -285,6 +286,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         commands = self.installer.script.get("installer", [])
         if exception:
+            logger.error("Last install command failed, show error")
             self.parent.on_install_error(repr(exception))
         elif self.current_command < len(commands):
             try:
@@ -325,6 +327,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         return getattr(self, command_name), command_params
 
     def _finish_install(self):
+        self.installer.save()
         game = self.installer.script.get("game")
         launcher_value = None
         if game:
@@ -334,7 +337,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             path = self._substitute(launcher_value)
             if not os.path.isabs(path) and self.target_path:
                 path = os.path.join(self.target_path, path)
-        self.installer.save()
         if path and not os.path.isfile(path) and self.installer.runner not in ("web", "browser"):
             self.parent.set_status(
                 _(
@@ -368,11 +370,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         if self.target_path and remove_game_dir:
             system.remove_folder(self.target_path)
 
-    def _substitute(self, template_string):
-        """Replace path aliases with real paths."""
-        if template_string is None:
-            logger.warning("No template string given")
-            return ""
+    def _get_string_replacements(self):
+        """Return a mapping of variables to their actual value"""
         replacements = {
             "GAMEDIR": self.target_path,
             "CACHE": self.cache_path,
@@ -380,7 +379,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,
             "DISC": self.game_disc,
             "USER": os.getenv("USER"),
-            "INPUT": self._get_last_user_input(),
+            "INPUT": self.user_inputs[-1]["value"] if self.user_inputs else "",
             "VERSION": self.installer.version,
             "RESOLUTION": "x".join(self.current_resolution),
             "RESOLUTION_WIDTH": self.current_resolution[0],
@@ -396,12 +395,16 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             if alias:
                 replacements[alias] = input_data["value"]
         replacements.update(self.game_files)
+        return replacements
+
+    def _substitute(self, template_string):
+        """Replace path aliases with real paths."""
+        if template_string is None:
+            logger.warning("No template string given")
+            return ""
         if str(template_string).replace("-", "_") in self.game_files:
             template_string = template_string.replace("-", "_")
-        return system.substitute(template_string, replacements)
-
-    def _get_last_user_input(self):
-        return self.user_inputs[-1]["value"] if self.user_inputs else ""
+        return system.substitute(template_string, self._get_string_replacements())
 
     def eject_wine_disc(self):
         """Use Wine to eject a CD, otherwise Wine can have problems detecting disc changes"""
