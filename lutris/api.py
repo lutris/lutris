@@ -150,6 +150,28 @@ def get_api_games(game_slugs=None, page=1, service=None):
     return results
 
 
+def get_game_installers(game_slug, revision=None):
+    """Get installers for a single game"""
+    if not game_slug:
+        raise ValueError("No game_slug provided. Can't query an installer")
+    if revision:
+        installer_url = settings.INSTALLER_REVISION_URL % (game_slug, revision)
+    else:
+        installer_url = settings.INSTALLER_URL % game_slug
+
+    logger.debug("Fetching installer %s", installer_url)
+    request = http.Request(installer_url)
+    request.get()
+    response = request.json
+    if response is None:
+        raise RuntimeError("Couldn't get installer at %s" % installer_url)
+
+    if not revision:
+        return response["results"]
+    # Revision requests return a single installer
+    return [response]
+
+
 def search_games(query):
     if not query:
         return {}

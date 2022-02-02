@@ -8,7 +8,6 @@ from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.runners import import_runner
-from lutris.runner_interpreter import get_launch_parameters
 from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.shell import get_shell_command

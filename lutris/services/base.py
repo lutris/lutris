@@ -12,7 +12,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.gui.views.media_loader import download_icons
-from lutris.installer import fetch_script
+from lutris.api import get_game_installers
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
@@ -185,7 +185,7 @@ class BaseService(GObject.Object):
         service_installers = []
         if lutris_games:
             lutris_game = lutris_games[0]
-            installers = fetch_script(lutris_game["slug"])
+            installers = get_game_installers(lutris_game["slug"])
             for installer in installers:
                 if self.matcher in installer["version"].lower():
                     service_installers.append(installer)
