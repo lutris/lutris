@@ -1,17 +1,18 @@
 import os
 import re
-import gi
 
+import gi
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 gi.require_version("GnomeDesktop", "3.0")
 
-from lutris.config import write_game_config
-from lutris.util.log import logger
-from lutris.database.games import get_games, add_game
 from lutris.api import get_api_games, get_game_installers
+from lutris.config import write_game_config
+from lutris.database.games import add_game, get_games
 from lutris.services.lutris import download_lutris_media
+from lutris.util.log import logger
+
 
 def get_game_slugs(dirname):
     """Scan a directory for games previously installed with lutris"""
@@ -58,6 +59,7 @@ def find_game(game_folder, api_game):
             return full_path, installer
     return None, None
 
+
 def get_used_directories():
     directories = set()
     for game in get_games():
@@ -86,6 +88,7 @@ def install_game(installer, game_folder, full_path):
         configpath=configpath,
     )
     return game_id
+
 
 def scan_directory(dirname):
     slugs = get_game_slugs(dirname)

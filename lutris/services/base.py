@@ -5,6 +5,7 @@ import shutil
 from gi.repository import Gio, GObject
 
 from lutris import api, settings
+from lutris.api import get_game_installers
 from lutris.config import write_game_config
 from lutris.database import sql
 from lutris.database.games import add_game, get_games
@@ -12,7 +13,6 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.gui.views.media_loader import download_icons
-from lutris.api import get_game_installers
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar

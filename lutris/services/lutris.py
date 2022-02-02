@@ -6,12 +6,11 @@ from gettext import gettext as _
 from gi.repository import Gio
 
 from lutris import settings
-from lutris.api import read_api_key
+from lutris.api import get_game_installers, read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
 from lutris.gui.views.media_loader import download_icons
-from lutris.api import get_game_installers
 from lutris.services.base import LutrisBanner, LutrisCoverart, LutrisCoverartMedium, LutrisIcon, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.util import http
