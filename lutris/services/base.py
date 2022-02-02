@@ -93,11 +93,13 @@ class BaseService(GObject.Object):
     def reload(self):
         """Refresh the service's games"""
         self.emit("service-games-load")
-        self.wipe_game_cache()
-        self.load()
-        self.load_icons()
-        self.add_installed_games()
-        self.emit("service-games-loaded")
+        try:
+            self.wipe_game_cache()
+            self.load()
+            self.load_icons()
+            self.add_installed_games()
+        finally:
+            self.emit("service-games-loaded")
 
     def load(self):
         logger.warning("Load method not implemented")
