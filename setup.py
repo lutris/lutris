@@ -56,7 +56,8 @@ setup(
         'PyGObject',
         'evdev',
         'requests',
-        'python-magic'
+        'python-magic',
+        'lxml'
     ],
     url='https://lutris.net',
     description='Video game preservation platform',
