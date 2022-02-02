@@ -243,13 +243,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             service_id=self.service_appid,
             id=self.game_id,
         )
-
-        # This is a bit redundant but used to trigger the game-updated signal
-
-        # Removed because it was causing freezes when importing games
-        # Probably has to be put back elsewhere
-        # game = Game(self.game_id)
-        # game.save()
         return self.game_id
 
     def get_game_launcher_config(self, game_files):

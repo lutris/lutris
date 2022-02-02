@@ -327,7 +327,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         return getattr(self, command_name), command_params
 
     def _finish_install(self):
-        self.installer.save()
+        game_id = self.installer.save()
+
         game = self.installer.script.get("game")
         launcher_value = None
         if game:
@@ -349,7 +350,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             install_complete_text = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
             self.parent.set_status(install_complete_text)
         download_lutris_media(self.installer.game_slug)
-        self.parent.on_install_finished()
+        self.parent.on_install_finished(game_id)
 
     def cleanup(self):
         """Clean up install dir after a successful install"""
