@@ -1,11 +1,5 @@
 import os
 
-import gi
-
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
-gi.require_version("GnomeDesktop", "3.0")
-
 from lutris.api import get_api_games, get_game_installers
 from lutris.database.games import get_games
 from lutris.installer.errors import MissingGameDependency
