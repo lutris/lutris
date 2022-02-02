@@ -731,7 +731,7 @@ class Application(Gtk.Application):
 
     def print_runners(self):
         runnersName = get_runner_names()
-        sortednames=sorted(runnersName.keys(), key=lambda x:x.lower())
+        sortednames = sorted(runnersName.keys(), key=lambda x : x.lower())
         print("Runners:")
         for name in sortednames:
             print(name)
