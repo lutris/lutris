@@ -237,6 +237,8 @@ class Application(Gtk.Application):
             return kwargs["runner"].name
         if kwargs.get("installers"):
             return kwargs["installers"][0]["game_slug"]
+        if kwargs.get("game"):
+            return str(kwargs["game"].id)
         return str(kwargs)
 
     def show_window(self, window_class, **kwargs):
@@ -249,12 +251,16 @@ class Application(Gtk.Application):
         Returns:
             Gtk.Window: the existing window instance or a newly created one
         """
-        window_key = str(window_class) + self.get_window_key(**kwargs)
+        window_key = str(window_class.__name__) + self.get_window_key(**kwargs)
         if self.app_windows.get(window_key):
             self.app_windows[window_key].present()
             return self.app_windows[window_key]
         if issubclass(window_class, Gtk.Dialog):
-            window_inst = window_class(parent=self.window, **kwargs)
+            if "parent" in kwargs:
+                window_inst = window_class(**kwargs)
+            else:
+                window_inst = window_class(parent=self.window, **kwargs)
+            window_inst.set_application(self)
         else:
             window_inst = window_class(application=self, **kwargs)
         window_inst.connect("destroy", self.on_app_window_destroyed, self.get_window_key(**kwargs))
@@ -273,7 +279,7 @@ class Application(Gtk.Application):
 
     def on_app_window_destroyed(self, app_window, window_key):
         """Remove the reference to the window when it has been destroyed"""
-        window_key = str(app_window.__class__) + window_key
+        window_key = str(app_window.__class__.__name__) + window_key
         try:
             del self.app_windows[window_key]
             logger.debug("Removed window %s", window_key)
@@ -375,6 +381,8 @@ class Application(Gtk.Application):
 
         game_slug = installer_info["game_slug"]
         action = installer_info["action"]
+        service = installer_info["service"]
+        appid = installer_info["appid"]
 
         if options.contains("output-script"):
             action = "write-script"
@@ -411,7 +419,7 @@ class Application(Gtk.Application):
                 return 1
 
         db_game = None
-        if game_slug:
+        if game_slug and not service:
             if action == "rungameid":
                 # Force db_game to use game id
                 self.run_in_background = True
@@ -458,10 +466,18 @@ class Application(Gtk.Application):
                     action = "rungame"
                 elif dlg.action == "install":
                     action = "install"
-            elif game_slug or installer_file:
+            elif game_slug or installer_file or service:
                 # No game found, default to install if a game_slug or
                 # installer_file is provided
                 action = "install"
+
+        if service:
+            service_game = ServiceGameCollection.get_game(service, appid)
+            if service_game:
+                service = get_enabled_services()[service]()
+                service.install(service_game)
+                return 0
+
         if action == "install":
             installers = get_installers(
                 game_slug=game_slug,
@@ -552,7 +568,7 @@ class Application(Gtk.Application):
 
     @staticmethod
     def get_lutris_action(url):
-        installer_info = {"game_slug": None, "revision": None, "action": None}
+        installer_info = {"game_slug": None, "revision": None, "action": None, "service": None, "appid": None}
 
         if url:
             url = url.get_strv()
@@ -602,20 +618,18 @@ class Application(Gtk.Application):
 
     def print_steam_list(self, command_line):
         steamapps_paths = get_steamapps_paths()
-        for platform in ("linux", "windows"):
-            for path in steamapps_paths[platform] if steamapps_paths else []:
-                appmanifest_files = get_appmanifests(path)
-                for appmanifest_file in appmanifest_files:
-                    appmanifest = AppManifest(os.path.join(path, appmanifest_file))
-                    self._print(
-                        command_line,
-                        "  {:8} | {:<60} | {:10} | {}".format(
-                            appmanifest.steamid,
-                            appmanifest.name or "-",
-                            platform,
-                            ", ".join(appmanifest.states),
-                        ),
-                    )
+        for path in steamapps_paths if steamapps_paths else []:
+            appmanifest_files = get_appmanifests(path)
+            for appmanifest_file in appmanifest_files:
+                appmanifest = AppManifest(os.path.join(path, appmanifest_file))
+                self._print(
+                    command_line,
+                    " {:8} | {:<60} | {}".format(
+                        appmanifest.steamid,
+                        appmanifest.name or "-",
+                        ", ".join(appmanifest.states),
+                    ),
+                )
 
     @staticmethod
     def execute_command(command):

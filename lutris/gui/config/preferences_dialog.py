@@ -29,7 +29,7 @@ class PreferencesDialog(GameDialogCommon):
         sidebar.connect("row-selected", self.on_sidebar_activated)
         sidebar.add(self.get_sidebar_button("prefs-stack", _("Interface"), "view-grid-symbolic"))
         sidebar.add(self.get_sidebar_button("runners-stack", _("Runners"), "applications-utilities-symbolic"))
-        sidebar.add(self.get_sidebar_button("services-stack", _("Services"), "application-x-addon-symbolic"))
+        sidebar.add(self.get_sidebar_button("services-stack", _("Sources"), "application-x-addon-symbolic"))
         sidebar.add(self.get_sidebar_button("sysinfo-stack", _("Hardware information"), "computer-symbolic"))
         sidebar.add(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
         hbox.pack_start(sidebar, False, False, 0)

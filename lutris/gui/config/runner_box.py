@@ -63,12 +63,9 @@ class RunnerBox(Gtk.Box):
         configure_alignment.show()
         configure_alignment.add(self.configure_button)
         self.pack_start(configure_alignment, False, False, 0)
-
         if not self.runner.is_installed():
             self.runner_label_box.set_sensitive(False)
-        else:
-            self.configure_button.show()
-
+        self.configure_button.show()
         self.action_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
         self.action_alignment.show()
         self.action_alignment.add(self.get_action_button())
@@ -118,7 +115,9 @@ class RunnerBox(Gtk.Box):
             logger.error("Runner failed to install")
 
     def on_configure_clicked(self, widget):
-        RunnerConfigDialog(self.runner)
+        window = self.get_toplevel()
+        application = window.get_application()
+        application.show_window(RunnerConfigDialog, runner=self.runner, parent=window)
 
     def on_remove_clicked(self, widget):
         dialog = QuestionDialog(

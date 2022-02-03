@@ -41,10 +41,37 @@ RECOMMENDED_CORES = {
             ".st",
         ]
     },
-    "genesis_plus_gx": {"platforms": ["master_system", "game_gear", "genesis", "mega_cd"]},
-    "picodrive": {"platforms": ["32x"]},
+    "picodrive": {
+        "platforms": [
+            "master_system",
+            "game_gear",
+            "genesis",
+            "mega_cd",
+            "32x"
+        ],
+        "extensions": [
+            ".mdx",
+            ".md",
+            ".smd",
+            ".gen",
+            ".bin",
+            ".cue",
+            ".iso",
+            ".sms",
+            ".gg",
+            ".sg",
+            ".68k",
+            ".chd",
+        ]
+    },
     "opera": {
         "platforms": ["3do"],
+        "extensions": [
+            ".iso",
+            ".bin",
+            ".chd",
+            ".cue",
+        ],
         "bios": [
             {
                 "filename": "panafz1.bin",
