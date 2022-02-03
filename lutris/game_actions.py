@@ -220,7 +220,7 @@ class GameActions:
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
-        EditGameConfigDialog(self.window, self.game)
+        self.application.show_window(EditGameConfigDialog, game=self.game, parent=self.window)
 
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""

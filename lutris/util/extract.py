@@ -71,14 +71,16 @@ def is_7zip_supported(path, extractor):
 
 def guess_extractor(path):
     """Guess what extractor should be used from a file name"""
-    if path.endswith((".tar.gz", ".tgz")):
-        extractor = "tgz"
-    elif path.endswith((".tar.xz", ".txz")):
-        extractor = "txz"
-    elif path.endswith(".tar"):
+    if path.endswith(".tar"):
         extractor = "tar"
-    elif path.endswith((".tar.bz2", ".tbz")):
-        extractor = "bz2"
+    elif path.endswith((".tar.gz", ".tgz")):
+        extractor = "tgz"
+    elif path.endswith((".tar.xz", ".txz", ".tar.lzma")):
+        extractor = "txz"
+    elif path.endswith((".tar.bz2", ".tbz2", ".tbz")):
+        extractor = "tbz2"
+    elif path.endswith((".tar.zst", ".tzst")):
+        extractor = "tzst"
     elif path.endswith(".gz"):
         extractor = "gzip"
     elif path.endswith(".exe"):
@@ -90,17 +92,19 @@ def guess_extractor(path):
     return extractor
 
 
-def get_archive_opener(extractor, path):
+def get_archive_opener(extractor):
     """Return the archive opener and optional mode for an extractor"""
     mode = None
-    if extractor == "tgz":
+    if extractor == "tar":
+        opener, mode = tarfile.open, "r:"
+    elif extractor == "tgz":
         opener, mode = tarfile.open, "r:gz"
     elif extractor == "txz":
         opener, mode = tarfile.open, "r:xz"
-    elif extractor == "tar":
-        opener, mode = tarfile.open, "r:"
-    elif extractor == "bz2":
+    elif extractor == "tbz2":
         opener, mode = tarfile.open, "r:bz2"
+    elif extractor == "tzst":
+        opener, mode = tarfile.open, "r:zst"  # Note: not supported by tarfile yet
     elif extractor == "gzip":
         opener = "gz"
     elif extractor == "gog":
@@ -121,7 +125,7 @@ def extract_archive(path, to_directory=".", merge_single=True, extractor=None):
     if extractor is None:
         extractor = guess_extractor(path)
 
-    opener, mode = get_archive_opener(extractor, path)
+    opener, mode = get_archive_opener(extractor)
 
     temp_path = temp_dir = os.path.join(to_directory, ".extract-%s" % random_id())
     try:
@@ -212,16 +216,21 @@ def extract_deb(archive, dest):
     extract_7zip(archive, dest, archive_type="ar")
     debian_folder = os.path.join(dest, "debian")
     os.makedirs(debian_folder)
-    shutil.move(os.path.join(dest, "control.tar.gz"), debian_folder)
-    data_file = os.path.join(dest, "data.tar.gz")
-    extractor = "r:gz"
-    if not os.path.exists(data_file):
-        data_file = os.path.join(dest, "data.tar.xz")
-        extractor = "r:xz"
-    with tarfile.open(data_file, extractor) as handler:
-        handler.extractall(dest)
-        handler.close()
-    os.remove(data_file)
+
+    control_file_exts = [".gz", ".xz", ".zst", ""]
+    for extension in control_file_exts:
+        control_tar_path = os.path.join(dest, "control.tar{}".format(extension))
+        if os.path.exists(control_tar_path):
+            shutil.move(control_tar_path, debian_folder)
+            break
+
+    data_file_exts = [".gz", ".xz", ".zst", ".bz2", ".lzma", ""]
+    for extension in data_file_exts:
+        data_tar_path = os.path.join(dest, "data.tar{}".format(extension))
+        if os.path.exists(data_tar_path):
+            extract_archive(data_tar_path, dest)
+            os.remove(data_tar_path)
+            break
 
 
 def extract_gog(path, dest):

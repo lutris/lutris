@@ -54,6 +54,10 @@ class WebConnectDialog(Dialog):
     def on_navigation(self, widget, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
             url = widget.get_uri()
+            if url in self.service.scripts:
+                script = self.service.scripts[url]
+                widget.run_javascript(script, None, None)
+                return True
             if url.startswith(self.service.redirect_uri):
                 if self.service.requires_login_page:
                     resource = widget.get_main_resource()

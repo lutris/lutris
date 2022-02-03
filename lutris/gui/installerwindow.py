@@ -108,6 +108,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def validate_scripts(self):
         """Auto-fixes some script aspects and checks for mandatory fields"""
+        if not self.installers:
+            raise ScriptingError("No installer available")
         for script in self.installers:
             for item in ["description", "notes"]:
                 script[item] = script.get(item) or ""
@@ -418,8 +420,12 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.clean_widgets()
         self.interpreter.launch_installer_commands()
 
-    def on_install_finished(self):
+    def on_install_finished(self, game_id):
         self.clean_widgets()
+        # Save game to trigger a game-updated signal
+        game = Game(game_id)
+        game.save()
+
         self.install_in_progress = False
 
         desktop_shortcut_button = Gtk.Button(_("Create desktop shortcut"), visible=True)

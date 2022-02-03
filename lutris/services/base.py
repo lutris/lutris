@@ -5,6 +5,7 @@ import shutil
 from gi.repository import Gio, GObject
 
 from lutris import api, settings
+from lutris.api import get_game_installers
 from lutris.config import write_game_config
 from lutris.database import sql
 from lutris.database.games import add_game, get_games
@@ -12,7 +13,6 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.gui.views.media_loader import download_icons
-from lutris.installer import fetch_script
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
@@ -72,6 +72,7 @@ class BaseService(GObject.Object):
     local = False
     drm_free = False  # DRM free games can be added to Lutris from an existing install
     client_installer = None  # ID of a script needed to install the client used by the service
+    scripts = {}  # Mapping of Javascript snippets to handle redirections during auth
     medias = {}
     extra_medias = {}
     default_format = "icon"
@@ -92,11 +93,13 @@ class BaseService(GObject.Object):
     def reload(self):
         """Refresh the service's games"""
         self.emit("service-games-load")
-        self.wipe_game_cache()
-        self.load()
-        self.load_icons()
-        self.add_installed_games()
-        self.emit("service-games-loaded")
+        try:
+            self.wipe_game_cache()
+            self.load()
+            self.load_icons()
+            self.add_installed_games()
+        finally:
+            self.emit("service-games-loaded")
 
     def load(self):
         logger.warning("Load method not implemented")
@@ -115,12 +118,6 @@ class BaseService(GObject.Object):
         for icon_type in all_medias:
             service_media = all_medias[icon_type]()
             service_media.render()
-
-        if self.id != "lutris":
-            for service_media_class in (LutrisIcon, LutrisBanner):
-                service_media = service_media_class()
-                media_urls = service_media.get_media_urls()
-                download_icons(media_urls, service_media)
 
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)
@@ -190,7 +187,7 @@ class BaseService(GObject.Object):
         service_installers = []
         if lutris_games:
             lutris_game = lutris_games[0]
-            installers = fetch_script(lutris_game["slug"])
+            installers = get_game_installers(lutris_game["slug"])
             for installer in installers:
                 if self.matcher in installer["version"].lower():
                     service_installers.append(installer)

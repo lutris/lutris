@@ -249,9 +249,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             service_id=self.service_appid,
             id=self.game_id,
         )
-        # This is a bit redundant but used to trigger the game-updated signal
-        game = Game(self.game_id)
-        game.save()
+        return self.game_id
 
     def get_game_launcher_config(self, game_files):
         """Game options such as exe or main_file can be added at the root of the

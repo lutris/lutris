@@ -150,19 +150,40 @@ def get_api_games(game_slugs=None, page=1, service=None):
     return results
 
 
+def get_game_installers(game_slug, revision=None):
+    """Get installers for a single game"""
+    if not game_slug:
+        raise ValueError("No game_slug provided. Can't query an installer")
+    if revision:
+        installer_url = settings.INSTALLER_REVISION_URL % (game_slug, revision)
+    else:
+        installer_url = settings.INSTALLER_URL % game_slug
+
+    logger.debug("Fetching installer %s", installer_url)
+    request = http.Request(installer_url)
+    request.get()
+    response = request.json
+    if response is None:
+        raise RuntimeError("Couldn't get installer at %s" % installer_url)
+
+    if not revision:
+        return response["results"]
+    # Revision requests return a single installer
+    return [response]
+
+
 def search_games(query):
     if not query:
-        return []
-    query = query.lower().strip()[:32]
-    url = "/api/games?%s" % urllib.parse.urlencode({"search": query})
+        return {}
+    query = query.lower().strip()[:255]
+    url = "/api/games?%s" % urllib.parse.urlencode({"search": query, "with-installers": True})
     response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
     try:
         response.get()
     except http.HTTPError as ex:
         logger.error("Unable to get games from API: %s", ex)
-        return None
-    response_data = response.json
-    return response_data.get("results", [])
+        return {}
+    return response.json
 
 
 def get_bundle(bundle):
@@ -207,8 +228,20 @@ def parse_installer_url(url):
     else:
         raise ValueError("Invalid lutris url %s" % url)
 
+    # To link to service games, format a slug like <service>:<appid>
+    if ":" in game_slug:
+        service, appid = game_slug.split(":", maxsplit=1)
+    else:
+        service, appid = "", ""
+
     revision = None
     if parsed_url.query:
         query = dict(urllib.parse.parse_qsl(parsed_url.query))
         revision = query.get("revision")
-    return {"game_slug": game_slug, "revision": revision, "action": action}
+    return {
+        "game_slug": game_slug,
+        "revision": revision,
+        "action": action,
+        "service": service,
+        "appid": appid
+    }

@@ -201,7 +201,6 @@ def wineexec(  # noqa: C901
     disable_runtime=False,
     env=None,
     overrides=None,
-    preconfigure=False,
 ):
     """
     Execute a Wine command.
@@ -217,7 +216,6 @@ def wineexec(  # noqa: C901
         blocking (bool): if true, do not run the process in a thread
         config (LutrisConfig): LutrisConfig object for the process context
         watch (list): list of process names to monitor (even when in a ignore list)
-        preconfigure (bool): True to run preconfigure() before the command
 
     Returns:
         Process results if the process is running in blocking mode or
@@ -234,9 +232,11 @@ def wineexec(  # noqa: C901
         include_processes = shlex.split(include_processes)
     if isinstance(exclude_processes, str):
         exclude_processes = shlex.split(exclude_processes)
+
+    wine = import_runner("wine")()
+
     if not wine_path:
-        wine = import_runner("wine")
-        wine_path = wine().get_executable()
+        wine_path = wine.get_executable()
     if not wine_path:
         raise RuntimeError("Wine is not installed")
 
@@ -264,8 +264,8 @@ def wineexec(  # noqa: C901
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    wine_config = config or LutrisConfig(runner_slug="wine")
-    disable_runtime = disable_runtime or wine_config.system_config["disable_runtime"]
+    wine_system_config = config.system_config if config else wine.system_config
+    disable_runtime = disable_runtime or wine_system_config["disable_runtime"]
     if use_lutris_runtime(wine_path=wineenv["WINE"], force_disable=disable_runtime):
         if WINE_DIR in wine_path:
             wine_root_path = os.path.dirname(os.path.dirname(wine_path))
@@ -275,7 +275,7 @@ def wineexec(  # noqa: C901
             wine_root_path = None
         wineenv["LD_LIBRARY_PATH"] = ":".join(
             runtime.get_paths(
-                prefer_system_libs=wine_config.system_config["prefer_system_libs"],
+                prefer_system_libs=wine_system_config["prefer_system_libs"],
                 wine_path=wine_root_path,
             )
         )
@@ -283,25 +283,24 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    if env:
-        wineenv.update(env)
+    baseenv = wine.get_env()
+    baseenv.update(wineenv)
+    baseenv.update(env)
 
     command_parameters = [wine_path]
     if executable:
         command_parameters.append(executable)
     command_parameters += split_arguments(args)
+
+    wine.prelaunch()
+
     if blocking:
         return system.execute(command_parameters, env=wineenv, cwd=working_dir)
-    wine = import_runner("wine")
-    runner = wine()
-
-    if preconfigure:
-        runner.preconfigure()
 
     command = MonitoredCommand(
         command_parameters,
-        runner=runner,
-        env=wineenv,
+        runner=wine,
+        env=baseenv,
         cwd=working_dir,
         include_processes=include_processes,
         exclude_processes=exclude_processes,
