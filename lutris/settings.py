@@ -10,7 +10,7 @@ from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
 VERSION = __version__
-COPYRIGHT = _("(c) 2010-2021 Lutris Team")
+COPYRIGHT = _("(c) 2010-2022 Lutris Team")
 AUTHORS = [_("The Lutris team")]
 
 # Paths
@@ -46,6 +46,7 @@ RUNTIME_URL = SITE_URL + "/api/runtimes"
 STEAM_API_KEY = sio.read_setting("steam_api_key") or "34C9698CEB394AB4401D65927C6B3752"
 DISCORD_CLIENT_ID = sio.read_setting("discord_client_id") or "618290412402114570"
 
+SHOW_MEDIA = os.environ.get("LUTRIS_HIDE_MEDIA") != "1" and sio.read_setting("hide_media") != 'True'
 
 read_setting = sio.read_setting
 write_setting = sio.write_setting

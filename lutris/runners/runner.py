@@ -131,12 +131,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.game_data.get("discord_client_id"):
             return self.game_data.get("discord_client_id")
 
-    def get_version(self, use_default=True):
-        """Returns the version of the runner to use, if applicable, and None
-        for most runners where it isn't. If use_default is False, this ignores
-        system-wide policy and returns only the value from the runner config."""
-        return None
-
     def get_platform(self):
         return self.platforms[0]
 
@@ -211,14 +205,12 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if self.use_runtime():
             runtime_env = self.get_runtime_env()
-            if "LD_LIBRARY_PATH" in runtime_env:
-                runtime_ld_library_path = runtime_env["LD_LIBRARY_PATH"]
+            runtime_ld_library_path = runtime_env.get("LD_LIBRARY_PATH")
 
         if runtime_ld_library_path:
             ld_library_path = env.get("LD_LIBRARY_PATH")
-            if not ld_library_path:
-                ld_library_path = "$LD_LIBRARY_PATH"
-            env["LD_LIBRARY_PATH"] = ":".join([runtime_ld_library_path, ld_library_path])
+            env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+                runtime_ld_library_path, ld_library_path]))
 
         # Apply user overrides at the end
         env.update(self.system_config.get("env") or {})
@@ -299,11 +291,12 @@ class Runner:  # pylint: disable=too-many-public-methods
             }
         )
         if Gtk.ResponseType.YES == dialog.result:
+
             from lutris.gui.dialogs import ErrorDialog
             from lutris.gui.dialogs.download import simple_downloader
             try:
-                version = self.get_version(use_default=False)  # pylint: disable=assignment-from-none
-                if version:
+                if hasattr(self, "get_version"):
+                    version = self.get_version(use_default=False)  # pylint: disable=no-member
                     self.install(downloader=simple_downloader, version=version)
                 else:
                     self.install(downloader=simple_downloader)
@@ -317,8 +310,8 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Return whether the runner is installed"""
         return system.path_exists(self.get_executable())
 
-    def get_runner_version_info(self, version=None):
-        """Get the appropriate version info dict for a runner
+    def get_runner_version(self, version=None):
+        """Get the appropriate version for a runner
 
         Params:
             version (str): Optional version to lookup, will return this one if found
@@ -383,7 +376,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.download_url:
             opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name)
             return self.download_and_extract(self.download_url, **opts)
-        runner = self.get_runner_version_info(version)
+        runner = self.get_runner_version(version)
         if not runner:
             raise RunnerInstallationError("Failed to retrieve {} ({}) information".format(self.name, version))
         if not downloader:

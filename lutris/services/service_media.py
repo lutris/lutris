@@ -3,7 +3,6 @@ import os
 import random
 import time
 from pathlib import Path
-from typing import Optional
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
@@ -52,9 +51,6 @@ class ServiceMedia:
                 return True
         return False
 
-    def get_url(self, service_game):
-        return self.url_pattern % service_game[self.api_field]
-
     def get_pixbuf_for_game(self, slug, is_installed=True):
         image_abspath = self.get_absolute_path(slug)
         return get_pixbuf(image_abspath, self.size, fallback=get_default_icon(self.size), is_installed=is_installed)
@@ -94,7 +90,7 @@ class ServiceMedia:
             medias[game["slug"]] = media_url
         return medias
 
-    def download(self, slug: str, url: str) -> Optional[str]:
+    def download(self, slug, url):
         """Downloads the banner if not present"""
         if not url:
             return
@@ -110,7 +106,7 @@ class ServiceMedia:
         try:
             return download_file(url, cache_path, raise_errors=True)
         except HTTPError as ex:
-            logger.error(ex)
+            logger.error("Failed to download %s: %s", url, ex)
             # Prevent redownload (for a couple of weeks) if an error occurred.
             Path(cache_path).touch()
             return

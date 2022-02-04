@@ -41,6 +41,7 @@ class WinePrefixManager:
     """Class to allow modification of Wine prefixes without the use of Wine"""
 
     hkcu_prefix = "HKEY_CURRENT_USER"
+    hklm_prefix = "HKEY_LOCAL_MACHINE"
 
     def __init__(self, path):
         if not path:
@@ -64,11 +65,14 @@ class WinePrefixManager:
         """
         if key.startswith(self.hkcu_prefix):
             return os.path.join(self.path, "user.reg")
+        if key.startswith(self.hklm_prefix):
+            return os.path.join(self.path, "system.reg")
         raise ValueError("Unsupported key '{}'".format(key))
 
     def get_key_path(self, key):
-        if key.startswith(self.hkcu_prefix):
-            return key[len(self.hkcu_prefix) + 1:]
+        for prefix in (self.hkcu_prefix, self.hklm_prefix):
+            if key.startswith(prefix):
+                return key[len(prefix) + 1:]
         raise ValueError("The key {} is currently not supported by WinePrefixManager".format(key))
 
     def get_registry_key(self, key, subkey):

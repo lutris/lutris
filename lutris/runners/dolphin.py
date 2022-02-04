@@ -10,6 +10,7 @@ class dolphin(Runner):
     description = _("GameCube and Wii emulator")
     human_name = _("Dolphin")
     platforms = [_("Nintendo GameCube"), _("Nintendo Wii")]
+    require_libs = ["libOpenGL.so.0", ]
     runnable_alone = True
     runner_executable = "dolphin/dolphin-emu"
     game_options = [

@@ -45,6 +45,7 @@ setup(
         'lutris.util.mame',
         'lutris.util.steam',
         'lutris.util.retroarch',
+        'lutris.util.ubisoft',
         'lutris.util.wine'
     ],
     scripts=['bin/lutris'],

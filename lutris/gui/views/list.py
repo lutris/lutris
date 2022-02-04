@@ -31,11 +31,12 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_rules_hint(True)
 
         # Icon column
-        image_cell = CellRendererBanner(store, service_media)
-        column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON, slug=COL_SLUG)
-        column.set_reorderable(True)
-        column.set_sort_indicator(False)
-        self.append_column(column)
+        if settings.SHOW_MEDIA:
+            image_cell = CellRendererBanner(store, service_media)
+            column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON, slug=COL_SLUG)
+            column.set_reorderable(True)
+            column.set_sort_indicator(False)
+            self.append_column(column)
 
         # Text columns
         default_text_cell = self.set_text_cell()

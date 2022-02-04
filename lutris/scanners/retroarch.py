@@ -7,6 +7,16 @@ from lutris.util.log import logger
 from lutris.util.retroarch.core_config import RECOMMENDED_CORES
 from lutris.util.strings import slugify
 
+SCANNERS = {
+    "mesen": "NES",
+    "gambatte": "Gameboy / Gameboy Color",
+    "snes": "Super Nintendo",
+    "mupen64plus_next": "Nintendo 64",
+    "picodrive": "Master System / Game Gear / Genesis / MegaCD / 32x",
+    "opera": "3DO",
+}
+
+
 ROM_FLAGS = [
     "USA",
     "Europe",
@@ -21,6 +31,7 @@ ROM_FLAGS = [
     "F",
     "U",
     "E",
+    "UE"
     "W",
     "M3"
 ]

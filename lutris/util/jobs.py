@@ -23,19 +23,8 @@ class AsyncCall(threading.Thread):
         self.function = func
         self.callback = callback if callback else lambda r, e: None
         self.daemon = kwargs.pop("daemon", True)
-        self.completion_callback_args = None
-        self.start()
 
-    def await_completion(self, timeout):
-        """Block waiting for the call to complete for a time.
-        If it completes in time,  invokes the callback synchronously
-        and returns True. Returns False if it times out."""
-        self.join(timeout)
-        if not self.is_alive():
-            GLib.source_remove(self.source_id)
-            self.complete()
-            return True
-        return False
+        self.start()
 
     def target(self, *args, **kwargs):
         result = None
@@ -49,13 +38,8 @@ class AsyncCall(threading.Thread):
             _ex_type, _ex_value, trace = sys.exc_info()
             traceback.print_tb(trace)
 
-        self.completion_callback_args = [result, error]
-        self.source_id = GLib.idle_add(self.complete)
+        self.source_id = GLib.idle_add(self.callback, result, error)
         return self.source_id
-
-    def complete(self):
-        callback_args = self.completion_callback_args
-        self.callback(*callback_args)
 
 
 def synchronized_call(func, event, result):

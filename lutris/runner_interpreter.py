@@ -85,12 +85,11 @@ def get_launch_parameters(runner, gameplay_info):
         env["LD_PRELOAD"] = ld_preload
 
     # LD_LIBRARY_PATH
-    game_ld_libary_path = gameplay_info.get("ld_library_path")
-    if game_ld_libary_path:
+    game_ld_library_path = gameplay_info.get("ld_library_path")
+    if game_ld_library_path:
         ld_library_path = env.get("LD_LIBRARY_PATH")
-        if not ld_library_path:
-            ld_library_path = "$LD_LIBRARY_PATH"
-        env["LD_LIBRARY_PATH"] = ":".join([game_ld_libary_path, ld_library_path])
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+            game_ld_library_path, ld_library_path]))
 
     # Feral gamemode
     gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()

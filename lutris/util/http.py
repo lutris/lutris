@@ -94,16 +94,19 @@ class Request:
             raise HTTPError("%s" % error, code=error.code) from error
         except (socket.timeout, urllib.error.URLError) as error:
             raise HTTPError("Unable to connect to server %s: %s" % (self.url, error)) from error
-        try:
-            self.total_size = int(request.info().get("Content-Length").strip())
-        except AttributeError:
-            logger.warning("Failed to read content length on response from %s", self.url)
-            self.total_size = 0
 
         self.response_headers = request.getheaders()
         self.status_code = request.getcode()
         if self.status_code > 299:
             logger.warning("Request responded with code %s", self.status_code)
+
+        try:
+            self.total_size = int(request.info().get("Content-Length").strip())
+        except AttributeError as ex:
+            logger.warning("Failed to read content length on response from %s: %s", self.url, ex)
+            logger.warning(request.info())
+            self.total_size = 0
+
         self.content = b"".join(self._iter_chunks(request))
         self.info = request.info()
         request.close()

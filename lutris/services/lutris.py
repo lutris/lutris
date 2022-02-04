@@ -6,11 +6,10 @@ from gettext import gettext as _
 from gi.repository import Gio
 
 from lutris import settings
-from lutris.api import read_api_key
+from lutris.api import get_game_installers, read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
-from lutris.installer import fetch_script
 from lutris.services.base import LutrisBanner, LutrisCoverart, LutrisCoverartMedium, LutrisIcon, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.util import http
@@ -117,7 +116,7 @@ class LutrisService(OnlineService):
             slug = db_game["slug"]
         else:
             slug = db_game
-        installers = fetch_script(slug)
+        installers = get_game_installers(slug)
         if not installers:
             logger.warning("No installer for %s", slug)
             return

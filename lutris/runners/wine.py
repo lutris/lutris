@@ -493,8 +493,10 @@ class wine(Runner):
     def prefix_path(self):
         """Return the absolute path of the Wine prefix"""
         _prefix_path = self.game_config.get("prefix") \
-            or os.environ.get("WINEPREFIX") \
-            or find_prefix(self.game_exe)
+            or os.environ.get("WINEPREFIX")
+        if not _prefix_path and self.game_config.get("exe"):
+            # Find prefix from game if we have one
+            _prefix_path = find_prefix(self.game_exe)
         if not _prefix_path:
             logger.warning(
                 "Wine prefix not provided, defaulting to ~/.wine."
@@ -509,7 +511,7 @@ class wine(Runner):
         if there is no exe path defined."""
         exe = self.game_config.get("exe")
         if not exe:
-            logger.warning("The game doesn't have an executable")
+            logger.error("The game doesn't have an executable")
             return None
         if os.path.isabs(exe):
             return system.fix_path_case(exe)
@@ -547,18 +549,15 @@ class wine(Runner):
 
     def get_version(self, use_default=True):
         """Return the Wine version to use. use_default can be set to false to
-        use only the runner's config, you get None if it is not specified. By
-        default, we'll fall back on the system-wide default."""
+        force the installation of a specific wine version"""
         runner_version = self.runner_config.get("version")
         if runner_version:
             return runner_version
         if use_default:
             return get_default_version()
-        return None
 
     def get_path_for_version(self, version):
         """Return the absolute path of a wine executable for a given version"""
-        # logger.debug("Getting path for Wine %s", version)
         if version in WINE_PATHS:
             return system.find_executable(WINE_PATHS[version])
         if "Proton" in version:
@@ -591,7 +590,7 @@ class wine(Runner):
             wine_path = self.get_path_for_version(default_version)
             if wine_path:
                 # Update the version in the config
-                if version == self.get_version(use_default=False):
+                if version == self.runner_config.get("version"):
                     self.runner_config["version"] = default_version
                     # TODO: runner_config is a dict so we have to instanciate a
                     # LutrisConfig object to save it.
@@ -781,13 +780,9 @@ class wine(Runner):
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
+            logger.warning("No valid prefix detected in %s, creating one...", self.prefix_path)
             create_prefix(self.prefix_path, arch=self.wine_arch)
-        self.preconfigure()
 
-    def preconfigure(self):
-        """Configures WINE for use. This is the part of prelaunch that we
-        apply even during installations; it does not include running prelaunch
-        scripts, nor will it create the prefix."""
         prefix_manager = WinePrefixManager(self.prefix_path)
         if self.runner_config.get("autoconf_joypad", False):
             prefix_manager.configure_joypads()
