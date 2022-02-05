@@ -71,7 +71,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.vbox.pack_start(button_box, False, True, 0)
 
         self.cancel_button = self.add_button(
-            _("C_ancel"), self.cancel_installation, tooltip=_("Abort and revert the installation")
+            _("C_ancel"), self.confirm_cancel, tooltip=_("Abort and revert the installation")
         )
         self.eject_button = self.add_button(_("_Eject"), self.on_eject_clicked)
         self.source_button = self.add_button(_("_View source"), self.on_source_clicked)
@@ -476,8 +476,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def on_destroy(self, _widget, _data=None):
         """destroy event handler"""
         if self.install_in_progress:
-            abort_close = self.cancel_installation()
-            if abort_close:
+            if self.confirm_cancel():
                 return True
         else:
             if self.interpreter:
@@ -501,7 +500,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         else:
             xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
 
-    def cancel_installation(self, _widget=None):
+    def confirm_cancel(self, _widget=None):
         """Ask a confirmation before cancelling the install"""
         remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
         if self.interpreter and self.interpreter.target_path:
