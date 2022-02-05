@@ -112,7 +112,7 @@ def get_service_games(service):
 
 def get_game_by_field(value, field="slug"):
     """Query a game based on a database field"""
-    if field not in ("slug", "installer_slug", "id", "configpath"):
+    if field not in ("slug", "installer_slug", "id", "configpath", "name"):
         raise ValueError("Can't query by field '%s'" % field)
     game_result = sql.db_select(settings.PGA_DB, "games", condition=(field, value))
     if game_result:
@@ -211,3 +211,21 @@ def get_used_platforms():
         rows = cursor.execute(query)
         results = rows.fetchall()
     return [result[0] for result in results if result[0]]
+
+
+def get_unusued_game_name(game_name):
+    """Returns the given name, but if this name is already used by an installed
+    game, this adds a number to it to make it unique."""
+    def is_name_in_use(name):
+        """Queries the database to see if a given is in use by an installed
+        game."""
+        existing_game = get_game_by_field(assigned_name, "name")
+        return existing_game and existing_game["installed"]
+
+    assigned_name = game_name
+    assigned_index = 1
+    while is_name_in_use(assigned_name):
+        assigned_index += 1
+        assigned_name = f"{game_name} {assigned_index}"
+
+    return assigned_name
