@@ -801,10 +801,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             logger.debug("Looking up %s game %s", self.service.id, game_id)
             db_game = games_db.get_game_for_service(self.service.id, game_id)
             if self.service.id == "lutris":
-                if not db_game:
-                    self.service.install(game_id)
-                    return
-                if not db_game["installed"]:
+                if not db_game or not db_game["installed"]:
                     self.service.install(game_id)
                     return
                 game_id = db_game["id"]
@@ -817,8 +814,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                         logger.error("No game %s found for %s", game_id, self.service.id)
                         return
                     game_id = self.service.install(service_game)
-        else:
-            logger.debug("No service for view")
         if game_id:
             game = Game(game_id)
             if game.is_installed:

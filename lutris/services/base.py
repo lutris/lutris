@@ -207,6 +207,9 @@ class BaseService(GObject.Object):
         """
         appid = db_game["appid"]
         logger.debug("Installing %s from service %s", appid, self.id)
+
+        # Local services (aka game libraries that don't require any type of online interaction) can
+        # be added without going through an install dialog.
         if self.local:
             return self.simple_install(db_game)
         service_installers = self.get_installers_from_api(appid)
@@ -217,8 +220,10 @@ class BaseService(GObject.Object):
                 appid
             )
             if existing_game:
+                logger.debug("Found existing game, aborting install")
                 return
         if not service_installers:
+            logger.debug("No lutris.net installer found, generating installer.")
             installer = self.generate_installer(db_game)
             if installer:
                 service_installers.append(installer)
