@@ -30,7 +30,7 @@ class InstallerScriptBox(Gtk.VBox):
         """Return the central information box"""
         info_box = Gtk.VBox(spacing=6)
         title_box = Gtk.HBox(spacing=6)
-        title_box.add(InstallerLabel("<b>%s</b>" % gtk_safe(self.script["version"])))
+        title_box.add(InstallerLabel("[%s] <b>%s</b>" % (self.script["runner"], gtk_safe(self.script["version"]))))
         title_box.pack_start(InstallerLabel(""), True, True, 0)
         rating_label = InstallerLabel(self.get_rating())
         rating_label.set_alignment(1, 0.5)
