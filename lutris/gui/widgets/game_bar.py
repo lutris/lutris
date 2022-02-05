@@ -95,7 +95,6 @@ class GameBar(Gtk.Box):
         if self.game.playtime:
             hbox.pack_start(self.get_playtime_label(), False, False, 0)
         hbox.show_all()
-        logger.info("Show: %s", self.game.name)
 
     def get_popover(self, buttons, parent):
         """Return the popover widget containing a list of link buttons"""
