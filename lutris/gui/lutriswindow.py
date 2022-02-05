@@ -679,8 +679,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
-        add_game_window = AddGamesWindow()
-        add_game_window.present()
+        self.application.show_window(AddGamesWindow)
         return True
 
     def on_toggle_viewtype(self, *args):
@@ -784,7 +783,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def on_game_stopped(self, game):
         """Updates the game list when a game stops; this keeps the 'running' page updated."""
         selected_row = self.sidebar.get_selected_row()
-        # Only update the running page- we lose the selected when we do this,
+        # Only update the running page- we lose the selected row when we do this,
         # but on the running page this is okay.
         if selected_row is not None and selected_row.id == "running":
             self.game_store.remove_game(game.id)
