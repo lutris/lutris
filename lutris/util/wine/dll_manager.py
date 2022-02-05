@@ -35,7 +35,6 @@ class DLLManager:
         """Return available versions"""
         self._versions = self.load_versions()
         if not self._versions:
-            logger.warning("Loading of %s versions failed, defaulting to locally available versions", self.component)
             self._versions = os.listdir(self.base_dir)
         return self._versions
 

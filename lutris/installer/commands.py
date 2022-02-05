@@ -37,8 +37,13 @@ class CommandsMixin:
             if self.installer.script.get(self.installer.runner):
                 return self.installer.script[self.installer.runner].get("version")
             # If the installer is a extension, use the wine version from the base game
-            if self.requires:
-                db_game = get_game_by_field(self.requires, field="installer_slug")
+            if self.installer.requires:
+                db_game = get_game_by_field(self.installer.requires, field="installer_slug")
+                if not db_game:
+                    db_game = get_game_by_field(self.installer.requires, field="slug")
+                if not db_game:
+                    logger.warning("Can't find game %s", self.installer.requires)
+                    return None
                 game = Game(db_game["id"])
                 return game.config.runner_config["version"]
         if self.installer.runner == "libretro":
