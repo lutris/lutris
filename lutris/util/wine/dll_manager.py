@@ -48,8 +48,12 @@ class DLLManager:
 
     @property
     def path(self):
-        """Path to local folder containing DDLs"""
-        return os.path.join(self.base_dir, self.version)
+        """Path to local folder containing DLLs"""
+        version = self.version
+        if not version:
+            raise RuntimeError(
+                "No path can be generated for %s because no version information is available." % self.component)
+        return os.path.join(self.base_dir, version)
 
     @property
     def version_choices(self):
@@ -82,7 +86,7 @@ class DLLManager:
 
     def is_available(self):
         """Return whether component is cached locally"""
-        return system.path_exists(self.path)
+        return self.version and system.path_exists(self.path)
 
     def dll_exists(self, dll_name):
         """Check if the dll is provided by the component
@@ -189,5 +193,8 @@ class DLLManager:
     def upgrade(self):
         self.fetch_versions()
         if not self.is_available():
-            logger.info("Downloading %s %s...", self.component, self.version)
-            self.download()
+            if self.version:
+                logger.info("Downloading %s %s...", self.component, self.version)
+                self.download()
+            else:
+                logger.warning("Unable to download %s because version information was not available.", self.component)
