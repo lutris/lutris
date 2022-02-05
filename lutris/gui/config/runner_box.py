@@ -47,6 +47,7 @@ class RunnerBox(Gtk.Box):
         self.runner_label_box.pack_start(runner_label, False, False, 0)
 
         desc_label = Gtk.Label(visible=True)
+        desc_label.set_line_wrap(True)
         desc_label.set_alignment(0, 0.5)
         desc_label.set_text(self.runner.description)
         self.runner_label_box.pack_start(desc_label, False, False, 0)
