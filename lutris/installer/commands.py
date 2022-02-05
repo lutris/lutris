@@ -13,6 +13,8 @@ from gi.repository import GLib
 from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
+from lutris.database.games import get_game_by_field
+from lutris.game import Game
 from lutris.installer.errors import ScriptingError
 from lutris.runners import import_task
 from lutris.util import extract, linux, selective_merge, system
@@ -30,11 +32,15 @@ class CommandsMixin:
 
     def _get_runner_version(self):
         """Return the version of the runner used for the installer"""
-        if (
-                self.installer.runner == "wine"
-                and self.installer.script.get(self.installer.runner)
-        ):
-            return self.installer.script[self.installer.runner].get("version")
+        if self.installer.runner == "wine":
+            # If a version is specified in the script choose this one
+            if self.installer.script.get(self.installer.runner):
+                return self.installer.script[self.installer.runner].get("version")
+            # If the installer is a extension, use the wine version from the base game
+            if self.requires:
+                db_game = get_game_by_field(self.requires, field="installer_slug")
+                game = Game(db_game["id"])
+                return game.config.runner_config["version"]
         if self.installer.runner == "libretro":
             return self.installer.script["game"]["core"]
         return None
@@ -369,8 +375,7 @@ class CommandsMixin:
 
     def get_wine_path(self):
         """Return absolute path of wine version used during the install"""
-        wine_version = self._get_runner_version()
-        return get_wine_version_exe(wine_version)
+        return get_wine_version_exe(self._get_runner_version())
 
     def task(self, data):
         """Directive triggering another function specific to a runner.

@@ -89,13 +89,15 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         }
 
     @staticmethod
-    def _get_installed_dependency(dependency):
-        """Return whether a dependency is installed"""
+    def _get_game_dependency(dependency):
+        """Return a game database row from a dependency name"""
         game = get_game_by_field(dependency, field="installer_slug")
-
         if not game:
             game = get_game_by_field(dependency, "slug")
-        if bool(game) and bool(game["directory"]):
+
+        # Game must be installed and have a directory
+        # set so we can use that as the destination
+        if game and game["installed"] and game["directory"]:
             return game
 
     def _check_binary_dependencies(self):
@@ -128,10 +130,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             dependencies = [self.installer.extends]
         else:
             dependencies = unpack_dependencies(self.installer.requires)
-        error_message = "You need to install {} before"
+        error_message = _("You need to install {} before")
         for index, dependency in enumerate(dependencies):
             if isinstance(dependency, tuple):
-                installed_games = [dep for dep in [self._get_installed_dependency(dep) for dep in dependency] if dep]
+                installed_games = [dep for dep in [self._get_game_dependency(dep) for dep in dependency] if dep]
                 if not installed_games:
                     if len(dependency) == 1:
                         raise MissingGameDependency(slug=dependency)
@@ -140,7 +142,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     self.target_path = installed_games[0]["directory"]
                     self.requires = installed_games[0]["installer_slug"]
             else:
-                game = self._get_installed_dependency(dependency)
+                game = self._get_game_dependency(dependency)
                 if not game:
                     raise MissingGameDependency(slug=dependency)
                 if index == 0:
