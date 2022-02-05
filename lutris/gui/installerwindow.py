@@ -33,6 +33,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         super().__init__(application=application)
         self.set_default_size(540, 320)
         self.installers = installers
+        self.config = {}
         self.service = service
         self.appid = appid
         self.install_in_progress = False
@@ -177,6 +178,14 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             return
         self.title_label.set_markup(_("<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
         self.select_install_folder()
+
+        desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
+        desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
+        self.widget_box.pack_start(desktop_shortcut_button, False, False, 5)
+
+        menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
+        menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
+        self.widget_box.pack_start(menu_shortcut_button, False, False, 5)
 
     def select_install_folder(self):
         """Stage where we select the install directory."""
@@ -422,19 +431,17 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def on_install_finished(self, game_id):
         self.clean_widgets()
+
+        if self.config.get("create_desktop_shortcut"):
+            self.create_shortcut(desktop=True)
+        if self.config.get("create_menu_shortcut"):
+            self.create_shortcut()
+
         # Save game to trigger a game-updated signal
         game = Game(game_id)
         game.save()
 
         self.install_in_progress = False
-
-        desktop_shortcut_button = Gtk.Button(_("Create desktop shortcut"), visible=True)
-        desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
-        self.widget_box.pack_start(desktop_shortcut_button, False, False, 5)
-
-        menu_shortcut_button = Gtk.Button(_("Create application menu shortcut"), visible=True)
-        menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
-        self.widget_box.pack_start(menu_shortcut_button, False, False, 5)
 
         self.widget_box.show()
 
@@ -478,10 +485,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.destroy()
 
     def on_create_desktop_shortcut_clicked(self, _widget):
-        self.create_shortcut(desktop=True)
+        self.config["create_desktop_shortcut"] = True
 
     def on_create_menu_shortcut_clicked(self, _widget):
-        self.create_shortcut()
+        self.config["create_menu_shortcut"] = True
 
     def create_shortcut(self, desktop=False):
         """Create desktop or global menu shortcuts."""
