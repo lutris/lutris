@@ -7,6 +7,7 @@ from lutris import runners, services
 from lutris.database.games import get_game_by_field, get_game_for_service
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_link_button
+from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 
@@ -19,12 +20,13 @@ class GameBar(Gtk.Box):
                          margin_bottom=12,
                          margin_right=12,
                          spacing=6)
-        GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-updated", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-removed", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
+        self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
+        self.game_started_hook_id = GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
+        self.game_stopped_hook_id = GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
+        self.game_updated_hook_id = GObject.add_emission_hook(Game, "game-updated", self.on_game_state_changed)
+        self.game_removed_hook_id = GObject.add_emission_hook(Game, "game-removed", self.on_game_state_changed)
+        self.game_installed_hook_id = GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
+        self.connect("destroy", self.on_destroy)
 
         self.set_margin_bottom(12)
         self.game_actions = game_actions
@@ -59,6 +61,15 @@ class GameBar(Gtk.Box):
         game_actions.set_game(self.game)
         self.update_view()
 
+    def on_destroy(self, widget):
+        GObject.remove_emission_hook(Game, "game-start", self.game_start_hook_id)
+        GObject.remove_emission_hook(Game, "game-started", self.game_started_hook_id)
+        GObject.remove_emission_hook(Game, "game-stopped", self.game_stopped_hook_id)
+        GObject.remove_emission_hook(Game, "game-updated", self.game_updated_hook_id)
+        GObject.remove_emission_hook(Game, "game-removed", self.game_removed_hook_id)
+        GObject.remove_emission_hook(Game, "game-installed", self.game_installed_hook_id)
+        return True
+
     def clear_view(self):
         """Clears all widgets from the container"""
         for child in self.get_children():
@@ -84,6 +95,7 @@ class GameBar(Gtk.Box):
         if self.game.playtime:
             hbox.pack_start(self.get_playtime_label(), False, False, 0)
         hbox.show_all()
+        logger.info("Show: %s", self.game.name)
 
     def get_popover(self, buttons, parent):
         """Return the popover widget containing a list of link buttons"""
