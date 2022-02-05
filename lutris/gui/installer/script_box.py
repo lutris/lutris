@@ -24,11 +24,7 @@ class InstallerScriptBox(Gtk.VBox):
 
     def get_rating(self):
         """Return a string representation of the API rating"""
-        try:
-            rating = int(self.script["rating"])
-        except (ValueError, TypeError, KeyError):
-            return ""
-        return "⭐" * rating
+        return ""
 
     def get_infobox(self):
         """Return the central information box"""
