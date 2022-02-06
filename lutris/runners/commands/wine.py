@@ -399,4 +399,4 @@ def open_wine_terminal(terminal, wine_path, prefix, env):
     env["WINEPREFIX"] = prefix
     shell_command = get_shell_command(prefix, env, aliases)
     terminal = terminal or linux.get_default_terminal()
-    system.execute([linux.get_default_terminal(), "-e", shell_command])
+    system.execute([terminal, "-e", shell_command])

@@ -317,6 +317,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             command_name = command_data
             command_params = {}
         command_name = command_name.replace("-", "_")
+        # Prevent private methods from being accessed as commands
         command_name = command_name.strip("_")
         return command_name, command_params
 
