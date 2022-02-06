@@ -159,12 +159,17 @@ class DLLManager:
     def enable_user_file(self, user_dir, file_path, source_path):
         if system.path_exists(source_path):
             wine_file_path = os.path.join(user_dir, file_path)
+            wine_file_dir = os.path.dirname(wine_file_path)
             if system.path_exists(wine_file_path):
                 if not os.path.islink(wine_file_path):
                     # Backing up original version (may not be needed)
                     shutil.move(wine_file_path, wine_file_path + ".orig")
                 else:
                     os.remove(wine_file_path)
+
+            if not os.path.isdir(wine_file_dir):
+                os.makedirs(wine_file_dir)
+
             try:
                 os.symlink(source_path, wine_file_path)
             except OSError:
