@@ -7,7 +7,6 @@ from lutris import runners, services
 from lutris.database.games import get_game_by_field, get_game_for_service
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_link_button
-from lutris.util.log import logger
 from lutris.util.strings import gtk_safe
 
 
