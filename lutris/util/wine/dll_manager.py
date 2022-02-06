@@ -8,6 +8,7 @@ from lutris.util import system
 from lutris.util.extract import extract_archive
 from lutris.util.http import download_file
 from lutris.util.log import logger
+from lutris.util.wine.prefix import WinePrefixManager
 
 
 class DLLManager:
@@ -15,6 +16,7 @@ class DLLManager:
     component = NotImplemented
     base_dir = NotImplemented
     managed_dlls = NotImplemented
+    managed_user_files = []  # most managers have none
     versions_path = NotImplemented
     releases_url = NotImplemented
     archs = {
@@ -154,6 +156,30 @@ class DLLManager:
                 os.remove(wine_dll_path)
             shutil.move(wine_dll_path + ".orig", wine_dll_path)
 
+    def enable_user_file(self, user_dir, file_path, source_path):
+        if system.path_exists(source_path):
+            wine_file_path = os.path.join(user_dir, file_path)
+            if system.path_exists(wine_file_path):
+                if not os.path.islink(wine_file_path):
+                    # Backing up original version (may not be needed)
+                    shutil.move(wine_file_path, wine_file_path + ".orig")
+                else:
+                    os.remove(wine_file_path)
+            try:
+                os.symlink(source_path, wine_file_path)
+            except OSError:
+                logger.error("Failed linking %s to %s", source_path, wine_file_path)
+        else:
+            self.disable_user_file(user_dir, file_path)
+
+    def disable_user_file(self, user_dir, file_path):
+        wine_file_path = os.path.join(user_dir, file_path)
+        # We only create a symlink; if it is a real file, it mus tbe user data.
+        if system.path_exists(wine_file_path) and os.path.islink(wine_file_path):
+            os.remove(wine_file_path)
+            if system.path_exists(wine_file_path + ".orig"):
+                shutil.move(wine_file_path + ".orig", wine_file_path)
+
     def _iter_dlls(self):
         windows_path = os.path.join(self.prefix, "drive_c/windows")
         if self.wine_arch == "win64":
@@ -168,6 +194,14 @@ class DLLManager:
             for dll in self.managed_dlls:
                 yield system_dir, arch, dll
 
+    def _iter_user_files(self):
+        if self.managed_user_files:
+            prefix_manager = WinePrefixManager(self.prefix)
+            user_dir = prefix_manager.user_dir
+            for file in self.managed_user_files:
+                filename = os.path.basename(file)
+                yield user_dir, file, filename
+
     def enable(self):
         """Enable Dlls for the current prefix"""
         if not self.is_available():
@@ -178,11 +212,16 @@ class DLLManager:
         for system_dir, arch, dll in self._iter_dlls():
             dll_path = os.path.join(self.path, arch, "%s.dll" % dll)
             self.enable_dll(system_dir, arch, dll_path)
+        for user_dir, file, filename in self._iter_user_files():
+            source_path = os.path.join(self.path, filename)
+            self.enable_user_file(user_dir, file, source_path)
 
     def disable(self):
         """Disable DLLs for the current prefix"""
         for system_dir, arch, dll in self._iter_dlls():
             self.disable_dll(system_dir, arch, dll)
+        for user_dir, file, _filename in self._iter_user_files():
+            self.disable_user_file(user_dir, file)
 
     def fetch_versions(self):
         """Get releases from GitHub"""

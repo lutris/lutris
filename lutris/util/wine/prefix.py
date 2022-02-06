@@ -48,6 +48,12 @@ class WinePrefixManager:
             logger.warning("No path specified for Wine prefix")
         self.path = path
 
+    @property
+    def user_dir(self):
+        """Returns the directory that contains the current user's profile in the WINE prefix."""
+        user = os.getenv("USER") or 'lutrisuser'
+        return os.path.join(self.path, "drive_c/users/", user)
+
     def setup_defaults(self):
         """Sets the defaults for newly created prefixes"""
         for dll, value in DEFAULT_DLL_OVERRIDES.items():
@@ -121,8 +127,7 @@ class WinePrefixManager:
         """Overwrite desktop integration"""
         # pylint: disable=too-many-branches
         # TODO: reduce complexity (18)
-        user = os.getenv("USER") or 'lutrisuser'
-        user_dir = os.path.join(self.path, "drive_c/users/", user)
+        user_dir = self.user_dir
         desktop_folders = self.get_desktop_folders()
         desktop_dir = os.path.expanduser(desktop_dir) if desktop_dir else user_dir
 
