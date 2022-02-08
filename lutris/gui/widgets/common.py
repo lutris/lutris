@@ -126,6 +126,7 @@ class FileChooserEntry(Gtk.Box):
             return
         path = os.path.expanduser(path)
         self.update_completion(path)
+        self.path = path
         if self.warn_if_ntfs and LINUX_SYSTEM.get_fs_type_for_path(path) == "ntfs":
             ntfs_box = Gtk.Box(spacing=6, visible=True)
             warning_image = Gtk.Image(visible=True)
