@@ -355,7 +355,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.filters.get("category") and self.filters["category"] != "all":
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
         else:
-            game_ids = []
+            game_ids = None
         searches, filters, excludes = self.get_sql_filters()
         games = games_db.get_games(
             searches=searches,
@@ -363,7 +363,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             excludes=excludes,
             sorts=self.sort_params
         )
-        if game_ids:
+        if game_ids is not None:
             return [game for game in games if game["id"] in game_ids]
         return games
 
