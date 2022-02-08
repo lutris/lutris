@@ -7,9 +7,12 @@ import urllib.parse
 import urllib.request
 from ssl import CertificateError
 
-from lutris.settings import PROJECT, SITE_URL, VERSION
+from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
 from lutris.util import system
 from lutris.util.log import logger
+
+
+DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 2
 
 
 class HTTPError(Exception):
@@ -29,7 +32,7 @@ class Request:
     def __init__(
         self,
         url,
-        timeout=30,
+        timeout=DEFAULT_TIMEOUT,
         stop_request=None,
         headers=None,
         cookies=None,
@@ -103,8 +106,8 @@ class Request:
         try:
             self.total_size = int(request.info().get("Content-Length").strip())
         except AttributeError as ex:
-            logger.warning("Failed to read content length on response from %s: %s", self.url, ex)
-            logger.warning(request.info())
+            # logger.debug("Failed to read content length on response from %s: %s", self.url, ex)
+            # logger.warning(request.info())
             self.total_size = 0
 
         self.content = b"".join(self._iter_chunks(request))
