@@ -761,9 +761,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         # Stopped games do not get displayed on the running page
         if game.state == game.STATE_STOPPED:
             selected_row = self.sidebar.get_selected_row()
-            if selected_row is not None and selected_row.id == "running":
+            if selected_row and selected_row.id == "running":
                 return False
-
         return True
 
     def on_game_updated(self, game):
@@ -777,7 +776,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return True
         updated = self.game_store.update(db_game)
         if not updated:
-            self.game_store.add_game(db_game)
+            logger.debug("Game %s not updated in view", game)
         return True
 
     def on_game_stopped(self, game):
