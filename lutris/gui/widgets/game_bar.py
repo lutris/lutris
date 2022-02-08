@@ -261,7 +261,7 @@ class GameBar(Gtk.Box):
         """Handler called when the game has changed state"""
         if (
             game.id == self.game.id
-            or game.appid == self.appid
+            or (self.appid and game.appid == self.appid)
         ):
             self.game = game
         else:

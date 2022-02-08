@@ -11,7 +11,7 @@ from lutris.util.strings import split_arguments
 
 
 class scummvm(Runner):
-    description = _("Runs various 2D point-and-click adventure games.")
+    description = _("Engine for point-and-click games.")
     human_name = _("ScummVM")
     platforms = [_("Linux")]
     runnable_alone = True

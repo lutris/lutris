@@ -1,3 +1,21 @@
+lutris (0.5.10) impish; urgency=medium
+
+  * Add new window to add games to Lutris, with searches from the website,
+    scanning a folder for previously installed games, installing a Windows 
+    game from a setup file, installing from a YAML script or configuring a
+    single game manually.
+  * Move the search for Lutris installers from a tab in the Lutris service
+    to the window for adding games.
+  * Add a coverart format
+  * Add integration with EA Origin
+  * Add integration with Ubisoft Connect
+  * Remove Winesteam runner (install Steam for Windows in Lutris instead)
+  * PC (Linux and Windows) games have their own dedicated Nvidia shader cache
+  * Add dgvoodoo2 option
+  * Add option to enable BattleEye anti-cheat support
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 04 Feb 2022 19:14:41 -0800
+
 lutris (0.5.9.1) hirsute; urgency=medium
 
   * Fix possible escaping error for gamescope option

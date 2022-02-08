@@ -838,6 +838,8 @@ class wine(Runner):
         show_debug = self.runner_config.get("show_debug", "-all")
         if show_debug != "inherit":
             env["WINEDEBUG"] = show_debug
+        if show_debug == "-all":
+            env["DXVK_LOG_LEVEL"] = "none"
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
         if is_gstreamer_build(self.get_executable()):

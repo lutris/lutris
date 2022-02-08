@@ -342,7 +342,6 @@ class Application(Gtk.Application):
         init_lutris()
         migrate()
         run_all_checks()
-
         # List game
         if options.contains("list-games"):
             game_list = games_db.get_games()

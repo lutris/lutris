@@ -355,7 +355,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.filters.get("category") and self.filters["category"] != "all":
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
         else:
-            game_ids = []
+            game_ids = None
         searches, filters, excludes = self.get_sql_filters()
         games = games_db.get_games(
             searches=searches,
@@ -363,7 +363,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             excludes=excludes,
             sorts=self.sort_params
         )
-        if game_ids:
+        if game_ids is not None:
             return [game for game in games if game["id"] in game_ids]
         return games
 
@@ -679,8 +679,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
-        add_game_window = AddGamesWindow()
-        add_game_window.present()
+        self.application.show_window(AddGamesWindow)
         return True
 
     def on_toggle_viewtype(self, *args):
@@ -762,9 +761,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         # Stopped games do not get displayed on the running page
         if game.state == game.STATE_STOPPED:
             selected_row = self.sidebar.get_selected_row()
-            if selected_row is not None and selected_row.id == "running":
+            if selected_row and selected_row.id == "running":
                 return False
-
         return True
 
     def on_game_updated(self, game):
@@ -778,13 +776,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return True
         updated = self.game_store.update(db_game)
         if not updated:
-            self.game_store.add_game(db_game)
+            logger.debug("Game %s not updated in view", game)
         return True
 
     def on_game_stopped(self, game):
         """Updates the game list when a game stops; this keeps the 'running' page updated."""
         selected_row = self.sidebar.get_selected_row()
-        # Only update the running page- we lose the selected when we do this,
+        # Only update the running page- we lose the selected row when we do this,
         # but on the running page this is okay.
         if selected_row is not None and selected_row.id == "running":
             self.game_store.remove_game(game.id)
@@ -801,10 +799,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             logger.debug("Looking up %s game %s", self.service.id, game_id)
             db_game = games_db.get_game_for_service(self.service.id, game_id)
             if self.service.id == "lutris":
-                if not db_game:
-                    self.service.install(game_id)
-                    return
-                if not db_game["installed"]:
+                if not db_game or not db_game["installed"]:
                     self.service.install(game_id)
                     return
                 game_id = db_game["id"]
@@ -817,8 +812,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                         logger.error("No game %s found for %s", game_id, self.service.id)
                         return
                     game_id = self.service.install(service_game)
-        else:
-            logger.debug("No service for view")
         if game_id:
             game = Game(game_id)
             if game.is_installed:

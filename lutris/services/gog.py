@@ -322,25 +322,22 @@ class GOGService(OnlineService):
 
     def get_installers(self, downloads, runner, language="en"):
         """Return available installers for a GOG game"""
-
         # Filter out Mac installers
         gog_installers = [installer for installer in downloads["installers"] if installer["os"] != "mac"]
         available_platforms = {installer["os"] for installer in gog_installers}
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
-            if runner == "linux":
-                filter_os = "windows"
-            else:
-                filter_os = "linux"
+            filter_os = "windows" if runner == "linux" else "linux"
             gog_installers = [installer for installer in gog_installers if installer["os"] != filter_os]
 
-        language = self.determine_language_installer(gog_installers, language)
-        gog_installers = [installer for installer in gog_installers if installer["language"] == language]
-        return gog_installers
+        return [
+            installer
+            for installer in gog_installers
+            if installer["language"] == self.determine_language_installer(gog_installers, language)
+        ]
 
     def determine_language_installer(self, gog_installers, default_language):
         """Return locale language string if available in gog_installers"""
-
         language = i18n.get_lang()
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
         if not gog_installers:
