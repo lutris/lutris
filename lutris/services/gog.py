@@ -302,10 +302,13 @@ class GOGService(OnlineService):
 
     def get_downloads(self, gogid):
         """Return all available downloads for a GOG ID"""
+        if not gogid:
+            logger.warning("Unable to get GOG data because no GOG ID is available")
+            return {}
         gog_data = self.get_game_details(gogid)
         if not gog_data:
             logger.warning("Unable to get GOG data for game %s", gogid)
-            return []
+            return {}
         return gog_data["downloads"]
 
     def get_extras(self, gogid):
@@ -323,7 +326,7 @@ class GOGService(OnlineService):
     def get_installers(self, downloads, runner, language="en"):
         """Return available installers for a GOG game"""
         # Filter out Mac installers
-        gog_installers = [installer for installer in downloads["installers"] if installer["os"] != "mac"]
+        gog_installers = [installer for installer in downloads.get("installers", []) if installer["os"] != "mac"]
         available_platforms = {installer["os"] for installer in gog_installers}
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
