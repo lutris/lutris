@@ -12,7 +12,7 @@ from lutris.installer.legacy import get_game_launcher
 from lutris.runners import import_runner
 from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
-from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config, get_gog_game_path
+from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config_from_path, get_gog_game_path
 from lutris.util.log import logger
 
 
@@ -228,9 +228,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return
 
         if self.is_gog:
-            gog_game_path = get_gog_game_path(self.interpreter.target_path)
-            if gog_game_path:
-                gog_config = get_gog_config(gog_game_path)
+            gog_config = get_gog_config_from_path(self.interpreter.target_path)
+            if gog_config:
+                gog_game_path = get_gog_game_path(self.interpreter.target_path)
                 lutris_config = convert_gog_config_to_lutris(gog_config, gog_game_path)
                 self.script["game"].update(lutris_config)
 

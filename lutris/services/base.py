@@ -222,11 +222,11 @@ class BaseService(GObject.Object):
             if existing_game:
                 logger.debug("Found existing game, aborting install")
                 return
-        if not service_installers:
-            logger.debug("No lutris.net installer found, generating installer.")
-            installer = self.generate_installer(db_game)
-            if installer:
-                service_installers.append(installer)
+        installer = self.generate_installer(db_game)
+        if installer:
+            if service_installers:
+                installer["version"] = installer["version"] + " (auto-generated)"
+            service_installers.append(installer)
         if not service_installers:
             logger.error("No installer found for %s", db_game)
             return

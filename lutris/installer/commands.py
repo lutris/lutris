@@ -560,24 +560,13 @@ class CommandsMixin:
             gog_config = json.loads(gog_config_file.read())
         game_tasks = [task for task in gog_config["playTasks"] if task["category"] == "game"]
         arguments = game_tasks[0]["arguments"]
-        logger.info("ScummVM arguments from GOG: %s", arguments)
-        if "-c " in arguments:
-            config_path = arguments.split("\"")[1].replace("..\\", "")
-            config_section = arguments.split()[-1]
-        else:
-            raise RuntimeError("Unable to read config path from arguments: '%s'" % arguments)
-        parser = EvilConfigParser(allow_no_value=True, dict_type=MultiOrderedDict, strict=False)
-        parser.optionxform = str  # Preserve text case
+        game_id = arguments.split()[-1]
+        arguments = " ".join(arguments.split()[:-1])
         base_dir = os.path.dirname(gog_config_path)
-        scummvm_config_path = os.path.join(base_dir, config_path)
-        if not system.path_exists(scummvm_config_path):
-            raise RuntimeError("ScummVM config file %s not found" % scummvm_config_path)
-        parser.read(scummvm_config_path)
-        game_id = parser.get(config_section, "gameid")
         return {
             "game_id": game_id,
             "path": base_dir,
-            "arguments": "-c \"%s\"" % config_path
+            "arguments": arguments
         }
 
     def autosetup_gog_game(self, file_id, silent=False):
@@ -589,12 +578,17 @@ class CommandsMixin:
         file_list = extract.get_innoextract_list(file_path)
         dosbox_found = False
         scummvm_found = False
+        windows_override_found = False  # DOS games that also have a Windows executable
         for filename in file_list:
             if "dosbox/dosbox.exe" in filename.lower():
                 dosbox_found = True
             if "scummvm/scummvm.exe" in filename.lower():
                 scummvm_found = True
-        if dosbox_found:
+            if "_some_windows.exe" in filename.lower():
+                # There's not a good way to handle exceptions without extracting the .info file
+                # before extracting the game. Added for Quake but GlQuake.exe doesn't run on modern wine
+                windows_override_found = True
+        if dosbox_found and not windows_override_found:
             self._extract_gog_game(file_id)
             dosbox_config = {
                 "working_dir": "$GAMEDIR/DOSBOX",

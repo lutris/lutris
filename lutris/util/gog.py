@@ -60,3 +60,10 @@ def convert_gog_config_to_lutris(gog_config, gog_game_path):
         else:
             lutris_config["launch_configs"].append(config)
     return lutris_config
+
+
+def get_gog_config_from_path(target_path):
+    """Return the GOG configuration for a root path"""
+    gog_game_path = get_gog_game_path(target_path)
+    if gog_game_path:
+        return get_gog_config(gog_game_path)
