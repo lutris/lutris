@@ -104,7 +104,7 @@ class CommandsMixin:
                       "at the same time for the execute command"),
                     data,
                 )
-            file_ref = data.get("file", "")
+            exec_path = data.get("file", "")
             command = data.get("command", "")
             args_string = data.get("args", "")
             for arg in shlex.split(args_string):
@@ -131,18 +131,18 @@ class CommandsMixin:
             raise ScriptingError(_("No parameters supplied to execute command."), data)
 
         if command:
-            file_ref = "bash"
-            args = ["-c", self._get_file(command.strip())]
+            exec_path = "bash"
+            args = ["-c", self._get_file_path(command.strip())]
             include_processes.append("bash")
         else:
             # Determine whether 'file' value is a file id or a path
-            file_ref = self._get_file(file_ref)
-        if system.path_exists(file_ref) and not system.is_executable(file_ref):
-            logger.warning("Making %s executable", file_ref)
-            system.make_executable(file_ref)
-        exec_path = system.find_executable(file_ref)
-        if not exec_path:
-            raise ScriptingError(_("Unable to find executable %s") % file_ref)
+            exec_path = self._get_file_path(exec_path)
+        if system.path_exists(exec_path) and not system.is_executable(exec_path):
+            logger.warning("Making %s executable", exec_path)
+            system.make_executable(exec_path)
+        exec_abs_path = system.find_executable(exec_path)
+        if not exec_abs_path:
+            raise ScriptingError(_("Unable to find executable %s") % exec_path)
 
         if terminal:
             terminal = linux.get_default_terminal()
@@ -151,7 +151,7 @@ class CommandsMixin:
             working_dir = self.target_path
 
         command = MonitoredCommand(
-            [exec_path] + args,
+            [exec_abs_path] + args,
             env=env,
             term=terminal,
             cwd=working_dir,
@@ -167,7 +167,7 @@ class CommandsMixin:
         """Extract a file, guessing the compression method."""
         self._check_required_params([("file", "src")], data, "extract")
         src_param = data.get("file") or data.get("src")
-        filespec = self._get_file(src_param)
+        filespec = self._get_file_path(src_param)
 
         if os.path.exists(filespec):
             filenames = [filespec]
@@ -442,7 +442,7 @@ class CommandsMixin:
         self._check_required_params(["file", "content"], params, "write_file")
 
         # Get file
-        dest_file_path = self._get_file(params["file"])
+        dest_file_path = self._get_file_path(params["file"])
 
         # Create dir if necessary
         basedir = os.path.dirname(dest_file_path)
@@ -460,7 +460,7 @@ class CommandsMixin:
         self._check_required_params(["file", "data"], params, "write_json")
 
         # Get file
-        filename = self._get_file(params["file"])
+        filename = self._get_file_path(params["file"])
 
         # Create dir if necessary
         basedir = os.path.dirname(filename)
@@ -490,7 +490,7 @@ class CommandsMixin:
         else:
             self._check_required_params(["file", "section", "key", "value"], params, "write_config")
         # Get file
-        config_file_path = self._get_file(params["file"])
+        config_file_path = self._get_file_path(params["file"])
 
         # Create dir if necessary
         basedir = os.path.dirname(config_file_path)
@@ -520,7 +520,7 @@ class CommandsMixin:
         with open(config_file_path, "wb") as config_file:
             parser.write(config_file)
 
-    def _get_file(self, fileid):
+    def _get_file_path(self, fileid):
         file_path = self.game_files.get(fileid)
         if not file_path:
             file_path = self._substitute(fileid)
