@@ -282,21 +282,24 @@ class Game(GObject.Object):
 
     def is_launchable(self):
         """Verify that the current game can be launched."""
+        if not self.is_installed:
+            dialogs.ErrorDialog(_("Tried to launch a game that isn't installed. (Who'd you do that?)"))
+            return False
+        if not self.runner:
+            dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
+            return False
         if not self.runner.is_installed():
             installed = self.runner.install_dialog()
             if not installed:
+                dialogs.ErrorDialog(_("Runner not installed."))
                 return False
 
         if self.runner.use_runtime():
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
-                logger.warning("Runtime updates: %s", runtime_updater.current_updates)
                 dialogs.ErrorDialog(_("Runtime currently updating"), _("Game might not work as expected"))
         if ("wine" in self.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
-            # TODO find a reference to the root window or better yet a way not
-            # to have Gtk dependent code in this class.
-            root_window = None
-            dialogs.WineNotInstalledWarning(parent=root_window)
+            dialogs.WineNotInstalledWarning(parent=None)
         return True
 
     def restrict_to_display(self, display):
@@ -397,6 +400,15 @@ class Game(GObject.Object):
             logger.warning("Trying to launch %s without a runner", self)
             return {}
         gameplay_info = self.runner.play()
+        if self.config.game_level.get("game", {}).get("launch_configs"):
+            configs = self.config.game_level["game"]["launch_configs"]
+            dlg = dialogs.LaunchConfigSelectDialog(self, configs)
+            if dlg.config_index:
+                config = configs[dlg.config_index - 1]
+                gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
+                if config.get("args"):
+                    gameplay_info["command"] += strings.split_arguments(config["args"])
+
         if "error" in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
@@ -479,20 +491,16 @@ class Game(GObject.Object):
 
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
-        if not self.is_installed:
-            raise RuntimeError("Tried to launch a game that isn't installed")
+        if not self.is_launchable():
+            logger.error("Game is not launchable")
+            return
+
         self.load_config()  # Reload the config before launching it.
 
         if str(self.id) in LOG_BUFFERS:  # Reset game logs on each launch
             log_buffer = LOG_BUFFERS[str(self.id)]
             log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
 
-        if not self.runner:
-            dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
-            return
-        if not self.is_launchable():
-            logger.error("Game is not launchable")
-            return
         self.state = self.STATE_LAUNCHING
         self.prelaunch_pids = system.get_running_pid_list()
         self.emit("game-start")

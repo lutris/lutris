@@ -209,7 +209,6 @@ class InstallOrPlayDialog(Gtk.Dialog):
     def __init__(self, game_name):
         Gtk.Dialog.__init__(self, _("%s is already installed") % game_name)
         self.connect("delete-event", lambda *x: self.destroy())
-
         self.action = "play"
         self.action_confirmed = False
 
@@ -217,7 +216,6 @@ class InstallOrPlayDialog(Gtk.Dialog):
         self.set_border_width(12)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
-
         play_button = Gtk.RadioButton.new_with_label_from_widget(None, _("Launch game"))
         play_button.connect("toggled", self.on_button_toggled, "play")
         vbox.pack_start(play_button, False, False, 0)
@@ -240,6 +238,40 @@ class InstallOrPlayDialog(Gtk.Dialog):
     def on_confirm(self, button):  # pylint: disable=unused-argument
         logger.debug("Action %s confirmed", self.action)
         self.action_confirmed = True
+        self.destroy()
+
+
+class LaunchConfigSelectDialog(Gtk.Dialog):
+    def __init__(self, game, configs):
+        Gtk.Dialog.__init__(self, _("Select game to launch"))
+        self.connect("delete-event", lambda *x: self.destroy())
+        self.config_index = 0
+        self.set_size_request(320, 120)
+        self.set_border_width(12)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
+        self.get_content_area().add(vbox)
+
+        primary_game_radio = Gtk.RadioButton.new_with_label_from_widget(None, game.name)
+        primary_game_radio.connect("toggled", self.on_button_toggled, 0)
+        vbox.pack_start(primary_game_radio, False, False, 0)
+        for i in range(len(configs)):
+            config = configs[i]
+            _button = Gtk.RadioButton.new_from_widget(primary_game_radio)
+            _button.set_label(config["name"])
+            _button.connect("toggled", self.on_button_toggled, i + 1)
+            vbox.pack_start(_button, False, False, 0)
+
+        confirm_button = Gtk.Button(_("OK"))
+        confirm_button.connect("clicked", self.on_confirm)
+        vbox.pack_start(confirm_button, False, False, 0)
+
+        self.show_all()
+        self.run()
+
+    def on_button_toggled(self, _button, index):
+        self.config_index = index
+
+    def on_confirm(self, _button):
         self.destroy()
 
 
