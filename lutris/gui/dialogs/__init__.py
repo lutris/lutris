@@ -254,8 +254,7 @@ class LaunchConfigSelectDialog(Gtk.Dialog):
         primary_game_radio = Gtk.RadioButton.new_with_label_from_widget(None, game.name)
         primary_game_radio.connect("toggled", self.on_button_toggled, 0)
         vbox.pack_start(primary_game_radio, False, False, 0)
-        for i in range(len(configs)):
-            config = configs[i]
+        for i, config in enumerate(configs):
             _button = Gtk.RadioButton.new_from_widget(primary_game_radio)
             _button.set_label(config["name"])
             _button.connect("toggled", self.on_button_toggled, i + 1)
