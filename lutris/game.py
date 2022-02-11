@@ -544,14 +544,27 @@ class Game(GObject.Object):
 
     def force_stop(self):
         """Forces termination of a running game"""
-        pids = self.get_game_pids()
-        if self.game_thread and self.game_thread.game_process:
-            pids.add(self.game_thread.game_process.pid)
-        for pid in pids:
-            try:
-                os.kill(int(pid), signal.SIGTERM)
-            except ProcessLookupError as ex:
-                logger.debug("Failed to kill game process: %s", ex)
+
+        def get_pids():
+            pids = self.get_game_pids()
+            if self.game_thread and self.game_thread.game_process:
+                pids.add(self.game_thread.game_process.pid)
+            return pids
+
+        def kill(pids, sig):
+            for pid in pids:
+                try:
+                    os.kill(int(pid), sig)
+                except ProcessLookupError as ex:
+                    logger.debug("Failed to kill game process: %s", ex)
+
+        kill(get_pids(), signal.SIGTERM)
+
+        # If SIGTERM fails, wait a second and try SIGKILL on any survivors
+        if get_pids():
+            time.sleep(1)
+            kill(get_pids(), signal.SIGKILL)
+
         self.stop_game()
 
     def get_game_pids(self):
