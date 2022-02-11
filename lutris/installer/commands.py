@@ -580,7 +580,7 @@ class CommandsMixin:
             "arguments": "-c \"%s\"" % config_path
         }
 
-    def autosetup_gog_game(self, file_id):
+    def autosetup_gog_game(self, file_id, silent=False):
         """Automatically guess the best way to install a GOG game by inspecting its contents.
         This chooses the right runner (DOSBox, Wine) for Windows game files.
         Linux setup files don't use innosetup, they can be unzipped instead.
@@ -618,9 +618,12 @@ class CommandsMixin:
             self.installer.script["game"] = arguments
             self.installer.runner = "scummvm"
         else:
+            args = "/SP- /NOCANCEL"
+            if silent:
+                args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
             return self.task({
                 "name": "wineexec",
                 "prefix": "$GAMEDIR",
                 "executable": file_id,
-                "args": "/SP- /NOCANCEL"
+                "args": args
             })
