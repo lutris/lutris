@@ -621,6 +621,7 @@ class CommandsMixin:
             args = "/SP- /NOCANCEL"
             if silent:
                 args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
+            self.installer.is_gog = True
             return self.task({
                 "name": "wineexec",
                 "prefix": "$GAMEDIR",
