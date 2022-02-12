@@ -149,6 +149,7 @@ def download_lutris_media(slug):
 
 
 def sync_media():
+    """Downlad all missing media"""
     banners_available = {fn.split(".")[0] for fn in os.listdir(settings.BANNER_PATH)}
     icons_available = {
         fn.split(".")[0].replace("lutris_", "")
@@ -159,6 +160,8 @@ def sync_media():
     complete_games = banners_available.intersection(icons_available).intersection(covers_available)
     all_slugs = {game["slug"] for game in get_games()}
     slugs = all_slugs - complete_games
+    if not slugs:
+        return
     games = get_api_games(list(slugs))
     banner_urls = {
         game["slug"]: game["banner_url"]

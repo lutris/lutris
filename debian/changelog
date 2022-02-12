@@ -9,6 +9,7 @@ lutris (0.5.10) impish; urgency=medium
   * Add a coverart format
   * Add integration with EA Origin
   * Add integration with Ubisoft Connect
+  * Download missing media on startup
   * Remove Winesteam runner (install Steam for Windows in Lutris instead)
   * PC (Linux and Windows) games have their own dedicated Nvidia shader cache
   * Add dgvoodoo2 option
