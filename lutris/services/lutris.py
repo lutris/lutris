@@ -173,7 +173,7 @@ def sync_media():
     cover_urls = {
         game["slug"]: game["coverart"]
         for game in games
-        if game["slug"] not in banners_available and game["coverart"]
+        if game["slug"] not in covers_available and game["coverart"]
     }
     logger.debug(
         "Syncing %s banners, %s icons and %s covers",
