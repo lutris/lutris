@@ -390,7 +390,7 @@ def get_disk_size(path):
 
 def get_running_pid_list():
     """Return the list of PIDs from processes currently running"""
-    return [p for p in os.listdir("/proc") if p[0].isdigit()]
+    return [int(p) for p in os.listdir("/proc") if p[0].isdigit()]
 
 
 def get_mounted_discs():
