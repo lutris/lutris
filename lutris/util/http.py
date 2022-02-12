@@ -11,7 +11,6 @@ from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
 from lutris.util import system
 from lutris.util.log import logger
 
-
 DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 2
 
 
@@ -105,9 +104,7 @@ class Request:
 
         try:
             self.total_size = int(request.info().get("Content-Length").strip())
-        except AttributeError as ex:
-            # logger.debug("Failed to read content length on response from %s: %s", self.url, ex)
-            # logger.warning(request.info())
+        except AttributeError:
             self.total_size = 0
 
         self.content = b"".join(self._iter_chunks(request))

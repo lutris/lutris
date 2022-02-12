@@ -12,6 +12,7 @@ from lutris.installer.legacy import get_game_launcher
 from lutris.runners import import_runner
 from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
+from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config_from_path, get_gog_game_path
 from lutris.util.log import logger
 
 
@@ -39,6 +40,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
+        self.is_gog = False
 
     def get_service(self, initial=None):
         if initial:
@@ -164,12 +166,16 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 value = True
             if str(value).lower() == 'false':
                 value = False
-            if isinstance(value, list):
+            if key == "launch_configs":
+                # launch configuration don't need substitutions at least for now.
+                config[key] = value
+            elif isinstance(value, list):
                 config[key] = [self.interpreter._substitute(i) for i in value]
             elif isinstance(value, dict):
                 config[key] = {k: self.interpreter._substitute(v) for (k, v) in value.items()}
             elif isinstance(value, bool):
                 config[key] = value
+
             else:
                 config[key] = self.interpreter._substitute(value)
         return config
@@ -220,6 +226,14 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 self.extends,
             )
             return
+
+        if self.is_gog:
+            gog_config = get_gog_config_from_path(self.interpreter.target_path)
+            if gog_config:
+                gog_game_path = get_gog_game_path(self.interpreter.target_path)
+                lutris_config = convert_gog_config_to_lutris(gog_config, gog_game_path)
+                self.script["game"].update(lutris_config)
+
         configpath = write_game_config(self.slug, self.get_game_config())
         runner_inst = import_runner(self.runner)()
         if self.service:

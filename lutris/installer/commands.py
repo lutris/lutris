@@ -104,7 +104,7 @@ class CommandsMixin:
                       "at the same time for the execute command"),
                     data,
                 )
-            file_ref = data.get("file", "")
+            exec_path = data.get("file", "")
             command = data.get("command", "")
             args_string = data.get("args", "")
             for arg in shlex.split(args_string):
@@ -131,18 +131,18 @@ class CommandsMixin:
             raise ScriptingError(_("No parameters supplied to execute command."), data)
 
         if command:
-            file_ref = "bash"
-            args = ["-c", self._get_file(command.strip())]
+            exec_path = "bash"
+            args = ["-c", self._get_file_path(command.strip())]
             include_processes.append("bash")
         else:
             # Determine whether 'file' value is a file id or a path
-            file_ref = self._get_file(file_ref)
-        if system.path_exists(file_ref) and not system.is_executable(file_ref):
-            logger.warning("Making %s executable", file_ref)
-            system.make_executable(file_ref)
-        exec_path = system.find_executable(file_ref)
-        if not exec_path:
-            raise ScriptingError(_("Unable to find executable %s") % file_ref)
+            exec_path = self._get_file_path(exec_path)
+        if system.path_exists(exec_path) and not system.is_executable(exec_path):
+            logger.warning("Making %s executable", exec_path)
+            system.make_executable(exec_path)
+        exec_abs_path = system.find_executable(exec_path)
+        if not exec_abs_path:
+            raise ScriptingError(_("Unable to find executable %s") % exec_path)
 
         if terminal:
             terminal = linux.get_default_terminal()
@@ -151,7 +151,7 @@ class CommandsMixin:
             working_dir = self.target_path
 
         command = MonitoredCommand(
-            [exec_path] + args,
+            [exec_abs_path] + args,
             env=env,
             term=terminal,
             cwd=working_dir,
@@ -167,7 +167,7 @@ class CommandsMixin:
         """Extract a file, guessing the compression method."""
         self._check_required_params([("file", "src")], data, "extract")
         src_param = data.get("file") or data.get("src")
-        filespec = self._get_file(src_param)
+        filespec = self._get_file_path(src_param)
 
         if os.path.exists(filespec):
             filenames = [filespec]
@@ -442,7 +442,7 @@ class CommandsMixin:
         self._check_required_params(["file", "content"], params, "write_file")
 
         # Get file
-        dest_file_path = self._get_file(params["file"])
+        dest_file_path = self._get_file_path(params["file"])
 
         # Create dir if necessary
         basedir = os.path.dirname(dest_file_path)
@@ -460,7 +460,7 @@ class CommandsMixin:
         self._check_required_params(["file", "data"], params, "write_json")
 
         # Get file
-        filename = self._get_file(params["file"])
+        filename = self._get_file_path(params["file"])
 
         # Create dir if necessary
         basedir = os.path.dirname(filename)
@@ -490,7 +490,7 @@ class CommandsMixin:
         else:
             self._check_required_params(["file", "section", "key", "value"], params, "write_config")
         # Get file
-        config_file_path = self._get_file(params["file"])
+        config_file_path = self._get_file_path(params["file"])
 
         # Create dir if necessary
         basedir = os.path.dirname(config_file_path)
@@ -520,7 +520,7 @@ class CommandsMixin:
         with open(config_file_path, "wb") as config_file:
             parser.write(config_file)
 
-    def _get_file(self, fileid):
+    def _get_file_path(self, fileid):
         file_path = self.game_files.get(fileid)
         if not file_path:
             file_path = self._substitute(fileid)
@@ -560,27 +560,16 @@ class CommandsMixin:
             gog_config = json.loads(gog_config_file.read())
         game_tasks = [task for task in gog_config["playTasks"] if task["category"] == "game"]
         arguments = game_tasks[0]["arguments"]
-        logger.info("ScummVM arguments from GOG: %s", arguments)
-        if "-c " in arguments:
-            config_path = arguments.split("\"")[1].replace("..\\", "")
-            config_section = arguments.split()[-1]
-        else:
-            raise RuntimeError("Unable to read config path from arguments: '%s'" % arguments)
-        parser = EvilConfigParser(allow_no_value=True, dict_type=MultiOrderedDict, strict=False)
-        parser.optionxform = str  # Preserve text case
+        game_id = arguments.split()[-1]
+        arguments = " ".join(arguments.split()[:-1])
         base_dir = os.path.dirname(gog_config_path)
-        scummvm_config_path = os.path.join(base_dir, config_path)
-        if not system.path_exists(scummvm_config_path):
-            raise RuntimeError("ScummVM config file %s not found" % scummvm_config_path)
-        parser.read(scummvm_config_path)
-        game_id = parser.get(config_section, "gameid")
         return {
             "game_id": game_id,
             "path": base_dir,
-            "arguments": "-c \"%s\"" % config_path
+            "arguments": arguments
         }
 
-    def autosetup_gog_game(self, file_id):
+    def autosetup_gog_game(self, file_id, silent=False):
         """Automatically guess the best way to install a GOG game by inspecting its contents.
         This chooses the right runner (DOSBox, Wine) for Windows game files.
         Linux setup files don't use innosetup, they can be unzipped instead.
@@ -589,12 +578,17 @@ class CommandsMixin:
         file_list = extract.get_innoextract_list(file_path)
         dosbox_found = False
         scummvm_found = False
+        windows_override_found = False  # DOS games that also have a Windows executable
         for filename in file_list:
             if "dosbox/dosbox.exe" in filename.lower():
                 dosbox_found = True
             if "scummvm/scummvm.exe" in filename.lower():
                 scummvm_found = True
-        if dosbox_found:
+            if "_some_windows.exe" in filename.lower():
+                # There's not a good way to handle exceptions without extracting the .info file
+                # before extracting the game. Added for Quake but GlQuake.exe doesn't run on modern wine
+                windows_override_found = True
+        if dosbox_found and not windows_override_found:
             self._extract_gog_game(file_id)
             dosbox_config = {
                 "working_dir": "$GAMEDIR/DOSBOX",
@@ -618,9 +612,13 @@ class CommandsMixin:
             self.installer.script["game"] = arguments
             self.installer.runner = "scummvm"
         else:
+            args = "/SP- /NOCANCEL"
+            if silent:
+                args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
+            self.installer.is_gog = True
             return self.task({
                 "name": "wineexec",
                 "prefix": "$GAMEDIR",
                 "executable": file_id,
-                "args": "/SP- /NOCANCEL"
+                "args": args
             })
