@@ -12,6 +12,7 @@ from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
 from lutris.services import DEFAULT_SERVICES
+from lutris.services.lutris import sync_media
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -187,4 +188,5 @@ def update_runtime():
     for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager):
         dll_manager = dll_manager_class()
         dll_manager.upgrade()
+    sync_media()
     logger.info("Startup complete")

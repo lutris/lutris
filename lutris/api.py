@@ -93,21 +93,19 @@ def get_http_response(url, payload):
     return response.json
 
 
-def get_game_api_page(game_ids, page=1):
+def get_game_api_page(game_slugs, page=1):
     """Read a single page of games from the API and return the response
 
     Args:
-        game_ids (list): list of game IDs, the ID type is determined by `query_type`
+        game_ids (list): list of game slugs
         page (str): Page of results to get
-        query_type (str): Type of the IDs in game_ids, by default 'games' queries
-                          games by their Lutris slug. 'gogid' can also be used.
     """
     url = settings.SITE_URL + "/api/games"
     if int(page) > 1:
         url += "?page={}".format(page)
-    if not game_ids:
+    if not game_slugs:
         return []
-    payload = json.dumps({"games": game_ids, "page": page}).encode("utf-8")
+    payload = json.dumps({"games": game_slugs, "page": page}).encode("utf-8")
     return get_http_response(url, payload)
 
 

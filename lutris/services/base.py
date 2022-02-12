@@ -12,7 +12,7 @@ from lutris.database.games import add_game, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
-from lutris.gui.views.media_loader import download_icons
+from lutris.gui.views.media_loader import download_media
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
@@ -112,7 +112,7 @@ class BaseService(GObject.Object):
         for icon_type in all_medias:
             service_media = all_medias[icon_type]()
             media_urls = service_media.get_media_urls()
-            download_icons(media_urls, service_media)
+            download_media(media_urls, service_media)
 
         # Process icons
         for icon_type in all_medias:
