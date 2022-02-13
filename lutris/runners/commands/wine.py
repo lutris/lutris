@@ -119,11 +119,6 @@ def create_prefix(  # noqa: C901
         )
         return
 
-    if install_gecko == "False":
-        overrides["mshtml"] = "disabled"
-    if install_mono == "False":
-        overrides["mscoree"] = "disabled"
-
     wineenv = {
         "WINEARCH": arch,
         "WINEPREFIX": prefix,
@@ -131,6 +126,13 @@ def create_prefix(  # noqa: C901
         "WINE_MONO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "mono"),
         "WINE_GECKO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "gecko"),
     }
+
+    if install_gecko == "False":
+        wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"
+        overrides["mshtml"] = "disabled"
+    if install_mono == "False":
+        wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
+        overrides["mscoree"] = "disabled"
 
     system.execute([wineboot_path], env=wineenv)
     for loop_index in range(60):
