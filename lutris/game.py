@@ -546,26 +546,44 @@ class Game(GObject.Object):
         """Forces termination of a running game"""
 
         def get_pids():
+            """Finds the PIDs of processes that need killin'!"""
             pids = self.get_game_pids()
             if self.game_thread and self.game_thread.game_process:
                 pids.add(self.game_thread.game_process.pid)
             return pids
 
         def kill(pids, sig):
+            """Sends a signal to a process list, logging errors."""
             for pid in pids:
                 try:
                     os.kill(int(pid), sig)
                 except ProcessLookupError as ex:
                     logger.debug("Failed to kill game process: %s", ex)
 
+        def death_watch(death_watch_seconds=5, death_watch_interval_seconds=.5):
+            """Wait for the processes to die; returns True if do they all did."""
+            for _n in range(int(death_watch_seconds / death_watch_interval_seconds)):
+                time.sleep(death_watch_interval_seconds)
+                if not get_pids():
+                    return True
+            return False
+
+        def death_watch_cb(all_died, error):
+            """Called after the death watch to more firmly kill any survivors."""
+            if error:
+                dialogs.ErrorDialog(str(error))
+            elif not all_died:
+                kill(get_pids(), signal.SIGKILL)
+            # If we still can't kill everything, we'll still say we stopped it.
+            self.stop_game()
+
         kill(get_pids(), signal.SIGTERM)
 
-        # If SIGTERM fails, wait a second and try SIGKILL on any survivors
+        # If SIGTERM fails, wait a few seconds and try SIGKILL on any survivors
         if get_pids():
-            time.sleep(1)
-            kill(get_pids(), signal.SIGKILL)
-
-        self.stop_game()
+            jobs.AsyncCall(death_watch, death_watch_cb)
+        else:
+            self.stop_game()
 
     def get_game_pids(self):
         """Return a list of processes belonging to the Lutris game"""
