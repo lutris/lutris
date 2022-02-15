@@ -67,6 +67,7 @@ class Application(Gtk.Application):
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-install", self.on_game_install)
+        GObject.add_emission_hook(Game, "game-install-update", self.on_game_install_update)
 
         GLib.set_application_name(_("Lutris"))
         self.window = None
@@ -269,12 +270,13 @@ class Application(Gtk.Application):
         window_inst.show()
         return window_inst
 
-    def show_installer_window(self, installers, service=None, appid=None):
+    def show_installer_window(self, installers, service=None, appid=None, is_update=False):
         self.show_window(
             InstallerWindow,
             installers=installers,
             service=service,
-            appid=appid
+            appid=appid,
+            is_update=is_update
         )
 
     def on_app_window_destroyed(self, app_window, window_key):
@@ -531,6 +533,15 @@ class Application(Gtk.Application):
         else:
             ErrorDialog(_("There is no installer available for %s.") % game.name, parent=self.window)
         return True
+
+    def on_game_install_update(self, game):
+        service = get_enabled_services()[game.service]()
+        db_game = games_db.get_game_by_field(game.id, "id")
+        installers = service.get_update_installers(db_game)
+        if installers:
+            self.show_installer_window(installers, service, game.appid, is_update=True)
+        else:
+            ErrorDialog(_("No updates found"))
 
     def get_running_game_ids(self):
         ids = []

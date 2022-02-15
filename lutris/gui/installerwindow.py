@@ -29,6 +29,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         service=None,
         appid=None,
         application=None,
+        is_update=False
     ):
         super().__init__(application=application)
         self.set_default_size(540, 320)
@@ -38,7 +39,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.appid = appid
         self.install_in_progress = False
         self.interpreter = None
-
+        self.is_update = is_update
         self.log_buffer = None
         self.log_textview = None
 
@@ -302,7 +303,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 self.show_extras(extras)
                 return
         try:
-            self.interpreter.installer.prepare_game_files()
+            patch_version = self.interpreter.installer.version if self.is_update else None
+            self.interpreter.installer.prepare_game_files(patch_version)
         except UnavailableGame as ex:
             raise ScriptingError(str(ex)) from ex
 
