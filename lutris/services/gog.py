@@ -207,6 +207,8 @@ class GOGService(OnlineService):
         """Send a cookie authenticated HTTP request to GOG"""
         request = Request(url, cookies=self.load_cookies())
         request.get()
+        if request.content.startswith(b"<"):
+            raise AuthenticationError("Token expired, please log in again")
         return request.json
 
     def make_api_request(self, url):
