@@ -552,7 +552,7 @@ class Application(Gtk.Application):
         if installers:
             self.show_installer_window(installers, service, game.appid)
         else:
-            ErrorDialog(_("No updates found"))
+            ErrorDialog(_("No DLC found"))
         return True
 
     def get_running_game_ids(self):

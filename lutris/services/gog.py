@@ -560,7 +560,6 @@ class GOGService(OnlineService):
             installers.append(installer)
         return installers
 
-
     def get_update_installers(self, db_game):
         appid = db_game["service_id"]
         patch_versions = self.get_update_versions(appid)
