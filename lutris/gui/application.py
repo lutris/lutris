@@ -44,7 +44,7 @@ from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
 from lutris.startup import init_lutris, run_all_checks, update_runtime
-from lutris.util import datapath, log
+from lutris.util import datapath, log, update_cache
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -192,6 +192,14 @@ class Application(Gtk.Application):
             None,
         )
         self.add_main_option("submit-issue", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE, _("Submit an issue"), None)
+        self.add_main_option(
+            "force-media-update",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("Force download of missing media"),
+            None,
+        )
         self.add_main_option(
             GLib.OPTION_REMAINING,
             0,
@@ -341,6 +349,10 @@ class Application(Gtk.Application):
             print(executable_name + "-" + settings.VERSION)
             logger.setLevel(logging.NOTSET)
             return 0
+
+        if options.contains("force-media-update"):
+            # force media update next time later, when the GUI is ready to do it
+            update_cache.remove_date_from_cache("media")
 
         init_lutris()
         migrate()

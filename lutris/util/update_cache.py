@@ -17,6 +17,14 @@ def write_date_to_cache(key):
         json.dump(cache, json_file, indent=2)
 
 
+def remove_date_from_cache(key):
+    """Deletes a datetime object for 'key'"""
+    cache = _read_cache_content()
+    del cache[key]
+    with open(UPDATE_CACHE_PATH, "w", encoding='utf-8') as json_file:
+        json.dump(cache, json_file, indent=2)
+
+
 def _read_cache_content():
     """Return the content of the cache"""
     if not os.path.exists(UPDATE_CACHE_PATH):
