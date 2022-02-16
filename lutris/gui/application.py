@@ -542,6 +542,7 @@ class Application(Gtk.Application):
             self.show_installer_window(installers, service, game.appid, is_update=True)
         else:
             ErrorDialog(_("No updates found"))
+        return True
 
     def get_running_game_ids(self):
         ids = []
