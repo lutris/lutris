@@ -54,6 +54,7 @@ class Game(GObject.Object):
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-install": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-install-update": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-install-dlc": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 

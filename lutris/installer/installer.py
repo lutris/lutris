@@ -55,6 +55,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return SERVICES["gog"]()
 
     def get_appid(self, installer, initial=None):
+        if installer.get("is_dlc"):
+            return installer.get("dlcid")
         if initial:
             return initial
         if not self.service:

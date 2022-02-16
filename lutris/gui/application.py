@@ -68,6 +68,7 @@ class Application(Gtk.Application):
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-install", self.on_game_install)
         GObject.add_emission_hook(Game, "game-install-update", self.on_game_install_update)
+        GObject.add_emission_hook(Game, "game-install-dlc", self.on_game_install_dlc)
 
         GLib.set_application_name(_("Lutris"))
         self.window = None
@@ -540,6 +541,16 @@ class Application(Gtk.Application):
         installers = service.get_update_installers(db_game)
         if installers:
             self.show_installer_window(installers, service, game.appid, is_update=True)
+        else:
+            ErrorDialog(_("No updates found"))
+        return True
+
+    def on_game_install_dlc(self, game):
+        service = get_enabled_services()[game.service]()
+        db_game = games_db.get_game_by_field(game.id, "id")
+        installers = service.get_dlc_installers(db_game)
+        if installers:
+            self.show_installer_window(installers, service, game.appid)
         else:
             ErrorDialog(_("No updates found"))
         return True

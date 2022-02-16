@@ -277,6 +277,18 @@ class GOGService(OnlineService):
         url = self.embed_url + "/account/getFilteredProducts?" + urlencode(params)
         return self.make_request(url)
 
+    def get_game_dlcs(self, product_id):
+        """Return the list of DLC products the user owns for a game"""
+        game_details = self.get_game_details(product_id)
+        all_products_url = game_details["dlcs"]["expanded_all_products_url"]
+        products = self.make_api_request(all_products_url)
+        dlcs = []
+        # Filter out DLCs not owned by the user
+        for product in products:
+            if product["downloads"]["installers"]:
+                dlcs.append(product)
+        return dlcs
+
     def get_game_details(self, product_id):
         """Return game information for a given game"""
         if not product_id:
@@ -518,6 +530,36 @@ class GOGService(OnlineService):
                 "installer": script
             }
         }
+
+    def get_dlc_installers(self, db_game):
+        appid = db_game["service_id"]
+        dlcs = self.get_game_dlcs(appid)
+        installers = []
+        for dlc in dlcs:
+            dlc_id = "gogdlc-%s" % dlc["slug"]
+            installer = {
+                "name": db_game["name"],
+                "version": dlc["title"],
+                "slug": dlc["slug"],
+                "description": "DLC for %s" % db_game["name"],
+                "game_slug": slugify(db_game["name"]),
+                "runner": "wine",
+                "is_dlc": True,
+                "dlcid": dlc["id"],
+                "gogid": dlc["id"],
+                "script": {
+                    "extends": db_game["installer_slug"],
+                    "files": [
+                        {dlc_id: "N/A:Select the patch from GOG"}
+                    ],
+                    "installer": [
+                        {"task": {"name": "wineexec", "executable": dlc_id}}
+                    ]
+                }
+            }
+            installers.append(installer)
+        return installers
+
 
     def get_update_installers(self, db_game):
         appid = db_game["service_id"]

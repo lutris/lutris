@@ -55,9 +55,10 @@ class GameActions:
         return [
             ("play", _("Play"), self.on_game_launch),
             ("stop", _("Stop"), self.on_game_stop),
-            ("show_logs", _("Show logs"), self.on_show_logs),
             ("install", _("Install"), self.on_install_clicked),
-            ("update", _("Update"), self.on_update_clicked),
+            ("update", _("Install updates"), self.on_update_clicked),
+            ("install_dlcs", "Install DLCs", self.on_install_dlc_clicked),
+            ("show_logs", _("Show logs"), self.on_show_logs),
             ("add", _("Add installed game"), self.on_add_manually),
             ("configure", _("Configure"), self.on_edit_game_configuration),
             ("favorite", _("Add to favorites"), self.on_add_favorite_game),
@@ -98,6 +99,7 @@ class GameActions:
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "update": self.game.is_updatable,
+            "install_dlcs": self.game.is_updatable,
             "stop": self.is_game_running,
             "configure": bool(self.game.is_installed),
             "browse": self.game.is_installed and self.game.runner_name != "browser",
@@ -168,6 +170,9 @@ class GameActions:
 
     def on_update_clicked(self, _widget):
         self.game.emit("game-install-update")
+
+    def on_install_dlc_clicked(self, _widget):
+        self.game.emit("game-install-dlc")
 
     def on_locate_installed_game(self, _button, game):
         """Show the user a dialog to import an existing install to a DRM free service
