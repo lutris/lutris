@@ -44,6 +44,7 @@ from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
 from lutris.startup import init_lutris, run_all_checks, update_runtime
+from lutris.style_manager import StyleManager
 from lutris.util import datapath, log
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
@@ -78,6 +79,7 @@ class Application(Gtk.Application):
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
         self.run_in_background = False
+        self.style_manager = None
 
         if os.geteuid() == 0:
             ErrorDialog(_("Running Lutris as root is not recommended and may cause unexpected issues"))
@@ -210,6 +212,8 @@ class Application(Gtk.Application):
         action.connect("activate", lambda *x: self.quit())
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
+
+        self.style_manager = StyleManager()
 
     def do_activate(self):  # pylint: disable=arguments-differ
         Application.show_update_runtime_dialog()

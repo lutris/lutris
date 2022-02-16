@@ -1,6 +1,6 @@
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import Gio, Gtk
 
 from lutris import settings
 from lutris.gui.widgets.common import VBox
@@ -56,3 +56,7 @@ class PreferencesBox(VBox):
     def _on_setting_change(self, widget, state, setting_key):
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, state)
+
+        if setting_key == "dark_theme":
+            application = Gio.Application.get_default()
+            application.style_manager.is_config_dark = state
