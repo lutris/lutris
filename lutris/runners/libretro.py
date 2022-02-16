@@ -20,32 +20,33 @@ def get_default_config_path(path=""):
 def get_libretro_cores():
     cores = []
     runner_path = get_default_config_path()
-    if os.path.exists(runner_path):
-        # Get core identifiers from info dir
-        info_path = get_default_config_path("info")
-        if not os.path.exists(info_path):
-            req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
-            if req.status_code == requests.codes.ok:  # pylint: disable=no-member
-                with open(get_default_config_path('info.zip'), 'wb') as info_zip:
-                    info_zip.write(req.content)
-                with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
-                    info_zip.extractall(info_path)
-            else:
-                logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
-                return []
-        # Parse info files to fetch display name and platform/system
-        for info_file in os.listdir(info_path):
-            if "_libretro.info" not in info_file:
-                continue
-            core_identifier = info_file.replace("_libretro.info", "")
-            core_config = RetroConfig(os.path.join(info_path, info_file))
-            if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
-                core_label = core_config["display_name"] or ""
-                core_system = core_config["systemname"] or ""
-                cores.append((core_label, core_identifier, core_system))
-        cores.sort(key=itemgetter(0))
-    if not cores:
-        logger.warning("No cores found")
+    if not os.path.exists(runner_path):
+        logger.warning("No folder at %s", runner_path)
+        return []
+
+    # Get core identifiers from info dir
+    info_path = get_default_config_path("info")
+    if not os.path.exists(info_path):
+        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
+        if req.status_code == requests.codes.ok:  # pylint: disable=no-member
+            with open(get_default_config_path('info.zip'), 'wb') as info_zip:
+                info_zip.write(req.content)
+            with ZipFile(get_default_config_path('info.zip'), 'r') as info_zip:
+                info_zip.extractall(info_path)
+        else:
+            logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
+            return []
+    # Parse info files to fetch display name and platform/system
+    for info_file in os.listdir(info_path):
+        if "_libretro.info" not in info_file:
+            continue
+        core_identifier = info_file.replace("_libretro.info", "")
+        core_config = RetroConfig(os.path.join(info_path, info_file))
+        if "categories" in core_config.keys() and "Emulator" in core_config["categories"]:
+            core_label = core_config["display_name"] or ""
+            core_system = core_config["systemname"] or ""
+            cores.append((core_label, core_identifier, core_system))
+    cores.sort(key=itemgetter(0))
     return cores
 
 
@@ -117,7 +118,14 @@ class libretro(Runner):
         return ""
 
     def get_core_path(self, core):
-        return os.path.join(settings.RUNNER_DIR, "retroarch", "cores", "{}_libretro.so".format(core))
+        """Return the path of a core, prioritizing Retroarch cores"""
+        lutris_cores_folder = os.path.join(settings.RUNNER_DIR, "retroarch", "cores")
+        retroarch_core_folder = os.path.join(os.path.expanduser("~/.config/retroarch/cores"))
+        core_filename = "{}_libretro.so".format(core)
+        retroarch_core = os.path.join(retroarch_core_folder, core_filename)
+        if system.path_exists(retroarch_core):
+            return retroarch_core
+        return os.path.join(lutris_cores_folder, core_filename)
 
     def get_version(self, use_default=True):
         return self.game_config["core"]
@@ -126,11 +134,10 @@ class libretro(Runner):
         return system.path_exists(self.get_executable())
 
     def is_installed(self, core=None):
-        if self.game_config.get("core") and core is None:
+        if not core and self.game_config.get("core"):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):
             return self.is_retroarch_installed()
-
         is_core_installed = system.path_exists(self.get_core_path(core))
         return self.is_retroarch_installed() and is_core_installed
 
