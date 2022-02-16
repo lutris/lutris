@@ -44,7 +44,6 @@ lutris/gui/dialogs/__init__.py
 lutris/gui/dialogs/issue.py
 lutris/gui/dialogs/log.py
 lutris/gui/dialogs/runner_install.py
-lutris/gui/dialogs/runners.py
 lutris/gui/dialogs/uninstall_game.py
 lutris/gui/dialogs/webconnect_dialog.py
 lutris/gui/__init__.py
