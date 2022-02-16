@@ -151,9 +151,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             logger.warning("Could not find a file for this service")
             return
         logger.info("Getting files for %s", installer_file_id)
-        if installer_file_id == "gogpatch_15":
-            raise ValueError
-
         if self.service.has_extras:
             self.service.selected_extras = self.interpreter.extras
         if patch_version:
