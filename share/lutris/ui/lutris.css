@@ -23,12 +23,7 @@
 }
 
 .sidebar row:hover {
-  background: rgb(229, 229, 229);
-  color: black;
-}
-
-.sidebar row:hover button {
-  color: black;
+  background: alpha(currentColor, .07);
 }
 
 .info-pill {
