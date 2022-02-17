@@ -200,6 +200,7 @@ class OriginService(OnlineService):
         self.is_loading = True
         user_id, _persona_id, _user_name = self.get_identity()
         games = self.get_library(user_id)
+        logger.info("Retrieved %s games from Origin library", len(games))
         origin_games = []
         for game in games:
             origin_game = OriginGame.new_from_api(game)
@@ -256,9 +257,11 @@ class OriginService(OnlineService):
             logger.error("Invalid install of Origin at %s", origin_prefix)
             return
         origin_launcher = OriginLauncher(origin_prefix)
+        installed_games = 0
         for manifest in origin_launcher.iter_manifests():
             self.install_from_origin(origin_game, manifest)
-        logger.debug("All EGS games imported")
+            installed_games += 1
+        logger.debug("Installed %s Origin games", installed_games)
 
     def install_from_origin(self, origin_game, manifest):
         offer_id = manifest["id"].split("@")[0]
