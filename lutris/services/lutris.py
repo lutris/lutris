@@ -163,6 +163,21 @@ def sync_media():
     if not slugs:
         return
     games = get_api_games(list(slugs))
+
+    alias_map = {}
+    api_slugs = set()
+    for game in games:
+        api_slugs.add(game["slug"])
+        for alias in game["aliases"]:
+            if alias["slug"] in slugs:
+                alias_map[game["slug"]] = alias["slug"]
+    alias_slugs = set(alias_map.values())
+    used_alias_slugs = alias_slugs - api_slugs
+    for alias_slug in used_alias_slugs:
+        for game in games:
+            if alias_slug in [alias["slug"] for alias in game["aliases"]]:
+                game["slug"] = alias_map[game["slug"]]
+                continue
     banner_urls = {
         game["slug"]: game["banner_url"]
         for game in games
