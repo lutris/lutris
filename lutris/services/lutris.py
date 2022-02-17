@@ -159,6 +159,7 @@ def sync_media():
     covers_available = {fn.split(".")[0] for fn in os.listdir(settings.COVERART_PATH)}
     complete_games = banners_available.intersection(icons_available).intersection(covers_available)
     all_slugs = {game["slug"] for game in get_games()}
+    all_slugs.update(game["slug"] for game in ServiceGameCollection.get_for_service("lutris"))
     slugs = all_slugs - complete_games
     if not slugs:
         return
