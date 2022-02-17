@@ -12,7 +12,7 @@ from lutris.database.games import add_game, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
-from lutris.gui.views.media_loader import download_icons
+from lutris.gui.views.media_loader import download_media
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
@@ -112,7 +112,7 @@ class BaseService(GObject.Object):
         for icon_type in all_medias:
             service_media = all_medias[icon_type]()
             media_urls = service_media.get_media_urls()
-            download_icons(media_urls, service_media)
+            download_media(media_urls, service_media)
 
         # Process icons
         for icon_type in all_medias:
@@ -122,6 +122,9 @@ class BaseService(GObject.Object):
     def wipe_game_cache(self):
         logger.debug("Deleting games from service-games for %s", self.id)
         sql.db_delete(PGA_DB, "service_games", "service", self.id)
+
+    def get_update_installers(self, db_game):
+        return []
 
     def generate_installer(self, db_game):
         """Used to generate an installer from the data returned from the services"""
@@ -193,7 +196,7 @@ class BaseService(GObject.Object):
                     service_installers.append(installer)
         return service_installers
 
-    def install(self, db_game):
+    def install(self, db_game, update=False):
         """Install a service game, or starts the installer of the game.
 
         Args:
@@ -212,7 +215,10 @@ class BaseService(GObject.Object):
         # be added without going through an install dialog.
         if self.local:
             return self.simple_install(db_game)
-        service_installers = self.get_installers_from_api(appid)
+        if update:
+            service_installers = self.get_update_installers(db_game)
+        else:
+            service_installers = self.get_installers_from_api(appid)
         # Check if the game is not already installed
         for service_installer in service_installers:
             existing_game = self.match_existing_game(
@@ -222,7 +228,10 @@ class BaseService(GObject.Object):
             if existing_game:
                 logger.debug("Found existing game, aborting install")
                 return
-        installer = self.generate_installer(db_game)
+        if update:
+            installer = None
+        else:
+            installer = self.generate_installer(db_game)
         if installer:
             if service_installers:
                 installer["version"] = installer["version"] + " (auto-generated)"

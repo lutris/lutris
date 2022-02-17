@@ -69,7 +69,7 @@ class RunnerBox(Gtk.Box):
     def get_action_button(self):
         """Return a install or remove button"""
         if self.runner.multiple_versions:
-            _button = Gtk.Button.new_from_icon_name("preferences-other-symbolic", Gtk.IconSize.BUTTON)
+            _button = Gtk.Button.new_from_icon_name("applications-system-symbolic", Gtk.IconSize.BUTTON)
             _button.get_style_context().add_class("circular")
             _button.connect("clicked", self.on_versions_clicked)
         else:

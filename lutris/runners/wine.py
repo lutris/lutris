@@ -308,6 +308,7 @@ class wine(Runner):
                 "option": "fsync",
                 "label": _("Enable Fsync"),
                 "type": "extended_bool",
+                "default": True,
                 "callback": fsync_support_callback,
                 "callback_on": True,
                 "active": True,
@@ -842,6 +843,8 @@ class wine(Runner):
             env["DXVK_LOG_LEVEL"] = "none"
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
+        env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "mono")
+        env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "gecko")
         if is_gstreamer_build(self.get_executable()):
             path_64 = os.path.join(WINE_DIR, self.get_version(), "lib64/gstreamer-1.0/")
             path_32 = os.path.join(WINE_DIR, self.get_version(), "lib/gstreamer-1.0/")

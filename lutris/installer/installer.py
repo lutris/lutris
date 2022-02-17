@@ -22,6 +22,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     def __init__(self, installer, interpreter, service, appid):
         self.interpreter = interpreter
         self.installer = installer
+        self.is_update = False
         self.version = installer["version"]
         self.slug = installer["slug"]
         self.year = installer.get("year")
@@ -54,6 +55,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return SERVICES["gog"]()
 
     def get_appid(self, installer, initial=None):
+        if installer.get("is_dlc"):
+            return installer.get("dlcid")
         if initial:
             return initial
         if not self.service:
@@ -82,7 +85,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     @property
     def creates_game_folder(self):
         """Determines if an install script should create a game folder for the game"""
-        if self.requires:
+        if self.requires or self.extends:
             # Game is an extension of an existing game, folder exists
             return False
         if self.runner == "steam":
@@ -134,29 +137,37 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 self.files.pop(index)
                 return file.id
 
-    def prepare_game_files(self):
+    def prepare_game_files(self, patch_version=None):
         """Gathers necessary files before iterating through them."""
         if not self.files:
+            logger.info("No files to prepare")
             return
-        if self.service:
-            if self.service.online and not self.service.is_connected():
-                logger.info("Not authenticated to %s", self.service.id)
-                return
-            installer_file_id = self.pop_user_provided_file()
-            if not installer_file_id:
-                logger.warning("Could not find a file for this service")
-                return
-            if self.service.has_extras:
-                self.service.selected_extras = self.interpreter.extras
+        if not self.service:
+            logger.debug("No service to retrieve files from")
+            return
+        if self.service.online and not self.service.is_connected():
+            logger.info("Not authenticated to %s", self.service.id)
+            return
+        installer_file_id = self.pop_user_provided_file()
+        if not installer_file_id:
+            logger.warning("Could not find a file for this service")
+            return
+        logger.info("Getting files for %s", installer_file_id)
+        if self.service.has_extras:
+            self.service.selected_extras = self.interpreter.extras
+        if patch_version:
+            # If a patch version is given download the patch files instead of the installer
+            installer_files = self.service.get_patch_files(self, installer_file_id)
+        else:
             installer_files = self.service.get_installer_files(self, installer_file_id)
-            for installer_file in installer_files:
-                self.files.append(installer_file)
-            if not installer_files:
-                # Failed to get the service game, put back a user provided file
-                self.files.insert(0, InstallerFile(self.game_slug, installer_file_id, {
-                    "url": "N/A: Provider installer file",
-                    "filename": ""
-                }))
+        for installer_file in installer_files:
+            self.files.append(installer_file)
+        if not installer_files:
+            # Failed to get the service game, put back a user provided file
+            self.files.insert(0, InstallerFile(self.game_slug, installer_file_id, {
+                "url": "N/A: Provider installer file",
+                "filename": ""
+            }))
 
     def _substitute_config(self, script_config):
         """Substitute values such as $GAMEDIR in a config dict."""

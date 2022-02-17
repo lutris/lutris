@@ -6,11 +6,11 @@ from gettext import gettext as _
 from gi.repository import Gio
 
 from lutris import settings
-from lutris.api import get_game_installers, read_api_key
+from lutris.api import get_api_games, get_game_installers, read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
-from lutris.gui.views.media_loader import download_icons
+from lutris.gui.views.media_loader import download_media
 from lutris.services.base import LutrisBanner, LutrisCoverart, LutrisCoverartMedium, LutrisIcon, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.util import http
@@ -137,12 +137,51 @@ def download_lutris_media(slug):
     response_data = response.json
     icon_url = response_data.get("icon_url")
     if icon_url:
-        download_icons({slug: icon_url}, LutrisIcon())
+        download_media({slug: icon_url}, LutrisIcon())
 
     banner_url = response_data.get("banner_url")
     if banner_url:
-        download_icons({slug: banner_url}, LutrisBanner())
+        download_media({slug: banner_url}, LutrisBanner())
 
     cover_url = response_data.get("coverart")
     if cover_url:
-        download_icons({slug: cover_url}, LutrisCoverart())
+        download_media({slug: cover_url}, LutrisCoverart())
+
+
+def sync_media():
+    """Downlad all missing media"""
+    banners_available = {fn.split(".")[0] for fn in os.listdir(settings.BANNER_PATH)}
+    icons_available = {
+        fn.split(".")[0].replace("lutris_", "")
+        for fn in os.listdir(settings.ICON_PATH)
+        if fn.startswith("lutris_")
+    }
+    covers_available = {fn.split(".")[0] for fn in os.listdir(settings.COVERART_PATH)}
+    complete_games = banners_available.intersection(icons_available).intersection(covers_available)
+    all_slugs = {game["slug"] for game in get_games()}
+    slugs = all_slugs - complete_games
+    if not slugs:
+        return
+    games = get_api_games(list(slugs))
+    banner_urls = {
+        game["slug"]: game["banner_url"]
+        for game in games
+        if game["slug"] not in banners_available and game["banner_url"]
+    }
+    icon_urls = {
+        game["slug"]: game["icon_url"]
+        for game in games
+        if game["slug"] not in icons_available and game["icon_url"]
+    }
+    cover_urls = {
+        game["slug"]: game["coverart"]
+        for game in games
+        if game["slug"] not in covers_available and game["coverart"]
+    }
+    logger.debug(
+        "Syncing %s banners, %s icons and %s covers",
+        len(banner_urls), len(icon_urls), len(cover_urls)
+    )
+    download_media(banner_urls, LutrisBanner())
+    download_media(icon_urls, LutrisIcon())
+    download_media(cover_urls, LutrisCoverart())

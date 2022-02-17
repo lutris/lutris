@@ -78,4 +78,4 @@ class InstallerScriptBox(Gtk.VBox):
 
     def on_install_clicked(self, _widget):
         """Handler to notify the parent of the selected installer"""
-        self.parent.emit("installer-selected", self.script["slug"])
+        self.parent.emit("installer-selected", self.script["version"])
