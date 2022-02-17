@@ -479,7 +479,7 @@ class GOGService(OnlineService):
             raise UnavailableGame("Couldn't load the downloads for this game") from err
         links = self._get_installer_links(installer, downloads)
         if not links:
-            raise UnavailableGame(_("Could not find GOG game"))
+            return []
 
         files = self._format_links(installer, installer_file_id, links)
 
