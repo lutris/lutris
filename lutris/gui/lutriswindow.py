@@ -776,7 +776,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return True
         updated = self.game_store.update(db_game)
         if not updated:
-            logger.debug("Game %s not updated in view", game)
+            self.update_store()
         return True
 
     def on_game_stopped(self, game):
