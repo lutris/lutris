@@ -221,6 +221,11 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         return bool(system.find_executable("steam"))
 
     @property
+    def display_server(self):
+        """Return the display server used"""
+        return os.environ.get("XDG_SESSION_TYPE", "unknown")
+
+    @property
     def is_flatpak(self):
         """Check is we are running inside Flatpak sandbox"""
         return system.path_exists(self.flatpak_info_path)
