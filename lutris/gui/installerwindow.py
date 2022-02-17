@@ -29,6 +29,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         service=None,
         appid=None,
         application=None,
+        is_update=False
     ):
         super().__init__(application=application)
         self.set_default_size(540, 320)
@@ -38,7 +39,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.appid = appid
         self.install_in_progress = False
         self.interpreter = None
-
+        self.is_update = is_update
         self.log_buffer = None
         self.log_textview = None
 
@@ -135,17 +136,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
 
-    def get_script_from_slug(self, script_slug):
-        """Return a installer script from its slug, raise an error if one isn't found"""
-        for script in self.installers:
-            if script["slug"] == script_slug:
-                return script
-
     def on_cache_clicked(self, _button):
         """Open the cache configuration dialog"""
         CacheConfigurationDialog()
 
-    def on_installer_selected(self, _widget, installer_slug):
+    def on_installer_selected(self, _widget, installer_version):
         """Sets the script interpreter to the correct script then proceed to
         install folder selection.
 
@@ -154,11 +149,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """
         self.clean_widgets()
         try:
-
-            self.interpreter = interpreter.ScriptInterpreter(
-                self.get_script_from_slug(installer_slug),
-                self
-            )
+            script = None
+            for _script in self.installers:
+                if _script["version"] == installer_version:
+                    script = _script
+            self.interpreter = interpreter.ScriptInterpreter(script, self)
 
         except MissingGameDependency as ex:
             dlg = QuestionDialog(
@@ -302,7 +297,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 self.show_extras(extras)
                 return
         try:
-            self.interpreter.installer.prepare_game_files()
+            patch_version = self.interpreter.installer.version if self.is_update else None
+            self.interpreter.installer.prepare_game_files(patch_version)
         except UnavailableGame as ex:
             raise ScriptingError(str(ex)) from ex
 

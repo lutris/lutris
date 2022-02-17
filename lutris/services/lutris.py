@@ -6,7 +6,7 @@ from gettext import gettext as _
 from gi.repository import Gio
 
 from lutris import settings
-from lutris.api import get_game_installers, read_api_key
+from lutris.api import get_api_games, get_game_installers, read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs

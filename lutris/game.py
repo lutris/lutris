@@ -53,6 +53,8 @@ class Game(GObject.Object):
         "game-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-install": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-install-update": (GObject.SIGNAL_RUN_FIRST, None, ()),
+        "game-install-dlc": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
@@ -107,6 +109,11 @@ class Game(GObject.Object):
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
+
+    @property
+    def is_updatable(self):
+        """Return whether the game can be upgraded"""
+        return self.service == "gog"
 
     @property
     def is_favorite(self):

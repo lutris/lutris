@@ -18,7 +18,7 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util import i18n, system
 from lutris.util.http import HTTPError, Request, UnauthorizedAccess
 from lutris.util.log import logger
-from lutris.util.strings import slugify
+from lutris.util.strings import human_size, slugify
 
 
 class GogSmallBanner(ServiceMedia):
@@ -207,6 +207,8 @@ class GOGService(OnlineService):
         """Send a cookie authenticated HTTP request to GOG"""
         request = Request(url, cookies=self.load_cookies())
         request.get()
+        if request.content.startswith(b"<"):
+            raise AuthenticationError("Token expired, please log in again")
         return request.json
 
     def make_api_request(self, url):
@@ -275,6 +277,18 @@ class GOGService(OnlineService):
         url = self.embed_url + "/account/getFilteredProducts?" + urlencode(params)
         return self.make_request(url)
 
+    def get_game_dlcs(self, product_id):
+        """Return the list of DLC products the user owns for a game"""
+        game_details = self.get_game_details(product_id)
+        all_products_url = game_details["dlcs"]["expanded_all_products_url"]
+        products = self.make_api_request(all_products_url)
+        dlcs = []
+        # Filter out DLCs not owned by the user
+        for product in products:
+            if product["downloads"]["installers"]:
+                dlcs.append(product)
+        return dlcs
+
     def get_game_details(self, product_id):
         """Return game information for a given game"""
         if not product_id:
@@ -329,14 +343,25 @@ class GOGService(OnlineService):
         if "linux" in available_platforms:
             filter_os = "windows" if runner == "linux" else "linux"
             gog_installers = [installer for installer in gog_installers if installer["os"] != filter_os]
-
         return [
             installer
             for installer in gog_installers
             if installer["language"] == self.determine_language_installer(gog_installers, language)
         ]
 
-    def determine_language_installer(self, gog_installers, default_language):
+    def get_update_versions(self, gog_id):
+        """Return updates available for a game, keyed by patch version"""
+        games_detail = self.get_game_details(gog_id)
+        patches = games_detail["downloads"]["patches"]
+        if not patches:
+            logger.info("No patches for %s", games_detail)
+            return {}
+        patch_versions = defaultdict(list)
+        for patch in patches:
+            patch_versions[patch["name"]].append(patch)
+        return patch_versions
+
+    def determine_language_installer(self, gog_installers, default_language="en"):
         """Return locale language string if available in gog_installers"""
         language = i18n.get_lang()
         gog_installers = [installer for installer in gog_installers if installer["language"] == language]
@@ -384,23 +409,36 @@ class GOGService(OnlineService):
                 )
         return extra_files
 
-    def get_installer_files(self, installer, installer_file_id):
+    def _get_installer_links(self, installer, downloads):
+        """Return links to downloadable files from a list of downloads"""
         try:
-            downloads = self.get_downloads(installer.service_appid)
             gog_installers = self.get_installers(downloads, installer.runner)
             if not gog_installers:
                 return []
             if len(gog_installers) > 1:
                 logger.warning("More than 1 GOG installer found, picking first.")
             _installer = gog_installers[0]
-            links = self.query_download_links(_installer)
+            return self.query_download_links(_installer)
         except HTTPError as err:
             raise UnavailableGame("Couldn't load the download links for this game") from err
-        if not links:
-            raise UnavailableGame("Could not fing GOG game")
+
+    def get_patch_files(self, installer, installer_file_id):
+        logger.debug("Getting patches for %s", installer.version)
+        downloads = self.get_downloads(installer.service_appid)
+        links = []
+        for patch_file in downloads["patches"]:
+            if "GOG " + patch_file["version"] == installer.version:
+                links += self.query_download_links(patch_file)
+        return self._format_links(installer, installer_file_id, links)
+
+    def _format_links(self, installer, installer_file_id, links):
         _installer_files = defaultdict(dict)  # keyed by filename
         for link in links:
-            filename = link["filename"]
+            try:
+                filename = link["filename"]
+            except KeyError:
+                logger.error("Invalid link: %s", link)
+                raise
             if filename.lower().endswith(".xml"):
                 if filename != installer_file_id:
                     filename = filename[:-4]
@@ -429,6 +467,19 @@ class GOGService(OnlineService):
             }))
         if not file_id_provided:
             raise UnavailableGame("Unable to determine correct file to launch installer")
+        return files
+
+    def get_installer_files(self, installer, installer_file_id):
+        try:
+            downloads = self.get_downloads(installer.service_appid)
+        except HTTPError as err:
+            raise UnavailableGame("Couldn't load the downloads for this game") from err
+        links = self._get_installer_links(installer, downloads)
+        if not links:
+            raise UnavailableGame(_("Could not find GOG game"))
+
+        files = self._format_links(installer, installer_file_id, links)
+
         if self.selected_extras:
             for extra_file in self.get_extra_files(downloads, installer):
                 files.append(extra_file)
@@ -479,3 +530,60 @@ class GOGService(OnlineService):
                 "installer": script
             }
         }
+
+    def get_dlc_installers(self, db_game):
+        appid = db_game["service_id"]
+        dlcs = self.get_game_dlcs(appid)
+        installers = []
+        for dlc in dlcs:
+            dlc_id = "gogdlc-%s" % dlc["slug"]
+            installer = {
+                "name": db_game["name"],
+                "version": dlc["title"],
+                "slug": dlc["slug"],
+                "description": "DLC for %s" % db_game["name"],
+                "game_slug": slugify(db_game["name"]),
+                "runner": "wine",
+                "is_dlc": True,
+                "dlcid": dlc["id"],
+                "gogid": dlc["id"],
+                "script": {
+                    "extends": db_game["installer_slug"],
+                    "files": [
+                        {dlc_id: "N/A:Select the patch from GOG"}
+                    ],
+                    "installer": [
+                        {"task": {"name": "wineexec", "executable": dlc_id}}
+                    ]
+                }
+            }
+            installers.append(installer)
+        return installers
+
+    def get_update_installers(self, db_game):
+        appid = db_game["service_id"]
+        patch_versions = self.get_update_versions(appid)
+        patch_installers = []
+        for version in patch_versions:
+            patch = patch_versions[version]
+            size = human_size(sum([part["total_size"] for part in patch]))
+            patch_id = "gogpatch-%s" % slugify(patch[0]["version"])
+            installer = {
+                "name": db_game["name"],
+                "description": patch[0]["name"] + " " + size,
+                "slug": db_game["installer_slug"],
+                "game_slug": db_game["slug"],
+                "version": "GOG " + patch[0]["version"],
+                "runner": "wine",
+                "script": {
+                    "extends": db_game["installer_slug"],
+                    "files": [
+                        {patch_id: "N/A:Select the patch from GOG"}
+                    ],
+                    "installer": [
+                        {"task": {"name": "wineexec", "executable": patch_id}}
+                    ]
+                }
+            }
+            patch_installers.append(installer)
+        return patch_installers
