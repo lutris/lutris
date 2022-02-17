@@ -155,7 +155,7 @@ class GameBar(Gtk.Box):
         last_played_label.set_size_request(120, -1)
         last_played_label.set_alignment(0, 0.5)
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
-        last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%x"))
+        last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%b %-d %Y"))
         return last_played_label
 
     def get_popover_button(self):

@@ -4,6 +4,7 @@ import os
 import shutil
 from gettext import gettext as _
 from urllib.parse import unquote
+
 from gi.repository import Gio
 
 from lutris import settings
@@ -11,11 +12,11 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
+from lutris.installer import get_installers
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
-from lutris.installer import get_installers
 from lutris.util.strings import slugify
 from lutris.util.ubisoft import consts
 from lutris.util.ubisoft.client import UbisoftConnectClient
