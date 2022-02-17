@@ -164,7 +164,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             self.files.append(installer_file)
         if not installer_files:
             # Failed to get the service game, put back a user provided file
-            self.files.insert(0, "N/A: Provider installer file")
+            self.files.insert(0, InstallerFile(self.game_slug, installer_file_id, {
+                "url": "N/A: Provider installer file",
+                "filename": ""
+            }))
 
     def _substitute_config(self, script_config):
         """Substitute values such as $GAMEDIR in a config dict."""
