@@ -393,6 +393,12 @@ class CommandsMixin:
             GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
         runner_name, task_name = self._get_task_runner_and_name(data.pop("name"))
 
+        # Accept return codes other than 0
+        if "return_code" in data:
+            return_code = data.pop("return_code")
+        else:
+            return_code = "0"
+
         if runner_name.startswith("wine"):
             wine_path = self.get_wine_path()
             if wine_path:
@@ -420,6 +426,7 @@ class CommandsMixin:
 
         task = import_task(runner_name, task_name)
         command = task(**data)
+        command.accepted_return_code = return_code
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
         if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
@@ -431,7 +438,7 @@ class CommandsMixin:
     def _monitor_task(self, command):
         if not command.is_running:
             logger.debug("Return code: %s", command.return_code)
-            if command.return_code != "0":
+            if command.return_code not in (command.accepted_return_code, "0"):
                 raise ScriptingError(_("Command exited with code %s") % command.return_code)
             self._iter_commands()
             return False
