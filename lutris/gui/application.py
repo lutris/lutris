@@ -514,7 +514,9 @@ class Application(Gtk.Application):
         if game.service and game.service != "lutris":
             service = get_enabled_services()[game.service]()
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
-
+            if not db_game:
+                logger.error("Can't find %s for %s", game.name, service.name)
+                return True
             try:
                 game_id = service.install(db_game)
             except ValueError as e:
