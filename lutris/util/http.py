@@ -11,7 +11,7 @@ from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
 from lutris.util import system
 from lutris.util.log import logger
 
-DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 10
+DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
 
 
 class HTTPError(Exception):
