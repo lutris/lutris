@@ -20,7 +20,7 @@ def write_date_to_cache(key):
 def remove_date_from_cache(key):
     """Deletes a datetime object for 'key'"""
     cache = _read_cache_content()
-    del cache[key]
+    cache.pop(key, None)
     with open(UPDATE_CACHE_PATH, "w", encoding='utf-8') as json_file:
         json.dump(cache, json_file, indent=2)
 
