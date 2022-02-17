@@ -104,6 +104,13 @@ class CommandsMixin:
                       "at the same time for the execute command"),
                     data,
                 )
+
+            # Accept return codes other than 0
+            if "return_code" in data:
+                return_code = data.pop("return_code")
+            else:
+                return_code = "0"
+
             exec_path = data.get("file", "")
             command = data.get("command", "")
             args_string = data.get("args", "")
@@ -158,6 +165,7 @@ class CommandsMixin:
             include_processes=include_processes,
             exclude_processes=exclude_processes,
         )
+        command.accepted_return_code = return_code
         command.start()
         GLib.idle_add(self.parent.attach_logger, command)
         self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
