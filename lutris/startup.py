@@ -12,7 +12,6 @@ from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
 from lutris.services import DEFAULT_SERVICES
-from lutris.services.lutris import sync_media
 from lutris.util import update_cache
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
@@ -196,8 +195,4 @@ def update_runtime(force=False):
             dll_manager = dll_manager_class()
             dll_manager.upgrade()
             update_cache.write_date_to_cache(key)
-    media_call = update_cache.get_last_call("media")
-    if force or not media_call or media_call > 3600 * 24:
-        sync_media()
-        update_cache.write_date_to_cache("media")
     logger.info("Startup complete")

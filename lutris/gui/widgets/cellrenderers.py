@@ -1,6 +1,6 @@
 from gi.repository import GLib, GObject, Gtk, Pango
 
-from lutris.gui.views.media_loader import download_icons
+from lutris.gui.views.media_loader import download_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
@@ -116,7 +116,7 @@ class CellRendererBanner(Gtk.CellRendererPixbuf):
         CellRendererBanner.ongoing_download_slugs.update(slugs)
 
         AsyncCall(
-            download_icons,
+            download_media,
             slugs_download_cb,
             urls_needed,
             service_media
