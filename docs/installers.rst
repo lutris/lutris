@@ -600,6 +600,8 @@ that will be called. Other parameters depend on the task being called. It is
 possible to call functions from other runners by prefixing the task name with
 the runner's name (e.g., from a dosbox installer you can use the wineexec task
 with ``wine.wineexec`` as the task's ``name``)
+If the command you will run in the task doesn't exit with a return code of 0,
+you can specify an accepted return code like ``return_code: 256``
 
 Currently, the following tasks are implemented:
 
