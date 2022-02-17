@@ -39,8 +39,15 @@ class dolphin(Runner):
             "option": "batch",
             "type": "bool",
             "label": _("Batch"),
-            "default": False,
+            "default": True,
+            "advanced": True,
             "help": _("Exit Dolphin with emulator."),
+        },
+        {
+            "option": "user_directory",
+            "type": "directory_chooser",
+            "advanced": True,
+            "label": _("Custom Global User Directory"),
         },
     ]
 
@@ -60,6 +67,11 @@ class dolphin(Runner):
         # Batch isn't available in nogui
         if self.runner_config.get("batch") and not self.runner_config.get("nogui"):
             command.append("--batch")
+
+        # Custom Global User Directory
+        if self.runner_config.get("user_directory"):
+            command.append("-u")
+            command.append(self.runner_config["user_directory"])
 
         # Retrieve the path to the file
         iso = self.game_config.get("main_file") or ""
