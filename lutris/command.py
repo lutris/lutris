@@ -226,7 +226,7 @@ class MonitoredCommand:
                 logger.error("Failed to create working directory, falling back to %s", self.fallback_cwd)
                 self.cwd = "/tmp"
         try:
-            return subprocess.Popen(  # pylint: disable=consider-using-with
+            return subprocess.Popen(
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,

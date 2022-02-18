@@ -14,7 +14,6 @@ COPYRIGHT = _("(c) 2010-2022 Lutris Team")
 AUTHORS = [_("The Lutris team")]
 
 
-
 # Paths
 CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "lutris")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "lutris.conf")

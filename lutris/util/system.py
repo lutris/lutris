@@ -8,17 +8,23 @@ import signal
 import stat
 import string
 import subprocess
+from gettext import gettext as _
 
 from gi.repository import Gio, GLib
 
 from lutris import settings
 from lutris.util.log import logger
 
-# Home folders that should never get deleted. This should be localized and return the
-# appropriate folders names for the current locale.
+# Home folders that should never get deleted.
 PROTECTED_HOME_FOLDERS = (
-    "Documents", "Downloads", "Desktop",
-    "Pictures", "Videos", "Pictures", "Projects", "Games"
+    _("Documents"),
+    _("Downloads"),
+    _("Desktop"),
+    _("Pictures"),
+    _("Videos"),
+    _("Pictures"),
+    _("Projects"),
+    _("Games")
 )
 
 
