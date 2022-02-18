@@ -364,21 +364,28 @@ class Game(GObject.Object):
                 setxkbmap.communicate()
                 xkbcomp.communicate()
 
-    def start_prelaunch_command(self):
+    def start_prelaunch_command(self, wait_for_completion=False):
         """Start the prelaunch command specified in the system options"""
         prelaunch_command = self.runner.system_config.get("prelaunch_command")
         command_array = shlex.split(prelaunch_command)
         if not system.path_exists(command_array[0]):
             logger.warning("Command %s not found", command_array[0])
             return
-        self.prelaunch_executor = MonitoredCommand(
-            command_array,
-            include_processes=[os.path.basename(command_array[0])],
-            env=self.game_runtime_config["env"],
-            cwd=self.directory,
-        )
-        self.prelaunch_executor.start()
-        logger.info("Running %s in the background", prelaunch_command)
+        env = self.game_runtime_config["env"]
+        if wait_for_completion:
+            logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
+            # Monitor the prelaunch command and wait until it has finished
+            system.execute(command_array, env=env, cws=self.directory)
+        else:
+            logger.info("Prelaunch command %s launched in the background", prelaunch_command)
+            self.prelaunch_executor = MonitoredCommand(
+                command_array,
+                include_processes=[os.path.basename(command_array[0])],
+                env=env,
+                cwd=self.directory,
+            )
+            self.prelaunch_executor.start()
+
 
     def get_terminal(self):
         """Return the terminal used to run the game into or None if the game is not run from a terminal.
@@ -488,13 +495,9 @@ class Game(GObject.Object):
         self.killswitch = self.get_killswitch()
 
         if self.runner.system_config.get("prelaunch_command"):
-            self.start_prelaunch_command()
+            self.start_prelaunch_command(self.runner.system_config.get("prelaunch_wait"))
 
-        if self.runner.system_config.get("prelaunch_wait"):
-            # Monitor the prelaunch command and wait until it has finished
-            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.prelaunch_beat)
-        else:
-            self.start_game()
+        self.start_game()
 
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
