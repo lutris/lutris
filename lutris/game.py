@@ -39,6 +39,9 @@ class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
        and running it.
     """
+
+    now_playing_path = os.path.join(settings.CACHE_DIR, "now-playing.txt")
+
     STATE_STOPPED = "stopped"
     STATE_LAUNCHING = "launching"
     STATE_RUNNING = "running"
@@ -536,6 +539,8 @@ class Game(GObject.Object):
         self.state = self.STATE_RUNNING
         self.emit("game-started")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+        with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
+            np_file.write(self.name)
 
     def force_stop(self):
         """Forces termination of a running game"""
@@ -578,6 +583,8 @@ class Game(GObject.Object):
 
         self.state = self.STATE_STOPPED
         self.emit("game-stop")
+        if os.path.exists(self.now_playing_path):
+            os.unlink(self.now_playing_path)
         if not self.timer.finished:
             self.timer.end()
             self.playtime += self.timer.duration / 3600
