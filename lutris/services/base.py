@@ -81,6 +81,13 @@ class BaseService(GObject.Object):
             return self._matcher
         return self.id
 
+    def run(self):
+        """Override this method to run a launcher"""
+        logger.warning("This service doesn't run anything")
+
+    def is_launchable(self):
+        return False
+
     def reload(self):
         """Refresh the service's games"""
         self.emit("service-games-load")

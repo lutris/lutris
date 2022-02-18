@@ -434,7 +434,8 @@ class CommandsMixin:
 
         task = import_task(runner_name, task_name)
         command = task(**data)
-        command.accepted_return_code = return_code
+        if command:
+            command.accepted_return_code = return_code
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
         if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed

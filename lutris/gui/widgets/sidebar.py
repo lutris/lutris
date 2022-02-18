@@ -128,6 +128,10 @@ class ServiceSidebarRow(SidebarRow):
             ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh")
         ]
 
+    def on_service_run(self, button):
+        """Run a launcher associated with a service"""
+        self.service.run()
+
     def on_refresh_clicked(self, button):
         """Reload the service games"""
         button.set_sensitive(False)
@@ -153,6 +157,7 @@ class ServiceSidebarRow(SidebarRow):
 class OnlineServiceSidebarRow(ServiceSidebarRow):
     def get_buttons(self):
         return {
+            "run": (("media-playback-start-symbolic", _("Run"), self.on_service_run, "run")),
             "refresh": ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh"),
             "disconnect": ("system-log-out-symbolic", _("Disconnect"), self.on_connect_clicked, "disconnect"),
             "connect": ("avatar-default-symbolic", _("Connect"), self.on_connect_clicked, "connect")
@@ -160,9 +165,14 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
 
     def get_actions(self):
         buttons = self.get_buttons()
+        displayed_buttons = []
+        if self.service.is_launchable():
+            displayed_buttons.append(buttons["run"])
         if self.service.is_authenticated():
-            return [buttons["refresh"], buttons["disconnect"]]
-        return [buttons["connect"]]
+            displayed_buttons += [buttons["refresh"], buttons["disconnect"]]
+        else:
+            displayed_buttons += [buttons["connect"]]
+        return displayed_buttons
 
     def on_connect_clicked(self, button):
         button.set_sensitive(False)

@@ -120,6 +120,14 @@ class UbisoftConnectService(OnlineService):
         self.emit("service-login")
         return (user_data['userId'], user_data['username'])
 
+    def run(self):
+        db_game = get_game_by_field(self.client_installer, "slug")
+        game = Game(db_game["id"])
+        game.emit("game-launch")
+
+    def is_launchable(self):
+        return get_game_by_field(self.client_installer, "slug")
+
     def is_connected(self):
         return self.is_authenticated()
 
