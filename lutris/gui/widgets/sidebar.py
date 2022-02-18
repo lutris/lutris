@@ -128,43 +128,6 @@ class ServiceSidebarRow(SidebarRow):
             ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh")
         ]
 
-    def get_popover(self, button):
-        popover = Gtk.Popover()
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
-
-        for action in self.get_actions():
-            box = Gtk.Box(visible=True)
-            btn = Gtk.Button(tooltip_text=action[1], relief=Gtk.ReliefStyle.NONE, visible=True)
-            image = Gtk.Image.new_from_icon_name(action[0], Gtk.IconSize.MENU)
-
-            image.show()
-
-            box.add(image)
-            label = Gtk.Label(action[1], visible=True)
-            label.set_margin_left(6)
-            box.add(label)
-            btn.add(box)
-            btn.connect("clicked", action[2])
-            self.buttons[action[3]] = btn
-            vbox.pack_start(btn, False, False, 1)
-
-        popover.add(vbox)
-        popover.set_position(Gtk.PositionType.TOP)
-        popover.set_constrain_to(Gtk.PopoverConstraint.NONE)
-        popover.set_relative_to(button)
-        return popover
-
-    def create_button_box(self):
-        for child in self.btn_box.get_children():
-            child.destroy()
-        button = Gtk.MenuButton(relief=Gtk.ReliefStyle.NONE, visible=True)
-        image = Gtk.Image.new_from_icon_name("view-more-symbolic", Gtk.IconSize.MENU)
-        image.show()
-        button.add(image)
-        self.btn_box.add(button)
-        popover = self.get_popover(button)
-        button.set_popover(popover)
-
     def on_refresh_clicked(self, button):
         """Reload the service games"""
         button.set_sensitive(False)
