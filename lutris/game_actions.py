@@ -217,6 +217,10 @@ class GameActions:
         db_game["name"] = assigned_name
         db_game["configpath"] = new_config_id
         db_game.pop("id")
+        # Disconnect duplicate from service- there should be at most
+        # 1 PGA game for a service game.
+        db_game.pop("service", None)
+        db_game.pop("service_id", None)
 
         game_id = add_game(**db_game)
         new_game = Game(game_id)
