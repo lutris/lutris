@@ -152,13 +152,14 @@ class UbisoftConnectService(OnlineService):
         games = response['data']['viewer']['ownedGames'].get('nodes', [])
         ubi_games = []
         for game in games:
-            is_pc = False
-            for platform_group in game["ownedPlatformGroups"]:
-                for platform in platform_group:
-                    if platform["type"] == "PC":
-                        is_pc = True
-            if not is_pc:
-                continue
+            if "ownedPlatformGroups" in game:
+                is_pc = False
+                for platform_group in game["ownedPlatformGroups"]:
+                    for platform in platform_group:
+                        if platform["type"] == "PC":
+                            is_pc = True
+                if not is_pc:
+                    continue
             ubi_game = UbisoftGame.new_from_api(game)
             ubi_game.save()
             ubi_games.append(ubi_game)
