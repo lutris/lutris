@@ -972,6 +972,11 @@ class wine(Runner):
         launch_info["command"] = command
         return launch_info
 
+    def force_stop_game(self, game):
+        """Kill WINE with kindness, or at least with -k. This seems to leave a process
+        alive for some reason, but the caller will detect this and SIGKILL it."""
+        self.run_winekill()
+
     @staticmethod
     def parse_wine_path(path, prefix_path=None):
         """Take a Windows path, return the corresponding Linux path."""
