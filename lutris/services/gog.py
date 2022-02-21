@@ -283,14 +283,8 @@ class GOGService(OnlineService):
         if not game_details["dlcs"]:
             return []
         all_products_url = game_details["dlcs"]["expanded_all_products_url"]
+        return self.make_api_request(all_products_url)
 
-        products = self.make_api_request(all_products_url)
-        dlcs = []
-        # Filter out DLCs not owned by the user
-        for product in products:
-            if product["downloads"]["installers"]:
-                dlcs.append(product)
-        return dlcs
 
     def get_game_details(self, product_id):
         """Return game information for a given game"""
