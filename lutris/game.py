@@ -389,7 +389,6 @@ class Game(GObject.Object):
             )
             self.prelaunch_executor.start()
 
-
     def get_terminal(self):
         """Return the terminal used to run the game into or None if the game is not run from a terminal.
         Remember that only games using text mode should use the terminal.
@@ -543,28 +542,21 @@ class Game(GObject.Object):
             np_file.write(self.name)
 
     def force_stop(self):
-        """Forces termination of a running game"""
+        # If SIGTERM fails, wait a few seconds and try SIGKILL on any survivors
+        if self.kill_processes(signal.SIGTERM):
+            self.stop_game()
+        else:
+            self.force_kill_delayed()
 
-        def get_pids():
-            """Finds the PIDs of processes that need killin'!"""
-            pids = self.get_game_pids()
-            if self.game_thread and self.game_thread.game_process:
-                pids.add(self.game_thread.game_process.pid)
-            return pids
+    def force_kill_delayed(self, death_watch_seconds=5, death_watch_interval_seconds=.5):
+        """Forces termination of a running game, but only after a set time has elapsed;
+        Invokes stop_game() when the game is dead."""
 
-        def kill(pids, sig):
-            """Sends a signal to a process list, logging errors."""
-            for pid in pids:
-                try:
-                    os.kill(int(pid), sig)
-                except ProcessLookupError as ex:
-                    logger.debug("Failed to kill game process: %s", ex)
-
-        def death_watch(death_watch_seconds=5, death_watch_interval_seconds=.5):
+        def death_watch():
             """Wait for the processes to die; returns True if do they all did."""
             for _n in range(int(death_watch_seconds / death_watch_interval_seconds)):
                 time.sleep(death_watch_interval_seconds)
-                if not get_pids():
+                if not self.get_stop_pids():
                     return True
             return False
 
@@ -573,17 +565,33 @@ class Game(GObject.Object):
             if error:
                 dialogs.ErrorDialog(str(error))
             elif not all_died:
-                kill(get_pids(), signal.SIGKILL)
+                self.kill_processes(signal.SIGKILL)
             # If we still can't kill everything, we'll still say we stopped it.
             self.stop_game()
 
-        kill(get_pids(), signal.SIGTERM)
+        jobs.AsyncCall(death_watch, death_watch_cb)
 
-        # If SIGTERM fails, wait a few seconds and try SIGKILL on any survivors
-        if get_pids():
-            jobs.AsyncCall(death_watch, death_watch_cb)
-        else:
-            self.stop_game()
+    def kill_processes(self, sig):
+        """Sends a signal to a process list, logging errors. Returns True if
+        there were surviving processes afterwards, False if all are dead."""
+        pids = self.get_stop_pids()
+
+        if not pids:
+            return False
+
+        for pid in pids:
+            try:
+                os.kill(int(pid), sig)
+            except ProcessLookupError as ex:
+                logger.debug("Failed to kill game process: %s", ex)
+        return len(self.get_stop_pids()) == 0
+
+    def get_stop_pids(self):
+        """Finds the PIDs of processes that need killin'!"""
+        pids = self.get_game_pids()
+        if self.game_thread and self.game_thread.game_process:
+            pids.add(self.game_thread.game_process.pid)
+        return pids
 
     def get_game_pids(self):
         """Return a list of processes belonging to the Lutris game"""
