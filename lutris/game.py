@@ -542,7 +542,7 @@ class Game(GObject.Object):
             np_file.write(self.name)
 
     def force_stop(self):
-        # If SIGTERM fails, wait a few seconds and try SIGKILL on any survivors
+        # If force_stop_game fails, wait a few seconds and try SIGKILL on any survivors
         self.runner.force_stop_game(self)
         if self.get_stop_pids():
             self.force_kill_delayed()
