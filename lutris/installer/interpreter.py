@@ -277,6 +277,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         os.makedirs(self.cache_path, exist_ok=True)
 
         # Copy extras to game folder
+        if len(self.extras) == len(self.installer.files):
+            # Reset the install script in case there are only extras.
+            logger.warning("Installer with only extras and no game files")
+            self.installer.script["installer"] = []
+
         for extra in self.extras:
             self.installer.script["installer"].append(
                 {"copy": {"src": extra, "dst": "$GAMEDIR/extras"}}

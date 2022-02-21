@@ -293,7 +293,8 @@ class Game(GObject.Object):
     def is_launchable(self):
         """Verify that the current game can be launched."""
         if not self.is_installed:
-            dialogs.ErrorDialog(_("Tried to launch a game that isn't installed. (Who'd you do that?)"))
+            logger.error("%s (%s) not installed", self, self.id)
+            dialogs.ErrorDialog(_("Tried to launch a game that isn't installed."))
             return False
         if not self.runner:
             dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))

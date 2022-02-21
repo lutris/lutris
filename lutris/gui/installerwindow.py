@@ -400,7 +400,6 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def on_files_ready(self, _widget, files_ready):
         """Toggle state of continue button based on ready state"""
-        logger.debug("Files are ready: %s", files_ready)
         self.continue_button.set_sensitive(files_ready)
 
     def on_files_confirmed(self, _button, file_box):
@@ -445,8 +444,9 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
+        if game.id:
+            self.play_button.show()
 
-        self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
         if not self.is_active():
@@ -467,7 +467,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         widget.set_sensitive(False)
         self.on_destroy(widget)
         game = Game(self.interpreter.installer.game_id)
-        game.emit("game-launch")
+        if game.id:
+            game.emit("game-launch")
+        else:
+            logger.error("Game has no ID, launch button should not be drawn")
 
     def on_destroy(self, _widget, _data=None):
         """destroy event handler"""

@@ -165,7 +165,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             self.files.append(installer_file)
         if not installer_files:
             # Failed to get the service game, put back a user provided file
-            logger.debug("Unable to get files from service. Setting %s to manual.")
+            logger.debug("Unable to get files from service. Setting %s to manual.", installer_file_id)
             self.files.insert(0, InstallerFile(self.game_slug, installer_file_id, {
                 "url": "N/A: Provider installer file",
                 "filename": ""
