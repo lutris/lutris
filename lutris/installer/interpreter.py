@@ -35,7 +35,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.target_path = None
         self.parent = parent
         self.service = parent.service if parent else None
-        self.appid = parent.appid if parent else None
+        _appid = parent.appid if parent else None
         self.game_dir_created = False  # Whether a game folder was created during the install
         # Extra files for installers, either None if the extras haven't been checked yet.
         # Or a list of IDs of extras to be downloaded during the install
@@ -47,7 +47,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.user_inputs = []
         self.current_command = 0  # Current installer command when iterating through them
         self.runners_to_install = []
-        self.installer = LutrisInstaller(installer, self, service=self.service, appid=self.appid)
+        self.installer = LutrisInstaller(installer, self, service=self.service, appid=_appid)
         if not self.installer.script:
             raise ScriptingError(_("This installer doesn't have a 'script' section"))
         script_errors = self.installer.get_errors()
@@ -61,6 +61,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self._check_dependency()
         if self.installer.creates_game_folder:
             self.target_path = self.get_default_target()
+
+    @property
+    def appid(self):
+        logger.warning("Do not access appid from interpreter")
+        return self.installer.service_appid
 
     def get_default_target(self):
         """Return default installation dir"""
@@ -151,10 +156,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def get_extras(self):
         """Get extras and store them to move them at the end of the install"""
+        logger.debug("Checking if service provide extra files")
         if not self.service or not self.service.has_extras:
             self.extras = []
             return self.extras
-        self.extras = self.service.get_extras(self.appid)
+        self.extras = self.service.get_extras(self.installer.service_appid)
         return self.extras
 
     def launch_install(self):

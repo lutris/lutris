@@ -285,7 +285,6 @@ class GOGService(OnlineService):
         all_products_url = game_details["dlcs"]["expanded_all_products_url"]
         return self.make_api_request(all_products_url)
 
-
     def get_game_details(self, product_id):
         """Return game information for a given game"""
         if not product_id:
@@ -324,6 +323,7 @@ class GOGService(OnlineService):
 
     def get_extras(self, gogid):
         """Return a list of bonus content available for a GOG ID"""
+        logger.debug("Download extras for GOG ID %s", gogid)
         downloads = self.get_downloads(gogid)
         return [
             {
@@ -475,11 +475,10 @@ class GOGService(OnlineService):
         except HTTPError as err:
             raise UnavailableGame("Couldn't load the downloads for this game") from err
         links = self._get_installer_links(installer, downloads)
-        if not links:
-            return []
-
-        files = self._format_links(installer, installer_file_id, links)
-
+        if links:
+            files = self._format_links(installer, installer_file_id, links)
+        else:
+            files = []
         if self.selected_extras:
             for extra_file in self.get_extra_files(downloads, installer):
                 files.append(extra_file)
