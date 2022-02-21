@@ -543,10 +543,11 @@ class Game(GObject.Object):
 
     def force_stop(self):
         # If SIGTERM fails, wait a few seconds and try SIGKILL on any survivors
-        if self.kill_processes(signal.SIGTERM):
-            self.stop_game()
-        else:
+        self.runner.force_stop_game(self)
+        if self.get_stop_pids():
             self.force_kill_delayed()
+        else:
+            self.stop_game()
 
     def force_kill_delayed(self, death_watch_seconds=5, death_watch_interval_seconds=.5):
         """Forces termination of a running game, but only after a set time has elapsed;
@@ -572,19 +573,14 @@ class Game(GObject.Object):
         jobs.AsyncCall(death_watch, death_watch_cb)
 
     def kill_processes(self, sig):
-        """Sends a signal to a process list, logging errors. Returns True if
-        there were surviving processes afterwards, False if all are dead."""
+        """Sends a signal to a process list, logging errors."""
         pids = self.get_stop_pids()
-
-        if not pids:
-            return False
 
         for pid in pids:
             try:
                 os.kill(int(pid), sig)
             except ProcessLookupError as ex:
                 logger.debug("Failed to kill game process: %s", ex)
-        return len(self.get_stop_pids()) == 0
 
     def get_stop_pids(self):
         """Finds the PIDs of processes that need killin'!"""
