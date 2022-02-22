@@ -421,7 +421,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             elif self.filters.get("installed"):
                 self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
             else:
-                self.show_label(_("No games found"))
+                self.show_splash()
+                # self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()
@@ -473,13 +474,21 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.save_icon_type(icon_type)
             self.show_spinner()
 
-    def show_label(self, message):
-        """Display a label in the middle of the UI"""
+    def show_overlay(self, widget):
+        """Display a widget in the blank overlay"""
         for child in self.blank_overlay.get_children():
             child.destroy()
-        label = Gtk.Label(message, visible=True)
-        self.blank_overlay.add(label)
+        self.blank_overlay.add(widget)
         self.blank_overlay.props.visible = True
+
+    def show_label(self, message):
+        """Display a label in the middle of the UI"""
+        self.show_overlay(Gtk.Label(message, visible=True))
+
+    def show_splash(self):
+        image = Gtk.Image(visible=True)
+        image.set_from_file(os.path.join(datapath.get(), "media/splash.svg"))
+        self.show_overlay(image)
 
     def show_spinner(self):
         spinner = Gtk.Spinner(visible=True)
