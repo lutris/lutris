@@ -35,7 +35,7 @@ def get_gog_config(gog_game_path):
 
 def get_game_config(task, gog_game_path):
     config = {}
-    if not "path" in task:
+    if "path" not in task:
         return
     exe = task["path"]
     exe_abspath = system.fix_path_case(os.path.join(gog_game_path, exe))

@@ -161,10 +161,6 @@ class OriginService(OnlineService):
         )
         response.raise_for_status()
         token_data = response.json()
-        if "error" in token_data:
-            raise RuntimeError(
-                "%s (Error code: %s)" % (token_data["error"], token_data["error_number"])
-            )
         return token_data
 
     def _request_identity(self):
@@ -182,6 +178,10 @@ class OriginService(OnlineService):
             logger.warning("Refreshing Origin access token")
             self.fetch_access_token()
             identity_data = self._request_identity()
+        elif identity_data.get("error"):
+            raise RuntimeError(
+                "%s (Error code: %s)" % (identity_data["error"], identity_data["error_number"])
+            )
 
         if 'error' in identity_data:
             raise RuntimeError(identity_data["error"])
@@ -205,8 +205,8 @@ class OriginService(OnlineService):
         if self.is_loading:
             logger.warning("Origin games are already loading")
             return
-        self.is_loading = True
         user_id, _persona_id, _user_name = self.get_identity()
+        self.is_loading = True
         games = self.get_library(user_id)
         logger.info("Retrieved %s games from Origin library", len(games))
         origin_games = []
