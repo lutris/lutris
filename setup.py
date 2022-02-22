@@ -57,6 +57,7 @@ setup(
         'evdev',
         'requests',
         'python-magic',
+        "distro>=1.7.0;platform_system='Linux'",
         'lxml'
     ],
     url='https://lutris.net',
