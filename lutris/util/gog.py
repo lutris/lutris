@@ -1,6 +1,7 @@
 import json
 import os
 
+from lutris.util import system
 from lutris.util.log import logger
 
 
@@ -34,8 +35,10 @@ def get_gog_config(gog_game_path):
 
 def get_game_config(task, gog_game_path):
     config = {}
+    if not "path" in task:
+        return
     exe = task["path"]
-    exe_abspath = os.path.join(gog_game_path, exe)
+    exe_abspath = system.fix_path_case(os.path.join(gog_game_path, exe))
     if os.path.exists(exe_abspath):
         exe = exe_abspath
     else:
@@ -55,6 +58,8 @@ def convert_gog_config_to_lutris(gog_config, gog_game_path):
     lutris_config = {"launch_configs": []}
     for task in play_tasks:
         config = get_game_config(task, gog_game_path)
+        if not config:
+            continue
         if task.get("isPrimary"):
             lutris_config.update(config)
         else:
