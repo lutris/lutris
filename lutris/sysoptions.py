@@ -7,6 +7,7 @@ from gettext import gettext as _
 
 from lutris import runners
 from lutris.util import linux, system
+from lutris.util.graphics import drivers
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
 
 VULKAN_DATA_DIRS = [
@@ -173,7 +174,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Enable gamescope"),
         "default": False,
         "advanced": True,
-        "condition": bool(system.find_executable("gamescope")),
+        "condition": bool(system.find_executable("gamescope")) and not drivers.is_nvidia(),
         "help": _("Use gamescope to draw the game window isolated from your desktop.\n"
                   "Use Ctrl+Super+F to toggle fullscreen"),
     },
