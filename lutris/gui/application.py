@@ -221,7 +221,7 @@ class Application(Gtk.Application):
         )
         self.add_main_option(
             "dest",
-            ord("d"),
+            0,
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
             _("Destination path for export"),
