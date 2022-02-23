@@ -390,7 +390,6 @@ class Game(GObject.Object):
             )
             self.prelaunch_executor.start()
 
-
     def get_terminal(self):
         """Return the terminal used to run the game into or None if the game is not run from a terminal.
         Remember that only games using text mode should use the terminal.
@@ -550,16 +549,52 @@ class Game(GObject.Object):
             np_file.write(self.name)
 
     def force_stop(self):
-        """Forces termination of a running game"""
+        # If force_stop_game fails, wait a few seconds and try SIGKILL on any survivors
+        self.runner.force_stop_game(self)
+        if self.get_stop_pids():
+            self.force_kill_delayed()
+        else:
+            self.stop_game()
+
+    def force_kill_delayed(self, death_watch_seconds=5, death_watch_interval_seconds=.5):
+        """Forces termination of a running game, but only after a set time has elapsed;
+        Invokes stop_game() when the game is dead."""
+
+        def death_watch():
+            """Wait for the processes to die; returns True if do they all did."""
+            for _n in range(int(death_watch_seconds / death_watch_interval_seconds)):
+                time.sleep(death_watch_interval_seconds)
+                if not self.get_stop_pids():
+                    return True
+            return False
+
+        def death_watch_cb(all_died, error):
+            """Called after the death watch to more firmly kill any survivors."""
+            if error:
+                dialogs.ErrorDialog(str(error))
+            elif not all_died:
+                self.kill_processes(signal.SIGKILL)
+            # If we still can't kill everything, we'll still say we stopped it.
+            self.stop_game()
+
+        jobs.AsyncCall(death_watch, death_watch_cb)
+
+    def kill_processes(self, sig):
+        """Sends a signal to a process list, logging errors."""
+        pids = self.get_stop_pids()
+
+        for pid in pids:
+            try:
+                os.kill(int(pid), sig)
+            except ProcessLookupError as ex:
+                logger.debug("Failed to kill game process: %s", ex)
+
+    def get_stop_pids(self):
+        """Finds the PIDs of processes that need killin'!"""
         pids = self.get_game_pids()
         if self.game_thread and self.game_thread.game_process:
             pids.add(self.game_thread.game_process.pid)
-        for pid in pids:
-            try:
-                os.kill(int(pid), signal.SIGTERM)
-            except ProcessLookupError as ex:
-                logger.debug("Failed to kill game process: %s", ex)
-        self.stop_game()
+        return pids
 
     def get_game_pids(self):
         """Return a list of processes belonging to the Lutris game"""

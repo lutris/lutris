@@ -485,7 +485,6 @@ class wine(Runner):
             ("wineshell", _("Open Bash terminal"), self.run_wine_terminal),
             ("wineconsole", _("Open Wine console"), self.run_wineconsole),
             ("wine-regedit", _("Wine registry"), self.run_regedit),
-            ("winekill", _("Kill all Wine processes"), self.run_winekill),
             ("winetricks", _("Winetricks"), self.run_winetricks),
             ("winecpl", _("Wine Control Panel"), self.run_winecpl),
         ]
@@ -968,6 +967,11 @@ class wine(Runner):
                 command.append(arg)
         launch_info["command"] = command
         return launch_info
+
+    def force_stop_game(self, game):
+        """Kill WINE with kindness, or at least with -k. This seems to leave a process
+        alive for some reason, but the caller will detect this and SIGKILL it."""
+        self.run_winekill()
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):
