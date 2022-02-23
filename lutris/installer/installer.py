@@ -154,6 +154,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return
         logger.info("Getting files for %s", installer_file_id)
         if self.service.has_extras:
+            logger.info("Adding selected extras to downloads")
             self.service.selected_extras = self.interpreter.extras
         if patch_version:
             # If a patch version is given download the patch files instead of the installer
@@ -164,7 +165,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             self.files.append(installer_file)
         if not installer_files:
             # Failed to get the service game, put back a user provided file
-            self.files.insert(0, "N/A: Provider installer file")
+            logger.debug("Unable to get files from service. Setting %s to manual.", installer_file_id)
+            self.files.insert(0, InstallerFile(self.game_slug, installer_file_id, {
+                "url": "N/A: Provider installer file",
+                "filename": ""
+            }))
 
     def _substitute_config(self, script_config):
         """Substitute values such as $GAMEDIR in a config dict."""

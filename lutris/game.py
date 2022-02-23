@@ -39,6 +39,9 @@ class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
        and running it.
     """
+
+    now_playing_path = os.path.join(settings.CACHE_DIR, "now-playing.txt")
+
     STATE_STOPPED = "stopped"
     STATE_LAUNCHING = "launching"
     STATE_RUNNING = "running"
@@ -290,7 +293,8 @@ class Game(GObject.Object):
     def is_launchable(self):
         """Verify that the current game can be launched."""
         if not self.is_installed:
-            dialogs.ErrorDialog(_("Tried to launch a game that isn't installed. (Who'd you do that?)"))
+            logger.error("%s (%s) not installed", self, self.id)
+            dialogs.ErrorDialog(_("Tried to launch a game that isn't installed."))
             return False
         if not self.runner:
             dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
@@ -364,21 +368,28 @@ class Game(GObject.Object):
                 setxkbmap.communicate()
                 xkbcomp.communicate()
 
-    def start_prelaunch_command(self):
+    def start_prelaunch_command(self, wait_for_completion=False):
         """Start the prelaunch command specified in the system options"""
         prelaunch_command = self.runner.system_config.get("prelaunch_command")
         command_array = shlex.split(prelaunch_command)
         if not system.path_exists(command_array[0]):
             logger.warning("Command %s not found", command_array[0])
             return
-        self.prelaunch_executor = MonitoredCommand(
-            command_array,
-            include_processes=[os.path.basename(command_array[0])],
-            env=self.game_runtime_config["env"],
-            cwd=self.directory,
-        )
-        self.prelaunch_executor.start()
-        logger.info("Running %s in the background", prelaunch_command)
+        env = self.game_runtime_config["env"]
+        if wait_for_completion:
+            logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
+            # Monitor the prelaunch command and wait until it has finished
+            system.execute(command_array, env=env, cws=self.directory)
+        else:
+            logger.info("Prelaunch command %s launched in the background", prelaunch_command)
+            self.prelaunch_executor = MonitoredCommand(
+                command_array,
+                include_processes=[os.path.basename(command_array[0])],
+                env=env,
+                cwd=self.directory,
+            )
+            self.prelaunch_executor.start()
+
 
     def get_terminal(self):
         """Return the terminal used to run the game into or None if the game is not run from a terminal.
@@ -407,20 +418,26 @@ class Game(GObject.Object):
             logger.warning("Trying to launch %s without a runner", self)
             return {}
         gameplay_info = self.runner.play()
-        if self.config.game_level.get("game", {}).get("launch_configs"):
-            configs = self.config.game_level["game"]["launch_configs"]
-            dlg = dialogs.LaunchConfigSelectDialog(self, configs)
-            if dlg.config_index:
-                config = configs[dlg.config_index - 1]
-                gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
-                if config.get("args"):
-                    gameplay_info["command"] += strings.split_arguments(config["args"])
-
         if "error" in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
+
+        if self.config.game_level.get("game", {}).get("launch_configs"):
+            configs = self.config.game_level["game"]["launch_configs"]
+            dlg = dialogs.LaunchConfigSelectDialog(self, configs)
+            if dlg.config_index:
+                config = configs[dlg.config_index - 1]
+                if "command" not in gameplay_info:
+                    logger.debug("No command in %s", gameplay_info)
+                    logger.debug(config)
+                    return {}
+
+                gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
+                if config.get("args"):
+                    gameplay_info["command"] += strings.split_arguments(config["args"])
+
         return gameplay_info
 
     @watch_lutris_errors
@@ -488,13 +505,9 @@ class Game(GObject.Object):
         self.killswitch = self.get_killswitch()
 
         if self.runner.system_config.get("prelaunch_command"):
-            self.start_prelaunch_command()
+            self.start_prelaunch_command(self.runner.system_config.get("prelaunch_wait"))
 
-        if self.runner.system_config.get("prelaunch_wait"):
-            # Monitor the prelaunch command and wait until it has finished
-            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.prelaunch_beat)
-        else:
-            self.start_game()
+        self.start_game()
 
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
@@ -533,6 +546,8 @@ class Game(GObject.Object):
         self.state = self.STATE_RUNNING
         self.emit("game-started")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+        with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
+            np_file.write(self.name)
 
     def force_stop(self):
         """Forces termination of a running game"""
@@ -575,6 +590,8 @@ class Game(GObject.Object):
 
         self.state = self.STATE_STOPPED
         self.emit("game-stop")
+        if os.path.exists(self.now_playing_path):
+            os.unlink(self.now_playing_path)
         if not self.timer.finished:
             self.timer.end()
             self.playtime += self.timer.duration / 3600

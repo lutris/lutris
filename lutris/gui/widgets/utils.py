@@ -76,6 +76,12 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
     return transparent_pixbuf
 
 
+def has_stock_icon(name):
+    """This tests if a GTK stock icon is known; if not we can try a fallback."""
+    theme = Gtk.IconTheme.get_default()
+    return theme.has_icon(name)
+
+
 def get_stock_icon(name, size):
     """Return a pixbuf from a stock icon name"""
     theme = Gtk.IconTheme.get_default()

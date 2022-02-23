@@ -32,8 +32,9 @@ gi.require_version("GnomeDesktop", "3.0")
 
 from gi.repository import Gio, GLib, Gtk, GObject
 
+from lutris.runners import get_runner_names, import_runner, InvalidRunner, RunnerInstallationError
 from lutris import settings
-from lutris.api import parse_installer_url
+from lutris.api import parse_installer_url, get_runners
 from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game
@@ -45,7 +46,7 @@ from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
 from lutris.startup import init_lutris, run_all_checks, update_runtime
 from lutris.style_manager import StyleManager
-from lutris.util import datapath, log
+from lutris.util import datapath, log, system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -175,6 +176,38 @@ class Application(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.NONE,
             _("List all known Steam library folders"),
+            None,
+        )
+        self.add_main_option(
+            "list-runners",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("List all known runners"),
+            None,
+        )
+        self.add_main_option(
+            "list-wine-runners",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("List all known Wine runners"),
+            None,
+        )
+        self.add_main_option(
+            "install-runner",
+            ord("r"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Install a Runner"),
+            None,
+        )
+        self.add_main_option(
+            "uninstall-runner",
+            ord("u"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Uninstall a Runner"),
             None,
         )
         self.add_main_option(
@@ -368,6 +401,28 @@ class Application(Gtk.Application):
             self.print_steam_folders(command_line)
             return 0
 
+        # List Runners
+        if options.contains("list-runners"):
+            self.print_runners()
+            return 0
+
+        # List Wine Runners
+        if options.contains("list-wine-runners"):
+            self.print_wine_runners()
+            return 0
+
+        # install Runner
+        if options.contains("install-runner"):
+            runner = options.lookup_value("install-runner").get_string()
+            self.install_runner(runner)
+            return 0
+
+        # Uninstall Runner
+        if options.contains("uninstall-runner"):
+            runner = options.lookup_value("uninstall-runner").get_string()
+            self.uninstall_runner(runner)
+            return 0
+
         # Execute command in Lutris context
         if options.contains("exec"):
             command = options.lookup_value("exec").get_string()
@@ -518,7 +573,9 @@ class Application(Gtk.Application):
         if game.service and game.service != "lutris":
             service = get_enabled_services()[game.service]()
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
-
+            if not db_game:
+                logger.error("Can't find %s for %s", game.name, service.name)
+                return True
             try:
                 game_id = service.install(db_game)
             except ValueError as e:
@@ -675,6 +732,109 @@ class Application(Gtk.Application):
         for platform in ("linux", "windows"):
             for path in steamapps_paths[platform] if steamapps_paths else []:
                 self._print(command_line, path)
+
+    def print_runners(self):
+        runnersName = get_runner_names()
+        sortednames = sorted(runnersName.keys(), key=lambda x: x.lower())
+        print("Runners:")
+        for name in sortednames:
+            print(name)
+
+    def print_wine_runners(self):
+        runnersName = get_runners("wine")
+        for i in runnersName["versions"]:
+            if i["version"]:
+                print(i)
+
+    def install_runner(self, runner):
+        if runner.startswith("lutris"):
+            self.install_wine_cli(runner)
+        else:
+            self.install_cli(runner)
+
+    def uninstall_runner(self, runner):
+        if "wine" in runner:
+            print("Are sure you want to delete Wine and all of the installed runners?[Y/N]")
+            ans = input()
+            if ans.lower() in ("y", "yes"):
+                self.uninstall_runner_cli(runner)
+            else:
+                print("Not Removing Wine")
+        elif runner.startswith("lutris"):
+            self.wine_runner_uninstall(runner)
+        else:
+            self.uninstall_runner_cli(runner)
+
+    def install_wine_cli(self, version):
+        """
+        Downloads wine runner using lutris -r <runner>
+        """
+
+        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+        runner_path = os.path.join(WINE_DIR, f"{version}{'' if '-x86_64' in version else '-x86_64'}")
+        if os.path.isdir(runner_path):
+            print(f"Wine version '{version}' is already installed.")
+        else:
+            from lutris.gui.dialogs import ErrorDialog
+            from lutris.gui.dialogs.download import simple_downloader
+            try:
+                runner = import_runner("wine")
+                runner().install(downloader=simple_downloader, version=version)
+                print(f"Wine version '{version}' has been installed.")
+            except (InvalidRunner, RunnerInstallationError) as ex:
+                ErrorDialog(ex.message)
+
+    def wine_runner_uninstall(self, version):
+        version = f"{version}{'' if '-x86_64' in version else '-x86_64'}"
+        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
+        runner_path = os.path.join(WINE_DIR, version)
+        if os.path.isdir(runner_path):
+            system.remove_folder(runner_path)
+            print(f"Wine version '{version}' has been removed.")
+        else:
+            print(f"""
+Specified version of Wine is not installed: {version}.
+Please check if the Wine Runner and specified version are installed (for that use --list-wine-runners).
+Also, check that the version specified is in the correct format.
+                """)
+
+    def install_cli(self, runner_name):
+        """
+        install the runner provided in prepare_runner_cli()
+        """
+
+        runner_path = os.path.join(settings.RUNNER_DIR, runner_name)
+        if os.path.isdir(runner_path):
+            print(f"'{runner_name}' is already installed.")
+        else:
+            from lutris.gui.dialogs import ErrorDialog
+            from lutris.gui.dialogs.download import simple_downloader
+            try:
+                runner = import_runner(runner_name)
+                runner().install(version=None, downloader=simple_downloader, callback=None)
+                print(f"'{runner_name}' has been installed")
+            except (InvalidRunner, RunnerInstallationError) as ex:
+                ErrorDialog(ex.message)
+
+    def uninstall_runner_cli(self, runner_name):
+        """
+        uninstall the runner given in application file located in lutris/gui/application.py
+        provided using lutris -u <runner>
+        """
+        try:
+            runner_class = import_runner(runner_name)
+            runner = runner_class()
+        except InvalidRunner:
+            logger.error("Failed to import Runner: %s", runner_name)
+            return
+        if not runner.is_installed():
+            print(f"Runner '{runner_name}' is not installed.")
+            return
+        if runner.can_uninstall():
+            runner.uninstall()
+            print(f"'{runner_name}' has been uninstalled.")
+        else:
+            print(f"Runner '{runner_name}' cannot be uninstalled.")
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")

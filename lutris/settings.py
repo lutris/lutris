@@ -13,13 +13,16 @@ VERSION = __version__
 COPYRIGHT = _("(c) 2010-2022 Lutris Team")
 AUTHORS = [_("The Lutris team")]
 
+
 # Paths
 CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "lutris")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "lutris.conf")
+sio = SettingsIO(CONFIG_FILE)
+
 DATA_DIR = os.path.join(GLib.get_user_data_dir(), "lutris")
-RUNNER_DIR = os.path.join(DATA_DIR, "runners")
-RUNTIME_DIR = os.path.join(DATA_DIR, "runtime")
-CACHE_DIR = os.path.join(GLib.get_user_cache_dir(), "lutris")
+RUNNER_DIR = sio.read_setting("runner_dir") or os.path.join(DATA_DIR, "runners")
+RUNTIME_DIR = sio.read_setting("runtime_dir") or os.path.join(DATA_DIR, "runtime")
+CACHE_DIR = sio.read_setting("cache_dir") or os.path.join(GLib.get_user_cache_dir(), "lutris")
 GAME_CONFIG_DIR = os.path.join(CONFIG_DIR, "games")
 
 TMP_PATH = os.path.join(CACHE_DIR, "tmp")
@@ -28,7 +31,7 @@ BANNER_PATH = os.path.join(CACHE_DIR, "banners")
 COVERART_PATH = os.path.join(CACHE_DIR, "coverart")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
-sio = SettingsIO(CONFIG_FILE)
+
 if "nosetests" in sys.argv[0] or "nose2" in sys.argv[0] or "pytest" in sys.argv[0]:
     PGA_DB = "/tmp/pga.db"
 else:

@@ -117,6 +117,14 @@ class OriginService(OnlineService):
     def api_url(self):
         return "https://api%s.origin.com" % random.randint(1, 4)
 
+    def run(self):
+        db_game = get_game_by_field(self.client_installer, "slug")
+        game = Game(db_game["id"])
+        game.emit("game-launch")
+
+    def is_launchable(self):
+        return get_game_by_field(self.client_installer, "slug")
+
     def is_connected(self):
         return bool(self.access_token)
 
@@ -153,10 +161,6 @@ class OriginService(OnlineService):
         )
         response.raise_for_status()
         token_data = response.json()
-        if "error" in token_data:
-            raise RuntimeError(
-                "%s (Error code: %s)" % (token_data["error"], token_data["error_number"])
-            )
         return token_data
 
     def _request_identity(self):
@@ -174,6 +178,10 @@ class OriginService(OnlineService):
             logger.warning("Refreshing Origin access token")
             self.fetch_access_token()
             identity_data = self._request_identity()
+        elif identity_data.get("error"):
+            raise RuntimeError(
+                "%s (Error code: %s)" % (identity_data["error"], identity_data["error_number"])
+            )
 
         if 'error' in identity_data:
             raise RuntimeError(identity_data["error"])
@@ -197,9 +205,10 @@ class OriginService(OnlineService):
         if self.is_loading:
             logger.warning("Origin games are already loading")
             return
-        self.is_loading = True
         user_id, _persona_id, _user_name = self.get_identity()
+        self.is_loading = True
         games = self.get_library(user_id)
+        logger.info("Retrieved %s games from Origin library", len(games))
         origin_games = []
         for game in games:
             origin_game = OriginGame.new_from_api(game)
@@ -256,9 +265,11 @@ class OriginService(OnlineService):
             logger.error("Invalid install of Origin at %s", origin_prefix)
             return
         origin_launcher = OriginLauncher(origin_prefix)
+        installed_games = 0
         for manifest in origin_launcher.iter_manifests():
             self.install_from_origin(origin_game, manifest)
-        logger.debug("All EGS games imported")
+            installed_games += 1
+        logger.debug("Installed %s Origin games", installed_games)
 
     def install_from_origin(self, origin_game, manifest):
         offer_id = manifest["id"].split("@")[0]

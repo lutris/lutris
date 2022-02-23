@@ -159,14 +159,10 @@ system_options = [  # pylint: disable=invalid-name
                   " over the provided ones."),
     },
     {
-        "option":
-        "reset_desktop",
-        "type":
-        "bool",
-        "label":
-        _("Restore resolution on game exit"),
-        "default":
-        False,
+        "option": "reset_desktop",
+        "type": "bool",
+        "label": _("Restore resolution on game exit"),
+        "default": False,
         "help": _("Some games don't restore your screen resolution when \n"
                   "closed or when they crash. This is when this option comes \n"
                   "into play to save your bacon."),
@@ -361,6 +357,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "choice",
         "label": _("Turn off monitors except"),
         "choices": get_output_choices,
+        "condition": linux.LINUX_SYSTEM.display_server != "wayland",
         "default": "off",
         "advanced": True,
         "help": _("Only keep the selected screen active while the game is "
@@ -373,6 +370,7 @@ system_options = [  # pylint: disable=invalid-name
         "type": "choice",
         "label": _("Switch resolution to"),
         "choices": get_resolution_choices,
+        "condition": linux.LINUX_SYSTEM.display_server != "wayland",
         "default": "off",
         "help": _("Switch to this screen resolution while the game is running."),
     },
@@ -447,28 +445,20 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Script to execute when the game exits"),
     },
     {
-        "option":
-        "include_processes",
-        "type":
-        "string",
-        "label":
-        _("Include processes"),
-        "advanced":
-        True,
+        "option": "include_processes",
+        "type": "string",
+        "label": _("Include processes"),
+        "advanced": True,
         "help": _("What processes to include in process monitoring. "
                   "This is to override the built-in exclude list.\n"
                   "Space-separated list, processes including spaces "
                   "can be wrapped in quotation marks."),
     },
     {
-        "option":
-        "exclude_processes",
-        "type":
-        "string",
-        "label":
-        _("Exclude processes"),
-        "advanced":
-        True,
+        "option": "exclude_processes",
+        "type": "string",
+        "label": _("Exclude processes"),
+        "advanced": True,
         "help": _("What processes to exclude in process monitoring. "
                   "For example background processes that stick around "
                   "after the game has been closed.\n"
@@ -476,49 +466,35 @@ system_options = [  # pylint: disable=invalid-name
                   "can be wrapped in quotation marks."),
     },
     {
-        "option":
-        "killswitch",
-        "type":
-        "string",
-        "label":
-        _("Killswitch file"),
-        "advanced":
-        True,
+        "option": "killswitch",
+        "type": "string",
+        "label": _("Killswitch file"),
+        "advanced": True,
         "help": _("Path to a file which will stop the game when deleted \n"
                   "(usually /dev/input/js0 to stop the game on joystick "
                   "unplugging)"),
     },
     {
-        "option":
-        "sdl_gamecontrollerconfig",
-        "type":
-        "string",
-        "label":
-        _("SDL2 gamepad mapping"),
-        "advanced":
-        True,
+        "option": "sdl_gamecontrollerconfig",
+        "type": "string",
+        "label": _("SDL2 gamepad mapping"),
+        "advanced": True,
         "help": _("SDL_GAMECONTROLLERCONFIG mapping string or path to a custom "
                   "gamecontrollerdb.txt file containing mappings."),
     },
     {
-        "option":
-        "xephyr",
-        "label":
-        _("Use Xephyr"),
-        "type":
-        "choice",
+        "option": "xephyr",
+        "label": _("Use Xephyr"),
+        "type": "choice",
         "choices": (
             (_("Off"), "off"),
             (_("8BPP (256 colors)"), "8bpp"),
             (_("16BPP (65536 colors)"), "16bpp"),
             (_("24BPP (16M colors)"), "24bpp"),
         ),
-        "default":
-        "off",
-        "advanced":
-        True,
-        "help":
-        _("Run program in Xephyr to support 8BPP and 16BPP color modes"),
+        "default": "off",
+        "advanced": True,
+        "help": _("Run program in Xephyr to support 8BPP and 16BPP color modes"),
     },
     {
         "option": "xephyr_resolution",

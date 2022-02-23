@@ -5,11 +5,14 @@ import shutil
 from gettext import gettext as _
 from urllib.parse import unquote
 
+from gi.repository import Gio
+
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
+from lutris.installer import get_installers
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -117,6 +120,14 @@ class UbisoftConnectService(OnlineService):
         self.emit("service-login")
         return (user_data['userId'], user_data['username'])
 
+    def run(self):
+        db_game = get_game_by_field(self.client_installer, "slug")
+        game = Game(db_game["id"])
+        game.emit("game-launch")
+
+    def is_launchable(self):
+        return get_game_by_field(self.client_installer, "slug")
+
     def is_connected(self):
         return self.is_authenticated()
 
@@ -141,6 +152,14 @@ class UbisoftConnectService(OnlineService):
         games = response['data']['viewer']['ownedGames'].get('nodes', [])
         ubi_games = []
         for game in games:
+            if "ownedPlatformGroups" in game:
+                is_pc = False
+                for platform_group in game["ownedPlatformGroups"]:
+                    for platform in platform_group:
+                        if platform["type"] == "PC":
+                            is_pc = True
+                if not is_pc:
+                    continue
             ubi_game = UbisoftGame.new_from_api(game)
             ubi_game.save()
             ubi_games.append(ubi_game)
@@ -202,8 +221,7 @@ class UbisoftConnectService(OnlineService):
             if install_path and exe:
                 self.install_from_ubisoft(ubisoft_connect, game)
 
-    def generate_installer(self, db_game):
-        ubi_db_game = get_game_by_field("ubisoft-connect", "slug")
+    def generate_installer(self, db_game, ubi_db_game):
         ubisoft_connect = Game(ubi_db_game["id"])
         uc_exe = ubisoft_connect.config.game_config["exe"]
         if not os.path.isabs(uc_exe):
@@ -234,3 +252,18 @@ class UbisoftConnectService(OnlineService):
                 ]
             }
         }
+
+    def install(self, db_game):
+        """Install a game or Ubisoft Connect if not already installed"""
+        ubisoft_connect = get_game_by_field(self.client_installer, "slug")
+        application = Gio.Application.get_default()
+        if not ubisoft_connect or not ubisoft_connect["installed"]:
+            logger.warning("Ubisoft Connect (%s) not installed", self.client_installer)
+            installers = get_installers(game_slug=self.client_installer)
+            application.show_installer_window(installers)
+        else:
+            application.show_installer_window(
+                [self.generate_installer(db_game, ubisoft_connect)],
+                service=self,
+                appid=db_game["appid"]
+            )
