@@ -30,7 +30,8 @@ from lutris.util.wine.wine import (
     is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
 
-MIN_SAFE_VERSION = "5.0"  # Wine installers must run with at least this version
+DEFAULT_WINE_PREFIX = "~/.wine"
+MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
 class wine(Runner):
@@ -491,7 +492,7 @@ class wine(Runner):
         return menu_entries
 
     @property
-    def prefix_path(self, default_prefix="~/.wine"):
+    def prefix_path(self):
         """Return the absolute path of the Wine prefix"""
         _prefix_path = self.game_config.get("prefix") \
             or os.environ.get("WINEPREFIX")
@@ -499,7 +500,7 @@ class wine(Runner):
             # Find prefix from game if we have one
             _prefix_path = find_prefix(self.game_exe)
         if not _prefix_path:
-            _prefix_path = default_prefix
+            _prefix_path = DEFAULT_WINE_PREFIX
         return os.path.expanduser(_prefix_path)
 
     @property
