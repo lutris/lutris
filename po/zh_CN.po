@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-02-23 15:45+0800\n"
-"PO-Revision-Date: 2021-11-20 17:15+0800\n"
+"PO-Revision-Date: 2022-02-23 16:35+0800\n"
 "Last-Translator: Yidaozhan Ya <yidaozhan_ya@outlook.com>\n"
 "Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
 "Language: zh_CN\n"
@@ -168,7 +168,6 @@ msgid "Show Side _Panel"
 msgstr "显示边栏 (_P)"
 
 #: share/lutris/ui/lutris-window.ui:500
-#, fuzzy
 msgid "Add games"
 msgstr "添加游戏"
 
@@ -214,9 +213,8 @@ msgid "Install"
 msgstr "安装"
 
 #: lutris/game_actions.py:59
-#, fuzzy
 msgid "Install updates"
-msgstr "安装运行环境"
+msgstr "安装更新"
 
 #: lutris/game_actions.py:61
 msgid "Show logs"
@@ -333,16 +331,15 @@ msgstr "未处理的错误：%s"
 
 #: lutris/game.py:299
 msgid "Tried to launch a game that isn't installed."
-msgstr ""
+msgstr "游戏尚未安装，无法启动。"
 
 #: lutris/game.py:302
 msgid "Invalid game configuration: Missing runner"
 msgstr "无效游戏配置：缺少运行环境"
 
 #: lutris/game.py:307
-#, fuzzy
 msgid "Runner not installed."
-msgstr "错误：运行环境未安装"
+msgstr "运行环境未安装。"
 
 #: lutris/game.py:313
 msgid "Runtime currently updating"
@@ -387,83 +384,77 @@ msgstr "<b>错误：该 Wine 容器正在被另一个不同版本的 Wine 使用
 
 #: lutris/gui/addgameswindow.py:21
 msgid "Search the Lutris website for installers"
-msgstr ""
+msgstr "在 Lutris 网站上搜索游戏"
 
 #: lutris/gui/addgameswindow.py:22
 msgid "Query our website for community installers"
-msgstr ""
+msgstr "从 Lutris 网站查找社区贡献的游戏安装脚本"
 
 #: lutris/gui/addgameswindow.py:27
 msgid "Scan a folder for games"
-msgstr ""
+msgstr "扫描游戏安装目录"
 
 #: lutris/gui/addgameswindow.py:28
 msgid "Mass-import a folder of games"
-msgstr ""
+msgstr "从目录批量导入已经装好的游戏"
 
 #: lutris/gui/addgameswindow.py:33
-#, fuzzy
 msgid "Install a Windows game from media"
-msgstr "从 yml 文件安装游戏"
+msgstr "从安装包安装 Windows 游戏"
 
 #: lutris/gui/addgameswindow.py:34
 msgid "Launch a setup file from an optical drive or download"
-msgstr ""
+msgstr "用光盘或下载好的安装包安装游戏"
 
 #: lutris/gui/addgameswindow.py:39
 msgid "Install from a local install script"
-msgstr ""
+msgstr "用本地安装脚本进行安装"
 
 #: lutris/gui/addgameswindow.py:40
 msgid "Run a YAML install script"
-msgstr ""
+msgstr "运行本地 YAML 安装脚本"
 
 #: lutris/gui/addgameswindow.py:45
-#, fuzzy
 msgid "Add locally installed game"
-msgstr "导入已安装的游戏"
+msgstr "手动配置游戏运行环境"
 
 #: lutris/gui/addgameswindow.py:46
 msgid "Manually configure a game available locally"
-msgstr ""
+msgstr "自定义所有安装选项"
 
 #: lutris/gui/addgameswindow.py:51
 msgid "Add games to Lutris"
-msgstr ""
+msgstr "添加游戏"
 
 #: lutris/gui/addgameswindow.py:144
-#, fuzzy
 msgid "Select folder to scan"
-msgstr "选择目录"
+msgstr "选择要扫描的目录"
 
 #: lutris/gui/addgameswindow.py:202
 msgid "No results"
-msgstr ""
+msgstr "未找到任何结果"
 
 #: lutris/gui/addgameswindow.py:204
 #, python-brace-format
 msgid "Showing <b>{count}</b> results"
-msgstr ""
+msgstr "显示 <b>{count}</b> 条结果"
 
 #: lutris/gui/addgameswindow.py:206
 #, python-brace-format
 msgid "<b>{total_count}</b> results, only displaying first {count}"
-msgstr ""
+msgstr "<b>共 {total_count}</b> 条结果，仅显示前 {count} 条"
 
 #: lutris/gui/addgameswindow.py:222
-#, fuzzy
 msgid "<b>Select setup file</b>"
-msgstr "选择文件"
+msgstr "<b>选择安装包</b>"
 
 #: lutris/gui/addgameswindow.py:228
-#, fuzzy
 msgid "Continue"
-msgstr "继续 (_C)"
+msgstr "继续"
 
 #: lutris/gui/addgameswindow.py:258
-#, fuzzy
 msgid "Select a Lutris installer"
-msgstr "选择一个许可证文件"
+msgstr "选择安装脚本文件"
 
 #: lutris/gui/application.py:87
 msgid ""
@@ -524,38 +515,32 @@ msgid "List all known Steam library folders"
 msgstr "列出所有已知的 Steam 库文件夹"
 
 #: lutris/gui/application.py:187
-#, fuzzy
 msgid "List all known runners"
-msgstr "安装运行环境"
+msgstr "列出所有已知的运行环境"
 
 #: lutris/gui/application.py:195
-#, fuzzy
 msgid "List all known Wine runners"
-msgstr "列出所有已知的 Steam 库文件夹"
+msgstr "列出所有已知的 Wine 运行环境"
 
 #: lutris/gui/application.py:203
-#, fuzzy
 msgid "Install a Runner"
 msgstr "安装运行环境"
 
 #: lutris/gui/application.py:211
-#, fuzzy
 msgid "Uninstall a Runner"
-msgstr "安装运行环境"
+msgstr "卸载运行环境"
 
 #: lutris/gui/application.py:219
-#, fuzzy
 msgid "Export a game"
-msgstr "导入游戏"
+msgstr "导出游戏"
 
 #: lutris/gui/application.py:227
-#, fuzzy
 msgid "Import a game"
 msgstr "导入游戏"
 
 #: lutris/gui/application.py:235
 msgid "Destination path for export"
-msgstr ""
+msgstr "导出路径"
 
 #: lutris/gui/application.py:243
 msgid "Display the list of games in JSON format"
@@ -594,19 +579,17 @@ msgid "No such file: %s"
 msgstr "文件不存在：%s"
 
 #: lutris/gui/application.py:645
-#, fuzzy, python-format
+#, python-format
 msgid "There is no installer available for %s."
-msgstr "没有适用于此游戏的安装脚本"
+msgstr "%s 没有可用的安装脚本。"
 
 #: lutris/gui/application.py:655
-#, fuzzy
 msgid "No updates found"
-msgstr "未找到游戏"
+msgstr "未找到更新"
 
 #: lutris/gui/application.py:665
-#, fuzzy
 msgid "No DLC found"
-msgstr "未找到游戏"
+msgstr "未找到 DLC"
 
 #: lutris/gui/config/add_game.py:11
 msgid "Add a new game"
@@ -780,9 +763,8 @@ msgid "Please fill in the name"
 msgstr "请填写游戏名称"
 
 #: lutris/gui/config/common.py:426
-#, fuzzy
 msgid "Steam AppID not provided"
-msgstr "Steam 应用 ID 未提供"
+msgstr "未提供 Steam 应用 ID"
 
 #: lutris/gui/config/common.py:444
 msgid "The following fields have invalid values: "
@@ -965,7 +947,7 @@ msgstr "确定"
 
 #: lutris/gui/dialogs/__init__.py:246
 msgid "Select game to launch"
-msgstr ""
+msgstr "选择要启动的游戏"
 
 #: lutris/gui/dialogs/__init__.py:318
 msgid "Login failed"
@@ -1392,7 +1374,7 @@ msgstr "平台"
 
 #: lutris/gui/widgets/sidebar.py:316 lutris/util/system.py:27
 msgid "Games"
-msgstr "游戏列表"
+msgstr "游戏"
 
 #: lutris/gui/widgets/sidebar.py:325
 msgid "Recent"
@@ -1577,7 +1559,7 @@ msgstr "要使用此安装脚本，您需要将 %s 安装到您的系统中。"
 
 #: lutris/installer/interpreter.py:138
 msgid "You need to install {} before"
-msgstr ""
+msgstr "需要先安装 {}"
 
 #: lutris/installer/interpreter.py:186
 msgid "Lutris does not have the necessary permissions to install to path:"
@@ -1750,7 +1732,7 @@ msgstr "在游戏退出后自动关闭 Dolphin。"
 
 #: lutris/runners/dolphin.py:50
 msgid "Custom Global User Directory"
-msgstr ""
+msgstr "自定义全局用户目录"
 
 #: lutris/runners/dosbox.py:13
 msgid "DOSBox"
@@ -3195,9 +3177,8 @@ msgid "O2EM"
 msgstr "O2EM"
 
 #: lutris/runners/o2em.py:12
-#, fuzzy
 msgid "Magnavox Odyssey² Emulator"
-msgstr "Magnavox Osyssey² 模拟器"
+msgstr "Magnavox Odyssey² 模拟器"
 
 #: lutris/runners/o2em.py:14 lutris/runners/o2em.py:30
 msgid "Magnavox Odyssey²"
@@ -3605,9 +3586,8 @@ msgid "File containing the title keys."
 msgstr "包含标题密钥（title key）的文件。"
 
 #: lutris/runners/scummvm.py:14
-#, fuzzy
 msgid "Engine for point-and-click games."
-msgstr "运行各种 2D 点击式冒险游戏。"
+msgstr "点选式游戏引擎。"
 
 #: lutris/runners/scummvm.py:15 lutris/services/scummvm.py:10
 msgid "ScummVM"
@@ -4232,9 +4212,9 @@ msgid ""
 "Otherwise, run it fullscreen.\n"
 "This corresponds to Wine's Virtual Desktop option."
 msgstr ""
-"在一个窗口中运行整个 Windows 桌面。\n"
+"在窗口中运行整个 Windows 桌面。\n"
 "如果未启用则全屏运行。\n"
-"这对应于 Wine 的“虚拟桌面”选项。"
+"对应 Wine 的“虚拟桌面”选项。"
 
 #: lutris/runners/wine.py:357
 msgid "Virtual desktop resolution"
@@ -4245,30 +4225,30 @@ msgid "The size of the virtual desktop in pixels."
 msgstr "虚拟桌面的大小（以像素为单位）。"
 
 #: lutris/runners/wine.py:364
-#, fuzzy
 msgid "Enable DPI Scaling"
-msgstr "启用声音"
+msgstr "启用 DPI 缩放"
 
 #: lutris/runners/wine.py:368
-#, fuzzy
 msgid ""
 "Enables the Windows application's DPI scaling.\n"
 "Otherwise, disables DPI scaling by using 96 DPI.\n"
 "This corresponds to Wine's Screen Resolution option."
 msgstr ""
-"在一个窗口中运行整个 Windows 桌面。\n"
-"如果未启用则全屏运行。\n"
-"这对应于 Wine 的“虚拟桌面”选项。"
+"为 Windows 应用程序启用 DPI 缩放。\n"
+"如果不启用，则默认使用 96 DPI。\n"
+"对应 Wine 的“屏幕分辨率”选项。"
 
 #: lutris/runners/wine.py:375
 msgid "DPI"
-msgstr ""
+msgstr "指定 DPI"
 
 #: lutris/runners/wine.py:378
 msgid ""
 "The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
 "If blank or 'auto', Lutris will auto-detect this."
 msgstr ""
+"设置启用 DPI 缩放后要使用的 DPI 数值。\n"
+"如果留空或填写 auto，Lutris 将自动设置合适的数值。"
 
 #: lutris/runners/wine.py:384
 msgid "Mouse Warp Override"
@@ -4518,9 +4498,8 @@ msgid "Itch.io (Not implemented)"
 msgstr "Itch.io（未实现）"
 
 #: lutris/services/origin.py:87
-#, fuzzy
 msgid "Origin"
-msgstr "Origin（未实现）"
+msgstr "Origin"
 
 #: lutris/services/steam.py:102
 msgid ""
@@ -4537,16 +4516,14 @@ msgid "TOSEC"
 msgstr "TOSEC"
 
 #: lutris/services/ubisoft.py:81
-#, fuzzy
 msgid "Ubisoft Connect"
-msgstr "退出"
+msgstr "Ubisoft Connect"
 
 #: lutris/services/xdg.py:43
 msgid "Local"
 msgstr "本地文件"
 
 #: lutris/settings.py:13
-#, fuzzy
 msgid "(c) 2010-2022 Lutris Team"
 msgstr "©2010-2021 Lutris 团队"
 
@@ -4605,19 +4582,19 @@ msgstr "首选屏幕"
 
 #: lutris/sysoptions.py:84
 msgid "Auto: WARNING -- No Vulkan Loader detected!"
-msgstr ""
+msgstr "自动：【警告】未检测到 Vulkan 加载器！"
 
 #: lutris/sysoptions.py:114
 msgid "Auto: Intel Open Source (MESA: ANV)"
-msgstr ""
+msgstr "自动：Intel Open Source (MESA: ANV)"
 
 #: lutris/sysoptions.py:116
 msgid "Auto: AMD RADV Open Source (MESA: RADV)"
-msgstr ""
+msgstr "自动：AMD RADV Open Source (MESA: RADV)"
 
 #: lutris/sysoptions.py:118
 msgid "Auto: Nvidia Proprietary"
-msgstr ""
+msgstr "自动：Nvidia Proprietary"
 
 #: lutris/sysoptions.py:135
 msgid "Default installation folder"
@@ -5062,32 +5039,28 @@ msgid "Open Xephyr in fullscreen (at the desktop resolution)"
 msgstr "以桌面分辨率全屏打开 Xephyr"
 
 #: lutris/util/system.py:20
-#, fuzzy
 msgid "Documents"
-msgstr "启动参数"
+msgstr "文档"
 
 #: lutris/util/system.py:21
-#, fuzzy
 msgid "Downloads"
 msgstr "下载"
 
 #: lutris/util/system.py:22
-#, fuzzy
 msgid "Desktop"
-msgstr "Linux桌面游戏"
+msgstr "桌面"
 
 #: lutris/util/system.py:23 lutris/util/system.py:25
 msgid "Pictures"
-msgstr ""
+msgstr "图片"
 
 #: lutris/util/system.py:24
-#, fuzzy
 msgid "Videos"
 msgstr "视频"
 
 #: lutris/util/system.py:26
 msgid "Projects"
-msgstr ""
+msgstr "工程"
 
 #: lutris/util/wine/dll_manager.py:63
 msgid "Manual"
