@@ -95,8 +95,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.init_template()
         self._init_actions()
 
-        self.set_dark_theme()
-
         self.set_viewtype_icon(self.view_type)
 
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
@@ -439,14 +437,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.search_timer_id = None
         return False
 
-    def set_dark_theme(self):
-        """Enables or disables dark theme"""
-        gtksettings = Gtk.Settings.get_default()
-        gtksettings.set_property(
-            "gtk-application-prefer-dark-theme",
-            settings.read_setting("dark_theme", default="false").lower() == "true"
-        )
-
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
         service = self.service if self.service else LutrisService
@@ -598,12 +588,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.service and service.id == self.service.id:
             self.emit("view-updated")
         return True
-
-    def on_dark_theme_state_change(self, action, value):
-        """Callback for theme switching action"""
-        action.set_state(value)
-        settings.write_setting("dark_theme", value.get_boolean())
-        self.set_dark_theme()
 
     @GtkTemplate.Callback
     def on_resize(self, widget, *_args):
