@@ -1,4 +1,4 @@
-# generated on 2022-02-16T16:06:58+00:00
+# generated on 2022-02-23T07:44:12+00:00
 
 share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
@@ -19,7 +19,6 @@ lutris/database/schema.py
 lutris/database/services.py
 lutris/database/sources.py
 lutris/database/sql.py
-lutris/directories.py
 lutris/discord.py
 lutris/exceptions.py
 lutris/game_actions.py
@@ -154,6 +153,7 @@ lutris/services/ubisoft.py
 lutris/services/xdg.py
 lutris/settings.py
 lutris/startup.py
+lutris/style_manager.py
 lutris/sysoptions.py
 lutris/util/audio.py
 lutris/util/cookies.py
