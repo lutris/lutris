@@ -393,10 +393,12 @@ class Application(Gtk.Application):
             else:
                 self.print_game_list(command_line, game_list)
             return 0
+
         # List Steam games
         if options.contains("list-steam-games"):
             self.print_steam_list(command_line)
             return 0
+
         # List Steam folders
         if options.contains("list-steam-folders"):
             self.print_steam_folders(command_line)
@@ -737,7 +739,6 @@ class Application(Gtk.Application):
     def print_runners(self):
         runnersName = get_runner_names()
         sortednames = sorted(runnersName.keys(), key=lambda x: x.lower())
-        print("Runners:")
         for name in sortednames:
             print(name)
 
@@ -782,7 +783,7 @@ class Application(Gtk.Application):
                 runner().install(downloader=simple_downloader, version=version)
                 print(f"Wine version '{version}' has been installed.")
             except (InvalidRunner, RunnerInstallationError) as ex:
-                ErrorDialog(ex.message)
+                print(ex.message)
 
     def wine_runner_uninstall(self, version):
         version = f"{version}{'' if '-x86_64' in version else '-x86_64'}"
