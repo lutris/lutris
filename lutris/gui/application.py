@@ -37,7 +37,7 @@ from lutris import settings
 from lutris.api import parse_installer_url, get_runners
 from lutris.command import exec_command
 from lutris.database import games as games_db
-from lutris.game import Game
+from lutris.game import Game, export_game
 from lutris.installer import get_installers
 from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, LutrisInitDialog
@@ -212,6 +212,22 @@ class Application(Gtk.Application):
             None,
         )
         self.add_main_option(
+            "export",
+            ord("e"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Export a game"),
+            None,
+        )
+        self.add_main_option(
+            "dest",
+            ord("d"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Destination path for export"),
+            None,
+        )
+        self.add_main_option(
             "json",
             ord("j"),
             GLib.OptionFlags.NONE,
@@ -383,6 +399,12 @@ class Application(Gtk.Application):
         init_lutris()
         migrate()
         run_all_checks()
+
+        if options.contains("dest"):
+            dest_dir = options.lookup_value("dest").get_string()
+        else:
+            dest_dir = None
+
         # List game
         if options.contains("list-games"):
             game_list = games_db.get_games()
@@ -424,6 +446,14 @@ class Application(Gtk.Application):
         if options.contains("uninstall-runner"):
             runner = options.lookup_value("uninstall-runner").get_string()
             self.uninstall_runner(runner)
+            return 0
+
+        if options.contains("export"):
+            slug = options.lookup_value("export").get_string()
+            if not dest_dir:
+                print("No destination dir given")
+            else:
+                self.export(slug, dest_dir)
             return 0
 
         # Execute command in Lutris context
@@ -813,7 +843,7 @@ Also, check that the version specified is in the correct format.
                 runner().install(version=None, downloader=simple_downloader, callback=None)
                 print(f"'{runner_name}' has been installed")
             except (InvalidRunner, RunnerInstallationError) as ex:
-                ErrorDialog(ex.message)
+                print(ex.message)
 
     def uninstall_runner_cli(self, runner_name):
         """
@@ -834,6 +864,9 @@ Also, check that the version specified is in the correct format.
             print(f"'{runner_name}' has been uninstalled.")
         else:
             print(f"Runner '{runner_name}' cannot be uninstalled.")
+
+    def export(self, slug, dest_dir):
+        export_game(slug, dest_dir)
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")

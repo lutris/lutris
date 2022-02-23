@@ -86,7 +86,7 @@ class StyleManager(GObject.Object):
                 self.color_scheme = self._read_value(value)
             else:
                 raise Exception("Could not read color-scheme")
-        except Exception as err:
+        except Exception:
             pass
 
     def _on_settings_changed(self, _proxy, _sender_name, signal_name, params):

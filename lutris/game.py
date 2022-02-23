@@ -1,6 +1,7 @@
 """Module that actually runs the games."""
 
 # pylint: disable=too-many-public-methods
+import json
 import os
 import shlex
 import shutil
@@ -787,3 +788,36 @@ class Game(GObject.Object):
                 old_location, new_location, ex
             )
         return target_directory
+
+
+
+def export_game(slug, dest_dir):
+    # List of runner where we know for sure that 1 folder = 1 game.
+    # For runners that handle ROMs, we have to handle this more finely.
+    # There is likely more than one game in a ROM folder but a ROM
+    # might have several files (like a bin/cue, or a multi-disk game)
+    exportable_runners = [
+        "linux",
+        "wine",
+        "dosbox",
+        "scummvm",
+    ]
+
+    db_game = games_db.get_game_by_field(slug, "slug")
+    if db_game["runner"] not in exportable_runners:
+        raise RuntimeError("Game %s can't be exported." % db_game["name"])
+    if not db_game["directory"]:
+        raise RuntimeError("No game directory set. Could we guess it?")
+
+    game = Game(db_game["id"])
+    db_game["config"] = game.config.game_level
+    game_path = db_game["directory"]
+    config_path = os.path.join(db_game["directory"], "%s.lutris" % slug)
+    with open(config_path, "w", encoding="utf-8") as config_file:
+        json.dump(db_game, config_file, indent=2)
+    archive_path = os.path.join(dest_dir, "%s.7z" % slug)
+    _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7z")
+    command = [_7zip_path, "a", archive_path, game_path]
+    return_code = subprocess.call(command)
+    if return_code != 0:
+        print("Creating of archive in %s failed with return code %s" % (archive_path, return_code))

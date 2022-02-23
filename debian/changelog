@@ -16,6 +16,8 @@ lutris (0.5.10) impish; urgency=medium
   * Add option to enable BattleEye anti-cheat support
   * Default to Retroarch cores in ~/.config/retroarch/cores if available
   * Add support for downloading patches and DLC for GOG games
+  * Add --export command line flag to export a game (requires --dest for
+    the destination path)
   * Enable F-Sync by default
 
  -- Mathieu Comandon <strider@strycore.com>  Fri, 04 Feb 2022 19:14:41 -0800
