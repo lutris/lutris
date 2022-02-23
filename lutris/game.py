@@ -22,7 +22,7 @@ from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
-from lutris.util import audio, jobs, linux, strings, system, xdgshortcuts
+from lutris.util import audio, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
 )
@@ -32,6 +32,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.process import Process
 from lutris.util.timer import Timer
+from lutris.util.yaml import write_yaml_to_file
 
 HEARTBEAT_DELAY = 2000
 
@@ -792,6 +793,8 @@ class Game(GObject.Object):
 
 
 def export_game(slug, dest_dir):
+    """Export a full game folder along with some lutris metadata"""
+
     # List of runner where we know for sure that 1 folder = 1 game.
     # For runners that handle ROMs, we have to handle this more finely.
     # There is likely more than one game in a ROM folder but a ROM
@@ -821,3 +824,38 @@ def export_game(slug, dest_dir):
     return_code = subprocess.call(command)
     if return_code != 0:
         print("Creating of archive in %s failed with return code %s" % (archive_path, return_code))
+
+
+def import_game(file_path, dest_dir):
+    """Import a game in Lutris"""
+    if not os.path.exists(file_path):
+        raise RuntimeError("No file %s" % file_path)
+    if not os.path.isdir(dest_dir):
+        os.makedirs(dest_dir)
+    original_file_list = set(os.listdir(dest_dir))
+    extract.extract_7zip(file_path, dest_dir)
+    new_file_list = set(os.listdir(dest_dir))
+    new_dir = list(new_file_list - original_file_list)[0]
+    game_dir = os.path.join(dest_dir, new_dir)
+    game_config = [f for f in os.listdir(game_dir) if f.endswith(".lutris")][0]
+    with open(os.path.join(game_dir, game_config)) as config_file:
+        lutris_config = json.load(config_file)
+    # old_dir = lutris_config["directory"]
+    config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % lutris_config["configpath"])
+    write_yaml_to_file(lutris_config["config"], config_filename)
+    game_id = games_db.add_or_update(
+        name=lutris_config["name"],
+        runner=lutris_config["runner"],
+        slug=lutris_config["slug"],
+        platform=lutris_config["platform"],
+        directory=game_dir,
+        installed=lutris_config["installed"],
+        year=lutris_config["year"],
+        lastplayed=lutris_config["lastplayed"],
+        configpath=lutris_config["configpath"],
+        playtime=lutris_config["playtime"],
+        hidden=lutris_config["hidden"],
+        service=lutris_config["service"],
+        service_id=lutris_config["service_id"],
+    )
+    print("Added game with ID %s" % game_id)

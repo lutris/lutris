@@ -37,7 +37,7 @@ from lutris import settings
 from lutris.api import parse_installer_url, get_runners
 from lutris.command import exec_command
 from lutris.database import games as games_db
-from lutris.game import Game, export_game
+from lutris.game import Game, export_game, import_game
 from lutris.installer import get_installers
 from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, LutrisInitDialog
@@ -213,10 +213,18 @@ class Application(Gtk.Application):
         )
         self.add_main_option(
             "export",
-            ord("e"),
+            0,
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
             _("Export a game"),
+            None,
+        )
+        self.add_main_option(
+            "import",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            _("Import a game"),
             None,
         )
         self.add_main_option(
@@ -453,7 +461,15 @@ class Application(Gtk.Application):
             if not dest_dir:
                 print("No destination dir given")
             else:
-                self.export(slug, dest_dir)
+                export_game(slug, dest_dir)
+            return 0
+
+        if options.contains("import"):
+            filepath = options.lookup_value("import").get_string()
+            if not dest_dir:
+                print("No destination dir given")
+            else:
+                import_game(filepath, dest_dir)
             return 0
 
         # Execute command in Lutris context
@@ -864,9 +880,6 @@ Also, check that the version specified is in the correct format.
             print(f"'{runner_name}' has been uninstalled.")
         else:
             print(f"Runner '{runner_name}' cannot be uninstalled.")
-
-    def export(self, slug, dest_dir):
-        export_game(slug, dest_dir)
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
