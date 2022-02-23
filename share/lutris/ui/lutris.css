@@ -22,10 +22,6 @@
     font-weight: normal;
 }
 
-.sidebar row:hover {
-  background: alpha(currentColor, .07);
-}
-
 .info-pill {
   background-color:rgb(100, 100, 100);
   color:rgb(155, 155, 155);
