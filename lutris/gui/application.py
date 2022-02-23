@@ -39,6 +39,7 @@ from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game
 from lutris.installer import get_installers
+from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, LutrisInitDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
@@ -775,8 +776,7 @@ class Application(Gtk.Application):
         if os.path.isdir(runner_path):
             print(f"Wine version '{version}' is already installed.")
         else:
-            from lutris.gui.dialogs import ErrorDialog
-            from lutris.gui.dialogs.download import simple_downloader
+
             try:
                 runner = import_runner("wine")
                 runner().install(downloader=simple_downloader, version=version)
@@ -807,8 +807,6 @@ Also, check that the version specified is in the correct format.
         if os.path.isdir(runner_path):
             print(f"'{runner_name}' is already installed.")
         else:
-            from lutris.gui.dialogs import ErrorDialog
-            from lutris.gui.dialogs.download import simple_downloader
             try:
                 runner = import_runner(runner_name)
                 runner().install(version=None, downloader=simple_downloader, callback=None)
