@@ -3,8 +3,6 @@
 import os
 import time
 
-import yaml
-
 from lutris import settings, sysoptions
 from lutris.runners import InvalidRunner, import_runner
 from lutris.util.log import logger
@@ -20,11 +18,9 @@ def make_game_config_id(game_slug):
 def write_game_config(game_slug, config):
     """Writes a game config to disk"""
     configpath = make_game_config_id(game_slug)
+    logger.debug("Writing game config to %s", configpath)
     config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
-    yaml_config = yaml.safe_dump(config, default_flow_style=False)
-    with open(config_filename, "w", encoding='utf-8') as config_file:
-        logger.debug("Writing game config to %s", config_filename)
-        config_file.write(yaml_config)
+    write_yaml_to_file(config, config_filename)
     return configpath
 
 

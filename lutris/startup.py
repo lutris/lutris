@@ -12,6 +12,8 @@ from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
 from lutris.services import DEFAULT_SERVICES
+from lutris.services.lutris import sync_media
+from lutris.util import update_cache
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -32,12 +34,13 @@ def init_dirs():
         settings.DATA_DIR,
         os.path.join(settings.DATA_DIR, "covers"),
         settings.ICON_PATH,
-        os.path.join(settings.DATA_DIR, "banners"),
-        os.path.join(settings.DATA_DIR, "coverart"),
+        os.path.join(settings.CACHE_DIR, "banners"),
+        os.path.join(settings.CACHE_DIR, "coverart"),
         os.path.join(settings.DATA_DIR, "runners"),
         os.path.join(settings.DATA_DIR, "lib"),
         settings.RUNTIME_DIR,
         settings.CACHE_DIR,
+        settings.SHADER_CACHE_DIR,
         os.path.join(settings.CACHE_DIR, "installer"),
         os.path.join(settings.CACHE_DIR, "tmp"),
     ]
@@ -176,14 +179,25 @@ def init_lutris():
             settings.write_setting(service, True, section="services")
 
 
-def update_runtime():
+def update_runtime(force=False):
     """Update runtime components"""
-    runtime_updater = RuntimeUpdater()
-    components_to_update = runtime_updater.update()
-    if components_to_update:
-        while runtime_updater.current_updates:
-            time.sleep(0.3)
+    runtime_call = update_cache.get_last_call("runtime")
+    if force or not runtime_call or runtime_call > 3600 * 12:
+        runtime_updater = RuntimeUpdater()
+        components_to_update = runtime_updater.update()
+        if components_to_update:
+            while runtime_updater.current_updates:
+                time.sleep(0.3)
+        update_cache.write_date_to_cache("runtime")
     for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager):
-        dll_manager = dll_manager_class()
-        dll_manager.upgrade()
+        key = dll_manager_class.__name__
+        key_call = update_cache.get_last_call(key)
+        if force or not key_call or key_call > 3600 * 6:
+            dll_manager = dll_manager_class()
+            dll_manager.upgrade()
+            update_cache.write_date_to_cache(key)
+    media_call = update_cache.get_last_call("media")
+    if force or not media_call or media_call > 3600 * 24:
+        sync_media()
+        update_cache.write_date_to_cache("media")
     logger.info("Startup complete")

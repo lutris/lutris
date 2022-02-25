@@ -12,6 +12,7 @@ from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
+from lutris.gui.widgets.utils import has_stock_icon
 from lutris.services.base import AuthTokenExpired, BaseService
 from lutris.util.jobs import AsyncCall
 
@@ -127,6 +128,10 @@ class ServiceSidebarRow(SidebarRow):
             ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh")
         ]
 
+    def on_service_run(self, button):
+        """Run a launcher associated with a service"""
+        self.service.run()
+
     def on_refresh_clicked(self, button):
         """Reload the service games"""
         button.set_sensitive(False)
@@ -152,6 +157,7 @@ class ServiceSidebarRow(SidebarRow):
 class OnlineServiceSidebarRow(ServiceSidebarRow):
     def get_buttons(self):
         return {
+            "run": (("media-playback-start-symbolic", _("Run"), self.on_service_run, "run")),
             "refresh": ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh"),
             "disconnect": ("system-log-out-symbolic", _("Disconnect"), self.on_connect_clicked, "disconnect"),
             "connect": ("avatar-default-symbolic", _("Connect"), self.on_connect_clicked, "connect")
@@ -159,9 +165,14 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
 
     def get_actions(self):
         buttons = self.get_buttons()
+        displayed_buttons = []
+        if self.service.is_launchable():
+            displayed_buttons.append(buttons["run"])
         if self.service.is_authenticated():
-            return [buttons["refresh"], buttons["disconnect"]]
-        return [buttons["connect"]]
+            displayed_buttons += [buttons["refresh"], buttons["disconnect"]]
+        else:
+            displayed_buttons += [buttons["connect"]]
+        return displayed_buttons
 
     def on_connect_clicked(self, button):
         button.set_sensitive(False)
@@ -276,7 +287,16 @@ class LutrisSidebar(Gtk.ListBox):
         self.show_all()
 
     def get_sidebar_icon(self, icon_name):
-        return Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+        name = icon_name if has_stock_icon(icon_name) else "package-x-generic-symbolic"
+        icon = Gtk.Image.new_from_icon_name(name, Gtk.IconSize.MENU)
+
+        # We can wind up with an icon of the wrong size, if that's what is
+        # available. So we'll fix that.
+        icon_size = Gtk.IconSize.lookup(Gtk.IconSize.MENU)
+        if icon_size[0]:
+            icon.set_pixel_size(icon_size[2])
+
+        return icon
 
     def initialize_rows(self):
         """
@@ -368,8 +388,6 @@ class LutrisSidebar(Gtk.ListBox):
         return row.id in self.active_platforms
 
     def _header_func(self, row, before):
-        if row.get_header():
-            return
         if not before:
             row.set_header(self.row_headers["library"])
         elif before.type in ("category", "dynamic_category") and row.type == "service":
@@ -378,6 +396,8 @@ class LutrisSidebar(Gtk.ListBox):
             row.set_header(self.row_headers["runners"])
         elif before.type == "runner" and row.type == "platform":
             row.set_header(self.row_headers["platforms"])
+        else:
+            row.set_header(None)
 
     def update(self, *_args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]

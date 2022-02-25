@@ -111,6 +111,8 @@ class QuestionDialog(Gtk.MessageDialog):
         super().__init__(message_type=Gtk.MessageType.QUESTION, buttons=Gtk.ButtonsType.YES_NO)
         self.set_markup(dialog_settings["question"])
         self.set_title(dialog_settings["title"])
+        if "parent" in dialog_settings:
+            self.set_transient_for(dialog_settings["parent"])
         if "widgets" in dialog_settings:
             for widget in dialog_settings["widgets"]:
                 self.get_message_area().add(widget)
@@ -123,6 +125,7 @@ class DirectoryDialog(Gtk.FileChooserDialog):
     """Ask the user to select a directory."""
 
     def __init__(self, message, default_path=None, parent=None):
+        self.folder = None
         super().__init__(
             title=message,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
@@ -132,7 +135,8 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         if default_path:
             self.set_current_folder(default_path)
         self.result = self.run()
-        self.folder = self.get_current_folder()
+        if self.result == Gtk.ResponseType.OK:
+            self.folder = self.get_current_folder()
         self.destroy()
 
 
@@ -178,8 +182,9 @@ class LutrisInitDialog(Gtk.Dialog):
         self.progress.set_pulse_step(0.1)
         vbox.add(self.progress)
         self.get_content_area().add(vbox)
-        GLib.timeout_add(125, self.show_progress)
+        self.progress_timeout = GLib.timeout_add(125, self.show_progress)
         self.show_all()
+        self.connect("destroy", self.on_destroy)
         AsyncCall(self.initialize, self.init_cb, init_lutris)
 
     def show_progress(self):
@@ -194,13 +199,16 @@ class LutrisInitDialog(Gtk.Dialog):
             ErrorDialog(str(error))
         self.destroy()
 
+    def on_destroy(self, window):
+        GLib.source_remove(self.progress_timeout)
+        return True
+
 
 class InstallOrPlayDialog(Gtk.Dialog):
 
     def __init__(self, game_name):
         Gtk.Dialog.__init__(self, _("%s is already installed") % game_name)
         self.connect("delete-event", lambda *x: self.destroy())
-
         self.action = "play"
         self.action_confirmed = False
 
@@ -208,7 +216,6 @@ class InstallOrPlayDialog(Gtk.Dialog):
         self.set_border_width(12)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
-
         play_button = Gtk.RadioButton.new_with_label_from_widget(None, _("Launch game"))
         play_button.connect("toggled", self.on_button_toggled, "play")
         vbox.pack_start(play_button, False, False, 0)
@@ -231,6 +238,39 @@ class InstallOrPlayDialog(Gtk.Dialog):
     def on_confirm(self, button):  # pylint: disable=unused-argument
         logger.debug("Action %s confirmed", self.action)
         self.action_confirmed = True
+        self.destroy()
+
+
+class LaunchConfigSelectDialog(Gtk.Dialog):
+    def __init__(self, game, configs):
+        Gtk.Dialog.__init__(self, _("Select game to launch"))
+        self.connect("delete-event", lambda *x: self.destroy())
+        self.config_index = 0
+        self.set_size_request(320, 120)
+        self.set_border_width(12)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
+        self.get_content_area().add(vbox)
+
+        primary_game_radio = Gtk.RadioButton.new_with_label_from_widget(None, game.name)
+        primary_game_radio.connect("toggled", self.on_button_toggled, 0)
+        vbox.pack_start(primary_game_radio, False, False, 0)
+        for i, config in enumerate(configs):
+            _button = Gtk.RadioButton.new_from_widget(primary_game_radio)
+            _button.set_label(config["name"])
+            _button.connect("toggled", self.on_button_toggled, i + 1)
+            vbox.pack_start(_button, False, False, 0)
+
+        confirm_button = Gtk.Button(_("OK"))
+        confirm_button.connect("clicked", self.on_confirm)
+        vbox.pack_start(confirm_button, False, False, 0)
+
+        self.show_all()
+        self.run()
+
+    def on_button_toggled(self, _button, index):
+        self.config_index = index
+
+    def on_confirm(self, _button):
         self.destroy()
 
 

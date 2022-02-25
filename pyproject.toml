@@ -28,6 +28,7 @@ wrapt = '>=1.11'
 keyring = "*"
 lxml = '>=4.5.2'
 Pillow = "*"
+distro = {version = "^1.7.0", platform = "linux"}
 
 [tool.poetry.dev-dependencies]
 autopep8 = '>=1.5'

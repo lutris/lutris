@@ -11,7 +11,7 @@ from lutris.util.strings import split_arguments
 
 
 class scummvm(Runner):
-    description = _("Runs various 2D point-and-click adventure games.")
+    description = _("Engine for point-and-click games.")
     human_name = _("ScummVM")
     platforms = [_("Linux")]
     runnable_alone = True
@@ -117,7 +117,10 @@ class scummvm(Runner):
         return data_dir
 
     def get_run_data(self):
-        env = {"LD_LIBRARY_PATH": "%s;$LD_LIBRARY_PATH" % self.libs_dir}
+        env = self.get_env()
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+            self.libs_dir,
+            env.get("LD_LIBRARY_PATH")]))
         return {"env": env, "command": self.get_command()}
 
     def play(self):

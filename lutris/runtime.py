@@ -261,13 +261,13 @@ def get_env(version=None, prefer_system_libs=False, wine_path=None):
     Returns:
         dict
     """
-    return {
-        key: value
-        for key, value in {
-            "LD_LIBRARY_PATH":
-            ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)),
-        }.items() if value
-    }
+    library_path = ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path))
+    env = {}
+    if library_path:
+        env["LD_LIBRARY_PATH"] = library_path
+        network_tools_path = os.path.join(settings.RUNTIME_DIR, "network-tools")
+        env["PATH"] = "%s:%s" % (network_tools_path, os.environ["PATH"])
+    return env
 
 
 def get_winelib_paths(wine_path):

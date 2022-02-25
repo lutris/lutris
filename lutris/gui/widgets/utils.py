@@ -54,7 +54,7 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
             fallback = get_default_icon(size)
         if system.path_exists(fallback):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, height)
-    if is_installed:
+    if is_installed and pixbuf:
         pixbuf = pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.NEAREST)
         return pixbuf
     overlay = os.path.join(datapath.get(), "media/unavailable.png")
@@ -74,6 +74,12 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
             100,
         )
     return transparent_pixbuf
+
+
+def has_stock_icon(name):
+    """This tests if a GTK stock icon is known; if not we can try a fallback."""
+    theme = Gtk.IconTheme.get_default()
+    return theme.has_icon(name)
 
 
 def get_stock_icon(name, size):

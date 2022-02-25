@@ -8,6 +8,7 @@ from gettext import gettext as _
 
 from gi.repository import Gio
 
+from lutris import settings
 from lutris.database.games import get_games_where
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
@@ -33,6 +34,8 @@ class XDGMedia(ServiceMedia):
     service = "xdg"
     source = "local"
     size = (64, 64)
+    dest_path = os.path.join(settings.CACHE_DIR, "xdg/icons")
+    file_pattern = "%s.png"
 
 
 class XDGService(BaseService):

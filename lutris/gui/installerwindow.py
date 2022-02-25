@@ -9,7 +9,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, QuestionDialog
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.installer.files_box import InstallerFilesBox
-from lutris.gui.installer.picker import InstallerPicker
+from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
@@ -29,15 +29,17 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         service=None,
         appid=None,
         application=None,
+        is_update=False
     ):
         super().__init__(application=application)
         self.set_default_size(540, 320)
         self.installers = installers
+        self.config = {}
         self.service = service
         self.appid = appid
         self.install_in_progress = False
         self.interpreter = None
-
+        self.is_update = is_update
         self.log_buffer = None
         self.log_textview = None
 
@@ -70,7 +72,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.vbox.pack_start(button_box, False, True, 0)
 
         self.cancel_button = self.add_button(
-            _("C_ancel"), self.cancel_installation, tooltip=_("Abort and revert the installation")
+            _("C_ancel"), self.confirm_cancel, tooltip=_("Abort and revert the installation")
         )
         self.eject_button = self.add_button(_("_Eject"), self.on_eject_clicked)
         self.source_button = self.add_button(_("_View source"), self.on_source_clicked)
@@ -108,6 +110,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def validate_scripts(self):
         """Auto-fixes some script aspects and checks for mandatory fields"""
+        if not self.installers:
+            raise ScriptingError("No installer available")
         for script in self.installers:
             for item in ["description", "notes"]:
                 script[item] = script.get(item) or ""
@@ -132,17 +136,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
 
-    def get_script_from_slug(self, script_slug):
-        """Return a installer script from its slug, raise an error if one isn't found"""
-        for script in self.installers:
-            if script["slug"] == script_slug:
-                return script
-
     def on_cache_clicked(self, _button):
         """Open the cache configuration dialog"""
         CacheConfigurationDialog()
 
-    def on_installer_selected(self, _widget, installer_slug):
+    def on_installer_selected(self, _widget, installer_version):
         """Sets the script interpreter to the correct script then proceed to
         install folder selection.
 
@@ -151,11 +149,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """
         self.clean_widgets()
         try:
-
-            self.interpreter = interpreter.ScriptInterpreter(
-                self.get_script_from_slug(installer_slug),
-                self
-            )
+            script = None
+            for _script in self.installers:
+                if _script["version"] == installer_version:
+                    script = _script
+            self.interpreter = interpreter.ScriptInterpreter(script, self)
 
         except MissingGameDependency as ex:
             dlg = QuestionDialog(
@@ -175,6 +173,14 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             return
         self.title_label.set_markup(_("<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
         self.select_install_folder()
+
+        desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
+        desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
+        self.widget_box.pack_start(desktop_shortcut_button, False, False, 5)
+
+        menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
+        menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
+        self.widget_box.pack_start(menu_shortcut_button, False, False, 5)
 
     def select_install_folder(self):
         """Stage where we select the install directory."""
@@ -291,7 +297,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 self.show_extras(extras)
                 return
         try:
-            self.interpreter.installer.prepare_game_files()
+            patch_version = self.interpreter.installer.version if self.is_update else None
+            self.interpreter.installer.prepare_game_files(patch_version)
         except UnavailableGame as ex:
             raise ScriptingError(str(ex)) from ex
 
@@ -393,7 +400,6 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def on_files_ready(self, _widget, files_ready):
         """Toggle state of continue button based on ready state"""
-        logger.debug("Files are ready: %s", files_ready)
         self.continue_button.set_sensitive(files_ready)
 
     def on_files_confirmed(self, _button, file_box):
@@ -418,17 +424,19 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.clean_widgets()
         self.interpreter.launch_installer_commands()
 
-    def on_install_finished(self):
+    def on_install_finished(self, game_id):
         self.clean_widgets()
+
+        if self.config.get("create_desktop_shortcut"):
+            self.create_shortcut(desktop=True)
+        if self.config.get("create_menu_shortcut"):
+            self.create_shortcut()
+
+        # Save game to trigger a game-updated signal
+        game = Game(game_id)
+        game.save()
+
         self.install_in_progress = False
-
-        desktop_shortcut_button = Gtk.Button(_("Create desktop shortcut"), visible=True)
-        desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
-        self.widget_box.pack_start(desktop_shortcut_button, False, False, 5)
-
-        menu_shortcut_button = Gtk.Button(_("Create application menu shortcut"), visible=True)
-        menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
-        self.widget_box.pack_start(menu_shortcut_button, False, False, 5)
 
         self.widget_box.show()
 
@@ -436,8 +444,9 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
+        if game.id:
+            self.play_button.show()
 
-        self.play_button.show()
         self.close_button.grab_focus()
         self.close_button.show()
         if not self.is_active():
@@ -458,13 +467,15 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         widget.set_sensitive(False)
         self.on_destroy(widget)
         game = Game(self.interpreter.installer.game_id)
-        game.emit("game-launch")
+        if game.id:
+            game.emit("game-launch")
+        else:
+            logger.error("Game has no ID, launch button should not be drawn")
 
     def on_destroy(self, _widget, _data=None):
         """destroy event handler"""
         if self.install_in_progress:
-            abort_close = self.cancel_installation()
-            if abort_close:
+            if self.confirm_cancel():
                 return True
         else:
             if self.interpreter:
@@ -472,10 +483,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.destroy()
 
     def on_create_desktop_shortcut_clicked(self, _widget):
-        self.create_shortcut(desktop=True)
+        self.config["create_desktop_shortcut"] = True
 
     def on_create_menu_shortcut_clicked(self, _widget):
-        self.create_shortcut()
+        self.config["create_menu_shortcut"] = True
 
     def create_shortcut(self, desktop=False):
         """Create desktop or global menu shortcuts."""
@@ -488,10 +499,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         else:
             xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
 
-    def cancel_installation(self, _widget=None):
+    def confirm_cancel(self, _widget=None):
         """Ask a confirmation before cancelling the install"""
         remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
-        if self.interpreter:
+        if self.interpreter and self.interpreter.target_path:
             remove_checkbox.set_active(self.interpreter.game_dir_created)
             remove_checkbox.show()
         confirm_cancel_dialog = QuestionDialog(
@@ -507,8 +518,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         if self._cancel_files_func:
             self._cancel_files_func()
         if self.interpreter:
-            self.interpreter.revert()
-            self.interpreter.cleanup()
+            self.interpreter.revert(remove_game_dir=remove_checkbox.get_active())
+            self.interpreter.cleanup()  # still remove temporary downloads in any case
         self.destroy()
 
     def on_source_clicked(self, _button):

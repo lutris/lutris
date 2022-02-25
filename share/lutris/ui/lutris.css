@@ -1,13 +1,3 @@
-.play-button {
-  padding: 0;
-  border: 0;
-  background-color: rgb(255, 153, 0);
-}
-.play-button > label {
-  background-color: rgb(255, 153, 0);
-  color: rgb(55, 55, 55)
-}
-
 .lutris-logview > text {
   color: rgb(255, 199, 116);
   background-color: rgb(47, 47, 47);
@@ -32,6 +22,9 @@
     font-weight: normal;
 }
 
-.sidebar row:hover {
-  background: rgba(0, 0, 0, 0.1);
+.info-pill {
+  background-color:rgb(100, 100, 100);
+  color:rgb(155, 155, 155);
+  border-radius: 5px;
+  padding: 3px 6px;
 }

@@ -9,7 +9,7 @@ from lutris.util import system
 
 class o2em(Runner):
     human_name = _("O2EM")
-    description = _("Magnavox Osyssey² Emulator")
+    description = _("Magnavox Odyssey² Emulator")
     platforms = (
         _("Magnavox Odyssey²"),
         _("Phillips C52"),

@@ -24,6 +24,6 @@ def read_yaml_from_file(filename):
 
 
 def write_yaml_to_file(config, filepath):
-    yaml_config = yaml.dump(config, default_flow_style=False)
+    yaml_config = yaml.safe_dump(config, default_flow_style=False)
     with open(filepath, "w", encoding='utf-8') as filehandler:
         filehandler.write(yaml_config)

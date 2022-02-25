@@ -13,7 +13,7 @@ from lutris.util.log import logger
 class ryujinx(Runner):
     human_name = _("Ryujinx")
     platforms = [_("Nintendo Switch")]
-    description = _("Nintendo Switch emulator for LDN build visit https://ryujinx.org/")
+    description = _("Nintendo Switch emulator")
     runnable_alone = True
     runner_executable = "ryujinx/publish/Ryujinx"
     download_url = "https://lutris.nyc3.digitaloceanspaces.com/runners/ryujinx/ryujinx-1.0.7074-linux_x64.tar.gz"
@@ -46,7 +46,7 @@ class ryujinx(Runner):
         candidates = ("~/.local/share/ryujinx", )
         for candidate in candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
-            if path:
+            if path and system.path_exists(path):
                 return path[:-len("nand")]
 
     def play(self):

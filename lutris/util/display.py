@@ -5,7 +5,13 @@ import os
 import subprocess
 import gi
 
-gi.require_version("GnomeDesktop", "3.0")
+try:
+    gi.require_version("GnomeDesktop", "3.0")
+    from gi.repository import GnomeDesktop
+    LIB_GNOME_DESKTOP_AVAILABLE = True
+except ValueError:
+    LIB_GNOME_DESKTOP_AVAILABLE = False
+    GnomeDesktop = None
 
 try:
     from dbus.exceptions import DBusException
@@ -13,7 +19,7 @@ try:
 except ImportError:
     DBUS_AVAILABLE = False
 
-from gi.repository import Gdk, GLib, GnomeDesktop, Gio
+from gi.repository import Gdk, GLib, Gio
 
 from lutris.util import system
 from lutris.util.graphics.displayconfig import MutterDisplayManager
@@ -24,6 +30,16 @@ from lutris.util.log import logger
 class NoScreenDetected(Exception):
 
     """Raise this when unable to detect screens"""
+
+
+def get_default_dpi():
+    """Computes the DPI to use for the primary monitor
+    which we pass to WINE."""
+    display = Gdk.Display.get_default()
+    monitor = display.get_primary_monitor()
+    scale = monitor.get_scale_factor()
+    dpi = 96 * scale
+    return int(dpi)
 
 
 def restore_gamma():
@@ -57,10 +73,12 @@ def _get_graphics_adapters():
 
 
 class DisplayManager:
-
     """Get display and resolution using GnomeDesktop"""
 
     def __init__(self):
+        if not LIB_GNOME_DESKTOP_AVAILABLE:
+            logger.warning("libgnomedesktop unavailable")
+            return
         screen = Gdk.Screen.get_default()
         if not screen:
             raise NoScreenDetected
@@ -124,10 +142,12 @@ def get_display_manager():
             logger.exception("Failed to instanciate MutterDisplayConfig. Please report with exception: %s", ex)
     else:
         logger.error("DBus is not available, lutris was not properly installed.")
-    try:
-        return DisplayManager()
-    except (GLib.Error, NoScreenDetected):
-        return LegacyDisplayManager()
+    if LIB_GNOME_DESKTOP_AVAILABLE:
+        try:
+            return DisplayManager()
+        except (GLib.Error, NoScreenDetected):
+            pass
+    return LegacyDisplayManager()
 
 
 DISPLAY_MANAGER = get_display_manager()
@@ -264,6 +284,7 @@ def disable_compositing():
 def enable_compositing():
     """Re-enable compositing if the corresponding call to disable_compositing
     disabled it."""
+
     compositing_disabled = _COMPOSITING_DISABLED_STACK.pop()
     if not compositing_disabled:
         return

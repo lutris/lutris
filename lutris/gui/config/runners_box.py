@@ -16,8 +16,8 @@ class RunnersBox(BaseConfigBox):
         super().__init__()
         self.add(self.get_section_label(_("Add, remove or configure runners")))
         self.add(self.get_description_label(
-            _("Runners are programs such as emulators,"
-              " engines or translation layers capable of running games.")
+            _("Runners are programs such as emulators, engines or "
+              "translation layers capable of running games.")
         ))
         self.runner_listbox = Gtk.ListBox(visible=True)
         self.pack_start(self.runner_listbox, False, False, 12)

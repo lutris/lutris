@@ -56,6 +56,8 @@ class MonitoredCommand:
         self.ready_state = True
         self.env = self.get_environment(env)
 
+        self.accepted_return_code = "0"
+
         self.command = command
         self.runner = runner
         self.stop_func = lambda: True

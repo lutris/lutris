@@ -119,16 +119,20 @@ def create_prefix(  # noqa: C901
         )
         return
 
-    if install_gecko == "False":
-        overrides["mshtml"] = "disabled"
-    if install_mono == "False":
-        overrides["mscoree"] = "disabled"
-
     wineenv = {
         "WINEARCH": arch,
         "WINEPREFIX": prefix,
         "WINEDLLOVERRIDES": get_overrides_env(overrides),
+        "WINE_MONO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "mono"),
+        "WINE_GECKO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "gecko"),
     }
+
+    if install_gecko == "False":
+        wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"
+        overrides["mshtml"] = "disabled"
+    if install_mono == "False":
+        wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
+        overrides["mscoree"] = "disabled"
 
     system.execute([wineboot_path], env=wineenv)
     for loop_index in range(60):
@@ -232,9 +236,11 @@ def wineexec(  # noqa: C901
         include_processes = shlex.split(include_processes)
     if isinstance(exclude_processes, str):
         exclude_processes = shlex.split(exclude_processes)
+
+    wine = import_runner("wine")()
+
     if not wine_path:
-        wine = import_runner("wine")
-        wine_path = wine().get_executable()
+        wine_path = wine.get_executable()
     if not wine_path:
         raise RuntimeError("Wine is not installed")
 
@@ -262,8 +268,8 @@ def wineexec(  # noqa: C901
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    wine_config = config or LutrisConfig(runner_slug="wine")
-    disable_runtime = disable_runtime or wine_config.system_config["disable_runtime"]
+    wine_system_config = config.system_config if config else wine.system_config
+    disable_runtime = disable_runtime or wine_system_config["disable_runtime"]
     if use_lutris_runtime(wine_path=wineenv["WINE"], force_disable=disable_runtime):
         if WINE_DIR in wine_path:
             wine_root_path = os.path.dirname(os.path.dirname(wine_path))
@@ -273,7 +279,7 @@ def wineexec(  # noqa: C901
             wine_root_path = None
         wineenv["LD_LIBRARY_PATH"] = ":".join(
             runtime.get_paths(
-                prefer_system_libs=wine_config.system_config["prefer_system_libs"],
+                prefer_system_libs=wine_system_config["prefer_system_libs"],
                 wine_path=wine_root_path,
             )
         )
@@ -281,20 +287,24 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    if env:
-        wineenv.update(env)
+    baseenv = wine.get_env()
+    baseenv.update(wineenv)
+    baseenv.update(env)
 
     command_parameters = [wine_path]
     if executable:
         command_parameters.append(executable)
     command_parameters += split_arguments(args)
+
+    wine.prelaunch()
+
     if blocking:
         return system.execute(command_parameters, env=wineenv, cwd=working_dir)
-    wine = import_runner("wine")
+
     command = MonitoredCommand(
         command_parameters,
-        runner=wine(),
-        env=wineenv,
+        runner=wine,
+        env=baseenv,
         cwd=working_dir,
         include_processes=include_processes,
         exclude_processes=exclude_processes,
@@ -393,4 +403,4 @@ def open_wine_terminal(terminal, wine_path, prefix, env):
     env["WINEPREFIX"] = prefix
     shell_command = get_shell_command(prefix, env, aliases)
     terminal = terminal or linux.get_default_terminal()
-    system.execute([linux.get_default_terminal(), "-e", shell_command])
+    system.execute([terminal, "-e", shell_command])

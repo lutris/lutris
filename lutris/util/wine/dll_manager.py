@@ -8,6 +8,7 @@ from lutris.util import system
 from lutris.util.extract import extract_archive
 from lutris.util.http import download_file
 from lutris.util.log import logger
+from lutris.util.wine.prefix import WinePrefixManager
 
 
 class DLLManager:
@@ -15,6 +16,7 @@ class DLLManager:
     component = NotImplemented
     base_dir = NotImplemented
     managed_dlls = NotImplemented
+    managed_appdata_files = []  # most managers have none
     versions_path = NotImplemented
     releases_url = NotImplemented
     archs = {
@@ -35,7 +37,6 @@ class DLLManager:
         """Return available versions"""
         self._versions = self.load_versions()
         if not self._versions:
-            logger.warning("Loading of %s versions failed, defaulting to locally available versions", self.component)
             self._versions = os.listdir(self.base_dir)
         return self._versions
 
@@ -49,8 +50,12 @@ class DLLManager:
 
     @property
     def path(self):
-        """Path to local folder containing DDLs"""
-        return os.path.join(self.base_dir, self.version)
+        """Path to local folder containing DLLs"""
+        version = self.version
+        if not version:
+            raise RuntimeError(
+                "No path can be generated for %s because no version information is available." % self.component)
+        return os.path.join(self.base_dir, version)
 
     @property
     def version_choices(self):
@@ -83,7 +88,7 @@ class DLLManager:
 
     def is_available(self):
         """Return whether component is cached locally"""
-        return system.path_exists(self.path)
+        return self.version and system.path_exists(self.path)
 
     def dll_exists(self, dll_name):
         """Check if the dll is provided by the component
@@ -105,28 +110,31 @@ class DLLManager:
             return release["assets"][0]["browser_download_url"]
 
     def download(self):
-        """Download component to the local cache"""
+        """Download component to the local cache; returns True if successful but False
+        if the component could not be downloaded."""
         if self.is_available():
             logger.warning("%s already available at %s", self.component, self.path)
 
         url = self.get_download_url()
         if not url:
             logger.warning("Could not find a release for %s %s", self.component, self.version)
-            return
+            return False
         archive_path = os.path.join(self.base_dir, os.path.basename(url))
+        logger.info("Downloading %s to %s", url, archive_path)
         download_file(url, archive_path, overwrite=True)
         if not system.path_exists(archive_path) or not os.stat(archive_path).st_size:
             logger.error("Failed to download %s %s", self.component, self.version)
-            return
+            return False
+        logger.info("Extracting %s to %s", archive_path, self.path)
         extract_archive(archive_path, self.path, merge_single=True)
         os.remove(archive_path)
+        return True
 
     def enable_dll(self, system_dir, arch, dll_path):
         """Copies dlls to the appropriate destination"""
         dll = os.path.basename(dll_path)
         if system.path_exists(dll_path):
             wine_dll_path = os.path.join(system_dir, dll)
-            logger.debug("Replacing %s/%s with %s version", system_dir, dll, self.component)
             if system.path_exists(wine_dll_path):
                 if not self.is_managed_dll(wine_dll_path) and not os.path.islink(wine_dll_path):
                     # Backing up original version (may not be needed)
@@ -145,9 +153,37 @@ class DLLManager:
         wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
         if system.path_exists(wine_dll_path + ".orig"):
             if system.path_exists(wine_dll_path):
-                logger.debug("Removing %s dll %s/%s", self.component, system_dir, dll)
                 os.remove(wine_dll_path)
             shutil.move(wine_dll_path + ".orig", wine_dll_path)
+
+    def enable_user_file(self, appdata_dir, file_path, source_path):
+        if system.path_exists(source_path):
+            wine_file_path = os.path.join(appdata_dir, file_path)
+            wine_file_dir = os.path.dirname(wine_file_path)
+            if system.path_exists(wine_file_path):
+                if not os.path.islink(wine_file_path):
+                    # Backing up original version (may not be needed)
+                    shutil.move(wine_file_path, wine_file_path + ".orig")
+                else:
+                    os.remove(wine_file_path)
+
+            if not os.path.isdir(wine_file_dir):
+                os.makedirs(wine_file_dir)
+
+            try:
+                os.symlink(source_path, wine_file_path)
+            except OSError:
+                logger.error("Failed linking %s to %s", source_path, wine_file_path)
+        else:
+            self.disable_user_file(appdata_dir, file_path)
+
+    def disable_user_file(self, appdata_dir, file_path):
+        wine_file_path = os.path.join(appdata_dir, file_path)
+        # We only create a symlink; if it is a real file, it mus tbe user data.
+        if system.path_exists(wine_file_path) and os.path.islink(wine_file_path):
+            os.remove(wine_file_path)
+            if system.path_exists(wine_file_path + ".orig"):
+                shutil.move(wine_file_path + ".orig", wine_file_path)
 
     def _iter_dlls(self):
         windows_path = os.path.join(self.prefix, "drive_c/windows")
@@ -163,19 +199,34 @@ class DLLManager:
             for dll in self.managed_dlls:
                 yield system_dir, arch, dll
 
+    def _iter_appdata_files(self):
+        if self.managed_appdata_files:
+            prefix_manager = WinePrefixManager(self.prefix)
+            appdata_dir = prefix_manager.appdata_dir
+            for file in self.managed_appdata_files:
+                filename = os.path.basename(file)
+                yield appdata_dir, file, filename
+
     def enable(self):
         """Enable Dlls for the current prefix"""
-        if not system.path_exists(self.path):
-            logger.error("%s %s is not available locally", self.component, self.version)
-            return
+        if not self.is_available():
+            if not self.download():
+                logger.error("%s %s could not be enabled because it is not available locally",
+                             self.component, self.version)
+                return
         for system_dir, arch, dll in self._iter_dlls():
             dll_path = os.path.join(self.path, arch, "%s.dll" % dll)
             self.enable_dll(system_dir, arch, dll_path)
+        for appdata_dir, file, filename in self._iter_appdata_files():
+            source_path = os.path.join(self.path, filename)
+            self.enable_user_file(appdata_dir, file, source_path)
 
     def disable(self):
         """Disable DLLs for the current prefix"""
         for system_dir, arch, dll in self._iter_dlls():
             self.disable_dll(system_dir, arch, dll)
+        for appdata_dir, file, _filename in self._iter_appdata_files():
+            self.disable_user_file(appdata_dir, file)
 
     def fetch_versions(self):
         """Get releases from GitHub"""
@@ -186,5 +237,8 @@ class DLLManager:
     def upgrade(self):
         self.fetch_versions()
         if not self.is_available():
-            logger.info("Downloading %s %s...", self.component, self.version)
-            self.download()
+            if self.version:
+                logger.info("Downloading %s %s...", self.component, self.version)
+                self.download()
+            else:
+                logger.warning("Unable to download %s because version information was not available.", self.component)

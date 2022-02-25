@@ -85,12 +85,11 @@ def get_launch_parameters(runner, gameplay_info):
         env["LD_PRELOAD"] = ld_preload
 
     # LD_LIBRARY_PATH
-    game_ld_libary_path = gameplay_info.get("ld_library_path")
-    if game_ld_libary_path:
+    game_ld_library_path = gameplay_info.get("ld_library_path")
+    if game_ld_library_path:
         ld_library_path = env.get("LD_LIBRARY_PATH")
-        if not ld_library_path:
-            ld_library_path = "$LD_LIBRARY_PATH"
-        env["LD_LIBRARY_PATH"] = ":".join([game_ld_libary_path, ld_library_path])
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+            game_ld_library_path, ld_library_path]))
 
     # Feral gamemode
     gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
@@ -127,13 +126,15 @@ def get_gamescope_args(launch_arguments, system_config):
 
 def export_bash_script(runner, gameplay_info, script_path):
     """Convert runner configuration into a bash script"""
+    if getattr(runner, 'prelaunch', None) is not None:
+        runner.prelaunch()
     command, env = get_launch_parameters(runner, gameplay_info)
     # Override TERM otherwise the script might not run
     env["TERM"] = "xterm"
     script_content = "#!/bin/bash\n\n\n"
     script_content += "# Environment variables\n"
     for name, value in env.items():
-        script_content += f'export {name}="{value}"\n'
+        script_content += 'export %s="%s"\n' % (name, value)
     script_content += "\n# Command\n"
     script_content += " ".join([shlex.quote(c) for c in command])
     with open(script_path, "w", encoding='utf-8') as script_file:

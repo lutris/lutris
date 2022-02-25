@@ -166,7 +166,11 @@ class SteamService(BaseService):
         db_games = get_games(filters={"runner": "steam"})
         for db_game in db_games:
             steam_game = Game(db_game["id"])
-            appid = steam_game.config.game_level["game"]["appid"]
+            try:
+                appid = steam_game.config.game_level["game"]["appid"]
+            except KeyError:
+                logger.warning("Steam game %s has no AppID")
+                continue
             if appid not in installed_appids:
                 steam_game.remove(no_signal=True)
 

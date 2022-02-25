@@ -12,7 +12,7 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 )
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
 from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
@@ -30,7 +30,8 @@ from lutris.util.wine.wine import (
     is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
 
-MIN_SAFE_VERSION = "5.0"  # Wine installers must run with at least this version
+DEFAULT_WINE_PREFIX = "~/.wine"
+MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
 class wine(Runner):
@@ -105,7 +106,7 @@ class wine(Runner):
 
     def __init__(self, config=None):  # noqa: C901
         super().__init__(config)
-        self.dll_overrides = DEFAULT_DLL_OVERRIDES
+        self.dll_overrides = DEFAULT_DLL_OVERRIDES.copy()  # we'll modify this, so we better copy it
 
         def get_wine_version_choices():
             version_choices = [(_("Custom (select executable below)"), "custom")]
@@ -308,6 +309,7 @@ class wine(Runner):
                 "option": "fsync",
                 "label": _("Enable Fsync"),
                 "type": "extended_bool",
+                "default": True,
                 "callback": fsync_support_callback,
                 "callback_on": True,
                 "active": True,
@@ -356,6 +358,26 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": DISPLAY_MANAGER.get_resolutions,
                 "help": _("The size of the virtual desktop in pixels."),
+            },
+            {
+                "option": "Dpi",
+                "label": _("Enable DPI Scaling"),
+                "type": "bool",
+                "default": False,
+                "help": _(
+                    "Enables the Windows application's DPI scaling.\n"
+                    "Otherwise, disables DPI scaling by using 96 DPI.\n"
+                    "This corresponds to Wine's Screen Resolution option."
+                ),
+            },
+            {
+                "option": "ExplicitDpi",
+                "label": _("DPI"),
+                "type": "string",
+                "help": _(
+                    "The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
+                    "If blank or 'auto', Lutris will auto-detect this."
+                ),
             },
             {
                 "option": "MouseWarpOverride",
@@ -463,7 +485,6 @@ class wine(Runner):
             ("wineshell", _("Open Bash terminal"), self.run_wine_terminal),
             ("wineconsole", _("Open Wine console"), self.run_wineconsole),
             ("wine-regedit", _("Wine registry"), self.run_regedit),
-            ("winekill", _("Kill all Wine processes"), self.run_winekill),
             ("winetricks", _("Winetricks"), self.run_winetricks),
             ("winecpl", _("Wine Control Panel"), self.run_winecpl),
         ]
@@ -473,30 +494,28 @@ class wine(Runner):
     def prefix_path(self):
         """Return the absolute path of the Wine prefix"""
         _prefix_path = self.game_config.get("prefix") \
-            or os.environ.get("WINEPREFIX") \
-            or find_prefix(self.game_exe)
+            or os.environ.get("WINEPREFIX")
+        if not _prefix_path and self.game_config.get("exe"):
+            # Find prefix from game if we have one
+            _prefix_path = find_prefix(self.game_exe)
         if not _prefix_path:
-            logger.warning(
-                "Wine prefix not provided, defaulting to ~/.wine."
-                " This is probably not the intended behavior."
-            )
-            _prefix_path = "~/.wine"
+            _prefix_path = DEFAULT_WINE_PREFIX
         return os.path.expanduser(_prefix_path)
 
     @property
     def game_exe(self):
-        """Return the game's executable's path."""
+        """Return the game's executable's path, which may not exist. None
+        if there is no exe path defined."""
         exe = self.game_config.get("exe")
         if not exe:
-            logger.warning("The game doesn't have an executable")
-            return
-        if exe and os.path.isabs(exe):
+            logger.error("The game doesn't have an executable")
+            return None
+        if os.path.isabs(exe):
             return system.fix_path_case(exe)
         if not self.game_path:
-            return
-        exe = system.fix_path_case(os.path.join(self.game_path, exe))
-        if system.path_exists(exe):
-            return exe
+            logger.warning("The game has an executable, but not a game path")
+            return None
+        return system.fix_path_case(os.path.join(self.game_path, exe))
 
     @property
     def working_dir(self):
@@ -505,8 +524,15 @@ class wine(Runner):
         if option:
             return option
         if self.game_exe:
-            return os.path.dirname(self.game_exe)
+            game_dir = os.path.dirname(self.game_exe)
+            if os.path.isdir(game_dir):
+                return game_dir
         return super().working_dir
+
+    @property
+    def nvidia_shader_cache_path(self):
+        """WINE should give each game its own shader cache if possible."""
+        return self.game_path or self.shader_cache_dir
 
     @property
     def wine_arch(self):
@@ -529,7 +555,6 @@ class wine(Runner):
 
     def get_path_for_version(self, version):
         """Return the absolute path of a wine executable for a given version"""
-        # logger.debug("Getting path for Wine %s", version)
         if version in WINE_PATHS:
             return system.find_executable(WINE_PATHS[version])
         if "Proton" in version:
@@ -711,6 +736,25 @@ class wine(Runner):
 
                 prefix_manager.set_registry_key(path, key, value)
 
+        # We always configure the DPI, because if the user turns off DPI scaling, but it
+        # had been on the only way to implement that is to save 96 DPI into the registry.
+        prefix_manager.set_dpi(self.get_dpi())
+
+    def get_dpi(self):
+        """Return the DPI to be used by Wine; returns 96 to disable scaling,
+        as this is Window's unscaled default DPI."""
+        if bool(self.runner_config.get("Dpi")):
+            explicit_dpi = self.runner_config.get("ExplicitDpi")
+            if explicit_dpi == "auto":
+                explicit_dpi = None
+            try:
+                explicit_dpi = int(explicit_dpi)
+            except ValueError:
+                explicit_dpi = None
+            return explicit_dpi or get_default_dpi()
+
+        return 96
+
     def setup_dlls(self, manager_class, enable, version):
         """Enable or disable DLLs"""
         dll_manager = manager_class(
@@ -733,7 +777,9 @@ class wine(Runner):
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
-            create_prefix(self.prefix_path, arch=self.wine_arch)
+            logger.warning("No valid prefix detected in %s, creating one...", self.prefix_path)
+            create_prefix(self.prefix_path, wine_path=self.get_executable(), arch=self.wine_arch)
+
         prefix_manager = WinePrefixManager(self.prefix_path)
         if self.runner_config.get("autoconf_joypad", False):
             prefix_manager.configure_joypads()
@@ -789,8 +835,12 @@ class wine(Runner):
         show_debug = self.runner_config.get("show_debug", "-all")
         if show_debug != "inherit":
             env["WINEDEBUG"] = show_debug
+        if show_debug == "-all":
+            env["DXVK_LOG_LEVEL"] = "none"
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
+        env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "mono")
+        env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "gecko")
         if is_gstreamer_build(self.get_executable()):
             path_64 = os.path.join(WINE_DIR, self.get_version(), "lib64/gstreamer-1.0/")
             path_32 = os.path.join(WINE_DIR, self.get_version(), "lib/gstreamer-1.0/")
@@ -872,7 +922,7 @@ class wine(Runner):
                 if not display_vulkan_error(True):
                     return {"error": "VULKAN_NOT_FOUND"}
 
-        if not system.path_exists(game_exe):
+        if not game_exe or not system.path_exists(game_exe):
             return {"error": "FILE_NOT_FOUND", "file": game_exe}
 
         if launch_info["env"].get("WINEESYNC") == "1":
@@ -917,6 +967,11 @@ class wine(Runner):
                 command.append(arg)
         launch_info["command"] = command
         return launch_info
+
+    def force_stop_game(self, game):
+        """Kill WINE with kindness, or at least with -k. This seems to leave a process
+        alive for some reason, but the caller will detect this and SIGKILL it."""
+        self.run_winekill()
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):

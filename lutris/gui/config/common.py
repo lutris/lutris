@@ -3,7 +3,7 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gtk, Pango
+from gi.repository import Gdk, GLib, Gtk, Pango
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
@@ -29,6 +29,7 @@ class GameDialogCommon(Dialog):
 
     def __init__(self, title, parent=None):
         super().__init__(title, parent=parent)
+        self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.notebook = None
         self.name_entry = None
@@ -50,6 +51,20 @@ class GameDialogCommon(Dialog):
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
+
+        # These are independent windows, but start centered over
+        # a parent like a dialog. Not modal, not really transient,
+        # and does not share modality with other windows - so it
+        # needs its own window group.
+        Gtk.WindowGroup().add_window(self)
+        GLib.idle_add(self.clear_transient_for)
+
+    def clear_transient_for(self):
+        # we need the parent set to be centered over the parent, but
+        # we don't want to be transient really- we want other windows
+        # able to come to the front.
+        self.set_transient_for(None)
+        return False
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -244,7 +259,8 @@ class GameDialogCommon(Dialog):
         self.slug_change_button.set_label(_("Change"))
 
     def on_move_clicked(self, _button):
-        new_location = DirectoryDialog("Select new location for the game", default_path=self.game.directory)
+        new_location = DirectoryDialog("Select new location for the game",
+                                       default_path=self.game.directory, parent=self)
         if not new_location.folder or new_location.folder == self.game.directory:
             return
         move_dialog = dialogs.MoveDialog(self.game, new_location.folder)
@@ -347,6 +363,7 @@ class GameDialogCommon(Dialog):
         if self.runner_index and new_runner_index != self.runner_index:
             dlg = QuestionDialog(
                 {
+                    "parent": self,
                     "question":
                     _("Are you sure you want to change the runner for this game ? "
                       "This will reset the full configuration for this game and "
@@ -400,13 +417,13 @@ class GameDialogCommon(Dialog):
 
     def is_valid(self):
         if not self.runner_name:
-            ErrorDialog(_("Runner not provided"))
+            ErrorDialog(_("Runner not provided"), parent=self)
             return False
         if not self.name_entry.get_text():
-            ErrorDialog(_("Please fill in the name"))
+            ErrorDialog(_("Please fill in the name"), parent=self)
             return False
         if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
-            ErrorDialog(_("Steam AppID not provided"))
+            ErrorDialog(_("Steam AppID not provided"), parent=self)
             return False
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
@@ -424,7 +441,7 @@ class GameDialogCommon(Dialog):
                     except Exception:
                         invalid_fields.append(option.get("label"))
         if invalid_fields:
-            ErrorDialog(_("The following fields have invalid values: ") + ", ".join(invalid_fields))
+            ErrorDialog(_("The following fields have invalid values: ") + ", ".join(invalid_fields), parent=self)
             return False
         return True
 
@@ -513,5 +530,6 @@ class GameDialogCommon(Dialog):
             dest_path = resources.get_icon_path(self.game.slug)
         else:
             raise ValueError("Unsupported image type %s" % image_type)
-        os.remove(dest_path)
+        if os.path.isfile(dest_path):
+            os.remove(dest_path)
         self._set_image(image_type)

@@ -2,7 +2,6 @@ import json
 import os
 import random
 import time
-from typing import Optional
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
@@ -42,9 +41,6 @@ class ServiceMedia:
         """Whether the icon for the specified slug exists locally"""
         return system.path_exists(self.get_absolute_path(slug))
 
-    def get_url(self, service_game):
-        return self.url_pattern % service_game[self.api_field]
-
     def get_pixbuf_for_game(self, slug, is_installed=True):
         image_abspath = self.get_absolute_path(slug)
         return get_pixbuf(image_abspath, self.size, fallback=get_default_icon(self.size), is_installed=is_installed)
@@ -73,7 +69,7 @@ class ServiceMedia:
             medias[game["slug"]] = media_url
         return medias
 
-    def download(self, slug: str, url: str) -> Optional[str]:
+    def download(self, slug, url):
         """Downloads the banner if not present"""
         if not url:
             return
@@ -89,8 +85,7 @@ class ServiceMedia:
         try:
             return download_file(url, cache_path, raise_errors=True)
         except HTTPError as ex:
-            logger.error(ex)
-            return
+            logger.error("Failed to download %s: %s", url, ex)
 
     def render(self):
         """Used if the media requires extra processing"""

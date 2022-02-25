@@ -30,12 +30,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         "runners-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, installer, parent):
+    def __init__(self, installer, parent=None):
         super().__init__()
         self.target_path = None
         self.parent = parent
         self.service = parent.service if parent else None
-        self.appid = parent.appid if parent else None
+        _appid = parent.appid if parent else None
         self.game_dir_created = False  # Whether a game folder was created during the install
         # Extra files for installers, either None if the extras haven't been checked yet.
         # Or a list of IDs of extras to be downloaded during the install
@@ -47,7 +47,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.user_inputs = []
         self.current_command = 0  # Current installer command when iterating through them
         self.runners_to_install = []
-        self.installer = LutrisInstaller(installer, self, service=self.service, appid=self.appid)
+        self.installer = LutrisInstaller(installer, self, service=self.service, appid=_appid)
         if not self.installer.script:
             raise ScriptingError(_("This installer doesn't have a 'script' section"))
         script_errors = self.installer.get_errors()
@@ -61,6 +61,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self._check_dependency()
         if self.installer.creates_game_folder:
             self.target_path = self.get_default_target()
+
+    @property
+    def appid(self):
+        logger.warning("Do not access appid from interpreter")
+        return self.installer.service_appid
 
     def get_default_target(self):
         """Return default installation dir"""
@@ -89,13 +94,15 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         }
 
     @staticmethod
-    def _get_installed_dependency(dependency):
-        """Return whether a dependency is installed"""
+    def _get_game_dependency(dependency):
+        """Return a game database row from a dependency name"""
         game = get_game_by_field(dependency, field="installer_slug")
-
         if not game:
             game = get_game_by_field(dependency, "slug")
-        if bool(game) and bool(game["directory"]):
+
+        # Game must be installed and have a directory
+        # set so we can use that as the destination
+        if game and game["installed"] and game["directory"]:
             return game
 
     def _check_binary_dependencies(self):
@@ -128,10 +135,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             dependencies = [self.installer.extends]
         else:
             dependencies = unpack_dependencies(self.installer.requires)
-        error_message = "You need to install {} before"
+        error_message = _("You need to install {} before")
         for index, dependency in enumerate(dependencies):
             if isinstance(dependency, tuple):
-                installed_games = [dep for dep in [self._get_installed_dependency(dep) for dep in dependency] if dep]
+                installed_games = [dep for dep in [self._get_game_dependency(dep) for dep in dependency] if dep]
                 if not installed_games:
                     if len(dependency) == 1:
                         raise MissingGameDependency(slug=dependency)
@@ -140,7 +147,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     self.target_path = installed_games[0]["directory"]
                     self.requires = installed_games[0]["installer_slug"]
             else:
-                game = self._get_installed_dependency(dependency)
+                game = self._get_game_dependency(dependency)
                 if not game:
                     raise MissingGameDependency(slug=dependency)
                 if index == 0:
@@ -149,10 +156,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def get_extras(self):
         """Get extras and store them to move them at the end of the install"""
+        logger.debug("Checking if service provide extra files")
         if not self.service or not self.service.has_extras:
             self.extras = []
             return self.extras
-        self.extras = self.service.get_extras(self.appid)
+        self.extras = self.service.get_extras(self.installer.service_appid)
         return self.extras
 
     def launch_install(self):
@@ -269,6 +277,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         os.makedirs(self.cache_path, exist_ok=True)
 
         # Copy extras to game folder
+        if len(self.extras) == len(self.installer.files):
+            # Reset the install script in case there are only extras.
+            logger.warning("Installer with only extras and no game files")
+            self.installer.script["installer"] = []
+
         for extra in self.extras:
             self.installer.script["installer"].append(
                 {"copy": {"src": extra, "dst": "$GAMEDIR/extras"}}
@@ -276,6 +289,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self._iter_commands()
 
     def _iter_commands(self, result=None, exception=None):
+
         if result == "STOP" or self.cancelled:
             return
 
@@ -285,6 +299,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         commands = self.installer.script.get("installer", [])
         if exception:
+            logger.error("Last install command failed, show error")
             self.parent.on_install_error(repr(exception))
         elif self.current_command < len(commands):
             try:
@@ -313,6 +328,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             command_name = command_data
             command_params = {}
         command_name = command_name.replace("-", "_")
+        # Prevent private methods from being accessed as commands
         command_name = command_name.strip("_")
         return command_name, command_params
 
@@ -325,16 +341,16 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         return getattr(self, command_name), command_params
 
     def _finish_install(self):
-        game = self.installer.script.get("game")
+        game_id = self.installer.save()
+
         launcher_value = None
-        if game:
+        if self.installer.script.get("game"):
             _launcher, launcher_value = get_game_launcher(self.installer.script)
         path = None
         if launcher_value:
             path = self._substitute(launcher_value)
             if not os.path.isabs(path) and self.target_path:
                 path = os.path.join(self.target_path, path)
-        self.installer.save()
         if path and not os.path.isfile(path) and self.installer.runner not in ("web", "browser"):
             self.parent.set_status(
                 _(
@@ -347,14 +363,14 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             install_complete_text = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
             self.parent.set_status(install_complete_text)
         download_lutris_media(self.installer.game_slug)
-        self.parent.on_install_finished()
+        self.parent.on_install_finished(game_id)
 
     def cleanup(self):
         """Clean up install dir after a successful install"""
         os.chdir(os.path.expanduser("~"))
         system.remove_folder(self.cache_path)
 
-    def revert(self):
+    def revert(self, remove_game_dir=True):
         """Revert installation in case of an error"""
         logger.info("Cancelling installation of %s", self.installer.game_name)
         if self.installer.runner.startswith("wine"):
@@ -365,14 +381,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         if self.abort_current_task:
             self.abort_current_task()
 
-        if self.game_dir_created:
+        if self.target_path and remove_game_dir:
             system.remove_folder(self.target_path)
 
-    def _substitute(self, template_string):
-        """Replace path aliases with real paths."""
-        if template_string is None:
-            logger.warning("No template string given")
-            return ""
+    def _get_string_replacements(self):
+        """Return a mapping of variables to their actual value"""
         replacements = {
             "GAMEDIR": self.target_path,
             "CACHE": self.cache_path,
@@ -380,11 +393,13 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,
             "DISC": self.game_disc,
             "USER": os.getenv("USER"),
-            "INPUT": self._get_last_user_input(),
+            "INPUT": self.user_inputs[-1]["value"] if self.user_inputs else "",
             "VERSION": self.installer.version,
             "RESOLUTION": "x".join(self.current_resolution),
             "RESOLUTION_WIDTH": self.current_resolution[0],
             "RESOLUTION_HEIGHT": self.current_resolution[1],
+            "RESOLUTION_WIDTH_HEX": hex(int(self.current_resolution[0])),
+            "RESOLUTION_HEIGHT_HEX": hex(int(self.current_resolution[1])),
             "WINEBIN": self.get_wine_path(),
         }
         replacements.update(self.installer.variables)
@@ -394,12 +409,16 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             if alias:
                 replacements[alias] = input_data["value"]
         replacements.update(self.game_files)
+        return replacements
+
+    def _substitute(self, template_string):
+        """Replace path aliases with real paths."""
+        if template_string is None:
+            logger.warning("No template string given")
+            return ""
         if str(template_string).replace("-", "_") in self.game_files:
             template_string = template_string.replace("-", "_")
-        return system.substitute(template_string, replacements)
-
-    def _get_last_user_input(self):
-        return self.user_inputs[-1]["value"] if self.user_inputs else ""
+        return system.substitute(template_string, self._get_string_replacements())
 
     def eject_wine_disc(self):
         """Use Wine to eject a CD, otherwise Wine can have problems detecting disc changes"""

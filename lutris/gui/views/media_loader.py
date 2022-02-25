@@ -5,7 +5,7 @@ from lutris.util import system
 from lutris.util.log import logger
 
 
-def download_icons(media_urls, service_media):
+def download_media(media_urls, service_media):
     """Download a list of media files concurrently.
 
     Limits the number of simultaneous downloads to avoid API throttling

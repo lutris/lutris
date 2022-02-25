@@ -1,5 +1,6 @@
 """Base module for runners"""
 import os
+import signal
 from gettext import gettext as _
 
 from gi.repository import Gtk
@@ -112,6 +113,21 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.game_path or os.path.expanduser("~/")
 
     @property
+    def shader_cache_dir(self):
+        """Return the cache directory for this runner to use. We create
+        this if it does not exist."""
+        path = os.path.join(settings.SHADER_CACHE_DIR, self.name)
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        return path
+
+    @property
+    def nvidia_shader_cache_path(self):
+        """The path to place in __GL_SHADER_DISK_CACHE_PATH; NVidia
+        will place its cache cache in a subdirectory here."""
+        return self.shader_cache_dir
+
+    @property
     def discord_client_id(self):
         if self.game_data.get("discord_client_id"):
             return self.game_data.get("discord_client_id")
@@ -150,7 +166,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         # By default we'll set NVidia's shader disk cache to be
         # per-game, so it overflows less readily.
         env["__GL_SHADER_DISK_CACHE"] = "1"
-        env["__GL_SHADER_DISK_CACHE_PATH"] = self.game_path
+        env["__GL_SHADER_DISK_CACHE_PATH"] = self.nvidia_shader_cache_path
 
         # Override SDL2 controller configuration
         sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")
@@ -162,8 +178,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
         # Set monitor to use for SDL 1 games
-        if self.system_config.get("sdl_video_fullscreen"):
-            env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = self.system_config["sdl_video_fullscreen"]
+        sdl_video_fullscreen = self.system_config.get("sdl_video_fullscreen")
+        if sdl_video_fullscreen and sdl_video_fullscreen != "off":
+            env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
 
         # DRI Prime
         if self.system_config.get("dri_prime"):
@@ -189,14 +206,12 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         if self.use_runtime():
             runtime_env = self.get_runtime_env()
-            if "LD_LIBRARY_PATH" in runtime_env:
-                runtime_ld_library_path = runtime_env["LD_LIBRARY_PATH"]
+            runtime_ld_library_path = runtime_env.get("LD_LIBRARY_PATH")
 
         if runtime_ld_library_path:
             ld_library_path = env.get("LD_LIBRARY_PATH")
-            if not ld_library_path:
-                ld_library_path = "$LD_LIBRARY_PATH"
-            env["LD_LIBRARY_PATH"] = ":".join([runtime_ld_library_path, ld_library_path])
+            env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+                runtime_ld_library_path, ld_library_path]))
 
         # Apply user overrides at the end
         env.update(self.system_config.get("env") or {})
@@ -411,6 +426,11 @@ class Runner:  # pylint: disable=too-many-public-methods
             from lutris.util.wine.wine import get_wine_versions
             get_wine_versions.cache_clear()
 
+        if self.runner_executable:
+            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+            if os.path.isfile(runner_executable):
+                system.make_executable(runner_executable)
+
         if callback:
             callback()
 
@@ -437,3 +457,8 @@ class Runner:  # pylint: disable=too-many-public-methods
                 output = item
                 break
         return output
+
+    def force_stop_game(self, game):
+        """Stop the running game. If this leaves any game processes running,
+        the caller will SIGKILL them (after a delay)."""
+        game.kill_processes(signal.SIGTERM)

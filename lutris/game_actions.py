@@ -55,8 +55,10 @@ class GameActions:
         return [
             ("play", _("Play"), self.on_game_launch),
             ("stop", _("Stop"), self.on_game_stop),
-            ("show_logs", _("Show logs"), self.on_show_logs),
             ("install", _("Install"), self.on_install_clicked),
+            ("update", _("Install updates"), self.on_update_clicked),
+            ("install_dlcs", "Install DLCs", self.on_install_dlc_clicked),
+            ("show_logs", _("Show logs"), self.on_show_logs),
             ("add", _("Add installed game"), self.on_add_manually),
             ("configure", _("Configure"), self.on_edit_game_configuration),
             ("favorite", _("Add to favorites"), self.on_add_favorite_game),
@@ -96,6 +98,8 @@ class GameActions:
             "add": not self.game.is_installed,
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
+            "update": self.game.is_updatable,
+            "install_dlcs": self.game.is_updatable,
             "stop": self.is_game_running,
             "configure": bool(self.game.is_installed),
             "browse": self.game.is_installed and self.game.runner_name != "browser",
@@ -103,7 +107,10 @@ class GameActions:
             "favorite": not self.game.is_favorite,
             "deletefavorite": self.game.is_favorite,
             "install_more": not self.game.service and self.game.is_installed,
-            "execute-script": bool(self.game.is_installed and self.game.runner.system_config.get("manual_command")),
+            "execute-script": bool(
+                self.game.is_installed and self.game.runner
+                and self.game.runner.system_config.get("manual_command")
+            ),
             "desktop-shortcut": (
                 self.game.is_installed
                 and not xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)
@@ -161,6 +168,12 @@ class GameActions:
             raise RuntimeError("No game to install: %s" % self.game.id)
         self.game.emit("game-install")
 
+    def on_update_clicked(self, _widget):
+        self.game.emit("game-install-update")
+
+    def on_install_dlc_clicked(self, _widget):
+        self.game.emit("game-install-dlc")
+
     def on_locate_installed_game(self, _button, game):
         """Show the user a dialog to import an existing install to a DRM free service
 
@@ -175,7 +188,7 @@ class GameActions:
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""
-        EditGameConfigDialog(self.window, self.game)
+        self.application.show_window(EditGameConfigDialog, game=self.game, parent=self.window)
 
     def on_add_favorite_game(self, _widget):
         """Add to favorite Games list"""

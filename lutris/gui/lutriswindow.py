@@ -5,19 +5,18 @@ from gettext import gettext as _
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
-from lutris import api, services, settings
+from lutris import services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
-from lutris.gui.config.add_game import AddGameDialog
+from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.views import COL_ID, COL_NAME
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
-from lutris.gui.views.media_loader import download_icons
 from lutris.gui.views.store import GameStore
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.game_bar import GameBar
@@ -26,7 +25,7 @@ from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 # pylint: disable=no-member
 from lutris.services.base import BaseService
-from lutris.services.lutris import LutrisBanner, LutrisIcon, LutrisService
+from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -46,7 +45,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         "view-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    tabs_box = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
@@ -55,8 +53,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     zoom_adjustment = GtkTemplate.Child()
     blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
-    library_button = GtkTemplate.Child()
-    website_button = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
         width = int(settings.read_setting("width") or self.default_width)
@@ -99,8 +95,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.init_template()
         self._init_actions()
 
-        self.set_dark_theme()
-
         self.set_viewtype_icon(self.view_type)
 
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
@@ -117,7 +111,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
         self.sidebar_revealer.set_reveal_child(self.side_panel_visible)
         self.sidebar_revealer.set_transition_duration(300)
-        self.tabs_box.hide()
 
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
@@ -280,31 +273,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             reverse=True
         )
 
-    def get_api_games(self):
-        """Return games from the lutris API"""
-        if not self.filters.get("text"):
-            return []
-        api_games = api.search_games(self.filters["text"])
-        if "icon" in self.icon_type:
-            api_field = "icon_url"
-            _service_media = LutrisIcon
-        else:
-            api_field = "banner_url"
-            _service_media = LutrisBanner
-        AsyncCall(
-            download_icons,
-            self.icons_download_cb,
-            {g["slug"]: g[api_field] for g in api_games},
-            _service_media()
-        )
-        return api_games
-
-    def icons_download_cb(self, result, error):
-        if error:
-            logger.error("Failed to download icons: %s", error)
-            return
-        self.game_store.update_icons(result)
-
     def game_matches(self, game):
         if self.filters.get("installed"):
             if game["appid"] not in games_db.get_service_games(self.service.id):
@@ -371,12 +339,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def get_games_from_filters(self):
         service_name = self.filters.get("service")
-        self.tabs_box.hide()
         if service_name in services.SERVICES:
-            if service_name == "lutris":
-                self.tabs_box.show()  # Only the lutris service has the ability to search through all games.
-                if self.website_button.props.active:
-                    return self.get_api_games()
             if self.service.online and not self.service.is_authenticated():
                 self.show_label(_("Connect your %s account to access your games") % self.service.name)
                 return []
@@ -390,7 +353,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.filters.get("category") and self.filters["category"] != "all":
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
         else:
-            game_ids = []
+            game_ids = None
         searches, filters, excludes = self.get_sql_filters()
         games = games_db.get_games(
             searches=searches,
@@ -398,10 +361,9 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             excludes=excludes,
             sorts=self.sort_params
         )
-        if game_ids:
+        if game_ids is not None:
             return [game for game in games if game["id"] in game_ids]
-        else:
-            return games
+        return games
 
     def get_sql_filters(self):
         """Return the current filters for the view"""
@@ -451,15 +413,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Display a label when the view is empty"""
         if self.filters.get("text"):
             self.show_label(_("No games matching '%s' found ") % self.filters["text"])
-        elif self.view.service == "lutris" and self.website_button.props.active:
-            self.show_label(_("Use search to find games on lutris.net"))
         else:
             if self.filters.get("category") == "favorite":
                 self.show_label(_("Add games to your favorites to see them here."))
             elif self.filters.get("installed"):
                 self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
             else:
-                self.show_label(_("No games found"))
+                self.show_splash()
+                # self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()
@@ -475,14 +436,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.show_empty_label()
         self.search_timer_id = None
         return False
-
-    def set_dark_theme(self):
-        """Enables or disables dark theme"""
-        gtksettings = Gtk.Settings.get_default()
-        gtksettings.set_property(
-            "gtk-application-prefer-dark-theme",
-            settings.read_setting("dark_theme", default="false").lower() == "true"
-        )
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
@@ -511,13 +464,21 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.save_icon_type(icon_type)
             self.show_spinner()
 
-    def show_label(self, message):
-        """Display a label in the middle of the UI"""
+    def show_overlay(self, widget):
+        """Display a widget in the blank overlay"""
         for child in self.blank_overlay.get_children():
             child.destroy()
-        label = Gtk.Label(message, visible=True)
-        self.blank_overlay.add(label)
+        self.blank_overlay.add(widget)
         self.blank_overlay.props.visible = True
+
+    def show_label(self, message):
+        """Display a label in the middle of the UI"""
+        self.show_overlay(Gtk.Label(message, visible=True))
+
+    def show_splash(self):
+        image = Gtk.Image(visible=True)
+        image.set_from_file(os.path.join(datapath.get(), "media/splash.svg"))
+        self.show_overlay(image)
 
     def show_spinner(self):
         spinner = Gtk.Spinner(visible=True)
@@ -628,12 +589,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.emit("view-updated")
         return True
 
-    def on_dark_theme_state_change(self, action, value):
-        """Callback for theme switching action"""
-        action.set_state(value)
-        settings.write_setting("dark_theme", value.get_boolean())
-        self.set_dark_theme()
-
     @GtkTemplate.Callback
     def on_resize(self, widget, *_args):
         """Size-allocate signal.
@@ -689,11 +644,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.search_timer_id:
             GLib.source_remove(self.search_timer_id)
         self.filters["text"] = entry.get_text().lower().strip()
-        if self.service and self.service.id == "lutris" and self.website_button.props.active:
-            delay = 1250  # Big delay to make sure user has stopped typing before sending a search
-        else:
-            delay = 150
-        self.search_timer_id = GLib.timeout_add(delay, self.update_store)
+        self.search_timer_id = GLib.timeout_add(150, self.update_store)
 
     @GtkTemplate.Callback
     def on_search_entry_key_press(self, widget, event):
@@ -721,11 +672,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
-        if "runner" in self.filters:
-            runner = self.filters["runner"]
-        else:
-            runner = None
-        AddGameDialog(self, runner=runner)
+        self.application.show_window(AddGamesWindow)
         return True
 
     def on_toggle_viewtype(self, *args):
@@ -734,6 +681,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.set_viewtype_icon(view_type)
         settings.write_setting("view_type", view_type)
         self.redraw_view()
+        self._bind_zoom_adjustment()
 
     def on_icontype_state_change(self, action, value):
         action.set_state(value)
@@ -806,9 +754,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         # Stopped games do not get displayed on the running page
         if game.state == game.STATE_STOPPED:
             selected_row = self.sidebar.get_selected_row()
-            if selected_row is not None and selected_row.id == "running":
+            if selected_row and selected_row.id == "running":
                 return False
-
         return True
 
     def on_game_updated(self, game):
@@ -822,13 +769,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return True
         updated = self.game_store.update(db_game)
         if not updated:
-            self.game_store.add_game(db_game)
+            self.update_store()
         return True
 
     def on_game_stopped(self, game):
         """Updates the game list when a game stops; this keeps the 'running' page updated."""
         selected_row = self.sidebar.get_selected_row()
-        # Only update the running page- we lose the selected when we do this,
+        # Only update the running page- we lose the selected row when we do this,
         # but on the running page this is okay.
         if selected_row is not None and selected_row.id == "running":
             self.game_store.remove_game(game.id)
@@ -845,10 +792,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             logger.debug("Looking up %s game %s", self.service.id, game_id)
             db_game = games_db.get_game_for_service(self.service.id, game_id)
             if self.service.id == "lutris":
-                if not db_game:
-                    self.service.install(game_id)
-                    return
-                if not db_game["installed"]:
+                if not db_game or not db_game["installed"]:
                     self.service.install(game_id)
                     return
                 game_id = db_game["id"]
@@ -861,8 +805,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                         logger.error("No game %s found for %s", game_id, self.service.id)
                         return
                     game_id = self.service.install(service_game)
-        else:
-            logger.debug("No service for view")
         if game_id:
             game = Game(game_id)
             if game.is_installed:

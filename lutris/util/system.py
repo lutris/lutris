@@ -8,17 +8,23 @@ import signal
 import stat
 import string
 import subprocess
+from gettext import gettext as _
 
 from gi.repository import Gio, GLib
 
 from lutris import settings
 from lutris.util.log import logger
 
-# Home folders that should never get deleted. This should be localized and return the
-# appropriate folders names for the current locale.
+# Home folders that should never get deleted.
 PROTECTED_HOME_FOLDERS = (
-    "Documents", "Downloads", "Desktop",
-    "Pictures", "Videos", "Pictures", "Projects", "Games"
+    _("Documents"),
+    _("Downloads"),
+    _("Desktop"),
+    _("Pictures"),
+    _("Videos"),
+    _("Pictures"),
+    _("Projects"),
+    _("Games")
 )
 
 
@@ -270,28 +276,26 @@ def is_removeable(path):
 
 
 def fix_path_case(path):
-    """Do a case insensitive check, return the real path with correct case."""
+    """Do a case insensitive check, return the real path with correct case. If the path is
+    not for a real file, this corrects as many components as do exist."""
     if not path or os.path.exists(path):
         # If a path isn't provided or it exists as is, return it.
         return path
     parts = path.strip("/").split("/")
     current_path = "/"
     for part in parts:
-        if not os.path.exists(current_path):
-            return
-        tested_path = os.path.join(current_path, part)
-        if os.path.exists(tested_path):
-            current_path = tested_path
-            continue
-        try:
-            path_contents = os.listdir(current_path)
-        except OSError:
-            logger.error("Can't read contents of %s", current_path)
-            path_contents = []
-        for filename in path_contents:
-            if filename.lower() == part.lower():
-                current_path = os.path.join(current_path, filename)
-                continue
+        parent_path = current_path
+        current_path = os.path.join(current_path, part)
+        if not os.path.exists(current_path) and os.path.isdir(parent_path):
+            try:
+                path_contents = os.listdir(parent_path)
+            except OSError:
+                logger.error("Can't read contents of %s", parent_path)
+                path_contents = []
+            for filename in path_contents:
+                if filename.lower() == part.lower():
+                    current_path = os.path.join(parent_path, filename)
+                    break
 
     # Only return the path if we got the same number of elements
     if len(parts) == len(current_path.strip("/").split("/")):
@@ -386,7 +390,7 @@ def get_disk_size(path):
 
 def get_running_pid_list():
     """Return the list of PIDs from processes currently running"""
-    return [p for p in os.listdir("/proc") if p[0].isdigit()]
+    return [int(p) for p in os.listdir("/proc") if p[0].isdigit()]
 
 
 def get_mounted_discs():

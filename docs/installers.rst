@@ -200,6 +200,21 @@ the executable resides in.
 This directive can be used for Linux, Wine and Dosbox installers.
 Example: ``$GAMEDIR/path/to/game``
 
+``launch_configs``: When you have games with multiple executables (example: a game
+that comes with a map editor, or that need to be launched with different arguments)
+you can specify them in this section. In this section, you can have a list of configurations
+containing ``exe``, ``args`` and ``working_dir`` plus a ``name`` to show in the launcher dialog.
+Example:
+
+  game:
+    exe: main.exe
+    launch_configs:
+    - exe: map_editor.exe
+      name: Map Editor
+    - exe: main.exe
+      args: -missionpack
+      name: Mission Pack
+
 Wine and other wine based runners
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -459,7 +474,7 @@ should be extracted in some other location than the ``$GAMEDIR``, you can specif
 
 You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
-be. Accepted values for ``format`` are: zip, tgz, gzip, bz2, and gog (innoextract).
+be. Accepted values for ``format`` are: tgz, tar, zip, 7z, rar, txz, bz2, gzip, deb, exe and gog(innoextract), as well as all other formats supported by 7zip.
 
 Example::
 
@@ -600,6 +615,8 @@ that will be called. Other parameters depend on the task being called. It is
 possible to call functions from other runners by prefixing the task name with
 the runner's name (e.g., from a dosbox installer you can use the wineexec task
 with ``wine.wineexec`` as the task's ``name``)
+If the command you will run in the task doesn't exit with a return code of 0,
+you can specify an accepted return code like ``return_code: 256``
 
 Currently, the following tasks are implemented:
 
@@ -631,12 +648,12 @@ Currently, the following tasks are implemented:
     ``executable`` (``file ID`` or path), ``args`` (optional arguments passed
     to the executable), ``prefix`` (optional WINEPREFIX),
     ``arch`` (optional WINEARCH value, by default inherited from the `game:` section, which itself defaults to win64. The value can be set to ``win32`` to run the task in a 32-bit prefix.),
-    ``blocking`` (if true, do not run the process in a thread), 
-    ``description`` (a message be shown to the user during the execution of the task), 
-    ``working_dir`` (optional working directory), 
-    ``exclude_processes`` (optional space-separated list of processes to exclude from being monitored when determining if the execute phase finished), 
-    ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusion list), 
-    ``env`` (optional environment variables), 
+    ``blocking`` (if true, do not run the process in a thread),
+    ``description`` (a message be shown to the user during the execution of the task),
+    ``working_dir`` (optional working directory),
+    ``exclude_processes`` (optional space-separated list of processes to exclude from being monitored when determining if the execute phase finished),
+    ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusion list),
+    ``env`` (optional environment variables),
     ``overrides`` (optional DLL overrides).
 
     Example::

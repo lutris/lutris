@@ -45,6 +45,7 @@ setup(
         'lutris.util.mame',
         'lutris.util.steam',
         'lutris.util.retroarch',
+        'lutris.util.ubisoft',
         'lutris.util.wine'
     ],
     scripts=['bin/lutris'],
@@ -55,7 +56,9 @@ setup(
         'PyGObject',
         'evdev',
         'requests',
-        'python-magic'
+        'python-magic',
+        "distro>=1.7.0;platform_system='Linux'",
+        'lxml'
     ],
     url='https://lutris.net',
     description='Video game preservation platform',

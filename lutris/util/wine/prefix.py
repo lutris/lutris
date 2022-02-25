@@ -8,7 +8,7 @@ from lutris.util.wine.registry import WineRegistry
 from lutris.util.xdgshortcuts import get_xdg_entry
 
 DESKTOP_KEYS = ["Desktop", "Personal", "My Music", "My Videos", "My Pictures"]
-DEFAULT_DESKTOP_FOLDERS = ["Desktop", "My Documents", "My Music", "My Videos", "My Pictures"]
+DEFAULT_DESKTOP_FOLDERS = ["Desktop", "Documents", "Music", "Videos", "Pictures"]
 DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES"]
 DEFAULT_DLL_OVERRIDES = {
     "winemenubuilder": "",
@@ -41,11 +41,34 @@ class WinePrefixManager:
     """Class to allow modification of Wine prefixes without the use of Wine"""
 
     hkcu_prefix = "HKEY_CURRENT_USER"
+    hklm_prefix = "HKEY_LOCAL_MACHINE"
 
     def __init__(self, path):
         if not path:
             logger.warning("No path specified for Wine prefix")
         self.path = path
+
+    @property
+    def user_dir(self):
+        """Returns the directory that contains the current user's profile in the WINE prefix."""
+        user = os.getenv("USER") or 'lutrisuser'
+        return os.path.join(self.path, "drive_c/users/", user)
+
+    @property
+    def appdata_dir(self):
+        """Returns the app-data directory for the user; this depends on a registry key."""
+        user_dir = self.user_dir
+        folder = self.get_registry_key(
+            self.hkcu_prefix + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
+            "AppData",
+        )
+
+        # Don't try to resolve the WIndows path we get- there's
+        # just two options, the Vista-and later option and the
+        # XP-and-earlier option.
+        if folder.lower().endswith("\\application data"):
+            return os.path.join(user_dir, "Application Data")  # Windows XP
+        return os.path.join(user_dir, "AppData/Roaming")  # Vista
 
     def setup_defaults(self):
         """Sets the defaults for newly created prefixes"""
@@ -64,11 +87,14 @@ class WinePrefixManager:
         """
         if key.startswith(self.hkcu_prefix):
             return os.path.join(self.path, "user.reg")
+        if key.startswith(self.hklm_prefix):
+            return os.path.join(self.path, "system.reg")
         raise ValueError("Unsupported key '{}'".format(key))
 
     def get_key_path(self, key):
-        if key.startswith(self.hkcu_prefix):
-            return key[len(self.hkcu_prefix) + 1:]
+        for prefix in (self.hkcu_prefix, self.hklm_prefix):
+            if key.startswith(prefix):
+                return key[len(prefix) + 1:]
         raise ValueError("The key {} is currently not supported by WinePrefixManager".format(key))
 
     def get_registry_key(self, key, subkey):
@@ -117,8 +143,7 @@ class WinePrefixManager:
         """Overwrite desktop integration"""
         # pylint: disable=too-many-branches
         # TODO: reduce complexity (18)
-        user = os.getenv("USER") or 'lutrisuser'
-        user_dir = os.path.join(self.path, "drive_c/users/", user)
+        user_dir = self.user_dir
         desktop_folders = self.get_desktop_folders()
         desktop_dir = os.path.expanduser(desktop_dir) if desktop_dir else user_dir
 
@@ -206,6 +231,11 @@ class WinePrefixManager:
         path = self.hkcu_prefix + "/Software/Wine/Explorer/Desktops"
         if desktop_size:
             self.set_registry_key(path, "WineDesktop", desktop_size)
+
+    def set_dpi(self, dpi):
+        """Sets the DPI for WINE to use. 96 DPI is effectively unscaled."""
+        self.set_registry_key(self.hkcu_prefix + "/Software/Wine/Fonts", "LogPixels", dpi)
+        self.set_registry_key(self.hkcu_prefix + "/Control Panel/Desktop", "LogPixels", dpi)
 
     def configure_joypads(self):
         """Disables some joypad devices"""

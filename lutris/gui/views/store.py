@@ -9,7 +9,6 @@ from lutris import settings
 from lutris.database import sql
 from lutris.database.games import get_games
 from lutris.gui.views.store_item import StoreItem
-from lutris.gui.widgets.utils import get_pixbuf
 from lutris.util.strings import gtk_safe
 
 from . import (
@@ -122,7 +121,8 @@ class GameStore(GObject.Object):
 
     def update(self, db_game):
         """Update game informations
-        Return whether a row was updated
+        Return whether a row was updated; False if the game was not already
+        present.
         """
         store_item = StoreItem(db_game, self.service_media)
         row = self.get_row_by_id(store_item.id)
@@ -133,7 +133,10 @@ class GameStore(GObject.Object):
         row[COL_ID] = str(store_item.id)
         row[COL_SLUG] = store_item.slug
         row[COL_NAME] = gtk_safe(store_item.name)
-        row[COL_ICON] = store_item.get_pixbuf()
+        if settings.SHOW_MEDIA:
+            row[COL_ICON] = store_item.get_pixbuf()
+        else:
+            row[COL_ICON] = None
         row[COL_YEAR] = store_item.year
         row[COL_RUNNER] = store_item.runner
         row[COL_RUNNER_HUMAN_NAME] = gtk_safe(store_item.runner_text)
@@ -155,7 +158,7 @@ class GameStore(GObject.Object):
                 str(game.id),
                 game.slug,
                 game.name,
-                game.get_pixbuf(),
+                game.get_pixbuf() if settings.SHOW_MEDIA else None,
                 game.year,
                 game.runner,
                 game.runner_text,
@@ -192,12 +195,3 @@ class GameStore(GObject.Object):
         for db_game in db_games:
             GLib.idle_add(self.update, db_game)
         return True
-
-    def update_icons(self, icon_updates):
-        """Updates the store with new icon paths keyed by slug"""
-        for slug in icon_updates:
-            row = self.get_row_by_slug(slug)
-            if not row:
-                continue
-            installed = slug in self.installed_game_slugs
-            row[COL_ICON] = get_pixbuf(icon_updates[slug], self.service_media.size, is_installed=installed)
