@@ -187,11 +187,11 @@ class Application(Gtk.Application):
             None,
         )
         self.add_main_option(
-            "list-wine-runners",
+            "list-wine-versions",
             0,
             GLib.OptionFlags.NONE,
             GLib.OptionArg.NONE,
-            _("List all known Wine runners"),
+            _("List all known Wine versions"),
             None,
         )
         self.add_main_option(
