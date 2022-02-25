@@ -257,7 +257,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         """Install from a YAML file"""
         script_dlg = FileDialog(_("Select a Lutris installer"))
         if script_dlg.filename:
-            installers = get_installers(script_dlg.filename)
+            installers = get_installers(installer_file=script_dlg.filename)
             application = Gio.Application.get_default()
             application.show_installer_window(installers)
         self.destroy()
