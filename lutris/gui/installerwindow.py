@@ -423,7 +423,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         selected_extras = []
 
         def save_extra(store, path, iter_):
-            selected, inconsistent, id_, label = store[iter_]
+            selected, _inconsistent, id_, _label = store[iter_]
             if selected and id_:
                 selected_extras.append(id_)
         extra_store.foreach(save_extra)
