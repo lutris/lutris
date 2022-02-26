@@ -3912,7 +3912,7 @@ msgstr "O tamanho inicial da janela do jogo quando não aberto."
 #: lutris/runners/web.py:60
 msgid "Disable window resizing (disables fullscreen and maximize)"
 msgstr ""
-"DesHabilitar o redimensionamento da janela (desativa a tela cheia e "
+"Desabilitar o redimensionamento da janela (desativa a tela cheia e "
 "maximizar)"
 
 #: lutris/runners/web.py:63
@@ -3929,7 +3929,7 @@ msgstr "A janela não tem bordas/molduras."
 
 #: lutris/runners/web.py:74
 msgid "Disable menu bar and default shortcuts"
-msgstr "DesHabilitar barra de menus e atalhos padrão"
+msgstr "Desabilitar barra de menus e atalhos padrão"
 
 #: lutris/runners/web.py:77
 msgid ""
@@ -4370,7 +4370,7 @@ msgstr ""
 "Substituir o comportamento padrão de distorção do ponteiro do mouse\n"
 "<b>Habilitar</b>: (Wine, padrão) deforma o ponteiro quando o mouse é "
 "adquirido exclusivamente \n"
-"<b>DesHabilitar</b>: nunca distorcer o ponteiro do mouse \n"
+"<b>Desabilitar</b>: nunca distorcer o ponteiro do mouse \n"
 "<b>Forçar</b>: sempre distorcer o ponteiro"
 
 #: lutris/runners/wine.py:403
@@ -4541,7 +4541,7 @@ msgstr "Quadruplicação de pixels"
 
 #: lutris/runners/zdoom.py:65
 msgid "Disable Startup Screens"
-msgstr "DesHabilitar telas de inicialização"
+msgstr "Desabilitar telas de inicialização"
 
 #: lutris/runners/zdoom.py:71
 msgid "Skill"
@@ -4813,7 +4813,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:227
 msgid "Disable screen saver"
-msgstr "DesHabilitar protetor de tela"
+msgstr "Desabilitar protetor de tela"
 
 #: lutris/sysoptions.py:232
 msgid ""
