@@ -124,6 +124,19 @@ class scummvm(Runner):
             _("Chooses which emulator is used by ScummVM when the AdLib emulator is chosen as the Preferred device."),
             "advanced": True,
         },
+        {
+            "option": "output-rate",
+            "label": _("Output rate"),
+            "type": "choice",
+            "default": "44100",
+            "choices": [
+                ("11025", "11025"),
+                ("22050", "22050"),
+                ("44100", "44100"),
+            ],
+            "help": _("Chooses which emulator is used by ScummVM when the AdLib emulator is chosen as the Preferred device."),
+            "advanced": True,
+        },
     ]
 
     @property
@@ -184,6 +197,11 @@ class scummvm(Runner):
         opldriver = self.runner_config.get("opl-driver")
         if opldriver:
             command.append("--opl-driver=%s" % opl)
+
+        outputrate = self.runner_config.get("output-rate")
+        if outputrate:
+            command.append("--output-rate=%s" % output)
+
         # /Options
         command.append("--path=%s" % self.game_path)
         args = self.game_config.get("args") or ""
