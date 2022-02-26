@@ -188,6 +188,13 @@ class scummvm(Runner):
             "type": "bool",
             "default": True,
         },
+        {
+            "option": "joystick",
+            "type": "string",
+            "label": _("Joystick"),
+            "help": _("Enables joystick input (default: 0 = first joystick)"),
+            "advanced": True,
+        },
     ]
 
     @property
@@ -259,6 +266,10 @@ class scummvm(Runner):
         musicdriver = self.runner_config.get("music-driver")
         if musicdriver:
             command.append("--music-driver=%s" % musicdriver)
+
+        joystick = self.runner_config.get("joystick")
+        if joystick:
+            command.append("--joystick=%s" % joystick)
 
         if self.runner_config.get("multi-midi"):
             command.append("--multi-midi")
