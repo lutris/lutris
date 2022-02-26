@@ -175,6 +175,12 @@ class scummvm(Runner):
             "help": _("Tells ScummVM that the MIDI device is an actual Roland MT-32, LAPC-I, CM-64, CM-32L, CM-500 or other MT-32 device."),
             "advanced": True,
         },
+        {
+            "option": "enable-gs",
+            "label": _("Enable Roland GS"),
+            "type": "bool",
+            "default": True,
+        },
     ]
 
     @property
@@ -249,6 +255,9 @@ class scummvm(Runner):
 
         if self.runner_config.get("native-mt32"):
             command.append("--native-mt32")
+
+        if self.runner_config.get("enable-gs"):
+            command.append("--enable-gs")
 
         # /Options
         command.append("--path=%s" % self.game_path)
