@@ -100,6 +100,29 @@ class scummvm(Runner):
               "resolution game and scale it up to 640x400. "),
         },
         {
+            "option": "render-mode",
+            "label": _("Render mode"),
+            "type": "choice",
+            "default": "default",
+            "choices": [
+                ("default", "default"),
+                ("hercGreen", "hercGreen"),
+                ("hercAmber", "hercAmber"),
+                ("cga", "cga"),
+                ("ega", "ega"),
+                ("vga", "vga"),
+                ("amiga", "amiga"),
+                ("fmtowns", "fmtowns"),
+                ("pc9821", "pc9821"),
+                ("pc9801", "pc9801"),
+                ("2gs", "2gs"),
+                ("atari", "atari"),
+                ("macintosh", "macintosh"),
+            ],
+            "advanced": True,
+            "help": _("Changes how the game is rendered. "),
+        },
+        {
             "option": "filtering",
             "label": _("Filtering"),
             "type": "bool",
@@ -183,10 +206,17 @@ class scummvm(Runner):
             "advanced": True,
         },
         {
-            "option": "midigain",
+            "option": "midi-gain",
             "type": "string",
             "label": _("MIDI gain"),
             "help": _("Sets the gain for MIDI playback. 0-1000 (default: 100)"),
+            "advanced": True,
+        },
+        {
+            "option": "soundfont",
+            "type": "string",
+            "label": _("Soundfont"),
+            "help": _("Specifies the path to a soundfont file."),
             "advanced": True,
         },
         {
@@ -281,7 +311,11 @@ class scummvm(Runner):
 
         scalefactor = self.runner_config.get("scale-factor")
         if scalefactor:
-            command.append("--scale-factor=%s" % scale)
+            command.append("--scale-factor=%s" % scalefactor)
+
+        rendermode = self.runner_config.get("render-mode")
+        if rendermode:
+            command.append("--render-mode=%s" % rendermode)
 
         if self.runner_config.get("filtering"):
             command.append("--filtering")
@@ -292,11 +326,11 @@ class scummvm(Runner):
 
         opldriver = self.runner_config.get("opl-driver")
         if opldriver:
-            command.append("--opl-driver=%s" % opl)
+            command.append("--opl-driver=%s" % opldriver)
 
         outputrate = self.runner_config.get("output-rate")
         if outputrate:
-            command.append("--output-rate=%s" % output)
+            command.append("--output-rate=%s" % outputrate)
 
         musicdriver = self.runner_config.get("music-driver")
         if musicdriver:
@@ -305,9 +339,13 @@ class scummvm(Runner):
         if self.runner_config.get("multi-midi"):
             command.append("--multi-midi")
 
-        midigain = self.runner_config.get("midigain")
+        midigain = self.runner_config.get("midi-gain")
         if midigain:
             command.append("--midi-gain=%s" % midigain)
+
+        soundfont = self.runner_config.get("soundfont")
+        if soundfont:
+            command.append("--soundfont=%s" % soundfont)
 
         music-volume = self.runner_config.get("music-volume")
         if music-volume:
