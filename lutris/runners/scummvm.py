@@ -105,6 +105,25 @@ class scummvm(Runner):
             "help": _("Defaults to share/scummvm if unspecified."),
             "advanced": True,
         },
+        {
+            "option": "opl-driver",
+            "label": _("OPL driver"),
+            "type": "choice",
+            "default": "auto",
+            "choices": [
+                ("auto", "auto"),
+                ("mame", "mame"),
+                ("db", "db"),
+                ("nuked", "nuked"),
+                ("alsa", "alsa"),
+                ("op2lpt", "op2lpt"),
+                ("op3lpt", "op3lpt"),
+                ("rwopl3", "rwopl3"),
+            ],
+            "help":
+            _("Chooses which emulator is used by ScummVM when the AdLib emulator is chosen as the Preferred device."),
+            "advanced": True,
+        },
     ]
 
     @property
@@ -161,6 +180,10 @@ class scummvm(Runner):
         scalefactor = self.runner_config.get("scale-factor")
         if scalefactor:
             command.append("--scale-factor=%s" % scale)
+
+        opldriver = self.runner_config.get("opl-driver")
+        if opldriver:
+            command.append("--opl-driver=%s" % opl)
         # /Options
         command.append("--path=%s" % self.game_path)
         args = self.game_config.get("args") or ""
