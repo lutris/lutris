@@ -564,7 +564,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.games_scrollwindow.add(self.view)
 
         self.view.show_all()
-        GLib.idle_add(self.update_store)
+        self.update_store()
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
