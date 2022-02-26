@@ -195,6 +195,12 @@ class scummvm(Runner):
             "help": _("Enables joystick input (default: 0 = first joystick)"),
             "advanced": True,
         },
+        {
+            "option": "language",
+            "type": "string",
+            "label": _("Language"),
+            "help": _("Selects language (en, de, fr, it, pt, es, jp, zh, kr, se, gb, hb, ru, cz)"),
+        },
     ]
 
     @property
@@ -267,10 +273,6 @@ class scummvm(Runner):
         if musicdriver:
             command.append("--music-driver=%s" % musicdriver)
 
-        joystick = self.runner_config.get("joystick")
-        if joystick:
-            command.append("--joystick=%s" % joystick)
-
         if self.runner_config.get("multi-midi"):
             command.append("--multi-midi")
 
@@ -279,6 +281,14 @@ class scummvm(Runner):
 
         if self.runner_config.get("enable-gs"):
             command.append("--enable-gs")
+
+        joystick = self.runner_config.get("joystick")
+        if joystick:
+            command.append("--joystick=%s" % joystick)
+
+        language = self.runner_config.get("language")
+        if language:
+            command.append("--language=%s" % language)
 
         # /Options
         command.append("--path=%s" % self.game_path)
