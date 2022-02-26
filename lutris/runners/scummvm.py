@@ -96,7 +96,8 @@ class scummvm(Runner):
             ],
             "help":
             _("Changes the resolution of the game. "
-              "For example, a 2x scaler will take a 320x200 resolution game and scale it up to 640x400. "),
+              "For example, a 2x scaler will take a 320x200 "
+              "resolution game and scale it up to 640x400. "),
         },
         {
             "option": "filtering",
@@ -127,8 +128,7 @@ class scummvm(Runner):
                 ("op3lpt", "op3lpt"),
                 ("rwopl3", "rwopl3"),
             ],
-            "help":
-            _("Chooses which emulator is used by ScummVM when the AdLib emulator is chosen as the Preferred device."),
+            "help": _("Chooses which emulator is used by ScummVM when the AdLib emulator is chosen as the Preferred device."),
             "advanced": True,
         },
         {
@@ -175,6 +175,19 @@ class scummvm(Runner):
             "advanced": True,
         },
         {
+            "option": "midigain",
+            "type": "string",
+            "label": _("MIDI gain"),
+            "help": _("Sets the gain for MIDI playback. 0-1000 (default: 100)"),
+            "advanced": True,
+        },
+        {
+            "option": "music-volume",
+            "type": "string",
+            "label": _("Music volume"),
+            "help": _("Sets the music volume, 0-255 (default: 192)"),
+        },
+        {
             "option": "native-mt32",
             "label": _("True Roland MT-32"),
             "type": "bool",
@@ -187,6 +200,8 @@ class scummvm(Runner):
             "label": _("Enable Roland GS"),
             "type": "bool",
             "default": True,
+            "help": _("Tells ScummVM that the MIDI device is a GS device that has an MT-32 map, such as an SC-55, SC-88 or SC-8820."),
+            "advanced": True,
         },
         {
             "option": "joystick",
@@ -275,6 +290,14 @@ class scummvm(Runner):
 
         if self.runner_config.get("multi-midi"):
             command.append("--multi-midi")
+
+        midigain = self.runner_config.get("midigain")
+        if midigain:
+            command.append("--midi-gain=%s" % midigain)
+
+        music-volume = self.runner_config.get("music-volume")
+        if joystick:
+            command.append("--music-volume=%s" % music-volume)
 
         if self.runner_config.get("native-mt32"):
             command.append("--native-mt32")
