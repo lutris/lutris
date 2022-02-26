@@ -83,6 +83,22 @@ class scummvm(Runner):
               "resolution, resulting in different visual styles. "),
         },
         {
+            "option": "scaler-factor",
+            "label": _("Scaler factor"),
+            "type": "choice",
+            "default": "3",
+            "choices": [
+                ("1", "1"),
+                ("2", "2"),
+                ("3", "3"),
+                ("4", "4"),
+                ("5", "5"),
+            ],
+            "help":
+            _("Changes the resolution of the game. "
+              "For example, a 2x scaler will take a 320x200 resolution game and scale it up to 640x400. "),
+        },
+        {
             "option": "datadir",
             "label": _("Data directory"),
             "type": "directory_chooser",
@@ -141,6 +157,10 @@ class scummvm(Runner):
         mode = self.runner_config.get("gfx-mode")
         if mode:
             command.append("--gfx-mode=%s" % mode)
+
+        scalefactor = self.runner_config.get("scale-factor")
+        if scalefactor:
+            command.append("--scale-factor=%s" % scale)
         # /Options
         command.append("--path=%s" % self.game_path)
         args = self.game_config.get("args") or ""
