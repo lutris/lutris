@@ -296,7 +296,7 @@ class scummvm(Runner):
             command.append("--midi-gain=%s" % midigain)
 
         music-volume = self.runner_config.get("music-volume")
-        if joystick:
+        if music-volume:
             command.append("--music-volume=%s" % music-volume)
 
         if self.runner_config.get("native-mt32"):
