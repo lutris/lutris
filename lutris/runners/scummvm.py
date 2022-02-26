@@ -159,6 +159,13 @@ class scummvm(Runner):
             "help": _("Specifies the device ScummVM uses to output audio."),
             "advanced": True,
         },
+        {
+            "option": "multi-midi",
+            "label": _("Mixed AdLib/MIDI mode"),
+            "type": "bool",
+            "default": False,
+            "advanced": True,
+        },
     ]
 
     @property
@@ -227,6 +234,9 @@ class scummvm(Runner):
         musicdriver = self.runner_config.get("music-driver")
         if musicdriver:
             command.append("--music-driver=%s" % musicdriver)
+
+        if self.runner_config.get("multi-midi"):
+            command.append("--multi-midi")
 
         # /Options
         command.append("--path=%s" % self.game_path)
