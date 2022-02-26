@@ -134,7 +134,7 @@ class scummvm(Runner):
                 ("22050", "22050"),
                 ("44100", "44100"),
             ],
-            "help": _("Chooses which emulator is used by ScummVM when the AdLib emulator is chosen as the Preferred device."),
+            "help": _("Selects output sample rate in Hz."),
             "advanced": True,
         },
         {
@@ -164,6 +164,15 @@ class scummvm(Runner):
             "label": _("Mixed AdLib/MIDI mode"),
             "type": "bool",
             "default": False,
+            "help": _("Combines MIDI music with AdLib sound effects."),
+            "advanced": True,
+        },
+        {
+            "option": "native-mt32",
+            "label": _("True Roland MT-32"),
+            "type": "bool",
+            "default": False,
+            "help": _("Tells ScummVM that the MIDI device is an actual Roland MT-32, LAPC-I, CM-64, CM-32L, CM-500 or other MT-32 device."),
             "advanced": True,
         },
     ]
@@ -237,6 +246,9 @@ class scummvm(Runner):
 
         if self.runner_config.get("multi-midi"):
             command.append("--multi-midi")
+
+        if self.runner_config.get("native-mt32"):
+            command.append("--native-mt32")
 
         # /Options
         command.append("--path=%s" % self.game_path)
