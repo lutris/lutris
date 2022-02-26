@@ -28,12 +28,6 @@ class scummvm(Runner):
             "label": _("Game files location")
         },
         {
-            "option": "subtitles",
-            "label": _("Enable subtitles (if the game has voice)"),
-            "type": "bool",
-            "default": False,
-        },
-        {
             "option": "args",
             "type": "string",
             "label": _("Arguments"),
@@ -46,6 +40,12 @@ class scummvm(Runner):
             "label": _("Fullscreen"),
             "type": "bool",
             "default": True,
+        },
+        {
+            "option": "subtitles",
+            "label": _("Enable subtitles (if the game has voice)"),
+            "type": "bool",
+            "default": False,
         },
         {
             "option": "aspect",
@@ -130,7 +130,7 @@ class scummvm(Runner):
         if self.runner_config.get("aspect"):
             command.append("--aspect-ratio")
 
-        if self.game_config.get("subtitles"):
+        if self.runner_config.get("subtitles"):
             command.append("--subtitles")
 
         if self.runner_config.get("fullscreen"):
