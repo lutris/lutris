@@ -99,6 +99,13 @@ class scummvm(Runner):
               "For example, a 2x scaler will take a 320x200 resolution game and scale it up to 640x400. "),
         },
         {
+            "option": "filtering",
+            "label": _("Filtering"),
+            "type": "bool",
+            "help": _("Uses bilinear interpolation instead of nearest neighbor resampling for the aspect ratio correction and stretch mode."),
+            "default": False,
+        },
+        {
             "option": "datadir",
             "label": _("Data directory"),
             "type": "directory_chooser",
@@ -237,6 +244,9 @@ class scummvm(Runner):
         scalefactor = self.runner_config.get("scale-factor")
         if scalefactor:
             command.append("--scale-factor=%s" % scale)
+
+        if self.runner_config.get("filtering"):
+            command.append("--filtering")
 
         opldriver = self.runner_config.get("opl-driver")
         if opldriver:
