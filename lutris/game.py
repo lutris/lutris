@@ -381,7 +381,7 @@ class Game(GObject.Object):
         if wait_for_completion:
             logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
             # Monitor the prelaunch command and wait until it has finished
-            system.execute(command_array, env=env, cws=self.directory)
+            system.execute(command_array, env=env, cwd=self.directory)
         else:
             logger.info("Prelaunch command %s launched in the background", prelaunch_command)
             self.prelaunch_executor = MonitoredCommand(

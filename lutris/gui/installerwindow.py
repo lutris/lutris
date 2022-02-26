@@ -345,28 +345,32 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             label += " (%s)" % ", ".join(_infos)
         return label
 
-    def show_extras(self, extras):
+    def show_extras(self, all_extras):
         """Show installer screen with the extras picker"""
         self.clean_widgets()
-        extra_liststore = Gtk.ListStore(
-            bool,   # is selected?
-            str,  # id
-            str,  # label
+        extra_treestore = Gtk.TreeStore(
+            bool,  # is selected?
+            bool,  # is inconsistent?
+            str,   # id
+            str,   # label
         )
-        for extra in extras:
-            extra_liststore.append((False, extra["id"], self.get_extra_label(extra)))
+        for extra_source, extras in all_extras.items():
+            parent = extra_treestore.append(None, (None, None, None, extra_source))
+            for extra in extras:
+                extra_treestore.append(parent, (False, False, extra["id"], self.get_extra_label(extra)))
 
-        treeview = Gtk.TreeView(extra_liststore)
+        treeview = Gtk.TreeView(extra_treestore)
         treeview.set_headers_visible(False)
+        treeview.expand_all()
         renderer_toggle = Gtk.CellRendererToggle()
-        renderer_toggle.connect("toggled", self.on_extra_toggled, extra_liststore)
+        renderer_toggle.connect("toggled", self.on_extra_toggled, extra_treestore)
         renderer_text = Gtk.CellRendererText()
 
-        installed_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0)
+        installed_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0, inconsistent=1)
         treeview.append_column(installed_column)
 
         label_column = Gtk.TreeViewColumn(None, renderer_text)
-        label_column.add_attribute(renderer_text, "text", 2)
+        label_column.add_attribute(renderer_text, "text", 3)
         label_column.set_property("min-width", 80)
         treeview.append_column(label_column)
 
@@ -383,18 +387,47 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.continue_button.set_sensitive(True)
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
-        self.continue_handler = self.continue_button.connect("clicked", self.on_extras_confirmed, extra_liststore)
+        self.continue_handler = self.continue_button.connect("clicked", self.on_extras_confirmed, extra_treestore)
 
-    def on_extra_toggled(self, _widget, path, store):
-        row = store[path]
-        row[0] = not row[0]
+    def on_extra_toggled(self, _widget, path, model):
+        toggled_row = model[path]
+        toggled_row_iter = model.get_iter(path)
+
+        toggled_row[0] = not toggled_row[0]
+        toggled_row[1] = False
+
+        if model.iter_has_child(toggled_row_iter):
+            extra_iter = model.iter_children(toggled_row_iter)
+            while extra_iter:
+                extra_row = model[extra_iter]
+                extra_row[0] = toggled_row[0]
+                extra_iter = model.iter_next(extra_iter)
+        else:
+            for heading_row in model:
+                all_extras_active = True
+                any_extras_active = False
+                extra_iter = model.iter_children(heading_row.iter)
+                while extra_iter:
+                    extra_row = model[extra_iter]
+                    if extra_row[0]:
+                        any_extras_active = True
+                    else:
+                        all_extras_active = False
+                    extra_iter = model.iter_next(extra_iter)
+
+                heading_row[0] = all_extras_active
+                heading_row[1] = any_extras_active
 
     def on_extras_confirmed(self, _button, extra_store):
         """Resume install when user has selected extras to download"""
         selected_extras = []
-        for extra in extra_store:
-            if extra[0]:
-                selected_extras.append(extra[1])
+
+        def save_extra(store, path, iter_):
+            selected, _inconsistent, id_, _label = store[iter_]
+            if selected and id_:
+                selected_extras.append(id_)
+        extra_store.foreach(save_extra)
+
         self.interpreter.extras = selected_extras
         GLib.idle_add(self.on_runners_ready)
 

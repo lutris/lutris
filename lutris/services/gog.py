@@ -322,17 +322,27 @@ class GOGService(OnlineService):
         return gog_data["downloads"]
 
     def get_extras(self, gogid):
-        """Return a list of bonus content available for a GOG ID"""
-        logger.debug("Download extras for GOG ID %s", gogid)
-        downloads = self.get_downloads(gogid)
-        return [
-            {
-                "name": download.get("name", ""),
-                "type": download.get("type", ""),
-                "total_size": download.get("total_size", 0),
-                "id": str(download["id"]),
-            } for download in downloads.get("bonus_content") or []
-        ]
+        """Return a list of bonus content available for a GOG ID and its DLCs"""
+        logger.debug("Download extras for GOG ID %s and its DLCs", gogid)
+        game = self.get_game_details(gogid)
+        if not game:
+            logger.warning("Unable to get GOG data for game %s", gogid)
+            return []
+        dlcs = self.get_game_dlcs(gogid)
+        products = [game, *dlcs] if dlcs else [game]
+        all_extras = {}
+        for product in products:
+            extras = [
+                {
+                    "name": download.get("name", "").strip().capitalize(),
+                    "type": download.get("type", "").strip(),
+                    "total_size": download.get("total_size", 0),
+                    "id": str(download["id"]),
+                } for download in product["downloads"].get("bonus_content") or []
+            ]
+            if extras:
+                all_extras[product.get("title", "").strip()] = extras
+        return all_extras
 
     def get_installers(self, downloads, runner, language="en"):
         """Return available installers for a GOG game"""
