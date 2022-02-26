@@ -464,10 +464,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.save_icon_type(icon_type)
             self.show_spinner()
 
-    def show_overlay(self, widget):
+    def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
         """Display a widget in the blank overlay"""
         for child in self.blank_overlay.get_children():
             child.destroy()
+        self.blank_overlay.set_halign(halign)
+        self.blank_overlay.set_valign(valign)
         self.blank_overlay.add(widget)
         self.blank_overlay.props.visible = True
 
@@ -478,7 +480,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def show_splash(self):
         image = Gtk.Image(visible=True)
         image.set_from_file(os.path.join(datapath.get(), "media/splash.svg"))
-        self.show_overlay(image)
+        self.show_overlay(image, Gtk.Align.START, Gtk.Align.START)
 
     def show_spinner(self):
         spinner = Gtk.Spinner(visible=True)
