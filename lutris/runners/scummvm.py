@@ -105,12 +105,20 @@ class scummvm(Runner):
             "type": "bool",
             "help": _("Uses bilinear interpolation instead of nearest neighbor resampling for the aspect ratio correction and stretch mode."),
             "default": False,
+            "advanced": True,
         },
         {
             "option": "datadir",
             "label": _("Data directory"),
             "type": "directory_chooser",
             "help": _("Defaults to share/scummvm if unspecified."),
+            "advanced": True,
+        },
+        {
+            "option": "platform",
+            "type": "string",
+            "label": _("Platform"),
+            "help": _("Specifes platform of game. Allowed values: 2gs, 3do, acorn, amiga, atari, c64, fmtowns, nes, mac, pc pc98, pce, segacd, wii, windows"),
             "advanced": True,
         },
         {
@@ -186,6 +194,7 @@ class scummvm(Runner):
             "type": "string",
             "label": _("Music volume"),
             "help": _("Sets the music volume, 0-255 (default: 192)"),
+            "advanced": True,
         },
         {
             "option": "native-mt32",
@@ -215,6 +224,7 @@ class scummvm(Runner):
             "type": "string",
             "label": _("Language"),
             "help": _("Selects language (en, de, fr, it, pt, es, jp, zh, kr, se, gb, hb, ru, cz)"),
+            "advanced": True,
         },
     ]
 
@@ -275,6 +285,10 @@ class scummvm(Runner):
 
         if self.runner_config.get("filtering"):
             command.append("--filtering")
+
+        platform = self.runner_config.get("platform")
+        if platform:
+            command.append("--platform=%s" % platform)
 
         opldriver = self.runner_config.get("opl-driver")
         if opldriver:
