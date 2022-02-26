@@ -137,6 +137,28 @@ class scummvm(Runner):
             "help": _("Chooses which emulator is used by ScummVM when the AdLib emulator is chosen as the Preferred device."),
             "advanced": True,
         },
+        {
+            "option": "music-driver",
+            "label": _("Music driver"),
+            "type": "choice",
+            "default": "auto",
+            "choices": [
+                ("null", "null"),
+                ("auto", "auto"),
+                ("seq", "seq"),
+                ("sndio", "sndio"),
+                ("alsa", "alsa"),
+                ("fluidsynth", "fluidsynth"),
+                ("mt32", "mt32"),
+                ("adlib", "adlib"),
+                ("pcspk", "pcspk"),
+                ("pcjr", "pcjr"),
+                ("cms", "cms"),
+                ("timidity", "timidity"),
+            ],
+            "help": _("Specifies the device ScummVM uses to output audio."),
+            "advanced": True,
+        },
     ]
 
     @property
@@ -201,6 +223,10 @@ class scummvm(Runner):
         outputrate = self.runner_config.get("output-rate")
         if outputrate:
             command.append("--output-rate=%s" % output)
+
+        musicdriver = self.runner_config.get("music-driver")
+        if musicdriver:
+            command.append("--music-driver=%s" % musicdriver)
 
         # /Options
         command.append("--path=%s" % self.game_path)
