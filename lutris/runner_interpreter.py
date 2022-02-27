@@ -72,6 +72,12 @@ def get_launch_parameters(runner, gameplay_info):
         launch_arguments.insert(0, "0")
         launch_arguments.insert(0, "-c")
         launch_arguments.insert(0, "taskset")
+    else:
+        limit_cpu_count = system_config.get("limit_cpu_count")
+        if limit_cpu_count and limit_cpu_count.isnumeric():
+            launch_arguments.insert(0, "0-%d" % (int(limit_cpu_count) - 1))
+            launch_arguments.insert(0, "-c")
+            launch_arguments.insert(0, "taskset")
 
     env.update(runner.get_env())
 
