@@ -44,8 +44,8 @@ msgid ""
 msgstr ""
 "Lutris ajuda você a instalar e jogar videogames de todas as épocas e da "
 "maioria dos sistemas de jogos. Ao alavancar e combinar emuladores "
-"existentes, re- implementações de mecanismos e camadas de compatibilidade, "
-"ele oferece uma interface centralpara iniciar todos os seus jogos."
+"existentes, re-implementações de mecanismos e camadas de compatibilidade, "
+"ele oferece uma interface central para iniciar todos os seus jogos."
 
 #: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:581
 msgid "About Lutris"
