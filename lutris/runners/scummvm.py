@@ -404,7 +404,7 @@ class scummvm(Runner):
 
         talkspeed = self.runner_config.get("talk-speed")
         if talkspeed:
-            command.append("--talk-speed=%s" % talkspeed)
+            command.append("--talkspeed=%s" % talkspeed)
 
         dimusetempo = self.runner_config.get("dimuse-tempo")
         if talkspeed:
