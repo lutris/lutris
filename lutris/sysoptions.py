@@ -199,7 +199,7 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "single_cpu",
         "type": "bool",
-        "label": _("Restrict to single core"),
+        "label": _("Restrict number of cores used"),
         "advanced": True,
         "default": False,
         "help": _("Restrict the game to a single CPU core."),
@@ -207,10 +207,10 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "limit_cpu_count",
         "type": "string",
-        "label": _("Limit number of cores to"),
+        "label": _("Restrict number of cores to"),
         "advanced": True,
-        "default": "",
-        "help": _("Restrict the game to a single CPU core."),
+        "default": "1",
+        "help": _("Number of CPU cores to be used, if 'Restrict number of cores used' is turned on."),
     },
     {
         "option": "restore_gamma",
