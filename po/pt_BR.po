@@ -44,7 +44,7 @@ msgid ""
 msgstr ""
 "Lutris ajuda você a instalar e jogar videogames de todas as épocas e da "
 "maioria dos sistemas de jogos. Ao alavancar e combinar emuladores "
-"existentes, re-implementações de mecanismos e camadas de compatibilidade, "
+"existentes, reimplementações de mecanismos e camadas de compatibilidade, "
 "ele oferece uma interface central para iniciar todos os seus jogos."
 
 #: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:581
@@ -4468,7 +4468,7 @@ msgstr "Abra o console do Wine"
 
 #: lutris/runners/wine.py:487
 msgid "Wine registry"
-msgstr "Registo do Wine"
+msgstr "Registro do Wine"
 
 #: lutris/runners/wine.py:488
 msgid "Winetricks"
@@ -4726,7 +4726,7 @@ msgstr ""
 
 #: lutris/sysoptions.py:157
 msgid "Prefer system libraries"
-msgstr "Preferir biblioecas do sistema"
+msgstr "Preferir bibliotecas do sistema"
 
 #: lutris/sysoptions.py:159
 msgid ""
