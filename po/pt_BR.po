@@ -82,7 +82,7 @@ msgstr "C_ancelar"
 
 #: share/lutris/ui/dialog-lutris-login.ui:57
 msgid "_Connect"
-msgstr "_Connectar"
+msgstr "_Conectar"
 
 #: share/lutris/ui/dialog-lutris-login.ui:95
 msgid "Password"
@@ -853,7 +853,7 @@ msgid ""
 "Runners are programs such as emulators, engines or translation layers "
 "capable of running games."
 msgstr ""
-"Runners são programas como emuladores, engines ou camadas de traduçãocapazes "
+"Runners são programas como emuladores, engines ou camadas de tradução capazes "
 "de rodar jogos."
 
 #: lutris/gui/config/services_box.py:18
