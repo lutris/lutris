@@ -405,8 +405,12 @@ class scummvm(Runner):
             command.append("--talkspeed=%s" % talkspeed)
 
         dimusetempo = self.runner_config.get("dimuse-tempo")
-        if talkspeed:
+        if dimusetempo:
             command.append("--dimuse-tempo=%s" % dimusetempo)
+
+        musictempo = self.runner_config.get("music-tempo")
+        if musictempo:
+            command.append("--tempo=%s" % musictempo)
 
         opldriver = self.runner_config.get("opl-driver")
         if opldriver:
@@ -441,7 +445,7 @@ class scummvm(Runner):
 
         speechvolume = self.runner_config.get("speech-volume")
         if speechvolume:
-            command.append("--sfx-volume=%s" % speechvolume)
+            command.append("--speech-volume=%s" % speechvolume)
 
         if self.runner_config.get("native-mt32"):
             command.append("--native-mt32")
