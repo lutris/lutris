@@ -43,9 +43,10 @@ class scummvm(Runner):
         },
         {
             "option": "subtitles",
-            "label": _("Enable subtitles (if the game has voice)"),
+            "label": _("Enable subtitles"),
             "type": "bool",
             "default": False,
+            "help": ("Enable subtitles for games with voice"),
         },
         {
             "option": "aspect",
@@ -82,30 +83,27 @@ class scummvm(Runner):
             _("The algorithm used to scale up the game's base "
               "resolution, resulting in different visual styles. "),
         },
-        {
-            "option": "scaler-factor",
-            "label": _("Scaler factor"),
-            "type": "choice",
-            "default": "3",
-            "choices": [
-                ("1", "1"),
-                ("2", "2"),
-                ("3", "3"),
-                ("4", "4"),
-                ("5", "5"),
-            ],
-            "help":
-            _("Changes the resolution of the game. "
-              "For example, a 2x scaler will take a 320x200 "
-              "resolution game and scale it up to 640x400. "),
-        },
+        #{
+        #    "option": "scale-factor",
+        #    "label": _("Scaler factor"),
+        #    "type": "choice",
+        #    "choices": [
+        #        ("1", "1"),
+        #        ("2", "2"),
+        #        ("3", "3"),
+        #        ("4", "4"),
+        #        ("5", "5"),
+        #    ],
+        #    "help":
+        #    _("Changes the resolution of the game. "
+        #      "For example, a 2x scaler will take a 320x200 "
+        #      "resolution game and scale it up to 640x400. "),
+        #},
         {
             "option": "render-mode",
             "label": _("Render mode"),
             "type": "choice",
-            "default": "default",
             "choices": [
-                ("default", "default"),
                 ("hercGreen", "hercGreen"),
                 ("hercAmber", "hercAmber"),
                 ("cga", "cga"),
@@ -120,7 +118,7 @@ class scummvm(Runner):
                 ("macintosh", "macintosh"),
             ],
             "advanced": True,
-            "help": _("Changes how the game is rendered. "),
+            "help": _("Changes how the game is rendered."),
         },
         {
             "option": "filtering",
@@ -148,7 +146,6 @@ class scummvm(Runner):
             "option": "opl-driver",
             "label": _("OPL driver"),
             "type": "choice",
-            "default": "auto",
             "choices": [
                 ("auto", "auto"),
                 ("mame", "mame"),
@@ -238,7 +235,7 @@ class scummvm(Runner):
             "option": "enable-gs",
             "label": _("Enable Roland GS"),
             "type": "bool",
-            "default": True,
+            "default": False,
             "help": _("Tells ScummVM that the MIDI device is a GS device that has an MT-32 map, such as an SC-55, SC-88 or SC-8820."),
             "advanced": True,
         },
@@ -309,9 +306,9 @@ class scummvm(Runner):
         if mode:
             command.append("--gfx-mode=%s" % mode)
 
-        scalerfactor = self.runner_config.get("scaler-factor")
-        if scalerfactor:
-            command.append("--scaler-factor=%s" % scalerfactor)
+        scalefactor = self.runner_config.get("scale-factor")
+        if scalefactor:
+            command.append("--scale-factor=%s" % scalefactor)
 
         rendermode = self.runner_config.get("render-mode")
         if rendermode:
