@@ -143,6 +143,13 @@ class scummvm(Runner):
             "advanced": True,
         },
         {
+            "option": "engine-speed",
+            "type": "string",
+            "label": _("Engine speed"),
+            "help": _("Sets frames per second limit (0 - 100) for Grim Fandango or Escape from Monkey Island (default: 60)."),
+            "advanced": True,
+        },
+        {
             "option": "opl-driver",
             "label": _("OPL driver"),
             "type": "choice",
@@ -195,6 +202,48 @@ class scummvm(Runner):
             "advanced": True,
         },
         {
+            "option": "talk-speed",
+            "type": "string",
+            "label": _("Talk speed"),
+            "help": _("Sets talk speed for games (default: 60)"),
+            "advanced": True,
+        },
+        {
+            "option": "music-tempo",
+            "type": "string",
+            "label": _("Music tempo"),
+            "help": _("Sets music tempo (in percent, 50-200) for SCUMM games (default: 100)"),
+            "advanced": True,
+        },
+        {
+            "option": "dimuse-tempo",
+            "type": "string",
+            "label": _("Digital iMuse tempo"),
+            "help": _("Sets internal Digital iMuse tempo (10 - 100) per second (default: 10)"),
+            "advanced": True,
+        },
+        {
+            "option": "music-volume",
+            "type": "string",
+            "label": _("Music volume"),
+            "help": _("Sets the music volume, 0-255 (default: 192)"),
+            "advanced": True,
+        },
+        {
+            "option": "sfx-volume",
+            "type": "string",
+            "label": _("SFX volume"),
+            "help": _("Sets the sfx volume, 0-255 (default: 192)"),
+            "advanced": True,
+        },
+        {
+            "option": "speech-volume",
+            "type": "string",
+            "label": _("Speech volume"),
+            "help": _("Sets the speech volume, 0-255 (default: 192)"),
+            "advanced": True,
+        },
+        {
             "option": "multi-midi",
             "label": _("Mixed AdLib/MIDI mode"),
             "type": "bool",
@@ -214,13 +263,6 @@ class scummvm(Runner):
             "type": "string",
             "label": _("Soundfont"),
             "help": _("Specifies the path to a soundfont file."),
-            "advanced": True,
-        },
-        {
-            "option": "music-volume",
-            "type": "string",
-            "label": _("Music volume"),
-            "help": _("Sets the music volume, 0-255 (default: 192)"),
             "advanced": True,
         },
         {
@@ -251,6 +293,41 @@ class scummvm(Runner):
             "type": "string",
             "label": _("Language"),
             "help": _("Selects language (en, de, fr, it, pt, es, jp, zh, kr, se, gb, hb, ru, cz)"),
+            "advanced": True,
+        },
+        {
+            "option": "alt-intro",
+            "type": "bool",
+            "label": _("Use alternate intro"),
+            "help": _("Uses alternative intro for CD versions"),
+            "advanced": True,
+        },
+        {
+            "option": "copy-protection",
+            "type": "bool",
+            "label": _("Copy protection"),
+            "help": _("Enables copy protection"),
+            "advanced": True,
+        },
+        {
+            "option": "demo-mode",
+            "type": "bool",
+            "label": _("Demo mode"),
+            "help": _("Starts demo mode of Maniac Mansion or The 7th Guest"),
+            "advanced": True,
+        },
+        {
+            "option": "debug-level",
+            "type": "string",
+            "label": _("Debug level"),
+            "help": _("Sets debug verbosity level"),
+            "advanced": True,
+        },
+        {
+            "option": "debug-flags",
+            "type": "string",
+            "label": _("Debug flags"),
+            "help": _("Enables engine specific debug flags"),
             "advanced": True,
         },
     ]
@@ -321,6 +398,18 @@ class scummvm(Runner):
         if platform:
             command.append("--platform=%s" % platform)
 
+        enginespeed = self.runner_config.get("engine-speed")
+        if enginespeed:
+            command.append("--engine-speed=%s" % enginespeed)
+
+        talkspeed = self.runner_config.get("talk-speed")
+        if talkspeed:
+            command.append("--talk-speed=%s" % talkspeed)
+
+        dimusetempo = self.runner_config.get("dimuse-tempo")
+        if talkspeed:
+            command.append("--dimuse-tempo=%s" % dimusetempo)
+
         opldriver = self.runner_config.get("opl-driver")
         if opldriver:
             command.append("--opl-driver=%s" % opldriver)
@@ -348,6 +437,14 @@ class scummvm(Runner):
         if musicvolume:
             command.append("--music-volume=%s" % musicvolume)
 
+        sfxvolume = self.runner_config.get("sfx-volume")
+        if sfxvolume:
+            command.append("--sfx-volume=%s" % sfxvolume)
+
+        speechvolume = self.runner_config.get("speech-volume")
+        if speechvolume:
+            command.append("--sfx-volume=%s" % speechvolume)
+
         if self.runner_config.get("native-mt32"):
             command.append("--native-mt32")
 
@@ -361,6 +458,23 @@ class scummvm(Runner):
         language = self.runner_config.get("language")
         if language:
             command.append("--language=%s" % language)
+
+        if self.runner_config.get("alt-intro"):
+            command.append("--alt-intro")
+
+        if self.runner_config.get("copy-protection"):
+            command.append("--copy-protection")
+
+        if self.runner_config.get("demo-mode"):
+            command.append("--demo-mode")
+
+        debuglevel = self.runner_config.get("debug-level")
+        if debuglevel:
+            command.append("--debug-level=%s" % debuglevel)
+
+        debugflags = self.runner_config.get("debug-flags")
+        if debugflags:
+            command.append("--debug-flags=%s" % debugflags)
 
         # /Options
         command.append("--path=%s" % self.game_path)
