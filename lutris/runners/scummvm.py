@@ -124,7 +124,8 @@ class scummvm(Runner):
             "option": "filtering",
             "label": _("Filtering"),
             "type": "bool",
-            "help": _("Uses bilinear interpolation instead of nearest neighbor resampling for the aspect ratio correction and stretch mode."),
+            "help": _("Uses bilinear interpolation instead of nearest neighbor "
+                      "resampling for the aspect ratio correction and stretch mode."),
             "default": False,
             "advanced": True,
         },
@@ -139,7 +140,8 @@ class scummvm(Runner):
             "option": "platform",
             "type": "string",
             "label": _("Platform"),
-            "help": _("Specifes platform of game. Allowed values: 2gs, 3do, acorn, amiga, atari, c64, fmtowns, nes, mac, pc pc98, pce, segacd, wii, windows"),
+            "help": _("Specifes platform of game. Allowed values: 2gs, 3do, acorn, amiga, atari, c64, "
+                      "fmtowns, nes, mac, pc pc98, pce, segacd, wii, windows"),
             "advanced": True,
         },
         {
@@ -160,7 +162,8 @@ class scummvm(Runner):
             "option": "engine-speed",
             "type": "string",
             "label": _("Engine speed"),
-            "help": _("Sets frames per second limit (0 - 100) for Grim Fandango or Escape from Monkey Island (default: 60)."),
+            "help": _("Sets frames per second limit (0 - 100) for Grim Fandango "
+                      "or Escape from Monkey Island (default: 60)."),
             "advanced": True,
         },
         {
@@ -231,7 +234,8 @@ class scummvm(Runner):
                 ("op3lpt", "op3lpt"),
                 ("rwopl3", "rwopl3"),
             ],
-            "help": _("Chooses which emulator is used by ScummVM when the AdLib emulator is chosen as the Preferred device."),
+            "help": _("Chooses which emulator is used by ScummVM when the AdLib emulator "
+                      "is chosen as the Preferred device."),
             "advanced": True,
         },
         {
@@ -282,7 +286,8 @@ class scummvm(Runner):
             "label": _("True Roland MT-32"),
             "type": "bool",
             "default": False,
-            "help": _("Tells ScummVM that the MIDI device is an actual Roland MT-32, LAPC-I, CM-64, CM-32L, CM-500 or other MT-32 device."),
+            "help": _("Tells ScummVM that the MIDI device is an actual Roland MT-32, "
+                      "LAPC-I, CM-64, CM-32L, CM-500 or other MT-32 device."),
             "advanced": True,
         },
         {
@@ -290,7 +295,8 @@ class scummvm(Runner):
             "label": _("Enable Roland GS"),
             "type": "bool",
             "default": False,
-            "help": _("Tells ScummVM that the MIDI device is a GS device that has an MT-32 map, such as an SC-55, SC-88 or SC-8820."),
+            "help": _("Tells ScummVM that the MIDI device is a GS device that has "
+                      "an MT-32 map, such as an SC-55, SC-88 or SC-8820."),
             "advanced": True,
         },
         {
