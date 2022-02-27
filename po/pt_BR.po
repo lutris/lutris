@@ -4344,7 +4344,7 @@ msgid ""
 "If blank or 'auto', Lutris will auto-detect this."
 msgstr ""
 "O DPI a ser usado se 'Habilitar escala de DPI' estiver ativado.\n"
-"Se estiver em branco ou 'automático', o Lutris detectará isso "
+"Se estiver em branco ou 'auto', o Lutris detectará isso "
 "automaticamente."
 
 #: lutris/runners/wine.py:384
@@ -4689,7 +4689,8 @@ msgstr "Primário"
 
 #: lutris/sysoptions.py:85
 msgid "Auto: WARNING -- No Vulkan Loader detected!"
-msgstr "Automático: AVISO -- Nenhum Vulkan Loader detectado!"
+msgstr "
+mático: AVISO -- Nenhum Vulkan Loader detectado!"
 
 #: lutris/sysoptions.py:115
 msgid "Auto: Intel Open Source (MESA: ANV)"
