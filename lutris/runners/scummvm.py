@@ -309,9 +309,9 @@ class scummvm(Runner):
         if mode:
             command.append("--gfx-mode=%s" % mode)
 
-        scalefactor = self.runner_config.get("scale-factor")
-        if scalefactor:
-            command.append("--scale-factor=%s" % scalefactor)
+        scalerfactor = self.runner_config.get("scaler-factor")
+        if scalerfactor:
+            command.append("--scaler-factor=%s" % scalerfactor)
 
         rendermode = self.runner_config.get("render-mode")
         if rendermode:
@@ -347,9 +347,9 @@ class scummvm(Runner):
         if soundfont:
             command.append("--soundfont=%s" % soundfont)
 
-        music-volume = self.runner_config.get("music-volume")
-        if music-volume:
-            command.append("--music-volume=%s" % music-volume)
+        musicvolume = self.runner_config.get("music-volume")
+        if musicvolume:
+            command.append("--music-volume=%s" % musicvolume)
 
         if self.runner_config.get("native-mt32"):
             command.append("--native-mt32")
