@@ -4689,8 +4689,7 @@ msgstr "Primário"
 
 #: lutris/sysoptions.py:85
 msgid "Auto: WARNING -- No Vulkan Loader detected!"
-msgstr "
-mático: AVISO -- Nenhum Vulkan Loader detectado!"
+msgstr "Auto: AVISO -- Nenhum Vulkan Loader detectado!"
 
 #: lutris/sysoptions.py:115
 msgid "Auto: Intel Open Source (MESA: ANV)"
