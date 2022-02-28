@@ -94,9 +94,8 @@ class FileChooserEntry(Gtk.Box):
         return completion
 
     def get_filechooser_dialog(self):
-        """Return an instance of a FileChooserDialog configured for this widget"""
-        dialog = Gtk.FileChooserDialog(title=self.title, transient_for=None, action=self.action)
-        dialog.add_buttons(_("_Cancel"), Gtk.ResponseType.CLOSE, _("_OK"), Gtk.ResponseType.OK)
+        """Return an instance of a FileChooserNative configured for this widget"""
+        dialog = Gtk.FileChooserNative.new(self.title, None, self.action, _("_OK"), _("_Cancel"))
         dialog.set_create_folders(True)
         dialog.set_current_folder(self.get_default_folder())
         dialog.connect("response", self.on_select_file)
@@ -116,7 +115,7 @@ class FileChooserEntry(Gtk.Box):
     def on_browse_clicked(self, _widget):
         """Browse button click callback"""
         file_chooser_dialog = self.get_filechooser_dialog()
-        file_chooser_dialog.run()
+        file_chooser_dialog.show()
 
     def on_entry_changed(self, widget):
         """Entry changed callback"""
@@ -157,12 +156,12 @@ class FileChooserEntry(Gtk.Box):
 
     def on_select_file(self, dialog, response):
         """FileChooserDialog response callback"""
-        if response == Gtk.ResponseType.OK:
+        if response == Gtk.ResponseType.ACCEPT:
             target_path = dialog.get_filename()
             if target_path:
                 dialog.set_current_folder(target_path)
                 self.entry.set_text(system.reverse_expanduser(target_path))
-        dialog.hide()
+        dialog.destroy()
 
     def update_completion(self, current_path):
         """Update the auto-completion widget with the current path"""
