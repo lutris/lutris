@@ -98,7 +98,7 @@ class FileChooserEntry(Gtk.Box):
         dialog = Gtk.FileChooserNative.new(self.title, None, self.action, _("_OK"), _("_Cancel"))
         dialog.set_create_folders(True)
         dialog.set_current_folder(self.get_default_folder())
-        dialog.connect("response", self.on_select_file)
+        dialog.connect("response", self.on_select_file, dialog)
         return dialog
 
     def get_default_folder(self):
@@ -154,7 +154,7 @@ class FileChooserEntry(Gtk.Box):
             ))
             self.pack_end(non_writable_destination_label, False, False, 10)
 
-    def on_select_file(self, dialog, response):
+    def on_select_file(self, dialog, response, _dialog):
         """FileChooserDialog response callback"""
         if response == Gtk.ResponseType.ACCEPT:
             target_path = dialog.get_filename()
