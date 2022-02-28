@@ -482,16 +482,12 @@ class GameDialogCommon(Dialog):
         return True
 
     def on_custom_image_select(self, _widget, image_type):
-        dialog = Gtk.FileChooserDialog(
+        dialog = Gtk.FileChooserNative.new(
             _("Please choose a custom image"),
             self,
             Gtk.FileChooserAction.OPEN,
-            (
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-                Gtk.STOCK_OPEN,
-                Gtk.ResponseType.OK,
-            ),
+            None,
+            None,
         )
 
         image_filter = Gtk.FileFilter()

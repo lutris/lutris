@@ -67,19 +67,20 @@ class IssueReportWindow(BaseApplicationWindow):
     def on_save(self, _button):
         """Signal handler for the save button"""
 
-        save_dialog = Gtk.FileChooserDialog(
-            title=_("Select a location to save the issue"),
-            transient_for=self,
-            action=Gtk.FileChooserAction.SELECT_FOLDER,
-            buttons=(_("_Cancel"), Gtk.ResponseType.CLOSE, _("_OK"), Gtk.ResponseType.OK),
+        save_dialog = Gtk.FileChooserNative.new(
+            _("Select a location to save the issue"),
+            self,
+            Gtk.FileChooserAction.SELECT_FOLDER,
+            _("_OK"),
+            _("_Cancel"),
         )
         save_dialog.connect("response", self.on_folder_selected)
-        save_dialog.run()
+        save_dialog.show()
 
     def on_folder_selected(self, dialog, response):
-        if response != Gtk.ResponseType.OK:
+        if response != Gtk.ResponseType.ACCEPT:
             return
-        target_path = dialog.get_current_folder()
+        target_path = dialog.get_filename()
         if not target_path:
             return
         issue_path = os.path.join(target_path, "lutris-issue-report.json")
