@@ -496,7 +496,7 @@ class GameDialogCommon(Dialog):
         dialog.add_filter(image_filter)
 
         response = dialog.run()
-        if response == Gtk.ResponseType.OK:
+        if response == Gtk.ResponseType.ACCEPT:
             image_path = dialog.get_filename()
             if image_type == "banner":
                 self.game.has_custom_banner = True

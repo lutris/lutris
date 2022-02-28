@@ -140,7 +140,7 @@ class DirectoryDialog(Gtk.FileChooserDialog):
         self.destroy()
 
 
-class FileDialog(Gtk.FileChooserDialog):
+class FileDialog:
 
     """Ask the user to select a file."""
 
@@ -152,20 +152,21 @@ class FileDialog(Gtk.FileChooserDialog):
             action = Gtk.FileChooserAction.SAVE
         else:
             action = Gtk.FileChooserAction.OPEN
-        super().__init__(
+        dialog = Gtk.FileChooserNative.new(
             message,
             None,
             action,
-            (_("_Cancel"), Gtk.ResponseType.CANCEL, _("_OK"), Gtk.ResponseType.OK),
+            _("_OK"),
+            _("_Cancel"),
         )
         if default_path and os.path.exists(default_path):
-            self.set_current_folder(default_path)
-        self.set_local_only(False)
-        response = self.run()
-        if response == Gtk.ResponseType.OK:
-            self.filename = self.get_filename()
+            dialog.set_current_folder(default_path)
+        dialog.set_local_only(False)
+        response = dialog.run()
+        if response == Gtk.ResponseType.ACCEPT:
+            self.filename = dialog.get_filename()
 
-        self.destroy()
+        dialog.destroy()
 
 
 class LutrisInitDialog(Gtk.Dialog):
