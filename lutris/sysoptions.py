@@ -439,6 +439,14 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("Run the game only once the pre-launch script has exited"),
     },
     {
+        "option": "prelaunch_early_exec",
+        "type": "bool",
+        "label": _("Launch pre-launch script before all other checks"),
+        "advanced": True,
+        "default": False,
+        "help": _("Useful, if the command copies the executable onto tmpfs"),
+    },
+    {
         "option": "postexit_command",
         "type": "file",
         "label": _("Post-exit script"),

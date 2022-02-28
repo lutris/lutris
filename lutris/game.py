@@ -505,7 +505,8 @@ class Game(GObject.Object):
         # Execution control
         self.killswitch = self.get_killswitch()
 
-        if self.runner.system_config.get("prelaunch_command"):
+        if (self.runner.system_config.get("prelaunch_command") and
+            not self.runner.system_config.get("prelaunch_early_exec")):
             self.start_prelaunch_command(self.runner.system_config.get("prelaunch_wait"))
 
         self.start_game()
@@ -525,6 +526,15 @@ class Game(GObject.Object):
         self.state = self.STATE_LAUNCHING
         self.prelaunch_pids = system.get_running_pid_list()
         self.emit("game-start")
+        if (self.runner.system_config.get("prelaunch_command") and
+            self.runner.system_config.get("prelaunch_early_exec")):
+            self.game_runtime_config = {
+                "env": self.runner.get_env(),
+            }
+            # waiting is a dependency for early execution
+            self.start_prelaunch_command(True)
+            logger.debug("continuing with prelaunch() and configure_game()")
+
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
 
     def start_game(self):
