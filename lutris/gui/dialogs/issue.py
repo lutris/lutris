@@ -74,10 +74,10 @@ class IssueReportWindow(BaseApplicationWindow):
             _("_OK"),
             _("_Cancel"),
         )
-        save_dialog.connect("response", self.on_folder_selected)
+        save_dialog.connect("response", self.on_folder_selected, save_dialog)
         save_dialog.show()
 
-    def on_folder_selected(self, dialog, response):
+    def on_folder_selected(self, dialog, response, _dialog):
         if response != Gtk.ResponseType.ACCEPT:
             return
         target_path = dialog.get_filename()
