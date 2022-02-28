@@ -120,24 +120,25 @@ class QuestionDialog(Gtk.MessageDialog):
         self.destroy()
 
 
-class DirectoryDialog(Gtk.FileChooserDialog):
+class DirectoryDialog:
 
     """Ask the user to select a directory."""
 
     def __init__(self, message, default_path=None, parent=None):
         self.folder = None
-        super().__init__(
-            title=message,
-            action=Gtk.FileChooserAction.SELECT_FOLDER,
-            buttons=(_("_Cancel"), Gtk.ResponseType.CLOSE, _("_OK"), Gtk.ResponseType.OK),
-            parent=parent,
+        dialog = Gtk.FileChooserNative.new(
+            message,
+            parent,
+            Gtk.FileChooserAction.SELECT_FOLDER,
+            _("_OK"),
+            _("_Cancel"),
         )
         if default_path:
-            self.set_current_folder(default_path)
-        self.result = self.run()
-        if self.result == Gtk.ResponseType.OK:
-            self.folder = self.get_current_folder()
-        self.destroy()
+            dialog.set_current_folder(default_path)
+        self.result = dialog.run()
+        if self.result == Gtk.ResponseType.ACCEPT:
+            self.folder = dialog.get_filename()
+        dialog.destroy()
 
 
 class FileDialog:
