@@ -3,7 +3,7 @@
     "description": "86Box is an open-source, low-level PC emulator.",
     "platforms": ["MS-DOS"],
     "runnable_alone": "True",
-    "runner_executable": "86box/86Box-Linux-x86_64-b3600.AppImage",
+    "runner_executable": "86box/86Box-Linux-x86_64-b3602.AppImage",
     "download_url": "https://github.com/86Box/86Box/releases/download/v3.2.1/86Box-Linux-x86_64-b3602.AppImage",
     "game_options": [
         {
