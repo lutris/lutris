@@ -6,7 +6,7 @@ authors = ["Mathieu Comandon <strider@strycore.com>"]
 license = "GPLv3+"
 
 [tool.poetry.dependencies]
-python = "^3.6.1"
+python = "^3.6.2"
 astroid = '>=2.3'
 certifi = '>=2020.4.5.1'
 chardet = '>=3.0'
