@@ -56,8 +56,7 @@ setup(
         'PyGObject',
         'evdev',
         'requests',
-        'python-magic',
-        "distro",
+        'distro',
         'lxml'
     ],
     url='https://lutris.net',
