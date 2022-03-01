@@ -16,6 +16,12 @@ lutris (0.5.10) impish; urgency=medium
   * Add option to enable BattleEye anti-cheat support
   * Default to Retroarch cores in ~/.config/retroarch/cores if available
   * Add support for downloading patches and DLC for GOG games
+  * Add --export and --import command line flags to export a game a lutris
+    game and re-import it (requires --dest for the destination path)
+  * Add command line flags to manage runners: --install-runner, --uninstall-runners,
+    --list-runners, --list-wine-versions
+  * Change behavior of the "Stop" button, remove "Kill all Wine processes" action
+  * Gamescope option is now disabled on Nvidia GPUs
   * Enable F-Sync by default
 
  -- Mathieu Comandon <strider@strycore.com>  Fri, 04 Feb 2022 19:14:41 -0800

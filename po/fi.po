@@ -1,0 +1,156 @@
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-22 18:56+0200\n"
+"PO-Revision-Date: 2022-02-22 15:41+0200\n"
+"Last-Translator: HeidiWenger <heidi.wenger@protonmail.com>\n"
+"Language-Team: Finnish\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: share/lutris/ui/about-dialog.ui:8
+msgid "About Lutris"
+msgstr "Tietoja Lutris-ohjelmasta"
+
+#: share/lutris/ui/about-dialog.ui:17
+msgid "Open Source Gaming Platform"
+msgstr "Avoimen ohjelmakoodin pelaamisalusta"
+
+#: share/lutris/ui/about-dialog.ui:20
+msgid ""
+"This program is free software: you can redistribute it and/or modify\n"
+"it under the terms of the GNU General Public License as published by\n"
+"the Free Software Foundation, either version 3 of the License, or\n"
+"(at your option) any later version.\n"
+"\n"
+"This program is distributed in the hope that it will be useful,\n"
+"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"GNU General Public License for more details.\n"
+"\n"
+"You should have received a copy of the GNU General Public License\n"
+"along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+msgstr ""
+"Tämä ohjelma edustaa vapaita ohjelmistoja: voit uudelleenjaella sitä ja/tai muokata\n"
+"sitä GNU GPL-yleisluvan ehtojen alaisesti\n"
+"kuten Free Software Foundation -säätiö on julkaisussaan määrittänyt\n"
+"joko tuon luvan 3. version mukaisesti, tai (valintasi mukaan) minkä tahansa aiemman version mukaisesti.\n"
+"\n"
+"Tämä ohjelma toimitetaan siinä toivossa että se on hyödyllinen, mutta ilman\n"
+"MITÄÄN TAKUUTA; jopa ilman takeita.\n"
+"MYYNNIN TAI SOPIVUUDEN SUHTEEN TIETTYYN KÄYTTÖTARKOITUKSEEN. Katso\n"
+"GNU:n GPL-yleislupa kokonaisuudessaan yksityiskohtia varten.\n"
+"\n"
+"Sinulle tulisi olla toimitettuna kopio tuosta GNU General Public License -luvasta\n"
+"tämän ohjelman mukana. Mikäli näin ei ole,\n"
+"lue <http://www.gnu.org/licenses/>.\n"
+
+#: share/lutris/ui/dialog-lutris-login.ui:8
+msgid "Connect to lutris.net"
+msgstr "Yhdistä palveluun lutris.net"
+
+#: share/lutris/ui/dialog-lutris-login.ui:26
+msgid "Forgot password?"
+msgstr "Unohditko salasanan?"
+
+#: share/lutris/ui/dialog-lutris-login.ui:95
+msgid "Password"
+msgstr "Salasana"
+
+#: share/lutris/ui/dialog-lutris-login.ui:109
+msgid "Username"
+msgstr "Käyttäjänimi"
+
+#: share/lutris/ui/dialog-pga-sources.ui:79
+msgid "<b>Personnal Game Archives sources</b>"
+msgstr "<b>Henkilökohtaisten peliarkistojen lähteet</b>"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:22
+msgid "Uninstall game"
+msgstr "Poista pelin asennus"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:89
+msgid "Are you sure you want to uninstall {game}?"
+msgstr "Oletko varma, että haluat poistaa asennuksen kohteelle {game} ?"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:102
+msgid ""
+"Remove <b>all data</b> from game folder\n"
+"( <i>{path}</i>)"
+msgstr "Poista <b>kaikki tiedot</b> pelikansiosta (<i>{path}</i>)"
+
+#: share/lutris/ui/dialog-uninstall-game.ui:121
+msgid "Remove from my library"
+msgstr "Poista kirjastostani"
+
+#: share/lutris/ui/runner-entry.ui:33
+msgid "name"
+msgstr "nimi"
+
+#: share/lutris/ui/runner-entry.ui:52
+msgid "description"
+msgstr "kuvaus"
+
+#: share/lutris/ui/runner-entry.ui:69
+msgid "platforms"
+msgstr "alustat"
+
+#: share/lutris/ui/runner-entry.ui:104
+msgid "Manage Versions"
+msgstr "Hallinnoi eri versioita"
+
+#: share/lutris/ui/runner-entry.ui:127
+msgid "Install Runner"
+msgstr "Asenna ajaja"
+
+#: share/lutris/ui/runner-entry.ui:151
+msgid "Configure Runner"
+msgstr "Määrittele ajajan asetuksia"
+
+#: share/lutris/ui/runner-entry.ui:174
+msgid "Remove Runner"
+msgstr "Poista ajaja"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:19
+msgid "Remove ALL versions?"
+msgstr "Poistetaanko KAIKKI versiot?"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:23
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:23
+msgid "Cancel"
+msgstr "Keskeytä"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:36
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:19
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:36
+msgid "Remove"
+msgstr "Poista"
+
+#: share/lutris/ui/runner-remove-all-versions-dialog.ui:59
+msgid ""
+"This will remove <b>ALL</b> versions of %s.\n"
+"\n"
+"Use the Manage Versions button if you want to remove just one version."
+msgstr ""
+"Tämä poistaa <b>KAIKKI</b> versiot kohteelle %s.\n"
+"\n"
+"Käytä Hallinnoi versioita -painiketta mikäli haluat poistaa vain yhden tietyn versio"
+"julkaisun."
+
+#: share/lutris/ui/runner-remove-confirm-dialog.ui:59
+msgid "This will remove <b>%s</b> and all associated data."
+msgstr "Tämä tulee poistamaan kohteen <b>%s</b> ja kaikki siihen liittyvät tietueet."
+
+#: share/lutris/ui/runners-dialog.ui:16
+msgid "Manage Runners"
+msgstr "Hallinnoi ajajia"
+
+#: share/lutris/ui/runners-dialog.ui:24
+msgid "Refresh Runners"
+msgstr "Virkistä ajajat"
+
+#: share/lutris/ui/runners-dialog.ui:40
+msgid "Open Runners Folder"
+msgstr "Avaa ajajakansio"

@@ -1,5 +1,6 @@
 """Base module for runners"""
 import os
+import signal
 from gettext import gettext as _
 
 from gi.repository import Gtk
@@ -456,3 +457,8 @@ class Runner:  # pylint: disable=too-many-public-methods
                 output = item
                 break
         return output
+
+    def force_stop_game(self, game):
+        """Stop the running game. If this leaves any game processes running,
+        the caller will SIGKILL them (after a delay)."""
+        game.kill_processes(signal.SIGTERM)

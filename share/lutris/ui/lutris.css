@@ -22,15 +22,6 @@
     font-weight: normal;
 }
 
-.sidebar row:hover {
-  background: rgb(229, 229, 229);
-  color: black;
-}
-
-.sidebar row:hover button {
-  color: black;
-}
-
 .info-pill {
   background-color:rgb(100, 100, 100);
   color:rgb(155, 155, 155);

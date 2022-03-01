@@ -30,7 +30,8 @@ from lutris.util.wine.wine import (
     is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
 
-MIN_SAFE_VERSION = "5.0"  # Wine installers must run with at least this version
+DEFAULT_WINE_PREFIX = "~/.wine"
+MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
 class wine(Runner):
@@ -484,7 +485,6 @@ class wine(Runner):
             ("wineshell", _("Open Bash terminal"), self.run_wine_terminal),
             ("wineconsole", _("Open Wine console"), self.run_wineconsole),
             ("wine-regedit", _("Wine registry"), self.run_regedit),
-            ("winekill", _("Kill all Wine processes"), self.run_winekill),
             ("winetricks", _("Winetricks"), self.run_winetricks),
             ("winecpl", _("Wine Control Panel"), self.run_winecpl),
         ]
@@ -499,11 +499,7 @@ class wine(Runner):
             # Find prefix from game if we have one
             _prefix_path = find_prefix(self.game_exe)
         if not _prefix_path:
-            logger.warning(
-                "Wine prefix not provided, defaulting to ~/.wine."
-                " This is probably not the intended behavior."
-            )
-            _prefix_path = "~/.wine"
+            _prefix_path = DEFAULT_WINE_PREFIX
         return os.path.expanduser(_prefix_path)
 
     @property
@@ -782,7 +778,7 @@ class wine(Runner):
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
             logger.warning("No valid prefix detected in %s, creating one...", self.prefix_path)
-            create_prefix(self.prefix_path, arch=self.wine_arch)
+            create_prefix(self.prefix_path, wine_path=self.get_executable(), arch=self.wine_arch)
 
         prefix_manager = WinePrefixManager(self.prefix_path)
         if self.runner_config.get("autoconf_joypad", False):
@@ -971,6 +967,11 @@ class wine(Runner):
                 command.append(arg)
         launch_info["command"] = command
         return launch_info
+
+    def force_stop_game(self, game):
+        """Kill WINE with kindness, or at least with -k. This seems to leave a process
+        alive for some reason, but the caller will detect this and SIGKILL it."""
+        self.run_winekill()
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):

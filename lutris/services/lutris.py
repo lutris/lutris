@@ -102,6 +102,7 @@ class LutrisService(OnlineService):
             return
         self.is_loading = True
         lutris_games = self.get_library()
+        logger.debug("Loaded %s games from Lutris library", len(lutris_games))
         for game in lutris_games:
             lutris_game = LutrisGame.new_from_api(game)
             lutris_game.save()

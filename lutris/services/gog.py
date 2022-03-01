@@ -280,14 +280,10 @@ class GOGService(OnlineService):
     def get_game_dlcs(self, product_id):
         """Return the list of DLC products the user owns for a game"""
         game_details = self.get_game_details(product_id)
+        if not game_details["dlcs"]:
+            return []
         all_products_url = game_details["dlcs"]["expanded_all_products_url"]
-        products = self.make_api_request(all_products_url)
-        dlcs = []
-        # Filter out DLCs not owned by the user
-        for product in products:
-            if product["downloads"]["installers"]:
-                dlcs.append(product)
-        return dlcs
+        return self.make_api_request(all_products_url)
 
     def get_game_details(self, product_id):
         """Return game information for a given game"""
@@ -316,28 +312,42 @@ class GOGService(OnlineService):
 
     def get_downloads(self, gogid):
         """Return all available downloads for a GOG ID"""
+        if not gogid:
+            logger.warning("Unable to get GOG data because no GOG ID is available")
+            return {}
         gog_data = self.get_game_details(gogid)
         if not gog_data:
             logger.warning("Unable to get GOG data for game %s", gogid)
-            return []
+            return {}
         return gog_data["downloads"]
 
     def get_extras(self, gogid):
-        """Return a list of bonus content available for a GOG ID"""
-        downloads = self.get_downloads(gogid)
-        return [
-            {
-                "name": download.get("name", ""),
-                "type": download.get("type", ""),
-                "total_size": download.get("total_size", 0),
-                "id": str(download["id"]),
-            } for download in downloads.get("bonus_content") or []
-        ]
+        """Return a list of bonus content available for a GOG ID and its DLCs"""
+        logger.debug("Download extras for GOG ID %s and its DLCs", gogid)
+        game = self.get_game_details(gogid)
+        if not game:
+            logger.warning("Unable to get GOG data for game %s", gogid)
+            return []
+        dlcs = self.get_game_dlcs(gogid)
+        products = [game, *dlcs] if dlcs else [game]
+        all_extras = {}
+        for product in products:
+            extras = [
+                {
+                    "name": download.get("name", "").strip().capitalize(),
+                    "type": download.get("type", "").strip(),
+                    "total_size": download.get("total_size", 0),
+                    "id": str(download["id"]),
+                } for download in product["downloads"].get("bonus_content") or []
+            ]
+            if extras:
+                all_extras[product.get("title", "").strip()] = extras
+        return all_extras
 
     def get_installers(self, downloads, runner, language="en"):
         """Return available installers for a GOG game"""
         # Filter out Mac installers
-        gog_installers = [installer for installer in downloads["installers"] if installer["os"] != "mac"]
+        gog_installers = [installer for installer in downloads.get("installers", []) if installer["os"] != "mac"]
         available_platforms = {installer["os"] for installer in gog_installers}
         # If it's a Linux game, also filter out Windows games
         if "linux" in available_platforms:
@@ -475,11 +485,10 @@ class GOGService(OnlineService):
         except HTTPError as err:
             raise UnavailableGame("Couldn't load the downloads for this game") from err
         links = self._get_installer_links(installer, downloads)
-        if not links:
-            raise UnavailableGame(_("Could not find GOG game"))
-
-        files = self._format_links(installer, installer_file_id, links)
-
+        if links:
+            files = self._format_links(installer, installer_file_id, links)
+        else:
+            files = []
         if self.selected_extras:
             for extra_file in self.get_extra_files(downloads, installer):
                 files.append(extra_file)

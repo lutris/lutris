@@ -54,6 +54,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         super().__init__(application=application)
         self.set_default_size(640, 450)
         self.search_timer_id = None
+        self.search_spinner = None
         self.text_query = None
         self.result_label = None
         self.title_label = Gtk.Label(visible=True)
@@ -124,8 +125,12 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         """Search installers with the Lutris API"""
         self.title_label.set_markup("<b>Search Lutris.net</b>")
         self.listbox.destroy()
-        entry = Gtk.Entry(visible=True)
-        self.vbox.add(entry)
+        hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, visible=True)
+        entry = Gtk.SearchEntry(visible=True)
+        hbox.pack_start(entry, True, True, 0)
+        self.search_spinner = Gtk.Spinner(visible=False)
+        hbox.pack_end(self.search_spinner, False, False, 6)
+        self.vbox.add(hbox)
         self.result_label = self._get_label("")
         self.vbox.add(self.result_label)
         entry.connect("changed", self._on_search_updated)
@@ -192,9 +197,25 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.destroy()
 
     def update_search_results(self):
-        if not self.text_query:
+        # Don't start a search while another is going; defer it instead.
+        if self.search_spinner.get_visible():
+            self.search_timer_id = GLib.timeout_add(750, self.update_search_results)
             return
-        api_games = api.search_games(self.text_query)
+
+        self.search_timer_id = None
+
+        if self.text_query:
+            self.search_spinner.show()
+            self.search_spinner.start()
+            AsyncCall(api.search_games, self.update_search_results_cb, self.text_query)
+
+    def update_search_results_cb(self, api_games, error):
+        if error:
+            ErrorDialog(error)
+            return
+
+        self.search_spinner.stop()
+        self.search_spinner.hide()
         total_count = api_games.get("count", 0)
         count = len(api_games.get('results', []))
 
@@ -257,7 +278,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         """Install from a YAML file"""
         script_dlg = FileDialog(_("Select a Lutris installer"))
         if script_dlg.filename:
-            installers = get_installers(script_dlg.filename)
+            installers = get_installers(installer_file=script_dlg.filename)
             application = Gio.Application.get_default()
             application.show_installer_window(installers)
         self.destroy()

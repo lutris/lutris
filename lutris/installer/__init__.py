@@ -21,7 +21,7 @@ def read_script(filename):
         return [script]
 
 
-def get_installers(game_slug, installer_file=None, revision=None):
+def get_installers(game_slug=None, installer_file=None, revision=None):
     # check if installer is local or online
     if system.path_exists(installer_file):
         return read_script(installer_file)

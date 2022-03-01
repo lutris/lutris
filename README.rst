@@ -94,6 +94,10 @@ The following command line arguments are available::
 -o, --installed            Only list installed games
 -s, --list-steam-games     List available Steam games
 --list-steam-folders       List all known Steam library folders
+--list-runners             List all known runners
+--list-wine-runners        List all known Wine runners
+-r, --install-runner       Install a Runner
+-u, --uninstall-runner     Uninstall a Runner
 -j, --json                 Display the list of games in JSON format
 --reinstall                Reinstall game
 --display=DISPLAY          X display to use

@@ -1,6 +1,7 @@
 """Module that actually runs the games."""
 
 # pylint: disable=too-many-public-methods
+import json
 import os
 import shlex
 import shutil
@@ -21,7 +22,7 @@ from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
-from lutris.util import audio, jobs, linux, strings, system, xdgshortcuts
+from lutris.util import audio, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
 )
@@ -31,6 +32,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.process import Process
 from lutris.util.timer import Timer
+from lutris.util.yaml import write_yaml_to_file
 
 HEARTBEAT_DELAY = 2000
 
@@ -39,6 +41,9 @@ class Game(GObject.Object):
     """This class takes cares of loading the configuration for a game
        and running it.
     """
+
+    now_playing_path = os.path.join(settings.CACHE_DIR, "now-playing.txt")
+
     STATE_STOPPED = "stopped"
     STATE_LAUNCHING = "launching"
     STATE_RUNNING = "running"
@@ -290,7 +295,8 @@ class Game(GObject.Object):
     def is_launchable(self):
         """Verify that the current game can be launched."""
         if not self.is_installed:
-            dialogs.ErrorDialog(_("Tried to launch a game that isn't installed. (Who'd you do that?)"))
+            logger.error("%s (%s) not installed", self, self.id)
+            dialogs.ErrorDialog(_("Tried to launch a game that isn't installed."))
             return False
         if not self.runner:
             dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
@@ -364,21 +370,27 @@ class Game(GObject.Object):
                 setxkbmap.communicate()
                 xkbcomp.communicate()
 
-    def start_prelaunch_command(self):
+    def start_prelaunch_command(self, wait_for_completion=False):
         """Start the prelaunch command specified in the system options"""
         prelaunch_command = self.runner.system_config.get("prelaunch_command")
         command_array = shlex.split(prelaunch_command)
         if not system.path_exists(command_array[0]):
             logger.warning("Command %s not found", command_array[0])
             return
-        self.prelaunch_executor = MonitoredCommand(
-            command_array,
-            include_processes=[os.path.basename(command_array[0])],
-            env=self.game_runtime_config["env"],
-            cwd=self.directory,
-        )
-        self.prelaunch_executor.start()
-        logger.info("Running %s in the background", prelaunch_command)
+        env = self.game_runtime_config["env"]
+        if wait_for_completion:
+            logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
+            # Monitor the prelaunch command and wait until it has finished
+            system.execute(command_array, env=env, cwd=self.directory)
+        else:
+            logger.info("Prelaunch command %s launched in the background", prelaunch_command)
+            self.prelaunch_executor = MonitoredCommand(
+                command_array,
+                include_processes=[os.path.basename(command_array[0])],
+                env=env,
+                cwd=self.directory,
+            )
+            self.prelaunch_executor.start()
 
     def get_terminal(self):
         """Return the terminal used to run the game into or None if the game is not run from a terminal.
@@ -407,20 +419,26 @@ class Game(GObject.Object):
             logger.warning("Trying to launch %s without a runner", self)
             return {}
         gameplay_info = self.runner.play()
-        if self.config.game_level.get("game", {}).get("launch_configs"):
-            configs = self.config.game_level["game"]["launch_configs"]
-            dlg = dialogs.LaunchConfigSelectDialog(self, configs)
-            if dlg.config_index:
-                config = configs[dlg.config_index - 1]
-                gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
-                if config.get("args"):
-                    gameplay_info["command"] += strings.split_arguments(config["args"])
-
         if "error" in gameplay_info:
             self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
             return
+
+        if self.config.game_level.get("game", {}).get("launch_configs"):
+            configs = self.config.game_level["game"]["launch_configs"]
+            dlg = dialogs.LaunchConfigSelectDialog(self, configs)
+            if dlg.config_index:
+                config = configs[dlg.config_index - 1]
+                if "command" not in gameplay_info:
+                    logger.debug("No command in %s", gameplay_info)
+                    logger.debug(config)
+                    return {}
+
+                gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
+                if config.get("args"):
+                    gameplay_info["command"] += strings.split_arguments(config["args"])
+
         return gameplay_info
 
     @watch_lutris_errors
@@ -488,13 +506,9 @@ class Game(GObject.Object):
         self.killswitch = self.get_killswitch()
 
         if self.runner.system_config.get("prelaunch_command"):
-            self.start_prelaunch_command()
+            self.start_prelaunch_command(self.runner.system_config.get("prelaunch_wait"))
 
-        if self.runner.system_config.get("prelaunch_wait"):
-            # Monitor the prelaunch command and wait until it has finished
-            self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.prelaunch_beat)
-        else:
-            self.start_game()
+        self.start_game()
 
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
@@ -533,18 +547,56 @@ class Game(GObject.Object):
         self.state = self.STATE_RUNNING
         self.emit("game-started")
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
+        with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
+            np_file.write(self.name)
 
     def force_stop(self):
-        """Forces termination of a running game"""
+        # If force_stop_game fails, wait a few seconds and try SIGKILL on any survivors
+        self.runner.force_stop_game(self)
+        if self.get_stop_pids():
+            self.force_kill_delayed()
+        else:
+            self.stop_game()
+
+    def force_kill_delayed(self, death_watch_seconds=5, death_watch_interval_seconds=.5):
+        """Forces termination of a running game, but only after a set time has elapsed;
+        Invokes stop_game() when the game is dead."""
+
+        def death_watch():
+            """Wait for the processes to die; returns True if do they all did."""
+            for _n in range(int(death_watch_seconds / death_watch_interval_seconds)):
+                time.sleep(death_watch_interval_seconds)
+                if not self.get_stop_pids():
+                    return True
+            return False
+
+        def death_watch_cb(all_died, error):
+            """Called after the death watch to more firmly kill any survivors."""
+            if error:
+                dialogs.ErrorDialog(str(error))
+            elif not all_died:
+                self.kill_processes(signal.SIGKILL)
+            # If we still can't kill everything, we'll still say we stopped it.
+            self.stop_game()
+
+        jobs.AsyncCall(death_watch, death_watch_cb)
+
+    def kill_processes(self, sig):
+        """Sends a signal to a process list, logging errors."""
+        pids = self.get_stop_pids()
+
+        for pid in pids:
+            try:
+                os.kill(int(pid), sig)
+            except ProcessLookupError as ex:
+                logger.debug("Failed to kill game process: %s", ex)
+
+    def get_stop_pids(self):
+        """Finds the PIDs of processes that need killin'!"""
         pids = self.get_game_pids()
         if self.game_thread and self.game_thread.game_process:
             pids.add(self.game_thread.game_process.pid)
-        for pid in pids:
-            try:
-                os.kill(int(pid), signal.SIGTERM)
-            except ProcessLookupError as ex:
-                logger.debug("Failed to kill game process: %s", ex)
-        self.stop_game()
+        return pids
 
     def get_game_pids(self):
         """Return a list of processes belonging to the Lutris game"""
@@ -575,6 +627,8 @@ class Game(GObject.Object):
 
         self.state = self.STATE_STOPPED
         self.emit("game-stop")
+        if os.path.exists(self.now_playing_path):
+            os.unlink(self.now_playing_path)
         if not self.timer.finished:
             self.timer.end()
             self.playtime += self.timer.duration / 3600
@@ -735,3 +789,73 @@ class Game(GObject.Object):
                 old_location, new_location, ex
             )
         return target_directory
+
+
+
+def export_game(slug, dest_dir):
+    """Export a full game folder along with some lutris metadata"""
+
+    # List of runner where we know for sure that 1 folder = 1 game.
+    # For runners that handle ROMs, we have to handle this more finely.
+    # There is likely more than one game in a ROM folder but a ROM
+    # might have several files (like a bin/cue, or a multi-disk game)
+    exportable_runners = [
+        "linux",
+        "wine",
+        "dosbox",
+        "scummvm",
+    ]
+
+    db_game = games_db.get_game_by_field(slug, "slug")
+    if db_game["runner"] not in exportable_runners:
+        raise RuntimeError("Game %s can't be exported." % db_game["name"])
+    if not db_game["directory"]:
+        raise RuntimeError("No game directory set. Could we guess it?")
+
+    game = Game(db_game["id"])
+    db_game["config"] = game.config.game_level
+    game_path = db_game["directory"]
+    config_path = os.path.join(db_game["directory"], "%s.lutris" % slug)
+    with open(config_path, "w", encoding="utf-8") as config_file:
+        json.dump(db_game, config_file, indent=2)
+    archive_path = os.path.join(dest_dir, "%s.7z" % slug)
+    _7zip_path = os.path.join(settings.RUNTIME_DIR, "p7zip/7z")
+    command = [_7zip_path, "a", archive_path, game_path]
+    return_code = subprocess.call(command)
+    if return_code != 0:
+        print("Creating of archive in %s failed with return code %s" % (archive_path, return_code))
+
+
+def import_game(file_path, dest_dir):
+    """Import a game in Lutris"""
+    if not os.path.exists(file_path):
+        raise RuntimeError("No file %s" % file_path)
+    if not os.path.isdir(dest_dir):
+        os.makedirs(dest_dir)
+    original_file_list = set(os.listdir(dest_dir))
+    extract.extract_7zip(file_path, dest_dir)
+    new_file_list = set(os.listdir(dest_dir))
+    new_dir = list(new_file_list - original_file_list)[0]
+    game_dir = os.path.join(dest_dir, new_dir)
+    game_config = [f for f in os.listdir(game_dir) if f.endswith(".lutris")][0]
+    with open(os.path.join(game_dir, game_config)) as config_file:
+        lutris_config = json.load(config_file)
+    # old_dir = lutris_config["directory"]
+    config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % lutris_config["configpath"])
+    write_yaml_to_file(lutris_config["config"], config_filename)
+    game_id = games_db.add_or_update(
+        name=lutris_config["name"],
+        runner=lutris_config["runner"],
+        slug=lutris_config["slug"],
+        platform=lutris_config["platform"],
+        directory=game_dir,
+        installed=lutris_config["installed"],
+        year=lutris_config["year"],
+        lastplayed=lutris_config["lastplayed"],
+        configpath=lutris_config["configpath"],
+        playtime=lutris_config["playtime"],
+        hidden=lutris_config["hidden"],
+        service=lutris_config["service"],
+        service_id=lutris_config["service_id"],
+    )
+    print("Added game with ID %s" % game_id)

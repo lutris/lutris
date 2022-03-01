@@ -19,12 +19,13 @@ class GameBar(Gtk.Box):
                          margin_bottom=12,
                          margin_right=12,
                          spacing=6)
-        GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-updated", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-removed", self.on_game_state_changed)
-        GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
+        self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
+        self.game_started_hook_id = GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
+        self.game_stopped_hook_id = GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
+        self.game_updated_hook_id = GObject.add_emission_hook(Game, "game-updated", self.on_game_state_changed)
+        self.game_removed_hook_id = GObject.add_emission_hook(Game, "game-removed", self.on_game_state_changed)
+        self.game_installed_hook_id = GObject.add_emission_hook(Game, "game-installed", self.on_game_state_changed)
+        self.connect("destroy", self.on_destroy)
 
         self.set_margin_bottom(12)
         self.game_actions = game_actions
@@ -58,6 +59,15 @@ class GameBar(Gtk.Box):
             self.game.service = self.service.id if self.service else None
         game_actions.set_game(self.game)
         self.update_view()
+
+    def on_destroy(self, widget):
+        GObject.remove_emission_hook(Game, "game-start", self.game_start_hook_id)
+        GObject.remove_emission_hook(Game, "game-started", self.game_started_hook_id)
+        GObject.remove_emission_hook(Game, "game-stopped", self.game_stopped_hook_id)
+        GObject.remove_emission_hook(Game, "game-updated", self.game_updated_hook_id)
+        GObject.remove_emission_hook(Game, "game-removed", self.game_removed_hook_id)
+        GObject.remove_emission_hook(Game, "game-installed", self.game_installed_hook_id)
+        return True
 
     def clear_view(self):
         """Clears all widgets from the container"""
@@ -155,7 +165,7 @@ class GameBar(Gtk.Box):
         last_played_label.set_size_request(120, -1)
         last_played_label.set_alignment(0, 0.5)
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
-        last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%x"))
+        last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%b %-d %Y"))
         return last_played_label
 
     def get_popover_button(self):

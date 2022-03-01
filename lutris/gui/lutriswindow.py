@@ -95,8 +95,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.init_template()
         self._init_actions()
 
-        self.set_dark_theme()
-
         self.set_viewtype_icon(self.view_type)
 
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
@@ -421,7 +419,8 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             elif self.filters.get("installed"):
                 self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
             else:
-                self.show_label(_("No games found"))
+                self.show_splash()
+                # self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()
@@ -437,14 +436,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.show_empty_label()
         self.search_timer_id = None
         return False
-
-    def set_dark_theme(self):
-        """Enables or disables dark theme"""
-        gtksettings = Gtk.Settings.get_default()
-        gtksettings.set_property(
-            "gtk-application-prefer-dark-theme",
-            settings.read_setting("dark_theme", default="false").lower() == "true"
-        )
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
@@ -473,13 +464,23 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.save_icon_type(icon_type)
             self.show_spinner()
 
-    def show_label(self, message):
-        """Display a label in the middle of the UI"""
+    def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
+        """Display a widget in the blank overlay"""
         for child in self.blank_overlay.get_children():
             child.destroy()
-        label = Gtk.Label(message, visible=True)
-        self.blank_overlay.add(label)
+        self.blank_overlay.set_halign(halign)
+        self.blank_overlay.set_valign(valign)
+        self.blank_overlay.add(widget)
         self.blank_overlay.props.visible = True
+
+    def show_label(self, message):
+        """Display a label in the middle of the UI"""
+        self.show_overlay(Gtk.Label(message, visible=True))
+
+    def show_splash(self):
+        image = Gtk.Image(visible=True)
+        image.set_from_file(os.path.join(datapath.get(), "media/splash.svg"))
+        self.show_overlay(image, Gtk.Align.START, Gtk.Align.START)
 
     def show_spinner(self):
         spinner = Gtk.Spinner(visible=True)
@@ -565,7 +566,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.games_scrollwindow.add(self.view)
 
         self.view.show_all()
-        GLib.idle_add(self.update_store)
+        self.update_store()
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
@@ -589,12 +590,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.service and service.id == self.service.id:
             self.emit("view-updated")
         return True
-
-    def on_dark_theme_state_change(self, action, value):
-        """Callback for theme switching action"""
-        action.set_state(value)
-        settings.write_setting("dark_theme", value.get_boolean())
-        self.set_dark_theme()
 
     @GtkTemplate.Callback
     def on_resize(self, widget, *_args):
@@ -776,7 +771,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             return True
         updated = self.game_store.update(db_game)
         if not updated:
-            logger.debug("Game %s not updated in view", game)
+            self.update_store()
         return True
 
     def on_game_stopped(self, game):

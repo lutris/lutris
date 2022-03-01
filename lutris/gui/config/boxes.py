@@ -504,16 +504,12 @@ class ConfigBox(VBox):
 
     def on_add_files_clicked(self, _widget, option_name, value):
         """Create and run multi-file chooser dialog."""
-        dialog = Gtk.FileChooserDialog(
-            title=_("Select files"),
-            parent=None,
-            action=Gtk.FileChooserAction.OPEN,
-            buttons=(
-                _("_Cancel"),
-                Gtk.ResponseType.CANCEL,
-                _("_Add"),
-                Gtk.ResponseType.ACCEPT,
-            ),
+        dialog = Gtk.FileChooserNative.new(
+            _("Select files"),
+            None,
+            Gtk.FileChooserAction.OPEN,
+            _("_Add"),
+            _("_Cancel"),
         )
         dialog.set_select_multiple(True)
 

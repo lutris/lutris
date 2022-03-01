@@ -158,7 +158,7 @@ def read_library_folders(steam_data_dir):
     with open(library_filename, "r", encoding='utf-8') as steam_library_file:
         library = vdf_parse(steam_library_file, {})
         # The contentstatsid key is unused and causes problems when looking for library paths.
-        library["libraryfolders"].pop("contentstatsid")
+        library["libraryfolders"].pop("contentstatsid", None)
     try:
         return get_entry_case_insensitive(library, ["libraryfolders"])
     except KeyError as ex:

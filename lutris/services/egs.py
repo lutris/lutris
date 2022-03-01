@@ -179,6 +179,14 @@ class EpicGamesStoreService(OnlineService):
             'daafbccc737745039dffe53d94fc76cf'
         )
 
+    def run(self):
+        egs = get_game_by_field(self.client_installer, "slug")
+        egs_game = Game(egs["id"])
+        egs_game.emit("game-launch")
+
+    def is_launchable(self):
+        return get_game_by_field(self.client_installer, "slug")
+
     def is_connected(self):
         return self.is_authenticated()
 

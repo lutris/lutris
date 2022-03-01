@@ -68,8 +68,15 @@ def get_launch_parameters(runner, gameplay_info):
 
     single_cpu = system_config.get("single_cpu") or False
     if single_cpu:
-        logger.info("The game will run on a single CPU core")
-        launch_arguments.insert(0, "0")
+        limit_cpu_count = system_config.get("limit_cpu_count")
+        if limit_cpu_count and limit_cpu_count.isnumeric():
+            limit_cpu_count = int(limit_cpu_count)
+        else:
+            limit_cpu_count = 1
+
+        limit_cpu_count = max(1, limit_cpu_count)
+        logger.info("The game will run on %d CPU core(s)", limit_cpu_count)
+        launch_arguments.insert(0, "0-%d" % (limit_cpu_count - 1))
         launch_arguments.insert(0, "-c")
         launch_arguments.insert(0, "taskset")
 

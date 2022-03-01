@@ -50,7 +50,6 @@ class LutrisIcon(LutrisBanner):
     dest_path = settings.ICON_PATH
     file_pattern = "lutris_%s.png"
     api_field = 'icon_url'
-    url_pattern = "https://lutris.net/games/icon/%s.png"
 
 
 class LutrisCoverart(ServiceMedia):
@@ -59,7 +58,6 @@ class LutrisCoverart(ServiceMedia):
     file_pattern = "%s.jpg"
     dest_path = settings.COVERART_PATH
     api_field = 'coverart'
-    url_pattern = "%s"
 
 
 class LutrisCoverartMedium(LutrisCoverart):
@@ -93,6 +91,13 @@ class BaseService(GObject.Object):
         if self._matcher:
             return self._matcher
         return self.id
+
+    def run(self):
+        """Override this method to run a launcher"""
+        logger.warning("This service doesn't run anything")
+
+    def is_launchable(self):
+        return False
 
     def reload(self):
         """Refresh the service's games"""

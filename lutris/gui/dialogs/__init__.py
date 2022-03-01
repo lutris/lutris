@@ -120,27 +120,28 @@ class QuestionDialog(Gtk.MessageDialog):
         self.destroy()
 
 
-class DirectoryDialog(Gtk.FileChooserDialog):
+class DirectoryDialog:
 
     """Ask the user to select a directory."""
 
     def __init__(self, message, default_path=None, parent=None):
         self.folder = None
-        super().__init__(
-            title=message,
-            action=Gtk.FileChooserAction.SELECT_FOLDER,
-            buttons=(_("_Cancel"), Gtk.ResponseType.CLOSE, _("_OK"), Gtk.ResponseType.OK),
-            parent=parent,
+        dialog = Gtk.FileChooserNative.new(
+            message,
+            parent,
+            Gtk.FileChooserAction.SELECT_FOLDER,
+            _("_OK"),
+            _("_Cancel"),
         )
         if default_path:
-            self.set_current_folder(default_path)
-        self.result = self.run()
-        if self.result == Gtk.ResponseType.OK:
-            self.folder = self.get_current_folder()
-        self.destroy()
+            dialog.set_current_folder(default_path)
+        self.result = dialog.run()
+        if self.result == Gtk.ResponseType.ACCEPT:
+            self.folder = dialog.get_filename()
+        dialog.destroy()
 
 
-class FileDialog(Gtk.FileChooserDialog):
+class FileDialog:
 
     """Ask the user to select a file."""
 
@@ -152,20 +153,21 @@ class FileDialog(Gtk.FileChooserDialog):
             action = Gtk.FileChooserAction.SAVE
         else:
             action = Gtk.FileChooserAction.OPEN
-        super().__init__(
+        dialog = Gtk.FileChooserNative.new(
             message,
             None,
             action,
-            (_("_Cancel"), Gtk.ResponseType.CANCEL, _("_OK"), Gtk.ResponseType.OK),
+            _("_OK"),
+            _("_Cancel"),
         )
         if default_path and os.path.exists(default_path):
-            self.set_current_folder(default_path)
-        self.set_local_only(False)
-        response = self.run()
-        if response == Gtk.ResponseType.OK:
-            self.filename = self.get_filename()
+            dialog.set_current_folder(default_path)
+        dialog.set_local_only(False)
+        response = dialog.run()
+        if response == Gtk.ResponseType.ACCEPT:
+            self.filename = dialog.get_filename()
 
-        self.destroy()
+        dialog.destroy()
 
 
 class LutrisInitDialog(Gtk.Dialog):

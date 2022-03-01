@@ -292,7 +292,6 @@ class fsuae(Runner):
             "default": False,
             "advanced": True,
         },
-
     ]
 
     def get_platform(self):
