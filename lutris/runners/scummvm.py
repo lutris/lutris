@@ -1,9 +1,7 @@
-# Standard Library
 import os
 import subprocess
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -34,6 +32,44 @@ class scummvm(Runner):
             "help": _("Command line arguments used when launching the game"),
         },
     ]
+
+    option_map = {
+        "aspect": "--aspect-ratio",
+        "subtitles": "--subtitles",
+        "fullscreen": "--fullscreen",
+        "gfx-mode": "--gfx-mode=%s",
+        "scale-factor": "--scale-factor=%s",
+        "render-mode": "--render-mode=%s",
+        "filtering": "--filtering",
+        "platform": "--platform=%s",
+        "engine-speed": "--engine-speed=%s",
+        "talk-speed": "--talkspeed=%s",
+        "dimuse-tempo": "--dimuse-tempo=%s",
+        "music-tempo": "--tempo=%s",
+        "opl-driver": "--opl-driver=%s",
+        "output-rate": "--output-rate=%s",
+        "music-driver": "--music-driver=%s",
+        "multi-midi": "--multi-midi",
+        "midi-gain": "--midi-gain=%s",
+        "soundfont": "--soundfont=%s",
+        "music-volume": "--music-volume=%s",
+        "sfx-volume": "--sfx-volume=%s",
+        "speech-volume": "--speech-volume=%s",
+        "native-mt32": "--native-mt32",
+        "enable-gs": "--enable-gs",
+        "joystick": "--joystick=%s",
+        "language": "--language=%s",
+        "alt-intro": "--alt-intro",
+        "copy-protection": "--copy-protection",
+        "demo-mode": "--demo-mode",
+        "debug-level": "--debug-level=%s",
+        "debug-flags": "--debug-flags=%s",
+    }
+
+    option_empty_map = {
+        "fullscreen": "--no-fullscreen"
+    }
+
     runner_options = [
         {
             "option": "fullscreen",
@@ -368,131 +404,26 @@ class scummvm(Runner):
             env.get("LD_LIBRARY_PATH")]))
         return {"env": env, "command": self.get_command()}
 
+    def inject_runner_option(self, command, key, cmdline, cmdline_empty=None):
+        value = self.runner_config.get(key)
+        if value:
+            if "%s" in cmdline:
+                command.append(cmdline % value)
+            else:
+                command.append(cmdline)
+        elif cmdline_empty:
+            command.append(cmdline_empty)
+
     def play(self):
         command = self.get_command()
-
-        # Options
-        if self.runner_config.get("aspect"):
-            command.append("--aspect-ratio")
-
-        if self.runner_config.get("subtitles"):
-            command.append("--subtitles")
-
-        if self.runner_config.get("fullscreen"):
-            command.append("--fullscreen")
-        else:
-            command.append("--no-fullscreen")
-
-        mode = self.runner_config.get("gfx-mode")
-        if mode:
-            command.append("--gfx-mode=%s" % mode)
-
-        scalefactor = self.runner_config.get("scale-factor")
-        if scalefactor:
-            command.append("--scale-factor=%s" % scalefactor)
-
-        rendermode = self.runner_config.get("render-mode")
-        if rendermode:
-            command.append("--render-mode=%s" % rendermode)
-
-        if self.runner_config.get("filtering"):
-            command.append("--filtering")
-
-        platform = self.runner_config.get("platform")
-        if platform:
-            command.append("--platform=%s" % platform)
-
-        enginespeed = self.runner_config.get("engine-speed")
-        if enginespeed:
-            command.append("--engine-speed=%s" % enginespeed)
-
-        talkspeed = self.runner_config.get("talk-speed")
-        if talkspeed:
-            command.append("--talkspeed=%s" % talkspeed)
-
-        dimusetempo = self.runner_config.get("dimuse-tempo")
-        if dimusetempo:
-            command.append("--dimuse-tempo=%s" % dimusetempo)
-
-        musictempo = self.runner_config.get("music-tempo")
-        if musictempo:
-            command.append("--tempo=%s" % musictempo)
-
-        opldriver = self.runner_config.get("opl-driver")
-        if opldriver:
-            command.append("--opl-driver=%s" % opldriver)
-
-        outputrate = self.runner_config.get("output-rate")
-        if outputrate:
-            command.append("--output-rate=%s" % outputrate)
-
-        musicdriver = self.runner_config.get("music-driver")
-        if musicdriver:
-            command.append("--music-driver=%s" % musicdriver)
-
-        if self.runner_config.get("multi-midi"):
-            command.append("--multi-midi")
-
-        midigain = self.runner_config.get("midi-gain")
-        if midigain:
-            command.append("--midi-gain=%s" % midigain)
-
-        soundfont = self.runner_config.get("soundfont")
-        if soundfont:
-            command.append("--soundfont=%s" % soundfont)
-
-        musicvolume = self.runner_config.get("music-volume")
-        if musicvolume:
-            command.append("--music-volume=%s" % musicvolume)
-
-        sfxvolume = self.runner_config.get("sfx-volume")
-        if sfxvolume:
-            command.append("--sfx-volume=%s" % sfxvolume)
-
-        speechvolume = self.runner_config.get("speech-volume")
-        if speechvolume:
-            command.append("--speech-volume=%s" % speechvolume)
-
-        if self.runner_config.get("native-mt32"):
-            command.append("--native-mt32")
-
-        if self.runner_config.get("enable-gs"):
-            command.append("--enable-gs")
-
-        joystick = self.runner_config.get("joystick")
-        if joystick:
-            command.append("--joystick=%s" % joystick)
-
-        language = self.runner_config.get("language")
-        if language:
-            command.append("--language=%s" % language)
-
-        if self.runner_config.get("alt-intro"):
-            command.append("--alt-intro")
-
-        if self.runner_config.get("copy-protection"):
-            command.append("--copy-protection")
-
-        if self.runner_config.get("demo-mode"):
-            command.append("--demo-mode")
-
-        debuglevel = self.runner_config.get("debug-level")
-        if debuglevel:
-            command.append("--debug-level=%s" % debuglevel)
-
-        debugflags = self.runner_config.get("debug-flags")
-        if debugflags:
-            command.append("--debug-flags=%s" % debugflags)
-
-        # /Options
+        for option, cmdline in self.option_map.items():
+            self.inject_runner_option(command, option, cmdline, self.option_empty_map.get(option))
         command.append("--path=%s" % self.game_path)
         args = self.game_config.get("args") or ""
         for arg in split_arguments(args):
             command.append(arg)
         command.append(self.game_config.get("game_id"))
-        launch_info = {"command": command, "ld_library_path": self.libs_dir}
-
-        return launch_info
+        return {"command": command, "ld_library_path": self.libs_dir}
 
     def get_game_list(self):
         """Return the entire list of games supported by ScummVM."""
