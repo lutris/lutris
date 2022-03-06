@@ -79,7 +79,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # If the game is in the library and uninstalled, the first installation
         # updates it
         existing_game = get_game_by_field(self.game_slug, "slug")
-        if existing_game and not existing_game["installed"]:
+        if existing_game and (self.extends or not existing_game["installed"]):
             return existing_game["id"]
 
     @property
@@ -241,7 +241,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 "This is an extension to %s, not creating a new game entry",
                 self.extends,
             )
-            return
+            return self.game_id
 
         if self.is_gog:
             gog_config = get_gog_config_from_path(self.interpreter.target_path)
