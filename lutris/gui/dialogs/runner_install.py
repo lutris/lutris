@@ -155,7 +155,7 @@ class RunnerInstallDialog(Dialog):
                 app_count = runner[self.COL_USAGE] or 0
                 if app_count > 0:
                     usage_button_text = gettext.ngettext(
-                        "_View game",
+                        "_View %d game",
                         "_View %d games",
                         app_count
                     ) % app_count
