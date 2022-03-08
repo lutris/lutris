@@ -152,7 +152,7 @@ class RunnerInstallDialog(Dialog):
 
             if runner[self.COL_INSTALLED]:
                 # Check if there are apps installed, if so, show the view apps button
-                app_count = runner[self.COL_USAGE]
+                app_count = runner[self.COL_USAGE] or 0
                 if app_count > 0:
                     usage_button_text = gettext.ngettext(
                         "_View game",
