@@ -26,7 +26,7 @@ class ShowAppsDialog(Dialog):
 
         self.set_default_size(400, 500)
 
-        label = Gtk.Label.new(_("Showing games of %s") % runner_version)
+        label = Gtk.Label.new(_("Showing games using %s") % runner_version)
         self.vbox.add(label)
         scrolled_listbox = Gtk.ScrolledWindow()
         listbox = Gtk.ListBox()
@@ -155,9 +155,10 @@ class RunnerInstallDialog(Dialog):
                 app_count = runner[self.COL_USAGE]
                 if app_count > 0:
                     usage_button_text = gettext.ngettext(
-                        "_View app",
-                        "_View %d apps",
-                        app_count) % app_count
+                        "_View game",
+                        "_View %d games",
+                        app_count
+                    ) % app_count
 
                     usage_button = Gtk.Button.new_with_mnemonic(usage_button_text)
                     usage_button.connect("button_press_event", self.on_show_apps_usage, row)
@@ -210,7 +211,7 @@ class RunnerInstallDialog(Dialog):
                 continue
             apps.append(game)
 
-        dialog = ShowAppsDialog("Show apps", self.get_toplevel(), runner_version, apps)
+        dialog = ShowAppsDialog(_("Wine version usage"), self.get_toplevel(), runner_version, apps)
         dialog.run()
 
         dialog.destroy()
@@ -303,7 +304,7 @@ class RunnerInstallDialog(Dialog):
         dest_path = self.get_dest_path(runner)
         url = runner[self.COL_URL]
         if not url:
-            ErrorDialog("Version %s is not longer available" % runner[self.COL_VER])
+            ErrorDialog(_("Version %s is not longer available") % runner[self.COL_VER])
             return
         downloader = Downloader(runner[self.COL_URL], dest_path, overwrite=True)
         GLib.timeout_add(100, self.get_progress, downloader, row)
@@ -326,7 +327,7 @@ class RunnerInstallDialog(Dialog):
             runner[self.COL_PROGRESS] = percent_downloaded
             row.install_progress.set_fraction(percent_downloaded / 100)
         else:
-            runner[self.COL_PROGRESS] <= 1
+            runner[self.COL_PROGRESS] = 1
             row.install_progress.pulse()
             row.install_progress.set_text = _("Downloading…")
         if downloader.state == downloader.COMPLETED:
@@ -396,11 +397,3 @@ class RunnerInstallDialog(Dialog):
             return True
         self.destroy()
         return True
-
-
-if __name__ == "__main__":
-    import signal
-
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-    RunnerInstallDialog("test", None, "wine")
-    Gtk.main()
