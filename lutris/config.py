@@ -2,6 +2,7 @@
 
 import os
 import time
+from shutil import copyfile
 
 from lutris import settings, sysoptions
 from lutris.runners import InvalidRunner, import_runner
@@ -22,6 +23,16 @@ def write_game_config(game_slug, config):
     config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % configpath)
     write_yaml_to_file(config, config_filename)
     return configpath
+
+
+def duplicate_game_config(game_slug, source_config_id):
+    """Copies an existing configuration file, giving it a new id that this
+    function returns."""
+    new_config_id = make_game_config_id(game_slug)
+    src_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % source_config_id)
+    dest_path = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % new_config_id)
+    copyfile(src_path, dest_path)
+    return new_config_id
 
 
 class LutrisConfig:

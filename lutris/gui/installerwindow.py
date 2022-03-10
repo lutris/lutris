@@ -465,9 +465,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         if self.config.get("create_menu_shortcut"):
             self.create_shortcut()
 
-        # Save game to trigger a game-updated signal
-        game = Game(game_id)
-        game.save()
+        # Save game to trigger a game-updated signal,
+        # but take care not to create a blank game
+        if game_id:
+            game = Game(game_id)
+            game.save()
 
         self.install_in_progress = False
 
@@ -477,7 +479,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
-        if game.id:
+        if game and game.id:
             self.play_button.show()
 
         self.close_button.grab_focus()

@@ -23,8 +23,7 @@
 }
 
 .info-pill {
-  background-color:rgb(100, 100, 100);
-  color:rgb(155, 155, 155);
+  background-color: alpha(currentColor, .07);
   border-radius: 5px;
   padding: 3px 6px;
 }

@@ -5,18 +5,22 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gio
+from gi.repository import Gio, Gtk
 
 from lutris.command import MonitoredCommand
+from lutris.config import duplicate_game_config
+from lutris.database.games import add_game, get_game_by_field, get_unusued_game_name
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
+from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
+from lutris.util.strings import gtk_safe
 from lutris.util.system import path_exists
 
 
@@ -60,6 +64,7 @@ class GameActions:
             ("install_dlcs", "Install DLCs", self.on_install_dlc_clicked),
             ("show_logs", _("Show logs"), self.on_show_logs),
             ("add", _("Add installed game"), self.on_add_manually),
+            ("duplicate", _("Duplicate"), self.on_game_duplicate),
             ("configure", _("Configure"), self.on_edit_game_configuration),
             ("favorite", _("Add to favorites"), self.on_add_favorite_game),
             ("deletefavorite", _("Remove from favorites"), self.on_delete_favorite_game),
@@ -96,6 +101,7 @@ class GameActions:
         """Return a dictionary of actions that should be shown for a game"""
         return {
             "add": not self.game.is_installed,
+            "duplicate": True,
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "update": self.game.is_updatable,
@@ -185,6 +191,40 @@ class GameActions:
     def on_add_manually(self, _widget, *_args):
         """Callback that presents the Add game dialog"""
         return AddGameDialog(self.window, game=self.game, runner=self.game.runner_name)
+
+    def on_game_duplicate(self, _widget):
+        confirm_dlg = QuestionDialog(
+            {
+                "parent": self.window,
+                "question": _(
+                    "Do you wish to duplicate %s?\nThe configuration will be duplicated, "
+                    "but the games files will <b>not be duplicated</b>."
+                ) % gtk_safe(self.game.name),
+                "title": _("Duplicate game?"),
+            }
+        )
+        if confirm_dlg.result != Gtk.ResponseType.YES:
+            return
+
+        assigned_name = get_unusued_game_name(self.game.name)
+        old_config_id = self.game.game_config_id
+        if old_config_id:
+            new_config_id = duplicate_game_config(self.game.slug, old_config_id)
+        else:
+            new_config_id = None
+
+        db_game = get_game_by_field(self.game.id, "id")
+        db_game["name"] = assigned_name
+        db_game["configpath"] = new_config_id
+        db_game.pop("id")
+        # Disconnect duplicate from service- there should be at most
+        # 1 PGA game for a service game.
+        db_game.pop("service", None)
+        db_game.pop("service_id", None)
+
+        game_id = add_game(**db_game)
+        new_game = Game(game_id)
+        new_game.save()
 
     def on_edit_game_configuration(self, _widget):
         """Edit game preferences"""

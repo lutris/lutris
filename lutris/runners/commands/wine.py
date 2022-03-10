@@ -135,11 +135,11 @@ def create_prefix(  # noqa: C901
         overrides["mscoree"] = "disabled"
 
     system.execute([wineboot_path], env=wineenv)
-    for loop_index in range(60):
+    for loop_index in range(1000):
         time.sleep(0.5)
         if system.path_exists(os.path.join(prefix, "user.reg")):
             break
-        if loop_index == 30:
+        if loop_index == 60:
             logger.warning("Wine prefix creation is taking longer than expected...")
     if not os.path.exists(os.path.join(prefix, "user.reg")):
         logger.error("No user.reg found after prefix creation. " "Prefix might not be valid")
