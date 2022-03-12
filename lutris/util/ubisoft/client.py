@@ -64,7 +64,10 @@ class UbisoftConnectClient():
 
         response = self.request(method, *args, **kwargs)
         logger.info("Response status: %s", response)
-        return response.json()
+        result = response.json()
+        if 'errorCode' in result and 'message' in result:
+            raise RuntimeError(result['message'])
+        return result
 
     def _do_request_safe(self, method, *args, **kwargs):
         result = {}
@@ -165,9 +168,10 @@ class UbisoftConnectClient():
         self._handle_authorization_response(j)
 
     def _handle_authorization_response(self, j):
-        refresh_time = datetime.now() + (parse_date(j['expiration']) - parse_date(j['serverTime']))
-        j['refreshTime'] = round(refresh_time.timestamp())
-        self.restore_credentials(j)
+        if 'expiration' in j and 'serverTime' in j:
+            refresh_time = datetime.now() + (parse_date(j['expiration']) - parse_date(j['serverTime']))
+            j['refreshTime'] = round(refresh_time.timestamp())
+            self.restore_credentials(j)
 
     def restore_credentials(self, data):
         self.token = data['ticket']
