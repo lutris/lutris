@@ -55,6 +55,7 @@ class RunnerBox(Gtk.Box):
         self.pack_start(self.runner_label_box, True, True, 0)
 
         self.configure_button = Gtk.Button.new_from_icon_name("preferences-system-symbolic", Gtk.IconSize.BUTTON)
+        self.configure_button.set_valign(Gtk.Align.CENTER)
         self.configure_button.set_margin_right(12)
         self.configure_button.connect("clicked", self.on_configure_clicked)
         self.pack_start(self.configure_button, False, False, 0)
