@@ -4,6 +4,7 @@
 import json
 import time
 from datetime import datetime
+from gettext import gettext as _
 
 import requests
 
@@ -98,7 +99,7 @@ class UbisoftConnectClient():
             logger.error("Unable to refresh authentication calling auth lost: %s", ex)
             if self._auth_lost_callback:
                 self._auth_lost_callback()
-            raise
+            raise RuntimeError(_("Ubisoft authentication has been lost: %s") % ex) from ex
         return result
 
     def _do_options_request(self):
