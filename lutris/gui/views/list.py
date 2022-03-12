@@ -3,7 +3,7 @@ from gettext import gettext as _
 
 # Third Party Libraries
 # pylint: disable=no-member
-from gi.repository import Gtk, Pango
+from gi.repository import Gdk, Gtk, Pango
 
 # Lutris Modules
 from lutris import settings
@@ -111,7 +111,7 @@ class GameListView(Gtk.TreeView, GameView):
 
     def on_column_header_button_pressed(self, button, event):
         """Handles column header button press events"""
-        if event.button == 3:
+        if event.button == Gdk.BUTTON_SECONDARY:
             menu = GameListColumnToggleMenu(self.get_columns())
             menu.popup_at_pointer(None)
             return True
