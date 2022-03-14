@@ -63,6 +63,7 @@ class Application(Gtk.Application):
         super().__init__(
             application_id="net.lutris.Lutris",
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
+            register_session=True,
         )
 
         GObject.add_emission_hook(Game, "game-launch", self.on_game_launch)
