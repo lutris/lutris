@@ -97,3 +97,5 @@ if appstreamcli.found()
     args: ['validate-relax', '--nonet', metainfo_file.full_path() ]
   )
 endif
+
+meson.add_install_script('utils/meson_post_install.py')
