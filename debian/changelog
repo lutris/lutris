@@ -1,3 +1,229 @@
+lutris (0.5.10) impish; urgency=medium
+
+  * Add new window to add games to Lutris, with searches from the website,
+    scanning a folder for previously installed games, installing a Windows
+    game from a setup file, installing from a YAML script or configuring a
+    single game manually.
+  * Move the search for Lutris installers from a tab in the Lutris service
+    to the window for adding games.
+  * Add a coverart format
+  * Add integration with EA Origin
+  * Add integration with Ubisoft Connect
+  * Download missing media on startup
+  * Remove Winesteam runner (install Steam for Windows in Lutris instead)
+  * PC (Linux and Windows) games have their own dedicated Nvidia shader cache
+  * Add dgvoodoo2 option
+  * Add option to enable BattleEye anti-cheat support
+  * Default to Retroarch cores in ~/.config/retroarch/cores if available
+  * Add support for downloading patches and DLC for GOG games
+  * Add --export and --import command line flags to export a game a lutris
+    game and re-import it (requires --dest for the destination path)
+  * Add command line flags to manage runners: --install-runner, --uninstall-runners,
+    --list-runners, --list-wine-versions
+  * Change behavior of the "Stop" button, remove "Kill all Wine processes" action
+  * Gamescope option is now disabled on Nvidia GPUs
+  * Enable F-Sync by default
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 04 Feb 2022 19:14:41 -0800
+
+lutris (0.5.9.1) hirsute; urgency=medium
+
+  * Fix possible escaping error for gamescope option
+  * Remove walrus operator to restore compatibility with Python 3.7 / Ubuntu 18.04
+  * Remove log file being written in the home folder
+  * Fix install button for community installer
+  * Fix markup error on gamescope option
+  * Update URL for Ryujinx build
+  * Fix Steam sync creating duplicate games
+
+ -- Mathieu Comandon <strider@strycore.com>  Sat, 16 Oct 2021 18:08:26 -0700
+
+lutris (0.5.9) hirsute; urgency=medium
+
+  * Add initial support for Epic Games Store
+  * Add support for Steam for Windows as a game source
+  * Add support for DXVK-NVAPI and DLSS
+  * Add FidelityFX Super Resolution (FSR) option for compatible Wine versions
+  * Add workaround for locale issues when Lutris is launched from Steam
+  * Add gamescope option
+  * Lutris games can now be launched from Steam
+  * 3rd party services can be enabled or disabled in the preferences
+  * The main preferences window has now tabs on the left side
+  * Runner configuration is now available from the main preferences window
+  * VKD3D is a separate option from DXVK
+  * Esync is enabled by default
+  * Dolphin is available as a game source (reads games from the emulator's
+    local database of games)
+  * Scan for installed games when using Steam source
+  * Improved automatic installers for GOG, detection of DOSBOX and ScummVM
+    games.
+  * DRM free services (Humble, GOG) can locate existing installations of games
+  * Use 7zip as the default extractor when not given an archive type
+  * Improve process monitoring, allowing for monitoring of Steam games
+  * Disable AMD switchable graphics layer by default (breaks games)
+  * Removed support for Gallium 9
+  * Removed support for X360CE
+  * Removed legacy WineD3D options
+
+ -- Mathieu Comandon <strider@strycore.com>  Mon, 11 Oct 2021 12:33:39 -0700
+
+lutris (0.5.8.3) groovy; urgency=medium
+
+  * Really fix popovers not showing on Wayland without making them non-modal
+  * Prevent GStreamer based configuration from being applied in incompatible
+    wine builds.
+  * Fix crash when wine runner accesses DXVK versions before they are
+    uploaded.
+  * Prevent init dialog from being closed while it downloads the runtime.
+
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 22 Jan 2021 16:24:51 -0800
+
+lutris (0.5.8.2) groovy; urgency=medium
+
+  * Fix popover menus not appearing on Wayland
+  * Fix game bar getting unselected on Wayland (Forces the last game to stay
+    selected)
+  * Update Chinese, Dutch, German and Russian translations
+  * Download DXVK when Lutris starts
+  * Add fsync2 feature detection
+  * Limit simultaneous downloads to 3
+  * Add support for deb file extraction
+  * Add support for Adobe Air games from Humble Bundle (Installation only,
+    Air runtime will come at a later stage)
+  * Add support for GStreamer enabled Wine builds. This will provide better
+    compatibility for games using Media Foundation
+
+ -- Mathieu Comandon <strider@strycore.com>  Mon, 04 Jan 2021 23:54:29 -0800
+
+lutris (0.5.8.1) groovy; urgency=medium
+
+  * Remove Proton from available Wine versions
+  * Display a dialog until Lutris finishes initializing
+  * Allow to keep game files when uninstalling a game
+  * Remove custom sidebar CSS
+  * Fix popup menu not showing in list view
+  * Fix script loading for local files
+  * Fix installed at column setting name for list view
+  * Fix lutris not launching games with rungameid
+  * Fix installed Steam game for fresh lutris installs
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 27 Nov 2020 14:23:48 -0800
+
+lutris (0.5.8) groovy; urgency=medium
+
+  * 3rd party services are now available from the main window
+  * The "Import games" window has been removed. The concept of
+    importing games from other services into Lutris has been removed.
+    Syncing games from other services on start has been removed.
+  * Integration with the lutris website such as login and showing your
+    library has been delegated to the 'lutris' service in the sidebar.
+  * The lutris service gives the option of searching your library or the whole
+    lutris.net library.
+  * Games from 3rd party services no longer depend on an install script to be
+    present on the website. Lutris will automatically install games with an
+    auto-generated script. Scripts from the website take precedence if available.
+  * Steam games are directly loaded from the Steam API and it is no longer needed
+    to sync your Steam library on the lutris website to see all your Steam games.
+  * Game banners and icons are downloaded from the services themselves. This
+    allows for customized media size in the UI based on what's available from the
+    service.
+  * Added option to hide the text under the icons
+  * The installer game cache configuration has been moved to the installer
+    window.
+  * Installers now offer the choice between downloaded files, custom user
+    provided files or cached files (when available).
+  * Bonus content for GOG games such as manuals or soundtracks can now be
+    downloaded as part of the install process. Selected content are downloaded
+    in a 'extras' folder in the game folder. Those files will likely be in
+    compressed format.
+  * The right side bar has been moved to the bottom of the window to optimize
+    space and to declutter the overall design. Game actions are now shown in a
+    popover menu displayed next to the play button. Runner actions, if available
+    (for example, wine), will show up in a popover menu next to the runner icon.
+  * Running games have been moved from the right side bar to a row on the left
+    side bar.
+  * Added favorites section and allow to add/remove games from favorites
+  * When removing a game, Lutris now displays the size of the folder to be
+    deleted.
+  * Game logs are no longer erased when switching to another game in the
+    window.
+  * Game logs can be saved to a file
+  * Lutris runners can now be written in JSON instead of Python code. This
+    handles only simple cases but it's enough to handle a vast number of
+    emulators or game engines. Some existing runners have been migrated to JSON
+    such as dgen, ppsspp, citra, ags, virtualjaguar... as well as new ones like
+    melonds, tic80, pcem... Check out the `share/lutris/json` folder for those
+    runners. If you plan to submit new JSON based runner be sure to provide a valid
+    'download_url' otherwise the lutris client won't have a runner to download.
+  * Lutris will not delete any game folder that is used by another game or any
+    folder that is in some predefined locations. Note that protection of folders
+    such as 'Documents' or 'Downloads' only works on English locales for the moment.
+  * Added a Mangohud option with special modes for OpenGL and 32bit games.
+  * Added a wine menu entry to launch a bash shell in the game's environment
+    with WINEPREFIX set and the correct Wine build aliased to `wine`.
+  * Added a command line option to generate a bash script that will run a
+    lutris game without the client. ex: `lutris quake --output-script quake.sh`.
+    This will create a 'quake.sh' script to launch the game.
+  * Removed all platform and runner icons from the code base to eliminate any
+    issue regarding their licenses (This is done to help get the lutris
+    package into debian).
+  * DOSBox and PCSX2 display an error if needed libraries are missing.
+  * The old versions of gamemode are no longer supported. Make sure you have
+    the one that ships with a `gamemoderun` executable.
+  * The runtime now supports downloading individual files. New icons can be
+    submitted by sending a PR to github.com/lutris/lutris-runtime.
+  * Refactor of several core components. New python packages
+    `lutris.database` and `lutris.gui.installer`
+
+ -- Mathieu Comandon <strider@strycore.com>  Sat, 14 Nov 2020 15:03:28 -0700
+
+lutris (0.5.7.1) focal; urgency=medium
+
+  * Provide D3D12.DLL, based on vkd3d-proton project
+    (https://github.com/HansKristian-Work/vkd3d-proton),
+    as part of our DXVK runtime. This will help push updates faster and provide better compatibility for
+    Direct3D 12 titles such as World of Warcraft.
+
+ -- Mathieu Comandon <strider@strycore.com>  Sat, 18 Jul 2020 14:35:23 -0700
+
+lutris (0.5.7) focal; urgency=medium
+
+  * Use Meson and Ninja to build translation files
+  * Improve Debian package compliance with standards
+  * Add translation strings for the code base
+  * Set a default directory to manually added games, allowing to remove them
+  * Deprecate MESS runner
+  * Migrate all MESS games to MAME
+  * Get full supported system list from the XML given by MAME
+  * Allow to run MAME games by ID if the ROM path is set
+  * Add a no-GUI option to RPCS3
+  * Fix GalliumNine conflicts with DXVK
+  * Improve performance of DirectX 12 games running on AMD GPU by setting RADV_DEBUG=zerovram
+  * Code style fixes. Pylint is now used in the Travis checks.
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 26 Jun 2020 18:06:18 -0700
+
+lutris (0.5.6) eoan; urgency=medium
+
+  * Add some wine core processes to be excluded from monitor (Fixes Battle.net
+    and Origin installation issues)
+  * Convert play time from string to float in the database. Do not downgrade
+    back to older versions or you'll experience issues.
+  * Fix for the wine sandbox on non English systems
+  * Allow Citra and MAME to be launched as standalone programs
+  * Avoid a crash if ldconfig -p returns corrupt data
+  * Allow custom messages to be displayed at the end of install scripts
+  * Add option to provide alternate config file for PCSX2 games
+  * Fix issue with usernames containing accented characters
+  * Fix "Restrict to display" option on Wayland/Mutter
+  * Fix blurry icons on KDE
+  * Remove broken translation files (until internationalization is done properly)
+  * Switch source of DXVK builds to Lutris' own (allows Lutris to delay broken
+    DXVK releases and ship custom ones)
+
+ -- Mathieu Comandon <strycore@gmail.com>  Sun, 12 Apr 2020 19:04:15 -0700
+
 lutris (0.5.5) eoan; urgency=medium
 
   * Initial support for Humble Bundle

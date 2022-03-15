@@ -1,17 +1,34 @@
 """System utilities"""
 import hashlib
-import signal
+import inspect
 import os
 import re
 import shutil
+import signal
+import stat
 import string
 import subprocess
+from gettext import gettext as _
 
-from lutris.util.linux import LINUX_SYSTEM
+from gi.repository import Gio, GLib
+
+from lutris import settings
 from lutris.util.log import logger
 
+# Home folders that should never get deleted.
+PROTECTED_HOME_FOLDERS = (
+    _("Documents"),
+    _("Downloads"),
+    _("Desktop"),
+    _("Pictures"),
+    _("Videos"),
+    _("Pictures"),
+    _("Projects"),
+    _("Games")
+)
 
-def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False):
+
+def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=False, timeout=None):
     """
         Execute a system command and return its results.
 
@@ -21,6 +38,7 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
             cwd (str): Working directory
             log_errors (bool): Pipe stderr to stdout (might cause slowdowns)
             quiet (bool): Do not display log messages
+            timeout (int): Number of seconds the program is allowed to run, disabled by default
 
         Returns:
             str: stdout output
@@ -29,10 +47,10 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
     # Check if the executable exists
     if not command:
         logger.error("No executable provided!")
-        return
+        return ""
     if os.path.isabs(command[0]) and not path_exists(command[0]):
         logger.error("No executable found in %s", command)
-        return
+        return ""
 
     if not quiet:
         logger.debug("Executing %s", " ".join([str(i) for i in command]))
@@ -48,20 +66,39 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
     # Piping stderr can cause slowness in the programs, use carefully
     # (especially when using regedit with wine)
     try:
-        stdout, stderr = subprocess.Popen(
+        with subprocess.Popen(
             command,
             shell=shell,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE if log_errors else subprocess.DEVNULL,
             env=existing_env,
             cwd=cwd,
-        ).communicate()
+            errors="replace"
+        ) as command_process:
+            stdout, stderr = command_process.communicate(timeout=timeout)
     except (OSError, TypeError) as ex:
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
-        return
+        return ""
+    except subprocess.TimeoutExpired:
+        logger.error("Command %s after %s seconds", command, timeout)
+        return ""
     if stderr and log_errors:
         logger.error(stderr)
-    return stdout.decode(errors="replace").strip()
+    return stdout.strip()
+
+
+def read_process_output(command, timeout=5):
+    """Return the output of a command as a string"""
+    try:
+        return subprocess.check_output(
+            command,
+            timeout=timeout,
+            encoding="utf-8",
+            errors="ignore"
+        ).strip()
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
+        logger.error("%s command failed: %s", command, ex)
+        return ""
 
 
 def get_md5_hash(filename):
@@ -86,13 +123,20 @@ def get_file_checksum(filename, hash_type):
     return hasher.hexdigest()
 
 
+def is_executable(exec_path):
+    """Return whether exec_path is an executable"""
+    return os.access(exec_path, os.X_OK)
+
+
+def make_executable(exec_path):
+    file_stats = os.stat(exec_path)
+    os.chmod(exec_path, file_stats.st_mode | stat.S_IEXEC)
+
+
 def find_executable(exec_name):
     """Return the absolute path of an executable"""
     if not exec_name:
         return None
-    cached = LINUX_SYSTEM.get(exec_name)
-    if cached:
-        return cached
     return shutil.which(exec_name)
 
 
@@ -152,13 +196,11 @@ def substitute(string_template, variables):
     identifiers = variables.keys()
 
     # We support dashes in identifiers but they are not valid in python
-    # identifers, which is a requirement for the templating engine we use
+    # identifiers, which is a requirement for the templating engine we use
     # Replace the dashes with underscores in the mapping and template
     variables = dict((k.replace("-", "_"), v) for k, v in variables.items())
     for identifier in identifiers:
-        string_template = string_template.replace(
-            "${}".format(identifier), "${}".format(identifier.replace("-", "_"))
-        )
+        string_template = string_template.replace("${}".format(identifier), "${}".format(identifier.replace("-", "_")))
 
     template = string.Template(string_template)
     if string_template in list(variables.keys()):
@@ -169,24 +211,12 @@ def substitute(string_template, variables):
 def merge_folders(source, destination):
     """Merges the content of source to destination"""
     logger.debug("Merging %s into %s", source, destination)
-    source = os.path.abspath(source)
-    for (dirpath, dirnames, filenames) in os.walk(source):
-        source_relpath = dirpath[len(source):].strip("/")
-        dst_abspath = os.path.join(destination, source_relpath)
-        for dirname in dirnames:
-            new_dir = os.path.join(dst_abspath, dirname)
-            logger.debug("creating dir: %s", new_dir)
-            try:
-                os.mkdir(new_dir)
-            except OSError:
-                pass
-        for filename in filenames:
-            # logger.debug("Copying %s", filename)
-            if not os.path.exists(dst_abspath):
-                os.makedirs(dst_abspath)
-            shutil.copy(
-                os.path.join(dirpath, filename), os.path.join(dst_abspath, filename)
-            )
+    # Check if dirs_exist_ok is defined ( Python >= 3.8)
+    sig = inspect.signature(shutil.copytree)
+    if "dirs_exist_ok" in sig.parameters:
+        shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True, dirs_exist_ok=True)
+    else:
+        shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True)
 
 
 def remove_folder(path):
@@ -202,8 +232,7 @@ def remove_folder(path):
     try:
         shutil.rmtree(path)
     except OSError as ex:
-        errno, message = ex.args
-        logger.error("Failed to remove folder %s: %s (Error code %s)", path, message, errno)
+        logger.error("Failed to remove folder %s: %s (Error code %s)", path, ex.strerror, ex.errno)
         return False
     return True
 
@@ -213,14 +242,24 @@ def create_folder(path):
     if not path:
         return
     path = os.path.expanduser(path)
-    if not os.path.exists(path):
-        os.makedirs(path)
+    os.makedirs(path, exist_ok=True)
     return path
 
 
-def is_removeable(path, excludes=None):
+def list_unique_folders(folders):
+    """Deduplicate directories with the same Device.Inode"""
+    unique_dirs = {}
+    for folder in folders:
+        folder_stat = os.stat(folder)
+        identifier = "%s.%s" % (folder_stat.st_dev, folder_stat.st_ino)
+        if identifier not in unique_dirs:
+            unique_dirs[identifier] = folder
+    return unique_dirs.values()
+
+
+def is_removeable(path):
     """Check if a folder is safe to remove (not system or home, ...)"""
-    if not path_exists(path) or path in excludes:
+    if not path_exists(path):
         return False
 
     parts = path.strip("/").split("/")
@@ -230,38 +269,33 @@ def is_removeable(path, excludes=None):
 
     if parts[0] == "home":
         if len(parts) <= 2:
-            # Path is a home folder
             return False
-        if parts[2] == ".wine":
-            # Protect main .wine folder
+        if len(parts) == 3 and parts[2] in PROTECTED_HOME_FOLDERS:
             return False
-
     return True
 
 
 def fix_path_case(path):
-    """Do a case insensitive check, return the real path with correct case."""
+    """Do a case insensitive check, return the real path with correct case. If the path is
+    not for a real file, this corrects as many components as do exist."""
     if not path or os.path.exists(path):
         # If a path isn't provided or it exists as is, return it.
         return path
     parts = path.strip("/").split("/")
     current_path = "/"
     for part in parts:
-        if not os.path.exists(current_path):
-            return
-        tested_path = os.path.join(current_path, part)
-        if os.path.exists(tested_path):
-            current_path = tested_path
-            continue
-        try:
-            path_contents = os.listdir(current_path)
-        except OSError:
-            logger.error("Can't read contents of %s", current_path)
-            path_contents = []
-        for filename in path_contents:
-            if filename.lower() == part.lower():
-                current_path = os.path.join(current_path, filename)
-                continue
+        parent_path = current_path
+        current_path = os.path.join(current_path, part)
+        if not os.path.exists(current_path) and os.path.isdir(parent_path):
+            try:
+                path_contents = os.listdir(parent_path)
+            except OSError:
+                logger.error("Can't read contents of %s", parent_path)
+                path_contents = []
+            for filename in path_contents:
+                if filename.lower() == part.lower():
+                    current_path = os.path.join(parent_path, filename)
+                    break
 
     # Only return the path if we got the same number of elements
     if len(parts) == len(current_path.strip("/").split("/")):
@@ -281,19 +315,6 @@ def get_pids_using_file(path):
     return set(fuser_output.split())
 
 
-def get_terminal_apps():
-    """Return the list of installed terminal emulators"""
-    return LINUX_SYSTEM.get_terminals()
-
-
-def get_default_terminal():
-    """Return the default terminal emulator"""
-    terms = get_terminal_apps()
-    if terms:
-        return terms[0]
-    logger.error("Couldn't find a terminal emulator.")
-
-
 def reverse_expanduser(path):
     """Replace '/home/username' with '~' in given path."""
     if not path:
@@ -305,16 +326,19 @@ def reverse_expanduser(path):
     return path
 
 
-def path_exists(path, check_symlinks=False):
+def path_exists(path, check_symlinks=False, exclude_empty=False):
     """Wrapper around system.path_exists that doesn't crash with empty values
 
     Params:
         path (str): File to the file to check
         check_symlinks (bool): If the path is a broken symlink, return False
+        exclude_empty (bool): If true, consider 0 bytes files as non existing
     """
     if not path:
         return False
     if os.path.exists(path):
+        if exclude_empty:
+            return os.stat(path).st_size > 0
         return True
     if os.path.islink(path):
         logger.warning("%s is a broken link", path)
@@ -326,19 +350,10 @@ def reset_library_preloads():
     """Remove library preloads from environment"""
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
         if os.environ.get(key):
-            del os.environ[key]
-
-
-def run_once(function):
-    """Decorator to use on functions intended to run only once"""
-    first_run = True
-
-    def fn_wrapper(*args):
-        nonlocal first_run
-        if first_run:
-            first_run = False
-            return function(*args)
-    return fn_wrapper
+            try:
+                del os.environ[key]
+            except OSError:
+                logger.error("Failed to delete environment variable %s", key)
 
 
 def get_existing_parent(path):
@@ -350,3 +365,75 @@ def get_existing_parent(path):
     if os.path.exists(path) and not os.path.isfile(path):
         return path
     return get_existing_parent(os.path.dirname(path))
+
+
+def update_desktop_icons():
+    """Update Icon for GTK+ desktop manager
+    Other desktop manager icon cache commands must be added here if needed
+    """
+    if find_executable("gtk-update-icon-cache"):
+        execute(["gtk-update-icon-cache", "-tf", os.path.join(GLib.get_user_data_dir(), "icons/hicolor")], quiet=True)
+        execute(["gtk-update-icon-cache", "-tf", os.path.join(settings.RUNTIME_DIR, "icons/hicolor")], quiet=True)
+
+
+def get_disk_size(path):
+    """Return the disk size in bytes of a folder"""
+    total_size = 0
+    for base, _dirs, files in os.walk(path):
+        total_size += sum([
+            os.stat(os.path.join(base, f)).st_size
+            for f in files
+            if os.path.isfile(os.path.join(base, f))
+        ])
+    return total_size
+
+
+def get_running_pid_list():
+    """Return the list of PIDs from processes currently running"""
+    return [int(p) for p in os.listdir("/proc") if p[0].isdigit()]
+
+
+def get_mounted_discs():
+    """Return a list of mounted discs and ISOs
+
+    :rtype: list of Gio.Mount
+    """
+    volumes = Gio.VolumeMonitor.get()
+    drives = []
+
+    for mount in volumes.get_mounts():
+        if mount.get_volume():
+            device = mount.get_volume().get_identifier("unix-device")
+            if not device:
+                logger.debug("No device for mount %s", mount.get_name())
+                continue
+
+            # Device is a disk drive or ISO image
+            if "/dev/sr" in device or "/dev/loop" in device:
+                drives.append(mount.get_root().get_path())
+    return drives
+
+
+def find_mount_point(path):
+    """Return the mount point a file is located on"""
+    path = os.path.abspath(path)
+    while not os.path.ismount(path):
+        path = os.path.dirname(path)
+    return path
+
+
+def get_mountpoint_drives():
+    """Return a mapping of mount points with their corresponding drives"""
+    mounts = read_process_output(["mount", "-v"]).split("\n")
+    mount_map = []
+    for mount in mounts:
+        mount_parts = mount.split()
+        if len(mount_parts) < 3:
+            continue
+        mount_map.append((mount_parts[2], mount_parts[0]))
+    return dict(mount_map)
+
+
+def get_drive_for_path(path):
+    """Return the physical drive a file is located on"""
+    return get_mountpoint_drives().get(find_mount_point(path))

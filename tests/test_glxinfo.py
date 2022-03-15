@@ -1,5 +1,6 @@
 import os
 from unittest import TestCase
+
 from lutris.util.graphics.glxinfo import GlxInfo
 
 FIXTURES_PATH = os.path.join(os.path.dirname(__file__), 'fixtures')
@@ -43,4 +44,4 @@ class TestNvidiaGlxInfo(BaseGlxInfo):
         self.assertEqual(self.glxinfo.opengl_version, "4.6.0 NVIDIA 415.25")
         self.assertEqual(self.glxinfo.opengl_vendor, "NVIDIA Corporation")
         with self.assertRaises(AttributeError):
-            self.glxinfo.GLX_MESA_query_renderer.version
+            self.glxinfo.GLX_MESA_query_renderer.version  # pylint: disable=pointless-statement

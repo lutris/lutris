@@ -1,26 +1,34 @@
 """ResidualVM runner"""
+# Standard Library
 import os
 import subprocess
+from gettext import gettext as _
 
+# Lutris Modules
 from lutris.runners.runner import Runner
 
 RESIDUALVM_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".residualvmrc")
 
 
 class residualvm(Runner):
-    human_name = "ResidualVM"
-    platforms = ["Linux"]  # TODO
-    description = (
-        "Runs various 3D point-and-click adventure games, "
-        "like Grim Fandango and Escape from Monkey Island."
-    )
+    human_name = _("ResidualVM")
+    platforms = [_("Linux")]  # TODO
+    description = _("3D point-and-click adventure games engine")
     runner_executable = "residualvm/residualvm"
     game_options = [
-        {"option": "game_id", "type": "string", "label": "Game identifier"},
-        {"option": "path", "type": "directory_chooser", "label": "Game files location"},
+        {
+            "option": "game_id",
+            "type": "string",
+            "label": _("Game identifier")
+        },
+        {
+            "option": "path",
+            "type": "directory_chooser",
+            "label": _("Game files location")
+        },
         {
             "option": "subtitles",
-            "label": "Enable subtitles (if the game has voice)",
+            "label": _("Enable subtitles (if the game has voice)"),
             "type": "bool",
             "default": False,
         },
@@ -28,24 +36,24 @@ class residualvm(Runner):
     runner_options = [
         {
             "option": "fullscreen",
-            "label": "Fullscreen mode",
+            "label": _("Fullscreen"),
             "type": "bool",
             "default": False,
         },
         {
             "option": "renderer",
-            "label": "Renderer",
+            "label": _("Renderer"),
             "type": "choice",
             "choices": (
                 ("OpenGL", "opengl"),
-                ("OpenGL shaders", "opengl_shaders"),
-                ("Software", "software"),
+                (_("OpenGL shaders"), "opengl_shaders"),
+                (_("Software"), "software"),
             ),
             "default": "opengl",
         },
         {
             "option": "show-fps",
-            "label": "Display FPS information",
+            "label": _("Display FPS information"),
             "type": "bool",
             "default": False,
         },
@@ -95,10 +103,10 @@ class residualvm(Runner):
 
     def get_game_list(self):
         """Return the entire list of games supported by ResidualVM."""
-        residual_output = subprocess.Popen(
-            [self.get_executable(), "--list-games"], stdout=subprocess.PIPE
-        ).communicate()[0]
-        game_list = str.split(residual_output, "\n")
+        with subprocess.Popen([self.get_executable(), "--list-games"],
+                              stdout=subprocess.PIPE, encoding="utf-8", universal_newlines=True) as residualvm_process:
+            residual_output = residualvm_process.communicate()[0]
+            game_list = str.split(residual_output, "\n")
         game_array = []
         game_list_start = False
         for game in game_list:
@@ -109,7 +117,7 @@ class residualvm(Runner):
                     dir_limit = None
                 if dir_limit is not None:
                     game_dir = game[0:dir_limit]
-                    game_name = game[dir_limit + 1: len(game)].strip()
+                    game_name = game[dir_limit + 1:len(game)].strip()
                     game_array.append([game_dir, game_name])
             # The actual list is below a separator
             if game.startswith("-----"):

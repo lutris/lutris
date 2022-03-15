@@ -12,10 +12,11 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Main entry point for Lutris"""
-import sys
+import gettext
 import locale
 import os
-from os.path import realpath, dirname, normpath
+import sys
+from os.path import dirname, normpath, realpath
 
 LAUNCH_PATH = dirname(realpath(__file__))
 
@@ -31,7 +32,24 @@ try:
 except locale.Error:
     sys.stderr.write("Unsupported locale setting. Fix your locales\n")
 
-from lutris.gui.application import Application
+try:
+    # optional_settings does not exist if you don't use the meson build system
+    from lutris import optional_settings
+
+    try:
+        locale.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
+        gettext.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
+        locale.textdomain("lutris")
+        gettext.textdomain("lutris")
+    except:
+        sys.stderr.write(
+            "Couldn't bind gettext domain, translations won't work.\n"
+            "LOCALE_DIR: %s\n" % optional_settings.LOCALE_DIR
+        )
+except ImportError:
+    pass
+
+from lutris.gui.application import Application  # pylint: disable=no-name-in-module
 
 app = Application()  # pylint: disable=invalid-name
 sys.exit(app.run(sys.argv))

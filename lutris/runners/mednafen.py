@@ -1,88 +1,103 @@
+# Standard Library
 import subprocess
+from gettext import gettext as _
+
+# Lutris Modules
 from lutris.runners.runner import Runner
-from lutris.util.display import DISPLAY_MANAGER
-from lutris.util.log import logger
-from lutris.util.joypad import get_controller_mappings
 from lutris.util import system
+from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.joypad import get_controller_mappings
+from lutris.util.log import logger
 
 DEFAULT_MEDNAFEN_SCALER = "nn4x"
 
 
 class mednafen(Runner):
-    human_name = "Mednafen"
-    description = "Multi-system emulator including NES, GB(A), PC Engine " "support."
+    human_name = _("Mednafen")
+    description = _("Multi-system emulator: NES, PC Engine, PSX…")
     platforms = [
-        "Nintendo Game Boy (Color)",
-        "Nintendo Game Boy Advance",
-        "Sega Game Gear",
-        "Sega Genesis/Mega Drive",
-        "Atari Lynx",
-        "Sega Master System",
-        "SNK Neo Geo Pocket (Color)",
-        "Nintendo NES",
-        "NEC PC Engine TurboGrafx-16",
-        "NEC PC-FX",
-        "Sony PlayStation",
-        "Sega Saturn",
-        "Nintendo SNES",
-        "Bandai WonderSwan",
-        "Nintendo Virtual Boy",
+        _("Nintendo Game Boy (Color)"),
+        _("Nintendo Game Boy Advance"),
+        _("Sega Game Gear"),
+        _("Sega Genesis/Mega Drive"),
+        _("Atari Lynx"),
+        _("Sega Master System"),
+        _("SNK Neo Geo Pocket (Color)"),
+        _("Nintendo NES"),
+        _("NEC PC Engine TurboGrafx-16"),
+        _("NEC PC-FX"),
+        _("Sony PlayStation"),
+        _("Sega Saturn"),
+        _("Nintendo SNES"),
+        _("Bandai WonderSwan"),
+        _("Nintendo Virtual Boy"),
     ]
     machine_choices = (
-        ("Game Boy (Color)", "gb"),
-        ("Game Boy Advance", "gba"),
-        ("Game Gear", "gg"),
-        ("Genesis/Mega Drive", "md"),
-        ("Lynx", "lynx"),
-        ("Master System", "sms"),
-        ("Neo Geo Pocket (Color)", "gnp"),
-        ("NES", "nes"),
-        ("PC Engine", "pce_fast"),
-        ("PC-FX", "pcfx"),
-        ("PlayStation", "psx"),
-        ("Saturn", "ss"),
-        ("SNES", "snes"),
-        ("WonderSwan", "wswan"),
-        ("Virtual Boy", "vb"),
+        (_("Game Boy (Color)"), "gb"),
+        (_("Game Boy Advance"), "gba"),
+        (_("Game Gear"), "gg"),
+        (_("Genesis/Mega Drive"), "md"),
+        (_("Lynx"), "lynx"),
+        (_("Master System"), "sms"),
+        (_("Neo Geo Pocket (Color)"), "gnp"),
+        (_("NES"), "nes"),
+        (_("PC Engine"), "pce_fast"),
+        (_("PC-FX"), "pcfx"),
+        (_("PlayStation"), "psx"),
+        (_("Saturn"), "ss"),
+        (_("SNES"), "snes"),
+        (_("WonderSwan"), "wswan"),
+        (_("Virtual Boy"), "vb"),
     )
     runner_executable = "mednafen/bin/mednafen"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            "help": (
-                "The game data, commonly called a ROM image. \n"
-                "Mednafen supports GZIP and ZIP compressed ROMs."
-            ),
+            "label": _("ROM file"),
+            "help":
+            _("The game data, commonly called a ROM image. \n"
+              "Mednafen supports GZIP and ZIP compressed ROMs."),
         },
         {
             "option": "machine",
             "type": "choice",
-            "label": "Machine type",
+            "label": _("Machine type"),
             "choices": machine_choices,
-            "help": "The emulated machine.",
+            "help": _("The emulated machine."),
         },
     ]
     runner_options = [
-        {"option": "fs", "type": "bool", "label": "Fullscreen", "default": False},
         {
-            "option": "stretch",
-            "type": "choice",
-            "label": "Aspect ratio",
-            "choices": (
-                ("Disabled", "0"),
-                ("Stretched", "full"),
-                ("Preserve aspect ratio", "aspect"),
-                ("Integer scale", "aspect_int"),
-                ("Multiple of 2 scale", "aspect_mult2"),
-            ),
-            "default": "aspect_int",
+            "option": "fs",
+            "type": "bool",
+            "label": _("Fullscreen"),
+            "default": False
         },
         {
-            "option": "scaler",
-            "type": "choice",
-            "label": "Video scaler",
+            "option":
+            "stretch",
+            "type":
+            "choice",
+            "label":
+            _("Aspect ratio"),
+            "choices": (
+                (_("Disabled"), "0"),
+                (_("Stretched"), "full"),
+                (_("Preserve aspect ratio"), "aspect"),
+                (_("Integer scale"), "aspect_int"),
+                (_("Multiple of 2 scale"), "aspect_mult2"),
+            ),
+            "default":
+            "aspect_int",
+        },
+        {
+            "option":
+            "scaler",
+            "type":
+            "choice",
+            "label":
+            _("Video scaler"),
             "choices": (
                 ("none", "none"),
                 ("hq2x", "hq2x"),
@@ -101,25 +116,30 @@ class mednafen(Runner):
                 ("nny3x", "nny3x"),
                 ("nny4x", "nny4x"),
             ),
-            "default": DEFAULT_MEDNAFEN_SCALER,
+            "default":
+            DEFAULT_MEDNAFEN_SCALER,
         },
         {
-            "option": "sound_device",
-            "type": "choice",
-            "label": "Sound device",
+            "option":
+            "sound_device",
+            "type":
+            "choice",
+            "label":
+            _("Sound device"),
             "choices": (
-                ("Mednafen default", "default"),
-                ("ALSA default", "sexyal-literal-default"),
+                (_("Mednafen default"), "default"),
+                (_("ALSA default"), "sexyal-literal-default"),
                 ("hw:0", "hw:0,0"),
                 ("hw:1", "hw:1,0"),
                 ("hw:2", "hw:2,0"),
             ),
-            "default": "sexyal-literal-default"
+            "default":
+            "sexyal-literal-default"
         },
         {
             "option": "dont_map_controllers",
             "type": "bool",
-            "label": "Use default Mednafen controller configuration",
+            "label": _("Use default Mednafen controller configuration"),
             "default": False,
         },
     ]
@@ -137,15 +157,15 @@ class mednafen(Runner):
         joy_ids = []
         if not self.is_installed:
             return []
-        output = subprocess.Popen(
+        with subprocess.Popen(
             [self.get_executable(), "dummy"],
             stdout=subprocess.PIPE,
             universal_newlines=True,
-        ).communicate()[0]
-        ouput = output.split("\n")
+        ) as mednafen_process:
+            output = mednafen_process.communicate()[0].split("\n")
         found = False
         joy_list = []
-        for line in ouput:
+        for line in output:
             if found and "Joystick" in line:
                 joy_list.append(line)
             else:
@@ -170,8 +190,7 @@ class mednafen(Runner):
             logger.warning("No controller detected for joysticks %s.", joy_ids)
             return []
 
-        # TODO currently only supports the first controller. Add support for
-        # other controllers.
+        # TODO currently only supports the first controller. Add support for other controllers.
         mapping = controller_mappings[0][1]
 
         # Construct a dictionnary of button codes to parse to mendafen

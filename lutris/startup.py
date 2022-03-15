@@ -1,15 +1,28 @@
 """Check to run at program start"""
-# pylint: disable=no-member
 import os
-from lutris.util.log import logger
-from lutris import pga
+import sqlite3
+import time
+from gettext import gettext as _
+
+from lutris import runners, settings
+from lutris.database.games import get_games
+from lutris.database.schema import syncdb
 from lutris.game import Game
-from lutris import settings
-from lutris.util.system import create_folder
-from lutris.util.graphics import drivers
-from lutris.util.graphics import vkquery
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.gui.dialogs import DontShowAgainDialog
+from lutris.runners.json import load_json_runners
+from lutris.runtime import RuntimeUpdater
+from lutris.services import DEFAULT_SERVICES
+from lutris.services.lutris import sync_media
+from lutris.util import update_cache
+from lutris.util.graphics import drivers, vkquery
+from lutris.util.linux import LINUX_SYSTEM
+from lutris.util.log import logger
+from lutris.util.system import create_folder
+from lutris.util.wine.d3d_extras import D3DExtrasManager
+from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
+from lutris.util.wine.dxvk import DXVKManager
+from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
+from lutris.util.wine.vkd3d import VKD3DManager
 
 
 def init_dirs():
@@ -21,28 +34,18 @@ def init_dirs():
         settings.DATA_DIR,
         os.path.join(settings.DATA_DIR, "covers"),
         settings.ICON_PATH,
-        os.path.join(settings.DATA_DIR, "banners"),
-        os.path.join(settings.DATA_DIR, "coverart"),
+        os.path.join(settings.CACHE_DIR, "banners"),
+        os.path.join(settings.CACHE_DIR, "coverart"),
         os.path.join(settings.DATA_DIR, "runners"),
         os.path.join(settings.DATA_DIR, "lib"),
         settings.RUNTIME_DIR,
         settings.CACHE_DIR,
+        settings.SHADER_CACHE_DIR,
         os.path.join(settings.CACHE_DIR, "installer"),
         os.path.join(settings.CACHE_DIR, "tmp"),
     ]
     for directory in directories:
         create_folder(directory)
-
-
-def init_db():
-    """Initialize the SQLite DB"""
-    pga.syncdb()
-
-
-def init_lutris():
-    """Run full initialization of Lutris"""
-    init_dirs()
-    init_db()
 
 
 def check_driver():
@@ -51,34 +54,27 @@ def check_driver():
     if drivers.is_nvidia():
         driver_info = drivers.get_nvidia_driver_info()
         # pylint: disable=logging-format-interpolation
-        logger.info(
-            "Using {vendor} drivers {version} for {arch}".format(**driver_info["nvrm"])
-        )
+        logger.info("Using {vendor} drivers {version} for {arch}".format(**driver_info["nvrm"]))
         gpus = drivers.get_nvidia_gpu_ids()
         for gpu_id in gpus:
             gpu_info = drivers.get_nvidia_gpu_info(gpu_id)
             logger.info("GPU: %s", gpu_info.get("Model"))
     elif LINUX_SYSTEM.glxinfo:
-        logger.info("Using %s", LINUX_SYSTEM.glxinfo.opengl_vendor)
+        # pylint: disable=no-member
         if hasattr(LINUX_SYSTEM.glxinfo, "GLX_MESA_query_renderer"):
             logger.info(
-                "Running Mesa driver %s on %s",
+                "Running %s Mesa driver %s on %s",
+                LINUX_SYSTEM.glxinfo.opengl_vendor,
                 LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version,
                 LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.device,
             )
     else:
-        logger.warning(
-            "glxinfo is not available on your system, unable to detect driver version"
-        )
+        logger.warning("glxinfo is not available on your system, unable to detect driver version")
 
     for card in drivers.get_gpus():
         # pylint: disable=logging-format-interpolation
         try:
-            logger.info(
-                "GPU: {PCI_ID} {PCI_SUBSYS_ID} using {DRIVER} drivers".format(
-                    **drivers.get_gpu_info(card)
-                )
-            )
+            logger.info("GPU: {PCI_ID} {PCI_SUBSYS_ID} ({DRIVER} drivers)".format(**drivers.get_gpu_info(card)))
         except KeyError:
             logger.error("Unable to get GPU information from '%s'", card)
 
@@ -87,12 +83,16 @@ def check_driver():
         if settings.read_setting(setting) != "True":
             DontShowAgainDialog(
                 setting,
-                "Your Nvidia driver is outdated.",
-                secondary_message="You are currently running driver %s which does not "
-                "fully support all features for Vulkan and DXVK games.\n"
-                "Please upgrade your driver as described in our "
-                "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
-                "installation guide</a>" % driver_info["nvrm"]["version"],
+                _("Your NVIDIA driver is outdated."),
+                secondary_message=_(
+                    "You are currently running driver %s which does not "
+                    "fully support all features for Vulkan and DXVK games.\n"
+                    "Please upgrade your driver as described in our "
+                    "<a href='%s'>installation guide</a>"
+                ) % (
+                    driver_info["nvrm"]["version"],
+                    settings.DRIVER_HOWTO_URL,
+                )
             )
 
 
@@ -116,53 +116,39 @@ def check_libs(all_components=False):
         if settings.read_setting(setting) != "True":
             DontShowAgainDialog(
                 setting,
-                "Missing vulkan libraries",
-                secondary_message="Lutris was unable to detect Vulkan support for "
-                "the %s architecture.\n"
-                "This will prevent many games and programs from working.\n"
-                "To install it, please use the following guide: "
-                "<a href='https://github.com/lutris/lutris/wiki/Installing-drivers'>"
-                "Installing Graphics Drivers</a>" % " and ".join(missing_vulkan_libs),
+                _("Missing vulkan libraries"),
+                secondary_message=_(
+                    "Lutris was unable to detect Vulkan support for "
+                    "the %s architecture.\n"
+                    "This will prevent many games and programs from working.\n"
+                    "To install it, please use the following guide: "
+                    "<a href='%s'>Installing Graphics Drivers</a>"
+                ) % (
+                    _(" and ").join(missing_vulkan_libs),
+                    settings.DRIVER_HOWTO_URL,
+                )
             )
 
 
 def check_vulkan():
     """Reports if Vulkan is enabled on the system"""
-    if vkquery.is_vulkan_supported():
-        logger.info("Vulkan is supported")
-    else:
-        logger.info("Vulkan is not available or your system isn't Vulkan capable")
-
-
-def check_donate():
-    setting = "dont-support-lutris"
-    if settings.read_setting(setting) != "True":
-        DontShowAgainDialog(
-            setting,
-            "Please support Lutris!",
-            secondary_message="Lutris is entirely funded by its community and will "
-            "remain an independent gaming platform.\n"
-            "For Lutris to survive and grow, the project needs your help.\n"
-            "Please consider making a donation if you can. This will greatly help "
-            "cover the costs of hosting the project and fund new features "
-            "like cloud saves or a full-screen interface for the TV!\n"
-            "<a href='https://lutris.net/donate'>SUPPORT US! https://lutris.net/donate</a>",
-        )
+    if not vkquery.is_vulkan_supported():
+        logger.warning("Vulkan is not available or your system isn't Vulkan capable")
 
 
 def fill_missing_platforms():
     """Sets the platform on games where it's missing.
     This should never happen.
     """
-    pga_games = pga.get_games(filter_installed=True)
+    pga_games = get_games(filters={"installed": 1})
     for pga_game in pga_games:
         if pga_game.get("platform") or not pga_game["runner"]:
             continue
         game = Game(game_id=pga_game["id"])
-        logger.error("Providing missing platform for game %s", game.slug)
         game.set_platform_from_runner()
         if game.platform:
-            game.save(metadata_only=True)
+            logger.info("Platform for %s set to %s", game.name, game.platform)
+            game.save(save_config=False)
 
 
 def run_all_checks():
@@ -170,5 +156,48 @@ def run_all_checks():
     check_driver()
     check_libs()
     check_vulkan()
-    check_donate()
     fill_missing_platforms()
+
+
+def init_lutris():
+    """Run full initialization of Lutris"""
+    logger.info("Starting Lutris %s", settings.VERSION)
+    runners.inject_runners(load_json_runners())
+    # Load runner names and platforms
+    runners.RUNNER_NAMES = runners.get_runner_names()
+    runners.RUNNER_PLATFORMS = runners.get_platforms()
+    init_dirs()
+    try:
+        syncdb()
+    except sqlite3.DatabaseError as err:
+        raise RuntimeError(
+            "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
+            settings.PGA_DB
+        ) from err
+    for service in DEFAULT_SERVICES:
+        if not settings.read_setting(service, section="services"):
+            settings.write_setting(service, True, section="services")
+
+
+def update_runtime(force=False):
+    """Update runtime components"""
+    runtime_call = update_cache.get_last_call("runtime")
+    if force or not runtime_call or runtime_call > 3600 * 12:
+        runtime_updater = RuntimeUpdater()
+        components_to_update = runtime_updater.update()
+        if components_to_update:
+            while runtime_updater.current_updates:
+                time.sleep(0.3)
+        update_cache.write_date_to_cache("runtime")
+    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager):
+        key = dll_manager_class.__name__
+        key_call = update_cache.get_last_call(key)
+        if force or not key_call or key_call > 3600 * 6:
+            dll_manager = dll_manager_class()
+            dll_manager.upgrade()
+            update_cache.write_date_to_cache(key)
+    media_call = update_cache.get_last_call("media")
+    if force or not media_call or media_call > 3600 * 24:
+        sync_media()
+        update_cache.write_date_to_cache("media")
+    logger.info("Startup complete")

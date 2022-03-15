@@ -25,10 +25,9 @@ come in a future update.
 
 Note that Lutris is not a playground or a toy project. One cannot submit new
 features that aren't on the roadmap and submit a pull request for them without
-agreeing on a design first with the development team. You can submit such pull
-requests but they will have to be updated with necessary changes from code
-reviews of the development team. This is not only about writing good code but
-also about providing good design for the overall product. Make sure to post all
+agreeing on a design first with the development team. Please get in touch with
+the developers before writing any code, so that you don't waste your efforts on
+something that isn't going to be merged. Make sure to post all
 the relevant information in a ticket or on the pull request. New features must
 at all times have a valid use case based on an actual game, be very specific
 about why you are implementing a feature otherwise it will get rejected.
@@ -40,7 +39,7 @@ necessary.
 Contributors are welcome to suggest architectural changes or better code design
 if they feel like the current implementation should be improved but please take
 note that we're trying to stay as lean as possible. Requests introducing complex
-architectural changes for the sake of "modularity", "Unix pureness" or subjective 
+architectural changes for the sake of "modularity", "Unix pureness" or subjective
 aspects might not be received warmly. There are no plans for any rewrite in
 another language or switching to another toolkit.
 
@@ -62,30 +61,39 @@ new dependencies, check in the package configuration files for new packages to
 install. Debian based distros will have their dependencies listed
 in `debian/control` and RPM based ones in `lutris.spec`.
 
-Under NO circumstances should you use a virtualenv or install dependencies with
-pip. The PyGOject introspection libraries are not regular python packages and
+The PyGOject introspection libraries are not regular python packages and
 it is not possible for pip to install them or use them from a virtualenv. Make
 sure to always use PyGOject from your distribution's package manager. Also
 install the necessary GObject bindings as described in the INSTALL file.
+
+Set up your development environment
+-----------------------------------
+
+To ensure you have the proper dependencies installed run: `make dev`
+This will use poetry to create a virtual environment installing all necessary
+python packages to get you up and running.
+
+This project includes .editorconfig so you're good to go if you're using any
+editor/IDE that supports this. Otherwise make sure to configure your max line
+length to 120, indent style to space and always end files with an empty new line.
 
 Formatting your code
 --------------------
 
 To ensure getting your contributions getting merged faster and to avoid other
 developers from going back and fixing your code, please make sure your code
-passes pylint checks. We highly recommend that you install a pylint plugin in
-your code editor. Once you have pylint set up to check the code, you can
-configure it to use 120 characters max per line instead of 80.
+passes style checks by running `make sc` and fixing any reported issues
+before submitting your code. This runs a series of tools to apply pep8 coding
+style conventions, sorting and grouping imports and checking for formatting issues
+and other code smells.
 
-You can help fixing formatting issues or other code smells by having a look at
+You can help fix formatting issues or other code smells by having a look at
 the CodeFactor page: https://www.codefactor.io/repository/github/lutris/lutris
 
 When writing docstrings, you should follow the Google style
 (See: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html)
 You should always provide docstrings, otherwise your code wouldn't pass a
 Pylint check.
-
-Do *not* add type annotations, those are not supported in Python 3.4.
 
 Writing tests
 -------------
@@ -100,9 +108,9 @@ Running tests
 Be sure to test your changes thoroughly, never submit changes without running
 the code. At the very least, run the test suite and check that nothing broke.
 You can run the test suite by typing `make test` in the source directory.
-In order to run the test, you'll need to install nosetests and flake8:
+In order to run the test, you'll need to install nose2 and flake8:
 
-    pip3 install nose flake8
+    pip3 install nose2 flake8
 
 QAing your changes
 ------------------

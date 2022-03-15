@@ -1,39 +1,76 @@
+# Standard Library
 import os
+from gettext import gettext as _
+
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util.display import DISPLAY_MANAGER
 
 
 class fsuae(Runner):
-    human_name = "FS-UAE"
-    description = "Amiga emulator"
+    human_name = _("FS-UAE")
+    description = _("Amiga emulator")
     platforms = [
-        "Amiga 500",
-        "Amiga 500+",
-        "Amiga 600",
-        "Amiga 1000",
-        "Amiga 1200",
-        "Amiga 1200",
-        "Amiga 4000",
-        "Amiga CD32",
-        "Commodore CDTV",
+        _("Amiga 500"),
+        _("Amiga 500+"),
+        _("Amiga 600"),
+        _("Amiga 1000"),
+        _("Amiga 1200"),
+        _("Amiga 1200"),
+        _("Amiga 4000"),
+        _("Amiga CD32"),
+        _("Commodore CDTV"),
     ]
     model_choices = [
-        ("Amiga 500", "A500"),
-        ("Amiga 500+ with 1 MB chip RAM", "A500+"),
-        ("Amiga 600 with 1 MB chip RAM", "A600"),
-        ("Amiga 1000 with 512 KB chip RAM", "A1000"),
-        ("Amiga 1200 with 2 MB chip RAM", "A1200"),
-        ("Amiga 1200 but with 68020 processor", "A1200/020"),
-        ("Amiga 4000 with 2 MB chip RAM and a 68040", "A4000/040"),
-        ("Amiga CD32", "CD32"),
-        ("Commodore CDTV", "CDTV"),
+        (_("Amiga 500"), "A500"),
+        (_("Amiga 500+ with 1 MB chip RAM"), "A500+"),
+        (_("Amiga 600 with 1 MB chip RAM"), "A600"),
+        (_("Amiga 1000 with 512 KB chip RAM"), "A1000"),
+        (_("Amiga 1200 with 2 MB chip RAM"), "A1200"),
+        (_("Amiga 1200 but with 68020 processor"), "A1200/020"),
+        (_("Amiga 4000 with 2 MB chip RAM and a 68040"), "A4000/040"),
+        (_("Amiga CD32"), "CD32"),
+        (_("Commodore CDTV"), "CDTV"),
+    ]
+    cpumodel_choices = [
+        (_("68000"), "68000"),
+        (_("68010"), "68010"),
+        (_("68020 with 24-bit addressing"), "68EC020"),
+        (_("68020"), "68020"),
+        (_("68030 without internal MMU"), "68EC030"),
+        (_("68030"), "68030"),
+        (_("68040 without internal FPU and MMU"), "68EC040"),
+        (_("68040 without internal FPU"), "68LC040"),
+        (_("68040 without internal MMU"), "68040-NOMMU"),
+        (_("68040"), "68040"),
+        (_("68060 without internal FPU and MMU"), "68EC060"),
+        (_("68060 without internal FPU"), "68LC060"),
+        (_("68060 without internal MMU"), "68060-NOMMU"),
+        (_("68060"), "68060"),
+        (_("Auto"), "auto"),
     ]
     memory_choices = [
-        ("0", "0"),
-        ("1 MB", "1024"),
-        ("2 MB", "2048"),
-        ("4 MB", "4096"),
-        ("8 MB", "8192"),
+        (_("0"), "0"),
+        (_("1 MB"), "1024"),
+        (_("2 MB"), "2048"),
+        (_("4 MB"), "4096"),
+        (_("8 MB"), "8192"),
+    ]
+    zorroiii_choices = [
+        (_("0"), "0"),
+        (_("1 MB"), "1024"),
+        (_("2 MB"), "2048"),
+        (_("4 MB"), "4096"),
+        (_("8 MB"), "8192"),
+        (_("16 MB"), "16384"),
+        (_("32 MB"), "32768"),
+        (_("64 MB"), "65536"),
+        (_("128 MB"), "131072"),
+        (_("256 MB"), "262144"),
+        (_("384 MB"), "393216"),
+        (_("512 MB"), "524288"),
+        (_("768 MB"), "786432"),
+        (_("1 GB"), "1048576"),
     ]
     flsound_choices = [
         ("0", "0"),
@@ -54,19 +91,19 @@ class fsuae(Runner):
         ("Picasso IV Zorro III", "picasso-iv-z3"),
     ]
     gpumem_choices = [
-        ("0", "0"),
-        ("1 MB", "1024"),
-        ("2 MB", "2048"),
-        ("4 MB", "4096"),
-        ("8 MB", "8192"),
-        ("16 MB", "16384"),
-        ("32 MB", "32768"),
-        ("64 MB", "65536"),
-        ("128 MB", "131072"),
-        ("256 MB", "262144"),
+        (_("0"), "0"),
+        (_("1 MB"), "1024"),
+        (_("2 MB"), "2048"),
+        (_("4 MB"), "4096"),
+        (_("8 MB"), "8192"),
+        (_("16 MB"), "16384"),
+        (_("32 MB"), "32768"),
+        (_("64 MB"), "65536"),
+        (_("128 MB"), "131072"),
+        (_("256 MB"), "262144"),
     ]
     flspeed_choices = [
-        ("Turbo", "0"),
+        (_("Turbo"), "0"),
         ("100%", "100"),
         ("200%", "200"),
         ("400%", "400"),
@@ -77,9 +114,9 @@ class fsuae(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "Boot disk",
+            "label": _("Boot disk"),
             "default_path": "game_path",
-            "help": (
+            "help": _(
                 "The main floppy disk file with the game data. \n"
                 "FS-UAE supports floppy images in multiple file formats: "
                 "ADF, IPF, DMS are the most common. ADZ (compressed ADF) "
@@ -87,37 +124,35 @@ class fsuae(Runner):
                 "Files ending in .hdf will be mounted as hard drives and "
                 "ISOs can be used for Amiga CD32 and CDTV models."
             ),
-        },
-        {
+        }, {
             "option": "disks",
             "type": "multiple",
-            "label": "Additionnal floppies",
+            "label": _("Additionnal floppies"),
             "default_path": "game_path",
-            "help": "The additional floppy disk image(s).",
-        },
-        {
+            "help": _("The additional floppy disk image(s)."),
+        }, {
             "option": "cdrom_image",
-            "label": "CD-Rom image",
+            "label": _("CD-ROM image"),
             "type": "file",
-            "help": "CD-ROM image to use on non CD32/CDTV models"
+            "help": _("CD-ROM image to use on non CD32/CDTV models")
         }
     ]
 
     runner_options = [
         {
             "option": "model",
-            "label": "Amiga model",
+            "label": _("Amiga model"),
             "type": "choice",
             "choices": model_choices,
             "default": "A500",
-            "help": "Specify the Amiga model you want to emulate.",
+            "help": _("Specify the Amiga model you want to emulate."),
         },
         {
             "option": "kickstart_file",
-            "label": "Kickstart ROMs location",
+            "label": _("Kickstart ROMs location"),
             "type": "file",
-            "help": (
-                "Choose the folder containing original Amiga kickstart "
+            "help": _(
+                "Choose the folder containing original Amiga Kickstart "
                 "ROMs. Refer to FS-UAE documentation to find how to "
                 "acquire them. Without these, FS-UAE uses a bundled "
                 "replacement ROM which is less compatible with Amiga "
@@ -126,36 +161,74 @@ class fsuae(Runner):
         },
         {
             "option": "kickstart_ext_file",
-            "label": "Extended Kickstart location",
+            "label": _("Extended Kickstart location"),
             "type": "file",
-            "help": "Location of extended Kickstart used for CD32",
+            "advanced": True,
+            "help": _("Location of extended Kickstart used for CD32"),
+        },
+        {
+            "option": "gfx_fullscreen_amiga",
+            "label": _("Fullscreen (F12 + S to switch)"),
+            "type": "bool",
+            "default": False,
+        },
+        {
+            "option": "scanlines",
+            "label": _("Scanlines display style"),
+            "type": "bool",
+            "default": False,
+            "help": _("Activates a display filter adding scanlines to imitate "
+                      "the displays of yesteryear."),
+        },
+        {
+            "option": "cpumodel",
+            "label": _("CPU"),
+            "type": "choice",
+            "choices": cpumodel_choices,
+            "default": "auto",
+            "advanced": True,
+            "help": _("Use this option to override the CPU model in the emulated Amiga. All Amiga "
+                      "models imply a default CPU model, so you only need to use this option if you "
+                      "want to use another CPU."),
         },
         {
             "option": "fmemory",
-            "label": "Fast Memory",
+            "label": _("Fast Memory"),
             "type": "choice",
             "choices": memory_choices,
             "default": "0",
-            "help": "Specify how much Fast Memory the Amiga model should have.",
+            "advanced": True,
+            "help": _("Specify how much Fast Memory the Amiga model should have."),
+        },
+        {
+            "option": "ziiimem",
+            "label": _("Zorro III RAM"),
+            "type": "choice",
+            "choices": zorroiii_choices,
+            "default": "0",
+            "advanced": True,
+            "help": _("Override the amount of Zorro III Fast memory, specified in KB. Must be a "
+                      "multiple of 1024. The default value depends on [amiga_model]. Requires a "
+                      "processor with 32-bit address bus, (use for example the A1200/020 model)."),
         },
         {
             "option": "fdvolume",
-            "label": "Floppy Drive Volume",
+            "label": _("Floppy Drive Volume"),
             "type": "choice",
             "choices": flsound_choices,
             "default": "0",
-            "help": (
-                "Set volume to 0 to disable floppy drive clicks "
-                "when the drive is empty. Max volume is 100."
-            )
+            "advanced": True,
+            "help": _("Set volume to 0 to disable floppy drive clicks "
+                      "when the drive is empty. Max volume is 100.")
         },
         {
             "option": "fdspeed",
-            "label": "Floppy Drive Speed",
+            "label": _("Floppy Drive Speed"),
             "type": "choice",
             "choices": flspeed_choices,
             "default": "100",
-            "help": (
+            "advanced": True,
+            "help": _(
                 "Set the speed of the emulated floppy drives, in percent. "
                 "For example, you can specify 800 to get an 8x increase in "
                 "speed. Use 0 to specify turbo mode. Turbo mode means that "
@@ -164,73 +237,60 @@ class fsuae(Runner):
         },
         {
             "option": "grafixcard",
-            "label": "Graphics Card",
+            "label": _("Graphics Card"),
             "type": "choice",
             "choices": gpucard_choices,
             "default": "None",
-            "help": (
+            "advanced": True,
+            "help": _(
                 "Use this option to enable a graphics card. This option is none by default, in "
                 "which case only chipset graphics (OCS/ECS/AGA) support is available."
             )
         },
         {
             "option": "grafixmemory",
-            "label": "Graphics Card RAM",
+            "label": _("Graphics Card RAM"),
             "type": "choice",
             "choices": gpumem_choices,
             "default": "0",
-            "help": (
+            "advanced": True,
+            "help": _(
                 "Override the amount of graphics memory on the graphics card. The 0 MB option is "
                 "not really valid, but exists for user interface reasons."
             )
         },
         {
-            "option": "gfx_fullscreen_amiga",
-            "label": "Fullscreen (F12 + s to switch)",
-            "type": "bool",
-            "default": False,
-        },
-        {
             "option": "jitcompiler",
-            "label": "JIT Compiler",
+            "label": _("JIT Compiler"),
             "type": "bool",
             "default": False,
+            "advanced": True,
         },
         {
             "option": "gamemode",
-            "label": "Feral GameMode",
+            "label": _("Feral GameMode"),
             "type": "bool",
             "default": False,
-            "help": (
-                "Automatically uses Feral GameMode daemon if available."
-                "set to true to disable the feature."
-            )
+            "advanced": True,
+            "help": _("Automatically uses Feral GameMode daemon if available. "
+                      "Set to true to disable the feature.")
         },
         {
             "option": "govwarning",
-            "label": "CPU governor warning",
+            "label": _("CPU governor warning"),
             "type": "bool",
             "default": False,
-            "help": (
-                "Warn if running with a CPU governor other than performance."
-                "set to true to disable the warning."
-            )
+            "advanced": True,
+            "help":
+            _("Warn if running with a CPU governor other than performance. "
+              "Set to true to disable the warning.")
         },
         {
             "option": "bsdsocket",
-            "label": "UAE bsdsocket.library",
+            "label": _("UAE bsdsocket.library"),
             "type": "bool",
             "default": False,
-        },
-        {
-            "option": "scanlines",
-            "label": "Scanlines display style",
-            "type": "bool",
-            "default": False,
-            "help": (
-                "Activates a display filter adding scanlines to imitate "
-                "the displays of yesteryear."
-            ),
+            "advanced": True,
         },
     ]
 
@@ -274,36 +334,29 @@ class fsuae(Runner):
         amiga_model = self.runner_config.get("model")
         if amiga_model in ("CD32", "CDTV"):
             return "cdrom_drive"
-        elif disk_path.lower().endswith(".hdf"):
+        if disk_path.lower().endswith(".hdf"):
             return "hard_drive"
         return "floppy_drive"
 
-    def get_params(self):
+    def get_params(self):  # pylint: disable=too-many-branches
         params = []
-        model = self.runner_config.get("model")
-        fmemory = self.runner_config.get("fmemory")
-        fdvolume = self.runner_config.get("fdvolume")
-        fdspeed = self.runner_config.get("fdspeed")
-        grafixcard = self.runner_config.get("grafixcard")
-        grafixmemory = self.runner_config.get("grafixmemory")
-        kickstart_file = self.runner_config.get("kickstart_file")
-        if kickstart_file:
-            params.append("--kickstart_file=%s" % kickstart_file)
-        kickstart_ext_file = self.runner_config.get("kickstart_ext_file")
-        if kickstart_ext_file:
-            params.append("--kickstart_ext_file=%s" % kickstart_ext_file)
-        if model:
-            params.append("--amiga_model=%s" % model)
-        if fmemory:
-            params.append("--fast_memory=%s" % fmemory)
-        if fdvolume:
-            params.append("--floppy_drive_volume=%s" % fdvolume)
-        if fdspeed:
-            params.append("--floppy_drive_speed=%s" % fdspeed)
-        if grafixcard:
-            params.append("--graphics_card=%s" % grafixcard)
-        if grafixmemory:
-            params.append("--graphics_memory=%s" % grafixmemory)
+        option_params = {
+            "kickstart_file": "--kickstart_file=%s",
+            "kickstart_ext_file": "--kickstart_ext_file=%s",
+            "model": "--amiga_model=%s",
+            "cpumodel": "--cpu=%s",
+            "fmemory": "--fast_memory=%s",
+            "ziiimem": "--zorro_iii_memory=%s",
+            "fdvolume": "--floppy_drive_volume=%s",
+            "fdspeed": "--floppy_drive_speed=%s",
+            "grafixcard": "--graphics_card=%s",
+            "grafixmemory": "--graphics_memory=%s",
+        }
+        for option, param in option_params.items():
+            option_value = self.runner_config.get(option)
+            if option_value:
+                params.append(param % option_value)
+
         if self.runner_config.get("gfx_fullscreen_amiga"):
             width = int(DISPLAY_MANAGER.get_current_resolution()[0])
             params.append("--fullscreen")

@@ -1,21 +1,27 @@
+# Standard Library
 import os
-from lutris.runners.runner import Runner
+import shlex
+from gettext import gettext as _
+
+# Lutris Modules
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
+from lutris.runners.runner import Runner
 from lutris.util import system
 
 
 class dosbox(Runner):
-    human_name = "DOSBox"
-    description = "MS-Dos emulator"
-    platforms = ["MS-DOS"]
+    human_name = _("DOSBox")
+    description = _("MS-DOS emulator")
+    platforms = [_("MS-DOS")]
     runnable_alone = True
     runner_executable = "dosbox/bin/dosbox"
+    require_libs = ["libopusfile.so.0", ]
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "label": "Main file",
-            "help": (
+            "label": _("Main file"),
+            "help": _(
                 "The CONF, EXE, COM or BAT file to launch.\n"
                 "It can be left blank if the launch of the executable is "
                 "managed in the config file."
@@ -24,25 +30,26 @@ class dosbox(Runner):
         {
             "option": "config_file",
             "type": "file",
-            "label": "Configuration file",
-            "help": (
-                "Start Dosbox with the options specified in this file. \n"
+            "label": _("Configuration file"),
+            "help": _(
+                "Start DOSBox with the options specified in this file. \n"
                 "It can have a section in which you can put commands "
-                "to execute on startup. Read Dosbox's documentation "
+                "to execute on startup. Read DOSBox's documentation "
                 "for more information."
             ),
         },
         {
             "option": "args",
             "type": "string",
-            "label": "Command arguments",
-            "help": ("Command line arguments used when launching " "DOSBox"),
+            "label": _("Command line arguments"),
+            "help": _("Command line arguments used when launching DOSBox"),
+            "validator": shlex.split,
         },
         {
             "option": "working_dir",
             "type": "directory_chooser",
-            "label": "Working directory",
-            "help": (
+            "label": _("Working directory"),
+            "help": _(
                 "The location where the game is run from.\n"
                 "By default, Lutris uses the directory of the "
                 "executable."
@@ -51,7 +58,7 @@ class dosbox(Runner):
     ]
 
     scaler_modes = [
-        ("none", "none"),
+        (_("none"), "none"),
         ("normal2x", "normal2x"),
         ("normal3x", "normal3x"),
         ("hq2x", "hq2x"),
@@ -72,42 +79,49 @@ class dosbox(Runner):
     ]
     runner_options = [
         {
-            "option": "scaler",
-            "label": "Graphic scaler",
-            "type": "choice",
-            "choices": scaler_modes,
-            "default": "normal3x",
-            "help": (
-                "The algorithm used to scale up the game's base "
-                "resolution, resulting in different visual styles. "
-            ),
+            "option":
+            "scaler",
+            "label":
+            _("Graphic scaler"),
+            "type":
+            "choice",
+            "choices":
+            scaler_modes,
+            "default":
+            "normal3x",
+            "help":
+            _("The algorithm used to scale up the game's base "
+              "resolution, resulting in different visual styles. "),
         },
         {
             "option": "exit",
-            "label": "Exit Dosbox with the game",
+            "label": _("Exit DOSBox with the game"),
             "type": "bool",
             "default": True,
-            "help": "Shut down Dosbox when the game is quit.",
+            "help": _("Shut down DOSBox when the game is quit."),
         },
         {
             "option": "fullscreen",
-            "label": "Open game in fullscreen",
+            "label": _("Open game in fullscreen"),
             "type": "bool",
             "default": False,
-            "help": "Tells Dosbox to launch the game in fullscreen.",
+            "help": _("Tells DOSBox to launch the game in fullscreen."),
         },
     ]
 
+    def make_absolute(self, path):
+        """Return a guaranteed absolute path"""
+        if not path:
+            return ""
+        if os.path.isabs(path):
+            return path
+        if self.game_data.get("directory"):
+            return os.path.join(self.game_data.get("directory"), path)
+        return ""
+
     @property
     def main_file(self):
-        main_file = self.game_config.get("main_file")
-        if not main_file:
-            return ""
-        if os.path.isabs(main_file):
-            return main_file
-        game_directory = self.game_data.get("directory")
-        if game_directory:
-            return os.path.join(game_directory, main_file)
+        return self.make_absolute(self.game_config.get("main_file"))
 
     @property
     def working_dir(self):
@@ -117,13 +131,13 @@ class dosbox(Runner):
             return os.path.expanduser(option)
         if self.main_file:
             return os.path.dirname(self.main_file)
-        return super(dosbox, self).working_dir
+        return super().working_dir
 
     def play(self):
         main_file = self.main_file
         if not system.path_exists(main_file):
             return {"error": "FILE_NOT_FOUND", "file": main_file}
-        args = self.game_config.get("args") or ""
+        args = shlex.split(self.game_config.get("args") or "")
 
         command = [self.get_executable()]
 
@@ -135,7 +149,7 @@ class dosbox(Runner):
         # Options
         if self.game_config.get("config_file"):
             command.append("-conf")
-            command.append(self.game_config["config_file"])
+            command.append(self.make_absolute(self.game_config["config_file"]))
 
         scaler = self.runner_config.get("scaler")
         if scaler and scaler != "none":
@@ -149,6 +163,6 @@ class dosbox(Runner):
             command.append("-exit")
 
         if args:
-            command.append(args)
+            command.extend(args)
 
         return {"command": command}

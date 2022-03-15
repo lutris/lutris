@@ -1,5 +1,6 @@
 import os
 import time
+
 import requests
 
 from lutris import __version__
@@ -14,6 +15,7 @@ get_time = time.monotonic
 
 
 class Downloader:
+
     """Non-blocking downloader.
 
     Do start() then check_progress() at regular intervals.
@@ -21,7 +23,13 @@ class Downloader:
     Stop with cancel().
     """
 
-    (INIT, DOWNLOADING, CANCELLED, ERROR, COMPLETED) = list(range(5))
+    (
+        INIT,
+        DOWNLOADING,
+        CANCELLED,
+        ERROR,
+        COMPLETED
+    ) = list(range(5))
 
     def __init__(self, url, dest, overwrite=False, referer=None, callback=None):
         self.url = url
@@ -42,7 +50,6 @@ class Downloader:
         self.speed = 0
         self.average_speed = 0
         self.time_left = "00:00:00"  # Based on average speed
-
         self.last_size = 0
         self.last_check_time = 0
         self.last_speeds = []
@@ -50,16 +57,37 @@ class Downloader:
         self.time_left_check_time = 0
         self.file_pointer = None
 
+    def __str__(self):
+        return "downloader for %s" % self.url
+
     def start(self):
         """Start download job."""
-        logger.debug("Starting download of:\n %s", self.url)
+        logger.debug("⬇ %s", self.url)
         self.state = self.DOWNLOADING
         self.last_check_time = get_time()
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
-        self.file_pointer = open(self.dest, "wb")
-        self.thread = jobs.AsyncCall(self.async_download, self.on_done)
+        self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
+        self.thread = jobs.AsyncCall(self.async_download, self.download_cb)
         self.stop_request = self.thread.stop_request
+
+    def reset(self):
+        """Reset the state of the downloader"""
+        self.state = self.INIT
+        self.error = None
+        self.downloaded_size = 0  # Bytes
+        self.full_size = 0  # Bytes
+        self.progress_fraction = 0
+        self.progress_percentage = 0
+        self.speed = 0
+        self.average_speed = 0
+        self.time_left = "00:00:00"  # Based on average speed
+        self.last_size = 0
+        self.last_check_time = 0
+        self.last_speeds = []
+        self.speed_check_time = 0
+        self.time_left_check_time = 0
+        self.file_pointer = None
 
     def check_progress(self):
         """Append last downloaded chunk to dest file and store stats.
@@ -71,7 +99,7 @@ class Downloader:
 
     def cancel(self):
         """Request download stop and remove destination file."""
-        logger.debug("Download of %s cancelled", self.url)
+        logger.debug("❌ %s", self.url)
         self.state = self.CANCELLED
         if self.stop_request:
             self.stop_request.set()
@@ -81,7 +109,7 @@ class Downloader:
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
-    def on_done(self, _result, error):
+    def download_cb(self, _result, error):
         if error:
             logger.error("Download failed: %s", error)
             self.state = self.ERROR
@@ -114,10 +142,10 @@ class Downloader:
             headers["Referer"] = self.referer
         response = requests.get(self.url, headers=headers, stream=True)
         if response.status_code != 200:
-            logger.info("%s returned a %s error" % (self.url, response.status_code))
+            logger.info("%s returned a %s error", self.url, response.status_code)
         response.raise_for_status()
         self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
-        for chunk in response.iter_content(chunk_size=1024 * 1024):
+        for chunk in response.iter_content(chunk_size=1024):
             if not self.file_pointer:
                 break
             if chunk:

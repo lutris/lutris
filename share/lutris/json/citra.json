@@ -1,0 +1,16 @@
+{
+    "human_name": "Citra",
+    "description": "Nintendo 3DS emulator",
+    "platforms": ["Nintendo 3DS"],
+    "require_libs": ["libQt5OpenGL.so.5", "libQt5Widgets.so.5", "libQt5Multimedia.so.5"],
+    "runner_executable": "citra/citra-qt",
+    "runnable_alone": true,
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "ROM file",
+            "help": "The game data, commonly called a ROM image."
+        }
+    ]
+}

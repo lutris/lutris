@@ -1,7 +1,9 @@
 """Utility functions for YAML handling"""
+# Third Party Libraries
 # pylint: disable=no-member
 import yaml
 
+# Lutris Modules
 from lutris.util.log import logger
 from lutris.util.system import path_exists
 
@@ -11,7 +13,7 @@ def read_yaml_from_file(filename):
     if not path_exists(filename):
         return {}
 
-    with open(filename, "r") as yaml_file:
+    with open(filename, "r", encoding='utf-8') as yaml_file:
         try:
             yaml_content = yaml.safe_load(yaml_file) or {}
         except (yaml.scanner.ScannerError, yaml.parser.ParserError):
@@ -21,9 +23,7 @@ def read_yaml_from_file(filename):
     return yaml_content
 
 
-def write_yaml_to_file(filepath, config):
-    if not filepath:
-        raise ValueError("Missing filepath")
-    yaml_config = yaml.dump(config, default_flow_style=False)
-    with open(filepath, "w") as filehandler:
+def write_yaml_to_file(config, filepath):
+    yaml_config = yaml.safe_dump(config, default_flow_style=False)
+    with open(filepath, "w", encoding='utf-8') as filehandler:
         filehandler.write(yaml_config)

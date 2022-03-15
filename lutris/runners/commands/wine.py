@@ -5,33 +5,29 @@ import shlex
 import time
 
 from lutris import runtime, settings
+from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.runners import import_runner
-from lutris.command import MonitoredCommand
-from lutris.util import system
-from lutris.util.strings import split_arguments
+from lutris.util import linux, system
 from lutris.util.log import logger
-from lutris.util.wine.wine import (
-    WINE_DIR,
-    WINE_DEFAULT_ARCH,
-    detect_arch,
-    detect_prefix_arch,
-    get_overrides_env,
-    get_real_executable,
-    use_lutris_runtime,
-)
-from lutris.util.wine.prefix import WinePrefixManager
+from lutris.util.shell import get_shell_command
+from lutris.util.strings import split_arguments
 from lutris.util.wine.cabinstall import CabInstaller
+from lutris.util.wine.prefix import WinePrefixManager
+from lutris.util.wine.wine import (
+    WINE_DEFAULT_ARCH, WINE_DIR, detect_arch, detect_prefix_arch, get_overrides_env, get_real_executable,
+    use_lutris_runtime
+)
 
 
 def set_regedit(
-        path,
-        key,
-        value="",
-        type="REG_SZ",  # pylint: disable=redefined-builtin
-        wine_path=None,
-        prefix=None,
-        arch=WINE_DEFAULT_ARCH,
+    path,
+    key,
+    value="",
+    type="REG_SZ",  # pylint: disable=redefined-builtin
+    wine_path=None,
+    prefix=None,
+    arch=WINE_DEFAULT_ARCH,
 ):
     """Add keys to the windows registry.
 
@@ -46,10 +42,8 @@ def set_regedit(
     }
     # Make temporary reg file
     reg_path = os.path.join(settings.CACHE_DIR, "winekeys.reg")
-    with open(reg_path, "w") as reg_file:
-        reg_file.write(
-            'REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type])
-        )
+    with open(reg_path, "w", encoding='utf-8') as reg_file:
+        reg_file.write('REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type]))
     logger.debug("Setting [%s]:%s=%s", path, key, formatted_value[type])
     set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)
     os.remove(reg_path)
@@ -85,15 +79,18 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
     )
 
 
-def create_prefix(
-        prefix,
-        wine_path=None,
-        arch=WINE_DEFAULT_ARCH,
-        overrides={},
-        install_gecko=None,
-        install_mono=None,
+def create_prefix(  # noqa: C901
+    prefix,
+    wine_path=None,
+    arch=WINE_DEFAULT_ARCH,
+    overrides=None,
+    install_gecko=None,
+    install_mono=None,
 ):
     """Create a new Wine prefix."""
+    # pylint: disable=too-many-locals
+    if overrides is None:
+        overrides = {}
     if not prefix:
         raise ValueError("No Wine prefix path given")
     logger.info("Creating a %s prefix in %s", arch, prefix)
@@ -122,57 +119,34 @@ def create_prefix(
         )
         return
 
-    if install_gecko == "False":
-        overrides["mshtml"] = "disabled"
-    if install_mono == "False":
-        overrides["mscoree"] = "disabled"
-
     wineenv = {
         "WINEARCH": arch,
         "WINEPREFIX": prefix,
         "WINEDLLOVERRIDES": get_overrides_env(overrides),
+        "WINE_MONO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "mono"),
+        "WINE_GECKO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "gecko"),
     }
 
+    if install_gecko == "False":
+        wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"
+        overrides["mshtml"] = "disabled"
+    if install_mono == "False":
+        wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
+        overrides["mscoree"] = "disabled"
+
     system.execute([wineboot_path], env=wineenv)
-    for loop_index in range(50):
-        time.sleep(0.25)
+    for loop_index in range(1000):
+        time.sleep(0.5)
         if system.path_exists(os.path.join(prefix, "user.reg")):
             break
-        if loop_index == 20:
+        if loop_index == 60:
             logger.warning("Wine prefix creation is taking longer than expected...")
     if not os.path.exists(os.path.join(prefix, "user.reg")):
-        logger.error(
-            "No user.reg found after prefix creation. " "Prefix might not be valid"
-        )
+        logger.error("No user.reg found after prefix creation. " "Prefix might not be valid")
         return
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()
-    if 'steamapps/common' in prefix.lower():
-        from lutris.runners.winesteam import winesteam
-        runner = winesteam()
-        logger.info("Transfering Steam information from default prefix to new prefix")
-        dest_path = '/tmp/steam.reg'
-        default_prefix = runner.get_default_prefix(runner.default_arch)
-        wineexec(
-            "regedit",
-            args=r"/E '%s' 'HKEY_CURRENT_USER\Software\Valve\Steam'" % dest_path,
-            prefix=default_prefix
-        )
-        set_regedit_file(
-            dest_path,
-            wine_path=wine_path,
-            prefix=prefix,
-            arch=arch
-        )
-        try:
-            os.remove(dest_path)
-        except FileNotFoundError:
-            logger.error("File %s was already removed", dest_path)
-        steam_drive_path = os.path.join(prefix, 'dosdevices', 's:')
-        if not system.path_exists(steam_drive_path):
-            logger.info("Linking Steam default prefix to drive S:")
-            os.symlink(os.path.join(default_prefix, 'drive_c'), steam_drive_path)
 
 
 def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_pids=None):
@@ -201,9 +175,7 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_p
     num_cycles = 0
     while True:
         num_cycles += 1
-        running_processes = [
-            pid for pid in initial_pids if system.path_exists("/proc/%s" % pid)
-        ]
+        running_processes = [pid for pid in initial_pids if system.path_exists("/proc/%s" % pid)]
 
         if not running_processes:
             break
@@ -217,21 +189,22 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_p
     logger.debug("Done waiting.")
 
 
-def wineexec(
-        executable,
-        args="",
-        wine_path=None,
-        prefix=None,
-        arch=None,  # pylint: disable=too-many-locals
-        working_dir=None,
-        winetricks_wine="",
-        blocking=False,
-        config=None,
-        include_processes=[],
-        exclude_processes=[],
-        disable_runtime=False,
-        env={},
-        overrides=None,
+# pragma pylint: disable=too-many-locals
+def wineexec(  # noqa: C901
+    executable,
+    args="",
+    wine_path=None,
+    prefix=None,
+    arch=None,
+    working_dir=None,
+    winetricks_wine="",
+    blocking=False,
+    config=None,
+    include_processes=None,
+    exclude_processes=None,
+    disable_runtime=False,
+    env=None,
+    overrides=None,
 ):
     """
     Execute a Wine command.
@@ -252,14 +225,22 @@ def wineexec(
         Process results if the process is running in blocking mode or
         MonitoredCommand instance otherwise.
     """
+    if env is None:
+        env = {}
+    if exclude_processes is None:
+        exclude_processes = []
+    if include_processes is None:
+        include_processes = []
     executable = str(executable) if executable else ""
     if isinstance(include_processes, str):
         include_processes = shlex.split(include_processes)
     if isinstance(exclude_processes, str):
         exclude_processes = shlex.split(exclude_processes)
+
+    wine = import_runner("wine")()
+
     if not wine_path:
-        wine = import_runner("wine")
-        wine_path = wine().get_executable()
+        wine_path = wine.get_executable()
     if not wine_path:
         raise RuntimeError("Wine is not installed")
 
@@ -287,8 +268,8 @@ def wineexec(
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    wine_config = config or LutrisConfig(runner_slug="wine")
-    disable_runtime = disable_runtime or wine_config.system_config["disable_runtime"]
+    wine_system_config = config.system_config if config else wine.system_config
+    disable_runtime = disable_runtime or wine_system_config["disable_runtime"]
     if use_lutris_runtime(wine_path=wineenv["WINE"], force_disable=disable_runtime):
         if WINE_DIR in wine_path:
             wine_root_path = os.path.dirname(os.path.dirname(wine_path))
@@ -298,7 +279,7 @@ def wineexec(
             wine_root_path = None
         wineenv["LD_LIBRARY_PATH"] = ":".join(
             runtime.get_paths(
-                prefer_system_libs=wine_config.system_config["prefer_system_libs"],
+                prefer_system_libs=wine_system_config["prefer_system_libs"],
                 wine_path=wine_root_path,
             )
         )
@@ -306,20 +287,24 @@ def wineexec(
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    if env:
-        wineenv.update(env)
+    baseenv = wine.get_env()
+    baseenv.update(wineenv)
+    baseenv.update(env)
 
     command_parameters = [wine_path]
     if executable:
         command_parameters.append(executable)
     command_parameters += split_arguments(args)
+
+    wine.prelaunch()
+
     if blocking:
         return system.execute(command_parameters, env=wineenv, cwd=working_dir)
-    wine = import_runner("wine")
+
     command = MonitoredCommand(
         command_parameters,
-        runner=wine(),
-        env=wineenv,
+        runner=wine,
+        env=baseenv,
         cwd=working_dir,
         include_processes=include_processes,
         exclude_processes=exclude_processes,
@@ -328,23 +313,23 @@ def wineexec(
     return command
 
 
+# pragma pylint: enable=too-many-locals
+
+
 def winetricks(
-        app,
-        prefix=None,
-        arch=None,
-        silent=True,
-        wine_path=None,
-        config=None,
-        env=None,
-        disable_runtime=False,
+    app,
+    prefix=None,
+    arch=None,
+    silent=True,
+    wine_path=None,
+    config=None,
+    env=None,
+    disable_runtime=False,
 ):
     """Execute winetricks."""
     wine_config = config or LutrisConfig(runner_slug="wine")
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
-    if (
-            wine_config.runner_config.get("system_winetricks")
-            or not system.path_exists(winetricks_path)
-    ):
+    if (wine_config.runner_config.get("system_winetricks") or not system.path_exists(winetricks_path)):
         winetricks_path = system.find_executable("winetricks")
         if not winetricks_path:
             raise RuntimeError("No installation of winetricks found")
@@ -406,3 +391,16 @@ def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=
     for registry_file, _arch in registry_files:
         set_regedit_file(registry_file, wine_path=wine_path, prefix=prefix, arch=_arch)
     cab_installer.cleanup()
+
+
+def open_wine_terminal(terminal, wine_path, prefix, env):
+    aliases = {
+        "wine": wine_path,
+        "winecfg": wine_path + "cfg",
+        "wineserver": wine_path + "server",
+        "wineboot": wine_path + "boot",
+    }
+    env["WINEPREFIX"] = prefix
+    shell_command = get_shell_command(prefix, env, aliases)
+    terminal = terminal or linux.get_default_terminal()
+    system.execute([terminal, "-e", shell_command])

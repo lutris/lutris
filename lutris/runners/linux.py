@@ -1,35 +1,43 @@
 """Runner for Linux games"""
+# Standard Library
 import os
 import stat
+from gettext import gettext as _
+
+# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
 
 
 class linux(Runner):
-    human_name = "Linux"
-    description = "Runs native games"
-    platforms = ["Linux"]
+    human_name = _("Linux")
+    description = _("Runs native games")
+    platforms = [_("Linux")]
+    entry_point_option = "exe"
 
     game_options = [
         {
             "option": "exe",
             "type": "file",
             "default_path": "game_path",
-            "label": "Executable",
-            "help": "The game's main executable file",
+            "label": _("Executable"),
+            "help": _("The game's main executable file"),
         },
         {
             "option": "args",
             "type": "string",
-            "label": "Arguments",
-            "help": "Command line arguments used when launching the game",
+            "label": _("Arguments"),
+            "help": _("Command line arguments used when launching the game"),
         },
         {
-            "option": "working_dir",
-            "type": "directory_chooser",
-            "label": "Working directory",
-            "help": (
+            "option":
+            "working_dir",
+            "type":
+            "directory_chooser",
+            "label":
+            _("Working directory"),
+            "help": _(
                 "The location where the game is run from.\n"
                 "By default, Lutris uses the directory of the "
                 "executable."
@@ -38,16 +46,20 @@ class linux(Runner):
         {
             "option": "ld_preload",
             "type": "file",
-            "label": "Preload library",
+            "label": _("Preload library"),
             "advanced": True,
-            "help": "A library to load before running the game's executable.",
+            "help": _("A library to load before running the game's executable."),
         },
         {
-            "option": "ld_library_path",
-            "type": "directory_chooser",
-            "label": "Add directory to LD_LIBRARY_PATH",
-            "advanced": True,
-            "help": (
+            "option":
+            "ld_library_path",
+            "type":
+            "directory_chooser",
+            "label":
+            _("Add directory to LD_LIBRARY_PATH"),
+            "advanced":
+            True,
+            "help": _(
                 "A directory where libraries should be searched for "
                 "first, before the standard set of directories; this is "
                 "useful when debugging a new library or using a "
@@ -57,15 +69,16 @@ class linux(Runner):
     ]
 
     def __init__(self, config=None):
-        super(linux, self).__init__(config)
+        super().__init__(config)
         self.ld_preload = None
 
     @property
     def game_exe(self):
-        """Return the game's executable's path."""
+        """Return the game's executable's path. The file may not exist, but
+        this returns None if the exe path is not defined."""
         exe = self.game_config.get("exe")
         if not exe:
-            return
+            return None
         if os.path.isabs(exe):
             return exe
         if self.game_path:
@@ -78,7 +91,7 @@ class linux(Runner):
         """
         exe_path = self.game_exe
         working_dir = self.game_config.get("working_dir")
-        if working_dir:
+        if exe_path and working_dir:
             parts = exe_path.split(os.path.expanduser(working_dir))
             if len(parts) == 2:
                 return "." + parts[1]
@@ -92,7 +105,12 @@ class linux(Runner):
             return os.path.expanduser(option)
         if self.game_exe:
             return os.path.dirname(self.game_exe)
-        return super(linux, self).working_dir
+        return super().working_dir
+
+    @property
+    def nvidia_shader_cache_path(self):
+        """Linux programs should get individual shader caches if possible."""
+        return self.game_path or self.shader_cache_dir
 
     def is_installed(self):
         """Well of course Linux is installed, you're using Linux right ?"""

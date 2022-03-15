@@ -1,20 +1,24 @@
+# Standard Library
 import os
+from gettext import gettext as _
+
+# Lutris Modules
 from lutris import settings
+from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.runners.runner import Runner
 
 
 class vice(Runner):
-    description = "Commodore Emulator"
-    human_name = "Vice"
+    description = _("Commodore Emulator")
+    human_name = _("Vice")
     platforms = [
-        "Commodore 64",
-        "Commodore 128",
-        "Commodore VIC20",
-        "Commodore PET",
-        "Commodore Plus/4",
-        "Commodore CBM II",
+        _("Commodore 64"),
+        _("Commodore 128"),
+        _("Commodore VIC20"),
+        _("Commodore PET"),
+        _("Commodore Plus/4"),
+        _("Commodore CBM II"),
     ]
     machine_choices = [
         ("C64", "c64"),
@@ -26,10 +30,13 @@ class vice(Runner):
     ]
     game_options = [
         {
-            "option": "main_file",
-            "type": "file",
-            "label": "ROM file",
-            "help": (
+            "option":
+            "main_file",
+            "type":
+            "file",
+            "label":
+            _("ROM file"),
+            "help": _(
                 "The game data, commonly called a ROM image.\n"
                 "Supported formats: X64, D64, G64, P64, D67, D71, D81, "
                 "D80, D82, D1M, D2M, D4M, T46, P00 and CRT."
@@ -38,42 +45,47 @@ class vice(Runner):
     ]
 
     runner_options = [
-        {"option": "joy", "type": "bool", "label": "Use joysticks", "default": False},
+        {
+            "option": "joy",
+            "type": "bool",
+            "label": _("Use joysticks"),
+            "default": False
+        },
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": False,
         },
         {
             "option": "double",
             "type": "bool",
-            "label": "Scale up display by 2",
+            "label": _("Scale up display by 2"),
             "default": True,
         },
         {
             "option": "aspect_ratio",
             "type": "bool",
-            "label": "Keep aspect ratio",
+            "label": _("Preserve aspect ratio"),
             "default": True,
         },
         {
             "option": "drivesound",
             "type": "bool",
-            "label": "Enable sound emulation of disk drives",
+            "label": _("Enable sound emulation of disk drives"),
             "default": False,
         },
         {
             "option": "renderer",
             "type": "choice",
-            "label": "Graphics renderer",
-            "choices": [("OpenGL", "opengl"), ("Software", "software")],
+            "label": _("Graphics renderer"),
+            "choices": [("OpenGL", "opengl"), (_("Software"), "software")],
             "default": "opengl",
         },
         {
             "option": "machine",
             "type": "choice",
-            "label": "Machine",
+            "label": _("Machine"),
             "choices": machine_choices,
             "default": "c64",
         },
@@ -100,11 +112,12 @@ class vice(Runner):
         }
         try:
             executable = executables[machine]
-        except KeyError:
-            raise ValueError("Invalid machine '%s'" % machine)
+        except KeyError as ex:
+            raise ValueError("Invalid machine '%s'" % machine) from ex
         return os.path.join(settings.RUNNER_DIR, "vice/bin/%s" % executable)
 
     def install(self, version=None, downloader=None, callback=None):
+
         def on_runner_installed(*args):
             config_path = system.create_folder("~/.vice")
             lib_dir = os.path.join(settings.RUNNER_DIR, "vice/lib/vice")
@@ -117,7 +130,7 @@ class vice(Runner):
             if callback:
                 callback()
 
-        super(vice, self).install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed)
 
     def get_roms_path(self, machine=None):
         if not machine:

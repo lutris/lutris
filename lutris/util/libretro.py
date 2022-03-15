@@ -1,4 +1,6 @@
-from lutris.util import system
+import os
+
+from lutris.util.log import logger
 
 
 class RetroConfig:
@@ -7,26 +9,47 @@ class RetroConfig:
     def __init__(self, config_path):
         if not config_path:
             raise ValueError("Config path is mandatory")
-        if not system.path_exists(config_path):
-            raise OSError("Specified config file {} does not exist".format(config_path))
         self.config_path = config_path
-        self.config = []
-        with open(config_path, "r") as config_file:
+        self._config = []
+
+    @property
+    def config(self):
+        """Lazy loading of the RetroArch config """
+        if self._config:
+            return self._config
+        try:
+            self.load_config()
+            return self._config
+        except UnicodeDecodeError:
+            logger.error(
+                "The Retroarch config in %s could not "
+                "be read because of character encoding issues",
+                self.config_path
+            )
+            return []
+
+    def load_config(self):
+        """Load the configuration from file"""
+        self._config = []
+        if not os.path.isfile(self.config_path):
+            raise OSError("Specified config file {} does not exist".format(self.config_path))
+        with open(self.config_path, "r", encoding='utf-8') as config_file:
             for line in config_file.readlines():
                 if not line:
                     continue
                 line = line.strip()
                 if line == "" or line.startswith('#'):
                     continue
-                key, value = line.split("=", 1)
-                key = key.strip()
-                value = value.strip().strip('"')
-                if not key or not value:
-                    continue
-                self.config.append((key, value))
+                if '=' in line:
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip('"')
+                    if not key or not value:
+                        continue
+                    self._config.append((key, value))
 
     def save(self):
-        with open(self.config_path, "w") as config_file:
+        with open(self.config_path, "w", encoding='utf-8') as config_file:
             for (key, value) in self.config:
                 config_file.write('{} = "{}"\n'.format(key, value))
 
@@ -50,9 +73,10 @@ class RetroConfig:
     def __setitem__(self, key, value):
         for index, conf in enumerate(self.config):
             if key == conf[0]:
-                self.config[index] = (key, self.serialize_value(value))
+                # self.config is read-only
+                self._config[index] = (key, self.serialize_value(value))
                 return
-        self.config.append((key, self.serialize_value(value)))
+        self._config.append((key, self.serialize_value(value)))
 
     def keys(self):
-        return list([key for (key, _value) in self.config])
+        return [key for (key, _value) in self.config]

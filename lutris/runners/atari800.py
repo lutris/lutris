@@ -1,25 +1,32 @@
-import os.path
+# Standard Library
 import logging
+import os.path
+from gettext import gettext as _
 
+# Lutris Modules
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs.download import DownloadDialog
 from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs.download import DownloadDialog
 from lutris.runners.runner import Runner
 from lutris.util import display, extract, system
 
 
+def get_resolutions():
+    try:
+        screen_resolutions = [(resolution, resolution) for resolution in display.DISPLAY_MANAGER.get_resolutions()]
+    except OSError:
+        screen_resolutions = []
+    screen_resolutions.insert(0, (_("Desktop resolution"), "desktop"))
+    return screen_resolutions
+
+
 # pylint: disable=C0103
 class atari800(Runner):
-    human_name = "Atari800"
-    platforms = [
-        "Atari 8bit computers"
-    ]  # FIXME try to determine the actual computer used
+    human_name = _("Atari800")
+    platforms = [_("Atari 8bit computers")]  # FIXME try to determine the actual computer used
     runner_executable = "atari800/bin/atari800"
-    bios_url = (
-        "http://kent.dl.sourceforge.net/project/atari800/"
-        "ROM/Original%20XL%20ROM/xf25.zip"
-    )
-    description = "Atari 400,800 and XL emulator"
+    bios_url = "http://kent.dl.sourceforge.net/project/atari800/ROM/Original%20XL%20ROM/xf25.zip"
+    description = _("Atari 400, 800 and XL emulator")
     bios_checksums = {
         "xlxe_rom": "06daac977823773a3eea3422fd26a703",
         "basic_rom": "0bac0c6a50104045d902df4503a4c30b",
@@ -31,72 +38,70 @@ class atari800(Runner):
         {
             "option": "main_file",
             "type": "file",
-            "label": "ROM file",
-            "help": (
+            "label": _("ROM file"),
+            "help": _(
                 "The game data, commonly called a ROM image. \n"
-                "Supported rom formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "
+                "Supported formats: ATR, XFD, DCM, ATR.GZ, XFD.GZ "
                 "and PRO."
             ),
         }
     ]
 
-    def get_resolutions():
-        try:
-            screen_resolutions = [
-                (resolution, resolution) for resolution in display.get_resolutions()
-            ]
-        except OSError:
-            screen_resolutions = []
-        screen_resolutions.insert(0, ("Desktop resolution", "desktop"))
-        return screen_resolutions
-
     runner_options = [
         {
-            "option": "bios_path",
-            "type": "directory_chooser",
-            "label": "Bios location",
-            "help": (
-                "A folder containing the Atari 800 bios files.\n"
+            "option":
+            "bios_path",
+            "type":
+            "directory_chooser",
+            "label":
+            _("BIOS location"),
+            "help": _(
+                "A folder containing the Atari 800 BIOS files.\n"
                 "They are provided by Lutris so you shouldn't have to "
                 "change this."
             ),
         },
         {
-            "option": "machine",
-            "type": "choice",
+            "option":
+            "machine",
+            "type":
+            "choice",
             "choices": [
-                ("Emulate Atari 800", "atari"),
-                ("Emulate Atari 800 XL", "xl"),
-                ("Emulate Atari 320 XE (Compy Shop)", "320xe"),
-                ("Emulate Atari 320 XE (Rambo)", "rambo"),
-                ("Emulate Atari 5200", "5200"),
+                (_("Emulate Atari 800"), "atari"),
+                (_("Emulate Atari 800 XL"), "xl"),
+                (_("Emulate Atari 320 XE (Compy Shop)"), "320xe"),
+                (_("Emulate Atari 320 XE (Rambo)"), "rambo"),
+                (_("Emulate Atari 5200"), "5200"),
             ],
-            "default": "atari",
-            "label": "Machine",
+            "default":
+            "atari",
+            "label":
+            _("Machine"),
         },
         {
             "option": "fullscreen",
             "type": "bool",
             "default": False,
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
         },
         {
             "option": "resolution",
             "type": "choice",
-            "choices": get_resolutions,
+            "choices": get_resolutions(),
             "default": "desktop",
-            "label": "Fullscreen resolution",
+            "label": _("Fullscreen resolution"),
         },
     ]
 
     def install(self, version=None, downloader=None, callback=None):
-        def on_runner_installed(*args):
+
+        def on_runner_installed(*args):  # pylint: disable=unused-argument
             config_path = system.create_folder("~/.atari800")
             bios_archive = os.path.join(config_path, "atari800-bioses.zip")
             dlg = DownloadDialog(self.bios_url, bios_archive)
             dlg.run()
             if not system.path_exists(bios_archive):
-                ErrorDialog("Could not download Atari800 BIOS archive")
+                ErrorDialog(_("Could not download Atari 800 BIOS archive"))
                 return
             extract.extract_archive(bios_archive, config_path)
             os.remove(bios_archive)
@@ -106,7 +111,7 @@ class atari800(Runner):
             if callback:
                 callback()
 
-        super(atari800, self).install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed)
 
     def find_good_bioses(self, bios_path):
         """ Check for correct bios files """

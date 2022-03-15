@@ -1,4 +1,5 @@
 """Steam log handling"""
+# Standard Library
 import os
 import time
 
@@ -10,7 +11,7 @@ def _get_last_content_log(steam_data_dir):
     path = os.path.join(steam_data_dir, "logs/content_log.txt")
     log = []
     try:
-        with open(path, "r") as logfile:
+        with open(path, "r", encoding='utf-8') as logfile:
             line = logfile.readline()
             while line:
                 # Strip old logs

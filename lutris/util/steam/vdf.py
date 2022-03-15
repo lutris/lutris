@@ -1,4 +1,5 @@
 """Read and write VDF files"""
+# Lutris Modules
 from lutris.util.log import logger
 
 
@@ -54,5 +55,5 @@ def to_vdf(dict_data, level=0):
 def vdf_write(vdf_path, config):
     """Write a Steam configuration to a vdf file"""
     vdf_data = to_vdf(config)
-    with open(vdf_path, "w") as vdf_file:
+    with open(vdf_path, "w", encoding='utf-8') as vdf_file:
         vdf_file.write(vdf_data)

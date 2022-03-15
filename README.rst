@@ -4,19 +4,28 @@ Lutris
 
 |LiberaPayBadge|_
 
+Lutris helps you install and play video games from all eras and from most
+gaming systems. By leveraging and combining existing emulators, engine
+re-implementations and compatibility layers, it gives you a central interface
+to launch all your games.
 
+The client can connect with existing services like Humble Bundle, GOG and Steam
+to make your game libraries easily available. Game downloads and installations
+are automated and can be modified through user made scripts.
 
-Lutris is an open source gaming platform that makes gaming on Linux easier by
-managing, installing and providing optimal settings for games.
+Running Lutris
+==============
 
-Lutris does not sell games. For commercial games, you must own a copy to install
-the game on Lutris.
-The platform uses programs referred to as 'runners' to launch games,
-Those runners (with the exception of Steam and web browsers) are provided and
-managed by Lutris, so you don't need to install them with your package manager.
+If you have not installed Lutris through your package manager and are using the
+source package, it is recommended that you install lutris at least once, even an
+older version to have all dependencies available.
+Once all dependencies are satisfied, you can run lutris directly from the source
+directory with `./bin/lutris`
 
-Scripts written by the community allow access to a library of games.
-Using scripts, games can be played without manual setup.
+If you need to run lutris through gdb to troubleshoot segmentation faults, you
+can use the following command:
+
+`gdb -ex r --args "/usr/bin/python3" "./bin/lutris"`
 
 Installer scripts
 =================
@@ -79,11 +88,16 @@ The following command line arguments are available::
 -v, --version              Print the version of Lutris and exit
 -d, --debug                Show debug messages
 -i, --install              Install a game from a yml file
+-b, --output-script        Generate a bash script to run a game without the client
 -e, --exec                 Execute a program with the lutris runtime
 -l, --list-games           List all games in database
 -o, --installed            Only list installed games
 -s, --list-steam-games     List available Steam games
 --list-steam-folders       List all known Steam library folders
+--list-runners             List all known runners
+--list-wine-runners        List all known Wine runners
+-r, --install-runner       Install a Runner
+-u, --uninstall-runner     Uninstall a Runner
 -j, --json                 Display the list of games in JSON format
 --reinstall                Reinstall game
 --display=DISPLAY          X display to use
@@ -125,7 +139,7 @@ pre-releases, or simply chat with the developers?
 You can always reach us on:
 
 * Discord: https://discordapp.com/invite/Pnt5CuY
-* IRC: #lutris on the Freenode servers
+* IRC: ircs://irc.libera.chat:6697/lutris
 * Github: https://github.com/lutris
 * Twitter: https://twitter.com/LutrisGaming
 

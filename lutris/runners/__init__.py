@@ -1,82 +1,83 @@
-"""Generic runner functions."""
-# from lutris.util.log import logger
+"""Runner loaders"""
+from collections import defaultdict
 
-__all__ = (
+__all__ = [
     # Native
     "linux",
     "steam",
-    "browser",
     "web",
     # Microsoft based
     "wine",
-    "winesteam",
     "dosbox",
     # Multi-system
+    "easyrpg",
     "mame",
-    "mess",
     "mednafen",
     "scummvm",
     "residualvm",
     "libretro",
-    "ags",
-    # Commdore
+    # Commodore
     "fsuae",
     "vice",
     # Atari
-    "stella",
     "atari800",
     "hatari",
-    "virtualjaguar",
     # Nintendo
     "snes9x",
     "mupen64plus",
     "dolphin",
-    "desmume",
-    "citra",
+    "ryujinx",
     "yuzu",
     # Sony
-    "ppsspp",
     "pcsx2",
     "rpcs3",
     # Sega
     "osmose",
-    "dgen",
     "reicast",
+    "redream",
     # Fantasy consoles
     "pico8",
     # Misc legacy systems
-    "frotz",
     "jzintv",
     "o2em",
     "zdoom",
-)
+]
+ADDON_RUNNERS = {}
+RUNNER_PLATFORMS = {}
 
 
 class InvalidRunner(Exception):
+
     def __init__(self, message):
+        super().__init__(message)
         self.message = message
 
 
 class RunnerInstallationError(Exception):
+
     def __init__(self, message):
+        super().__init__(message)
         self.message = message
 
 
 class NonInstallableRunnerError(Exception):
+
     def __init__(self, message):
+        super().__init__(message)
         self.message = message
 
 
 def get_runner_module(runner_name):
     if runner_name not in __all__:
         raise InvalidRunner("Invalid runner name '%s'" % runner_name)
-    return __import__(
-        "lutris.runners.%s" % runner_name, globals(), locals(), [runner_name], 0
-    )
+    return __import__("lutris.runners.%s" % runner_name, globals(), locals(), [runner_name], 0)
 
 
 def import_runner(runner_name):
     """Dynamically import a runner class."""
+    if runner_name in ADDON_RUNNERS:
+        return ADDON_RUNNERS[runner_name]
+
     runner_module = get_runner_module(runner_name)
     if not runner_module:
         return None
@@ -99,3 +100,28 @@ def get_installed(sort=True):
         if runner.is_installed():
             installed.append(runner)
     return sorted(installed) if sort else installed
+
+
+def inject_runners(runners):
+    for runner_name in runners:
+        ADDON_RUNNERS[runner_name] = runners[runner_name]
+        __all__.append(runner_name)
+
+
+def get_runner_names():
+    return {
+        runner: import_runner(runner)().human_name for runner in __all__
+    }
+
+
+def get_platforms():
+    """Return a dictionary of all supported platforms with their runners"""
+    platforms = defaultdict(list)
+    for runner_name in __all__:
+        runner = import_runner(runner_name)()
+        for platform in runner.platforms:
+            platforms[platform].append(runner_name)
+    return platforms
+
+
+RUNNER_NAMES = {}  # This needs to be initialized at startup with get_runner_names

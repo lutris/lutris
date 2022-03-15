@@ -1,30 +1,33 @@
 """Runner for the PICO-8 fantasy console"""
-import os
 import json
-import shutil
 import math
+import os
+import shutil
+from gettext import gettext as _
 from time import sleep
 
-from lutris import pga, settings
-from lutris.util import system, datapath, downloader
-from lutris.util.strings import split_arguments
-from lutris.util.log import logger
+from lutris import settings
+from lutris.database.games import get_game_by_field
 from lutris.runners.runner import Runner
+from lutris.util import system
+from lutris.util.downloader import Downloader
+from lutris.util.log import logger
+from lutris.util.strings import split_arguments
 
 DOWNLOAD_URL = "https://github.com/daniel-j/lutris-pico-8-runner/archive/master.tar.gz"
 
 
 class pico8(Runner):
-    description = "Runs PICO-8 fantasy console cartridges"
+    description = _("Runs PICO-8 fantasy console cartridges")
     multiple_versions = False
-    human_name = "PICO-8"
-    platforms = ["PICO-8"]
+    human_name = _("PICO-8")
+    platforms = [_("PICO-8")]
     game_options = [
         {
             "option": "main_file",
             "type": "string",
-            "label": "Cartridge file/url/id",
-            "help": "You can put a .p8.png file path, url, or BBS cartridge id here.",
+            "label": _("Cartridge file/URL/ID"),
+            "help": _("You can put a .p8.png file path, URL, or BBS cartridge ID here."),
         }
     ]
 
@@ -32,37 +35,37 @@ class pico8(Runner):
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": True,
-            "help": "Launch in fullscreen.",
+            "help": _("Launch in fullscreen."),
         },
         {
             "option": "window_size",
-            "label": "Window size",
+            "label": _("Window size"),
             "type": "string",
             "default": "640x512",
-            "help": "The initial size of the game window.",
+            "help": _("The initial size of the game window."),
         },
         {
             "option": "splore",
             "type": "bool",
-            "label": "Start in splore mode",
+            "label": _("Start in splore mode"),
             "default": False,
         },
         {
             "option": "args",
             "type": "string",
-            "label": "Extra arguments",
+            "label": _("Extra arguments"),
             "default": "",
-            "help": "Extra arguments to the executable",
+            "help": _("Extra arguments to the executable"),
             "advanced": True,
         },
         {
             "option": "engine",
             "type": "string",
-            "label": "Engine (web only)",
+            "label": _("Engine (web only)"),
             "default": "pico8_0111g_4",
-            "help": "Name of engine (will be downloaded) or local file path",
+            "help": _("Name of engine (will be downloaded) or local file path"),
         },
     ]
 
@@ -71,12 +74,12 @@ class pico8(Runner):
     runner_executable = "pico8/web.py"
 
     def __init__(self, config=None):
-        super(pico8, self).__init__(config)
+        super().__init__(config)
 
         self.runnable_alone = self.is_native
 
     def __repr__(self):
-        return "PICO-8 runner (%s)" % self.config
+        return _("PICO-8 runner (%s)") % self.config
 
     def install(self, version=None, downloader=None, callback=None):
         opts = {}
@@ -111,9 +114,7 @@ class pico8(Runner):
         if self.is_native and main_file.startswith("http"):
             return os.path.join(settings.RUNNER_DIR, "pico8/cartridges", "tmp.p8.png")
         if not os.path.exists(main_file) and main_file.isdigit():
-            return os.path.join(
-                settings.RUNNER_DIR, "pico8/cartridges", main_file + ".p8.png"
-            )
+            return os.path.join(settings.RUNNER_DIR, "pico8/cartridges", main_file + ".p8.png")
         return main_file
 
     @property
@@ -144,46 +145,30 @@ class pico8(Runner):
         return args
 
     def get_run_data(self):
-        return {
-            "command": self.launch_args,
-            "env": self.get_env(os_env=False)
-        }
+        return {"command": self.launch_args, "env": self.get_env(os_env=False)}
 
     def is_installed(self, version=None, fallback=True, min_version=None):
         """Checks if pico8 runner is installed and if the pico8 executable available.
         """
-        if self.is_native and system.path_exists(
-            self.runner_config.get("runner_executable")
-        ):
+        if self.is_native and system.path_exists(self.runner_config.get("runner_executable")):
             return True
-        return system.path_exists(
-            os.path.join(settings.RUNNER_DIR, "pico8/web/player.html")
-        )
+        return system.path_exists(os.path.join(settings.RUNNER_DIR, "pico8/web/player.html"))
 
     def prelaunch(self):
-        if os.path.exists(
-            os.path.join(settings.RUNNER_DIR, "pico8/cartridges", "tmp.p8.png")
-        ):
-            os.remove(
-                os.path.join(settings.RUNNER_DIR, "pico8/cartridges", "tmp.p8.png")
-            )
+        if not self.game_config.get("main_file") and self.is_installed():
+            return True
+        if os.path.exists(os.path.join(settings.RUNNER_DIR, "pico8/cartridges", "tmp.p8.png")):
+            os.remove(os.path.join(settings.RUNNER_DIR, "pico8/cartridges", "tmp.p8.png"))
 
         # Don't download cartridge if using web backend and cart is url
         if self.is_native or not self.game_config.get("main_file").startswith("http"):
             if not os.path.exists(self.game_config.get("main_file")) and (
-                self.game_config.get("main_file").isdigit()
-                or self.game_config.get("main_file").startswith("http")
+                self.game_config.get("main_file").isdigit() or self.game_config.get("main_file").startswith("http")
             ):
                 if not self.game_config.get("main_file").startswith("http"):
                     pid = int(self.game_config.get("main_file"))
                     num = math.floor(pid / 10000)
-                    downloadUrl = (
-                        "https://www.lexaloffle.com/bbs/cposts/"
-                        + str(num)
-                        + "/"
-                        + str(pid)
-                        + ".p8.png"
-                    )
+                    downloadUrl = ("https://www.lexaloffle.com/bbs/cposts/" + str(num) + "/" + str(pid) + ".p8.png")
                 else:
                     downloadUrl = self.game_config.get("main_file")
                 cartPath = self.cart_path
@@ -200,7 +185,7 @@ class pico8(Runner):
                         os.remove(cartPath + ".download")
                     downloadCompleted = True
 
-                dl = downloader.Downloader(
+                dl = Downloader(
                     downloadUrl,
                     cartPath + ".download",
                     True,
@@ -210,8 +195,8 @@ class pico8(Runner):
 
                 # Wait for download to complete or continue if it exists (to work in offline mode)
                 while not os.path.exists(cartPath):
-                    if downloadCompleted or dl.state == downloader.Downloader.ERROR:
-                        logger.error("Could not download cartridge from " + downloadUrl)
+                    if downloadCompleted or dl.state == Downloader.ERROR:
+                        logger.error("Could not download cartridge from %s", downloadUrl)
                         return False
                     sleep(0.1)
 
@@ -223,11 +208,7 @@ class pico8(Runner):
                 self.runner_config.get("engine") + ".js",
             )
             if not os.path.exists(enginePath):
-                downloadUrl = (
-                    "https://www.lexaloffle.com/bbs/"
-                    + self.runner_config.get("engine")
-                    + ".js"
-                )
+                downloadUrl = ("https://www.lexaloffle.com/bbs/" + self.runner_config.get("engine") + ".js")
                 system.create_folder(os.path.dirname(enginePath))
                 downloadCompleted = False
 
@@ -235,16 +216,14 @@ class pico8(Runner):
                     nonlocal downloadCompleted
                     downloadCompleted = True
 
-                dl = downloader.Downloader(
-                    downloadUrl, enginePath, True, callback=on_downloaded_engine
-                )
+                dl = Downloader(downloadUrl, enginePath, True, callback=on_downloaded_engine)
                 dl.start()
                 dl.thread.join()  # Doesn't actually wait until finished
 
                 # Waits for download to complete
                 while not os.path.exists(enginePath):
-                    if downloadCompleted or dl.state == downloader.Downloader.ERROR:
-                        logger.error("Could not download engine from " + downloadUrl)
+                    if downloadCompleted or dl.state == Downloader.ERROR:
+                        logger.error("Could not download engine from %s", downloadUrl)
                         return False
                     sleep(0.1)
 
@@ -254,7 +233,7 @@ class pico8(Runner):
         launch_info = {}
         launch_info["env"] = self.get_env(os_env=False)
 
-        game_data = pga.get_game_by_field(self.config.game_config_id, "configpath")
+        game_data = get_game_by_field(self.config.game_config_id, "configpath")
 
         command = self.launch_args
 
@@ -270,11 +249,10 @@ class pico8(Runner):
             command.append("--name")
             command.append(game_data.get("name") + " - PICO-8")
 
-            icon = datapath.get_icon_path(game_data.get("slug"))
-            if not os.path.exists(icon):
-                icon = os.path.join(datapath.get(), "media/runner_icons/pico8.png")
-            command.append("--icon")
-            command.append(icon)
+            # icon = datapath.get_icon_path(game_data.get("slug"))
+            # if icon:
+            #     command.append("--icon")
+            #     command.append(icon)
 
             webargs = {
                 "cartridge": self.cart_path,

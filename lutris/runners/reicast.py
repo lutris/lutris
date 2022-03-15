@@ -1,19 +1,24 @@
-import re
+# Standard Library
 import os
+import re
 import shutil
-from configparser import RawConfigParser
 from collections import Counter
+from configparser import RawConfigParser
+from gettext import gettext as _
+
+# Lutris Modules
 from lutris import settings
+from lutris.gui.dialogs import NoticeDialog
 from lutris.runners.runner import Runner
 from lutris.util import joypad, system
-from lutris.gui.dialogs import NoticeDialog
 
 
 class reicast(Runner):
-    human_name = "Reicast"
-    description = "Sega Dreamcast emulator"
-    platforms = ["Sega Dreamcast"]
+    human_name = _("Reicast")
+    description = _("Sega Dreamcast emulator")
+    platforms = [_("Sega Dreamcast")]
     runner_executable = "reicast/reicast.elf"
+    entry_point_option = "iso"
 
     joypads = None
 
@@ -21,52 +26,54 @@ class reicast(Runner):
         {
             "option": "iso",
             "type": "file",
-            "label": "Disc image file",
-            "help": ("The game data.\n" "Supported formats: ISO, CDI"),
+            "label": _("Disc image file"),
+            "help": _("The game data.\n"
+                      "Supported formats: ISO, CDI"),
         }
     ]
 
     def __init__(self, config=None):
-        super(reicast, self).__init__(config)
+        super().__init__(config)
 
         self.runner_options = [
             {
                 "option": "fullscreen",
                 "type": "bool",
-                "label": "Fullscreen",
+                "label": _("Fullscreen"),
                 "default": False,
             },
             {
                 "option": "device_id_1",
                 "type": "choice",
-                "label": "Joypad 1",
+                "label": _("Gamepad 1"),
                 "choices": self.get_joypads,
                 "default": "-1",
             },
             {
                 "option": "device_id_2",
                 "type": "choice",
-                "label": "Joypad 2",
+                "label": _("Gamepad 2"),
                 "choices": self.get_joypads,
                 "default": "-1",
             },
             {
                 "option": "device_id_3",
                 "type": "choice",
-                "label": "Joypad 3",
+                "label": _("Gamepad 3"),
                 "choices": self.get_joypads,
                 "default": "-1",
             },
             {
                 "option": "device_id_4",
                 "type": "choice",
-                "label": "Joypad 4",
+                "label": _("Gamepad 4"),
                 "choices": self.get_joypads,
                 "default": "-1",
             },
         ]
 
     def install(self, version=None, downloader=None, callback=None):
+
         def on_runner_installed(*args):
             mapping_path = system.create_folder("~/.reicast/mappings")
             mapping_source = os.path.join(settings.RUNNER_DIR, "reicast/mappings")
@@ -74,11 +81,9 @@ class reicast(Runner):
                 shutil.copy(os.path.join(mapping_source, mapping_file), mapping_path)
 
             system.create_folder("~/.reicast/data")
-            NoticeDialog(
-                "You have to copy valid BIOS files to ~/.reicast/data " "before playing"
-            )
+            NoticeDialog(_("You have to copy valid BIOS files to ~/.reicast/data before playing"))
 
-        super(reicast, self).install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed)
 
     def get_joypads(self):
         """Return list of joypad in a format usable in the options"""
@@ -114,7 +119,7 @@ class reicast(Runner):
 
         config_path = os.path.expanduser("~/.reicast/emu.cfg")
         if system.path_exists(config_path):
-            with open(config_path, "r") as config_file:
+            with open(config_path, "r", encoding='utf-8') as config_file:
                 parser.read_file(config_file)
 
         for section in config:
@@ -123,15 +128,19 @@ class reicast(Runner):
             for (key, value) in config[section].items():
                 parser.set(section, key, str(value))
 
-        with open(config_path, "w") as config_file:
+        with open(config_path, "w", encoding='utf-8') as config_file:
             parser.write(config_file)
 
     def play(self):
         fullscreen = "1" if self.runner_config.get("fullscreen") else "0"
         reicast_config = {
-            "x11": {"fullscreen": fullscreen},
+            "x11": {
+                "fullscreen": fullscreen
+            },
             "input": {},
-            "players": {"nb": "1"},
+            "players": {
+                "nb": "1"
+            },
         }
         players = 1
         reicast_config["input"] = {}

@@ -1,4 +1,7 @@
+# Standard Library
 import os
+
+# Lutris Modules
 from lutris.settings import RUNTIME_DIR
 from lutris.util import system
 from lutris.util.log import logger
@@ -68,7 +71,7 @@ class GameControllerDB:
         return self.controllers[value]
 
     def parsedb(self):
-        with open(self.db_path, "r") as db:
+        with open(self.db_path, "r", encoding='utf-8') as db:
             for line in db.readlines():
                 line = line.strip()
                 if not line or line.startswith("#"):

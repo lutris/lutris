@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 import os
 import sys
+
 from setuptools import setup
+
 from lutris import __version__ as VERSION
 
-if sys.version_info < (3, 4):
-    sys.exit('Python 3.4 is required to run Lutris')
+if sys.version_info < (3, 6):
+    sys.exit('Python >= 3.6 is required to run Lutris')
 
 data_files = []
 
 for directory, _, filenames in os.walk(u'share'):
     dest = directory[6:]
     if filenames:
-        files = []
-        for filename in filenames:
-            filename = os.path.join(directory, filename)
-            files.append(filename)
+        files = [os.path.join(directory, filename) for filename in filenames]
         data_files.append((os.path.join('share', dest), files))
 
 setup(
@@ -26,21 +25,28 @@ setup(
     author_email='strider@strycore.com',
     packages=[
         'lutris',
+        'lutris.database',
         'lutris.gui',
         'lutris.gui.config',
         'lutris.gui.dialogs',
+        'lutris.gui.installer',
         'lutris.gui.views',
         'lutris.gui.widgets',
         'lutris.installer',
         'lutris.migrations',
         'lutris.runners',
         'lutris.runners.commands',
+        'lutris.scanners',
         'lutris.services',
         'lutris.util',
+        'lutris.util.dolphin',
+        'lutris.util.egs',
         'lutris.util.graphics',
+        'lutris.util.mame',
         'lutris.util.steam',
-        'lutris.util.wine',
-        'lutris.vendor'
+        'lutris.util.retroarch',
+        'lutris.util.ubisoft',
+        'lutris.util.wine'
     ],
     scripts=['bin/lutris'],
     data_files=data_files,
@@ -49,17 +55,16 @@ setup(
         'PyYAML',
         'PyGObject',
         'evdev',
-        'requests'
+        'requests',
+        'distro',
+        'lxml'
     ],
-    extras_require={
-        'Discord': ['pypresence~=3.3.2']
-    },
     url='https://lutris.net',
-    description='Install and play any video game on Linux',
-    long_description="""Lutris is a gaming platform for GNU/Linux. Its goal is
-    to make gaming on Linux as easy as possible by taking care of installing
-    and setting up the game for the user. The only thing you have to do is play
-    the game. It aims to support every game that is playable on Linux.""",
+    description='Video game preservation platform',
+    long_description="""Lutris helps you install and play video games from all eras
+    and from most gaming systems. By leveraging and combining existing emulators,
+    engine re-implementations and compatibility layers, it gives you a central
+    interface to launch all your games.""",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: End Users/Desktop',

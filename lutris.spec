@@ -6,9 +6,9 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.5
+Version:        0.5.10
 Release:        7%{?dist}
-Summary:        Install and play any video game easily
+Summary:        Video game preservation platform
 
 License:        GPL-3.0+
 Group:          Amusements/Games/Other
@@ -70,11 +70,10 @@ Requires:       mesa-libGL
 
 
 %description
-Lutris is a gaming platform for GNU/Linux. Its goal is to make
-gaming on Linux as easy as possible by taking care of installing
-and setting up the game for the user. The only thing you have to
-do is play the game. It aims to support every game that is playable
-on Linux.
+Lutris helps you install and play video games from all eras and
+from most gaming systems. By leveraging and combining existing
+emulators, engine re-implementations and compatibility layers,
+it gives you a central interface to launch all your games.
 
 %prep
 %setup -q -n %{name}
@@ -92,7 +91,7 @@ on Linux.
 
 #desktop icon
 %if 0%{?suse_version}
-%suse_update_desktop_file -r -i %{appid} Network FileTransfer
+%suse_update_desktop_file -r -i %{appid} Game Network
 %endif
 
 %if 0%{?fedora} || 0%{?rhel} || 0%{?centos}
@@ -115,7 +114,6 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 
 %files
 %{_bindir}/%{name}
-%{_bindir}/lutris-wrapper
 %{_datadir}/%{name}/
 %{_datadir}/metainfo/%{appid}.metainfo.xml
 %{_datadir}/applications/%{appid}.desktop
@@ -124,6 +122,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}.desktop
 %{_datadir}/icons/hicolor/24x24/apps/lutris.png
 %{_datadir}/icons/hicolor/32x32/apps/lutris.png
 %{_datadir}/icons/hicolor/48x48/apps/lutris.png
+%{_datadir}/icons/hicolor/64x64/apps/lutris.png
+%{_datadir}/icons/hicolor/128x128/apps/lutris.png
 %{_datadir}/icons/hicolor/scalable/apps/lutris.svg
 %{python3_sitelib}/%{name}-*.egg-info
 %{python3_sitelib}/%{name}/

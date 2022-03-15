@@ -3,8 +3,9 @@ import os
 import re
 from collections import OrderedDict
 from datetime import datetime
-from lutris.util.log import logger
+
 from lutris.util import system
+from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH
 
 (
@@ -29,6 +30,7 @@ DATA_TYPES = {
 
 
 class WindowsFileTime:
+
     """Utility class to deal with Windows FILETIME structures.
 
     See: https://msdn.microsoft.com/en-us/library/ms724284(v=vs.85).aspx
@@ -80,29 +82,30 @@ class WineRegistry:
         self.reg_filename = reg_filename
         if reg_filename:
             if not system.path_exists(reg_filename):
-                logger.error("Unexisting registry %s", reg_filename)
+                logger.error("No registry file at %s", reg_filename)
             self.parse_reg_file(reg_filename)
+
+    def __str__(self):
+        return "Windows Registry @ %s" % self.reg_filename
 
     @property
     def prefix_path(self):
         """Return the Wine prefix path (where the .reg files are located)"""
         if self.reg_filename:
             return os.path.dirname(self.reg_filename)
+        return None
 
     @staticmethod
     def get_raw_registry(reg_filename):
         """Return an array of the unprocessed contents of a registry file"""
         if not system.path_exists(reg_filename):
             return []
-        with open(reg_filename, "r") as reg_file:
+        with open(reg_filename, "r", encoding='utf-8') as reg_file:
 
             try:
                 registry_content = reg_file.readlines()
             except Exception:  # pylint: disable=broad-except
-                logger.exception(
-                    "Failed to registry read %s, please send attach this file in a bug report",
-                    reg_filename,
-                )
+                logger.exception("Failed to registry read %s", reg_filename)
                 registry_content = []
         return registry_content
 
@@ -155,13 +158,14 @@ class WineRegistry:
                 "Invalid Wine prefix path %s, make sure to "
                 "create the prefix before saving to a registry" % prefix_path
             )
-        with open(path, "w") as registry_file:
+        with open(path, "w", encoding='utf-8') as registry_file:
             registry_file.write(self.render())
 
     def query(self, path, subkey):
         key = self.keys.get(path)
         if key:
             return key.get_subkey(subkey)
+        return
 
     def set_value(self, path, subkey, value):
         key = self.keys.get(path)
@@ -209,6 +213,7 @@ class WineRegistry:
 
 
 class WineRegistryKey:
+
     def __init__(self, key_def=None, path=None):
 
         self.subkeys = OrderedDict()
@@ -225,9 +230,7 @@ class WineRegistryKey:
             self.metas["time"] = windows_timestamp.to_hex()
         else:
             # Existing key loaded from file
-            self.raw_name, self.raw_timestamp = re.split(
-                re.compile(r"(?<=[^\\]\]) "), key_def, maxsplit=1
-            )
+            self.raw_name, self.raw_timestamp = re.split(re.compile(r"(?<=[^\\]\]) "), key_def, maxsplit=1)
             self.name = self.raw_name.replace("\\\\", "/").strip("[]")
 
         # Parse timestamp either as int or float
@@ -294,7 +297,11 @@ class WineRegistryKey:
 
     @staticmethod
     def decode_unicode(string):
-        chunks = re.split(r"[^\\]\\x", string)
+        # There may be a r"\\" in front of r"\x", so replace the r"\\" to r"\x005c"
+        # to avoid missing matches. Example: r"C:\\users\\x1234\\\x0041\x0042CD".
+        # Note the difference between r"\\x1234", r"\\\x0041" and r"\x0042".
+        # It should be r"C:\users\x1234\ABCD" after decoding.
+        chunks = re.split(r"\\x", string.replace(r"\\", r"\x005c"))
         out = chunks.pop(0).encode().decode("unicode_escape")
         for chunk in chunks:
             # We have seen file with unicode characters escaped on 1 byte (\xfa),
@@ -303,11 +310,7 @@ class WineRegistryKey:
             # The exception let us know if it worked or not
             for i in [0, 1, 2]:
                 try:
-                    out += (
-                        "\\u{}{}".format("0" * i, chunk)
-                        .encode()
-                        .decode("unicode_escape")
-                    )
+                    out += ("\\u{}{}".format("0" * i, chunk).encode().decode("unicode_escape"))
                     break
                 except UnicodeDecodeError:
                     pass

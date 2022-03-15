@@ -1,23 +1,17 @@
-import gi
-NOTIFY_SUPPORT = True
-try:
-    gi.require_version('Notify', '0.7')
-    from gi.repository import Notify
-except ImportError:
-    NOTIFY_SUPPORT = False
-from lutris.util.log import logger
+from gi.repository import Gio
 
-if NOTIFY_SUPPORT:
-    Notify.init("lutris")
-else:
-    logger.warning("Notifications are disabled, please install"
-                   " GObject bindings for 'Notify' to enable them.")
+from lutris.util.log import logger
 
 
 def send_notification(title, text, file_path_to_icon="lutris"):
-    if NOTIFY_SUPPORT:
-        notification = Notify.Notification.new(title, text, file_path_to_icon)
-        notification.show()
-    else:
-        logger.info(title)
-        logger.info(text)
+    icon_file = Gio.File.new_for_path(file_path_to_icon)
+    icon = Gio.FileIcon.new(icon_file)
+    notification = Gio.Notification.new(title)
+    notification.set_body(text)
+    notification.set_icon(icon)
+
+    application = Gio.Application.get_default()
+    application.send_notification(None, notification)
+
+    logger.info(title)
+    logger.info(text)

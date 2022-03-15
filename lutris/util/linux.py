@@ -1,14 +1,15 @@
 """Linux specific platform code"""
+import json
 import os
+import platform
 import re
+import resource
 import shutil
 import sys
-import json
-import platform
-import resource
-import subprocess
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 
+from lutris.util import system
+from lutris.util.graphics import drivers, glxinfo, vkquery
 from lutris.util.log import logger
 
 try:
@@ -16,10 +17,6 @@ try:
 except ImportError:
     logger.warning("Package 'distro' unavailable. Unable to read Linux distribution")
     linux_distribution = None
-from lutris.util.graphics import drivers
-from lutris.util.graphics import glxinfo
-from lutris.util.graphics import vkquery
-from lutris.util.disks import get_drive_for_path
 
 # Linux components used by lutris
 SYSTEM_COMPONENTS = {
@@ -79,11 +76,12 @@ SYSTEM_COMPONENTS = {
         "WINE": ["libsqlite3.so.0"],
         "RADEON": ["libvulkan_radeon.so"],
         "GAMEMODE": ["libgamemodeauto.so"],
+        "GNUTLS": ["libgnutls.so.30"],
     },
 }
 
 
-class LinuxSystem:
+class LinuxSystem:  # pylint: disable=too-many-public-methods
     """Global cache for system commands"""
 
     _cache = {}
@@ -103,7 +101,7 @@ class LinuxSystem:
     ]
 
     recommended_no_file_open = 524288
-    required_components = ["OPENGL", "VULKAN"]
+    required_components = ["OPENGL", "VULKAN", "GNUTLS"]
     optional_components = ["WINE", "GAMEMODE"]
 
     flatpak_info_path = "/.flatpak-info"
@@ -119,7 +117,7 @@ class LinuxSystem:
                     self._cache[key][command] = command_path
 
         # Detect if system is 64bit capable
-        self.is_64_bit = sys.maxsize > 2 ** 32
+        self.is_64_bit = sys.maxsize > 2**32
         self.arch = self.get_arch()
         self.shared_libraries = self.get_shared_libraries()
         self.populate_libraries()
@@ -148,7 +146,7 @@ class LinuxSystem:
         """Parse the output of /proc/cpuinfo"""
         cpus = [{}]
         cpu_index = 0
-        with open("/proc/cpuinfo") as cpuinfo:
+        with open("/proc/cpuinfo", encoding='utf-8') as cpuinfo:
             for line in cpuinfo.readlines():
                 if not line.strip():
                     cpu_index += 1
@@ -161,14 +159,10 @@ class LinuxSystem:
     @staticmethod
     def get_drives():
         """Return a list of drives with their filesystems"""
-        try:
-            output = subprocess.check_output(["lsblk", "-f", "--json"]).decode()
-        except subprocess.CalledProcessError as ex:
-            logger.error("Failed to get drive information: %s", ex)
-            return None
+        lsblk_output = system.read_process_output(["lsblk", "-f", "--json"])
         return [
             drive
-            for drive in json.loads(output)["blockdevices"]
+            for drive in json.loads(lsblk_output)["blockdevices"]
             if drive["fstype"] != "squashfs"
         ]
 
@@ -176,7 +170,7 @@ class LinuxSystem:
     def get_ram_info():
         """Parse the output of /proc/meminfo and return RAM information in kB"""
         mem = {}
-        with open("/proc/meminfo") as meminfo:
+        with open("/proc/meminfo", encoding='utf-8') as meminfo:
             for line in meminfo.readlines():
                 key, value = line.split(":", 1)
                 mem[key.strip()] = value.strip('kB \n')
@@ -195,9 +189,9 @@ class LinuxSystem:
         with the supported architectures from the Lutris API
         """
         machine = platform.machine()
-        if "64" in machine:
+        if machine == "x86_64":
             return "x86_64"
-        if "86" in machine:
+        if machine in ("i386", "i686"):
             return "i386"
         if "armv7" in machine:
             return "armv7"
@@ -206,15 +200,35 @@ class LinuxSystem:
     @staticmethod
     def get_kernel_version():
         """Get kernel info from /proc/version"""
-        with open("/proc/version") as kernel_info:
+        with open("/proc/version", encoding='utf-8') as kernel_info:
             info = kernel_info.readlines()[0]
             version = info.split(" ")[2]
         return version
 
+    def gamemode_available(self):
+        """Return whether gamemode is available"""
+        # Current versions of gamemode use gamemoderun
+        if system.find_executable("gamemoderun"):
+            return True
+        # This is for old versions of gamemode only
+        if self.is_feature_supported("GAMEMODE"):
+            return True
+        return False
+
+    @property
+    def has_steam(self):
+        """Return whether Steam is installed locally"""
+        return bool(system.find_executable("steam"))
+
+    @property
+    def display_server(self):
+        """Return the display server used"""
+        return os.environ.get("XDG_SESSION_TYPE", "unknown")
+
     @property
     def is_flatpak(self):
         """Check is we are running inside Flatpak sandbox"""
-        return os.path.exists(self.flatpak_info_path)
+        return system.path_exists(self.flatpak_info_path)
 
     @property
     def runtime_architectures(self):
@@ -233,7 +247,7 @@ class LinuxSystem:
 
     def get_fs_type_for_path(self, path):
         """Return the filesystem type a given path uses"""
-        path_drive = get_drive_for_path(path)
+        path_drive = system.get_drive_for_path(path)
         for drive in self.get_drives():
             for partition in drive.get("children", []):
                 if "/dev/%s" % partition["name"] == path_drive:
@@ -272,12 +286,8 @@ class LinuxSystem:
 
     def get_lib_folders(self):
         """Return shared library folders, sorted by most used to least used"""
-        lib_folder_counter = Counter(
-            lib.dirname
-            for lib_list in self.shared_libraries.values()
-            for lib in lib_list
-        )
-        return [path[0] for path in reversed(lib_folder_counter.most_common())]
+        lib_folder_counter = Counter(lib.dirname for lib_list in self.shared_libraries.values() for lib in lib_list)
+        return [path[0] for path in lib_folder_counter.most_common()]
 
     def iter_lib_folders(self):
         """Loop over existing 32/64 bit library folders"""
@@ -293,7 +303,7 @@ class LinuxSystem:
                 # Ignore paths where 64-bit path is link to supposed 32-bit path
                 if os.path.realpath(lib_paths[0]) == os.path.realpath(lib_paths[1]):
                     continue
-            if all([os.path.exists(path) for path in lib_paths]):
+            if all(os.path.exists(path) for path in lib_paths):
                 if lib_paths[0] not in exported_lib_folders:
                     yield lib_paths[0]
                 if len(lib_paths) != 1:
@@ -306,15 +316,7 @@ class LinuxSystem:
         if not ldconfig:
             logger.error("Could not detect ldconfig on this system")
             return []
-        try:
-            output = (
-                subprocess.check_output([ldconfig, "-p"])
-                .decode("utf-8", errors="ignore")
-                .split("\n")
-            )
-        except subprocess.CalledProcessError as ex:
-            logger.error("Failed to get libraries from ldconfig: %s", ex)
-            return []
+        output = system.read_process_output([ldconfig, "-p"]).split("\n")
         return [line.strip("\t") for line in output if line.startswith("\t")]
 
     def get_shared_libraries(self):
@@ -323,7 +325,11 @@ class LinuxSystem:
         """
         shared_libraries = defaultdict(list)
         for lib_line in self.get_ldconfig_libs():
-            lib = SharedLibrary.new_from_ldconfig(lib_line)
+            try:
+                lib = SharedLibrary.new_from_ldconfig(lib_line)
+            except ValueError:
+                logger.error("Invalid ldconfig line: %s", lib_line)
+                continue
             if lib.arch not in self.runtime_architectures:
                 continue
             shared_libraries[lib.name].append(lib)
@@ -351,16 +357,11 @@ class LinuxSystem:
     def get_missing_requirement_libs(self, req):
         """Return a list of sets of missing libraries for each supported architecture"""
         required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])
-        return [
-            list(required_libs - set(self._cache["LIBRARIES"][arch][req]))
-            for arch in self.runtime_architectures
-        ]
+        return [list(required_libs - set(self._cache["LIBRARIES"][arch][req])) for arch in self.runtime_architectures]
 
     def get_missing_libs(self):
         """Return a dictionary of missing libraries"""
-        return {
-            req: self.get_missing_requirement_libs(req) for req in self.requirements
-        }
+        return {req: self.get_missing_requirement_libs(req) for req in self.requirements}
 
     def is_feature_supported(self, feature):
         """Return whether the system has the necessary libs to support a feature"""
@@ -388,9 +389,7 @@ class SharedLibrary:
         """Create a SharedLibrary instance from an output line from ldconfig"""
         lib_match = re.match(r"^(.*) \((.*)\) => (.*)$", ldconfig_line)
         if not lib_match:
-            raise ValueError(
-                "Received incorrect value for ldconfig line: %s" % ldconfig_line
-            )
+            raise ValueError("Received incorrect value for ldconfig line: %s" % ldconfig_line)
         return cls(lib_match.group(1), lib_match.group(2), lib_match.group(3))
 
     @property
@@ -424,10 +423,7 @@ def gather_system_info():
     system_info = {}
     if drivers.is_nvidia():
         system_info["nvidia_driver"] = drivers.get_nvidia_driver_info()
-        system_info["nvidia_gpus"] = [
-            drivers.get_nvidia_gpu_info(gpu_id)
-            for gpu_id in drivers.get_nvidia_gpu_ids()
-        ]
+        system_info["nvidia_gpus"] = [drivers.get_nvidia_gpu_info(gpu_id) for gpu_id in drivers.get_nvidia_gpu_ids()]
     system_info["gpus"] = [drivers.get_gpu_info(gpu) for gpu in drivers.get_gpus()]
     system_info["env"] = dict(os.environ)
     system_info["missing_libs"] = LINUX_SYSTEM.get_missing_libs()
@@ -455,10 +451,10 @@ def gather_system_info_str():
     system_info_readable["System"] = system_dict
     # Add CPU information
     cpu_dict = {}
-    cpu_dict["Vendor"] = system_info["cpus"][0]["vendor_id"]
-    cpu_dict["Model"] = system_info["cpus"][0]["model name"]
-    cpu_dict["Physical cores"] = system_info["cpus"][0]["cpu cores"]
-    cpu_dict["Logical cores"] = system_info["cpus"][0]["siblings"]
+    cpu_dict["Vendor"] = system_info["cpus"][0].get("vendor_id", "Vendor unavailable")
+    cpu_dict["Model"] = system_info["cpus"][0].get("model name", "Model unavailable")
+    cpu_dict["Physical cores"] = system_info["cpus"][0].get("cpu cores", "Physical cores unavailable")
+    cpu_dict["Logical cores"] = system_info["cpus"][0].get("siblings", "Logical cores unavailable")
     system_info_readable["CPU"] = cpu_dict
     # Add memory information
     ram_dict = {}
@@ -468,11 +464,13 @@ def gather_system_info_str():
     # Add graphics information
     graphics_dict = {}
     if LINUX_SYSTEM.glxinfo:
-        graphics_dict["Vendor"] = system_info["glxinfo"]["opengl_vendor"]
-        graphics_dict["OpenGL Renderer"] = system_info["glxinfo"]["opengl_renderer"]
-        graphics_dict["OpenGL Version"] = system_info["glxinfo"]["opengl_version"]
-        graphics_dict["OpenGL Core"] = system_info["glxinfo"]["opengl_core_profile_version"]
-        graphics_dict["OpenGL ES"] = system_info["glxinfo"]["opengl_es_profile_version"]
+        graphics_dict["Vendor"] = system_info["glxinfo"].get("opengl_vendor", "Vendor unavailable")
+        graphics_dict["OpenGL Renderer"] = system_info["glxinfo"].get("opengl_renderer", "OpenGL Renderer unavailable")
+        graphics_dict["OpenGL Version"] = system_info["glxinfo"].get("opengl_version", "OpenGL Version unavailable")
+        graphics_dict["OpenGL Core"] = system_info["glxinfo"].get(
+            "opengl_core_profile_version", "OpenGL core unavailable"
+        )
+        graphics_dict["OpenGL ES"] = system_info["glxinfo"].get("opengl_es_profile_version", "OpenGL ES unavailable")
     else:
         graphics_dict["Vendor"] = "Unable to obtain glxinfo"
     # check Vulkan support
@@ -483,11 +481,23 @@ def gather_system_info_str():
     system_info_readable["Graphics"] = graphics_dict
 
     output = ''
-    for section in system_info_readable:
-        output += '[{}]\n'.format(section)
-        dictionary = system_info_readable[section]
-        for key in dictionary:
+    for section, dictionary in system_info_readable.items():
+        output += '[%s]\n' % section
+        for key, value in dictionary.items():
             tabs = " " * (16 - len(key))
-            output += '{}{}{}\n'.format(key + ":", tabs, dictionary[key])
+            output += '%s:%s%s\n' % (key, tabs, value)
         output += '\n'
     return output
+
+
+def get_terminal_apps():
+    """Return the list of installed terminal emulators"""
+    return LINUX_SYSTEM.get_terminals()
+
+
+def get_default_terminal():
+    """Return the default terminal emulator"""
+    terms = get_terminal_apps()
+    if terms:
+        return terms[0]
+    logger.error("Couldn't find a terminal emulator.")

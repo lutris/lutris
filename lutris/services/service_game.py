@@ -1,12 +1,18 @@
-"""Communicates between third party services games and Lutris games"""
-from lutris import pga
+"""Service game module"""
+from lutris import settings
+from lutris.database import sql
+from lutris.database.services import ServiceGameCollection
+from lutris.services.service_media import ServiceMedia
+
+PGA_DB = settings.PGA_DB
 
 
 class ServiceGame:
     """Representation of a game from a 3rd party service"""
 
-    store = NotImplemented
+    service = NotImplemented
     installer_slug = NotImplemented
+    medias = (ServiceMedia, )
 
     def __init__(self):
         self.appid = None  # External ID of the game on the 3rd party service
@@ -14,58 +20,25 @@ class ServiceGame:
         self.runner = None  # Name of the runner
         self.name = None  # Name
         self.slug = None  # Game slug
-        self.icon = None  # Game icon / logo
+        self.lutris_slug = None  # Slug used by the lutris website
+        self.logo = None  # Game logo
+        self.icon = None  # Game icon
         self.details = None  # Additional details for the game
 
-    @classmethod
-    def new_from_lutris_id(cls, game_id):
-        """Create a ServiceGame from its Lutris ID"""
-        service_game = cls()
-        service_game.game_id = game_id
-        return service_game
-
-    @property
-    def config_id(self):
-        """Returns the ID to use for the lutris config file"""
-        return self.slug + "-" + self.installer_slug
-
-    @property
-    def steamid(self):
-        """Return the SteamID, this is a special case since Steam's appid's are
-        a field in the game table. Keeping this here allows to reuse the install method.
-        """
-        if hasattr(self, "appid") and hasattr(self, "runner") and "steam" in self.runner:
-            return int(self.appid)
-        return None
-
-    def install(self, updated_info=None):
-        """Add an installed game to the library
-
-        Params:
-            updated_info (dict): Optional dictonary containing existing data not to overwrite
-        """
-        if updated_info:
-            name = updated_info["name"]
-            slug = updated_info["slug"]
+    def save(self):
+        """Save this game to database"""
+        game_data = {
+            "service": self.service,
+            "appid": self.appid,
+            "name": self.name,
+            "slug": self.slug,
+            "lutris_slug": self.lutris_slug,
+            "icon": self.icon,
+            "logo": self.logo,
+            "details": str(self.details),
+        }
+        existing_game = ServiceGameCollection.get_game(self.service, self.appid)
+        if existing_game:
+            sql.db_update(PGA_DB, "service_games", game_data, {"id": existing_game["id"]})
         else:
-            name = self.name
-            slug = self.slug
-        self.game_id = pga.add_or_update(
-            id=self.game_id,
-            name=name,
-            runner=self.runner,
-            slug=slug,
-            steamid=self.steamid,
-            installed=1,
-            configpath=self.config_id,
-            installer_slug=self.installer_slug,
-        )
-        self.create_config()
-        return self.game_id
-
-    def uninstall(self):
-        """Uninstall a game from Lutris"""
-        return pga.add_or_update(id=self.game_id, installed=0)
-
-    def create_config(self):
-        """Implement this in subclasses to properly create the game config"""
+            sql.db_insert(PGA_DB, "service_games", game_data)

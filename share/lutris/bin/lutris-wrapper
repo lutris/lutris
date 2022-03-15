@@ -4,16 +4,17 @@ Starts a game in a contained process tree, waits for the game to start,
 gently tries to close other game processes when the main game has exited.
 """
 
+import ctypes
+import logging
 import os
+import signal
+import subprocess
 import sys
 import time
-import subprocess
-import signal
-import logging
-import ctypes
 from ctypes.util import find_library
-from lutris.util.monitor import ProcessMonitor
+
 from lutris.util.log import logger
+from lutris.util.process_watcher import ProcessWatcher
 
 try:
     from setproctitle import setproctitle
@@ -21,7 +22,11 @@ except ImportError:
     setproctitle = print
 
 
-PR_SET_CHILD_SUBREAPER = 36
+PR_SET_CHILD_SUBREAPER = 36  # Value of the constant in prctl.h
+
+
+class NoMoreChildren(Exception):
+    """Raised when async_reap_children finds no children left"""
 
 
 def set_child_subreaper():
@@ -51,29 +56,44 @@ def set_child_subreaper():
     """
     result = ctypes.CDLL(find_library('c')).prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0, 0)
     if result == -1:
-        print("PR_SET_CHILD_SUBREAPER failed, process watching may fail")
+        print("PR_SET_CHILD_SUBREAPER is not supported by your kernel (Linux 3.4 and above)")
 
 
-def log(line):
+def log(log_message):
     """Generic log function that can be adjusted for any log output method
-    (stdout, file, logging, t2s, Discord, ...)
+    (stdout, file, logging, ...)
     """
+    line = str(log_message) + "\n"
     try:
-        sys.stdout.write(line + "\n")
+        sys.stdout.write(line)
         sys.stdout.flush()
     except BrokenPipeError:
         pass
 
-    # File output example
+    # File output
     # with open(os.path.expanduser("~/lutris.log"), "a") as logfile:
     #     logfile.write(line)
-    #     logfile.write("\n")
+
+
+def kill_pid(pid, sigkill=False):
+    """Attempt to kill a process with SIGTERM or SIGKILL"""
+    if sigkill:
+        _signal = signal.SIGKILL
+    else:
+        _signal = signal.SIGTERM
+    log("Killing PID %s with %s" % (pid, "SIGKILL" if sigkill else "SIGTERM"))
+    try:
+        os.kill(pid, _signal)
+    except ProcessLookupError:  # process already dead
+        pass
 
 
 def main():
     """Runs a command independently from the Lutris client"""
+    # pylint: disable=too-many-branches,too-many-statements
+    # TODO: refactor
     set_child_subreaper()
-    _, proc_title, include_proc_count, exclude_proc_count, *args = sys.argv
+    _script_name, proc_title, include_proc_count, exclude_proc_count, *args = sys.argv
 
     setproctitle("lutris-wrapper: " + proc_title)
 
@@ -85,47 +105,34 @@ def main():
 
     if "PYTHONPATH" in os.environ:
         del os.environ["PYTHONPATH"]
-    monitor = ProcessMonitor(include_procs, exclude_procs)
+    watcher = ProcessWatcher(include_procs, exclude_procs)
 
     def hard_sig_handler(signum, _frame):
         log("Caught another signal, sending SIGKILL.")
         for _ in range(3):  # just in case we race a new process.
-            for child in monitor.iterate_all_processes():
-                try:
-                    os.kill(child.pid, signal.SIGKILL)
-                except ProcessLookupError:  # process already dead
-                    pass
-        log("--killed processes--")
+            for child in watcher.iterate_children():
+                kill_pid(child.pid, sigkill=True)
 
     def sig_handler(signum, _frame):
         log("Caught signal %s" % signum)
         signal.signal(signal.SIGTERM, hard_sig_handler)
         signal.signal(signal.SIGINT, hard_sig_handler)
-        for child in monitor.iterate_game_processes():
-            log("passing along signal to PID %s" % child.pid)
-            try:
-                os.kill(child.pid, signum)
-            except ProcessLookupError:  # process already dead
-                pass
+        for child in watcher.iterate_children():
+            kill_pid(child.pid, signum == signal.SIGKILL)
         log("--terminated processes--")
 
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
 
-    log("Running %s" % " ".join(args))
     returncode = None
     try:
-        initial_pid = subprocess.Popen(args).pid
+        process_pid = subprocess.Popen(args).pid
     except FileNotFoundError:
         log("Failed to execute process. Check that the file exists")
         return
+    log("Started initial process %d from %s" % (process_pid, " ".join(args)))
 
-    log("Initial process has started with pid %d" % initial_pid)
-
-    class NoMoreChildren(Exception):
-        "Raised when async_reap_children finds no children left"
-
-    def async_reap_children():
+    def reap_children(message=None):
         """
         Attempts to reap zombie child processes. Thanks to setting
         ourselves as a subreaper, we are assigned zombie processes
@@ -136,95 +143,55 @@ def main():
         code was so that we can forward it to our caller.
         """
         nonlocal returncode
-
+        if message:
+            log(message)
         while True:
             try:
-                dead_pid, dead_returncode, _ = os.wait3(os.WNOHANG)
+                child_pid, child_returncode, resource_usage = os.wait3(os.WNOHANG)
             except ChildProcessError:
-                # No processes remain. No need to check monitor.
-                raise NoMoreChildren from None
+                raise NoMoreChildren from None  # No processes remain.
+            if child_pid == process_pid:
+                if returncode:
+                    log("Reassigning returncode, which is very weird but you'll have to deal with it.")
+                returncode = child_returncode
+                log("Initial process has exited (return code: %s)" % child_returncode)
 
-            if dead_pid == 0:
+            if child_pid == 0:
                 break
 
-            if returncode is None and dead_pid == initial_pid:
-                log("Initial process has exited.")
-                returncode = dead_returncode
-
+    log("Start monitoring process.")
     try:
-        # While we are inside this try..except, if at the time of any
-        # call to async_reap_children there are no children left, we
-        # will skip the rest of our cleanup logic, since with no
-        # children remaining, there's nothing left to wait for.
-        #
-        # This behavior doesn't help with ignoring "system processes",
-        # so its more of a shortcut out of this code than it is
-        # essential for correctness.
-
         # The initial wait loop:
         #  the initial process may have been excluded. Wait for the game
         #  to be considered "started".
-        if not monitor.is_game_alive():
-            log("Waiting for game to be considered started (first non-excluded process started)")
-            while not monitor.is_game_alive():
-                async_reap_children()
+        if not watcher.is_alive():
+            log("Waiting for game to start (first non-excluded process started)")
+            while not watcher.is_alive():
+                reap_children()
                 time.sleep(0.1)
-
-        # The main wait loop:
-        #  The game is running. Our process is now just waiting around
-        #  for processes to exit, waiting up every .1s to reap child
-        #  processes.
-        log("Game is considered started.")
-        while monitor.is_game_alive():
-            async_reap_children()
+        while watcher.is_alive():
+            reap_children()
             time.sleep(0.1)
-
-        log("Game is considered exited.")
-        async_reap_children()
-
-
-        # The exit wait loop:
-        #  The game is no longer running. We ask monitored processes
-        #  to exit and wait 30 seconds before sending more SIGTERMs.
-        while monitor.are_monitored_processes_alive():
-            async_reap_children()
-            child = None
-            for child in monitor.iterate_monitored_processes():
-                log("Sending SIGTERM to PID %s (pid %s)" % (child.name, child.pid))
-                try:
-                    os.kill(child.pid, signal.SIGTERM)
-                except ProcessLookupError:  # process already dead
-                    pass
-
-
-            # Spend 60 seconds waiting for processes to clean up.
-            async_reap_children()
-            for _ in range(600):
-                if not monitor.are_monitored_processes_alive():
-                    break
-
-                if _ == 0:
-                    log("Waiting up to 30sec for processes to exit.")
-
-                async_reap_children()
-                time.sleep(0.1)
-
-        async_reap_children()
-        log("All monitored processes have exited.")
+        log("Monitored process exited.")
+        reap_children()
 
     except NoMoreChildren:
-        log("All children have exited.")
+        log("All processes have quit")
 
     if returncode is None:
         returncode = 0
-        log("Never found the initial process' return code. Weird?")
-    log("Exit with returncode %s" % returncode)
+        log("No return code")
+    else:
+        log("Exit with return code %s" % returncode)
+    if "LUTRIS_GAME_UUID" in os.environ:
+        with open("/tmp/lutris-%s" % os.environ["LUTRIS_GAME_UUID"], "w") as status_file:
+            status_file.write("%s" % returncode)
     sys.exit(returncode)
 
 
 if __name__ == "__main__":
     LAUNCH_PATH = os.path.dirname(os.path.realpath(__file__))
-    if os.path.isdir(os.path.join(LAUNCH_PATH,"../lutris")):
+    if os.path.isdir(os.path.join(LAUNCH_PATH, "../lutris")):
         logger.setLevel(logging.DEBUG)
         sys.dont_write_bytecode = True
         SOURCE_PATH = os.path.normpath(os.path.join(LAUNCH_PATH, '..'))

@@ -1,0 +1,22 @@
+name: lint_python
+on: [pull_request, push]
+jobs:
+  lint_python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - run: sudo apt-get update -y
+      - run: sudo apt-get install make libdbus-1-dev libgirepository1.0-dev
+                 gir1.2-gnomedesktop-3.0 gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-webkit2-4.0
+      - run: pip install --upgrade pip wheel poetry
+      - run: make dev
+      - run: make isort-check
+      - run: make flake8
+      - run: make black || true
+      - run: make mypy || true
+      - uses: GabrielBB/xvfb-action@v1
+        with:
+          run: poetry run pytest .
+      - run: shopt -s globstar && poetry run pyupgrade --py36-plus **/*.py || true
+      - run: poetry run safety check || true

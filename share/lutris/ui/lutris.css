@@ -22,12 +22,8 @@
     font-weight: normal;
 }
 
-row:selected {
-  background: transparent;
-}
-row:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-row:selected, row:selected button label, row:selected label {
-  color: inherit;
+.info-pill {
+  background-color: alpha(currentColor, .07);
+  border-radius: 5px;
+  padding: 3px 6px;
 }

@@ -1,26 +1,28 @@
 import os
+from unittest import TestCase
+
 import gi
 
 gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk
-from lutris.game import Game
-from lutris.startup import init_lutris
-# from lutris import settings
-from lutris import pga
-from lutris.gui.config.common import GameDialogCommon
-from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.application import Application
-from lutris.gui.views.store import sort_func
-from unittest import TestCase
-from lutris import runners
 
-TEST_PGA_PATH = os.path.join(os.path.dirname(__file__), 'pga.db')
+from lutris import runners
+from lutris.database import games as games_db
+from lutris.game import Game
+from lutris.gui.application import Application
+from lutris.gui.config.add_game import AddGameDialog
+# from lutris import settings
+from lutris.gui.config.common import GameDialogCommon
+from lutris.gui.views.store import sort_func
+from lutris.util.test_config import setup_test_environment
+
+setup_test_environment()
 
 
 class TestGameDialogCommon(TestCase):
     def test_get_runner_liststore(self):
-        dlg = GameDialogCommon()
+        dlg = GameDialogCommon("test")
         list_store = dlg._get_runner_liststore()
         self.assertTrue(
             list_store[1][0].startswith(runners.get_installed()[0].human_name)
@@ -30,7 +32,6 @@ class TestGameDialogCommon(TestCase):
 
 class TestGameDialog(TestCase):
     def setUp(self):
-        init_lutris()
         lutris_application = Application()
         lutris_window = lutris_application.window
         self.dlg = AddGameDialog(lutris_window)
@@ -98,11 +99,11 @@ class TestGameDialog(TestCase):
         add_button = self.get_buttons().get_children()[1]
         add_button.clicked()
 
-        pga_game = pga.get_game_by_field('test-game', 'slug')
+        pga_game = games_db.get_game_by_field('test-game', 'slug')
         self.assertTrue(pga_game)
         game = Game(pga_game['id'])
         self.assertEqual(game.name, 'Test game')
-        game.remove(from_library=True)
+        game.remove()
 
 
 class TestSort(TestCase):

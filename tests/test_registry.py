@@ -1,5 +1,6 @@
 import os
 from unittest import TestCase
+
 from lutris.util.wine.registry import WineRegistry, WineRegistryKey
 
 FIXTURES_PATH = os.path.join(os.path.dirname(__file__), 'fixtures')
@@ -97,7 +98,7 @@ class TestWineRegistryKey(TestCase):
         key = WineRegistryKey(path='Control Panel/Desktop')
         self.assertEqual(key.name, 'Control Panel/Desktop')
         self.assertEqual(key.raw_name, '[Control Panel\\\\Desktop]')
-        self.assertRegexpMatches(key.raw_timestamp, r'\d+\s\d+')
+        self.assertRegex(key.raw_timestamp, r'\d+\s\d+')
 
     def test_parse_registry_key(self):
         key = WineRegistryKey(path='Control Panel/Desktop')

@@ -1,20 +1,17 @@
-from lutris.gui.dialogs import Dialog
+from gettext import gettext as _
+
 from lutris.gui.config.common import GameDialogCommon
-from lutris.gui.config import DIALOG_WIDTH, DIALOG_HEIGHT
 
 
-class EditGameConfigDialog(Dialog, GameDialogCommon):
+class EditGameConfigDialog(GameDialogCommon):
     """Game config edit dialog."""
 
     def __init__(self, parent, game):
-        super().__init__("Configure %s" % game.name, parent=parent)
+        super().__init__(_("Configure %s") % game.name, parent=parent)
         self.game = game
         self.lutris_config = game.config
         self.slug = game.slug
         self.runner_name = game.runner_name
-
-        self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
-
         self.build_notebook()
         self.build_tabs("game")
         self.build_action_area(self.on_save)

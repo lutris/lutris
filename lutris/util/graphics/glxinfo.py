@@ -1,6 +1,6 @@
 """Parser for the glxinfo utility"""
-import subprocess
 from lutris.util.log import logger
+from lutris.util.system import read_process_output
 
 
 class Container:  # pylint: disable=too-few-public-methods
@@ -9,6 +9,7 @@ class Container:  # pylint: disable=too-few-public-methods
 
 class GlxInfo:
     """Give access to the glxinfo information"""
+
     def __init__(self, output=None):
         """Creates a new GlxInfo object
 
@@ -24,11 +25,7 @@ class GlxInfo:
     @staticmethod
     def get_glxinfo_output():
         """Return the glxinfo -B output"""
-        try:
-            return subprocess.check_output(["glxinfo", "-B"]).decode()
-        except subprocess.CalledProcessError as ex:
-            logger.error("glxinfo call failed: %s", ex)
-            return ""
+        return read_process_output(["glxinfo", "-B"])
 
     def as_dict(self):
         """Return the attributes as a dict"""

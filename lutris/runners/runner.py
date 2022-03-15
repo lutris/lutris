@@ -1,20 +1,26 @@
 """Base module for runners"""
 import os
+import signal
+from gettext import gettext as _
 
 from gi.repository import Gtk
 
-from lutris import pga, settings, runtime
-from lutris.config import LutrisConfig
-from lutris.gui import dialogs
+from lutris import runtime, settings
 from lutris.command import MonitoredCommand
-from lutris.util.extract import extract_archive, ExtractFailure
-from lutris.util.log import logger
-from lutris.util import system
-from lutris.util.http import Request
+from lutris.config import LutrisConfig
+from lutris.database.games import get_game_by_field
+from lutris.exceptions import UnavailableLibraries
+from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
+from lutris.util import system
+from lutris.util.extract import ExtractFailure, extract_archive
+from lutris.util.http import HTTPError, Request
+from lutris.util.linux import LINUX_SYSTEM
+from lutris.util.log import logger
 
 
-class Runner:
+class Runner:  # pylint: disable=too-many-public-methods
+
     """Generic runner (base class for other runners)."""
 
     multiple_versions = False
@@ -24,18 +30,19 @@ class Runner:
     runner_options = []
     system_options_override = []
     context_menu_entries = []
-    depends_on = None
+    require_libs = []
     runner_executable = None
+    entry_point_option = "main_file"
+    download_url = None
+    arch = None  # If the runner is only available for an architecture that isn't x86_64
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.arch = system.LINUX_SYSTEM.arch
         self.config = config
-        self.game_data = {}
         if config:
-            self.game_data = pga.get_game_by_field(
-                self.config.game_config_id, "configpath"
-            )
+            self.game_data = get_game_by_field(self.config.game_config_id, "configpath")
+        else:
+            self.game_data = {}
 
     def __lt__(self, other):
         return self.name < other.name
@@ -48,7 +55,7 @@ class Runner:
     @description.setter
     def description(self, value):
         """Leave the ability to override the docstring."""
-        self.__doc__ = value
+        self.__doc__ = value  # What the shit
 
     @property
     def name(self):
@@ -83,20 +90,22 @@ class Runner:
         return self.system_config.get("game_path")
 
     @property
-    def browse_dir(self):
-        """Return the path to open with the Browse Files action."""
-        for key in self.game_config:
-            if key in ["exe", "main_file", "rom", "disk", "iso"]:
-                path = os.path.dirname(self.game_config.get(key) or "")
-                if not os.path.isabs(path):
-                    path = os.path.join(self.game_path, path)
-                return path
-        return self.game_path
-
-    @property
     def game_path(self):
         """Return the directory where the game is installed."""
-        return self.game_data.get("directory")
+        game_path = self.game_data.get("directory")
+        if game_path:
+            return game_path
+
+        # Default to the directory where the entry point is located.
+        entry_point = self.game_config.get(self.entry_point_option)
+        if entry_point:
+            return os.path.dirname(os.path.expanduser(entry_point))
+        return ""
+
+    @property
+    def library_folders(self):
+        """Return a list of paths where a game might be installed"""
+        return []
 
     @property
     def working_dir(self):
@@ -104,24 +113,19 @@ class Runner:
         return self.game_path or os.path.expanduser("~/")
 
     @property
-    def discord_rpc_enabled(self):
-        if self.game_data.get("discord_rpc_enabled"):
-            return self.game_data.get("discord_rpc_enabled")
+    def shader_cache_dir(self):
+        """Return the cache directory for this runner to use. We create
+        this if it does not exist."""
+        path = os.path.join(settings.SHADER_CACHE_DIR, self.name)
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        return path
 
     @property
-    def discord_show_runner(self):
-        if self.game_data.get("discord_show_runner"):
-            return self.game_data.get("discord_show_runner")
-
-    @property
-    def discord_custom_game_name(self):
-        if self.game_data.get("discord_custom_game_name"):
-            return self.game_data.get("discord_custom_game_name")
-
-    @property
-    def discord_custom_runner_name(self):
-        if self.game_data.get("discord_custom_runner_name"):
-            return self.game_data.get("discord_custom_runner_name")
+    def nvidia_shader_cache_path(self):
+        """The path to place in __GL_SHADER_DISK_CACHE_PATH; NVidia
+        will place its cache cache in a subdirectory here."""
+        return self.shader_cache_dir
 
     @property
     def discord_client_id(self):
@@ -138,7 +142,7 @@ class Runner:
                 {
                     "option": "runner_executable",
                     "type": "file",
-                    "label": "Custom executable for the runner",
+                    "label": _("Custom executable for the runner"),
                     "advanced": True,
                 }
             )
@@ -159,28 +163,58 @@ class Runner:
         if os_env:
             env.update(os.environ.copy())
 
-        system_env = self.system_config.get("env") or {}
-        env.update(system_env)
+        # By default we'll set NVidia's shader disk cache to be
+        # per-game, so it overflows less readily.
+        env["__GL_SHADER_DISK_CACHE"] = "1"
+        env["__GL_SHADER_DISK_CACHE_PATH"] = self.nvidia_shader_cache_path
 
+        # Override SDL2 controller configuration
+        sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")
+        if sdl_gamecontrollerconfig:
+            path = os.path.expanduser(sdl_gamecontrollerconfig)
+            if system.path_exists(path):
+                with open(path, "r", encoding='utf-8') as controllerdb_file:
+                    sdl_gamecontrollerconfig = controllerdb_file.read()
+            env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
+
+        # Set monitor to use for SDL 1 games
+        sdl_video_fullscreen = self.system_config.get("sdl_video_fullscreen")
+        if sdl_video_fullscreen and sdl_video_fullscreen != "off":
+            env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
+
+        # DRI Prime
         if self.system_config.get("dri_prime"):
             env["DRI_PRIME"] = "1"
+
+        # Prime vars
+        prime = self.system_config.get("prime")
+        if prime:
+            env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
+            env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
+            env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
+
+        # Set PulseAudio latency to 60ms
+        if self.system_config.get("pulse_latency"):
+            env["PULSE_LATENCY_MSEC"] = "60"
+
+        # Vulkan ICD files
+        vk_icd = self.system_config.get("vk_icd")
+        if vk_icd:
+            env["VK_ICD_FILENAMES"] = vk_icd
 
         runtime_ld_library_path = None
 
         if self.use_runtime():
             runtime_env = self.get_runtime_env()
-            if "STEAM_RUNTIME" in runtime_env and "STEAM_RUNTIME" not in env:
-                env["STEAM_RUNTIME"] = runtime_env["STEAM_RUNTIME"]
-            if "LD_LIBRARY_PATH" in runtime_env:
-                runtime_ld_library_path = runtime_env["LD_LIBRARY_PATH"]
+            runtime_ld_library_path = runtime_env.get("LD_LIBRARY_PATH")
 
         if runtime_ld_library_path:
             ld_library_path = env.get("LD_LIBRARY_PATH")
-            if not ld_library_path:
-                ld_library_path = "$LD_LIBRARY_PATH"
-            env["LD_LIBRARY_PATH"] = ":".join(
-                [runtime_ld_library_path, ld_library_path]
-            )
+            env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+                runtime_ld_library_path, ld_library_path]))
+
+        # Apply user overrides at the end
+        env.update(self.system_config.get("env") or {})
 
         return env
 
@@ -194,22 +228,28 @@ class Runner:
             dict
 
         """
-        return runtime.get_env(
-            prefer_system_libs=self.system_config.get("prefer_system_libs", True)
-        )
+        return runtime.get_env(prefer_system_libs=self.system_config.get("prefer_system_libs", True))
 
-    def play(self):
-        """Dummy method, must be implemented by derived runners."""
-        raise NotImplementedError("Implement the play method in your runner")
+    def prelaunch(self):
+        """Run actions before running the game, override this method in runners"""
+        available_libs = set()
+        for lib in set(self.require_libs):
+            if lib in LINUX_SYSTEM.shared_libraries:
+                if self.arch:
+                    if self.arch in [_lib.arch for _lib in LINUX_SYSTEM.shared_libraries[lib]]:
+                        available_libs.add(lib)
+                else:
+                    available_libs.add(lib)
+        unavailable_libs = set(self.require_libs) - available_libs
+        if unavailable_libs:
+            raise UnavailableLibraries(unavailable_libs, self.arch)
+        return True
 
     def get_run_data(self):
         """Return dict with command (exe & args list) and env vars (dict).
 
         Reimplement in derived runner if need be."""
-        return {
-            "command": [self.get_executable()],
-            "env": self.get_env()
-        }
+        return {"command": [self.get_executable()], "env": self.get_env()}
 
     def run(self, *args):
         """Run the runner alone."""
@@ -240,27 +280,25 @@ class Runner:
         return True
 
     def install_dialog(self):
-        """Ask the user if she wants to install the runner.
+        """Ask the user if they want to install the runner.
 
         Return success of runner installation.
         """
         dialog = dialogs.QuestionDialog(
             {
-                "question": (
-                    "The required runner is not installed.\n"
-                    "Do you wish to install it now?"
-                ),
-                "title": "Required runner unavailable",
+                "question": _("The required runner is not installed.\n"
+                              "Do you wish to install it now?"),
+                "title": _("Required runner unavailable"),
             }
         )
         if Gtk.ResponseType.YES == dialog.result:
 
-            from lutris.gui.dialogs.runners import simple_downloader
             from lutris.gui.dialogs import ErrorDialog
+            from lutris.gui.dialogs.download import simple_downloader
             try:
                 if hasattr(self, "get_version"):
-                    self.install(downloader=simple_downloader,
-                                 version=self.get_version(use_default=False))
+                    version = self.get_version(use_default=False)  # pylint: disable=no-member
+                    self.install(downloader=simple_downloader, version=version)
                 else:
                     self.install(downloader=simple_downloader)
             except RunnerInstallationError as ex:
@@ -280,21 +318,30 @@ class Runner:
             version (str): Optional version to lookup, will return this one if found
 
         Returns:
-            dict: Dict containing version, architecture and url for the runner
+            dict: Dict containing version, architecture and url for the runner, None
+            if the data can't be retrieved.
         """
         logger.info(
             "Getting runner information for %s%s",
             self.name,
             " (version: %s)" % version if version else "",
         )
-        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
-        runner_info = request.get().json
+
+        try:
+            request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
+            runner_info = request.get().json
+
+            if not runner_info:
+                logger.error("Failed to get runner information")
+        except HTTPError as ex:
+            logger.error("Unable to get runner information: %s", ex)
+            runner_info = None
+
         if not runner_info:
-            logger.error("Failed to get runner information")
             return
 
         versions = runner_info.get("versions") or []
-        arch = self.arch
+        arch = LINUX_SYSTEM.arch
         if version:
             if version.endswith("-i386") or version.endswith("-x86_64"):
                 version, arch = version.rsplit("-", 1)
@@ -307,9 +354,9 @@ class Runner:
             default_version = [v for v in versions_for_arch if v["default"] is True]
             if default_version:
                 return default_version[0]
-        elif len(versions) == 1 and system.LINUX_SYSTEM.is_64_bit:
+        elif len(versions) == 1 and LINUX_SYSTEM.is_64_bit:
             return versions[0]
-        elif len(versions) > 1 and system.LINUX_SYSTEM.is_64_bit:
+        elif len(versions) > 1 and LINUX_SYSTEM.is_64_bit:
             default_version = [v for v in versions if v["default"] is True]
             if default_version:
                 return default_version[0]
@@ -326,25 +373,20 @@ class Runner:
             downloader,
             callback,
         )
+        opts = {"downloader": downloader, "callback": callback}
+        if self.download_url:
+            opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name)
+            return self.download_and_extract(self.download_url, **opts)
         runner = self.get_runner_version(version)
         if not runner:
-            raise RunnerInstallationError(
-                "Failed to retrieve {} ({}) information".format(
-                    self.name, version
-                )
-            )
+            raise RunnerInstallationError("Failed to retrieve {} ({}) information".format(self.name, version))
         if not downloader:
             raise RuntimeError("Missing mandatory downloader for runner %s" % self)
-        opts = {
-            "downloader": downloader,
-            "callback": callback
-        }
+
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(
-                settings.RUNNER_DIR,
-                self.name,
-                "{}-{}".format(runner["version"], runner["architecture"])
+                settings.RUNNER_DIR, self.name, "{}-{}".format(runner["version"], runner["architecture"])
             )
 
         if self.name == "libretro" and version:
@@ -360,12 +402,14 @@ class Runner:
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
         if not dest:
             dest = settings.RUNNER_DIR
-        downloader(url, runner_archive, self.extract, {
-            "archive": runner_archive,
-            "dest": dest,
-            "merge_single": merge_single,
-            "callback": callback,
-        })
+        downloader(
+            url, runner_archive, self.extract, {
+                "archive": runner_archive,
+                "dest": dest,
+                "merge_single": merge_single,
+                "callback": callback,
+            }
+        )
 
     def extract(self, archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):
@@ -374,7 +418,7 @@ class Runner:
             extract_archive(archive, dest, merge_single=merge_single)
         except ExtractFailure as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
-            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex))
+            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex)) from ex
         os.remove(archive)
 
         if self.name == "wine":
@@ -382,11 +426,16 @@ class Runner:
             from lutris.util.wine.wine import get_wine_versions
             get_wine_versions.cache_clear()
 
+        if self.runner_executable:
+            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+            if os.path.isfile(runner_executable):
+                system.make_executable(runner_executable)
+
         if callback:
             callback()
 
     @staticmethod
-    def remove_game_data(game_path=None):
+    def remove_game_data(app_id=None, game_path=None):
         system.remove_folder(game_path)
 
     def can_uninstall(self):
@@ -408,3 +457,8 @@ class Runner:
                 output = item
                 break
         return output
+
+    def force_stop_game(self, game):
+        """Stop the running game. If this leaves any game processes running,
+        the caller will SIGKILL them (after a delay)."""
+        game.kill_processes(signal.SIGTERM)

@@ -1,23 +1,32 @@
+# Standard Library
 import os
 import shutil
+from gettext import gettext as _
+
+# Lutris Modules
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import QuestionDialog, FileDialog
+from lutris.gui.dialogs import FileDialog, QuestionDialog
 from lutris.runners.runner import Runner
 from lutris.util import system
 
 
 class hatari(Runner):
-    human_name = "Hatari"
-    description = "Atari ST computers emulator"
-    platforms = ["Atari ST"]
+    human_name = _("Hatari")
+    description = _("Atari ST computers emulator")
+    platforms = [_("Atari ST")]
     runnable_alone = True
     runner_executable = "hatari/bin/hatari"
+    entry_point_option = "disk-a"
+
     game_options = [
         {
-            "option": "disk-a",
-            "type": "file",
-            "label": "Floppy Disk A",
-            "help": (
+            "option":
+            "disk-a",
+            "type":
+            "file",
+            "label":
+            _("Floppy Disk A"),
+            "help": _(
                 "Hatari supports floppy disk images in the following "
                 "formats: ST, DIM, MSA, STX, IPF, RAW and CRT. The last "
                 "three require the caps library (capslib). ZIP is "
@@ -25,10 +34,13 @@ class hatari(Runner):
             ),
         },
         {
-            "option": "disk-b",
-            "type": "file",
-            "label": "Floppy Disk B",
-            "help": (
+            "option":
+            "disk-b",
+            "type":
+            "file",
+            "label":
+            _("Floppy Disk B"),
+            "help": _(
                 "Hatari supports floppy disk images in the following "
                 "formats: ST, DIM, MSA, STX, IPF, RAW and CRT. The last "
                 "three require the caps library (capslib). ZIP is "
@@ -37,14 +49,17 @@ class hatari(Runner):
         },
     ]
 
-    joystick_choices = [("None", "none"), ("Keyboard", "keys"), ("Joystick", "real")]
+    joystick_choices = [(_("None"), "none"), (_("Keyboard"), "keys"), (_("Joystick"), "real")]
 
     runner_options = [
         {
-            "option": "bios_file",
-            "type": "file",
-            "label": "Bios file (TOS)",
-            "help": (
+            "option":
+            "bios_file",
+            "type":
+            "file",
+            "label":
+            _("Bios file (TOS)"),
+            "help": _(
                 "TOS is the operating system of the Atari ST "
                 "and is necessary to run applications with the best "
                 "fidelity, minimizing risks of issues.\n"
@@ -54,22 +69,26 @@ class hatari(Runner):
         {
             "option": "fullscreen",
             "type": "bool",
-            "label": "Fullscreen",
+            "label": _("Fullscreen"),
             "default": False,
         },
         {
             "option": "zoom",
             "type": "bool",
-            "label": "Scale up display by 2 (Atari ST/STE)",
+            "label": _("Scale up display by 2 (Atari ST/STE)"),
             "default": True,
-            "help": "Double the screen size in windowed mode.",
+            "help": _("Double the screen size in windowed mode."),
         },
         {
-            "option": "borders",
-            "type": "bool",
-            "label": "Add borders to display",
-            "default": False,
-            "help": (
+            "option":
+            "borders",
+            "type":
+            "bool",
+            "label":
+            _("Add borders to display"),
+            "default":
+            False,
+            "help": _(
                 "Useful for some games and demos using the overscan "
                 "technique. The Atari ST displayed borders around the "
                 "screen because it was not powerful enough to display "
@@ -79,11 +98,15 @@ class hatari(Runner):
             ),
         },
         {
-            "option": "status",
-            "type": "bool",
-            "label": "Display status bar",
-            "default": False,
-            "help": (
+            "option":
+            "status",
+            "type":
+            "bool",
+            "label":
+            _("Display status bar"),
+            "default":
+            False,
+            "help": _(
                 "Displays a status bar with some useful information, "
                 "like green leds lighting up when the floppy disks are "
                 "read."
@@ -92,30 +115,31 @@ class hatari(Runner):
         {
             "option": "joy0",
             "type": "choice",
-            "label": "Joystick 1",
+            "label": _("Joystick 1"),
             "choices": joystick_choices,
             "default": "none",
         },
         {
             "option": "joy1",
             "type": "choice",
-            "label": "Joystick 2",
+            "label": _("Joystick 2"),
             "choices": joystick_choices,
             "default": "none",
         },
     ]
 
     def install(self, version=None, downloader=None, callback=None):
+
         def on_runner_installed(*args):
             bios_path = system.create_folder("~/.hatari/bios")
             dlg = QuestionDialog(
                 {
-                    "question": "Do you want to select an Atari ST BIOS file?",
-                    "title": "Use BIOS file?",
+                    "question": _("Do you want to select an Atari ST BIOS file?"),
+                    "title": _("Use BIOS file?"),
                 }
             )
             if dlg.result == dlg.YES:
-                bios_dlg = FileDialog("Select a BIOS file")
+                bios_dlg = FileDialog(_("Select a BIOS file"))
                 bios_filename = bios_dlg.filename
                 if not bios_filename:
                     return
@@ -127,11 +151,9 @@ class hatari(Runner):
             if callback:
                 callback()
 
-        super(hatari, self).install(
-            version=version, downloader=downloader, callback=on_runner_installed
-        )
+        super().install(version=version, downloader=downloader, callback=on_runner_installed)
 
-    def play(self):
+    def play(self):  # pylint: disable=too-many-branches
         params = [self.get_executable()]
         if self.runner_config.get("fullscreen"):
             params.append("--fullscreen")

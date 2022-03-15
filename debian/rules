@@ -1,5 +1,14 @@
 #!/usr/bin/make -f
-export PYBUILD_INSTALL_ARGS_python3=--install-scripts=/usr/games/
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
 
 %:
-	dh $@ --buildsystem=pybuild
+	dh $@ --buildsystem=meson
+
+override_dh_auto_configure:
+	dh_auto_configure -- -Dbindir=games
+
+override_dh_builddeb:
+	dh_builddeb -- -Zgzip
