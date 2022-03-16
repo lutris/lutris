@@ -2,6 +2,8 @@
 Module for deserializing/serializing to and from VDF
 
 https://github.com/ValvePython/vdf
+
+MIT License
 """
 # pylint: disable=raise-missing-from
 
