@@ -90,7 +90,7 @@ isort-check:
 	poetry run isort lutris -c
 
 flake8:
-	poetry run flake8 . --count --max-complexity=15 --max-line-length=120 --show-source --statistics
+	poetry run flake8 . --count --max-complexity=25 --max-line-length=120 --show-source --statistics
 
 pylint:
 	poetry run pylint lutris --rcfile=.pylintrc --output-format=colorized

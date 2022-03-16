@@ -7,7 +7,7 @@ import requests
 from lutris import settings
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.steam.vdf import vdf_parse
+from lutris.util.steam.vdfutils import vdf_parse
 
 STEAM_DATA_DIRS = (
     "~/.steam",

@@ -1,32 +1,26 @@
 """
 Module for deserializing/serializing to and from VDF
+
+https://github.com/ValvePython/vdf
 """
+# pylint: disable=raise-missing-from
+
 __version__ = "3.2"
 __author__ = "Rossen Georgiev"
 
 import re
-import sys
 import struct
 from binascii import crc32
 from io import StringIO as unicodeIO
 
-# Py2 & Py3 compatibility
-if sys.version_info[0] >= 3:
-    string_type = str
-    int_type = int
-    BOMS = '\ufffe\ufeff'
+string_type = str
+int_type = int
+BOMS = '\ufffe\ufeff'
 
-    def strip_bom(line):
-        return line.lstrip(BOMS)
-else:
-    from StringIO import StringIO as strIO
-    string_type = basestring
-    int_type = long
-    BOMS = '\xef\xbb\xbf\xff\xfe\xfe\xff'
-    BOMS_UNICODE = '\\ufffe\\ufeff'.decode('unicode-escape')
 
-    def strip_bom(line):
-        return line.lstrip(BOMS if isinstance(line, str) else BOMS_UNICODE)
+def strip_bom(line):
+    return line.lstrip(BOMS)
+
 
 # string escaping
 _unescape_char_map = {
@@ -44,19 +38,25 @@ _unescape_char_map = {
 }
 _escape_char_map = {v: k for k, v in _unescape_char_map.items()}
 
+
 def _re_escape_match(m):
     return _escape_char_map[m.group()]
+
 
 def _re_unescape_match(m):
     return _unescape_char_map[m.group()]
 
+
 def _escape(text):
     return re.sub(r"[\n\t\v\b\r\f\a\\\?\"']", _re_escape_match, text)
+
 
 def _unescape(text):
     return re.sub(r"(\\n|\\t|\\v|\\b|\\r|\\f|\\a|\\\\|\\\?|\\\"|\\')", _re_unescape_match, text)
 
 # parsing and dumping for KV1
+
+
 def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
     """
     Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a VDF)
@@ -75,6 +75,7 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
     if not hasattr(fp, 'readline'):
         raise TypeError("Expected fp to be a file-like object supporting line iteration")
 
+    lineno = 0
     stack = [mapper()]
     expect_bracket = False
 
@@ -161,7 +162,7 @@ def parse(fp, mapper=dict, merge_duplicate_keys=True, escaped=True):
 
     if len(stack) != 1:
         raise SyntaxError("vdf.parse: unclosed parenthasis or quotes (EOF)",
-                           (getattr(fp, 'name', '<%s>' % fp.__class__.__name__), lineno, 0, line))
+                          (getattr(fp, 'name', '<%s>' % fp.__class__.__name__), lineno, 0, line))
 
     return stack.pop()
 
@@ -173,12 +174,7 @@ def loads(s, **kwargs):
     """
     if not isinstance(s, string_type):
         raise TypeError("Expected s to be a str, got %s" % type(s))
-
-    try:
-        fp = unicodeIO(s)
-    except TypeError:
-        fp = strIO(s)
-
+    fp = unicodeIO(s)
     return parse(fp, **kwargs)
 
 
@@ -235,7 +231,7 @@ def _dump_gen(data, pretty=False, escaped=True, level=0):
 
         if isinstance(value, dict):
             yield '%s"%s"\n%s{\n' % (line_indent, key, line_indent)
-            for chunk in _dump_gen(value, pretty, escaped, level+1):
+            for chunk in _dump_gen(value, pretty, escaped, level + 1):
                 yield chunk
             yield "%s}\n" % line_indent
         else:
@@ -248,31 +244,37 @@ def _dump_gen(data, pretty=False, escaped=True, level=0):
 # binary VDF
 class BASE_INT(int_type):
     def __repr__(self):
-        return "%s(%d)" % (self.__class__.__name__, self)
+        return "%s(%s)" % (self.__class__.__name__, self)
+
 
 class UINT_64(BASE_INT):
     pass
 
+
 class INT_64(BASE_INT):
     pass
+
 
 class POINTER(BASE_INT):
     pass
 
+
 class COLOR(BASE_INT):
     pass
 
-BIN_NONE        = b'\x00'
-BIN_STRING      = b'\x01'
-BIN_INT32       = b'\x02'
-BIN_FLOAT32     = b'\x03'
-BIN_POINTER     = b'\x04'
-BIN_WIDESTRING  = b'\x05'
-BIN_COLOR       = b'\x06'
-BIN_UINT64      = b'\x07'
-BIN_END         = b'\x08'
-BIN_INT64       = b'\x0A'
-BIN_END_ALT     = b'\x0B'
+
+BIN_NONE = b'\x00'
+BIN_STRING = b'\x01'
+BIN_INT32 = b'\x02'
+BIN_FLOAT32 = b'\x03'
+BIN_POINTER = b'\x04'
+BIN_WIDESTRING = b'\x05'
+BIN_COLOR = b'\x06'
+BIN_UINT64 = b'\x07'
+BIN_END = b'\x08'
+BIN_INT64 = b'\x0A'
+BIN_END_ALT = b'\x0B'
+
 
 def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
     """
@@ -325,7 +327,7 @@ def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
     CURRENT_BIN_END = BIN_END if not alt_format else BIN_END_ALT
 
     while len(s) > idx:
-        t = s[idx:idx+1]
+        t = s[idx:idx + 1]
         idx += 1
 
         if t == CURRENT_BIN_END:
@@ -367,18 +369,20 @@ def binary_loads(s, mapper=dict, merge_duplicate_keys=True, alt_format=False):
             stack[-1][key] = float32.unpack_from(s, idx)[0]
             idx += float32.size
         else:
-            raise SyntaxError("Unknown data type at offset %d: %s" % (idx-1, repr(t)))
+            raise SyntaxError("Unknown data type at offset %d: %s" % (idx - 1, repr(t)))
 
     if len(s) != idx or len(stack) != 1:
         raise SyntaxError("Binary VDF ended at offset %d, but length is %d" % (idx, len(s)))
 
     return stack.pop()
 
+
 def binary_dumps(obj, alt_format=False):
     """
     Serialize ``obj`` to a binary VDF formatted ``bytes``.
     """
     return b''.join(_binary_dump_gen(obj, alt_format=alt_format))
+
 
 def _binary_dump_gen(obj, level=0, alt_format=False):
     if level == 0 and len(obj) == 0:
@@ -397,7 +401,7 @@ def _binary_dump_gen(obj, level=0, alt_format=False):
 
         if isinstance(value, dict):
             yield BIN_NONE + key + BIN_NONE
-            for chunk in _binary_dump_gen(value, level+1, alt_format=alt_format):
+            for chunk in _binary_dump_gen(value, level + 1, alt_format=alt_format):
                 yield chunk
         elif isinstance(value, UINT_64):
             yield BIN_UINT64 + key + BIN_NONE + uint64.pack(value)
@@ -408,7 +412,7 @@ def _binary_dump_gen(obj, level=0, alt_format=False):
                 value = value.encode('utf-8') + BIN_NONE
                 yield BIN_STRING
             except:
-                value = value.encode('utf-16') + BIN_NONE*2
+                value = value.encode('utf-16') + BIN_NONE * 2
                 yield BIN_WIDESTRING
             yield key + BIN_NONE + value
         elif isinstance(value, float):
@@ -450,11 +454,12 @@ def vbkv_loads(s, mapper=dict, merge_duplicate_keys=True):
 
     return binary_loads(s[8:], mapper, merge_duplicate_keys, alt_format=True)
 
+
 def vbkv_dumps(obj):
     """
     Serialize ``obj`` to a VBKV formatted ``bytes``.
     """
-    data =  b''.join(_binary_dump_gen(obj, alt_format=True))
+    data = b''.join(_binary_dump_gen(obj, alt_format=True))
     checksum = crc32(data)
 
     return b'VBKV' + struct.pack('<i', checksum) + data
