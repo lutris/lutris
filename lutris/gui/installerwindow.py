@@ -16,6 +16,7 @@ from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.util import xdgshortcuts
+from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, gtk_safe, human_size
 
@@ -181,6 +182,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
         menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
         self.widget_box.pack_start(menu_shortcut_button, False, False, 5)
+
+        steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
+        steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
+        self.widget_box.pack_start(steam_shortcut_button, False, False, 5)
 
     def select_install_folder(self):
         """Stage where we select the install directory."""
@@ -464,6 +469,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.create_shortcut(desktop=True)
         if self.config.get("create_menu_shortcut"):
             self.create_shortcut()
+        if self.config.get("create_steam_shortcut"):
+            steam_shortcut.update_shortcut(Game(game_id))
 
         # Save game to trigger a game-updated signal,
         # but take care not to create a blank game
@@ -522,6 +529,9 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def on_create_menu_shortcut_clicked(self, _widget):
         self.config["create_menu_shortcut"] = True
+
+    def on_create_steam_shortcut_clicked(self, _widget):
+        self.config["create_steam_shortcut"] = True
 
     def create_shortcut(self, desktop=False):
         """Create desktop or global menu shortcuts."""
