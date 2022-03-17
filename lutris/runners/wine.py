@@ -860,6 +860,7 @@ class wine(Runner):
 
         if self.runner_config.get("dxvk_nvapi"):
             env["DXVK_NVAPIHACK"] = "0"
+            env["DXVK_ENABLE_NVAPI"] = "1"            
 
         if self.runner_config.get("battleye"):
             env["PROTON_BATTLEYE_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "battleye_runtime")
