@@ -36,6 +36,8 @@ def has_steamtype_runner(game):
 
 
 def update_shortcut(game):
+    if has_steamtype_runner(game):
+        return
     with open(get_shortcuts_vdf_path(), "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     shortcut_found = [
