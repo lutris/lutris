@@ -469,13 +469,13 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.create_shortcut(desktop=True)
         if self.config.get("create_menu_shortcut"):
             self.create_shortcut()
-        if self.config.get("create_steam_shortcut"):
-            steam_shortcut.update_shortcut(Game(game_id))
 
         # Save game to trigger a game-updated signal,
         # but take care not to create a blank game
         if game_id:
             game = Game(game_id)
+            if self.config.get("create_steam_shortcut"):
+                steam_shortcut.update_shortcut(game)
             game.save()
 
         self.install_in_progress = False
