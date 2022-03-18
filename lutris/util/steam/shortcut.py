@@ -42,8 +42,6 @@ def get_shortcuts_vdf_path():
 def shortcut_exists(game):
     with open(get_shortcuts_vdf_path(), "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-    for shortcut in shortcuts:
-        print(shortcut)
     shortcut_found = [
         s for s in shortcuts
         if game.name in s['AppName']
@@ -51,6 +49,14 @@ def shortcut_exists(game):
     if not shortcut_found:
         return False
     return True
+
+
+def has_steamtype_runner(game):
+    steamtype_runners = ['steam', 'winesteam']
+    for runner in steamtype_runners:
+        if runner == game.runner_name:
+            return True
+    return False
 
 
 def update_shortcut(game):
