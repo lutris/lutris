@@ -9,7 +9,7 @@ steam_tag = "Lutris"
 
 
 def get_shortcuts_vdf_path():
-    # @todo: steam_userid is needed => path_suffix = "userdata/{}/config/shortcuts.vdf".format(get_steam__userid())
+    # @todo: steam_userid (9-Digit!) is needed => path_suffix = "userdata/{}/config/shortcuts.vdf".format(get_steam__userid())
     path_suffix = "userdata/114179503/config/shortcuts.vdf"
     shortcut_vdf = search_in_steam_dirs(path_suffix)
     return shortcut_vdf
