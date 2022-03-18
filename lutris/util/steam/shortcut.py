@@ -111,7 +111,7 @@ def remove_shortcut(game):
 
 
 def generate_shortcut(game):
-    name = game.name
+    name = "{} ({})".format(game.name, game.runner_name)
     slug = game.slug
     gameId = game.id
     icon = resources.get_icon_path(slug)
