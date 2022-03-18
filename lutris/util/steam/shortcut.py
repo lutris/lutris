@@ -5,6 +5,7 @@ import shutil
 from lutris.util import resources
 from lutris.util.steam import vdf
 from lutris.util.steam.config import search_in_steam_dirs
+
 steam_tag = "Lutris"
 
 

@@ -19,8 +19,8 @@ from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDialog
 from lutris.gui.widgets.utils import open_uri
 from lutris.util import xdgshortcuts
-from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.log import logger
+from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe
 from lutris.util.system import path_exists
 
