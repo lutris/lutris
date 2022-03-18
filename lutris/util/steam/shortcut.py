@@ -4,7 +4,7 @@ import shutil
 
 from lutris.util import resources
 from lutris.util.steam import vdf
-from lutris.util.steam.config import get_steam_library, get_steamapps_paths, get_user_steam_id, search_in_steam_dirs
+from lutris.util.steam.config import search_in_steam_dirs
 steam_tag = "Lutris"
 
 
