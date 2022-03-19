@@ -17,7 +17,8 @@ def get_shortcuts_vdf_paths():
 
 def get_first_shortcut_path():
     shortcuts_paths = get_shortcuts_vdf_paths()
-    return shortcuts_paths[0]
+    result = shortcuts_paths[0]
+    return result
 
 
 def shortcut_exists(game):

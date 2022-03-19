@@ -44,7 +44,8 @@ def search_recursive_in_steam_dirs(path_suffix):
     list of hits"""
     results = []
     for candidate in STEAM_DATA_DIRS:
-        glob_path = os.path.join(candidate, path_suffix)
+        candidate_abs = candidate.replace("~", os.path.expanduser("~"))
+        glob_path = os.path.join(candidate_abs, path_suffix)
         for path in glob.glob(glob_path):
             results.append(path)
     return results
