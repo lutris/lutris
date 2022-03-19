@@ -99,7 +99,6 @@ def generate_shortcut(game):
     slug = game.slug
     gameId = game.id
     icon = resources.get_icon_path(slug)
-    coverart = resources.get_cover_path(game.slug)
     lutris_binary = shutil.which("lutris")
     start_dir = os.path.dirname(lutris_binary)
 
