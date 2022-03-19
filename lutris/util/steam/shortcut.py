@@ -4,20 +4,24 @@ import shutil
 
 from lutris.util import resources
 from lutris.util.steam import vdf
-from lutris.util.steam.config import search_in_steam_dirs
+from lutris.util.steam.config import search_recursive_in_steam_dirs
 
 steam_tag = "Lutris"
 
 
-def get_shortcuts_vdf_path():
-    # @todo: steam_userid (9-Digit!) is needed => path_suffix = "userdata/{}/config/shortcuts.vdf".format(get_steam__userid())
-    path_suffix = "userdata/114179503/config/shortcuts.vdf"
-    shortcut_vdf = search_in_steam_dirs(path_suffix)
-    return shortcut_vdf
+def get_shortcuts_vdf_paths():
+    path_suffix = "userdata/**/config/shortcuts.vdf"
+    shortcuts_vdf = search_recursive_in_steam_dirs(path_suffix)
+    return shortcuts_vdf
+
+
+def get_first_shortcut_path():
+    shortcuts_paths = get_shortcuts_vdf_paths()
+    return shortcuts_paths[0]
 
 
 def shortcut_exists(game):
-    with open(get_shortcuts_vdf_path(), "rb") as shortcut_file:
+    with open(get_first_shortcut_path(), "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     shortcut_found = [
         s for s in shortcuts
@@ -39,7 +43,7 @@ def has_steamtype_runner(game):
 def update_shortcut(game):
     if has_steamtype_runner(game):
         return
-    with open(get_shortcuts_vdf_path(), "rb") as shortcut_file:
+    with open(get_first_shortcut_path(), "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     shortcut_found = [
         s for s in shortcuts
@@ -51,7 +55,7 @@ def update_shortcut(game):
 
 
 def create_shortcut(game):
-    with open(get_shortcuts_vdf_path(), "rb") as shortcut_file:
+    with open(get_first_shortcut_path(), "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     existing_shortcuts = [s for s in shortcuts]
     add_shortcut = [generate_shortcut(game)]
@@ -61,12 +65,12 @@ def create_shortcut(game):
         }
     }
 
-    with open(get_shortcuts_vdf_path(), "wb") as shortcut_file:
+    with open(get_first_shortcut_path(), "wb") as shortcut_file:
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
 
 
 def remove_shortcut(game):
-    with open(get_shortcuts_vdf_path(), "rb") as shortcut_file:
+    with open(get_first_shortcut_path(), "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     shortcut_found = [
         s for s in shortcuts
@@ -85,7 +89,7 @@ def remove_shortcut(game):
             str(index): elem for index, elem in enumerate(other_shortcuts)
         }
     }
-    with open(get_shortcuts_vdf_path(), "wb") as shortcut_file:
+    with open(get_first_shortcut_path(), "wb") as shortcut_file:
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
 
 
