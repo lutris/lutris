@@ -335,7 +335,7 @@ class wine(Runner):
                 "option": "battleye",
                 "label": _("Enable BattlEye Anti-Cheat"),
                 "type": "bool",
-                "default": False,
+                "default": True,
                 "help": _(
                     "Enable support for BattlEye Anti-Cheat in supported games\n"
                     "Requires Lutris Wine 6.21-2 and newer or any other compatible Wine build.\n"
@@ -345,7 +345,7 @@ class wine(Runner):
                 "option": "eac",
                 "label": _("Enable Easy Anti-Cheat"),
                 "type": "bool",
-                "default": False,
+                "default": True,
                 "help": _(
                     "Enable support for Easy Anti-Cheat in supported games\n"
                     "Requires Lutris Wine 7.2 and newer or any other compatible Wine build.\n"
