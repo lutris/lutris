@@ -21,6 +21,12 @@ def get_first_shortcut_path():
     return result
 
 
+def vdf_file_exists():
+    shortcuts_paths = get_shortcuts_vdf_paths()
+    if len(shortcuts_paths) > 0:
+        return True
+
+
 def shortcut_exists(game):
     with open(get_first_shortcut_path(), "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
