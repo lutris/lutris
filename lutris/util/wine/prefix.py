@@ -62,8 +62,8 @@ class WinePrefixManager:
             self.hkcu_prefix + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
             "AppData",
         )
-        if(folder is None):
-            logger.error("Get Registry Key function returned NoneType to variable folder.")
+        if folder is None:
+            logger.warning("Get Registry Key function returned NoneType to variable folder.")
         else:
             # Don't try to resolve the Windows path we get- there's
             # just two options, the Vista-and later option and the
