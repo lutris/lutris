@@ -183,9 +183,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
         self.widget_box.pack_start(menu_shortcut_button, False, False, 5)
 
-        steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
-        steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
-        self.widget_box.pack_start(steam_shortcut_button, False, False, 5)
+        if steam_shortcut.vdf_file_exists():
+            steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
+            steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
+            self.widget_box.pack_start(steam_shortcut_button, False, False, 5)
 
     def select_install_folder(self):
         """Stage where we select the install directory."""

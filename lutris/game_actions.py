@@ -138,6 +138,7 @@ class GameActions:
             ),
             "steam-shortcut": (
                 self.game.is_installed
+                and steam_shortcut.vdf_file_exists()
                 and not steam_shortcut.shortcut_exists(self.game)
                 and not steam_shortcut.has_steamtype_runner(self.game)
             ),
@@ -151,6 +152,7 @@ class GameActions:
             ),
             "rm-steam-shortcut": bool(
                 self.game.is_installed
+                and steam_shortcut.vdf_file_exists()
                 and steam_shortcut.shortcut_exists(self.game)
                 and not steam_shortcut.has_steamtype_runner(self.game)
             ),
