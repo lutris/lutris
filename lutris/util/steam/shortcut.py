@@ -103,6 +103,7 @@ def generate_shortcut(game):
     start_dir = os.path.dirname(lutris_binary)
 
     return {
+        'appid': "lutris-{}".format(slug),
         'AllowDesktopConfig': 1,
         'AllowOverlay': 1,
         'AppName': name,
