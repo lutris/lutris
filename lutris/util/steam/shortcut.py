@@ -1,4 +1,5 @@
 """Export lutris games to steam shortcuts"""
+import binascii
 import os
 import shutil
 
@@ -13,6 +14,26 @@ def get_shortcuts_vdf_paths():
     path_suffix = "userdata/**/config/shortcuts.vdf"
     shortcuts_vdf = search_recursive_in_steam_dirs(path_suffix)
     return shortcuts_vdf
+
+
+def get_artwork_target_paths():
+    path_suffix = "userdata/**/config/grid"
+    target_paths = search_recursive_in_steam_dirs(path_suffix)
+    return target_paths
+
+
+def get_cover_source_path():
+    home = os.path.expanduser("~")
+    lutris_coverart = '.cache/lutris/coverart'
+    source_path = os.path.join(home, lutris_coverart)
+    return source_path
+
+
+def get_banner_source_path():
+    home = os.path.expanduser("~")
+    lutris_coverart = '.cache/lutris/banner'
+    source_path = os.path.join(home, lutris_coverart)
+    return source_path
 
 
 def vdf_file_exists():
@@ -83,6 +104,7 @@ def create_shortcut(game, shortcut_path):
     }
     with open(shortcut_path, "wb") as shortcut_file:
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
+    set_artwork(game)
 
 
 def remove_shortcut(game, shortcut_path):
@@ -136,3 +158,28 @@ def generate_shortcut(game):
             '0': steam_tag   # to identify generated shortcuts
         }
     }
+
+
+def get_steam_shortcut_id(game):
+    lutris_binary = shutil.which("lutris")
+    exe = f'"{lutris_binary}"'
+    appname = "{} ({})".format(game.name, game.runner_name)
+    unique_id = ''.join([exe, appname])
+    return binascii.crc32(str.encode(unique_id)) | 0x80000000
+
+
+def set_artwork(game):
+    shortcut_id = get_steam_shortcut_id(game)
+    source_filename = "{}.jpg".format(game.slug)
+    source_cover = os.path.join(get_cover_source_path(), source_filename)
+    source_banner = os.path.join(get_banner_source_path(), source_filename)
+    target_cover = "{}p.jpg".format(shortcut_id)
+    target_banner = "{}_hero.jpg".format(shortcut_id)
+    for target_path in get_artwork_target_paths():
+        target_cover = os.path.join(target_path, target_cover)
+        target_banner = os.path.join(target_path, target_banner)
+        try:
+            shutil.copyfile(source_cover, target_cover)
+            shutil.copyfile(source_banner, target_banner)
+        except FileNotFoundError:
+            pass
