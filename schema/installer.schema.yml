@@ -1,4 +1,5 @@
-$schema: "http://json-schema.org/draft-07/schema#"
+$schema: "http://json-schema.org/draft-07/schema"
+$comment: "As per https://github.com/lutris/lutris/blob/bd92a295a77484c2ea1f6ef6140d25057f24965a/docs/installers.rst"
 required:
   - name
   - game_slug
@@ -86,23 +87,58 @@ properties:
         type: object
     properties:
       game:
-        # TODO https://github.com/lutris/lutris/blob/master/docs/installers.rst#game-configuration-directives
         type: object
-        description: The game schema
-        required:
-          - exe
-          - args
-          - prefix
+        description: Game configuration directives
         properties:
           exe:
             type: string
-            description: The exe schema
+            description: Main game executable
+          main_file:
+            type: string
+            description: Emulator ROM or disk file
           args:
             type: string
-            description: The args schema
+            description: Additional command arguments
+          working_dir:
+            type: string
+            description: Working directory to use when executing the executable
+          launch_configs:
+            type: array
+            description: A list of mutiple related executable configurations
+            additionalItems: false
+            items:
+              type: object
+              required:
+                - name
+                - exe
+              properties:
+                name:
+                  type: string
+                  description: Identifier to show in the launcher dialog
+                exe:
+                  type: string
+                  description: Main game executable
+                args:
+                  type: string
+                  description: Additional command arguments
+                working_dir:
+                  type: string
+                  description: Working directory to use when executing the executable
+          arch:
+            type: string
+            description: The architecture of a Wine prefix
           prefix:
             type: string
-            description: The prefix schema
+            description: Path to the Wine prefix
+          run_without_steam:
+            type: boolean
+            description: Activate the DRM free mode and no not launch Steam when the game runs
+          steamless_binary:
+            type: string
+            description: Path of the game executable if it's able to run without the Steam client
+          path:
+            type: string
+            description: Location of the game files
       files:
         type: array
         description: Fetch required files
@@ -291,7 +327,85 @@ properties:
             task:
               type: object
               description: Run a task provided by the runner
-              # TODO https://github.com/lutris/lutris/blob/master/docs/installers.rst#running-a-task-provided-by-a-runner
+              properties:
+                name:
+                  type: string
+                  enum:
+                    - create_prefix
+                    - wineexec
+                    - winetricks
+                    - eject_disk
+                    - set_regedit
+                    - delete_registry_key
+                    - set_regedit_file
+                    - winekill
+                    - dosexec
+                prefix:
+                  type: string
+                  description: The prefix path
+                arch:
+                  type: string
+                  description: Architecture of the prefix
+                overrides:
+                  type: object
+                  description: WINE DLL overrides
+                  additionalProperties: false
+                  patternProperties:
+                    "":
+                      type: string
+                install_gecko:
+                  type: boolean
+                  description: Enable installing Gecko
+                install_mono:
+                  type: boolean
+                  description: Enable installing Mono
+                executable:
+                  type: string
+                  description: Wine executable id or path
+                args:
+                  type: string
+                  description: Optional command arguments
+                blocking:
+                  type: boolean
+                  description: Suppress threading
+                description:
+                  type: boolean
+                  description: A message be shown to the user during the execution of the task
+                working_dir:
+                  type: string
+                  description: Working directory
+                exclude_processes:
+                  type: string
+                  description: Space-separated list of processes to exclude from being monitored when determining if the execute phase finished
+                include_processes:
+                  type: string
+                  description: Space-separated list of processes to monitor when determining if the execute phase finished
+                env:
+                  $ref: "#/definitions/env"
+                app:
+                  type: string
+                  description: Space-separated list of winetricks apps to run
+                silent:
+                  type: boolean
+                  description: Run in silent mode
+                key:
+                  type: string
+                  description: Registry key
+                value:
+                  type: string
+                  description: Registry value
+                type:
+                  type: string
+                  description: Registry value type
+                filename:
+                  type: string
+                  description: Registry file
+                config_file:
+                  type: string
+                  description: File id or path to .conf file
+                exit:
+                  type: boolean
+                  description: Exit DOSBox when the executable is terminated
             input_menu:
               type: object
               description: Display a drop-down menu with options
@@ -332,11 +446,34 @@ properties:
         properties:
           env:
             $ref: "#/definitions/env"
-        #TODO https://github.com/lutris/lutris/blob/master/docs/installers.rst#system-configuration-directives
+          restore_gamma:
+            type: boolean
+            description: Enable calling xgamma and reseting the default values
+          terminal:
+            type: boolean
+            description: Run the game in a terminal if the game is a text based one
+          single_cpu:
+            type: boolean
+            description: Run the game on a single CPU core
+          disable_runtime:
+            type: boolean
+            description: DO NOT DISABLE THE LUTRIS RUNTIME IN LUTRIS INSTALLERS
+          pulse_latency:
+            type: boolean
+            description: Set PulseAudio latency to 60 msecs
+          use_us_layout:
+            type: boolean
+            description: Change the keyboard layout to a standard US one while the game is running
+          xephyr:
+            type: string
+            description: To enable Xephyr, pass the desired bit per plane value
+            examples: [ "8bpp" ]
+          xephyr_resolution:
+            type: string
+            description: The size of the Xephyr window
+            examples: [ "1024x768" ]
       wine:
-        type: object
-        description: Wine runner configuration directives
-        # TODO https://github.com/lutris/lutris/blob/master/docs/installers.rst#wine
+        $ref: "#/definitions/wine-runner"
 
 definitions:
   env:
@@ -345,3 +482,29 @@ definitions:
     patternProperties:
       "":
         type: string
+  wine-runner:
+    type: object
+    description: Wine runner configuration directives
+    properties:
+      version:
+        type: string
+        description: WINE version override
+      Desktop:
+        type: boolean
+        description: Run the game in a Wine virtual desktop
+      WineDesktop:
+        type: string
+        description: The resolution of the Wine virtual desktop
+        examples: [ "1024x768" ]
+      dxvk:
+        type: boolean
+        description: Enable DXVK
+      esync:
+        type: boolean
+        description: Enable ESync
+      overrides:
+        type: array
+        description: Overrides for Wine DLLs
+        additionalItems: false
+        items:
+          type: object

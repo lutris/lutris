@@ -15,6 +15,10 @@ yaml2json() {
         https://www.anyjson.in/api/v2/data/yamltojson &>/dev/null
 }
 
-for var in "$@"; do
-    yaml2json "$var"
-done
+if [[ -z "$*" ]]; then
+    echo "USAGE: $0 path/to/file1.yml path/to/file2.yaml"
+else
+    for var in "$@"; do
+        yaml2json "$var"
+    done
+fi
