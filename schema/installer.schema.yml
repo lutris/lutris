@@ -1,0 +1,347 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+required:
+  - name
+  - game_slug
+  - version
+  - slug
+  - runner
+  - script
+description: Lutris install script
+type: object
+properties:
+  name:
+    description: Name of the game, should be surrounded in quotes if containing special characters.
+    type: string
+  game_slug:
+    description: Game identifier on the Lutris website
+    type: string
+  version:
+    description: Name of the installer
+    type: string
+  slug:
+    description: Installer identifier
+    type: string
+  require-binaries:
+    description: Additional binaries
+    type: string
+  requires:
+    description: Mods and add-ons
+    type: string
+  extends:
+    description: Extensions / patches
+    type: string
+  install_complete_text:
+    description: Custom end of install text
+    type: string
+  runner:
+    description: The runner to be used by this game
+    type: string
+    enum:
+      - ags
+      - atari800
+      - browser
+      - citra
+      - desmume
+      - dgen
+      - dolphin
+      - dosbox
+      - frotz
+      - fsuae
+      - hatari
+      - jzintv
+      - libretro
+      - linux
+      - mame
+      - mednafen
+      - mupen64plus
+      - o2em
+      - openmsx
+      - osmose
+      - pcsx2
+      - pcsxr
+      - ppsspp
+      - reicast
+      - residualvm
+      - rpcs3
+      - scummvm
+      - snes9x
+      - steam
+      - winesteam
+      - stella
+      - vice
+      - virtualjaguar
+      - web
+      - wine
+      - yuzu
+      - zdoom
+  script:
+    description: Main script
+    type: object
+    additionalProperties: true
+    required:
+      - game
+      - installer
+    patternProperties:
+      "":
+        type: object
+    properties:
+      game:
+        # TODO https://github.com/lutris/lutris/blob/master/docs/installers.rst#game-configuration-directives
+        type: object
+        description: The game schema
+        required:
+          - exe
+          - args
+          - prefix
+        properties:
+          exe:
+            type: string
+            description: The exe schema
+          args:
+            type: string
+            description: The args schema
+          prefix:
+            type: string
+            description: The prefix schema
+      files:
+        type: array
+        description: Fetch required files
+        items:
+          anyOf:
+            - type: string
+              description: File URL
+            - type: object
+              properties:
+                url:
+                  type: string
+                  description: File URL
+                filename:
+                  type: string
+                  description: The name of the file's saved copy
+                referer:
+                  type: string
+                  description: File referer domain
+      installer:
+        type: array
+        description: Installation script
+        additionalItems: false
+        items:
+          additionalProperties: false
+          type: object
+          properties:
+            insert-disc:
+              type: object
+              description: "'Insert disc' dialog"
+              properties:
+                requires:
+                  description: Required disk
+                  type: string
+              required:
+                - requires
+            move:
+              type: object
+              description: Move files and directories
+              properties:
+                src:
+                  description: Source file ID or path
+                  type: string
+                dst:
+                  description: Destination path
+                  type: string
+              required:
+                - src
+                - dst
+            merge:
+              type: object
+              description: Copy and merge directories
+              properties:
+                src:
+                  description: Source file ID or path
+                  type: string
+                dst:
+                  description: Destination path
+                  type: string
+              required:
+                - src
+                - dst
+            extract:
+              type: object
+              description: Copy and merge directories
+              properties:
+                file:
+                  description: Source file ID or path
+                  type: string
+                dst:
+                  description: Destination path
+                  type: string
+                format:
+                  description: Archive's type
+                  type: string
+                  enum:
+                    - tgz
+                    - tar
+                    - zip
+                    - 7z
+                    - rar
+                    - txz
+                    - bz2
+                    - gzip
+                    - deb
+                    - exe
+                    - gog
+              required:
+                - file
+                - dst
+            chmodx:
+              type: string
+              description: Path to a file to Make executable
+            execute:
+              type: object
+              description: Executes a file
+              properties:
+                command:
+                  description: Full bash command to execute
+                  type: string
+                file:
+                  description: File ID or a path to file
+                  type: string
+                args:
+                  description: Executable arguments
+                  type: string
+                terminal:
+                  description: Execute in a new terminal window
+                  type: boolean
+                exclude_processes:
+                  description: Space-separated list of processes to exclude from being monitored when determining if the execute phase finished
+                  type: string
+                include_processes:
+                  description: Space-separated list of processes to monitor when determining if the execute phase finished
+                  type: string
+                disable_runtime:
+                  description: Run a process without Lutris runtime
+                  type: boolean
+                env:
+                  $ref: "#/definitions/env"
+              oneOf:
+                - required:
+                    - file
+                    - args
+                - required:
+                    - command
+            write_file:
+              type: object
+              description: Write text files
+              properties:
+                content:
+                  description: File content to write
+                  type: string
+                file:
+                  description: Destination file pathpath
+                  type: string
+              required:
+                - content
+                - file
+            write_config:
+              type: object
+              description: Write into an INI type config file
+              properties:
+                merge:
+                  description: Truncate the file
+                  type: boolean
+                file:
+                  description: Destination file pathpath
+                  type: string
+                section:
+                  description: INI section to write
+                  type: string
+                key:
+                  description: Property key
+                  type: string
+                value:
+                  description: Property value
+                  type: string
+                data:
+                  description: Free form data to write
+                  type: object
+              oneOf:
+                - required:
+                    - file
+                    - section
+                    - key
+                    - value
+                - required:
+                    - file
+                    - data
+            write_json:
+              type: object
+              description: Write into an JSON type file
+              properties:
+                merge:
+                  description: Update the file
+                  type: boolean
+                file:
+                  description: Destination file pathpath
+                  type: string
+                data:
+                  description: Free form data to write
+                  type: object
+              required:
+                - file
+                - data
+            task:
+              type: object
+              description: Run a task provided by the runner
+              # TODO https://github.com/lutris/lutris/blob/master/docs/installers.rst#running-a-task-provided-by-a-runner
+            input_menu:
+              type: object
+              description: Display a drop-down menu with options
+              properties:
+                description:
+                  type: string
+                  description: Dropdown label
+                id:
+                  type: string
+                  description: $INPUT_<id> reference key
+                options:
+                  type: array
+                  description: "Indented list of `value: label` lines to show"
+                  items:
+                    anyOf:
+                      - type: string
+                preselect:
+                  type: string
+                  description: Default selected value
+              required:
+                - description
+                - options
+          oneOf:
+            - required: [ insert-disk ]
+            - required: [ move ]
+            - required: [ merge ]
+            - required: [ extract ]
+            - required: [ chmodx ]
+            - required: [ execute ]
+            - required: [ write_file ]
+            - required: [ write_config ]
+            - required: [ write_json ]
+            - required: [ write_task ]
+            - required: [ input_menu ]
+      system:
+        type: object
+        description: System configuration directives
+        properties:
+          env:
+            $ref: "#/definitions/env"
+        #TODO https://github.com/lutris/lutris/blob/master/docs/installers.rst#system-configuration-directives
+      wine:
+        type: object
+        description: Wine runner configuration directives
+        # TODO https://github.com/lutris/lutris/blob/master/docs/installers.rst#wine
+
+definitions:
+  env:
+    description: Environment variables
+    type: object
+    patternProperties:
+      "":
+        type: string

@@ -1,0 +1,42 @@
+{
+    "$schema": "./installer.schema.json",
+    "name": "",
+    "game_slug": "",
+    "version": "",
+    "slug": "",
+    "runner": "linux",
+    "script": {
+        "game": {
+            "exe": "",
+            "args": "",
+            "prefix": ""
+        },
+        "system": {
+            "env": {
+                "a": ""
+            }
+        },
+        "wine": {
+
+        },
+        "files": [
+
+        ],
+        "installer": [
+            {
+                "execute": {
+                    "command": "",
+                    "env": {
+                        "a": ""
+                    }
+                }
+            },
+            {
+                "move": {
+                    "src": "",
+                    "dst": ""
+                }
+            }
+        ]
+    }
+}
