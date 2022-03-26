@@ -343,7 +343,7 @@ class Game(GObject.Object):
     def start_xephyr(self, display=":2"):
         """Start a monitored Xephyr instance"""
         if not system.find_executable("Xephyr"):
-            raise GameConfigError("Unable to find Xephyr, install it or disable the Xephyr option")
+            raise GameConfigError(_("Unable to find Xephyr, install it or disable the Xephyr option"))
         xephyr_command = get_xephyr_command(display, self.runner.system_config)
         xephyr_thread = MonitoredCommand(xephyr_command)
         xephyr_thread.start()
