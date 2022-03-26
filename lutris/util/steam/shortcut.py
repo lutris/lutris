@@ -22,20 +22,6 @@ def get_artwork_target_paths():
     return target_paths
 
 
-def get_cover_source_path():
-    home = os.path.expanduser("~")
-    lutris_coverart = '.cache/lutris/coverart'
-    source_path = os.path.join(home, lutris_coverart)
-    return source_path
-
-
-def get_banner_source_path():
-    home = os.path.expanduser("~")
-    lutris_coverart = '.cache/lutris/banner'
-    source_path = os.path.join(home, lutris_coverart)
-    return source_path
-
-
 def vdf_file_exists():
     shortcuts_paths = get_shortcuts_vdf_paths()
     if len(shortcuts_paths) > 0:
@@ -171,9 +157,8 @@ def get_steam_shortcut_id(game):
 
 def set_artwork(game):
     shortcut_id = get_steam_shortcut_id(game)
-    source_filename = "{}.jpg".format(game.slug)
-    source_cover = os.path.join(get_cover_source_path(), source_filename)
-    source_banner = os.path.join(get_banner_source_path(), source_filename)
+    source_cover = resources.get_cover_path(game.slug)
+    source_banner = resources.get_banner_path(game.slug)
     target_cover = "{}p.jpg".format(shortcut_id)
     target_banner = "{}_hero.jpg".format(shortcut_id)
     for target_path in get_artwork_target_paths():
