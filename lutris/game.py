@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, watch_lutris_errors
+from lutris.exceptions import GameConfigError, LutrisError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
@@ -169,30 +169,31 @@ class Game(GObject.Object):
         return strings.get_formatted_playtime(self.playtime)
 
     @staticmethod
-    def show_error_message(message):
+    def get_config_error(gameplay_info):
+        error = gameplay_info["error"]
         """Display an error message based on the runner's output."""
-        if message["error"] == "CUSTOM":
-            message_text = message["text"].replace("&", "&amp;")
-            dialogs.ErrorDialog(message_text)
-        elif message["error"] == "RUNNER_NOT_INSTALLED":
-            dialogs.ErrorDialog(_("Error the runner is not installed"))
-        elif message["error"] == "NO_BIOS":
-            dialogs.ErrorDialog(_("A bios file is required to run this game"))
-        elif message["error"] == "FILE_NOT_FOUND":
-            filename = message["file"]
+        if error == "CUSTOM":
+            message_text = gameplay_info["text"].replace("&", "&amp;")
+            return GameConfigError(message_text)
+        elif error == "RUNNER_NOT_INSTALLED":
+            return GameConfigError(_("Error the runner is not installed"))
+        elif error == "NO_BIOS":
+            return GameConfigError(_("A bios file is required to run this game"))
+        elif error == "FILE_NOT_FOUND":
+            filename = gameplay_info["file"]
             if filename:
                 message_text = _("The file {} could not be found").format(filename.replace("&", "&amp;"))
             else:
                 message_text = _("This game has no executable set. The install process didn't finish properly.")
-            dialogs.ErrorDialog(message_text)
-        elif message["error"] == "NOT_EXECUTABLE":
-            message_text = message["file"].replace("&", "&amp;")
-            dialogs.ErrorDialog(_("The file %s is not executable") % message_text)
-        elif message["error"] == "PATH_NOT_SET":
-            message_text = _("The path '%s' is not set. please set it in the options.") % message["path"]
-            dialogs.ErrorDialog(message_text)
+            return GameConfigError(message_text)
+        elif error == "NOT_EXECUTABLE":
+            message_text = gameplay_info["file"].replace("&", "&amp;")
+            return GameConfigError(_("The file %s is not executable") % message_text)
+        elif error == "PATH_NOT_SET":
+            message_text = _("The path '%s' is not set. please set it in the options.") % gameplay_info["path"]
+            return GameConfigError(message_text)
         else:
-            dialogs.ErrorDialog(_("Unhandled error: %s") % message["error"])
+            return GameConfigError(_("Unhandled error: %s") % gameplay_info["error"])
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
@@ -420,10 +421,9 @@ class Game(GObject.Object):
             return {}
         gameplay_info = self.runner.play()
         if "error" in gameplay_info:
-            self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
-            return
+            raise self.get_config_error(gameplay_info)
 
         if self.config.game_level.get("game", {}).get("launch_configs"):
             configs = self.config.game_level["game"]["launch_configs"]
@@ -789,7 +789,6 @@ class Game(GObject.Object):
                 old_location, new_location, ex
             )
         return target_directory
-
 
 
 def export_game(slug, dest_dir):
