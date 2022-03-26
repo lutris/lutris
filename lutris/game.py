@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, LutrisError, watch_lutris_errors
+from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
@@ -170,30 +170,28 @@ class Game(GObject.Object):
 
     @staticmethod
     def get_config_error(gameplay_info):
+        """Return a GameConfigError based on the runner's output."""
         error = gameplay_info["error"]
-        """Display an error message based on the runner's output."""
         if error == "CUSTOM":
             message_text = gameplay_info["text"].replace("&", "&amp;")
-            return GameConfigError(message_text)
         elif error == "RUNNER_NOT_INSTALLED":
-            return GameConfigError(_("Error the runner is not installed"))
+            message_text = _("Error the runner is not installed")
         elif error == "NO_BIOS":
-            return GameConfigError(_("A bios file is required to run this game"))
+            message_text = _("A bios file is required to run this game")
         elif error == "FILE_NOT_FOUND":
             filename = gameplay_info["file"]
             if filename:
                 message_text = _("The file {} could not be found").format(filename.replace("&", "&amp;"))
             else:
                 message_text = _("This game has no executable set. The install process didn't finish properly.")
-            return GameConfigError(message_text)
         elif error == "NOT_EXECUTABLE":
-            message_text = gameplay_info["file"].replace("&", "&amp;")
-            return GameConfigError(_("The file %s is not executable") % message_text)
+            file = gameplay_info["file"].replace("&", "&amp;")
+            message_text = _("The file %s is not executable") % file
         elif error == "PATH_NOT_SET":
             message_text = _("The path '%s' is not set. please set it in the options.") % gameplay_info["path"]
-            return GameConfigError(message_text)
         else:
-            return GameConfigError(_("Unhandled error: %s") % gameplay_info["error"])
+            message_text = _("Unhandled error: %s") % gameplay_info["error"]
+        return GameConfigError(message_text)
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
