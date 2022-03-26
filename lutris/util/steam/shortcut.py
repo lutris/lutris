@@ -40,6 +40,7 @@ def vdf_file_exists():
     shortcuts_paths = get_shortcuts_vdf_paths()
     if len(shortcuts_paths) > 0:
         return True
+    return False
 
 
 def shortcut_exists(game, shortcut_path):
