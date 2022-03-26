@@ -48,15 +48,15 @@ class MultipleInstallerError(BaseException):
 
 
 def watch_lutris_errors(function):
-    """Decorator used to catch LutrisError exceptions and send events"""
+    """Decorator used to catch exceptions and send events instead of propagating them normally."""
 
     @wraps(function)
     def wrapper(*args, **kwargs):
-        """Catch all LutrisError exceptions and emit an event."""
+        """Catch all exceptions and emit an event."""
         try:
             return function(*args, **kwargs)
-        except LutrisError as ex:
+        except Exception as ex:
             game = args[0]
-            game.emit("game-error", ex.message)
+            game.emit("game-error", str(ex))
 
     return wrapper
