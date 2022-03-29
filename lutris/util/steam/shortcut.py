@@ -82,7 +82,7 @@ def remove_all_shortcuts(game):
 def create_shortcut(game, shortcut_path):
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-    existing_shortcuts = [s for s in shortcuts]
+    existing_shortcuts = list(shortcuts)
     add_shortcut = [generate_shortcut(game)]
     updated_shortcuts = {
         'shortcuts': {
