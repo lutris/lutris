@@ -248,6 +248,7 @@ class LaunchConfigSelectDialog(Gtk.Dialog):
         Gtk.Dialog.__init__(self, _("Select game to launch"))
         self.connect("delete-event", lambda *x: self.destroy())
         self.config_index = 0
+        self.confirmed = False
         self.set_size_request(320, 120)
         self.set_border_width(12)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
@@ -262,9 +263,16 @@ class LaunchConfigSelectDialog(Gtk.Dialog):
             _button.connect("toggled", self.on_button_toggled, i + 1)
             vbox.pack_start(_button, False, False, 0)
 
+        button_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 6)
+        button_box.set_halign(Gtk.Align.END)
+        cancel_button = Gtk.Button(_("Cancel"))
+        cancel_button.connect("clicked", self.on_cancel)
+        button_box.pack_start(cancel_button, False, False, 0)
+
         confirm_button = Gtk.Button(_("OK"))
         confirm_button.connect("clicked", self.on_confirm)
-        vbox.pack_start(confirm_button, False, False, 0)
+        button_box.pack_start(confirm_button, False, False, 0)
+        vbox.pack_start(button_box, False, False, 0)
 
         self.show_all()
         self.run()
@@ -272,7 +280,12 @@ class LaunchConfigSelectDialog(Gtk.Dialog):
     def on_button_toggled(self, _button, index):
         self.config_index = index
 
+    def on_cancel(self, _button):
+        self.confirmed = False
+        self.destroy()
+
     def on_confirm(self, _button):
+        self.confirmed = True
         self.destroy()
 
 
