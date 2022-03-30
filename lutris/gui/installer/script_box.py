@@ -39,13 +39,18 @@ class InstallerScriptBox(Gtk.VBox):
         rating_label.set_alignment(1, 0.5)
         title_box.pack_end(rating_label, False, False, 0)
         info_box.add(title_box)
+        info_box.add(self.get_credits())
         info_box.add(InstallerLabel(add_url_tags(self.script["description"])))
+
         return info_box
 
     def get_revealer(self, revealed):
         """Return the revelaer widget"""
         self.revealer = Gtk.Revealer()
-        self.revealer.add(self.get_notes())
+        box = Gtk.VBox(visible=True)
+        box.add(self.get_notes())
+
+        self.revealer.add(box)
         self.revealer.set_reveal_child(revealed)
         return self.revealer
 
@@ -64,12 +69,21 @@ class InstallerScriptBox(Gtk.VBox):
         notes = self.script["notes"].strip()
         if not notes:
             return Gtk.Alignment()
-        notes_label = InstallerLabel(notes)
-        notes_label.set_margin_top(12)
-        notes_label.set_margin_bottom(12)
-        notes_label.set_margin_right(12)
-        notes_label.set_margin_left(12)
-        return notes_label
+        return self._get_installer_label(notes)
+
+    def get_credits(self):
+        credits_text = self.script.get("credits", "").strip()
+        if not credits_text:
+            return Gtk.Alignment()
+        return self._get_installer_label(add_url_tags(credits_text))
+
+    def _get_installer_label(self, text):
+        _label = InstallerLabel(text)
+        _label.set_margin_top(12)
+        _label.set_margin_bottom(12)
+        _label.set_margin_right(12)
+        _label.set_margin_left(12)
+        return _label
 
     def reveal(self, reveal=True):
         """Show or hide the information in the revealer"""

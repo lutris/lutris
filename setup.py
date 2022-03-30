@@ -44,6 +44,7 @@ setup(
         'lutris.util.graphics',
         'lutris.util.mame',
         'lutris.util.steam',
+        'lutris.util.steam.vdf',
         'lutris.util.retroarch',
         'lutris.util.ubisoft',
         'lutris.util.wine'

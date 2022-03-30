@@ -418,9 +418,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.show_label(_("Add games to your favorites to see them here."))
             elif self.filters.get("installed"):
                 self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
+            # Splash screen disabled because unfinished.
+            # elif (
+            #     not self.filters.get("runner")
+            #     and not self.filters.get("service")
+            #     and not self.filters.get("platform")
+            # ):
+            #     self.show_splash()
             else:
-                self.show_splash()
-                # self.show_label(_("No games found"))
+                self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()

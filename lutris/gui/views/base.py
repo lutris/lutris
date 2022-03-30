@@ -26,7 +26,7 @@ class GameView:
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu."""
-        if event.button != 3:
+        if event.button != Gdk.BUTTON_SECONDARY:
             return
         view.current_path = view.get_path_at_pos(event.x, event.y)
         if view.current_path:

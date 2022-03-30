@@ -20,6 +20,7 @@ from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDia
 from lutris.gui.widgets.utils import open_uri
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
+from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe
 from lutris.util.system import path_exists
 
@@ -90,6 +91,16 @@ class GameActions:
                 _("Delete application menu shortcut"),
                 self.on_remove_menu_shortcut,
             ),
+            (
+                "steam-shortcut",
+                _("Create steam shortcut"),
+                self.on_create_steam_shortcut,
+            ),
+            (
+                "rm-steam-shortcut",
+                _("Delete steam shortcut"),
+                self.on_remove_steam_shortcut,
+            ),
             ("install_more", _("Install another version"), self.on_install_clicked),
             ("remove", _("Remove"), self.on_remove_game),
             ("view", _("View on Lutris.net"), self.on_view_game),
@@ -125,6 +136,12 @@ class GameActions:
                 self.game.is_installed
                 and not xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
+            "steam-shortcut": (
+                self.game.is_installed
+                and steam_shortcut.vdf_file_exists()
+                and not steam_shortcut.all_shortcuts_set(self.game)
+                and not steam_shortcut.has_steamtype_runner(self.game)
+            ),
             "rm-desktop-shortcut": bool(
                 self.game.is_installed
                 and xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)
@@ -132,6 +149,12 @@ class GameActions:
             "rm-menu-shortcut": bool(
                 self.game.is_installed
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
+            ),
+            "rm-steam-shortcut": bool(
+                self.game.is_installed
+                and steam_shortcut.vdf_file_exists()
+                and steam_shortcut.all_shortcuts_set(self.game)
+                and not steam_shortcut.has_steamtype_runner(self.game)
             ),
             "remove": True,
             "view": True,
@@ -271,6 +294,10 @@ class GameActions:
         """Add the selected game to the system's Games menu."""
         xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, menu=True)
 
+    def on_create_steam_shortcut(self, *_args):
+        """Add the selected game to steam as a nonsteam-game."""
+        steam_shortcut.update_shortcut(self.game)
+
     def on_create_desktop_shortcut(self, *_args):
         """Create a desktop launcher for the selected game."""
         xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, desktop=True)
@@ -278,6 +305,10 @@ class GameActions:
     def on_remove_menu_shortcut(self, *_args):
         """Remove an XDG menu shortcut"""
         xdgshortcuts.remove_launcher(self.game.slug, self.game.id, menu=True)
+
+    def on_remove_steam_shortcut(self, *_args):
+        """Remove the selected game from list of non-steam apps."""
+        steam_shortcut.remove_all_shortcuts(self.game)
 
     def on_remove_desktop_shortcut(self, *_args):
         """Remove a .desktop shortcut"""

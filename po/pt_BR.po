@@ -1,19 +1,24 @@
+#
+# Kassin Colombo Dornelles <kassin.dornelles@gmail.com>, 2022.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-26 20:30-0300\n"
-"PO-Revision-Date: 2022-02-26 15:55+ZONE\n"
+"POT-Creation-Date: 2022-03-18 22:54-0300\n"
+"PO-Revision-Date: 2022-03-18 23:12-0300\n"
 "Last-Translator: Kassin Colombo Dornelles <kassin.dornelles@gmail.com>\n"
-"Language-Team: Portuguese (Brazil)<>\n"
+"Language-Team: Brazilian Portuguese <kassin.dornelles@gmail.com>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"X-Generator: Gtranslator 40.0\n"
 
 #: share/applications/net.lutris.Lutris.desktop:3
-#: share/lutris/ui/lutris-window.ui:25 lutris/gui/application.py:75
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:10
+#: share/lutris/ui/lutris-window.ui:25 lutris/gui/application.py:76
 #: lutris/gui/widgets/status_icon.py:116 lutris/services/lutris.py:39
 msgid "Lutris"
 msgstr "Lutris"
@@ -24,7 +29,11 @@ msgstr "plataforma de preservação de video games"
 
 #: share/applications/net.lutris.Lutris.desktop:6
 msgid "gaming;wine;emulator;"
-msgstr "gaming;wine;emulador"
+msgstr "gaming;wine;emulação"
+
+#: share/metainfo/net.lutris.Lutris.metainfo.xml:8
+msgid "Lutris Team"
+msgstr "Lutris Team"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:11
 #: share/lutris/ui/about-dialog.ui:18
@@ -44,8 +53,8 @@ msgid ""
 msgstr ""
 "Lutris ajuda você a instalar e jogar videogames de todas as épocas e da "
 "maioria dos sistemas de jogos. Ao alavancar e combinar emuladores "
-"existentes, reimplementações de mecanismos e camadas de compatibilidade, "
-"ele oferece uma interface central para iniciar todos os seus jogos."
+"existentes, reimplementações de mecanismos e camadas de compatibilidade, ele "
+"oferece uma interface central para iniciar todos os seus jogos."
 
 #: share/lutris/ui/about-dialog.ui:8 share/lutris/ui/lutris-window.ui:581
 msgid "About Lutris"
@@ -180,97 +189,116 @@ msgstr ""
 "seu sistema:\n"
 "{libs}"
 
-#: lutris/game_actions.py:56 lutris/gui/widgets/game_bar.py:201
+#: lutris/game_actions.py:60 lutris/gui/widgets/game_bar.py:201
 #: lutris/gui/widgets/game_bar.py:215
 msgid "Play"
 msgstr "Jogar"
 
-#: lutris/game_actions.py:57 lutris/gui/widgets/game_bar.py:207
+#: lutris/game_actions.py:61 lutris/gui/widgets/game_bar.py:207
 msgid "Stop"
 msgstr "Parar"
 
-#: lutris/game_actions.py:58 lutris/gui/installer/script_box.py:57
-#: lutris/gui/widgets/game_bar.py:210
+#: lutris/game_actions.py:62 lutris/gui/dialogs/runner_install.py:193
+#: lutris/gui/installer/script_box.py:57 lutris/gui/widgets/game_bar.py:210
 msgid "Install"
 msgstr "Instalar"
 
-#: lutris/game_actions.py:59
+#: lutris/game_actions.py:63
 msgid "Install updates"
 msgstr "Instalar atualizações"
 
-#: lutris/game_actions.py:61
+#: lutris/game_actions.py:65
 msgid "Show logs"
 msgstr "Mostrar logs"
 
-#: lutris/game_actions.py:62
+#: lutris/game_actions.py:66
 msgid "Add installed game"
 msgstr "Adicionar jogo instalado"
 
-#: lutris/game_actions.py:63 lutris/gui/widgets/sidebar.py:205
+#: lutris/game_actions.py:67
+msgid "Duplicate"
+msgstr "Duplicar"
+
+#: lutris/game_actions.py:68 lutris/gui/widgets/sidebar.py:205
 msgid "Configure"
 msgstr "Configurar"
 
-#: lutris/game_actions.py:64
+#: lutris/game_actions.py:69
 msgid "Add to favorites"
 msgstr "Adicionar aos favoritos"
 
-#: lutris/game_actions.py:65
+#: lutris/game_actions.py:70
 msgid "Remove from favorites"
 msgstr "Remover dos favoritos"
 
-#: lutris/game_actions.py:66
+#: lutris/game_actions.py:71
 msgid "Execute script"
 msgstr "Executar script"
 
-#: lutris/game_actions.py:67
+#: lutris/game_actions.py:72
 msgid "Browse files"
 msgstr "Explorar arquivos"
 
-#: lutris/game_actions.py:70 lutris/gui/installerwindow.py:177
+#: lutris/game_actions.py:75 lutris/gui/installerwindow.py:177
 msgid "Create desktop shortcut"
 msgstr "Criar atalho na área de trabalho"
 
-#: lutris/game_actions.py:75
+#: lutris/game_actions.py:80
 msgid "Delete desktop shortcut"
 msgstr "Deletar atalho na área de trabalho"
 
-#: lutris/game_actions.py:80 lutris/gui/installerwindow.py:181
+#: lutris/game_actions.py:85 lutris/gui/installerwindow.py:181
 msgid "Create application menu shortcut"
 msgstr "Criar atalho no menu de aplicativos"
 
-#: lutris/game_actions.py:85
+#: lutris/game_actions.py:90
 msgid "Delete application menu shortcut"
 msgstr "Deletar atalho no menu de aplicativos"
 
-#: lutris/game_actions.py:88
+#: lutris/game_actions.py:93
 msgid "Install another version"
 msgstr "Instalar outra versão"
 
-#: lutris/game_actions.py:89 lutris/gui/dialogs/uninstall_game.py:139
+#: lutris/game_actions.py:94 lutris/gui/dialogs/uninstall_game.py:139
 msgid "Remove"
 msgstr "Remover"
 
-#: lutris/game_actions.py:90
+#: lutris/game_actions.py:95
 msgid "View on Lutris.net"
 msgstr "Veja em Lutris.net "
 
-#: lutris/game_actions.py:91
+#: lutris/game_actions.py:96
 msgid "Hide game from library"
 msgstr "Esconder jogo da biblioteca"
 
-#: lutris/game_actions.py:92
+#: lutris/game_actions.py:97
 msgid "Unhide game from library"
 msgstr "Reexibir jogo na biblioteca"
 
-#: lutris/game_actions.py:159
+#: lutris/game_actions.py:165
 msgid "Log for {}"
 msgstr "Log para {}"
 
-#: lutris/game_actions.py:224
+#: lutris/game_actions.py:200
+#, python-format
+msgid ""
+"Do you wish to duplicate %s?\n"
+"The configuration will be duplicated, but the games files will <b>not be "
+"duplicated</b>."
+msgstr ""
+"Deseja duplicar %s?\n"
+"A configuração será duplicada, mas os arquivos dos jogos <b>não serão "
+"duplicados</b>."
+
+#: lutris/game_actions.py:203
+msgid "Duplicate game?"
+msgstr "Duplicar jogo?"
+
+#: lutris/game_actions.py:264
 msgid "This game has no installation directory"
 msgstr "Este jogo não tem diretório de instalação"
 
-#: lutris/game_actions.py:228
+#: lutris/game_actions.py:268
 #, python-format
 msgid ""
 "Can't open %s \n"
@@ -413,49 +441,49 @@ msgstr "Manualmente configure um jogo disponível localmente"
 msgid "Add games to Lutris"
 msgstr "Adicionar jogos ao Lutris"
 
-#: lutris/gui/addgameswindow.py:144
+#: lutris/gui/addgameswindow.py:149
 msgid "Select folder to scan"
 msgstr "Selecione uma pasta para escanear"
 
-#: lutris/gui/addgameswindow.py:202
+#: lutris/gui/addgameswindow.py:223
 msgid "No results"
 msgstr "Sem resultados"
 
-#: lutris/gui/addgameswindow.py:204
+#: lutris/gui/addgameswindow.py:225
 #, python-brace-format
 msgid "Showing <b>{count}</b> results"
 msgstr "Mostrando <b>{count}</b> resultados"
 
-#: lutris/gui/addgameswindow.py:206
+#: lutris/gui/addgameswindow.py:227
 #, python-brace-format
 msgid "<b>{total_count}</b> results, only displaying first {count}"
 msgstr "<b>{total_count}</b> resultados, exibindo apenas o primeiro {count}"
 
-#: lutris/gui/addgameswindow.py:222
+#: lutris/gui/addgameswindow.py:243
 msgid "<b>Select setup file</b>"
 msgstr "<b>Selecione arquivo de instalação</b>"
 
-#: lutris/gui/addgameswindow.py:228
+#: lutris/gui/addgameswindow.py:249
 msgid "Continue"
 msgstr "Continuar"
 
-#: lutris/gui/addgameswindow.py:258
+#: lutris/gui/addgameswindow.py:279
 msgid "Select a Lutris installer"
 msgstr "Selecione um instalador Lutris"
 
-#: lutris/gui/application.py:86
+#: lutris/gui/application.py:87
 msgid ""
 "Running Lutris as root is not recommended and may cause unexpected issues"
 msgstr ""
 "Executar o Lutris como root não é recomendado e pode causar problemas "
 "inesperados"
 
-#: lutris/gui/application.py:96
+#: lutris/gui/application.py:97
 msgid "Your Linux distribution is too old. Lutris won't function properly."
 msgstr ""
 "Sua distribuição Linux é muito antiga, Lutris não funcionará corretamente"
 
-#: lutris/gui/application.py:101
+#: lutris/gui/application.py:102
 msgid ""
 "Run a game directly by adding the parameter lutris:rungame/game-identifier.\n"
 "If several games share the same identifier you can use the numerical ID "
@@ -470,116 +498,116 @@ msgstr ""
 "rungameid/numerical-id.\n"
 "Para instalar um jogo, adicione lutris:install/game-identifier."
 
-#: lutris/gui/application.py:114
+#: lutris/gui/application.py:115
 msgid "Print the version of Lutris and exit"
 msgstr "Exibe a versão do Lutris e encerre"
 
-#: lutris/gui/application.py:122
+#: lutris/gui/application.py:123
 msgid "Show debug messages"
 msgstr "Mostrar mensagens de depuração"
 
-#: lutris/gui/application.py:130
+#: lutris/gui/application.py:131
 msgid "Install a game from a yml file"
 msgstr "Instale um jogo de um arquivo yml"
 
-#: lutris/gui/application.py:138
+#: lutris/gui/application.py:139
 msgid "Generate a bash script to run a game without the client"
 msgstr "Gerar um script bash para executar o jogo sem o cliente"
 
-#: lutris/gui/application.py:146
+#: lutris/gui/application.py:147
 msgid "Execute a program with the Lutris Runtime"
 msgstr "Execute um programa com o runtime do Lutris"
 
-#: lutris/gui/application.py:154
+#: lutris/gui/application.py:155
 msgid "List all games in database"
 msgstr "Listar todos os jogos na base de dados"
 
-#: lutris/gui/application.py:162
+#: lutris/gui/application.py:163
 msgid "Only list installed games"
 msgstr "Mostre apenas jogos instalador"
 
-#: lutris/gui/application.py:170
+#: lutris/gui/application.py:171
 msgid "List available Steam games"
 msgstr "Liste jogos disponiveis da Steam"
 
-#: lutris/gui/application.py:178
+#: lutris/gui/application.py:179
 msgid "List all known Steam library folders"
 msgstr "Liste todos as pastas conhecidas de biblioteca da Steam"
 
-#: lutris/gui/application.py:186
+#: lutris/gui/application.py:187
 msgid "List all known runners"
 msgstr "List todos os runners conhecidos"
 
-#: lutris/gui/application.py:194
+#: lutris/gui/application.py:195
 msgid "List all known Wine versions"
 msgstr "Liste toda as versões do Wine"
 
-#: lutris/gui/application.py:202
+#: lutris/gui/application.py:203
 msgid "Install a Runner"
 msgstr "Instalar um Runner"
 
-#: lutris/gui/application.py:210
+#: lutris/gui/application.py:211
 msgid "Uninstall a Runner"
 msgstr "Desinstalar um Runner"
 
-#: lutris/gui/application.py:218
+#: lutris/gui/application.py:219
 msgid "Export a game"
 msgstr "Exportar um jogo"
 
-#: lutris/gui/application.py:226
+#: lutris/gui/application.py:227
 msgid "Import a game"
 msgstr "Importar um jogo"
 
-#: lutris/gui/application.py:234
+#: lutris/gui/application.py:235
 msgid "Destination path for export"
 msgstr "Caminho de destino para exportar"
 
-#: lutris/gui/application.py:242
+#: lutris/gui/application.py:243
 msgid "Display the list of games in JSON format"
 msgstr "Mostre uma lista de jogos no formato JSON"
 
-#: lutris/gui/application.py:250
+#: lutris/gui/application.py:251
 msgid "Reinstall game"
 msgstr "Reinstalar jogo"
 
-#: lutris/gui/application.py:253
+#: lutris/gui/application.py:254
 msgid "Submit an issue"
 msgstr "Reportar um problema"
 
-#: lutris/gui/application.py:259
+#: lutris/gui/application.py:260
 msgid "URI to open"
 msgstr "URI para abrir"
 
-#: lutris/gui/application.py:488
+#: lutris/gui/application.py:489
 #, python-format
 msgid "%s is not a valid URI"
 msgstr "%s não é uma URI válida"
 
-#: lutris/gui/application.py:508
+#: lutris/gui/application.py:509
 #, python-format
 msgid "Failed to download %s"
 msgstr "Falhou ao baixar %s"
 
-#: lutris/gui/application.py:516
+#: lutris/gui/application.py:517
 #, python-brace-format
 msgid "download {url} to {file} started"
 msgstr "download de {url} para {file} iniciado"
 
-#: lutris/gui/application.py:527
+#: lutris/gui/application.py:528
 #, python-format
 msgid "No such file: %s"
 msgstr "Arquivo inexistente: %s"
 
-#: lutris/gui/application.py:644
+#: lutris/gui/application.py:645
 #, python-format
 msgid "There is no installer available for %s."
 msgstr "Não há instalador disponível para %s."
 
-#: lutris/gui/application.py:654
+#: lutris/gui/application.py:655
 msgid "No updates found"
 msgstr "Nenhuma atualização encontrada"
 
-#: lutris/gui/application.py:664
+#: lutris/gui/application.py:665
 msgid "No DLC found"
 msgstr "Nenhuma DLC encontrada"
 
@@ -632,18 +660,18 @@ msgstr "Arquivos"
 msgid "Select files"
 msgstr "Selecionar arquivos"
 
-#: lutris/gui/config/boxes.py:512 lutris/gui/dialogs/__init__.py:132
-#: lutris/gui/dialogs/__init__.py:159 lutris/gui/dialogs/issue.py:74
-#: lutris/gui/widgets/common.py:99
+#: lutris/gui/config/boxes.py:511
+msgid "_Add"
+msgstr "_Adicionar"
+
+#: lutris/gui/config/boxes.py:512 lutris/gui/dialogs/__init__.py:134
+#: lutris/gui/dialogs/__init__.py:161 lutris/gui/dialogs/issue.py:75
+#: lutris/gui/widgets/common.py:98
 #: lutris/gui/widgets/download_progress_box.py:47
 msgid "_Cancel"
 msgstr "_Cancelar"
 
-#: lutris/gui/config/boxes.py:514
-msgid "_Add"
-msgstr "_Adicionar"
-
-#: lutris/gui/config/boxes.py:644
+#: lutris/gui/config/boxes.py:640
 msgid ""
 "If modified, these options supersede the same options from the base runner "
 "configuration."
@@ -651,7 +679,7 @@ msgstr ""
 "Se modificadas, essas opções substituem as mesmas opções de configurações da "
 "runner base"
 
-#: lutris/gui/config/boxes.py:665
+#: lutris/gui/config/boxes.py:661
 msgid ""
 "If modified, these options supersede the same options from the base runner "
 "configuration, which themselves supersede the global preferences."
@@ -659,7 +687,7 @@ msgstr ""
 "Se modificadas, essas opções substituem as mesmas opções da configuração da "
 "runner base, que substituem as preferências globais."
 
-#: lutris/gui/config/boxes.py:671
+#: lutris/gui/config/boxes.py:667
 msgid ""
 "If modified, these options supersede the same options from the global "
 "preferences."
@@ -730,7 +758,8 @@ msgstr "Opções do sistema"
 msgid "Show advanced options"
 msgstr "Mostrar opções avançadas"
 
-#: lutris/gui/config/common.py:330 lutris/gui/dialogs/uninstall_game.py:60
+#: lutris/gui/config/common.py:330 lutris/gui/dialogs/runner_install.py:186
+#: lutris/gui/dialogs/uninstall_game.py:60
 #: lutris/gui/dialogs/uninstall_game.py:135
 #: lutris/gui/widgets/download_progress_box.py:95
 msgid "Cancel"
@@ -776,7 +805,7 @@ msgstr "Configuração atual não é válida, ignorando pedido para salvar"
 msgid "Please choose a custom image"
 msgstr "Por favor, escolha uma imagem customizada"
 
-#: lutris/gui/config/common.py:498
+#: lutris/gui/config/common.py:494
 msgid "Images"
 msgstr "Imagens"
 
@@ -829,17 +858,17 @@ msgstr "Informação do Hardware"
 msgid "Global options"
 msgstr "Opções globais"
 
-#: lutris/gui/config/runner_box.py:89 lutris/gui/widgets/sidebar.py:214
+#: lutris/gui/config/runner_box.py:90 lutris/gui/widgets/sidebar.py:214
 #, python-format
 msgid "Manage %s versions"
 msgstr "Gerenciar %s versões"
 
-#: lutris/gui/config/runner_box.py:120
+#: lutris/gui/config/runner_box.py:121
 #, python-format
 msgid "Do you want to uninstall %s?"
 msgstr "Deseja desinstalar %s?"
 
-#: lutris/gui/config/runner_box.py:121
+#: lutris/gui/config/runner_box.py:122
 #, python-format
 msgid "This will remove <b>%s</b> and all associated data."
 msgstr "Isso removerá <b>%s</b> e todos os dados associados."
@@ -853,8 +882,8 @@ msgid ""
 "Runners are programs such as emulators, engines or translation layers "
 "capable of running games."
 msgstr ""
-"Runners são programas como emuladores, engines ou camadas de tradução capazes "
-"de rodar jogos."
+"Runners são programas como emuladores, engines ou camadas de tradução "
+"capazes de rodar jogos."
 
 #: lutris/gui/config/services_box.py:18
 msgid "Enable integrations with game sources"
@@ -917,59 +946,59 @@ msgstr "Baixando arquivo"
 msgid "Downloading %s"
 msgstr "Baixando %s"
 
-#: lutris/gui/dialogs/__init__.py:132 lutris/gui/dialogs/__init__.py:159
-#: lutris/gui/dialogs/issue.py:74 lutris/gui/dialogs/runner_install.py:33
-#: lutris/gui/widgets/common.py:99
+#: lutris/gui/dialogs/__init__.py:133 lutris/gui/dialogs/__init__.py:160
+#: lutris/gui/dialogs/issue.py:74 lutris/gui/dialogs/runner_install.py:63
+#: lutris/gui/widgets/common.py:98
 msgid "_OK"
 msgstr "_OK"
 
-#: lutris/gui/dialogs/__init__.py:150
+#: lutris/gui/dialogs/__init__.py:151
 msgid "Please choose a file"
 msgstr "Por favor, escolha um arquivo"
 
-#: lutris/gui/dialogs/__init__.py:179
+#: lutris/gui/dialogs/__init__.py:181
 msgid "Checking for runtime updates, please wait…"
 msgstr "Verificando atualizações do runtime, aguarde..."
 
-#: lutris/gui/dialogs/__init__.py:210
+#: lutris/gui/dialogs/__init__.py:212
 #, python-format
 msgid "%s is already installed"
 msgstr "%s ja está instalado"
 
-#: lutris/gui/dialogs/__init__.py:219
+#: lutris/gui/dialogs/__init__.py:221
 msgid "Launch game"
 msgstr "Iniciar jogo"
 
-#: lutris/gui/dialogs/__init__.py:223
+#: lutris/gui/dialogs/__init__.py:225
 msgid "Install the game again"
 msgstr "Instalar o jogo de novo"
 
-#: lutris/gui/dialogs/__init__.py:227 lutris/gui/dialogs/__init__.py:263
-#: lutris/gui/dialogs/__init__.py:345
+#: lutris/gui/dialogs/__init__.py:229 lutris/gui/dialogs/__init__.py:265
+#: lutris/gui/dialogs/__init__.py:347
 msgid "OK"
 msgstr "OK"
 
-#: lutris/gui/dialogs/__init__.py:246
+#: lutris/gui/dialogs/__init__.py:248
 msgid "Select game to launch"
 msgstr "Selecionar jogo para iniciar"
 
-#: lutris/gui/dialogs/__init__.py:318
+#: lutris/gui/dialogs/__init__.py:320
 msgid "Login failed"
 msgstr "Login falhou"
 
-#: lutris/gui/dialogs/__init__.py:329
+#: lutris/gui/dialogs/__init__.py:331
 msgid "Install script for {}"
 msgstr "Script de instalação para {}"
 
-#: lutris/gui/dialogs/__init__.py:381
+#: lutris/gui/dialogs/__init__.py:383
 msgid "Do not display this message again."
 msgstr "Não mostrar essa mensagem novamente."
 
-#: lutris/gui/dialogs/__init__.py:402
+#: lutris/gui/dialogs/__init__.py:404
 msgid "Wine is not installed on your system."
 msgstr "Wine não está instalado no seu sistema"
 
-#: lutris/gui/dialogs/__init__.py:404
+#: lutris/gui/dialogs/__init__.py:406
 msgid ""
 "Having Wine installed on your system guarantees that Wine builds from Lutris "
 "will have all required dependencies.\n"
@@ -983,7 +1012,7 @@ msgstr ""
 "Por favor, siga as instruções fornecidas no <a href='https://github.com/"
 "lutris/lutris/wiki/Wine-Dependencies'>Lutris Wiki</a> para instalar o Wine."
 
-#: lutris/gui/dialogs/__init__.py:430
+#: lutris/gui/dialogs/__init__.py:432
 #, python-format
 msgid "Moving %s to %s..."
 msgstr "Movendo %s para %s..."
@@ -1011,58 +1040,73 @@ msgstr "_Salvar"
 msgid "Select a location to save the issue"
 msgstr "Selecione um local para salvar o reporte de falha"
 
-#: lutris/gui/dialogs/issue.py:90
+#: lutris/gui/dialogs/issue.py:91
 #, python-format
 msgid "Issue saved in %s"
 msgstr "Reporte de falha salvo em %s"
 
-#: lutris/gui/dialogs/runner_install.py:41
+#: lutris/gui/dialogs/runner_install.py:29
+#, python-format
+msgid "Showing games using %s"
+msgstr "Mostrando jogos usando %s"
+
+#: lutris/gui/dialogs/runner_install.py:71
 #, python-format
 msgid "Waiting for response from %s"
 msgstr "Esperando uma resposta de %s"
 
-#: lutris/gui/dialogs/runner_install.py:57
+#: lutris/gui/dialogs/runner_install.py:87
 #, python-format
 msgid "Unable to get runner versions: %s"
 msgstr "Incapaz de obter versões do runner: %s"
 
-#: lutris/gui/dialogs/runner_install.py:71
+#: lutris/gui/dialogs/runner_install.py:101
 msgid "Unable to get runner versions from lutris.net"
 msgstr "Incapaz de obter versões do runner de lutris.net"
 
-#: lutris/gui/dialogs/runner_install.py:80
+#: lutris/gui/dialogs/runner_install.py:108
 #, python-format
 msgid "%s version management"
 msgstr "%s gestão de versão"
 
-#: lutris/gui/dialogs/runner_install.py:139
+#: lutris/gui/dialogs/runner_install.py:158
 #, python-format
-msgid "In use by %d game"
-msgid_plural "In use by %d games"
-msgstr[0] "Em uso por %d jogo"
-msgstr[1] "Em uso por %d jogos"
+msgid "_View %d game"
+msgid_plural "_View %d games"
+msgstr[0] "_Ver %d jogo"
+msgstr[1] "_Ver %d jogos"
 
-#: lutris/gui/dialogs/runner_install.py:141
-msgid "Not in use"
-msgstr "Não utilizado"
+#: lutris/gui/dialogs/runner_install.py:190
+#: lutris/gui/dialogs/uninstall_game.py:34
+msgid "Uninstall"
+msgstr "Desinstalar"
 
-#: lutris/gui/dialogs/runner_install.py:173
+#: lutris/gui/dialogs/runner_install.py:214
+msgid "Wine version usage"
+msgstr "Uso da versão do Wine"
+
+#: lutris/gui/dialogs/runner_install.py:256
 msgid "Do you want to cancel the download?"
 msgstr "Você deseja cancelar o download?"
 
-#: lutris/gui/dialogs/runner_install.py:174
+#: lutris/gui/dialogs/runner_install.py:257
 msgid "Download starting"
 msgstr "Download começando"
 
-#: lutris/gui/dialogs/runner_install.py:231
+#: lutris/gui/dialogs/runner_install.py:307
+#, python-format
+msgid "Version %s is not longer available"
+msgstr "A versão %s não está mais disponível"
+
+#: lutris/gui/dialogs/runner_install.py:332
 msgid "Downloading…"
 msgstr "Baixando..."
 
-#: lutris/gui/dialogs/runner_install.py:234
+#: lutris/gui/dialogs/runner_install.py:335
 msgid "Extracting…"
 msgstr "Extraindo..."
 
-#: lutris/gui/dialogs/runner_install.py:269
+#: lutris/gui/dialogs/runner_install.py:377
 msgid "Failed to retrieve the runner archive"
 msgstr "Falha ao recuperar o arquivo do runner"
 
@@ -1070,10 +1114,6 @@ msgstr "Falha ao recuperar o arquivo do runner"
 #, python-format
 msgid "<span font_desc='14'><b>Uninstall %s</b></span>"
 msgstr "<span font_desc='14'><b>Desinstalar %s</b></span>"
-
-#: lutris/gui/dialogs/uninstall_game.py:34
-msgid "Uninstall"
-msgstr "Desinstalar"
 
 #: lutris/gui/dialogs/uninstall_game.py:38
 msgid "No file will be deleted"
@@ -1240,15 +1280,15 @@ msgstr ""
 msgid "Unable to get files: %s"
 msgstr "Não foi possível obter os arquivos: %s"
 
-#: lutris/gui/installerwindow.py:537
+#: lutris/gui/installerwindow.py:539
 msgid "Remove game files"
 msgstr "Remover arquivos do jogo"
 
-#: lutris/gui/installerwindow.py:543
+#: lutris/gui/installerwindow.py:545
 msgid "Are you sure you want to cancel the installation?"
 msgstr "Tem certeza de que deseja cancelar a instalação?"
 
-#: lutris/gui/installerwindow.py:544
+#: lutris/gui/installerwindow.py:546
 msgid "Cancel installation?"
 msgstr "Cancelar instalação?"
 
@@ -1272,7 +1312,12 @@ msgstr ""
 "Nenhum jogo instalado encontrado. Pressione Ctrl+H para mostrar todos os "
 "jogos."
 
+#: lutris/gui/lutriswindow.py:428
+msgid "No games found"
+msgstr "Nenhum jogo encontrado"
+
 #: lutris/gui/views/list.py:48 lutris/runners/dolphin.py:26
+#: lutris/runners/scummvm.py:178
 msgid "Platform"
 msgstr "Plataforma"
 
@@ -1280,7 +1325,7 @@ msgstr "Plataforma"
 msgid "Browse..."
 msgstr "Explorar..."
 
-#: lutris/gui/widgets/common.py:137
+#: lutris/gui/widgets/common.py:136
 msgid ""
 "<b>Warning!</b> The selected path is located on a drive formatted by "
 "Windows.\n"
@@ -1291,7 +1336,7 @@ msgstr ""
 "Jogos e programas instalados em unidades do Windows geralmente <b>não "
 "funcionam</b>."
 
-#: lutris/gui/widgets/common.py:145
+#: lutris/gui/widgets/common.py:144
 msgid ""
 "<b>Warning!</b> The selected path contains files. Installation might not "
 "work properly."
@@ -1299,17 +1344,17 @@ msgstr ""
 "<b>Aviso!</b> O caminho selecionado contém arquivos. A instalação pode não "
 "funcionar corretamente."
 
-#: lutris/gui/widgets/common.py:153
+#: lutris/gui/widgets/common.py:152
 msgid ""
 "<b>Warning</b> The destination folder is not writable by the current user."
 msgstr ""
 "<b>Aviso</b> A pasta de destino não pode ser gravada pelo usuário atual."
 
-#: lutris/gui/widgets/common.py:255
+#: lutris/gui/widgets/common.py:254
 msgid "Add"
 msgstr "Adicionar"
 
-#: lutris/gui/widgets/common.py:259
+#: lutris/gui/widgets/common.py:258
 msgid "Delete"
 msgstr "Deletar"
 
@@ -1517,9 +1562,8 @@ msgid "Wrong value for 'src' param"
 msgstr "Valor incorreto para o parâmetro 'src'"
 
 #: lutris/installer/commands.py:362
-#, fuzzy
 msgid "Wrong value for 'dst' param"
-msgstr "Valor incorreto para o parâmetro 'src'"
+msgstr "Valor incorreto para o parâmetro 'dst'"
 
 #: lutris/installer/commands.py:451
 #, python-format
@@ -1698,7 +1742,7 @@ msgstr "Máquina"
 #: lutris/runners/o2em.py:75 lutris/runners/osmose.py:34
 #: lutris/runners/pcsx2.py:26 lutris/runners/pico8.py:38
 #: lutris/runners/redream.py:25 lutris/runners/reicast.py:42
-#: lutris/runners/residualvm.py:39 lutris/runners/scummvm.py:46
+#: lutris/runners/residualvm.py:39 lutris/runners/scummvm.py:76
 #: lutris/runners/snes9x.py:36 lutris/runners/vice.py:57
 msgid "Fullscreen"
 msgstr "Tela cheia"
@@ -1818,11 +1862,11 @@ msgstr ""
 msgid "none"
 msgstr "nenhum"
 
-#: lutris/runners/dosbox.py:85 lutris/runners/scummvm.py:64
+#: lutris/runners/dosbox.py:85 lutris/runners/scummvm.py:101
 msgid "Graphic scaler"
 msgstr "Escala gráfica"
 
-#: lutris/runners/dosbox.py:93 lutris/runners/scummvm.py:82
+#: lutris/runners/dosbox.py:93 lutris/runners/scummvm.py:119
 msgid ""
 "The algorithm used to scale up the game's base resolution, resulting in "
 "different visual styles. "
@@ -1856,7 +1900,7 @@ msgstr "Executa jogos RPG Maker 2000/2003"
 
 #: lutris/runners/easyrpg.py:12 lutris/runners/linux.py:14
 #: lutris/runners/linux.py:16 lutris/runners/residualvm.py:15
-#: lutris/runners/scummvm.py:16 lutris/runners/steam.py:43
+#: lutris/runners/scummvm.py:14 lutris/runners/steam.py:43
 #: lutris/runners/zdoom.py:15
 msgid "Linux"
 msgstr ""
@@ -1891,7 +1935,7 @@ msgstr "Desabilite a detecção automática do motor simulado."
 
 #: lutris/runners/easyrpg.py:41 lutris/runners/fsuae.py:50
 #: lutris/runners/mame.py:173 lutris/runners/wine.py:82
-#: lutris/runners/wine.py:407
+#: lutris/runners/wine.py:417
 msgid "Auto"
 msgstr ""
 
@@ -2078,7 +2122,7 @@ msgstr ""
 "Desligue para desabilitar o VSync e use o limite de FPS. O VSync pode ou não "
 "ser suportado em todas as plataformas."
 
-#: lutris/runners/easyrpg.py:196 lutris/sysoptions.py:308
+#: lutris/runners/easyrpg.py:196 lutris/sysoptions.py:316
 msgid "FPS limit"
 msgstr "limite de FPS"
 
@@ -2092,7 +2136,7 @@ msgstr ""
 "o padrão é 60 FPS.Definir como '0' para desabilitar o limitador de quadros. "
 "Esta opção pode não ser suportada em todas as plataformas"
 
-#: lutris/runners/easyrpg.py:206 lutris/runners/wine.py:433
+#: lutris/runners/easyrpg.py:206 lutris/runners/wine.py:443
 msgid "Show FPS"
 msgstr "Exibir FPS"
 
@@ -2101,7 +2145,7 @@ msgid "Enable frames per second counter."
 msgstr "Habilitar contador de quadros por segundo."
 
 #: lutris/runners/easyrpg.py:209 lutris/runners/mednafen.py:85
-#: lutris/runners/wine.py:430 lutris/sysoptions.py:294
+#: lutris/runners/wine.py:440 lutris/sysoptions.py:302
 msgid "Disabled"
 msgstr "Desabilitado"
 
@@ -2607,6 +2651,7 @@ msgid "Keyboard"
 msgstr "Teclado"
 
 #: lutris/runners/hatari.py:52 lutris/runners/o2em.py:39
+#: lutris/runners/scummvm.py:186
 msgid "Joystick"
 msgstr "Controle"
 
@@ -2661,14 +2706,12 @@ msgstr ""
 "leds verdesacendendo quando os disquetes são lidos."
 
 #: lutris/runners/hatari.py:118
-#, fuzzy
 msgid "Joystick 1"
-msgstr "Controle"
+msgstr "Controle 1"
 
 #: lutris/runners/hatari.py:125
-#, fuzzy
 msgid "Joystick 2"
-msgstr "Controle"
+msgstr "Controle 2"
 
 #: lutris/runners/hatari.py:137
 msgid "Do you want to select an Atari ST BIOS file?"
@@ -2676,7 +2719,7 @@ msgstr "Você deseja selecionar um arquivo do Atari ST BIOS?"
 
 #: lutris/runners/hatari.py:138
 msgid "Use BIOS file?"
-msgstr ""
+msgstr "Usar arquivo BIOS?"
 
 #: lutris/runners/hatari.py:142
 msgid "Select a BIOS file"
@@ -2764,14 +2807,14 @@ msgid "The game's main executable file"
 msgstr "O executável principal do jogo"
 
 #: lutris/runners/linux.py:30 lutris/runners/mame.py:124
-#: lutris/runners/scummvm.py:39 lutris/runners/steam.py:60
+#: lutris/runners/scummvm.py:31 lutris/runners/steam.py:60
 #: lutris/runners/steam.py:122 lutris/runners/wine.py:54
 #: lutris/runners/zdoom.py:27
 msgid "Arguments"
 msgstr "Argumentos"
 
 #: lutris/runners/linux.py:31 lutris/runners/mame.py:125
-#: lutris/runners/scummvm.py:40
+#: lutris/runners/scummvm.py:32
 msgid "Command line arguments used when launching the game"
 msgstr "Argumentos de linha de comando usados ao iniciar o jogo"
 
@@ -2867,7 +2910,7 @@ msgstr "Cartucho 4"
 
 #: lutris/runners/mame.py:105 lutris/runners/mame.py:112
 msgid "Snapshot"
-msgstr ""
+msgstr "Instantânea"
 
 #: lutris/runners/mame.py:106
 msgid "Hard Disk"
@@ -2948,7 +2991,7 @@ msgstr ""
 
 #: lutris/runners/mame.py:163
 msgid "CRT effect ()"
-msgstr ""
+msgstr "Efeito CRT()"
 
 #: lutris/runners/mame.py:164
 msgid "Applies a CRT effect to the screen.Requires OpenGL renderer."
@@ -2997,27 +3040,27 @@ msgstr ""
 
 #: lutris/runners/mame.py:200
 msgid "Right Control"
-msgstr ""
+msgstr "Control Direito"
 
 #: lutris/runners/mame.py:201
 msgid "Left Control"
-msgstr ""
+msgstr "Control Esquerdo"
 
 #: lutris/runners/mame.py:202
 msgid "Right Alt"
-msgstr ""
+msgstr "Alt Direito"
 
 #: lutris/runners/mame.py:203
 msgid "Left Alt"
-msgstr ""
+msgstr "Alt Esquerdo"
 
 #: lutris/runners/mame.py:204
 msgid "Right Super"
-msgstr ""
+msgstr "Super Direito"
 
 #: lutris/runners/mame.py:205
 msgid "Left Super"
-msgstr ""
+msgstr "Super Esquerdo"
 
 #: lutris/runners/mame.py:209
 msgid ""
@@ -3208,9 +3251,8 @@ msgid "Mednafen default"
 msgstr ""
 
 #: lutris/runners/mednafen.py:131
-#, fuzzy
 msgid "ALSA default"
-msgstr "%s (padrão)"
+msgstr "ALSA padrão"
 
 #: lutris/runners/mednafen.py:142
 msgid "Use default Mednafen controller configuration"
@@ -3221,9 +3263,8 @@ msgid "Mupen64Plus"
 msgstr ""
 
 #: lutris/runners/mupen64plus.py:13
-#, fuzzy
 msgid "Nintendo 64 emulator"
-msgstr "Emulador de Super Nintendo"
+msgstr "Emulador de Nintendo 64"
 
 #: lutris/runners/mupen64plus.py:14
 msgid "Nintendo 64"
@@ -3263,7 +3304,7 @@ msgstr ""
 msgid "Brandt Jopac"
 msgstr ""
 
-#: lutris/runners/o2em.py:36 lutris/runners/wine.py:388
+#: lutris/runners/o2em.py:36 lutris/runners/wine.py:398
 msgid "Disable"
 msgstr "Desabilitar"
 
@@ -3273,7 +3314,7 @@ msgstr "Teclas de seta e Shift Direito"
 
 #: lutris/runners/o2em.py:38
 msgid "W,S,A,D,SPACE"
-msgstr ""
+msgstr "W,S,A,D,ESPAÇO"
 
 #: lutris/runners/o2em.py:55
 msgid "BIOS"
@@ -3304,9 +3345,8 @@ msgid "Osmose"
 msgstr ""
 
 #: lutris/runners/osmose.py:11
-#, fuzzy
 msgid "Sega Master System Emulator"
-msgstr "Emulador de Sega Dreamscast"
+msgstr "Emulador de Sega Master System"
 
 #: lutris/runners/osmose.py:25
 msgid ""
@@ -3569,15 +3609,15 @@ msgstr ""
 msgid "3D point-and-click adventure games engine"
 msgstr "Motor de jogos de aventura point-and-click 3D"
 
-#: lutris/runners/residualvm.py:22 lutris/runners/scummvm.py:23
+#: lutris/runners/residualvm.py:22 lutris/runners/scummvm.py:21
 msgid "Game identifier"
 msgstr "Identificador de jogo"
 
-#: lutris/runners/residualvm.py:27 lutris/runners/scummvm.py:28
+#: lutris/runners/residualvm.py:27 lutris/runners/scummvm.py:26
 msgid "Game files location"
 msgstr "Localização dos arquivos do jogo"
 
-#: lutris/runners/residualvm.py:31 lutris/runners/scummvm.py:32
+#: lutris/runners/residualvm.py:31
 msgid "Enable subtitles (if the game has voice)"
 msgstr "Habilitar legendas (se o jogo tiver voz)"
 
@@ -3634,9 +3674,8 @@ msgid "Nintendo Switch"
 msgstr ""
 
 #: lutris/runners/ryujinx.py:16 lutris/runners/yuzu.py:16
-#, fuzzy
 msgid "Nintendo Switch emulator"
-msgstr "Emulador de Super Nintendo"
+msgstr "Emulador de Nintendo Switch"
 
 #: lutris/runners/ryujinx.py:25
 msgid "NSP file"
@@ -3658,19 +3697,23 @@ msgstr "Teclas de título"
 msgid "File containing the title keys."
 msgstr "Arquivo contendo as chaves de título."
 
-#: lutris/runners/scummvm.py:14
+#: lutris/runners/scummvm.py:12
 msgid "Engine for point-and-click games."
 msgstr "Engine para jogos de apontar e clicar."
 
-#: lutris/runners/scummvm.py:15 lutris/services/scummvm.py:10
+#: lutris/runners/scummvm.py:13 lutris/services/scummvm.py:10
 msgid "ScummVM"
 msgstr ""
 
-#: lutris/runners/scummvm.py:52
+#: lutris/runners/scummvm.py:82
+msgid "Enable subtitles"
+msgstr "Habilitar legendas"
+
+#: lutris/runners/scummvm.py:89
 msgid "Aspect ratio correction"
 msgstr "Correção da relação de aspecto"
 
-#: lutris/runners/scummvm.py:56
+#: lutris/runners/scummvm.py:93
 msgid ""
 "Most games supported by ScummVM were made for VGA display modes using "
 "rectangular pixels. Activating this option for these games will preserve the "
@@ -3680,13 +3723,225 @@ msgstr ""
 "exibição VGA usando pixels retangulares. Habilitar esta opção para esses "
 "jogos preservará a Proporção de aspecto 4:3 para a qual foram feitos."
 
-#: lutris/runners/scummvm.py:87
+#: lutris/runners/scummvm.py:140
+msgid "Render mode"
+msgstr "Modo de Renderização"
+
+#: lutris/runners/scummvm.py:157
+msgid "Changes how the game is rendered."
+msgstr "Muda como o jogo é renderizado"
+
+#: lutris/runners/scummvm.py:161
+msgid "Filtering"
+msgstr "Filtramento"
+
+#: lutris/runners/scummvm.py:163
+msgid ""
+"Uses bilinear interpolation instead of nearest neighbor resampling for the "
+"aspect ratio correction and stretch mode."
+msgstr ""
+"Usa interpolação bilinear em vez de reamostragem do vizinho mais próximo "
+"para a correção da proporção e o modo de alongamento."
+
+#: lutris/runners/scummvm.py:170
 msgid "Data directory"
 msgstr "Diretório de dados"
 
-#: lutris/runners/scummvm.py:89
+#: lutris/runners/scummvm.py:172
 msgid "Defaults to share/scummvm if unspecified."
 msgstr "Padrões para compartilhar/scummvm se não especificado."
+
+#: lutris/runners/scummvm.py:179
+msgid ""
+"Specifes platform of game. Allowed values: 2gs, 3do, acorn, amiga, atari, "
+"c64, fmtowns, nes, mac, pc pc98, pce, segacd, wii, windows"
+msgstr ""
+"Especifica a plataforma do jogo. Valores permitidos: 2gs, 3do, acorn, amiga, "
+"atari, c64, fmtowns, nes, mac, pc pc98, pce, segacd, wii, windows"
+
+#: lutris/runners/scummvm.py:187
+msgid "Enables joystick input (default: 0 = first joystick)"
+msgstr "Habilita a entrada do joystick (padrão: 0 = primeiro joystick)"
+
+#: lutris/runners/scummvm.py:193
+msgid "Language"
+msgstr "Língua"
+
+#: lutris/runners/scummvm.py:194
+msgid ""
+"Selects language (en, de, fr, it, pt, es, jp, zh, kr, se, gb, hb, ru, cz)"
+msgstr ""
+"Seleciona o idioma (en, de, fr, it, pt, es, jp, zh, kr, se, gb, hb, ru, cz)"
+
+#: lutris/runners/scummvm.py:200
+msgid "Engine speed"
+msgstr "Velocidade do Motor"
+
+#: lutris/runners/scummvm.py:201
+msgid ""
+"Sets frames per second limit (0 - 100) for Grim Fandango or Escape from "
+"Monkey Island (default: 60)."
+msgstr ""
+"Define o limite de quadros por segundo (0 - 100) para Grim Fandango ou "
+"Escape from Monkey Island (padrão: 60)."
+
+#: lutris/runners/scummvm.py:208
+msgid "Talk speed"
+msgstr "Velocidade de fala"
+
+#: lutris/runners/scummvm.py:209
+msgid "Sets talk speed for games (default: 60)"
+msgstr "Define a velocidade de fala para jogos (padrão: 60)"
+
+#: lutris/runners/scummvm.py:215
+msgid "Music tempo"
+msgstr "Tempo da musica"
+
+#: lutris/runners/scummvm.py:216
+msgid "Sets music tempo (in percent, 50-200) for SCUMM games (default: 100)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:222
+msgid "Digital iMuse tempo"
+msgstr ""
+
+#: lutris/runners/scummvm.py:223
+msgid "Sets internal Digital iMuse tempo (10 - 100) per second (default: 10)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:228
+msgid "Music driver"
+msgstr "Driver de música"
+
+#: lutris/runners/scummvm.py:244
+msgid "Specifies the device ScummVM uses to output audio."
+msgstr ""
+
+#: lutris/runners/scummvm.py:249
+msgid "Output rate"
+msgstr "Taxa de saída"
+
+#: lutris/runners/scummvm.py:256
+msgid "Selects output sample rate in Hz."
+msgstr ""
+
+#: lutris/runners/scummvm.py:261
+msgid "OPL driver"
+msgstr "Driver OPL"
+
+#: lutris/runners/scummvm.py:273
+msgid ""
+"Chooses which emulator is used by ScummVM when the AdLib emulator is chosen "
+"as the Preferred device."
+msgstr ""
+
+#: lutris/runners/scummvm.py:280
+msgid "Music volume"
+msgstr "Volume da música"
+
+#: lutris/runners/scummvm.py:281
+msgid "Sets the music volume, 0-255 (default: 192)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:287
+msgid "SFX volume"
+msgstr "Volume SFX"
+
+#: lutris/runners/scummvm.py:288
+msgid "Sets the sfx volume, 0-255 (default: 192)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:294
+msgid "Speech volume"
+msgstr "Volume de Fala"
+
+#: lutris/runners/scummvm.py:295
+msgid "Sets the speech volume, 0-255 (default: 192)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:301
+msgid "MIDI gain"
+msgstr ""
+
+#: lutris/runners/scummvm.py:302
+msgid "Sets the gain for MIDI playback. 0-1000 (default: 100)"
+msgstr ""
+
+#: lutris/runners/scummvm.py:308
+msgid "Soundfont"
+msgstr ""
+
+#: lutris/runners/scummvm.py:309
+msgid "Specifies the path to a soundfont file."
+msgstr ""
+
+#: lutris/runners/scummvm.py:314
+msgid "Mixed AdLib/MIDI mode"
+msgstr ""
+
+#: lutris/runners/scummvm.py:317
+msgid "Combines MIDI music with AdLib sound effects."
+msgstr ""
+
+#: lutris/runners/scummvm.py:322
+msgid "True Roland MT-32"
+msgstr ""
+
+#: lutris/runners/scummvm.py:325
+msgid ""
+"Tells ScummVM that the MIDI device is an actual Roland MT-32, LAPC-I, CM-64, "
+"CM-32L, CM-500 or other MT-32 device."
+msgstr ""
+
+#: lutris/runners/scummvm.py:331
+msgid "Enable Roland GS"
+msgstr "Ativar Roland GS"
+
+#: lutris/runners/scummvm.py:334
+msgid ""
+"Tells ScummVM that the MIDI device is a GS device that has an MT-32 map, "
+"such as an SC-55, SC-88 or SC-8820."
+msgstr ""
+
+#: lutris/runners/scummvm.py:341
+msgid "Use alternate intro"
+msgstr ""
+
+#: lutris/runners/scummvm.py:342
+msgid "Uses alternative intro for CD versions"
+msgstr ""
+
+#: lutris/runners/scummvm.py:348
+msgid "Copy protection"
+msgstr "Proteção contra cópia"
+
+#: lutris/runners/scummvm.py:349
+msgid "Enables copy protection"
+msgstr "Ativa a proteção contra cópia"
+
+#: lutris/runners/scummvm.py:355
+msgid "Demo mode"
+msgstr "Modo demo"
+
+#: lutris/runners/scummvm.py:356
+msgid "Starts demo mode of Maniac Mansion or The 7th Guest"
+msgstr ""
+
+#: lutris/runners/scummvm.py:362
+msgid "Debug level"
+msgstr "Nível de depuração"
+
+#: lutris/runners/scummvm.py:363
+msgid "Sets debug verbosity level"
+msgstr ""
+
+#: lutris/runners/scummvm.py:369
+msgid "Debug flags"
+msgstr ""
+
+#: lutris/runners/scummvm.py:370
+msgid "Enables engine specific debug flags"
+msgstr "Habilita sinalizadores de depuração específicos do motor"
 
 #: lutris/runners/snes9x.py:17
 msgid "Super Nintendo emulator"
@@ -3912,8 +4167,7 @@ msgstr "O tamanho inicial da janela do jogo quando não aberto."
 #: lutris/runners/web.py:60
 msgid "Disable window resizing (disables fullscreen and maximize)"
 msgstr ""
-"Desabilitar o redimensionamento da janela (desativa a tela cheia e "
-"maximizar)"
+"Desabilitar o redimensionamento da janela (desativa a tela cheia e maximizar)"
 
 #: lutris/runners/web.py:63
 msgid "You can't resize this window."
@@ -4125,7 +4379,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:117
 msgid "System ({})"
-msgstr ""
+msgstr "Sistema({})"
 
 #: lutris/runners/wine.py:169
 msgid "Wine version"
@@ -4299,10 +4553,23 @@ msgstr ""
 "compatível do Wine.\n"
 
 #: lutris/runners/wine.py:346
+msgid "Enable Easy Anti-Cheat"
+msgstr "Habilitar Easy Anti-Cheat"
+
+#: lutris/runners/wine.py:350
+msgid ""
+"Enable support for Easy Anti-Cheat in supported games\n"
+"Requires Lutris Wine 7.2 and newer or any other compatible Wine build.\n"
+msgstr ""
+"Habilita suporte para o Easy Anti-Cheat em jogos suportados\n"
+"Requer Lutris Wine 7.2 e mais recente ou qualquer outra versão compatível do "
+"Wine.\n"
+
+#: lutris/runners/wine.py:356
 msgid "Windowed (virtual desktop)"
 msgstr "Janela (área de trabalho virtual)"
 
-#: lutris/runners/wine.py:350
+#: lutris/runners/wine.py:360
 msgid ""
 "Run the whole Windows desktop in a window.\n"
 "Otherwise, run it fullscreen.\n"
@@ -4312,19 +4579,19 @@ msgstr ""
 "Caso contrário, execute-o em tela cheia.\n"
 "Isso corresponde à opção de área de trabalho virtual do Wine."
 
-#: lutris/runners/wine.py:357
+#: lutris/runners/wine.py:367
 msgid "Virtual desktop resolution"
 msgstr "Resolução de área de trabalho virtual"
 
-#: lutris/runners/wine.py:360
+#: lutris/runners/wine.py:370
 msgid "The size of the virtual desktop in pixels."
 msgstr "O tamanho da área de trabalho virtual em pixels."
 
-#: lutris/runners/wine.py:364
+#: lutris/runners/wine.py:374
 msgid "Enable DPI Scaling"
 msgstr "Habilitar escala de DPI"
 
-#: lutris/runners/wine.py:368
+#: lutris/runners/wine.py:378
 msgid ""
 "Enables the Windows application's DPI scaling.\n"
 "Otherwise, disables DPI scaling by using 96 DPI.\n"
@@ -4334,32 +4601,31 @@ msgstr ""
 "Caso contrário, desativa o dimensionamento de DPI, usando DPI de 96.\n"
 "Isso corresponde à opção de resolução de tela do Wine."
 
-#: lutris/runners/wine.py:375
+#: lutris/runners/wine.py:385
 msgid "DPI"
-msgstr ""
+msgstr "DPI"
 
-#: lutris/runners/wine.py:378
+#: lutris/runners/wine.py:388
 msgid ""
 "The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
 "If blank or 'auto', Lutris will auto-detect this."
 msgstr ""
 "O DPI a ser usado se 'Habilitar escala de DPI' estiver ativado.\n"
-"Se estiver em branco ou 'auto', o Lutris detectará isso "
-"automaticamente."
+"Se estiver em branco ou 'auto', o Lutris detectará isso automaticamente."
 
-#: lutris/runners/wine.py:384
+#: lutris/runners/wine.py:394
 msgid "Mouse Warp Override"
 msgstr "Sobreposição de Distorção do Mouse "
 
-#: lutris/runners/wine.py:387
+#: lutris/runners/wine.py:397
 msgid "Enable"
 msgstr "Habilitar"
 
-#: lutris/runners/wine.py:389
+#: lutris/runners/wine.py:399
 msgid "Force"
 msgstr "Force"
 
-#: lutris/runners/wine.py:394
+#: lutris/runners/wine.py:404
 msgid ""
 "Override the default mouse pointer warping behavior\n"
 "<b>Enable</b>: (Wine default) warp the pointer when the mouse is exclusively "
@@ -4373,11 +4639,11 @@ msgstr ""
 "<b>Desabilitar</b>: nunca distorcer o ponteiro do mouse \n"
 "<b>Forçar</b>: sempre distorcer o ponteiro"
 
-#: lutris/runners/wine.py:403
+#: lutris/runners/wine.py:413
 msgid "Audio driver"
 msgstr "Driver de áudio"
 
-#: lutris/runners/wine.py:414
+#: lutris/runners/wine.py:424
 msgid ""
 "Which audio backend to use.\n"
 "By default, Wine automatically picks the right one for your system."
@@ -4385,44 +4651,44 @@ msgstr ""
 "Qual back-end de áudio usar.\n"
 "Por padrão, o Wine escolhe automaticamente o certo para o seu sistema."
 
-#: lutris/runners/wine.py:422
+#: lutris/runners/wine.py:432
 msgid "DLL overrides"
 msgstr "Substituições de DLL"
 
-#: lutris/runners/wine.py:423
+#: lutris/runners/wine.py:433
 msgid "Sets WINEDLLOVERRIDES when launching the game."
 msgstr "Define WINEDLLOVERRIDES ao iniciar o jogo."
 
-#: lutris/runners/wine.py:427
+#: lutris/runners/wine.py:437
 msgid "Output debugging info"
 msgstr "Informações de depuração de saída"
 
-#: lutris/runners/wine.py:431
+#: lutris/runners/wine.py:441
 msgid "Enabled"
 msgstr "Habilitado"
 
-#: lutris/runners/wine.py:432
+#: lutris/runners/wine.py:442
 msgid "Inherit from environment"
 msgstr "Usar do ambiente"
 
-#: lutris/runners/wine.py:434
+#: lutris/runners/wine.py:444
 msgid "Full (CAUTION: Will cause MASSIVE slowdown)"
 msgstr "Completo (CUIDADO: causará lentidão MASSIVA)"
 
-#: lutris/runners/wine.py:437
+#: lutris/runners/wine.py:447
 msgid "Output debugging information in the game log (might affect performance)"
 msgstr ""
 "Saída de informações de depuração no log do jogo (pode afetar o desempenho)"
 
-#: lutris/runners/wine.py:442
+#: lutris/runners/wine.py:452
 msgid "Show crash dialogs"
 msgstr "Mostrar caixas de diálogo de falha"
 
-#: lutris/runners/wine.py:450
+#: lutris/runners/wine.py:460
 msgid "Autoconfigure joypads"
 msgstr "Autoconfigurar controles"
 
-#: lutris/runners/wine.py:454
+#: lutris/runners/wine.py:464
 msgid ""
 "Automatically disables one of Wine's detected joypad to avoid having 2 "
 "controllers detected"
@@ -4430,11 +4696,11 @@ msgstr ""
 "Desativa automaticamente um dos controles detectados pelo Wine para evitar "
 "ter 2controladores detectados"
 
-#: lutris/runners/wine.py:460
+#: lutris/runners/wine.py:470
 msgid "Create a sandbox for Wine folders"
 msgstr "Criar uma sandbox para pastas Wine"
 
-#: lutris/runners/wine.py:464
+#: lutris/runners/wine.py:474
 msgid ""
 "Do not use $HOME for desktop integration folders.\n"
 "By default, it use the directories in the confined Windows environment."
@@ -4442,43 +4708,43 @@ msgstr ""
 "Não use $HOME para pastas de integração da área de trabalho.\n"
 "Por padrão, ele usa os diretórios no ambiente Windows confinado."
 
-#: lutris/runners/wine.py:472
+#: lutris/runners/wine.py:482
 msgid "Sandbox directory"
 msgstr "Diretório sandbox"
 
-#: lutris/runners/wine.py:473
+#: lutris/runners/wine.py:483
 msgid "Custom directory for desktop integration folders."
 msgstr "Diretório personalizado para pastas de integração da área de trabalho."
 
-#: lutris/runners/wine.py:481
+#: lutris/runners/wine.py:491
 msgid "Run EXE inside Wine prefix"
 msgstr "Executar EXE dentro do prefixo Wine"
 
-#: lutris/runners/wine.py:483
+#: lutris/runners/wine.py:493
 msgid "Wine configuration"
 msgstr "Configuração do Wine"
 
-#: lutris/runners/wine.py:485
+#: lutris/runners/wine.py:495
 msgid "Open Bash terminal"
 msgstr "Abrir terminal Bash"
 
-#: lutris/runners/wine.py:486
+#: lutris/runners/wine.py:496
 msgid "Open Wine console"
 msgstr "Abra o console do Wine"
 
-#: lutris/runners/wine.py:487
+#: lutris/runners/wine.py:497
 msgid "Wine registry"
 msgstr "Registro do Wine"
 
-#: lutris/runners/wine.py:488
+#: lutris/runners/wine.py:498
 msgid "Winetricks"
 msgstr ""
 
-#: lutris/runners/wine.py:489
+#: lutris/runners/wine.py:499
 msgid "Wine Control Panel"
 msgstr "Painel de Controle do Wine"
 
-#: lutris/runners/wine.py:651
+#: lutris/runners/wine.py:661
 msgid "Select an EXE or MSI file"
 msgstr "Selecione um arquivo EXE ou MSI"
 
@@ -4598,7 +4864,7 @@ msgstr ""
 
 #: lutris/services/itchio.py:13
 msgid "Itch.io (Not implemented)"
-msgstr ""
+msgstr "Itch.io (Não implementado)"
 
 #: lutris/services/origin.py:87
 msgid "Origin"
@@ -4614,7 +4880,7 @@ msgstr ""
 
 #: lutris/services/steamwindows.py:25
 msgid "Steam for Windows"
-msgstr "Steam para"
+msgstr "Steam para Windows"
 
 #: lutris/services/tosec.py:11
 msgid "TOSEC"
@@ -4630,7 +4896,7 @@ msgstr ""
 
 #: lutris/settings.py:13
 msgid "(c) 2010-2022 Lutris Team"
-msgstr ""
+msgstr "(c) 2010-2022 Lutris Team"
 
 #: lutris/settings.py:14
 msgid "The Lutris team"
@@ -4679,9 +4945,9 @@ msgid "Keep current"
 msgstr "Manter atual"
 
 #: lutris/sysoptions.py:38 lutris/sysoptions.py:47 lutris/sysoptions.py:58
-#: lutris/sysoptions.py:491
+#: lutris/sysoptions.py:499
 msgid "Off"
-msgstr ""
+msgstr "Off"
 
 #: lutris/sysoptions.py:39
 msgid "Primary"
@@ -4780,18 +5046,30 @@ msgid "Resolution of the screen visible to the game"
 msgstr "Resolução da tela visível para o jogo"
 
 #: lutris/sysoptions.py:202
-msgid "Restrict to single core"
-msgstr "Restringir a um único núcleo"
+msgid "Restrict number of cores used"
+msgstr "Restringir numero de núcleos usados"
 
 #: lutris/sysoptions.py:205
-msgid "Restrict the game to a single CPU core."
-msgstr "Restringir o jogo a um único núcleo de CPU."
+msgid "Restrict the game to a maximum number of CPU cores."
+msgstr "Restrinja o jogo a um número máximo de núcleos de CPU."
 
-#: lutris/sysoptions.py:211
+#: lutris/sysoptions.py:210
+msgid "Restrict number of cores to"
+msgstr "Restringir a um único núcleo"
+
+#: lutris/sysoptions.py:213
+msgid ""
+"Maximum number of CPU cores to be used, if 'Restrict number of cores used' "
+"is turned on."
+msgstr ""
+"Número máximo de núcleos de CPU a serem usados, se 'Restringir número de "
+"núcleos usados' estiver ativado."
+
+#: lutris/sysoptions.py:219
 msgid "Restore gamma on game exit"
 msgstr "Restaurar gama ao sair do jogo"
 
-#: lutris/sysoptions.py:213
+#: lutris/sysoptions.py:221
 msgid ""
 "Some games don't correctly restores gamma on exit, making your display too "
 "bright. Select this option to correct it."
@@ -4799,11 +5077,11 @@ msgstr ""
 "Alguns jogos não restauram corretamente a gama ao sair, tornando sua tela "
 "muito brilhante. Selecione esta opção para corrigi-la."
 
-#: lutris/sysoptions.py:218
+#: lutris/sysoptions.py:226
 msgid "Disable desktop effects"
 msgstr "Desabilitar efeitos da área de trabalho"
 
-#: lutris/sysoptions.py:222
+#: lutris/sysoptions.py:230
 msgid ""
 "Disable desktop effects while game is running, reducing stuttering and "
 "increasing performance"
@@ -4811,11 +5089,11 @@ msgstr ""
 "Desabilite os efeitos da área de trabalho enquanto o jogo estiver em "
 "execução, reduzindo a stutters e aumentando o desempenho"
 
-#: lutris/sysoptions.py:227
+#: lutris/sysoptions.py:235
 msgid "Disable screen saver"
 msgstr "Desabilitar protetor de tela"
 
-#: lutris/sysoptions.py:232
+#: lutris/sysoptions.py:240
 msgid ""
 "Disable the screen saver while a game is running. Requires the screen "
 "saver's functionality to be exposed over DBus."
@@ -4823,19 +5101,19 @@ msgstr ""
 "Desabilite o protetor de tela enquanto um jogo estiver em execução. Requer "
 "que a funcionalidade  do protetor de tela seja exposta no DBus"
 
-#: lutris/sysoptions.py:239
+#: lutris/sysoptions.py:247
 msgid "Reset PulseAudio"
 msgstr "Resetar PulseAudio"
 
-#: lutris/sysoptions.py:243
+#: lutris/sysoptions.py:251
 msgid "Restart PulseAudio before launching the game."
 msgstr "Reinicie o PulseAudio antes de iniciar o jogo."
 
-#: lutris/sysoptions.py:248
+#: lutris/sysoptions.py:256
 msgid "Reduce PulseAudio latency"
 msgstr "Reduzir a latência do PulseAudio"
 
-#: lutris/sysoptions.py:252
+#: lutris/sysoptions.py:260
 msgid ""
 "Set the environment variable PULSE_LATENCY_MSEC=60 to improve audio quality "
 "on some games"
@@ -4843,21 +5121,21 @@ msgstr ""
 "Defina a variável de ambiente PULSE_LATENCY_MSEC=60 para melhorar a "
 "qualidade do áudio em alguns jogos"
 
-#: lutris/sysoptions.py:258
+#: lutris/sysoptions.py:266
 msgid "Switch to US keyboard layout"
 msgstr "Mudar para o layout de teclado dos EUA"
 
-#: lutris/sysoptions.py:261
+#: lutris/sysoptions.py:269
 msgid "Switch to US keyboard QWERTY layout while game is running"
 msgstr ""
 "Mudar para o layout QWERTY do teclado dos EUA enquanto o jogo está em "
 "execução"
 
-#: lutris/sysoptions.py:268
+#: lutris/sysoptions.py:276
 msgid "Optimus launcher (NVIDIA Optimus laptops)"
 msgstr "Iniciador Optimus (laptops NVIDIA Optimus)"
 
-#: lutris/sysoptions.py:270
+#: lutris/sysoptions.py:278
 msgid ""
 "If you have installed the primus or bumblebee packages, select what launcher "
 "will run the game with the command, activating your NVIDIA graphic chip for "
@@ -4871,11 +5149,11 @@ msgstr ""
 "virtualgl funciona melhor para mais jogos. O Primus VK fornece suporte "
 "vulkan com o bublebee"
 
-#: lutris/sysoptions.py:282
+#: lutris/sysoptions.py:290
 msgid "Vulkan ICD loader"
 msgstr "Carregador de ICD Vulkan"
 
-#: lutris/sysoptions.py:284
+#: lutris/sysoptions.py:292
 msgid ""
 "The ICD loader is a library that is placed between a Vulkan application and "
 "any number of Vulkan drivers, in order to support multiple drivers and the "
@@ -4885,23 +5163,23 @@ msgstr ""
 "e qualquer número de drivers Vulkan, para oferecer suporte a vários drivers "
 "e à funcionalidade de nível de instância que funciona nesses drivers."
 
-#: lutris/sysoptions.py:292
+#: lutris/sysoptions.py:300
 msgid "FPS counter (MangoHud)"
 msgstr "Contador de FPS (MangoHud)"
 
-#: lutris/sysoptions.py:295
+#: lutris/sysoptions.py:303
 msgid "Enabled (Vulkan)"
 msgstr "Habilitado (Vulkan)"
 
-#: lutris/sysoptions.py:296
+#: lutris/sysoptions.py:304
 msgid "Enabled (OpenGL)"
 msgstr "Habilitado (OpenGL)"
 
-#: lutris/sysoptions.py:297
+#: lutris/sysoptions.py:305
 msgid "Enabled (OpenGL, 32bit)"
 msgstr "Habilitado (OpenGL, 32bit)"
 
-#: lutris/sysoptions.py:302
+#: lutris/sysoptions.py:310
 msgid ""
 "Display the game's FPS + other information. Requires MangoHud to be "
 "installed."
@@ -4909,25 +5187,25 @@ msgstr ""
 "Exibe o FPS do jogo + outras informações. Requer que o MangoHud esteja "
 "instalado."
 
-#: lutris/sysoptions.py:311
+#: lutris/sysoptions.py:319
 msgid "Limit the game's FPS to desired number"
 msgstr "Limitar o FPS do jogo ao número desejado"
 
-#: lutris/sysoptions.py:318
+#: lutris/sysoptions.py:326
 msgid "Enable Feral GameMode"
 msgstr "Habilitar o Feral GameMode"
 
-#: lutris/sysoptions.py:319
+#: lutris/sysoptions.py:327
 msgid "Request a set of optimisations be temporarily applied to the host OS"
 msgstr ""
 "Solicita que um conjunto de otimizações seja aplicado temporariamente ao "
 "sistema operacional host"
 
-#: lutris/sysoptions.py:326
+#: lutris/sysoptions.py:334
 msgid "Enable NVIDIA Prime Render Offload"
 msgstr "Habilitar descarregamento de renderização NVIDIA Prime"
 
-#: lutris/sysoptions.py:327
+#: lutris/sysoptions.py:335
 msgid ""
 "If you have the latest NVIDIA driver and the properly patched xorg-server "
 "(see https://download.nvidia.com/XFree86/Linux-x86_64/435.17/README/"
@@ -4941,11 +5219,11 @@ msgstr ""
 "ao habilitar esta opção. Isso aplicará __NV_PRIME_RENDER_OFFLOAD=1 e "
 "__GLX_VENDOR_LIBRARY_NAME=nvidia como variáveis de ambiente."
 
-#: lutris/sysoptions.py:338
+#: lutris/sysoptions.py:346
 msgid "Use discrete graphics"
 msgstr "Usar gráficos discretos"
 
-#: lutris/sysoptions.py:340
+#: lutris/sysoptions.py:348
 msgid ""
 "If you have open source graphic drivers (Mesa), selecting this option will "
 "run the game with the 'DRI_PRIME=1' environment variable, activating your "
@@ -4955,11 +5233,11 @@ msgstr ""
 "opção vai executar o jogo com a variável de ambiente 'DRI_PRIME=1', ativando "
 "seu chip gráfico discreto para alto desempenho 3D."
 
-#: lutris/sysoptions.py:348
+#: lutris/sysoptions.py:356
 msgid "SDL 1.2 Fullscreen Monitor"
 msgstr "Monitor de tela cheia SDL 1.2"
 
-#: lutris/sysoptions.py:352
+#: lutris/sysoptions.py:360
 msgid ""
 "Hint SDL 1.2 games to use a specific monitor when going fullscreen by "
 "setting the SDL_VIDEO_FULLSCREEN environment variable"
@@ -4967,11 +5245,11 @@ msgstr ""
 "Instrui jogos SDL 1.2 a usar um monitor específico ao ir em tela cheia "
 "definindo a variável de ambiente SDL_VIDEO_FULLSCREEN"
 
-#: lutris/sysoptions.py:359
+#: lutris/sysoptions.py:367
 msgid "Turn off monitors except"
 msgstr "Desligue os monitores, exceto"
 
-#: lutris/sysoptions.py:364
+#: lutris/sysoptions.py:372
 msgid ""
 "Only keep the selected screen active while the game is running. \n"
 "This is useful if you have a dual-screen setup, and are \n"
@@ -4982,19 +5260,19 @@ msgstr ""
 "Isso é útil se você tiver uma configuração de tela dupla e estiver \n"
 "tendo problemas de exibição ao executar um jogo em tela cheia."
 
-#: lutris/sysoptions.py:372
+#: lutris/sysoptions.py:380
 msgid "Switch resolution to"
 msgstr "Mudar resolução para"
 
-#: lutris/sysoptions.py:376
+#: lutris/sysoptions.py:384
 msgid "Switch to this screen resolution while the game is running."
 msgstr "Mude para esta resolução de tela enquanto o jogo está em execução."
 
-#: lutris/sysoptions.py:380
+#: lutris/sysoptions.py:388
 msgid "CLI mode"
 msgstr "Modo CLI"
 
-#: lutris/sysoptions.py:384
+#: lutris/sysoptions.py:392
 msgid ""
 "Enable a terminal for text-based games. Only useful for ASCII based games. "
 "May cause issues with graphical games."
@@ -5002,11 +5280,11 @@ msgstr ""
 "Ative um terminal para jogos baseados em texto. Útil apenas para jogos "
 "baseados em ASCII.Pode causar problemas com jogos gráficos."
 
-#: lutris/sysoptions.py:389
+#: lutris/sysoptions.py:397
 msgid "Text based games emulator"
 msgstr "Emulador de jogos baseado em texto"
 
-#: lutris/sysoptions.py:394
+#: lutris/sysoptions.py:402
 msgid ""
 "The terminal emulator used with the CLI mode. Choose from the list of "
 "detected terminal apps or enter the terminal's command or path."
@@ -5014,71 +5292,71 @@ msgstr ""
 "O emulador de terminal usado com o modo CLI. Escolha na lista de aplicativos "
 "de terminal detectados ou digite o comando ou caminho do terminal."
 
-#: lutris/sysoptions.py:401
+#: lutris/sysoptions.py:409
 msgid "Environment variables"
 msgstr "Variáveis ​​de ambiente"
 
-#: lutris/sysoptions.py:402
+#: lutris/sysoptions.py:410
 msgid "Environment variables loaded at run time"
 msgstr "Variáveis de ambiente carregadas em tempo de execução"
 
-#: lutris/sysoptions.py:407
+#: lutris/sysoptions.py:415
 msgid "AntiMicroX Profile"
 msgstr "Perfil AntiMicroX"
 
-#: lutris/sysoptions.py:409
+#: lutris/sysoptions.py:417
 msgid "Path to an AntiMicroX profile file"
 msgstr "Caminho para um arquivo de perfil do AntiMicroX"
 
-#: lutris/sysoptions.py:414
+#: lutris/sysoptions.py:422
 msgid "Command prefix"
 msgstr "Prefixo de comando"
 
-#: lutris/sysoptions.py:416
+#: lutris/sysoptions.py:424
 msgid ""
 "Command line instructions to add in front of the game's execution command."
 msgstr ""
 "Instruções de linha de comando para adicionar na frente do comando de "
 "execução do jogo."
 
-#: lutris/sysoptions.py:422
+#: lutris/sysoptions.py:430
 msgid "Manual script"
 msgstr "Script manual"
 
-#: lutris/sysoptions.py:424
+#: lutris/sysoptions.py:432
 msgid "Script to execute from the game's contextual menu"
 msgstr "Script para executar a partir do menu contextual do jogo"
 
-#: lutris/sysoptions.py:429
+#: lutris/sysoptions.py:437
 msgid "Pre-launch script"
 msgstr "Script de pré-inicialização"
 
-#: lutris/sysoptions.py:431
+#: lutris/sysoptions.py:439
 msgid "Script to execute before the game starts"
 msgstr "Script para executar antes do jogo começar"
 
-#: lutris/sysoptions.py:436
+#: lutris/sysoptions.py:444
 msgid "Wait for pre-launch script completion"
 msgstr "Aguardar a conclusão do script de pré-inicialização"
 
-#: lutris/sysoptions.py:439
+#: lutris/sysoptions.py:447
 msgid "Run the game only once the pre-launch script has exited"
 msgstr ""
 "Execute o jogo apenas quando o script de pré-inicialização for encerrado"
 
-#: lutris/sysoptions.py:444
+#: lutris/sysoptions.py:452
 msgid "Post-exit script"
 msgstr "Script pós-saída"
 
-#: lutris/sysoptions.py:446
+#: lutris/sysoptions.py:454
 msgid "Script to execute when the game exits"
 msgstr "Script para executar quando o jogo sair"
 
-#: lutris/sysoptions.py:451
+#: lutris/sysoptions.py:459
 msgid "Include processes"
 msgstr "Incluir processos"
 
-#: lutris/sysoptions.py:453
+#: lutris/sysoptions.py:461
 msgid ""
 "What processes to include in process monitoring. This is to override the "
 "built-in exclude list.\n"
@@ -5090,11 +5368,11 @@ msgstr ""
 "Lista separada por espaços, processos incluindo espaços podem ser colocados "
 "entre aspas"
 
-#: lutris/sysoptions.py:461
+#: lutris/sysoptions.py:469
 msgid "Exclude processes"
 msgstr "Excluir processos"
 
-#: lutris/sysoptions.py:463
+#: lutris/sysoptions.py:471
 msgid ""
 "What processes to exclude in process monitoring. For example background "
 "processes that stick around after the game has been closed.\n"
@@ -5106,11 +5384,11 @@ msgstr ""
 "Lista separada por espaços, processos incluindo espaços podem ser colocados "
 "entre aspas"
 
-#: lutris/sysoptions.py:472
+#: lutris/sysoptions.py:480
 msgid "Killswitch file"
 msgstr "Arquivo Killswitch"
 
-#: lutris/sysoptions.py:474
+#: lutris/sysoptions.py:482
 msgid ""
 "Path to a file which will stop the game when deleted \n"
 "(usually /dev/input/js0 to stop the game on joystick unplugging)"
@@ -5118,11 +5396,11 @@ msgstr ""
 "Caminho para um arquivo que irá parar o jogo quando deletado \n"
 "(geralmente /dev/input/js0 para parar o jogo ao desconectar o controle)"
 
-#: lutris/sysoptions.py:481
+#: lutris/sysoptions.py:489
 msgid "SDL2 gamepad mapping"
 msgstr "Mapeamento do gamepad SDL2"
 
-#: lutris/sysoptions.py:483
+#: lutris/sysoptions.py:491
 msgid ""
 "SDL_GAMECONTROLLERCONFIG mapping string or path to a custom gamecontrollerdb."
 "txt file containing mappings."
@@ -5130,40 +5408,40 @@ msgstr ""
 "String de mapeamento SDL_GAMECONTROLLERCONFIG ou caminho para um "
 "gamecontrollerdb personalizado.arquivo txt contendo mapeamentos."
 
-#: lutris/sysoptions.py:488
+#: lutris/sysoptions.py:496
 msgid "Use Xephyr"
 msgstr "Usar Xephyr"
 
-#: lutris/sysoptions.py:492
+#: lutris/sysoptions.py:500
 msgid "8BPP (256 colors)"
 msgstr "8BPP (256 cores)"
 
-#: lutris/sysoptions.py:493
+#: lutris/sysoptions.py:501
 msgid "16BPP (65536 colors)"
 msgstr "16BPP (65536 cores)"
 
-#: lutris/sysoptions.py:494
+#: lutris/sysoptions.py:502
 msgid "24BPP (16M colors)"
 msgstr "24BPP (16M cores)"
 
-#: lutris/sysoptions.py:498
+#: lutris/sysoptions.py:506
 msgid "Run program in Xephyr to support 8BPP and 16BPP color modes"
 msgstr ""
 "Execute o programa no Xephyr para suportar os modos de cor 8BPP e 16BPP"
 
-#: lutris/sysoptions.py:503
+#: lutris/sysoptions.py:511
 msgid "Xephyr resolution"
 msgstr "Resolução Xephyr"
 
-#: lutris/sysoptions.py:505
+#: lutris/sysoptions.py:513
 msgid "Screen resolution of the Xephyr server"
 msgstr "Resolução de tela do servidor Xephyr"
 
-#: lutris/sysoptions.py:510
+#: lutris/sysoptions.py:518
 msgid "Xephyr Fullscreen"
 msgstr "Tela Cheia Xephyr"
 
-#: lutris/sysoptions.py:513
+#: lutris/sysoptions.py:521
 msgid "Open Xephyr in fullscreen (at the desktop resolution)"
 msgstr "Abra o Xephyr em tela cheia (na resolução da área de trabalho)"
 
@@ -5191,25 +5469,30 @@ msgstr "Vídeos"
 msgid "Projects"
 msgstr "Projetos"
 
+#: lutris/util/ubisoft/client.py:102
+#, python-format
+msgid "Ubisoft authentication has been lost: %s"
+msgstr "A autenticação com a Ubisoft foi perdida: %s"
+
 #: lutris/util/wine/dll_manager.py:63
 msgid "Manual"
-msgstr ""
+msgstr "Manual"
 
-#: lutris/util/wine/wine.py:348 lutris/util/wine/wine.py:386
-#: lutris/util/wine/wine.py:406
+#: lutris/util/wine/wine.py:346 lutris/util/wine/wine.py:384
+#: lutris/util/wine/wine.py:404
 msgid "Launch anyway and do not show this message again."
 msgstr "Inicie assim mesmo e não mostre esta mensagem novamente."
 
-#: lutris/util/wine/wine.py:350 lutris/util/wine/wine.py:388
-#: lutris/util/wine/wine.py:408
+#: lutris/util/wine/wine.py:348 lutris/util/wine/wine.py:386
+#: lutris/util/wine/wine.py:406
 msgid "Enable anyway and do not show this message again."
 msgstr "Habilite mesmo assim e não mostre esta mensagem novamente."
 
-#: lutris/util/wine/wine.py:355
+#: lutris/util/wine/wine.py:353
 msgid "Vulkan is not installed or is not supported by your system"
 msgstr "Vulkan não está instalado ou não é suportado pelo seu sistema"
 
-#: lutris/util/wine/wine.py:357
+#: lutris/util/wine/wine.py:355
 msgid ""
 "If you have compatible hardware, please follow the installation procedures "
 "as described in\n"
@@ -5221,7 +5504,7 @@ msgstr ""
 "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>How-to:-DXVK "
 "(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>"
 
-#: lutris/util/wine/wine.py:369
+#: lutris/util/wine/wine.py:367
 msgid ""
 "Your limits are not set correctly. Please increase them as described here: "
 "<a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>How-to:-Esync "
@@ -5231,19 +5514,19 @@ msgstr ""
 "aqui: <a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>How-to:-"
 "Esync (https://github.com/lutris/lutris/wiki/How-to:-Esync)</a>"
 
-#: lutris/util/wine/wine.py:378
+#: lutris/util/wine/wine.py:376
 msgid ""
 "Your kernel is not patched for fsync. Please get a patched kernel to use "
 "fsync."
 msgstr ""
-"Seu kernel não foi possui fsync. Por favor, obtenha um kernel com suporte "
-"para fsync."
+"Seu kernel não possui fsync. Por favor, obtenha um kernel com suporte para "
+"fsync."
 
-#: lutris/util/wine/wine.py:392 lutris/util/wine/wine.py:412
+#: lutris/util/wine/wine.py:390 lutris/util/wine/wine.py:410
 msgid "Incompatible Wine version detected"
 msgstr "Versão incompatível do Wine detectada"
 
-#: lutris/util/wine/wine.py:394
+#: lutris/util/wine/wine.py:392
 msgid ""
 "The Wine build you have selected does not support Esync.\n"
 "Please switch to an Esync-capable version."
@@ -5251,13 +5534,22 @@ msgstr ""
 "A compilação do Wine que você selecionou não é compatível com Esync.\n"
 "Por favor, mude para uma versão compatível com Esync."
 
-#: lutris/util/wine/wine.py:414
+#: lutris/util/wine/wine.py:412
 msgid ""
 "The Wine build you have selected does not support Fsync.\n"
 "Please switch to an Fsync-capable version."
 msgstr ""
 "A compilação do Wine que você selecionou não é compatível com Fsync.\n"
 "Por favor, mude para uma versão compatível com Fsync."
+
+#, python-format
+#~ msgid "In use by %d game"
+#~ msgid_plural "In use by %d games"
+#~ msgstr[0] "Em uso por %d jogo"
+#~ msgstr[1] "Em uso por %d jogos"
+
+#~ msgid "Not in use"
+#~ msgstr "Não utilizado"
 
 #~ msgid "Valor incorreto para o parâmetro 'src'"
 #~ msgstr "Valor incorreto para o parâmetro 'src'"

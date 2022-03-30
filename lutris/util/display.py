@@ -19,7 +19,7 @@ try:
 except ImportError:
     DBUS_AVAILABLE = False
 
-from gi.repository import Gdk, GLib, Gio
+from gi.repository import Gdk, GLib, Gio, Gtk
 
 from lutris.util import system
 from lutris.util.graphics.displayconfig import MutterDisplayManager
@@ -296,9 +296,20 @@ def enable_compositing():
 class DBusScreenSaverInhibitor:
 
     """Inhibit and uninhibit the screen saver using DBus.
-    Requires the Inhibit() and UnInhibit() methods to be exposed over DBus."""
 
-    def __init__(self, name, path, interface, bus_type=Gio.BusType.SESSION):
+    It will use the Gtk.Application's inhibit and uninhibit methods to inhibit
+    the screen saver.
+
+    For enviroments which don't support either org.freedesktop.ScreenSaver or
+    org.gnome.ScreenSaver interfaces one can declare a DBus interface which
+    requires the Inhibit() and UnInhibit() methods to be exposed."""
+
+    def __init__(self):
+        self.proxy = None
+
+    def set_dbus_iface(self, name, path, interface, bus_type=Gio.BusType.SESSION):
+        """Sets a dbus proxy to be used instead of Gtk.Application methods, this
+        method can raise an exception."""
         self.proxy = Gio.DBusProxy.new_for_bus_sync(
             bus_type, Gio.DBusProxyFlags.NONE, None, name, path, interface, None)
 
@@ -306,41 +317,68 @@ class DBusScreenSaverInhibitor:
         """Inhibit the screen saver.
         Returns a cookie that must be passed to the corresponding uninhibit() call.
         If an error occurs, None is returned instead."""
-        try:
-            return self.proxy.Inhibit("(ss)", "Lutris", "Running game: %s" % game_name)
-        except Exception:
-            return None
+        reason = "Running game: %s" % game_name
+
+        if self.proxy:
+            try:
+                return self.proxy.Inhibit("(ss)", "Lutris", reason)
+            except Exception:
+                return None
+        else:
+            app = Gio.Application.get_default()
+            window = app.window
+            flags = Gtk.ApplicationInhibitFlags.SUSPEND | Gtk.ApplicationInhibitFlags.IDLE
+            cookie = app.inhibit(window, flags, reason)
+
+            # Gtk.Application.inhibit returns 0 if there was an error.
+            if cookie == 0:
+                return None
+
+            return cookie
 
     def uninhibit(self, cookie):
         """Uninhibit the screen saver.
         Takes a cookie as returned by inhibit. If cookie is None, no action is taken."""
-        if cookie is not None:
+        if not cookie:
+            return
+
+        if self.proxy:
             self.proxy.UnInhibit("(u)", cookie)
+        else:
+            app = Gio.Application.get_default()
+            app.uninhibit(cookie)
 
 
 def _get_screen_saver_inhibitor():
     """Return the appropriate screen saver inhibitor instance.
-    Returns None if the required interface isn't available."""
+    If the required interface isn't available, it will default to GTK's
+    implementation."""
     desktop_environment = get_desktop_environment()
-    # Candidates are triples (name, path, interface)
-    candidates = [("org.freedesktop.ScreenSaver",
-                   "/org/freedesktop/ScreenSaver",
-                   "org.freedesktop.ScreenSaver")]
+
+    name = None
+    inhibitor = DBusScreenSaverInhibitor()
+
     if desktop_environment is DesktopEnvironment.MATE:
-        candidates.append(("org.mate.ScreenSaver",
-                           "/",
-                           "org.mate.ScreenSaver"))
+        name = "org.mate.ScreenSaver"
+        path = "/"
+        interface = "org.mate.ScreenSaver"
     elif desktop_environment is DesktopEnvironment.XFCE:
-        candidates.append(("org.xfce.ScreenSaver",
-                           "/",
-                           "org.xfce.ScreenSaver"))
-    for (name, path, interface) in candidates:
+        # According to
+        # https://github.com/xfce-mirror/xfce4-session/blob/master/xfce4-session/xfce-screensaver.c#L240
+        # The XFCE enviroment does support the org.freedesktop.ScreenSaver interface
+        # but this might be not present in older releases.
+        name = "org.xfce.ScreenSaver"
+        path = "/"
+        interface = "org.xfce.ScreenSaver"
+
+    if name:
         try:
-            return DBusScreenSaverInhibitor(name, path, interface)
+            inhibitor.set_dbus_iface(name, path, interface)
         except GLib.Error as err:
-            logger.warning("Failed to create DBusScreenSaverInhibitor for name %s, path %s, "
+            logger.warning("Failed to set up a DBus proxy for name %s, path %s, "
                            "interface %s: %s", name, path, interface, str(err))
-    return None
+
+    return inhibitor
 
 
 SCREEN_SAVER_INHIBITOR = _get_screen_saver_inhibitor()
