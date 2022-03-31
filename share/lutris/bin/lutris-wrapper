@@ -128,7 +128,7 @@ def main():
     try:
         process_pid = subprocess.Popen(args).pid
     except FileNotFoundError:
-        log("Failed to execute process. Check that the file exists")
+        log("Failed to execute process '%s'. Check that the file exists" % " ".join(args))
         return
     log("Started initial process %d from %s" % (process_pid, " ".join(args)))
 
@@ -147,7 +147,7 @@ def main():
             log(message)
         while True:
             try:
-                child_pid, child_returncode, resource_usage = os.wait3(os.WNOHANG)
+                child_pid, child_returncode, _resource_usage = os.wait3(os.WNOHANG)
             except ChildProcessError:
                 raise NoMoreChildren from None  # No processes remain.
             if child_pid == process_pid:

@@ -1,5 +1,4 @@
 """Exception handling module"""
-# Standard Library
 from functools import wraps
 from gettext import gettext as _
 
