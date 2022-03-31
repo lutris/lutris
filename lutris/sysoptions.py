@@ -300,9 +300,8 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("FPS counter (MangoHud)"),
         "choices": (
             (_("Disabled"), ""),
-            (_("Enabled (Vulkan)"), "vk64"),
-            (_("Enabled (OpenGL)"), "gl64"),
-            (_("Enabled (OpenGL, 32bit)"), "gl32")
+            (_("Enabled"), "on"),
+            (_("Enabled (32bit)"), "gl32")
         ),
         "default": "",
         "advanced": False,
