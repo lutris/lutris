@@ -354,6 +354,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def show_extras(self, all_extras):
         """Show installer screen with the extras picker"""
         self.clean_widgets()
+        self.set_status(_(
+            "This game has extra content. \nSelect which one you want and "
+            "they will be available in the 'extras' folder where the game is installed."
+        ))
         extra_treestore = Gtk.TreeStore(
             bool,  # is selected?
             bool,  # is inconsistent?
