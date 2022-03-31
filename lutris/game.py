@@ -416,21 +416,34 @@ class Game(GObject.Object):
         """
         if not self.runner:
             logger.warning("Trying to launch %s without a runner", self)
+            self.state = self.STATE_STOPPED
+            self.emit("game-stop")
             return {}
         gameplay_info = self.runner.play()
         if "error" in gameplay_info:
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
+<<<<<<< dj/raising_errors
             raise self.get_config_error(gameplay_info)
+=======
+            return {}
+>>>>>>> master
 
         if self.config.game_level.get("game", {}).get("launch_configs"):
             configs = self.config.game_level["game"]["launch_configs"]
             dlg = dialogs.LaunchConfigSelectDialog(self, configs)
+            if not dlg.confirmed:
+                self.state = self.STATE_STOPPED
+                self.emit("game-stop")
+                return {}
+
             if dlg.config_index:
                 config = configs[dlg.config_index - 1]
                 if "command" not in gameplay_info:
                     logger.debug("No command in %s", gameplay_info)
                     logger.debug(config)
+                    self.state = self.STATE_STOPPED
+                    self.emit("game-stop")
                     return {}
 
                 gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
