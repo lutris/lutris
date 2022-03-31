@@ -423,11 +423,7 @@ class Game(GObject.Object):
         if "error" in gameplay_info:
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
-<<<<<<< dj/raising_errors
             raise self.get_config_error(gameplay_info)
-=======
-            return {}
->>>>>>> master
 
         if self.config.game_level.get("game", {}).get("launch_configs"):
             configs = self.config.game_level["game"]["launch_configs"]
