@@ -844,7 +844,7 @@ def import_game(file_path, dest_dir):
     new_dir = list(new_file_list - original_file_list)[0]
     game_dir = os.path.join(dest_dir, new_dir)
     game_config = [f for f in os.listdir(game_dir) if f.endswith(".lutris")][0]
-    with open(os.path.join(game_dir, game_config)) as config_file:
+    with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
     # old_dir = lutris_config["directory"]
     config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % lutris_config["configpath"])
