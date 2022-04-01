@@ -131,7 +131,7 @@ class VDFDict(dict):
     def clear(self):
         super().clear()
         self.__kcount.clear()
-        self.__omap = list()
+        self.__omap = []
 
     def get(self, key, *args):
         return super().get(self._normalize_key(key), *args)

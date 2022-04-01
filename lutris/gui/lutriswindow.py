@@ -123,6 +123,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
+        GObject.add_emission_hook(Game, "game-error", self.on_game_error)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -676,6 +677,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Called when a game has sent the 'game-error' signal"""
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
+        return True
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
@@ -775,9 +777,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if not self.is_game_displayed(game):
             self.game_store.remove_game(db_game["id"])
             return True
-        updated = self.game_store.update(db_game)
-        if not updated:
-            self.update_store()
+        if db_game:
+            updated = self.game_store.update(db_game)
+            if not updated:
+                self.update_store()
+        else:
+            logger.debug("Can't get DB game for %s (service: %s)", game, self.service)
         return True
 
     def on_game_stopped(self, game):

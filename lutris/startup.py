@@ -5,7 +5,7 @@ import time
 from gettext import gettext as _
 
 from lutris import runners, settings
-from lutris.database.games import get_games
+from lutris.database.games import delete_game, get_games, get_games_where
 from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
@@ -158,6 +158,15 @@ def run_all_checks():
     fill_missing_platforms()
 
 
+def cleanup_games():
+    """Delete all uninstalled games that don't have any playtime"""
+    removed_games = get_games_where(installed=0)
+    for game in removed_games:
+        if game["playtime"]:
+            continue
+        delete_game(game["id"])
+
+
 def init_lutris():
     """Run full initialization of Lutris"""
     logger.info("Starting Lutris %s", settings.VERSION)
@@ -176,6 +185,7 @@ def init_lutris():
     for service in DEFAULT_SERVICES:
         if not settings.read_setting(service, section="services"):
             settings.write_setting(service, True, section="services")
+    cleanup_games()
 
 
 def update_runtime(force=False):

@@ -40,7 +40,6 @@ class GameActions:
             self._game = self.application.get_game_by_id(self.game_id)
             if not self._game:
                 self._game = Game(self.game_id)
-            self._game.connect("game-error", self.window.on_game_error)
         return self._game
 
     @property

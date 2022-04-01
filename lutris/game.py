@@ -169,30 +169,29 @@ class Game(GObject.Object):
         return strings.get_formatted_playtime(self.playtime)
 
     @staticmethod
-    def show_error_message(message):
-        """Display an error message based on the runner's output."""
-        if message["error"] == "CUSTOM":
-            message_text = message["text"].replace("&", "&amp;")
-            dialogs.ErrorDialog(message_text)
-        elif message["error"] == "RUNNER_NOT_INSTALLED":
-            dialogs.ErrorDialog(_("Error the runner is not installed"))
-        elif message["error"] == "NO_BIOS":
-            dialogs.ErrorDialog(_("A bios file is required to run this game"))
-        elif message["error"] == "FILE_NOT_FOUND":
-            filename = message["file"]
+    def get_config_error(gameplay_info):
+        """Return a GameConfigError based on the runner's output."""
+        error = gameplay_info["error"]
+        if error == "CUSTOM":
+            message_text = gameplay_info["text"].replace("&", "&amp;")
+        elif error == "RUNNER_NOT_INSTALLED":
+            message_text = _("Error the runner is not installed")
+        elif error == "NO_BIOS":
+            message_text = _("A bios file is required to run this game")
+        elif error == "FILE_NOT_FOUND":
+            filename = gameplay_info["file"]
             if filename:
                 message_text = _("The file {} could not be found").format(filename.replace("&", "&amp;"))
             else:
                 message_text = _("This game has no executable set. The install process didn't finish properly.")
-            dialogs.ErrorDialog(message_text)
-        elif message["error"] == "NOT_EXECUTABLE":
-            message_text = message["file"].replace("&", "&amp;")
-            dialogs.ErrorDialog(_("The file %s is not executable") % message_text)
-        elif message["error"] == "PATH_NOT_SET":
-            message_text = _("The path '%s' is not set. please set it in the options.") % message["path"]
-            dialogs.ErrorDialog(message_text)
+        elif error == "NOT_EXECUTABLE":
+            file = gameplay_info["file"].replace("&", "&amp;")
+            message_text = _("The file %s is not executable") % file
+        elif error == "PATH_NOT_SET":
+            message_text = _("The path '%s' is not set. please set it in the options.") % gameplay_info["path"]
         else:
-            dialogs.ErrorDialog(_("Unhandled error: %s") % message["error"])
+            message_text = _("Unhandled error: %s") % gameplay_info["error"]
+        return GameConfigError(message_text)
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
@@ -417,22 +416,30 @@ class Game(GObject.Object):
         """
         if not self.runner:
             logger.warning("Trying to launch %s without a runner", self)
+            self.state = self.STATE_STOPPED
+            self.emit("game-stop")
             return {}
         gameplay_info = self.runner.play()
         if "error" in gameplay_info:
-            self.show_error_message(gameplay_info)
             self.state = self.STATE_STOPPED
             self.emit("game-stop")
-            return
+            raise self.get_config_error(gameplay_info)
 
         if self.config.game_level.get("game", {}).get("launch_configs"):
             configs = self.config.game_level["game"]["launch_configs"]
             dlg = dialogs.LaunchConfigSelectDialog(self, configs)
+            if not dlg.confirmed:
+                self.state = self.STATE_STOPPED
+                self.emit("game-stop")
+                return {}
+
             if dlg.config_index:
                 config = configs[dlg.config_index - 1]
                 if "command" not in gameplay_info:
                     logger.debug("No command in %s", gameplay_info)
                     logger.debug(config)
+                    self.state = self.STATE_STOPPED
+                    self.emit("game-stop")
                     return {}
 
                 gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
@@ -791,7 +798,6 @@ class Game(GObject.Object):
         return target_directory
 
 
-
 def export_game(slug, dest_dir):
     """Export a full game folder along with some lutris metadata"""
 
@@ -838,7 +844,7 @@ def import_game(file_path, dest_dir):
     new_dir = list(new_file_list - original_file_list)[0]
     game_dir = os.path.join(dest_dir, new_dir)
     game_config = [f for f in os.listdir(game_dir) if f.endswith(".lutris")][0]
-    with open(os.path.join(game_dir, game_config)) as config_file:
+    with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
     # old_dir = lutris_config["directory"]
     config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % lutris_config["configpath"])

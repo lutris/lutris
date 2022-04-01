@@ -6,8 +6,8 @@ from setuptools import setup
 
 from lutris import __version__ as VERSION
 
-if sys.version_info < (3, 6):
-    sys.exit('Python >= 3.6 is required to run Lutris')
+if sys.version_info < (3, 7):
+    sys.exit('Python >= 3.7 is required to run Lutris')
 
 data_files = []
 

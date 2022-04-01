@@ -7,8 +7,6 @@ from lutris.util import resources
 from lutris.util.steam import vdf
 from lutris.util.steam.config import search_recursive_in_steam_dirs
 
-steam_tag = "Lutris"
-
 
 def get_shortcuts_vdf_paths():
     path_suffix = "userdata/**/config/shortcuts.vdf"
@@ -142,7 +140,7 @@ def generate_shortcut(game):
         'StartDir': f'"{start_dir}"',
         'icon': icon,
         'tags': {  # has been replaced by "collections" in steam. Tags are not visible in the UI anymore.
-            '0': steam_tag   # to identify generated shortcuts
+            '0': "Lutris"   # to identify generated shortcuts
         }
     }
 
