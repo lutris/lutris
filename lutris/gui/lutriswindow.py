@@ -777,9 +777,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if not self.is_game_displayed(game):
             self.game_store.remove_game(db_game["id"])
             return True
-        updated = self.game_store.update(db_game)
-        if not updated:
-            self.update_store()
+        if db_game:
+            updated = self.game_store.update(db_game)
+            if not updated:
+                self.update_store()
+        else:
+            logger.debug("Can't get DB game for %s (service: %s)", game, self.service)
         return True
 
     def on_game_stopped(self, game):
