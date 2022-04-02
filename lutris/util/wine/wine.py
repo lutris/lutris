@@ -354,8 +354,8 @@ def display_vulkan_error(on_launch):
         secondary_message=_(
             "If you have compatible hardware, please follow "
             "the installation procedures as described in\n"
-            "<a href='https://github.com/lutris/lutris/wiki/How-to:-DXVK'>"
-            "How-to:-DXVK (https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a>"
+            "<a href='https://github.com/lutris/docs/blob/master/HowToDXVK.md'>"
+            "How-to:-DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
         ),
         checkbox_message=checkbox_message,
     )
@@ -366,8 +366,8 @@ def esync_display_limit_warning():
     ErrorDialog(_(
         "Your limits are not set correctly."
         " Please increase them as described here:"
-        " <a href='https://github.com/lutris/lutris/wiki/How-to:-Esync'>"
-        "How-to:-Esync (https://github.com/lutris/lutris/wiki/How-to:-Esync)</a>"
+        " <a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
+        "How-to:-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
     ))
 
 
