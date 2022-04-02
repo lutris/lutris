@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-02 14:46+0200\n"
-"PO-Revision-Date: 2022-04-02 14:46+0200\n"
+"POT-Creation-Date: 2022-04-02 16:24+0200\n"
+"PO-Revision-Date: 2022-04-02 16:24+0200\n"
 "Last-Translator: Óscar Fernández Díaz <oscfdezdz@tuta.io>\n"
 "Language-Team: \n"
 "Language: es\n"
@@ -146,11 +146,11 @@ msgstr "Año"
 
 #: share/lutris/ui/lutris-window.ui:397 lutris/gui/views/list.py:49
 msgid "Last Played"
-msgstr "Último jugado"
+msgstr "Jugado última vez"
 
 #: share/lutris/ui/lutris-window.ui:412 lutris/gui/views/list.py:51
 msgid "Installed At"
-msgstr "Instalado en"
+msgstr "Fecha de instalación"
 
 #: share/lutris/ui/lutris-window.ui:427 lutris/gui/views/list.py:53
 msgid "Play Time"
@@ -326,7 +326,7 @@ msgstr ""
 
 #: lutris/game.py:178
 msgid "Error the runner is not installed"
-msgstr "Error el ejecutador no está instalado"
+msgstr "Error el ejecutor no está instalado"
 
 #: lutris/game.py:180
 msgid "A bios file is required to run this game"
@@ -364,11 +364,11 @@ msgstr "Se ha intentado lanzar un juego que no está instalado."
 
 #: lutris/game.py:301
 msgid "Invalid game configuration: Missing runner"
-msgstr "Configuración del juego no válida: Falta un ejecutador"
+msgstr "Configuración del juego no válida: Falta un ejecutor"
 
 #: lutris/game.py:306
 msgid "Runner not installed."
-msgstr "Error el ejecutador no está instalado."
+msgstr "El ejecutor no está instalado."
 
 #: lutris/game.py:312
 msgid "Runtime currently updating"
@@ -557,7 +557,7 @@ msgstr "Listar todas las carpetas conocidas de la biblioteca de Steam"
 
 #: lutris/gui/application.py:187
 msgid "List all known runners"
-msgstr "Listar todos los ejecutadores conocidos"
+msgstr "Listar todos los ejecutores conocidos"
 
 #: lutris/gui/application.py:195
 msgid "List all known Wine versions"
@@ -565,11 +565,11 @@ msgstr "Listar todas las verisiones de Wine conocidas"
 
 #: lutris/gui/application.py:203
 msgid "Install a Runner"
-msgstr "Instalar un ejecutador"
+msgstr "Instalar un ejecutor"
 
 #: lutris/gui/application.py:211
 msgid "Uninstall a Runner"
-msgstr "Desinstalar un ejecutador"
+msgstr "Desinstalar un ejecutor"
 
 #: lutris/gui/application.py:219
 msgid "Export a game"
@@ -630,7 +630,7 @@ msgstr "No se encontraron actualizaciones"
 
 #: lutris/gui/application.py:665
 msgid "No DLC found"
-msgstr "No se encontraron DLC"
+msgstr "No se encontraron DLCs"
 
 #: lutris/gui/config/add_game.py:11
 msgid "Add a new game"
@@ -698,7 +698,7 @@ msgid ""
 "configuration."
 msgstr ""
 "Si se modifican, estas opciones sustituyen a las mismas opciones de la "
-"configuración básica del ejecutador."
+"configuración básica del ejecutor."
 
 #: lutris/gui/config/boxes.py:661
 msgid ""
@@ -706,7 +706,7 @@ msgid ""
 "configuration, which themselves supersede the global preferences."
 msgstr ""
 "Si se modifican, estas opciones sustituyen a las mismas opciones de la "
-"configuración básica del ejecutador, que a su vez sustituyen a las "
+"configuración básica del ejecutor, que a su vez sustituyen a las "
 "preferencias globales."
 
 #: lutris/gui/config/boxes.py:667
@@ -719,7 +719,7 @@ msgstr ""
 
 #: lutris/gui/config/common.py:28
 msgid "Select a runner in the Game Info tab"
-msgstr "Selecciona un ejecutador en la pestaña de información del juego"
+msgstr "Selecciona un ejecutor en la pestaña de información del juego"
 
 #: lutris/gui/config/common.py:109
 msgid "Game info"
@@ -743,7 +743,7 @@ msgstr "Mover"
 
 #: lutris/gui/config/common.py:156 lutris/gui/views/list.py:47
 msgid "Runner"
-msgstr "Ejecutador"
+msgstr "Ejecutor"
 
 #: lutris/gui/config/common.py:177
 msgid "Remove custom banner"
@@ -759,7 +759,7 @@ msgstr "Año de publicación"
 
 #: lutris/gui/config/common.py:240
 msgid "Select a runner from the list"
-msgstr "Seleccione un ejecutador de la lista"
+msgstr "Seleccione un ejecutor de la lista"
 
 #: lutris/gui/config/common.py:248
 msgid "Apply"
@@ -771,7 +771,7 @@ msgstr "Opciones del juego"
 
 #: lutris/gui/config/common.py:304
 msgid "Runner options"
-msgstr "Opciones del ejecutador"
+msgstr "Opciones del ejecutor"
 
 #: lutris/gui/config/common.py:312
 msgid "System options"
@@ -798,16 +798,16 @@ msgid ""
 "Are you sure you want to change the runner for this game ? This will reset "
 "the full configuration for this game and is not reversible."
 msgstr ""
-"¿Está seguro de querer cambiar el ejecutador de este juego? Esto "
-"restablecerá la configuración completa para este juego y no es reversible."
+"¿Está seguro de querer cambiar el ejecutor de este juego? Esto restablecerá "
+"la configuración completa para este juego y no es reversible."
 
 #: lutris/gui/config/common.py:372
 msgid "Confirm runner change"
-msgstr "Confirmar cambio de ejecutador"
+msgstr "Confirmar cambio de ejecutor"
 
 #: lutris/gui/config/common.py:420
 msgid "Runner not provided"
-msgstr "Ejecutador no proporcionado"
+msgstr "Ejecutor no proporcionado"
 
 #: lutris/gui/config/common.py:423
 msgid "Please fill in the name"
@@ -869,7 +869,7 @@ msgstr "Interfaz"
 
 #: lutris/gui/config/preferences_dialog.py:27 lutris/gui/widgets/sidebar.py:271
 msgid "Runners"
-msgstr "Ejecutadores"
+msgstr "Ejecutores"
 
 #: lutris/gui/config/preferences_dialog.py:28 lutris/gui/widgets/sidebar.py:270
 msgid "Sources"
@@ -900,15 +900,15 @@ msgstr "Esto eliminará <b>%s</b> y todos los datos asociados."
 
 #: lutris/gui/config/runners_box.py:17
 msgid "Add, remove or configure runners"
-msgstr "Añadir, eliminar o configurar ejecutadores"
+msgstr "Añadir, eliminar o configurar ejecutores"
 
 #: lutris/gui/config/runners_box.py:19
 msgid ""
 "Runners are programs such as emulators, engines or translation layers "
 "capable of running games."
 msgstr ""
-"Los ejecutadores son programas como emuladores, motores o capas de "
-"traducción capaces de ejecutar juegos."
+"Los ejecutores son programas como emuladores, motores o capas de traducción "
+"capaces de ejecutar juegos."
 
 #: lutris/gui/config/services_box.py:18
 msgid "Enable integrations with game sources"
@@ -976,7 +976,7 @@ msgstr "Descargando %s"
 #: lutris/gui/dialogs/issue.py:74 lutris/gui/dialogs/runner_install.py:63
 #: lutris/gui/widgets/common.py:98
 msgid "_OK"
-msgstr "_VALE"
+msgstr "A_ceptar"
 
 #: lutris/gui/dialogs/__init__.py:151
 msgid "Please choose a file"
@@ -1002,7 +1002,7 @@ msgstr "Instalar el juego de nuevo"
 #: lutris/gui/dialogs/__init__.py:229 lutris/gui/dialogs/__init__.py:272
 #: lutris/gui/dialogs/__init__.py:360
 msgid "OK"
-msgstr "VALE"
+msgstr "Vale"
 
 #: lutris/gui/dialogs/__init__.py:248
 msgid "Select game to launch"
@@ -1084,11 +1084,11 @@ msgstr "Esperando respuesta de %s"
 #: lutris/gui/dialogs/runner_install.py:87
 #, python-format
 msgid "Unable to get runner versions: %s"
-msgstr "No se pueden obtener las versiones del ejecutador: %s"
+msgstr "No se pueden obtener las versiones del ejecutor: %s"
 
 #: lutris/gui/dialogs/runner_install.py:101
 msgid "Unable to get runner versions from lutris.net"
-msgstr "No se pueden obtener versiones de ejecutadores desde lutris.net"
+msgstr "No se pueden obtener versiones de ejecutores desde lutris.net"
 
 #: lutris/gui/dialogs/runner_install.py:108
 #, python-format
@@ -1134,7 +1134,7 @@ msgstr "Extrayendo…"
 
 #: lutris/gui/dialogs/runner_install.py:377
 msgid "Failed to retrieve the runner archive"
-msgstr "No se ha podido recuperar el archivo del ejecutador"
+msgstr "No se ha podido recuperar el archivo del ejecutor"
 
 #: lutris/gui/dialogs/uninstall_game.py:27
 #, python-format
@@ -1431,7 +1431,7 @@ msgid ""
 "Last played:\n"
 "<b>%s</b>"
 msgstr ""
-"Último jugado:\n"
+"Jugado última vez:\n"
 "<b>%s</b>"
 
 #: lutris/gui/widgets/game_bar.py:204
@@ -1665,7 +1665,7 @@ msgstr "Lutris no tiene los permisos necesarios para instalar en la ruta:"
 #: lutris/installer/interpreter.py:270
 #, python-format
 msgid "Invalid runner provided %s"
-msgstr "Se ha proporcionado un ejecutador %s no válido"
+msgstr "Se ha proporcionado un ejecutor %s no válido"
 
 #: lutris/installer/interpreter.py:296
 msgid "Installing game data"
@@ -3480,7 +3480,7 @@ msgstr "Nombre del motor (se descargará) o ruta del archivo local"
 #: lutris/runners/pico8.py:82
 #, python-format
 msgid "PICO-8 runner (%s)"
-msgstr "Ejecutador PICO-8 (%s)"
+msgstr "Ejecutor PICO-8 (%s)"
 
 #: lutris/runners/redream.py:11
 msgid "Redream"
@@ -3698,19 +3698,19 @@ msgstr "Ruta a EBOOT.BIN"
 
 #: lutris/runners/runner.py:145
 msgid "Custom executable for the runner"
-msgstr "Ejecutable personalizado para el ejecutador"
+msgstr "Ejecutable personalizado para el ejecutor"
 
 #: lutris/runners/runner.py:289
 msgid ""
 "The required runner is not installed.\n"
 "Do you wish to install it now?"
 msgstr ""
-"El ejecutador requerido no está instalado.\n"
+"El ejecutor requerido no está instalado.\n"
 "¿Desea instalarlo ahora?"
 
 #: lutris/runners/runner.py:291
 msgid "Required runner unavailable"
-msgstr "Ejecutador requerido no disponible"
+msgstr "Ejecutor requerido no disponible"
 
 #: lutris/runners/ryujinx.py:14
 msgid "Ryujinx"
@@ -3746,7 +3746,7 @@ msgstr "Archivo que contiene las claves del título."
 
 #: lutris/runners/scummvm.py:12
 msgid "Engine for point-and-click games."
-msgstr "Motor par juegos apuntar y pulsar."
+msgstr "Motor para juegos de apuntar y pulsar"
 
 #: lutris/runners/scummvm.py:13 lutris/services/scummvm.py:10
 msgid "ScummVM"
@@ -4314,7 +4314,7 @@ msgstr "Agente de usuario personalizado"
 #: lutris/runners/web.py:129
 msgid "Overrides the default User-Agent header used by the runner."
 msgstr ""
-"Anula la cabecera de agente usuario por defecto utilizada por el ejecutador."
+"Anula la cabecera de agente usuario por defecto utilizada por el ejecutor."
 
 #: lutris/runners/web.py:134
 msgid "Debug with Developer Tools"
@@ -5392,7 +5392,7 @@ msgstr "Guion a ejecutar desde el menú contextual del juego"
 
 #: lutris/sysoptions.py:436
 msgid "Pre-launch script"
-msgstr "Comandos de preinicio"
+msgstr "Guión pre-inicio"
 
 #: lutris/sysoptions.py:438
 msgid "Script to execute before the game starts"
