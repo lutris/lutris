@@ -56,8 +56,9 @@ def watch_lutris_errors(function):
             return function(*args, **kwargs)
         except Exception as ex:
             game = args[0]
-            game.state = game.STATE_STOPPED
-            game.emit("game-stop")
-            game.emit("game-error", str(ex))
+            if game.state != game.STATE_STOPPED:
+                game.state = game.STATE_STOPPED
+                game.emit("game-stop")
+            game.emit("game-error", ex)
 
     return wrapper
