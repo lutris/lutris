@@ -49,7 +49,7 @@ class Game(GObject.Object):
     STATE_RUNNING = "running"
 
     __gsignals__ = {
-        "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        "game-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
         "game-launch": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -295,15 +295,12 @@ class Game(GObject.Object):
         """Verify that the current game can be launched."""
         if not self.is_installed:
             logger.error("%s (%s) not installed", self, self.id)
-            dialogs.ErrorDialog(_("Tried to launch a game that isn't installed."))
-            return False
+            raise GameConfigError(_("Tried to launch a game that isn't installed."))
         if not self.runner:
-            dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
-            return False
+            raise GameConfigError(_("Invalid game configuration: Missing runner"))
         if not self.runner.is_installed():
             installed = self.runner.install_dialog()
             if not installed:
-                dialogs.ErrorDialog(_("Runner not installed."))
                 return False
 
         if self.runner.use_runtime():
@@ -517,6 +514,7 @@ class Game(GObject.Object):
 
         self.start_game()
 
+    @watch_lutris_errors
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
         if not self.is_launchable():
