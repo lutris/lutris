@@ -82,6 +82,7 @@ def get_vk_icd_choices():
     amdradv = []
     nvidia = []
     amdvlk = []
+    amdvlkpro = []
     choices = [(_("Auto: WARNING -- No Vulkan Loader detected!"), "")]
     icd_files = defaultdict(list)
     # Add loaders
@@ -96,13 +97,17 @@ def get_vk_icd_choices():
                 amdradv.append(loader)
             elif "nvidia" in loader:
                 nvidia.append(loader)
-            elif "amd_icd" in loader:
-                amdvlk.append(loader)
+            elif "amd" in loader:
+                if "pro" in loader:
+                    amdvlkpro.append(loader)
+                else:
+                    amdvlk.append(loader)
 
     intel_files = ":".join(intel)
     amdradv_files = ":".join(amdradv)
     nvidia_files = ":".join(nvidia)
     amdvlk_files = ":".join(amdvlk)
+    amdvlkpro_files = ":".join(amdvlkpro)
 
     glxinfocmd = get_gpu_vendor_cmd(0)
     if nvidia_files:
@@ -125,7 +130,12 @@ def get_vk_icd_choices():
     if nvidia_files:
         choices.append(("Nvidia Proprietary", nvidia_files))
     if amdvlk_files:
-        choices.append(("AMDVLK/AMDGPU-PRO Proprietary", amdvlk_files))
+        if not amdvlkpro_files:
+            choices.append(("AMDVLK/AMDGPU-PRO Proprietary", amdvlk_files))
+        else:
+            choices.append(("AMDVLK Open source", amdvlk_files))
+    if amdvlkpro_files:
+        choices.append(("AMDGPU-PRO Proprietary", amdvlkpro_files))
     return choices
 
 
