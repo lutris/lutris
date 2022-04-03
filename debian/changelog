@@ -6,6 +6,7 @@ lutris (0.5.10) impish; urgency=medium
     single game manually.
   * Move the search for Lutris installers from a tab in the Lutris service
     to the window for adding games.
+  * Add option to add a Lutris game to Steam
   * Add a coverart format
   * Add integration with EA Origin
   * Add integration with Ubisoft Connect
@@ -17,7 +18,7 @@ lutris (0.5.10) impish; urgency=medium
   * Default to Retroarch cores in ~/.config/retroarch/cores if available
   * Add support for downloading patches and DLC for GOG games
   * Add --export and --import command line flags to export a game a lutris
-    game and re-import it (requires --dest for the destination path)
+    game and re-import it (requires --dest for the destination path, feature still experimental)
   * Add command line flags to manage runners: --install-runner, --uninstall-runners,
     --list-runners, --list-wine-versions
   * Change behavior of the "Stop" button, remove "Kill all Wine processes" action

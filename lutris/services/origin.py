@@ -143,7 +143,7 @@ class OriginService(OnlineService):
     def load_access_token(self):
         if not os.path.exists(self.token_path):
             return ""
-        with open(self.token_path) as token_file:
+        with open(self.token_path, encoding="utf-8") as token_file:
             token_data = json.load(token_file)
             return token_data.get("access_token", "")
 

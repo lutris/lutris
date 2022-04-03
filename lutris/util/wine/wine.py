@@ -9,7 +9,7 @@ from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
 from lutris.runners.steam import steam
 from lutris.util import linux, system
 from lutris.util.log import logger
-from lutris.util.strings import parse_version, version_sort
+from lutris.util.strings import version_sort
 from lutris.util.wine import fsync
 
 WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
@@ -285,10 +285,9 @@ def is_version_esync(path):
     except IndexError:
         logger.error("Invalid path '%s'", path)
         return False
-    _version_number, version_prefix, version_suffix = parse_version(version)
     esync_compatible_versions = ["esync", "lutris", "tkg", "ge", "proton", "staging"]
     for esync_version in esync_compatible_versions:
-        if esync_version in version_prefix or esync_version in version_suffix:
+        if esync_version in version:
             return True
     wine_version = get_wine_version(path)
     if wine_version:
@@ -311,10 +310,9 @@ def is_version_fsync(path):
     except IndexError:
         logger.error("Invalid path '%s'", path)
         return False
-    _, version_prefix, version_suffix = parse_version(version)
     fsync_compatible_versions = ["fsync", "lutris", "ge", "proton"]
     for fsync_version in fsync_compatible_versions:
-        if fsync_version in version_prefix or fsync_version in version_suffix:
+        if fsync_version in version:
             return True
     wine_version = get_wine_version(path)
     if wine_version:

@@ -335,10 +335,20 @@ class wine(Runner):
                 "option": "battleye",
                 "label": _("Enable BattlEye Anti-Cheat"),
                 "type": "bool",
-                "default": False,
+                "default": True,
                 "help": _(
                     "Enable support for BattlEye Anti-Cheat in supported games\n"
                     "Requires Lutris Wine 6.21-2 and newer or any other compatible Wine build.\n"
+                ),
+            },
+            {
+                "option": "eac",
+                "label": _("Enable Easy Anti-Cheat"),
+                "type": "bool",
+                "default": True,
+                "help": _(
+                    "Enable support for Easy Anti-Cheat in supported games\n"
+                    "Requires Lutris Wine 7.2 and newer or any other compatible Wine build.\n"
                 ),
             },
             {
@@ -860,9 +870,13 @@ class wine(Runner):
 
         if self.runner_config.get("dxvk_nvapi"):
             env["DXVK_NVAPIHACK"] = "0"
+            env["DXVK_ENABLE_NVAPI"] = "1"
 
         if self.runner_config.get("battleye"):
             env["PROTON_BATTLEYE_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "battleye_runtime")
+
+        if self.runner_config.get("eac"):
+            env["PROTON_EAC_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "eac_runtime")
 
         overrides = self.get_dll_overrides()
         if overrides:

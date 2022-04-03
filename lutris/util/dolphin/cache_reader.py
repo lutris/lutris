@@ -4,7 +4,7 @@ import os
 from lutris.util.log import logger
 
 DOLPHIN_GAME_CACHE_FILE = os.path.expanduser("~/.cache/dolphin-emu/gamelist.cache")
-CACHE_REVISION = 20
+SUPPORTED_CACHE_VERSION = 20
 
 
 def get_hex_string(string):
@@ -64,8 +64,9 @@ class DolphinCacheReader:
         self.offset = 0
         with open(DOLPHIN_GAME_CACHE_FILE, "rb") as dolphin_cache_file:
             self.cache_content = dolphin_cache_file.read()
-        if get_word_len(self.cache_content[:4]) != CACHE_REVISION:
-            raise Exception('Incompatible Dolphin version')
+        cache_version = get_word_len(self.cache_content[:4])
+        if cache_version != SUPPORTED_CACHE_VERSION:
+            logger.warning("Dolphin cache version expected %s but found %s", SUPPORTED_CACHE_VERSION, cache_version)
 
     def get_game(self):
         game = {}

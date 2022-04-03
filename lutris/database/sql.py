@@ -144,7 +144,7 @@ def filtered_query(
         sql_filters.append("%s LIKE ?" % field)
         params.append("%" + searches[field] + "%")
     for field in filters or {}:
-        if filters[field]:
+        if filters[field] is not None:  # but 0 or False are okay!
             sql_filters.append("%s = ?" % field)
             params.append(filters[field])
     for field in excludes or {}:

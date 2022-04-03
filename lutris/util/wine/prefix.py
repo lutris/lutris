@@ -62,12 +62,14 @@ class WinePrefixManager:
             self.hkcu_prefix + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
             "AppData",
         )
-
-        # Don't try to resolve the WIndows path we get- there's
-        # just two options, the Vista-and later option and the
-        # XP-and-earlier option.
-        if folder.lower().endswith("\\application data"):
-            return os.path.join(user_dir, "Application Data")  # Windows XP
+        if folder is None:
+            logger.warning("Get Registry Key function returned NoneType to variable folder.")
+        else:
+            # Don't try to resolve the Windows path we get- there's
+            # just two options, the Vista-and later option and the
+            # XP-and-earlier option.
+            if folder.lower().endswith("\\application data"):
+                return os.path.join(user_dir, "Application Data")  # Windows XP
         return os.path.join(user_dir, "AppData/Roaming")  # Vista
 
     def setup_defaults(self):

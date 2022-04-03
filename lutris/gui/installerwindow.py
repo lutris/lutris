@@ -17,6 +17,7 @@ from lutris.installer import interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
+from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import add_url_tags, gtk_safe, human_size
 
 
@@ -181,6 +182,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
         menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
         self.widget_box.pack_start(menu_shortcut_button, False, False, 5)
+
+        if steam_shortcut.vdf_file_exists():
+            steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
+            steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
+            self.widget_box.pack_start(steam_shortcut_button, False, False, 5)
 
     def select_install_folder(self):
         """Stage where we select the install directory."""
@@ -348,6 +354,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def show_extras(self, all_extras):
         """Show installer screen with the extras picker"""
         self.clean_widgets()
+        self.set_status(_(
+            "This game has extra content. \nSelect which one you want and "
+            "they will be available in the 'extras' folder where the game is installed."
+        ))
         extra_treestore = Gtk.TreeStore(
             bool,  # is selected?
             bool,  # is inconsistent?
@@ -465,9 +475,13 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         if self.config.get("create_menu_shortcut"):
             self.create_shortcut()
 
-        # Save game to trigger a game-updated signal
-        game = Game(game_id)
-        game.save()
+        # Save game to trigger a game-updated signal,
+        # but take care not to create a blank game
+        if game_id:
+            game = Game(game_id)
+            if self.config.get("create_steam_shortcut"):
+                steam_shortcut.update_shortcut(game)
+            game.save()
 
         self.install_in_progress = False
 
@@ -477,7 +491,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.cancel_button.hide()
         self.continue_button.hide()
         self.install_button.hide()
-        if game.id:
+        if game and game.id:
             self.play_button.show()
 
         self.close_button.grab_focus()
@@ -520,6 +534,9 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def on_create_menu_shortcut_clicked(self, _widget):
         self.config["create_menu_shortcut"] = True
+
+    def on_create_steam_shortcut_clicked(self, _widget):
+        self.config["create_steam_shortcut"] = True
 
     def create_shortcut(self, desktop=False):
         """Create desktop or global menu shortcuts."""

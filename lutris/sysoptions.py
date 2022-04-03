@@ -199,10 +199,18 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "single_cpu",
         "type": "bool",
-        "label": _("Restrict to single core"),
+        "label": _("Restrict number of cores used"),
         "advanced": True,
         "default": False,
-        "help": _("Restrict the game to a single CPU core."),
+        "help": _("Restrict the game to a maximum number of CPU cores."),
+    },
+    {
+        "option": "limit_cpu_count",
+        "type": "string",
+        "label": _("Restrict number of cores to"),
+        "advanced": True,
+        "default": "1",
+        "help": _("Maximum number of CPU cores to be used, if 'Restrict number of cores used' is turned on."),
     },
     {
         "option": "restore_gamma",
@@ -292,9 +300,8 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("FPS counter (MangoHud)"),
         "choices": (
             (_("Disabled"), ""),
-            (_("Enabled (Vulkan)"), "vk64"),
-            (_("Enabled (OpenGL)"), "gl64"),
-            (_("Enabled (OpenGL, 32bit)"), "gl32")
+            (_("Enabled"), "on"),
+            (_("Enabled (32bit)"), "gl32")
         ),
         "default": "",
         "advanced": False,

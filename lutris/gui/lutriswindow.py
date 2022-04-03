@@ -123,6 +123,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
+        GObject.add_emission_hook(Game, "game-error", self.on_game_error)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -418,9 +419,15 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.show_label(_("Add games to your favorites to see them here."))
             elif self.filters.get("installed"):
                 self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
+            # Splash screen disabled because unfinished.
+            # elif (
+            #     not self.filters.get("runner")
+            #     and not self.filters.get("service")
+            #     and not self.filters.get("platform")
+            # ):
+            #     self.show_splash()
             else:
-                self.show_splash()
-                # self.show_label(_("No games found"))
+                self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()
@@ -464,10 +471,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.save_icon_type(icon_type)
             self.show_spinner()
 
-    def show_overlay(self, widget):
+    def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
         """Display a widget in the blank overlay"""
         for child in self.blank_overlay.get_children():
             child.destroy()
+        self.blank_overlay.set_halign(halign)
+        self.blank_overlay.set_valign(valign)
         self.blank_overlay.add(widget)
         self.blank_overlay.props.visible = True
 
@@ -478,7 +487,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
     def show_splash(self):
         image = Gtk.Image(visible=True)
         image.set_from_file(os.path.join(datapath.get(), "media/splash.svg"))
-        self.show_overlay(image)
+        self.show_overlay(image, Gtk.Align.START, Gtk.Align.START)
 
     def show_spinner(self):
         spinner = Gtk.Spinner(visible=True)
@@ -564,7 +573,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.games_scrollwindow.add(self.view)
 
         self.view.show_all()
-        GLib.idle_add(self.update_store)
+        self.update_store()
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
@@ -668,6 +677,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Called when a game has sent the 'game-error' signal"""
         logger.error("%s crashed", game)
         dialogs.ErrorDialog(error, parent=self)
+        return True
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
@@ -767,9 +777,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if not self.is_game_displayed(game):
             self.game_store.remove_game(db_game["id"])
             return True
-        updated = self.game_store.update(db_game)
-        if not updated:
-            self.update_store()
+        if db_game:
+            updated = self.game_store.update(db_game)
+            if not updated:
+                self.update_store()
+        else:
+            logger.debug("Can't get DB game for %s (service: %s)", game, self.service)
         return True
 
     def on_game_stopped(self, game):

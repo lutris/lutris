@@ -56,4 +56,4 @@ class ContextualMenu(Gtk.Menu):
                 continue
             menuitem.set_visible(displayed.get(menuitem.action_id, True))
 
-        super().popup(None, None, None, None, event.button, event.time)
+        super().popup_at_pointer(event)

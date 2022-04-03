@@ -344,9 +344,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         game_id = self.installer.save()
 
         launcher_value = None
-        if self.installer.script.get("game"):
-            _launcher, launcher_value = get_game_launcher(self.installer.script)
         path = None
+        _launcher, launcher_value = get_game_launcher(self.installer.script)
         if launcher_value:
             path = self._substitute(launcher_value)
             if not os.path.isabs(path) and self.target_path:

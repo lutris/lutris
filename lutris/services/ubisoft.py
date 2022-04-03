@@ -178,7 +178,7 @@ class UbisoftConnectService(OnlineService):
             auth_file.write(json.dumps(credentials, indent=2))
 
     def load_credentials(self):
-        with open(self.token_path) as auth_file:
+        with open(self.token_path, encoding="utf-8") as auth_file:
             credentials = json.load(auth_file)
         return credentials
 
