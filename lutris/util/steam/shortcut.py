@@ -32,7 +32,7 @@ def shortcut_exists(game, shortcut_path):
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     shortcut_found = [
         s for s in shortcuts
-        if game.name in s['AppName']
+        if matches_appname(s, game)
     ]
     if not shortcut_found:
         return False
@@ -47,7 +47,7 @@ def all_shortcuts_set(game):
             shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
         shortcut_found = [
             s for s in shortcuts
-            if game.name in s['AppName']
+            if matches_appname(s, game)
         ]
         shortcuts_found += len(shortcut_found)
 
@@ -97,7 +97,7 @@ def remove_shortcut(game, shortcut_path):
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     shortcut_found = [
         s for s in shortcuts
-        if game.name in s['AppName']
+        if matches_appname(s, game)
     ]
 
     if not shortcut_found:
@@ -105,7 +105,7 @@ def remove_shortcut(game, shortcut_path):
 
     other_shortcuts = [
         s for s in shortcuts
-        if game.name not in s['AppName']
+        if not matches_appname(s, game)
     ]
     updated_shortcuts = {
         'shortcuts': {
@@ -143,6 +143,12 @@ def generate_shortcut(game):
             '0': "Lutris"   # to identify generated shortcuts
         }
     }
+
+
+def matches_appname(shortcut, game):
+    """Test if the game seems to be the a shortcut refers to."""
+    appname = shortcut.get('AppName') or shortcut.get('appname')
+    return appname and game.name in appname
 
 
 def get_steam_shortcut_id(game):
