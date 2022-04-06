@@ -151,7 +151,7 @@ def generate_shortcut(game):
 
 
 def matches_appname(shortcut, game):
-    """Test if the game seems to be the a shortcut refers to."""
+    """Test if the game seems to be the one a shortcut refers to."""
     appname = shortcut.get('AppName') or shortcut.get('appname')
     return appname and game.name in appname
 
