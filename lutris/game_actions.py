@@ -109,7 +109,7 @@ class GameActions:
 
     def get_displayed_entries(self):
         """Return a dictionary of actions that should be shown for a game"""
-        return {
+        actions = {
             "add": not self.game.is_installed,
             "duplicate": True,
             "install": not self.game.is_installed,
@@ -117,39 +117,39 @@ class GameActions:
             "update": self.game.is_updatable,
             "install_dlcs": self.game.is_updatable,
             "stop": self.is_game_running,
-            "configure": bool(self.game.is_installed),
+            "configure": self.game.is_installed,
             "browse": self.game.is_installed and self.game.runner_name != "browser",
             "show_logs": self.game.is_installed,
             "favorite": not self.game.is_favorite,
             "deletefavorite": self.game.is_favorite,
             "install_more": not self.game.service and self.game.is_installed,
-            "execute-script": bool(
+            "execute-script": lambda: (
                 self.game.is_installed and self.game.runner
                 and self.game.runner.system_config.get("manual_command")
             ),
-            "desktop-shortcut": (
+            "desktop-shortcut": lambda: (
                 self.game.is_installed
                 and not xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)
             ),
-            "menu-shortcut": (
+            "menu-shortcut": lambda: (
                 self.game.is_installed
                 and not xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
-            "steam-shortcut": (
+            "steam-shortcut": lambda: (
                 self.game.is_installed
                 and steam_shortcut.vdf_file_exists()
                 and not steam_shortcut.all_shortcuts_set(self.game)
                 and not steam_shortcut.has_steamtype_runner(self.game)
             ),
-            "rm-desktop-shortcut": bool(
+            "rm-desktop-shortcut": lambda: (
                 self.game.is_installed
                 and xdgshortcuts.desktop_launcher_exists(self.game.slug, self.game.id)
             ),
-            "rm-menu-shortcut": bool(
+            "rm-menu-shortcut": lambda: (
                 self.game.is_installed
                 and xdgshortcuts.menu_launcher_exists(self.game.slug, self.game.id)
             ),
-            "rm-steam-shortcut": bool(
+            "rm-steam-shortcut": lambda: (
                 self.game.is_installed
                 and steam_shortcut.vdf_file_exists()
                 and steam_shortcut.all_shortcuts_set(self.game)
@@ -160,6 +160,20 @@ class GameActions:
             "hide": self.game.is_installed and not self.game.is_hidden,
             "unhide": self.game.is_hidden,
         }
+
+        def resolve_flag(key, value):
+            """Evaluates the is-displayed lambda with exception handling; errors
+            are logged, then treated as False. Plains bools just pass through."""
+            if isinstance(value, bool):
+                return value
+
+            try:
+                return bool(value())
+            except Exception as ex:
+                logger.exception("Unable to evaluate display status for '%s': %s", key, ex)
+                return False
+
+        return {e[0]: resolve_flag(e[0], e[1]) for e in actions.items()}
 
     def on_game_launch(self, *_args):
         """Launch a game"""
