@@ -778,8 +778,8 @@ class Application(Gtk.Application):
 
     def print_steam_folders(self, command_line):
         steamapps_paths = get_steamapps_paths()
-        for platform in ("linux", "windows"):
-            for path in steamapps_paths[platform] if steamapps_paths else []:
+        if steamapps_paths:
+            for path in steamapps_paths:
                 self._print(command_line, path)
 
     def print_runners(self):
