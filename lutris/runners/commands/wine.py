@@ -299,7 +299,7 @@ def wineexec(  # noqa: C901
     wine.prelaunch()
 
     if blocking:
-        return system.execute(command_parameters, env=wineenv, cwd=working_dir)
+        return system.execute(command_parameters, env=baseenv, cwd=working_dir)
 
     command = MonitoredCommand(
         command_parameters,
