@@ -169,6 +169,10 @@ def set_artwork(game):
         target_banner = os.path.join(target_path, target_banner)
         try:
             shutil.copyfile(source_cover, target_cover)
+
+        except FileNotFoundError as ex:
+            logger.error("Failed to copy cover to %s: %s", target_cover, ex)
+        try:
             shutil.copyfile(source_banner, target_banner)
         except FileNotFoundError as ex:
-            logger.error("Failed to copy media to %s: %s", target_path, ex)
+            logger.error("Failed to copy banner to %s: %s", target_banner, ex)
