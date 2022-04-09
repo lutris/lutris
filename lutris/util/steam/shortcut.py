@@ -3,6 +3,7 @@ import binascii
 import os
 import shutil
 
+from lutris.util.log import logger
 from lutris.util import resources
 from lutris.util.steam import vdf
 from lutris.util.steam.config import search_recursive_in_steam_dirs
@@ -122,6 +123,10 @@ def generate_shortcut(game):
     gameId = game.id
     icon = resources.get_icon_path(slug)
     lutris_binary = shutil.which("lutris")
+    launch_options = f'lutris:rungameid/{gameId}'
+    if lutris_binary == "/app/bin/lutris":
+        lutris_binary = "flatpak"
+        launch_options = "run net.lutris.Lutris " + launch_options
     start_dir = os.path.dirname(lutris_binary)
 
     return {
@@ -134,7 +139,7 @@ def generate_shortcut(game):
         'Exe': f'"{lutris_binary}"',
         'IsHidden': 0,
         'LastPlayTime': 0,
-        'LaunchOptions': f'lutris:rungameid/{gameId}',
+        'LaunchOptions': f'"{launch_options}"',
         'OpenVR': 0,
         'ShortcutPath': '',
         'StartDir': f'"{start_dir}"',
@@ -165,5 +170,5 @@ def set_artwork(game):
         try:
             shutil.copyfile(source_cover, target_cover)
             shutil.copyfile(source_banner, target_banner)
-        except FileNotFoundError:
-            pass
+        except FileNotFoundError as ex:
+            logger.error("Failed to copy media to %s: %s", target_path, ex)
