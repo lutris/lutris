@@ -139,7 +139,7 @@ def generate_shortcut(game):
         'Exe': f'"{lutris_binary}"',
         'IsHidden': 0,
         'LastPlayTime': 0,
-        'LaunchOptions': f'"{launch_options}"',
+        'LaunchOptions': launch_options,
         'OpenVR': 0,
         'ShortcutPath': '',
         'StartDir': f'"{start_dir}"',
