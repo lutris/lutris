@@ -1,6 +1,7 @@
 project(
   'lutris',
-  license: 'GPL-3.0-or-later'
+  license: 'GPL-3.0-or-later',
+  meson_version: '>=0.46.0',
 )
 
 # Find Python installation
@@ -24,7 +25,6 @@ configure_file(
   input: 'optional_settings.py.in',
   output: 'optional_settings.py',
   configuration: config,
-  install: true,
   install_dir: lutrisdir,
 )
 
