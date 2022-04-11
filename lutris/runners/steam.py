@@ -154,7 +154,13 @@ class steam(Runner):
 
     def get_executable(self):
         if linux.LINUX_SYSTEM.is_flatpak:
-            # Use xdg-open for Steam URIs in Flatpak
+            # Using this binary to launch Steam stuff may require Steam to be running in the background
+            # This may not even work at all but is worth experimenting with.
+            steam_path = os.path.expanduser("~/.steam/steam/ubuntu12_32/steam")
+            if os.path.exists(steam_path):
+                return steam_path
+
+            # Fallback to xgd-open for Steam URIs in Flatpak
             return system.find_executable("xdg-open")
         if self.runner_config.get("lsi_steam") and system.find_executable("lsi-steam"):
             return system.find_executable("lsi-steam")
