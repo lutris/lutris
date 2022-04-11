@@ -309,7 +309,7 @@ class wine(Runner):
                 "option": "fsync",
                 "label": _("Enable Fsync"),
                 "type": "extended_bool",
-                "default": True,
+                "default": is_fsync_supported(),
                 "callback": fsync_support_callback,
                 "callback_on": True,
                 "active": True,

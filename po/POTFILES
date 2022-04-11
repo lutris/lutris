@@ -182,7 +182,6 @@ lutris/util/i18n.py
 lutris/util/__init__.py
 lutris/util/jobs.py
 lutris/util/joypad.py
-lutris/util/keyring.py
 lutris/util/libretro.py
 lutris/util/linux.py
 lutris/util/log.py
