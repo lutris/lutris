@@ -7,8 +7,8 @@ from textwrap import dedent
 from gi.repository import GLib
 
 from lutris.settings import CACHE_DIR
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.util import system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
