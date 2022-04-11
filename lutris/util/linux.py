@@ -218,7 +218,10 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     @property
     def has_steam(self):
         """Return whether Steam is installed locally"""
-        return bool(system.find_executable("steam"))
+        return (
+            bool(system.find_executable("steam"))
+            or os.path.exists(os.path.expanduser("~/.steam/steam/ubuntu12_32/steam"))
+        )
 
     @property
     def display_server(self):
