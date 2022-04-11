@@ -41,20 +41,27 @@ def shortcut_exists(game, shortcut_path):
 
 
 def all_shortcuts_set(game):
-    paths_shortcut = get_shortcuts_vdf_paths()
-    shortcuts_found = 0
-    for shortcut_path in paths_shortcut:
-        with open(shortcut_path, "rb") as shortcut_file:
-            shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-        shortcut_found = [
-            s for s in shortcuts
-            if matches_appname(s, game)
-        ]
-        shortcuts_found += len(shortcut_found)
+    """True if every shortcuts.vdf file found contains the game given (exactly once). But
+    False if there are no shortcuts.vdf files at all. False if any shortcuts.vdf file
+    cannot be read or decoded."""
+    try:
+        paths_shortcut = get_shortcuts_vdf_paths()
+        shortcuts_found = 0
+        for shortcut_path in paths_shortcut:
+            with open(shortcut_path, "rb") as shortcut_file:
+                shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
+            shortcut_found = [
+                s for s in shortcuts
+                if matches_appname(s, game)
+            ]
+            shortcuts_found += len(shortcut_found)
 
-    if len(paths_shortcut) == shortcuts_found:
-        return True
-    return False
+        if len(paths_shortcut) == shortcuts_found:
+            return True
+        return False
+    except Exception as ex:
+        logger.exception("Unable to read Steam shortcuts: %s", ex)
+        return False
 
 
 def has_steamtype_runner(game):
