@@ -772,8 +772,10 @@ class wine(Runner):
             arch=self.wine_arch,
             version=version,
         )
+
         # manual version only sets the dlls to native
-        if dll_manager.version.lower() != "manual":
+        manager_version = dll_manager.version
+        if not manager_version or manager_version.lower() != "manual":
             if enable:
                 dll_manager.enable()
             else:
