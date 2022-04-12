@@ -306,15 +306,9 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "option": "mangohud",
-        "type": "choice",
+        "type": "bool",
         "label": _("FPS counter (MangoHud)"),
-        "choices": (
-            (_("Disabled"), ""),
-            (_("Enabled"), "on"),
-            (_("Enabled (32bit)"), "gl32")
-        ),
-        "default": "",
-        "advanced": False,
+        "default": False,
         "condition": bool(system.find_executable("mangohud")),
         "help": _("Display the game's FPS + other information. Requires MangoHud to be installed."),
     },
