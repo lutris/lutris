@@ -65,11 +65,7 @@ def all_shortcuts_set(game):
 
 
 def has_steamtype_runner(game):
-    steamtype_runners = ['steam', 'winesteam']
-    for runner in steamtype_runners:
-        if runner == game.runner_name:
-            return True
-    return False
+    return game.runner_name == "steam"
 
 
 def update_shortcut(game):
