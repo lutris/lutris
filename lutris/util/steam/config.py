@@ -11,12 +11,12 @@ from lutris.util.log import logger
 from lutris.util.steam.vdfutils import vdf_parse
 
 STEAM_DATA_DIRS = (
+    "~/.steam/debian-installation",
     "~/.steam",
     "~/.local/share/steam",
     "~/.local/share/Steam",
     "~/.steam/steam",
     "~/.var/app/com.valvesoftware.Steam/data/steam",
-    "~/.steam/debian-installation",
     "/usr/share/steam",
     "/usr/local/share/steam",
 )
