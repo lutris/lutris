@@ -394,13 +394,19 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             "USER": os.getenv("USER"),
             "INPUT": self.user_inputs[-1]["value"] if self.user_inputs else "",
             "VERSION": self.installer.version,
-            "RESOLUTION": "x".join(self.current_resolution),
-            "RESOLUTION_WIDTH": self.current_resolution[0],
-            "RESOLUTION_HEIGHT": self.current_resolution[1],
-            "RESOLUTION_WIDTH_HEX": hex(int(self.current_resolution[0])),
-            "RESOLUTION_HEIGHT_HEX": hex(int(self.current_resolution[1])),
             "WINEBIN": self.get_wine_path(),
         }
+
+        current_resolution = self.current_resolution
+        if current_resolution and len(current_resolution) == 2 and current_resolution[0] and current_resolution[1]:
+            replacements.update({
+                "RESOLUTION": "x".join(self.current_resolution),
+                "RESOLUTION_WIDTH": self.current_resolution[0],
+                "RESOLUTION_HEIGHT": self.current_resolution[1],
+                "RESOLUTION_WIDTH_HEX": hex(int(self.current_resolution[0])),
+                "RESOLUTION_HEIGHT_HEX": hex(int(self.current_resolution[1]))
+            })
+
         replacements.update(self.installer.variables)
         # Add 'INPUT_<id>' replacements for user inputs with an id
         for input_data in self.user_inputs:
