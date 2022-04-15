@@ -102,7 +102,10 @@ def create_prefix(  # noqa: C901
     # Avoid issue of 64bit Wine refusing to create win32 prefix
     # over an existing empty folder.
     if os.path.isdir(prefix) and not os.listdir(prefix):
-        os.rmdir(prefix)
+        try:
+            os.rmdir(prefix)
+        except OSError:
+            logger.error("Failed to delete %s, you may lack permissions on this folder.", prefix)
 
     if not wine_path:
         wine = import_runner("wine")
