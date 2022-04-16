@@ -89,12 +89,7 @@ def get_resolutions():
             resolution_match = re.match(r".*?(\d+x\d+).*", line)
             if resolution_match:
                 resolution_list.append(resolution_match.groups()[0])
-    return resolution_list
-
-
-def get_unique_resolutions():
-    """Return available resolutions, without duplicates and ordered with highest resolution first"""
-    return sorted(set(get_resolutions()), key=lambda x: int(x.split("x")[0]), reverse=True)
+    return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 
 def change_resolution(resolution):
