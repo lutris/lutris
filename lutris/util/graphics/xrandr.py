@@ -4,7 +4,7 @@ import subprocess
 from collections import namedtuple
 
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.util.log import logger
+from lutris.util.log import logger, logging
 from lutris.util.system import read_process_output
 
 Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate"))
@@ -18,8 +18,9 @@ def _get_vidmodes():
 
 def _log_vidmodes(message):
     """Write the xrandr output to the log for debugging purposes"""
-    xrandr_output = read_process_output([LINUX_SYSTEM.get("xrandr")])
-    logger.debug("%s\n%s", message, xrandr_output)
+    if logger.isEnabledFor(logging.DEBUG):
+        xrandr_output = read_process_output([LINUX_SYSTEM.get("xrandr")])
+        logger.debug("%s\n%s", message, xrandr_output)
 
 
 def get_outputs():  # pylint: disable=too-many-locals
