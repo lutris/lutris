@@ -16,6 +16,12 @@ def _get_vidmodes():
     return read_process_output([LINUX_SYSTEM.get("xrandr")]).split("\n")
 
 
+def _log_vidmodes(message):
+    """Write the xrandr output to the log for debugging purposes"""
+    xrandr_output = read_process_output([LINUX_SYSTEM.get("xrandr")])
+    logger.debug("%s\n%s", message, xrandr_output)
+
+
 def get_outputs():  # pylint: disable=too-many-locals
     """Return list of namedtuples containing output 'name', 'geometry',
     'rotation' and whether it is the 'primary' display."""
@@ -89,6 +95,9 @@ def get_resolutions():
             resolution_match = re.match(r".*?(\d+x\d+).*", line)
             if resolution_match:
                 resolution_list.append(resolution_match.groups()[0])
+    if not resolution_list:
+        resolution_list = ['1280x720']
+        _log_vidmodes("Unable to generate resolution list from xrandr output")
     return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 
@@ -167,7 +176,8 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
                 resolution_match = re.match(r".*?(\d+x\d+).*", line)
                 if resolution_match:
                     return resolution_match.groups()[0].split("x")
-        return ("", "")
+        _log_vidmodes("Unable to find the current resolution from xrandr output")
+        return ("1280", "720")
 
     @staticmethod
     def set_resolution(resolution):
