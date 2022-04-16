@@ -317,7 +317,7 @@ class wine(Runner):
                     "Enable futex-based synchronization (fsync). "
                     "This will increase performance in applications "
                     "that take advantage of multi-core processors. "
-                    "Requires a custom kernel with the fsync patchset."
+                    "Requires kernel 5.16 or above."
                 ),
             },
             {
