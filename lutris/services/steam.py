@@ -155,6 +155,7 @@ class SteamService(BaseService):
 
     def add_installed_games(self):
         """Syncs installed Steam games with Lutris"""
+        stats = {"installed": 0, "removed": 0, "deduped": 0}
         installed_appids = []
         for steamapps_path in self.steamapps_paths:
             for appmanifest_file in get_appmanifests(steamapps_path):
@@ -162,7 +163,8 @@ class SteamService(BaseService):
                 app_manifest = AppManifest(app_manifest_path)
                 installed_appids.append(app_manifest.steamid)
                 self.install_from_steam(app_manifest)
-
+                stats["installed"] += 1
+        logger.debug("%s Steam games detected and installed", stats["installed"])
         db_games = get_games(filters={"runner": "steam"})
         for db_game in db_games:
             steam_game = Game(db_game["id"])
@@ -173,6 +175,8 @@ class SteamService(BaseService):
                 continue
             if appid not in installed_appids:
                 steam_game.remove(no_signal=True)
+                stats["removed"] += 1
+        logger.debug("%s Steam games removed", stats["removed"])
 
         db_appids = defaultdict(list)
         db_games = get_games(filters={"service": "steam"})
@@ -188,6 +192,8 @@ class SteamService(BaseService):
                 if not steam_game.playtime:
                     steam_game.remove(no_signal=True)
                     steam_game.delete()
+                    stats["deduped"] += 1
+        logger.debug("%s Steam games deduplicated", stats["deduped"])
 
     def generate_installer(self, db_game):
         """Generate a basic Steam installer"""
