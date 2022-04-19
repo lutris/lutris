@@ -1,7 +1,6 @@
 """Steam for Linux runner"""
 import os
 import subprocess
-import time
 from gettext import gettext as _
 
 from lutris.command import MonitoredCommand
@@ -15,21 +14,9 @@ from lutris.util.steam.vdfutils import to_vdf
 from lutris.util.strings import split_arguments
 
 
-def shutdown():
-    """Cleanly quit Steam."""
-    logger.debug("Shutting down Steam")
-    if is_running():
-        subprocess.call(["steam", "-shutdown"])
-
-
 def get_steam_pid():
     """Return pid of Steam process."""
     return system.get_pid("steam$")
-
-
-def kill():
-    """Force quit Steam."""
-    system.kill_pid(get_steam_pid())
 
 
 def is_running():
@@ -83,16 +70,6 @@ class steam(Runner):
     ]
     runner_options = [
         {
-            "option": "quit_steam_on_exit",
-            "label": _("Stop Steam after game exits"),
-            "type": "bool",
-            "default": False,
-            "help": _(
-                "Shut down Steam after the game has quit\n"
-                "(only if Steam was started by Lutris)"
-            ),
-        },
-        {
             "option": "start_in_big_picture",
             "label": _("Start Steam in Big Picture mode"),
             "type": "bool",
@@ -130,7 +107,6 @@ class steam(Runner):
         super().__init__(config)
         self.own_game_remove_method = _("Remove game data (through Steam)")
         self.no_game_remove_warning = True
-        self.original_steampid = None
 
     @property
     def runnable_alone(self):
@@ -178,7 +154,7 @@ class steam(Runner):
 
     def get_executable(self):
         if linux.LINUX_SYSTEM.is_flatpak:
-            # Use xdg-open for Steam URIs in Flatpak
+            # Fallback to xgd-open for Steam URIs in Flatpak
             return system.find_executable("xdg-open")
         if self.runner_config.get("lsi_steam") and system.find_executable("lsi-steam"):
             return system.find_executable("lsi-steam")
@@ -280,29 +256,7 @@ class steam(Runner):
             acf_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
             with open(acf_path, "w", encoding='utf-8') as acf_file:
                 acf_file.write(acf_content)
-            if is_running():
-                shutdown()
-                time.sleep(5)
-        command = [self.get_executable(), "steam://install/%s" % appid]
-        subprocess.Popen(command)  # pylint: disable=consider-using-with
-
-    def prelaunch(self):
-        def has_steam_shutdown(times=10):
-            for __ in range(times):
-                time.sleep(1)
-                if not is_running():
-                    return True
-
-        # If using primusrun, shutdown existing Steam first
-        if self.system_config.get("optimus") != "off" and is_running():
-            shutdown()
-            if not has_steam_shutdown():
-                logger.info("Forcing Steam shutdown")
-                kill()
-                if not has_steam_shutdown(5):
-                    logger.error("Failed to shut down Steam :(")
-                    return False
-        return True
+        subprocess.Popen([self.get_executable(), "steam://install/%s" % appid])  # pylint: disable=consider-using-with
 
     def get_run_data(self):
         return {"command": self.launch_args, "env": self.get_env()}
@@ -315,7 +269,6 @@ class steam(Runner):
             # Start without steam
             if not system.path_exists(binary_path):
                 return {"error": "FILE_NOT_FOUND", "file": binary_path}
-            self.original_steampid = None
             command = [binary_path]
         else:
             # Start through steam
@@ -328,11 +281,7 @@ class steam(Runner):
                     "command": self.launch_args + [steam_uri],
                     "env": self.get_env(),
                 }
-
-            # Get current steam pid to act as the root pid instead of lutris
-            self.original_steampid = get_steam_pid()
             command = self.launch_args
-
             if self.runner_config.get("start_in_big_picture") or not game_args:
                 command.append("steam://rungameid/%s" % self.appid)
             else:
@@ -347,12 +296,6 @@ class steam(Runner):
             "command": command,
             "env": self.get_env(),
         }
-
-    def stop(self):
-        if self.runner_config.get("quit_steam_on_exit") and not self.original_steampid:
-            shutdown()
-            return True
-        return False
 
     def remove_game_data(self, appid=None, **kwargs):
         if not self.is_installed():

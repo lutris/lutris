@@ -4,6 +4,7 @@ import os
 import shutil
 
 from lutris.util import resources
+from lutris.util.log import logger
 from lutris.util.steam import vdf
 from lutris.util.steam.config import search_recursive_in_steam_dirs
 
@@ -32,7 +33,7 @@ def shortcut_exists(game, shortcut_path):
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     shortcut_found = [
         s for s in shortcuts
-        if game.name in s['AppName']
+        if matches_appname(s, game)
     ]
     if not shortcut_found:
         return False
@@ -40,28 +41,31 @@ def shortcut_exists(game, shortcut_path):
 
 
 def all_shortcuts_set(game):
-    paths_shortcut = get_shortcuts_vdf_paths()
-    shortcuts_found = 0
-    for shortcut_path in paths_shortcut:
-        with open(shortcut_path, "rb") as shortcut_file:
-            shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-        shortcut_found = [
-            s for s in shortcuts
-            if game.name in s['AppName']
-        ]
-        shortcuts_found += len(shortcut_found)
+    """True if every shortcuts.vdf file found contains the game given (exactly once). But
+    False if there are no shortcuts.vdf files at all. False if any shortcuts.vdf file
+    cannot be read or decoded."""
+    try:
+        paths_shortcut = get_shortcuts_vdf_paths()
+        shortcuts_found = 0
+        for shortcut_path in paths_shortcut:
+            with open(shortcut_path, "rb") as shortcut_file:
+                shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
+            shortcut_found = [
+                s for s in shortcuts
+                if matches_appname(s, game)
+            ]
+            shortcuts_found += len(shortcut_found)
 
-    if len(paths_shortcut) == shortcuts_found:
-        return True
-    return False
+        if len(paths_shortcut) == shortcuts_found:
+            return True
+        return False
+    except Exception as ex:
+        logger.exception("Unable to read Steam shortcuts: %s", ex)
+        return False
 
 
 def has_steamtype_runner(game):
-    steamtype_runners = ['steam', 'winesteam']
-    for runner in steamtype_runners:
-        if runner == game.runner_name:
-            return True
-    return False
+    return game.runner_name == "steam"
 
 
 def update_shortcut(game):
@@ -97,7 +101,7 @@ def remove_shortcut(game, shortcut_path):
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     shortcut_found = [
         s for s in shortcuts
-        if game.name in s['AppName']
+        if matches_appname(s, game)
     ]
 
     if not shortcut_found:
@@ -105,7 +109,7 @@ def remove_shortcut(game, shortcut_path):
 
     other_shortcuts = [
         s for s in shortcuts
-        if game.name not in s['AppName']
+        if not matches_appname(s, game)
     ]
     updated_shortcuts = {
         'shortcuts': {
@@ -122,6 +126,10 @@ def generate_shortcut(game):
     gameId = game.id
     icon = resources.get_icon_path(slug)
     lutris_binary = shutil.which("lutris")
+    launch_options = f'lutris:rungameid/{gameId}'
+    if lutris_binary == "/app/bin/lutris":
+        lutris_binary = "flatpak"
+        launch_options = "run net.lutris.Lutris " + launch_options
     start_dir = os.path.dirname(lutris_binary)
 
     return {
@@ -134,7 +142,7 @@ def generate_shortcut(game):
         'Exe': f'"{lutris_binary}"',
         'IsHidden': 0,
         'LastPlayTime': 0,
-        'LaunchOptions': f'lutris:rungameid/{gameId}',
+        'LaunchOptions': launch_options,
         'OpenVR': 0,
         'ShortcutPath': '',
         'StartDir': f'"{start_dir}"',
@@ -143,6 +151,12 @@ def generate_shortcut(game):
             '0': "Lutris"   # to identify generated shortcuts
         }
     }
+
+
+def matches_appname(shortcut, game):
+    """Test if the game seems to be the one a shortcut refers to."""
+    appname = shortcut.get('AppName') or shortcut.get('appname')
+    return appname and game.name in appname
 
 
 def get_steam_shortcut_id(game):
@@ -164,6 +178,10 @@ def set_artwork(game):
         target_banner = os.path.join(target_path, target_banner)
         try:
             shutil.copyfile(source_cover, target_cover)
+
+        except FileNotFoundError as ex:
+            logger.error("Failed to copy cover to %s: %s", target_cover, ex)
+        try:
             shutil.copyfile(source_banner, target_banner)
-        except FileNotFoundError:
-            pass
+        except FileNotFoundError as ex:
+            logger.error("Failed to copy banner to %s: %s", target_banner, ex)

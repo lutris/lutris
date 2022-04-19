@@ -1,6 +1,7 @@
 project(
   'lutris',
-  license: 'GPL-3.0-or-later'
+  license: 'GPL-3.0-or-later',
+  meson_version: '>=0.46.0',
 )
 
 # Find Python installation
@@ -24,7 +25,6 @@ configure_file(
   input: 'optional_settings.py.in',
   output: 'optional_settings.py',
   configuration: config,
-  install: true,
   install_dir: lutrisdir,
 )
 
@@ -60,7 +60,7 @@ install_man(
   install_dir: join_paths(mandir, 'man1'),
 )
 
-i18n.merge_file(
+desktop_file = i18n.merge_file(
   input: files('share/applications/net.lutris.Lutris.desktop'),
   output: 'net.lutris.Lutris.desktop',
   type: 'desktop',
@@ -69,7 +69,17 @@ i18n.merge_file(
   install_dir: join_paths(datadir, 'applications'),
 )
 
-i18n.merge_file(
+# Validate the desktop file
+desktop_file_validate = find_program('desktop-file-validate', required:false)
+if desktop_file_validate.found()
+  test (
+    'Validate desktop file',
+    desktop_file_validate,
+    args: [ desktop_file.full_path() ],
+  )
+endif
+
+metainfo_file = i18n.merge_file(
   input: files('share/metainfo/net.lutris.Lutris.metainfo.xml'),
   output: 'net.lutris.Lutris.metainfo.xml',
   type: 'xml',
@@ -77,3 +87,15 @@ i18n.merge_file(
   install: true,
   install_dir: join_paths(datadir, 'metainfo'),
 )
+
+# Validate the metainfo file
+appstreamcli = find_program('appstream-util', required: false)
+if appstreamcli.found()
+  test (
+    'Validate metainfo file',
+    appstreamcli,
+    args: ['validate-relax', '--nonet', metainfo_file.full_path() ]
+  )
+endif
+
+meson.add_install_script('utils/meson_post_install.py')

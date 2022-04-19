@@ -8,7 +8,14 @@ from gi.repository import GLib
 
 from lutris.settings import CACHE_DIR
 from lutris.util import system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+
+
+def get_lutris_executable():
+    if LINUX_SYSTEM.is_flatpak:
+        return "flatpak run net.lutris.Lutris"
+    return "lutris"
 
 
 def get_xdg_entry(directory):
@@ -46,17 +53,22 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
 
 def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
     """Create a .desktop file."""
-
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
+    lutris_executable = get_lutris_executable()
     launcher_content = dedent(
         """
         [Desktop Entry]
         Type=Application
         Name={}
         Icon={}
-        Exec=env LUTRIS_SKIP_INIT=1 lutris lutris:rungameid/{}
+        Exec=env LUTRIS_SKIP_INIT=1 {} lutris:rungameid/{}
         Categories=Game
-        """.format(game_name, "lutris_{}".format(game_slug), game_id)
+        """.format(
+            game_name,
+            "lutris_{}".format(game_slug),
+            lutris_executable,
+            game_id
+        )
     )
 
     launcher_filename = get_xdg_basename(game_slug, game_id)

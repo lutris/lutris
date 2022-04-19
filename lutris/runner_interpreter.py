@@ -10,14 +10,9 @@ from lutris.util.log import logger
 
 def get_mangohud_conf(system_config):
     """Return correct launch arguments and environment variables for Mangohud."""
-    mango_args = []
-    mangohud = system_config.get("mangohud") or ""
-    if mangohud and system.find_executable("mangohud"):
-        if mangohud == "gl32":
-            mango_args = ["mangohud.x86"]
-        else:
-            mango_args = ["mangohud"]
-    return mango_args, {"MANGOHUD": "1", "MANGOHUD_DLSYM": "1"}
+    if system_config.get("mangohud") and system.find_executable("mangohud"):
+        return ["mangohud"], {"MANGOHUD": "1", "MANGOHUD_DLSYM": "1"}
+    return None, None
 
 
 def get_launch_parameters(runner, gameplay_info):

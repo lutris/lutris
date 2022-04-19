@@ -104,8 +104,6 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     required_components = ["OPENGL", "VULKAN", "GNUTLS"]
     optional_components = ["WINE", "GAMEMODE"]
 
-    flatpak_info_path = "/.flatpak-info"
-
     def __init__(self):
         for key in ("COMMANDS", "TERMINALS"):
             self._cache[key] = {}
@@ -218,7 +216,10 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     @property
     def has_steam(self):
         """Return whether Steam is installed locally"""
-        return bool(system.find_executable("steam"))
+        return (
+            bool(system.find_executable("steam"))
+            or os.path.exists(os.path.expanduser("~/.steam/steam/ubuntu12_32/steam"))
+        )
 
     @property
     def display_server(self):
@@ -228,7 +229,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     @property
     def is_flatpak(self):
         """Check is we are running inside Flatpak sandbox"""
-        return system.path_exists(self.flatpak_info_path)
+        return system.path_exists("/.flatpak-info")
 
     @property
     def runtime_architectures(self):

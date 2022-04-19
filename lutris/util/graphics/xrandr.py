@@ -4,7 +4,7 @@ import subprocess
 from collections import namedtuple
 
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.util.log import logger
+from lutris.util.log import logger, logging
 from lutris.util.system import read_process_output
 
 Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate"))
@@ -14,6 +14,13 @@ def _get_vidmodes():
     """Return video modes from XrandR"""
     logger.debug("Retrieving video modes from XrandR")
     return read_process_output([LINUX_SYSTEM.get("xrandr")]).split("\n")
+
+
+def _log_vidmodes(message):
+    """Write the xrandr output to the log for debugging purposes"""
+    if logger.isEnabledFor(logging.DEBUG):
+        xrandr_output = read_process_output([LINUX_SYSTEM.get("xrandr")])
+        logger.debug("%s\n%s", message, xrandr_output)
 
 
 def get_outputs():  # pylint: disable=too-many-locals
@@ -89,12 +96,10 @@ def get_resolutions():
             resolution_match = re.match(r".*?(\d+x\d+).*", line)
             if resolution_match:
                 resolution_list.append(resolution_match.groups()[0])
-    return resolution_list
-
-
-def get_unique_resolutions():
-    """Return available resolutions, without duplicates and ordered with highest resolution first"""
-    return sorted(set(get_resolutions()), key=lambda x: int(x.split("x")[0]), reverse=True)
+    if not resolution_list:
+        resolution_list = ['1280x720']
+        _log_vidmodes("Unable to generate resolution list from xrandr output")
+    return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 
 def change_resolution(resolution):
@@ -172,7 +177,8 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
                 resolution_match = re.match(r".*?(\d+x\d+).*", line)
                 if resolution_match:
                     return resolution_match.groups()[0].split("x")
-        return ("", "")
+        _log_vidmodes("Unable to find the current resolution from xrandr output")
+        return ("1280", "720")
 
     @staticmethod
     def set_resolution(resolution):

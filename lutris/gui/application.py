@@ -80,7 +80,7 @@ class Application(Gtk.Application):
         self.app_windows = {}
         self.tray = None
         self.css_provider = Gtk.CssProvider.new()
-        self.run_in_background = False
+        self.quit_on_game_exit = False
         self.style_manager = None
 
         if os.geteuid() == 0:
@@ -267,7 +267,7 @@ class Application(Gtk.Application):
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         action = Gio.SimpleAction.new("quit")
-        action.connect("activate", lambda *x: self.quit())
+        action.connect("activate", lambda *x: self.do_shutdown())
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
 
@@ -279,12 +279,12 @@ class Application(Gtk.Application):
             self.window = LutrisWindow(application=self)
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        if not self.run_in_background:
+        if not self.quit_on_game_exit:
             self.window.present()
         else:
-            # Reset run in background to False. Future calls will set it
+            # Reset quit on game exit to False. Future calls will set it
             # accordingly
-            self.run_in_background = False
+            self.quit_on_game_exit = False
 
     @staticmethod
     def show_update_runtime_dialog():
@@ -532,15 +532,15 @@ class Application(Gtk.Application):
         if game_slug and not service:
             if action == "rungameid":
                 # Force db_game to use game id
-                self.run_in_background = True
+                self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "id")
             elif action == "rungame":
                 # Force db_game to use game slug
-                self.run_in_background = True
+                self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "slug")
             elif action == "install":
                 # Installers can use game or installer slugs
-                self.run_in_background = True
+                self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "slug") \
                     or games_db.get_game_by_field(game_slug, "installer_slug")
             else:
@@ -691,11 +691,11 @@ class Application(Gtk.Application):
             logger.warning("%s not in %s", game.id, ids)
 
         game.emit("game-stopped")
-        if settings.read_setting("hide_client_on_game_start") == "True":
+        if settings.read_setting("hide_client_on_game_start") == "True" and not self.quit_on_game_exit:
             self.window.show()  # Show launcher window
         elif not self.window.is_visible():
             if self.running_games.get_n_items() == 0:
-                self.quit()
+                self.do_shutdown()
         return True
 
     @staticmethod
@@ -778,8 +778,8 @@ class Application(Gtk.Application):
 
     def print_steam_folders(self, command_line):
         steamapps_paths = get_steamapps_paths()
-        for platform in ("linux", "windows"):
-            for path in steamapps_paths[platform] if steamapps_paths else []:
+        if steamapps_paths:
+            for path in steamapps_paths:
                 self._print(command_line, path)
 
     def print_runners(self):

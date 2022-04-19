@@ -27,13 +27,14 @@ def get_services():
     """Return a mapping of available services"""
     _services = {
         "lutris": LutrisService,
-        "xdg": XDGService,
         "gog": GOGService,
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
         "origin": OriginService,
         "ubisoft": UbisoftConnectService,
     }
+    if not LINUX_SYSTEM.is_flatpak:
+        _services["xdg"] = XDGService
     if LINUX_SYSTEM.has_steam:
         _services["steam"] = SteamService
     _services["steamwindows"] = SteamWindowsService

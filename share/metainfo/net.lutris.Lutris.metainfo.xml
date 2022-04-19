@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2020 Lutris -->
+<!-- Copyright 2022 Lutris -->
 <component type="desktop">
   <id>net.lutris.Lutris</id>
   <project_license>GPL-3.0-or-later</project_license>
   <metadata_license>CC0-1.0</metadata_license>
   <translation type="gettext">lutris</translation>
   <developer_name translatable="no">Lutris Team</developer_name>
-  <update_contact>strider@lutris.net</update_contact>
+  <update_contact>strider@strycore.com</update_contact>
   <name translatable="no">Lutris</name>
   <summary>Video game preservation platform</summary>
   <screenshots>
@@ -24,7 +24,7 @@
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
-    <release date="2022-02-04" version="0.5.10" />
+    <release date="2022-18-04" version="0.5.10.1" />
   </releases>
   <content_rating type="oars-1.1" />
 </component>
