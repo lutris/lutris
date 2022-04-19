@@ -1,3 +1,18 @@
+lutris (0.5.10.1) impish; urgency=medium
+
+  * Check for Steam executable in home folder for Flatpak
+  * Adjust the Steam, application and desktop shortcuts to launch with
+    Flatpak when necessary
+  * Disable local (XDG) service in Flatpak
+  * Simplify MangoHUD option (now an On/Off toggle)
+  * Remove ability for Lutris to quit Steam
+  * Don't default to fsync on older kernels
+  * Default to a base resolution when Lutris is unable to read the current
+    configuration
+  * Fix issue with .NET 4.8 installation which affects the FF XIV launcher
+
+ -- Mathieu Comandon <strider@strycore.com>  Mon, 18 Apr 2022 19:07:08 -0700
+
 lutris (0.5.10) impish; urgency=medium
 
   * Add new window to add games to Lutris, with searches from the website,
