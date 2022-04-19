@@ -94,6 +94,9 @@ class DisplayManager:
     def get_resolutions(self):
         """Return available resolutions"""
         resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
+        if not resolutions:
+            logger.error("Failed to generate resolution list from default GdkScreen")
+            resolutions = ['1280x720']
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
     def _get_primary_output(self):
