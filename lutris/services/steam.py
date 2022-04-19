@@ -155,16 +155,22 @@ class SteamService(BaseService):
 
     def add_installed_games(self):
         """Syncs installed Steam games with Lutris"""
-        stats = {"installed": 0, "removed": 0, "deduped": 0}
+        stats = {"installed": 0, "removed": 0, "deduped": 0, "paths": []}
         installed_appids = []
         for steamapps_path in self.steamapps_paths:
             for appmanifest_file in get_appmanifests(steamapps_path):
+                if steamapps_path not in stats["paths"]:
+                    stats["paths"].append(steamapps_path)
                 app_manifest_path = os.path.join(steamapps_path, appmanifest_file)
                 app_manifest = AppManifest(app_manifest_path)
                 installed_appids.append(app_manifest.steamid)
                 self.install_from_steam(app_manifest)
                 stats["installed"] += 1
-        logger.debug("%s Steam games detected and installed", stats["installed"])
+        if stats["paths"]:
+            logger.debug("%s Steam games detected and installed", stats["installed"])
+            logger.debug("Games found in: %s", ", ".join(stats["paths"]))
+        else:
+            logger.debug("No Steam folder found with games")
         db_games = get_games(filters={"runner": "steam"})
         for db_game in db_games:
             steam_game = Game(db_game["id"])
