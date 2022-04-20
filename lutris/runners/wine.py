@@ -766,8 +766,8 @@ class wine(Runner):
         prefix_manager.set_dpi(self.get_dpi())
 
     def get_dpi(self):
-        """Return the DPI to be used by Wine; returns 96 to disable scaling,
-        as this is Window's unscaled default DPI."""
+        """Return the DPI to be used by Wine; returns None to allow Wine's own
+        setting to govern."""
         if bool(self.runner_config.get("Dpi")):
             explicit_dpi = self.runner_config.get("ExplicitDpi")
             if explicit_dpi == "auto":
@@ -778,7 +778,7 @@ class wine(Runner):
                 explicit_dpi = None
             return explicit_dpi or get_default_dpi()
 
-        return 96
+        return None
 
     def setup_dlls(self, manager_class, enable, version):
         """Enable or disable DLLs"""
