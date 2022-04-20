@@ -24,7 +24,7 @@
   <url type="bugtracker">https://github.com/lutris/lutris/issues</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
-    <release date="2022-18-04" version="0.5.10.1" />
+    <release date="2022-04-18" version="0.5.10.1" />
   </releases>
   <content_rating type="oars-1.1" />
 </component>
