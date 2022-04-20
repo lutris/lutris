@@ -235,9 +235,22 @@ class WinePrefixManager:
             self.set_registry_key(path, "WineDesktop", desktop_size)
 
     def set_dpi(self, dpi):
-        """Sets the DPI for WINE to use. 96 DPI is effectively unscaled."""
-        self.set_registry_key(self.hkcu_prefix + "/Software/Wine/Fonts", "LogPixels", dpi)
-        self.set_registry_key(self.hkcu_prefix + "/Control Panel/Desktop", "LogPixels", dpi)
+        """Sets the DPI for WINE to use. None to leave Wine in control."""
+
+        assignment_path = os.path.join(self.path, ".lutris_dpi_assignment")
+
+        def assign_dpi(dpi):
+            self.set_registry_key(self.hkcu_prefix + "/Software/Wine/Fonts", "LogPixels", dpi)
+            self.set_registry_key(self.hkcu_prefix + "/Control Panel/Desktop", "LogPixels", dpi)
+
+        if dpi:
+            assign_dpi(dpi)
+
+            with open(assignment_path, "w", encoding='utf-8') as f:
+                f.write(str(dpi))
+        elif os.path.isfile(assignment_path):
+            os.remove(assignment_path)
+            assign_dpi(96)  # reset previous DPI
 
     def configure_joypads(self):
         """Disables some joypad devices"""
