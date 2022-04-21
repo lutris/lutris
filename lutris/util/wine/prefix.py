@@ -235,13 +235,30 @@ class WinePrefixManager:
             self.set_registry_key(path, "WineDesktop", desktop_size)
 
     def set_dpi(self, dpi):
-        """Sets the DPI for WINE to use. None to leave Wine in control."""
+        """Sets the DPI for WINE to use. None remove the Lutris setting, 
+        to leave WINE in control."""
 
         assignment_path = os.path.join(self.path, ".lutris_dpi_assignment")
+        key_paths = [self.hkcu_prefix + "/Software/Wine/Fonts",
+                     self.hkcu_prefix + "/Control Panel/Desktop"]
 
         def assign_dpi(dpi):
-            self.set_registry_key(self.hkcu_prefix + "/Software/Wine/Fonts", "LogPixels", dpi)
-            self.set_registry_key(self.hkcu_prefix + "/Control Panel/Desktop", "LogPixels", dpi)
+            for key_path in key_paths:
+                self.set_registry_key(key_path, "LogPixels", dpi)
+
+        def is_lutris_dpi_assigned():
+            """Check if Lutris assigned the DPI presently found in the registry."""
+            try:
+                with open(assignment_path, "r", encoding='utf-8') as f:
+                    assigned_dpi = int(f.read())
+            except Exception as ex:
+                logger.exception("Unable to read lutris assigned DPI: %s", ex)
+                return False
+
+            for key_path in key_paths:
+                if assigned_dpi != self.get_registry_key(key_path, "LogPixels"):
+                    return False
+            return True
 
         if dpi:
             assign_dpi(dpi)
@@ -249,8 +266,9 @@ class WinePrefixManager:
             with open(assignment_path, "w", encoding='utf-8') as f:
                 f.write(str(dpi))
         elif os.path.isfile(assignment_path):
+            if is_lutris_dpi_assigned():
+                assign_dpi(96)  # reset previous DPI
             os.remove(assignment_path)
-            assign_dpi(96)  # reset previous DPI
 
     def configure_joypads(self):
         """Disables some joypad devices"""
