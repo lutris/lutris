@@ -235,7 +235,7 @@ class WinePrefixManager:
             self.set_registry_key(path, "WineDesktop", desktop_size)
 
     def set_dpi(self, dpi):
-        """Sets the DPI for WINE to use. None remove the Lutris setting, 
+        """Sets the DPI for WINE to use. None remove the Lutris setting,
         to leave WINE in control."""
 
         assignment_path = os.path.join(self.path, ".lutris_dpi_assignment")
