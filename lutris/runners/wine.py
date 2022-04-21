@@ -376,8 +376,7 @@ class wine(Runner):
                 "default": False,
                 "help": _(
                     "Enables the Windows application's DPI scaling.\n"
-                    "Otherwise, disables DPI scaling by using 96 DPI.\n"
-                    "This corresponds to Wine's Screen Resolution option."
+                    "Otherwise, the Screen Resolution option in 'Wine configuration' controls this."
                 ),
             },
             {
