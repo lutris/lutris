@@ -234,7 +234,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         return runtime.get_env(prefer_system_libs=self.system_config.get("prefer_system_libs", True))
 
     def prelaunch(self):
-        """Run actions before running the game, override this method in runners"""
+        """Run actions before running the game, override this method in runners; raise an
+        exception if prelaunch fails, and it will be reported to the user, and
+        then the game won't start."""
         available_libs = set()
         for lib in set(self.require_libs):
             if lib in LINUX_SYSTEM.shared_libraries:
@@ -246,7 +248,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         unavailable_libs = set(self.require_libs) - available_libs
         if unavailable_libs:
             raise UnavailableLibraries(unavailable_libs, self.arch)
-        return True
 
     def get_run_data(self):
         """Return dict with command (exe & args list) and env vars (dict).

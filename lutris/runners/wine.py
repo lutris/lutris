@@ -837,7 +837,6 @@ class wine(Runner):
             bool(self.runner_config.get("dgvoodoo2")),
             self.runner_config.get("dgvoodoo2_version")
         )
-        return True
 
     def get_dll_overrides(self):
         """Return the DLLs overriden at runtime"""

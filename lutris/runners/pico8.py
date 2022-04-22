@@ -227,8 +227,6 @@ class pico8(Runner):
                         return False
                     sleep(0.1)
 
-        return True
-
     def play(self):
         launch_info = {}
         launch_info["env"] = self.get_env(os_env=False)

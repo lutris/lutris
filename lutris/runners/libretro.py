@@ -242,8 +242,6 @@ class libretro(Runner):
                 # TODO Add dialog for copying the firmware in the correct
                 # location
 
-        return True
-
     def get_runner_parameters(self):
         parameters = []
 

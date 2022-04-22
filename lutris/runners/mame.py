@@ -275,7 +275,6 @@ class mame(Runner):  # pylint: disable=invalid-name
                 env=runtime.get_env(),
                 cwd=self.working_dir
             )
-        return True
 
     def get_shader_params(self, shader_dir, shaders):
         """Returns a list of CLI parameters to apply a list of shaders"""
