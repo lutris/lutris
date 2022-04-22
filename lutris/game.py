@@ -423,8 +423,6 @@ class Game(GObject.Object):
             configs = self.config.game_level["game"]["launch_configs"]
             dlg = dialogs.LaunchConfigSelectDialog(self, configs)
             if not dlg.confirmed:
-                self.state = self.STATE_STOPPED
-                self.emit("game-stop")
                 return {}  # no error here- the user cancelled out
 
             if dlg.config_index:
@@ -441,7 +439,7 @@ class Game(GObject.Object):
 
         return gameplay_info
 
-    @watch_lutris_errors
+    @watch_lutris_errors(game_stop_result=False)
     def configure_game(self, _ignored, error=None):  # noqa: C901
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
@@ -449,8 +447,8 @@ class Game(GObject.Object):
         if error:
             raise error
         gameplay_info = self.get_gameplay_info()
-        if not gameplay_info:
-            return
+        if not gameplay_info:  # if user cancelled- not an error
+            return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
         env["game_name"] = self.name  # What is this used for??
         self.game_runtime_config = {
@@ -502,13 +500,14 @@ class Game(GObject.Object):
             self.start_prelaunch_command(self.runner.system_config.get("prelaunch_wait"))
 
         self.start_game()
+        return True
 
-    @watch_lutris_errors
+    @watch_lutris_errors(game_stop_result=False)
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
         if not self.is_launchable():
             logger.error("Game is not launchable")
-            return
+            return False
 
         self.load_config()  # Reload the config before launching it.
 
@@ -520,6 +519,7 @@ class Game(GObject.Object):
         self.prelaunch_pids = system.get_running_pid_list()
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
+        return True
 
     def start_game(self):
         """Run a background command to lauch the game"""

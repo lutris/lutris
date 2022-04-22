@@ -46,19 +46,28 @@ class MultipleInstallerError(BaseException):
     Raise this if a game returns more than 1 installer."""
 
 
-def watch_lutris_errors(function):
-    """Decorator used to catch exceptions and send events instead of propagating them normally."""
+def watch_lutris_errors(game_stop_result):
+    """Decorator used to catch exceptions and send events instead of propagating them normally.
+    If 'game_stop_result' is not None, and the decorated function returns that, this will
+    send game-stop and make the game stopped as well. This simplifies handling cancellation.
+    """
 
-    @wraps(function)
-    def wrapper(*args, **kwargs):
-        """Catch all exceptions and emit an event."""
-        try:
-            return function(*args, **kwargs)
-        except Exception as ex:
+    def inner_decorator(function):
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            """Catch all exceptions and emit an event."""
             game = args[0]
-            if game.state != game.STATE_STOPPED:
-                game.state = game.STATE_STOPPED
-                game.emit("game-stop")
-            game.emit("game-error", ex)
+            try:
+                result = function(*args, **kwargs)
+                if game_stop_result is not None and result == game_stop_result and game.state != game.STATE_STOPPED:
+                    game.state = game.STATE_STOPPED
+                    game.emit("game-stop")
+                return result
+            except Exception as ex:
+                if game.state != game.STATE_STOPPED:
+                    game.state = game.STATE_STOPPED
+                    game.emit("game-stop")
+                game.emit("game-error", ex)
 
-    return wrapper
+        return wrapper
+    return inner_decorator
