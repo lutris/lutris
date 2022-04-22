@@ -446,19 +446,12 @@ class Game(GObject.Object):
         return gameplay_info
 
     @watch_lutris_errors
-    def configure_game(self, prelaunched, error=None):  # noqa: C901
+    def configure_game(self, _ignored, error=None):  # noqa: C901
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
         if error:
-            logger.error(error)
-            dialogs.ErrorDialog(str(error))
-        if not prelaunched:
-            logger.error("Game prelaunch unsuccessful")
-            dialogs.ErrorDialog(_("An error prevented the game from running"))
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
-            return
+            raise error
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:
             return
