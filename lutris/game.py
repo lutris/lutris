@@ -409,17 +409,14 @@ class Game(GObject.Object):
 
     def get_gameplay_info(self):
         """Return the information provided by a runner's play method.
-        Checks for possible errors.
+        Checks for possible errors; raises exceptions if they occur.
+        This can show a dialog to ask the user to select a configuration;
+        if cancelled this will return an empty dict.
         """
         if not self.runner:
-            logger.warning("Trying to launch %s without a runner", self)
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
-            return {}
+            raise GameConfigError(_("Invalid game configuration: Missing runner"))
         gameplay_info = self.runner.play()
         if "error" in gameplay_info:
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
             raise self.get_config_error(gameplay_info)
 
         if self.config.game_level.get("game", {}).get("launch_configs"):
@@ -428,16 +425,15 @@ class Game(GObject.Object):
             if not dlg.confirmed:
                 self.state = self.STATE_STOPPED
                 self.emit("game-stop")
-                return {}
+                return {}  # no error here- the user cancelled out
 
             if dlg.config_index:
                 config = configs[dlg.config_index - 1]
                 if "command" not in gameplay_info:
                     logger.debug("No command in %s", gameplay_info)
                     logger.debug(config)
-                    self.state = self.STATE_STOPPED
-                    self.emit("game-stop")
-                    return {}
+                    # The 'file' sort of gameplay_info cannot be made to use a configuration
+                    raise GameConfigError(_("The runner could not find a command to apply the configuration to."))
 
                 gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
                 if config.get("args"):
@@ -740,7 +736,7 @@ class Game(GObject.Object):
         """Output the launch argument in a bash script"""
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:
-            logger.error("Unable to retrieve game information for %s. Can't write a script", self)
+            # User cancelled; errors are raised an exception
             return
         export_bash_script(self.runner, gameplay_info, script_path)
 
