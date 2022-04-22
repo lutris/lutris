@@ -50,6 +50,8 @@ def watch_lutris_errors(game_stop_result):
     """Decorator used to catch exceptions and send events instead of propagating them normally.
     If 'game_stop_result' is not None, and the decorated function returns that, this will
     send game-stop and make the game stopped as well. This simplifies handling cancellation.
+    Also, if an error occurs and is emitted, the function returns this value, so callers
+    can tell that the function failed.
     """
 
     def inner_decorator(function):
@@ -68,6 +70,7 @@ def watch_lutris_errors(game_stop_result):
                     game.state = game.STATE_STOPPED
                     game.emit("game-stop")
                 game.emit("game-error", ex)
+                return game_stop_result
 
         return wrapper
     return inner_decorator
