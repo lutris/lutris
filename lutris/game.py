@@ -633,13 +633,6 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
-    def prelaunch_beat(self):
-        """Watch the prelaunch command"""
-        if self.prelaunch_executor and self.prelaunch_executor.is_running:
-            return True
-        self.start_game()
-        return False
-
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
