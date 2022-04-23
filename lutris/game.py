@@ -736,7 +736,7 @@ class Game(GObject.Object):
         """Output the launch argument in a bash script"""
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:
-            # User cancelled; errors are raised an exception
+            # User cancelled; errors are raised as exceptions instead of this
             return
         export_bash_script(self.runner, gameplay_info, script_path)
 
