@@ -595,6 +595,8 @@ class Game(GObject.Object):
                 os.kill(int(pid), sig)
             except ProcessLookupError as ex:
                 logger.debug("Failed to kill game process: %s", ex)
+            except PermissionError:
+                logger.debug("Permission to kill process %s denied", pid)
 
     def get_stop_pids(self):
         """Finds the PIDs of processes that need killin'!"""
