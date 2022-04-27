@@ -1,4 +1,4 @@
-# generated on 2022-02-23T07:44:12+00:00
+# generated on 2022-04-27T22:55:36+00:00
 
 share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
@@ -200,7 +200,10 @@ lutris/util/steam/appmanifest.py
 lutris/util/steam/config.py
 lutris/util/steam/__init__.py
 lutris/util/steam/log.py
-lutris/util/steam/vdf.py
+lutris/util/steam/shortcut.py
+lutris/util/steam/vdf/__init__.py
+lutris/util/steam/vdfutils.py
+lutris/util/steam/vdf/vdict.py
 lutris/util/steam/watcher.py
 lutris/util/strings.py
 lutris/util/system.py
