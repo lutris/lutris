@@ -123,7 +123,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def search_installers(self):
         """Search installers with the Lutris API"""
-        self.title_label.set_markup("<b>Search Lutris.net</b>")
+        self.title_label.set_markup(_("<b>Search Lutris.net</b>"))
         self.listbox.destroy()
         hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, visible=True)
         entry = Gtk.SearchEntry(visible=True)
