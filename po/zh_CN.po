@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-28 07:12+0800\n"
-"PO-Revision-Date: 2022-02-23 16:35+0800\n"
+"POT-Creation-Date: 2022-04-28 09:19+0800\n"
+"PO-Revision-Date: 2022-04-28 09:17+0800\n"
 "Last-Translator: Yidaozhan Ya <yidaozhan_ya@outlook.com>\n"
 "Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
 "Language: zh_CN\n"
@@ -227,7 +227,7 @@ msgstr "导入已安装的游戏"
 
 #: lutris/game_actions.py:67
 msgid "Duplicate"
-msgstr ""
+msgstr "复制"
 
 #: lutris/game_actions.py:68 lutris/gui/widgets/sidebar.py:205
 msgid "Configure"
@@ -266,14 +266,12 @@ msgid "Delete application menu shortcut"
 msgstr "删除应用列表快捷方式"
 
 #: lutris/game_actions.py:95 lutris/gui/installerwindow.py:187
-#, fuzzy
 msgid "Create steam shortcut"
-msgstr "创建桌面快捷方式"
+msgstr "创建 Steam 快捷方式"
 
 #: lutris/game_actions.py:100
-#, fuzzy
 msgid "Delete steam shortcut"
-msgstr "删除桌面快捷方式"
+msgstr "删除 Steam 快捷方式"
 
 #: lutris/game_actions.py:103
 msgid "Install another version"
@@ -306,10 +304,12 @@ msgid ""
 "The configuration will be duplicated, but the games files will <b>not be "
 "duplicated</b>."
 msgstr ""
+"您要复制 %s 吗？\n"
+"配置文件会被复制，但游戏安装文件夹<b>不会被复制</b>。"
 
 #: lutris/game_actions.py:225
 msgid "Duplicate game?"
-msgstr ""
+msgstr "复制游戏"
 
 #: lutris/game_actions.py:286
 msgid "This game has no installation directory"
@@ -374,7 +374,7 @@ msgstr "更新完成前游戏可能无法正常启动"
 
 #: lutris/game.py:342
 msgid "Unable to find Xephyr, install it or disable the Xephyr option"
-msgstr ""
+msgstr "找不到 Xephyr，请先安装 Xephyr 或禁用 Xephyr 选项"
 
 #: lutris/game.py:398
 #, python-format
@@ -452,6 +452,10 @@ msgstr "自定义所有安装选项"
 #: lutris/gui/addgameswindow.py:51
 msgid "Add games to Lutris"
 msgstr "添加游戏"
+
+#: lutris/gui/addgameswindow.py:126
+msgid "<b>Search Lutris.net</b>"
+msgstr "<b>在 Lutris.net 上搜索</b>"
 
 #: lutris/gui/addgameswindow.py:149
 msgid "Select folder to scan"
@@ -546,9 +550,8 @@ msgid "List all known runners"
 msgstr "列出所有已知的运行环境"
 
 #: lutris/gui/application.py:195
-#, fuzzy
 msgid "List all known Wine versions"
-msgstr "列出所有已知的 Wine 运行环境"
+msgstr "列出所有已知的 Wine 版本"
 
 #: lutris/gui/application.py:203
 msgid "Install a Runner"
@@ -1043,7 +1046,7 @@ msgstr "反馈已保存到 %s"
 #: lutris/gui/dialogs/runner_install.py:29
 #, python-format
 msgid "Showing games using %s"
-msgstr ""
+msgstr "查看使用 %s 的游戏"
 
 #: lutris/gui/dialogs/runner_install.py:71
 #, python-format
@@ -1065,10 +1068,10 @@ msgid "%s version management"
 msgstr "%s 版本管理器"
 
 #: lutris/gui/dialogs/runner_install.py:158
-#, fuzzy, python-format
+#, python-format
 msgid "_View %d game"
 msgid_plural "_View %d games"
-msgstr[0] "开始新游戏"
+msgstr[0] "被 %d 个游戏使用"
 
 #: lutris/gui/dialogs/runner_install.py:190
 #: lutris/gui/dialogs/uninstall_game.py:34
@@ -1076,9 +1079,8 @@ msgid "Uninstall"
 msgstr "卸载"
 
 #: lutris/gui/dialogs/runner_install.py:214
-#, fuzzy
 msgid "Wine version usage"
-msgstr "Wine 版本"
+msgstr "Wine 版本使用情况"
 
 #: lutris/gui/dialogs/runner_install.py:256
 msgid "Do you want to cancel the download?"
@@ -1089,9 +1091,9 @@ msgid "Download starting"
 msgstr "下载开始"
 
 #: lutris/gui/dialogs/runner_install.py:307
-#, fuzzy, python-format
+#, python-format
 msgid "Version %s is not longer available"
-msgstr "%s 没有可用的安装脚本。"
+msgstr "版本 %s 不再可用"
 
 #: lutris/gui/dialogs/runner_install.py:332
 msgid "Downloading…"
@@ -1274,6 +1276,8 @@ msgid ""
 "Select which one you want and they will be available in the 'extras' folder "
 "where the game is installed."
 msgstr ""
+"该游戏包含附加内容。\n"
+"请选择您想下载的附加内容，这些内容将被安装至游戏的“extras”文件夹。"
 
 #: lutris/gui/installerwindow.py:459
 #, python-format
@@ -1311,9 +1315,8 @@ msgid "No installed games found. Press Ctrl+H so show all games."
 msgstr "未找到已安装的游戏，按 Ctrl+H 显示所有游戏"
 
 #: lutris/gui/lutriswindow.py:430
-#, fuzzy
 msgid "No games found"
-msgstr "未找到更新"
+msgstr "未找到游戏"
 
 #: lutris/gui/views/list.py:48 lutris/runners/dolphin.py:26
 #: lutris/runners/scummvm.py:178
@@ -3652,9 +3655,8 @@ msgid "ScummVM"
 msgstr "ScummVM"
 
 #: lutris/runners/scummvm.py:82
-#, fuzzy
 msgid "Enable subtitles"
-msgstr "启用声音"
+msgstr "启用字幕"
 
 #: lutris/runners/scummvm.py:89
 msgid "Aspect ratio correction"
@@ -3670,25 +3672,22 @@ msgstr ""
 "有正方形像素，这导致了图像的垂直压缩。此选项通过显示矩形像素来纠正此问题。"
 
 #: lutris/runners/scummvm.py:140
-#, fuzzy
 msgid "Render mode"
-msgstr "图形渲染器"
+msgstr "渲染模式"
 
 #: lutris/runners/scummvm.py:157
-#, fuzzy
 msgid "Changes how the game is rendered."
-msgstr "全屏启动游戏。"
+msgstr "更改游戏的渲染方式。"
 
 #: lutris/runners/scummvm.py:161
-#, fuzzy
 msgid "Filtering"
-msgstr "筛选:"
+msgstr "缩放算法"
 
 #: lutris/runners/scummvm.py:163
 msgid ""
 "Uses bilinear interpolation instead of nearest neighbor resampling for the "
 "aspect ratio correction and stretch mode."
-msgstr ""
+msgstr "在宽高比校正和缩放时使用双线性插值算法而非近邻取样。"
 
 #: lutris/runners/scummvm.py:170
 msgid "Data directory"
@@ -3703,193 +3702,197 @@ msgid ""
 "Specifes platform of game. Allowed values: 2gs, 3do, acorn, amiga, atari, "
 "c64, fmtowns, nes, mac, pc pc98, pce, segacd, wii, windows"
 msgstr ""
+"指定游戏平台，可以是：2gs、3do、acorn、amiga、atari、c64、fmtowns、nes、mac、"
+"pc、pc98、pce、segacd、wii、windows"
 
 #: lutris/runners/scummvm.py:187
 msgid "Enables joystick input (default: 0 = first joystick)"
-msgstr ""
+msgstr "启用摇杆输入（默认：0，即第一个摇杆）"
 
 #: lutris/runners/scummvm.py:193
-#, fuzzy
 msgid "Language"
-msgstr "系统语言"
+msgstr "语言"
 
 #: lutris/runners/scummvm.py:194
 msgid ""
 "Selects language (en, de, fr, it, pt, es, jp, zh, kr, se, gb, hb, ru, cz)"
-msgstr ""
+msgstr "选择语言（en、de、fr、it、pt、es、jp、zh、kr、se、gb、hb、ru、cz）"
 
 #: lutris/runners/scummvm.py:200
-#, fuzzy
 msgid "Engine speed"
-msgstr "游戏引擎"
+msgstr "引擎速度"
 
 #: lutris/runners/scummvm.py:201
 msgid ""
 "Sets frames per second limit (0 - 100) for Grim Fandango or Escape from "
 "Monkey Island (default: 60)."
 msgstr ""
+"为 Grim Fandango 和 Escape from Monkey Island 设置帧率限制（0 到 100，默认"
+"值：60）。"
 
 #: lutris/runners/scummvm.py:208
 msgid "Talk speed"
-msgstr ""
+msgstr "对话速度"
 
 #: lutris/runners/scummvm.py:209
 msgid "Sets talk speed for games (default: 60)"
-msgstr ""
+msgstr "设置游戏中对话的呈现速度（默认：60）"
 
 #: lutris/runners/scummvm.py:215
 msgid "Music tempo"
-msgstr ""
+msgstr "音乐速度"
 
 #: lutris/runners/scummvm.py:216
 msgid "Sets music tempo (in percent, 50-200) for SCUMM games (default: 100)"
-msgstr ""
+msgstr "设置 SCUMM 游戏中音乐的播放速度（百分比，50 到 200，默认值：100）"
 
 #: lutris/runners/scummvm.py:222
 msgid "Digital iMuse tempo"
-msgstr ""
+msgstr "数字合成器速度"
 
 #: lutris/runners/scummvm.py:223
 msgid "Sets internal Digital iMuse tempo (10 - 100) per second (default: 10)"
-msgstr ""
+msgstr "设置内部数字音乐合成器（iMuse）的运行速度（范围：10 到 100，默认：10）"
 
 #: lutris/runners/scummvm.py:228
-#, fuzzy
 msgid "Music driver"
 msgstr "音频驱动"
 
 #: lutris/runners/scummvm.py:244
 msgid "Specifies the device ScummVM uses to output audio."
-msgstr ""
+msgstr "指定 ScummVM 使用的音频输出设备。"
 
 #: lutris/runners/scummvm.py:249
 msgid "Output rate"
-msgstr ""
+msgstr "输出采样率"
 
 #: lutris/runners/scummvm.py:256
 msgid "Selects output sample rate in Hz."
-msgstr ""
+msgstr "选择音频输出的采样率（Hz）。"
 
 #: lutris/runners/scummvm.py:261
-#, fuzzy
 msgid "OPL driver"
-msgstr "音频驱动"
+msgstr "仿真声卡"
 
 #: lutris/runners/scummvm.py:273
 msgid ""
 "Chooses which emulator is used by ScummVM when the AdLib emulator is chosen "
 "as the Preferred device."
-msgstr ""
+msgstr "当音频驱动为 AdLib 声卡时，在此处选择模拟 AdLib 声卡的方法。"
 
 #: lutris/runners/scummvm.py:280
 msgid "Music volume"
-msgstr ""
+msgstr "音乐音量"
 
 #: lutris/runners/scummvm.py:281
 msgid "Sets the music volume, 0-255 (default: 192)"
-msgstr ""
+msgstr "设置音乐的音量，从 0 到 255（默认：192）"
 
 #: lutris/runners/scummvm.py:287
 msgid "SFX volume"
-msgstr ""
+msgstr "音效音量"
 
 #: lutris/runners/scummvm.py:288
 msgid "Sets the sfx volume, 0-255 (default: 192)"
-msgstr ""
+msgstr "设置音效的音量，从 0 到 255（默认：192）"
 
 #: lutris/runners/scummvm.py:294
 msgid "Speech volume"
-msgstr ""
+msgstr "对话音量"
 
 #: lutris/runners/scummvm.py:295
 msgid "Sets the speech volume, 0-255 (default: 192)"
-msgstr ""
+msgstr "设置对话的音量，从 0 到 255（默认：192）"
 
 #: lutris/runners/scummvm.py:301
 msgid "MIDI gain"
-msgstr ""
+msgstr "MIDI 增益"
 
 #: lutris/runners/scummvm.py:302
 msgid "Sets the gain for MIDI playback. 0-1000 (default: 100)"
-msgstr ""
+msgstr "设置播放 MIDI 音乐时的音量增益，从 0 到 1000（默认：100）"
 
 #: lutris/runners/scummvm.py:308
 msgid "Soundfont"
-msgstr ""
+msgstr "SoundFont 文件"
 
 #: lutris/runners/scummvm.py:309
 msgid "Specifies the path to a soundfont file."
-msgstr ""
+msgstr "指定 MIDI 合成器使用的 SoundFont 音源文件。"
 
 #: lutris/runners/scummvm.py:314
 msgid "Mixed AdLib/MIDI mode"
-msgstr ""
+msgstr "AdLib/MIDI 混合模式"
 
 #: lutris/runners/scummvm.py:317
 msgid "Combines MIDI music with AdLib sound effects."
-msgstr ""
+msgstr "混合使用 MIDI 音乐和 AdLib 音效。"
 
 #: lutris/runners/scummvm.py:322
 msgid "True Roland MT-32"
-msgstr ""
+msgstr "原生 Roland MT-32 设备"
 
 #: lutris/runners/scummvm.py:325
 msgid ""
 "Tells ScummVM that the MIDI device is an actual Roland MT-32, LAPC-I, CM-64, "
 "CM-32L, CM-500 or other MT-32 device."
 msgstr ""
+"当电脑的 MIDI 设备为 Roland MT-32、LAPC-I、CM-64、CM-32L、CM-500 或其他原生 "
+"MT-32 设备时，可启用该选项，让 ScummVM 禁用通用 MIDI 仿真。\n"
+"不能与“启用 Roland GS 设备”选项同时使用。"
 
 #: lutris/runners/scummvm.py:331
-#, fuzzy
 msgid "Enable Roland GS"
-msgstr "启用声音"
+msgstr "启用 Roland GS 设备"
 
 #: lutris/runners/scummvm.py:334
 msgid ""
 "Tells ScummVM that the MIDI device is a GS device that has an MT-32 map, "
 "such as an SC-55, SC-88 or SC-8820."
 msgstr ""
+"当电脑的 MIDI 设备是具有 MT-32 映射功能的 GS 设备，如 SC-55、SC-88 或 "
+"SC-8820 时，可启用该选项，让 ScummVM 启用 MT-32 映射。\n"
+"不能与“原生 Roland MT-32 设备”选项同时使用。"
 
 #: lutris/runners/scummvm.py:341
 msgid "Use alternate intro"
-msgstr ""
+msgstr "使用替代介绍"
 
 #: lutris/runners/scummvm.py:342
 msgid "Uses alternative intro for CD versions"
-msgstr ""
+msgstr "如果游戏为人物准备了两个版本的介绍，则播放另一种"
 
 #: lutris/runners/scummvm.py:348
 msgid "Copy protection"
-msgstr ""
+msgstr "复制保护"
 
 #: lutris/runners/scummvm.py:349
 msgid "Enables copy protection"
-msgstr ""
+msgstr "启用复制保护"
 
 #: lutris/runners/scummvm.py:355
-#, fuzzy
 msgid "Demo mode"
-msgstr "Amiga 型号"
+msgstr "演示模式"
 
 #: lutris/runners/scummvm.py:356
 msgid "Starts demo mode of Maniac Mansion or The 7th Guest"
-msgstr ""
+msgstr "启动 Maniac Mansion 和 The 7th Guest 的演示模式"
 
 #: lutris/runners/scummvm.py:362
 msgid "Debug level"
-msgstr ""
+msgstr "调试级别"
 
 #: lutris/runners/scummvm.py:363
 msgid "Sets debug verbosity level"
-msgstr ""
+msgstr "设置调试日志的详细级别（值为 --debuglevel=NUM 中的 NUM 部分）"
 
 #: lutris/runners/scummvm.py:369
 msgid "Debug flags"
-msgstr ""
+msgstr "调试标志"
 
 #: lutris/runners/scummvm.py:370
 msgid "Enables engine specific debug flags"
-msgstr ""
+msgstr "添加引擎特定的调试标志（值为 --debugflags=FLAGS 中的 FLAGS 部分）"
 
 #: lutris/runners/snes9x.py:17
 msgid "Super Nintendo emulator"
@@ -4428,14 +4431,13 @@ msgid "Enable Fsync"
 msgstr "启用 Fsync"
 
 #: lutris/runners/wine.py:317
-#, fuzzy
 msgid ""
 "Enable futex-based synchronization (fsync). This will increase performance "
 "in applications that take advantage of multi-core processors. Requires "
 "kernel 5.16 or above."
 msgstr ""
-"在 EXE 与 wineserver 进程（Wine 的内核）通信时启用基于快速用户区互斥（futex）"
-"的同步（fsync），可以提升多核游戏的性能。需要安装打过 fsync 补丁的自定义 "
+"在 EXE 与 wineserver 进程（Wine 的内核）通信时启用基于快速用户空间互斥锁"
+"（futex）的同步（fsync），可以提升多核游戏的性能。需要安装 5.16 或更高版本的 "
 "Linux 内核。"
 
 #: lutris/runners/wine.py:325
@@ -4469,20 +4471,17 @@ msgstr ""
 "本。\n"
 
 #: lutris/runners/wine.py:346
-#, fuzzy
 msgid "Enable Easy Anti-Cheat"
-msgstr "启用 BattlEye 反作弊支持"
+msgstr "启用 EAC（小蓝熊）反作弊支持"
 
 #: lutris/runners/wine.py:350
-#, fuzzy
 msgid ""
 "Enable support for Easy Anti-Cheat in supported games\n"
 "Requires Lutris Wine 7.2 and newer or any other compatible Wine build.\n"
 msgstr ""
-"对游戏启用 BattlEye 反作弊支持（还需要游戏开发者主动启用 BattlEye proton 兼容"
-"性支持，否则不会生效）。\n"
-"需要使用 Lutris Wine 6.21-2 及后续版本，或者其他与 BattlEye 兼容的 Wine 版"
-"本。\n"
+"对游戏启用 Easy Anti-Cheat 反作弊支持（还需要游戏开发者主动启用 EAC proton 兼"
+"容性支持，否则不会生效）。\n"
+"需要使用 Lutris Wine 7.2 及后续版本，或者其他与 EAC 兼容的 Wine 版本。\n"
 
 #: lutris/runners/wine.py:356
 msgid "Windowed (virtual desktop)"
@@ -4953,25 +4952,24 @@ msgid "Resolution of the screen visible to the game"
 msgstr "游戏读取到的屏幕分辨率"
 
 #: lutris/sysoptions.py:212
-#, fuzzy
 msgid "Restrict number of cores used"
-msgstr "仅限单核"
+msgstr "限制 CPU 核数"
 
 #: lutris/sysoptions.py:215
-#, fuzzy
 msgid "Restrict the game to a maximum number of CPU cores."
-msgstr "将游戏限制为仅使用单个 CPU 核心。"
+msgstr "限制游戏可用的最大 CPU 核数。"
 
 #: lutris/sysoptions.py:220
-#, fuzzy
 msgid "Restrict number of cores to"
-msgstr "仅限单核"
+msgstr "最大可用核数"
 
 #: lutris/sysoptions.py:223
 msgid ""
 "Maximum number of CPU cores to be used, if 'Restrict number of cores used' "
 "is turned on."
 msgstr ""
+"如果启用了“限制 CPU 核数”，则在此处设置要使用的最大 CPU 核数，默认为 1（单"
+"核）。"
 
 #: lutris/sysoptions.py:229
 msgid "Restore gamma on game exit"
@@ -5349,7 +5347,7 @@ msgstr "工程"
 #: lutris/util/ubisoft/client.py:102
 #, python-format
 msgid "Ubisoft authentication has been lost: %s"
-msgstr ""
+msgstr "育碧身份验证已失效：%s"
 
 #: lutris/util/wine/dll_manager.py:63
 msgid "Manual"
@@ -5370,29 +5368,26 @@ msgid "Vulkan is not installed or is not supported by your system"
 msgstr "您未安装支持 Vulkan 的显卡驱动"
 
 #: lutris/util/wine/wine.py:355
-#, fuzzy
 msgid ""
 "If you have compatible hardware, please follow the installation procedures "
 "as described in\n"
 "<a href='https://github.com/lutris/docs/blob/master/HowToDXVK.md'>How-to:-"
 "DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
 msgstr ""
-"未安装支持Vulkan的显卡驱动，很多游戏都无法正常运行。\n"
-"请参考以下文档来安装显卡驱动：<a href='https://github.com/lutris/lutris/wiki/"
-"How-to:-DXVK'>How-to:-DXVK（https://github.com/lutris/lutris/wiki/How-to:-"
-"DXVK）</a>"
+"如果您的显卡支持 Vulkan，请参考以下文档来安装 Vulkan 驱动：\n"
+"<a href='https://github.com/lutris/docs/blob/master/HowToDXVK.md'>How-to:-"
+"DXVK (https://github.com/lutris/docs/blob/master/HowToDXVK.md)</a>"
 
 #: lutris/util/wine/wine.py:367
-#, fuzzy
 msgid ""
 "Your limits are not set correctly. Please increase them as described here: "
 "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>How-to:-"
 "Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
 msgstr ""
 "您的系统文件描述符上限太小。请参考以下文档来增大文件描述符上限，否则 Esync 可"
-"能不能正常工作：<a href='https://github.com/lutris/lutris/wiki/How-to:-"
-"Esync'>How-to:-Esync（https://github.com/lutris/lutris/wiki/How-to:-Esync）</"
-"a>"
+"能不能正常工作：<a href='https://github.com/lutris/docs/blob/master/"
+"HowToEsync.md'>How-to:-Esync (https://github.com/lutris/docs/blob/master/"
+"HowToEsync.md)</a>"
 
 #: lutris/util/wine/wine.py:376
 msgid ""
@@ -5905,9 +5900,6 @@ msgstr ""
 
 #~ msgid "Configure m_anually"
 #~ msgstr "手动配置 (_A)"
-
-#~ msgid "Search Lutris.net"
-#~ msgstr "在 lutris.net 上搜索"
 
 #~ msgid "Synchronize library"
 #~ msgstr "同步游戏库"
