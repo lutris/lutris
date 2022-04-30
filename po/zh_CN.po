@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-28 09:19+0800\n"
+"POT-Creation-Date: 2022-04-30 21:58+0800\n"
 "PO-Revision-Date: 2022-04-28 09:17+0800\n"
 "Last-Translator: Yidaozhan Ya <yidaozhan_ya@outlook.com>\n"
 "Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
@@ -1185,6 +1185,23 @@ msgstr "Steam 游戏（应用 ID：<b>{appid}</b>）"
 #, python-brace-format
 msgid "{file} on {host}"
 msgstr "{file}（来自 {host}）"
+
+#: lutris/gui/installer/file_box.py:121
+msgid "Download"
+msgstr "下载"
+
+#: lutris/gui/installer/file_box.py:123
+msgid "Use Cache"
+msgstr "使用缓存"
+
+#: lutris/gui/installer/file_box.py:125 lutris/runners/steam.py:29
+#: lutris/services/steam.py:73
+msgid "Steam"
+msgstr "Steam"
+
+#: lutris/gui/installer/file_box.py:126
+msgid "Select File"
+msgstr "选择文件"
 
 #: lutris/gui/installer/file_box.py:187
 msgid "Cache file for future installations"
@@ -3922,10 +3939,6 @@ msgstr "音频驱动"
 #: lutris/runners/steam.py:28
 msgid "Runs Steam for Linux games"
 msgstr "运行 Linux 版 Steam 上的游戏"
-
-#: lutris/runners/steam.py:29 lutris/services/steam.py:73
-msgid "Steam"
-msgstr "Steam"
 
 #: lutris/runners/steam.py:35
 msgid "Application ID"
