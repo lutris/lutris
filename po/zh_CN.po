@@ -527,7 +527,7 @@ msgstr "生成 bash 脚本以在没有 Lutris 客户端的情况下运行游戏"
 
 #: lutris/gui/application.py:147
 msgid "Execute a program with the Lutris Runtime"
-msgstr "在 Lurtis 运行库中运行程序"
+msgstr "在 Lutris 运行库中运行程序"
 
 #: lutris/gui/application.py:155
 msgid "List all games in database"
