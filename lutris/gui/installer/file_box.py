@@ -118,12 +118,12 @@ class InstallerFileBox(Gtk.VBox):
         """"Return the combobox's model"""
         model = Gtk.ListStore(str, str)
         if "download" in self.installer_file.providers:
-            model.append(["download", "Download"])
+            model.append(["download", _("Download")])
         if "pga" in self.installer_file.providers:
-            model.append(["pga", "Use Cache"])
+            model.append(["pga", _("Use Cache")])
         if "steam" in self.installer_file.providers:
-            model.append(["steam", "Steam"])
-        model.append(["user", "Select File"])
+            model.append(["steam", _("Steam")])
+        model.append(["user", _("Select File")])
         return model
 
     def get_combobox(self):
