@@ -242,7 +242,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         """Install from a setup file"""
         self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.listbox.destroy()
-        label = self._get_label("Game name")
+        label = self._get_label(_("Game name"))
         self.vbox.add(label)
         entry = Gtk.Entry(visible=True)
         self.vbox.add(entry)
