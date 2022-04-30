@@ -6,6 +6,7 @@ Comment[pl]=Otwarta platforma dla graczy
 Comment[pt-BR]=Plataforma de jogos de código aberto
 Comment[es]=Plataforma de juegos de código abierto
 Comment[id]=Platform permainan terbuka
+Comment[de]=Freie Spiele-Plattform
 Categories=Game;
 Exec=lutris %U
 Icon=lutris
