@@ -254,7 +254,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         name = entry.get_text().strip()
         installer = {
             "name": name,
-            "version": "Setup file",
+            "version": _("Setup file"),
             "slug": slugify(name) + "-setup",
             "game_slug": slugify(name),
             "runner": "wine",
@@ -263,7 +263,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
                     "exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"
                 },
                 "files": [
-                    {"setupfile": "N/A:Select the setup file"}
+                    {"setupfile": "N/A:%s" % _("Select the setup file")}
                 ],
                 "installer": [
                     {"task": {"name": "wineexec", "executable": "setupfile"}}
