@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-01 01:05+0800\n"
+"POT-Creation-Date: 2022-05-01 15:48+0800\n"
 "PO-Revision-Date: 2022-04-28 09:17+0800\n"
 "Last-Translator: Yidaozhan Ya <yidaozhan_ya@outlook.com>\n"
 "Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
@@ -486,6 +486,14 @@ msgstr "输入游戏名称"
 #: lutris/gui/addgameswindow.py:249
 msgid "Continue"
 msgstr "继续"
+
+#: lutris/gui/addgameswindow.py:257
+msgid "Setup file"
+msgstr "通过安装包安装"
+
+#: lutris/gui/addgameswindow.py:266
+msgid "Select the setup file"
+msgstr "请选择安装包"
 
 #: lutris/gui/addgameswindow.py:279
 msgid "Select a Lutris installer"
