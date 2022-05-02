@@ -774,7 +774,7 @@ class wine(Runner):
                 explicit_dpi = None
             try:
                 explicit_dpi = int(explicit_dpi)
-            except ValueError:
+            except:
                 explicit_dpi = None
             return explicit_dpi or get_default_dpi()
 
