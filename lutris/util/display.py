@@ -173,14 +173,14 @@ def get_desktop_environment():
     desktop_session = os.environ.get("DESKTOP_SESSION", "").lower()
     if not desktop_session:
         return None
-    if desktop_session.endswith("plasma"):
-        return DesktopEnvironment.PLASMA
     if desktop_session.endswith("mate"):
         return DesktopEnvironment.MATE
     if desktop_session.endswith("xfce"):
         return DesktopEnvironment.XFCE
     if desktop_session.endswith("deepin"):
         return DesktopEnvironment.DEEPIN
+    if "plasma" in desktop_session:
+        return DesktopEnvironment.PLASMA
     return DesktopEnvironment.UNKNOWN
 
 
