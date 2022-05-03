@@ -70,6 +70,7 @@ SYSTEM_COMPONENTS = {
         "qterminal",
         "alacritty",
         "kgx",
+        "deepin-terminal",
     ],
     "LIBRARIES": {
         "OPENGL": ["libGL.so.1"],
