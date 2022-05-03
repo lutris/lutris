@@ -1339,8 +1339,8 @@ msgstr "未找到包含“%s”的游戏"
 msgid "Add games to your favorites to see them here."
 msgstr "将游戏添加到收藏夹就能在这里看到"
 
-#: lutris/gui/lutriswindow.py:421
-msgid "No installed games found. Press Ctrl+H so show all games."
+#: lutris/gui/lutriswindow.py:420
+msgid "No installed games found. Press Ctrl+H to show all games."
 msgstr "未找到已安装的游戏，按 Ctrl+H 显示所有游戏"
 
 #: lutris/gui/lutriswindow.py:430
