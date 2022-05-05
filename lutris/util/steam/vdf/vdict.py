@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 from collections import Counter
 
 _iter_values = 'values'
