@@ -654,6 +654,7 @@ class wine(Runner):
             working_dir=self.prefix_path,
             config=self,
             env=self.get_env(os_env=True),
+            runner=self
         )
 
     def run_wineexec(self, *args):
@@ -679,6 +680,7 @@ class wine(Runner):
             arch=self.wine_arch,
             config=self,
             env=self.get_env(os_env=True),
+            runner=self
         )
 
     def run_regedit(self, *args):
@@ -704,7 +706,7 @@ class wine(Runner):
             wine_path=self.get_executable(),
             config=self,
             env=self.get_env(os_env=True),
-            wine=self
+            runner=self
         )
 
     def run_winecpl(self, *args):
@@ -795,7 +797,7 @@ class wine(Runner):
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
             logger.warning("No valid prefix detected in %s, creating one...", self.prefix_path)
-            create_prefix(self.prefix_path, wine_path=self.get_executable(), arch=self.wine_arch)
+            create_prefix(self.prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
 
         prefix_manager = WinePrefixManager(self.prefix_path)
         if self.runner_config.get("autoconf_joypad", False):
