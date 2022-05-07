@@ -700,13 +700,19 @@ class wine(Runner):
     def run_winetricks(self, *args):
         """Run winetricks in the current context"""
         self.prelaunch()
-        disable_runtime = not self.use_runtime() or self.runner_config.get("system_winetricks")
+        disable_runtime = not self.use_runtime()
+        system_winetricks = self.runner_config.get("system_winetricks")
+        if system_winetricks:
+            # Don't run the system winetricks with the runtime; let the
+            # system be the system
+            disable_runtime = True
         winetricks(
             "",
             prefix=self.prefix_path,
             wine_path=self.get_executable(),
             config=self,
             disable_runtime=disable_runtime,
+            system_winetricks=system_winetricks,
             env=self.get_env(os_env=True, disable_runtime=disable_runtime),
             runner=self
         )
