@@ -296,7 +296,7 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    baseenv = runner.get_env()
+    baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
 
@@ -341,6 +341,7 @@ def winetricks(
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
     if (wine_config.runner_config.get("system_winetricks") or not system.path_exists(winetricks_path)):
         winetricks_path = system.find_executable("winetricks")
+        disable_runtime=True
         if not winetricks_path:
             raise RuntimeError("No installation of winetricks found")
     if wine_path:

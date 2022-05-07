@@ -160,7 +160,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             raise ValueError("runner_executable not set for {}".format(self.name))
         return os.path.join(settings.RUNNER_DIR, self.runner_executable)
 
-    def get_env(self, os_env=False):
+    def get_env(self, os_env=False, disable_runtime=False):
         """Return environment variables used for a game."""
         env = {}
         if os_env:
@@ -207,7 +207,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         runtime_ld_library_path = None
 
-        if self.use_runtime():
+        if not disable_runtime and self.use_runtime():
             runtime_env = self.get_runtime_env()
             runtime_ld_library_path = runtime_env.get("LD_LIBRARY_PATH")
 

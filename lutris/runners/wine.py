@@ -700,12 +700,14 @@ class wine(Runner):
     def run_winetricks(self, *args):
         """Run winetricks in the current context"""
         self.prelaunch()
+        disable_runtime = not self.use_runtime() or self.runner_config.get("system_winetricks")
         winetricks(
             "",
             prefix=self.prefix_path,
             wine_path=self.get_executable(),
             config=self,
-            env=self.get_env(os_env=True),
+            disable_runtime=disable_runtime,
+            env=self.get_env(os_env=True, disable_runtime=disable_runtime),
             runner=self
         )
 
@@ -843,12 +845,12 @@ class wine(Runner):
             overrides = {}
         return overrides
 
-    def get_env(self, os_env=False):
+    def get_env(self, os_env=False, disable_runtime=False):
         """Return environment variables used by the game"""
         # Always false to runner.get_env, the default value
         # of os_env is inverted in the wine class,
         # the OS env is read later.
-        env = super().get_env(False)
+        env = super().get_env(False, disable_runtime=disable_runtime)
         if os_env:
             env.update(os.environ.copy())
         show_debug = self.runner_config.get("show_debug", "-all")
