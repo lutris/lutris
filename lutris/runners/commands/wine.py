@@ -208,6 +208,7 @@ def wineexec(  # noqa: C901
     disable_runtime=False,
     env=None,
     overrides=None,
+    wine=None
 ):
     """
     Execute a Wine command.
@@ -240,7 +241,8 @@ def wineexec(  # noqa: C901
     if isinstance(exclude_processes, str):
         exclude_processes = shlex.split(exclude_processes)
 
-    wine = import_runner("wine")()
+    if not wine:
+        wine = import_runner("wine")()
 
     if not wine_path:
         wine_path = wine.get_executable()
@@ -328,6 +330,7 @@ def winetricks(
     config=None,
     env=None,
     disable_runtime=False,
+    wine=None
 ):
     """Execute winetricks."""
     wine_config = config or LutrisConfig(runner_slug="wine")
@@ -356,6 +359,7 @@ def winetricks(
         config=config,
         env=env,
         disable_runtime=disable_runtime,
+        wine=wine
     )
 
 
