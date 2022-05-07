@@ -226,7 +226,7 @@ def wineexec(  # noqa: C901
         blocking (bool): if true, do not run the process in a thread
         config (LutrisConfig): LutrisConfig object for the process context
         watch (list): list of process names to monitor (even when in a ignore list)
-        runner (runner): the wine runner that carries teh configuration to use
+        runner (runner): the wine runner that carries the configuration to use
 
     Returns:
         Process results if the process is running in blocking mode or
