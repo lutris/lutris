@@ -699,7 +699,12 @@ class wine(Runner):
         """Run winetricks in the current context"""
         self.prelaunch()
         winetricks(
-            "", prefix=self.prefix_path, wine_path=self.get_executable(), config=self, env=self.get_env(os_env=True)
+            "",
+            prefix=self.prefix_path,
+            wine_path=self.get_executable(),
+            config=self,
+            env=self.get_env(os_env=True),
+            wine=self
         )
 
     def run_winecpl(self, *args):
