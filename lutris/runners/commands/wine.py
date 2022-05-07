@@ -6,7 +6,6 @@ import time
 
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
-from lutris.config import LutrisConfig
 from lutris.runners import import_runner
 from lutris.util import linux, system
 from lutris.util.log import logger
@@ -334,21 +333,21 @@ def winetricks(
     config=None,
     env=None,
     disable_runtime=False,
+    system_winetricks=False,
     runner=None
 ):
     """Execute winetricks."""
-    wine_config = config or LutrisConfig(runner_slug="wine")
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
-    if (wine_config.runner_config.get("system_winetricks") or not system.path_exists(winetricks_path)):
+    if system_winetricks or not system.path_exists(winetricks_path):
         winetricks_path = system.find_executable("winetricks")
-        disable_runtime=True
         if not winetricks_path:
             raise RuntimeError("No installation of winetricks found")
     if wine_path:
         winetricks_wine = wine_path
     else:
-        wine = import_runner("wine")
-        winetricks_wine = wine().get_executable()
+        if not runner:
+            runner = import_runner("wine")()
+        winetricks_wine = runner.get_executable()
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, winetricks_wine)
     args = app
