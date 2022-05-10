@@ -68,7 +68,10 @@ class Runner:  # pylint: disable=too-many-public-methods
     @property
     def game_config(self):
         """Return the cascaded game config as a dict."""
-        return self.config.game_config if self.config else {}
+        if self.config:
+            return self.config.game_config
+        logger.warning("Accessing game config while runner wasn't given one.")
+        return {}
 
     @property
     def runner_config(self):
