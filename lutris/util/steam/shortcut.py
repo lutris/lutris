@@ -3,8 +3,6 @@ import binascii
 import os
 import shutil
 
-from matplotlib.animation import ArtistAnimation
-
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.steam import vdf
