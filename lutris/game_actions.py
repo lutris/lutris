@@ -139,7 +139,7 @@ class GameActions:
                 self.game.is_installed
                 and steam_shortcut.vdf_file_exists()
                 and not steam_shortcut.shortcut_exists(self.game)
-                and not steam_shortcut.has_steamtype_runner(self.game)
+                and not steam_shortcut.is_steam_game(self.game)
             ),
             "rm-desktop-shortcut": bool(
                 self.game.is_installed
@@ -153,7 +153,7 @@ class GameActions:
                 self.game.is_installed
                 and steam_shortcut.vdf_file_exists()
                 and steam_shortcut.shortcut_exists(self.game)
-                and not steam_shortcut.has_steamtype_runner(self.game)
+                and not steam_shortcut.is_steam_game(self.game)
             ),
             "remove": True,
             "view": True,

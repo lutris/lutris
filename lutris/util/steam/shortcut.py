@@ -10,8 +10,7 @@ from lutris.util.steam.config import search_recursive_in_steam_dirs
 
 
 def get_config_path():
-    path_suffix = "userdata/**/config/"
-    config_paths = search_recursive_in_steam_dirs(path_suffix)
+    config_paths = search_recursive_in_steam_dirs("userdata/**/config/")
     if not config_paths:
         return None
     if len(config_paths) > 1:
@@ -26,34 +25,26 @@ def get_shortcuts_vdf_path():
     return os.path.join(config_path, "shortcuts.vdf")
 
 
-def get_artwork_target_path():
-    config_path = get_config_path()
-    if not config_path:
-        return None
-    artwork_path = os.path.join(config_path, "grid")
-    if not os.path.exists(artwork_path):
-        os.makedirs(artwork_path)
-    return artwork_path
-
-
 def vdf_file_exists():
     return bool(get_shortcuts_vdf_path)
 
 
 def shortcut_exists(game):
     shortcut_path = get_shortcuts_vdf_path()
+    if not shortcut_path:
+        return False
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-    shortcut_found = [s for s in shortcuts if matches_appname(s, game)]
-    return bool(shortcut_found)
+    return bool([s for s in shortcuts if matches_appname(s, game)])
 
 
-def has_steamtype_runner(game):
+def is_steam_game(game):
     return game.runner_name == "steam"
 
 
 def update_shortcut(game):
-    if has_steamtype_runner(game):
+    if is_steam_game(game):
+        logger.warning("Not updating shortcut for Steam game")
         return
     if not shortcut_exists(game):
         create_shortcut(game)
@@ -63,11 +54,9 @@ def create_shortcut(game):
     shortcut_path = get_shortcuts_vdf_path()
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-    existing_shortcuts = list(shortcuts)
-    add_shortcut = [generate_shortcut(game)]
     updated_shortcuts = {
         'shortcuts': {
-            str(index): elem for index, elem in enumerate(existing_shortcuts + add_shortcut)
+            str(index): elem for index, elem in enumerate(list(shortcuts) + [generate_shortcut(game)])
         }
     }
     with open(shortcut_path, "wb") as shortcut_file:
@@ -153,7 +142,12 @@ def set_artwork(game):
     shortcut_id = get_steam_shortcut_id(game)
     source_cover = resources.get_cover_path(game.slug)
     source_banner = resources.get_banner_path(game.slug)
-    artwork_path = get_artwork_target_path()
+    config_path = get_config_path()
+    if not config_path:
+        return None
+    artwork_path = os.path.join(config_path, "grid")
+    if not os.path.exists(artwork_path):
+        os.makedirs(artwork_path)
     target_cover = os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))
     target_banner = os.path.join(artwork_path, "{}_hero.jpg".format(shortcut_id))
     try:
