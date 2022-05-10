@@ -138,7 +138,7 @@ class GameActions:
             "steam-shortcut": (
                 self.game.is_installed
                 and steam_shortcut.vdf_file_exists()
-                and not steam_shortcut.all_shortcuts_set(self.game)
+                and not steam_shortcut.shortcut_exists(self.game)
                 and not steam_shortcut.has_steamtype_runner(self.game)
             ),
             "rm-desktop-shortcut": bool(
@@ -152,7 +152,7 @@ class GameActions:
             "rm-steam-shortcut": bool(
                 self.game.is_installed
                 and steam_shortcut.vdf_file_exists()
-                and steam_shortcut.all_shortcuts_set(self.game)
+                and steam_shortcut.shortcut_exists(self.game)
                 and not steam_shortcut.has_steamtype_runner(self.game)
             ),
             "remove": True,
@@ -307,7 +307,7 @@ class GameActions:
 
     def on_remove_steam_shortcut(self, *_args):
         """Remove the selected game from list of non-steam apps."""
-        steam_shortcut.remove_all_shortcuts(self.game)
+        steam_shortcut.remove_shortcut(self.game)
 
     def on_remove_desktop_shortcut(self, *_args):
         """Remove a .desktop shortcut"""

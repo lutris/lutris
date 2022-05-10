@@ -3,65 +3,51 @@ import binascii
 import os
 import shutil
 
+from matplotlib.animation import ArtistAnimation
+
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.steam import vdf
 from lutris.util.steam.config import search_recursive_in_steam_dirs
 
 
-def get_shortcuts_vdf_paths():
-    path_suffix = "userdata/**/config/shortcuts.vdf"
-    shortcuts_vdf = search_recursive_in_steam_dirs(path_suffix)
-    return shortcuts_vdf
+def get_config_path():
+    path_suffix = "userdata/**/config/"
+    config_paths = search_recursive_in_steam_dirs(path_suffix)
+    if not config_paths:
+        return None
+    if len(config_paths) > 1:
+        logger.warning("More than one config path found: %s", ", ".join(config_paths))
+    return config_paths[0]
 
 
-def get_artwork_target_paths():
-    path_suffix = "userdata/**/config/grid"
-    target_paths = search_recursive_in_steam_dirs(path_suffix)
-    return target_paths
+def get_shortcuts_vdf_path():
+    config_path = get_config_path()
+    if not config_path:
+        return None
+    return os.path.join(config_path, "shortcuts.vdf")
+
+
+def get_artwork_target_path():
+    config_path = get_config_path()
+    if not config_path:
+        return None
+    artwork_path = os.path.join(config_path, "grid")
+    if not os.path.exists(artwork_path):
+        os.makedirs(artwork_path)
+    return artwork_path
 
 
 def vdf_file_exists():
-    shortcuts_paths = get_shortcuts_vdf_paths()
-    if len(shortcuts_paths) > 0:
-        return True
-    return False
+    return bool(get_shortcuts_vdf_path)
 
 
-def shortcut_exists(game, shortcut_path):
+def shortcut_exists(game):
+    shortcut_path = get_shortcuts_vdf_path()
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-    shortcut_found = [
-        s for s in shortcuts
-        if matches_appname(s, game)
-    ]
-    if not shortcut_found:
-        return False
-    return True
-
-
-def all_shortcuts_set(game):
-    """True if every shortcuts.vdf file found contains the game given (exactly once). But
-    False if there are no shortcuts.vdf files at all. False if any shortcuts.vdf file
-    cannot be read or decoded."""
-    try:
-        paths_shortcut = get_shortcuts_vdf_paths()
-        shortcuts_found = 0
-        for shortcut_path in paths_shortcut:
-            with open(shortcut_path, "rb") as shortcut_file:
-                shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-            shortcut_found = [
-                s for s in shortcuts
-                if matches_appname(s, game)
-            ]
-            shortcuts_found += len(shortcut_found)
-
-        if len(paths_shortcut) == shortcuts_found:
-            return True
-        return False
-    except Exception as ex:
-        logger.exception("Unable to read Steam shortcuts: %s", ex)
-        return False
+    shortcut_found = [s for s in shortcuts if matches_appname(s, game)]
+    return bool(shortcut_found)
 
 
 def has_steamtype_runner(game):
@@ -71,17 +57,12 @@ def has_steamtype_runner(game):
 def update_shortcut(game):
     if has_steamtype_runner(game):
         return
-    for shortcut_path in get_shortcuts_vdf_paths():
-        if not shortcut_exists(game, shortcut_path):
-            create_shortcut(game, shortcut_path)
+    if not shortcut_exists(game):
+        create_shortcut(game)
 
 
-def remove_all_shortcuts(game):
-    for shortcut_path in get_shortcuts_vdf_paths():
-        remove_shortcut(game, shortcut_path)
-
-
-def create_shortcut(game, shortcut_path):
+def create_shortcut(game):
+    shortcut_path = get_shortcuts_vdf_path()
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     existing_shortcuts = list(shortcuts)
@@ -96,15 +77,18 @@ def create_shortcut(game, shortcut_path):
     set_artwork(game)
 
 
-def remove_shortcut(game, shortcut_path):
+def remove_shortcut(game):
+    shortcut_path = get_shortcuts_vdf_path()
+    if not shortcut_path:
+        return
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     shortcut_found = [
         s for s in shortcuts
         if matches_appname(s, game)
     ]
-
     if not shortcut_found:
+        logger.warning("Couldn't remove shortcut for %s. Shortcut not found.", game)
         return
 
     other_shortcuts = [
@@ -171,17 +155,15 @@ def set_artwork(game):
     shortcut_id = get_steam_shortcut_id(game)
     source_cover = resources.get_cover_path(game.slug)
     source_banner = resources.get_banner_path(game.slug)
-    target_cover = "{}p.jpg".format(shortcut_id)
-    target_banner = "{}_hero.jpg".format(shortcut_id)
-    for target_path in get_artwork_target_paths():
-        target_cover = os.path.join(target_path, target_cover)
-        target_banner = os.path.join(target_path, target_banner)
-        try:
-            shutil.copyfile(source_cover, target_cover)
+    artwork_path = get_artwork_target_path()
+    target_cover = os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))
+    target_banner = os.path.join(artwork_path, "{}_hero.jpg".format(shortcut_id))
+    try:
+        shutil.copyfile(source_cover, target_cover)
+    except FileNotFoundError as ex:
+        logger.error("Failed to copy cover to %s: %s", target_cover, ex)
 
-        except FileNotFoundError as ex:
-            logger.error("Failed to copy cover to %s: %s", target_cover, ex)
-        try:
-            shutil.copyfile(source_banner, target_banner)
-        except FileNotFoundError as ex:
-            logger.error("Failed to copy banner to %s: %s", target_banner, ex)
+    try:
+        shutil.copyfile(source_banner, target_banner)
+    except FileNotFoundError as ex:
+        logger.error("Failed to copy banner to %s: %s", target_banner, ex)
