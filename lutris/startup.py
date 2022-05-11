@@ -17,6 +17,7 @@ from lutris.util import update_cache
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.steam.shortcut import update_all_artwork
 from lutris.util.system import create_folder
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
@@ -209,5 +210,6 @@ def update_runtime(force=False):
     media_call = update_cache.get_last_call("media")
     if force or not media_call or media_call > 3600 * 24:
         sync_media()
+        update_all_artwork()
         update_cache.write_date_to_cache("media")
     logger.info("Startup complete")

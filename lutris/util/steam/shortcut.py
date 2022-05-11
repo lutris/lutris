@@ -3,6 +3,8 @@ import binascii
 import os
 import shutil
 
+from lutris.database.games import get_game_by_field
+from lutris.game import Game
 from lutris.util import resources
 from lutris.util.log import logger
 from lutris.util.steam import vdf
@@ -137,3 +139,22 @@ def set_artwork(game):
         shutil.copyfile(source_banner, target_banner)
     except FileNotFoundError as ex:
         logger.error("Failed to copy banner to %s: %s", target_banner, ex)
+
+
+def update_all_artwork():
+    shortcut_path = get_shortcuts_vdf_path()
+    if not shortcut_path:
+        return
+    with open(shortcut_path, "rb") as shortcut_file:
+        shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
+    for shortcut in shortcuts:
+        appid = shortcut.get("appid")
+        if appid or not appid.startswith("lutris"):
+            continue
+        slug = appid[7:]
+        db_game = get_game_by_field(slug)
+        if not db_game:
+            logger.warning("Couldn't find game for slug %s", slug)
+            continue
+        game = Game(db_game["id"])
+        set_artwork(game)
