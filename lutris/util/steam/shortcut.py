@@ -13,8 +13,6 @@ def get_config_path():
     config_paths = search_recursive_in_steam_dirs("userdata/**/config/")
     if not config_paths:
         return None
-    if len(config_paths) > 1:
-        logger.warning("More than one config path found: %s", ", ".join(config_paths))
     return config_paths[0]
 
 
@@ -48,15 +46,11 @@ def is_steam_game(game):
     return game.runner_name == "steam"
 
 
-def update_shortcut(game):
+def create_shortcut(game):
     if is_steam_game(game):
         logger.warning("Not updating shortcut for Steam game")
         return
-    if not shortcut_exists(game):
-        create_shortcut(game)
-
-
-def create_shortcut(game):
+    logger.info("Creating Steam shortcut for %s", game)
     shortcut_path = get_shortcuts_vdf_path()
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()

@@ -295,7 +295,7 @@ class GameActions:
 
     def on_create_steam_shortcut(self, *_args):
         """Add the selected game to steam as a nonsteam-game."""
-        steam_shortcut.update_shortcut(self.game)
+        steam_shortcut.create_shortcut(self.game)
 
     def on_create_desktop_shortcut(self, *_args):
         """Create a desktop launcher for the selected game."""

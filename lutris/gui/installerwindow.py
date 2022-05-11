@@ -480,7 +480,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         if game_id:
             game = Game(game_id)
             if self.config.get("create_steam_shortcut"):
-                steam_shortcut.update_shortcut(game)
+                steam_shortcut.create_shortcut(game)
             game.save()
 
         self.install_in_progress = False
