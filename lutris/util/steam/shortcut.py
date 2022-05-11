@@ -37,7 +37,7 @@ def matches_appid(shortcut, game):
 
 def shortcut_exists(game):
     shortcut_path = get_shortcuts_vdf_path()
-    if not shortcut_path:
+    if not shortcut_path or not os.path.exists(shortcut_path):
         return False
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
@@ -54,8 +54,11 @@ def create_shortcut(game):
         return
     logger.info("Creating Steam shortcut for %s", game)
     shortcut_path = get_shortcuts_vdf_path()
-    with open(shortcut_path, "rb") as shortcut_file:
-        shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
+    if os.path.exists(shortcut_path):
+        with open(shortcut_path, "rb") as shortcut_file:
+            shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
+    else:
+        shortcuts = []
     updated_shortcuts = {
         'shortcuts': {
             str(index): elem for index, elem in enumerate(list(shortcuts) + [generate_shortcut(game)])
