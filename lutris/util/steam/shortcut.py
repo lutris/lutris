@@ -110,8 +110,7 @@ def generate_shortcut(game):
 def get_steam_shortcut_id(game):
     lutris_binary = shutil.which("lutris")
     exe = f'"{lutris_binary}"'
-    appname = "{} ({})".format(game.name, game.runner_name)
-    unique_id = ''.join([exe, appname])
+    unique_id = ''.join([exe, game.name])
     return binascii.crc32(str.encode(unique_id)) | 0x80000000
 
 
