@@ -148,7 +148,7 @@ def update_all_artwork():
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     for shortcut in shortcuts:
-        id_match = re.match(r"lutris:rungameid/(\d+)", shortcut["LaunchOptions"])
+        id_match = re.match(r".*lutris:rungameid/(\d+)", shortcut["LaunchOptions"])
         if not id_match:
             continue
         game_id = int(id_match.groups()[0])
