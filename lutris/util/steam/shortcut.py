@@ -1,9 +1,9 @@
 """Export lutris games to steam shortcuts"""
 import binascii
 import os
+import re
 import shutil
 
-from lutris.database.games import get_game_by_field
 from lutris.game import Game
 from lutris.util import resources
 from lutris.util.log import logger
@@ -89,7 +89,6 @@ def generate_shortcut(game):
         lutris_binary = "flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
     return {
-        'appid': "lutris-{}".format(game.slug),
         'AllowDesktopConfig': 1,
         'AllowOverlay': 1,
         'AppName': game.name,
@@ -119,15 +118,16 @@ def get_steam_shortcut_id(game):
 
 
 def set_artwork(game):
-    shortcut_id = get_steam_shortcut_id(game)
-    source_cover = resources.get_cover_path(game.slug)
-    source_banner = resources.get_banner_path(game.slug)
+    logger.debug("Setting artwork for %s Steam shortcut", game)
     config_path = get_config_path()
     if not config_path:
         return None
     artwork_path = os.path.join(config_path, "grid")
     if not os.path.exists(artwork_path):
         os.makedirs(artwork_path)
+    shortcut_id = get_steam_shortcut_id(game)
+    source_cover = resources.get_cover_path(game.slug)
+    source_banner = resources.get_banner_path(game.slug)
     target_cover = os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))
     target_banner = os.path.join(artwork_path, "{}_hero.jpg".format(shortcut_id))
     try:
@@ -148,13 +148,9 @@ def update_all_artwork():
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     for shortcut in shortcuts:
-        appid = shortcut.get("appid")
-        if appid or not appid.startswith("lutris"):
+        id_match = re.match(r"lutris:rungameid/(\d+)", shortcut["LaunchOptions"])
+        if not id_match:
             continue
-        slug = appid[7:]
-        db_game = get_game_by_field(slug)
-        if not db_game:
-            logger.warning("Couldn't find game for slug %s", slug)
-            continue
-        game = Game(db_game["id"])
+        game_id = int(id_match.groups()[0])
+        game = Game(game_id)
         set_artwork(game)
