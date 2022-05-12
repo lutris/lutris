@@ -20,15 +20,25 @@ def get_nvidia_driver_info():
     with open(version_file_path, encoding='utf-8') as version_file:
         content = version_file.readlines()
         nvrm_version = content[0].split(': ')[1].strip().split()
-        return {
-            'nvrm': {
-                'vendor': nvrm_version[0],
-                'platform': nvrm_version[1],
-                'arch': nvrm_version[2],
-                'version': nvrm_version[5],
-                'date': ' '.join(nvrm_version[6:])
+        if 'Open' in nvrm_version:
+            return {
+                'nvrm': {
+                    'vendor': nvrm_version[0],
+                    'platform': nvrm_version[1],
+                    'arch': nvrm_version[6],
+                    'version': nvrm_version[7]
+                }
             }
-        }
+        else:
+            return {
+                'nvrm': {
+                    'vendor': nvrm_version[0],
+                    'platform': nvrm_version[1],
+                    'arch': nvrm_version[2],
+                    'version': nvrm_version[5],
+                    'date': ' '.join(nvrm_version[6:])
+                }
+            }
     return
 
 
