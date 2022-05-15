@@ -366,14 +366,11 @@ def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, en
         wine = import_runner("wine")
         wine_path = wine().get_executable()
 
-    winecfg_path = os.path.join(os.path.dirname(wine_path), "winecfg")
-    logger.debug("winecfg: %s", winecfg_path)
-
     return wineexec(
-        None,
+        "winecfg.exe",
         prefix=prefix,
-        winetricks_wine=winecfg_path,
-        wine_path=winecfg_path,
+        winetricks_wine=wine_path,
+        wine_path=wine_path,
         arch=arch,
         config=config,
         env=env,
