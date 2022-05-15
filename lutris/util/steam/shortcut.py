@@ -71,7 +71,7 @@ def create_shortcut(game):
 
 def remove_shortcut(game):
     shortcut_path = get_shortcuts_vdf_path()
-    if not shortcut_path:
+    if not shortcut_path or not os.path.exists(shortcut_path):
         return
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
@@ -146,7 +146,7 @@ def set_artwork(game):
 
 def update_all_artwork():
     shortcut_path = get_shortcuts_vdf_path()
-    if not shortcut_path:
+    if not shortcut_path or not os.path.exists(shortcut_path):
         return
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
