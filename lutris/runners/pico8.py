@@ -25,7 +25,7 @@ class pico8(Runner):
     game_options = [
         {
             "option": "main_file",
-            "type": "string",
+            "type": "file",
             "label": _("Cartridge file/URL/ID"),
             "help": _("You can put a .p8.png file path, URL, or BBS cartridge ID here."),
         }
