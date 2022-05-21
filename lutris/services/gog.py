@@ -549,59 +549,39 @@ class GOGService(OnlineService):
         for dlc in dlcs:
             dlc_id = "gogdlc-%s" % dlc["slug"]
 
-            downloads = dlc["downloads"]
-            dlcInstallers = downloads["installers"]
+            dlcInstallers = [installer for installer in dlc["downloads"].get("installers", []) if installer["os"] != "mac"]
 
             for file in dlcInstallers:
-                os = file["os"]
+                # default wine
+                runner = "wine"
+                script = [{"task": {"name": "wineexec", "executable": dlc_id}}]
 
-                if os == "linux":
-                    installer = {
-                        "name": db_game["name"],
-                        "version": f"{dlc['title']} ({os})",
-                        "slug": dlc["slug"],
-                        "description": "DLC for %s" % db_game["name"],
-                        "game_slug": slugify(db_game["name"]),
-                        "runner": "linux",
-                        "is_dlc": True,
-                        "dlcid": dlc["id"],
-                        "gogid": dlc["id"],
-                        "script": {
-                            "extends": db_game["installer_slug"],
-                            "files": [
-                                {dlc_id: "N/A:Select the patch from GOG"}
-                            ],
-                            "installer": [
-                                { "extract": {"dst": "$CACHE/GOG", "file": dlc_id, "format":"zip"} },
-                                { "merge": {"dst": "$GAMEDIR", "src": "$CACHE/GOG/data/noarch/"}}
-                            ]
-                        }
-                    }
-                    installers.append(installer)
+                # supports linux offer install
+                if (file["os"] == "linux"):
+                    runner = "linux"
+                    script = [{"extract": {"dst": "$CACHE/GOG", "file": dlc_id, "format": "zip"}},
+                              {"merge": {"dst": "$GAMEDIR", "src": "$CACHE/GOG/data/noarch/"}}]
 
-                elif os == "windows":
-                    installer = {
-                        "name": db_game["name"],
-                        "version": f"{dlc['title']} ({os})",
-                        "slug": dlc["slug"],
-                        "description": "DLC for %s" % db_game["name"],
-                        "game_slug": slugify(db_game["name"]),
-                        "runner": "wine",
-                        "is_dlc": True,
-                        "dlcid": dlc["id"],
-                        "gogid": dlc["id"],
-                        "script": {
-                            "extends": db_game["installer_slug"],
-                            "files": [
-                                {dlc_id: "N/A:Select the patch from GOG"}
-                            ],
-                            "installer": [
-                                {"task": {"name": "wineexec", "executable": dlc_id}}
-                            ]
-                        }
+                installer = {
+                    "name": db_game["name"],
+                    "version": f"{dlc['title']} ({runner})",
+                    "slug": dlc["slug"],
+                    "description": "DLC for %s" % db_game["name"],
+                    "game_slug": slugify(db_game["name"]),
+                    "runner": runner,
+                    "is_dlc": True,
+                    "dlcid": dlc["id"],
+                    "gogid": dlc["id"],
+                    "script": {
+                        "extends": db_game["installer_slug"],
+                        "files": [
+                            {dlc_id: "N/A:Select the patch from GOG"}
+                        ],
+                        "installer": script
                     }
-                    installers.append(installer)
- 
+                }
+                installers.append(installer)
+
         return installers
 
     def get_update_installers(self, db_game):
