@@ -278,7 +278,7 @@ class GOGService(OnlineService):
         return self.make_request(url)
 
     def get_game_dlcs(self, product_id):
-        """Return the list of DLC products the user owns for a game"""
+        """Return the list of DLC products for a game"""
         game_details = self.get_game_details(product_id)
         if not game_details["dlcs"]:
             return []
@@ -540,27 +540,36 @@ class GOGService(OnlineService):
             }
         }
 
+    def get_games_owned(self):
+        """Return IDs of games owned by user"""
+        url = "{}/user/data/games".format(self.embed_url)
+        return self.make_api_request(url)
+
     def get_dlc_installers(self, db_game):
         appid = db_game["service_id"]
 
         dlcs = self.get_game_dlcs(appid)
+
+        owned = self.get_games_owned()
+
         installers = []
 
         for dlc in dlcs:
             dlc_id = "gogdlc-%s" % dlc["slug"]
 
-            dlcInstallers = [installer for installer in dlc["downloads"].get("installers", []) if installer["os"] != "mac"]
+            # remove mac installers & dlc that is not owned
+            installfiles = [installer for installer in dlc["downloads"].get("installers", []) if installer["os"] != "mac" and dlc["id"] in owned["owned"]]
 
-            for file in dlcInstallers:
-                # default wine
-                runner = "wine"
-                script = [{"task": {"name": "wineexec", "executable": dlc_id}}]
-
-                # supports linux offer install
+            for file in installfiles:
+                # supports linux
                 if (file["os"] == "linux"):
                     runner = "linux"
                     script = [{"extract": {"dst": "$CACHE/GOG", "file": dlc_id, "format": "zip"}},
                               {"merge": {"dst": "$GAMEDIR", "src": "$CACHE/GOG/data/noarch/"}}]
+                else:
+                    runner = "wine"
+                    script = [{"task": {"name": "wineexec", "executable": dlc_id}}]
+                                
 
                 installer = {
                     "name": db_game["name"],
