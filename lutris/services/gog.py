@@ -546,23 +546,22 @@ class GOGService(OnlineService):
         return self.make_api_request(url)
 
     def get_dlc_installers(self, db_game):
+        """Return all available DLC installers for game"""
         appid = db_game["service_id"]
 
         dlcs = self.get_game_dlcs(appid)
-
-        owned = self.get_games_owned()
 
         installers = []
 
         for dlc in dlcs:
             dlc_id = "gogdlc-%s" % dlc["slug"]
 
-            # remove mac installers & dlc that is not owned
-            installfiles = [installer for installer in dlc["downloads"].get("installers", []) if installer["os"] != "mac" and dlc["id"] in owned["owned"]]
+            # remove mac installers for now
+            installfiles = [installer for installer in dlc["downloads"].get("installers", []) if installer["os"] != "mac"]
 
             for file in installfiles:
                 # supports linux
-                if (file["os"] == "linux"):
+                if (file["os"].lower() == "linux"):
                     runner = "linux"
                     script = [{"extract": {"dst": "$CACHE/GOG", "file": dlc_id, "format": "zip"}},
                               {"merge": {"dst": "$GAMEDIR", "src": "$CACHE/GOG/data/noarch/"}}]
@@ -573,6 +572,7 @@ class GOGService(OnlineService):
 
                 installer = {
                     "name": db_game["name"],
+                    # add runner in brackets - wrong installer can be run when this is not unique
                     "version": f"{dlc['title']} ({runner})",
                     "slug": dlc["slug"],
                     "description": "DLC for %s" % db_game["name"],
@@ -592,6 +592,17 @@ class GOGService(OnlineService):
                 installers.append(installer)
 
         return installers
+
+    def get_dlc_installers_owned(self, db_game):
+        """Return DLC installers for owned DLC"""
+
+        owned = self.get_games_owned()
+        installers = self.get_dlc_installers(db_game)
+
+        installers = [installer for installer in installers if installer["dlcid"] in owned["owned"]]
+
+        return installers
+
 
     def get_update_installers(self, db_game):
         appid = db_game["service_id"]
