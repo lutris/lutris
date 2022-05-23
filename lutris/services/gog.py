@@ -1,7 +1,6 @@
 """Module for handling the GOG service"""
 import json
 import os
-from pickle import TRUE
 import time
 from collections import defaultdict
 from gettext import gettext as _
@@ -604,7 +603,7 @@ class GOGService(OnlineService):
 
         return installers
 
-    def get_dlc_installers_runner(self, db_game, only_owned=TRUE):
+    def get_dlc_installers_runner(self, db_game, runner, only_owned=True):
         """Return DLC installers for games current runner"""
         """only_owned=True only return installers for owned DLC (default)"""
         if (only_owned):
@@ -612,7 +611,7 @@ class GOGService(OnlineService):
         else:
             installers = self.get_dlc_installers(db_game)
 
-        installers = [installer for installer in installers if installer["runner"] == db_game["runner"]]
+        installers = [installer for installer in installers if installer["runner"] == runner]
         
         return installers
 

@@ -660,7 +660,7 @@ class Application(Gtk.Application):
         db_game = games_db.get_game_by_field(game.id, "id")
 
         #installers = service.get_dlc_installers(db_game)
-        installers = service.get_dlc_installers_runner(db_game, False)
+        installers = service.get_dlc_installers_runner(db_game, db_game["runner"])
 
         if installers:
             self.show_installer_window(installers, service, game.appid)
