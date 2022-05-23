@@ -659,9 +659,8 @@ class Application(Gtk.Application):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")
 
-        # installers = service.get_dlc_installers(db_game)
-        # only return owned DLC for now
-        installers = service.get_dlc_installers_owned(db_game)
+        #installers = service.get_dlc_installers(db_game)
+        installers = service.get_dlc_installers_runner(db_game, False)
 
         if installers:
             self.show_installer_window(installers, service, game.appid)
