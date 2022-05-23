@@ -1,13 +1,13 @@
 """Module for handling the GOG service"""
 import json
 import os
+from pickle import TRUE
 import time
 from collections import defaultdict
 from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
 
 from lxml import etree
-from numpy import True_
 
 from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGame
@@ -604,7 +604,7 @@ class GOGService(OnlineService):
 
         return installers
 
-    def get_dlc_installers_runner(self, db_game, only_owned=True):
+    def get_dlc_installers_runner(self, db_game, only_owned=TRUE):
         """Return DLC installers for games current runner"""
         """only_owned=True only return installers for owned DLC (default)"""
         if (only_owned):
