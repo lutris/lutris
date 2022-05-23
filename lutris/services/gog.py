@@ -7,6 +7,7 @@ from gettext import gettext as _
 from urllib.parse import parse_qsl, urlencode, urlparse
 
 from lxml import etree
+from numpy import True_
 
 from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGame
@@ -603,6 +604,17 @@ class GOGService(OnlineService):
 
         return installers
 
+    def get_dlc_installers_runner(self, db_game, only_owned=True):
+        """Return DLC installers for games current runner"""
+        """only_owned=True only return installers for owned DLC (default)"""
+        if (only_owned):
+            installers = self.get_dlc_installers_owned(db_game)
+        else:
+            installers = self.get_dlc_installers(db_game)
+
+        installers = [installer for installer in installers if installer["runner"] == db_game["runner"]]
+        
+        return installers
 
     def get_update_installers(self, db_game):
         appid = db_game["service_id"]
