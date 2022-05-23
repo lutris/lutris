@@ -604,12 +604,16 @@ class GOGService(OnlineService):
         return installers
 
     def get_dlc_installers_runner(self, db_game, runner, only_owned=True):
-        """Return DLC installers for games current runner"""
+        """Return DLC installers for requested runner"""
         """only_owned=True only return installers for owned DLC (default)"""
         if (only_owned):
             installers = self.get_dlc_installers_owned(db_game)
         else:
             installers = self.get_dlc_installers(db_game)
+
+        # only handle linux & wine for now
+        if runner != "linux":
+            runner = "wine"
 
         installers = [installer for installer in installers if installer["runner"] == runner]
         
