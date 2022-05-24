@@ -18,11 +18,9 @@ jobs:
         if: runner.os == 'Linux'
         run: >-
           sudo apt-get update
-
-          sudo apt-get install -y make at-spi2-core gir1.2-glib-2.0
-          gir1.2-gnomedesktop-3.0 gir1.2-gtk-3.0 gir1.2-notify-0.7
-          gir1.2-webkit2-4.0 libdbus-1-dev libgirepository1.0-dev psmisc
-      - run: pip install --upgrade pip poetry
+          sudo apt-get install make libdbus-1-dev libgirepository1.0-dev python3-gi python3-requests
+                 gir1.2-gnomedesktop-3.0 gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-webkit2-4.0
+                 python3-pil python3-lxml python3-yaml libdbus-1-dev psmisc at-spi2-core
       - run: echo LUTRIS_SKIP_INIT=1 >.env
       - run: make dev
-      - run: xvfb-run --auto-servernum poetry run nose2
+      - run: xvfb-run --auto-servernum nose2
