@@ -15,10 +15,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: x64
       - name: Install dependencies (Ubuntu)
-        if: runner.os == 'Linux'
-        run: >-
-          sudo apt-get update
-          sudo apt-get install make libdbus-1-dev libgirepository1.0-dev python3-gi python3-requests
+        run: sudo apt-get update -y
+        run: sudo apt-get install make libdbus-1-dev libgirepository1.0-dev python3-gi python3-requests
                  gir1.2-gnomedesktop-3.0 gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-webkit2-4.0
                  python3-pil python3-lxml python3-yaml libdbus-1-dev psmisc at-spi2-core
       - run: echo LUTRIS_SKIP_INIT=1 >.env
