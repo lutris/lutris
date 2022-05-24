@@ -56,16 +56,7 @@ snap:
 	snapcraft
 
 dev:
-	$(PIP) install --user --upgrade poetry
-	poetry install --no-root --remove-untracked
-
-lock:
-# Update poetry.lock with packages and versions based on current pyproject.toml settings
-	poetry update --lock
-
-show-tree:
-# Show a tree of installed packages and their dependencies
-	poetry show --tree
+	pip3 install isort flake8 pylint autopep8
 
 # ============
 # Style checks
@@ -74,10 +65,10 @@ show-tree:
 style: isort autopep8  ## Format code
 
 isort:
-	poetry run isort lutris
+	isort lutris
 
 autopep8:
-	poetry run autopep8 --in-place --recursive --ignore E402 setup.py lutris
+	autopep8 --in-place --recursive --ignore E402 setup.py lutris
 
 
 # ===============
@@ -87,22 +78,22 @@ autopep8:
 check: isort-check flake8 pylint
 
 isort-check:
-	poetry run isort lutris -c
+	isort lutris -c
 
 flake8:
-	poetry run flake8 . --count --max-complexity=25 --max-line-length=120 --show-source --statistics
+	flake8 . --count --max-complexity=25 --max-line-length=120 --show-source --statistics
 
 pylint:
-	poetry run pylint lutris --rcfile=.pylintrc --output-format=colorized
+	pylint lutris --rcfile=.pylintrc --output-format=colorized
 
 bandit:
-	poetry run bandit . --recursive --skip B101,B105,B107,B108,B303,B310,B311,B314,B320,B404,B405,B410,B602,B603,B607,B608
+	bandit . --recursive --skip B101,B105,B107,B108,B303,B310,B311,B314,B320,B404,B405,B410,B602,B603,B607,B608
 
 black:
-	poetry run black . --check
+	black . --check
 
 mypy:
-	poetry run mypy . --ignore-missing-imports --install-types --non-interactive
+	mypy . --ignore-missing-imports --install-types --non-interactive
 
 # =============
 # Abbreviations
