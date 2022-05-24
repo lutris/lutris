@@ -557,18 +557,18 @@ class GOGService(OnlineService):
             dlc_id = "gogdlc-%s" % dlc["slug"]
 
             # remove mac installers for now
-            installfiles = [installer for installer in dlc["downloads"].get("installers", []) if installer["os"] != "mac"]
+            installfiles = [installer for installer in dlc["downloads"].get(
+                "installers", []) if installer["os"] != "mac"]
 
             for file in installfiles:
                 # supports linux
-                if (file["os"].lower() == "linux"):
+                if file["os"].lower() == "linux":
                     runner = "linux"
                     script = [{"extract": {"dst": "$CACHE/GOG", "file": dlc_id, "format": "zip"}},
                               {"merge": {"dst": "$GAMEDIR", "src": "$CACHE/GOG/data/noarch/"}}]
                 else:
                     runner = "wine"
                     script = [{"task": {"name": "wineexec", "executable": dlc_id}}]
-                                
 
                 installer = {
                     "name": db_game["name"],
@@ -604,9 +604,9 @@ class GOGService(OnlineService):
         return installers
 
     def get_dlc_installers_runner(self, db_game, runner, only_owned=True):
-        """Return DLC installers for requested runner"""
-        """only_owned=True only return installers for owned DLC (default)"""
-        if (only_owned):
+        """Return DLC installers for requested runner
+        only_owned=True only return installers for owned DLC (default)"""
+        if only_owned:
             installers = self.get_dlc_installers_owned(db_game)
         else:
             installers = self.get_dlc_installers(db_game)
@@ -616,7 +616,7 @@ class GOGService(OnlineService):
             runner = "wine"
 
         installers = [installer for installer in installers if installer["runner"] == runner]
-        
+
         return installers
 
     def get_update_installers(self, db_game):

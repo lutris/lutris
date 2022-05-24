@@ -226,11 +226,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         driver_info = drivers.get_nvidia_driver_info()
         driver_version = driver_info["nvrm"]["version"]
         major_version = int(driver_version.split(".")[0])
-
-        if not major_version >= minimum_nvidia_version_supported:
-            return False
-        else:
-            return True
+        return major_version >= minimum_nvidia_version_supported
 
     @property
     def has_steam(self):

@@ -29,17 +29,15 @@ def get_nvidia_driver_info():
                     'version': nvrm_version[7]
                 }
             }
-        else:
-            return {
-                'nvrm': {
-                    'vendor': nvrm_version[0],
-                    'platform': nvrm_version[1],
-                    'arch': nvrm_version[2],
-                    'version': nvrm_version[5],
-                    'date': ' '.join(nvrm_version[6:])
-                }
+        return {
+            'nvrm': {
+                'vendor': nvrm_version[0],
+                'platform': nvrm_version[1],
+                'arch': nvrm_version[2],
+                'version': nvrm_version[5],
+                'date': ' '.join(nvrm_version[6:])
             }
-    return
+        }
 
 
 def get_nvidia_gpu_ids():
