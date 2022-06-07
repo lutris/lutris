@@ -29,10 +29,13 @@ def vdf_file_exists():
     return bool(get_shortcuts_vdf_path)
 
 
-def matches_appid(shortcut, game):
+def matches_id(shortcut, game):
     """Test if the game seems to be the one a shortcut refers to."""
-    appid = shortcut.get('appid') or shortcut.get('AppId') or shortcut.get('AppID')
-    return appid == "lutris-{}".format(game.slug)
+    id_match = re.match(r".*lutris:rungameid/(\d+)", shortcut.get("LaunchOptions", ""))
+    if not id_match:
+        return False
+    game_id = id_match.groups()[0]
+    return game_id == str(game.id)
 
 
 def shortcut_exists(game):
@@ -41,7 +44,7 @@ def shortcut_exists(game):
         return False
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-    return bool([s for s in shortcuts if matches_appid(s, game)])
+    return bool([s for s in shortcuts if matches_id(s, game)])
 
 
 def is_steam_game(game):
@@ -70,12 +73,13 @@ def create_shortcut(game):
 
 
 def remove_shortcut(game):
+    logger.info("Removing Steam shortcut for %s", game)
     shortcut_path = get_shortcuts_vdf_path()
     if not shortcut_path or not os.path.exists(shortcut_path):
         return
     with open(shortcut_path, "rb") as shortcut_file:
         shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-    other_shortcuts = [s for s in shortcuts if not matches_appid(s, game)]
+    other_shortcuts = [s for s in shortcuts if not matches_id(s, game)]
     updated_shortcuts = {
         'shortcuts': {
             str(index): elem for index, elem in enumerate(other_shortcuts)
