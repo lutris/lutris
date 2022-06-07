@@ -9,6 +9,7 @@ from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.gui.dialogs import WineNotInstalledWarning
 from lutris.gui.dialogs.download import simple_downloader
+from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -351,7 +352,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             path = self._substitute(launcher_value)
             if not os.path.isabs(path) and self.target_path:
                 path = os.path.join(self.target_path, path)
-        if path and not os.path.isfile(path) and self.installer.runner not in ("web", "browser"):
+        if (
+                path
+                and AUTO_EXE_PREFIX not in path
+                and not os.path.isfile(path)
+                and self.installer.runner not in ("web", "browser")
+        ):
             self.parent.set_status(
                 _(
                     "The executable at path %s can't be found, please check the destination folder.\n"
