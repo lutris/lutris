@@ -108,7 +108,7 @@ class DisplayManager:
         output = self._get_primary_output()
         if not output:
             logger.error("Failed to get a default output")
-            return DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT
+            return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
         current_mode = output.get_current_mode()
         return str(current_mode.get_width()), str(current_mode.get_height())
 

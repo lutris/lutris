@@ -626,7 +626,7 @@ class MutterDisplayManager:
         current_mode = self.display_config.current_state.get_current_mode()
         if not current_mode:
             logger.error("Could not retrieve the current display mode")
-            return DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT
+            return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
         return str(current_mode.width), str(current_mode.height)
 
     def set_resolution(self, resolution):
