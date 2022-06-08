@@ -635,7 +635,7 @@ class MutterDisplayManager:
         resolutions = ["%sx%s" % (mode.width, mode.height) for mode in self.display_config.modes]
         if not resolutions:
             logger.error("Could not generate resolution list")
-            resolutions = ['1280x720']
+            resolutions = ['%dx%d' % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
     def get_current_resolution(self):
