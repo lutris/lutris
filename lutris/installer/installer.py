@@ -62,12 +62,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if not self.service:
             return
         if self.service.id == "steam":
-            return installer.get("steamid")
+            return installer.get("steamid") or installer.get("service_id")
         game_config = self.script.get("game", {})
         if self.service.id == "gog":
-            return game_config.get("gogid") or installer.get("gogid")
+            return game_config.get("gogid") or installer.get("gogid") or installer.get("service_id")
         if self.service.id == "humblebundle":
-            return game_config.get("humbleid") or installer.get("humblestoreid")
+            return game_config.get("humbleid") or installer.get("humblestoreid") or installer.get("service_id")
 
     @property
     def script_pretty(self):
