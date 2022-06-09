@@ -232,6 +232,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                                                                    make_executable=True)
             elif AUTO_WIN32_EXE in config["game"].get("exe", ""):
                 config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
+        config["name"] = self.game_name
+        config["script"] = self.script
+        config["variables"] = self.variables
+        config["version"] = self.version
+        config["requires"] = self.requires
+        config["slug"] = self.slug
+        config["game_slug"] = self.game_slug
+        config["year"] = self.year
+        if self.service:
+            config["service"] = self.service.id
+            config["service_id"] = self.service_appid
         return config
 
     def save(self):
