@@ -854,9 +854,7 @@ class wine(Runner):
         # Always false to runner.get_env, the default value
         # of os_env is inverted in the wine class,
         # the OS env is read later.
-        env = super().get_env(False, disable_runtime=disable_runtime)
-        if os_env:
-            env.update(os.environ.copy())
+        env = super().get_env(os_env, disable_runtime=disable_runtime)
         show_debug = self.runner_config.get("show_debug", "-all")
         if show_debug != "inherit":
             env["WINEDEBUG"] = show_debug
