@@ -3,6 +3,7 @@ import re
 import subprocess
 from collections import namedtuple
 
+from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger, logging
 from lutris.util.system import read_process_output
@@ -97,7 +98,7 @@ def get_resolutions():
             if resolution_match:
                 resolution_list.append(resolution_match.groups()[0])
     if not resolution_list:
-        resolution_list = ['1280x720']
+        resolution_list = ['%dx%d' % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         _log_vidmodes("Unable to generate resolution list from xrandr output")
     return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
@@ -178,7 +179,7 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
                 if resolution_match:
                     return resolution_match.groups()[0].split("x")
         _log_vidmodes("Unable to find the current resolution from xrandr output")
-        return ("1280", "720")
+        return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
 
     @staticmethod
     def set_resolution(resolution):

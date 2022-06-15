@@ -5,8 +5,9 @@ from lutris.api import get_game_installers
 from lutris.util import system
 from lutris.util.log import logger
 
-AUTO_ELF_EXE = "_xXx_AUTO_ELF_xXx_"
-AUTO_WIN32_EXE = "_xXx_AUTO_WIN32_xXx_"
+AUTO_EXE_PREFIX = "_xXx_AUTO_"
+AUTO_ELF_EXE = AUTO_EXE_PREFIX + "ELF_xXx_"
+AUTO_WIN32_EXE = AUTO_EXE_PREFIX + "WIN32_xXx_"
 
 
 def read_script(filename):

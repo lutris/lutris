@@ -278,7 +278,7 @@ class GOGService(OnlineService):
         return self.make_request(url)
 
     def get_game_dlcs(self, product_id):
-        """Return the list of DLC products the user owns for a game"""
+        """Return the list of DLC products for a game"""
         game_details = self.get_game_details(product_id)
         if not game_details["dlcs"]:
             return []
@@ -540,33 +540,83 @@ class GOGService(OnlineService):
             }
         }
 
+    def get_games_owned(self):
+        """Return IDs of games owned by user"""
+        url = "{}/user/data/games".format(self.embed_url)
+        return self.make_api_request(url)
+
     def get_dlc_installers(self, db_game):
+        """Return all available DLC installers for game"""
         appid = db_game["service_id"]
+
         dlcs = self.get_game_dlcs(appid)
+
         installers = []
+
         for dlc in dlcs:
             dlc_id = "gogdlc-%s" % dlc["slug"]
-            installer = {
-                "name": db_game["name"],
-                "version": dlc["title"],
-                "slug": dlc["slug"],
-                "description": "DLC for %s" % db_game["name"],
-                "game_slug": slugify(db_game["name"]),
-                "runner": "wine",
-                "is_dlc": True,
-                "dlcid": dlc["id"],
-                "gogid": dlc["id"],
-                "script": {
-                    "extends": db_game["installer_slug"],
-                    "files": [
-                        {dlc_id: "N/A:Select the patch from GOG"}
-                    ],
-                    "installer": [
-                        {"task": {"name": "wineexec", "executable": dlc_id}}
-                    ]
+
+            # remove mac installers for now
+            installfiles = [installer for installer in dlc["downloads"].get(
+                "installers", []) if installer["os"] != "mac"]
+
+            for file in installfiles:
+                # supports linux
+                if file["os"].lower() == "linux":
+                    runner = "linux"
+                    script = [{"extract": {"dst": "$CACHE/GOG", "file": dlc_id, "format": "zip"}},
+                              {"merge": {"dst": "$GAMEDIR", "src": "$CACHE/GOG/data/noarch/"}}]
+                else:
+                    runner = "wine"
+                    script = [{"task": {"name": "wineexec", "executable": dlc_id}}]
+
+                installer = {
+                    "name": db_game["name"],
+                    # add runner in brackets - wrong installer can be run when this is not unique
+                    "version": f"{dlc['title']} ({runner})",
+                    "slug": dlc["slug"],
+                    "description": "DLC for %s" % db_game["name"],
+                    "game_slug": slugify(db_game["name"]),
+                    "runner": runner,
+                    "is_dlc": True,
+                    "dlcid": dlc["id"],
+                    "gogid": dlc["id"],
+                    "script": {
+                        "extends": db_game["installer_slug"],
+                        "files": [
+                            {dlc_id: "N/A:Select the patch from GOG"}
+                        ],
+                        "installer": script
+                    }
                 }
-            }
-            installers.append(installer)
+                installers.append(installer)
+
+        return installers
+
+    def get_dlc_installers_owned(self, db_game):
+        """Return DLC installers for owned DLC"""
+
+        owned = self.get_games_owned()
+        installers = self.get_dlc_installers(db_game)
+
+        installers = [installer for installer in installers if installer["dlcid"] in owned["owned"]]
+
+        return installers
+
+    def get_dlc_installers_runner(self, db_game, runner, only_owned=True):
+        """Return DLC installers for requested runner
+        only_owned=True only return installers for owned DLC (default)"""
+        if only_owned:
+            installers = self.get_dlc_installers_owned(db_game)
+        else:
+            installers = self.get_dlc_installers(db_game)
+
+        # only handle linux & wine for now
+        if runner != "linux":
+            runner = "wine"
+
+        installers = [installer for installer in installers if installer["runner"] == runner]
+
         return installers
 
     def get_update_installers(self, db_game):

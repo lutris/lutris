@@ -49,11 +49,11 @@ msgstr ""
 
 #: share/lutris/ui/dialog-lutris-login.ui:8
 msgid "Connect to lutris.net"
-msgstr "Yhdistä palveluun lutris.net"
+msgstr "Yhdistä lutris.net:iin"
 
 #: share/lutris/ui/dialog-lutris-login.ui:26
 msgid "Forgot password?"
-msgstr "Unohditko salasanan?"
+msgstr "Unohditko salasanasi?"
 
 #: share/lutris/ui/dialog-lutris-login.ui:95
 msgid "Password"
@@ -136,8 +136,8 @@ msgid ""
 msgstr ""
 "Tämä poistaa <b>KAIKKI</b> versiot kohteelle %s.\n"
 "\n"
-"Käytä Hallinnoi versioita -painiketta mikäli haluat poistaa vain yhden tietyn versio"
-"julkaisun."
+"Käytä Hallinnoi versioita -painiketta mikäli haluat poistaa vain yhden tietyn versio
+julkaisun."
 
 #: share/lutris/ui/runner-remove-confirm-dialog.ui:59
 msgid "This will remove <b>%s</b> and all associated data."

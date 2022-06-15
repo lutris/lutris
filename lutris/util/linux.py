@@ -215,6 +215,19 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
             return True
         return False
 
+    def nvidia_gamescope_support(self):
+        """ Return whether gamescope is supported if we're on nvidia"""
+        if not drivers.is_nvidia():
+            return True
+
+        # 515.43.04 was the first driver to support
+        # VK_EXT_image_drm_format_modifier, required by gamescope.
+        minimum_nvidia_version_supported = 515
+        driver_info = drivers.get_nvidia_driver_info()
+        driver_version = driver_info["nvrm"]["version"]
+        major_version = int(driver_version.split(".")[0])
+        return major_version >= minimum_nvidia_version_supported
+
     @property
     def has_steam(self):
         """Return whether Steam is installed locally"""

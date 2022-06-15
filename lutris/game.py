@@ -409,35 +409,29 @@ class Game(GObject.Object):
 
     def get_gameplay_info(self):
         """Return the information provided by a runner's play method.
-        Checks for possible errors.
+        Checks for possible errors; raises exceptions if they occur.
+        This can show a dialog to ask the user to select a configuration;
+        if cancelled this will return an empty dict.
         """
         if not self.runner:
-            logger.warning("Trying to launch %s without a runner", self)
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
-            return {}
+            raise GameConfigError(_("Invalid game configuration: Missing runner"))
         gameplay_info = self.runner.play()
         if "error" in gameplay_info:
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
             raise self.get_config_error(gameplay_info)
 
         if self.config.game_level.get("game", {}).get("launch_configs"):
             configs = self.config.game_level["game"]["launch_configs"]
             dlg = dialogs.LaunchConfigSelectDialog(self, configs)
             if not dlg.confirmed:
-                self.state = self.STATE_STOPPED
-                self.emit("game-stop")
-                return {}
+                return {}  # no error here- the user cancelled out
 
             if dlg.config_index:
                 config = configs[dlg.config_index - 1]
                 if "command" not in gameplay_info:
                     logger.debug("No command in %s", gameplay_info)
                     logger.debug(config)
-                    self.state = self.STATE_STOPPED
-                    self.emit("game-stop")
-                    return {}
+                    # The 'file' sort of gameplay_info cannot be made to use a configuration
+                    raise GameConfigError(_("The runner could not find a command to apply the configuration to."))
 
                 gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
                 if config.get("args"):
@@ -445,23 +439,16 @@ class Game(GObject.Object):
 
         return gameplay_info
 
-    @watch_lutris_errors
-    def configure_game(self, prelaunched, error=None):  # noqa: C901
+    @watch_lutris_errors(game_stop_result=False)
+    def configure_game(self, _ignored, error=None):  # noqa: C901
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
         if error:
-            logger.error(error)
-            dialogs.ErrorDialog(str(error))
-        if not prelaunched:
-            logger.error("Game prelaunch unsuccessful")
-            dialogs.ErrorDialog(_("An error prevented the game from running"))
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
-            return
+            raise error
         gameplay_info = self.get_gameplay_info()
-        if not gameplay_info:
-            return
+        if not gameplay_info:  # if user cancelled- not an error
+            return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
         env["game_name"] = self.name  # What is this used for??
         self.game_runtime_config = {
@@ -513,13 +500,14 @@ class Game(GObject.Object):
             self.start_prelaunch_command(self.runner.system_config.get("prelaunch_wait"))
 
         self.start_game()
+        return True
 
-    @watch_lutris_errors
+    @watch_lutris_errors(game_stop_result=False)
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
         if not self.is_launchable():
             logger.error("Game is not launchable")
-            return
+            return False
 
         self.load_config()  # Reload the config before launching it.
 
@@ -531,6 +519,7 @@ class Game(GObject.Object):
         self.prelaunch_pids = system.get_running_pid_list()
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
+        return True
 
     def start_game(self):
         """Run a background command to lauch the game"""
@@ -640,13 +629,6 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
-    def prelaunch_beat(self):
-        """Watch the prelaunch command"""
-        if self.prelaunch_executor and self.prelaunch_executor.is_running:
-            return True
-        self.start_game()
-        return False
-
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
@@ -754,7 +736,7 @@ class Game(GObject.Object):
         """Output the launch argument in a bash script"""
         gameplay_info = self.get_gameplay_info()
         if not gameplay_info:
-            logger.error("Unable to retrieve game information for %s. Can't write a script", self)
+            # User cancelled; errors are raised as exceptions instead of this
             return
         export_bash_script(self.runner, gameplay_info, script_path)
 

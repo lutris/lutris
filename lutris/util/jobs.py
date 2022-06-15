@@ -38,7 +38,7 @@ class AsyncCall(threading.Thread):
             _ex_type, _ex_value, trace = sys.exc_info()
             traceback.print_tb(trace)
 
-        self.source_id = GLib.idle_add(self.callback, result, error)
+        self.source_id = GLib.idle_add(_make_idle_safe(self.callback), result, error)
         return self.source_id
 
 
@@ -56,6 +56,16 @@ def thread_safe_call(func):
     """
     event = threading.Event()
     result = []
-    GLib.idle_add(synchronized_call, func, event, result)
+    GLib.idle_add(_make_idle_safe(synchronized_call), func, event, result)
     event.wait()
     return result[0]
+
+
+def _make_idle_safe(function):
+    """Wrap a function in another, which just discards its result.
+    GLib.idle_add may call  the function again if it returns True,
+    but this wrapper only returns false."""
+    def discarding_result(*args, **kwargs):
+        function(*args, **kwargs)
+        return False  # ignore result from function
+    return discarding_result

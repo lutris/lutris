@@ -2,7 +2,7 @@
 import array
 import os
 
-from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
+from gi.repository import GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.util import datapath, system
