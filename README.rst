@@ -1,5 +1,5 @@
 ******
-Lutris Osalas88 Personal Fork
+Lutris O88 Personal Fork
 ******
 
 Lutris helps you install and play video games from all eras and from most
