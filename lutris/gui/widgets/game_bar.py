@@ -121,7 +121,7 @@ class GameBar(Gtk.Box):
         icon_name = self.game.runner.name + "-symbolic"
         runner_icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
         runner_icon.show()
-        box = Gtk.HBox(visible=True)
+        box = Gtk.Box(visible=True)
         runner_button = Gtk.Button(visible=True)
         popover = self.get_popover(self.get_runner_buttons(), runner_button)
         if popover:
@@ -178,7 +178,7 @@ class GameBar(Gtk.Box):
 
     def get_popover_box(self):
         """Return a container for a button + a popover button attached to it"""
-        box = Gtk.HBox(visible=True)
+        box = Gtk.Box(visible=True)
         style_context = box.get_style_context()
         style_context.add_class("linked")
         return box

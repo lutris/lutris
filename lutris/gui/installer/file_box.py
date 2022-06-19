@@ -15,7 +15,7 @@ from lutris.util.log import logger
 from lutris.util.strings import add_url_tags, gtk_safe
 
 
-class InstallerFileBox(Gtk.VBox):
+class InstallerFileBox(Gtk.Box):
     """Container for an installer file downloader / selector"""
 
     __gsignals__ = {
@@ -34,6 +34,7 @@ class InstallerFileBox(Gtk.VBox):
         self.state_label = None  # Use this label to display status update
         self.set_margin_start(12)
         self.set_margin_end(12)
+        self.set_orientation(Gtk.Orientation.VERTICAL)
         self.provider = self.installer_file.provider
         self.file_provider_widget = None
         self.add(self.get_widgets())
@@ -67,7 +68,7 @@ class InstallerFileBox(Gtk.VBox):
 
     def get_file_provider_widget(self):
         """Return the widget used to track progress of file"""
-        box = Gtk.VBox(spacing=6)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         if self.provider == "download":
             download_progress = self.get_download_progress()
             self.start_func = download_progress.start
@@ -90,8 +91,8 @@ class InstallerFileBox(Gtk.VBox):
             self.start_func = steam_installer.install_steam_game
             self.stop_func = steam_installer.stop_func
 
-            steam_box = Gtk.HBox(spacing=6)
-            info_box = Gtk.VBox(spacing=6)
+            steam_box = Gtk.Box(spacing=6)
+            info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
             steam_label = InstallerLabel(_("Steam game <b>{appid}</b>").format(
                 appid=steam_installer.appid
             ))
@@ -171,7 +172,7 @@ class InstallerFileBox(Gtk.VBox):
     def get_file_provider_label(self):
         """Return the label displayed before the download starts"""
         if self.provider == "user":
-            box = Gtk.VBox(spacing=6)
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
             label = InstallerLabel(self.get_file_label())
             label.props.can_focus = True
             box.pack_start(label, False, False, 0)
@@ -193,14 +194,14 @@ class InstallerFileBox(Gtk.VBox):
 
     def get_widgets(self):
         """Return the widget with the source of the file and a way to change its source"""
-        box = Gtk.HBox(
+        box = Gtk.Box(
             spacing=12,
             margin_top=6,
             margin_bottom=6
         )
         self.file_provider_widget = self.get_file_provider_label()
         box.pack_start(self.file_provider_widget, True, True, 0)
-        source_box = Gtk.HBox()
+        source_box = Gtk.Box()
         source_box.props.valign = Gtk.Align.START
         box.pack_start(source_box, False, False, 0)
         source_box.pack_start(InstallerLabel(_("Source:")), False, False, 0)

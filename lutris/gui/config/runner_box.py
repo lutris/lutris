@@ -38,7 +38,7 @@ class RunnerBox(Gtk.Box):
         runner_icon.set_margin_end(12)
         self.pack_start(runner_icon, False, True, 6)
 
-        self.runner_label_box = Gtk.VBox(visible=True)
+        self.runner_label_box = Gtk.Box(visible=True, orientation=Gtk.Orientation.VERTICAL)
         self.runner_label_box.set_margin_top(12)
 
         runner_label = Gtk.Label(visible=True)

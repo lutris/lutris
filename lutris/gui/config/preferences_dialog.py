@@ -20,7 +20,7 @@ class PreferencesDialog(GameDialogCommon):
         self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
 
-        hbox = Gtk.HBox(visible=True)
+        hbox = Gtk.Box(visible=True)
         sidebar = Gtk.ListBox(visible=True)
         sidebar.connect("row-selected", self.on_sidebar_activated)
         sidebar.add(self.get_sidebar_button("prefs-stack", _("Interface"), "view-grid-symbolic"))
@@ -29,7 +29,7 @@ class PreferencesDialog(GameDialogCommon):
         sidebar.add(self.get_sidebar_button("sysinfo-stack", _("Hardware information"), "computer-symbolic"))
         sidebar.add(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
         hbox.pack_start(sidebar, False, False, 0)
-        self.stack = Gtk.Stack(visible=True)
+        self.stack = Gtk.Stack(visible=True, hexpand=True)
         self.stack.set_vhomogeneous(False)
         self.stack.set_interpolate_size(True)
         hbox.add(self.stack)
@@ -70,7 +70,7 @@ class PreferencesDialog(GameDialogCommon):
         self.stack.set_visible_child_name(row.get_children()[0].stack_id)
 
     def get_sidebar_button(self, stack_id, text, icon_name):
-        hbox = Gtk.HBox(visible=True)
+        hbox = Gtk.Box(visible=True)
         hbox.stack_id = stack_id
         hbox.set_margin_top(12)
         hbox.set_margin_bottom(12)

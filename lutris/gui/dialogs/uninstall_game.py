@@ -17,7 +17,7 @@ class UninstallGameDialog(Dialog):
         self.set_size_request(640, 128)
         self.game = Game(game_id)
         self.delete_files = False
-        container = Gtk.VBox(visible=True)
+        container = Gtk.Box(visible=True, orientation=Gtk.Orientation.VERTICAL)
         self.get_content_area().add(container)
 
         title_label = Gtk.Label(visible=True)
@@ -53,7 +53,7 @@ class UninstallGameDialog(Dialog):
         self.confirm_delete_button.set_active(True)
         container.pack_start(self.confirm_delete_button, False, False, 4)
 
-        button_box = Gtk.HBox(visible=True)
+        button_box = Gtk.Box(visible=True)
         button_box.set_margin_top(30)
         style_context = button_box.get_style_context()
         style_context.add_class("linked")
@@ -112,7 +112,7 @@ class RemoveGameDialog(Dialog):
         super().__init__(parent=parent)
         self.set_size_request(640, 128)
         self.game = Game(game_id)
-        container = Gtk.VBox(visible=True)
+        container = Gtk.Box(visible=True, orientation=Gtk.Orientation.VERTICAL)
         self.get_content_area().add(container)
 
         title_label = Gtk.Label(visible=True)
@@ -128,7 +128,7 @@ class RemoveGameDialog(Dialog):
             _("Completely remove %s from the library?\nAll play time will be lost.") % self.game)
         container.pack_start(self.delete_label, False, False, 4)
 
-        button_box = Gtk.HBox(visible=True)
+        button_box = Gtk.Box(visible=True)
         button_box.set_margin_top(30)
         style_context = button_box.get_style_context()
         style_context.add_class("linked")

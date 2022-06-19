@@ -6,7 +6,7 @@ from lutris.gui.installer.widgets import InstallerLabel
 from lutris.util.strings import add_url_tags, gtk_safe
 
 
-class InstallerScriptBox(Gtk.VBox):
+class InstallerScriptBox(Gtk.Box):
     """Box displaying the details of a script, with associated action buttons"""
 
     def __init__(self, script, parent=None, revealed=False):
@@ -16,6 +16,7 @@ class InstallerScriptBox(Gtk.VBox):
         self.revealer = None
         self.set_margin_start(12)
         self.set_margin_end(12)
+        self.set_orientation(Gtk.Orientation.VERTICAL)
         box = Gtk.Box(spacing=12, margin_top=6, margin_bottom=6)
         box.pack_start(self.get_infobox(), True, True, 0)
         box.add(self.get_install_button())
@@ -28,8 +29,8 @@ class InstallerScriptBox(Gtk.VBox):
 
     def get_infobox(self):
         """Return the central information box"""
-        info_box = Gtk.VBox(spacing=6)
-        title_box = Gtk.HBox(spacing=6)
+        info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        title_box = Gtk.Box(spacing=6)
         runner_label = InstallerLabel("%s" % self.script["runner"])
         runner_label.get_style_context().add_class("info-pill")
         title_box.pack_start(runner_label, False, False, 0)
@@ -51,7 +52,7 @@ class InstallerScriptBox(Gtk.VBox):
     def get_revealer(self, revealed):
         """Return the revelaer widget"""
         self.revealer = Gtk.Revealer()
-        box = Gtk.VBox(visible=True)
+        box = Gtk.Box(visible=True, orientation=Gtk.Orientation.VERTICAL)
 
         notes = self.get_notes()
         if notes:

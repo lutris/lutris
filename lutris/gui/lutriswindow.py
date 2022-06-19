@@ -114,7 +114,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.sidebar_revealer.set_transition_duration(300)
 
         self.game_bar = None
-        self.revealer_box = Gtk.HBox(visible=True)
+        self.revealer_box = Gtk.Box(visible=True)
         self.game_revealer.add(self.revealer_box)
 
         self.connect("view-updated", self.update_store)
