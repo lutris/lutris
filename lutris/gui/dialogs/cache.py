@@ -20,7 +20,7 @@ class CacheConfigurationDialog(Gtk.Dialog):
         """Return the widgets for the cache configuration"""
         prefs_box = Gtk.VBox()
 
-        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+        box = Gtk.Box(spacing=12, margin_end=12, margin_start=12)
         label = Gtk.Label(_("Cache path"))
         box.pack_start(label, False, False, 0)
         cache_path = get_cache_path()

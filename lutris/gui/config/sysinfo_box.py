@@ -16,8 +16,8 @@ class SysInfoBox(Gtk.Fixed):
     def __init__(self):
         super().__init__(visible=True)
         self.set_margin_top(40)
-        self.set_margin_right(30)
-        self.set_margin_left(30)
+        self.set_margin_end(30)
+        self.set_margin_start(30)
 
         sysinfo_frame = Gtk.Frame(visible=True)
         sysinfo_frame.set_size_request(550, 455)

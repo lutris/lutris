@@ -14,8 +14,8 @@ class InstallerScriptBox(Gtk.VBox):
         self.script = script
         self.parent = parent
         self.revealer = None
-        self.set_margin_left(12)
-        self.set_margin_right(12)
+        self.set_margin_start(12)
+        self.set_margin_end(12)
         box = Gtk.Box(spacing=12, margin_top=6, margin_bottom=6)
         box.pack_start(self.get_infobox(), True, True, 0)
         box.add(self.get_install_button())
@@ -85,8 +85,8 @@ class InstallerScriptBox(Gtk.VBox):
         _label = InstallerLabel(text)
         _label.set_margin_top(12)
         _label.set_margin_bottom(12)
-        _label.set_margin_right(12)
-        _label.set_margin_left(12)
+        _label.set_margin_end(12)
+        _label.set_margin_start(12)
         return _label
 
     def reveal(self, reveal=True):

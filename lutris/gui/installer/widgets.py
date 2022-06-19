@@ -12,7 +12,7 @@ class InstallerLabel(Gtk.Label):
         else:
             self.set_property("ellipsize", Pango.EllipsizeMode.MIDDLE)
         self.set_alignment(0, 0.5)
-        self.set_margin_right(12)
+        self.set_margin_end(12)
         self.set_markup(text)
         self.props.can_focus = False
         self.set_tooltip_text(text)

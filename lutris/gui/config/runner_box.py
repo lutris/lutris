@@ -25,8 +25,8 @@ class RunnerBox(Gtk.Box):
 
         self.set_margin_bottom(12)
         self.set_margin_top(12)
-        self.set_margin_left(12)
-        self.set_margin_right(12)
+        self.set_margin_start(12)
+        self.set_margin_end(12)
         self.runner = runners.import_runner(runner_name)()
         icon = get_icon(self.runner.name, icon_format='pixbuf', size=ICON_SIZE)
         if icon:
@@ -35,7 +35,7 @@ class RunnerBox(Gtk.Box):
         else:
             runner_icon = Gtk.Image.new_from_icon_name("package-x-generic-symbolic", Gtk.IconSize.DND)
             runner_icon.show()
-        runner_icon.set_margin_right(12)
+        runner_icon.set_margin_end(12)
         self.pack_start(runner_icon, False, True, 6)
 
         self.runner_label_box = Gtk.VBox(visible=True)
@@ -56,7 +56,7 @@ class RunnerBox(Gtk.Box):
 
         self.configure_button = Gtk.Button.new_from_icon_name("preferences-system-symbolic", Gtk.IconSize.BUTTON)
         self.configure_button.set_valign(Gtk.Align.CENTER)
-        self.configure_button.set_margin_right(12)
+        self.configure_button.set_margin_end(12)
         self.configure_button.connect("clicked", self.on_configure_clicked)
         self.pack_start(self.configure_button, False, False, 0)
         if not self.runner.is_installed():

@@ -15,9 +15,9 @@ class GameBar(Gtk.Box):
         """Create the game bar with a database row"""
         super().__init__(orientation=Gtk.Orientation.VERTICAL, visible=True,
                          margin_top=12,
-                         margin_left=12,
+                         margin_start=12,
                          margin_bottom=12,
-                         margin_right=12,
+                         margin_end=12,
                          spacing=6)
         self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
         self.game_started_hook_id = GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
@@ -136,8 +136,8 @@ class GameBar(Gtk.Box):
             style_context = box.get_style_context()
             style_context.add_class("linked")
         else:
-            runner_icon.set_margin_left(49)
-            runner_icon.set_margin_right(6)
+            runner_icon.set_margin_start(49)
+            runner_icon.set_margin_end(6)
             box.add(runner_icon)
         return box
 

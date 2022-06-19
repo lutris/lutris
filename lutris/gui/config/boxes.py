@@ -35,8 +35,8 @@ class ConfigBox(VBox):
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
         help_box = Gtk.Box()
-        help_box.set_margin_left(15)
-        help_box.set_margin_right(15)
+        help_box.set_margin_start(15)
+        help_box.set_margin_end(15)
         help_box.set_margin_bottom(5)
 
         icon = Gtk.Image.new_from_icon_name("dialog-information", Gtk.IconSize.MENU)
@@ -135,7 +135,7 @@ class ConfigBox(VBox):
                 self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
 
             hbox = Gtk.Box()
-            hbox.set_margin_left(18)
+            hbox.set_margin_start(18)
             hbox.pack_end(placeholder, False, False, 5)
             # Grey out option if condition unmet
             if "condition" in option and not option["condition"]:
@@ -472,7 +472,7 @@ class ConfigBox(VBox):
         label.set_halign(Gtk.Align.START)
         button = Gtk.Button(_("Add files"))
         button.connect("clicked", self.on_add_files_clicked, option_name, value)
-        button.set_margin_left(10)
+        button.set_margin_start(10)
         vbox.pack_start(label, False, False, 5)
         vbox.pack_end(button, False, False, 0)
 
@@ -493,7 +493,7 @@ class ConfigBox(VBox):
         files_treeview.connect("key-press-event", self.on_files_treeview_keypress, option_name)
         treeview_scroll = Gtk.ScrolledWindow()
         treeview_scroll.set_min_content_height(130)
-        treeview_scroll.set_margin_left(10)
+        treeview_scroll.set_margin_start(10)
         treeview_scroll.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         treeview_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         treeview_scroll.add(files_treeview)

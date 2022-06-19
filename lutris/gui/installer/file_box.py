@@ -32,8 +32,8 @@ class InstallerFileBox(Gtk.VBox):
         self.start_func = None
         self.stop_func = None
         self.state_label = None  # Use this label to display status update
-        self.set_margin_left(12)
-        self.set_margin_right(12)
+        self.set_margin_start(12)
+        self.set_margin_end(12)
         self.provider = self.installer_file.provider
         self.file_provider_widget = None
         self.add(self.get_widgets())

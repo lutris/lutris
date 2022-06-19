@@ -35,8 +35,8 @@ class ServicesBox(BaseConfigBox):
     def _get_service_box(self, service_key):
         box = Gtk.Box(
             spacing=12,
-            margin_right=12,
-            margin_left=12,
+            margin_end=12,
+            margin_start=12,
             margin_top=12,
             margin_bottom=12,
             visible=True,

@@ -23,5 +23,5 @@ class BaseConfigBox(VBox):
         super().__init__(visible=True)
         self.set_margin_top(50)
         self.set_margin_bottom(50)
-        self.set_margin_right(80)
-        self.set_margin_left(80)
+        self.set_margin_end(80)
+        self.set_margin_start(80)

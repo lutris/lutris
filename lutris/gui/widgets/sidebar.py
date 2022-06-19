@@ -228,7 +228,7 @@ class SidebarHeader(Gtk.Box):
             label="<b>{}</b>".format(name),
         )
         label.get_style_context().add_class("dim-label")
-        box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_right=9)
+        box = Gtk.Box(margin_start=9, margin_top=6, margin_bottom=6, margin_end=9)
         box.add(label)
         self.add(box)
         self.add(Gtk.Separator())

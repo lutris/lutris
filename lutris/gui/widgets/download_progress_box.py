@@ -41,7 +41,7 @@ class DownloadProgressBox(Gtk.Box):
         self.progressbar = Gtk.ProgressBar()
         self.progressbar.set_margin_top(5)
         self.progressbar.set_margin_bottom(5)
-        self.progressbar.set_margin_right(10)
+        self.progressbar.set_margin_end(10)
         progress_box.pack_start(self.progressbar, True, True, 0)
 
         self.cancel_button = Gtk.Button.new_with_mnemonic(_("_Cancel"))

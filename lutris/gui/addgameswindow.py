@@ -85,8 +85,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def _get_box(self):
         return Gtk.Box(
             spacing=12,
-            margin_right=12,
-            margin_left=12,
+            margin_end=12,
+            margin_start=12,
             margin_top=12,
             margin_bottom=12,
             visible=True,
