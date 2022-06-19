@@ -1248,7 +1248,7 @@ msgid "Add games to your favorites to see them here."
 msgstr "Fügen Sie Ihre Spiele zu den Favoriten hinzu um sie hier zu sehen."
 
 #: lutris/gui/lutriswindow.py:422
-msgid "No installed games found. Press Ctrl+H so show all games."
+msgid "No installed games found. Press Ctrl+H to show all games."
 msgstr ""
 "Keine installierte Spiele gefunden. Drücke Strg+H damit alle gezeigt werden."
 
@@ -5065,7 +5065,7 @@ msgstr "Skript, das vor dem Spielstart ausgeführt wird"
 
 #: lutris/sysoptions.py:437
 msgid "Wait for pre-launch script completion"
-msgstr "Warte auf den Abschluss des vorgelegarten Skripts"
+msgstr "Warte auf den Abschluss des vorgelagerten Skripts"
 
 #: lutris/sysoptions.py:440
 msgid "Run the game only once the pre-launch script has exited"
@@ -5081,7 +5081,7 @@ msgstr "Skript, das nach dem Beenden des Spiels ausgeführt wird"
 
 #: lutris/sysoptions.py:455
 msgid "Include processes"
-msgstr "Prozesse einfügen"
+msgstr "Prozesse einbeziehen"
 
 #: lutris/sysoptions.py:458
 msgid ""
@@ -5090,7 +5090,7 @@ msgid ""
 "Space-separated list, processes including spaces can be wrapped in quotation "
 "marks."
 msgstr ""
-"Welche Prozesse für die Prozessüberwachung eingefügt werden. Dies ist da, um "
+"Welche Prozesse in die Prozessüberwachung einbezogen werden. Dies ist da, um "
 "die eingebaute Ausschlussliste zu überschreiben.\n"
 "Es ist eine mit Leerzeichen getrennte Liste. Prozesse die einen Leerzeichen "
 "haben können in Anführungszeichen eingeschlossen werden."

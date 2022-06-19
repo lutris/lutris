@@ -68,7 +68,10 @@ class Runner:  # pylint: disable=too-many-public-methods
     @property
     def game_config(self):
         """Return the cascaded game config as a dict."""
-        return self.config.game_config if self.config else {}
+        if self.config:
+            return self.config.game_config
+        logger.warning("Accessing game config while runner wasn't given one.")
+        return {}
 
     @property
     def runner_config(self):
@@ -157,7 +160,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             raise ValueError("runner_executable not set for {}".format(self.name))
         return os.path.join(settings.RUNNER_DIR, self.runner_executable)
 
-    def get_env(self, os_env=False):
+    def get_env(self, os_env=False, disable_runtime=False):
         """Return environment variables used for a game."""
         env = {}
         if os_env:
@@ -204,7 +207,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         runtime_ld_library_path = None
 
-        if self.use_runtime():
+        if not disable_runtime and self.use_runtime():
             runtime_env = self.get_runtime_env()
             runtime_ld_library_path = runtime_env.get("LD_LIBRARY_PATH")
 
@@ -231,7 +234,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         return runtime.get_env(prefer_system_libs=self.system_config.get("prefer_system_libs", True))
 
     def prelaunch(self):
-        """Run actions before running the game, override this method in runners"""
+        """Run actions before running the game, override this method in runners; raise an
+        exception if prelaunch fails, and it will be reported to the user, and
+        then the game won't start."""
         available_libs = set()
         for lib in set(self.require_libs):
             if lib in LINUX_SYSTEM.shared_libraries:
@@ -243,7 +248,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         unavailable_libs = set(self.require_libs) - available_libs
         if unavailable_libs:
             raise UnavailableLibraries(unavailable_libs, self.arch)
-        return True
 
     def get_run_data(self):
         """Return dict with command (exe & args list) and env vars (dict).
@@ -434,8 +438,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if callback:
             callback()
 
-    @staticmethod
-    def remove_game_data(app_id=None, game_path=None):
+    def remove_game_data(self, app_id=None, game_path=None):
         system.remove_folder(game_path)
 
     def can_uninstall(self):

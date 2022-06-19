@@ -2,7 +2,7 @@
 Lutris
 ******
 
-|LiberaPayBadge|_
+|LiberaPayBadge|_ |PatreonBadge|_
 
 Lutris helps you install and play video games from all eras and from most
 gaming systems. By leveraging and combining existing emulators, engine
@@ -146,3 +146,5 @@ You can always reach us on:
 
 .. |LiberaPayBadge| image:: http://img.shields.io/liberapay/receives/Lutris.svg?logo=liberapay
 .. _LiberaPayBadge: https://liberapay.com/Lutris/
+.. |PatreonBadge| image:: https://img.shields.io/badge/dynamic/json?color=%23ff424d&label=Patreon&query=data.attributes.patron_count&suffix=%20Patreons&url=https%3A%2F%2Fwww.patreon.com%2Fapi%2Fcampaigns%2F556103&style=flat&logo=patreon
+.. _PatreonBadge: https://www.patreon.com/lutris

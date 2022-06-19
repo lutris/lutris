@@ -1,6 +1,6 @@
 # pylint: disable=wrong-import-position
 #
-# Copyright (C) 2021 Mathieu Comandon <strider@strycore.com>
+# Copyright (C) 2022 Mathieu Comandon <strider@strycore.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -658,7 +658,7 @@ class Application(Gtk.Application):
     def on_game_install_dlc(self, game):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")
-        installers = service.get_dlc_installers(db_game)
+        installers = service.get_dlc_installers_runner(db_game, db_game["runner"])
         if installers:
             self.show_installer_window(installers, service, game.appid)
         else:

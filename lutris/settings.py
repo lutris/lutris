@@ -51,5 +51,8 @@ DISCORD_CLIENT_ID = sio.read_setting("discord_client_id") or "618290412402114570
 
 SHOW_MEDIA = os.environ.get("LUTRIS_HIDE_MEDIA") != "1" and sio.read_setting("hide_media") != 'True'
 
+DEFAULT_RESOLUTION_WIDTH = 1280
+DEFAULT_RESOLUTION_HEIGHT = 720
+
 read_setting = sio.read_setting
 write_setting = sio.write_setting

@@ -6,7 +6,6 @@ import time
 
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
-from lutris.config import LutrisConfig
 from lutris.runners import import_runner
 from lutris.util import linux, system
 from lutris.util.log import logger
@@ -86,6 +85,7 @@ def create_prefix(  # noqa: C901
     overrides=None,
     install_gecko=None,
     install_mono=None,
+    runner=None
 ):
     """Create a new Wine prefix."""
     # pylint: disable=too-many-locals
@@ -108,8 +108,9 @@ def create_prefix(  # noqa: C901
             logger.error("Failed to delete %s, you may lack permissions on this folder.", prefix)
 
     if not wine_path:
-        wine = import_runner("wine")
-        wine_path = wine().get_executable()
+        if not runner:
+            runner = import_runner("wine")()
+        wine_path = runner.get_executable()
     if not wine_path:
         logger.error("Wine not found, can't create prefix")
         return
@@ -152,14 +153,15 @@ def create_prefix(  # noqa: C901
     prefix_manager.setup_defaults()
 
 
-def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_pids=None):
+def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_pids=None, runner=None):
     """Kill processes in Wine prefix."""
 
     initial_pids = initial_pids or []
 
     if not wine_path:
-        wine = import_runner("wine")
-        wine_path = wine().get_executable()
+        if not runner:
+            runner = import_runner("wine")()
+        wine_path = runner.get_executable()
     wine_root = os.path.dirname(wine_path)
     if not env:
         env = {"WINEARCH": arch, "WINEPREFIX": prefix}
@@ -208,6 +210,7 @@ def wineexec(  # noqa: C901
     disable_runtime=False,
     env=None,
     overrides=None,
+    runner=None
 ):
     """
     Execute a Wine command.
@@ -223,6 +226,7 @@ def wineexec(  # noqa: C901
         blocking (bool): if true, do not run the process in a thread
         config (LutrisConfig): LutrisConfig object for the process context
         watch (list): list of process names to monitor (even when in a ignore list)
+        runner (runner): the wine runner that carries the configuration to use
 
     Returns:
         Process results if the process is running in blocking mode or
@@ -240,10 +244,11 @@ def wineexec(  # noqa: C901
     if isinstance(exclude_processes, str):
         exclude_processes = shlex.split(exclude_processes)
 
-    wine = import_runner("wine")()
+    if not runner:
+        runner = import_runner("wine")()
 
     if not wine_path:
-        wine_path = wine.get_executable()
+        wine_path = runner.get_executable()
     if not wine_path:
         raise RuntimeError("Wine is not installed")
 
@@ -260,7 +265,7 @@ def wineexec(  # noqa: C901
         arch = detect_arch(prefix, wine_path)
     if not detect_prefix_arch(prefix):
         wine_bin = winetricks_wine if winetricks_wine else wine_path
-        create_prefix(prefix, wine_path=wine_bin, arch=arch)
+        create_prefix(prefix, wine_path=wine_bin, arch=arch, runner=runner)
 
     wineenv = {"WINEARCH": arch}
     if winetricks_wine:
@@ -271,7 +276,7 @@ def wineexec(  # noqa: C901
     if prefix:
         wineenv["WINEPREFIX"] = prefix
 
-    wine_system_config = config.system_config if config else wine.system_config
+    wine_system_config = config.system_config if config else runner.system_config
     disable_runtime = disable_runtime or wine_system_config["disable_runtime"]
     if use_lutris_runtime(wine_path=wineenv["WINE"], force_disable=disable_runtime):
         if WINE_DIR in wine_path:
@@ -290,7 +295,7 @@ def wineexec(  # noqa: C901
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
-    baseenv = wine.get_env()
+    baseenv = runner.get_env(disable_runtime=disable_runtime)
     baseenv.update(wineenv)
     baseenv.update(env)
 
@@ -299,14 +304,14 @@ def wineexec(  # noqa: C901
         command_parameters.append(executable)
     command_parameters += split_arguments(args)
 
-    wine.prelaunch()
+    runner.prelaunch()
 
     if blocking:
         return system.execute(command_parameters, env=baseenv, cwd=working_dir)
 
     command = MonitoredCommand(
         command_parameters,
-        runner=wine,
+        runner=runner,
         env=baseenv,
         cwd=working_dir,
         include_processes=include_processes,
@@ -328,19 +333,21 @@ def winetricks(
     config=None,
     env=None,
     disable_runtime=False,
+    system_winetricks=False,
+    runner=None
 ):
     """Execute winetricks."""
-    wine_config = config or LutrisConfig(runner_slug="wine")
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
-    if (wine_config.runner_config.get("system_winetricks") or not system.path_exists(winetricks_path)):
+    if system_winetricks or not system.path_exists(winetricks_path):
         winetricks_path = system.find_executable("winetricks")
         if not winetricks_path:
             raise RuntimeError("No installation of winetricks found")
     if wine_path:
         winetricks_wine = wine_path
     else:
-        wine = import_runner("wine")
-        winetricks_wine = wine().get_executable()
+        if not runner:
+            runner = import_runner("wine")()
+        winetricks_wine = runner.get_executable()
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, winetricks_wine)
     args = app
@@ -356,28 +363,27 @@ def winetricks(
         config=config,
         env=env,
         disable_runtime=disable_runtime,
+        runner=runner
     )
 
 
-def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None):
+def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None, runner=None):
     """Execute winecfg."""
     if not wine_path:
         logger.debug("winecfg: Reverting to default wine")
         wine = import_runner("wine")
         wine_path = wine().get_executable()
 
-    winecfg_path = os.path.join(os.path.dirname(wine_path), "winecfg")
-    logger.debug("winecfg: %s", winecfg_path)
-
     return wineexec(
-        None,
+        "winecfg.exe",
         prefix=prefix,
-        winetricks_wine=winecfg_path,
-        wine_path=winecfg_path,
+        winetricks_wine=wine_path,
+        wine_path=wine_path,
         arch=arch,
         config=config,
         env=env,
         include_processes=["winecfg.exe"],
+        runner=runner
     )
 
 

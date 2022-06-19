@@ -62,12 +62,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if not self.service:
             return
         if self.service.id == "steam":
-            return installer.get("steamid")
+            return installer.get("steamid") or installer.get("service_id")
         game_config = self.script.get("game", {})
         if self.service.id == "gog":
-            return game_config.get("gogid") or installer.get("gogid")
+            return game_config.get("gogid") or installer.get("gogid") or installer.get("service_id")
         if self.service.id == "humblebundle":
-            return game_config.get("humbleid") or installer.get("humblestoreid")
+            return game_config.get("humbleid") or installer.get("humblestoreid") or installer.get("service_id")
 
     @property
     def script_pretty(self):
@@ -232,6 +232,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                                                                    make_executable=True)
             elif AUTO_WIN32_EXE in config["game"].get("exe", ""):
                 config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
+        config["name"] = self.game_name
+        config["script"] = self.script
+        config["variables"] = self.variables
+        config["version"] = self.version
+        config["requires"] = self.requires
+        config["slug"] = self.slug
+        config["game_slug"] = self.game_slug
+        config["year"] = self.year
+        if self.service:
+            config["service"] = self.service.id
+            config["service_id"] = self.service_appid
         return config
 
     def save(self):

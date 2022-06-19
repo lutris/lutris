@@ -20,6 +20,15 @@ def get_nvidia_driver_info():
     with open(version_file_path, encoding='utf-8') as version_file:
         content = version_file.readlines()
         nvrm_version = content[0].split(': ')[1].strip().split()
+        if 'Open' in nvrm_version:
+            return {
+                'nvrm': {
+                    'vendor': nvrm_version[0],
+                    'platform': nvrm_version[1],
+                    'arch': nvrm_version[6],
+                    'version': nvrm_version[7]
+                }
+            }
         return {
             'nvrm': {
                 'vendor': nvrm_version[0],
@@ -29,7 +38,6 @@ def get_nvidia_driver_info():
                 'date': ' '.join(nvrm_version[6:])
             }
         }
-    return
 
 
 def get_nvidia_gpu_ids():

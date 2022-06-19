@@ -123,7 +123,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def search_installers(self):
         """Search installers with the Lutris API"""
-        self.title_label.set_markup("<b>Search Lutris.net</b>")
+        self.title_label.set_markup(_("<b>Search Lutris.net</b>"))
         self.listbox.destroy()
         hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, visible=True)
         entry = Gtk.SearchEntry(visible=True)
@@ -242,7 +242,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         """Install from a setup file"""
         self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.listbox.destroy()
-        label = self._get_label("Game name")
+        label = self._get_label(_("Game name"))
         self.vbox.add(label)
         entry = Gtk.Entry(visible=True)
         self.vbox.add(entry)
@@ -254,7 +254,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         name = entry.get_text().strip()
         installer = {
             "name": name,
-            "version": "Setup file",
+            "version": _("Setup file"),
             "slug": slugify(name) + "-setup",
             "game_slug": slugify(name),
             "runner": "wine",
@@ -263,7 +263,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
                     "exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"
                 },
                 "files": [
-                    {"setupfile": "N/A:Select the setup file"}
+                    {"setupfile": "N/A:%s" % _("Select the setup file")}
                 ],
                 "installer": [
                     {"task": {"name": "wineexec", "executable": "setupfile"}}

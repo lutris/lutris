@@ -28,7 +28,7 @@ def get_xdg_entry(directory):
         "DOCUMENTS": GLib.UserDirectory.DIRECTORY_DOCUMENTS,
     }
     directory = directory.upper()
-    if directory not in special_dir.keys():
+    if directory not in special_dir:
         raise ValueError(
             directory + " not supported. Only those folders are supported: " + ", ".join(special_dir.keys())
         )

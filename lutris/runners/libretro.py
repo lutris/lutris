@@ -134,7 +134,7 @@ class libretro(Runner):
         return system.path_exists(self.get_executable())
 
     def is_installed(self, core=None):
-        if not core and self.game_config.get("core"):
+        if not core and self.config and self.game_config.get("core"):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):
             return self.is_retroarch_installed()
@@ -241,8 +241,6 @@ class libretro(Runner):
                 # firmware is missing
                 # TODO Add dialog for copying the firmware in the correct
                 # location
-
-        return True
 
     def get_runner_parameters(self):
         parameters = []

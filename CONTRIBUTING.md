@@ -70,8 +70,7 @@ Set up your development environment
 -----------------------------------
 
 To ensure you have the proper dependencies installed run: `make dev`
-This will use poetry to create a virtual environment installing all necessary
-python packages to get you up and running.
+This will install all necessary python packages to get you up and running.
 
 This project includes .editorconfig so you're good to go if you're using any
 editor/IDE that supports this. Otherwise make sure to configure your max line

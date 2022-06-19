@@ -8,9 +8,14 @@ from gi.repository import WebKit2
 
 from lutris.gui.dialogs import Dialog
 
+DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0"
+
 
 class WebConnectDialog(Dialog):
     """Login form for external services"""
+
+    default_width = 390
+    default_height = 500
 
     def __init__(self, service, parent=None):
 
@@ -26,8 +31,9 @@ class WebConnectDialog(Dialog):
         self.service = service
 
         super().__init__(title=service.name, parent=parent)
+
         self.set_border_width(0)
-        self.set_default_size(390, 500)
+        self.set_default_size(self.default_width, self.default_height)
 
         self.webview = WebKit2.WebView.new_with_context(self.context)
         self.webview.load_uri(service.login_url)
@@ -36,18 +42,26 @@ class WebConnectDialog(Dialog):
         self.vbox.pack_start(self.webview, True, True, 0)  # pylint: disable=no-member
 
         webkit_settings = self.webview.get_settings()
+
+        # Set a default User Agent
+        webkit_settings.set_user_agent(DEFAULT_USER_AGENT)
+
         # Allow popups (Doesn't work...)
-        webkit_settings.set_enable_write_console_messages_to_stdout(True)
         webkit_settings.set_allow_modal_dialogs(True)
+
         # Enable developer options for troubleshooting (Can be disabled in
         # releases)
-        webkit_settings.set_javascript_can_open_windows_automatically(True)
+        # webkit_settings.set_enable_write_console_messages_to_stdout(True)
+        # webkit_settings.set_javascript_can_open_windows_automatically(True)
         webkit_settings.set_enable_developer_extras(True)
-
+        # self.enable_inspector()
         self.show_all()
 
     def enable_inspector(self):
         """If you want a full blown Webkit inspector, call this"""
+        # WARNING: For some reason this doesn't work as intended.
+        # The inspector shows ups but it's impossible to interact with it
+        # All inputs are blocked by the the webkit dialog.
         inspector = self.webview.get_inspector()
         inspector.show()
 

@@ -418,7 +418,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             if self.filters.get("category") == "favorite":
                 self.show_label(_("Add games to your favorites to see them here."))
             elif self.filters.get("installed"):
-                self.show_label(_("No installed games found. Press Ctrl+H so show all games."))
+                self.show_label(_("No installed games found. Press Ctrl+H to show all games."))
             # Splash screen disabled because unfinished.
             # elif (
             #     not self.filters.get("runner")

@@ -3,6 +3,7 @@ from collections import namedtuple
 
 import dbus
 
+from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.log import logger
 
 DisplayConfig = namedtuple("DisplayConfig", ("monitors", "name", "position", "transform", "primary", "scale"))
@@ -402,9 +403,23 @@ class DisplayState:
         """Display configuration properties"""
         return self._state[3]
 
+    def get_primary_logical_monitor(self):
+        """Return the primary logical monitor"""
+        for lm in self.logical_monitors:
+            if lm.primary:
+                return lm
+        return None
+
+    def get_primary_monitor(self):
+        """Returns the first physical monitor on the primary logical monitor."""
+        lm = self.get_primary_logical_monitor()
+        if lm:
+            return lm.monitors[0]
+        return self.monitors[0]
+
     def get_current_mode(self):
         """Return the current mode"""
-        return self.monitors[0].get_current_mode()
+        return self.get_primary_monitor().get_current_mode()
 
 
 class MutterDisplayConfig():
@@ -570,12 +585,13 @@ class MutterDisplayConfig():
                 return mode
         return
 
-    def get_primary_output(self):
-        """Return the primary output"""
-        for output in self.current_state.logical_monitors:
-            if output.primary:
-                return output
-        return
+    def get_primary_logical_monitor(self):
+        """Return the primary logical monitor"""
+        return self.current_state.get_primary_logical_monitor()
+
+    def get_primary_monitor(self):
+        """Returns the first physical monitor on the primary logical monitor."""
+        return self.current_state.get_primary_monitor()
 
     def apply_monitors_config(self, display_configs):
         """Set the selected display to the desired resolution"""
@@ -617,6 +633,9 @@ class MutterDisplayManager:
     def get_resolutions(self):
         """Return available resolutions"""
         resolutions = ["%sx%s" % (mode.width, mode.height) for mode in self.display_config.modes]
+        if not resolutions:
+            logger.error("Could not generate resolution list")
+            resolutions = ['%dx%d' % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
     def get_current_resolution(self):
@@ -625,19 +644,19 @@ class MutterDisplayManager:
         current_mode = self.display_config.current_state.get_current_mode()
         if not current_mode:
             logger.error("Could not retrieve the current display mode")
-            return "", ""
+            return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
         return str(current_mode.width), str(current_mode.height)
 
     def set_resolution(self, resolution):
         """Change the current resolution"""
         if isinstance(resolution, str):
-            output = self.display_config.get_primary_output()
-            mode = output.monitors[0].get_mode_for_resolution(resolution)
+            monitor = self.display_config.get_primary_monitor()
+            mode = monitor.get_mode_for_resolution(resolution)
             if not mode:
                 logger.error("Could not find  valid mode for %s", resolution)
                 return
             config = [
-                DisplayConfig([(output.monitors[0].name, mode.id)], output.monitors[0].name, (0, 0), 0, True, 1.0)
+                DisplayConfig([(monitor.name, mode.id)], monitor.name, (0, 0), 0, True, 1.0)
             ]
             self.display_config.apply_monitors_config(config)
         elif resolution:

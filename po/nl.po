@@ -1334,7 +1334,7 @@ msgid "Add games to your favorites to see them here."
 msgstr "Voeg games toe aan je favorieten om ze hier te tonen."
 
 #: lutris/gui/lutriswindow.py:421
-msgid "No installed games found. Press Ctrl+H so show all games."
+msgid "No installed games found. Press Ctrl+H to show all games."
 msgstr ""
 "Geen geïnstalleerde games aangetroffen. Druk op Ctrl+H om alle games te "
 "tonen."
