@@ -45,13 +45,14 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         "view-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
+    games_stack = GtkTemplate.Child()
     games_scrollwindow = GtkTemplate.Child()
+    status_label = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
     game_revealer = GtkTemplate.Child()
     search_entry = GtkTemplate.Child()
     zoom_adjustment = GtkTemplate.Child()
-    blank_overlay = GtkTemplate.Child()
     viewtype_icon = GtkTemplate.Child()
 
     def __init__(self, application, **kwargs):
@@ -431,8 +432,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()
-        for child in self.blank_overlay.get_children():
-            child.destroy()
+        self.games_stack.set_visible_child_name("games")
         games = self.get_games_from_filters()
         logger.debug("Showing %d games", len(games))
         self.view.service = self.service.id if self.service else None
@@ -471,36 +471,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.save_icon_type(icon_type)
             self.show_spinner()
 
-    def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
-        """Display a widget in the blank overlay"""
-        for child in self.blank_overlay.get_children():
-            child.destroy()
-        self.blank_overlay.set_halign(halign)
-        self.blank_overlay.set_valign(valign)
-        self.blank_overlay.add(widget)
-        self.blank_overlay.props.visible = True
-
     def show_label(self, message):
         """Display a label in the middle of the UI"""
-        self.show_overlay(Gtk.Label(message, visible=True))
-
-    def show_splash(self):
-        image = Gtk.Image(visible=True)
-        image.set_from_file(os.path.join(datapath.get(), "media/splash.svg"))
-        self.show_overlay(image, Gtk.Align.START, Gtk.Align.START)
+        self.status_label.set_label(message)
+        self.games_stack.set_visible_child_name("status")
 
     def show_spinner(self):
-        spinner = Gtk.Spinner(visible=True)
-        spinner.start()
-        for child in self.blank_overlay.get_children():
-            child.destroy()
-        self.blank_overlay.add(spinner)
-        self.blank_overlay.props.visible = True
-
-    def hide_overlay(self):
-        self.blank_overlay.props.visible = False
-        for child in self.blank_overlay.get_children():
-            child.destroy()
+        self.games_stack.set_visible_child_name("spinner")
 
     @property
     def view_type(self):
