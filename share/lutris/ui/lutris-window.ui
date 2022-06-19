@@ -311,8 +311,6 @@
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
                 <property name="adjustment">zoom_adjustment</property>
-                <property name="lower-stepper-sensitivity">on</property>
-                <property name="upper-stepper-sensitivity">on</property>
                 <property name="restrict-to-fill-level">False</property>
                 <property name="fill-level">0</property>
                 <property name="round-digits">0</property>
