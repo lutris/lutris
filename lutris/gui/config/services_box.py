@@ -55,14 +55,12 @@ class ServicesBox(BaseConfigBox):
         box.pack_start(label, True, True, 0)
 
         checkbox = Gtk.Switch(visible=True)
+        checkbox.set_valign(Gtk.Align.CENTER)
         if settings.read_setting(service_key,
                                  section="services").lower() == "true":
             checkbox.set_active(True)
         checkbox.connect("state-set", self._on_service_change, service_key)
-        alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
-        alignment.show()
-        alignment.add(checkbox)
-        box.pack_start(alignment, False, False, 6)
+        box.pack_start(checkbox, False, False, 6)
 
         return box
 

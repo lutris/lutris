@@ -45,9 +45,8 @@ class IssueReportWindow(BaseApplicationWindow):
         self.vbox.pack_start(self.textview, True, True, 0)
 
         self.action_buttons = Gtk.Box(spacing=6)
-        action_buttons_alignment = Gtk.Alignment.new(1, 0, 0, 0)
-        action_buttons_alignment.add(self.action_buttons)
-        self.vbox.pack_start(action_buttons_alignment, False, True, 0)
+        self.action_buttons.set_halign(Gtk.Align.END)
+        self.vbox.pack_start(self.action_buttons, False, True, 0)
 
         cancel_button = self.get_action_button(_("C_ancel"), handler=self.on_destroy)
         self.action_buttons.add(cancel_button)

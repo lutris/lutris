@@ -62,10 +62,9 @@ class RunnerBox(Gtk.Box):
         if not self.runner.is_installed():
             self.runner_label_box.set_sensitive(False)
         self.configure_button.show()
-        self.action_alignment = Gtk.Alignment.new(0.5, 0.5, 0, 0)
-        self.action_alignment.show()
-        self.action_alignment.add(self.get_action_button())
-        self.pack_start(self.action_alignment, False, False, 0)
+        self.action_button = self.get_action_button()
+        self.action_button.set_valign(Gtk.Align.CENTER)
+        self.pack_start(self.action_button, False, False, 0)
 
     def get_action_button(self):
         """Return a install or remove button"""
@@ -130,11 +129,15 @@ class RunnerBox(Gtk.Box):
     def on_runner_installed(self, widget):
         """Called after the runnner is installed"""
         self.runner_label_box.set_sensitive(True)
-        self.action_alignment.get_children()[0].destroy()
-        self.action_alignment.add(self.get_action_button())
+        self.action_button.destroy()
+        self.action_button = self.get_action_button()
+        self.action_button.set_valign(Gtk.Align.CENTER)
+        self.pack_start(self.action_button, False, False, 0)
 
     def on_runner_removed(self, widget):
         """Called after the runner is removed"""
         self.runner_label_box.set_sensitive(False)
-        self.action_alignment.get_children()[0].destroy()
-        self.action_alignment.add(self.get_action_button())
+        self.action_button.destroy()
+        self.action_button = self.get_action_button()
+        self.action_button.set_valign(Gtk.Align.CENTER)
+        self.pack_start(self.action_button, False, False, 0)

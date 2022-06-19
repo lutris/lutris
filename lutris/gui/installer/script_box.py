@@ -39,7 +39,11 @@ class InstallerScriptBox(Gtk.VBox):
         rating_label.set_alignment(1, 0.5)
         title_box.pack_end(rating_label, False, False, 0)
         info_box.add(title_box)
-        info_box.add(self.get_credits())
+
+        credits = self.get_credits()
+        if credits:
+            info_box.add(credits)
+
         info_box.add(InstallerLabel(add_url_tags(self.script["description"])))
 
         return info_box
@@ -48,7 +52,10 @@ class InstallerScriptBox(Gtk.VBox):
         """Return the revelaer widget"""
         self.revealer = Gtk.Revealer()
         box = Gtk.VBox(visible=True)
-        box.add(self.get_notes())
+
+        notes = self.get_notes()
+        if notes:
+            box.add(notes)
 
         self.revealer.add(box)
         self.revealer.set_reveal_child(revealed)
@@ -56,25 +63,22 @@ class InstallerScriptBox(Gtk.VBox):
 
     def get_install_button(self):
         """Return the install button widget"""
-        align = Gtk.Alignment()
-        align.set(0, 0, 0, 0)
-
         install_button = Gtk.Button(_("Install"))
+        install_button.set_valign(Gtk.Align.CENTER)
         install_button.connect("clicked", self.on_install_clicked)
-        align.add(install_button)
-        return align
+        return install_button
 
     def get_notes(self):
         """Return the notes widget"""
         notes = self.script["notes"].strip()
         if not notes:
-            return Gtk.Alignment()
+            return None
         return self._get_installer_label(notes)
 
     def get_credits(self):
         credits_text = self.script.get("credits", "").strip()
         if not credits_text:
-            return Gtk.Alignment()
+            return None
         return self._get_installer_label(add_url_tags(credits_text))
 
     def _get_installer_label(self, text):

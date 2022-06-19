@@ -67,9 +67,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         button_box.add(self.cache_button)
 
         self.action_buttons = Gtk.Box(spacing=6)
-        action_buttons_alignment = Gtk.Alignment.new(1, 0, 0, 0)
-        action_buttons_alignment.add(self.action_buttons)
-        button_box.pack_end(action_buttons_alignment, True, True, 0)
+        self.action_buttons.set_halign(Gtk.Align.END)
+        button_box.pack_end(self.action_buttons, True, True, 0)
         self.vbox.pack_start(button_box, False, True, 0)
 
         self.cancel_button = self.add_button(
