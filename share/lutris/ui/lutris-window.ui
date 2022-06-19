@@ -27,115 +27,109 @@
     <signal name="destroy" handler="on_destroy" swapped="no"/>
     <signal name="size-allocate" handler="on_resize" swapped="no"/>
     <child>
-      <object class="GtkStack">
+      <object class="GtkBox" id="main_box">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <child>
-          <object class="GtkBox" id="main_box">
+          <object class="GtkRevealer" id="sidebar_revealer">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="hexpand">False</property>
+            <property name="transition-type">slide-right</property>
             <child>
-              <object class="GtkRevealer" id="sidebar_revealer">
+              <object class="GtkScrolledWindow" id="sidebar_scrolled">
                 <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="hexpand">False</property>
-                <property name="transition-type">slide-right</property>
+                <property name="can-focus">True</property>
+                <property name="hscrollbar-policy">never</property>
                 <child>
-                  <object class="GtkScrolledWindow" id="sidebar_scrolled">
-                    <property name="visible">True</property>
-                    <property name="can-focus">True</property>
-                    <property name="hscrollbar-policy">never</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                  </object>
+                  <placeholder/>
                 </child>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="game_view_box">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <placeholder/>
             </child>
             <child>
-              <object class="GtkBox" id="game_view_box">
+              <placeholder/>
+            </child>
+            <child>
+              <object class="GtkOverlay">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="hexpand">True</property>
-                <property name="orientation">vertical</property>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <object class="GtkOverlay">
+                  <object class="GtkScrolledWindow" id="games_scrollwindow">
                     <property name="visible">True</property>
-                    <property name="can-focus">False</property>
+                    <property name="can-focus">True</property>
+                    <property name="vexpand">True</property>
                     <child>
-                      <object class="GtkScrolledWindow" id="games_scrollwindow">
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="vexpand">True</property>
-                        <child>
-                          <object class="GtkViewport" id="games_viewport">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <child>
-                              <placeholder/>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="index">-1</property>
-                      </packing>
-                    </child>
-                    <child type="overlay">
-                      <object class="GtkAlignment" id="blank_overlay">
+                      <object class="GtkViewport" id="games_viewport">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="xscale">0.10000000149011612</property>
-                        <property name="yscale">0.10000000149011612</property>
                         <child>
                           <placeholder/>
                         </child>
                       </object>
-                      <packing>
-                        <property name="pass-through">True</property>
-                      </packing>
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">2</property>
+                    <property name="index">-1</property>
                   </packing>
                 </child>
-                <child>
-                  <object class="GtkRevealer" id="game_revealer">
+                <child type="overlay">
+                  <object class="GtkAlignment" id="blank_overlay">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="transition-type">slide-up</property>
+                    <property name="xscale">0.10000000149011612</property>
+                    <property name="yscale">0.10000000149011612</property>
                     <child>
                       <placeholder/>
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">3</property>
+                    <property name="pass-through">True</property>
                   </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkRevealer" id="game_revealer">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="transition-type">slide-up</property>
+                <child>
+                  <placeholder/>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">1</property>
+                <property name="position">3</property>
               </packing>
             </child>
           </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
         </child>
       </object>
     </child>
