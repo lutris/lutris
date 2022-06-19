@@ -112,8 +112,8 @@ class GameListView(Gtk.TreeView, GameView):
     def on_column_header_button_pressed(self, button, event):
         """Handles column header button press events"""
         if event.button == Gdk.BUTTON_SECONDARY:
-            menu = GameListColumnToggleMenu(self.get_columns())
-            menu.popup_at_pointer(None)
+            menu = GameListColumnToggleMenu(button, self.get_columns())
+            menu.popup()
             return True
 
     def on_row_activated(self, widget, line=None, column=None):
@@ -140,10 +140,16 @@ class GameListView(Gtk.TreeView, GameView):
             )
 
 
-class GameListColumnToggleMenu(Gtk.Menu):
+class GameListColumnToggleMenu(Gtk.Popover):
 
-    def __init__(self, columns):
-        super().__init__()
+    def __init__(self, relative_to, columns):
+        super().__init__(relative_to=relative_to)
+        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.box.set_margin_top(6)
+        self.box.set_margin_bottom(6)
+        self.box.set_margin_start(6)
+        self.box.set_margin_end(6)
+        self.add(self.box)
         self.columns = columns
         self.column_map = {}
         self.create_menuitems()
@@ -154,14 +160,14 @@ class GameListColumnToggleMenu(Gtk.Menu):
             title = column.get_title()
             if title == "":
                 continue
-            checkbox = Gtk.CheckMenuItem(title)
+            checkbox = Gtk.CheckButton(title)
             checkbox.set_active(column.get_visible())
             if title == _("Name"):
                 checkbox.set_sensitive(False)
             else:
                 checkbox.connect("toggled", self.on_toggle_column)
             self.column_map[checkbox] = column
-            self.append(checkbox)
+            self.box.add(checkbox)
 
     def on_toggle_column(self, check_menu_item):
         column = self.column_map[check_menu_item]
