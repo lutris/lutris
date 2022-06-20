@@ -51,7 +51,7 @@ class ServicesBox(BaseConfigBox):
             icon.show()
         box.pack_start(icon, False, False, 0)
         label = Gtk.Label(service.name, visible=True)
-        label.set_alignment(0, 0.5)
+        label.set_xalign(0)
         box.pack_start(label, True, True, 0)
 
         checkbox = Gtk.Switch(visible=True)

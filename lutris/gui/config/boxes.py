@@ -44,7 +44,7 @@ class ConfigBox(VBox):
 
         title_label = Gtk.Label("<i>%s</i>" % text)
         title_label.set_line_wrap(True)
-        title_label.set_alignment(0, 0.5)
+        title_label.set_xalign(0)
         title_label.set_use_markup(True)
         help_box.pack_start(title_label, False, False, 5)
 

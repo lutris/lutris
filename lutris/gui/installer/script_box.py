@@ -37,7 +37,7 @@ class InstallerScriptBox(Gtk.Box):
         title_box.add(InstallerLabel("<b>%s</b>" % gtk_safe(self.script["version"])))
         title_box.pack_start(InstallerLabel(""), True, True, 0)
         rating_label = InstallerLabel(self.get_rating())
-        rating_label.set_alignment(1, 0.5)
+        rating_label.set_xalign(1)
         title_box.pack_end(rating_label, False, False, 0)
         info_box.add(title_box)
 

@@ -204,7 +204,7 @@ def get_link_button(text):
     """Return a transparent text button for the side panels"""
     button = Gtk.Button(text, visible=True)
     button.props.relief = Gtk.ReliefStyle.NONE
-    button.get_children()[0].set_alignment(0, 0.5)
+    button.get_children()[0].set_xalign(0)
     button.get_style_context().add_class("panel-button")
     button.set_size_request(-1, 24)
     return button

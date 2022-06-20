@@ -81,7 +81,7 @@ class PreferencesDialog(GameDialogCommon):
         hbox.pack_start(icon, False, False, 6)
 
         label = Gtk.Label(text, visible=True)
-        label.set_alignment(0, 0.5)
+        label.set_xalign(0)
         hbox.pack_start(label, False, False, 6)
         return hbox
 

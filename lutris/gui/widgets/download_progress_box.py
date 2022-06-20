@@ -28,7 +28,8 @@ class DownloadProgressBox(Gtk.Box):
         self.referer = params.get("referer")
 
         self.main_label = Gtk.Label(self.get_title())
-        self.main_label.set_alignment(0, 0)
+        self.main_label.set_xalign(0)
+        self.main_label.set_yalign(0)
         self.main_label.set_property("wrap", True)
         self.main_label.set_margin_bottom(10)
         # self.main_label.set_max_width_chars(70)
@@ -53,7 +54,8 @@ class DownloadProgressBox(Gtk.Box):
         self.pack_start(progress_box, False, False, 0)
 
         self.progress_label = Gtk.Label()
-        self.progress_label.set_alignment(0, 0)
+        self.progress_label.set_xalign(0)
+        self.progress_label.set_yalign(0)
         self.pack_start(self.progress_label, True, True, 0)
 
         self.show_all()

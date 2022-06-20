@@ -22,14 +22,14 @@ class UninstallGameDialog(Dialog):
 
         title_label = Gtk.Label(visible=True)
         title_label.set_line_wrap(True)
-        title_label.set_alignment(0, 0.5)
+        title_label.set_xalign(0)
         title_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         title_label.set_markup(_("<span font_desc='14'><b>Uninstall %s</b></span>") % gtk_safe(self.game.name))
 
         container.pack_start(title_label, False, False, 4)
 
         self.folder_label = Gtk.Label(visible=True)
-        self.folder_label.set_alignment(0, 0.5)
+        self.folder_label.set_xalign(0)
 
         self.delete_button = Gtk.Button(_("Uninstall"), visible=True)
         self.delete_button.connect("clicked", self.on_delete_clicked)
@@ -117,13 +117,13 @@ class RemoveGameDialog(Dialog):
 
         title_label = Gtk.Label(visible=True)
         title_label.set_line_wrap(True)
-        title_label.set_alignment(0, 0.5)
+        title_label.set_xalign(0)
         title_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         title_label.set_markup(_("<span font_desc='14'><b>Remove %s</b></span>") % gtk_safe(self.game.name))
         container.pack_start(title_label, False, False, 4)
 
         self.delete_label = Gtk.Label(visible=True)
-        self.delete_label.set_alignment(0, 0.5)
+        self.delete_label.set_xalign(0)
         self.delete_label.set_markup(
             _("Completely remove %s from the library?\nAll play time will be lost.") % self.game)
         container.pack_start(self.delete_label, False, False, 4)

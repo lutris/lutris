@@ -201,7 +201,7 @@ class Label(Gtk.Label):
         self.set_max_width_chars(22)
         self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.set_size_request(230, -1)
-        self.set_alignment(0, 0.5)
+        self.set_xalign(0)
         self.set_justify(Gtk.Justification.LEFT)
 
 
@@ -214,7 +214,7 @@ class InstallerLabel(Gtk.Label):
         self.set_property("wrap", True)
         self.set_use_markup(True)
         self.set_selectable(True)
-        self.set_alignment(0.5, 0)
+        self.set_yalign(0)
 
 
 class VBox(Gtk.Box):

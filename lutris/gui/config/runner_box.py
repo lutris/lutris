@@ -42,13 +42,13 @@ class RunnerBox(Gtk.Box):
         self.runner_label_box.set_margin_top(12)
 
         runner_label = Gtk.Label(visible=True)
-        runner_label.set_alignment(0, 0.5)
+        runner_label.set_xalign(0)
         runner_label.set_markup("<b>%s</b>" % self.runner.human_name)
         self.runner_label_box.pack_start(runner_label, False, False, 0)
 
         desc_label = Gtk.Label(visible=True)
         desc_label.set_line_wrap(True)
-        desc_label.set_alignment(0, 0.5)
+        desc_label.set_xalign(0)
         desc_label.set_text(self.runner.description)
         self.runner_label_box.pack_start(desc_label, False, False, 0)
 

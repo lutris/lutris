@@ -144,7 +144,7 @@ class GameBar(Gtk.Box):
     def get_platform_label(self):
         platform_label = Gtk.Label(visible=True)
         platform_label.set_size_request(120, -1)
-        platform_label.set_alignment(0, 0.5)
+        platform_label.set_xalign(0)
         platform = gtk_safe(self.game.platform)
         platform_label.set_tooltip_markup(platform)
         platform_label.set_markup(_("Platform:\n<b>%s</b>") % platform)
@@ -155,7 +155,7 @@ class GameBar(Gtk.Box):
         """Return the label containing the playtime info"""
         playtime_label = Gtk.Label(visible=True)
         playtime_label.set_size_request(120, -1)
-        playtime_label.set_alignment(0, 0.5)
+        playtime_label.set_xalign(0)
         playtime_label.set_markup(_("Time played:\n<b>%s</b>") % self.game.formatted_playtime)
         return playtime_label
 
@@ -163,7 +163,7 @@ class GameBar(Gtk.Box):
         """Return the label containing the last played info"""
         last_played_label = Gtk.Label(visible=True)
         last_played_label.set_size_request(120, -1)
-        last_played_label.set_alignment(0, 0.5)
+        last_played_label.set_xalign(0)
         lastplayed = datetime.fromtimestamp(self.game.lastplayed)
         last_played_label.set_markup(_("Last played:\n<b>%s</b>") % lastplayed.strftime("%b %-d %Y"))
         return last_played_label

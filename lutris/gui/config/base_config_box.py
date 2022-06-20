@@ -8,7 +8,7 @@ class BaseConfigBox(VBox):
     def get_section_label(self, text):
         label = Gtk.Label(visible=True)
         label.set_markup("<b>%s</b>" % text)
-        label.set_alignment(0, 0.5)
+        label.set_xalign(0)
         label.set_margin_bottom(8)
         return label
 
@@ -16,7 +16,7 @@ class BaseConfigBox(VBox):
         label = Gtk.Label(visible=True)
         label.set_markup("%s" % text)
         label.set_line_wrap(True)
-        label.set_alignment(0, 0.5)
+        label.set_xalign(0)
         return label
 
     def __init__(self):

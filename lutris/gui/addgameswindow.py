@@ -104,7 +104,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def _get_label(self, text):
         label = Gtk.Label(visible=True)
         label.set_markup(text)
-        label.set_alignment(0, 0.5)
+        label.set_xalign(0)
         return label
 
     def build_row(self, icon_name, text, subtext):
