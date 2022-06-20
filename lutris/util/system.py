@@ -216,7 +216,22 @@ def merge_folders(source, destination):
     if "dirs_exist_ok" in sig.parameters:
         shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True, dirs_exist_ok=True)
     else:
-        shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True)
+        source = os.path.abspath(source)
+        for (dirpath, dirnames, filenames) in os.walk(source):
+            source_relpath = dirpath[len(source):].strip("/")
+            dst_abspath = os.path.join(destination, source_relpath)
+            for dirname in dirnames:
+                new_dir = os.path.join(dst_abspath, dirname)
+                logger.debug("creating dir: %s", new_dir)
+                try:
+                    os.mkdir(new_dir)
+                except OSError:
+                    pass
+            for filename in filenames:
+                # logger.debug("Copying %s", filename)
+                if not os.path.exists(dst_abspath):
+                    os.makedirs(dst_abspath)
+                shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
 
 
 def remove_folder(path):
