@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-15 01:35+0800\n"
+"POT-Creation-Date: 2022-06-20 16:54+0200\n"
 "PO-Revision-Date: 2022-06-15 01:42+0800\n"
 "Last-Translator: Yidaozhan Ya <yidaozhan_ya@outlook.com>\n"
 "Language-Team: Chinese <kde-i18n-doc@kde.org>\n"
@@ -15,7 +15,6 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: share/applications/net.lutris.Lutris.desktop:3
-#: share/metainfo/net.lutris.Lutris.metainfo.xml:10
 #: share/lutris/ui/lutris-window.ui:25 lutris/gui/application.py:76
 #: lutris/gui/widgets/status_icon.py:116 lutris/services/lutris.py:39
 msgid "Lutris"
@@ -28,14 +27,6 @@ msgstr "电子游戏保管平台"
 #: share/applications/net.lutris.Lutris.desktop:6
 msgid "gaming;wine;emulator;"
 msgstr "游戏;wine;模拟器;"
-
-#: share/applications/net.lutris.Lutris.desktop:8
-msgid "lutris"
-msgstr "lutris"
-
-#: share/metainfo/net.lutris.Lutris.metainfo.xml:8
-msgid "Lutris Team"
-msgstr "Lutris 团队"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:11
 #: share/lutris/ui/about-dialog.ui:18
@@ -2433,8 +2424,8 @@ msgid ""
 "Amiga CD32 and CDTV models."
 msgstr ""
 "包含游戏数据的主软盘文件。\n"
-"FS-UAE 支持多种格式的软盘映像：ADF，IPF，DMS 是最常见的格式。还支持读取 "
-"ADZ（压缩 ADF）和 zip 压缩包里的 ADF 文件。\n"
+"FS-UAE 支持多种格式的软盘映像：ADF，IPF，DMS 是最常见的格式。还支持读取 ADZ"
+"（压缩 ADF）和 zip 压缩包里的 ADF 文件。\n"
 "以 .hdf 结尾的文件将作为硬盘驱动器安装，ISO 光盘映像可以用于 Amiga CD32 和 "
 "CDTV 型号。"
 
@@ -5443,6 +5434,12 @@ msgid ""
 msgstr ""
 "您选择的 Wine 版本不支持 Fsync。\n"
 "请选择支持 Fsync 的 Wine 版本，或者禁用 Fsync。"
+
+#~ msgid "lutris"
+#~ msgstr "lutris"
+
+#~ msgid "Lutris Team"
+#~ msgstr "Lutris 团队"
 
 #~ msgid "An error prevented the game from running"
 #~ msgstr "启动游戏时出错"
