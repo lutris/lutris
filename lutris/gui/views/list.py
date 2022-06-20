@@ -27,7 +27,6 @@ class GameListView(Gtk.TreeView, GameView):
         self.model = self.game_store.store
         super().__init__(model=self.model)
         GameView.__init__(self)
-        self.set_rules_hint(True)
 
         # Icon column
         if settings.SHOW_MEDIA:
