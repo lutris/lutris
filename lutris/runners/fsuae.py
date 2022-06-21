@@ -7,19 +7,88 @@ from lutris.runners.runner import Runner
 from lutris.util.display import DISPLAY_MANAGER
 
 
+AMIGAS = {
+    "A500": {
+        "name": _("Amiga 500"),
+        "bios_sha1": [
+            "891e9a547772fe0c6c19b610baf8bc4ea7fcb785",
+            "c39bd9094d4e5f4e28c1411f3086950406062e87",
+            "90933936cce43ca9bc6bf375662c076b27e3c458",
+        ]
+    },
+    "A500+": {
+        "name": _("Amiga 500+"),
+        "bios_sha1": [
+            "c5839f5cb98a7a8947065c3ed2f14f5f42e334a1"
+        ]
+    },
+    "A600": {
+        "name": _("Amiga 600"),
+        "bios_sha1": [
+            "02843c4253bbd29aba535b0aa3bd9a85034ecde4"
+        ]
+    },
+    "A1200": {
+        "name": _("Amiga 1200"),
+        "bios_sha1": [
+            "e21545723fe8374e91342617604f1b3d703094f1"
+        ]
+    },
+    "A3000": {
+        "name": _("Amiga 3000"),
+        "bios_sha1": [
+            "f8e210d72b4c4853e0c9b85d223ba20e3d1b36ee"
+        ]
+    },
+    "A4000": {
+        "name": _("Amiga 4000"),
+        "bios_sha1": [
+            "5fe04842d04a489720f0f4bb0e46948199406f49",
+            "c3c481160866e60d085e436a24db3617ff60b5f9"
+        ]
+    },
+    "A1000": {
+        "name": _("Amiga 1000"),
+        "bios_sha1": [
+
+        ]
+    },
+    "CD32": {
+        "name": _("Amiga CD32"),
+        "bios_sha1": [
+            "3525be8887f79b5929e017b42380a79edfee542d"
+        ],
+        "bios_ext_sha1": [
+            "5bef3d628ce59cc02a66e6e4ae0da48f60e78f7f"
+        ]
+    },
+    "CDTV": {
+        "name": _("Commodore CDTV"),
+        "bios_sha1": [
+            "891e9a547772fe0c6c19b610baf8bc4ea7fcb785",
+            "c39bd9094d4e5f4e28c1411f3086950406062e87",
+            "90933936cce43ca9bc6bf375662c076b27e3c458",
+        ],
+        "bios_ext_sha1": [
+            "7ba40ffa17e500ed9fed041f3424bd81d9c907be"
+        ]
+    }
+}
+
+
 class fsuae(Runner):
     human_name = _("FS-UAE")
     description = _("Amiga emulator")
     platforms = [
-        _("Amiga 500"),
-        _("Amiga 500+"),
-        _("Amiga 600"),
-        _("Amiga 1000"),
-        _("Amiga 1200"),
-        _("Amiga 1200"),
-        _("Amiga 4000"),
-        _("Amiga CD32"),
-        _("Commodore CDTV"),
+        AMIGAS["A500"]["name"],
+        AMIGAS["A500+"]["name"],
+        AMIGAS["A600"]["name"],
+        AMIGAS["A1000"]["name"],
+        AMIGAS["A1200"]["name"],
+        AMIGAS["A1200"]["name"],
+        AMIGAS["A4000"]["name"],
+        AMIGAS["CD32"]["name"],
+        AMIGAS["CDTV"]["name"],
     ]
     model_choices = [
         (_("Amiga 500"), "A500"),

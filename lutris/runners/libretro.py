@@ -21,7 +21,6 @@ def get_libretro_cores():
     cores = []
     runner_path = get_default_config_path()
     if not os.path.exists(runner_path):
-        logger.warning("No folder at %s", runner_path)
         return []
 
     # Get core identifiers from info dir
