@@ -1,8 +1,6 @@
-# Standard Library
 import os
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util.display import DISPLAY_MANAGER
 
@@ -50,7 +48,7 @@ AMIGAS = {
     "A1000": {
         "name": _("Amiga 1000"),
         "bios_sha1": [
-
+            "11f9e62cf299f72184835b7b2a70a16333fc0d88"
         ]
     },
     "CD32": {
@@ -90,17 +88,9 @@ class fsuae(Runner):
         AMIGAS["CD32"]["name"],
         AMIGAS["CDTV"]["name"],
     ]
-    model_choices = [
-        (_("Amiga 500"), "A500"),
-        (_("Amiga 500+ with 1 MB chip RAM"), "A500+"),
-        (_("Amiga 600 with 1 MB chip RAM"), "A600"),
-        (_("Amiga 1000 with 512 KB chip RAM"), "A1000"),
-        (_("Amiga 1200 with 2 MB chip RAM"), "A1200"),
-        (_("Amiga 1200 but with 68020 processor"), "A1200/020"),
-        (_("Amiga 4000 with 2 MB chip RAM and a 68040"), "A4000/040"),
-        (_("Amiga CD32"), "CD32"),
-        (_("Commodore CDTV"), "CDTV"),
-    ]
+
+    model_choices = [(model["name"], key) for key, model in AMIGAS.items()]
+
     cpumodel_choices = [
         (_("68000"), "68000"),
         (_("68010"), "68010"),
