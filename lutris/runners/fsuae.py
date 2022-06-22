@@ -96,7 +96,7 @@ def scan_dir_for_bios(path):
     Kickstart files must reside in `path`
     The first mapping contains the kickstarts and the second one, the extensions (for CD32/CDTV)
     """
-    bios_sizes = [524288]
+    bios_sizes = [262144, 524288]
     hashes, ext_hashes = get_bios_hashes()
     found_bios = {}
     found_ext = {}
