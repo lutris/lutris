@@ -1,9 +1,7 @@
-# Standard Library
 import logging
 import os.path
 from gettext import gettext as _
 
-# Lutris Modules
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.download import DownloadDialog
@@ -20,7 +18,6 @@ def get_resolutions():
     return screen_resolutions
 
 
-# pylint: disable=C0103
 class atari800(Runner):
     human_name = _("Atari800")
     platforms = [_("Atari 8bit computers")]  # FIXME try to determine the actual computer used
@@ -49,12 +46,9 @@ class atari800(Runner):
 
     runner_options = [
         {
-            "option":
-            "bios_path",
-            "type":
-            "directory_chooser",
-            "label":
-            _("BIOS location"),
+            "option": "bios_path",
+            "type": "directory_chooser",
+            "label": _("BIOS location"),
             "help": _(
                 "A folder containing the Atari 800 BIOS files.\n"
                 "They are provided by Lutris so you shouldn't have to "
@@ -62,10 +56,8 @@ class atari800(Runner):
             ),
         },
         {
-            "option":
-            "machine",
-            "type":
-            "choice",
+            "option": "machine",
+            "type": "choice",
             "choices": [
                 (_("Emulate Atari 800"), "atari"),
                 (_("Emulate Atari 800 XL"), "xl"),
@@ -73,10 +65,8 @@ class atari800(Runner):
                 (_("Emulate Atari 320 XE (Rambo)"), "rambo"),
                 (_("Emulate Atari 5200"), "5200"),
             ],
-            "default":
-            "atari",
-            "label":
-            _("Machine"),
+            "default": "atari",
+            "label": _("Machine"),
         },
         {
             "option": "fullscreen",
@@ -95,7 +85,7 @@ class atari800(Runner):
 
     def install(self, version=None, downloader=None, callback=None):
 
-        def on_runner_installed(*args):  # pylint: disable=unused-argument
+        def on_runner_installed(*_args):
             config_path = system.create_folder("~/.atari800")
             bios_archive = os.path.join(config_path, "atari800-bioses.zip")
             dlg = DownloadDialog(self.bios_url, bios_archive)
