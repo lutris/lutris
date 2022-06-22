@@ -1,9 +1,10 @@
 import os
+from collections import defaultdict
 from gettext import gettext as _
 
 from lutris.runners.runner import Runner
+from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
-
 
 AMIGAS = {
     "A500": {
@@ -72,6 +73,51 @@ AMIGAS = {
         ]
     }
 }
+
+
+def get_bios_hashes():
+    """Return mappings of sha1 hashes to Amiga models
+    The first mapping contains the kickstarts and the second one, the extensions (for CD32/CDTV)
+    """
+    hashes = defaultdict(list)
+    ext_hashes = defaultdict(list)
+    for model, model_def in AMIGAS.items():
+        for sha1_hash in model_def["bios_sha1"]:
+            hashes[sha1_hash].append(model)
+        if "bios_ext_sha1" in model_def:
+            for sha1_hash in model_def["bios_ext_sha1"]:
+                ext_hashes[sha1_hash].append(model)
+    return hashes, ext_hashes
+
+
+def scan_dir_for_bios(path):
+    """Return a tuple of mappings of Amiga models and their corresponding kickstart file.
+
+    Kickstart files must reside in `path`
+    The first mapping contains the kickstarts and the second one, the extensions (for CD32/CDTV)
+    """
+    bios_sizes = [524288]
+    hashes, ext_hashes = get_bios_hashes()
+    found_bios = {}
+    found_ext = {}
+    incomplete_bios = []
+    for file_name in os.listdir(path):
+        abs_path = os.path.join(path, file_name)
+        file_size = os.path.getsize(abs_path)
+        if file_size not in bios_sizes:
+            continue
+        checksum = system.get_file_checksum(abs_path, "sha1")
+        if checksum in hashes:
+            for model in hashes[checksum]:
+                found_bios[model] = abs_path
+        if checksum in ext_hashes:
+            for model in ext_hashes[checksum]:
+                found_ext[model] = abs_path
+    for model in found_bios:
+        if "bios_ext_sha1" in AMIGAS[model] and model not in found_ext:
+            incomplete_bios.append(model)
+    found_bios = {k: v for k, v in found_bios.items() if k not in incomplete_bios}
+    return found_bios, found_ext
 
 
 class fsuae(Runner):

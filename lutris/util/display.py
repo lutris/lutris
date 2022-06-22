@@ -5,6 +5,7 @@ import os
 import subprocess
 import gi
 
+
 try:
     gi.require_version("GnomeDesktop", "3.0")
     from gi.repository import GnomeDesktop
