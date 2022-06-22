@@ -437,3 +437,12 @@ def get_mountpoint_drives():
 def get_drive_for_path(path):
     """Return the physical drive a file is located on"""
     return get_mountpoint_drives().get(find_mount_point(path))
+
+
+def set_keyboard_layout(layout):
+    setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
+    xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
+    with subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE) as xkbcomp:
+        with subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin) as setxkbmap:
+            setxkbmap.communicate()
+            xkbcomp.communicate()

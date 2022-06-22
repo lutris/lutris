@@ -357,15 +357,6 @@ class Game(GObject.Object):
         self.antimicro_thread = MonitoredCommand(antimicro_command)
         self.antimicro_thread.start()
 
-    @staticmethod
-    def set_keyboard_layout(layout):
-        setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
-        xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
-        with subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE) as xkbcomp:
-            with subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin) as setxkbmap:
-                setxkbmap.communicate()
-                xkbcomp.communicate()
-
     def start_prelaunch_command(self, wait_for_completion=False):
         """Start the prelaunch command specified in the system options"""
         prelaunch_command = self.runner.system_config.get("prelaunch_command")
@@ -465,7 +456,7 @@ class Game(GObject.Object):
 
         # Input control
         if self.runner.system_config.get("use_us_layout"):
-            self.set_keyboard_layout("us")
+            system.set_keyboard_layout("us")
 
         # Display control
         self.original_outputs = DISPLAY_MANAGER.get_config()
@@ -782,7 +773,6 @@ class Game(GObject.Object):
 
 def export_game(slug, dest_dir):
     """Export a full game folder along with some lutris metadata"""
-
     # List of runner where we know for sure that 1 folder = 1 game.
     # For runners that handle ROMs, we have to handle this more finely.
     # There is likely more than one game in a ROM folder but a ROM
@@ -793,7 +783,6 @@ def export_game(slug, dest_dir):
         "dosbox",
         "scummvm",
     ]
-
     db_game = games_db.get_game_by_field(slug, "slug")
     if db_game["runner"] not in exportable_runners:
         raise RuntimeError("Game %s can't be exported." % db_game["name"])
