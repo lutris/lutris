@@ -214,7 +214,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         """Hides or shows the hidden games"""
         action.set_state(value)
         settings.write_setting("show_hidden_games", str(value).lower(), section="lutris")
-        self.filters["hidden"] = value
+        self.filters["hidden"] = bool(value)
         self.emit("view-updated")
 
     @property
@@ -413,13 +413,24 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def show_empty_label(self):
         """Display a label when the view is empty"""
-        if self.filters.get("text"):
-            self.show_label(_("No games matching '%s' found ") % self.filters["text"])
+        filter_text = self.filters.get("text")
+        if filter_text:
+            if self.filters.get("category") == "favorite":
+                self.show_label(_("Add a game matching '%s' to your favorites to see them here.") % filter_text)
+            elif self.filters.get("installed"):
+                self.show_label(
+                    _("No installed games matching '%s' found. Press Ctrl+I to show uninstalled games.") % filter_text)
+            elif self.filters.get("hidden") == False:  # but not if missing!
+                self.show_label(_("No visible games matching '%s' found. Press Ctrl+H to show hidden games.") % filter_text)
+            else:
+                self.show_label(_("No games matching '%s' found ") % filter_text)
         else:
             if self.filters.get("category") == "favorite":
                 self.show_label(_("Add games to your favorites to see them here."))
             elif self.filters.get("installed"):
-                self.show_label(_("No installed games found. Press Ctrl+H to show all games."))
+                self.show_label(_("No installed games found. Press Ctrl+I to show uninstalled games."))
+            elif self.filters.get("hidden") == False:  # but not if missing!
+                self.show_label(_("No visible games found. Press Ctrl+H to show hidden games."))
             # Splash screen disabled because unfinished.
             # elif (
             #     not self.filters.get("runner")
