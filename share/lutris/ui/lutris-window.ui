@@ -497,7 +497,7 @@
             <property name="can-focus">True</property>
             <property name="receives-default">False</property>
             <property name="action-name">win.add-game</property>
-            <property name="text" translatable="yes">Add games</property>
+            <property name="text" translatable="yes">Add Games</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -550,7 +550,7 @@
             <property name="can-focus">True</property>
             <property name="receives-default">False</property>
             <property name="action-name">win.open-forums</property>
-            <property name="text" translatable="yes">Lutris forums</property>
+            <property name="text" translatable="yes">Lutris Forums</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -564,7 +564,7 @@
             <property name="can-focus">True</property>
             <property name="receives-default">False</property>
             <property name="action-name">win.donate</property>
-            <property name="text" translatable="yes">Make a donation</property>
+            <property name="text" translatable="yes">Make a Donation</property>
           </object>
           <packing>
             <property name="expand">False</property>
