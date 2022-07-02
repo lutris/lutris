@@ -173,11 +173,11 @@ msgid "Discord"
 msgstr "Discord"
 
 #: share/lutris/ui/lutris-window.ui:155
-msgid "Lutris forums"
+msgid "Lutris Forums"
 msgstr "Форум Lutris"
 
 #: share/lutris/ui/lutris-window.ui:169
-msgid "Make a donation"
+msgid "Make a Donation"
 msgstr "Сделать пожертвование"
 
 #: share/lutris/ui/lutris-window.ui:218

@@ -168,7 +168,7 @@ msgid "Show Side _Panel"
 msgstr "显示边栏 (_P)"
 
 #: share/lutris/ui/lutris-window.ui:500
-msgid "Add games"
+msgid "Add Games"
 msgstr "添加游戏"
 
 #: share/lutris/ui/lutris-window.ui:514
@@ -180,11 +180,11 @@ msgid "Discord"
 msgstr "Discord 讨论组"
 
 #: share/lutris/ui/lutris-window.ui:553
-msgid "Lutris forums"
+msgid "Lutris Forums"
 msgstr "Lutris 论坛"
 
 #: share/lutris/ui/lutris-window.ui:567
-msgid "Make a donation"
+msgid "Make a Donation"
 msgstr "捐助"
 
 #: lutris/exceptions.py:26

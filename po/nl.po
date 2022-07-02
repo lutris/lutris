@@ -164,7 +164,7 @@ msgid "Show Side _Panel"
 msgstr "Zij_paneel tonen"
 
 #: share/lutris/ui/lutris-window.ui:500
-msgid "Add games"
+msgid "Add Games"
 msgstr "Games toevoegen"
 
 #: share/lutris/ui/lutris-window.ui:514
@@ -176,11 +176,11 @@ msgid "Discord"
 msgstr "Discord"
 
 #: share/lutris/ui/lutris-window.ui:553
-msgid "Lutris forums"
+msgid "Lutris Forums"
 msgstr "Lutris-forum"
 
 #: share/lutris/ui/lutris-window.ui:567
-msgid "Make a donation"
+msgid "Make a Donation"
 msgstr "Doneren"
 
 #: lutris/exceptions.py:26

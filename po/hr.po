@@ -184,11 +184,11 @@ msgid "Discord"
 msgstr "Discord"
 
 #: share/lutris/ui/lutris-window.ui:590
-msgid "Lutris forums"
+msgid "Lutris Forums"
 msgstr "Lutris forum"
 
 #: share/lutris/ui/lutris-window.ui:604
-msgid "Make a donation"
+msgid "Make a Donation"
 msgstr "Donirajte"
 
 #: lutris/exceptions.py:27

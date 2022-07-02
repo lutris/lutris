@@ -159,7 +159,7 @@ msgid "Show Side _Panel"
 msgstr "Mostrar Painel _Lateral"
 
 #: share/lutris/ui/lutris-window.ui:500
-msgid "Add games"
+msgid "Add Games"
 msgstr "Adicionar jogos"
 
 #: share/lutris/ui/lutris-window.ui:514
@@ -171,11 +171,11 @@ msgid "Discord"
 msgstr "Discord"
 
 #: share/lutris/ui/lutris-window.ui:553
-msgid "Lutris forums"
+msgid "Lutris Forums"
 msgstr "Forums do Lutris"
 
 #: share/lutris/ui/lutris-window.ui:567
-msgid "Make a donation"
+msgid "Make a Donation"
 msgstr "Faça uma doação"
 
 #: lutris/exceptions.py:27
