@@ -454,7 +454,7 @@
             <property name="receives-default">False</property>
             <property name="action-name">win.show-installed-only</property>
             <property name="text" translatable="yes">_Installed Games Only</property>
-            <accelerator key="h" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+            <accelerator key="i" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -469,6 +469,7 @@
             <property name="receives-default">False</property>
             <property name="action-name">win.show-hidden-games</property>
             <property name="text" translatable="yes">Show _Hidden Games</property>
+            <accelerator key="h" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
           </object>
           <packing>
             <property name="expand">False</property>
