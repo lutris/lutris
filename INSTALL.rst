@@ -10,7 +10,7 @@ If you installed Lutris from our PPA or some other repository, it should already
 come with all of its essential dependencies. However, if you need to install
 Lutris manually, it requires the following components:
 
-    * Python > 3.4
+    * Python >= 3.7
     * PyGObject
     * PyGObject bindings for: Gtk, Gdk, GnomeDesktop, Webkit2, Notify
     * python3-requests
