@@ -49,10 +49,8 @@ SERVICES = get_services()
 # Those services are not yet ready to be used
 WIP_SERVICES = {
     "battlenet": BattleNetService,
-    "bethesda": BethesdaService,
     "itchio": ItchIoService,
     "mame": MAMEService,
-
 }
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
