@@ -3,7 +3,6 @@ import os
 
 from lutris import settings
 from lutris.services.battlenet import BattleNetService
-from lutris.services.bethesda import BethesdaService
 from lutris.services.dolphin import DolphinService
 from lutris.services.egs import EpicGamesStoreService
 from lutris.services.gog import GOGService
