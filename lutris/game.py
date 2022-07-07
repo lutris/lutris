@@ -22,7 +22,7 @@ from lutris.exceptions import GameConfigError, watch_lutris_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
-from lutris.util import audio, extract, jobs, linux, strings, system, xdgshortcuts
+from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
 )
@@ -513,6 +513,9 @@ class Game(GObject.Object):
 
         self.state = self.STATE_LAUNCHING
         self.prelaunch_pids = system.get_running_pid_list()
+        discord_token = settings.read_setting('discord_token')
+        if discord_token:
+            discord.set_discord_status(discord_token, "Playing %s" % self.name)
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
         return True
@@ -710,6 +713,10 @@ class Game(GObject.Object):
 
         if self.runner.system_config.get("restore_gamma"):
             restore_gamma()
+
+        discord_token = settings.read_setting('discord_token')
+        if discord_token:
+            discord.set_discord_status(discord_token, "")
 
         self.process_return_codes()
 
