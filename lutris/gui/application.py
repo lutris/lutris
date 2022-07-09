@@ -695,7 +695,8 @@ class Application(Gtk.Application):
             self.window.show()  # Show launcher window
         elif not self.window.is_visible():
             if self.running_games.get_n_items() == 0:
-                self.do_shutdown()
+                if self.quit_on_game_exit or not self.has_tray_icon():
+                    self.do_shutdown()
         return True
 
     @staticmethod
@@ -895,3 +896,6 @@ Also, check that the version specified is in the correct format.
             self.tray = LutrisStatusIcon(application=self)
         if self.tray:
             self.tray.set_visible(active)
+
+    def has_tray_icon(self):
+        return self.tray and self.tray.is_visible()
