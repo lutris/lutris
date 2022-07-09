@@ -69,6 +69,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         update_desktop_icons()
         load_icon_theme()
         self.application = application
+        self.window_x, self.window_y = self.get_position()
         self.restore_window_position()
         self.threads_stoppers = []
         self.window_size = (width, height)
