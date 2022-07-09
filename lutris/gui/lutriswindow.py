@@ -69,10 +69,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         update_desktop_icons()
         load_icon_theme()
         self.application = application
-        self.window_x = settings.read_setting("window_x")
-        self.window_y = settings.read_setting("window_y")
-        if self.window_x and self.window_y:
-            self.move(int(self.window_x), int(self.window_y))
+        self.restore_window_position()
         self.threads_stoppers = []
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
@@ -589,6 +586,24 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.emit("view-updated")
         return True
 
+    def save_window_state(self):
+        """Saves the window's size position and state as settings."""
+        width, height = self.window_size
+        settings.write_setting("width", width)
+        settings.write_setting("height", height)
+        if self.window_x and self.window_y:
+            settings.write_setting("window_x", self.window_x)
+            settings.write_setting("window_y", self.window_y)
+        settings.write_setting("maximized", self.maximized)
+
+    def restore_window_position(self):
+        """Restores the window position only; we call this when showing
+        the window, but restore the other settings only when creating it."""
+        self.window_x = settings.read_setting("window_x")
+        self.window_y = settings.read_setting("window_y")
+        if self.window_x and self.window_y:
+            self.move(int(self.window_x), int(self.window_y))
+
     def on_service_login(self, service):
         AsyncCall(service.reload, None)
         return True
@@ -627,14 +642,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         for stopper in self.threads_stoppers:
             stopper()
 
-        # Save settings
-        width, height = self.window_size
-        settings.write_setting("width", width)
-        settings.write_setting("height", height)
-        if self.window_x and self.window_y:
-            settings.write_setting("window_x", self.window_x)
-            settings.write_setting("window_y", self.window_y)
-        settings.write_setting("maximized", self.maximized)
+    @GtkTemplate.Callback
+    def on_hide(self, *_args):
+        self.save_window_state()
+
+    @GtkTemplate.Callback
+    def on_show(self, *_args):
+        self.restore_window_position()
 
     @GtkTemplate.Callback
     def on_preferences_activate(self, *_args):
