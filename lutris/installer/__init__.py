@@ -1,7 +1,7 @@
 """Install script interpreter package."""
 import yaml
 
-from lutris.api import get_game_installers
+from lutris.api import get_game_installers, normalize_installer
 from lutris.util import system
 from lutris.util.log import logger
 
@@ -25,5 +25,5 @@ def read_script(filename):
 def get_installers(game_slug=None, installer_file=None, revision=None):
     # check if installer is local or online
     if system.path_exists(installer_file):
-        return read_script(installer_file)
+        return [normalize_installer(i) for i in read_script(installer_file)]
     return get_game_installers(game_slug=game_slug, revision=revision)

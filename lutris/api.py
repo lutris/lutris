@@ -164,10 +164,29 @@ def get_game_installers(game_slug, revision=None):
     if response is None:
         raise RuntimeError("Couldn't get installer at %s" % installer_url)
 
-    if not revision:
-        return response["results"]
     # Revision requests return a single installer
-    return [response]
+    if revision:
+        installers = [response]
+    else:
+        installers = response["results"]
+    return [normalize_installer(i) for i in installers]
+
+
+def normalize_installer(installer):
+    """Adjusts an installer dict so it is in the correct form, with values
+    of the expected types."""
+    def must_be_str(key):
+        if key in installer:
+            installer[key] = str(installer[key])
+
+    must_be_str("name")
+    must_be_str("version")
+    must_be_str("os")
+    must_be_str("slug")
+    must_be_str("game_slug")
+    must_be_str("dlcid")
+    must_be_str("runner")
+    return installer
 
 
 def search_games(query):
