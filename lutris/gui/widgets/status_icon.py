@@ -78,17 +78,17 @@ class LutrisStatusIcon:
     def on_activate(self, _status_icon, _event=None):
         """Callback to show or hide the window"""
         app_window = self.application.window
-        if app_window.window.get_visible():
+        if app_window.get_visible():
             # If the wndow has any transients, hiding it will hide them too
             # never to be shown again, which is broken. So we don't allow that.
             windows = Gtk.Window.list_toplevels()
             for w in windows:
-                if w.get_transient_for() == self.application.window:
+                if w.get_transient_for() == app_window:
                     return
 
-            app_window.window.hide()
+            app_window.hide()
         else:
-            app_window.window.show()
+            app_window.show()
 
     def on_menu_popup(self, _status_icon, button, time):
         """Callback to show the contextual menu"""
