@@ -92,9 +92,13 @@ class linux(Runner):
         exe_path = self.game_exe
         working_dir = self.game_config.get("working_dir")
         if exe_path and working_dir:
-            parts = exe_path.split(os.path.expanduser(working_dir))
-            if len(parts) == 2:
-                return "." + parts[1]
+            relative = os.path.relpath(exe_path, start=working_dir)
+            if not relative.startswith("../"):
+                # We can't use the working dir implicitly to start a command
+                # so we make it explicit with "./"
+                if not os.path.isabs(relative):
+                    relative = "./" + relative
+                return relative
         return exe_path
 
     @property
