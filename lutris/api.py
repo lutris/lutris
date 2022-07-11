@@ -6,6 +6,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+import socket
+from collections import OrderedDict
+
+
 import requests
 
 from lutris import settings
@@ -76,8 +80,18 @@ def get_user_info():
 def get_runners(runner_name):
     """Return the available runners for a given runner name"""
     api_url = settings.SITE_URL + "/api/runners/" + runner_name
-    response = http.Request(api_url).get()
-    return response.json
+    host = settings.SITE_URL.split("//")[1]
+
+    answers = socket.getaddrinfo(host, 443)
+    (family, type, proto, canonname, (address, port)) = answers[0]
+    headers = OrderedDict({
+        'Host': host
+    })
+    s = requests.Session()
+    s.headers = headers
+    response = s.get(api_url, verify=False, headers=headers)
+
+    return response.json()
 
 
 def get_http_response(url, payload):
