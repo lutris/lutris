@@ -196,7 +196,7 @@ class Game(GObject.Object):
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.runner.game_path
+        return self.runner.resolve_game_path()
 
     def _get_runner(self):
         """Return the runner instance for this game's configuration"""
@@ -597,7 +597,7 @@ class Game(GObject.Object):
         """Return a list of processes belonging to the Lutris game"""
         new_pids = self.get_new_pids()
         game_pids = []
-        game_folder = self.runner.game_path or ""
+        game_folder = self.runner.resolve_game_path()
         for pid in new_pids:
             cmdline = Process(pid).cmdline or ""
             # pressure-vessel: This could potentially pick up PIDs not started by lutris?

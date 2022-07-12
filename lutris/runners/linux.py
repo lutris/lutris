@@ -85,6 +85,9 @@ class linux(Runner):
             return os.path.join(self.game_path, exe)
         return system.find_executable(exe)
 
+    def resolve_game_path(self):
+        return super().resolve_game_path() or os.path.dirname(self.game_exe or "")
+
     def get_relative_exe(self):
         """Return a relative path if a working dir is set in the options
         Some games such as Unreal Gold fail to run if given the absolute path
