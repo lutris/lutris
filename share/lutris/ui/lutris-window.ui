@@ -298,7 +298,7 @@
               <object class="GtkLabel" id="zoom_label">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Zoom:</property>
+                <property name="label" translatable="yes">Zoom </property>
               </object>
               <packing>
                 <property name="expand">False</property>
