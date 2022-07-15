@@ -113,6 +113,7 @@ class GameDialogCommon(Dialog):
         label = Label(_("Name"))
         box.pack_start(label, False, False, 0)
         self.name_entry = Gtk.Entry()
+        self.name_entry.set_max_length(150)
         if self.game:
             self.name_entry.set_text(self.game.name)
         box.pack_start(self.name_entry, True, True, 0)
@@ -196,8 +197,8 @@ class GameDialogCommon(Dialog):
 
         label = Label(_("Release year"))
         box.pack_start(label, False, False, 0)
-
         self.year_entry = NumberEntry()
+        self.year_entry.set_max_length(10)
         if self.game:
             self.year_entry.set_text(str(self.game.year or ""))
         box.pack_start(self.year_entry, True, True, 0)
