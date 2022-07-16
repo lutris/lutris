@@ -124,11 +124,11 @@ class Game(GObject.Object):
     @property
     def is_favorite(self):
         """Return whether the game is in the user's favorites"""
-        categories = categories_db.get_categories_in_game(self.id)
-        for category in categories:
-            if category == "favorite":
-                return True
-        return False
+        return "favorite" in self.get_categories()
+
+    def get_categories(self):
+        """Return the categories the game is in."""
+        return categories_db.get_categories_in_game(self.id)
 
     def add_to_favorites(self):
         """Add the game to the 'favorite' category"""

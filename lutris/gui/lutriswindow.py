@@ -798,6 +798,13 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.update_store()
         else:
             logger.debug("Can't get DB game for %s (service: %s)", game, self.service)
+
+        # If the update took the row out of this view's category, we'll need
+        # to update the view to reflect that.
+        selected_row = self.sidebar.get_selected_row()
+        if selected_row and selected_row.type == "category" and \
+                selected_row.id != "all" and selected_row.id not in game.get_categories():
+            self.game_store.remove_game(game.id)
         return True
 
     def on_game_stopped(self, game):
