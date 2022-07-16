@@ -568,6 +568,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
         confirm_cancel_dialog = QuestionDialog(
             {
+                "parent": self,
                 "question": _("Are you sure you want to cancel the installation?"),
                 "title": _("Cancel installation?"),
                 "widgets": widgets
