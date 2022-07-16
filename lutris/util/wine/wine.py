@@ -341,7 +341,7 @@ def get_real_executable(windows_executable, working_dir=None):
     return (windows_executable, [], working_dir)
 
 
-def display_vulkan_error(on_launch):
+def display_vulkan_error(on_launch=False):
     if on_launch:
         checkbox_message = _("Launch anyway and do not show this message again.")
     else:

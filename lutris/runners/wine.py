@@ -948,7 +948,7 @@ class wine(Runner):
             # Set this to 1 to enable access to more RAM for 32bit applications
             launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
             if not is_vulkan_supported():
-                if not display_vulkan_error(True):
+                if not display_vulkan_error(on_launch=True):
                     return {"error": "VULKAN_NOT_FOUND"}
 
         if not game_exe or not system.path_exists(game_exe):
