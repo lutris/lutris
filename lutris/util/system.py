@@ -9,6 +9,7 @@ import stat
 import string
 import subprocess
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import Gio, GLib
 
@@ -324,6 +325,24 @@ def reverse_expanduser(path):
         path = path[len(user_path):].strip("/")
         return "~/" + path
     return path
+
+
+def path_contains(parent, child, resolve_symlinks=False):
+    """Tests if a child path is actually within a parent directory
+    or a subdirectory of it. Resolves relative paths, and ~, and
+    optionally symlinks."""
+
+    if parent is None or child is None:
+        return False
+
+    resolved_parent = Path(os.path.abspath(parent)).expanduser()
+    resolved_child = Path(os.path.abspath(child)).expanduser()
+
+    if resolve_symlinks:
+        resolved_parent = resolved_parent.resolve()
+        resolved_child = resolved_child.resolve()
+
+    return resolved_child == resolved_parent or resolved_parent in resolved_child.parents
 
 
 def path_exists(path, check_symlinks=False, exclude_empty=False):
