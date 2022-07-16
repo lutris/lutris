@@ -4,6 +4,7 @@ from gettext import gettext as _
 
 from gi.repository import GLib, Gtk
 
+from lutris.config import LutrisConfig
 from lutris.exceptions import UnavailableGame
 from lutris.game import Game
 from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, QuestionDialog
@@ -19,6 +20,7 @@ from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import add_url_tags, gtk_safe, human_size
+from lutris.util.system import is_removeable, path_contains
 
 
 class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
@@ -551,15 +553,24 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def confirm_cancel(self, _widget=None):
         """Ask a confirmation before cancelling the install"""
+        widgets = []
+
         remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
         if self.interpreter and self.interpreter.target_path:
-            remove_checkbox.set_active(self.interpreter.game_dir_created)
-            remove_checkbox.show()
+            config = LutrisConfig()
+            default_game_path = config.system_config.get("game_path")
+
+            if is_removeable(self.interpreter.target_path) and \
+                    not path_contains(self.interpreter.target_path, default_game_path, resolve_symlinks=False):
+                remove_checkbox.set_active(self.interpreter.game_dir_created)
+                remove_checkbox.show()
+                widgets.append(remove_checkbox)
+
         confirm_cancel_dialog = QuestionDialog(
             {
                 "question": _("Are you sure you want to cancel the installation?"),
                 "title": _("Cancel installation?"),
-                "widgets": [remove_checkbox]
+                "widgets": widgets
             }
         )
         if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
