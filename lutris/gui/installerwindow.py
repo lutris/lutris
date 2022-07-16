@@ -20,7 +20,7 @@ from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import add_url_tags, gtk_safe, human_size
-from lutris.util.system import is_removeable, path_contains
+from lutris.util.system import is_removeable
 
 
 class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
@@ -556,15 +556,11 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         widgets = []
 
         remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
-        if self.interpreter and self.interpreter.target_path:
-            config = LutrisConfig()
-            default_game_path = config.system_config.get("game_path")
-
-            if is_removeable(self.interpreter.target_path) and \
-                    not path_contains(self.interpreter.target_path, default_game_path, resolve_symlinks=False):
-                remove_checkbox.set_active(self.interpreter.game_dir_created)
-                remove_checkbox.show()
-                widgets.append(remove_checkbox)
+        if self.interpreter and self.interpreter.target_path and \
+                is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
+            remove_checkbox.set_active(self.interpreter.game_dir_created)
+            remove_checkbox.show()
+            widgets.append(remove_checkbox)
 
         confirm_cancel_dialog = QuestionDialog(
             {

@@ -258,8 +258,9 @@ def list_unique_folders(folders):
     return unique_dirs.values()
 
 
-def is_removeable(path):
-    """Check if a folder is safe to remove (not system or home, ...)"""
+def is_removeable(path, system_config):
+    """Check if a folder is safe to remove (not system or home, ...). This needs the
+    system config dict so it can check the default game path, too."""
     if not path_exists(path):
         return False
 
@@ -273,6 +274,12 @@ def is_removeable(path):
             return False
         if len(parts) == 3 and parts[2] in PROTECTED_HOME_FOLDERS:
             return False
+
+    if system_config:
+        default_game_path = system_config.get("game_path")
+        if path_contains(path, default_game_path, resolve_symlinks=False):
+            return False
+
     return True
 
 
@@ -335,8 +342,8 @@ def path_contains(parent, child, resolve_symlinks=False):
     if parent is None or child is None:
         return False
 
-    resolved_parent = Path(os.path.abspath(parent)).expanduser()
-    resolved_child = Path(os.path.abspath(child)).expanduser()
+    resolved_parent = Path(os.path.abspath(os.path.expanduser(parent)))
+    resolved_child = Path(os.path.abspath(os.path.expanduser(child)))
 
     if resolve_symlinks:
         resolved_parent = resolved_parent.resolve()

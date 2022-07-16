@@ -8,7 +8,7 @@ from lutris.gui.dialogs import Dialog, QuestionDialog
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
-from lutris.util.system import get_disk_size, is_removeable, path_contains, reverse_expanduser
+from lutris.util.system import get_disk_size, is_removeable, reverse_expanduser
 
 
 class UninstallGameDialog(Dialog):
@@ -34,15 +34,12 @@ class UninstallGameDialog(Dialog):
         self.delete_button = Gtk.Button(_("Uninstall"), visible=True)
         self.delete_button.connect("clicked", self.on_delete_clicked)
 
-        default_game_path = self.game.config.system_config.get("game_path")
-
         if not self.game.directory:
             self.folder_label.set_markup(_("No file will be deleted"))
         elif len(get_games(filters={"directory": self.game.directory})) > 1:
             self.folder_label.set_markup(
                 _("The folder %s is used by other games and will be kept.") % self.game.directory)
-        elif is_removeable(self.game.directory) and \
-                not path_contains(self.game.directory, default_game_path, resolve_symlinks=False):
+        elif is_removeable(self.game.directory, self.game.config.system_config):
             self.delete_button.set_sensitive(False)
             self.folder_label.set_markup(_("<i>Calculating size…</i>"))
             AsyncCall(get_disk_size, self.folder_size_cb, self.game.directory)
