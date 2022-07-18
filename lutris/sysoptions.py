@@ -64,15 +64,13 @@ def get_optirun_choices():
     return choices
 
 
-def get_gpu_vendor_cmd(nvidia_files):
+def get_gpu_vendor_cmd(is_nvidia):
     """Run glxinfo command to get vendor based on certain conditions"""
-    glxinfocmd = "glxinfo | grep -i opengl | grep -i vendor"
-
-    if USE_DRI_PRIME == 1:
-        glxinfocmd = "DRI_PRIME=1 glxinfo | grep -i opengl | grep -i vendor"
-    elif nvidia_files == 1:
-        glxinfocmd = "__GLX_VENDOR_LIBRARY_NAME=nvidia glxinfo | grep -i opengl | grep -i vendor"
-    return glxinfocmd
+    if is_nvidia:
+        return "__GLX_VENDOR_LIBRARY_NAME=nvidia glxinfo | grep -i opengl | grep -i vendor"
+    if USE_DRI_PRIME:
+        return "DRI_PRIME=1 glxinfo | grep -i opengl | grep -i vendor"
+    return "glxinfo | grep -i opengl | grep -i vendor"
 
 
 def get_vk_icd_choices():
@@ -108,9 +106,7 @@ def get_vk_icd_choices():
     amdvlk_files = ":".join(amdvlk)
     amdvlkpro_files = ":".join(amdvlkpro)
 
-    glxinfocmd = get_gpu_vendor_cmd(0)
-    if nvidia_files:
-        glxinfocmd = get_gpu_vendor_cmd(1)
+    glxinfocmd = get_gpu_vendor_cmd(bool(nvidia_files))
     with subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as glxvendorget:
         glxvendor = glxvendorget.communicate()[0].decode("utf-8")
     default_gpu = glxvendor
