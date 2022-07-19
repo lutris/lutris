@@ -157,7 +157,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def get_extras(self):
         """Get extras and store them to move them at the end of the install"""
-        logger.debug("Checking if service provide extra files")
         if not self.service or not self.service.has_extras:
             self.extras = []
             return self.extras
