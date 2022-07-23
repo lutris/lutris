@@ -4640,7 +4640,7 @@ msgstr ""
 
 #: lutris/runners/wine.py:346
 msgid "Enable Easy Anti-Cheat"
-msgstr "Activar anti-trampas Easy"
+msgstr "Activar anti-trampas (Easy Anti-Cheat)"
 
 #: lutris/runners/wine.py:350
 msgid ""
