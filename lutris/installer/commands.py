@@ -180,7 +180,7 @@ class CommandsMixin:
         if os.path.exists(filespec):
             filenames = [filespec]
         else:
-            filenames = glob.glob(filespec)
+            filenames = glob.glob(glob.escape(filespec))
 
         if not filenames:
             raise ScriptingError(_("%s does not exist") % filespec)
