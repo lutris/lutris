@@ -272,6 +272,8 @@ class OriginService(OnlineService):
         logger.debug("Installed %s Origin games", installed_games)
 
     def install_from_origin(self, origin_game, manifest):
+        if "id" not in manifest:
+            return
         offer_id = manifest["id"].split("@")[0]
         logger.debug("Installing Origin game %s", offer_id)
         service_game = ServiceGameCollection.get_game("origin", offer_id)

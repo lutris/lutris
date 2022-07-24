@@ -140,10 +140,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     def prepare_game_files(self, patch_version=None):
         """Gathers necessary files before iterating through them."""
         if not self.files:
-            logger.info("No files to prepare")
             return
         if not self.service:
-            logger.debug("No service to retrieve files from")
             return
         if self.service.online and not self.service.is_connected():
             logger.info("Not authenticated to %s", self.service.id)
