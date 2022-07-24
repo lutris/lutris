@@ -220,7 +220,7 @@ class HumbleBundleService(OnlineService):
             link = get_humble_download_link(installer.service_appid, installer.runner)
         except Exception as ex:
             logger.exception("Failed to get Humble Bundle game: %s", ex)
-            raise UnavailableGame from ex
+            raise UnavailableGame("The download URL for the game could not be determined.") from ex
         if not link:
             raise UnavailableGame("No game found on Humble Bundle")
         filename = link.split("?")[0].split("/")[-1]

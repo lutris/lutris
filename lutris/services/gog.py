@@ -300,9 +300,9 @@ class GOGService(OnlineService):
             response = self.make_api_request(downlink)
         except HTTPError as ex:
             logger.error("HTTP error: %s", ex)
-            raise UnavailableGame from ex
+            raise UnavailableGame("The download of '%s' failed." % downlink) from ex
         if not response:
-            raise UnavailableGame
+            raise UnavailableGame("The download of '%s' failed." % downlink)
         for field in ("checksum", "downlink"):
             field_url = response[field]
             parsed = urlparse(field_url)
