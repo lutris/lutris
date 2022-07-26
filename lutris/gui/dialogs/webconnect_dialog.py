@@ -14,9 +14,6 @@ DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 F
 class WebConnectDialog(Dialog):
     """Login form for external services"""
 
-    default_width = 390
-    default_height = 500
-
     def __init__(self, service, parent=None):
 
         self.context = WebKit2.WebContext.new()
@@ -33,7 +30,7 @@ class WebConnectDialog(Dialog):
         super().__init__(title=service.name, parent=parent)
 
         self.set_border_width(0)
-        self.set_default_size(self.default_width, self.default_height)
+        self.set_default_size(self.service.login_window_width, self.service.login_window_height)
 
         self.webview = WebKit2.WebView.new_with_context(self.context)
         self.webview.load_uri(service.login_url)

@@ -83,6 +83,8 @@ class UbisoftConnectService(OnlineService):
     runner = "wine"
     client_installer = "ubisoft-connect"
     browser_size = (460, 690)
+    login_window_width = 460
+    login_window_height = 690
     cookies_path = os.path.join(settings.CACHE_DIR, "ubisoft/.auth")
     token_path = os.path.join(settings.CACHE_DIR, "ubisoft/.token")
     cache_path = os.path.join(settings.CACHE_DIR, "ubisoft/library/")
@@ -119,14 +121,6 @@ class UbisoftConnectService(OnlineService):
         self.client.set_auth_lost_callback(self.auth_lost)
         self.emit("service-login")
         return (user_data['userId'], user_data['username'])
-
-    def run(self):
-        db_game = get_game_by_field(self.client_installer, "slug")
-        game = Game(db_game["id"])
-        game.emit("game-launch")
-
-    def is_launchable(self):
-        return get_game_by_field(self.client_installer, "slug")
 
     def is_connected(self):
         return self.is_authenticated()

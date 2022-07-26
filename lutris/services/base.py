@@ -1,6 +1,7 @@
 """Generic service utilities"""
 import os
 import shutil
+from gettext import gettext as _
 
 from gi.repository import Gio, GObject
 
@@ -8,11 +9,13 @@ from lutris import api, settings
 from lutris.api import get_game_installers
 from lutris.config import write_game_config
 from lutris.database import sql
-from lutris.database.games import add_game, get_games
+from lutris.database.games import add_game, get_game_by_field, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
+from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.gui.views.media_loader import download_media
+from lutris.installer import get_installers
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
@@ -82,11 +85,28 @@ class BaseService(GObject.Object):
         return self.id
 
     def run(self):
-        """Override this method to run a launcher"""
-        logger.warning("This service doesn't run anything")
+        """Launch the game client"""
+        launcher = self.get_launcher()
+        if launcher:
+            launcher.emit("game-launch")
 
     def is_launchable(self):
+        if self.client_installer:
+            return get_game_by_field(self.client_installer, "slug")
         return False
+
+    def get_launcher(self):
+        if not self.client_installer:
+            return
+        db_launcher = get_game_by_field(self.client_installer, "slug")
+        if db_launcher:
+            return Game(db_launcher["id"])
+
+    def is_launcher_installed(self):
+        launcher = self.get_launcher()
+        if not launcher:
+            return False
+        return launcher.is_installed
 
     def reload(self):
         """Refresh the service's games"""
@@ -276,12 +296,23 @@ class OnlineService(BaseService):
     cache_path = NotImplemented
     requires_login_page = False
 
+    login_window_width = 390
+    login_window_height = 500
+
     @property
     def credential_files(self):
         """Return a list of all files used for authentication"""
         return [self.cookies_path]
 
     def login(self, parent=None):
+        if self.client_installer and not self.is_launcher_installed():
+            NoticeDialog(
+                _("This service requires a game launcher. The following steps will install it.\n"
+                  "Once the client is installed, you can login to %s.") % self.name)
+            application = Gio.Application.get_default()
+            installers = get_installers(game_slug=self.client_installer)
+            application.show_installer_window(installers)
+            return
         logger.debug("Connecting to %s", self.name)
         dialog = WebConnectDialog(self, parent)
         dialog.set_modal(True)
