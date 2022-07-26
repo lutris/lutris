@@ -418,12 +418,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             elif self.filters.get("installed"):
                 self.show_label(_("No installed games found. Press Ctrl+H to show all games."))
             # Splash screen disabled because unfinished.
-            # elif (
-            #     not self.filters.get("runner")
-            #     and not self.filters.get("service")
-            #     and not self.filters.get("platform")
-            # ):
-            #     self.show_splash()
+            elif (
+                not self.filters.get("runner")
+                and not self.filters.get("service")
+                and not self.filters.get("platform")
+            ):
+                self.show_splash()
             else:
                 self.show_label(_("No games found"))
 
@@ -483,9 +483,20 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.show_overlay(Gtk.Label(message, visible=True))
 
     def show_splash(self):
-        image = Gtk.Image(visible=True)
-        image.set_from_file(os.path.join(datapath.get(), "media/splash.svg"))
-        self.show_overlay(image, Gtk.Align.START, Gtk.Align.START)
+        theme = "dark" if self.application.style_manager.is_dark else "light"
+        side_splash = Gtk.Image(visible=True)
+        side_splash.set_from_file(os.path.join(datapath.get(), "media/side-%s.svg" % theme))
+
+        center_splash = Gtk.Image(visible=True)
+        center_splash.set_alignment(1, 1)
+        center_splash.set_from_file(os.path.join(datapath.get(), "media/splash-%s.svg" % theme))
+
+        splash_box = Gtk.HBox(visible=True, margin_top=24)
+        splash_box.pack_start(side_splash, False, False, 12)
+        # Gtk is such a huge pile of shit that I no clue how to get this thing centered.
+        # And you thought CSS was bad? Gimme a break.... Gtk is the only true atrocity.
+        splash_box.pack_start(center_splash, True, True, 120)
+        self.show_overlay(splash_box, Gtk.Align.START, Gtk.Align.START)
 
     def show_spinner(self):
         spinner = Gtk.Spinner(visible=True)
