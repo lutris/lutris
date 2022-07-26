@@ -486,17 +486,16 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         theme = "dark" if self.application.style_manager.is_dark else "light"
         side_splash = Gtk.Image(visible=True)
         side_splash.set_from_file(os.path.join(datapath.get(), "media/side-%s.svg" % theme))
+        side_splash.set_alignment(0, 0)
 
         center_splash = Gtk.Image(visible=True)
-        center_splash.set_alignment(1, 1)
+        center_splash.set_alignment(.5, .5)
         center_splash.set_from_file(os.path.join(datapath.get(), "media/splash-%s.svg" % theme))
 
         splash_box = Gtk.HBox(visible=True, margin_top=24)
         splash_box.pack_start(side_splash, False, False, 12)
-        # Gtk is such a huge pile of shit that I no clue how to get this thing centered.
-        # And you thought CSS was bad? Gimme a break.... Gtk is the only true atrocity.
-        splash_box.pack_start(center_splash, True, True, 120)
-        self.show_overlay(splash_box, Gtk.Align.START, Gtk.Align.START)
+        splash_box.set_center_widget(center_splash)
+        self.show_overlay(splash_box, Gtk.Align.FILL, Gtk.Align.FILL)
 
     def show_spinner(self):
         spinner = Gtk.Spinner(visible=True)

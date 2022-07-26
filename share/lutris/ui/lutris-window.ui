@@ -98,8 +98,6 @@
                       <object class="GtkAlignment" id="blank_overlay">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="xscale">0.10000000149011612</property>
-                        <property name="yscale">0.10000000149011612</property>
                         <child>
                           <placeholder/>
                         </child>
