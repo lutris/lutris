@@ -2,13 +2,11 @@
 import json
 import os
 import re
+import socket
 import urllib.error
 import urllib.parse
 import urllib.request
-
-import socket
 from collections import OrderedDict
-
 
 import requests
 
@@ -83,14 +81,13 @@ def get_runners(runner_name):
     host = settings.SITE_URL.split("//")[1]
 
     answers = socket.getaddrinfo(host, 443)
-    (family, type, proto, canonname, (address, port)) = answers[0]
+    (_family, _type, _proto, _canonname, (_address, _port)) = answers[0]
     headers = OrderedDict({
         'Host': host
     })
-    s = requests.Session()
-    s.headers = headers
-    response = s.get(api_url, verify=False, headers=headers)
-
+    session = requests.Session()
+    session.headers = headers
+    response = session.get(api_url, headers=headers)
     return response.json()
 
 
