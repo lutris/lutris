@@ -74,12 +74,13 @@ class Application(Gtk.Application):
         GObject.add_emission_hook(Game, "game-install-dlc", self.on_game_install_dlc)
 
         GLib.set_application_name(_("Lutris"))
+        self.css_provider = Gtk.CssProvider.new()
         self.window = None
 
         self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
         self.tray = None
-        self.css_provider = Gtk.CssProvider.new()
+
         self.quit_on_game_exit = False
         self.style_manager = None
 
@@ -274,17 +275,10 @@ class Application(Gtk.Application):
         self.style_manager = StyleManager()
 
     def do_activate(self):  # pylint: disable=arguments-differ
-        Application.show_update_runtime_dialog()
         if not self.window:
             self.window = LutrisWindow(application=self)
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        if not self.quit_on_game_exit:
-            self.window.present()
-        else:
-            # Reset quit on game exit to False. Future calls will set it
-            # accordingly
-            self.quit_on_game_exit = False
 
     @staticmethod
     def show_update_runtime_dialog():
@@ -563,8 +557,8 @@ class Application(Gtk.Application):
             return 0
 
         # Graphical commands
-        self.activate()
         self.set_tray_icon()
+        self.activate()
 
         if not action:
             if db_game and db_game["installed"]:
@@ -605,6 +599,11 @@ class Application(Gtk.Application):
                 return 0
             game = Game(db_game["id"])
             self.on_game_launch(game)
+        else:
+            Application.show_update_runtime_dialog()
+            self.window.present()
+            # If the Lutris GUI is started by itself, don't quit it when a game stops
+            self.quit_on_game_exit = False
         return 0
 
     def on_game_launch(self, game):
@@ -769,7 +768,6 @@ class Application(Gtk.Application):
         """Execute an arbitrary command in a Lutris context
         with the runtime enabled and monitored by a MonitoredCommand
         """
-        Application.show_update_runtime_dialog()
         logger.info("Running command '%s'", command)
         monitored_command = exec_command(command)
         try:
