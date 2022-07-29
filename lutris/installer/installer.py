@@ -32,7 +32,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.game_slug = installer["game_slug"]
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
-        self.variables = installer.get("variables", {})
+        self.variables = self.script.get("variables", {})
         self.files = [
             InstallerFile(self.game_slug, file_id, file_meta)
             for file_desc in self.script.get("files", [])
