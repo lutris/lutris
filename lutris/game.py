@@ -628,13 +628,13 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
+    @watch_lutris_errors(game_stop_result=False)
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
-            dialogs.ErrorDialog(_("<b>Error lauching the game:</b>\n") + self.game_thread.error)
             self.on_game_quit()
-            return False
-
+            raise RuntimeError(_("<b>Error lauching the game:</b>\n") + self.game_thread.error)
+            
         # The killswitch file should be set to a device (ie. /dev/input/js0)
         # When that device is unplugged, the game is forced to quit.
         killswitch_engage = self.killswitch and not system.path_exists(self.killswitch)
@@ -727,13 +727,13 @@ class Game(GObject.Object):
             error = "error while loading shared lib"
             error_line = strings.lookup_string_in_text(error, self.game_thread.stdout)
             if error_line:
-                dialogs.ErrorDialog(_("<b>Error: Missing shared library.</b>\n\n%s") % error_line)
+                raise RuntimeError(_("<b>Error: Missing shared library.</b>\n\n%s") % error_line)
 
         if self.game_thread.return_code == 1:
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
-                dialogs.ErrorDialog(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
+                raise RuntimeError(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
     def write_script(self, script_path):
         """Output the launch argument in a bash script"""
