@@ -430,7 +430,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.show_label(_("No installed games found. Press Ctrl+I to show uninstalled games."))
             elif self.filters.get("hidden") is False:  # but not if missing!
                 self.show_label(_("No visible games found. Press Ctrl+H to show hidden games."))
-            # Splash screen disabled because unfinished.
             elif (
                 not self.filters.get("runner")
                 and not self.filters.get("service")
@@ -480,7 +479,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         icon_type = media_services[media_index]
         if icon_type != self.icon_type:
             self.save_icon_type(icon_type)
-            self.show_spinner()
 
     def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
         """Display a widget in the blank overlay"""
@@ -592,7 +590,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         for child in self.games_scrollwindow.get_children():
             child.destroy()
         self.games_scrollwindow.add(self.view)
-
         self.view.show_all()
         self.update_store()
 
