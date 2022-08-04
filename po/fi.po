@@ -136,8 +136,7 @@ msgid ""
 msgstr ""
 "Tämä poistaa <b>KAIKKI</b> versiot kohteelle %s.\n"
 "\n"
-"Käytä Hallinnoi versioita -painiketta mikäli haluat poistaa vain yhden tietyn versio
-julkaisun."
+"Käytä Hallinnoi versioita -painiketta mikäli haluat poistaa vain yhden tietyn versio julkaisun."
 
 #: share/lutris/ui/runner-remove-confirm-dialog.ui:59
 msgid "This will remove <b>%s</b> and all associated data."
