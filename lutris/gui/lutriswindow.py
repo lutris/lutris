@@ -441,8 +441,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def update_store(self, *_args, **_kwargs):
         self.game_store.store.clear()
-        for child in self.blank_overlay.get_children():
-            child.destroy()
+        self.hide_overlay()
         games = self.get_games_from_filters()
         logger.debug("Showing %d games", len(games))
         self.view.service = self.service.id if self.service else None
@@ -478,7 +477,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             media_index = media_services.index(service.default_format)
         icon_type = media_services[media_index]
         if icon_type != self.icon_type:
-            self.save_icon_type(icon_type)
+            GLib.idle_add(self.save_icon_type, icon_type)
 
     def show_overlay(self, widget, halign=Gtk.Align.FILL, valign=Gtk.Align.FILL):
         """Display a widget in the blank overlay"""
@@ -688,7 +687,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         if self.search_timer_id:
             GLib.source_remove(self.search_timer_id)
         self.filters["text"] = entry.get_text().lower().strip()
-        self.search_timer_id = GLib.timeout_add(150, self.update_store)
+        self.search_timer_id = GLib.timeout_add(500, self.update_store)
 
     @GtkTemplate.Callback
     def on_search_entry_key_press(self, widget, event):
