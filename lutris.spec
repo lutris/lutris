@@ -6,7 +6,7 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.10.1
+Version:        0.5.11
 Release:        7%{?dist}
 Summary:        Video game preservation platform
 

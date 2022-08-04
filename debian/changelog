@@ -1,3 +1,20 @@
+lutris (0.5.11) jammy; urgency=medium
+
+  * Fix for some installers commands exiting with return code 256
+  * Change shortcut for show/hide installed games to Ctrl + i
+  * Show/hide hidden games is assigned to Ctrl + h
+  * Install game launcher before login for services that use one.
+  * Added SheepShaver, BasiliskII and Mini vMac runners
+  * Don't perform runtime updates when a game is launched via a shortcut
+  * Fix crash when Lutris is unable to read the screen resolution
+  * Enable Gamescope on Nvidia >= 515
+  * Fixes for Steam shortcuts
+  * Add Gnome Console and Deepin Terminal to supported terminal emulators
+  * Fix crash when Mangohud is used alongside Gamescope
+  * Translation updates
+
+ -- Mathieu Comandon <strider@strycore.com>  Thu, 04 Aug 2022 15:29:12 -0700
+
 lutris (0.5.10.1) impish; urgency=medium
 
   * Check for Steam executable in home folder for Flatpak
