@@ -7,7 +7,7 @@ from gettext import gettext as _
 
 from lutris import runners
 from lutris.util import linux, system
-from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
+from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME, has_graphic_adapter_description
 
 VULKAN_DATA_DIRS = [
     "/usr/local/etc/vulkan",  # standard site-local location
@@ -106,19 +106,30 @@ def get_vk_icd_choices():
     amdvlk_files = ":".join(amdvlk)
     amdvlkpro_files = ":".join(amdvlkpro)
 
-    is_nvidia = bool(nvidia_files)
+    intel_name = _("Auto: Intel Open Source (MESA: ANV)")
+    amdradv_name = _("Auto: AMD RADV Open Source (MESA: RADV)")
+    nvidia_name = _("Auto: Nvidia Proprietary")
 
-    glxinfocmd = get_gpu_vendor_cmd(is_nvidia)
+    glxinfocmd = get_gpu_vendor_cmd(bool(nvidia_files))
     with subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as glxvendorget:
         glxvendor = glxvendorget.communicate()[0].decode("utf-8")
     default_gpu = glxvendor
 
     if "Intel" in default_gpu:
-        choices = [(_("Auto: Intel Open Source (MESA: ANV)"), intel_files)]
+        choices = [(intel_name, intel_files)]
     elif "AMD" in default_gpu:
-        choices = [(_("Auto: AMD RADV Open Source (MESA: RADV)"), amdradv_files)]
-    elif "NVIDIA" in default_gpu or (USE_DRI_PRIME and is_nvidia):
-        choices = [(_("Auto: Nvidia Proprietary"), nvidia_files)]
+        choices = [(amdradv_name, amdradv_files)]
+    elif "NVIDIA" in default_gpu:
+        choices = [(nvidia_name, nvidia_files)]
+    elif USE_DRI_PRIME:
+        # We have multiple video chipsets, pick something that is instlaled if possible;
+        # we prefer NVIDIA and AMD over Intel, because don't we all?
+        if bool(nvidia_files) and has_graphic_adapter_description("NVIDIA"):
+            choices = [(nvidia_name, nvidia_files)]
+        elif bool(amdradv_files) and has_graphic_adapter_description("AMD"):
+            choices = [(amdradv_name, amdradv_files)]
+        elif bool(intel_files) and has_graphic_adapter_description("Intel"):
+            choices = [(intel_name, intel_files)]
 
     if intel_files:
         choices.append(("Intel Open Source (MESA: ANV)", intel_files))
