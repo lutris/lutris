@@ -106,6 +106,8 @@ def get_vk_icd_choices():
     amdvlk_files = ":".join(amdvlk)
     amdvlkpro_files = ":".join(amdvlkpro)
 
+    is_nvidia = bool(nvidia_files)
+
     glxinfocmd = get_gpu_vendor_cmd(bool(nvidia_files))
     with subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as glxvendorget:
         glxvendor = glxvendorget.communicate()[0].decode("utf-8")
@@ -115,7 +117,7 @@ def get_vk_icd_choices():
         choices = [(_("Auto: Intel Open Source (MESA: ANV)"), intel_files)]
     elif "AMD" in default_gpu:
         choices = [(_("Auto: AMD RADV Open Source (MESA: RADV)"), amdradv_files)]
-    elif "NVIDIA" in default_gpu:
+    elif "NVIDIA" in default_gpu or (USE_DRI_PRIME and is_nvidia):
         choices = [(_("Auto: Nvidia Proprietary"), nvidia_files)]
 
     if intel_files:
