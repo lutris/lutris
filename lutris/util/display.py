@@ -55,6 +55,14 @@ def restore_gamma():
         logger.warning("you do not have permission to call xgamma")
 
 
+def has_graphic_adapter_description(match_text):
+    """Returns True if a graphics adapter is found with 'match_text' in its description."""
+    for adapter in _get_graphics_adapters():
+        if match_text in adapter[1]:
+            return True
+    return False
+
+
 def _get_graphics_adapters():
     """Return the list of graphics cards available on a system
 
