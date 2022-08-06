@@ -108,7 +108,7 @@ def get_vk_icd_choices():
 
     is_nvidia = bool(nvidia_files)
 
-    glxinfocmd = get_gpu_vendor_cmd(bool(nvidia_files))
+    glxinfocmd = get_gpu_vendor_cmd(is_nvidia)
     with subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as glxvendorget:
         glxvendor = glxvendorget.communicate()[0].decode("utf-8")
     default_gpu = glxvendor
