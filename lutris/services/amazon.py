@@ -110,7 +110,13 @@ class AmazonService(OnlineService):
 
     def is_connected(self):
         """Return whether the user is authenticated and if the service is available"""
-        return False
+        if not self.is_authenticated():
+            return False
+
+        if not self.get_profile_data():
+            return False
+
+        return True
 
     def load(self):
         """Load the user game library from the Amazon API"""
@@ -191,3 +197,87 @@ class AmazonService(OnlineService):
         logger.info("Succesfully registered a device")
         user_data = res_json["response"]["success"]
         return user_data
+
+    def is_token_expired(self):
+
+        user_data = self.load_user_data()
+
+        token_obtain_time = user_data["token_obtain_time"]
+        expires_in = user_data["tokens"]["bearer"]["expires_in"]
+
+        if not token_obtain_time or not expires_in:
+            return False
+        return time.time() > token_obtain_time + int(expires_in)
+
+    def refresh_token(self):
+        url = f"{self.amazon_api}/auth/token"
+        logger.info("Refreshing token")
+
+        user_data = self.load_user_data()
+
+        headers = {
+            "Accept": "application/json",
+            "Accept-Language": "en_US",
+            "User-Agent": "AGSLauncher/1.0.0",
+            "Content-Type": "application/json",
+            "charset": "utf-8",
+        }
+
+        refresh_token = user_data["tokens"]["bearer"]["refresh_token"]
+        request_data = {
+            "source_token": refresh_token,
+            "source_token_type": "refresh_token",
+            "requested_token_type": "access_token",
+            "app_name": "AGSLauncher for Windows",
+            "app_version": "1.0.0",
+        }
+
+        request = Request(url, headers=headers)
+
+        try:
+            request.post(json.dumps(request_data).encode())
+        except HTTPError:
+            logger.error(
+                "Failed to request %s, check your Amazon credentials and internet connectivity",
+                url,
+            )
+            return
+
+        res_json = request.json
+
+        user_data["tokens"]["bearer"]["access_token"] = res_json["access_token"]
+        user_data["tokens"]["bearer"]["expires_in"] = res_json["expires_in"]
+        user_data["token_obtain_time"] = time.time()
+
+        self.save_user_data(user_data)
+
+    def get_profile_data(self):
+        """Return the user's profile data"""
+
+        if self.is_token_expired():
+            self.refresh_token()
+
+        user_data = self.load_user_data()
+
+        access_token = user_data["tokens"]["bearer"]["access_token"]
+
+        headers = {
+            "Accept": "application/json",
+            "Accept-Language": "en_US",
+            "User-Agent": "AGSLauncher/1.0.0",
+            "Authorization": f"bearer {access_token}",
+        }
+
+        url = f"{self.amazon_api}/user/profile"
+        request = Request(url, headers=headers)
+
+        try:
+            request.get()
+        except HTTPError:
+            logger.error(
+                "Failed to request %s, check your Amazon credentials and internet connectivity",
+                url,
+            )
+            return
+
+        return request.json
