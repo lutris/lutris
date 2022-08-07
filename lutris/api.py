@@ -81,7 +81,7 @@ def get_runners(runner_name):
     host = settings.SITE_URL.split("//")[1]
 
     answers = socket.getaddrinfo(host, 443)
-    (_family, _type, _proto, _canonname, (_address, _port)) = answers[0]
+    (_family, _type, _proto, _canonname, _sockaddr) = answers[0]
     headers = OrderedDict({
         'Host': host
     })
