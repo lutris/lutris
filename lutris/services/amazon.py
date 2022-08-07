@@ -11,9 +11,12 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 from lutris import settings
 from lutris.services.base import OnlineService
+from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
+from lutris.util import system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
+from lutris.util.strings import slugify
 
 
 class AmazonBanner(ServiceMedia):
@@ -25,6 +28,24 @@ class AmazonBanner(ServiceMedia):
     api_field = "image"
     url_pattern = "%s"
 
+    def get_media_url(self, details):
+        return details["product"]["productDetail"]["details"]["logoUrl"]
+
+
+class AmazonGame(ServiceGame):
+    """Representation of a Amazon game"""
+    service = "amazon"
+
+    @classmethod
+    def new_from_amazon_game(cls, amazon_game):
+        """Return a Amazon game instance from the API info"""
+        service_game = AmazonGame()
+        service_game.appid = str(amazon_game["id"])
+        service_game.slug = slugify(amazon_game["product"]["title"])
+        service_game.name = amazon_game["product"]["title"]
+        service_game.details = json.dumps(amazon_game)
+        return service_game
+    
 
 class AmazonService(OnlineService):
     """Service class for Amazon"""
@@ -39,10 +60,17 @@ class AmazonService(OnlineService):
     }
     default_format = "banner"
 
+    login_window_width = 400
+    login_window_height = 710
+
     marketplace_id = "ATVPDKIKX0DER"
     amazon_api = "https://api.amazon.com"
     amazon_sds = "https://sds.amazon.com"
     amazon_gaming_graphql = "https://gaming.amazon.com/graphql"
+
+    client_id = None
+    serial = None
+    verifier = None
 
     redirect_uri = "https://www.amazon.com/?openid.assoc_handle=amzn_sonic_games_launcher"
 
@@ -51,6 +79,9 @@ class AmazonService(OnlineService):
     cache_path = os.path.join(settings.CACHE_DIR, "amazon-library.json")
 
     locale = "en-US"
+
+    is_loading = False
+
 
     @property
     def credential_files(self):
@@ -120,7 +151,23 @@ class AmazonService(OnlineService):
 
     def load(self):
         """Load the user game library from the Amazon API"""
-        return None
+        if self.is_loading:
+            logger.warning("Amazon games are already loading")
+            return
+        if not self.is_authenticated():
+            logger.error("User not connected to Amazon")
+            return
+        self.is_loading = True
+        try:
+            games = [AmazonGame.new_from_amazon_game(game) for game in self.get_library()]
+            for game in games:
+                game.save()
+        except:
+            logger.error("Unable to get games library")
+            games = None
+
+        self.is_loading = False
+        return games
 
     def save_user_data(self, user_data):
         with open(self.user_path, "w", encoding='utf-8') as user_file:
@@ -273,6 +320,88 @@ class AmazonService(OnlineService):
 
         try:
             request.get()
+        except HTTPError:
+            logger.error(
+                "Failed to request %s, check your Amazon credentials and internet connectivity",
+                url,
+            )
+            return
+
+        return request.json
+
+    def get_library(self):
+        """Return the user's library of Amazon games"""
+        if system.path_exists(self.cache_path):
+            logger.debug("Returning cached Amazon library")
+            with open(self.cache_path, "r", encoding='utf-8') as amazon_cache:
+                return json.load(amazon_cache)
+
+        if self.is_token_expired():
+            self.refresh_token()
+
+        user_data = self.load_user_data()
+
+        access_token = user_data["tokens"]["bearer"]["access_token"]
+        serial = user_data["extensions"]["device_info"]["device_serial_number"]
+
+        games = []
+        nextToken = None
+        while True:
+            request_data = self.get_sync_request_data(serial, nextToken)
+
+            json_data = self.request_sds(
+                "com.amazonaws.gearbox."
+                "softwaredistribution.service.model."
+                "SoftwareDistributionService.GetEntitlementsV2",
+                access_token,
+                request_data,
+            )
+
+            if not json_data:
+                return
+
+            games.extend(json_data["entitlements"])
+
+            if "nextToken" not in json_data:
+                break
+
+            logger.info("Got next token in response, making next request")
+            nextToken = json_data["nextToken"]
+
+        with open(self.cache_path, "w", encoding='utf-8') as amazon_cache:
+            json.dump(games, amazon_cache)
+
+        return games
+
+    def get_sync_request_data(self, serial, nextToken=None):
+        request_data = {
+            "Operation": "GetEntitlementsV2",
+            "clientId": "Sonic",
+            "syncPoint": None,
+            "nextToken": nextToken,
+            "maxResults": 50,
+            "productIdFilter": None,
+            "keyId": "d5dc8b8b-86c8-4fc4-ae93-18c0def5314d",
+            "hardwareHash": hashlib.sha256(serial.encode()).hexdigest().upper(),
+        }
+
+        return request_data
+
+    def request_sds(self, target, token, body):
+        headers = {
+            "X-Amz-Target": target,
+            "x-amzn-token": token,
+            "User-Agent": "com.amazon.agslauncher.win/2.1.7437.6",
+            "UserAgent": "com.amazon.agslauncher.win/2.1.7437.6",
+            "Content-Type": "application/json",
+            "Content-Encoding": "amz-1.0",
+        }
+
+        url = f"{self.amazon_sds}/amazon/"
+        request = Request(url, headers=headers)
+
+        try:
+            request.post(json.dumps(body).encode())
         except HTTPError:
             logger.error(
                 "Failed to request %s, check your Amazon credentials and internet connectivity",
