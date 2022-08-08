@@ -829,7 +829,14 @@ def import_game(file_path, dest_dir):
     game_config = [f for f in os.listdir(game_dir) if f.endswith(".lutris")][0]
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
-    # old_dir = lutris_config["directory"]
+    old_dir = lutris_config["directory"]
+    with open(os.path.join(game_dir, game_config), 'r') as config_file :
+        config_data = config_file.read()
+    config_data = config_data.replace(old_dir, game_dir)
+    with open(os.path.join(game_dir, game_config), 'w') as config_file:
+        config_file.write(config_data)
+    with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
+        lutris_config = json.load(config_file)
     config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % lutris_config["configpath"])
     write_yaml_to_file(lutris_config["config"], config_filename)
     game_id = games_db.add_or_update(
