@@ -2,8 +2,10 @@
 import base64
 import hashlib
 import json
+import lzma
 import os
 import secrets
+import struct
 import time
 import uuid
 from gettext import gettext as _
@@ -14,6 +16,7 @@ from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
+from lutris.util.amazon.sds_proto2 import CompressionAlgorithm, HashAlgorithm, Manifest, ManifestHeader
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -45,7 +48,7 @@ class AmazonGame(ServiceGame):
         service_game.name = amazon_game["product"]["title"]
         service_game.details = json.dumps(amazon_game)
         return service_game
-    
+
 
 class AmazonService(OnlineService):
     """Service class for Amazon"""
@@ -81,7 +84,6 @@ class AmazonService(OnlineService):
     locale = "en-US"
 
     is_loading = False
-
 
     @property
     def credential_files(self):
@@ -410,3 +412,190 @@ class AmazonService(OnlineService):
             return
 
         return request.json
+
+    def get_game_manifest_info(self, game_id):
+        """Get a game manifest information"""
+
+        if self.is_token_expired():
+            self.refresh_token()
+
+        user_data = self.load_user_data()
+        access_token = user_data["tokens"]["bearer"]["access_token"]
+
+        request_data = {
+            "adgGoodId": game_id,
+            "previousVersionId": None,
+            "keyId": "d5dc8b8b-86c8-4fc4-ae93-18c0def5314d",
+            "Operation": "GetDownloadManifestV3",
+        }
+
+        response = self.request_sds(
+            "com.amazonaws.gearbox."
+            "softwaredistribution.service.model."
+            "SoftwareDistributionService.GetDownloadManifestV3",
+            access_token,
+            request_data,
+        )
+
+        if not response:
+            logger.error("There was an error getting game manifest")
+            return
+
+        return response
+
+    def get_game_manifest(self, manifest_info):
+        """Get a game manifest"""
+
+        headers = {
+            "User-Agent": "com.amazon.agslauncher.win/2.1.7437.6",
+            "UserAgent": "com.amazon.agslauncher.win/2.1.7437.6"
+        }
+
+        url = manifest_info["downloadUrls"][0]
+        request = Request(url, headers=headers)
+
+        try:
+            request.get()
+        except HTTPError:
+            logger.error(
+                "Failed to request %s, check your Amazon credentials and internet connectivity",
+                url,
+            )
+            return
+
+        content = request.content
+
+        header_size = struct.unpack(">I", content[:4])[0]
+
+        header = ManifestHeader()
+        header.decode(content[4: 4 + header_size])
+
+        if header.compression.algorithm == CompressionAlgorithm.none:
+            raw_manifest = content[4 + header_size:]
+        elif header.compression.algorithm == CompressionAlgorithm.lzma:
+            raw_manifest = lzma.decompress(content[4 + header_size:])
+        else:
+            logger.error("Unknown compression algorithm found in manifest")
+            return
+
+        manifest = Manifest()
+        manifest.decode(raw_manifest)
+
+        return manifest
+
+    def get_game_patches(self, game_id, version, file_list):
+        """Get game files"""
+
+        if self.is_token_expired():
+            self.refresh_token()
+
+        user_data = self.load_user_data()
+        access_token = user_data["tokens"]["bearer"]["access_token"]
+
+        request_data = {
+            "Operation": "GetPatches",
+            "versionId": version,
+            "fileHashes": file_list,
+            "deltaEncodings": ["FUEL_PATCH", "NONE"],
+            "adgGoodId": game_id,
+        }
+
+        response = self.request_sds(
+            "com.amazonaws.gearbox."
+            "softwaredistribution.service.model."
+            "SoftwareDistributionService.GetPatches",
+            access_token,
+            request_data,
+        )
+
+        if not response:
+            logger.error("There was an error getting patches")
+            return
+
+        return response["patches"]
+
+    def structure_manifest_data(self, manifest):
+
+        files = []
+        directories = []
+        hashes = []
+        hashpairs = []
+        for __, package in enumerate(manifest.packages):
+            for __, file in enumerate(package.files):
+                file_hash = file.hash.value.hex()
+
+                hashes.append(file_hash)
+                files.append({"path": file.path.decode().replace("\\", "/"), "size": file.size, "url": None})
+
+                hashpairs.append(dict(
+                    sourceHash=None,
+                    targetHash=dict(value=file_hash,
+                                    algorithm=HashAlgorithm.get_name(file.hash.algorithm)),
+                ))
+            for __, directory in enumerate(package.dirs):
+                if directory.path is not None:
+                    directories.append(directory.path.decode().replace("\\", "/"))
+
+        file_dict = dict(zip(hashes, files))
+
+        return file_dict, directories, hashpairs
+
+    def get_game_files(self, game_id):
+        """Get the game file list"""
+
+        manifest_info = self.get_game_manifest_info(game_id)
+        manifest = self.get_game_manifest(manifest_info)
+
+        file_dict, directories, hashpairs = self.structure_manifest_data(manifest)
+
+        game_patches = self.get_game_patches(game_id, manifest_info["versionId"], hashpairs)
+        for __, patch in enumerate(game_patches):
+            file_dict[patch["patchHash"]["value"]]["url"] = patch["downloadUrls"][0]
+
+        return file_dict, directories
+
+    def generate_installer(self, db_game):
+
+        details = json.loads(db_game["details"])
+
+        files = []
+        installer = [
+            {"task": {
+                "name": "create_prefix"
+            }},
+            {"mkdir": "$GAMEDIR/drive_c/game"}]
+
+        file_dict, directories = self.get_game_files(details["id"])
+
+        for __, directory in enumerate(directories):
+            installer.append({"mkdir": f"$GAMEDIR/drive_c/game/{directory}"})
+
+        for file_hash, file in file_dict.items():
+            file_name = os.path.basename(file["path"])
+            files.append({
+                file_hash: {
+                    "url": file["url"],
+                    "filename": file_name
+                }
+            })
+
+            file_path = os.path.dirname(file["path"])
+            installer.append({"move": {
+                "description": f"Installing file: {file_name}",
+                "src": file_hash,
+                "dst": f"$GAMEDIR/drive_c/game/{file_path}"
+            }})
+
+        return {
+            "name": details["product"]["title"],
+            "version": _("Amazon Prime Gaming"),
+            "slug": slugify(details["product"]["title"]),
+            "game_slug": slugify(details["product"]["title"]),
+            "runner": "wine",
+            "script": {
+                "game": {"exe": "_xXx_AUTO_WIN32_xXx_"},
+                "system": {},
+                "files": files,
+                "installer": installer
+            }
+        }
