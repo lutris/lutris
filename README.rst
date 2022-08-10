@@ -110,18 +110,6 @@ identifier on the command line such as::
 This will install the game if it is not already installed, otherwise it will
 launch the game. The game will always be installed if the ``--reinstall`` flag is passed.
 
-Planned features
-================
-
-Lutris is far from complete, and some features have yet
-to be implemented.
-
-Here's what to expect from future versions of Lutris:
-
-* TOSEC database integration
-* Management of personal game data (i.e. syncing games across devices using private cloud storage)
-* Community features (friends list, chat, multiplayer game scheduling, etc.)
-
 Support the project
 ===================
 
