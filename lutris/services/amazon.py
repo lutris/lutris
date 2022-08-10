@@ -67,6 +67,8 @@ class AmazonService(OnlineService):
     login_window_height = 710
 
     marketplace_id = "ATVPDKIKX0DER"
+    user_agent = "com.amazon.agslauncher.win/2.1.7437.6"
+
     amazon_api = "https://api.amazon.com"
     amazon_sds = "https://sds.amazon.com"
     amazon_gaming_graphql = "https://gaming.amazon.com/graphql"
@@ -92,7 +94,6 @@ class AmazonService(OnlineService):
     @property
     def login_url(self):
         """Return authentication URL"""
-
         self.verifier = self.generate_code_verifier()
         challenge = self.generate_challange(self.verifier)
 
@@ -122,7 +123,6 @@ class AmazonService(OnlineService):
 
     def login_callback(self, url):
         """Get authentication token from Amazon"""
-
         if url.find("openid.oa2.authorization_code") > 0:
             logger.info("Got authorization code")
 
@@ -156,7 +156,7 @@ class AmazonService(OnlineService):
         if self.is_loading:
             logger.warning("Amazon games are already loading")
             return
-        if not self.is_authenticated():
+        if not self.is_connected():
             logger.error("User not connected to Amazon")
             return
         self.is_loading = True
@@ -172,10 +172,13 @@ class AmazonService(OnlineService):
         return games
 
     def save_user_data(self, user_data):
+        """Save the user data file"""
         with open(self.user_path, "w", encoding='utf-8') as user_file:
             user_file.write(json.dumps(user_data))
 
     def load_user_data(self):
+        """Load the user data file"""
+        user_data = None
         with open(self.user_path, "r", encoding='utf-8') as user_file:
             user_data = json.load(user_file)
         return user_data
@@ -205,6 +208,7 @@ class AmazonService(OnlineService):
         return clientIdHex
 
     def register_device(self, code):
+        """Register current device and return the user data"""
         logger.info("Registerring a device. ID: %s", self.client_id)
         data = {
             "auth_data": {
@@ -248,7 +252,7 @@ class AmazonService(OnlineService):
         return user_data
 
     def is_token_expired(self):
-
+        """Check if the stored token is expired"""
         user_data = self.load_user_data()
 
         token_obtain_time = user_data["token_obtain_time"]
@@ -259,6 +263,7 @@ class AmazonService(OnlineService):
         return time.time() > token_obtain_time + int(expires_in)
 
     def refresh_token(self):
+        """Refresh the token"""
         url = f"{self.amazon_api}/auth/token"
         logger.info("Refreshing token")
 
@@ -267,7 +272,7 @@ class AmazonService(OnlineService):
         headers = {
             "Accept": "application/json",
             "Accept-Language": "en_US",
-            "User-Agent": "AGSLauncher/1.0.0",
+            "User-Agent": self.user_agent,
             "Content-Type": "application/json",
             "charset": "utf-8",
         }
@@ -300,20 +305,24 @@ class AmazonService(OnlineService):
 
         self.save_user_data(user_data)
 
-    def get_profile_data(self):
-        """Return the user's profile data"""
-
+    def get_access_token(self):
+        """Return the access token and refresh the session if required"""
         if self.is_token_expired():
             self.refresh_token()
 
         user_data = self.load_user_data()
-
         access_token = user_data["tokens"]["bearer"]["access_token"]
+
+        return access_token
+
+    def get_profile_data(self):
+        """Return the user's profile data"""
+        access_token = self.get_access_token()
 
         headers = {
             "Accept": "application/json",
             "Accept-Language": "en_US",
-            "User-Agent": "AGSLauncher/1.0.0",
+            "User-Agent": self.user_agent,
             "Authorization": f"bearer {access_token}",
         }
 
@@ -338,12 +347,9 @@ class AmazonService(OnlineService):
             with open(self.cache_path, "r", encoding='utf-8') as amazon_cache:
                 return json.load(amazon_cache)
 
-        if self.is_token_expired():
-            self.refresh_token()
+        access_token = self.get_access_token()
 
         user_data = self.load_user_data()
-
-        access_token = user_data["tokens"]["bearer"]["access_token"]
         serial = user_data["extensions"]["device_info"]["device_serial_number"]
 
         games = []
@@ -393,8 +399,8 @@ class AmazonService(OnlineService):
         headers = {
             "X-Amz-Target": target,
             "x-amzn-token": token,
-            "User-Agent": "com.amazon.agslauncher.win/2.1.7437.6",
-            "UserAgent": "com.amazon.agslauncher.win/2.1.7437.6",
+            "User-Agent": self.user_agent,
+            "UserAgent": self.user_agent,
             "Content-Type": "application/json",
             "Content-Encoding": "amz-1.0",
         }
@@ -415,12 +421,7 @@ class AmazonService(OnlineService):
 
     def get_game_manifest_info(self, game_id):
         """Get a game manifest information"""
-
-        if self.is_token_expired():
-            self.refresh_token()
-
-        user_data = self.load_user_data()
-        access_token = user_data["tokens"]["bearer"]["access_token"]
+        access_token = self.get_access_token()
 
         request_data = {
             "adgGoodId": game_id,
@@ -445,10 +446,9 @@ class AmazonService(OnlineService):
 
     def get_game_manifest(self, manifest_info):
         """Get a game manifest"""
-
         headers = {
-            "User-Agent": "com.amazon.agslauncher.win/2.1.7437.6",
-            "UserAgent": "com.amazon.agslauncher.win/2.1.7437.6"
+            "User-Agent": self.user_agent,
+            "UserAgent": self.user_agent
         }
 
         url = manifest_info["downloadUrls"][0]
@@ -485,12 +485,7 @@ class AmazonService(OnlineService):
 
     def get_game_patches(self, game_id, version, file_list):
         """Get game files"""
-
-        if self.is_token_expired():
-            self.refresh_token()
-
-        user_data = self.load_user_data()
-        access_token = user_data["tokens"]["bearer"]["access_token"]
+        access_token = self.get_access_token()
 
         request_data = {
             "Operation": "GetPatches",
@@ -515,7 +510,7 @@ class AmazonService(OnlineService):
         return response["patches"]
 
     def structure_manifest_data(self, manifest):
-
+        """Transform the manifest to more convenient data structures"""
         files = []
         directories = []
         hashes = []
@@ -554,15 +549,61 @@ class AmazonService(OnlineService):
 
         return file_dict, directories
 
-    def generate_installer(self, db_game):
+    def get_exe_and_game_args(self, fuel_url):
+        """Get and parse the fuel.json file"""
+        headers = {
+            "User-Agent": self.user_agent,
+            "UserAgent": self.user_agent
+        }
 
+        request = Request(fuel_url, headers=headers)
+
+        try:
+            request.get()
+        except HTTPError:
+            logger.error(
+                "Failed to request %s, check your Amazon credentials and internet connectivity",
+                fuel_url,
+            )
+            return
+
+        res_json = request.json
+
+        if res_json["Main"] is None or res_json["Main"]["Command"] is None:
+            return None, None
+
+        game_cmd = res_json["Main"]["Command"].replace("\\", "/")
+        game_args = ""
+
+        if res_json["Main"]["Args"] is not None:
+            for arg in res_json["Main"]["Args"]:
+                game_args += arg if game_args == "" else " " + arg
+
+        return game_cmd, game_args
+
+    def get_game_cmd_line(self, fuel_url):
+        """Get the executable path and the arguments for run the game"""
+        game_cmd = None
+        game_args = None
+
+        if fuel_url is not None:
+            game_cmd, game_args = self.get_exe_and_game_args(fuel_url)
+
+        if game_cmd is None:
+            game_cmd = "_xXx_AUTO_WIN32_xXx_"
+
+        if game_args is None:
+            game_args = ""
+
+        return game_cmd, game_args
+
+    def generate_installer(self, db_game):
+        """Generate a installer for the Amazon game"""
         details = json.loads(db_game["details"])
 
         files = []
         installer = [
-            {"task": {
-                "name": "create_prefix"
-            }},
+            {"task": {"name": "create_prefix"}},
             {"mkdir": "$GAMEDIR/drive_c/game"}]
 
         file_dict, directories = self.get_game_files(details["id"])
@@ -570,21 +611,30 @@ class AmazonService(OnlineService):
         for __, directory in enumerate(directories):
             installer.append({"mkdir": f"$GAMEDIR/drive_c/game/{directory}"})
 
+        fuel_url = None
+
         for file_hash, file in file_dict.items():
             file_name = os.path.basename(file["path"])
             files.append({
                 file_hash: {
                     "url": file["url"],
-                    "filename": file_name
+                    "filename": file_name,
+                    "provider": "download"
                 }
             })
 
             file_path = os.path.dirname(file["path"])
             installer.append({"move": {
-                "description": f"Installing file: {file_name}",
+                "description": _("Installing file: %s") % file_name,
                 "src": file_hash,
                 "dst": f"$GAMEDIR/drive_c/game/{file_path}"
             }})
+
+            if file_name == "fuel.json":
+                fuel_url = file["url"]
+
+        game_cmd, game_args = self.get_game_cmd_line(fuel_url)
+        logger.info("game cmd line: %s %s", game_cmd, game_args)
 
         return {
             "name": details["product"]["title"],
@@ -593,7 +643,12 @@ class AmazonService(OnlineService):
             "game_slug": slugify(details["product"]["title"]),
             "runner": "wine",
             "script": {
-                "game": {"exe": "_xXx_AUTO_WIN32_xXx_"},
+                "game": {
+                    "exe": f"$GAMEDIR/drive_c/game/{game_cmd}",
+                    "args": game_args,
+                    "prefix": "$GAMEDIR",
+                    "working_dir": "$GAMEDIR/drive_c/game"
+                },
                 "system": {},
                 "files": files,
                 "installer": installer
