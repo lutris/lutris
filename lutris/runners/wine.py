@@ -487,17 +487,15 @@ class wine(Runner):
     @property
     def context_menu_entries(self):
         """Return the contexual menu entries for wine"""
-        menu_entries = [("wineexec", _("Run EXE inside Wine prefix"), self.run_wineexec)]
-        if "Proton" not in self.get_version():
-            menu_entries.append(("winecfg", _("Wine configuration"), self.run_winecfg))
-        menu_entries += [
+        return [
+            ("wineexec", _("Run EXE inside Wine prefix"), self.run_wineexec),
+            ("winecfg", _("Wine configuration"), self.run_winecfg),
             ("wineshell", _("Open Bash terminal"), self.run_wine_terminal),
             ("wineconsole", _("Open Wine console"), self.run_wineconsole),
             ("wine-regedit", _("Wine registry"), self.run_regedit),
             ("winetricks", _("Winetricks"), self.run_winetricks),
             ("winecpl", _("Wine Control Panel"), self.run_winecpl),
         ]
-        return menu_entries
 
     @property
     def prefix_path(self):
