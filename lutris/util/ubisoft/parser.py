@@ -273,6 +273,8 @@ class UbisoftParser(object):
     def _get_registry_properties_from_yaml(self, game_yaml):
         game_registry_path = ''
         exe = ''
+        if 'online' not in game_yaml['root']['start_game']:
+            return None, None
         registry_path = game_yaml['root']['start_game']['online']['executables'][0]['working_directory']['register']
         game_registry_path = registry_path
         try:
