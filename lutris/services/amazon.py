@@ -78,7 +78,7 @@ class AmazonService(OnlineService):
     serial = None
     verifier = None
 
-    redirect_uri = "https://www.amazon.com/?openid.assoc_handle=amzn_sonic_games_launcher"
+    redirect_uri = "https://www.amazon.com/?"
 
     cookies_path = os.path.join(settings.CACHE_DIR, ".amazon.auth")
     user_path = os.path.join(settings.CACHE_DIR, ".amazon.user")
@@ -90,7 +90,7 @@ class AmazonService(OnlineService):
 
     @property
     def credential_files(self):
-        return [self.user_path]
+        return [self.user_path, self.cookies_path]
 
     @property
     def login_url(self):
