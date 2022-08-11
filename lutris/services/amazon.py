@@ -12,6 +12,7 @@ from gettext import gettext as _
 from urllib.parse import parse_qs, urlencode, urlparse
 
 from lutris import settings
+from lutris.exceptions import AuthenticationError, UnavailableGame
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -132,9 +133,6 @@ class AmazonService(OnlineService):
             auth_code = query["openid.oa2.authorization_code"][0]
 
             user_data = self.register_device(auth_code)
-            if not user_data:
-                return
-
             user_data["token_obtain_time"] = time.time()
 
             self.save_user_data(user_data)
@@ -146,10 +144,7 @@ class AmazonService(OnlineService):
         if not self.is_authenticated():
             return False
 
-        if not self.get_profile_data():
-            return False
-
-        return True
+        return self.check_connection()
 
     def load(self):
         """Load the user game library from the Amazon API"""
@@ -179,8 +174,13 @@ class AmazonService(OnlineService):
     def load_user_data(self):
         """Load the user data file"""
         user_data = None
+
+        if not os.path.exists(self.user_path):
+            raise AuthenticationError("No Amazon user data available, please log in again")
+
         with open(self.user_path, "r", encoding='utf-8') as user_file:
             user_data = json.load(user_file)
+
         return user_data
 
     def generate_code_verifier(self) -> bytes:
@@ -239,12 +239,9 @@ class AmazonService(OnlineService):
 
         try:
             request.post(json.dumps(data).encode())
-        except HTTPError:
-            logger.error(
-                "Failed to request %s, check your Amazon credentials and internet connectivity",
-                url,
-            )
-            return
+        except HTTPError as ex:
+            logger.error("Failed http request %s", url)
+            raise AuthenticationError("Unable to register device, please log in again") from ex
 
         res_json = request.json
         logger.info("Succesfully registered a device")
@@ -259,7 +256,8 @@ class AmazonService(OnlineService):
         expires_in = user_data["tokens"]["bearer"]["expires_in"]
 
         if not token_obtain_time or not expires_in:
-            return False
+            raise AuthenticationError("Invalid token info found, please log in again")
+
         return time.time() > token_obtain_time + int(expires_in)
 
     def refresh_token(self):
@@ -290,12 +288,9 @@ class AmazonService(OnlineService):
 
         try:
             request.post(json.dumps(request_data).encode())
-        except HTTPError:
-            logger.error(
-                "Failed to request %s, check your Amazon credentials and internet connectivity",
-                url,
-            )
-            return
+        except HTTPError as ex:
+            logger.error("Failed http request %s", url)
+            raise AuthenticationError("Unable to refresh token, please log in again") from ex
 
         res_json = request.json
 
@@ -315,9 +310,13 @@ class AmazonService(OnlineService):
 
         return access_token
 
-    def get_profile_data(self):
-        """Return the user's profile data"""
-        access_token = self.get_access_token()
+    def check_connection(self):
+        """Check if the connection with Amazon is available"""
+
+        try:
+            access_token = self.get_access_token()
+        except Exception:
+            return False
 
         headers = {
             "Accept": "application/json",
@@ -332,13 +331,11 @@ class AmazonService(OnlineService):
         try:
             request.get()
         except HTTPError:
-            logger.error(
-                "Failed to request %s, check your Amazon credentials and internet connectivity",
-                url,
-            )
-            return
+            # Do not raise exception here, should be managed from the caller
+            logger.error("Failed http request %s", url)
+            return False
 
-        return request.json
+        return True
 
     def get_library(self):
         """Return the user's library of Amazon games"""
@@ -411,10 +408,8 @@ class AmazonService(OnlineService):
         try:
             request.post(json.dumps(body).encode())
         except HTTPError:
-            logger.error(
-                "Failed to request %s, check your Amazon credentials and internet connectivity",
-                url,
-            )
+            # Do not raise exception here, should be managed from the caller
+            logger.error("Failed http request %s", url)
             return
 
         return request.json
@@ -439,8 +434,9 @@ class AmazonService(OnlineService):
         )
 
         if not response:
-            logger.error("There was an error getting game manifest")
-            return
+            logger.error("There was an error getting game manifest: %s", game_id)
+            raise UnavailableGame(
+                "Unable to get game manifest info, please check your Amazon credentials and internet connectivity")
 
         return response
 
@@ -456,12 +452,10 @@ class AmazonService(OnlineService):
 
         try:
             request.get()
-        except HTTPError:
-            logger.error(
-                "Failed to request %s, check your Amazon credentials and internet connectivity",
-                url,
-            )
-            return
+        except HTTPError as ex:
+            logger.error("Failed http request %s", url)
+            raise UnavailableGame(
+                "Unable to get game manifest, please check your Amazon credentials and internet connectivity") from ex
 
         content = request.content
 
@@ -476,7 +470,9 @@ class AmazonService(OnlineService):
             raw_manifest = lzma.decompress(content[4 + header_size:])
         else:
             logger.error("Unknown compression algorithm found in manifest")
-            return
+            raise UnavailableGame(
+                "Unknown compression algorithm found in manifest, "
+                "please check your Amazon credentials and internet connectivity")
 
         manifest = Manifest()
         manifest.decode(raw_manifest)
@@ -504,8 +500,10 @@ class AmazonService(OnlineService):
         )
 
         if not response:
-            logger.error("There was an error getting patches")
-            return
+            logger.error("There was an error getting patches: %s", game_id)
+            raise UnavailableGame(
+                "Unable to get the patches of game, "
+                "please check your Amazon credentials and internet connectivity", game_id)
 
         return response["patches"]
 
@@ -560,12 +558,10 @@ class AmazonService(OnlineService):
 
         try:
             request.get()
-        except HTTPError:
-            logger.error(
-                "Failed to request %s, check your Amazon credentials and internet connectivity",
-                fuel_url,
-            )
-            return
+        except HTTPError as ex:
+            logger.error("Failed http request %s", fuel_url)
+            raise UnavailableGame(
+                "Unable to get fuel.json file, please check your Amazon credentials and internet connectivity") from ex
 
         res_json = request.json
 
