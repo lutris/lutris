@@ -101,6 +101,9 @@ The following command line arguments are available::
 -j, --json                 Display the list of games in JSON format
 --reinstall                Reinstall game
 --display=DISPLAY          X display to use
+--export <game>            Exports specified game (requires --dest)
+--import <game.7z)         Import games from exportfile (requires --dest)
+--dest <folder>            Specifies Export/Import destination folder
 
 Additionally, you can pass a ``lutris:`` protocol link followed by a game
 identifier on the command line such as::
