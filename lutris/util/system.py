@@ -433,7 +433,7 @@ def get_locale_list():
     """Return list of available locales"""
     locale_getter = subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE)
     output = locale_getter.communicate()
-    locales = output[0].decode('ASCII').split() # locale names use only ascii characters
+    locales = output[0].decode('ASCII').split()  # locale names use only ascii characters
     return locales
 
 

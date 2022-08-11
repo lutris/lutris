@@ -50,7 +50,7 @@ SERVICES = get_services()
 WIP_SERVICES = {
     "battlenet": BattleNetService,
     "itchio": ItchIoService,
-    "mame": MAMEService,    
+    "mame": MAMEService,
     "flathub": FlathubService
 }
 

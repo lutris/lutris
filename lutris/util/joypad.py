@@ -10,6 +10,11 @@ try:
     import evdev
 except ImportError:
     evdev = None
+except AttributeError as err:
+    # 'evdev' versions 1.5 and earlier are incompatible with Python 3.11
+    # and produce this exception; we won't be able to use these.
+    logger.exception("python3-evdev failed to load, and won't be available: %s", err)
+    evdev = None
 
 
 def get_devices():
