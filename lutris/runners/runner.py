@@ -444,7 +444,8 @@ class Runner:  # pylint: disable=too-many-public-methods
         if callback:
             callback()
 
-    def remove_game_data(self, app_id=None, game_path=None):
+    @staticmethod
+    def remove_game_data(app_id=None, game_path=None):
         system.remove_folder(game_path)
 
     def can_uninstall(self):

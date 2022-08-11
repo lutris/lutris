@@ -58,7 +58,7 @@ def get_games_where(**conditions):
                 if not hasattr(value, "__iter__"):
                     raise ValueError("Value should be an iterable (%s given)" % value)
                 if len(value) > 999:
-                    raise ValueError("SQLite limnited to a maximum of 999 parameters.")
+                    raise ValueError("SQLite limited to a maximum of 999 parameters.")
                 if value:
                     condition_fields.append("{} in ({})".format(field, ", ".join("?" * len(value)) or ""))
                     condition_values = list(chain(condition_values, value))

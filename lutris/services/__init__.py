@@ -5,6 +5,7 @@ from lutris import settings
 from lutris.services.battlenet import BattleNetService
 from lutris.services.dolphin import DolphinService
 from lutris.services.egs import EpicGamesStoreService
+from lutris.services.flathub import FlathubService
 from lutris.services.gog import GOGService
 from lutris.services.humblebundle import HumbleBundleService
 from lutris.services.itchio import ItchIoService
@@ -49,7 +50,8 @@ SERVICES = get_services()
 WIP_SERVICES = {
     "battlenet": BattleNetService,
     "itchio": ItchIoService,
-    "mame": MAMEService,
+    "mame": MAMEService,    
+    "flathub": FlathubService
 }
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
