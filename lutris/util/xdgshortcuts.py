@@ -8,7 +8,14 @@ from gi.repository import GLib
 
 from lutris.settings import CACHE_DIR
 from lutris.util import system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+
+
+def get_lutris_executable():
+    if LINUX_SYSTEM.is_flatpak:
+        return "flatpak run net.lutris.Lutris"
+    return "lutris"
 
 
 def get_xdg_entry(directory):
@@ -21,7 +28,7 @@ def get_xdg_entry(directory):
         "DOCUMENTS": GLib.UserDirectory.DIRECTORY_DOCUMENTS,
     }
     directory = directory.upper()
-    if directory not in special_dir.keys():
+    if directory not in special_dir:
         raise ValueError(
             directory + " not supported. Only those folders are supported: " + ", ".join(special_dir.keys())
         )
@@ -46,24 +53,29 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
 
 def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
     """Create a .desktop file."""
-
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
+    lutris_executable = get_lutris_executable()
     launcher_content = dedent(
         """
         [Desktop Entry]
         Type=Application
         Name={}
         Icon={}
-        Exec=env LUTRIS_SKIP_INIT=1 lutris lutris:rungameid/{}
+        Exec=env LUTRIS_SKIP_INIT=1 {} lutris:rungameid/{}
         Categories=Game
-        """.format(game_name, "lutris_{}".format(game_slug), game_id)
+        """.format(
+            game_name,
+            "lutris_{}".format(game_slug),
+            lutris_executable,
+            game_id
+        )
     )
 
     launcher_filename = get_xdg_basename(game_slug, game_id)
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)
-    tmp_launcher = open(tmp_launcher_path, "w")
-    tmp_launcher.write(launcher_content)
-    tmp_launcher.close()
+    with open(tmp_launcher_path, "w", encoding='utf-8') as tmp_launcher:
+        tmp_launcher.write(launcher_content)
+        tmp_launcher.close()
     os.chmod(
         tmp_launcher_path,
         stat.S_IREAD
@@ -75,15 +87,13 @@ def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
     )
 
     if desktop:
-        if not os.path.exists(desktop_dir):
-            os.mkdir(desktop_dir)
+        os.makedirs(desktop_dir, exist_ok=True)
         launcher_path = os.path.join(desktop_dir, launcher_filename)
         logger.debug("Creating Desktop icon in %s", launcher_path)
         shutil.copy(tmp_launcher_path, launcher_path)
     if menu:
         menu_path = os.path.join(GLib.get_user_data_dir(), "applications")
-        if not os.path.exists(menu_path):
-            os.mkdir(menu_path)
+        os.makedirs(menu_path, exist_ok=True)
         launcher_path = os.path.join(menu_path, launcher_filename)
         logger.debug("Creating menu launcher in %s", launcher_path)
         shutil.copy(tmp_launcher_path, launcher_path)

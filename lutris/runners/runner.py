@@ -1,5 +1,6 @@
 """Base module for runners"""
 import os
+import signal
 from gettext import gettext as _
 
 from gi.repository import Gtk
@@ -13,7 +14,7 @@ from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import system
 from lutris.util.extract import ExtractFailure, extract_archive
-from lutris.util.http import Request
+from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -67,7 +68,10 @@ class Runner:  # pylint: disable=too-many-public-methods
     @property
     def game_config(self):
         """Return the cascaded game config as a dict."""
-        return self.config.game_config if self.config else {}
+        if self.config:
+            return self.config.game_config
+        logger.warning("Accessing game config while runner wasn't given one.")
+        return {}
 
     @property
     def runner_config(self):
@@ -101,6 +105,12 @@ class Runner:  # pylint: disable=too-many-public-methods
             return os.path.dirname(os.path.expanduser(entry_point))
         return ""
 
+    def resolve_game_path(self):
+        """Returns the path where the game is found; if game_path does not
+        provide a path, this may try to resolve the path by runner-specific means,
+        which can find things like /usr/games when applicable."""
+        return self.game_path
+
     @property
     def library_folders(self):
         """Return a list of paths where a game might be installed"""
@@ -110,6 +120,21 @@ class Runner:  # pylint: disable=too-many-public-methods
     def working_dir(self):
         """Return the working directory to use when running the game."""
         return self.game_path or os.path.expanduser("~/")
+
+    @property
+    def shader_cache_dir(self):
+        """Return the cache directory for this runner to use. We create
+        this if it does not exist."""
+        path = os.path.join(settings.SHADER_CACHE_DIR, self.name)
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        return path
+
+    @property
+    def nvidia_shader_cache_path(self):
+        """The path to place in __GL_SHADER_DISK_CACHE_PATH; NVidia
+        will place its cache cache in a subdirectory here."""
+        return self.shader_cache_dir
 
     @property
     def discord_client_id(self):
@@ -141,24 +166,30 @@ class Runner:  # pylint: disable=too-many-public-methods
             raise ValueError("runner_executable not set for {}".format(self.name))
         return os.path.join(settings.RUNNER_DIR, self.runner_executable)
 
-    def get_env(self, os_env=False):
+    def get_env(self, os_env=False, disable_runtime=False):
         """Return environment variables used for a game."""
         env = {}
         if os_env:
             env.update(os.environ.copy())
+
+        # By default we'll set NVidia's shader disk cache to be
+        # per-game, so it overflows less readily.
+        env["__GL_SHADER_DISK_CACHE"] = "1"
+        env["__GL_SHADER_DISK_CACHE_PATH"] = self.nvidia_shader_cache_path
 
         # Override SDL2 controller configuration
         sdl_gamecontrollerconfig = self.system_config.get("sdl_gamecontrollerconfig")
         if sdl_gamecontrollerconfig:
             path = os.path.expanduser(sdl_gamecontrollerconfig)
             if system.path_exists(path):
-                with open(path, "r") as controllerdb_file:
+                with open(path, "r", encoding='utf-8') as controllerdb_file:
                     sdl_gamecontrollerconfig = controllerdb_file.read()
             env["SDL_GAMECONTROLLERCONFIG"] = sdl_gamecontrollerconfig
 
         # Set monitor to use for SDL 1 games
-        if self.system_config.get("sdl_video_fullscreen"):
-            env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = self.system_config["sdl_video_fullscreen"]
+        sdl_video_fullscreen = self.system_config.get("sdl_video_fullscreen")
+        if sdl_video_fullscreen and sdl_video_fullscreen != "off":
+            env["SDL_VIDEO_FULLSCREEN_DISPLAY"] = sdl_video_fullscreen
 
         # DRI Prime
         if self.system_config.get("dri_prime"):
@@ -177,21 +208,19 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         # Vulkan ICD files
         vk_icd = self.system_config.get("vk_icd")
-        if vk_icd and vk_icd != "off" and system.path_exists(vk_icd):
+        if vk_icd:
             env["VK_ICD_FILENAMES"] = vk_icd
 
         runtime_ld_library_path = None
 
-        if self.use_runtime():
+        if not disable_runtime and self.use_runtime():
             runtime_env = self.get_runtime_env()
-            if "LD_LIBRARY_PATH" in runtime_env:
-                runtime_ld_library_path = runtime_env["LD_LIBRARY_PATH"]
+            runtime_ld_library_path = runtime_env.get("LD_LIBRARY_PATH")
 
         if runtime_ld_library_path:
             ld_library_path = env.get("LD_LIBRARY_PATH")
-            if not ld_library_path:
-                ld_library_path = "$LD_LIBRARY_PATH"
-            env["LD_LIBRARY_PATH"] = ":".join([runtime_ld_library_path, ld_library_path])
+            env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+                runtime_ld_library_path, ld_library_path]))
 
         # Apply user overrides at the end
         env.update(self.system_config.get("env") or {})
@@ -211,7 +240,9 @@ class Runner:  # pylint: disable=too-many-public-methods
         return runtime.get_env(prefer_system_libs=self.system_config.get("prefer_system_libs", True))
 
     def prelaunch(self):
-        """Run actions before running the game, override this method in runners"""
+        """Run actions before running the game, override this method in runners; raise an
+        exception if prelaunch fails, and it will be reported to the user, and
+        then the game won't start."""
         available_libs = set()
         for lib in set(self.require_libs):
             if lib in LINUX_SYSTEM.shared_libraries:
@@ -223,7 +254,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         unavailable_libs = set(self.require_libs) - available_libs
         if unavailable_libs:
             raise UnavailableLibraries(unavailable_libs, self.arch)
-        return True
 
     def get_run_data(self):
         """Return dict with command (exe & args list) and env vars (dict).
@@ -298,17 +328,26 @@ class Runner:  # pylint: disable=too-many-public-methods
             version (str): Optional version to lookup, will return this one if found
 
         Returns:
-            dict: Dict containing version, architecture and url for the runner
+            dict: Dict containing version, architecture and url for the runner, None
+            if the data can't be retrieved.
         """
         logger.info(
             "Getting runner information for %s%s",
             self.name,
             " (version: %s)" % version if version else "",
         )
-        request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
-        runner_info = request.get().json
+
+        try:
+            request = Request("{}/api/runners/{}".format(settings.SITE_URL, self.name))
+            runner_info = request.get().json
+
+            if not runner_info:
+                logger.error("Failed to get runner information")
+        except HTTPError as ex:
+            logger.error("Unable to get runner information: %s", ex)
+            runner_info = None
+
         if not runner_info:
-            logger.error("Failed to get runner information")
             return
 
         versions = runner_info.get("versions") or []
@@ -389,13 +428,18 @@ class Runner:  # pylint: disable=too-many-public-methods
             extract_archive(archive, dest, merge_single=merge_single)
         except ExtractFailure as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
-            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex))
+            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex)) from ex
         os.remove(archive)
 
         if self.name == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
             get_wine_versions.cache_clear()
+
+        if self.runner_executable:
+            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable)
+            if os.path.isfile(runner_executable):
+                system.make_executable(runner_executable)
 
         if callback:
             callback()
@@ -423,3 +467,8 @@ class Runner:  # pylint: disable=too-many-public-methods
                 output = item
                 break
         return output
+
+    def force_stop_game(self, game):
+        """Stop the running game. If this leaves any game processes running,
+        the caller will SIGKILL them (after a delay)."""
+        game.kill_processes(signal.SIGTERM)

@@ -1,10 +1,10 @@
 import os
 import unittest
 from sqlite3 import OperationalError
+
 from lutris import settings
-from lutris.database import schema
 from lutris.database import games as games_db
-from lutris.database import sql
+from lutris.database import schema, sql
 from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
@@ -15,10 +15,6 @@ class DatabaseTester(unittest.TestCase):
         if os.path.exists(settings.PGA_DB):
             os.remove(settings.PGA_DB)
         schema.syncdb()
-
-    def tearDown(self):
-        if os.path.exists(settings.PGA_DB):
-            os.remove(settings.PGA_DB)
 
 
 class TestPersonnalGameArchive(DatabaseTester):

@@ -6,6 +6,9 @@ import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections import OrderedDict
+
+import requests
 
 from lutris import settings
 from lutris.util import http, system
@@ -20,7 +23,7 @@ def read_api_key():
     """Read the API token from disk"""
     if not system.path_exists(API_KEY_FILE_PATH):
         return None
-    with open(API_KEY_FILE_PATH, "r") as token_file:
+    with open(API_KEY_FILE_PATH, "r", encoding='utf-8') as token_file:
         api_string = token_file.read()
     try:
         username, token = api_string.split(":")
@@ -32,21 +35,22 @@ def read_api_key():
 
 def connect(username, password):
     """Connect to the Lutris API"""
-    credentials = urllib.parse.urlencode({"username": username, "password": password}).encode("utf-8")
     login_url = settings.SITE_URL + "/api/accounts/token"
+    credentials = {"username": username, "password": password}
     try:
-        request = urllib.request.urlopen(login_url, credentials, 10)
-    except (socket.timeout, urllib.error.URLError) as ex:
+        response = requests.post(url=login_url, data=credentials, timeout=10)
+        response.raise_for_status()
+        json_dict = response.json()
+        if "token" in json_dict:
+            token = json_dict["token"]
+            with open(API_KEY_FILE_PATH, "w", encoding='utf-8') as token_file:
+                token_file.write("%s:%s" % (username, token))
+            get_user_info()
+            return token
+    except (requests.RequestException, requests.ConnectionError, requests.HTTPError, requests.TooManyRedirects,
+            requests.Timeout) as ex:
         logger.error("Unable to connect to server (%s): %s", login_url, ex)
         return False
-    response = json.loads(request.read().decode())
-    if "token" in response:
-        token = response["token"]
-        with open(API_KEY_FILE_PATH, "w") as token_file:
-            token_file.write(":".join((username, token)))
-        get_user_info()
-        return response["token"]
-    return False
 
 
 def disconnect():
@@ -67,15 +71,24 @@ def get_user_info():
     account_info = response.json
     if not account_info:
         logger.warning("Unable to fetch user info for %s", credentials["username"])
-    with open(USER_INFO_FILE_PATH, "w") as token_file:
+    with open(USER_INFO_FILE_PATH, "w", encoding='utf-8') as token_file:
         json.dump(account_info, token_file, indent=2)
 
 
 def get_runners(runner_name):
     """Return the available runners for a given runner name"""
     api_url = settings.SITE_URL + "/api/runners/" + runner_name
-    response = http.Request(api_url).get()
-    return response.json
+    host = settings.SITE_URL.split("//")[1]
+
+    answers = socket.getaddrinfo(host, 443)
+    (_family, _type, _proto, _canonname, _sockaddr) = answers[0]
+    headers = OrderedDict({
+        'Host': host
+    })
+    session = requests.Session()
+    session.headers = headers
+    response = session.get(api_url, headers=headers)
+    return response.json()
 
 
 def get_http_response(url, payload):
@@ -91,21 +104,19 @@ def get_http_response(url, payload):
     return response.json
 
 
-def get_game_api_page(game_ids, page=1):
+def get_game_api_page(game_slugs, page=1):
     """Read a single page of games from the API and return the response
 
     Args:
-        game_ids (list): list of game IDs, the ID type is determined by `query_type`
+        game_ids (list): list of game slugs
         page (str): Page of results to get
-        query_type (str): Type of the IDs in game_ids, by default 'games' queries
-                          games by their Lutris slug. 'gogid' can also be used.
     """
     url = settings.SITE_URL + "/api/games"
     if int(page) > 1:
         url += "?page={}".format(page)
-    if not game_ids:
+    if not game_slugs:
         return []
-    payload = json.dumps({"games": game_ids, "page": page}).encode("utf-8")
+    payload = json.dumps({"games": game_slugs, "page": page}).encode("utf-8")
     return get_http_response(url, payload)
 
 
@@ -148,19 +159,59 @@ def get_api_games(game_slugs=None, page=1, service=None):
     return results
 
 
+def get_game_installers(game_slug, revision=None):
+    """Get installers for a single game"""
+    if not game_slug:
+        raise ValueError("No game_slug provided. Can't query an installer")
+    if revision:
+        installer_url = settings.INSTALLER_REVISION_URL % (game_slug, revision)
+    else:
+        installer_url = settings.INSTALLER_URL % game_slug
+
+    logger.debug("Fetching installer %s", installer_url)
+    request = http.Request(installer_url)
+    request.get()
+    response = request.json
+    if response is None:
+        raise RuntimeError("Couldn't get installer at %s" % installer_url)
+
+    # Revision requests return a single installer
+    if revision:
+        installers = [response]
+    else:
+        installers = response["results"]
+    return [normalize_installer(i) for i in installers]
+
+
+def normalize_installer(installer):
+    """Adjusts an installer dict so it is in the correct form, with values
+    of the expected types."""
+    def must_be_str(key):
+        if key in installer:
+            installer[key] = str(installer[key])
+
+    must_be_str("name")
+    must_be_str("version")
+    must_be_str("os")
+    must_be_str("slug")
+    must_be_str("game_slug")
+    must_be_str("dlcid")
+    must_be_str("runner")
+    return installer
+
+
 def search_games(query):
     if not query:
-        return []
-    query = query.lower().strip()[:32]
-    url = "/api/games?%s" % urllib.parse.urlencode({"search": query})
+        return {}
+    query = query.lower().strip()[:255]
+    url = "/api/games?%s" % urllib.parse.urlencode({"search": query, "with-installers": True})
     response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
     try:
         response.get()
     except http.HTTPError as ex:
         logger.error("Unable to get games from API: %s", ex)
-        return None
-    response_data = response.json
-    return response_data.get("results", [])
+        return {}
+    return response.json
 
 
 def get_bundle(bundle):
@@ -205,8 +256,20 @@ def parse_installer_url(url):
     else:
         raise ValueError("Invalid lutris url %s" % url)
 
+    # To link to service games, format a slug like <service>:<appid>
+    if ":" in game_slug:
+        service, appid = game_slug.split(":", maxsplit=1)
+    else:
+        service, appid = "", ""
+
     revision = None
     if parsed_url.query:
         query = dict(urllib.parse.parse_qsl(parsed_url.query))
         revision = query.get("revision")
-    return {"game_slug": game_slug, "revision": revision, "action": action}
+    return {
+        "game_slug": game_slug,
+        "revision": revision,
+        "action": action,
+        "service": service,
+        "appid": appid
+    }

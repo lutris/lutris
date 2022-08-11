@@ -6,8 +6,8 @@ from setuptools import setup
 
 from lutris import __version__ as VERSION
 
-if sys.version_info < (3, 4):
-    sys.exit('Python 3.4 is required to run Lutris')
+if sys.version_info < (3, 7):
+    sys.exit('Python >= 3.7 is required to run Lutris')
 
 data_files = []
 
@@ -44,7 +44,9 @@ setup(
         'lutris.util.graphics',
         'lutris.util.mame',
         'lutris.util.steam',
+        'lutris.util.steam.vdf',
         'lutris.util.retroarch',
+        'lutris.util.ubisoft',
         'lutris.util.wine'
     ],
     scripts=['bin/lutris'],
@@ -55,7 +57,8 @@ setup(
         'PyGObject',
         'evdev',
         'requests',
-        'python-magic'
+        'distro',
+        'lxml'
     ],
     url='https://lutris.net',
     description='Video game preservation platform',

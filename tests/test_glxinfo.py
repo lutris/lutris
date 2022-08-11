@@ -1,5 +1,6 @@
 import os
 from unittest import TestCase
+
 from lutris.util.graphics.glxinfo import GlxInfo
 
 FIXTURES_PATH = os.path.join(os.path.dirname(__file__), 'fixtures')

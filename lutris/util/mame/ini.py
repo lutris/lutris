@@ -26,7 +26,7 @@ class MameIni:
 
     def read(self):
         """Reads the content of the ini file"""
-        with open(self.ini_path, "r") as ini_file:
+        with open(self.ini_path, "r", encoding='utf-8') as ini_file:
             for line in ini_file.readlines():
                 self.lines.append(line)
                 print(line)
@@ -36,7 +36,7 @@ class MameIni:
 
     def write(self):
         """Writes the file to disk"""
-        with open(self.ini_path, "w") as ini_file:
+        with open(self.ini_path, "w", encoding='utf-8') as ini_file:
             for line in self.lines:
                 config_key, _value = self.parse(line)
                 if config_key and self.config[config_key]:

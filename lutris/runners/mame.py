@@ -240,14 +240,13 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     def write_xml_list(self):
         """Write the full game list in XML to disk"""
-        if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir)
+        os.makedirs(self.cache_dir, exist_ok=True)
         output = system.execute(
             [self.get_executable(), "-listxml"],
             env=runtime.get_env()
         )
         if output:
-            with open(self.xml_path, "w") as xml_file:
+            with open(self.xml_path, "w", encoding='utf-8') as xml_file:
                 xml_file.write(output)
             logger.info("MAME XML list written to %s", self.xml_path)
         else:
@@ -276,7 +275,6 @@ class mame(Runner):  # pylint: disable=invalid-name
                 env=runtime.get_env(),
                 cwd=self.working_dir
             )
-        return True
 
     def get_shader_params(self, shader_dir, shaders):
         """Returns a list of CLI parameters to apply a list of shaders"""

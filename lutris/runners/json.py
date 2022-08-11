@@ -19,7 +19,7 @@ class JsonRunner(Runner):
         super().__init__(config)
         if not self.json_path:
             raise RuntimeError("Create subclasses of JsonRunner with the json_path attribute set")
-        with open(self.json_path) as json_file:
+        with open(self.json_path, encoding='utf-8') as json_file:
             self._json_data = json.load(json_file)
 
         self.game_options = self._json_data["game_options"]

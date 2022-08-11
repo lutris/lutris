@@ -136,5 +136,5 @@ class DownloadProgressBox(Gtk.Box):
         return True
 
     def _set_text(self, text):
-        markup = u"<span size='10000'>{}</span>".format(gtk_safe(text))
+        markup = "<span size='10000'>{}</span>".format(gtk_safe(text))
         self.progress_label.set_markup(markup)

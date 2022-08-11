@@ -56,6 +56,8 @@ class MonitoredCommand:
         self.ready_state = True
         self.env = self.get_environment(env)
 
+        self.accepted_return_code = "0"
+
         self.command = command
         self.runner = runner
         self.stop_func = lambda: True
@@ -175,7 +177,7 @@ class MonitoredCommand:
         """Get the return code from the file written by the wrapper"""
         return_code_path = "/tmp/lutris-%s" % self.env["LUTRIS_GAME_UUID"]
         if os.path.exists(return_code_path):
-            with open(return_code_path) as return_code_file:
+            with open(return_code_path, encoding='utf-8') as return_code_file:
                 return_code = return_code_file.read()
             os.unlink(return_code_path)
         else:
@@ -224,7 +226,7 @@ class MonitoredCommand:
                 logger.error("Failed to create working directory, falling back to %s", self.fallback_cwd)
                 self.cwd = "/tmp"
         try:
-            return subprocess.Popen(
+            return subprocess.Popen(  # pylint: disable=consider-using-with
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,

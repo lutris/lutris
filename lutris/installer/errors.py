@@ -14,7 +14,7 @@ class ScriptingError(Exception):
     def __init__(self, message, faulty_data=None):
         self.message = message
         self.faulty_data = faulty_data
-        super(ScriptingError, self).__init__()
+        super().__init__()
         logger.error(self.__str__())
 
     def __str__(self):

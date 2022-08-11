@@ -12,6 +12,7 @@ from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
+from lutris.gui.widgets.utils import has_stock_icon
 from lutris.services.base import AuthTokenExpired, BaseService
 from lutris.util.jobs import AsyncCall
 
@@ -127,6 +128,10 @@ class ServiceSidebarRow(SidebarRow):
             ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh")
         ]
 
+    def on_service_run(self, button):
+        """Run a launcher associated with a service"""
+        self.service.run()
+
     def on_refresh_clicked(self, button):
         """Reload the service games"""
         button.set_sensitive(False)
@@ -152,6 +157,7 @@ class ServiceSidebarRow(SidebarRow):
 class OnlineServiceSidebarRow(ServiceSidebarRow):
     def get_buttons(self):
         return {
+            "run": (("media-playback-start-symbolic", _("Run"), self.on_service_run, "run")),
             "refresh": ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh"),
             "disconnect": ("system-log-out-symbolic", _("Disconnect"), self.on_connect_clicked, "disconnect"),
             "connect": ("avatar-default-symbolic", _("Connect"), self.on_connect_clicked, "connect")
@@ -159,9 +165,14 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
 
     def get_actions(self):
         buttons = self.get_buttons()
+        displayed_buttons = []
+        if self.service.is_launchable():
+            displayed_buttons.append(buttons["run"])
         if self.service.is_authenticated():
-            return [buttons["refresh"], buttons["disconnect"]]
-        return [buttons["connect"]]
+            displayed_buttons += [buttons["refresh"], buttons["disconnect"]]
+        else:
+            displayed_buttons += [buttons["connect"]]
+        return displayed_buttons
 
     def on_connect_clicked(self, button):
         button.set_sensitive(False)
@@ -271,15 +282,28 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_auth_changed)
         GObject.add_emission_hook(BaseService, "service-games-load", self.on_service_games_updating)
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
-        self.connect("realize", self.on_realize)
         self.set_filter_func(self._filter_func)
         self.set_header_func(self._header_func)
         self.show_all()
 
     def get_sidebar_icon(self, icon_name):
-        return Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.MENU)
+        name = icon_name if has_stock_icon(icon_name) else "package-x-generic-symbolic"
+        icon = Gtk.Image.new_from_icon_name(name, Gtk.IconSize.MENU)
 
-    def on_realize(self, widget):
+        # We can wind up with an icon of the wrong size, if that's what is
+        # available. So we'll fix that.
+        icon_size = Gtk.IconSize.lookup(Gtk.IconSize.MENU)
+        if icon_size[0]:
+            icon.set_pixel_size(icon_size[2])
+
+        return icon
+
+    def initialize_rows(self):
+        """
+        Select the initial row; this triggers the initialization of the game view
+        so we must do this even if this sidebar is never realized, but only after
+        the sidebar's signals are connected.
+        """
         self.active_platforms = games_db.get_used_platforms()
         self.runners = sorted(runners.__all__)
         self.platforms = sorted(runners.RUNNER_PLATFORMS)
@@ -345,10 +369,12 @@ class LutrisSidebar(Gtk.ListBox):
             self.add(SidebarRow(platform, "platform", platform, self.get_sidebar_icon(icon_name)))
 
         self.update()
+
         for row in self.get_children():
             if row.type == self.selected_row_type and row.id == self.selected_row_id:
                 self.select_row(row)
                 break
+
         self.show_all()
         self.running_row.hide()
 
@@ -362,8 +388,6 @@ class LutrisSidebar(Gtk.ListBox):
         return row.id in self.active_platforms
 
     def _header_func(self, row, before):
-        if row.get_header():
-            return
         if not before:
             row.set_header(self.row_headers["library"])
         elif before.type in ("category", "dynamic_category") and row.type == "service":
@@ -372,6 +396,8 @@ class LutrisSidebar(Gtk.ListBox):
             row.set_header(self.row_headers["runners"])
         elif before.type == "runner" and row.type == "platform":
             row.set_header(self.row_headers["platforms"])
+        else:
+            row.set_header(None)
 
     def update(self, *_args):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
@@ -388,6 +414,10 @@ class LutrisSidebar(Gtk.ListBox):
         """Hide the "running" section when no games are running"""
         if not self.application.running_games.get_n_items():
             self.running_row.hide()
+
+            if self.get_selected_row() == self.running_row:
+                self.select_row(self.get_children()[0])
+
         return True
 
     def on_service_auth_changed(self, service):
@@ -408,5 +438,5 @@ class LutrisSidebar(Gtk.ListBox):
     def on_services_changed(self, _widget):
         for child in self.get_children():
             child.destroy()
-        self.on_realize(self)
+        self.initialize_rows()
         return True

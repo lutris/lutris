@@ -22,8 +22,9 @@ class Process:
     def __init__(self, pid):
         try:
             self.pid = int(pid)
-        except ValueError:
-            raise InvalidPid("'%s' is not a valid pid" % pid)
+            self.error_cache = []
+        except ValueError as err:
+            raise InvalidPid("'%s' is not a valid pid" % pid) from err
 
     def __repr__(self):
         return "Process {}".format(self.pid)
@@ -34,7 +35,7 @@ class Process:
     def _read_content(self, file_path):
         """Return the contents from a file in /proc"""
         try:
-            with open(file_path) as proc_file:
+            with open(file_path, encoding='utf-8') as proc_file:
                 content = proc_file.read()
         except (ProcessLookupError, FileNotFoundError, PermissionError):
             return ""
@@ -43,7 +44,7 @@ class Process:
     def get_stat(self, parsed=True):
         stat_filename = "/proc/{}/stat".format(self.pid)
         try:
-            with open(stat_filename) as stat_file:
+            with open(stat_filename, encoding='utf-8') as stat_file:
                 _stat = stat_file.readline()
         except (ProcessLookupError, FileNotFoundError):
             return None
@@ -66,7 +67,7 @@ class Process:
         """Return pids of child processes opened by thread `tid` of process."""
         children_path = "/proc/{}/task/{}/children".format(self.pid, tid)
         try:
-            with open(children_path) as children_file:
+            with open(children_path, encoding='utf-8') as children_file:
                 children_content = children_file.read()
         except (FileNotFoundError, ProcessLookupError):
             children_content = ""
@@ -116,7 +117,9 @@ class Process:
         try:
             return dict([line.split("=", 1) for line in _environ_text.split("\x00") if line])
         except ValueError:
-            logger.error("Failed to parse environment variables: %s", _environ_text)
+            if environ_path not in self.error_cache:
+                logger.error("Failed to parse environment variables: %s", _environ_text)
+                self.error_cache.append(environ_path)
             return {}
 
     @property

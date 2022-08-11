@@ -75,6 +75,6 @@ class WebkitCookieJar(MozillaCookieJar):
 
         except OSError:
             raise
-        except Exception:
+        except Exception as err:
             _warn_unhandled_exception()
-            raise OSError("invalid Netscape format cookies file %r: %r" % (filename, line))
+            raise OSError("invalid Netscape format cookies file %r: %r" % (filename, line)) from err

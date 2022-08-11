@@ -151,7 +151,7 @@ class hatari(Runner):
             if callback:
                 callback()
 
-        super(hatari, self).install(version=version, downloader=downloader, callback=on_runner_installed)
+        super().install(version=version, downloader=downloader, callback=on_runner_installed)
 
     def play(self):  # pylint: disable=too-many-branches
         params = [self.get_executable()]

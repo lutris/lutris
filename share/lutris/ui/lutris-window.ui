@@ -25,6 +25,8 @@
     <property name="title" translatable="yes">Lutris</property>
     <property name="icon-name">lutris</property>
     <signal name="destroy" handler="on_destroy" swapped="no"/>
+    <signal name="hide" handler="on_hide" swapped="no"/>
+    <signal name="show" handler="on_show" swapped="no"/>
     <signal name="size-allocate" handler="on_resize" swapped="no"/>
     <child>
       <object class="GtkStack">
@@ -64,57 +66,7 @@
                 <property name="hexpand">True</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkAlignment">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <child>
-                      <object class="GtkBox" id="tabs_box">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="homogeneous">True</property>
-                        <child>
-                          <object class="GtkRadioButton" id="library_button">
-                            <property name="label" translatable="yes">Your Library</property>
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="active">True</property>
-                            <property name="receives-default">False</property>
-                            <property name="draw-indicator">False</property>
-                            <signal name="toggled" handler="on_game_collection_changed" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkRadioButton" id="website_button">
-                            <property name="label" translatable="yes">Community Installers</property>
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="receives-default">False</property>
-                            <property name="draw-indicator">False</property>
-                            <property name="group">library_button</property>
-                            <signal name="toggled" handler="on_game_collection_changed" swapped="no"/>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <style>
-                          <class name="linked"/>
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
+                  <placeholder/>
                 </child>
                 <child>
                   <placeholder/>
@@ -146,8 +98,6 @@
                       <object class="GtkAlignment" id="blank_overlay">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="xscale">0.10000000149011612</property>
-                        <property name="yscale">0.10000000149011612</property>
                         <child>
                           <placeholder/>
                         </child>
@@ -212,13 +162,12 @@
             <property name="can-focus">False</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkMenuButton">
+              <object class="GtkButton">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">False</property>
                 <property name="tooltip-text" translatable="yes">Add Game</property>
                 <property name="action-name">win.add-game</property>
-                <property name="use-popover">False</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
@@ -347,7 +296,7 @@
               <object class="GtkLabel" id="zoom_label">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Zoom:</property>
+                <property name="label" translatable="yes">Zoom </property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -505,12 +454,12 @@
             <property name="receives-default">False</property>
             <property name="action-name">win.show-installed-only</property>
             <property name="text" translatable="yes">_Installed Games Only</property>
-            <accelerator key="h" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+            <accelerator key="i" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -520,11 +469,12 @@
             <property name="receives-default">False</property>
             <property name="action-name">win.show-hidden-games</property>
             <property name="text" translatable="yes">Show _Hidden Games</property>
+            <accelerator key="h" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -539,7 +489,21 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkModelButton">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="action-name">win.add-game</property>
+            <property name="text" translatable="yes">Add games</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -553,7 +517,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">5</property>
+            <property name="position">6</property>
           </packing>
         </child>
         <child>
@@ -564,7 +528,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">7</property>
+            <property name="position">8</property>
           </packing>
         </child>
         <child>
@@ -578,7 +542,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">8</property>
+            <property name="position">9</property>
           </packing>
         </child>
         <child>
@@ -592,7 +556,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">9</property>
+            <property name="position">10</property>
           </packing>
         </child>
         <child>
@@ -606,7 +570,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">10</property>
+            <property name="position">11</property>
           </packing>
         </child>
         <child>
@@ -620,7 +584,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">11</property>
+            <property name="position">12</property>
           </packing>
         </child>
       </object>

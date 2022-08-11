@@ -57,6 +57,7 @@ class SteamWindowsService(SteamService):
             installers = get_installers(
                 game_slug=self.client_installer,
             )
+            appid = None
         else:
             installers = [self.generate_installer(db_game, steam_game)]
             appid = db_game["appid"]

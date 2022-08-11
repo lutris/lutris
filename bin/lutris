@@ -12,11 +12,11 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Main entry point for Lutris"""
-import sys
-import locale
 import gettext
+import locale
 import os
-from os.path import realpath, dirname, normpath
+import sys
+from os.path import dirname, normpath, realpath
 
 LAUNCH_PATH = dirname(realpath(__file__))
 

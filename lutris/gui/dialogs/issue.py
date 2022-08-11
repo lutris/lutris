@@ -1,13 +1,10 @@
 """GUI dialog for reporting issues"""
-# Standard Library
 import json
 import os
 from gettext import gettext as _
 
-# Third Party Libraries
 from gi.repository import Gtk
 
-# Lutris Modules
 from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.util.linux import gather_system_info
@@ -67,24 +64,25 @@ class IssueReportWindow(BaseApplicationWindow):
     def on_save(self, _button):
         """Signal handler for the save button"""
 
-        save_dialog = Gtk.FileChooserDialog(
-            title=_("Select a location to save the issue"),
-            transient_for=self,
-            action=Gtk.FileChooserAction.SELECT_FOLDER,
-            buttons=(_("_Cancel"), Gtk.ResponseType.CLOSE, _("_OK"), Gtk.ResponseType.OK),
+        save_dialog = Gtk.FileChooserNative.new(
+            _("Select a location to save the issue"),
+            self,
+            Gtk.FileChooserAction.SELECT_FOLDER,
+            _("_OK"),
+            _("_Cancel"),
         )
-        save_dialog.connect("response", self.on_folder_selected)
-        save_dialog.run()
+        save_dialog.connect("response", self.on_folder_selected, save_dialog)
+        save_dialog.show()
 
-    def on_folder_selected(self, dialog, response):
-        if response != Gtk.ResponseType.OK:
+    def on_folder_selected(self, dialog, response, _dialog):
+        if response != Gtk.ResponseType.ACCEPT:
             return
-        target_path = dialog.get_current_folder()
+        target_path = dialog.get_filename()
         if not target_path:
             return
         issue_path = os.path.join(target_path, "lutris-issue-report.json")
         issue_info = self.get_issue_info()
-        with open(issue_path, "w") as issue_file:
+        with open(issue_path, "w", encoding='utf-8') as issue_file:
             json.dump(issue_info, issue_file, indent=2)
         dialog.destroy()
         NoticeDialog(_("Issue saved in %s") % issue_path)

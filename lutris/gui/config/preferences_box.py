@@ -1,6 +1,6 @@
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import Gio, Gtk
 
 from lutris import settings
 from lutris.gui.widgets.common import VBox
@@ -10,7 +10,7 @@ class PreferencesBox(VBox):
     settings_options = {
         "hide_client_on_game_start": _("Minimize client when a game is launched"),
         "hide_text_under_icons": _("Hide text under icons (requires restart)"),
-        "show_tray_icon": _("Show Tray Icon (requires restart)"),
+        "show_tray_icon": _("Show Tray Icon"),
         "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)")
     }
 
@@ -56,3 +56,11 @@ class PreferencesBox(VBox):
     def _on_setting_change(self, widget, state, setting_key):
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, state)
+
+        if setting_key == "dark_theme":
+            application = Gio.Application.get_default()
+            application.style_manager.is_config_dark = state
+        elif setting_key == "show_tray_icon":
+            application = Gio.Application.get_default()
+            if application.window.get_visible():
+                application.set_tray_icon()

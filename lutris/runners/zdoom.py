@@ -95,7 +95,7 @@ class zdoom(Runner):
     ]
 
     def get_executable(self):
-        executable = super(zdoom, self).get_executable()
+        executable = super().get_executable()
         executable_dir = os.path.dirname(executable)
         if not system.path_exists(executable_dir):
             return executable
@@ -108,7 +108,6 @@ class zdoom(Runner):
     def prelaunch(self):
         if not LINUX_SYSTEM.get_soundfonts():
             logger.warning("FluidSynth is not installed, you might not have any music")
-        return True
 
     @property
     def working_dir(self):

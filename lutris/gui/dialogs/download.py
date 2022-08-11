@@ -27,7 +27,7 @@ class DownloadDialog(Gtk.Dialog):
         self.response(Gtk.ResponseType.OK)
         self.destroy()
 
-    def download_cancelled(self, _widget, data):
+    def download_cancelled(self, _widget):
         self.response(Gtk.ResponseType.CANCEL)
         self.destroy()
 

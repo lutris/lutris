@@ -77,6 +77,7 @@ Available variables are:
 * ``$RESOLUTION``: Full resolution of the user's main display (eg. ``1920x1080``)
 * ``$RESOLUTION_WIDTH``: Resolution width of the user's main display (eg. ``1920``)
 * ``$RESOLUTION_HEIGHT``: Resolution height of the user's main display (eg. ``1080``)
+* ``$WINEBIN``: Absolute path to the Lutris provided Wine binary used to install the game.
 
 You can also reference files from the ``files`` section by their identifier,
 they will resolve to the absolute path of the downloaded or user provided file.
@@ -198,6 +199,21 @@ This is useful if the game needs to run from a different directory than the one
 the executable resides in.
 This directive can be used for Linux, Wine and Dosbox installers.
 Example: ``$GAMEDIR/path/to/game``
+
+``launch_configs``: When you have games with multiple executables (example: a game
+that comes with a map editor, or that need to be launched with different arguments)
+you can specify them in this section. In this section, you can have a list of configurations
+containing ``exe``, ``args`` and ``working_dir`` plus a ``name`` to show in the launcher dialog.
+Example:
+
+  game:
+    exe: main.exe
+    launch_configs:
+    - exe: map_editor.exe
+      name: Map Editor
+    - exe: main.exe
+      args: -missionpack
+      name: Mission Pack
 
 Wine and other wine based runners
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -458,7 +474,7 @@ should be extracted in some other location than the ``$GAMEDIR``, you can specif
 
 You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
-be. Accepted values for ``format`` are: zip, tgz, gzip, bz2, and gog (innoextract).
+be. Accepted values for ``format`` are: tgz, tar, zip, 7z, rar, txz, bz2, gzip, deb, exe and gog(innoextract), as well as all other formats supported by 7zip.
 
 Example::
 
@@ -484,7 +500,7 @@ reference a ``file id`` or a path, ``args`` to add command arguments,
 to set the directory to execute the command in (defaults to the install path).
 The command is executed within the Lutris Runtime (resolving most shared
 library dependencies). The file is made executable if necessary, no need to run
-chmodx before. You can also use ``env`` (environment variables), ``exclude_processes`` (space-separated list of processes to exclude from being watched), ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in exclude list) and ``disable_runtime`` (run a process without the Lutris Runtime, useful for running system binaries).
+chmodx before. You can also use ``env`` (environment variables), ``exclude_processes`` (space-separated list of processes to exclude from being monitored when determining if the execute phase finished), ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusion list) and ``disable_runtime`` (run a process without the Lutris Runtime, useful for running system binaries).
 
 Example::
 
@@ -492,6 +508,9 @@ Example::
         args: --argh
         file: great_id
         terminal: true
+        exclude_processes: process_not_to_monitor "Process Not To Monitor"
+        include_processes: excluded_process_from_the_list
+        disable_runtime: true
         env:
           key: value
 
@@ -596,6 +615,8 @@ that will be called. Other parameters depend on the task being called. It is
 possible to call functions from other runners by prefixing the task name with
 the runner's name (e.g., from a dosbox installer you can use the wineexec task
 with ``wine.wineexec`` as the task's ``name``)
+If the command you will run in the task doesn't exit with a return code of 0,
+you can specify an accepted return code like ``return_code: 256``
 
 Currently, the following tasks are implemented:
 
@@ -626,16 +647,26 @@ Currently, the following tasks are implemented:
 *   wine: ``wineexec`` Runs a windows executable. Parameters are
     ``executable`` (``file ID`` or path), ``args`` (optional arguments passed
     to the executable), ``prefix`` (optional WINEPREFIX),
-    ``arch`` (optional WINEARCH, required when you created win64 prefix), ``blocking`` (if true, do not run the process in a thread), ``working_dir`` (optional working directory), ``include_processes``  (optional space-separated list of processes to include to
-    being watched)
-    ``exclude_processes`` (optional space-separated list of processes to exclude from
-    being watched), ``env`` (optional environment variables), ``overrides`` (optional DLL overrides).
+    ``arch`` (optional WINEARCH value, by default inherited from the `game:` section, which itself defaults to win64. The value can be set to ``win32`` to run the task in a 32-bit prefix.),
+    ``blocking`` (if true, do not run the process in a thread),
+    ``description`` (a message be shown to the user during the execution of the task),
+    ``working_dir`` (optional working directory),
+    ``exclude_processes`` (optional space-separated list of processes to exclude from being monitored when determining if the execute phase finished),
+    ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusion list),
+    ``env`` (optional environment variables),
+    ``overrides`` (optional DLL overrides).
 
     Example::
 
         - task:
+            arch: win64
+            blocking: true
+            description: Doing something...
             name: wineexec
             executable: drive_c/Program Files/Game/Game.exe
+            exclude_processes: process_not_to_monitor.exe "Process Not To Monitor.exe"
+            include_processes: process_from_the_excluded_list.exe
+            working_dir: /absolute/path/
             args: --windowed
 
 *   wine: ``winetricks`` Runs winetricks with the ``app`` argument.
@@ -650,6 +681,7 @@ Currently, the following tasks are implemented:
         - task:
             name: winetricks
             app: nt40
+            silent: true
 
     For a full list of available ``winetricks`` see here: https://github.com/Winetricks/winetricks/tree/master/files/verbs
 
@@ -667,7 +699,7 @@ Currently, the following tasks are implemented:
     are ``path`` (the registry path, use backslashes), ``key``, ``value``,
     ``type`` (optional value type, default is REG_SZ (string)), ``prefix``
     (optional WINEPREFIX), ``arch``
-    (optional architecture of the prefix, required when you created win64 prefix).
+    (optional architecture of the prefix).
 
     Example:
 
@@ -682,7 +714,7 @@ Currently, the following tasks are implemented:
 
 *   wine: ``delete_registry_key`` Deletes registry key in the Windows registry. Parameters
     are ``key``, ``prefix``
-    (optional WINEPREFIX), ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
+    (optional WINEPREFIX), ``arch`` (optional architecture of the prefix).
 
     Example:
 
@@ -697,7 +729,7 @@ Currently, the following tasks are implemented:
 
 * wine: ``set_regedit_file`` Apply a regedit file to the
   registry, Parameters are ``filename`` (regfile name),
-  ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
+  ``arch`` (optional architecture of the prefix).
 
 
   Example::
@@ -708,7 +740,7 @@ Currently, the following tasks are implemented:
 
 * wine: ``winekill`` Stops processes running in Wine prefix. Parameters
   are ``prefix`` (optional WINEPREFIX),
-  ``arch`` (optional architecture of the prefix, required when you created win64 prefix).
+  ``arch`` (optional architecture of the prefix).
 
   Example
 

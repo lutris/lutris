@@ -1,6 +1,7 @@
 from unittest import TestCase
-from lutris.installer.interpreter import ScriptInterpreter
+
 from lutris.installer.errors import ScriptingError
+from lutris.installer.interpreter import ScriptInterpreter
 
 TEST_INSTALLER = {
     'script': {

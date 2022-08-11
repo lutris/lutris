@@ -5,18 +5,22 @@ import time
 from gettext import gettext as _
 
 from lutris import runners, settings
-from lutris.database.games import get_games
+from lutris.database.games import delete_game, get_games, get_games_where
 from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
 from lutris.services import DEFAULT_SERVICES
+from lutris.services.lutris import sync_media
+from lutris.util import update_cache
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.steam.shortcut import update_all_artwork
 from lutris.util.system import create_folder
 from lutris.util.wine.d3d_extras import D3DExtrasManager
+from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.vkd3d import VKD3DManager
@@ -31,12 +35,13 @@ def init_dirs():
         settings.DATA_DIR,
         os.path.join(settings.DATA_DIR, "covers"),
         settings.ICON_PATH,
-        os.path.join(settings.DATA_DIR, "banners"),
-        os.path.join(settings.DATA_DIR, "coverart"),
+        os.path.join(settings.CACHE_DIR, "banners"),
+        os.path.join(settings.CACHE_DIR, "coverart"),
         os.path.join(settings.DATA_DIR, "runners"),
         os.path.join(settings.DATA_DIR, "lib"),
         settings.RUNTIME_DIR,
         settings.CACHE_DIR,
+        settings.SHADER_CACHE_DIR,
         os.path.join(settings.CACHE_DIR, "installer"),
         os.path.join(settings.CACHE_DIR, "tmp"),
     ]
@@ -155,6 +160,15 @@ def run_all_checks():
     fill_missing_platforms()
 
 
+def cleanup_games():
+    """Delete all uninstalled games that don't have any playtime"""
+    removed_games = get_games_where(installed=0)
+    for game in removed_games:
+        if game["playtime"]:
+            continue
+        delete_game(game["id"])
+
+
 def init_lutris():
     """Run full initialization of Lutris"""
     logger.info("Starting Lutris %s", settings.VERSION)
@@ -165,24 +179,37 @@ def init_lutris():
     init_dirs()
     try:
         syncdb()
-    except sqlite3.DatabaseError:
+    except sqlite3.DatabaseError as err:
         raise RuntimeError(
             "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
             settings.PGA_DB
-        )
+        ) from err
     for service in DEFAULT_SERVICES:
         if not settings.read_setting(service, section="services"):
             settings.write_setting(service, True, section="services")
+    cleanup_games()
 
 
-def update_runtime():
+def update_runtime(force=False):
     """Update runtime components"""
-    runtime_updater = RuntimeUpdater()
-    components_to_update = runtime_updater.update()
-    if components_to_update:
-        while runtime_updater.current_updates:
-            time.sleep(0.3)
-    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager):
-        dll_manager = dll_manager_class()
-        dll_manager.upgrade()
+    runtime_call = update_cache.get_last_call("runtime")
+    if force or not runtime_call or runtime_call > 3600 * 12:
+        runtime_updater = RuntimeUpdater()
+        components_to_update = runtime_updater.update()
+        if components_to_update:
+            while runtime_updater.current_updates:
+                time.sleep(0.3)
+        update_cache.write_date_to_cache("runtime")
+    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager):
+        key = dll_manager_class.__name__
+        key_call = update_cache.get_last_call(key)
+        if force or not key_call or key_call > 3600 * 6:
+            dll_manager = dll_manager_class()
+            dll_manager.upgrade()
+            update_cache.write_date_to_cache(key)
+    media_call = update_cache.get_last_call("media")
+    if force or not media_call or media_call > 3600 * 24:
+        sync_media()
+        update_all_artwork()
+        update_cache.write_date_to_cache("media")
     logger.info("Startup complete")

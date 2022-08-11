@@ -9,7 +9,6 @@ __all__ = [
     "flatpak",
     # Microsoft based
     "wine",
-    "winesteam",
     "dosbox",
     # Multi-system
     "easyrpg",

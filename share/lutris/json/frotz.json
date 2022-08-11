@@ -1,6 +1,6 @@
 {
     "human_name": "Frotz",
-    "description": "Z-code emulator for text adventure games such as Zork.",
+    "description": "Z-code emulator (Zork, etc.)",
     "platforms": ["Z-Machine"],
     "runner_executable": "frotz/frotz",
     "entry_point_option": "story",

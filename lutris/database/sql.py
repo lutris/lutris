@@ -27,7 +27,7 @@ class db_cursor(object):
 def cursor_execute(cursor, query, params=None):
     """Execute a SQL query, run it in a lock block"""
     params = params or ()
-    lock = DB_LOCK.acquire(timeout=1)
+    lock = DB_LOCK.acquire(timeout=1)  # pylint: disable=consider-using-with
     if not lock:
         logger.error("Database is busy. Not executing %s", query)
         return
@@ -144,7 +144,7 @@ def filtered_query(
         sql_filters.append("%s LIKE ?" % field)
         params.append("%" + searches[field] + "%")
     for field in filters or {}:
-        if filters[field]:
+        if filters[field] is not None:  # but 0 or False are okay!
             sql_filters.append("%s = ?" % field)
             params.append(filters[field])
     for field in excludes or {}:

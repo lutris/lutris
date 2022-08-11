@@ -7,9 +7,11 @@ import urllib.parse
 import urllib.request
 from ssl import CertificateError
 
-from lutris.settings import PROJECT, SITE_URL, VERSION
+from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
 from lutris.util import system
 from lutris.util.log import logger
+
+DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
 
 
 class HTTPError(Exception):
@@ -29,7 +31,7 @@ class Request:
     def __init__(
         self,
         url,
-        timeout=30,
+        timeout=DEFAULT_TIMEOUT,
         stop_request=None,
         headers=None,
         cookies=None,
@@ -82,28 +84,29 @@ class Request:
         try:
             req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
         except ValueError as ex:
-            raise HTTPError("Failed to create HTTP request to %s: %s" % (self.url, ex))
+            raise HTTPError("Failed to create HTTP request to %s: %s" % (self.url, ex)) from ex
         try:
             if self.opener:
                 request = self.opener.open(req, timeout=self.timeout)
             else:
-                request = urllib.request.urlopen(req, timeout=self.timeout)
+                request = urllib.request.urlopen(req, timeout=self.timeout)  # pylint: disable=consider-using-with
         except (urllib.error.HTTPError, CertificateError) as error:
             if error.code == 401:
-                raise UnauthorizedAccess("Access to %s denied" % self.url)
-            raise HTTPError("%s" % error, code=error.code)
+                raise UnauthorizedAccess("Access to %s denied" % self.url) from error
+            raise HTTPError("%s" % error, code=error.code) from error
         except (socket.timeout, urllib.error.URLError) as error:
-            raise HTTPError("Unable to connect to server %s: %s" % (self.url, error))
-        try:
-            self.total_size = int(request.info().get("Content-Length").strip())
-        except AttributeError:
-            logger.warning("Failed to read content length on response from %s", self.url)
-            self.total_size = 0
+            raise HTTPError("Unable to connect to server %s: %s" % (self.url, error)) from error
 
         self.response_headers = request.getheaders()
         self.status_code = request.getcode()
         if self.status_code > 299:
             logger.warning("Request responded with code %s", self.status_code)
+
+        try:
+            self.total_size = int(request.info().get("Content-Length").strip())
+        except AttributeError:
+            self.total_size = 0
+
         self.content = b"".join(self._iter_chunks(request))
         self.info = request.info()
         request.close()
@@ -116,8 +119,8 @@ class Request:
                 return self
             try:
                 chunk = request.read(self.buffer_size)
-            except (socket.timeout, ConnectionResetError):
-                raise HTTPError("Request timed out")
+            except (socket.timeout, ConnectionResetError) as err:
+                raise HTTPError("Request timed out") from err
             self.downloaded_size += len(chunk)
             if not chunk:
                 return
@@ -144,8 +147,8 @@ class Request:
         if _raw_json:
             try:
                 return json.loads(_raw_json)
-            except json.decoder.JSONDecodeError:
-                raise ValueError("JSON response from %s could not be decoded: '%s'" % (self.url, _raw_json[:80]))
+            except json.decoder.JSONDecodeError as err:
+                raise ValueError(f"JSON response from {self.url} could not be decoded: '{_raw_json[:80]}'") from err
         return {}
 
     @property

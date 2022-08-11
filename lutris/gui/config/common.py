@@ -3,7 +3,7 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gtk, Pango
+from gi.repository import Gdk, GLib, Gtk, Pango
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
@@ -14,8 +14,9 @@ from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import Dialog, DirectoryDialog, ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
-from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf, get_pixbuf_for_game
+from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf
 from lutris.runners import import_runner
+from lutris.services.lutris import LutrisBanner, LutrisIcon
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -28,6 +29,7 @@ class GameDialogCommon(Dialog):
 
     def __init__(self, title, parent=None):
         super().__init__(title, parent=parent)
+        self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.notebook = None
         self.name_entry = None
@@ -49,6 +51,20 @@ class GameDialogCommon(Dialog):
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
+
+        # These are independent windows, but start centered over
+        # a parent like a dialog. Not modal, not really transient,
+        # and does not share modality with other windows - so it
+        # needs its own window group.
+        Gtk.WindowGroup().add_window(self)
+        GLib.idle_add(self.clear_transient_for)
+
+    def clear_transient_for(self):
+        # we need the parent set to be centered over the parent, but
+        # we don't want to be transient really- we want other windows
+        # able to come to the front.
+        self.set_transient_for(None)
+        return False
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -97,6 +113,7 @@ class GameDialogCommon(Dialog):
         label = Label(_("Name"))
         box.pack_start(label, False, False, 0)
         self.name_entry = Gtk.Entry()
+        self.name_entry.set_max_length(150)
         if self.game:
             self.name_entry.set_text(self.game.name)
         box.pack_start(self.name_entry, True, True, 0)
@@ -180,8 +197,8 @@ class GameDialogCommon(Dialog):
 
         label = Label(_("Release year"))
         box.pack_start(label, False, False, 0)
-
         self.year_entry = NumberEntry()
+        self.year_entry.set_max_length(10)
         if self.game:
             self.year_entry.set_text(str(self.game.year or ""))
         box.pack_start(self.year_entry, True, True, 0)
@@ -190,9 +207,9 @@ class GameDialogCommon(Dialog):
 
     def _set_image(self, image_format):
         image = Gtk.Image()
-        size = BANNER_SIZE if image_format == "banner" else ICON_SIZE
+        service_media = LutrisBanner() if image_format == "banner" else LutrisIcon()
         game_slug = self.game.slug if self.game else ""
-        image.set_from_pixbuf(get_pixbuf_for_game(game_slug, size))
+        image.set_from_pixbuf(service_media.get_pixbuf_for_game(game_slug))
         if image_format == "banner":
             self.banner_button.set_image(image)
         else:
@@ -243,7 +260,8 @@ class GameDialogCommon(Dialog):
         self.slug_change_button.set_label(_("Change"))
 
     def on_move_clicked(self, _button):
-        new_location = DirectoryDialog("Select new location for the game", default_path=self.game.directory)
+        new_location = DirectoryDialog("Select new location for the game",
+                                       default_path=self.game.directory, parent=self)
         if not new_location.folder or new_location.folder == self.game.directory:
             return
         move_dialog = dialogs.MoveDialog(self.game, new_location.folder)
@@ -346,6 +364,7 @@ class GameDialogCommon(Dialog):
         if self.runner_index and new_runner_index != self.runner_index:
             dlg = QuestionDialog(
                 {
+                    "parent": self,
                     "question":
                     _("Are you sure you want to change the runner for this game ? "
                       "This will reset the full configuration for this game and "
@@ -399,13 +418,13 @@ class GameDialogCommon(Dialog):
 
     def is_valid(self):
         if not self.runner_name:
-            ErrorDialog(_("Runner not provided"))
+            ErrorDialog(_("Runner not provided"), parent=self)
             return False
         if not self.name_entry.get_text():
-            ErrorDialog(_("Please fill in the name"))
+            ErrorDialog(_("Please fill in the name"), parent=self)
             return False
-        if (self.runner_name in ("steam", "winesteam") and self.lutris_config.game_config.get("appid") is None):
-            ErrorDialog(_("Steam AppId not provided"))
+        if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
+            ErrorDialog(_("Steam AppID not provided"), parent=self)
             return False
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
@@ -423,7 +442,7 @@ class GameDialogCommon(Dialog):
                     except Exception:
                         invalid_fields.append(option.get("label"))
         if invalid_fields:
-            ErrorDialog(_("The following fields have invalid values: ") + ", ".join(invalid_fields))
+            ErrorDialog(_("The following fields have invalid values: ") + ", ".join(invalid_fields), parent=self)
             return False
         return True
 
@@ -464,16 +483,12 @@ class GameDialogCommon(Dialog):
         return True
 
     def on_custom_image_select(self, _widget, image_type):
-        dialog = Gtk.FileChooserDialog(
+        dialog = Gtk.FileChooserNative.new(
             _("Please choose a custom image"),
             self,
             Gtk.FileChooserAction.OPEN,
-            (
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-                Gtk.STOCK_OPEN,
-                Gtk.ResponseType.OK,
-            ),
+            None,
+            None,
         )
 
         image_filter = Gtk.FileFilter()
@@ -482,7 +497,7 @@ class GameDialogCommon(Dialog):
         dialog.add_filter(image_filter)
 
         response = dialog.run()
-        if response == Gtk.ResponseType.OK:
+        if response == Gtk.ResponseType.ACCEPT:
             image_path = dialog.get_filename()
             if image_type == "banner":
                 self.game.has_custom_banner = True
@@ -512,5 +527,6 @@ class GameDialogCommon(Dialog):
             dest_path = resources.get_icon_path(self.game.slug)
         else:
             raise ValueError("Unsupported image type %s" % image_type)
-        os.remove(dest_path)
+        if os.path.isfile(dest_path):
+            os.remove(dest_path)
         self._set_image(image_type)

@@ -22,6 +22,8 @@ SYSTEM_PROCESSES = {
     "rpcss.exe",
     "rundll32.exe",
     "mscorsvw.exe",
+    "iexplore.exe",
+    "winedbg.exe",
 }
 
 

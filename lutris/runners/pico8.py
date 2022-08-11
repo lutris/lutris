@@ -25,7 +25,7 @@ class pico8(Runner):
     game_options = [
         {
             "option": "main_file",
-            "type": "string",
+            "type": "file",
             "label": _("Cartridge file/URL/ID"),
             "help": _("You can put a .p8.png file path, URL, or BBS cartridge ID here."),
         }
@@ -74,7 +74,7 @@ class pico8(Runner):
     runner_executable = "pico8/web.py"
 
     def __init__(self, config=None):
-        super(pico8, self).__init__(config)
+        super().__init__(config)
 
         self.runnable_alone = self.is_native
 
@@ -226,8 +226,6 @@ class pico8(Runner):
                         logger.error("Could not download engine from %s", downloadUrl)
                         return False
                     sleep(0.1)
-
-        return True
 
     def play(self):
         launch_info = {}

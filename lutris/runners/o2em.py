@@ -9,7 +9,7 @@ from lutris.util import system
 
 class o2em(Runner):
     human_name = _("O2EM")
-    description = _("Magnavox Osyssey² Emulator")
+    description = _("Magnavox Odyssey² Emulator")
     platforms = (
         _("Magnavox Odyssey²"),
         _("Phillips C52"),
@@ -101,7 +101,7 @@ class o2em(Runner):
             if callback:
                 callback()
 
-        super(o2em, self).install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed)
 
     def play(self):
         arguments = ["-biosdir=%s" % self.bios_path]

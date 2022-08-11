@@ -2,7 +2,7 @@
 Lutris
 ******
 
-|LiberaPayBadge|_
+|LiberaPayBadge|_ |PatreonBadge|_
 
 Lutris helps you install and play video games from all eras and from most
 gaming systems. By leveraging and combining existing emulators, engine
@@ -94,6 +94,10 @@ The following command line arguments are available::
 -o, --installed            Only list installed games
 -s, --list-steam-games     List available Steam games
 --list-steam-folders       List all known Steam library folders
+--list-runners             List all known runners
+--list-wine-runners        List all known Wine runners
+-r, --install-runner       Install a Runner
+-u, --uninstall-runner     Uninstall a Runner
 -j, --json                 Display the list of games in JSON format
 --reinstall                Reinstall game
 --display=DISPLAY          X display to use
@@ -105,18 +109,6 @@ identifier on the command line such as::
 
 This will install the game if it is not already installed, otherwise it will
 launch the game. The game will always be installed if the ``--reinstall`` flag is passed.
-
-Planned features
-================
-
-Lutris is far from complete, and some features have yet
-to be implemented.
-
-Here's what to expect from future versions of Lutris:
-
-* TOSEC database integration
-* Management of personal game data (i.e. syncing games across devices using private cloud storage)
-* Community features (friends list, chat, multiplayer game scheduling, etc.)
 
 Support the project
 ===================
@@ -142,3 +134,5 @@ You can always reach us on:
 
 .. |LiberaPayBadge| image:: http://img.shields.io/liberapay/receives/Lutris.svg?logo=liberapay
 .. _LiberaPayBadge: https://liberapay.com/Lutris/
+.. |PatreonBadge| image:: https://img.shields.io/badge/dynamic/json?color=%23ff424d&label=Patreon&query=data.attributes.patron_count&suffix=%20Patreons&url=https%3A%2F%2Fwww.patreon.com%2Fapi%2Fcampaigns%2F556103&style=flat&logo=patreon
+.. _PatreonBadge: https://www.patreon.com/lutris

@@ -1,3 +1,64 @@
+lutris (0.5.11) jammy; urgency=medium
+
+  * Fix for some installers commands exiting with return code 256
+  * Change shortcut for show/hide installed games to Ctrl + i
+  * Show/hide hidden games is assigned to Ctrl + h
+  * Install game launcher before login for services that use one.
+  * Added SheepShaver, BasiliskII and Mini vMac runners
+  * Don't perform runtime updates when a game is launched via a shortcut
+  * Fix crash when Lutris is unable to read the screen resolution
+  * Enable Gamescope on Nvidia >= 515
+  * Fixes for Steam shortcuts
+  * Add Gnome Console and Deepin Terminal to supported terminal emulators
+  * Fix crash when Mangohud is used alongside Gamescope
+  * Translation updates
+
+ -- Mathieu Comandon <strider@strycore.com>  Thu, 04 Aug 2022 15:29:12 -0700
+
+lutris (0.5.10.1) impish; urgency=medium
+
+  * Check for Steam executable in home folder for Flatpak
+  * Adjust the Steam, application and desktop shortcuts to launch with
+    Flatpak when necessary
+  * Disable local (XDG) service in Flatpak
+  * Simplify MangoHUD option (now an On/Off toggle)
+  * Remove ability for Lutris to quit Steam
+  * Don't default to fsync on older kernels
+  * Default to a base resolution when Lutris is unable to read the current
+    configuration
+  * Fix issue with .NET 4.8 installation which affects the FF XIV launcher
+
+ -- Mathieu Comandon <strider@strycore.com>  Mon, 18 Apr 2022 19:07:08 -0700
+
+lutris (0.5.10) impish; urgency=medium
+
+  * Add new window to add games to Lutris, with searches from the website,
+    scanning a folder for previously installed games, installing a Windows
+    game from a setup file, installing from a YAML script or configuring a
+    single game manually.
+  * Move the search for Lutris installers from a tab in the Lutris service
+    to the window for adding games.
+  * Add option to add a Lutris game to Steam
+  * Add a coverart format
+  * Add integration with EA Origin
+  * Add integration with Ubisoft Connect
+  * Download missing media on startup
+  * Remove Winesteam runner (install Steam for Windows in Lutris instead)
+  * PC (Linux and Windows) games have their own dedicated Nvidia shader cache
+  * Add dgvoodoo2 option
+  * Add option to enable BattleEye anti-cheat support
+  * Default to Retroarch cores in ~/.config/retroarch/cores if available
+  * Add support for downloading patches and DLC for GOG games
+  * Add --export and --import command line flags to export a game a lutris
+    game and re-import it (requires --dest for the destination path, feature still experimental)
+  * Add command line flags to manage runners: --install-runner, --uninstall-runners,
+    --list-runners, --list-wine-versions
+  * Change behavior of the "Stop" button, remove "Kill all Wine processes" action
+  * Gamescope option is now disabled on Nvidia GPUs
+  * Enable F-Sync by default
+
+ -- Mathieu Comandon <strider@strycore.com>  Fri, 04 Feb 2022 19:14:41 -0800
+
 lutris (0.5.9.1) hirsute; urgency=medium
 
   * Fix possible escaping error for gamescope option

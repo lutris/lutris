@@ -4,7 +4,7 @@ import os
 import shlex
 from gettext import gettext as _
 
-from lutris import runtime
+from lutris import runtime, settings
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix, delete_registry_key, eject_disc, install_cab_component, open_wine_terminal, set_regedit,
@@ -12,12 +12,13 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 )
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
 from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.strings import parse_version, split_arguments
 from lutris.util.wine.d3d_extras import D3DExtrasManager
+from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
@@ -29,7 +30,8 @@ from lutris.util.wine.wine import (
     is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
 
-MIN_SAFE_VERSION = "5.0"  # Wine installers must run with at least this version
+DEFAULT_WINE_PREFIX = "~/.wine"
+MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
 class wine(Runner):
@@ -103,8 +105,8 @@ class wine(Runner):
     )
 
     def __init__(self, config=None):  # noqa: C901
-        super(wine, self).__init__(config)
-        self.dll_overrides = DEFAULT_DLL_OVERRIDES
+        super().__init__(config)
+        self.dll_overrides = DEFAULT_DLL_OVERRIDES.copy()  # we'll modify this, so we better copy it
 
         def get_wine_version_choices():
             version_choices = [(_("Custom (select executable below)"), "custom")]
@@ -116,7 +118,7 @@ class wine(Runner):
             }
             versions = get_wine_versions()
             for version in versions:
-                if version in labels.keys():
+                if version in labels:
                     version_number = get_wine_version(WINE_PATHS[version])
                     label = labels[version].format(version_number)
                 else:
@@ -270,6 +272,26 @@ class wine(Runner):
                 "default": DXVKNVAPIManager().version,
             },
             {
+                "option": "dgvoodoo2",
+                "label": _("Enable dgvoodoo2"),
+                "type": "bool",
+                "default": False,
+                "advanced": False,
+                "help": _(
+                    "dgvoodoo2 is an alternative translation layer for rendering old games "
+                    "that utilize D3D1-7 and Glide APIs. As it translates to D3D11, it's "
+                    "recommended to use it in combination with DXVK. Only 32-bit apps are supported."
+                ),
+            },
+            {
+                "option": "dgvoodoo2_version",
+                "label": _("dgvoodoo2 version"),
+                "advanced": True,
+                "type": "choice_with_entry",
+                "choices": dgvoodoo2Manager().version_choices,
+                "default": dgvoodoo2Manager().version,
+            },
+            {
                 "option": "esync",
                 "label": _("Enable Esync"),
                 "type": "extended_bool",
@@ -287,6 +309,7 @@ class wine(Runner):
                 "option": "fsync",
                 "label": _("Enable Fsync"),
                 "type": "extended_bool",
+                "default": is_fsync_supported(),
                 "callback": fsync_support_callback,
                 "callback_on": True,
                 "active": True,
@@ -294,18 +317,38 @@ class wine(Runner):
                     "Enable futex-based synchronization (fsync). "
                     "This will increase performance in applications "
                     "that take advantage of multi-core processors. "
-                    "Requires a custom kernel with the fsync patchset."
+                    "Requires kernel 5.16 or above."
                 ),
             },
             {
                 "option": "fsr",
                 "label": _("Enable AMD FidelityFX Super Resolution (FSR)"),
                 "type": "bool",
-                "default": False,
+                "default": True,
                 "help": _(
                     "Use FSR to upscale the game window to native resolution.\n"
                     "Requires Lutris Wine FShack >= 6.13 and setting the game to a lower resolution.\n"
                     "Does not work with games running in borderless window mode or that perform their own upscaling."
+                ),
+            },
+            {
+                "option": "battleye",
+                "label": _("Enable BattlEye Anti-Cheat"),
+                "type": "bool",
+                "default": True,
+                "help": _(
+                    "Enable support for BattlEye Anti-Cheat in supported games\n"
+                    "Requires Lutris Wine 6.21-2 and newer or any other compatible Wine build.\n"
+                ),
+            },
+            {
+                "option": "eac",
+                "label": _("Enable Easy Anti-Cheat"),
+                "type": "bool",
+                "default": True,
+                "help": _(
+                    "Enable support for Easy Anti-Cheat in supported games\n"
+                    "Requires Lutris Wine 7.2 and newer or any other compatible Wine build.\n"
                 ),
             },
             {
@@ -325,6 +368,25 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": DISPLAY_MANAGER.get_resolutions,
                 "help": _("The size of the virtual desktop in pixels."),
+            },
+            {
+                "option": "Dpi",
+                "label": _("Enable DPI Scaling"),
+                "type": "bool",
+                "default": False,
+                "help": _(
+                    "Enables the Windows application's DPI scaling.\n"
+                    "Otherwise, the Screen Resolution option in 'Wine configuration' controls this."
+                ),
+            },
+            {
+                "option": "ExplicitDpi",
+                "label": _("DPI"),
+                "type": "string",
+                "help": _(
+                    "The DPI to be used if 'Enable DPI Scaling' is turned on.\n"
+                    "If blank or 'auto', Lutris will auto-detect this."
+                ),
             },
             {
                 "option": "MouseWarpOverride",
@@ -425,47 +487,42 @@ class wine(Runner):
     @property
     def context_menu_entries(self):
         """Return the contexual menu entries for wine"""
-        menu_entries = [("wineexec", _("Run EXE inside Wine prefix"), self.run_wineexec)]
-        if "Proton" not in self.get_version():
-            menu_entries.append(("winecfg", _("Wine configuration"), self.run_winecfg))
-        menu_entries += [
+        return [
+            ("wineexec", _("Run EXE inside Wine prefix"), self.run_wineexec),
+            ("winecfg", _("Wine configuration"), self.run_winecfg),
             ("wineshell", _("Open Bash terminal"), self.run_wine_terminal),
             ("wineconsole", _("Open Wine console"), self.run_wineconsole),
             ("wine-regedit", _("Wine registry"), self.run_regedit),
-            ("winekill", _("Kill all Wine processes"), self.run_winekill),
             ("winetricks", _("Winetricks"), self.run_winetricks),
             ("winecpl", _("Wine Control Panel"), self.run_winecpl),
         ]
-        return menu_entries
 
     @property
     def prefix_path(self):
         """Return the absolute path of the Wine prefix"""
         _prefix_path = self.game_config.get("prefix") \
-            or os.environ.get("WINEPREFIX") \
-            or find_prefix(self.game_exe)
+            or os.environ.get("WINEPREFIX")
+        if not _prefix_path and self.game_config.get("exe"):
+            # Find prefix from game if we have one
+            _prefix_path = find_prefix(self.game_exe)
         if not _prefix_path:
-            logger.warning(
-                "Wine prefix not provided, defaulting to ~/.wine."
-                " This is probably not the intended behavior."
-            )
-            _prefix_path = "~/.wine"
+            _prefix_path = DEFAULT_WINE_PREFIX
         return os.path.expanduser(_prefix_path)
 
     @property
     def game_exe(self):
-        """Return the game's executable's path."""
+        """Return the game's executable's path, which may not exist. None
+        if there is no exe path defined."""
         exe = self.game_config.get("exe")
         if not exe:
-            logger.warning("The game doesn't have an executable")
-            return
-        if exe and os.path.isabs(exe):
+            logger.error("The game doesn't have an executable")
+            return None
+        if os.path.isabs(exe):
             return system.fix_path_case(exe)
         if not self.game_path:
-            return
-        exe = system.fix_path_case(os.path.join(self.game_path, exe))
-        if system.path_exists(exe):
-            return exe
+            logger.warning("The game has an executable, but not a game path")
+            return None
+        return system.fix_path_case(os.path.join(self.game_path, exe))
 
     @property
     def working_dir(self):
@@ -474,8 +531,15 @@ class wine(Runner):
         if option:
             return option
         if self.game_exe:
-            return os.path.dirname(self.game_exe)
-        return super(wine, self).working_dir
+            game_dir = os.path.dirname(self.game_exe)
+            if os.path.isdir(game_dir):
+                return game_dir
+        return super().working_dir
+
+    @property
+    def nvidia_shader_cache_path(self):
+        """WINE should give each game its own shader cache if possible."""
+        return self.game_path or self.shader_cache_dir
 
     @property
     def wine_arch(self):
@@ -498,8 +562,7 @@ class wine(Runner):
 
     def get_path_for_version(self, version):
         """Return the absolute path of a wine executable for a given version"""
-        # logger.debug("Getting path for Wine %s", version)
-        if version in WINE_PATHS.keys():
+        if version in WINE_PATHS:
             return system.find_executable(WINE_PATHS[version])
         if "Proton" in version:
             for proton_path in get_proton_paths():
@@ -588,6 +651,7 @@ class wine(Runner):
             working_dir=self.prefix_path,
             config=self,
             env=self.get_env(os_env=True),
+            runner=self
         )
 
     def run_wineexec(self, *args):
@@ -601,6 +665,7 @@ class wine(Runner):
 
     def run_wineconsole(self, *args):
         """Runs wineconsole inside wine prefix."""
+        self.prelaunch()
         self._run_executable("wineconsole")
 
     def run_winecfg(self, *args):
@@ -612,6 +677,7 @@ class wine(Runner):
             arch=self.wine_arch,
             config=self,
             env=self.get_env(os_env=True),
+            runner=self
         )
 
     def run_regedit(self, *args):
@@ -631,8 +697,21 @@ class wine(Runner):
     def run_winetricks(self, *args):
         """Run winetricks in the current context"""
         self.prelaunch()
+        disable_runtime = not self.use_runtime()
+        system_winetricks = self.runner_config.get("system_winetricks")
+        if system_winetricks:
+            # Don't run the system winetricks with the runtime; let the
+            # system be the system
+            disable_runtime = True
         winetricks(
-            "", prefix=self.prefix_path, wine_path=self.get_executable(), config=self, env=self.get_env(os_env=True)
+            "",
+            prefix=self.prefix_path,
+            wine_path=self.get_executable(),
+            config=self,
+            disable_runtime=disable_runtime,
+            system_winetricks=system_winetricks,
+            env=self.get_env(os_env=True, disable_runtime=disable_runtime),
+            runner=self
         )
 
     def run_winecpl(self, *args):
@@ -664,10 +743,10 @@ class wine(Runner):
 
         for key, path in self.reg_keys.items():
             value = self.runner_config.get(key) or "auto"
-            if not value or value == "auto" and key not in managed_keys.keys():
+            if not value or value == "auto" and key not in managed_keys:
                 prefix_manager.clear_registry_subkeys(path, key)
             elif key in self.runner_config:
-                if key in managed_keys.keys():
+                if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
                         value = None
@@ -679,6 +758,25 @@ class wine(Runner):
 
                 prefix_manager.set_registry_key(path, key, value)
 
+        # We always configure the DPI, because if the user turns off DPI scaling, but it
+        # had been on the only way to implement that is to save 96 DPI into the registry.
+        prefix_manager.set_dpi(self.get_dpi())
+
+    def get_dpi(self):
+        """Return the DPI to be used by Wine; returns None to allow Wine's own
+        setting to govern."""
+        if bool(self.runner_config.get("Dpi")):
+            explicit_dpi = self.runner_config.get("ExplicitDpi")
+            if explicit_dpi == "auto":
+                explicit_dpi = None
+            try:
+                explicit_dpi = int(explicit_dpi)
+            except:
+                explicit_dpi = None
+            return explicit_dpi or get_default_dpi()
+
+        return None
+
     def setup_dlls(self, manager_class, enable, version):
         """Enable or disable DLLs"""
         dll_manager = manager_class(
@@ -686,8 +784,10 @@ class wine(Runner):
             arch=self.wine_arch,
             version=version,
         )
+
         # manual version only sets the dlls to native
-        if dll_manager.version.lower() != "manual":
+        manager_version = dll_manager.version
+        if not manager_version or manager_version.lower() != "manual":
             if enable:
                 dll_manager.enable()
             else:
@@ -701,7 +801,9 @@ class wine(Runner):
 
     def prelaunch(self):
         if not system.path_exists(os.path.join(self.prefix_path, "user.reg")):
-            create_prefix(self.prefix_path, arch=self.wine_arch)
+            logger.warning("No valid prefix detected in %s, creating one...", self.prefix_path)
+            create_prefix(self.prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
+
         prefix_manager = WinePrefixManager(self.prefix_path)
         if self.runner_config.get("autoconf_joypad", False):
             prefix_manager.configure_joypads()
@@ -728,7 +830,11 @@ class wine(Runner):
             bool(self.runner_config.get("d3d_extras")),
             self.runner_config.get("d3d_extras_version")
         )
-        return True
+        self.setup_dlls(
+            dgvoodoo2Manager,
+            bool(self.runner_config.get("dgvoodoo2")),
+            self.runner_config.get("dgvoodoo2_version")
+        )
 
     def get_dll_overrides(self):
         """Return the DLLs overriden at runtime"""
@@ -741,19 +847,21 @@ class wine(Runner):
             overrides = {}
         return overrides
 
-    def get_env(self, os_env=False):
+    def get_env(self, os_env=False, disable_runtime=False):
         """Return environment variables used by the game"""
         # Always false to runner.get_env, the default value
         # of os_env is inverted in the wine class,
         # the OS env is read later.
-        env = super(wine, self).get_env(False)
-        if os_env:
-            env.update(os.environ.copy())
+        env = super().get_env(os_env, disable_runtime=disable_runtime)
         show_debug = self.runner_config.get("show_debug", "-all")
         if show_debug != "inherit":
             env["WINEDEBUG"] = show_debug
+        if show_debug == "-all":
+            env["DXVK_LOG_LEVEL"] = "none"
         env["WINEARCH"] = self.wine_arch
         env["WINE"] = self.get_executable()
+        env["WINE_MONO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "mono")
+        env["WINE_GECKO_CACHE_DIR"] = os.path.join(WINE_DIR, self.get_version(), "gecko")
         if is_gstreamer_build(self.get_executable()):
             path_64 = os.path.join(WINE_DIR, self.get_version(), "lib64/gstreamer-1.0/")
             path_32 = os.path.join(WINE_DIR, self.get_version(), "lib/gstreamer-1.0/")
@@ -773,6 +881,13 @@ class wine(Runner):
 
         if self.runner_config.get("dxvk_nvapi"):
             env["DXVK_NVAPIHACK"] = "0"
+            env["DXVK_ENABLE_NVAPI"] = "1"
+
+        if self.runner_config.get("battleye"):
+            env["PROTON_BATTLEYE_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "battleye_runtime")
+
+        if self.runner_config.get("eac"):
+            env["PROTON_EAC_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "eac_runtime")
 
         overrides = self.get_dll_overrides()
         if overrides:
@@ -829,10 +944,10 @@ class wine(Runner):
             # Set this to 1 to enable access to more RAM for 32bit applications
             launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
             if not is_vulkan_supported():
-                if not display_vulkan_error(True):
+                if not display_vulkan_error(on_launch=True):
                     return {"error": "VULKAN_NOT_FOUND"}
 
-        if not system.path_exists(game_exe):
+        if not game_exe or not system.path_exists(game_exe):
             return {"error": "FILE_NOT_FOUND", "file": game_exe}
 
         if launch_info["env"].get("WINEESYNC") == "1":
@@ -877,6 +992,11 @@ class wine(Runner):
                 command.append(arg)
         launch_info["command"] = command
         return launch_info
+
+    def force_stop_game(self, game):
+        """Kill WINE with kindness, or at least with -k. This seems to leave a process
+        alive for some reason, but the caller will detect this and SIGKILL it."""
+        self.run_winekill()
 
     @staticmethod
     def parse_wine_path(path, prefix_path=None):

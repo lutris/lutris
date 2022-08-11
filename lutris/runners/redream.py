@@ -113,7 +113,7 @@ class redream(Runner):
                     license_filename, os.path.join(settings.RUNNER_DIR, "redream")
                 )
 
-        super(redream, self).install(
+        super().install(
             version=version, downloader=downloader, callback=on_runner_installed
         )
 

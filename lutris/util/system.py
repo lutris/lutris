@@ -1,5 +1,6 @@
 """System utilities"""
 import hashlib
+import inspect
 import os
 import re
 import shutil
@@ -7,17 +8,24 @@ import signal
 import stat
 import string
 import subprocess
+from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import Gio, GLib
 
 from lutris import settings
 from lutris.util.log import logger
 
-# Home folders that should never get deleted. This should be localized and return the
-# appropriate folders names for the current locale.
+# Home folders that should never get deleted.
 PROTECTED_HOME_FOLDERS = (
-    "Documents", "Downloads", "Desktop",
-    "Pictures", "Videos", "Pictures", "Projects", "Games"
+    _("Documents"),
+    _("Downloads"),
+    _("Desktop"),
+    _("Pictures"),
+    _("Videos"),
+    _("Pictures"),
+    _("Projects"),
+    _("Games")
 )
 
 
@@ -59,14 +67,16 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
     # Piping stderr can cause slowness in the programs, use carefully
     # (especially when using regedit with wine)
     try:
-        stdout, stderr = subprocess.Popen(
+        with subprocess.Popen(
             command,
             shell=shell,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE if log_errors else subprocess.DEVNULL,
             env=existing_env,
             cwd=cwd,
-        ).communicate(timeout=timeout)
+            errors="replace"
+        ) as command_process:
+            stdout, stderr = command_process.communicate(timeout=timeout)
     except (OSError, TypeError) as ex:
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
         return ""
@@ -75,17 +85,19 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
         return ""
     if stderr and log_errors:
         logger.error(stderr)
-    return stdout.decode(errors="replace").strip()
+    return stdout.strip()
 
 
-def read_process_output(command, timeout=2):
+def read_process_output(command, timeout=5):
     """Return the output of a command as a string"""
     try:
         return subprocess.check_output(
             command,
-            timeout=timeout
-        ).decode("utf-8", errors="ignore").strip()
-    except (OSError, subprocess.CalledProcessError) as ex:
+            timeout=timeout,
+            encoding="utf-8",
+            errors="ignore"
+        ).strip()
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
         logger.error("%s command failed: %s", command, ex)
         return ""
 
@@ -185,7 +197,7 @@ def substitute(string_template, variables):
     identifiers = variables.keys()
 
     # We support dashes in identifiers but they are not valid in python
-    # identifers, which is a requirement for the templating engine we use
+    # identifiers, which is a requirement for the templating engine we use
     # Replace the dashes with underscores in the mapping and template
     variables = dict((k.replace("-", "_"), v) for k, v in variables.items())
     for identifier in identifiers:
@@ -200,22 +212,27 @@ def substitute(string_template, variables):
 def merge_folders(source, destination):
     """Merges the content of source to destination"""
     logger.debug("Merging %s into %s", source, destination)
-    source = os.path.abspath(source)
-    for (dirpath, dirnames, filenames) in os.walk(source):
-        source_relpath = dirpath[len(source):].strip("/")
-        dst_abspath = os.path.join(destination, source_relpath)
-        for dirname in dirnames:
-            new_dir = os.path.join(dst_abspath, dirname)
-            logger.debug("creating dir: %s", new_dir)
-            try:
-                os.mkdir(new_dir)
-            except OSError:
-                pass
-        for filename in filenames:
-            # logger.debug("Copying %s", filename)
-            if not os.path.exists(dst_abspath):
-                os.makedirs(dst_abspath)
-            shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
+    # Check if dirs_exist_ok is defined ( Python >= 3.8)
+    sig = inspect.signature(shutil.copytree)
+    if "dirs_exist_ok" in sig.parameters:
+        shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True, dirs_exist_ok=True)
+    else:
+        source = os.path.abspath(source)
+        for (dirpath, dirnames, filenames) in os.walk(source):
+            source_relpath = dirpath[len(source):].strip("/")
+            dst_abspath = os.path.join(destination, source_relpath)
+            for dirname in dirnames:
+                new_dir = os.path.join(dst_abspath, dirname)
+                logger.debug("creating dir: %s", new_dir)
+                try:
+                    os.mkdir(new_dir)
+                except OSError:
+                    pass
+            for filename in filenames:
+                # logger.debug("Copying %s", filename)
+                if not os.path.exists(dst_abspath):
+                    os.makedirs(dst_abspath)
+                shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
 
 
 def remove_folder(path):
@@ -241,8 +258,7 @@ def create_folder(path):
     if not path:
         return
     path = os.path.expanduser(path)
-    if not os.path.exists(path):
-        os.makedirs(path)
+    os.makedirs(path, exist_ok=True)
     return path
 
 
@@ -257,8 +273,9 @@ def list_unique_folders(folders):
     return unique_dirs.values()
 
 
-def is_removeable(path):
-    """Check if a folder is safe to remove (not system or home, ...)"""
+def is_removeable(path, system_config):
+    """Check if a folder is safe to remove (not system or home, ...). This needs the
+    system config dict so it can check the default game path, too."""
     if not path_exists(path):
         return False
 
@@ -272,32 +289,36 @@ def is_removeable(path):
             return False
         if len(parts) == 3 and parts[2] in PROTECTED_HOME_FOLDERS:
             return False
+
+    if system_config:
+        default_game_path = system_config.get("game_path")
+        if path_contains(path, default_game_path, resolve_symlinks=False):
+            return False
+
     return True
 
 
 def fix_path_case(path):
-    """Do a case insensitive check, return the real path with correct case."""
+    """Do a case insensitive check, return the real path with correct case. If the path is
+    not for a real file, this corrects as many components as do exist."""
     if not path or os.path.exists(path):
         # If a path isn't provided or it exists as is, return it.
         return path
     parts = path.strip("/").split("/")
     current_path = "/"
     for part in parts:
-        if not os.path.exists(current_path):
-            return
-        tested_path = os.path.join(current_path, part)
-        if os.path.exists(tested_path):
-            current_path = tested_path
-            continue
-        try:
-            path_contents = os.listdir(current_path)
-        except OSError:
-            logger.error("Can't read contents of %s", current_path)
-            path_contents = []
-        for filename in path_contents:
-            if filename.lower() == part.lower():
-                current_path = os.path.join(current_path, filename)
-                continue
+        parent_path = current_path
+        current_path = os.path.join(current_path, part)
+        if not os.path.exists(current_path) and os.path.isdir(parent_path):
+            try:
+                path_contents = os.listdir(parent_path)
+            except OSError:
+                logger.error("Can't read contents of %s", parent_path)
+                path_contents = []
+            for filename in path_contents:
+                if filename.lower() == part.lower():
+                    current_path = os.path.join(parent_path, filename)
+                    break
 
     # Only return the path if we got the same number of elements
     if len(parts) == len(current_path.strip("/").split("/")):
@@ -326,6 +347,24 @@ def reverse_expanduser(path):
         path = path[len(user_path):].strip("/")
         return "~/" + path
     return path
+
+
+def path_contains(parent, child, resolve_symlinks=False):
+    """Tests if a child path is actually within a parent directory
+    or a subdirectory of it. Resolves relative paths, and ~, and
+    optionally symlinks."""
+
+    if parent is None or child is None:
+        return False
+
+    resolved_parent = Path(os.path.abspath(os.path.expanduser(parent)))
+    resolved_child = Path(os.path.abspath(os.path.expanduser(child)))
+
+    if resolve_symlinks:
+        resolved_parent = resolved_parent.resolve()
+        resolved_child = resolved_child.resolve()
+
+    return resolved_child == resolved_parent or resolved_parent in resolved_child.parents
 
 
 def path_exists(path, check_symlinks=False, exclude_empty=False):
@@ -390,9 +429,17 @@ def get_disk_size(path):
     return total_size
 
 
+def get_locale_list():
+    """Return list of available locales"""
+    locale_getter = subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE)
+    output = locale_getter.communicate()
+    locales = output[0].decode('ASCII').split() # locale names use only ascii characters
+    return locales
+
+
 def get_running_pid_list():
     """Return the list of PIDs from processes currently running"""
-    return [p for p in os.listdir("/proc") if p[0].isdigit()]
+    return [int(p) for p in os.listdir("/proc") if p[0].isdigit()]
 
 
 def get_mounted_discs():
@@ -439,3 +486,12 @@ def get_mountpoint_drives():
 def get_drive_for_path(path):
     """Return the physical drive a file is located on"""
     return get_mountpoint_drives().get(find_mount_point(path))
+
+
+def set_keyboard_layout(layout):
+    setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
+    xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
+    with subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE) as xkbcomp:
+        with subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin) as setxkbmap:
+            setxkbmap.communicate()
+            xkbcomp.communicate()

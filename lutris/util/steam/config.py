@@ -1,4 +1,5 @@
 """Handle Steam configuration"""
+import glob
 import os
 from collections import OrderedDict
 
@@ -7,15 +8,15 @@ import requests
 from lutris import settings
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.steam.vdf import vdf_parse
+from lutris.util.steam.vdfutils import vdf_parse
 
 STEAM_DATA_DIRS = (
+    "~/.steam/debian-installation",
     "~/.steam",
     "~/.local/share/steam",
     "~/.local/share/Steam",
     "~/.steam/steam",
     "~/.var/app/com.valvesoftware.Steam/data/steam",
-    "~/.steam/debian-installation",
     "/usr/share/steam",
     "/usr/local/share/steam",
 )
@@ -34,8 +35,19 @@ def search_in_steam_dirs(file):
         path = system.fix_path_case(
             os.path.join(os.path.expanduser(candidate), file)
         )
-        if path:
+        if path and system.path_exists(path):
             return path
+
+
+def search_recursive_in_steam_dirs(path_suffix):
+    """Perform a recursive search based on glob and returns a
+    list of hits"""
+    results = []
+    for candidate in STEAM_DATA_DIRS:
+        glob_path = os.path.join(os.path.expanduser(candidate), path_suffix)
+        for path in glob.glob(glob_path):
+            results.append(path)
+    return results
 
 
 def get_default_acf(appid, name):
@@ -59,7 +71,7 @@ def read_user_config():
     config_filename = search_in_steam_dirs("config/loginusers.vdf")
     if not system.path_exists(config_filename):
         return None
-    with open(config_filename, "r") as steam_config_file:
+    with open(config_filename, "r", encoding='utf-8') as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     return config
 
@@ -133,7 +145,7 @@ def read_config(steam_data_dir):
     config_filename = os.path.join(steam_data_dir, "config/config.vdf")
     if not system.path_exists(config_filename):
         return None
-    with open(config_filename, "r") as steam_config_file:
+    with open(config_filename, "r", encoding='utf-8') as steam_config_file:
         config = vdf_parse(steam_config_file, {})
     try:
         return get_entry_case_insensitive(config, ["InstallConfigStore", "Software", "Valve", "Steam"])
@@ -155,10 +167,10 @@ def read_library_folders(steam_data_dir):
     library_filename = os.path.join(steam_data_dir, "config/libraryfolders.vdf")
     if not system.path_exists(library_filename):
         return None
-    with open(library_filename, "r") as steam_library_file:
+    with open(library_filename, "r", encoding='utf-8') as steam_library_file:
         library = vdf_parse(steam_library_file, {})
         # The contentstatsid key is unused and causes problems when looking for library paths.
-        library["libraryfolders"].pop("contentstatsid")
+        library["libraryfolders"].pop("contentstatsid", None)
     try:
         return get_entry_case_insensitive(library, ["libraryfolders"])
     except KeyError as ex:

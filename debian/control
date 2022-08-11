@@ -26,7 +26,6 @@ Depends: ${misc:Depends},
          python3-distro,
          python3-dbus,
          gir1.2-gtk-3.0,
-         gir1.2-gnomedesktop-3.0,
          gir1.2-webkit2-4.0,
          gir1.2-notify-0.7,
          psmisc,
@@ -42,6 +41,7 @@ Recommends: python3-evdev,
             libwine-development,
             winetricks,
 Suggests: gamemode,
+          gamescope,
 Description: video game preservation platform
  Lutris helps you install and play video games from all eras and from most
  gaming systems. By leveraging and combining existing emulators, engine

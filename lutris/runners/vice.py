@@ -112,8 +112,8 @@ class vice(Runner):
         }
         try:
             executable = executables[machine]
-        except KeyError:
-            raise ValueError("Invalid machine '%s'" % machine)
+        except KeyError as ex:
+            raise ValueError("Invalid machine '%s'" % machine) from ex
         return os.path.join(settings.RUNNER_DIR, "vice/bin/%s" % executable)
 
     def install(self, version=None, downloader=None, callback=None):
@@ -130,7 +130,7 @@ class vice(Runner):
             if callback:
                 callback()
 
-        super(vice, self).install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed)
 
     def get_roms_path(self, machine=None):
         if not machine:

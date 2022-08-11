@@ -66,7 +66,8 @@ class snes9x(Runner):
     def set_option(self, option, value):
         config_file = os.path.expanduser("~/.snes9x/snes9x.xml")
         if not system.path_exists(config_file):
-            subprocess.Popen([self.get_executable(), "-help"])
+            with subprocess.Popen([self.get_executable(), "-help"]) as snes9x_process:
+                snes9x_process.communicate()
         if not system.path_exists(config_file):
             logger.error("Snes9x config file creation failed")
             return

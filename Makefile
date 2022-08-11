@@ -1,9 +1,7 @@
 VERSION=`grep "__version__" lutris/__init__.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
 GITBRANCH ?= master
-PIPENV:=pipenv
 PYTHON:=$(shell which python3)
 PIP:=$(PYTHON) -m pip
-PIPENV_LOCK_ARGS:= --deploy --ignore-pipfile
 
 all:
 	export GITBRANCH=master
@@ -25,12 +23,14 @@ release: build-source upload upload-ppa
 
 test:
 	rm tests/fixtures/pga.db -f
-	nosetests3
+	nose2
+
 
 cover:
 	rm tests/fixtures/pga.db -f
 	rm tests/coverage/ -rf
-	nosetests3 --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+	nose2 --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+
 
 pgp-renew:
 	osc signkey --extend home:strycore
@@ -56,13 +56,7 @@ snap:
 	snapcraft
 
 dev:
-	$(PIP) install --user --upgrade pipenv
-	$(PIPENV) install --dev $(PIPENV_LOCK_ARGS) --python $(PYTHON)
-
-requirements:
-	# Generate new requirements.txt and requirements-dev.txt based on Pipfile.lock
-	# These files are needed by Travis CI
-	$(PIPENV) run pipenv_to_requirements -f
+	pip3 install isort flake8 pylint autopep8 pytest
 
 # ============
 # Style checks
@@ -71,10 +65,10 @@ requirements:
 style: isort autopep8  ## Format code
 
 isort:
-	$(PIPENV) run isort -rc lutris
+	isort lutris
 
 autopep8:
-	$(PIPENV) run autopep8 --in-place --recursive --ignore E402 setup.py lutris
+	autopep8 --in-place --recursive --ignore E402 setup.py lutris
 
 
 # ===============
@@ -84,19 +78,27 @@ autopep8:
 check: isort-check flake8 pylint
 
 isort-check:
-	$(PIPENV) run isort -c -rc lutris
+	isort lutris -c
 
 flake8:
-	$(PIPENV) run flake8 lutris
+	flake8 . --count --max-complexity=25 --max-line-length=120 --show-source --statistics
 
 pylint:
-	$(PIPENV) run pylint --rcfile=.pylintrc --output-format=colorized lutris
+	pylint lutris --rcfile=.pylintrc --output-format=colorized
+
+bandit:
+	bandit . --recursive --skip B101,B105,B107,B108,B303,B310,B311,B314,B320,B404,B405,B410,B602,B603,B607,B608
+
+black:
+	black . --check
+
+mypy:
+	mypy . --ignore-missing-imports --install-types --non-interactive
 
 # =============
 # Abbreviations
 # =============
 
 sc: style check
-req: requirements
 styles: style
 checks: check

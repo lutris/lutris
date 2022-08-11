@@ -1,0 +1,26 @@
+{
+    "human_name": "Basilisk II",
+    "description": " Basilisk II is an Open Source 68k Macintosh emulator",
+    "platforms": ["Macintosh"],
+    "runnable_alone": "True",
+    "runner_executable": "basiliskii/BasiliskII-x86_64.AppImage",
+    "download_url": "https://github.com/Korkman/macemu-appimage-builder/releases/download/continuous/BasiliskII-x86_64.AppImage",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Basilisk II",
+            "help": "Basilisk II pref/config file"
+        }
+    ],
+    "runner_options": [
+
+       {
+            "option": "config",
+            "type": "bool",
+            "label": "config",
+            "default": true,
+            "argument": "--config"
+        }
+    ]
+}

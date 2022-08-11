@@ -12,8 +12,8 @@ class easyrpg(Runner):
     platforms = [_("Linux")]
     runnable_alone = True
     entry_point_option = "project_path"
-    runner_executable = "easyrpg-player"
-    download_url = "https://easyrpg.org/downloads/player/0.6.2.3/easyrpg-player-0.6.2.3-linux.tar.gz"
+    runner_executable = "easyrpg/easyrpg-player"
+    download_url = "https://easyrpg.org/downloads/player/0.7.0/easyrpg-player-0.7.0-linux.tar.gz"
 
     game_options = [
         {
@@ -273,8 +273,8 @@ class easyrpg(Runner):
 
         return ""
 
-    def get_env(self, os_env=False):
-        env = super().get_env(os_env)
+    def get_env(self, os_env=False, disable_runtime=False):
+        env = super().get_env(os_env, disable_runtime=disable_runtime)
 
         rpg2k_rtp_path = self.runner_config.get("rpg2k_rtp_path")
         if rpg2k_rtp_path:

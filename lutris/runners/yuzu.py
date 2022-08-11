@@ -44,7 +44,7 @@ class yuzu(Runner):
         candidates = ("~/.local/share/yuzu", )
         for candidate in candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
-            if path:
+            if path and system.path_exists(path):
                 return path[:-len("nand")]
 
     def play(self):
@@ -89,4 +89,3 @@ class yuzu(Runner):
     def prelaunch(self):
         for key in ["prod_keys", "title_keys"]:
             self._update_key(key_type=key)
-        return True

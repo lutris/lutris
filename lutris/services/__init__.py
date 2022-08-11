@@ -3,7 +3,6 @@ import os
 
 from lutris import settings
 from lutris.services.battlenet import BattleNetService
-from lutris.services.bethesda import BethesdaService
 from lutris.services.dolphin import DolphinService
 from lutris.services.egs import EpicGamesStoreService
 from lutris.services.flathub import FlathubService
@@ -21,18 +20,21 @@ from lutris.util import system
 from lutris.util.dolphin.cache_reader import DOLPHIN_GAME_CACHE_FILE
 from lutris.util.linux import LINUX_SYSTEM
 
-DEFAULT_SERVICES = ["lutris", "gog", "humblebundle", "steam"]
+DEFAULT_SERVICES = ["lutris", "gog", "egs", "origin", "ubisoft", "steam"]
 
 
 def get_services():
     """Return a mapping of available services"""
     _services = {
         "lutris": LutrisService,
-        "xdg": XDGService,
         "gog": GOGService,
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
+        "origin": OriginService,
+        "ubisoft": UbisoftConnectService,
     }
+    if not LINUX_SYSTEM.is_flatpak:
+        _services["xdg"] = XDGService
     if LINUX_SYSTEM.has_steam:
         _services["steam"] = SteamService
     _services["steamwindows"] = SteamWindowsService
@@ -47,11 +49,8 @@ SERVICES = get_services()
 # Those services are not yet ready to be used
 WIP_SERVICES = {
     "battlenet": BattleNetService,
-    "bethesda": BethesdaService,
     "itchio": ItchIoService,
-    "mame": MAMEService,
-    "origin": OriginService,
-    "ubisoft": UbisoftConnectService,
+    "mame": MAMEService,    
     "flathub": FlathubService
 }
 
