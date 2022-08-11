@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-06-20 16:54+0200\n"
-"PO-Revision-Date: 2022-04-03 14:22+0200\n"
+"PO-Revision-Date: 2022-08-11 11:53+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1.1\n"
 
 #: share/applications/net.lutris.Lutris.desktop:3
 #: share/lutris/ui/lutris-window.ui:25 lutris/gui/application.py:76
@@ -389,6 +389,7 @@ msgstr ""
 #: lutris/game.py:434
 msgid "The runner could not find a command to apply the configuration to."
 msgstr ""
+"De runner kan geen opdracht vinden om de instellingen op toe te passen."
 
 #: lutris/game.py:635
 msgid "<b>Error lauching the game:</b>\n"
@@ -457,9 +458,8 @@ msgid "Add games to Lutris"
 msgstr "Voeg games toe aan Lutris"
 
 #: lutris/gui/addgameswindow.py:126
-#, fuzzy
 msgid "<b>Search Lutris.net</b>"
-msgstr "Lutris.net doorzoeken"
+msgstr "<b>Lutris.net doorzoeken</b>"
 
 #: lutris/gui/addgameswindow.py:149
 msgid "Select folder to scan"
@@ -484,23 +484,20 @@ msgid "<b>Select setup file</b>"
 msgstr "<b>Kies een installatiebestand</b>"
 
 #: lutris/gui/addgameswindow.py:245
-#, fuzzy
 msgid "Game name"
-msgstr "Game-informatie"
+msgstr "Gamenaam"
 
 #: lutris/gui/addgameswindow.py:249
 msgid "Continue"
 msgstr "Doorgaan"
 
 #: lutris/gui/addgameswindow.py:257
-#, fuzzy
 msgid "Setup file"
-msgstr "Bestand kiezen"
+msgstr "Installatiebestand"
 
 #: lutris/gui/addgameswindow.py:266
-#, fuzzy
 msgid "Select the setup file"
-msgstr "<b>Kies een installatiebestand</b>"
+msgstr "Kies een installatiebestand"
 
 #: lutris/gui/addgameswindow.py:279
 msgid "Select a Lutris installer"
@@ -1226,12 +1223,10 @@ msgid "{file} on {host}"
 msgstr "{file} op {host}"
 
 #: lutris/gui/installer/file_box.py:121
-#, fuzzy
 msgid "Download"
-msgstr "Downloads"
+msgstr "Downloaden"
 
 #: lutris/gui/installer/file_box.py:123
-#, fuzzy
 msgid "Use Cache"
 msgstr "Cache gebruiken"
 
@@ -1241,7 +1236,6 @@ msgid "Steam"
 msgstr "Steam"
 
 #: lutris/gui/installer/file_box.py:126
-#, fuzzy
 msgid "Select File"
 msgstr "Bestand kiezen"
 
@@ -4579,7 +4573,6 @@ msgid "Enable Fsync"
 msgstr "Fsync gebruiken"
 
 #: lutris/runners/wine.py:317
-#, fuzzy
 msgid ""
 "Enable futex-based synchronization (fsync). This will increase performance "
 "in applications that take advantage of multi-core processors. Requires "
@@ -4587,7 +4580,7 @@ msgid ""
 msgstr ""
 "Schakel synchronisatie op basis van futex (fsync) in. Hiermee verbeter je de "
 "prestaties van games die optimaal gebruikmaken van processors met meerdere "
-"kernen. Een aangepaste kernel met de fsync-patchreeks is vereist."
+"kernen. Hiervoor is kernelversie 5.16 of hoger vereist."
 
 #: lutris/runners/wine.py:325
 msgid "Enable AMD FidelityFX Super Resolution (FSR)"
@@ -4659,14 +4652,12 @@ msgid "Enable DPI Scaling"
 msgstr "Scherm vergroten/verkleinen met dpi"
 
 #: lutris/runners/wine.py:378
-#, fuzzy
 msgid ""
 "Enables the Windows application's DPI scaling.\n"
 "Otherwise, the Screen Resolution option in 'Wine configuration' controls "
 "this."
 msgstr ""
 "Schakelt de Windows-dpi-instellingen in.\n"
-"De standaard dpi-schaal is 96 dpi.\n"
 "Dit is gelijk aan Wine's schermresolutie-optie."
 
 #: lutris/runners/wine.py:384
@@ -5547,7 +5538,6 @@ msgid "Vulkan is not installed or is not supported by your system"
 msgstr "Vulkan is niet geïnstalleerd of wordt niet ondersteund door je systeem"
 
 #: lutris/util/wine/wine.py:355
-#, fuzzy
 msgid ""
 "If you have compatible hardware, please follow the installation procedures "
 "as described in\n"
@@ -5559,7 +5549,6 @@ msgstr ""
 "(https://github.com/lutris/lutris/wiki/How-to:-DXVK)</a> (Engels)"
 
 #: lutris/util/wine/wine.py:367
-#, fuzzy
 msgid ""
 "Your limits are not set correctly. Please increase them as described here: "
 "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>How-to:-"
