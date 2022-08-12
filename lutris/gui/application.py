@@ -409,9 +409,9 @@ class Application(Gtk.Application):
 
         # List game
         if options.contains("list-games"):
-            game_list = games_db.get_games()
-            if options.contains("installed"):
-                game_list = [game for game in game_list if game["installed"]]
+            game_list = games_db.get_games(filters=(
+                {"installed": 1} if options.contains("installed") else None)
+            )
             if options.contains("json"):
                 self.print_game_json(command_line, game_list)
             else:
