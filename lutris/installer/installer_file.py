@@ -32,6 +32,13 @@ class InstallerFile:
             return "file://" + _url
         return _url
 
+    def set_url(self, url):
+        """Change the internal value of the URL"""
+        if isinstance(self._file_meta, dict):
+            self._file_meta["url"] = url
+        else:
+            self._file_meta = url
+
     @property
     def filename(self):
         if isinstance(self._file_meta, dict):
