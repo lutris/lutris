@@ -79,6 +79,14 @@ Available variables are:
 * ``$RESOLUTION_HEIGHT``: Resolution height of the user's main display (eg. ``1080``)
 * ``$WINEBIN``: Absolute path to the Lutris provided Wine binary used to install the game.
 
+Additional variables are referenced in a `variables` section in the script. Example::
+
+    variables:
+      VERSION: 1.3
+    files:
+      stk: https://github.com/supertuxkart/stk-code/releases/download/$VERSION/SuperTuxKart-$VERSION-linux-64bit.tar.xz
+
+
 You can also reference files from the ``files`` section by their identifier,
 they will resolve to the absolute path of the downloaded or user provided file.
 Referencing game files usually doesn't require preceding the variable name with
