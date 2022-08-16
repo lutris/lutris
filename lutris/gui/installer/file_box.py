@@ -1,7 +1,6 @@
 """Widgets for the installer window"""
 import os
 from gettext import gettext as _
-from urllib.parse import urlparse
 
 from gi.repository import GObject, Gtk
 
@@ -12,7 +11,7 @@ from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
 from lutris.util.log import logger
-from lutris.util.strings import add_url_tags, gtk_safe
+from lutris.util.strings import gtk_safe
 
 
 class InstallerFileBox(Gtk.VBox):
@@ -75,7 +74,7 @@ class InstallerFileBox(Gtk.VBox):
             box.pack_start(download_progress, False, False, 0)
             return box
         if self.provider == "pga":
-            url_label = InstallerLabel("In cache: %s" % self.get_file_label(), wrap=False)
+            url_label = InstallerLabel("In cache: %s" % self.installer_file.get_label(), wrap=False)
             box.pack_start(url_label, False, False, 6)
             return box
         if self.provider == "user":
@@ -101,18 +100,6 @@ class InstallerFileBox(Gtk.VBox):
             steam_box.add(info_box)
             return steam_box
         raise ValueError("Invalid provider %s" % self.provider)
-
-    def get_file_label(self):
-        """Return a human readable label for installer files"""
-        url = self.installer_file.url
-        if url.startswith("http"):
-            parsed = urlparse(url)
-            label = _("{file} on {host}").format(file=self.installer_file.filename, host=parsed.netloc)
-        elif url.startswith("N/A"):
-            label = url[3:].lstrip(":")
-        else:
-            label = url
-        return add_url_tags(gtk_safe(label))
 
     def get_combobox_model(self):
         """"Return the combobox's model"""
@@ -172,7 +159,7 @@ class InstallerFileBox(Gtk.VBox):
         """Return the label displayed before the download starts"""
         if self.provider == "user":
             box = Gtk.VBox(spacing=6)
-            label = InstallerLabel(self.get_file_label())
+            label = InstallerLabel(self.installer_file.get_label())
             label.props.can_focus = True
             box.pack_start(label, False, False, 0)
             location_entry = FileChooserEntry(
@@ -189,7 +176,7 @@ class InstallerFileBox(Gtk.VBox):
                 cache_option.connect("toggled", self.on_user_file_cached)
                 box.pack_start(cache_option, False, False, 0)
             return box
-        return InstallerLabel(self.get_file_label())
+        return InstallerLabel(self.installer_file.get_label())
 
     def get_widgets(self):
         """Return the widget with the source of the file and a way to change its source"""

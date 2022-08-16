@@ -7,6 +7,7 @@ from lutris import cache, settings
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
 from lutris.util.log import logger
+from lutris.util.strings import add_url_tags, gtk_safe
 
 
 class InstallerFile:
@@ -78,6 +79,18 @@ class InstallerFile:
                 return parts[1]
             return "Please select file '%s'" % self.id
         return self.url
+
+    def get_label(self):
+        """Return a human readable label for installer files"""
+        url = self.url
+        if url.startswith("http"):
+            parsed = urlparse(url)
+            label = _("{file} on {host}").format(file=self.filename, host=parsed.netloc)
+        elif url.startswith("N/A"):
+            label = url[3:].lstrip(":")
+        else:
+            label = url
+        return add_url_tags(gtk_safe(label))
 
     @property
     def cached_filename(self):
