@@ -2,6 +2,7 @@
 import os
 
 from lutris import settings
+from lutris.services.amazon import AmazonService
 from lutris.services.battlenet import BattleNetService
 from lutris.services.dolphin import DolphinService
 from lutris.services.egs import EpicGamesStoreService
@@ -32,6 +33,7 @@ def get_services():
         "egs": EpicGamesStoreService,
         "origin": OriginService,
         "ubisoft": UbisoftConnectService,
+        "amazon": AmazonService
     }
     if not LINUX_SYSTEM.is_flatpak:
         _services["xdg"] = XDGService
