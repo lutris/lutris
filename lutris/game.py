@@ -634,7 +634,7 @@ class Game(GObject.Object):
         if self.game_thread.error:
             self.on_game_quit()
             raise RuntimeError(_("<b>Error lauching the game:</b>\n") + self.game_thread.error)
-            
+
         # The killswitch file should be set to a device (ie. /dev/input/js0)
         # When that device is unplugged, the game is forced to quit.
         killswitch_engage = self.killswitch and not system.path_exists(self.killswitch)
@@ -830,10 +830,10 @@ def import_game(file_path, dest_dir):
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
     old_dir = lutris_config["directory"]
-    with open(os.path.join(game_dir, game_config), 'r') as config_file :
+    with open(os.path.join(game_dir, game_config), 'r', encoding="utf-8") as config_file :
         config_data = config_file.read()
     config_data = config_data.replace(old_dir, game_dir)
-    with open(os.path.join(game_dir, game_config), 'w') as config_file:
+    with open(os.path.join(game_dir, game_config), 'w', encoding="utf-8") as config_file:
         config_file.write(config_data)
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)

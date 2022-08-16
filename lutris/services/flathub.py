@@ -38,10 +38,12 @@ class FlathubGame(ServiceGame):
         service_game = FlathubGame()
         service_game.appid = flathub_game["flatpakAppId"]
         service_game.slug = slugify(flathub_game["name"])
-        service_game.game_slug = slugify(flathub_game["name"])
+        service_game.lutris_slug = slugify(flathub_game["name"])
         service_game.name = flathub_game["name"]
-        service_game.summary = flathub_game["summary"]
-        service_game.version = flathub_game["currentReleaseVersion"]
+        service_game.details = {
+            "summary": flathub_game["summary"],
+            "version": flathub_game["currentReleaseVersion"]
+        }
         service_game.runner = "flatpak"
         service_game.details = json.dumps(flathub_game)
         return service_game

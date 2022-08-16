@@ -97,6 +97,7 @@ class flatpak(Runner):
     def uninstall(self):
         pass
 
+    @property
     def game_path(self):
         install_type, application, arch, branch = (self.game_data[key] for key in
                                                    ("install_type", "application", "arch", "branch"))
