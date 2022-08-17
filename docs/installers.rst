@@ -93,7 +93,6 @@ Referencing game files usually doesn't require preceding the variable name with
 a dollar sign.
 
 
-
 Installer meta data
 ===================
 
