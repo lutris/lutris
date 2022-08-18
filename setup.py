@@ -39,6 +39,7 @@ setup(
         'lutris.scanners',
         'lutris.services',
         'lutris.util',
+        'lutris.util.amazon',
         'lutris.util.dolphin',
         'lutris.util.egs',
         'lutris.util.graphics',
