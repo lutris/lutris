@@ -1,4 +1,4 @@
-# generated on 2022-04-27T22:55:36+00:00
+# generated on 2022-08-21T09:17:44+00:00
 
 share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
@@ -98,6 +98,7 @@ lutris/runners/commands/wine.py
 lutris/runners/dolphin.py
 lutris/runners/dosbox.py
 lutris/runners/easyrpg.py
+lutris/runners/flatpak.py
 lutris/runners/fsuae.py
 lutris/runners/hatari.py
 lutris/runners/__init__.py
@@ -131,11 +132,12 @@ lutris/runtime.py
 lutris/scanners/__init__.py
 lutris/scanners/lutris.py
 lutris/scanners/retroarch.py
+lutris/services/amazon.py
 lutris/services/base.py
 lutris/services/battlenet.py
-lutris/services/bethesda.py
 lutris/services/dolphin.py
 lutris/services/egs.py
+lutris/services/flathub.py
 lutris/services/gog.py
 lutris/services/humblebundle.py
 lutris/services/__init__.py
@@ -155,9 +157,13 @@ lutris/settings.py
 lutris/startup.py
 lutris/style_manager.py
 lutris/sysoptions.py
+lutris/util/amazon/__init__.py
+lutris/util/amazon/protobuf_decoder.py
+lutris/util/amazon/sds_proto2.py
 lutris/util/audio.py
 lutris/util/cookies.py
 lutris/util/datapath.py
+lutris/util/discord.py
 lutris/util/display.py
 lutris/util/dolphin/cache_reader.py
 lutris/util/dolphin/__init__.py
@@ -194,6 +200,7 @@ lutris/util/process.py
 lutris/util/process_watcher.py
 lutris/util/resources.py
 lutris/util/retroarch/core_config.py
+lutris/util/savesync.py
 lutris/util/settings.py
 lutris/util/shell.py
 lutris/util/steam/appmanifest.py
