@@ -137,15 +137,16 @@ def set_artwork(game):
     source_banner = resources.get_banner_path(game.slug)
     target_cover = os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))
     target_banner = os.path.join(artwork_path, "{}_hero.jpg".format(shortcut_id))
-    try:
-        shutil.copyfile(source_cover, target_cover)
-    except FileNotFoundError as ex:
-        logger.error("Failed to copy cover to %s: %s", target_cover, ex)
-
-    try:
-        shutil.copyfile(source_banner, target_banner)
-    except FileNotFoundError as ex:
-        logger.error("Failed to copy banner to %s: %s", target_banner, ex)
+    if not os.path.exists(target_cover):
+        try:
+            shutil.copyfile(source_cover, target_cover)
+        except FileNotFoundError as ex:
+            logger.error("Failed to copy cover to %s: %s", target_cover, ex)
+    if not os.path.exists(target_banner):
+        try:
+            shutil.copyfile(source_banner, target_banner)
+        except FileNotFoundError as ex:
+            logger.error("Failed to copy banner to %s: %s", target_banner, ex)
 
 
 def update_all_artwork():
