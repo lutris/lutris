@@ -6,6 +6,7 @@ import shutil
 
 from lutris.game import Game
 from lutris.util import resources
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
 from lutris.util.steam.config import search_recursive_in_steam_dirs
