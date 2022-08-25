@@ -182,8 +182,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 value = False
             if key == "launch_configs":
                 config[key] = [
-                    {k: self.interpreter._substitute(v) for (k, v) in config.items()}
-                    for config in value
+                    {k: self.interpreter._substitute(v) for (k, v) in _conf.items()}
+                    for _conf in value
                 ]
             elif isinstance(value, list):
                 config[key] = [self.interpreter._substitute(i) for i in value]
