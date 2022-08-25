@@ -571,7 +571,7 @@ class AmazonService(OnlineService):
         game_cmd = res_json["Main"]["Command"].replace("\\", "/")
         game_args = ""
 
-        if res_json["Main"]["Args"] is not None:
+        if "Args" in res_json["Main"] and res_json["Main"]["Args"]:
             for arg in res_json["Main"]["Args"]:
                 game_args += arg if game_args == "" else " " + arg
 
