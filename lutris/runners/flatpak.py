@@ -4,6 +4,7 @@ from gettext import gettext as _
 from pathlib import Path
 
 from lutris.command import MonitoredCommand
+from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
 from lutris.util.strings import split_arguments
 
@@ -90,6 +91,12 @@ class flatpak(Runner):
 
     def get_executable(self):
         return shutil.which("flatpak")
+
+    def install(self, version=None, downloader=None, callback=None):
+        raise NonInstallableRunnerError(
+            _("Flatpak installation is not handled by Lutris.\n"
+            "Install Steam with the package provided by your distribution.")
+        )
 
     def can_uninstall(self):
         return False
