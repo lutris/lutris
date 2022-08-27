@@ -95,7 +95,7 @@ class flatpak(Runner):
     def install(self, version=None, downloader=None, callback=None):
         raise NonInstallableRunnerError(
             _("Flatpak installation is not handled by Lutris.\n"
-            "Install Steam with the package provided by your distribution.")
+              "Install Steam with the package provided by your distribution.")
         )
 
     def can_uninstall(self):
