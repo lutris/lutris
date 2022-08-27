@@ -5,7 +5,7 @@ import os
 from collections import defaultdict
 from gettext import gettext as _
 
-from gi.repository import GLib, Gtk
+from gi.repository import Gdk, GLib, Gtk
 
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
@@ -60,8 +60,10 @@ class RunnerInstallDialog(Dialog):
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0)
+        self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
+        self.set_destroy_with_parent(True)
         self.add_buttons(_("_OK"), Gtk.ButtonsType.OK)
-        self.runner = runner
+        self.runner_name = runner.name
         self.runner_info = {}
         self.installing = {}
         self.set_default_size(640, 480)
@@ -78,7 +80,21 @@ class RunnerInstallDialog(Dialog):
         self.show_all()
 
         self.runner_store = Gtk.ListStore(str, str, str, bool, int, int)
-        jobs.AsyncCall(api.get_runners, self.runner_fetch_cb, self.runner)
+        jobs.AsyncCall(api.get_runners, self.runner_fetch_cb, self.runner_name)
+
+        # These are independent windows, but start centered over
+        # a parent like a dialog. Not modal, not really transient,
+        # and does not share modality with other windows - so it
+        # needs its own window group.
+        Gtk.WindowGroup().add_window(self)
+        GLib.idle_add(self.clear_transient_for)
+
+    def clear_transient_for(self):
+        # we need the parent set to be centered over the parent, but
+        # we don't want to be transient really- we want other windows
+        # able to come to the front.
+        self.set_transient_for(None)
+        return False
 
     def runner_fetch_cb(self, runner_info, error):
         """Clear the box and display versions from runner_info"""
@@ -200,7 +216,7 @@ class RunnerInstallDialog(Dialog):
         """Return grid with games that uses this wine version"""
         runner = row.runner
         runner_version = "%s-%s" % (runner[self.COL_VER], runner[self.COL_ARCH])
-        runner_games = get_games_by_runner(self.runner)
+        runner_games = get_games_by_runner(self.runner_name)
         apps = []
         for db_game in runner_games:
             if not db_game["installed"]:
@@ -231,7 +247,7 @@ class RunnerInstallDialog(Dialog):
 
     def get_installed_versions(self):
         """List versions available locally"""
-        runner_path = os.path.join(settings.RUNNER_DIR, self.runner)
+        runner_path = os.path.join(settings.RUNNER_DIR, self.runner_name)
         if not os.path.exists(runner_path):
             return set()
         return {
@@ -242,7 +258,7 @@ class RunnerInstallDialog(Dialog):
 
     def get_runner_path(self, version, arch):
         """Return the local path where the runner is/will be installed"""
-        return os.path.join(settings.RUNNER_DIR, self.runner, "{}-{}".format(version, arch))
+        return os.path.join(settings.RUNNER_DIR, self.runner_name, "{}-{}".format(version, arch))
 
     def get_dest_path(self, row):
         """Return temporary path where the runners should be downloaded to"""
@@ -287,7 +303,7 @@ class RunnerInstallDialog(Dialog):
         arch = runner[self.COL_ARCH]
         system.remove_folder(self.get_runner_path(version, arch))
         runner[self.COL_INSTALLED] = False
-        if self.runner == "wine":
+        if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
 
@@ -344,7 +360,7 @@ class RunnerInstallDialog(Dialog):
 
     def get_usage_stats(self):
         """Return the usage for each version"""
-        runner_games = get_games_by_runner(self.runner)
+        runner_games = get_games_by_runner(self.runner_name)
         version_usage = defaultdict(list)
         for db_game in runner_games:
             if not db_game["installed"]:
@@ -386,7 +402,7 @@ class RunnerInstallDialog(Dialog):
         row.install_progress.set_fraction(0.0)
         row.install_progress.hide()
         self.update_listboxrow(row)
-        if self.runner == "wine":
+        if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
             get_wine_versions.cache_clear()
