@@ -6,12 +6,12 @@ import re
 from collections import defaultdict
 from gettext import gettext as _
 
-from gi.repository import Gdk, GLib, Gtk
+from gi.repository import GLib, Gtk
 
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
-from lutris.gui.dialogs import Dialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import ModelessDialog, Dialog, ErrorDialog, QuestionDialog
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -50,7 +50,7 @@ class ShowAppsDialog(Dialog):
         self.show_all()
 
 
-class RunnerInstallDialog(Dialog):
+class RunnerInstallDialog(ModelessDialog):
     """Dialog displaying available runner version and downloads them"""
     COL_VER = 0
     COL_ARCH = 1
@@ -61,8 +61,6 @@ class RunnerInstallDialog(Dialog):
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0)
-        self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
-        self.set_destroy_with_parent(True)
         self.add_buttons(_("_OK"), Gtk.ButtonsType.OK)
         self.runner_name = runner.name
         self.runner_info = {}
@@ -82,20 +80,6 @@ class RunnerInstallDialog(Dialog):
 
         self.runner_store = Gtk.ListStore(str, str, str, bool, int, int)
         jobs.AsyncCall(api.get_runners, self.runner_fetch_cb, self.runner_name)
-
-        # These are independent windows, but start centered over
-        # a parent like a dialog. Not modal, not really transient,
-        # and does not share modality with other windows - so it
-        # needs its own window group.
-        Gtk.WindowGroup().add_window(self)
-        GLib.idle_add(self.clear_transient_for)
-
-    def clear_transient_for(self):
-        # we need the parent set to be centered over the parent, but
-        # we don't want to be transient really- we want other windows
-        # able to come to the front.
-        self.set_transient_for(None)
-        return False
 
     def runner_fetch_cb(self, runner_info, error):
         """Clear the box and display versions from runner_info"""

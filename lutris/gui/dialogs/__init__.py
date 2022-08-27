@@ -6,7 +6,7 @@ import gi
 
 gi.require_version('Gtk', '3.0')
 
-from gi.repository import GLib, GObject, Gtk
+from gi.repository import Gdk, GLib, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
@@ -25,6 +25,33 @@ class Dialog(Gtk.Dialog):
 
     def on_destroy(self, _widget, _data=None):
         self.destroy()
+
+
+class ModelessDialog(Dialog):
+    """A base class for modeless dialogs. They have a parent only temporarily, so
+    they can be centered over it during creation. But eahc modeless dialog gets
+    its own window group, so it treats modal dialogs separately, and it resets
+    its transion-for after being created."""
+
+    def __init__(self, title=None, parent=None, flags=0, buttons=None):
+        super().__init__(title, parent, flags, buttons)
+        # These are not stuck above the 'main' window, but can be
+        # re-ordered freely.
+        self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
+
+        # These are independent windows, but start centered over
+        # a parent like a dialog. Not modal, not really transient,
+        # and does not share modality with other windows - so it
+        # needs its own window group.
+        Gtk.WindowGroup().add_window(self)
+        GLib.idle_add(self._clear_transient_for)
+
+    def _clear_transient_for(self):
+        # we need the parent set to be centered over the parent, but
+        # we don't want to be transient really- we want other windows
+        # able to come to the front.
+        self.set_transient_for(None)
+        return False
 
 
 class GtkBuilderDialog(GObject.Object):

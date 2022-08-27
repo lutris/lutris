@@ -3,7 +3,7 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gdk, GLib, Gtk, Pango
+from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
@@ -11,7 +11,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
-from lutris.gui.dialogs import Dialog, DirectoryDialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import ModelessDialog, DirectoryDialog, ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf
@@ -23,13 +23,12 @@ from lutris.util.strings import slugify
 
 
 # pylint: disable=too-many-instance-attributes, no-member
-class GameDialogCommon(Dialog):
+class GameDialogCommon(ModelessDialog):
     """Base class for config dialogs"""
     no_runner_label = _("Select a runner in the Game Info tab")
 
     def __init__(self, title, parent=None):
         super().__init__(title, parent=parent)
-        self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.notebook = None
         self.name_entry = None
@@ -51,20 +50,6 @@ class GameDialogCommon(Dialog):
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
-
-        # These are independent windows, but start centered over
-        # a parent like a dialog. Not modal, not really transient,
-        # and does not share modality with other windows - so it
-        # needs its own window group.
-        Gtk.WindowGroup().add_window(self)
-        GLib.idle_add(self.clear_transient_for)
-
-    def clear_transient_for(self):
-        # we need the parent set to be centered over the parent, but
-        # we don't want to be transient really- we want other windows
-        # able to come to the front.
-        self.set_transient_for(None)
-        return False
 
     @staticmethod
     def build_scrolled_window(widget):
