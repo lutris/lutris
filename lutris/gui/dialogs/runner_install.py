@@ -2,6 +2,7 @@
 # pylint: disable=no-member
 import gettext
 import os
+import re
 from collections import defaultdict
 from gettext import gettext as _
 
@@ -235,7 +236,8 @@ class RunnerInstallDialog(Dialog):
     def populate_store(self):
         """Return a ListStore populated with the runner versions"""
         version_usage = self.get_usage_stats()
-        for version_info in reversed(self.runner_info["versions"]):
+        ordered = sorted(self.runner_info["versions"], key=RunnerInstallDialog.get_version_sort_key)
+        for version_info in reversed(ordered):
             is_installed = os.path.exists(self.get_runner_path(version_info["version"], version_info["architecture"]))
             games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
             self.runner_store.append(
@@ -244,6 +246,22 @@ class RunnerInstallDialog(Dialog):
                     len(games_using) if games_using else 0
                 ]
             )
+
+    @staticmethod
+    def get_version_sort_key(version):
+        """Generate a sorting key that sorts first on the version number part of the version,
+        and which breaks the version number into its components, which are parsed as integers"""
+        raw_version = version["version"]
+        # Extract version numbers from the end of the version string.
+        # We look for things like xx-7.2 or xxx-4.3-2. A leading period
+        # will be part of the version, but a leading hyphen will not.
+        match = re.search(r"^(.*?)\-?(\d[.\-\d]*)$", raw_version)
+        if match:
+            version_parts = [int(p) for p in match.group(2).replace("-", ".").split(".") if p]
+            return version_parts, raw_version, version["architecture"]
+
+        # If we fail to extract the version, we'll wind up sorting this one to the end.
+        return [], raw_version, version["architecture"]
 
     def get_installed_versions(self):
         """List versions available locally"""
