@@ -1,6 +1,7 @@
 from gi.repository import Gdk, GObject, Gtk
 
 from lutris.database.games import get_game_for_service
+from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui.views import COL_ID
@@ -38,7 +39,7 @@ class GameView:
             game_row = self.game_store.get_row_by_id(selected_id)
             game_id = None
             if self.service:
-                game = get_game_for_service(self.service, game_row[COL_ID])
+                game = ServiceGameCollection.get_game(self.service, game_row[COL_ID])
                 if game:
                     game_id = game["id"]
             else:
