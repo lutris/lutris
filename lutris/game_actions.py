@@ -341,7 +341,7 @@ class GameActions:
 
     def on_view_game(self, _widget):
         """Callback to open a game on lutris.net"""
-        open_uri("https://lutris.net/games/%s" % self.game.slug)
+        open_uri("https://lutris.net/games/%s" % self.game.slug.replace("_", "-"))
 
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""
