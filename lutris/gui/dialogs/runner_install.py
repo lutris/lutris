@@ -162,7 +162,7 @@ class RunnerInstallDialog(ModelessDialog):
                     ) % app_count
 
                     usage_button = Gtk.Button.new_with_mnemonic(usage_button_text)
-                    usage_button.connect("button_press_event", self.on_show_apps_usage, row)
+                    usage_button.connect("clicked", self.on_show_apps_usage, row)
                     hbox.pack_end(usage_button, False, True, 2)
 
             button = Gtk.Button()
@@ -185,19 +185,19 @@ class RunnerInstallDialog(ModelessDialog):
             row.handler_id = None
         if row.runner[self.COL_VER] in self.installing:
             button.set_label(_("Cancel"))
-            handler_id = button.connect("button_press_event", self.on_cancel_install, row)
+            handler_id = button.connect("clicked", self.on_cancel_install, row)
         else:
             if row.runner[self.COL_INSTALLED]:
                 button.set_label(_("Uninstall"))
-                handler_id = button.connect("button_press_event", self.on_uninstall_runner, row)
+                handler_id = button.connect("clicked", self.on_uninstall_runner, row)
             else:
                 button.set_label(_("Install"))
-                handler_id = button.connect("button_press_event", self.on_install_runner, row)
+                handler_id = button.connect("clicked", self.on_install_runner, row)
 
         row.install_uninstall_cancel_button = button
         row.handler_id = handler_id
 
-    def on_show_apps_usage(self, _widget, _button, row):
+    def on_show_apps_usage(self, _button, row):
         """Return grid with games that uses this wine version"""
         runner = row.runner
         runner_version = "%s-%s" % (runner[self.COL_VER], runner[self.COL_ARCH])
@@ -282,7 +282,7 @@ class RunnerInstallDialog(ModelessDialog):
         else:
             self.install_runner(row)
 
-    def on_cancel_install(self, widget, button, row):
+    def on_cancel_install(self, widget, row):
         self.cancel_install(row)
 
     def cancel_install(self, row):
@@ -295,7 +295,7 @@ class RunnerInstallDialog(ModelessDialog):
         self.update_listboxrow(row)
         row.install_progress.set_visible(False)
 
-    def on_uninstall_runner(self, widget, button, row):
+    def on_uninstall_runner(self, widget, row):
         self.uninstall_runner(row)
 
     def uninstall_runner(self, row):
@@ -312,7 +312,7 @@ class RunnerInstallDialog(ModelessDialog):
             get_wine_versions.cache_clear()
         self.update_listboxrow(row)
 
-    def on_install_runner(self, _widget, _button, row):
+    def on_install_runner(self, _widget, row):
         self.install_runner(row)
 
     def install_runner(self, row):
