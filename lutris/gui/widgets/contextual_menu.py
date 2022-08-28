@@ -54,6 +54,6 @@ class ContextualMenu(Gtk.Menu):
         for menuitem in self.get_children():
             if not isinstance(menuitem, Gtk.ImageMenuItem):
                 continue
-            menuitem.set_visible(displayed.get(menuitem.action_id, False))
+            menuitem.set_visible(displayed.get(menuitem.action_id, True))
 
         super().popup_at_pointer(event)
