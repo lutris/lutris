@@ -4905,7 +4905,7 @@ msgstr "Itch.io (nije implementirano)"
 
 #: lutris/services/origin.py:87
 msgid "Origin"
-msgstr "Izvor"
+msgstr "Origin"
 
 #: lutris/services/steam.py:102
 msgid ""
