@@ -241,7 +241,7 @@ def remove_folder(path):
     """
     if not os.path.exists(path):
         logger.warning("Non existent path: %s", path)
-        return
+        return False
     logger.debug("Removing folder %s", path)
     if os.path.samefile(os.path.expanduser("~"), path):
         raise RuntimeError("Lutris tried to erase home directory!")

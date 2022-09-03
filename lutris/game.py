@@ -196,7 +196,16 @@ class Game(GObject.Object):
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.runner.resolve_game_path()
+        return self.resolve_game_path()
+
+    def resolve_game_path(self):
+        """Return the game's directory; if it is not known this will try to find
+        it. This can still return an empty string if it can't do that."""
+        if self.directory:
+            return self.directory
+        if self.runner:
+            return self.runner.resolve_game_path()
+        return ""
 
     def _get_runner(self):
         """Return the runner instance for this game's configuration"""
@@ -236,6 +245,8 @@ class Game(GObject.Object):
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         if delete_files and self.runner:
+            # self.directory here, not self.resolve_game_path; no guessing at
+            # directories when we delete them
             self.runner.remove_game_data(app_id=self.appid, game_path=self.directory)
         self.is_installed = False
         self.runner = None
@@ -369,14 +380,14 @@ class Game(GObject.Object):
         if wait_for_completion:
             logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
             # Monitor the prelaunch command and wait until it has finished
-            system.execute(command_array, env=env, cwd=self.directory)
+            system.execute(command_array, env=env, cwd=self.resolve_game_path())
         else:
             logger.info("Prelaunch command %s launched in the background", prelaunch_command)
             self.prelaunch_executor = MonitoredCommand(
                 command_array,
                 include_processes=[os.path.basename(command_array[0])],
                 env=env,
-                cwd=self.directory,
+                cwd=self.resolve_game_path(),
             )
             self.prelaunch_executor.start()
 
@@ -501,7 +512,6 @@ class Game(GObject.Object):
             logger.error("Game is not launchable")
             return False
 
-
         self.load_config()  # Reload the config before launching it.
         saves = self.config.game_level["game"].get("saves")
         if saves:
@@ -597,7 +607,7 @@ class Game(GObject.Object):
         """Return a list of processes belonging to the Lutris game"""
         new_pids = self.get_new_pids()
         game_pids = []
-        game_folder = self.runner.resolve_game_path()
+        game_folder = self.resolve_game_path()
         for pid in new_pids:
             cmdline = Process(pid).cmdline or ""
             # pressure-vessel: This could potentially pick up PIDs not started by lutris?
@@ -683,7 +693,7 @@ class Game(GObject.Object):
                     command_array,
                     include_processes=[os.path.basename(postexit_command)],
                     env=self.game_runtime_config["env"],
-                    cwd=self.directory,
+                    cwd=self.resolve_game_path(),
                 )
                 postexit_thread.start()
 
@@ -830,7 +840,7 @@ def import_game(file_path, dest_dir):
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
     old_dir = lutris_config["directory"]
-    with open(os.path.join(game_dir, game_config), 'r', encoding="utf-8") as config_file :
+    with open(os.path.join(game_dir, game_config), 'r', encoding="utf-8") as config_file:
         config_data = config_file.read()
     config_data = config_data.replace(old_dir, game_dir)
     with open(os.path.join(game_dir, game_config), 'w', encoding="utf-8") as config_file:
