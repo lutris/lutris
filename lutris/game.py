@@ -523,9 +523,7 @@ class Game(GObject.Object):
 
         self.state = self.STATE_LAUNCHING
         self.prelaunch_pids = system.get_running_pid_list()
-        discord_token = settings.read_setting('discord_token')
-        if discord_token:
-            discord.set_discord_status(discord_token, "Playing %s" % self.name)
+
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
         return True
@@ -549,6 +547,10 @@ class Game(GObject.Object):
         self.timer.start()
         self.state = self.STATE_RUNNING
         self.emit("game-started")
+
+        # Game is running, let's update discord status
+        discord.client.update(self.slug)
+
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
         with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
             np_file.write(self.name)
@@ -724,9 +726,8 @@ class Game(GObject.Object):
         if self.runner.system_config.get("restore_gamma"):
             restore_gamma()
 
-        discord_token = settings.read_setting('discord_token')
-        if discord_token:
-            discord.set_discord_status(discord_token, "")
+        # Clear Discord Client Status
+        discord.client.clear()
 
         self.process_return_codes()
 
