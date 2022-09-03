@@ -59,7 +59,8 @@ setup(
         'evdev',
         'requests',
         'distro',
-        'lxml'
+        'lxml',
+        'pypresence'
     ],
     url='https://lutris.net',
     description='Video game preservation platform',
