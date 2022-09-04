@@ -56,3 +56,21 @@ def remove_category_from_game(game_id, category_id):
     query = "DELETE FROM games_categories WHERE category_id=? AND game_id=?"
     with sql.db_cursor(settings.PGA_DB) as cursor:
         sql.cursor_execute(cursor, query, (category_id, game_id))
+
+
+def remove_unused_categories():
+    """remove all categories that have no games associated with it"""
+    query = (
+        "select categories.* from categories "
+        "LEFT JOIN games_categories ON categories.id = games_categories.category_id "
+        "WHERE games_categories.category_id IS NULL"
+    )
+
+    empty_categories = sql.db_query(settings.PGA_DB, query)
+    for category in empty_categories:
+        if category['name'] == 'favorite':
+            continue
+
+        query = "DELETE FROM categories WHERE categories.id=?"
+        with sql.db_cursor(settings.PGA_DB) as cursor:
+            sql.cursor_execute(cursor, query, (category['id'],))

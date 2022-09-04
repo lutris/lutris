@@ -14,6 +14,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
+from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
 from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_game import RemoveGameDialog, UninstallGameDialog
@@ -55,6 +56,7 @@ class GameActions:
             ("add", _("Add installed game"), self.on_add_manually),
             ("configure", _("Configure"), self.on_edit_game_configuration),
             ("favorite", _("Add to favorites"), self.on_add_favorite_game),
+            ("category", _("Categories"), self.on_edit_game_categories),
             ("deletefavorite", _("Remove from favorites"), self.on_delete_favorite_game),
             ("execute-script", _("Execute script"), self.on_execute_script_clicked),
             ("update-shader-cache", _("Update shader cache"), self.on_update_shader_cache),
@@ -112,6 +114,7 @@ class GameActions:
             "browse": self.game.is_installed and self.game.runner_name != "browser",
             "show_logs": self.game.is_installed,
             "favorite": not self.game.is_favorite and self.game.is_installed,
+            "category": bool(self.game.is_installed),
             "deletefavorite": self.game.is_favorite,
             "install_more": not self.game.service and self.game.is_installed,
             "execute-script": bool(
@@ -256,6 +259,10 @@ class GameActions:
     def on_delete_favorite_game(self, _widget):
         """delete from favorites"""
         self.game.remove_from_favorites()
+
+    def on_edit_game_categories(self, _widget):
+        """Edit game categories"""
+        EditGameCategoriesDialog(self.window, self.game)
 
     def on_hide_game(self, _widget):
         """Add a game to the list of hidden games"""
