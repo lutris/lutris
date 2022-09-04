@@ -40,6 +40,7 @@ setup(
         'lutris.services',
         'lutris.util',
         'lutris.util.amazon',
+        'lutris.util.discord',
         'lutris.util.dolphin',
         'lutris.util.egs',
         'lutris.util.graphics',
