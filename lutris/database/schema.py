@@ -88,7 +88,11 @@ DATABASE = {
         {
             "name": "service_id",
             "type": "TEXT"
-        }
+        },
+        {
+            "name": "discord_id",
+            "type": "TEXT",
+        },
     ],
     "service_games": [
         {
