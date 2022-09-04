@@ -2,11 +2,13 @@
 import json
 import os
 import random
+import ssl
 import urllib.parse
 from gettext import gettext as _
 from xml.etree import ElementTree
 
 import requests
+import urllib3
 from gi.repository import Gio
 
 from lutris import settings
@@ -20,6 +22,8 @@ from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+
+SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION = 1 << 18
 
 
 class OriginLauncher:
@@ -80,6 +84,43 @@ class OriginGame(ServiceGame):
         return origin_game
 
 
+class LegacyRenegotiationHTTPAdapter(requests.adapters.HTTPAdapter):
+    """Allow insecure SSL/TLS protocol renegotiation in an HTTP request.
+
+    By default, OpenSSL v3 expects that servers support RFC 5746. Unfortunately,
+    accounts.ea.com does not support this TLS extension (from 2010!), causing
+    OpenSSL to refuse to connect. This `requests` HTTP Adapter configures
+    OpenSSL to allow "unsafe legacy renegotiation", allowing EA Origin to
+    connect. This is only intended as a temporary workaround, and should be
+    removed as soon as accounts.ea.com is updated to support RFC 5746.
+
+    Using this adapter will reduce the security of the connection. However, the
+    impact should be relatively minimal this is only used to connect to EA
+    services. See CVE-2009-3555 for more details.
+
+    See #4235 for more information.
+    """
+
+    def init_poolmanager(self, connections, maxsize, block=False, **pool_kwargs):
+        """Override the default PoolManager to allow insecure renegotiation."""
+        # Based off of the default function from `requests`.
+        self._pool_connections = connections
+        self._pool_maxsize = maxsize
+        self._pool_block = block
+
+        ssl_context = ssl.create_default_context()
+        ssl_context.options |= SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION
+
+        self.poolmanager = urllib3.PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            strict=True,
+            ssl_context=ssl_context,
+            **pool_kwargs,
+        )
+
+
 class OriginService(OnlineService):
     """Service class for EA Origin"""
 
@@ -111,6 +152,7 @@ class OriginService(OnlineService):
         super().__init__()
 
         self.session = requests.session()
+        self.session.mount("https://", LegacyRenegotiationHTTPAdapter())
         self.access_token = self.load_access_token()
 
     @property
