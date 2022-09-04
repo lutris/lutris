@@ -15,7 +15,7 @@ def migrate():
     games = get_api_games(slugs_to_update)
     for game in games:
         if not game['discord_id']:
-            logger.info(f"{game['name']} doesn't have Discord APP Id")
+            logger.info("%s doesn't have Discord APP Id", game['name'])
             continue
 
         sql.db_update(
@@ -24,8 +24,4 @@ def migrate():
             {"discord_id": game['discord_id']},
             {"slug": game['slug']}
         )
-        logger.info(f"Updated {game['name']}")
-
-
-
-
+        logger.info("Updated %s", game['name'])
