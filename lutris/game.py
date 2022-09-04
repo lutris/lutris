@@ -107,6 +107,9 @@ class Game(GObject.Object):
         self.timer = Timer()
         self.screen_saver_inhibitor_cookie = None
 
+        # Adding Discord App ID for RPC
+        self.discord_id = game_data.get('discord_id')
+
     def __repr__(self):
         return self.__str__()
 
@@ -300,6 +303,7 @@ class Game(GObject.Object):
             hidden=self.is_hidden,
             service=self.service,
             service_id=self.appid,
+            discord_id=self.discord_id,
         )
         self.emit("game-updated")
 
@@ -548,8 +552,13 @@ class Game(GObject.Object):
         self.state = self.STATE_RUNNING
         self.emit("game-started")
 
+        print(f"Discord ID: {self.discord_id}")
         # Game is running, let's update discord status
-        discord.client.update(self.slug)
+        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+            logger.info("Updating Discord RPC Status")
+            discord.client.update(self.discord_id)
+        else:
+            logger.info("Discord RPC Disabled or Discord APP ID Not Present")
 
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
         with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
@@ -727,7 +736,9 @@ class Game(GObject.Object):
             restore_gamma()
 
         # Clear Discord Client Status
-        discord.client.clear()
+        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+            logger.debug("Clearing Discord RPC")
+            discord.client.clear()
 
         self.process_return_codes()
 
