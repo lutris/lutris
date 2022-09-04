@@ -11,7 +11,7 @@ class DiscordRichPresenceBase(metaclass=ABCMeta):
 
     """
 
-    def update(self, game_identifier: str) -> None:
+    def update(self, discord_id: str) -> None:
         raise NotImplementedError()
 
     def clear(self) -> None:
@@ -23,7 +23,7 @@ class DiscordRPCNull(DiscordRichPresenceBase):
     Null client for disabled Discord RPC
     """
 
-    def update(self, game_identifier: str) -> None:
+    def update(self, discord_id: str) -> None:
         pass
 
     def clear(self) -> None:
