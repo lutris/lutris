@@ -14,7 +14,8 @@ from lutris.util import system
 from lutris.util.log import logger
 
 DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
-SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 
 class HTTPError(Exception):
@@ -57,9 +58,7 @@ class Request:
         self.headers.update(headers)
         if cookies:
             cookie_processor = urllib.request.HTTPCookieProcessor(cookies)
-            self.opener = urllib.request.build_opener(
-                cookie_processor, urllib.request.HTTPSHandler(context=SSL_CONTEXT)
-            )
+            self.opener = urllib.request.build_opener(cookie_processor)
         else:
             self.opener = None
 
@@ -94,7 +93,7 @@ class Request:
             if self.opener:
                 request = self.opener.open(req, timeout=self.timeout)
             else:
-                request = urllib.request.urlopen(req, timeout=self.timeout, context=SSL_CONTEXT)
+                request = urllib.request.urlopen(req, timeout=self.timeout)  # pylint: disable=consider-using-with
         except (urllib.error.HTTPError, CertificateError) as error:
             if error.code == 401:
                 raise UnauthorizedAccess("Access to %s denied" % self.url) from error
