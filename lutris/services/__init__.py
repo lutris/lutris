@@ -78,7 +78,22 @@ def get_service(service_id):
 
 
 def get_enabled_services():
-    return {
-        _type: _class(id=_type) for _type, _class in SERVICES.items()
-        if settings.read_setting(_type, section="services").lower() == "true"
-    }
+    #FIXME: This is a bit of a hack to allow adding multi-accounts by defining extra keys in the
+    #       configuration pending rework of the account settings panel to properly accommodate
+    #       this new capability
+    enabled_account_options = [
+        account_id
+        for account_id, value in settings.sio.config.items(section="services")
+        if value.lower() == "true"
+    ]
+
+    result = {}
+    for account_type, account_class in SERVICES.items():
+        if account_class.multi_account:
+            for account_id in enabled_account_options:
+                if service_type_for_id(account_id) == account_type:
+                    result[account_id] = account_class(id=account_id)
+        else:
+            if account_type in enabled_account_options:
+                result[account_type] = account_class(id=account_type)
+    return result

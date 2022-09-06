@@ -32,6 +32,9 @@ class BaseService(GObject.Object):
     """Base class for local services"""
     type = NotImplemented  # String identifier for this kind of service
     id: str  # Identifier of a single account created at this service
+    # The values of `id` and `type` may always be assumed to be identical unless the service has
+    # opted into the multiple account feature by setting `multi_account` to True below.
+
     _matcher = None
     has_extras = False
     name = NotImplemented
@@ -39,6 +42,7 @@ class BaseService(GObject.Object):
     online = False
     local = False
     drm_free = False  # DRM free games can be added to Lutris from an existing install
+    multi_account = False  # Whether this service supports logging into more than one account at once
     client_installer = None  # ID of a script needed to install the client used by the service
     scripts = {}  # Mapping of Javascript snippets to handle redirections during auth
     medias = {}
