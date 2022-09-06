@@ -73,7 +73,8 @@ class LutrisCoverartMedium(LutrisCoverart):
 
 class BaseService(GObject.Object):
     """Base class for local services"""
-    id = NotImplemented
+    type = NotImplemented  # String identifier for this kind of service
+    id: str  # Identifier of a single account created at this service
     _matcher = None
     has_extras = False
     name = NotImplemented
@@ -94,6 +95,10 @@ class BaseService(GObject.Object):
         "service-login": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "service-logout": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
+
+    def __init__(self, id):
+        super().__init__()
+        self.id = id
 
     @property
     def matcher(self):

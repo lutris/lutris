@@ -125,7 +125,7 @@ class LegacyRenegotiationHTTPAdapter(requests.adapters.HTTPAdapter):
 class OriginService(OnlineService):
     """Service class for EA Origin"""
 
-    id = "origin"
+    type = "origin"
     name = _("Origin")
     icon = "origin"
     client_installer = "origin"
@@ -149,8 +149,8 @@ class OriginService(OnlineService):
     ) % redirect_uri
     login_user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0 QtWebEngine/5.8.0"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, id):
+        super().__init__(id)
 
         self.session = requests.session()
         self.session.mount("https://", LegacyRenegotiationHTTPAdapter())

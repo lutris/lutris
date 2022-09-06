@@ -72,7 +72,7 @@ class SteamGame(ServiceGame):
 
 
 class SteamService(BaseService):
-    id = "steam"
+    type = "steam"
     name = _("Steam")
     icon = "steam-client"
     medias = {

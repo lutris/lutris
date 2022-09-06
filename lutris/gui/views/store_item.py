@@ -4,7 +4,7 @@ import time
 from lutris.database import games
 from lutris.database.games import get_service_games
 from lutris.runners import get_runner_human_name
-from lutris.services import SERVICES
+from lutris.services import get_service
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
 
@@ -104,11 +104,15 @@ class StoreItem:
         """Platform"""
         _platform = self._get_game_attribute("platform")
 
-        if not _platform and self.service in SERVICES:
-            service = SERVICES[self.service]()
-            _platforms = service.get_game_platforms(self._game_data)
-            if _platforms:
-                _platform = ", ".join(_platforms)
+        if not _platform:
+            try:
+                service = get_service(self.service)
+            except KeyError:
+                pass
+            else:
+                _platforms = service.get_game_platforms(self._game_data)
+                if _platforms:
+                    _platform = ", ".join(_platforms)
 
         return gtk_safe(_platform)
 
