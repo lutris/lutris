@@ -131,7 +131,7 @@ class LegacyRenegotiationHTTPAdapter(requests.adapters.HTTPAdapter):
 class EAAppService(OnlineService):
     """Service class for EA App"""
 
-    id = "ea_app"
+    type = "ea_app"
     name = _("EA App")
     icon = "ea_app"
     client_installer = "ea-app"
@@ -159,8 +159,8 @@ class EAAppService(OnlineService):
     ) % origin_redirect_uri
     login_user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0 QtWebEngine/5.8.0"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, id):
+        super().__init__(id=id)
 
         self.session = requests.session()
         self.session.mount("https://", LegacyRenegotiationHTTPAdapter())

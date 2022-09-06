@@ -54,7 +54,7 @@ class FlathubGame(ServiceGame):
 class FlathubService(BaseService):
     """Service class for Flathub"""
 
-    id = "flathub"
+    type = "flathub"
     name = _("Flathub")
     icon = "flathub"
     medias = {

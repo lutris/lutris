@@ -24,7 +24,7 @@ class DolphinBanner(ServiceMedia):
 
 
 class DolphinService(BaseService):
-    id = "dolphin"
+    type = "dolphin"
     icon = "dolphin"
     name = _("Dolphin")
     local = True

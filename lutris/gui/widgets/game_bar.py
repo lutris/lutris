@@ -39,7 +39,7 @@ class GameBar(Gtk.Box):
         self.service = None
         if db_game.get("service"):
             try:
-                self.service = services.SERVICES[db_game["service"]]()
+                self.service = services.get_service(db_game["service"])
             except KeyError:
                 pass
 
