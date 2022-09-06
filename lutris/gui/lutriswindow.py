@@ -507,11 +507,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def get_service_media(self, icon_type):
         """Return the ServiceMedia class used for this view"""
-        service = self.service if self.service else LutrisService
+        service = self.service if self.service else LutrisService("lutris")
         medias = service.medias
         if icon_type in medias:
-            return medias[icon_type]()
-        return medias[service.default_format]()
+            return service.create_media_instance(icon_type)
+        return service.create_media_instance(service.default_format)
 
     def update_revealer(self, game=None):
         if game:

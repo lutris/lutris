@@ -15,7 +15,6 @@ from lutris.util.strings import slugify
 
 
 class DolphinBanner(ServiceMedia):
-    service = "dolphin"
     source = "local"
     size = (96, 32)
     file_pattern = "%s.png"
@@ -36,7 +35,7 @@ class DolphinService(BaseService):
         if not system.path_exists(DOLPHIN_GAME_CACHE_FILE):
             return
         cache_reader = DolphinCacheReader()
-        dolphin_games = [DolphinGame.new_from_cache(game) for game in cache_reader.get_games()]
+        dolphin_games = [DolphinGame.new_from_cache(self.id, game) for game in cache_reader.get_games()]
         for game in dolphin_games:
             game.save()
         return dolphin_games
@@ -79,15 +78,14 @@ class DolphinService(BaseService):
 class DolphinGame(ServiceGame):
     """Game for the Dolphin emulator"""
 
-    service = "dolphin"
     runner = "dolphin"
     installer_slug = "dolphin"
 
     @classmethod
-    def new_from_cache(cls, cache_entry):
+    def new_from_cache(cls, service_id, cache_entry):
         """Create a service game from an entry from the Dolphin cache"""
         name = cache_entry["internal_name"] or os.path.splitext(cache_entry["file_name"])[0]
-        service_game = cls()
+        service_game = cls(service_id)
         service_game.name = name
         service_game.appid = str(cache_entry["game_id"])
         service_game.slug = slugify(name)

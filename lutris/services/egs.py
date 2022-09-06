@@ -31,7 +31,6 @@ BOX_ART_SIZE = (200, 267)
 
 
 class DieselGameMedia(ServiceMedia):
-    service = "egs"
     remote_size = (200, 267)
     file_pattern = "%s.jpg"
     file_format = "jpeg"
@@ -116,12 +115,11 @@ class DieselGameBoxLogo(DieselGameMedia):
 
 class EGSGame(ServiceGame):
     """Service game for Epic Games Store"""
-    service = "egs"
 
     @classmethod
-    def new_from_api(cls, egs_game):
+    def new_from_api(cls, service_id, egs_game):
         """Convert an EGS game to a service game"""
-        service_game = cls()
+        service_game = cls(service_id)
         service_game.appid = egs_game["appName"]
         service_game.slug = slugify(egs_game["title"])
         service_game.name = egs_game["title"]
@@ -312,7 +310,7 @@ class EpicGamesStoreService(OnlineService):
             raise AuthTokenExpired from ex
         egs_games = []
         for game in library:
-            egs_game = EGSGame.new_from_api(game)
+            egs_game = EGSGame.new_from_api(self.id, game)
             egs_game.save()
             egs_games.append(egs_game)
         return egs_games

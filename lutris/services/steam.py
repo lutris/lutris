@@ -22,7 +22,6 @@ from lutris.util.strings import slugify
 
 
 class SteamBanner(ServiceMedia):
-    service = "steam"
     size = (184, 69)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/banners")
     file_pattern = "%s.jpg"
@@ -32,7 +31,6 @@ class SteamBanner(ServiceMedia):
 
 
 class SteamCover(ServiceMedia):
-    service = "steam"
     size = (200, 300)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/covers")
     file_pattern = "%s.jpg"
@@ -42,7 +40,6 @@ class SteamCover(ServiceMedia):
 
 
 class SteamBannerLarge(ServiceMedia):
-    service = "steam"
     size = (460, 215)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/header")
     file_pattern = "%s.jpg"
@@ -53,15 +50,13 @@ class SteamBannerLarge(ServiceMedia):
 
 class SteamGame(ServiceGame):
     """ServiceGame for Steam games"""
-
-    service = "steam"
     installer_slug = "steam"
     runner = "steam"
 
     @classmethod
-    def new_from_steam_game(cls, steam_game, game_id=None):
+    def new_from_steam_game(cls, service_id, steam_game, game_id=None):
         """Return a Steam game instance from an AppManifest"""
-        game = cls()
+        game = cls(service_id)
         game.appid = steam_game["appid"]
         game.game_id = steam_game["appid"]
         game.name = steam_game["name"]
@@ -101,7 +96,7 @@ class SteamService(BaseService):
         for steam_game in steam_games:
             if steam_game["appid"] in self.excluded_appids:
                 continue
-            game = self.game_class.new_from_steam_game(steam_game)
+            game = self.game_class.new_from_steam_game(self.id, steam_game)
             game.save()
         self.match_games()
         return steam_games

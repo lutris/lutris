@@ -11,20 +11,66 @@ from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.gui import dialogs
 from lutris.gui.views.media_loader import download_media
-from lutris.services.base import LutrisBanner, LutrisCoverart, LutrisCoverartMedium, LutrisIcon, OnlineService
+from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
+from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
-from lutris.util import http
+from lutris.services.service_media import ServiceMedia
+from lutris.util import http, system
 from lutris.util.log import logger
+
+
+class LutrisBanner(ServiceMedia):
+    size = BANNER_SIZE
+    dest_path = settings.BANNER_PATH
+    file_pattern = "%s.jpg"
+    file_format = "jpeg"
+    api_field = "banner_url"
+
+    def __init__(self, service_id="lutris"):
+        super().__init__(service_id)
+
+
+class LutrisIcon(LutrisBanner):
+    size = ICON_SIZE
+    dest_path = settings.ICON_PATH
+    file_pattern = "lutris_%s.png"
+    file_format = "png"
+    api_field = "icon_url"
+
+    @property
+    def custom_media_storage_size(self):
+        return (128, 128)
+
+    def update_desktop(self):
+        system.update_desktop_icons()
+
+
+class LutrisCoverart(ServiceMedia):
+    size = (264, 352)
+    file_pattern = "%s.jpg"
+    file_format = "jpeg"
+    dest_path = settings.COVERART_PATH
+    api_field = "coverart"
+
+    def __init__(self, service_id="lutris"):
+        super().__init__(service_id)
+
+    @property
+    def config_ui_size(self):
+        return (66, 88)
+
+
+class LutrisCoverartMedium(LutrisCoverart):
+    size = (176, 234)
 
 
 class LutrisGame(ServiceGame):
     """Service game created from the Lutris API"""
-    service = "lutris"
 
     @classmethod
-    def new_from_api(cls, api_payload):
+    def new_from_api(cls, service_id, api_payload):
         """Create an instance of LutrisGame from the API response"""
-        service_game = LutrisGame()
+        service_game = cls(service_id)
         service_game.appid = api_payload['slug']
         service_game.slug = api_payload['slug']
         service_game.name = api_payload['name']
@@ -99,7 +145,7 @@ class LutrisService(OnlineService):
         lutris_games = self.get_library()
         logger.debug("Loaded %s games from Lutris library", len(lutris_games))
         for game in lutris_games:
-            lutris_game = LutrisGame.new_from_api(game)
+            lutris_game = LutrisGame.new_from_api(self.id, game)
             lutris_game.save()
         logger.debug("Matching with already installed games")
         self.match_games()

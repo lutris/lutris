@@ -31,7 +31,6 @@ def get_appid(app):
 
 
 class XDGMedia(ServiceMedia):
-    service = "xdg"
     source = "local"
     size = (64, 64)
     dest_path = os.path.join(settings.CACHE_DIR, "xdg/icons")
@@ -99,7 +98,7 @@ class XDGService(BaseService):
 
     def load(self):
         """Return the list of games stored in the XDG menu."""
-        xdg_games = [XDGGame.new_from_xdg_app(app) for app in self.iter_xdg_games()]
+        xdg_games = [XDGGame.new_from_xdg_app(self.id, app) for app in self.iter_xdg_games()]
         for game in xdg_games:
             game.save()
         return xdg_games
@@ -129,7 +128,6 @@ class XDGService(BaseService):
 class XDGGame(ServiceGame):
     """XDG game (Linux game with a desktop launcher)"""
 
-    service = "xdg"
     runner = "linux"
     installer_slug = "desktopapp"
 
@@ -142,9 +140,9 @@ class XDGGame(ServiceGame):
         return icon.to_string()
 
     @classmethod
-    def new_from_xdg_app(cls, xdg_app):
+    def new_from_xdg_app(cls, service_id, xdg_app):
         """Create a service game from a XDG entry"""
-        service_game = cls()
+        service_game = cls(service_id)
         service_game.name = xdg_app.get_display_name()
         service_game.icon = cls.get_app_icon(xdg_app)
         service_game.appid = get_appid(xdg_app)

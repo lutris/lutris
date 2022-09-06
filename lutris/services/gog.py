@@ -23,7 +23,6 @@ from lutris.util.strings import human_size, slugify
 
 class GogSmallBanner(ServiceMedia):
     """Small size game logo"""
-    service = "gog"
     size = (100, 60)
     dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/small")
     file_pattern = "%s.jpg"
@@ -48,12 +47,11 @@ class GogLargeBanner(GogSmallBanner):
 
 class GOGGame(ServiceGame):
     """Representation of a GOG game"""
-    service = "gog"
 
     @classmethod
-    def new_from_gog_game(cls, gog_game):
+    def new_from_gog_game(cls, service_id, gog_game):
         """Return a GOG game instance from the API info"""
-        service_game = cls()
+        service_game = cls(service_id)
         service_game.appid = str(gog_game["id"])
         service_game.slug = gog_game["slug"]
         service_game.name = gog_game["title"]
@@ -256,7 +254,7 @@ class GOGService(OnlineService):
         return games
 
     def get_service_game(self, gog_game):
-        return GOGGame.new_from_gog_game(gog_game)
+        return GOGGame.new_from_gog_game(self.id, gog_game)
 
     def get_products_page(self, page=1, search=None):
         """Return a single page of games"""

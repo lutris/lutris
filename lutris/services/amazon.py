@@ -28,7 +28,6 @@ from lutris.util.strings import slugify
 
 class AmazonBanner(ServiceMedia):
     """Game logo"""
-    service = "amazon"
     size = (200, 112)
     dest_path = os.path.join(settings.CACHE_DIR, "amazon/banners")
     file_pattern = "%s.jpg"
@@ -42,12 +41,11 @@ class AmazonBanner(ServiceMedia):
 
 class AmazonGame(ServiceGame):
     """Representation of a Amazon game"""
-    service = "amazon"
 
     @classmethod
-    def new_from_amazon_game(cls, amazon_game):
+    def new_from_amazon_game(cls, service_id, amazon_game):
         """Return a Amazon game instance from the API info"""
-        service_game = AmazonGame()
+        service_game = cls(service_id)
         service_game.appid = str(amazon_game["id"])
         service_game.slug = slugify(amazon_game["product"]["title"])
         service_game.name = amazon_game["product"]["title"]
@@ -153,7 +151,7 @@ class AmazonService(OnlineService):
         if not self.is_connected():
             logger.error("User not connected to Amazon")
             return
-        games = [AmazonGame.new_from_amazon_game(game) for game in self.get_library()]
+        games = [AmazonGame.new_from_amazon_game(self.id, game) for game in self.get_library()]
         for game in games:
             game.save()
         return games

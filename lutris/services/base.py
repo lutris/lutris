@@ -15,9 +15,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.dialogs.webconnect_dialog import DEFAULT_USER_AGENT, WebConnectDialog
 from lutris.gui.views.media_loader import download_media
-from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
 from lutris.installer import get_installers
-from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.jobs import AsyncCall
@@ -28,47 +26,6 @@ PGA_DB = settings.PGA_DB
 
 class AuthTokenExpired(Exception):
     """Exception raised when a token is no longer valid"""
-
-
-class LutrisBanner(ServiceMedia):
-    service = 'lutris'
-    size = BANNER_SIZE
-    dest_path = settings.BANNER_PATH
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
-    api_field = 'banner_url'
-
-
-class LutrisIcon(LutrisBanner):
-    size = ICON_SIZE
-    dest_path = settings.ICON_PATH
-    file_pattern = "lutris_%s.png"
-    file_format = "png"
-    api_field = 'icon_url'
-
-    @property
-    def custom_media_storage_size(self):
-        return (128, 128)
-
-    def update_desktop(self):
-        system.update_desktop_icons()
-
-
-class LutrisCoverart(ServiceMedia):
-    service = 'lutris'
-    size = (264, 352)
-    file_pattern = "%s.jpg"
-    file_format = "jpeg"
-    dest_path = settings.COVERART_PATH
-    api_field = 'coverart'
-
-    @property
-    def config_ui_size(self):
-        return (66, 88)
-
-
-class LutrisCoverartMedium(LutrisCoverart):
-    size = (176, 234)
 
 
 class BaseService(GObject.Object):
@@ -105,6 +62,12 @@ class BaseService(GObject.Object):
         if self._matcher:
             return self._matcher
         return self.id
+
+    def create_media_instance(self, icon_type):
+        if icon_type in self.extra_medias:
+            return self.extra_medias[icon_type](self.id)
+        else:
+            return self.medias[icon_type](self.id)
 
     def run(self):
         """Launch the game client"""
@@ -164,7 +127,7 @@ class BaseService(GObject.Object):
         all_medias = self.medias.copy()
         all_medias.update(self.extra_medias)
 
-        service_medias = [media_type() for media_type in all_medias.values()]
+        service_medias = [self.create_media_instance(icon_type) for icon_type in all_medias]
 
         # Download icons
         for service_media in service_medias:

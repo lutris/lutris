@@ -49,7 +49,6 @@ class OriginLauncher:
 
 
 class OriginPackArtSmall(ServiceMedia):
-    service = "origin"
     file_pattern = "%s.jpg"
     file_format = "jpeg"
     size = (63, 89)
@@ -73,11 +72,10 @@ class OriginPackArtLarge(OriginPackArtSmall):
 
 
 class OriginGame(ServiceGame):
-    service = "origin"
 
     @classmethod
-    def new_from_api(cls, offer):
-        origin_game = OriginGame()
+    def new_from_api(cls, service_id, offer):
+        origin_game = cls(service_id)
         origin_game.appid = offer["offerId"]
         origin_game.slug = offer["gameNameFacetKey"]
         origin_game.name = offer["i18n"]["displayName"]
@@ -250,7 +248,7 @@ class OriginService(OnlineService):
         logger.info("Retrieved %s games from Origin library", len(games))
         origin_games = []
         for game in games:
-            origin_game = OriginGame.new_from_api(game)
+            origin_game = OriginGame.new_from_api(self.id, game)
             origin_game.save()
             origin_games.append(origin_game)
         return origin_games
