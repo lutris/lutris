@@ -58,7 +58,7 @@ class AmazonGame(ServiceGame):
 class AmazonService(OnlineService):
     """Service class for Amazon"""
 
-    id = "amazon"
+    type = "amazon"
     name = _("Amazon Prime Gaming")
     icon = "amazon"
     has_extras = False

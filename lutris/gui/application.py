@@ -52,7 +52,7 @@ from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
-from lutris.services import get_enabled_services
+from lutris.services import get_service
 from lutris.database.services import ServiceGameCollection
 
 from .lutriswindow import LutrisWindow
@@ -614,7 +614,7 @@ class Application(Gtk.Application):
         if service:
             service_game = ServiceGameCollection.get_game(service, appid)
             if service_game:
-                service = get_enabled_services()[service]()
+                service = get_service(service)
                 service.install(service_game)
                 return 0
 
@@ -698,8 +698,8 @@ class Application(Gtk.Application):
     @watch_errors(error_result=True)
     def on_game_install(self, game):
         """Request installation of a game"""
-        if game.service and game.service != "lutris":
-            service = get_enabled_services()[game.service]()
+        service = get_service(game.service) if game.service else None
+        if service and service.type != "lutris":
             db_game = ServiceGameCollection.get_game(service.id, game.appid)
             if not db_game:
                 logger.error("Can't find %s for %s", game.name, service.name)
@@ -731,7 +731,7 @@ class Application(Gtk.Application):
 
     @watch_errors(error_result=True)
     def on_game_install_update(self, game):
-        service = get_enabled_services()[game.service]()
+        service = get_service(game.service)
         db_game = games_db.get_game_by_field(game.id, "id")
         installers = service.get_update_installers(db_game)
         if installers:
@@ -742,7 +742,7 @@ class Application(Gtk.Application):
 
     @watch_errors(error_result=True)
     def on_game_install_dlc(self, game):
-        service = get_enabled_services()[game.service]()
+        service = get_service(game.service)
         db_game = games_db.get_game_by_field(game.id, "id")
         installers = service.get_dlc_installers_runner(db_game, db_game["runner"])
         if installers:

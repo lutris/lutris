@@ -132,7 +132,7 @@ class EGSGame(ServiceGame):
 class EpicGamesStoreService(OnlineService):
     """Service class for Epic Games Store"""
 
-    id = "egs"
+    type = "egs"
     name = _("Epic Games Store")
     login_window_width = 500
     login_window_height = 850
@@ -170,8 +170,8 @@ class EpicGamesStoreService(OnlineService):
         'Chrome/84.0.4147.38 Safari/537.36'
     )
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, id):
+        super().__init__(id)
         self.session = requests.session()
         self.session.headers['User-Agent'] = self.user_agent
         if os.path.exists(self.token_path):

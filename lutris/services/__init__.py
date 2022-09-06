@@ -26,7 +26,8 @@ DEFAULT_SERVICES = ["lutris", "gog", "egs", "origin", "ubisoft", "steam"]
 
 
 def get_services():
-    """Return a mapping of available services"""
+    """Return a mapping of available service classes by their respective
+       service type names"""
     _services = {
         "lutris": LutrisService,
         "gog": GOGService,
@@ -63,8 +64,21 @@ if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
     SERVICES.update(WIP_SERVICES)
 
 
+def service_type_for_id(service_id):
+    """Derive the service type name from a service ID by dropping everything
+       following the first tilde character"""
+    return service_id.split("~", 1)[0]
+
+
+def get_service(service_id):
+    """Return a new service instance object for the given service ID
+
+    Raises `KeyError` if no matching service """
+    return SERVICES[service_type_for_id(service_id)](id=service_id)
+
+
 def get_enabled_services():
     return {
-        key: _class for key, _class in SERVICES.items()
-        if settings.read_setting(key, section="services").lower() == "true"
+        _type: _class(id=_type) for _type, _class in SERVICES.items()
+        if settings.read_setting(_type, section="services").lower() == "true"
     }

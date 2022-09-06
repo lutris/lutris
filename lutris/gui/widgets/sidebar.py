@@ -138,7 +138,7 @@ class ServiceSidebarRow(SidebarRow):
 
     @property
     def sort_key(self):
-        return SERVICE_INDICES[self.id]
+        return SERVICE_INDICES[services.service_type_for_id(self.id)]
 
     def get_actions(self):
         """Return the definition of buttons to be added to the row"""
@@ -527,12 +527,11 @@ class LutrisSidebar(Gtk.ListBox):
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = games_db.get_used_platforms()
 
-        for service_name, service_class in self.active_services.items():
-            if service_name not in self.service_rows:
-                service = service_class()
+        for service_id, service in self.active_services.items():
+            if service_id not in self.service_rows:
                 row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow
                 service_row = row_class(service)
-                self.service_rows[service_name] = service_row
+                self.service_rows[service_id] = service_row
                 insert_row(service_row)
 
         for runner_name in self.installed_runners:
