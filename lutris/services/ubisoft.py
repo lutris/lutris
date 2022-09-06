@@ -84,9 +84,9 @@ class UbisoftConnectService(OnlineService):
     browser_size = (460, 690)
     login_window_width = 460
     login_window_height = 690
-    cookies_path = os.path.join(settings.CACHE_DIR, "ubisoft/.auth")
-    token_path = os.path.join(settings.CACHE_DIR, "ubisoft/.token")
-    cache_path = os.path.join(settings.CACHE_DIR, "ubisoft/library/")
+    cache_path_tmpl = "{id}/library/"
+    cookies_path_tmpl = "{id}/.auth"
+    token_path_tmpl = "{id}/.token"
     login_url = consts.LOGIN_URL
     redirect_uri = "https://connect.ubisoft.com/change_domain/"
     scripts = {
@@ -106,6 +106,10 @@ class UbisoftConnectService(OnlineService):
     def __init__(self, id):
         super().__init__(id)
         self.client = UbisoftConnectClient(self)
+
+    @property
+    def token_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.token_path_tmpl))
 
     def auth_lost(self):
         self.emit("service-logout")

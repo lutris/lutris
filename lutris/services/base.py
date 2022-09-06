@@ -44,6 +44,7 @@ class BaseService(GObject.Object):
     medias = {}
     extra_medias = {}
     default_format = "icon"
+    cache_path_tmpl = NotImplemented
     is_loading = False
 
     __gsignals__ = {
@@ -56,6 +57,16 @@ class BaseService(GObject.Object):
     def __init__(self, id):
         super().__init__()
         self.id = id
+
+    def _format_props(self, string):
+        return string.format(id=self.id)
+
+    @property
+    def cache_path(self):
+        if isinstance(self.cache_path_tmpl, str):
+            return os.path.join(settings.CACHE_DIR, self._format_props(self.cache_path_tmpl))
+        else:
+            return self.cache_path_tmpl
 
     @property
     def matcher(self):
@@ -139,6 +150,15 @@ class BaseService(GObject.Object):
             service_media.render()
 
     def wipe_game_cache(self):
+        """Wipe the game cache, allowing it to be reloaded"""
+        cache_path = self.cache_path
+        if cache_path:
+            logger.debug("Deleting %s cache %s", self.id, cache_path)
+            if os.path.isdir(cache_path):
+                shutil.rmtree(cache_path)
+            elif system.path_exists(cache_path):
+                os.remove(cache_path)
+
         logger.debug("Deleting games from service-games for %s", self.id)
         sql.db_delete(PGA_DB, "service_games", "service", self.id)
 
@@ -301,13 +321,16 @@ class OnlineService(BaseService):
     """Base class for online gaming services"""
 
     online = True
-    cookies_path = NotImplemented
-    cache_path = NotImplemented
+    cookies_path_tmpl = NotImplemented
     requires_login_page = False
 
     login_window_width = 390
     login_window_height = 500
     login_user_agent = DEFAULT_USER_AGENT
+
+    @property
+    def cookies_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.cookies_path_tmpl))
 
     @property
     def credential_files(self):
@@ -330,16 +353,6 @@ class OnlineService(BaseService):
     def is_authenticated(self):
         """Return whether the service is authenticated"""
         return all(system.path_exists(path) for path in self.credential_files)
-
-    def wipe_game_cache(self):
-        """Wipe the game cache, allowing it to be reloaded"""
-        if self.cache_path:
-            logger.debug("Deleting %s cache %s", self.id, self.cache_path)
-            if os.path.isdir(self.cache_path):
-                shutil.rmtree(self.cache_path)
-            elif system.path_exists(self.cache_path):
-                os.remove(self.cache_path)
-        super().wipe_game_cache()
 
     def logout(self):
         """Disconnect from the service by removing all credentials"""

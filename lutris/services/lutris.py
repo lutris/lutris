@@ -95,8 +95,12 @@ class LutrisService(OnlineService):
 
     api_url = settings.SITE_URL + "/api"
     login_url = settings.SITE_URL + "/api/accounts/token"
-    cache_path = os.path.join(settings.CACHE_DIR, "lutris")
-    token_path = os.path.join(settings.CACHE_DIR, "auth-token")
+    cache_path_tmpl = "{id}"
+    token_path_tmpl = "auth-token"
+
+    @property
+    def token_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.token_path_tmpl))
 
     @property
     def credential_files(self):

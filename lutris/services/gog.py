@@ -82,9 +82,9 @@ class GOGService(OnlineService):
     redirect_uri = "https://embed.gog.com/on_login_success?origin=client"
 
     login_success_url = "https://www.gog.com/on_login_success"
-    cookies_path = os.path.join(settings.CACHE_DIR, ".gog.auth")
-    token_path = os.path.join(settings.CACHE_DIR, ".gog.token")
-    cache_path = os.path.join(settings.CACHE_DIR, "gog-library.json")
+    cache_path_tmpl = "{id}-library.json"
+    cookies_path_tmpl = ".{id}.auth"
+    token_path_tmpl = ".{id}.token"
 
     def __init__(self, id):
         super().__init__(id)
@@ -98,6 +98,10 @@ class GOGService(OnlineService):
             "zh": "zh-Hans",
         }
         self.locale = gog_locales.get(i18n.get_lang(), "en-US")
+
+    @property
+    def token_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.token_path_tmpl))
 
     @property
     def login_url(self):

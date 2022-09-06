@@ -60,7 +60,7 @@ class FlathubService(BaseService):
     }
     default_format = "banner"
     api_url = "https://flathub.org/api/v1/apps/category/Game"
-    cache_path = os.path.join(settings.CACHE_DIR, "flathub-library.json")
+    cache_path_tmpl = "{id}-library.json"
 
     branch = "stable"
     arch = "x86_64"
@@ -71,13 +71,6 @@ class FlathubService(BaseService):
     }
     runner = "flatpak"
     game_class = FlathubGame
-
-    def wipe_game_cache(self):
-        """Wipe the game cache, allowing it to be reloaded"""
-        if system.path_exists(self.cache_path):
-            logger.debug("Deleting %s cache %s", self.id, self.cache_path)
-            os.remove(self.cache_path)
-        super().wipe_game_cache()
 
     def get_flatpak_cmd(self):
         flatpak_abspath = shutil.which("flatpak")

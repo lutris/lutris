@@ -82,11 +82,15 @@ class AmazonService(OnlineService):
 
     redirect_uri = "https://www.amazon.com/?"
 
-    cookies_path = os.path.join(settings.CACHE_DIR, ".amazon.auth")
-    user_path = os.path.join(settings.CACHE_DIR, ".amazon.user")
-    cache_path = os.path.join(settings.CACHE_DIR, "amazon-library.json")
+    cache_path_tmpl = "{id}-library.json"
+    cookies_path_tmpl = ".{id}.auth"
+    user_path_tmpl = ".{id}.user"
 
     locale = "en-US"
+
+    @property
+    def user_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(user_path_tmpl))
 
     @property
     def credential_files(self):

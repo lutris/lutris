@@ -135,9 +135,9 @@ class OriginService(OnlineService):
         "packArtLarge": OriginPackArtLarge,
     }
     default_format = "packArtMedium"
-    cache_path = os.path.join(settings.CACHE_DIR, "origin/cache/")
-    cookies_path = os.path.join(settings.CACHE_DIR, "origin/cookies")
-    token_path = os.path.join(settings.CACHE_DIR, "origin/auth_token")
+    cache_path_tmpl = "{id}/cache/"
+    cookies_path_tmpl = "{id}/cookies"
+    token_path_tmpl = "{id}/auth_token"
     redirect_uri = "https://www.origin.com/views/login.html"
     login_url = (
         "https://accounts.ea.com/connect/auth"
@@ -153,6 +153,10 @@ class OriginService(OnlineService):
         self.session = requests.session()
         self.session.mount("https://", LegacyRenegotiationHTTPAdapter())
         self.access_token = self.load_access_token()
+
+    @property
+    def token_path(self):
+        return os.path.join(settings.CACHE_DIR, self._format_props(self.token_path_tmpl))
 
     @property
     def api_url(self):

@@ -71,9 +71,8 @@ class HumbleBundleService(OnlineService):
     login_url = "https://www.humblebundle.com/login?goto=/home/library"
     redirect_uri = "https://www.humblebundle.com/home/library"
 
-    cookies_path = os.path.join(settings.CACHE_DIR, ".humblebundle.auth")
-    token_path = os.path.join(settings.CACHE_DIR, ".humblebundle.token")
-    cache_path = os.path.join(settings.CACHE_DIR, "humblebundle/library/")
+    cache_path_tmpl = "{id}/library/"
+    cookies_path_tmpl = ".{id}.auth"
 
     supported_platforms = ("linux", "windows")
 
