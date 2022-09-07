@@ -587,7 +587,7 @@ class Game(GObject.Object):
         def death_watch_cb(all_died, error):
             """Called after the death watch to more firmly kill any survivors."""
             if error:
-                dialogs.ErrorDialog(str(error))
+                self.emit("game-error", error)
             elif not all_died:
                 self.kill_processes(signal.SIGKILL)
             # If we still can't kill everything, we'll still say we stopped it.
