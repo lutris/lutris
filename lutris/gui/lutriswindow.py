@@ -122,6 +122,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
         GObject.add_emission_hook(Game, "game-error", self.on_game_error)
+        GObject.add_emission_hook(Game, "game-notice", self.on_game_notice)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -716,6 +717,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         logger.exception("%s has encountered an error: %s", game, error, exc_info=error)
         dialogs.ErrorDialog(str(error), parent=self)
         return True
+
+    def on_game_notice(self, game, message, secondary):
+        """Called when a game has sent the 'game-notice' signal"""
+        dialogs.NoticeDialog(message, secondary=secondary, parent=self)
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
