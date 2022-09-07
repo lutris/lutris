@@ -110,9 +110,11 @@ class NoticeDialog(Gtk.MessageDialog):
 
     """Display a message to the user."""
 
-    def __init__(self, message, parent=None):
+    def __init__(self, message, secondary=None, parent=None):
         super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
+        if secondary:
+            self.format_secondary_text(secondary[:256])
         self.run()
         self.destroy()
 
