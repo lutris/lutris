@@ -150,7 +150,7 @@ class EpicGamesStoreService(OnlineService):
     cookies_path = os.path.join(settings.CACHE_DIR, ".egs.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".egs.token")
     cache_path = os.path.join(settings.CACHE_DIR, "egs-library.json")
-    login_url = "https://www.epicgames.com/id/login?redirectUrl=https://www.epicgames.com/id/api/redirect"
+    login_url = "https://legendary.gl/epiclogin"
     redirect_uri = "https://www.epicgames.com/id/api/redirect"
     oauth_url = 'https://account-public-service-prod03.ol.epicgames.com'
     catalog_url = 'https://catalog-public-service-prod06.ol.epicgames.com'
@@ -200,28 +200,9 @@ class EpicGamesStoreService(OnlineService):
         logger.debug("Login to EGS successful")
         logger.debug(content)
         content_json = json.loads(content.decode())
-        session_id = content_json["sid"]
-        _session = requests.session()
-        _session.headers.update({
-            'X-Epic-Event-Action': 'login',
-            'X-Epic-Event-Category': 'login',
-            'X-Epic-Strategy-Flags': '',
-            'X-Requested-With': 'XMLHttpRequest',
-            'User-Agent': self.user_agent
-        })
+        session_id = content_json["authorizationCode"]
 
-        _session.get('https://www.epicgames.com/id/api/set-sid', params={'sid': session_id})
-        _session.get('https://www.epicgames.com/id/api/csrf')
-        response = _session.post(
-            'https://www.epicgames.com/id/api/exchange/generate',
-            headers={'X-XSRF-TOKEN': _session.cookies['XSRF-TOKEN']}
-        )
-
-        if response.status_code != 200:
-            logger.error("Failed to connec to EGS (Status %s): %s", response.status_code, response.json())
-            return
-
-        self.start_session(response.json()['code'])
+        self.start_session(authorization_code=session_id)
         self.emit("service-login")
 
     def resume_session(self):
@@ -235,21 +216,24 @@ class EpicGamesStoreService(OnlineService):
             raise RuntimeError(response_content)
         return response_content
 
-    def start_session(self, exchange_code=None):
+    def start_session(self, exchange_code=None, authorization_code=None):
         if exchange_code:
-            grant_type = 'exchange_code'
-            token = exchange_code
+            params = dict(grant_type='exchange_code',
+                          exchange_code=exchange_code,
+                          token_type='eg1')
+        elif authorization_code:
+            params = dict(grant_type='authorization_code',
+                          code=authorization_code,
+                          token_type='eg1')
         else:
-            grant_type = 'refresh_token'
-            token = self.session_data["refresh_token"]
+            params = dict(grant_type='refresh_token',
+                          refresh_token=self.session_data["refresh_token"],
+
+                          token_type='eg1')
 
         response = self.session.post(
             'https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token',
-            data={
-                'grant_type': grant_type,
-                grant_type: token,
-                'token_type': 'eg1'
-            },
+            data=params,
             auth=self.http_basic_auth
         )
         if response.status_code >= 500:
