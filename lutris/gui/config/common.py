@@ -457,6 +457,10 @@ class GameDialogCommon(ModelessDialog):
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
 
+        # extract icon for wine games
+        if (self.runner_name == 'wine'):
+            runner.extract_icon_exe(self.slug)
+
         self.game.name = name
         self.game.slug = self.slug
         self.game.year = year
