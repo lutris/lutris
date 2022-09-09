@@ -150,7 +150,7 @@ class EpicGamesStoreService(OnlineService):
     cookies_path = os.path.join(settings.CACHE_DIR, ".egs.auth")
     token_path = os.path.join(settings.CACHE_DIR, ".egs.token")
     cache_path = os.path.join(settings.CACHE_DIR, "egs-library.json")
-    login_url = "https://legendary.gl/epiclogin"
+    login_url = "https://www.epicgames.com/id/login?redirectUrl=https%3A//www.epicgames.com/id/api/redirect%3FclientId%3D34a02cf8f4414e29b15921876da36f9a%26responseType%3Dcode"
     redirect_uri = "https://www.epicgames.com/id/api/redirect"
     oauth_url = 'https://account-public-service-prod03.ol.epicgames.com'
     catalog_url = 'https://catalog-public-service-prod06.ol.epicgames.com'
