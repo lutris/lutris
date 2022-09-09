@@ -29,6 +29,7 @@ from lutris.util.wine.wine import (
     get_overrides_env, get_proton_paths, get_real_executable, get_wine_version, get_wine_versions, is_esync_limit_set,
     is_fsync_supported, is_gstreamer_build, is_version_esync, is_version_fsync
 )
+from utils.extract_icon import ExtractIcon
 
 DEFAULT_WINE_PREFIX = "~/.wine"
 MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
@@ -1017,3 +1018,30 @@ class wine(Runner):
 
         # Relative path
         return path
+    
+    def extract_icon_exe(self, game_slug):
+        """Extracts the 128*128 icon from EXE and saves it, if not resizes the biggest icon found.
+            returns true if an icon is saved, false if not"""
+        wantedsize = (128,128)
+        if not self.game_exe:
+            return False
+        extractor = ExtractIcon(self.game_exe)
+        groups = extractor.get_group_icons()
+
+        icons = []
+        biggestsize = (0,0)
+        for i in range(len(groups[0])):
+            icons[i] = extractor.export(groups[0], i)
+            if (icons[i].size > biggestsize) :
+                biggesticon = i
+                biggestsize = icons[i].size
+            elif (icons[i].size == wantedsize) :
+                icons[i].save(settings.ICON_PATH + "lutris_" + game_slug + ".png")
+                return True
+
+        if 'biggesticon' in locals():
+            resized = icons[biggesticon].resize(wantedsize)
+            resized.save(settings.ICON_PATH + "lutris_" + game_slug + ".png")
+            return True
+
+        return False
