@@ -11,7 +11,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
-from lutris.gui.dialogs import ModelessDialog, DirectoryDialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf
@@ -455,7 +455,7 @@ class GameDialogCommon(ModelessDialog):
         runner = runner_class(self.lutris_config)
 
         # extract icon for wine games
-        if (self.runner_name == 'wine'):
+        if (self.runner_name == 'wine') and not self.game.has_custom_icon:
             runner.extract_icon_exe(self.slug)
 
         self.game.name = name
