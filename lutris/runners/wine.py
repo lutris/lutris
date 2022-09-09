@@ -1031,17 +1031,17 @@ class wine(Runner):
         icons = []
         biggestsize = (0,0)
         for i in range(len(groups[0])):
-            icons[i] = extractor.export(groups[0], i)
+            icons.append(extractor.export(groups[0], i))
             if (icons[i].size > biggestsize) :
                 biggesticon = i
                 biggestsize = icons[i].size
             elif (icons[i].size == wantedsize) :
-                icons[i].save(settings.ICON_PATH + "lutris_" + game_slug + ".png")
+                icons[i].save(settings.ICON_PATH + "/lutris_" + game_slug + ".png")
                 return True
 
         if 'biggesticon' in locals():
             resized = icons[biggesticon].resize(wantedsize)
-            resized.save(settings.ICON_PATH + "lutris_" + game_slug + ".png")
+            resized.save(settings.ICON_PATH + "/lutris_" + game_slug + ".png")
             return True
 
         return False
