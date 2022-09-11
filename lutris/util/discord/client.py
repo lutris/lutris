@@ -4,7 +4,7 @@ from lutris.util.discord.base import DiscordRichPresenceBase
 
 
 class DiscordRichPresenceClient(DiscordRichPresenceBase):
-    rpc: Presence | None  # Presence Object
+    rpc: Presence  # Presence Object
 
     def __init__(self):
         self.playing = None
