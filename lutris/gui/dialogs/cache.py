@@ -7,14 +7,16 @@ from lutris.gui.widgets.common import FileChooserEntry
 
 
 class CacheConfigurationDialog(Gtk.Dialog):
-    def __init__(self):
-        Gtk.Dialog.__init__(self, _("Cache configuration"))
+    def __init__(self, parent=None):
+        Gtk.Dialog.__init__(self, _("Cache configuration"), parent=parent)
         self.timer_id = None
         self.set_size_request(480, 150)
         self.set_border_width(12)
 
         self.get_content_area().add(self.get_cache_config())
         self.show_all()
+        self.run()
+        self.destroy()
 
     def get_cache_config(self):
         """Return the widgets for the cache configuration"""

@@ -141,7 +141,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
     def on_cache_clicked(self, _button):
         """Open the cache configuration dialog"""
-        CacheConfigurationDialog()
+        CacheConfigurationDialog(parent=self)
 
     def on_installer_selected(self, _widget, installer_version):
         """Sets the script interpreter to the correct script then proceed to
@@ -452,6 +452,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         This will start the downloads.
         """
         self.set_status("")
+        self.cache_button.set_sensitive(False)
         self.continue_button.set_sensitive(False)
         try:
             file_box.start_all()
