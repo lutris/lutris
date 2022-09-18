@@ -24,6 +24,8 @@ SYSTEM_PROCESSES = {
     "mscorsvw.exe",
     "iexplore.exe",
     "winedbg.exe",
+    "tabtip.exe",
+    "conhost.exe",
 }
 
 
