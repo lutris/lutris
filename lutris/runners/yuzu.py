@@ -35,7 +35,12 @@ class yuzu(Runner):
             "label": _("Title keys"),
             "type": "file",
             "help": _("File containing the title keys."),
-        }
+        }, {
+            "option": "fullscreen",
+            "label": _("Fullscreen"),
+            "type": "bool",
+            "default": True,
+        },
     ]
 
     @property
@@ -50,10 +55,15 @@ class yuzu(Runner):
     def play(self):
         """Run the game."""
         arguments = [self.get_executable()]
+
+        fullscreen = self.runner_config.get("fullscreen")
+        if fullscreen:
+            arguments.append("-f")
+
         rom = self.game_config.get("main_file") or ""
         if not system.path_exists(rom):
             return {"error": "FILE_NOT_FOUND", "file": rom}
-        arguments.append(rom)
+        arguments += ["-g", rom]
         return {"command": arguments}
 
     def _update_key(self, key_type):
