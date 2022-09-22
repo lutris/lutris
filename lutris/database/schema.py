@@ -74,6 +74,10 @@ DATABASE = {
             "type": "INTEGER"
         },
         {
+            "name": "has_custom_coverart_big",
+            "type": "INTEGER"
+        },
+        {
             "name": "playtime",
             "type": "REAL"
         },
