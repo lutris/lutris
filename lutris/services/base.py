@@ -45,6 +45,9 @@ class LutrisIcon(LutrisBanner):
     file_format = "png"
     api_field = 'icon_url'
 
+    def update_desktop(self):
+        system.update_desktop_icons()
+
 
 class LutrisCoverart(ServiceMedia):
     service = 'lutris'

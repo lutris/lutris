@@ -17,7 +17,6 @@ from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisIcon, download_lutris_media
-from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -498,9 +497,7 @@ class GameDialogCommon(ModelessDialog):
             # PNG encoding just ignores this option.
             pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
             self._set_image(image_type, self.image_buttons[image_type])
-
-            if image_type == "icon":
-                system.update_desktop_icons()
+            service_media.update_desktop()
 
         dialog.destroy()
 
