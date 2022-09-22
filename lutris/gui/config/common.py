@@ -185,12 +185,8 @@ class GameDialogCommon(ModelessDialog):
 
         return box
 
-    def _set_image(self, image_format, image_button=None):
-        if image_button is None:
-            image_button = self.image_buttons[image_format]
-
+    def _set_image(self, image_format, image_button):
         service_media = self.service_medias[image_format]
-
         image = Gtk.Image()
         service_media = LutrisBanner() if image_format == "banner" else LutrisIcon()
         game_slug = self.slug or (self.game.slug if self.game else "")
