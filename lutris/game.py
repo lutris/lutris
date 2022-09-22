@@ -83,8 +83,9 @@ class Game(GObject.Object):
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
-        self.has_custom_banner = bool(game_data.get("has_custom_banner"))
-        self.has_custom_icon = bool(game_data.get("has_custom_icon"))
+        self.custom_images = set()
+        if game_data.get("has_custom_banner"): self.custom_images.add("banner")
+        if game_data.get("has_custom_icon"): self.custom_images.add("icon")
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
         self.playtime = game_data.get("playtime") or 0.0
@@ -304,6 +305,8 @@ class Game(GObject.Object):
             service=self.service,
             service_id=self.appid,
             discord_id=self.discord_id,
+            has_custom_banner="banner" in self.custom_images,
+            has_custom_icon="icon" in self.custom_images,
         )
         self.emit("game-updated")
 

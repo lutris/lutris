@@ -159,6 +159,8 @@ class GameDialogCommon(ModelessDialog):
         return banner_box
 
     def _get_image_button(self, banner_box, image_type, reset_tooltip):
+        """This adds an image button and its reset button to the box given,
+        and returns the image button for future reference."""
         image_button = Gtk.Button()
         self._set_image(image_type, image_button)
         image_button.connect("clicked", self.on_custom_image_select, image_type)
@@ -487,10 +489,7 @@ class GameDialogCommon(ModelessDialog):
             slug = self.slug or self.game.slug
             image_path = dialog.get_filename()
             service_media = self.service_medias[image_type]
-            if image_type == "banner":
-                self.game.has_custom_banner = True
-            else:
-                self.game.has_custom_icon = True
+            self.game.custom_images.add(image_type)
             dest_path = service_media.get_absolute_path(slug)
             file_format = service_media.file_format
             size = service_media.size
@@ -507,15 +506,9 @@ class GameDialogCommon(ModelessDialog):
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
         slug = self.slug or self.game.slug
-        if image_type == "banner":
-            self.game.has_custom_banner = False
-        elif image_type == "icon":
-            self.game.has_custom_icon = False
-        else:
-            raise ValueError("Unsupported image type %s" % image_type)
-
         service_media = self.service_medias[image_type]
         dest_path = service_media.get_absolute_path(slug)
+        self.game.custom_images.discard(image_type)
         if os.path.isfile(dest_path):
             os.remove(dest_path)
         self._set_image(image_type, self.image_buttons[image_type])
