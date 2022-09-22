@@ -1,4 +1,6 @@
 """Base module for runners"""
+from __future__ import annotations
+
 import os
 import signal
 from gettext import gettext as _

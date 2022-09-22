@@ -1,5 +1,7 @@
 """Handle the game, runner and global system configurations."""
 
+from __future__ import annotations
+
 import os
 import time
 from shutil import copyfile

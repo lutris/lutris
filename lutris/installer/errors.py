@@ -1,4 +1,6 @@
 """Installer specific exceptions"""
+from __future__ import annotations
+
 import sys
 
 from lutris.gui.dialogs import ErrorDialog

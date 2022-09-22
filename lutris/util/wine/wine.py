@@ -1,4 +1,6 @@
 """Utilities for manipulating Wine"""
+from __future__ import annotations
+
 import os
 from collections import OrderedDict
 from functools import lru_cache

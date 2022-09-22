@@ -1,4 +1,6 @@
 """Main window for the Lutris interface."""
+from __future__ import annotations
+
 import os
 from collections import namedtuple
 from gettext import gettext as _

@@ -1,4 +1,6 @@
 """Window to show game logs"""
+from __future__ import annotations
+
 import os
 from datetime import datetime
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from lutris.util.amazon.protobuf_decoder import (
     Message, type_bool, type_bytes, type_enum, type_int64, type_string, type_uint32
 )

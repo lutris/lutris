@@ -1,4 +1,6 @@
 """Transform runner parameters to data usable for runtime execution"""
+from __future__ import annotations
+
 import os
 import shlex
 import stat

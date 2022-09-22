@@ -1,4 +1,6 @@
 """Utility module to handle media resources"""
+from __future__ import annotations
+
 import os
 
 from lutris import settings

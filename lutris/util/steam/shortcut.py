@@ -1,4 +1,6 @@
 """Export lutris games to steam shortcuts"""
+from __future__ import annotations
+
 import binascii
 import os
 import re

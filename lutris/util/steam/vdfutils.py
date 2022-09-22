@@ -1,5 +1,7 @@
 """Read and write VDF files"""
 # Lutris Modules
+from __future__ import annotations
+
 from lutris.util.log import logger
 
 

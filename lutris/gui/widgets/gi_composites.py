@@ -9,6 +9,8 @@ https://github.com/virtuald/pygi-composite-templates/blob/master/gi_composites.p
 This should have landed in PyGObect and will be available without this shim in the future.
 See: https://gitlab.gnome.org/GNOME/pygobject/merge_requests/52
 """
+from __future__ import annotations
+
 #
 # Copyright (C) 2015 Dustin Spicuzza <dustin@virtualroadside.com>
 #
@@ -26,7 +28,6 @@ See: https://gitlab.gnome.org/GNOME/pygobject/merge_requests/52
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
 # USA
-
 # Standard Library
 import inspect
 import warnings

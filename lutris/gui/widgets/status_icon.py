@@ -1,4 +1,6 @@
 """AppIndicator based tray icon"""
+from __future__ import annotations
+
 from gettext import gettext as _
 
 import gi

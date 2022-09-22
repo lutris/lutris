@@ -1,4 +1,6 @@
 """Legacy ScummVM 'service', has to be ported to the current architecture"""
+from __future__ import annotations
+
 import os
 import re
 from configparser import ConfigParser

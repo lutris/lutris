@@ -1,4 +1,6 @@
 """Manage a cache file of execution times for updates"""
+from __future__ import annotations
+
 import json
 import os
 from datetime import datetime

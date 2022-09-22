@@ -1,4 +1,6 @@
 # Third Party Libraries
+from __future__ import annotations
+
 from gi.repository import Gtk
 
 

@@ -1,4 +1,6 @@
 # Standard Library
+from __future__ import annotations
+
 import os
 import shutil
 from gettext import gettext as _

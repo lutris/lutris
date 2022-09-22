@@ -1,5 +1,7 @@
 """Steam log handling"""
 # Standard Library
+from __future__ import annotations
+
 import os
 import time
 

@@ -1,5 +1,7 @@
 """Misc widgets used in the GUI."""
 # Standard Library
+from __future__ import annotations
+
 import os
 from gettext import gettext as _
 

@@ -2,6 +2,8 @@
 Discord Rich Presence Base Objects
 
 """
+from __future__ import annotations
+
 from abc import ABCMeta
 
 

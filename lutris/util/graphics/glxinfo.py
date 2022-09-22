@@ -1,4 +1,6 @@
 """Parser for the glxinfo utility"""
+from __future__ import annotations
+
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
 

@@ -2,6 +2,8 @@
 # Vulkan detection by Patryk Obara (@dreamer)
 
 """Query Vulkan capabilities"""
+from __future__ import annotations
+
 # Standard Library
 from ctypes import CDLL, POINTER, Structure, byref, c_char_p, c_int32, c_uint32, c_void_p, pointer
 

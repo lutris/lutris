@@ -1,5 +1,7 @@
 """Runner for Linux games"""
 # Standard Library
+from __future__ import annotations
+
 import os
 import stat
 from gettext import gettext as _

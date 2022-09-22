@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from lutris.util import linux
 from lutris.util.log import logger
 

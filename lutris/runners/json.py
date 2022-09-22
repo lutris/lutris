@@ -1,4 +1,6 @@
 """Base class and utilities for JSON based runners"""
+from __future__ import annotations
+
 import json
 import os
 

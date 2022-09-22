@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gi.repository import GObject, Gtk
 
 from lutris.gui.installer.file_box import InstallerFileBox

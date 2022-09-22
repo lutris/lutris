@@ -1,4 +1,6 @@
 """Automatically detects game executables in a folder"""
+from __future__ import annotations
+
 import os
 
 from lutris.util import magic, system

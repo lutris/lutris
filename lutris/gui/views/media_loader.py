@@ -1,4 +1,6 @@
 """Loads game media in parallel"""
+from __future__ import annotations
+
 import concurrent.futures
 
 from lutris.util import system

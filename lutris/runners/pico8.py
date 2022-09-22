@@ -1,4 +1,6 @@
 """Runner for the PICO-8 fantasy console"""
+from __future__ import annotations
+
 import json
 import math
 import os

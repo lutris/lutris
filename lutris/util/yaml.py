@@ -1,6 +1,8 @@
 """Utility functions for YAML handling"""
 # Third Party Libraries
 # pylint: disable=no-member
+from __future__ import annotations
+
 import yaml
 
 # Lutris Modules

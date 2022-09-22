@@ -1,4 +1,6 @@
 """Controls execution of programs in separate shells"""
+from __future__ import annotations
+
 import os
 from textwrap import dedent
 

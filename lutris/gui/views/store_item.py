@@ -1,4 +1,6 @@
 """Game representation for views"""
+from __future__ import annotations
+
 import time
 
 from lutris.database.games import get_service_games

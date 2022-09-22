@@ -1,5 +1,7 @@
 """Store object for a list of games"""
 # pylint: disable=not-an-iterable
+from __future__ import annotations
+
 import time
 
 from gi.repository import GLib, GObject, Gtk

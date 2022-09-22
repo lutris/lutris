@@ -1,4 +1,6 @@
 """Install script interpreter package."""
+from __future__ import annotations
+
 import yaml
 
 from lutris.api import get_game_installers, normalize_installer

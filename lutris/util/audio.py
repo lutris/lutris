@@ -1,5 +1,7 @@
 """Whatever it is we want to do with audio module"""
 # Standard Library
+from __future__ import annotations
+
 import time
 
 # Lutris Modules

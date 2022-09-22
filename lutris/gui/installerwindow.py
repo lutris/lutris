@@ -1,4 +1,6 @@
 """Window used for game installers"""
+from __future__ import annotations
+
 import os
 from gettext import gettext as _
 

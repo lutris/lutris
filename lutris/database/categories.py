@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from lutris import settings
 from lutris.database import sql
 

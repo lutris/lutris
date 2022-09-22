@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 from lutris.api import get_api_games, get_game_installers

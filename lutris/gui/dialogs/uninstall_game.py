@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gettext import gettext as _
 
 from gi.repository import Gtk, Pango

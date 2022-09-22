@@ -6,6 +6,8 @@ Otherwise, it will provide a dummy client that does nothing
 """
 
 
+from __future__ import annotations
+
 from lutris.util.discord.base import DiscordRPCNull
 
 try:

@@ -1,4 +1,6 @@
 # Standard Library
+from __future__ import annotations
+
 import time
 from http.cookiejar import Cookie, MozillaCookieJar, _warn_unhandled_exception
 

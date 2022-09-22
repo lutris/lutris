@@ -1,4 +1,6 @@
 """Set service ID for Steam games"""
+from __future__ import annotations
+
 from lutris import settings
 from lutris.database.games import get_games, sql
 

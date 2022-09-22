@@ -1,5 +1,7 @@
 """Extended combobox with search"""
 # pylint: disable=unsubscriptable-object
+from __future__ import annotations
+
 from gi.repository import GLib, GObject, Gtk
 
 from lutris.util.jobs import AsyncCall

@@ -1,4 +1,6 @@
 """TreeView based game list"""
+from __future__ import annotations
+
 from gettext import gettext as _
 
 # Third Party Libraries

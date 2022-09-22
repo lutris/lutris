@@ -1,4 +1,6 @@
 """Various utilities using the GObject framework"""
+from __future__ import annotations
+
 import array
 import os
 

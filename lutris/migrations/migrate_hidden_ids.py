@@ -1,4 +1,6 @@
 """Move hidden games from settings to database"""
+from __future__ import annotations
+
 from lutris import settings
 from lutris.game import Game
 

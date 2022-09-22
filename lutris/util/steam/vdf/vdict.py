@@ -1,4 +1,6 @@
 # pylint: disable=no-member
+from __future__ import annotations
+
 from collections import Counter
 
 _iter_values = 'values'

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 
 from gi.repository import Gio, GLib, GObject, Gtk

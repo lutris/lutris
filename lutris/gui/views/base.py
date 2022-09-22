@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gi.repository import Gdk, GObject, Gtk
 
 from lutris.database.games import get_game_for_service

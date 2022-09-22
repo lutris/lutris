@@ -1,6 +1,9 @@
 """Xephyr utilities"""
 
 
+from __future__ import annotations
+
+
 def get_xephyr_command(display, config):
     """Return a configured Xephyr command"""
     xephyr_depth = "8" if config.get("xephyr") == "8bpp" else "16"

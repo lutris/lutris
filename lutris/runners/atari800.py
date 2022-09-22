@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os.path
 from gettext import gettext as _

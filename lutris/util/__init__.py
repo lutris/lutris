@@ -1,6 +1,9 @@
 """ Misc common functions """
 
 
+from __future__ import annotations
+
+
 def selective_merge(base_obj, delta_obj):
     """ used by write_json """
     if not isinstance(base_obj, dict):

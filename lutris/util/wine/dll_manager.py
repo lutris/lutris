@@ -1,4 +1,6 @@
 """Injects sets of DLLs into a prefix"""
+from __future__ import annotations
+
 import json
 import os
 import shutil

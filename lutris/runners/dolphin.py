@@ -1,4 +1,6 @@
 """Dolphin runner"""
+from __future__ import annotations
+
 from gettext import gettext as _
 
 # Lutris Modules

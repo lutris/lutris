@@ -1,4 +1,6 @@
 """Collection of installer files"""
+from __future__ import annotations
+
 import os
 import time
 from gettext import gettext as _

@@ -1,5 +1,7 @@
 """Manipulate MAME ini files"""
 # Lutris Modules
+from __future__ import annotations
+
 from lutris.util.system import path_exists
 
 

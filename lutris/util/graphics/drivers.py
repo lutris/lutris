@@ -2,6 +2,8 @@
 
 Everything in this module should rely on /proc or /sys only, no executable calls
 """
+from __future__ import annotations
+
 # Standard Library
 import os
 import re

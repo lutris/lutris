@@ -1,4 +1,6 @@
 """Handle Steam configuration"""
+from __future__ import annotations
+
 import glob
 import os
 from collections import OrderedDict

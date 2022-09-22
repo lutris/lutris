@@ -1,4 +1,6 @@
 """DBus backed display management for Mutter"""
+from __future__ import annotations
+
 from collections import namedtuple
 
 import dbus

@@ -1,4 +1,6 @@
 """Exception handling module"""
+from __future__ import annotations
+
 from functools import wraps
 from gettext import gettext as _
 

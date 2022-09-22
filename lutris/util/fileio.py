@@ -1,4 +1,6 @@
 # Standard Library
+from __future__ import annotations
+
 import re
 from collections import OrderedDict
 from configparser import RawConfigParser

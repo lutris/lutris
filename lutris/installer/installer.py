@@ -1,4 +1,6 @@
 """Lutris installer class"""
+from __future__ import annotations
+
 import json
 import os
 from gettext import gettext as _

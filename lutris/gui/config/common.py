@@ -1,5 +1,7 @@
 """Shared config dialog stuff"""
 # pylint: disable=not-an-iterable
+from __future__ import annotations
+
 import os
 from gettext import gettext as _
 
@@ -11,7 +13,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
-from lutris.gui.dialogs import ModelessDialog, DirectoryDialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf

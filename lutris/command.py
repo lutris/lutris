@@ -1,4 +1,6 @@
 """Threading module, used to launch games while monitoring them."""
+from __future__ import annotations
+
 import contextlib
 import fcntl
 import io

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from lutris import settings
-from lutris.util.log import logger
 from lutris.api import get_api_games
 from lutris.database.games import get_games, sql
+from lutris.util.log import logger
 
 
 def migrate():

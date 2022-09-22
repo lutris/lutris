@@ -1,4 +1,6 @@
 """Utility module for creating an application wide logger."""
+from __future__ import annotations
+
 import logging
 import logging.handlers
 import os

@@ -49,6 +49,8 @@ Linux release.
 
 This module's code is based on https://gist.github.com/openglfreak/715d5ab5902497378f1996061dbbf8ec
 """
+from __future__ import annotations
+
 import ctypes
 import errno
 import functools

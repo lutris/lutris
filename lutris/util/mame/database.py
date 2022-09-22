@@ -1,5 +1,7 @@
 """Utility functions for MAME"""
 # Standard Library
+from __future__ import annotations
+
 import json
 import os
 from xml.etree import ElementTree

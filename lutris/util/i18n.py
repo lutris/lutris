@@ -1,4 +1,6 @@
 """Language and translation utilities"""
+from __future__ import annotations
+
 import locale
 
 from lutris.util.log import logger

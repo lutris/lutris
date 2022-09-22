@@ -1,5 +1,7 @@
 """Timer module"""
 # Standard Library
+from __future__ import annotations
+
 import datetime
 
 

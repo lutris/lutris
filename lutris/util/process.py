@@ -1,4 +1,6 @@
 """Class to manipulate a process"""
+from __future__ import annotations
+
 import os
 
 from lutris.util.log import logger

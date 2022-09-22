@@ -1,4 +1,6 @@
 """XrandR based display management"""
+from __future__ import annotations
+
 import re
 import subprocess
 from collections import namedtuple

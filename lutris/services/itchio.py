@@ -1,6 +1,8 @@
 """Itch.io service.
 Not ready yet.
 """
+from __future__ import annotations
+
 from gettext import gettext as _
 
 from lutris.services.base import OnlineService

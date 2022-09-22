@@ -1,4 +1,6 @@
 """Module for handling the GOG service"""
+from __future__ import annotations
+
 import json
 import os
 import time

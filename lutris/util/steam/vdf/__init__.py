@@ -5,8 +5,9 @@ https://github.com/ValvePython/vdf
 
 MIT License
 """
-# pylint: disable=raise-missing-from
+from __future__ import annotations
 
+# pylint: disable=raise-missing-from
 __version__ = "3.2"
 __author__ = "Rossen Georgiev"
 

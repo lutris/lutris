@@ -1,4 +1,6 @@
 """Migrate banners from .local/share/lutris to .cache/lutris"""
+from __future__ import annotations
+
 import os
 
 from lutris import settings

@@ -1,4 +1,6 @@
 """Functions to interact with the Lutris REST API"""
+from __future__ import annotations
+
 import json
 import os
 import re

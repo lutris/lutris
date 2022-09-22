@@ -1,5 +1,7 @@
 """DOSBox installer commands"""
 # Standard Library
+from __future__ import annotations
+
 import os
 
 # Lutris Modules

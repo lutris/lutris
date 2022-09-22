@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 UBISOFT_REGISTRY = "SOFTWARE\\Ubisoft"
 STEAM_REGISTRY = "Software\\Valve\\Steam"
 UBISOFT_REGISTRY_LAUNCHER = "SOFTWARE\\Ubisoft\\Launcher"

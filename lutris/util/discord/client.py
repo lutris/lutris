@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pypresence import Presence
 
 from lutris.util.discord.base import DiscordRichPresenceBase

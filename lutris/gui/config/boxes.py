@@ -1,6 +1,8 @@
 """Widget generators and their signal handlers"""
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
+from __future__ import annotations
+
 import os
 from gettext import gettext as _
 

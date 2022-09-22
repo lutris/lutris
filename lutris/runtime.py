@@ -1,4 +1,6 @@
 """Runtime handling module"""
+from __future__ import annotations
+
 import concurrent.futures
 import os
 import time

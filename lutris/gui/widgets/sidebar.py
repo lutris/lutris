@@ -1,4 +1,6 @@
 """Sidebar for the main window"""
+from __future__ import annotations
+
 from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk, Pango

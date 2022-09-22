@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gettext import gettext as _
 
 from lutris.gui.config.common import GameDialogCommon

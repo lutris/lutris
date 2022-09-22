@@ -1,5 +1,7 @@
 """Utility to get the path of Lutris assets"""
 # Standard Library
+from __future__ import annotations
+
 import os
 import sys
 

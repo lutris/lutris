@@ -1,4 +1,6 @@
 """Common values used for views"""
+from __future__ import annotations
+
 (
     COL_ID,
     COL_SLUG,

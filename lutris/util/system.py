@@ -1,4 +1,6 @@
 """System utilities"""
+from __future__ import annotations
+
 import hashlib
 import inspect
 import os

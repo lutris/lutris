@@ -1,4 +1,6 @@
 """Wine prefix management"""
+from __future__ import annotations
+
 import os
 
 from lutris.util import joypad, system

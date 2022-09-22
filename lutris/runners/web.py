@@ -1,4 +1,6 @@
 """Run web based games"""
+from __future__ import annotations
+
 import os
 import string
 from gettext import gettext as _

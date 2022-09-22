@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gi.repository import Gio
 
 from lutris.util.log import logger

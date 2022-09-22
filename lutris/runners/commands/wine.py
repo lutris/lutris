@@ -1,5 +1,7 @@
 """Wine commands for installers"""
 # pylint: disable=too-many-arguments
+from __future__ import annotations
+
 import os
 import shlex
 import time

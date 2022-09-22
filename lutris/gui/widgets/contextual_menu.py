@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gi.repository import Gtk
 
 from lutris import runners

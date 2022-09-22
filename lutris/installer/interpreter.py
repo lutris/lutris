@@ -1,4 +1,6 @@
 """Install a game by following its install script."""
+from __future__ import annotations
+
 import os
 from gettext import gettext as _
 

@@ -1,4 +1,6 @@
 """Runner loaders"""
+from __future__ import annotations
+
 from collections import defaultdict
 
 __all__ = [

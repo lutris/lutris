@@ -1,5 +1,7 @@
 """Grid view for the main window"""
 # pylint: disable=no-member
+from __future__ import annotations
+
 from gi.repository import Gtk
 
 from lutris.gui.views import COL_ICON, COL_NAME

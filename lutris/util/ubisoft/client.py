@@ -1,6 +1,8 @@
 # Ubisoft Connect client adapted from the Galaxy integration by Rasmus Luund.
 # https://github.com/FriendsOfGalaxy/galaxy-integration-uplay
 
+from __future__ import annotations
+
 import json
 import time
 from datetime import datetime

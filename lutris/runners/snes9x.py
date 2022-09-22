@@ -1,4 +1,6 @@
 # Standard Library
+from __future__ import annotations
+
 import os
 import subprocess
 import xml.etree.ElementTree as etree
