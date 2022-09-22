@@ -14,10 +14,10 @@ from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
-from lutris.gui.widgets.utils import BANNER_SIZE, get_pixbuf
+from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisIcon, download_lutris_media
-from lutris.util import resources, system
+from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -484,18 +484,16 @@ class GameDialogCommon(ModelessDialog):
 
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
-            image_path = dialog.get_filename()
             slug = self.slug or self.game.slug
+            image_path = dialog.get_filename()
+            service_media = self.service_medias[image_type]
             if image_type == "banner":
                 self.game.has_custom_banner = True
-                dest_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % slug)
-                size = BANNER_SIZE
-                file_format = "jpeg"
             else:
                 self.game.has_custom_icon = True
-                dest_path = resources.get_icon_path(slug)
-                size = (128, 128)  # Icons are saved at 128, 128 but displayed smaller
-                file_format = "png"
+            dest_path = service_media.get_absolute_path(slug)
+            file_format = service_media.file_format
+            size = service_media.size
             pixbuf = get_pixbuf(image_path, size)
             # JPEG encoding looks rather better at high quality;
             # PNG encoding just ignores this option.
@@ -511,12 +509,13 @@ class GameDialogCommon(ModelessDialog):
         slug = self.slug or self.game.slug
         if image_type == "banner":
             self.game.has_custom_banner = False
-            dest_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % slug)
         elif image_type == "icon":
             self.game.has_custom_icon = False
-            dest_path = resources.get_icon_path(slug)
         else:
             raise ValueError("Unsupported image type %s" % image_type)
+
+        service_media = self.service_medias[image_type]
+        dest_path = service_media.get_absolute_path(slug)
         if os.path.isfile(dest_path):
             os.remove(dest_path)
         self._set_image(image_type, self.image_buttons[image_type])

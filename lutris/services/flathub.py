@@ -22,6 +22,7 @@ class FlathubBanner(ServiceMedia):
     size = (128, 128)
     dest_path = os.path.join(settings.CACHE_DIR, "flathub/banners")
     file_pattern = "%s.png"
+    file_format = "png"
     url_field = 'iconDesktopUrl'
 
     def get_media_url(self, details):

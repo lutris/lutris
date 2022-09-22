@@ -23,6 +23,7 @@ class ServiceMedia:
     small_size = None
     dest_path = None
     file_pattern = NotImplemented
+    file_format = NotImplemented
     api_field = NotImplemented
     url_pattern = "%s"
 
