@@ -88,5 +88,8 @@ class ServiceMedia:
         except HTTPError as ex:
             logger.error("Failed to download %s: %s", url, ex)
 
+    def update_desktop(self):
+        """Update the desktop, if this media type appears there. Most don't."""
+
     def render(self):
         """Used if the media requires extra processing"""

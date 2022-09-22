@@ -84,8 +84,10 @@ class Game(GObject.Object):
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
         self.custom_images = set()
-        if game_data.get("has_custom_banner"): self.custom_images.add("banner")
-        if game_data.get("has_custom_icon"): self.custom_images.add("icon")
+        if game_data.get("has_custom_banner"):
+            self.custom_images.add("banner")
+        if game_data.get("has_custom_icon"):
+            self.custom_images.add("icon")
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
         self.playtime = game_data.get("playtime") or 0.0
