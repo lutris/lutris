@@ -23,6 +23,7 @@ class HumbleBundleIcon(ServiceMedia):
     size = (70, 70)
     dest_path = os.path.join(settings.CACHE_DIR, "humblebundle/icons")
     file_pattern = "%s.png"
+    file_format = "png"
     api_field = "icon"
 
 

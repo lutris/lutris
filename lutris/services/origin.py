@@ -51,6 +51,7 @@ class OriginLauncher:
 class OriginPackArtSmall(ServiceMedia):
     service = "origin"
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     size = (63, 89)
     dest_path = os.path.join(settings.CACHE_DIR, "origin/pack-art-small")
     api_field = "packArtSmall"

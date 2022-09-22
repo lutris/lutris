@@ -27,6 +27,7 @@ class GogSmallBanner(ServiceMedia):
     size = (100, 60)
     dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/small")
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = "image"
     url_pattern = "https:%s_prof_game_100x60.jpg"
 

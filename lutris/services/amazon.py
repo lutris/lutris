@@ -29,6 +29,7 @@ class AmazonBanner(ServiceMedia):
     size = (200, 112)
     dest_path = os.path.join(settings.CACHE_DIR, "amazon/banners")
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = "image"
     url_pattern = "%s"
 

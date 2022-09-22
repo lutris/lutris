@@ -15,6 +15,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.gui.views.media_loader import download_media
+from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
 from lutris.installer import get_installers
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
@@ -30,16 +31,18 @@ class AuthTokenExpired(Exception):
 
 class LutrisBanner(ServiceMedia):
     service = 'lutris'
-    size = (184, 69)
+    size = BANNER_SIZE
     dest_path = settings.BANNER_PATH
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = 'banner_url'
 
 
 class LutrisIcon(LutrisBanner):
-    size = (32, 32)
+    size = ICON_SIZE
     dest_path = settings.ICON_PATH
     file_pattern = "lutris_%s.png"
+    file_format = "png"
     api_field = 'icon_url'
 
 
@@ -47,6 +50,7 @@ class LutrisCoverart(ServiceMedia):
     service = 'lutris'
     size = (264, 352)
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     dest_path = settings.COVERART_PATH
     api_field = 'coverart'
 
