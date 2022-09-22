@@ -88,6 +88,8 @@ class Game(GObject.Object):
             self.custom_images.add("banner")
         if game_data.get("has_custom_icon"):
             self.custom_images.add("icon")
+        if game_data.get("has_custom_coverart_big"):
+            self.custom_images.add("coverart_big")
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
         self.playtime = game_data.get("playtime") or 0.0
@@ -309,6 +311,7 @@ class Game(GObject.Object):
             discord_id=self.discord_id,
             has_custom_banner="banner" in self.custom_images,
             has_custom_icon="icon" in self.custom_images,
+            has_custom_coverart_big="coverart_big" in self.custom_images
         )
         self.emit("game-updated")
 
