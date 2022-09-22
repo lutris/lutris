@@ -57,6 +57,10 @@ class LutrisCoverart(ServiceMedia):
     dest_path = settings.COVERART_PATH
     api_field = 'coverart'
 
+    @property
+    def config_ui_size(self):
+        return (66, 88)
+
 
 class LutrisCoverartMedium(LutrisCoverart):
     size = (176, 234)
