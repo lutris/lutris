@@ -43,13 +43,13 @@ class GameDialogCommon(ModelessDialog):
         self.year_entry = None
         self.slug_change_button = None
         self.runner_dropdown = None
-        self.banner_button = None
-        self.icon_button = None
+        self.image_buttons = {}
         self.game_box = None
         self.system_box = None
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
+        self.service_medias = {"icon": LutrisIcon(), "banner": LutrisBanner()}
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -153,29 +153,23 @@ class GameDialogCommon(ModelessDialog):
         label = Label("")
         banner_box.pack_start(label, False, False, 0)
 
-        self.banner_button = Gtk.Button()
-        self._set_image("banner")
-        self.banner_button.connect("clicked", self.on_custom_image_select, "banner")
-        banner_box.pack_start(self.banner_button, False, False, 0)
-
-        reset_banner_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
-        reset_banner_button.set_relief(Gtk.ReliefStyle.NONE)
-        reset_banner_button.set_tooltip_text(_("Remove custom banner"))
-        reset_banner_button.connect("clicked", self.on_custom_image_reset_clicked, "banner")
-        banner_box.pack_start(reset_banner_button, False, False, 0)
-
-        self.icon_button = Gtk.Button()
-        self._set_image("icon")
-        self.icon_button.connect("clicked", self.on_custom_image_select, "icon")
-        banner_box.pack_start(self.icon_button, False, False, 0)
-
-        reset_icon_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
-        reset_icon_button.set_relief(Gtk.ReliefStyle.NONE)
-        reset_icon_button.set_tooltip_text(_("Remove custom icon"))
-        reset_icon_button.connect("clicked", self.on_custom_image_reset_clicked, "icon")
-        banner_box.pack_start(reset_icon_button, False, False, 0)
+        self.image_buttons["banner"] = self._get_image_button(banner_box, "banner", _("Remove custom banner"))
+        self.image_buttons["icon"] = self._get_image_button(banner_box, "icon", _("Remove custom icon"))
 
         return banner_box
+
+    def _get_image_button(self, banner_box, image_type, reset_tooltip):
+        image_button = Gtk.Button()
+        self._set_image(image_type, image_button)
+        image_button.connect("clicked", self.on_custom_image_select, image_type)
+        banner_box.pack_start(image_button, False, False, 0)
+
+        reset_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
+        reset_button.set_relief(Gtk.ReliefStyle.NONE)
+        reset_button.set_tooltip_text(reset_tooltip)
+        reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
+        banner_box.pack_start(reset_button, False, False, 0)
+        return image_button
 
     def _get_year_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
@@ -190,15 +184,17 @@ class GameDialogCommon(ModelessDialog):
 
         return box
 
-    def _set_image(self, image_format):
+    def _set_image(self, image_format, image_button=None):
+        if image_button is None:
+            image_button = self.image_buttons[image_format]
+
+        service_media = self.service_medias[image_format]
+
         image = Gtk.Image()
         service_media = LutrisBanner() if image_format == "banner" else LutrisIcon()
         game_slug = self.slug or (self.game.slug if self.game else "")
         image.set_from_pixbuf(service_media.get_pixbuf_for_game(game_slug))
-        if image_format == "banner":
-            self.banner_button.set_image(image)
-        else:
-            self.icon_button.set_image(image)
+        image_button.set_image(image)
 
     def _get_runner_dropdown(self):
         runner_liststore = self._get_runner_liststore()
@@ -504,7 +500,7 @@ class GameDialogCommon(ModelessDialog):
             # JPEG encoding looks rather better at high quality;
             # PNG encoding just ignores this option.
             pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
-            self._set_image(image_type)
+            self._set_image(image_type, self.image_buttons[image_type])
 
             if image_type == "icon":
                 system.update_desktop_icons()
@@ -523,4 +519,4 @@ class GameDialogCommon(ModelessDialog):
             raise ValueError("Unsupported image type %s" % image_type)
         if os.path.isfile(dest_path):
             os.remove(dest_path)
-        self._set_image(image_type)
+        self._set_image(image_type, self.image_buttons[image_type])
