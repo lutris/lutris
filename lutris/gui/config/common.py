@@ -16,7 +16,7 @@ from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import import_runner
-from lutris.services.lutris import LutrisBanner, LutrisIcon, download_lutris_media
+from lutris.services.lutris import LutrisBanner, LutrisIcon, LutrisCoverart, download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -48,7 +48,7 @@ class GameDialogCommon(ModelessDialog):
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
-        self.service_medias = {"icon": LutrisIcon(), "banner": LutrisBanner()}
+        self.service_medias = {"icon": LutrisIcon(), "banner": LutrisBanner(), "coverart_big": LutrisCoverart()}
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -152,25 +152,28 @@ class GameDialogCommon(ModelessDialog):
         label = Label("")
         banner_box.pack_start(label, False, False, 0)
 
-        self.image_buttons["banner"] = self._get_image_button(banner_box, "banner", _("Remove custom banner"))
-        self.image_buttons["icon"] = self._get_image_button(banner_box, "icon", _("Remove custom icon"))
+        self._create_image_button(banner_box, "coverart_big", _("Remove custom cover art"))
+        self._create_image_button(banner_box, "banner", _("Remove custom banner"))
+        self._create_image_button(banner_box, "icon", _("Remove custom icon"))
 
         return banner_box
 
-    def _get_image_button(self, banner_box, image_type, reset_tooltip):
+    def _create_image_button(self, banner_box, image_type, reset_tooltip):
         """This adds an image button and its reset button to the box given,
-        and returns the image button for future reference."""
+        and adds the image button to self.image_buttons for future reference."""
         image_button = Gtk.Button()
         self._set_image(image_type, image_button)
         image_button.connect("clicked", self.on_custom_image_select, image_type)
+        image_button.set_valign(Gtk.Align.CENTER)
         banner_box.pack_start(image_button, False, False, 0)
 
         reset_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
         reset_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_button.set_tooltip_text(reset_tooltip)
         reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
+        reset_button.set_valign(Gtk.Align.CENTER)
         banner_box.pack_start(reset_button, False, False, 0)
-        return image_button
+        self.image_buttons[image_type] = image_button
 
     def _get_year_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
@@ -188,9 +191,10 @@ class GameDialogCommon(ModelessDialog):
     def _set_image(self, image_format, image_button):
         service_media = self.service_medias[image_format]
         image = Gtk.Image()
-        service_media = LutrisBanner() if image_format == "banner" else LutrisIcon()
         game_slug = self.slug or (self.game.slug if self.game else "")
-        image.set_from_pixbuf(service_media.get_pixbuf_for_game(game_slug))
+
+        pixbuf = service_media.get_pixbuf_for_game(game_slug, service_media.config_ui_size)
+        image.set_from_pixbuf(pixbuf)
         image_button.set_image(image)
 
     def _get_runner_dropdown(self):

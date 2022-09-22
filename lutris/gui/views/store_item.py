@@ -107,7 +107,7 @@ class StoreItem:
             return get_pixbuf(image_path, self.service_media.size, is_installed=self.installed)
         return self.service_media.get_pixbuf_for_game(
             self._game_data["slug"],
-            self.installed
+            is_installed=self.installed
         )
 
     @property
