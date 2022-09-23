@@ -16,7 +16,7 @@ from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import import_runner
-from lutris.services.lutris import LutrisBanner, LutrisIcon, LutrisCoverart, download_lutris_media
+from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -508,4 +508,5 @@ class GameDialogCommon(ModelessDialog):
         self.game.custom_images.discard(image_type)
         if os.path.isfile(dest_path):
             os.remove(dest_path)
+        download_lutris_media(self.game.slug)
         self._set_image(image_type, self.image_buttons[image_type])
