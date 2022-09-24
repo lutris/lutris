@@ -625,8 +625,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.move(int(self.window_x), int(self.window_y))
 
     def on_service_login(self, service):
-        AsyncCall(service.reload, None)
+        AsyncCall(service.reload, self._service_login_cb)
         return True
+
+    def _service_login_cb(self, _result, error):
+        if error:
+            dialogs.ErrorDialog(str(error), parent=self)
 
     def on_service_logout(self, service):
         if self.service and service.id == self.service.id:
