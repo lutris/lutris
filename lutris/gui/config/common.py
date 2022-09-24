@@ -495,7 +495,9 @@ class GameDialogCommon(ModelessDialog):
                 size = ICON_SIZE
                 file_format = "png"
             pixbuf = get_pixbuf(image_path, size)
-            pixbuf.savev(dest_path, file_format, [], [])
+            # JPEG encoding looks rather better at high quality;
+            # PNG encoding just ignores this option.
+            pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
             self._set_image(image_type)
 
             if image_type == "icon":
