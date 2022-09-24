@@ -152,17 +152,18 @@ class GameDialogCommon(ModelessDialog):
         label = Label("")
         banner_box.pack_start(label, False, False, 0)
 
-        self._create_image_button(banner_box, "coverart_big", _("Remove custom cover art"))
-        self._create_image_button(banner_box, "banner", _("Remove custom banner"))
-        self._create_image_button(banner_box, "icon", _("Remove custom icon"))
+        self._create_image_button(banner_box, "coverart_big", _("Set custom cover art"), _("Remove custom cover art"))
+        self._create_image_button(banner_box, "banner", _("Set custom banner"), _("Remove custom banner"))
+        self._create_image_button(banner_box, "icon", _("Set custom icon"), _("Remove custom icon"))
 
         return banner_box
 
-    def _create_image_button(self, banner_box, image_type, reset_tooltip):
+    def _create_image_button(self, banner_box, image_type, image_tooltip, reset_tooltip):
         """This adds an image button and its reset button to the box given,
         and adds the image button to self.image_buttons for future reference."""
         image_button = Gtk.Button()
         self._set_image(image_type, image_button)
+        image_button.set_tooltip_text(image_tooltip)
         image_button.connect("clicked", self.on_custom_image_select, image_type)
         image_button.set_valign(Gtk.Align.CENTER)
         banner_box.pack_start(image_button, False, False, 0)
