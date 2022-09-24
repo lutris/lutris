@@ -146,7 +146,7 @@ class ServiceSidebarRow(SidebarRow):
                 self.service.logout()
                 self.service.login()
             else:
-                ErrorDialog(str(error))
+                ErrorDialog(str(error), parent=self.get_toplevel())
         GLib.timeout_add(2000, self.enable_refresh_button)
 
     def enable_refresh_button(self):
