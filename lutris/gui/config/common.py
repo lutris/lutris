@@ -11,12 +11,12 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
-from lutris.gui.dialogs import ModelessDialog, DirectoryDialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import BANNER_SIZE, get_pixbuf
 from lutris.runners import import_runner
-from lutris.services.lutris import LutrisBanner, LutrisIcon
+from lutris.services.lutris import LutrisBanner, LutrisIcon, download_lutris_media
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -240,7 +240,10 @@ class GameDialogCommon(ModelessDialog):
         self.change_game_slug()
 
     def change_game_slug(self):
-        self.slug = self.slug_entry.get_text()
+        slug = self.slug_entry.get_text()
+        download_lutris_media(slug)
+
+        self.slug = slug
         self.slug_entry.set_sensitive(False)
         self._set_image("icon")
         self._set_image("banner")
