@@ -492,7 +492,7 @@ class GameDialogCommon(ModelessDialog):
             else:
                 self.game.has_custom_icon = True
                 dest_path = resources.get_icon_path(self.game.slug)
-                size = ICON_SIZE
+                size = (128, 128)  # Icons are saved at 128, 128 but displayed smaller
                 file_format = "png"
             pixbuf = get_pixbuf(image_path, size)
             # JPEG encoding looks rather better at high quality;
