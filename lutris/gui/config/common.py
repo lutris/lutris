@@ -14,7 +14,7 @@ from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import ModelessDialog, DirectoryDialog, ErrorDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
-from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf
+from lutris.gui.widgets.utils import BANNER_SIZE, get_pixbuf
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisIcon
 from lutris.util import resources, system
@@ -193,7 +193,7 @@ class GameDialogCommon(ModelessDialog):
     def _set_image(self, image_format):
         image = Gtk.Image()
         service_media = LutrisBanner() if image_format == "banner" else LutrisIcon()
-        game_slug = self.game.slug if self.game else ""
+        game_slug = self.slug or (self.game.slug if self.game else "")
         image.set_from_pixbuf(service_media.get_pixbuf_for_game(game_slug))
         if image_format == "banner":
             self.banner_button.set_image(image)
@@ -242,6 +242,8 @@ class GameDialogCommon(ModelessDialog):
     def change_game_slug(self):
         self.slug = self.slug_entry.get_text()
         self.slug_entry.set_sensitive(False)
+        self._set_image("icon")
+        self._set_image("banner")
         self.slug_change_button.set_label(_("Change"))
 
     def on_move_clicked(self, _button):
@@ -484,14 +486,15 @@ class GameDialogCommon(ModelessDialog):
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
             image_path = dialog.get_filename()
+            slug = self.slug or self.game.slug
             if image_type == "banner":
                 self.game.has_custom_banner = True
-                dest_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % self.game.slug)
+                dest_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % slug)
                 size = BANNER_SIZE
                 file_format = "jpeg"
             else:
                 self.game.has_custom_icon = True
-                dest_path = resources.get_icon_path(self.game.slug)
+                dest_path = resources.get_icon_path(slug)
                 size = (128, 128)  # Icons are saved at 128, 128 but displayed smaller
                 file_format = "png"
             pixbuf = get_pixbuf(image_path, size)
@@ -506,12 +509,13 @@ class GameDialogCommon(ModelessDialog):
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
+        slug = self.slug or self.game.slug
         if image_type == "banner":
             self.game.has_custom_banner = False
-            dest_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % self.game.slug)
+            dest_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % slug)
         elif image_type == "icon":
             self.game.has_custom_icon = False
-            dest_path = resources.get_icon_path(self.game.slug)
+            dest_path = resources.get_icon_path(slug)
         else:
             raise ValueError("Unsupported image type %s" % image_type)
         if os.path.isfile(dest_path):
