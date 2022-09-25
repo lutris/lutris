@@ -242,9 +242,9 @@ class GameDialogCommon(ModelessDialog):
         download_lutris_media(slug)
 
         self.slug = slug
+        for image_type, image_button in self.image_buttons.items():
+            self._set_image(image_type, image_button)
         self.slug_entry.set_sensitive(False)
-        self._set_image("icon")
-        self._set_image("banner")
         self.slug_change_button.set_label(_("Change"))
 
     def on_move_clicked(self, _button):
@@ -492,7 +492,7 @@ class GameDialogCommon(ModelessDialog):
             self.game.custom_images.add(image_type)
             dest_path = service_media.get_absolute_path(slug)
             file_format = service_media.file_format
-            size = service_media.size
+            size = service_media.custom_media_storage_size
             pixbuf = get_pixbuf(image_path, size)
             # JPEG encoding looks rather better at high quality;
             # PNG encoding just ignores this option.

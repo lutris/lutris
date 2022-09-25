@@ -45,6 +45,10 @@ class LutrisIcon(LutrisBanner):
     file_format = "png"
     api_field = 'icon_url'
 
+    @property
+    def custom_media_storage_size(self):
+        return (128, 128)
+
     def update_desktop(self):
         system.update_desktop_icons()
 
