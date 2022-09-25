@@ -92,8 +92,14 @@ class ServiceMedia:
             logger.error("Failed to download %s: %s", url, ex)
 
     @property
+    def custom_media_storage_size(self):
+        """The size this media is stored in when customized; we accept
+        whatever we get when we download the media, however."""
+        return self.size
+
+    @property
     def config_ui_size(self):
-        """This size this media should be shown at when in the configuration UI."""
+        """The size this media should be shown at when in the configuration UI."""
         return self.size
 
     def update_desktop(self):
