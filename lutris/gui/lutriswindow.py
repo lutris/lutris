@@ -440,7 +440,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 self.show_label(_("No games found"))
 
     def update_store(self, *_args, **_kwargs):
-        self.game_store.store.clear()
+        count = self.game_store.store.iter_n_children()
+        if count > 0:
+            self.redraw_view()
+            return False
         self.hide_overlay()
         games = self.get_games_from_filters()
         logger.debug("Showing %d games", len(games))
