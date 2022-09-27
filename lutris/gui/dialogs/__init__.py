@@ -496,6 +496,6 @@ class MoveDialog(Gtk.Dialog):
 
     def on_game_moved(self, _result, error):
         if error:
-            ErrorDialog(str(error))
+            ErrorDialog(str(error), parent=self)
         self.emit("game-moved")
         self.destroy()

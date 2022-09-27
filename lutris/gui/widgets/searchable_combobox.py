@@ -2,6 +2,7 @@
 # pylint: disable=unsubscriptable-object
 from gi.repository import GLib, GObject, Gtk
 
+from lutris.gui.dialogs import ErrorDialog
 from lutris.util.jobs import AsyncCall
 
 
@@ -64,7 +65,7 @@ class SearchableCombobox(Gtk.Bin):
         self.combobox.set_active_id(model[_iter][1])
 
     def _populate_combobox_choices(self, choice_func):
-        AsyncCall(self._do_populate_combobox_choices, None, choice_func)
+        AsyncCall(self._do_populate_combobox_choices, self._populate_combobox_choices_cb, choice_func)
 
     def _do_populate_combobox_choices(self, choice_func):
         for choice in choice_func():
@@ -72,6 +73,10 @@ class SearchableCombobox(Gtk.Bin):
         entry = self.combobox.get_child()
         entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, None)
         self.combobox.set_active_id(self.initial)
+
+    def _populate_combobox_choices_cb(self, _result, error):
+        if error:
+            ErrorDialog(str(error), parent=self.get_toplevel())
 
     @staticmethod
     def _on_combobox_scroll(combobox, _event):

@@ -688,7 +688,11 @@ class Game(GObject.Object):
         logger.info("Stopping %s", self)
 
         if self.game_thread:
-            jobs.AsyncCall(self.game_thread.stop, None)
+            def stop_cb(result, error):
+                if error:
+                    self.emit("game-error", error)
+
+            jobs.AsyncCall(self.game_thread.stop, stop_cb)
         self.stop_game()
 
     def on_game_quit(self):

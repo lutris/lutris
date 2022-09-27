@@ -63,7 +63,7 @@ def thread_safe_call(func):
 
 def _make_idle_safe(function):
     """Wrap a function in another, which just discards its result.
-    GLib.idle_add may call  the function again if it returns True,
+    GLib.idle_add may call the function again if it returns True,
     but this wrapper only returns false."""
     def discarding_result(*args, **kwargs):
         function(*args, **kwargs)

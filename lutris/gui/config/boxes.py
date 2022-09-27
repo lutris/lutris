@@ -9,6 +9,7 @@ from gi.repository import Gdk, Gtk
 
 # Lutris Modules
 from lutris import settings, sysoptions
+from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label, VBox
 from lutris.gui.widgets.searchable_combobox import SearchableCombobox
 from lutris.runners import InvalidRunner, import_runner
@@ -263,7 +264,11 @@ class ConfigBox(VBox):
         else:
             self.option_changed(widget, option_name, widget.get_active())
 
-    def _on_callback_finished(self, result, _error):
+    def _on_callback_finished(self, result, error):
+        if error:
+            ErrorDialog(str(error), parent=self.get_toplevel())
+            return
+
         widget, option, response = result
         if response:
             self.option_changed(widget, option["option"], widget.get_active())
