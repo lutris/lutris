@@ -11,7 +11,7 @@ from gi.repository import GLib, Gtk
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
-from lutris.gui.dialogs import ModelessDialog, Dialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import Dialog, ErrorDialog, ModelessDialog, QuestionDialog
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive

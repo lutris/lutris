@@ -20,7 +20,6 @@ class flatpak(Runner):
     human_name = _("Flatpak")
     runnable_alone = False
     system_options_override = [{"option": "disable_runtime", "default": True}]
-    # runner_executable = "flatpak"
     install_locations = {
         "system": "var/lib/flatpak/app/",
         "user": f"{Path.home()}/.local/share/flatpak/app/"
@@ -89,8 +88,7 @@ class flatpak(Runner):
     def is_installed(self):
         if shutil.which("flatpak-spawn"):
             return True
-        else:
-            return shutil.which("flatpak")
+        return bool(shutil.which("flatpak"))
 
     def get_executable(self):
         return shutil.which("flatpak-spawn") or shutil.which("flatpak")
@@ -111,9 +109,9 @@ class flatpak(Runner):
     def game_path(self):
         if shutil.which("flatpak-spawn"):
             return "/"
-        else:
-            install_type, application, arch, branch = (self.game_data[key] for key in
-                                                       ("install_type", "application", "arch", "branch"))
+        install_type, application, arch, branch = (
+            self.game_data[key] for key in ("install_type", "application", "arch", "branch")
+        )
         return os.path.join(self.install_locations[install_type], application, arch, branch)
 
     def remove_game_data(self, app_id=None, game_path=None, **kwargs):
