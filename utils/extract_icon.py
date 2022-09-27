@@ -1,7 +1,14 @@
 import struct
-import pefile
 from io import BytesIO
 from builtins import range
+
+try:
+    import pefile
+    PEFILE_AVAILABLE = True
+except ImportError:
+    pefile = None
+    PEFILE_AVAILABLE = False
+
 from PIL import Image
 
 # From https://github.com/firodj/extract-icon-py
