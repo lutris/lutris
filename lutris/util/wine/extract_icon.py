@@ -1,6 +1,5 @@
 import struct
 from io import BytesIO
-from builtins import range
 
 try:
     import pefile
@@ -26,10 +25,10 @@ class ExtractIcon(object):
     def __init__(self, filepath):
         self.pe = pefile.PE(filepath)
 
-    def find_resource_base(self, type):
+    def find_resource_base(self, res_type):
         rt_base_idx = [entry.id for
                        entry in self.pe.DIRECTORY_ENTRY_RESOURCE.entries].index(
-            pefile.RESOURCE_TYPE[type]
+            pefile.RESOURCE_TYPE[res_type]
         )
 
         if rt_base_idx is not None:
@@ -37,8 +36,8 @@ class ExtractIcon(object):
 
         return None
 
-    def find_resource(self, type, res_index):
-        rt_base_dir = self.find_resource_base(type)
+    def find_resource(self, res_type, res_index):
+        rt_base_dir = self.find_resource_base(res_type)
 
         if res_index < 0:
             try:
@@ -65,7 +64,7 @@ class ExtractIcon(object):
 
     def get_group_icons(self):
         rt_base_dir = self.find_resource_base('RT_GROUP_ICON')
-        groups = list()
+        groups = []
         for res_index in range(0, len(rt_base_dir.directory.entries)):
             grp_icon_dir_entry = self.find_resource('RT_GROUP_ICON', res_index)
 
@@ -84,8 +83,8 @@ class ExtractIcon(object):
                 continue
             offset = grp_icon_dir.sizeof()
 
-            entries = list()
-            for idx in range(0, grp_icon_dir.Count):
+            entries = []
+            for _idx in range(0, grp_icon_dir.Count):
                 grp_icon = pefile.Structure(self.GRPICONDIRENTRY_format, file_offset=file_offset + offset)
                 grp_icon.__unpack__(data[offset:])
                 offset += grp_icon.sizeof()
