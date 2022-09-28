@@ -458,7 +458,7 @@ class GameDialogCommon(ModelessDialog):
         runner = runner_class(self.lutris_config)
 
         # extract icon for wine games
-        if (self.runner_name == 'wine') and not self.game.has_custom_icon:
+        if self.runner_name == "wine" and "icon" not in self.game.custom_images:
             runner.extract_icon_exe(self.slug)
 
         self.game.name = name
