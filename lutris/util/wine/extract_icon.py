@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 import struct
 from io import BytesIO
 
