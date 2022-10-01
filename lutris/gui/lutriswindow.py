@@ -850,7 +850,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.emit("view-updated")
         return True
 
-    @watch_errors
+    @watch_errors()
     def on_game_activated(self, view, game_id):
         """Handles view activations (double click, enter press)"""
         if self.service:

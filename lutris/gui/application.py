@@ -607,19 +607,19 @@ class Application(Gtk.Application):
             self.quit_on_game_exit = False
         return 0
 
-    @watch_errors
+    @watch_errors(error_result=True)
     def on_game_launch(self, game):
         game.launch()
         return True  # Return True to continue handling the emission hook
 
-    @watch_errors
+    @watch_errors(error_result=True)
     def on_game_start(self, game):
         self.running_games.append(game)
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.hide()  # Hide launcher window
         return True
 
-    @watch_errors
+    @watch_errors()
     def on_game_stop(self, game):
         """Callback to remove the game from the running games"""
         ids = self.get_running_game_ids()
@@ -640,7 +640,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
         return True
 
-    @watch_errors
+    @watch_errors(error_result=True)
     def on_game_install(self, game):
         """Request installation of a game"""
         if game.service and game.service != "lutris":
@@ -669,7 +669,7 @@ class Application(Gtk.Application):
             ErrorDialog(_("There is no installer available for %s.") % game.name, parent=self.window)
         return True
 
-    @watch_errors
+    @watch_errors(error_result=True)
     def on_game_install_update(self, game):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")
@@ -680,7 +680,7 @@ class Application(Gtk.Application):
             ErrorDialog(_("No updates found"))
         return True
 
-    @watch_errors
+    @watch_errors(error_result=True)
     def on_game_install_dlc(self, game):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")
