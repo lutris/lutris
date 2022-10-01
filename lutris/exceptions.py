@@ -40,10 +40,8 @@ class UnavailableGame(Exception):
     """Raised when a game is available from a service"""
 
 
-class MultipleInstallerError(BaseException):
-
-    """Current implementation doesn't know how to deal with multiple installers
-    Raise this if a game returns more than 1 installer."""
+class UnavailableRunnerError(Exception):
+    """Raised when a runner is not installed or not installed fully."""
 
 
 def watch_lutris_errors(game_stop_result):

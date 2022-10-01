@@ -4,6 +4,7 @@ import subprocess
 from gettext import gettext as _
 
 from lutris.command import MonitoredCommand
+from lutris.exceptions import UnavailableRunnerError
 from lutris.runners import NonInstallableRunnerError
 from lutris.runners.runner import Runner
 from lutris.util import linux, system
@@ -252,7 +253,7 @@ class steam(Runner):
             acf_content = to_vdf(acf_data)
             steamapps_path = self.get_default_steamapps_path()
             if not steamapps_path:
-                raise RuntimeError("Could not find Steam path, is Steam installed?")
+                raise UnavailableRunnerError(_("Could not find Steam path, is Steam installed?"))
             acf_path = os.path.join(steamapps_path, "appmanifest_%s.acf" % appid)
             with open(acf_path, "w", encoding='utf-8') as acf_file:
                 acf_file.write(acf_content)
