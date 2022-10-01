@@ -301,9 +301,9 @@ class GOGService(OnlineService):
             response = self.make_api_request(downlink)
         except HTTPError as ex:
             logger.error("HTTP error: %s", ex)
-            raise UnavailableGame("The download of '%s' failed." % downlink) from ex
+            raise UnavailableGame(_("The download of '%s' failed.") % downlink) from ex
         if not response:
-            raise UnavailableGame("The download of '%s' failed." % downlink)
+            raise UnavailableGame(_("The download of '%s' failed.") % downlink)
         for field in ("checksum", "downlink"):
             field_url = response[field]
             parsed = urlparse(field_url)
@@ -431,7 +431,7 @@ class GOGService(OnlineService):
             _installer = gog_installers[0]
             return self.query_download_links(_installer)
         except HTTPError as err:
-            raise UnavailableGame("Couldn't load the download links for this game") from err
+            raise UnavailableGame(_("Couldn't load the download links for this game")) from err
 
     def get_patch_files(self, installer, installer_file_id):
         logger.debug("Getting patches for %s", installer.version)
@@ -477,14 +477,14 @@ class GOGService(OnlineService):
                 "checksum_url": installer_file.get("checksum_url")
             }))
         if not file_id_provided:
-            raise UnavailableGame("Unable to determine correct file to launch installer")
+            raise UnavailableGame(_("Unable to determine correct file to launch installer"))
         return files
 
     def get_installer_files(self, installer, installer_file_id):
         try:
             downloads = self.get_downloads(installer.service_appid)
         except HTTPError as err:
-            raise UnavailableGame("Couldn't load the downloads for this game") from err
+            raise UnavailableGame(_("Couldn't load the downloads for this game")) from err
         links = self._get_installer_links(installer, downloads)
         if links:
             files = self._format_links(installer, installer_file_id, links)

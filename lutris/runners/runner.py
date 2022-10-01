@@ -389,7 +389,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return self.download_and_extract(self.download_url, **opts)
         runner = self.get_runner_version(version)
         if not runner:
-            raise RunnerInstallationError("Failed to retrieve {} ({}) information".format(self.name, version))
+            raise RunnerInstallationError(_("Failed to retrieve {} ({}) information").format(self.name, version))
         if not downloader:
             raise RuntimeError("Missing mandatory downloader for runner %s" % self)
 
@@ -423,12 +423,12 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def extract(self, archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):
-            raise RunnerInstallationError("Failed to extract {}".format(archive))
+            raise RunnerInstallationError(_("Failed to extract {}").format(archive))
         try:
             extract_archive(archive, dest, merge_single=merge_single)
         except ExtractFailure as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
-            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex)) from ex
+            raise RunnerInstallationError(_("Failed to extract {}: {}").format(archive, ex)) from ex
         os.remove(archive)
 
         if self.name == "wine":
