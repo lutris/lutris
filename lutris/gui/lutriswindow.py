@@ -9,6 +9,7 @@ from lutris import services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
+from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
@@ -849,6 +850,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.emit("view-updated")
         return True
 
+    @watch_errors
     def on_game_activated(self, view, game_id):
         """Handles view activations (double click, enter press)"""
         if self.service:
@@ -874,3 +876,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 game.emit("game-launch")
             else:
                 game.emit("game-install")
+
+    def on_watched_error(self, error):
+        dialogs.ErrorDialog(str(error), parent=self)
