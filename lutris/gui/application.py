@@ -34,6 +34,7 @@ from gi.repository import Gio, GLib, Gtk, GObject
 from lutris.runners import get_runner_names, import_runner, InvalidRunner, RunnerInstallationError
 from lutris import settings
 from lutris.api import parse_installer_url, get_runners
+from lutris.exceptions import watch_errors
 from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game, export_game, import_game
@@ -598,7 +599,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
             game = Game(db_game["id"])
-            self.on_game_launch(game)
+            game.launch()
         else:
             Application.show_update_runtime_dialog()
             self.window.present()
@@ -606,16 +607,40 @@ class Application(Gtk.Application):
             self.quit_on_game_exit = False
         return 0
 
+    @watch_errors
     def on_game_launch(self, game):
         game.launch()
         return True  # Return True to continue handling the emission hook
 
+    @watch_errors
     def on_game_start(self, game):
         self.running_games.append(game)
         if settings.read_setting("hide_client_on_game_start") == "True":
             self.window.hide()  # Hide launcher window
         return True
 
+    @watch_errors
+    def on_game_stop(self, game):
+        """Callback to remove the game from the running games"""
+        ids = self.get_running_game_ids()
+        if str(game.id) in ids:
+            try:
+                self.running_games.remove(ids.index(str(game.id)))
+            except ValueError:
+                pass
+        else:
+            logger.warning("%s not in %s", game.id, ids)
+
+        game.emit("game-stopped")
+        if settings.read_setting("hide_client_on_game_start") == "True" and not self.quit_on_game_exit:
+            self.window.show()  # Show launcher window
+        elif not self.window.is_visible():
+            if self.running_games.get_n_items() == 0:
+                if self.quit_on_game_exit or not self.has_tray_icon():
+                    self.do_shutdown()
+        return True
+
+    @watch_errors
     def on_game_install(self, game):
         """Request installation of a game"""
         if game.service and game.service != "lutris":
@@ -644,6 +669,7 @@ class Application(Gtk.Application):
             ErrorDialog(_("There is no installer available for %s.") % game.name, parent=self.window)
         return True
 
+    @watch_errors
     def on_game_install_update(self, game):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")
@@ -654,6 +680,7 @@ class Application(Gtk.Application):
             ErrorDialog(_("No updates found"))
         return True
 
+    @watch_errors
     def on_game_install_dlc(self, game):
         service = get_enabled_services()[game.service]()
         db_game = games_db.get_game_by_field(game.id, "id")
@@ -678,25 +705,9 @@ class Application(Gtk.Application):
                 return game
         return None
 
-    def on_game_stop(self, game):
-        """Callback to remove the game from the running games"""
-        ids = self.get_running_game_ids()
-        if str(game.id) in ids:
-            try:
-                self.running_games.remove(ids.index(str(game.id)))
-            except ValueError:
-                pass
-        else:
-            logger.warning("%s not in %s", game.id, ids)
-
-        game.emit("game-stopped")
-        if settings.read_setting("hide_client_on_game_start") == "True" and not self.quit_on_game_exit:
-            self.window.show()  # Show launcher window
-        elif not self.window.is_visible():
-            if self.running_games.get_n_items() == 0:
-                if self.quit_on_game_exit or not self.has_tray_icon():
-                    self.do_shutdown()
-        return True
+    def on_watched_error(self, error):
+        if self.window:
+            ErrorDialog(str(error), parent=self.window)
 
     @staticmethod
     def get_lutris_action(url):
@@ -822,7 +833,6 @@ class Application(Gtk.Application):
         if os.path.isdir(runner_path):
             print(f"Wine version '{version}' is already installed.")
         else:
-
             try:
                 runner = import_runner("wine")
                 runner().install(downloader=simple_downloader, version=version)

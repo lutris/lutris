@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, watch_lutris_errors
+from lutris.exceptions import GameConfigError, watch_game_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
@@ -455,7 +455,7 @@ class Game(GObject.Object):
 
         return gameplay_info
 
-    @watch_lutris_errors(game_stop_result=False)
+    @watch_game_errors(game_stop_result=False)
     def configure_game(self, _ignored, error=None):  # noqa: C901
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
@@ -518,7 +518,7 @@ class Game(GObject.Object):
         self.start_game()
         return True
 
-    @watch_lutris_errors(game_stop_result=False)
+    @watch_game_errors(game_stop_result=False)
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
         if not self.is_launchable():
@@ -658,7 +658,7 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
-    @watch_lutris_errors(game_stop_result=False)
+    @watch_game_errors(game_stop_result=False)
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
