@@ -7,7 +7,7 @@ from gi.repository import GLib, Gtk
 from lutris.config import LutrisConfig
 from lutris.exceptions import UnavailableGame
 from lutris.game import Game
-from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, QuestionDialog
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
@@ -150,17 +150,16 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         If the installed game depends on another one and it's not installed,
         prompt the user to install it and quit this installer.
         """
-        self.clean_widgets()
         try:
             script = None
             for _script in self.installers:
                 if _script["version"] == installer_version:
                     script = _script
             self.interpreter = interpreter.ScriptInterpreter(script, self)
-
         except MissingGameDependency as ex:
             dlg = QuestionDialog(
                 {
+                    "parent": self,
                     "question": _("This game requires %s. Do you want to install it?") % ex.slug,
                     "title": _("Missing dependency"),
                 }
@@ -172,8 +171,13 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                     appid=self.appid,
                     application=self.application,
                 )
-            self.destroy()
+                self.destroy()
             return
+        except Exception as ex:
+            ErrorDialog(str(ex), parent=self)
+            return
+
+        self.clean_widgets()
         self.title_label.set_markup(_("<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
         self.select_install_folder()
 
