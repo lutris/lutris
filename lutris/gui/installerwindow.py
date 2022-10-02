@@ -237,10 +237,23 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.install_button.hide()
         self.source_button.hide()
         self.interpreter.connect("runners-installed", self.on_runners_ready)
-        GLib.idle_add(self.interpreter.launch_install)
+        GLib.idle_add(self.launch_install)
+
+    @watch_errors()
+    def launch_install(self):
+        # This is a shim method to allow exceptions from
+        # the interpret to be reported via watch_errors().
+        self.interpreter.launch_install()
 
     def ask_for_disc(self, message, callback, requires):
         """Ask the user to do insert a CD-ROM."""
+
+        def wrapped_callback(*args, **kwargs):
+            try:
+                callback(*args, **kwargs)
+            except Exception as err:
+                ErrorDialog(str(err), parent=self)
+
         self.clean_widgets()
         label = InstallerLabel(message)
         label.show()
@@ -253,13 +266,13 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.widget_box.add(buttons_box)
 
         autodetect_button = Gtk.Button(label=_("Autodetect"))
-        autodetect_button.connect("clicked", callback, requires)
+        autodetect_button.connect("clicked", wrapped_callback, requires)
         autodetect_button.grab_focus()
         autodetect_button.show()
         buttons_box.pack_start(autodetect_button, True, True, 40)
 
         browse_button = Gtk.Button(label=_("Browse…"))
-        callback_data = {"callback": callback, "requires": requires}
+        callback_data = {"callback": wrapped_callback, "requires": requires}
         browse_button.connect("clicked", self.on_browse_clicked, callback_data)
         browse_button.show()
         buttons_box.pack_start(browse_button, True, True, 40)
