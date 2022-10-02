@@ -547,14 +547,14 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 self.interpreter.cleanup()
             self.destroy()
 
-    def on_create_desktop_shortcut_clicked(self, _widget):
-        self.config["create_desktop_shortcut"] = True
+    def on_create_desktop_shortcut_clicked(self, checkbutton):
+        self.config["create_desktop_shortcut"] = checkbutton.get_active()
 
-    def on_create_menu_shortcut_clicked(self, _widget):
-        self.config["create_menu_shortcut"] = True
+    def on_create_menu_shortcut_clicked(self, checkbutton):
+        self.config["create_menu_shortcut"] = checkbutton.get_active()
 
-    def on_create_steam_shortcut_clicked(self, _widget):
-        self.config["create_steam_shortcut"] = True
+    def on_create_steam_shortcut_clicked(self, checkbutton):
+        self.config["create_steam_shortcut"] = checkbutton.get_active()
 
     def create_shortcut(self, desktop=False):
         """Create desktop or global menu shortcuts."""
