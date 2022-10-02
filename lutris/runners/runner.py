@@ -38,10 +38,13 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.config = config
         if config:
+            self.has_explicit_config = True
+            self._config = config
             self.game_data = get_game_by_field(self.config.game_config_id, "configpath")
         else:
+            self.has_explicit_config = False
+            self._config = None
             self.game_data = {}
 
     def __lt__(self, other):
@@ -62,30 +65,33 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.__class__.__name__
 
     @property
-    def default_config(self):
-        return LutrisConfig(runner_slug=self.name)
+    def config(self):
+        if not self._config:
+            self._config = LutrisConfig(runner_slug=self.name)
+        return self._config
+
+    @config.setter
+    def config(self, new_config):
+        self._config = new_config
+        self.has_explicit_config = new_config is not None
 
     @property
     def game_config(self):
+        if not self.has_explicit_config:
+            logger.warning("Accessing game config while runner wasn't given one.")
+
         """Return the cascaded game config as a dict."""
-        if self.config:
-            return self.config.game_config
-        logger.warning("Accessing game config while runner wasn't given one.")
-        return {}
+        return self.config.game_config
 
     @property
     def runner_config(self):
         """Return the cascaded runner config as a dict."""
-        if self.config:
-            return self.config.runner_config
-        return self.default_config.runner_config
+        return self.config.runner_config
 
     @property
     def system_config(self):
         """Return the cascaded system config as a dict."""
-        if self.config:
-            return self.config.system_config
-        return self.default_config.system_config
+        return self.config.system_config
 
     @property
     def default_path(self):
@@ -99,10 +105,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         if game_path:
             return game_path
 
-        # Default to the directory where the entry point is located.
-        entry_point = self.game_config.get(self.entry_point_option)
-        if entry_point:
-            return os.path.dirname(os.path.expanduser(entry_point))
+        if self.has_explicit_config:
+            # Default to the directory where the entry point is located.
+            entry_point = self.game_config.get(self.entry_point_option)
+            if entry_point:
+                return os.path.dirname(os.path.expanduser(entry_point))
         return ""
 
     def resolve_game_path(self):

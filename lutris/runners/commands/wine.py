@@ -6,7 +6,6 @@ import time
 
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
-from lutris.config import LutrisConfig
 from lutris.runners import import_runner
 from lutris.util import linux, system
 from lutris.util.log import logger
@@ -246,8 +245,7 @@ def wineexec(  # noqa: C901
         exclude_processes = shlex.split(exclude_processes)
 
     if not runner:
-        runner_config = config or LutrisConfig(runner_slug="wine")
-        runner = import_runner("wine")(runner_config)
+        runner = import_runner("wine")()
 
     if not wine_path:
         wine_path = runner.get_executable()
