@@ -1,6 +1,7 @@
 """Base module for runners"""
 import os
 import signal
+
 from gettext import gettext as _
 
 from gi.repository import Gtk
@@ -41,7 +42,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if config:
             self.has_explicit_config = True
             self._config = config
-            self.game_data = get_game_by_field(self.config.game_config_id, "configpath")
+            self.game_data = get_game_by_field(config.game_config_id, "configpath")
         else:
             self.has_explicit_config = False
             self._config = None
@@ -77,10 +78,10 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     @property
     def game_config(self):
+        """Return the cascaded game config as a dict."""
         if not self.has_explicit_config:
             logger.warning("Accessing game config while runner wasn't given one.")
 
-        """Return the cascaded game config as a dict."""
         return self.config.game_config
 
     @property
