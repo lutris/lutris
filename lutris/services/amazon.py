@@ -12,7 +12,7 @@ from gettext import gettext as _
 from urllib.parse import parse_qs, urlencode, urlparse
 
 from lutris import settings
-from lutris.exceptions import AuthenticationError, UnavailableGame
+from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -436,7 +436,7 @@ class AmazonService(OnlineService):
 
         if not response:
             logger.error("There was an error getting game manifest: %s", game_id)
-            raise UnavailableGame(_(
+            raise UnavailableGameError(_(
                 "Unable to get game manifest info, please check your Amazon credentials and internet connectivity"))
 
         return response
@@ -455,7 +455,7 @@ class AmazonService(OnlineService):
             request.get()
         except HTTPError as ex:
             logger.error("Failed http request %s", url)
-            raise UnavailableGame(_(
+            raise UnavailableGameError(_(
                 "Unable to get game manifest, please check your Amazon credentials and internet connectivity")) from ex
 
         content = request.content
@@ -471,7 +471,7 @@ class AmazonService(OnlineService):
             raw_manifest = lzma.decompress(content[4 + header_size:])
         else:
             logger.error("Unknown compression algorithm found in manifest")
-            raise UnavailableGame(_(
+            raise UnavailableGameError(_(
                 "Unknown compression algorithm found in manifest, "
                 "please check your Amazon credentials and internet connectivity"))
 
@@ -502,7 +502,7 @@ class AmazonService(OnlineService):
 
         if not response:
             logger.error("There was an error getting patches: %s", game_id)
-            raise UnavailableGame(_(
+            raise UnavailableGameError(_(
                 "Unable to get the patches of game, "
                 "please check your Amazon credentials and internet connectivity"), game_id)
 
@@ -561,7 +561,7 @@ class AmazonService(OnlineService):
             request.get()
         except HTTPError as ex:
             logger.error("Failed http request %s", fuel_url)
-            raise UnavailableGame(_(
+            raise UnavailableGameError(_(
                 "Unable to get fuel.json file, please check your Amazon credentials and internet connectivity")) from ex
 
         res_json = request.json

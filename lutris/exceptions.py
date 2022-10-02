@@ -19,7 +19,7 @@ class GameConfigError(LutrisError):
     """
 
 
-class UnavailableLibraries(RuntimeError):
+class UnavailableLibrariesError(RuntimeError):
 
     def __init__(self, libraries, arch=None):
         message = _(
@@ -36,7 +36,7 @@ class AuthenticationError(Exception):
     """Raised when authentication to a service fails"""
 
 
-class UnavailableGame(Exception):
+class UnavailableGameError(Exception):
     """Raised when a game is available from a service"""
 
 

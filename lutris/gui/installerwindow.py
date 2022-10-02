@@ -5,7 +5,7 @@ from gettext import gettext as _
 from gi.repository import GLib, Gtk
 
 from lutris.config import LutrisConfig
-from lutris.exceptions import UnavailableGame
+from lutris.exceptions import UnavailableGameError
 from lutris.game import Game
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, QuestionDialog
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
@@ -311,7 +311,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         try:
             patch_version = self.interpreter.installer.version if self.is_update else None
             self.interpreter.installer.prepare_game_files(patch_version)
-        except UnavailableGame as ex:
+        except UnavailableGameError as ex:
             raise ScriptingError(str(ex)) from ex
 
         if not self.interpreter.installer.files:

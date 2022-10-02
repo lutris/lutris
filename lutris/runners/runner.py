@@ -9,7 +9,7 @@ from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import UnavailableLibraries
+from lutris.exceptions import UnavailableLibrariesError
 from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import system
@@ -253,7 +253,7 @@ class Runner:  # pylint: disable=too-many-public-methods
                     available_libs.add(lib)
         unavailable_libs = set(self.require_libs) - available_libs
         if unavailable_libs:
-            raise UnavailableLibraries(unavailable_libs, self.arch)
+            raise UnavailableLibrariesError(unavailable_libs, self.arch)
 
     def get_run_data(self):
         """Return dict with command (exe & args list) and env vars (dict).
