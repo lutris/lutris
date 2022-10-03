@@ -14,7 +14,7 @@ from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
-from lutris.installer import interpreter
+from lutris.installer import get_installers, interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
@@ -167,13 +167,8 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 }
             )
             if dlg.result == Gtk.ResponseType.YES:
-                InstallerWindow(
-                    installers=self.installers,
-                    service=self.service,
-                    appid=self.appid,
-                    application=self.application,
-                )
-                self.destroy()
+                installers = get_installers(game_slug=ex.slug)
+                self.application.show_installer_window(installers)
             return
 
         self.clean_widgets()
