@@ -427,6 +427,7 @@ class CommandsMixin:
             if task_name in ("wineexec", "winetricks", "winecfg", "winekill"):
                 config = LutrisConfig(runner_slug=self.installer.runner)
                 config.game_config["exe"] = data.get("executable")
+                config.game_config["working_dir"] = data.get("working_dir")
                 config.game_config["prefix"] = data["prefix"]
                 data["env"] = self.script_env
                 data["config"] = config
