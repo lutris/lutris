@@ -13,7 +13,6 @@ from gi.repository import GLib
 from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
-from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
@@ -414,7 +413,6 @@ class CommandsMixin:
             return_code = "0"
 
         if runner_name.startswith("wine"):
-            data = dict(data)
             wine_path = self.get_wine_path()
             if wine_path:
                 data["wine_path"] = wine_path
@@ -424,24 +422,18 @@ class CommandsMixin:
             data["arch"] = data.get("arch") \
                 or self.installer.script.get("game", {}).get("arch") \
                 or WINE_DEFAULT_ARCH
-            if task_name in ("wineexec", "winetricks", "winecfg", "winekill"):
-                config = LutrisConfig(runner_slug=self.installer.runner)
-                config.game_config["exe"] = data.get("executable")
-                config.game_config["prefix"] = data["prefix"]
+            if task_name == "wineexec":
                 data["env"] = self.script_env
-                data["config"] = config
 
         for key in data:
             value = data[key]
             if isinstance(value, dict):
                 for inner_key in value:
-                    raw_value = value[inner_key]
-                    if isinstance(raw_value, str):
-                        value[inner_key] = self._substitute(raw_value)
+                    value[inner_key] = self._substitute(value[inner_key])
             elif isinstance(value, list):
                 for index, elem in enumerate(value):
                     value[index] = self._substitute(elem)
-            elif isinstance(value, str):
+            else:
                 value = self._substitute(data[key])
             data[key] = value
 

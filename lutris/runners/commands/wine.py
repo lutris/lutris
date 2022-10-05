@@ -155,14 +155,14 @@ def create_prefix(  # noqa: C901
     prefix_manager.setup_defaults()
 
 
-def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, initial_pids=None, config=None, env=None, runner=None):
+def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path=None, env=None, initial_pids=None, runner=None):
     """Kill processes in Wine prefix."""
 
     initial_pids = initial_pids or []
 
     if not wine_path:
         if not runner:
-            runner = import_runner("wine")(config)
+            runner = import_runner("wine")()
         wine_path = runner.get_executable()
     wine_root = os.path.dirname(wine_path)
     if not env:
