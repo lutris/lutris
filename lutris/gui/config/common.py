@@ -252,7 +252,7 @@ class GameDialogCommon(ModelessDialog):
                                        default_path=self.game.directory, parent=self)
         if not new_location.folder or new_location.folder == self.game.directory:
             return
-        move_dialog = dialogs.MoveDialog(self.game, new_location.folder)
+        move_dialog = dialogs.MoveDialog(self.game, new_location.folder, parent=self)
         move_dialog.connect("game-moved", self.on_game_moved)
         move_dialog.move()
 

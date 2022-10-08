@@ -467,13 +467,13 @@ class WineNotInstalledWarning(DontShowAgainDialog):
         )
 
 
-class MoveDialog(Gtk.Dialog):
+class MoveDialog(ModelessDialog):
     __gsignals__ = {
         "game-moved": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, game, destination):
-        super().__init__()
+    def __init__(self, game, destination, parent=None):
+        super().__init__(parent=parent)
 
         self.game = game
         self.destination = destination
