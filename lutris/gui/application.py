@@ -613,7 +613,7 @@ class Application(Gtk.Application):
 
     @watch_errors(error_result=True)
     def on_game_launch(self, game):
-        game.launch()
+        game.launch(parent=self.window)
         return True  # Return True to continue handling the emission hook
 
     @watch_errors(error_result=True)

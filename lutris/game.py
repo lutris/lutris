@@ -316,7 +316,7 @@ class Game(GObject.Object):
         )
         self.emit("game-updated")
 
-    def is_launchable(self):
+    def is_launchable(self, parent=None):
         """Verify that the current game can be launched."""
         if not self.is_installed:
             logger.error("%s (%s) not installed", self, self.id)
@@ -324,7 +324,7 @@ class Game(GObject.Object):
         if not self.runner:
             raise GameConfigError(_("Invalid game configuration: Missing runner"))
         if not self.runner.is_installed():
-            installed = self.runner.install_dialog()
+            installed = self.runner.install_dialog(parent=parent)
             if not installed:
                 return False
 
@@ -333,7 +333,7 @@ class Game(GObject.Object):
             if runtime_updater.is_updating():
                 self.emit("game-notice", _("Runtime currently updating"), _("Game might not work as expected"))
         if ("wine" in self.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
-            dialogs.WineNotInstalledWarning(parent=None)
+            dialogs.WineNotInstalledWarning(parent=parent)
         return True
 
     def restrict_to_display(self, display):
@@ -423,7 +423,7 @@ class Game(GObject.Object):
         if killswitch and system.path_exists(self.killswitch):
             return killswitch
 
-    def get_gameplay_info(self):
+    def get_gameplay_info(self, parent=None):
         """Return the information provided by a runner's play method.
         Checks for possible errors; raises exceptions if they occur.
         This can show a dialog to ask the user to select a configuration;
@@ -437,7 +437,7 @@ class Game(GObject.Object):
 
         if self.config.game_level.get("game", {}).get("launch_configs"):
             configs = self.config.game_level["game"]["launch_configs"]
-            dlg = dialogs.LaunchConfigSelectDialog(self, configs)
+            dlg = dialogs.LaunchConfigSelectDialog(self, configs, parent=parent)
             if not dlg.confirmed:
                 return {}  # no error here- the user cancelled out
 
@@ -456,13 +456,13 @@ class Game(GObject.Object):
         return gameplay_info
 
     @watch_game_errors(game_stop_result=False)
-    def configure_game(self, _ignored, error=None):  # noqa: C901
+    def configure_game(self, error, parent=None):
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
         if error:
             raise error
-        gameplay_info = self.get_gameplay_info()
+        gameplay_info = self.get_gameplay_info(parent=parent)
         if not gameplay_info:  # if user cancelled- not an error
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
@@ -519,9 +519,9 @@ class Game(GObject.Object):
         return True
 
     @watch_game_errors(game_stop_result=False)
-    def launch(self):
+    def launch(self, parent=None):
         """Request launching a game. The game may not be installed yet."""
-        if not self.is_launchable():
+        if not self.is_launchable(parent=parent):
             logger.error("Game is not launchable")
             return False
 
@@ -538,7 +538,8 @@ class Game(GObject.Object):
         self.prelaunch_pids = system.get_running_pid_list()
 
         self.emit("game-start")
-        jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
+        jobs.AsyncCall(self.runner.prelaunch,
+            lambda _ignored, error: self.configure_game(error, parent=parent))
         return True
 
     def start_game(self):
@@ -770,9 +771,9 @@ class Game(GObject.Object):
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
                 raise RuntimeError(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
-    def write_script(self, script_path):
+    def write_script(self, script_path, parent=None):
         """Output the launch argument in a bash script"""
-        gameplay_info = self.get_gameplay_info()
+        gameplay_info = self.get_gameplay_info(parent=parent)
         if not gameplay_info:
             # User cancelled; errors are raised as exceptions instead of this
             return

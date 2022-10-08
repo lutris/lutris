@@ -301,13 +301,14 @@ class Runner:  # pylint: disable=too-many-public-methods
             return False
         return True
 
-    def install_dialog(self):
+    def install_dialog(self, parent=None):
         """Ask the user if they want to install the runner.
 
         Return success of runner installation.
         """
         dialog = dialogs.QuestionDialog(
             {
+                "parent": parent,
                 "question": _("The required runner is not installed.\n"
                               "Do you wish to install it now?"),
                 "title": _("Required runner unavailable"),
