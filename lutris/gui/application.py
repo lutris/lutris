@@ -863,16 +863,15 @@ Also, check that the version specified is in the correct format.
         install the runner provided in prepare_runner_cli()
         """
 
-        runner_path = os.path.join(settings.RUNNER_DIR, runner_name)
-        if os.path.isdir(runner_path):
-            print(f"'{runner_name}' is already installed.")
-        else:
-            try:
-                runner = import_runner(runner_name)
-                runner().install(version=None, downloader=simple_downloader, callback=None)
+        try:
+            runner = import_runner(runner_name)()
+            if runner.is_installed():
+                print(f"'{runner_name}' is already installed.")
+            else:
+                runner.install(version=None, downloader=simple_downloader, callback=None)
                 print(f"'{runner_name}' has been installed")
-            except (InvalidRunner, RunnerInstallationError) as ex:
-                print(ex.message)
+        except (InvalidRunner, RunnerInstallationError) as ex:
+            print(ex.message)
 
     def uninstall_runner_cli(self, runner_name):
         """

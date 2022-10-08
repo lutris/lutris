@@ -66,6 +66,10 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.__class__.__name__
 
     @property
+    def directory(self):
+        return os.path.join(settings.RUNNER_DIR, self.name)
+
+    @property
     def config(self):
         if not self._config:
             self._config = LutrisConfig(runner_slug=self.name)
@@ -393,7 +397,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         )
         opts = {"downloader": downloader, "callback": callback}
         if self.download_url:
-            opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name)
+            opts["dest"] = self.directory
             return self.download_and_extract(self.download_url, **opts)
         runner = self.get_runner_version(version)
         if not runner:
@@ -404,7 +408,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(
-                settings.RUNNER_DIR, self.name, "{}-{}".format(runner["version"], runner["architecture"])
+                self.directory, "{}-{}".format(runner["version"], runner["architecture"])
             )
 
         if self.name == "libretro" and version:
@@ -456,11 +460,10 @@ class Runner:  # pylint: disable=too-many-public-methods
         system.remove_folder(game_path)
 
     def can_uninstall(self):
-        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
-        return os.path.isdir(runner_path)
+        return os.path.isdir(self.directory)
 
     def uninstall(self):
-        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
+        runner_path = self.directory
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
 

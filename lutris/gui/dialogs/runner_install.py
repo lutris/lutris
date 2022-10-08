@@ -60,6 +60,7 @@ class RunnerInstallDialog(ModelessDialog):
         super().__init__(title, parent, 0)
         self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.runner_name = runner.name
+        self.runner_directory = runner.directory
         self.runner_info = {}
         self.installing = {}
         self.set_default_size(640, 480)
@@ -250,18 +251,17 @@ class RunnerInstallDialog(ModelessDialog):
 
     def get_installed_versions(self):
         """List versions available locally"""
-        runner_path = os.path.join(settings.RUNNER_DIR, self.runner_name)
-        if not os.path.exists(runner_path):
+        if not os.path.exists(self.runner_directory):
             return set()
         return {
             tuple(p.rsplit("-", 1))
-            for p in os.listdir(runner_path)
+            for p in os.listdir(self.runner_directory)
             if "-" in p
         }
 
     def get_runner_path(self, version, arch):
         """Return the local path where the runner is/will be installed"""
-        return os.path.join(settings.RUNNER_DIR, self.runner_name, "{}-{}".format(version, arch))
+        return os.path.join(self.runner_directory, "{}-{}".format(version, arch))
 
     def get_dest_path(self, row):
         """Return temporary path where the runners should be downloaded to"""

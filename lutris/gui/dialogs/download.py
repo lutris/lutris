@@ -5,6 +5,7 @@ from gi.repository import Gtk
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.gui.dialogs import ModalDialog
 
+
 class DownloadDialog(ModalDialog):
     """Dialog showing a download in progress."""
 
