@@ -566,7 +566,7 @@ class Application(Gtk.Application):
                 # Game found but no action provided, ask what to do
                 dlg = InstallOrPlayDialog(db_game["name"])
                 if not dlg.action:
-                    action = None
+                    action = "cancel"
                 elif dlg.action == "play":
                     action = "rungame"
                 elif dlg.action == "install":
@@ -583,7 +583,7 @@ class Application(Gtk.Application):
                 service.install(service_game)
                 return 0
 
-        if not action:  # None when user cancels dialog
+        if action == "cancel":
             if not self.window.is_visible():
                 self.do_shutdown()
             return 0
