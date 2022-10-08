@@ -587,7 +587,8 @@ class Application(Gtk.Application):
             if not self.window.is_visible():
                 self.do_shutdown()
             return 0
-        elif action == "install":
+
+        if action == "install":
             installers = get_installers(
                 game_slug=game_slug,
                 installer_file=installer_file,

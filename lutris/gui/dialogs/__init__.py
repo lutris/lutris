@@ -264,13 +264,13 @@ class InstallOrPlayDialog(ModalDialog):
 
     def __init__(self, game_name, parent=None):
         super().__init__(title=_("%s is already installed") % game_name, parent=parent, border_width=12)
-        self.connect("delete-event", lambda *x: self.destroy())
         self.action = "play"
         self.action_confirmed = False
 
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
         self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.connect("response", self.on_response)
+
         self.set_size_request(320, 120)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
@@ -296,12 +296,16 @@ class InstallOrPlayDialog(ModalDialog):
         self.destroy()
 
 
-class LaunchConfigSelectDialog(Gtk.Dialog):
-    def __init__(self, game, configs):
-        Gtk.Dialog.__init__(self, _("Select game to launch"))
-        self.connect("delete-event", lambda *x: self.destroy())
+class LaunchConfigSelectDialog(ModalDialog):
+    def __init__(self, game, configs, parent=None):
+        super().__init__(title=_("Select game to launch"), parent=parent)
         self.config_index = 0
         self.confirmed = False
+
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.connect("response", self.on_response)
+
         self.set_size_request(320, 120)
         self.set_border_width(12)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
@@ -316,29 +320,14 @@ class LaunchConfigSelectDialog(Gtk.Dialog):
             _button.connect("toggled", self.on_button_toggled, i + 1)
             vbox.pack_start(_button, False, False, 0)
 
-        button_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 6)
-        button_box.set_halign(Gtk.Align.END)
-        cancel_button = Gtk.Button(_("Cancel"))
-        cancel_button.connect("clicked", self.on_cancel)
-        button_box.pack_start(cancel_button, False, False, 0)
-
-        confirm_button = Gtk.Button(_("OK"))
-        confirm_button.connect("clicked", self.on_confirm)
-        button_box.pack_start(confirm_button, False, False, 0)
-        vbox.pack_start(button_box, False, False, 0)
-
         self.show_all()
         self.run()
 
     def on_button_toggled(self, _button, index):
         self.config_index = index
 
-    def on_cancel(self, _button):
-        self.confirmed = False
-        self.destroy()
-
-    def on_confirm(self, _button):
-        self.confirmed = True
+    def on_response(self, _widget, response):
+        self.confirmed = response == Gtk.ResponseType.OK
         self.destroy()
 
 
