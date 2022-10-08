@@ -112,7 +112,7 @@ def check_libs(all_components=False):
                     missing_vulkan_libs.append(arch)
                 logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
 
-    if missing_vulkan_libs:
+    if not missing_vulkan_libs:
         setting = "dismiss-missing-vulkan-library-warning"
         if settings.read_setting(setting) != "True":
             DontShowAgainDialog(

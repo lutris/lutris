@@ -427,7 +427,7 @@ class DontShowAgainDialog(Gtk.MessageDialog):
 
         super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
 
-        self.set_border_width(12)
+        self.set_default_response(Gtk.ResponseType.OK)
         self.set_markup("<b>%s</b>" % message)
         if secondary_message:
             self.props.secondary_use_markup = True
