@@ -177,17 +177,21 @@ class RunnerInstallDialog(ModelessDialog):
         row.install_progress.set_visible(False)
         row.chk_installed.set_active(row.runner[self.COL_INSTALLED])
         button = row.install_uninstall_cancel_button
+        style_context = button.get_style_context()
         if row.handler_id is not None:
             button.disconnect(row.handler_id)
             row.handler_id = None
         if row.runner[self.COL_VER] in self.installing:
+            style_context.remove_class("destructive-action")
             button.set_label(_("Cancel"))
             handler_id = button.connect("clicked", self.on_cancel_install, row)
         else:
             if row.runner[self.COL_INSTALLED]:
+                style_context.add_class("destructive-action")
                 button.set_label(_("Uninstall"))
                 handler_id = button.connect("clicked", self.on_uninstall_runner, row)
             else:
+                style_context.remove_class("destructive-action")
                 button.set_label(_("Install"))
                 handler_id = button.connect("clicked", self.on_install_runner, row)
 
