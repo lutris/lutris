@@ -378,14 +378,17 @@ class ClientLoginDialog(GtkBuilderDialog):
             self.dialog.destroy()
 
 
-class InstallerSourceDialog(Gtk.Dialog):
+class InstallerSourceDialog(ModelessDialog):
 
     """Show install script source"""
 
     def __init__(self, code, name, parent):
-        Gtk.Dialog.__init__(self, _("Install script for {}").format(name), parent=parent)
+        super().__init__(title=_("Install script for {}").format(name), parent=parent, border_width=0)
         self.set_size_request(500, 350)
-        self.set_border_width(0)
+
+        ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        ok_button.set_border_width(10)
+        self.connect("response", self.on_response)
 
         self.scrolled_window = Gtk.ScrolledWindow()
         self.scrolled_window.set_hexpand(True)
@@ -399,13 +402,9 @@ class InstallerSourceDialog(Gtk.Dialog):
         self.get_content_area().add(self.scrolled_window)
         self.scrolled_window.add(source_box)
 
-        close_button = Gtk.Button(_("OK"))
-        close_button.connect("clicked", self.on_close)
-        self.get_content_area().add(close_button)
-
         self.show_all()
 
-    def on_close(self, *args):  # pylint: disable=unused-argument
+    def on_response(self, *args):
         self.destroy()
 
 
