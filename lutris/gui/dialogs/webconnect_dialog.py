@@ -6,12 +6,13 @@ import gi
 gi.require_version("WebKit2", "4.0")
 from gi.repository import WebKit2
 
-from lutris.gui.dialogs import Dialog
+from lutris.gui.dialogs import ModalDialog
+
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0"
 
 
-class WebConnectDialog(Dialog):
+class WebConnectDialog(ModalDialog):
     """Login form for external services"""
 
     def __init__(self, service, parent=None):
@@ -27,9 +28,8 @@ class WebConnectDialog(Dialog):
         )
         self.service = service
 
-        super().__init__(title=service.name, parent=parent)
+        super().__init__(title=service.name, parent=parent, border_width=0)
 
-        self.set_border_width(0)
         self.set_default_size(self.service.login_window_width, self.service.login_window_height)
 
         self.webview = WebKit2.WebView.new_with_context(self.context)
@@ -89,25 +89,23 @@ class WebConnectDialog(Dialog):
         view = WebKit2.WebView.new_with_related_view(widget)
         view.load_uri(uri)
         popup_dialog = WebPopupDialog(view, parent=self)
-        popup_dialog.set_modal(True)
-        popup_dialog.show()
+        popup_dialog.run()
         return view
 
 
-class WebPopupDialog(Dialog):
+class WebPopupDialog(ModalDialog):
     """Dialog for handling web popups"""
 
     def __init__(self, webview, parent=None):
         # pylint: disable=no-member
         self.parent = parent
-        super().__init__(title=_('Loading...'), parent=parent)
+        super().__init__(title=_('Loading...'), parent=parent, border_width=0)
         self.webview = webview
         self.webview.connect("ready-to-show", self.on_ready_webview)
         self.webview.connect("notify::title", self.on_available_webview_title)
         self.webview.connect("create", self.on_new_webview_popup)
         self.webview.connect("close", self.on_webview_close)
         self.vbox.pack_start(self.webview, True, True, 0)
-        self.set_border_width(0)
         self.set_default_size(390, 500)
 
     def on_ready_webview(self, webview):

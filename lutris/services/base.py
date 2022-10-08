@@ -330,8 +330,7 @@ class OnlineService(BaseService):
             return
         logger.debug("Connecting to %s", self.name)
         dialog = WebConnectDialog(self, parent)
-        dialog.set_modal(True)
-        dialog.show()
+        dialog.run()
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""

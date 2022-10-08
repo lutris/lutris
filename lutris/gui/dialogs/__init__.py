@@ -42,10 +42,10 @@ class Dialog(Gtk.Dialog):
 
 
 class ModalDialog(Dialog):
-    """A base clas of moodal dialogs, which sets the flag for you."""
+    """A base class of moodal dialogs, which sets the flag for you."""
 
     def __init__(self, title=None, parent=None, flags=0, buttons=None, border_width=10):
-        super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons)
+        super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons, border_width)
 
 
 class ModelessDialog(Dialog):
@@ -54,8 +54,8 @@ class ModelessDialog(Dialog):
     its own window group, so it treats its own modal dialogs separately, and it resets
     its transient-for after being created."""
 
-    def __init__(self, title=None, parent=None, flags=0, buttons=None):
-        super().__init__(title, parent, flags, buttons)
+    def __init__(self, title=None, parent=None, flags=0, buttons=None, border_width=10):
+        super().__init__(title, parent, flags, buttons, border_width)
         # These are not stuck above the 'main' window, but can be
         # re-ordered freely.
         self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
