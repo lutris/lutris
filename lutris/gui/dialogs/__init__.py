@@ -26,21 +26,33 @@ class Dialog(Gtk.Dialog):
     def on_destroy(self, _widget, _data=None):
         self.destroy()
 
-    def add_default_button(self, button_text, response_id):
+    def add_styled_button(self, button_text, response_id, css_class):
+        button = self.add_button(button_text, response_id)
+        if css_class:
+            style_context = button.get_style_context()
+            style_context.add_class(css_class)
+        return button
+        
+    def add_default_button(self, button_text, response_id, css_class="suggested-action"):
         """Adds a button to the dialog with a particular response id, but
         also makes it the default and styles it as the suggested action."""
-        button = self.add_button(button_text, response_id)
-        style_context = button.get_style_context()
-        style_context.add_class("suggested-action")
+        button = self.add_styled_button(button_text, response_id, css_class)
         self.set_default_response(response_id)
         return button
 
 
+class ModalDialog(Dialog):
+    """A base clas of moodal dialogs, which sets the flag for you."""
+
+    def __init__(self, title=None, parent=None, flags=0, buttons=None, border_width=10):
+        super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons)
+
+
 class ModelessDialog(Dialog):
     """A base class for modeless dialogs. They have a parent only temporarily, so
-    they can be centered over it during creation. But eahc modeless dialog gets
-    its own window group, so it treats modal dialogs separately, and it resets
-    its transion-for after being created."""
+    they can be centered over it during creation. But each modeless dialog gets
+    its own window group, so it treats its own modal dialogs separately, and it resets
+    its transient-for after being created."""
 
     def __init__(self, title=None, parent=None, flags=0, buttons=None):
         super().__init__(title, parent, flags, buttons)

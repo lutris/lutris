@@ -3,11 +3,11 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris.cache import get_cache_path, save_cache_path
-from lutris.gui.dialogs import Dialog
+from lutris.gui.dialogs import ModalDialog
 from lutris.gui.widgets.common import FileChooserEntry
 
 
-class CacheConfigurationDialog(Dialog):
+class CacheConfigurationDialog(ModalDialog):
     def __init__(self, parent=None):
         super().__init__(
             _("Cache configuration"),
