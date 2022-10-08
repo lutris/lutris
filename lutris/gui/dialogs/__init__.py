@@ -260,16 +260,18 @@ class LutrisInitDialog(Gtk.Dialog):
         return True
 
 
-class InstallOrPlayDialog(Gtk.Dialog):
+class InstallOrPlayDialog(ModalDialog):
 
-    def __init__(self, game_name):
-        Gtk.Dialog.__init__(self, _("%s is already installed") % game_name)
+    def __init__(self, game_name, parent=None):
+        super().__init__(title=_("%s is already installed") % game_name, parent=parent, border_width=12)
         self.connect("delete-event", lambda *x: self.destroy())
         self.action = "play"
         self.action_confirmed = False
 
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.connect("response", self.on_response)
         self.set_size_request(320, 120)
-        self.set_border_width(12)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
         play_button = Gtk.RadioButton.new_with_label_from_widget(None, _("Launch game"))
@@ -280,20 +282,17 @@ class InstallOrPlayDialog(Gtk.Dialog):
         install_button.connect("toggled", self.on_button_toggled, "install")
         vbox.pack_start(install_button, False, False, 0)
 
-        confirm_button = Gtk.Button(_("OK"))
-        confirm_button.connect("clicked", self.on_confirm)
-        vbox.pack_start(confirm_button, False, False, 0)
-
         self.show_all()
         self.run()
 
-    def on_button_toggled(self, button, action):  # pylint: disable=unused-argument
+    def on_button_toggled(self, _button, action):
         logger.debug("Action set to %s", action)
         self.action = action
 
-    def on_confirm(self, button):  # pylint: disable=unused-argument
-        logger.debug("Action %s confirmed", self.action)
-        self.action_confirmed = True
+    def on_response(self, _widget, response):
+        logger.debug("Dialog response %s", response)
+        if response == Gtk.ResponseType.CANCEL:
+            self.action = None
         self.destroy()
 
 

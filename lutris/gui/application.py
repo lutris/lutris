@@ -565,7 +565,7 @@ class Application(Gtk.Application):
             if db_game and db_game["installed"]:
                 # Game found but no action provided, ask what to do
                 dlg = InstallOrPlayDialog(db_game["name"])
-                if not dlg.action_confirmed:
+                if not dlg.action:
                     action = None
                 elif dlg.action == "play":
                     action = "rungame"
@@ -583,7 +583,11 @@ class Application(Gtk.Application):
                 service.install(service_game)
                 return 0
 
-        if action == "install":
+        if not action:  # None when user cancels dialog
+            if not self.window.is_visible():
+                self.do_shutdown()
+            return 0
+        elif action == "install":
             installers = get_installers(
                 game_slug=game_slug,
                 installer_file=installer_file,
@@ -591,7 +595,6 @@ class Application(Gtk.Application):
             )
             if installers:
                 self.show_installer_window(installers)
-
         elif action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
                 logger.warning("No game found in library")
