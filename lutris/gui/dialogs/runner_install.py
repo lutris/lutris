@@ -11,21 +11,18 @@ from gi.repository import GLib, Gtk
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
-from lutris.gui.dialogs import Dialog, ErrorDialog, ModelessDialog, QuestionDialog
+from lutris.gui.dialogs import ModalDialog, ErrorDialog, ModelessDialog, QuestionDialog
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 
 
-class ShowAppsDialog(Dialog):
+class ShowAppsDialog(ModalDialog):
     def __init__(self, title, parent, runner_version, apps):
-        super().__init__(title, parent, Gtk.DialogFlags.MODAL)
-        self.add_buttons(
-            Gtk.STOCK_OK, Gtk.ResponseType.OK
-        )
-
-        self.set_default_size(400, 500)
+        super().__init__(title, parent)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.set_default_size(600, 400)
 
         label = Gtk.Label.new(_("Showing games using %s") % runner_version)
         self.vbox.add(label)
@@ -61,7 +58,7 @@ class RunnerInstallDialog(ModelessDialog):
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0)
-        self.add_buttons(_("_OK"), Gtk.ButtonsType.OK)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.runner_name = runner.name
         self.runner_info = {}
         self.installing = {}
