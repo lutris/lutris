@@ -1,21 +1,35 @@
 from gettext import gettext as _
 
-from gi.repository import GLib, Gtk
+from gi.repository import Gtk
 
 from lutris.cache import get_cache_path, save_cache_path
+from lutris.gui.dialogs import Dialog
 from lutris.gui.widgets.common import FileChooserEntry
 
 
-class CacheConfigurationDialog(Gtk.Dialog):
+class CacheConfigurationDialog(Dialog):
     def __init__(self, parent=None):
-        Gtk.Dialog.__init__(self, _("Cache configuration"), parent=parent)
+        super().__init__(
+            _("Cache configuration"),
+            parent=parent,
+            flags=Gtk.DialogFlags.MODAL,
+            border_width=12
+        )
         self.timer_id = None
         self.set_size_request(480, 150)
-        self.set_border_width(12)
 
+        self.cache_path = get_cache_path() or ""
         self.get_content_area().add(self.get_cache_config())
+
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+
         self.show_all()
-        self.run()
+        result = self.run()
+
+        if result == Gtk.ResponseType.OK:
+            save_cache_path(self.cache_path)
+
         self.destroy()
 
     def get_cache_config(self):
@@ -25,9 +39,11 @@ class CacheConfigurationDialog(Gtk.Dialog):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
         label = Gtk.Label(_("Cache path"))
         box.pack_start(label, False, False, 0)
-        cache_path = get_cache_path()
         path_chooser = FileChooserEntry(
-            title=_("Set the folder for the cache path"), action=Gtk.FileChooserAction.SELECT_FOLDER, path=cache_path
+            title=_("Set the folder for the cache path"),
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+            path=self.cache_path,
+            activates_default=True
         )
         path_chooser.entry.connect("changed", self._on_cache_path_set)
         box.pack_start(path_chooser, True, True, 0)
@@ -44,12 +60,4 @@ class CacheConfigurationDialog(Gtk.Dialog):
         return prefs_box
 
     def _on_cache_path_set(self, entry):
-        if self.timer_id:
-            GLib.source_remove(self.timer_id)
-        self.timer_id = GLib.timeout_add(1000, self.save_cache_setting, entry.get_text())
-
-    def save_cache_setting(self, value):
-        save_cache_path(value)
-        GLib.source_remove(self.timer_id)
-        self.timer_id = None
-        return False
+        self.cache_path = entry.get_text()

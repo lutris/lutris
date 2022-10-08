@@ -17,14 +17,23 @@ from lutris.util.log import logger
 
 class Dialog(Gtk.Dialog):
 
-    def __init__(self, title=None, parent=None, flags=0, buttons=None):
+    def __init__(self, title=None, parent=None, flags=0, buttons=None, border_width=10):
         super().__init__(title, parent, flags, buttons)
-        self.set_border_width(10)
+        self.set_border_width(border_width)
         self.connect("delete-event", self.on_destroy)
         self.set_destroy_with_parent(True)
 
     def on_destroy(self, _widget, _data=None):
         self.destroy()
+
+    def add_default_button(self, button_text, response_id):
+        """Adds a button to the dialog with a particular response id, but
+        also makes it the default and styles it as the suggested action."""
+        button = self.add_button(button_text, response_id)
+        style_context = button.get_style_context()
+        style_context.add_class("suggested-action")
+        self.set_default_response(response_id)
+        return button
 
 
 class ModelessDialog(Dialog):

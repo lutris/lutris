@@ -47,7 +47,8 @@ class FileChooserEntry(Gtk.Box):
         path=None,
         default_path=None,
         warn_if_non_empty=False,
-        warn_if_ntfs=False
+        warn_if_ntfs=False,
+        activates_default=False,
     ):
         super().__init__(
             orientation=Gtk.Orientation.VERTICAL,
@@ -64,6 +65,7 @@ class FileChooserEntry(Gtk.Box):
         self.path_completion = Gtk.ListStore(str)
 
         self.entry = Gtk.Entry(visible=True)
+        self.entry.set_activates_default(activates_default)
         self.entry.set_completion(self.get_completion())
         self.entry.connect("changed", self.on_entry_changed)
         if path:
@@ -95,10 +97,9 @@ class FileChooserEntry(Gtk.Box):
 
     def get_filechooser_dialog(self):
         """Return an instance of a FileChooserNative configured for this widget"""
-        dialog = Gtk.FileChooserNative.new(self.title, None, self.action, _("_OK"), _("_Cancel"))
+        dialog = Gtk.FileChooserNative.new(self.title, self.get_toplevel(), self.action, _("_OK"), _("_Cancel"))
         dialog.set_create_folders(True)
         dialog.set_current_folder(self.get_default_folder())
-        dialog.connect("response", self.on_select_file, dialog)
         return dialog
 
     def get_default_folder(self):
@@ -115,7 +116,14 @@ class FileChooserEntry(Gtk.Box):
     def on_browse_clicked(self, _widget):
         """Browse button click callback"""
         file_chooser_dialog = self.get_filechooser_dialog()
-        file_chooser_dialog.show()
+        response = file_chooser_dialog.run()
+
+        if response == Gtk.ResponseType.ACCEPT:
+            target_path = file_chooser_dialog.get_filename()
+            if target_path:
+                self.entry.set_text(system.reverse_expanduser(target_path))
+
+        file_chooser_dialog.destroy()
 
     def on_entry_changed(self, widget):
         """Entry changed callback"""
@@ -153,15 +161,6 @@ class FileChooserEntry(Gtk.Box):
                 "is not writable by the current user."
             ))
             self.pack_end(non_writable_destination_label, False, False, 10)
-
-    def on_select_file(self, dialog, response, _dialog):
-        """FileChooserDialog response callback"""
-        if response == Gtk.ResponseType.ACCEPT:
-            target_path = dialog.get_filename()
-            if target_path:
-                dialog.set_current_folder(target_path)
-                self.entry.set_text(system.reverse_expanduser(target_path))
-        dialog.destroy()
 
     def update_completion(self, current_path):
         """Update the auto-completion widget with the current path"""
