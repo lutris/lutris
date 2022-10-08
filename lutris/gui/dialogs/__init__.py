@@ -32,7 +32,7 @@ class Dialog(Gtk.Dialog):
             style_context = button.get_style_context()
             style_context.add_class(css_class)
         return button
-        
+
     def add_default_button(self, button_text, response_id, css_class="suggested-action"):
         """Adds a button to the dialog with a particular response id, but
         also makes it the default and styles it as the suggested action."""
