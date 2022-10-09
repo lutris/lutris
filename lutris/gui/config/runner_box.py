@@ -74,7 +74,7 @@ class RunnerBox(Gtk.Box):
             _button.get_style_context().add_class("circular")
             _button.connect("clicked", self.on_versions_clicked)
         else:
-            if self.runner.is_installed():
+            if self.runner.can_uninstall():
                 _button = Gtk.Button.new_from_icon_name("edit-delete-symbolic", Gtk.IconSize.BUTTON)
                 _button.get_style_context().add_class("circular")
                 _button.connect("clicked", self.on_remove_clicked)
