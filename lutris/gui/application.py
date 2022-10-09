@@ -40,7 +40,7 @@ from lutris.database import games as games_db
 from lutris.game import Game, export_game, import_game
 from lutris.installer import get_installers
 from lutris.gui.dialogs.download import simple_downloader
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, LutrisInitDialog
+from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, LutrisInitDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
@@ -86,7 +86,7 @@ class Application(Gtk.Application):
         self.style_manager = None
 
         if os.geteuid() == 0:
-            ErrorDialog(_("Running Lutris as root is not recommended and may cause unexpected issues"))
+            NoticeDialog(_("Running Lutris as root is not recommended and may cause unexpected issues"))
 
         try:
             self.css_provider.load_from_path(os.path.join(datapath.get(), "ui", "lutris.css"))
@@ -681,7 +681,7 @@ class Application(Gtk.Application):
         if installers:
             self.show_installer_window(installers, service, game.appid, is_update=True)
         else:
-            ErrorDialog(_("No updates found"))
+            ErrorDialog(_("No updates found"), parent=self.window)
         return True
 
     @watch_errors(error_result=True)
@@ -692,7 +692,7 @@ class Application(Gtk.Application):
         if installers:
             self.show_installer_window(installers, service, game.appid)
         else:
-            ErrorDialog(_("No DLC found"))
+            ErrorDialog(_("No DLC found"), parent=self.window)
         return True
 
     def get_running_game_ids(self):
