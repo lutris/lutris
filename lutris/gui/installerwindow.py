@@ -14,7 +14,7 @@ from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
-from lutris.installer import get_installers, interpreter
+from lutris.installer import get_installers, interpreter, InstallationKind
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
@@ -32,7 +32,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         service=None,
         appid=None,
         application=None,
-        is_update=False
+        installation_kind=InstallationKind.INSTALL
     ):
         super().__init__(application=application)
         self.set_default_size(540, 320)
@@ -42,7 +42,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.appid = appid
         self.install_in_progress = False
         self.interpreter = None
-        self.is_update = is_update
+        self.installation_kind = installation_kind
         self.log_buffer = None
         self.log_textview = None
 
@@ -327,7 +327,10 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 self.show_extras(extras)
                 return
         try:
-            patch_version = self.interpreter.installer.version if self.is_update else None
+            if self.installation_kind == InstallationKind.UPDATE:
+                patch_version = self.interpreter.installer.version
+            else:
+                patch_version = None
             self.interpreter.installer.prepare_game_files(patch_version)
         except UnavailableGameError as ex:
             raise ScriptingError(str(ex)) from ex
@@ -581,6 +584,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
         remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
         if self.interpreter and self.interpreter.target_path and \
+                self.installation_kind == InstallationKind.INSTALL and \
                 is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
             remove_checkbox.set_active(self.interpreter.game_dir_created)
             remove_checkbox.show()

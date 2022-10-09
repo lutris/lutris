@@ -42,7 +42,7 @@ from lutris.installer import get_installers
 from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, LutrisInitDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
-from lutris.gui.installerwindow import InstallerWindow
+from lutris.gui.installerwindow import InstallerWindow, InstallationKind
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
 from lutris.startup import init_lutris, run_all_checks, update_runtime
@@ -328,13 +328,13 @@ class Application(Gtk.Application):
         window_inst.show()
         return window_inst
 
-    def show_installer_window(self, installers, service=None, appid=None, is_update=False):
+    def show_installer_window(self, installers, service=None, appid=None, installation_kind=InstallationKind.INSTALL):
         self.show_window(
             InstallerWindow,
             installers=installers,
             service=service,
             appid=appid,
-            is_update=is_update
+            installation_kind=installation_kind
         )
 
     def on_app_window_destroyed(self, app_window, window_key):
@@ -679,7 +679,7 @@ class Application(Gtk.Application):
         db_game = games_db.get_game_by_field(game.id, "id")
         installers = service.get_update_installers(db_game)
         if installers:
-            self.show_installer_window(installers, service, game.appid, is_update=True)
+            self.show_installer_window(installers, service, game.appid, installation_kind=InstallationKind.UPDATE)
         else:
             ErrorDialog(_("No updates found"), parent=self.window)
         return True
@@ -690,7 +690,7 @@ class Application(Gtk.Application):
         db_game = games_db.get_game_by_field(game.id, "id")
         installers = service.get_dlc_installers_runner(db_game, db_game["runner"])
         if installers:
-            self.show_installer_window(installers, service, game.appid)
+            self.show_installer_window(installers, service, game.appid, installation_kind=InstallationKind.DLC)
         else:
             ErrorDialog(_("No DLC found"), parent=self.window)
         return True
