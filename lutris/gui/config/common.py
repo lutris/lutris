@@ -27,8 +27,10 @@ class GameDialogCommon(ModelessDialog):
     no_runner_label = _("Select a runner in the Game Info tab")
 
     def __init__(self, title, parent=None):
-        super().__init__(title, parent=parent)
+        super().__init__(title, parent=parent, border_width=0)
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
+        self.vbox.set_border_width(0)
+
         self.notebook = None
         self.name_entry = None
         self.runner_box = None
@@ -61,7 +63,7 @@ class GameDialogCommon(ModelessDialog):
     def build_notebook(self):
         self.notebook = Gtk.Notebook(visible=True)
         self.notebook.set_show_border(False)
-        self.vbox.pack_start(self.notebook, True, True, 10)
+        self.vbox.pack_start(self.notebook, True, True, 0)
 
     def build_tabs(self, config_level):
         """Build tabs (for game and runner levels)"""
@@ -306,6 +308,7 @@ class GameDialogCommon(ModelessDialog):
 
     def build_action_area(self, button_callback):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
+        self.action_area.set_border_width(10)
 
         # Advanced settings checkbox
         checkbox = Gtk.CheckButton(label=_("Show advanced options"))
