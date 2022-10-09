@@ -11,7 +11,8 @@ from gi.repository import GLib, Gtk
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
-from lutris.gui.dialogs import ModalDialog, ErrorDialog, ModelessDialog, QuestionDialog
+from lutris.gui.dialogs import ErrorDialog, ModalDialog, ModelessDialog, QuestionDialog
+from lutris.gui.widgets.utils import has_stock_icon
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
@@ -55,6 +56,9 @@ class RunnerInstallDialog(ModelessDialog):
     COL_INSTALLED = 3
     COL_PROGRESS = 4
     COL_USAGE = 5
+
+    INSTALLED_ICON_NAME = "software-installed-symbolic" \
+        if has_stock_icon("software-installed-symbolic") else "wine-symbolic"
 
     def __init__(self, title, parent, runner):
         super().__init__(title, parent, 0)
@@ -127,11 +131,15 @@ class RunnerInstallDialog(ModelessDialog):
             row.runner = runner
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             row.hbox = hbox
-            chk_installed = Gtk.CheckButton()
-            chk_installed.set_sensitive(False)
-            chk_installed.set_active(runner[self.COL_INSTALLED])
-            hbox.pack_start(chk_installed, False, True, 0)
-            row.chk_installed = chk_installed
+
+            icon = Gtk.Image.new_from_icon_name(self.INSTALLED_ICON_NAME, Gtk.IconSize.MENU)
+            icon.set_visible(runner[self.COL_INSTALLED])
+            icon_container = Gtk.Box()
+            icon_container.set_size_request(16, 16)
+            icon_container.pack_start(icon, False, False, 0)
+
+            hbox.pack_start(icon_container, False, True, 0)
+            row.icon = icon
 
             lbl_version = Gtk.Label(runner[self.COL_VER])
             lbl_version.set_max_width_chars(20)
@@ -176,18 +184,22 @@ class RunnerInstallDialog(ModelessDialog):
 
     def update_listboxrow(self, row):
         row.install_progress.set_visible(False)
-        row.chk_installed.set_active(row.runner[self.COL_INSTALLED])
+
+        runner = row.runner
+        icon = row.icon
+        icon.set_visible(runner[self.COL_INSTALLED])
+
         button = row.install_uninstall_cancel_button
         style_context = button.get_style_context()
         if row.handler_id is not None:
             button.disconnect(row.handler_id)
             row.handler_id = None
-        if row.runner[self.COL_VER] in self.installing:
+        if runner[self.COL_VER] in self.installing:
             style_context.remove_class("destructive-action")
             button.set_label(_("Cancel"))
             handler_id = button.connect("clicked", self.on_cancel_install, row)
         else:
-            if row.runner[self.COL_INSTALLED]:
+            if runner[self.COL_INSTALLED]:
                 style_context.add_class("destructive-action")
                 button.set_label(_("Uninstall"))
                 handler_id = button.connect("clicked", self.on_uninstall_runner, row)
