@@ -162,16 +162,18 @@ class RunnerInstallDialog(ModelessDialog):
                 app_count = runner[self.COL_USAGE] or 0
                 if app_count > 0:
                     usage_button_text = gettext.ngettext(
-                        "_View %d game",
-                        "_View %d games",
+                        "View %d game",
+                        "View %d games",
                         app_count
                     ) % app_count
 
-                    usage_button = Gtk.Button.new_with_mnemonic(usage_button_text)
+                    usage_button = Gtk.LinkButton.new_with_label(usage_button_text)
+                    usage_button.set_valign(Gtk.Align.CENTER)
                     usage_button.connect("clicked", self.on_show_apps_usage, row)
                     hbox.pack_end(usage_button, False, True, 2)
 
             button = Gtk.Button()
+            button.set_size_request(100, -1)
             hbox.pack_end(button, False, True, 0)
             hbox.reorder_child(button, 0)
             row.install_uninstall_cancel_button = button
