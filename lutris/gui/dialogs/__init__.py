@@ -17,9 +17,8 @@ from lutris.util.log import logger
 
 class Dialog(Gtk.Dialog):
 
-    def __init__(self, title=None, parent=None, flags=0, buttons=None, border_width=10):
-        super().__init__(title, parent, flags, buttons)
-        self.set_border_width(border_width)
+    def __init__(self, title=None, parent=None, flags=0, buttons=None, **kwargs):
+        super().__init__(title, parent, flags, buttons, **kwargs)
         self.connect("delete-event", self.on_destroy)
         self.set_destroy_with_parent(True)
 
@@ -44,8 +43,8 @@ class Dialog(Gtk.Dialog):
 class ModalDialog(Dialog):
     """A base class of moodal dialogs, which sets the flag for you."""
 
-    def __init__(self, title=None, parent=None, flags=0, buttons=None, border_width=10):
-        super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons, border_width)
+    def __init__(self, title=None, parent=None, flags=0, buttons=None, **kwargs):
+        super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons, **kwargs)
 
 
 class ModelessDialog(Dialog):
@@ -54,8 +53,8 @@ class ModelessDialog(Dialog):
     its own window group, so it treats its own modal dialogs separately, and it resets
     its transient-for after being created."""
 
-    def __init__(self, title=None, parent=None, flags=0, buttons=None, border_width=10):
-        super().__init__(title, parent, flags, buttons, border_width)
+    def __init__(self, title=None, parent=None, flags=0, buttons=None, **kwargs):
+        super().__init__(title, parent, flags, buttons, **kwargs)
         # These are not stuck above the 'main' window, but can be
         # re-ordered freely.
         self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
@@ -298,7 +297,7 @@ class InstallOrPlayDialog(ModalDialog):
 
 class LaunchConfigSelectDialog(ModalDialog):
     def __init__(self, game, configs, parent=None):
-        super().__init__(title=_("Select game to launch"), parent=parent)
+        super().__init__(title=_("Select game to launch"), parent=parent, border_width=10)
         self.config_index = 0
         self.confirmed = False
 
@@ -307,7 +306,6 @@ class LaunchConfigSelectDialog(ModalDialog):
         self.connect("response", self.on_response)
 
         self.set_size_request(320, 120)
-        self.set_border_width(12)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
 
@@ -473,14 +471,13 @@ class MoveDialog(ModelessDialog):
     }
 
     def __init__(self, game, destination, parent=None):
-        super().__init__(parent=parent)
+        super().__init__(parent=parent, border_width=24)
 
         self.game = game
         self.destination = destination
         self.new_directory = None
 
         self.set_size_request(320, 60)
-        self.set_border_width(24)
         self.set_decorated(False)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
         label = Gtk.Label(_("Moving %s to %s..." % (game, destination)))

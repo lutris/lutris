@@ -13,7 +13,7 @@ from lutris.util.system import get_disk_size, is_removeable, reverse_expanduser
 
 class UninstallGameDialog(ModalDialog):
     def __init__(self, game_id, parent=None):
-        super().__init__(parent=parent)
+        super().__init__(parent=parent, border_width=10)
         self.set_size_request(640, 128)
         self.game = Game(game_id)
         self.delete_files = False
@@ -101,7 +101,7 @@ class UninstallGameDialog(ModalDialog):
 
 class RemoveGameDialog(ModalDialog):
     def __init__(self, game_id, parent=None):
-        super().__init__(parent=parent)
+        super().__init__(parent=parent, border_width=10)
         self.set_size_request(640, 128)
         self.game = Game(game_id)
 

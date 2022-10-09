@@ -1,12 +1,11 @@
 """isort:skip_file"""
+from lutris.gui.dialogs import ModalDialog
+from gi.repository import WebKit2
 import os
 from gettext import gettext as _
 
 import gi
 gi.require_version("WebKit2", "4.0")
-from gi.repository import WebKit2
-
-from lutris.gui.dialogs import ModalDialog
 
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0"
@@ -28,7 +27,7 @@ class WebConnectDialog(ModalDialog):
         )
         self.service = service
 
-        super().__init__(title=service.name, parent=parent, border_width=0)
+        super().__init__(title=service.name, parent=parent)
 
         self.set_default_size(self.service.login_window_width, self.service.login_window_height)
 
@@ -36,6 +35,7 @@ class WebConnectDialog(ModalDialog):
         self.webview.load_uri(service.login_url)
         self.webview.connect("load-changed", self.on_navigation)
         self.webview.connect("create", self.on_webview_popup)
+        self.vbox.set_border_width(0)  # pylint: disable=no-member
         self.vbox.pack_start(self.webview, True, True, 0)  # pylint: disable=no-member
 
         webkit_settings = self.webview.get_settings()
@@ -99,13 +99,14 @@ class WebPopupDialog(ModalDialog):
     def __init__(self, webview, parent=None):
         # pylint: disable=no-member
         self.parent = parent
-        super().__init__(title=_('Loading...'), parent=parent, border_width=0)
+        super().__init__(title=_('Loading...'), parent=parent)
         self.webview = webview
         self.webview.connect("ready-to-show", self.on_ready_webview)
         self.webview.connect("notify::title", self.on_available_webview_title)
         self.webview.connect("create", self.on_new_webview_popup)
         self.webview.connect("close", self.on_webview_close)
         self.vbox.pack_start(self.webview, True, True, 0)
+        self.vbox.set_border_width(0)
         self.set_default_size(390, 500)
 
     def on_ready_webview(self, webview):

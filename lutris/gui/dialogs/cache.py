@@ -13,7 +13,7 @@ class CacheConfigurationDialog(ModalDialog):
             _("Cache configuration"),
             parent=parent,
             flags=Gtk.DialogFlags.MODAL,
-            border_width=12
+            border_width=10
         )
         self.timer_id = None
         self.set_size_request(480, 150)
