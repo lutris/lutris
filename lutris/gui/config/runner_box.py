@@ -7,7 +7,7 @@ from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
 from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
-from lutris.gui.widgets.utils import ICON_SIZE, get_icon
+from lutris.gui.widgets.utils import ICON_SIZE, get_runtime_icon
 from lutris.util.log import logger
 
 
@@ -28,7 +28,7 @@ class RunnerBox(Gtk.Box):
         self.set_margin_left(12)
         self.set_margin_right(12)
         self.runner = runners.import_runner(runner_name)()
-        icon = get_icon(self.runner.name, icon_format='pixbuf', size=ICON_SIZE)
+        icon = get_runtime_icon(self.runner.name, icon_format='pixbuf', size=ICON_SIZE)
         if icon:
             runner_icon = Gtk.Image(visible=True)
             runner_icon.set_from_pixbuf(icon)
