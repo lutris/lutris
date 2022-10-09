@@ -87,6 +87,8 @@ def guess_extractor(path):
         extractor = "exe"
     elif path.endswith(".deb"):
         extractor = "deb"
+    elif path.endswith(".AppImage"):
+        extractor = "AppImage"
     else:
         extractor = None
     return extractor
@@ -113,6 +115,8 @@ def get_archive_opener(extractor):
         opener = "exe"
     elif extractor == "deb":
         opener = "deb"
+    elif extractor == "AppImage":
+        opener = "AppImage"
     else:
         opener = "7zip"
     return opener, mode
@@ -187,6 +191,8 @@ def _do_extract(archive, dest, opener, mode=None, extractor=None):
         extract_gog(archive, dest)
     elif opener == "deb":
         extract_deb(archive, dest)
+    elif opener == "AppImage":
+        extract_AppImage(archive, dest)
     else:
         handler = opener(archive, mode)
         handler.extractall(dest)
@@ -231,6 +237,13 @@ def extract_deb(archive, dest):
             extract_archive(data_tar_path, dest)
             os.remove(data_tar_path)
             break
+
+
+def extract_AppImage(path, dest):
+    """This is really here to prevent 7-zip from extracting the AppImage;
+    we want to just use this sort of file as-is."""
+    system.create_folder(dest)
+    shutil.copy(path, dest)
 
 
 def extract_gog(path, dest):

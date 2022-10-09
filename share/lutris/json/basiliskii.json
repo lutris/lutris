@@ -3,7 +3,7 @@
     "description": "Basilisk II is an Open Source 68k Macintosh emulator",
     "platforms": ["Macintosh"],
     "runnable_alone": "True",
-    "runner_executable": "basiliskii/usr/bin/BasiliskII",
+    "runner_executable": "basiliskii/BasiliskII-x86_64.AppImage",
     "download_url": "https://github.com/Korkman/macemu-appimage-builder/releases/download/continuous/BasiliskII-x86_64.AppImage",
     "game_options": [
         {
