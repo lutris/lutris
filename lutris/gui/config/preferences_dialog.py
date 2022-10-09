@@ -34,6 +34,7 @@ class PreferencesDialog(GameDialogCommon):
         self.stack.set_interpolate_size(True)
         hbox.add(self.stack)
         self.vbox.pack_start(hbox, True, True, 0)
+        self.vbox.set_border_width(0)  # keep everything flush with the window edge
         self.stack.add_named(
             self.build_scrolled_window(PreferencesBox()),
             "prefs-stack"
