@@ -29,7 +29,6 @@ addons:
       - libgirepository1.0-dev
       - gir1.2-gnomedesktop-3.0
       - gir1.2-webkit2-4.0
-      - gir1.2-notify-0.7
       - at-spi2-core
 before_install:
   - "export DISPLAY=:99.0"
