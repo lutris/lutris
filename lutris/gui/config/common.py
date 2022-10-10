@@ -26,8 +26,8 @@ class GameDialogCommon(ModelessDialog):
     """Base class for config dialogs"""
     no_runner_label = _("Select a runner in the Game Info tab")
 
-    def __init__(self, title, parent=None):
-        super().__init__(title, parent=parent, border_width=0)
+    def __init__(self, title, parent=None, use_header_bar=True):
+        super().__init__(title, parent=parent, border_width=0, use_header_bar=use_header_bar)
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.vbox.set_border_width(0)
 
@@ -51,6 +51,8 @@ class GameDialogCommon(ModelessDialog):
         self.runner_index = None
         self.lutris_config = None
         self.service_medias = {"icon": LutrisIcon(), "banner": LutrisBanner(), "coverart_big": LutrisCoverart()}
+
+        self.connect("response", self.on_response)
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -307,7 +309,7 @@ class GameDialogCommon(ModelessDialog):
         self.notebook.append_page(widget, Gtk.Label(label=label))
 
     def build_action_area(self, button_callback):
-        self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
+        self.action_area.set_layout(Gtk.ButtonBoxStyle.END)
         self.action_area.set_border_width(10)
 
         # Advanced settings checkbox
@@ -315,18 +317,24 @@ class GameDialogCommon(ModelessDialog):
         if settings.read_setting("show_advanced_options") == "True":
             checkbox.set_active(True)
         checkbox.connect("toggled", self.on_show_advanced_options_toggled)
-        self.action_area.pack_start(checkbox, False, False, 5)
+        checkbox.set_halign(Gtk.Align.START)
+
+        if self.props.use_header_bar:
+            checkbox.set_border_width(5)
+            self.vbox.pack_end(checkbox, False, False, 5)
+        else:
+            self.action_area.pack_start(checkbox, True, True, 0)
+            self.action_area.set_child_secondary(checkbox, True)
 
         # Buttons
-        hbox = Gtk.Box()
-        cancel_button = Gtk.Button(label=_("Cancel"))
-        cancel_button.connect("clicked", self.on_cancel_clicked)
-        hbox.pack_start(cancel_button, True, True, 10)
+        cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        cancel_button.set_valign(Gtk.Align.CENTER)
+        #cancel_button.set_halign(Gtk.Align.END)
 
-        save_button = Gtk.Button(label=_("Save"))
+        save_button = self.add_button(_("Save"), Gtk.ResponseType.OK)
+        save_button.set_valign(Gtk.Align.CENTER)
+        #save_button.set_halign(Gtk.Align.END)
         save_button.connect("clicked", button_callback)
-        hbox.pack_start(save_button, True, True, 0)
-        self.action_area.pack_start(hbox, True, True, 0)
 
     def on_show_advanced_options_toggled(self, checkbox):
         value = bool(checkbox.get_active())
@@ -401,10 +409,11 @@ class GameDialogCommon(ModelessDialog):
         self._build_system_tab("game")
         self.show_all()
 
-    def on_cancel_clicked(self, _widget=None, _event=None):
-        """Dialog destroy callback."""
-        if self.game:
-            self.game.load_config()
+    def on_response(self, _widget, response):
+        if response == Gtk.ResponseType.CANCEL or response == Gtk.ResponseType.DELETE_EVENT:
+            # Reload the config to clean out any changes we may have made
+            if self.game:
+                self.game.load_config()
         self.destroy()
 
     def is_valid(self):
