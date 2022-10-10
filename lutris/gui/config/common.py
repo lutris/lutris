@@ -52,6 +52,9 @@ class GameDialogCommon(ModelessDialog):
         self.lutris_config = None
         self.service_medias = {"icon": LutrisIcon(), "banner": LutrisBanner(), "coverart_big": LutrisCoverart()}
 
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
+
         self.connect("response", self.on_response)
 
     @staticmethod
@@ -318,9 +321,12 @@ class GameDialogCommon(ModelessDialog):
         cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
         cancel_button.set_valign(Gtk.Align.CENTER)
 
-        save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.OK, css_class="suggested-action")
+        save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.NONE, css_class="suggested-action")
         save_button.set_valign(Gtk.Align.CENTER)
         save_button.connect("clicked", button_callback)
+
+        key, mod = Gtk.accelerator_parse("<Control>s")
+        save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         # Advanced settings toggle
         checkbox = Gtk.ToggleButton() if use_header_bar else Gtk.CheckButton()
@@ -419,7 +425,8 @@ class GameDialogCommon(ModelessDialog):
             # Reload the config to clean out any changes we may have made
             if self.game:
                 self.game.load_config()
-        self.destroy()
+        if response != Gtk.ResponseType.NONE:
+            self.destroy()
 
     def is_valid(self):
         if not self.runner_name:
