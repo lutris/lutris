@@ -26,5 +26,4 @@ class AddGameDialog(GameDialogCommon):
         self.build_tabs("game")
         self.build_action_area(self.on_save)
         self.name_entry.grab_focus()
-        self.connect("delete-event", self.on_cancel_clicked)
         self.show_all()
