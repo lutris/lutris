@@ -41,7 +41,7 @@ To install all those dependencies (except for Wine and graphics drivers)
 on Ubuntu based systems, you can run::
 
     sudo apt install python3-yaml python3-requests python3-pil python3-gi \
-      gir1.2-gtk-3.0 gir1.2-gnomedesktop-3.0 gir1.2-webkit2-4.0 \
+      gir1.2-gtk-3.0 gir1.2-gnomedesktop-3.0 gir1.2-webkit2-4.1 \
       psmisc cabextract unzip p7zip curl fluid-soundfont-gs \
       x11-xserver-utils python3-evdev libc6-i386 lib32gcc1 libgirepository1.0-dev \
       python3-setproctitle python3-distro
