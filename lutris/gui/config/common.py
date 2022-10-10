@@ -318,7 +318,7 @@ class GameDialogCommon(ModelessDialog):
         cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
         cancel_button.set_valign(Gtk.Align.CENTER)
 
-        save_button = self.add_button(_("Save"), Gtk.ResponseType.OK)
+        save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.OK, css_class="suggested-action")
         save_button.set_valign(Gtk.Align.CENTER)
         save_button.connect("clicked", button_callback)
 
