@@ -200,7 +200,7 @@ class SteamService(BaseService):
                 steam_game = Game(game_id)
                 if not steam_game.playtime:
                     steam_game.remove(no_signal=True)
-                    steam_game.delete()
+                    steam_game.delete(no_signal=True)
                     stats["deduped"] += 1
         logger.debug("%s Steam games deduplicated", stats["deduped"])
 
