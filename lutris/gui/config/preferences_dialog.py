@@ -58,10 +58,6 @@ class PreferencesDialog(GameDialogCommon):
             "system-stack"
         )
         self.build_action_area(self.on_save)
-        self.action_area.set_margin_bottom(12)
-        self.action_area.set_margin_right(12)
-        self.action_area.set_margin_left(12)
-        self.action_area.set_margin_top(12)
 
     def on_sidebar_activated(self, _listbox, row):
         if row.get_children()[0].stack_id == "system-stack":
