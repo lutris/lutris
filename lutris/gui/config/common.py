@@ -312,29 +312,34 @@ class GameDialogCommon(ModelessDialog):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.END)
         self.action_area.set_border_width(10)
 
-        # Advanced settings checkbox
-        checkbox = Gtk.CheckButton(label=_("Show advanced options"))
-        if settings.read_setting("show_advanced_options") == "True":
-            checkbox.set_active(True)
-        checkbox.connect("toggled", self.on_show_advanced_options_toggled)
-        checkbox.set_halign(Gtk.Align.START)
-
-        if self.props.use_header_bar:
-            checkbox.set_border_width(5)
-            self.vbox.pack_end(checkbox, False, False, 5)
-        else:
-            self.action_area.pack_start(checkbox, True, True, 0)
-            self.action_area.set_child_secondary(checkbox, True)
+        use_header_bar = self.props.use_header_bar
 
         # Buttons
         cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
         cancel_button.set_valign(Gtk.Align.CENTER)
-        #cancel_button.set_halign(Gtk.Align.END)
 
         save_button = self.add_button(_("Save"), Gtk.ResponseType.OK)
         save_button.set_valign(Gtk.Align.CENTER)
-        #save_button.set_halign(Gtk.Align.END)
         save_button.connect("clicked", button_callback)
+
+        # Advanced settings toggle
+        checkbox = Gtk.ToggleButton() if use_header_bar else Gtk.CheckButton()
+        if settings.read_setting("show_advanced_options") == "True":
+            checkbox.set_active(True)
+        checkbox.connect("toggled", self.on_show_advanced_options_toggled)
+
+        if self.props.use_header_bar:
+            options_icon = Gtk.Image.new_from_icon_name("view-reveal-symbolic", Gtk.IconSize.MENU)
+            checkbox.set_image(options_icon)
+            checkbox.set_tooltip_text(_("Show advanced options"))
+
+            header_bar = self.get_header_bar()
+            header_bar.pack_end(checkbox)
+        else:
+            checkbox.set_label(_("Show advanced options"))
+            checkbox.set_halign(Gtk.Align.START)
+            self.action_area.pack_start(checkbox, True, True, 0)
+            self.action_area.set_child_secondary(checkbox, True)
 
     def on_show_advanced_options_toggled(self, checkbox):
         value = bool(checkbox.get_active())
@@ -410,7 +415,7 @@ class GameDialogCommon(ModelessDialog):
         self.show_all()
 
     def on_response(self, _widget, response):
-        if response == Gtk.ResponseType.CANCEL or response == Gtk.ResponseType.DELETE_EVENT:
+        if response in (Gtk.ResponseType.CANCEL, response == Gtk.ResponseType.DELETE_EVENT):
             # Reload the config to clean out any changes we may have made
             if self.game:
                 self.game.load_config()
