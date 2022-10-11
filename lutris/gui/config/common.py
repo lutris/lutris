@@ -45,6 +45,8 @@ class GameDialogCommon(ModelessDialog):
         self.slug_change_button = None
         self.runner_dropdown = None
         self.image_buttons = {}
+        self.option_page_indices = set()
+        self.advanced_switch = None
         self.game_box = None
         self.system_box = None
         self.runner_name = None
@@ -68,6 +70,8 @@ class GameDialogCommon(ModelessDialog):
     def build_notebook(self):
         self.notebook = Gtk.Notebook(visible=True)
         self.notebook.set_show_border(False)
+        self.notebook.connect("switch-page", lambda _n, _p, index:
+                              self.update_advanced_switch_visibilty(index))
         self.vbox.pack_start(self.notebook, True, True, 0)
 
     def build_tabs(self, config_level):
@@ -78,6 +82,12 @@ class GameDialogCommon(ModelessDialog):
             self._build_game_tab()
         self._build_runner_tab(config_level)
         self._build_system_tab(config_level)
+        self.update_advanced_switch_visibilty(self.notebook.get_current_page())
+
+    def update_advanced_switch_visibilty(self, current_page_index):
+        if self.advanced_switch and self.notebook:
+            show_switch = current_page_index in self.option_page_indices
+            self.advanced_switch.set_visible(show_switch)
 
     def _build_info_tab(self):
         info_box = VBox()
@@ -297,25 +307,25 @@ class GameDialogCommon(ModelessDialog):
             runner_sw = self.build_scrolled_window(self.runner_box)
         else:
             runner_sw = Gtk.Label(label=self.no_runner_label)
-        self._add_notebook_tab(runner_sw, _("Runner options"))
+        page_index = self._add_notebook_tab(runner_sw, _("Runner options"))
+        self.option_page_indices.add(page_index)
 
     def _build_system_tab(self, _config_level):
         if not self.lutris_config:
             raise RuntimeError("Lutris config not loaded yet")
         self.system_box = SystemBox(self.lutris_config)
-        self._add_notebook_tab(
+        page_index = self._add_notebook_tab(
             self.build_scrolled_window(self.system_box),
             _("System options")
         )
+        self.option_page_indices.add(page_index)
 
     def _add_notebook_tab(self, widget, label):
-        self.notebook.append_page(widget, Gtk.Label(label=label))
+        return self.notebook.append_page(widget, Gtk.Label(label=label))
 
     def build_action_area(self, button_callback):
         self.action_area.set_layout(Gtk.ButtonBoxStyle.END)
         self.action_area.set_border_width(10)
-
-        use_header_bar = self.props.use_header_bar
 
         # Buttons
         cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
@@ -331,31 +341,33 @@ class GameDialogCommon(ModelessDialog):
         # Advanced settings toggle
 
         if self.props.use_header_bar:
-            switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                                 spacing=5,
+                                 no_show_all=True)
             switch_box.set_tooltip_text(_("Show advanced options"))
 
-            switch_label = Gtk.Label(_("Advanced"))
-            switch = Gtk.Switch()
+            switch_label = Gtk.Label(_("Advanced"), visible=True)
+            switch = Gtk.Switch(visible=True)
             switch.set_state(settings.read_setting("show_advanced_options") == "True")
             switch.connect("state_set", lambda _w, s:
                            self.on_show_advanced_options_toggled(bool(s)))
 
             switch_box.pack_start(switch_label, False, False, 0)
             switch_box.pack_end(switch, False, False, 0)
+
             header_bar = self.get_header_bar()
             header_bar.pack_end(switch_box)
 
-            self.advanced_toggle = switch
+            self.advanced_switch = switch_box
+            self.update_advanced_switch_visibilty(self.notebook.get_current_page())
         else:
-            checkbox = Gtk.CheckButton(Label=_("Show advanced options"))
+            checkbox = Gtk.CheckButton(label=_("Show advanced options"))
             checkbox.set_active(settings.read_setting("show_advanced_options") == "True")
             checkbox.connect("toggled", lambda *x:
                              self.on_show_advanced_options_toggled(bool(checkbox.get_active())))
             checkbox.set_halign(Gtk.Align.START)
             self.action_area.pack_start(checkbox, True, True, 0)
             self.action_area.set_child_secondary(checkbox, True)
-
-            self.advanced_toggle = checkbox
 
     def on_show_advanced_options_toggled(self, is_active):
         settings.write_setting("show_advanced_options", is_active)
@@ -424,6 +436,7 @@ class GameDialogCommon(ModelessDialog):
     def _rebuild_tabs(self):
         for i in range(self.notebook.get_n_pages(), 1, -1):
             self.notebook.remove_page(i - 1)
+        self.option_page_indices.clear()
         self._build_game_tab()
         self._build_runner_tab("game")
         self._build_system_tab("game")
