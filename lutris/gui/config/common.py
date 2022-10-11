@@ -329,29 +329,38 @@ class GameDialogCommon(ModelessDialog):
         save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         # Advanced settings toggle
-        checkbox = Gtk.ToggleButton() if use_header_bar else Gtk.CheckButton()
-        if settings.read_setting("show_advanced_options") == "True":
-            checkbox.set_active(True)
-        checkbox.connect("toggled", self.on_show_advanced_options_toggled)
 
         if self.props.use_header_bar:
-            options_icon = Gtk.Image.new_from_icon_name("view-reveal-symbolic", Gtk.IconSize.MENU)
-            checkbox.set_image(options_icon)
-            checkbox.set_tooltip_text(_("Show advanced options"))
+            switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            switch_box.set_tooltip_text(_("Show advanced options"))
 
+            switch_label = Gtk.Label(_("Advanced"))
+            switch = Gtk.Switch()
+            switch.set_state(settings.read_setting("show_advanced_options") == "True")
+            switch.connect("state_set", lambda _w, s:
+                           self.on_show_advanced_options_toggled(bool(s)))
+
+            switch_box.pack_start(switch_label, False, False, 0)
+            switch_box.pack_end(switch, False, False, 0)
             header_bar = self.get_header_bar()
-            header_bar.pack_end(checkbox)
+            header_bar.pack_end(switch_box)
+
+            self.advanced_toggle = switch
         else:
-            checkbox.set_label(_("Show advanced options"))
+            checkbox = Gtk.CheckButton(Label=_("Show advanced options"))
+            checkbox.set_active(settings.read_setting("show_advanced_options") == "True")
+            checkbox.connect("toggled", lambda *x:
+                             self.on_show_advanced_options_toggled(bool(checkbox.get_active())))
             checkbox.set_halign(Gtk.Align.START)
             self.action_area.pack_start(checkbox, True, True, 0)
             self.action_area.set_child_secondary(checkbox, True)
 
-    def on_show_advanced_options_toggled(self, checkbox):
-        value = bool(checkbox.get_active())
-        settings.write_setting("show_advanced_options", value)
+            self.advanced_toggle = checkbox
 
-        self._set_advanced_options_visible(value)
+    def on_show_advanced_options_toggled(self, is_active):
+        settings.write_setting("show_advanced_options", is_active)
+
+        self._set_advanced_options_visible(is_active)
 
     def _set_advanced_options_visible(self, value):
         """Change visibility of advanced options across all config tabs."""
