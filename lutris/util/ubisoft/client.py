@@ -105,7 +105,7 @@ class UbisoftConnectClient():
     def _do_options_request(self):
         self._do_request('options', "https://public-ubiservices.ubi.com/v3/profiles/sessions", headers={
             "Origin": "https://connect.ubisoft.com",
-            "Referer": f"https://connect.ubisoft.com/",
+            "Referer": "https://connect.ubisoft.com/",
             "User-Agent": CHROME_USERAGENT,
         })
 
