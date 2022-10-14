@@ -262,7 +262,7 @@ class LutrisInitDialog(Gtk.Dialog):
 class InstallOrPlayDialog(ModalDialog):
 
     def __init__(self, game_name, parent=None):
-        super().__init__(title=_("%s is already installed") % game_name, parent=parent, border_width=12)
+        super().__init__(title=_("%s is already installed") % game_name, parent=parent, border_width=10)
         self.action = "play"
         self.action_confirmed = False
 
@@ -397,6 +397,7 @@ class InstallerSourceDialog(ModelessDialog):
 
         source_box = LogTextView(source_buffer, autoscroll=False)
 
+        self.get_content_area().set_border_width(0)
         self.get_content_area().add(self.scrolled_window)
         self.scrolled_window.add(source_box)
 

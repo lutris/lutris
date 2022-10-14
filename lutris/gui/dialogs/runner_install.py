@@ -21,7 +21,7 @@ from lutris.util.log import logger
 
 class ShowAppsDialog(ModalDialog):
     def __init__(self, title, parent, runner_version, apps):
-        super().__init__(title, parent)
+        super().__init__(title, parent, border_width=10)
         self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.set_default_size(600, 400)
 
@@ -61,7 +61,7 @@ class RunnerInstallDialog(ModelessDialog):
         if has_stock_icon("software-installed-symbolic") else "wine-symbolic"
 
     def __init__(self, title, parent, runner):
-        super().__init__(title, parent, 0)
+        super().__init__(title, parent, 0, border_width=10)
         self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.runner_name = runner.name
         self.runner_directory = runner.directory

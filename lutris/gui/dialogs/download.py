@@ -10,7 +10,7 @@ class DownloadDialog(ModalDialog):
     """Dialog showing a download in progress."""
 
     def __init__(self, url=None, dest=None, title=None, label=None, downloader=None, parent=None):
-        super().__init__(title=title or _("Downloading file"), parent=parent, border_width=12)
+        super().__init__(title=title or _("Downloading file"), parent=parent, border_width=10)
         self.set_size_request(485, 104)
         params = {"url": url, "dest": dest, "title": label or _("Downloading %s") % url}
         self.dialog_progress_box = DownloadProgressBox(params, downloader=downloader)
