@@ -27,6 +27,26 @@ can use the following command:
 
 `gdb -ex r --args "/usr/bin/python3" "./bin/lutris"`
 
+Debian and Ubuntu based distros
+===============================
+
+For users of Debian and Ubuntu based distributions, you can also install and
+update the `.deb` packages we publish in our GitHub releases page using [deb-get](https://github.com/wimpysworld/deb-get).
+
+First install `deb-get` using these commands in a terminal::
+
+    sudo apt install curl
+    curl -sL https://raw.githubusercontent.com/wimpysworld/deb-get/main/deb-get | sudo -E bash -s install deb-get
+
+Then install Lutris using the following command in terminal::
+
+    deb-get install lutris
+
+Once Lutris is installed it can be kept upto date using::
+
+    deb-get update
+    deb-get upgrade
+
 Installer scripts
 =================
 
