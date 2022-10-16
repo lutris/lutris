@@ -102,6 +102,8 @@ class ConfigBox(VBox):
 
             # Reset button
             reset_btn = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
+            reset_btn.set_valign(Gtk.Align.CENTER)
+            reset_btn.set_margin_bottom(6)
             reset_btn.set_relief(Gtk.ReliefStyle.NONE)
             reset_btn.set_tooltip_text(_("Reset option to global or default config"))
             reset_btn.connect(
