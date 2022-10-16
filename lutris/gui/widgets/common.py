@@ -261,6 +261,7 @@ class EditableGrid(Gtk.Grid):
         self.scrollable_treelist = Gtk.ScrolledWindow()
         self.scrollable_treelist.set_vexpand(True)
         self.scrollable_treelist.add(self.treeview)
+        self.scrollable_treelist.set_shadow_type(Gtk.ShadowType.IN)
 
         self.attach(self.scrollable_treelist, 0, 0, 5, 5)
         self.attach(self.add_button, 5 - len(self.buttons), 6, 1, 1)
