@@ -229,8 +229,8 @@ class EditableGrid(Gtk.Grid):
         super().__init__()
         self.set_column_homogeneous(True)
         self.set_row_homogeneous(True)
-        self.set_row_spacing(10)
-        self.set_column_spacing(10)
+        self.set_row_spacing(6)
+        self.set_column_spacing(6)
 
         self.liststore = Gtk.ListStore(str, str)
         for item in data:
