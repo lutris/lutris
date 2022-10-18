@@ -178,7 +178,8 @@ class GOGService(OnlineService):
         request = Request(url)
         try:
             request.get()
-        except HTTPError:
+        except HTTPError as http_error:
+            logger.error(http_error)
             logger.error("Failed to get token, check your GOG credentials.")
             logger.warning("Clearing existing credentials")
             self.logout()
