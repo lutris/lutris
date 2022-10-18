@@ -26,6 +26,7 @@ class SteamBanner(ServiceMedia):
     size = (184, 69)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/banners")
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = "appid"
     url_pattern = "http://cdn.akamai.steamstatic.com/steam/apps/%s/capsule_184x69.jpg"
 
@@ -35,6 +36,7 @@ class SteamCover(ServiceMedia):
     size = (200, 300)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/covers")
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = "appid"
     url_pattern = "http://cdn.steamstatic.com/steam/apps/%s/library_600x900.jpg"
 
@@ -44,6 +46,7 @@ class SteamBannerLarge(ServiceMedia):
     size = (460, 215)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/header")
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = "appid"
     url_pattern = "https://cdn.cloudflare.steamstatic.com/steam/apps/%s/header.jpg"
 
@@ -197,7 +200,7 @@ class SteamService(BaseService):
                 steam_game = Game(game_id)
                 if not steam_game.playtime:
                     steam_game.remove(no_signal=True)
-                    steam_game.delete()
+                    steam_game.delete(no_signal=True)
                     stats["deduped"] += 1
         logger.debug("%s Steam games deduplicated", stats["deduped"])
 

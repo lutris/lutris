@@ -11,21 +11,19 @@ from gi.repository import GLib, Gtk
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
-from lutris.gui.dialogs import ModelessDialog, Dialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import ErrorDialog, ModalDialog, ModelessDialog, QuestionDialog
+from lutris.gui.widgets.utils import has_stock_icon
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 
 
-class ShowAppsDialog(Dialog):
+class ShowAppsDialog(ModalDialog):
     def __init__(self, title, parent, runner_version, apps):
-        super().__init__(title, parent, Gtk.DialogFlags.MODAL)
-        self.add_buttons(
-            Gtk.STOCK_OK, Gtk.ResponseType.OK
-        )
-
-        self.set_default_size(400, 500)
+        super().__init__(title, parent, border_width=10)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.set_default_size(600, 400)
 
         label = Gtk.Label.new(_("Showing games using %s") % runner_version)
         self.vbox.add(label)
@@ -59,10 +57,14 @@ class RunnerInstallDialog(ModelessDialog):
     COL_PROGRESS = 4
     COL_USAGE = 5
 
+    INSTALLED_ICON_NAME = "software-installed-symbolic" \
+        if has_stock_icon("software-installed-symbolic") else "wine-symbolic"
+
     def __init__(self, title, parent, runner):
-        super().__init__(title, parent, 0)
-        self.add_buttons(_("_OK"), Gtk.ButtonsType.OK)
+        super().__init__(title, parent, 0, border_width=10)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
         self.runner_name = runner.name
+        self.runner_directory = runner.directory
         self.runner_info = {}
         self.installing = {}
         self.set_default_size(640, 480)
@@ -129,11 +131,15 @@ class RunnerInstallDialog(ModelessDialog):
             row.runner = runner
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             row.hbox = hbox
-            chk_installed = Gtk.CheckButton()
-            chk_installed.set_sensitive(False)
-            chk_installed.set_active(runner[self.COL_INSTALLED])
-            hbox.pack_start(chk_installed, False, True, 0)
-            row.chk_installed = chk_installed
+
+            icon = Gtk.Image.new_from_icon_name(self.INSTALLED_ICON_NAME, Gtk.IconSize.MENU)
+            icon.set_visible(runner[self.COL_INSTALLED])
+            icon_container = Gtk.Box()
+            icon_container.set_size_request(16, 16)
+            icon_container.pack_start(icon, False, False, 0)
+
+            hbox.pack_start(icon_container, False, True, 0)
+            row.icon = icon
 
             lbl_version = Gtk.Label(runner[self.COL_VER])
             lbl_version.set_max_width_chars(20)
@@ -156,16 +162,18 @@ class RunnerInstallDialog(ModelessDialog):
                 app_count = runner[self.COL_USAGE] or 0
                 if app_count > 0:
                     usage_button_text = gettext.ngettext(
-                        "_View %d game",
-                        "_View %d games",
+                        "View %d game",
+                        "View %d games",
                         app_count
                     ) % app_count
 
-                    usage_button = Gtk.Button.new_with_mnemonic(usage_button_text)
+                    usage_button = Gtk.LinkButton.new_with_label(usage_button_text)
+                    usage_button.set_valign(Gtk.Align.CENTER)
                     usage_button.connect("clicked", self.on_show_apps_usage, row)
                     hbox.pack_end(usage_button, False, True, 2)
 
             button = Gtk.Button()
+            button.set_size_request(100, -1)
             hbox.pack_end(button, False, True, 0)
             hbox.reorder_child(button, 0)
             row.install_uninstall_cancel_button = button
@@ -178,19 +186,27 @@ class RunnerInstallDialog(ModelessDialog):
 
     def update_listboxrow(self, row):
         row.install_progress.set_visible(False)
-        row.chk_installed.set_active(row.runner[self.COL_INSTALLED])
+
+        runner = row.runner
+        icon = row.icon
+        icon.set_visible(runner[self.COL_INSTALLED])
+
         button = row.install_uninstall_cancel_button
+        style_context = button.get_style_context()
         if row.handler_id is not None:
             button.disconnect(row.handler_id)
             row.handler_id = None
-        if row.runner[self.COL_VER] in self.installing:
+        if runner[self.COL_VER] in self.installing:
+            style_context.remove_class("destructive-action")
             button.set_label(_("Cancel"))
             handler_id = button.connect("clicked", self.on_cancel_install, row)
         else:
-            if row.runner[self.COL_INSTALLED]:
+            if runner[self.COL_INSTALLED]:
+                style_context.add_class("destructive-action")
                 button.set_label(_("Uninstall"))
                 handler_id = button.connect("clicked", self.on_uninstall_runner, row)
             else:
+                style_context.remove_class("destructive-action")
                 button.set_label(_("Install"))
                 handler_id = button.connect("clicked", self.on_install_runner, row)
 
@@ -249,18 +265,17 @@ class RunnerInstallDialog(ModelessDialog):
 
     def get_installed_versions(self):
         """List versions available locally"""
-        runner_path = os.path.join(settings.RUNNER_DIR, self.runner_name)
-        if not os.path.exists(runner_path):
+        if not os.path.exists(self.runner_directory):
             return set()
         return {
             tuple(p.rsplit("-", 1))
-            for p in os.listdir(runner_path)
+            for p in os.listdir(self.runner_directory)
             if "-" in p
         }
 
     def get_runner_path(self, version, arch):
         """Return the local path where the runner is/will be installed"""
-        return os.path.join(settings.RUNNER_DIR, self.runner_name, "{}-{}".format(version, arch))
+        return os.path.join(self.runner_directory, "{}-{}".format(version, arch))
 
     def get_dest_path(self, row):
         """Return temporary path where the runners should be downloaded to"""

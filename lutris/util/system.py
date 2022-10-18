@@ -431,9 +431,16 @@ def get_disk_size(path):
 
 def get_locale_list():
     """Return list of available locales"""
-    with subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE) as locale_getter:
-        output = locale_getter.communicate()
-    locales = output[0].decode('ASCII').split()  # locale names use only ascii characters
+    try:
+        with subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE) as locale_getter:
+            output = locale_getter.communicate()
+        locales = output[0].decode('ASCII').split()  # locale names use only ascii characters
+    except FileNotFoundError:
+        lang = os.environ.get('LANG', '')
+        if lang:
+            locales = [lang]
+        else:
+            locales = []
     return locales
 
 

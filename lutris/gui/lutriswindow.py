@@ -9,6 +9,7 @@ from lutris import services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
+from lutris.exceptions import watch_errors
 from lutris.game import Game
 from lutris.game_actions import GameActions
 from lutris.gui import dialogs
@@ -122,6 +123,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
         GObject.add_emission_hook(Game, "game-error", self.on_game_error)
+        GObject.add_emission_hook(Game, "game-notice", self.on_game_notice)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -625,8 +627,12 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
             self.move(int(self.window_x), int(self.window_y))
 
     def on_service_login(self, service):
-        AsyncCall(service.reload, None)
+        AsyncCall(service.reload, self._service_login_cb)
         return True
+
+    def _service_login_cb(self, _result, error):
+        if error:
+            dialogs.ErrorDialog(str(error), parent=self)
 
     def on_service_logout(self, service):
         if self.service and service.id == self.service.id:
@@ -712,6 +718,10 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         logger.exception("%s has encountered an error: %s", game, error, exc_info=error)
         dialogs.ErrorDialog(str(error), parent=self)
         return True
+
+    def on_game_notice(self, game, message, secondary):
+        """Called when a game has sent the 'game-notice' signal"""
+        dialogs.NoticeDialog(message, secondary=secondary, parent=self)
 
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
@@ -840,6 +850,7 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
         self.emit("view-updated")
         return True
 
+    @watch_errors()
     def on_game_activated(self, view, game_id):
         """Handles view activations (double click, enter press)"""
         if self.service:
@@ -865,3 +876,6 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
                 game.emit("game-launch")
             else:
                 game.emit("game-install")
+
+    def on_watched_error(self, error):
+        dialogs.ErrorDialog(str(error), parent=self)

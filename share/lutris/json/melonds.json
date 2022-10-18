@@ -2,7 +2,7 @@
     "human_name": "melonDS",
     "description": "Nintendo DS emulator",
     "platforms": ["Nintendo DS"],
-    "runner_executable": "melonDS/melonDS",
+    "runner_executable": "melonds/melonDS",
     "download_url": "http://melonds.kuribo64.net/downloads/melonDS_0.9.3_linux_x64.7z",
     "game_options": [
         {

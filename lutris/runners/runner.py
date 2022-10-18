@@ -1,6 +1,7 @@
 """Base module for runners"""
 import os
 import signal
+
 from gettext import gettext as _
 
 from gi.repository import Gtk
@@ -9,7 +10,7 @@ from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import UnavailableLibraries
+from lutris.exceptions import UnavailableLibrariesError
 from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import system
@@ -38,10 +39,13 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def __init__(self, config=None):
         """Initialize runner."""
-        self.config = config
         if config:
-            self.game_data = get_game_by_field(self.config.game_config_id, "configpath")
+            self.has_explicit_config = True
+            self._config = config
+            self.game_data = get_game_by_field(config.game_config_id, "configpath")
         else:
+            self.has_explicit_config = False
+            self._config = None
             self.game_data = {}
 
     def __lt__(self, other):
@@ -62,30 +66,37 @@ class Runner:  # pylint: disable=too-many-public-methods
         return self.__class__.__name__
 
     @property
-    def default_config(self):
-        return LutrisConfig(runner_slug=self.name)
+    def directory(self):
+        return os.path.join(settings.RUNNER_DIR, self.name)
+
+    @property
+    def config(self):
+        if not self._config:
+            self._config = LutrisConfig(runner_slug=self.name)
+        return self._config
+
+    @config.setter
+    def config(self, new_config):
+        self._config = new_config
+        self.has_explicit_config = new_config is not None
 
     @property
     def game_config(self):
         """Return the cascaded game config as a dict."""
-        if self.config:
-            return self.config.game_config
-        logger.warning("Accessing game config while runner wasn't given one.")
-        return {}
+        if not self.has_explicit_config:
+            logger.warning("Accessing game config while runner wasn't given one.")
+
+        return self.config.game_config
 
     @property
     def runner_config(self):
         """Return the cascaded runner config as a dict."""
-        if self.config:
-            return self.config.runner_config
-        return self.default_config.runner_config
+        return self.config.runner_config
 
     @property
     def system_config(self):
         """Return the cascaded system config as a dict."""
-        if self.config:
-            return self.config.system_config
-        return self.default_config.system_config
+        return self.config.system_config
 
     @property
     def default_path(self):
@@ -99,10 +110,11 @@ class Runner:  # pylint: disable=too-many-public-methods
         if game_path:
             return game_path
 
-        # Default to the directory where the entry point is located.
-        entry_point = self.game_config.get(self.entry_point_option)
-        if entry_point:
-            return os.path.dirname(os.path.expanduser(entry_point))
+        if self.has_explicit_config:
+            # Default to the directory where the entry point is located.
+            entry_point = self.game_config.get(self.entry_point_option)
+            if entry_point:
+                return os.path.dirname(os.path.expanduser(entry_point))
         return ""
 
     def resolve_game_path(self):
@@ -253,7 +265,7 @@ class Runner:  # pylint: disable=too-many-public-methods
                     available_libs.add(lib)
         unavailable_libs = set(self.require_libs) - available_libs
         if unavailable_libs:
-            raise UnavailableLibraries(unavailable_libs, self.arch)
+            raise UnavailableLibrariesError(unavailable_libs, self.arch)
 
     def get_run_data(self):
         """Return dict with command (exe & args list) and env vars (dict).
@@ -385,18 +397,18 @@ class Runner:  # pylint: disable=too-many-public-methods
         )
         opts = {"downloader": downloader, "callback": callback}
         if self.download_url:
-            opts["dest"] = os.path.join(settings.RUNNER_DIR, self.name)
+            opts["dest"] = self.directory
             return self.download_and_extract(self.download_url, **opts)
         runner = self.get_runner_version(version)
         if not runner:
-            raise RunnerInstallationError("Failed to retrieve {} ({}) information".format(self.name, version))
+            raise RunnerInstallationError(_("Failed to retrieve {} ({}) information").format(self.name, version))
         if not downloader:
             raise RuntimeError("Missing mandatory downloader for runner %s" % self)
 
         if "wine" in self.name:
             opts["merge_single"] = True
             opts["dest"] = os.path.join(
-                settings.RUNNER_DIR, self.name, "{}-{}".format(runner["version"], runner["architecture"])
+                self.directory, "{}-{}".format(runner["version"], runner["architecture"])
             )
 
         if self.name == "libretro" and version:
@@ -423,12 +435,12 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def extract(self, archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):
-            raise RunnerInstallationError("Failed to extract {}".format(archive))
+            raise RunnerInstallationError(_("Failed to extract {}").format(archive))
         try:
             extract_archive(archive, dest, merge_single=merge_single)
         except ExtractFailure as ex:
             logger.error("Failed to extract the archive %s file may be corrupt", archive)
-            raise RunnerInstallationError("Failed to extract {}: {}".format(archive, ex)) from ex
+            raise RunnerInstallationError(_("Failed to extract {}: {}").format(archive, ex)) from ex
         os.remove(archive)
 
         if self.name == "wine":
@@ -448,11 +460,10 @@ class Runner:  # pylint: disable=too-many-public-methods
         system.remove_folder(game_path)
 
     def can_uninstall(self):
-        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
-        return os.path.isdir(runner_path)
+        return os.path.isdir(self.directory)
 
     def uninstall(self):
-        runner_path = os.path.join(settings.RUNNER_DIR, self.name)
+        runner_path = self.directory
         if os.path.isdir(runner_path):
             system.remove_folder(runner_path)
 

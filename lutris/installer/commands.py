@@ -14,6 +14,7 @@ from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
 from lutris.database.games import get_game_by_field
+from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
 from lutris.installer.errors import ScriptingError
 from lutris.runners import import_task
@@ -387,8 +388,12 @@ class CommandsMixin:
         return runner_name, task_name
 
     def get_wine_path(self):
-        """Return absolute path of wine version used during the install"""
-        return get_wine_version_exe(self._get_runner_version())
+        """Return absolute path of wine version used during the install, but
+        None if the wine exe can't be located."""
+        try:
+            return get_wine_version_exe(self._get_runner_version())
+        except UnavailableRunnerError:
+            return None
 
     def task(self, data):
         """Directive triggering another function specific to a runner.

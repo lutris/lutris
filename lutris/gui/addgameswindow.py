@@ -157,7 +157,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def _on_folder_scanned(self, result, error):
         if error:
-            ErrorDialog(error)
+            ErrorDialog(str(error), parent=self)
             self.destroy()
             return
         for child in self.vbox.get_children():
@@ -211,7 +211,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def update_search_results_cb(self, api_games, error):
         if error:
-            ErrorDialog(error)
+            ErrorDialog(str(error), parent=self)
             return
 
         self.search_spinner.stop()

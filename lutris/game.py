@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, watch_lutris_errors
+from lutris.exceptions import GameConfigError, watch_game_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
@@ -51,6 +51,7 @@ class Game(GObject.Object):
 
     __gsignals__ = {
         "game-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
+        "game-notice": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
         "game-launch": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -83,8 +84,13 @@ class Game(GObject.Object):
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
-        self.has_custom_banner = bool(game_data.get("has_custom_banner"))
-        self.has_custom_icon = bool(game_data.get("has_custom_icon"))
+        self.custom_images = set()
+        if game_data.get("has_custom_banner"):
+            self.custom_images.add("banner")
+        if game_data.get("has_custom_icon"):
+            self.custom_images.add("icon")
+        if game_data.get("has_custom_coverart_big"):
+            self.custom_images.add("coverart_big")
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
         self.playtime = game_data.get("playtime") or 0.0
@@ -106,6 +112,9 @@ class Game(GObject.Object):
         self._log_buffer = None
         self.timer = Timer()
         self.screen_saver_inhibitor_cookie = None
+
+        # Adding Discord App ID for RPC
+        self.discord_id = game_data.get('discord_id')
 
     def __repr__(self):
         return self.__str__()
@@ -254,11 +263,13 @@ class Game(GObject.Object):
             return
         self.emit("game-removed")
 
-    def delete(self):
+    def delete(self, no_signal=False):
         """Completely remove a game from the library"""
         if self.is_installed:
-            raise RuntimeError("Uninstall the game before deleting")
+            raise RuntimeError(_("Uninstall the game before deleting"))
         games_db.delete_game(self.id)
+        if no_signal:
+            return
         self.emit("game-removed")
 
     def set_platform_from_runner(self):
@@ -300,6 +311,10 @@ class Game(GObject.Object):
             hidden=self.is_hidden,
             service=self.service,
             service_id=self.appid,
+            discord_id=self.discord_id,
+            has_custom_banner="banner" in self.custom_images,
+            has_custom_icon="icon" in self.custom_images,
+            has_custom_coverart_big="coverart_big" in self.custom_images
         )
         self.emit("game-updated")
 
@@ -318,7 +333,7 @@ class Game(GObject.Object):
         if self.runner.use_runtime():
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
-                dialogs.ErrorDialog(_("Runtime currently updating"), _("Game might not work as expected"))
+                self.emit("game-notice", _("Runtime currently updating"), _("Game might not work as expected"))
         if ("wine" in self.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
             dialogs.WineNotInstalledWarning(parent=None)
         return True
@@ -442,7 +457,7 @@ class Game(GObject.Object):
 
         return gameplay_info
 
-    @watch_lutris_errors(game_stop_result=False)
+    @watch_game_errors(game_stop_result=False)
     def configure_game(self, _ignored, error=None):  # noqa: C901
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
@@ -505,7 +520,7 @@ class Game(GObject.Object):
         self.start_game()
         return True
 
-    @watch_lutris_errors(game_stop_result=False)
+    @watch_game_errors(game_stop_result=False)
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
         if not self.is_launchable():
@@ -523,9 +538,7 @@ class Game(GObject.Object):
 
         self.state = self.STATE_LAUNCHING
         self.prelaunch_pids = system.get_running_pid_list()
-        discord_token = settings.read_setting('discord_token')
-        if discord_token:
-            discord.set_discord_status(discord_token, "Playing %s" % self.name)
+
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
         return True
@@ -549,6 +562,15 @@ class Game(GObject.Object):
         self.timer.start()
         self.state = self.STATE_RUNNING
         self.emit("game-started")
+
+        print(f"Discord ID: {self.discord_id}")
+        # Game is running, let's update discord status
+        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+            logger.info("Updating Discord RPC Status")
+            discord.client.update(self.discord_id)
+        else:
+            logger.info("Discord RPC Disabled or Discord APP ID Not Present")
+
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
         with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
             np_file.write(self.name)
@@ -576,7 +598,7 @@ class Game(GObject.Object):
         def death_watch_cb(all_died, error):
             """Called after the death watch to more firmly kill any survivors."""
             if error:
-                dialogs.ErrorDialog(str(error))
+                self.emit("game-error", error)
             elif not all_died:
                 self.kill_processes(signal.SIGKILL)
             # If we still can't kill everything, we'll still say we stopped it.
@@ -638,7 +660,7 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
-    @watch_lutris_errors(game_stop_result=False)
+    @watch_game_errors(game_stop_result=False)
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
@@ -668,7 +690,11 @@ class Game(GObject.Object):
         logger.info("Stopping %s", self)
 
         if self.game_thread:
-            jobs.AsyncCall(self.game_thread.stop, None)
+            def stop_cb(result, error):
+                if error:
+                    self.emit("game-error", error)
+
+            jobs.AsyncCall(self.game_thread.stop, stop_cb)
         self.stop_game()
 
     def on_game_quit(self):
@@ -724,9 +750,10 @@ class Game(GObject.Object):
         if self.runner.system_config.get("restore_gamma"):
             restore_gamma()
 
-        discord_token = settings.read_setting('discord_token')
-        if discord_token:
-            discord.set_discord_status(discord_token, "")
+        # Clear Discord Client Status
+        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+            logger.debug("Clearing Discord RPC")
+            discord.client.clear()
 
         self.process_return_codes()
 

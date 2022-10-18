@@ -5,7 +5,7 @@ import os
 from gettext import gettext as _
 
 from lutris import settings
-from lutris.exceptions import UnavailableGame
+from lutris.exceptions import UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
@@ -23,6 +23,7 @@ class HumbleBundleIcon(ServiceMedia):
     size = (70, 70)
     dest_path = os.path.join(settings.CACHE_DIR, "humblebundle/icons")
     file_pattern = "%s.png"
+    file_format = "png"
     api_field = "icon"
 
 
@@ -220,9 +221,9 @@ class HumbleBundleService(OnlineService):
             link = get_humble_download_link(installer.service_appid, installer.runner)
         except Exception as ex:
             logger.exception("Failed to get Humble Bundle game: %s", ex)
-            raise UnavailableGame("The download URL for the game could not be determined.") from ex
+            raise UnavailableGameError(_("The download URL for the game could not be determined.")) from ex
         if not link:
-            raise UnavailableGame("No game found on Humble Bundle")
+            raise UnavailableGameError(_("No game found on Humble Bundle"))
         filename = link.split("?")[0].split("/")[-1]
         return [
             InstallerFile(installer.game_slug, installer_file_id, {

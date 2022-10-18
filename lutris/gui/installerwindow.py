@@ -5,16 +5,16 @@ from gettext import gettext as _
 from gi.repository import GLib, Gtk
 
 from lutris.config import LutrisConfig
-from lutris.exceptions import UnavailableGame
+from lutris.exceptions import UnavailableGameError, watch_errors
 from lutris.game import Game
-from lutris.gui.dialogs import DirectoryDialog, InstallerSourceDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, QuestionDialog
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
-from lutris.installer import interpreter
+from lutris.installer import get_installers, interpreter, InstallationKind
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
@@ -32,7 +32,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         service=None,
         appid=None,
         application=None,
-        is_update=False
+        installation_kind=InstallationKind.INSTALL
     ):
         super().__init__(application=application)
         self.set_default_size(540, 320)
@@ -42,7 +42,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.appid = appid
         self.install_in_progress = False
         self.interpreter = None
-        self.is_update = is_update
+        self.installation_kind = installation_kind
         self.log_buffer = None
         self.log_textview = None
 
@@ -114,7 +114,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def validate_scripts(self):
         """Auto-fixes some script aspects and checks for mandatory fields"""
         if not self.installers:
-            raise ScriptingError("No installer available")
+            raise ScriptingError(_("No installer available"))
         for script in self.installers:
             for item in ["description", "notes"]:
                 script[item] = script.get(item) or ""
@@ -139,10 +139,12 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
 
+    @watch_errors()
     def on_cache_clicked(self, _button):
         """Open the cache configuration dialog"""
-        CacheConfigurationDialog()
+        CacheConfigurationDialog(parent=self)
 
+    @watch_errors()
     def on_installer_selected(self, _widget, installer_version):
         """Sets the script interpreter to the correct script then proceed to
         install folder selection.
@@ -150,30 +152,26 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         If the installed game depends on another one and it's not installed,
         prompt the user to install it and quit this installer.
         """
-        self.clean_widgets()
         try:
             script = None
             for _script in self.installers:
                 if _script["version"] == installer_version:
                     script = _script
             self.interpreter = interpreter.ScriptInterpreter(script, self)
-
         except MissingGameDependency as ex:
             dlg = QuestionDialog(
                 {
+                    "parent": self,
                     "question": _("This game requires %s. Do you want to install it?") % ex.slug,
                     "title": _("Missing dependency"),
                 }
             )
             if dlg.result == Gtk.ResponseType.YES:
-                InstallerWindow(
-                    installers=self.installers,
-                    service=self.service,
-                    appid=self.appid,
-                    application=self.application,
-                )
-            self.destroy()
+                installers = get_installers(game_slug=ex.slug)
+                self.application.show_installer_window(installers)
             return
+
+        self.clean_widgets()
         self.title_label.set_markup(_("<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
         self.select_install_folder()
 
@@ -193,7 +191,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def select_install_folder(self):
         """Stage where we select the install directory."""
         if not self.interpreter.installer.creates_game_folder:
-            self.on_install_clicked(self.install_button)
+            self.start_install()
             return
         self.set_message(_("Select installation directory"))
         default_path = self.interpreter.get_default_target()
@@ -204,18 +202,16 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.source_button.show()
         self.install_button.grab_focus()
         self.install_button.show()
-        # self.manual_button.hide()
 
+    @watch_errors()
     def on_target_changed(self, text_entry, _data=None):
         """Set the installation target for the game."""
         self.interpreter.target_path = os.path.expanduser(text_entry.get_text())
 
+    @watch_errors()
     def on_install_clicked(self, button):
         """Let the interpreter take charge of the next stages."""
-        button.hide()
-        self.source_button.hide()
-        self.interpreter.connect("runners-installed", self.on_runners_ready)
-        GLib.idle_add(self.interpreter.launch_install)
+        self.start_install()
 
     def set_install_destination(self, default_path=None):
         """Display the destination chooser."""
@@ -232,8 +228,27 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         location_entry.entry.connect("changed", self.on_target_changed)
         self.widget_box.pack_start(location_entry, False, False, 0)
 
+    def start_install(self):
+        self.install_button.hide()
+        self.source_button.hide()
+        self.interpreter.connect("runners-installed", self.on_runners_ready)
+        GLib.idle_add(self.launch_install)
+
+    @watch_errors()
+    def launch_install(self):
+        # This is a shim method to allow exceptions from
+        # the interpret to be reported via watch_errors().
+        self.interpreter.launch_install()
+
     def ask_for_disc(self, message, callback, requires):
         """Ask the user to do insert a CD-ROM."""
+
+        def wrapped_callback(*args, **kwargs):
+            try:
+                callback(*args, **kwargs)
+            except Exception as err:
+                ErrorDialog(str(err), parent=self)
+
         self.clean_widgets()
         label = InstallerLabel(message)
         label.show()
@@ -246,17 +261,18 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.widget_box.add(buttons_box)
 
         autodetect_button = Gtk.Button(label=_("Autodetect"))
-        autodetect_button.connect("clicked", callback, requires)
+        autodetect_button.connect("clicked", wrapped_callback, requires)
         autodetect_button.grab_focus()
         autodetect_button.show()
         buttons_box.pack_start(autodetect_button, True, True, 40)
 
         browse_button = Gtk.Button(label=_("Browse…"))
-        callback_data = {"callback": callback, "requires": requires}
+        callback_data = {"callback": wrapped_callback, "requires": requires}
         browse_button.connect("clicked", self.on_browse_clicked, callback_data)
         browse_button.show()
         buttons_box.pack_start(browse_button, True, True, 40)
 
+    @watch_errors()
     def on_browse_clicked(self, widget, callback_data):
         dialog = DirectoryDialog(_("Select the folder where the disc is mounted"), parent=self)
         folder = dialog.folder
@@ -264,6 +280,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         requires = callback_data["requires"]
         callback(widget, requires, folder)
 
+    @watch_errors()
     def on_eject_clicked(self, _widget, data=None):
         self.interpreter.eject_wine_disc()
 
@@ -297,27 +314,32 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """Enable continue button if a non-empty choice is selected"""
         self.continue_button.set_sensitive(bool(widget.get_active_id()))
 
+    @watch_errors()
     def on_runners_ready(self, _widget=None):
         """The runners are ready, proceed with file selection"""
+        self.show_installer_files_screen()
+
+    def show_installer_files_screen(self):
+        """Show installer screen with the file picker / downloader"""
         if self.interpreter.extras is None:
             extras = self.interpreter.get_extras()
             if extras:
                 self.show_extras(extras)
                 return
         try:
-            patch_version = self.interpreter.installer.version if self.is_update else None
+            if self.installation_kind == InstallationKind.UPDATE:
+                patch_version = self.interpreter.installer.version
+            else:
+                patch_version = None
             self.interpreter.installer.prepare_game_files(patch_version)
-        except UnavailableGame as ex:
+        except UnavailableGameError as ex:
             raise ScriptingError(str(ex)) from ex
 
         if not self.interpreter.installer.files:
             logger.debug("Installer doesn't require files")
             self.interpreter.launch_installer_commands()
             return
-        self.show_installer_files_screen()
 
-    def show_installer_files_screen(self):
-        """Show installer screen with the file picker / downloader"""
         self.clean_widgets()
         self.set_status(_("Please review the files needed for the installation then click 'Continue'"))
         installer_files_box = InstallerFilesBox(self.interpreter.installer, self)
@@ -401,6 +423,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.continue_button.disconnect(self.continue_handler)
         self.continue_handler = self.continue_button.connect("clicked", self.on_extras_confirmed, extra_treestore)
 
+    @watch_errors()
     def on_extra_toggled(self, _widget, path, model):
         toggled_row = model[path]
         toggled_row_iter = model.get_iter(path)
@@ -430,6 +453,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 heading_row[0] = all_extras_active
                 heading_row[1] = any_extras_active
 
+    @watch_errors()
     def on_extras_confirmed(self, _button, extra_store):
         """Resume install when user has selected extras to download"""
         selected_extras = []
@@ -441,17 +465,19 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         extra_store.foreach(save_extra)
 
         self.interpreter.extras = selected_extras
-        GLib.idle_add(self.on_runners_ready)
+        GLib.idle_add(self.show_installer_files_screen)
 
     def on_files_ready(self, _widget, files_ready):
         """Toggle state of continue button based on ready state"""
         self.continue_button.set_sensitive(files_ready)
 
+    @watch_errors()
     def on_files_confirmed(self, _button, file_box):
         """Call this when the user confirms the install files
         This will start the downloads.
         """
         self.set_status("")
+        self.cache_button.set_sensitive(False)
         self.continue_button.set_sensitive(False)
         try:
             file_box.start_all()
@@ -460,6 +486,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.continue_button.set_sensitive(True)
             raise ScriptingError(_("Unable to get files: %s") % ex) from ex
 
+    @watch_errors()
     def on_files_available(self, widget):
         """All files are available, continue the install"""
         logger.info("All files are available, continuing install")
@@ -469,7 +496,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         self.clean_widgets()
         self.interpreter.launch_installer_commands()
 
-    def on_install_finished(self, game_id):
+    def finish_install(self, game_id):
         self.clean_widgets()
 
         if self.config.get("create_desktop_shortcut"):
@@ -506,7 +533,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
         """Remove urgency hint (flashing indicator) when window receives focus"""
         self.set_urgency_hint(False)
 
-    def on_install_error(self, message):
+    def show_install_error_message(self, message):
         self.clean_widgets()
         self.set_status(message)
         self.cancel_button.grab_focus()
@@ -531,14 +558,14 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
                 self.interpreter.cleanup()
             self.destroy()
 
-    def on_create_desktop_shortcut_clicked(self, _widget):
-        self.config["create_desktop_shortcut"] = True
+    def on_create_desktop_shortcut_clicked(self, checkbutton):
+        self.config["create_desktop_shortcut"] = checkbutton.get_active()
 
-    def on_create_menu_shortcut_clicked(self, _widget):
-        self.config["create_menu_shortcut"] = True
+    def on_create_menu_shortcut_clicked(self, checkbutton):
+        self.config["create_menu_shortcut"] = checkbutton.get_active()
 
-    def on_create_steam_shortcut_clicked(self, _widget):
-        self.config["create_steam_shortcut"] = True
+    def on_create_steam_shortcut_clicked(self, checkbutton):
+        self.config["create_steam_shortcut"] = checkbutton.get_active()
 
     def create_shortcut(self, desktop=False):
         """Create desktop or global menu shortcuts."""
@@ -557,6 +584,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
 
         remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
         if self.interpreter and self.interpreter.target_path and \
+                self.installation_kind == InstallationKind.INSTALL and \
                 is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
             remove_checkbox.set_active(self.interpreter.game_dir_created)
             remove_checkbox.show()
@@ -580,12 +608,16 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
             self.interpreter.cleanup()  # still remove temporary downloads in any case
         self.destroy()
 
+    @watch_errors()
     def on_source_clicked(self, _button):
         InstallerSourceDialog(
             self.interpreter.installer.script_pretty,
             self.interpreter.installer.game_name,
             self
         )
+
+    def on_watched_error(self, error):
+        ErrorDialog(str(error), parent=self)
 
     def clean_widgets(self):
         """Cleanup before displaying the next stage."""

@@ -15,7 +15,7 @@ from lutris.gui.config.sysinfo_box import SysInfoBox
 # pylint: disable=no-member
 class PreferencesDialog(GameDialogCommon):
     def __init__(self, parent=None):
-        super().__init__(_("Lutris settings"), parent=parent)
+        super().__init__(_("Lutris settings"), parent=parent, use_header_bar=False)
         self.set_border_width(0)
         self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
@@ -34,6 +34,7 @@ class PreferencesDialog(GameDialogCommon):
         self.stack.set_interpolate_size(True)
         hbox.add(self.stack)
         self.vbox.pack_start(hbox, True, True, 0)
+        self.vbox.set_border_width(0)  # keep everything flush with the window edge
         self.stack.add_named(
             self.build_scrolled_window(PreferencesBox()),
             "prefs-stack"
@@ -57,10 +58,6 @@ class PreferencesDialog(GameDialogCommon):
             "system-stack"
         )
         self.build_action_area(self.on_save)
-        self.action_area.set_margin_bottom(12)
-        self.action_area.set_margin_right(12)
-        self.action_area.set_margin_left(12)
-        self.action_area.set_margin_top(12)
 
     def on_sidebar_activated(self, _listbox, row):
         if row.get_children()[0].stack_id == "system-stack":

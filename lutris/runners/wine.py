@@ -21,6 +21,7 @@ from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 from lutris.util.wine.dxvk import DXVKManager
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
+from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
 from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
@@ -1017,3 +1018,36 @@ class wine(Runner):
 
         # Relative path
         return path
+
+    def extract_icon_exe(self, game_slug):
+        """Extracts the 128*128 icon from EXE and saves it, if not resizes the biggest icon found.
+            returns true if an icon is saved, false if not"""
+        try:
+            wantedsize = (128, 128)
+            pathtoicon = settings.ICON_PATH + "/lutris_" + game_slug + ".png"
+            if not self.game_exe or os.path.exists(pathtoicon) or not PEFILE_AVAILABLE:
+                return False
+
+            extractor = ExtractIcon(self.game_exe)
+            groups = extractor.get_group_icons()
+
+            icons = []
+            biggestsize = (0, 0)
+            biggesticon = -1
+            for i in range(len(groups[0])):
+                icons.append(extractor.export(groups[0], i))
+                if icons[i].size > biggestsize:
+                    biggesticon = i
+                    biggestsize = icons[i].size
+                elif icons[i].size == wantedsize:
+                    icons[i].save(pathtoicon)
+                    return True
+
+            if biggesticon >= 0:
+                resized = icons[biggesticon].resize(wantedsize)
+                resized.save(pathtoicon)
+                return True
+        except Exception as err:
+            logger.exception("Failed to extract exe icon: %s", err)
+
+        return False

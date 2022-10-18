@@ -1,6 +1,6 @@
 {
     "human_name": "Basilisk II",
-    "description": " Basilisk II is an Open Source 68k Macintosh emulator",
+    "description": "Basilisk II is an Open Source 68k Macintosh emulator",
     "platforms": ["Macintosh"],
     "runnable_alone": "True",
     "runner_executable": "basiliskii/BasiliskII-x86_64.AppImage",

@@ -14,8 +14,7 @@
         }
     ],
     "runner_options": [
-
-       {
+        {
             "option": "config",
             "type": "bool",
             "label": "config",
