@@ -1,7 +1,6 @@
 """Base module for runners"""
 import os
 import signal
-
 from gettext import gettext as _
 
 from gi.repository import Gtk

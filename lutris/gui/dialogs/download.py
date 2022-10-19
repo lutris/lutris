@@ -2,8 +2,8 @@ from gettext import gettext as _
 
 from gi.repository import Gtk
 
-from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.gui.dialogs import ModalDialog
+from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 
 
 class DownloadDialog(ModalDialog):
