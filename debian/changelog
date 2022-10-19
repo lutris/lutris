@@ -7,7 +7,7 @@ lutris (0.5.12) jammy; urgency=medium
   * Add Discord Rich Presence integration
   * Add ability to extract icons from Windows executables
   * Allow setting custom cover art
-  * Re-style preference dialogs
+  * Re-style configuration dialogs
 
  -- Mathieu Comandon <strider@strycore.com>  Tue, 18 Oct 2022 16:18:45 -0700
 
