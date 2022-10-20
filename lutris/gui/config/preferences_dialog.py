@@ -15,7 +15,7 @@ from lutris.gui.config.sysinfo_box import SysInfoBox
 # pylint: disable=no-member
 class PreferencesDialog(GameDialogCommon):
     def __init__(self, parent=None):
-        super().__init__(_("Lutris settings"), parent=parent, use_header_bar=False)
+        super().__init__(_("Lutris settings"), parent=parent, use_header_bar=True)
         self.set_border_width(0)
         self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
@@ -69,17 +69,20 @@ class PreferencesDialog(GameDialogCommon):
 
     def on_sidebar_activated(self, _listbox, row):
         stack_id = row.get_children()[0].stack_id
-
+        
         generator = self.page_generators.get(stack_id)
-
+        
         if generator:
             del self.page_generators[stack_id]
             generator()
-
-        if stack_id == "system-stack":
-            self.action_area.show_all()
-        else:
-            self.action_area.hide()
+        
+        show_actions = stack_id == "system-stack"
+        for w in self.action_widgets:
+            if show_actions:
+                w.show()
+            else:
+                w.hide()
+        self.get_header_bar().set_show_close_button(not show_actions)
         self.stack.set_visible_child_name(row.get_children()[0].stack_id)
 
     def get_sidebar_button(self, stack_id, text, icon_name):
