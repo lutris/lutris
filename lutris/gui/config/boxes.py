@@ -2,6 +2,7 @@
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 import os
+import urllib
 from gettext import gettext as _
 
 # Third Party Libraries
@@ -423,10 +424,15 @@ class ConfigBox(VBox):
         file_chooser.entry.connect("changed", self._on_chooser_file_set, option_name)
 
     def _on_chooser_file_set(self, entry, option):
-        """Action triggered on file select dialog 'file-set' signal."""
-        if not os.path.isabs(entry.get_text()):
-            entry.set_text(os.path.expanduser(entry.get_text()))
-        self.option_changed(entry.get_parent(), option, entry.get_text())
+        """Action triggered when the field's content changes."""
+        text = entry.get_text()
+        if text.startswith('file:///'):
+            text = urllib.parse.unquote(text[len('file://'):])
+        if not os.path.isabs(text):
+            text = os.path.expanduser(text)
+        if text != entry.get_text():
+            entry.set_text(text)
+        self.option_changed(entry.get_parent(), option, text)
 
     # Directory chooser
     def generate_directory_chooser(self, option, path=None):
@@ -446,8 +452,13 @@ class ConfigBox(VBox):
         self.option_widget = directory_chooser
 
     def _on_chooser_dir_set(self, entry, option):
-        """Action triggered on file select dialog 'file-set' signal."""
-        self.option_changed(entry.get_parent(), option, entry.get_text())
+        """Action triggered when the field's content changes."""
+        text = entry.get_text()
+        if text.startswith('file:///'):
+            text = urllib.parse.unquote(text[len('file://'):])
+        if text != entry.get_text():
+            entry.set_text(text)
+        self.option_changed(entry.get_parent(), option, text)
 
     # Editable grid
     def generate_editable_grid(self, option_name, label, value=None):
