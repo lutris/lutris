@@ -241,6 +241,8 @@ class LutrisInitDialog(Gtk.Dialog):
         self.get_content_area().add(vbox)
         self.progress_timeout = GLib.timeout_add(125, self.show_progress)
         self.show_all()
+
+        self.connect("response", self.on_response)
         self.connect("destroy", self.on_destroy)
         AsyncCall(runtime_updater.update_runtimes, self.init_cb)
 
@@ -251,6 +253,10 @@ class LutrisInitDialog(Gtk.Dialog):
     def init_cb(self, _result, error):
         if error:
             ErrorDialog(str(error))
+        self.destroy()
+
+    def on_response(self, _widget, response):
+        self.runtime_updater.cancel()
         self.destroy()
 
     def on_destroy(self, window):

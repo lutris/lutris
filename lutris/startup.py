@@ -197,15 +197,22 @@ class StartupRuntimeUpdater(RuntimeUpdater):
     def update_runtimes(self):
         super().update_runtimes()
         for dll_manager_class in self.dll_manager_classes:
+            if self.cancelled:
+                break
             key = dll_manager_class.__name__
             key_call = update_cache.get_last_call(key)
             if self.force or not key_call or key_call > 3600 * 6:
                 dll_manager = dll_manager_class()
                 dll_manager.upgrade()
                 update_cache.write_date_to_cache(key)
-        media_call = update_cache.get_last_call("media")
-        if self.force or not media_call or media_call > 3600 * 24:
-            sync_media()
-            update_all_artwork()
-            update_cache.write_date_to_cache("media")
+
+        if not self.cancelled:
+            media_call = update_cache.get_last_call("media")
+            if self.force or not media_call or media_call > 3600 * 24:
+                sync_media()
+                update_all_artwork()
+                update_cache.write_date_to_cache("media")
+
+        if self.cancelled:
+            logger.info("Runtime update cancelled")
         logger.info("Startup complete")

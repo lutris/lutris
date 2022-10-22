@@ -187,8 +187,9 @@ class Runtime:
 class RuntimeUpdater:
     """Class handling the runtime updates"""
 
-    current_updates = 0
+    cancelled = False
     status_updater = None
+    downloaders = {}
 
     def __init__(self, force=False):
         self.force = force
@@ -199,13 +200,15 @@ class RuntimeUpdater:
         if self.force or not runtime_call or runtime_call > 3600 * 12:
             components_to_update = self.update()
             if components_to_update:
-                while self.current_updates:
+                while self.downloaders:
                     time.sleep(0.3)
+                    if self.cancelled:
+                        return
             update_cache.write_date_to_cache("runtime")
 
     def is_updating(self):
         """Return True if the update process is running"""
-        return self.current_updates > 0
+        return bool(self.downloaders)
 
     def update(self):
         """Launch the update process"""
@@ -217,8 +220,13 @@ class RuntimeUpdater:
             runtime = Runtime(remote_runtime["name"], self)
             downloader = runtime.download(remote_runtime)
             if downloader:
-                self.current_updates += 1
-        return self.current_updates
+                self.downloaders[runtime] = downloader
+        return len(self.downloaders)
+
+    def cancel(self):
+        self.cancelled = True
+        for downloader in self.downloaders:
+            downloader.cancel()
 
     @staticmethod
     def _iter_remote_runtimes():
@@ -257,8 +265,8 @@ class RuntimeUpdater:
     def notify_finish(self, runtime):
         """A runtime has finished downloading"""
         logger.debug("Runtime %s is now updated and available", runtime.name)
-        self.current_updates -= 1
-        if self.current_updates == 0:
+        del self.downloaders[runtime]
+        if not self.downloaders:
             logger.info("Runtime is fully updated.")
 
 
