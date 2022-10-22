@@ -45,7 +45,7 @@ from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow, InstallationKind
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.migrations import migrate
-from lutris.startup import init_lutris, run_all_checks, update_runtime
+from lutris.startup import init_lutris, run_all_checks, StartupRuntimeUpdater
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, system
 from lutris.util.http import HTTPError, Request
@@ -286,7 +286,8 @@ class Application(Gtk.Application):
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
-            init_dialog = LutrisInitDialog(update_runtime)
+            runtime_updater = StartupRuntimeUpdater(force=False)
+            init_dialog = LutrisInitDialog(runtime_updater)
             init_dialog.run()
 
     def get_window_key(self, **kwargs):

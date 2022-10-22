@@ -225,8 +225,10 @@ class FileDialog:
 
 class LutrisInitDialog(Gtk.Dialog):
 
-    def __init__(self, init_lutris):
+    def __init__(self, runtime_updater):
         super().__init__()
+        self.runtime_updater = runtime_updater
+
         self.set_size_request(320, 60)
         self.set_border_width(24)
         self.set_decorated(False)
@@ -240,14 +242,11 @@ class LutrisInitDialog(Gtk.Dialog):
         self.progress_timeout = GLib.timeout_add(125, self.show_progress)
         self.show_all()
         self.connect("destroy", self.on_destroy)
-        AsyncCall(self.initialize, self.init_cb, init_lutris)
+        AsyncCall(runtime_updater.update_runtimes, self.init_cb)
 
     def show_progress(self):
         self.progress.pulse()
         return True
-
-    def initialize(self, init_lutris, *args):
-        init_lutris()
 
     def init_cb(self, _result, error):
         if error:

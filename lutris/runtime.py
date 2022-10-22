@@ -6,7 +6,7 @@ import time
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.util import http, jobs, system
+from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.linux import LINUX_SYSTEM
@@ -189,6 +189,19 @@ class RuntimeUpdater:
 
     current_updates = 0
     status_updater = None
+
+    def __init__(self, force=False):
+        self.force = force
+
+    def update_runtimes(self):
+        """Update runtime components"""
+        runtime_call = update_cache.get_last_call("runtime")
+        if self.force or not runtime_call or runtime_call > 3600 * 12:
+            components_to_update = self.update()
+            if components_to_update:
+                while self.current_updates:
+                    time.sleep(0.3)
+            update_cache.write_date_to_cache("runtime")
 
     def is_updating(self):
         """Return True if the update process is running"""
