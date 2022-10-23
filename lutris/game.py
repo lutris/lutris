@@ -704,6 +704,13 @@ class Game(GObject.Object):
             logger.info("Stopping prelaunch script")
             self.prelaunch_executor.stop()
 
+        # We need to do some cleanup before we emit game-stop as this can
+        # trigger Lutris shutdown
+
+        if self.screen_saver_inhibitor_cookie is not None:
+            SCREEN_SAVER_INHIBITOR.uninhibit(self.screen_saver_inhibitor_cookie)
+            self.screen_saver_inhibitor_cookie = None
+
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
             logger.warning("Game still running (state: %s)", self.state)
@@ -738,10 +745,6 @@ class Game(GObject.Object):
 
         if self.compositor_disabled:
             self.set_desktop_compositing(True)
-
-        if self.screen_saver_inhibitor_cookie is not None:
-            SCREEN_SAVER_INHIBITOR.uninhibit(self.screen_saver_inhibitor_cookie)
-            self.screen_saver_inhibitor_cookie = None
 
         if self.runner.system_config.get("use_us_layout"):
             with subprocess.Popen(["setxkbmap"], env=os.environ) as setxkbmap:
