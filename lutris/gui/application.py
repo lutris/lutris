@@ -286,7 +286,7 @@ class Application(Gtk.Application):
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
-            runtime_updater = StartupRuntimeUpdater(force=True)
+            runtime_updater = StartupRuntimeUpdater(force=False)
             init_dialog = LutrisInitDialog(runtime_updater)
             init_dialog.run()
 
