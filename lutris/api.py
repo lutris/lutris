@@ -183,6 +183,17 @@ def get_game_installers(game_slug, revision=None):
     return [normalize_installer(i) for i in installers]
 
 
+def get_game_details(slug):
+    url = settings.SITE_URL + "/api/games/%s" % slug
+    request = http.Request(url)
+    try:
+        response = request.get()
+    except http.HTTPError as ex:
+        logger.debug("Unable to load %s: %s", slug, ex)
+        return {}
+    return response.json
+
+
 def normalize_installer(installer):
     """Adjusts an installer dict so it is in the correct form, with values
     of the expected types."""

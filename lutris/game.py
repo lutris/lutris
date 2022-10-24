@@ -126,6 +126,12 @@ class Game(GObject.Object):
         return value
 
     @property
+    def is_cache_managed(self):
+        """Is the DXVK cache receiving updates from lutris?"""
+        env = self.runner.system_config.get("env", {})
+        return "DXVK_STATE_CACHE_PATH" in env
+
+    @property
     def is_updatable(self):
         """Return whether the game can be upgraded"""
         return self.service == "gog"
