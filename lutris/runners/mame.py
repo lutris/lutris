@@ -64,6 +64,7 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     human_name = _("MAME")
     description = _("Arcade game emulator")
+    require_libs = ["libSDL2_ttf-2.0.so.0", ]
     runner_executable = "mame/mame"
     runnable_alone = True
     config_dir = os.path.expanduser("~/.mame")
