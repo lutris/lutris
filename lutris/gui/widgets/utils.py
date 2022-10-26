@@ -31,7 +31,7 @@ def get_main_window(widget):
 
 def open_uri(uri):
     """Opens a local or remote URI with the default application"""
-    system.execute(["xdg-open", uri])
+    system.spawn(["xdg-open", uri])
 
 
 def get_pixbuf(image, size, fallback=None, is_installed=True):
