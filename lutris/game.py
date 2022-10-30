@@ -49,6 +49,8 @@ class Game(GObject.Object):
     STATE_LAUNCHING = "launching"
     STATE_RUNNING = "running"
 
+    PRIMARY_LAUNCH_CONFIG_NAME = "(primary)"
+
     __gsignals__ = {
         "game-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
         "game-notice": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
@@ -456,7 +458,7 @@ class Game(GObject.Object):
             keymap = Gdk.Keymap.get_default()
             if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
                 config_name_to_save = None
-            elif preferred_launch_command_name == "(primary)":
+            elif preferred_launch_command_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
                 config_index = 0
             elif preferred_launch_command_name:
                 for index, config in enumerate(configs):
@@ -470,8 +472,10 @@ class Game(GObject.Object):
 
                 config_index = dlg.config_index
                 if dlg.dont_show_again:
-                    config_name_to_save = "(primary)" if config_index == 0 else configs[config_index - 1].get(
-                        "name")
+                    if config_index == 0:
+                        config_name_to_save = Game.PRIMARY_LAUNCH_CONFIG_NAME
+                    else:
+                        config_name_to_save = configs[config_index - 1].get("name")
 
             if config_index:  # index 0 for no command at all
                 config = configs[config_index - 1]

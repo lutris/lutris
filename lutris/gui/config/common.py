@@ -105,6 +105,7 @@ class GameDialogCommon(ModelessDialog):
         if self.game:
             info_box.pack_start(self._get_slug_box(), False, False, 6)
             info_box.pack_start(self._get_directory_box(), False, False, 6)
+            info_box.pack_start(self._get_launch_config_box(), False, False, 6)
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, _("Game info"))
@@ -151,6 +152,40 @@ class GameDialogCommon(ModelessDialog):
         move_button.connect("clicked", self.on_move_clicked)
         box.pack_start(move_button, False, False, 0)
         return box
+
+    def _get_launch_config_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
+
+        game_config = self.game.config.game_level.get("game", {})
+        preferred_launch_command_name = game_config.get("preferred_launch_command_name")
+
+        if preferred_launch_command_name:
+            spacer = Gtk.Box()
+            spacer.set_size_request(230, -1)
+            box.pack_start(spacer, False, False, 0)
+
+            if preferred_launch_command_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
+                text = _("The default launch option will be used for this game")
+            else:
+                text = _("The '%s' launch option will be used for this game") % preferred_launch_command_name
+            label = Gtk.Label(text)
+            label.set_line_wrap(True)
+            label.set_halign(Gtk.Align.START)
+            label.set_xalign(0.0)
+            label.set_valign(Gtk.Align.CENTER)
+            box.pack_start(label, True, True, 0)
+            button = Gtk.Button(_("Reset"))
+            button.connect("clicked", self.on_reset_preferred_launch_command_clicked, box)
+            button.set_valign(Gtk.Align.CENTER)
+            box.pack_start(button, False, False, 0)
+        else:
+            box.hide()
+        return box
+
+    def on_reset_preferred_launch_command_clicked(self, _button, launch_config_box):
+        game_config = self.game.config.game_level.get("game", {})
+        del game_config["preferred_launch_command_name"]
+        launch_config_box.hide()
 
     def _get_runner_box(self):
         runner_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
