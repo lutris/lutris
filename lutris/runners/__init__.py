@@ -10,6 +10,7 @@ __all__ = [
     # Microsoft based
     "wine",
     "dosbox",
+    "xemu",
     # Multi-system
     "easyrpg",
     "mame",
