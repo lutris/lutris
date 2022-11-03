@@ -252,7 +252,7 @@ class LutrisInitDialog(Gtk.Dialog):
 
     def init_cb(self, _result, error):
         if error:
-            ErrorDialog(str(error))
+            ErrorDialog(str(error), parent=self)
         self.destroy()
 
     def on_response(self, _widget, response):

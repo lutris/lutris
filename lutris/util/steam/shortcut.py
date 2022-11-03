@@ -26,7 +26,7 @@ def get_shortcuts_vdf_path():
 
 
 def vdf_file_exists():
-    return bool(get_shortcuts_vdf_path)
+    return bool(get_shortcuts_vdf_path())
 
 
 def matches_id(shortcut, game):
@@ -39,12 +39,18 @@ def matches_id(shortcut, game):
 
 
 def shortcut_exists(game):
-    shortcut_path = get_shortcuts_vdf_path()
-    if not shortcut_path or not os.path.exists(shortcut_path):
+    try:
+        shortcut_path = get_shortcuts_vdf_path()
+        if not shortcut_path or not os.path.exists(shortcut_path):
+            return False
+
+        with open(shortcut_path, "rb") as shortcut_file:
+            shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
+
+        return bool([s for s in shortcuts if matches_id(s, game)])
+    except Exception as ex:
+        logger.error("Failed to read shortcut vdf file: %s", ex)
         return False
-    with open(shortcut_path, "rb") as shortcut_file:
-        shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-    return bool([s for s in shortcuts if matches_id(s, game)])
 
 
 def is_steam_game(game):
@@ -150,15 +156,19 @@ def set_artwork(game):
 
 
 def update_all_artwork():
-    shortcut_path = get_shortcuts_vdf_path()
-    if not shortcut_path or not os.path.exists(shortcut_path):
-        return
-    with open(shortcut_path, "rb") as shortcut_file:
-        shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-    for shortcut in shortcuts:
-        id_match = re.match(r".*lutris:rungameid/(\d+)", shortcut["LaunchOptions"])
-        if not id_match:
-            continue
-        game_id = int(id_match.groups()[0])
-        game = Game(game_id)
-        set_artwork(game)
+    try:
+        shortcut_path = get_shortcuts_vdf_path()
+        if not shortcut_path or not os.path.exists(shortcut_path):
+            return
+        with open(shortcut_path, "rb") as shortcut_file:
+            shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
+        for shortcut in shortcuts:
+            id_match = re.match(r".*lutris:rungameid/(\d+)", shortcut["LaunchOptions"])
+            if not id_match:
+                continue
+            game_id = int(id_match.groups()[0])
+            game = Game(game_id)
+            set_artwork(game)
+    except Exception as ex:
+        logger.error("Failed to update steam shortcut artwork: %s", ex)
+        raise ex
