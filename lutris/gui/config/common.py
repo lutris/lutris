@@ -59,6 +59,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
+        self.build_header_bar()
         self.connect("response", self.on_response)
 
     @staticmethod
@@ -398,20 +399,19 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     def _add_notebook_tab(self, widget, label):
         return self.notebook.append_page(widget, Gtk.Label(label=label))
 
-    def build_action_area(self, button_callback):
+    def build_header_bar(self):
         # Buttons
         cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
         cancel_button.set_valign(Gtk.Align.CENTER)
 
         save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.NONE, css_class="suggested-action")
         save_button.set_valign(Gtk.Align.CENTER)
-        save_button.connect("clicked", button_callback)
+        save_button.connect("clicked", self.on_save)
 
         key, mod = Gtk.accelerator_parse("<Control>s")
         save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         # Advanced settings toggle
-
         switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
                              spacing=5,
                              no_show_all=True)
