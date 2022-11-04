@@ -24,6 +24,5 @@ class AddGameDialog(GameDialogCommon):
         )
         self.build_notebook()
         self.build_tabs("game")
-        self.build_action_area(self.on_save)
         self.name_entry.grab_focus()
         self.show_all()

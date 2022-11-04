@@ -14,7 +14,6 @@ class RunnerConfigDialog(GameDialogCommon):
         self.lutris_config = LutrisConfig(runner_slug=self.runner_name)
         self.build_notebook()
         self.build_tabs("runner")
-        self.build_action_area(self.on_save)
         self.show_all()
 
     def on_save(self, wigdet, data=None):
