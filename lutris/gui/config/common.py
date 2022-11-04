@@ -27,8 +27,8 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     """Base class for config dialogs"""
     no_runner_label = _("Select a runner in the Game Info tab")
 
-    def __init__(self, title, parent=None, use_header_bar=True):
-        super().__init__(title, parent=parent, border_width=0, use_header_bar=use_header_bar)
+    def __init__(self, title, parent=None):
+        super().__init__(title, parent=parent, border_width=0, use_header_bar=True)
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
         self.vbox.set_border_width(0)
 
@@ -399,9 +399,6 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         return self.notebook.append_page(widget, Gtk.Label(label=label))
 
     def build_action_area(self, button_callback):
-        self.action_area.set_layout(Gtk.ButtonBoxStyle.END)
-        self.action_area.set_border_width(10)
-
         # Buttons
         cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
         cancel_button.set_valign(Gtk.Align.CENTER)
@@ -415,34 +412,28 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
 
         # Advanced settings toggle
 
-        if self.props.use_header_bar:
-            switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
-                                 spacing=5,
-                                 no_show_all=True)
-            switch_box.set_tooltip_text(_("Show advanced options"))
+        switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                             spacing=5,
+                             no_show_all=True)
+        switch_box.set_tooltip_text(_("Show advanced options"))
 
-            switch_label = Gtk.Label(_("Advanced"), visible=True)
-            switch = Gtk.Switch(visible=True)
-            switch.set_state(settings.read_setting("show_advanced_options") == "True")
-            switch.connect("state_set", lambda _w, s:
-                           self.on_show_advanced_options_toggled(bool(s)))
+        switch_label = Gtk.Label(_("Advanced"), visible=True)
+        switch = Gtk.Switch(visible=True)
+        switch.set_state(settings.read_setting("show_advanced_options") == "True")
+        switch.connect("state_set", lambda _w, s:
+                       self.on_show_advanced_options_toggled(bool(s)))
 
-            switch_box.pack_start(switch_label, False, False, 0)
-            switch_box.pack_end(switch, False, False, 0)
+        switch_box.pack_start(switch_label, False, False, 0)
+        switch_box.pack_end(switch, False, False, 0)
 
-            header_bar = self.get_header_bar()
-            header_bar.pack_end(switch_box)
+        header_bar = self.get_header_bar()
+        header_bar.pack_end(switch_box)
 
-            self.advanced_switch = switch_box
-            self.update_advanced_switch_visibility(self.notebook.get_current_page())
-        else:
-            checkbox = Gtk.CheckButton(label=_("Show advanced options"))
-            checkbox.set_active(settings.read_setting("show_advanced_options") == "True")
-            checkbox.connect("toggled", lambda *x:
-                             self.on_show_advanced_options_toggled(bool(checkbox.get_active())))
-            checkbox.set_halign(Gtk.Align.START)
-            self.action_area.pack_start(checkbox, True, True, 0)
-            self.action_area.set_child_secondary(checkbox, True)
+        self.advanced_switch = switch_box
+        self.action_widgets = [cancel_button, save_button, switch_box]
+
+        if self.notebook:
+            self.update_advanced_switch_visibilty(self.notebook.get_current_page())
 
     def on_show_advanced_options_toggled(self, is_active):
         settings.write_setting("show_advanced_options", is_active)

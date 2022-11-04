@@ -15,7 +15,7 @@ from lutris.gui.config.sysinfo_box import SysInfoBox
 # pylint: disable=no-member
 class PreferencesDialog(GameDialogCommon):
     def __init__(self, parent=None):
-        super().__init__(_("Lutris settings"), parent=parent, use_header_bar=True)
+        super().__init__(_("Lutris settings"), parent=parent)
         self.set_border_width(0)
         self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
