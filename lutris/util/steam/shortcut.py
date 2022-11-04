@@ -171,4 +171,3 @@ def update_all_artwork():
             set_artwork(game)
     except Exception as ex:
         logger.error("Failed to update steam shortcut artwork: %s", ex)
-        raise ex
