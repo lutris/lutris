@@ -95,15 +95,15 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self._build_system_tab(config_level)
         self.update_advanced_switch_visibility(self.notebook.get_current_page())
 
-    def set_header_bar_controls_visibility(self, value):
-        for w in self.header_bar_widgets:
-            w.set_visible(value)
+    def set_header_bar_widgets_visbility(self, value):
+        for widget in self.header_bar_widgets:
+            widget.set_visible(value)
 
     def update_advanced_switch_visibility(self, current_page_index):
         if self.notebook:
             show_switch = current_page_index in self.option_page_indices
-            for w in self.advanced_switch_widgets:
-                w.set_visible(show_switch)
+            for widget in self.advanced_switch_widgets:
+                widget.set_visible(show_switch)
 
     def _build_info_tab(self):
         info_box = Gtk.VBox()
