@@ -6308,3 +6308,6 @@ msgstr ""
 #~ "并为新功能（如云存储或电视上的全屏界面）提供资金！\n"
 #~ "<a href='https://lutris.net/donate'>支持我们！https://lutris.net/donate</"
 #~ "a>"
+
+msgid "Unspecified (Use System Default)"
+msgstr "不指定（使用系统默认值）"
