@@ -103,7 +103,7 @@ def get_archive_opener(extractor):
         opener, mode = tarfile.open, "r:gz"
     elif extractor == "txz":
         opener, mode = tarfile.open, "r:xz"
-    elif extractor == "tbz2":
+    elif extractor in ("tbz2", "bz2"):  # bz2 is used for .tar.bz2 in some installer scripts
         opener, mode = tarfile.open, "r:bz2"
     elif extractor == "tzst":
         opener, mode = tarfile.open, "r:zst"  # Note: not supported by tarfile yet
