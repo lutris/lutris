@@ -45,8 +45,8 @@ class WebConnectDialog(ModalDialog):
 
         webkit_settings = self.webview.get_settings()
 
-        # Set a default User Agent
-        webkit_settings.set_user_agent(DEFAULT_USER_AGENT)
+        # Set a User Agent
+        webkit_settings.set_user_agent(service.login_user_agent)
 
         # Allow popups (Doesn't work...)
         webkit_settings.set_allow_modal_dialogs(True)
