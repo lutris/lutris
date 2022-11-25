@@ -98,7 +98,6 @@ def get_vk_icd_choices():
     nvidia = []
     amdvlk = []
     amdvlkpro = []
-    choices = [(_("Auto: WARNING -- No Vulkan Loader detected!"), "")]
     icd_files = defaultdict(list)
     # Add loaders
     for data_dir in VULKAN_DATA_DIRS:
@@ -124,30 +123,53 @@ def get_vk_icd_choices():
     amdvlk_files = ":".join(amdvlk)
     amdvlkpro_files = ":".join(amdvlkpro)
 
-    intel_name = _("Auto: Intel Open Source (MESA: ANV)")
-    amdradv_name = _("Auto: AMD RADV Open Source (MESA: RADV)")
-    nvidia_name = _("Auto: Nvidia Proprietary")
+    # Start the 'choices' with an 'auto' choice. But which one?
+    auto_intel_name = _("Auto: Intel Open Source (MESA: ANV)")
+    auto_amdradv_name = _("Auto: AMD RADV Open Source (MESA: RADV)")
+    auto_nvidia_name = _("Auto: Nvidia Proprietary")
 
-    glxinfocmd = get_gpu_vendor_cmd(bool(nvidia_files))
-    with subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as glxvendorget:
-        glxvendor = glxvendorget.communicate()[0].decode("utf-8")
-    default_gpu = glxvendor
+    vk_icd_filenames = os.getenv("VK_ICD_FILENAMES")
+    if vk_icd_filenames:
+        # VK_ICD_FILENAMES is what we are going to set in the end, so
+        # if it starts out set, the 'Auto' choice should always leave it
+        # alone- but we do want to pick a nice name for it.
+        #
+        # Note that when the choice is "", we just leave VK_ICD_FILENAMES
+        # alone and do not overwrite it.
+        if "intel" in vk_icd_filenames:
+            choices = [(auto_intel_name, "")]
+        elif "radeon" in vk_icd_filenames or "amd" in vk_icd_filenames or "pro" in vk_icd_filenames:
+            choices = [(auto_amdradv_name, "")]
+        elif "nvidia" in vk_icd_filenames:
+            choices = [(auto_nvidia_name, "")]
+        else:
+            choices = [(_("Auto: WARNING -- No Vulkan Loader detected!"), "")]
+    else:
+        # Without VK_ICD_FILENAMES, we'll try to figure out what GPU the
+        # user has installed and which has ICD files. If that fails, we'll
+        # just use blank and hope for the best.
+        choices = [(_("Auto: WARNING -- No Vulkan Loader detected!"), "")]
 
-    if "Intel" in default_gpu:
-        choices = [(intel_name, intel_files)]
-    elif "AMD" in default_gpu:
-        choices = [(amdradv_name, amdradv_files)]
-    elif "NVIDIA" in default_gpu:
-        choices = [(nvidia_name, nvidia_files)]
-    elif USE_DRI_PRIME:
-        # We have multiple video chipsets, pick something that is instlaled if possible;
-        # we prefer NVIDIA and AMD over Intel, because don't we all?
-        if bool(nvidia_files) and has_graphic_adapter_description("NVIDIA"):
-            choices = [(nvidia_name, nvidia_files)]
-        elif bool(amdradv_files) and has_graphic_adapter_description("AMD"):
-            choices = [(amdradv_name, amdradv_files)]
-        elif bool(intel_files) and has_graphic_adapter_description("Intel"):
-            choices = [(intel_name, intel_files)]
+        glxinfocmd = get_gpu_vendor_cmd(bool(nvidia_files))
+        with subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as glxvendorget:
+            glxvendor = glxvendorget.communicate()[0].decode("utf-8")
+        default_gpu = glxvendor
+
+        if "Intel" in default_gpu and intel_files:
+            choices = [(auto_intel_name, intel_files)]
+        elif "AMD" in default_gpu and amdradv_files:
+            choices = [(auto_amdradv_name, amdradv_files)]
+        elif "NVIDIA" in default_gpu and intel_files:
+            choices = [(auto_nvidia_name, nvidia_files)]
+        elif USE_DRI_PRIME:
+            # We have multiple video chipsets, pick something that is instlaled if possible;
+            # we prefer NVIDIA and AMD over Intel, because don't we all?
+            if nvidia_files and has_graphic_adapter_description("NVIDIA"):
+                choices = [(auto_nvidia_name, nvidia_files)]
+            elif amdradv_files and has_graphic_adapter_description("AMD"):
+                choices = [(auto_amdradv_name, amdradv_files)]
+            elif intel_files and has_graphic_adapter_description("Intel"):
+                choices = [(auto_intel_name, intel_files)]
 
     if intel_files:
         choices.append(("Intel Open Source (MESA: ANV)", intel_files))
