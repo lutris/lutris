@@ -487,6 +487,9 @@ class Game(GObject.Object):
             "exclude_processes": shlex.split(self.runner.system_config.get("exclude_processes", "")),
         }
 
+        if "working_dir" in gameplay_info:
+            self.game_runtime_config["working_dir"] = gameplay_info["working_dir"]
+
         # Audio control
         if self.runner.system_config.get("reset_pulse"):
             audio.reset_pulse()
@@ -559,6 +562,7 @@ class Game(GObject.Object):
             self.game_runtime_config["args"],
             title=self.name,
             runner=self.runner,
+            cwd=self.game_runtime_config.get("working_dir"),
             env=self.game_runtime_config["env"],
             term=self.game_runtime_config["terminal"],
             log_buffer=self.log_buffer,
