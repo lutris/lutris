@@ -462,6 +462,8 @@ class Game(GObject.Object):
                 gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
                 if config.get("args"):
                     gameplay_info["command"] += strings.split_arguments(config["args"])
+                if config.get("working_dir"):
+                    gameplay_info["working_dir"] = config["working_dir"]
 
         return gameplay_info
 
