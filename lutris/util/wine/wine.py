@@ -36,10 +36,15 @@ def get_playonlinux():
 
 def _iter_proton_locations():
     """Iterate through all existing Proton locations"""
-    for path in [os.path.join(p, "common") for p in steam().get_steamapps_dirs()]:
+    try:
+        steamapp_dirs = steam().get_steamapps_dirs()
+    except:
+        return  # in case of corrupt or unreadable Steam configuration files!
+
+    for path in [os.path.join(p, "common") for p in steamapp_dirs]:
         if os.path.isdir(path):
             yield path
-    for path in [os.path.join(p, "") for p in steam().get_steamapps_dirs()]:
+    for path in [os.path.join(p, "") for p in steamapp_dirs]:
         if os.path.isdir(path):
             yield path
 
