@@ -77,7 +77,7 @@ class WinePrefixManager:
         for dll, value in DEFAULT_DLL_OVERRIDES.items():
             self.override_dll(dll, value)
         try:
-            self.desktop_integration()
+            self.enable_desktop_disintegration()
         except OSError as ex:
             logger.error("Failed to setup desktop integration, the prefix may not be valid.")
             logger.exception(ex)
@@ -141,61 +141,90 @@ class WinePrefixManager:
             desktop_folders.append(folder[folder.rfind("\\") + 1:])
         return desktop_folders or DEFAULT_DESKTOP_FOLDERS
 
-    def desktop_integration(self, desktop_dir=None, restore=False):  # noqa: C901
-        """Overwrite desktop integration"""
-        # pylint: disable=too-many-branches
-        # TODO: reduce complexity (18)
+    def enable_desktop_integration_sandbox(self, desktop_dir):
+        """Replace WINE desktop folders with links to a sandbox directory."""
         user_dir = self.user_dir
-        desktop_folders = self.get_desktop_folders()
         desktop_dir = os.path.expanduser(desktop_dir) if desktop_dir else user_dir
 
+        if desktop_dir == user_dir:
+            self.enable_desktop_disintegration()
+            return
+
         if system.path_exists(user_dir):
-            # Replace or restore desktop integration symlinks
+            desktop_folders = self.get_desktop_folders()
+            for item in desktop_folders:
+                path = os.path.join(user_dir, item)
+                safe_path = path + ".winecfg"
+
+                self._remove_desktop_folder(path, safe_path)
+
+                try:
+                    src_path = os.path.join(desktop_dir, item)
+                except TypeError as ex:
+                    # There is supposedly a None value in there
+                    # The current code shouldn't allow that
+                    # Just raise a exception with the values
+                    raise RuntimeError("Missing value desktop_dir=%s or item=%s" % (desktop_dir, item)) from ex
+
+                os.makedirs(src_path, exist_ok=True)
+                os.symlink(src_path, path)
+
+    def enable_desktop_disintegration(self):
+        """Replace the desktop integration links with proper folders."""
+        user_dir = self.user_dir
+
+        if system.path_exists(user_dir):
+            desktop_folders = self.get_desktop_folders()
+            for item in desktop_folders:
+                path = os.path.join(user_dir, item)
+                safe_path = path + ".winecfg"
+
+                # Disintegration means the desktop folders in WINE are
+                # actual directories not links, and that's all we want.
+                if not os.path.islink(path):
+                    continue
+
+                self._remove_desktop_folder(path, safe_path)
+
+                # We prefer to restore the previously saved directory.
+                if os.path.isdir(safe_path):
+                    os.rename(safe_path, path)
+                else:
+                    os.makedirs(path, exist_ok=True)
+
+    def restore_desktop_integration(self):
+        """Replace WINE's desktop folders with links to the corresponding
+        folders in your home directory."""
+        user_dir = self.user_dir
+
+        if system.path_exists(user_dir):
+            desktop_folders = self.get_desktop_folders()
             for i, item in enumerate(desktop_folders):
                 path = os.path.join(user_dir, item)
-                old_path = path + ".winecfg"
+                safe_path = path + ".winecfg"
 
-                if os.path.islink(path):
-                    if not restore:
-                        os.unlink(path)
-                elif os.path.isdir(path):
-                    try:
-                        os.rmdir(path)
-                    # We can't delete nonempty dir, so we rename as wine do.
-                    except OSError:
-                        os.rename(path, old_path)
+                self._remove_desktop_folder(path, safe_path)
 
                 # if we want to create a symlink and one is already there, just
                 # skip to the next item.  this also makes sure the elif doesn't
                 # find a dir (isdir only looks at the target of the symlink).
-                if restore and os.path.islink(path):
-                    continue
-                if restore and not os.path.isdir(path):
-                    src_path = get_xdg_entry(DESKTOP_XDG[i])
-                    if not src_path:
-                        logger.error("No XDG entry found for %s, launcher not created", DESKTOP_XDG[i])
-                    else:
-                        os.symlink(src_path, path)
-                    # We don't need all the others process of the loop
-                    continue
-
-                if desktop_dir != user_dir:
-                    try:
-                        src_path = os.path.join(desktop_dir, item)
-                    except TypeError as ex:
-                        # There is supposedly a None value in there
-                        # The current code shouldn't allow that
-                        # Just raise a exception with the values
-                        raise RuntimeError("Missing value desktop_dir=%s or item=%s" % (desktop_dir, item)) from ex
-
-                    os.makedirs(src_path, exist_ok=True)
-                    os.symlink(src_path, path)
+                src_path = get_xdg_entry(DESKTOP_XDG[i])
+                if not src_path:
+                    logger.error("No XDG entry found for %s, launcher not created", DESKTOP_XDG[i])
                 else:
-                    # We use first the renamed dir, otherwise we make it.
-                    if os.path.isdir(old_path):
-                        os.rename(old_path, path)
-                    else:
-                        os.makedirs(path, exist_ok=True)
+                    os.symlink(src_path, path)
+
+    def _remove_desktop_folder(self, path, safe_path):
+        """Removes the link or directory at 'path'; if it is a non-empty directory
+        this will rename it to 'safe_path' instead of removing it entirely."""
+        if os.path.islink(path):
+            os.unlink(path)
+        elif os.path.isdir(path):
+            try:
+                os.rmdir(path)
+            except OSError:
+                # We can't delete nonempty dir, so we rename as wine do.
+                os.rename(path, safe_path)
 
     def set_crash_dialogs(self, enabled):
         """Enable or diable Wine crash dialogs"""
