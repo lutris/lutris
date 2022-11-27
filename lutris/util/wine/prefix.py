@@ -162,7 +162,7 @@ class WinePrefixManager:
             self.enable_desktop_disintegration()
             return
 
-        if system.path_exists(user_dir):
+        if system.path_exists(user_dir) and self._get_desktop_integration_assignment() != desktop_dir:
             desktop_folders = self.get_desktop_folders()
             for item in desktop_folders:
                 path = os.path.join(user_dir, item)
@@ -181,11 +181,13 @@ class WinePrefixManager:
                 os.makedirs(src_path, exist_ok=True)
                 os.symlink(src_path, path)
 
+            self._set_desktop_integration_assignment(desktop_dir)
+
     def enable_desktop_disintegration(self):
         """Replace the desktop integration links with proper folders."""
         user_dir = self.user_dir
 
-        if system.path_exists(user_dir):
+        if system.path_exists(user_dir) and self._get_desktop_integration_assignment() != user_dir:
             desktop_folders = self.get_desktop_folders()
             for item in desktop_folders:
                 path = os.path.join(user_dir, item)
@@ -204,12 +206,15 @@ class WinePrefixManager:
                 else:
                     os.makedirs(path, exist_ok=True)
 
+            self._set_desktop_integration_assignment(user_dir)
+
     def restore_desktop_integration(self):
         """Replace WINE's desktop folders with links to the corresponding
         folders in your home directory."""
         user_dir = self.user_dir
+        home_dir = os.path.expanduser("~")
 
-        if system.path_exists(user_dir):
+        if system.path_exists(user_dir) and self._get_desktop_integration_assignment() != home_dir:
             desktop_folders = self.get_desktop_folders()
             for i, item in enumerate(desktop_folders):
                 path = os.path.join(user_dir, item)
@@ -226,6 +231,8 @@ class WinePrefixManager:
                 else:
                     os.symlink(src_path, path)
 
+            self._set_desktop_integration_assignment(home_dir)
+
     def _remove_desktop_folder(self, path, safe_path):
         """Removes the link or directory at 'path'; if it is a non-empty directory
         this will rename it to 'safe_path' instead of removing it entirely."""
@@ -237,6 +244,30 @@ class WinePrefixManager:
             except OSError:
                 # We can't delete nonempty dir, so we rename as wine do.
                 os.rename(path, safe_path)
+
+    def _get_desktop_integration_assignment(self):
+        setting_path = os.path.join(self.path, ".lutris_destkop_integration")
+        try:
+            if os.path.isfile(setting_path):
+                with open(setting_path, "r", encoding='utf-8') as f:
+                    return f.read()
+            else:
+                return ""
+        except Exception as ex:
+            logger.exception("Unable to read Lutris desktop integration setting: %s", ex)
+            return ""
+
+    def _set_desktop_integration_assignment(self, desktop_dir):
+        setting_path = os.path.join(self.path, ".lutris_destkop_integration")
+
+        try:
+            if desktop_dir:
+                with open(setting_path, "w", encoding='utf-8') as f:
+                    f.write(desktop_dir)
+            elif os.path.isfile(setting_path):
+                os.remove(setting_path)
+        except Exception as ex:
+            logger.exception("Unable to write Lutris desktop integration setting: %s", ex)
 
     def set_crash_dialogs(self, enabled):
         """Enable or diable Wine crash dialogs"""
@@ -293,7 +324,7 @@ class WinePrefixManager:
                 with open(assignment_path, "r", encoding='utf-8') as f:
                     assigned_dpi = int(f.read())
             except Exception as ex:
-                logger.exception("Unable to read lutris assigned DPI: %s", ex)
+                logger.exception("Unable to read Lutris assigned DPI: %s", ex)
                 return False
 
             for key_path in key_paths:
