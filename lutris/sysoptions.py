@@ -184,6 +184,7 @@ def get_vk_icd_choices():
             choices.append(("AMDVLK Open source", amdvlk_files))
     if amdvlkpro_files:
         choices.append(("AMDGPU-PRO Proprietary", amdvlkpro_files))
+    choices.append((_("Unspecified (Use System Default)"), ""))
     return choices
 
 
