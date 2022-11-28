@@ -2,11 +2,9 @@
 
 Everything in this module should rely on /proc or /sys only, no executable calls
 """
-# Standard Library
 import os
 import re
 
-# Lutris Modules
 from lutris.util.log import logger
 
 MIN_RECOMMENDED_NVIDIA_DRIVER = 415
@@ -66,7 +64,12 @@ def get_gpus():
     if not os.path.exists("/sys/class/drm"):
         logger.error("No GPU available on this system!")
         return
-    for cardname in os.listdir("/sys/class/drm/"):
+    try:
+        cardlist = os.listdir("/sys/class/drm/")
+    except PermissionError:
+        logger.error("Your system does not allow reading from /sys/class/drm, no GPU detected.")
+        return
+    for cardname in cardlist:
         if re.match(r"^card\d$", cardname):
             yield cardname
 
