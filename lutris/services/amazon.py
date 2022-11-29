@@ -398,7 +398,6 @@ class AmazonService(OnlineService):
             "X-Amz-Target": target,
             "x-amzn-token": token,
             "User-Agent": self.user_agent,
-            "UserAgent": self.user_agent,
             "Content-Type": "application/json",
             "Content-Encoding": "amz-1.0",
         }
@@ -408,9 +407,9 @@ class AmazonService(OnlineService):
 
         try:
             request.post(json.dumps(body).encode())
-        except HTTPError:
+        except HTTPError as ex:
             # Do not raise exception here, should be managed from the caller
-            logger.error("Failed http request %s", url)
+            logger.error("Failed http request %s: %s", url, ex)
             return
 
         return request.json
@@ -445,7 +444,6 @@ class AmazonService(OnlineService):
         """Get a game manifest"""
         headers = {
             "User-Agent": self.user_agent,
-            "UserAgent": self.user_agent
         }
 
         url = manifest_info["downloadUrls"][0]
@@ -552,7 +550,6 @@ class AmazonService(OnlineService):
         """Get and parse the fuel.json file"""
         headers = {
             "User-Agent": self.user_agent,
-            "UserAgent": self.user_agent
         }
 
         request = Request(fuel_url, headers=headers)
