@@ -1343,7 +1343,7 @@ msgid ""
 "where the game is installed."
 msgstr ""
 "Zu diesem Spiel gibt es Zusatzinhalte. \n"
-"Wähle die Inhalte aus, die dann im Verzeichnis 'extras' im Installations-
+"Wähle die Inhalte aus, die dann im Verzeichnis 'extras' im Installations-"
 "Pfad des Spiels abgelegt werden."
 
 #: lutris/gui/installerwindow.py:459
