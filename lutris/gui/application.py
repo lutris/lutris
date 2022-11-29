@@ -108,7 +108,7 @@ class Application(Gtk.Application):
                 "To install a game, add lutris:install/game-identifier."
             ))
         else:
-            logger.warning("GLib.set_option_context_summary missing, " "was added in GLib 2.56 (Released 2018-03-12)")
+            logger.warning("GLib.set_option_context_summary missing, was added in GLib 2.56 (Released 2018-03-12)")
         self.add_main_option(
             "version",
             ord("v"),

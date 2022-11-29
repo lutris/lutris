@@ -627,7 +627,7 @@ class GOGService(OnlineService):
         patch_installers = []
         for version in patch_versions:
             patch = patch_versions[version]
-            size = human_size(sum([part["total_size"] for part in patch]))
+            size = human_size(sum(part["total_size"] for part in patch))
             patch_id = "gogpatch-%s" % slugify(patch[0]["version"])
             installer = {
                 "name": db_game["name"],

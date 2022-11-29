@@ -122,7 +122,7 @@ def _init_template(self, cls, base_init_template):
     # TODO: could disallow using a metaclass.. but this is good enough
     # .. if you disagree, feel free to fix it and issue a PR :)
     if self.__class__ is not cls:
-        raise TypeError("Inheritance from classes with @GtkTemplate decorators " "is not allowed at this time")
+        raise TypeError("Inheritance from classes with @GtkTemplate decorators is not allowed at this time")
 
     connected_signals = set()
     self.__connected_template_signals__ = connected_signals

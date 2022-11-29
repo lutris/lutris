@@ -87,7 +87,7 @@ class FlathubService(BaseService):
             logger.warning("Flathub games are already loading")
             return
         self.is_loading = True
-        response = requests.get(self.api_url)
+        response = requests.get(self.api_url, timeout=5)
         entries = response.json()
         # seen = set()
         flathub_games = []

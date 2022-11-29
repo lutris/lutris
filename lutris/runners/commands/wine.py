@@ -148,7 +148,7 @@ def create_prefix(  # noqa: C901
         if loop_index == 60:
             logger.warning("Wine prefix creation is taking longer than expected...")
     if not os.path.exists(os.path.join(prefix, "user.reg")):
-        logger.error("No user.reg found after prefix creation. " "Prefix might not be valid")
+        logger.error("No user.reg found after prefix creation. Prefix might not be valid")
         return
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)

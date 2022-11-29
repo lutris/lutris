@@ -467,11 +467,11 @@ def get_disk_size(path):
     """Return the disk size in bytes of a folder"""
     total_size = 0
     for base, _dirs, files in os.walk(path):
-        total_size += sum([
+        total_size += sum(
             os.stat(os.path.join(base, f)).st_size
             for f in files
             if os.path.isfile(os.path.join(base, f))
-        ])
+        )
     return total_size
 
 

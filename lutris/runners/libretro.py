@@ -26,7 +26,11 @@ def get_libretro_cores():
     # Get core identifiers from info dir
     info_path = get_default_config_path("info")
     if not os.path.exists(info_path):
-        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
+        req = requests.get(
+            "http://buildbot.libretro.com/assets/frontend/info.zip",
+            allow_redirects=True,
+            timeout=5
+        )
         if req.status_code == requests.codes.ok:  # pylint: disable=no-member
             with open(get_default_config_path('info.zip'), 'wb') as info_zip:
                 info_zip.write(req.content)
