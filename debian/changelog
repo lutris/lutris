@@ -1,5 +1,6 @@
 lutris (0.5.12) jammy; urgency=medium
 
+  * Add support for Xbox games with the xemu runner
   * Fix authentication issue with Origin
   * Fix authentication issue with EGS
   * Fix authentication issue with Ubisoft Connect when 2FA is enabled
