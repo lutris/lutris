@@ -3,11 +3,7 @@ import os
 from gettext import gettext as _
 
 import gi
-try:
-    gi.require_version("WebKit2", "4.1")
-except (ImportError, ValueError):
-    gi.require_version("WebKit2", "4.0")
-
+gi.require_version("WebKit2", "4.0")
 from gi.repository import WebKit2
 
 from lutris.gui.dialogs import ModalDialog
