@@ -90,6 +90,7 @@ parts:
       - gir1.2-glib-2.0
       - gir1.2-gnomedesktop-3.0
       - gir1.2-gtk-3.0
+      - gir1.2-notify-0.7
       - gir1.2-webkit2-4.0
       - libgnutls30
       - libvulkan1
