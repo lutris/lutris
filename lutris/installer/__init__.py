@@ -1,4 +1,6 @@
 """Install script interpreter package."""
+import enum
+
 import yaml
 
 from lutris.api import get_game_installers, normalize_installer
@@ -8,6 +10,12 @@ from lutris.util.log import logger
 AUTO_EXE_PREFIX = "_xXx_AUTO_"
 AUTO_ELF_EXE = AUTO_EXE_PREFIX + "ELF_xXx_"
 AUTO_WIN32_EXE = AUTO_EXE_PREFIX + "WIN32_xXx_"
+
+
+class InstallationKind(enum.Enum):
+    INSTALL = 0
+    UPDATE = 1
+    DLC = 2
 
 
 def read_script(filename):

@@ -1,4 +1,4 @@
-# generated on 2022-08-21T09:17:44+00:00
+# generated on 2022-09-19T02:53:10+00:00
 
 share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
@@ -19,7 +19,6 @@ lutris/database/schema.py
 lutris/database/services.py
 lutris/database/sources.py
 lutris/database/sql.py
-lutris/discord.py
 lutris/exceptions.py
 lutris/game_actions.py
 lutris/game.py
@@ -90,6 +89,7 @@ lutris/migrations/mess_to_mame.py
 lutris/migrations/migrate_banners.py
 lutris/migrations/migrate_hidden_ids.py
 lutris/migrations/migrate_steam_appids.py
+lutris/migrations/retrieve_discord_appids.py
 lutris/runner_interpreter.py
 lutris/runners/atari800.py
 lutris/runners/commands/dosbox.py
@@ -163,7 +163,10 @@ lutris/util/amazon/sds_proto2.py
 lutris/util/audio.py
 lutris/util/cookies.py
 lutris/util/datapath.py
-lutris/util/discord.py
+lutris/util/discord/base.py
+lutris/util/discord/client.py
+lutris/util/discord/__init__.py
+lutris/util/discord/rpc.py
 lutris/util/display.py
 lutris/util/dolphin/cache_reader.py
 lutris/util/dolphin/__init__.py

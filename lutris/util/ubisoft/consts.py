@@ -12,11 +12,10 @@ CHROME_USERAGENT = (
     "Chrome/72.0.3626.121 Safari/537.36"
 )
 
-CLUB_GENOME_ID = "fbd6791c-a6c6-4206-a75e-77234080b87b"
-UBISOFT_APPID = "b8fde481-327d-4031-85ce-7c10a202a700"
+CLUB_GENOME_ID = "85c31714-0941-4876-a18d-2c7e9dce8d40"
 CLUB_APPID = "314d4fef-e568-454a-ae06-43e3bece12a6"
 
 LOGIN_URL = (
-    f"https://connect.ubisoft.com/login?appId={UBISOFT_APPID}&genomeId={CLUB_GENOME_ID}"
+    f"https://connect.ubisoft.com/login?appId={CLUB_APPID}&genomeId={CLUB_GENOME_ID}"
     "&lang=en-US&nextUrl=https:%2F%2Fconnect.ubisoft.com%2Fready"
 )

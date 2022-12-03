@@ -1,3 +1,17 @@
+lutris (0.5.12) jammy; urgency=medium
+
+  * Add support for Xbox games with the xemu runner
+  * Fix authentication issue with Origin
+  * Fix authentication issue with EGS
+  * Fix authentication issue with Ubisoft Connect when 2FA is enabled
+  * Fix integration issue with GOG
+  * Add Discord Rich Presence integration
+  * Add ability to extract icons from Windows executables
+  * Allow setting custom cover art
+  * Re-style configuration dialogs
+
+ -- Mathieu Comandon <strider@strycore.com>  Tue, 18 Oct 2022 16:18:45 -0700
+
 lutris (0.5.11) jammy; urgency=medium
 
   * Fix for some installers commands exiting with return code 256

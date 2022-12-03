@@ -91,10 +91,10 @@ def get_runners(runner_name):
     return response.json()
 
 
-def get_http_response(url, payload):
+def get_http_post_response(url, payload):
     response = http.Request(url, headers={"Content-Type": "application/json"})
     try:
-        response.get(data=payload)
+        response.post(data=payload)
     except http.HTTPError as ex:
         logger.error("Unable to get games from API: %s", ex)
         return None
@@ -117,7 +117,7 @@ def get_game_api_page(game_slugs, page=1):
     if not game_slugs:
         return []
     payload = json.dumps({"games": game_slugs, "page": page}).encode("utf-8")
-    return get_http_response(url, payload)
+    return get_http_post_response(url, payload)
 
 
 def get_game_service_api_page(service, appids, page=1):
@@ -128,7 +128,7 @@ def get_game_service_api_page(service, appids, page=1):
     if not appids:
         return []
     payload = json.dumps({"appids": appids}).encode("utf-8")
-    return get_http_response(url, payload)
+    return get_http_post_response(url, payload)
 
 
 def get_api_games(game_slugs=None, page=1, service=None):
@@ -181,6 +181,17 @@ def get_game_installers(game_slug, revision=None):
     else:
         installers = response["results"]
     return [normalize_installer(i) for i in installers]
+
+
+def get_game_details(slug):
+    url = settings.SITE_URL + "/api/games/%s" % slug
+    request = http.Request(url)
+    try:
+        response = request.get()
+    except http.HTTPError as ex:
+        logger.debug("Unable to load %s: %s", slug, ex)
+        return {}
+    return response.json
 
 
 def normalize_installer(installer):

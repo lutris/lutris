@@ -4,6 +4,18 @@ Please read the notes below before opening a PR.
 
 Note: All the commands below need to be run in the project root directory, not in the `po` directory. Otherwise you may get `Not the project root` error in meson.
 
+## Update POTFILES
+
+Before you start translating, you may want to update `POTFILES`, which contains a list of all source files that need to be translated.
+
+If someone deletes or renames some file, it has to be updated, otherwise "No such file or directory" will throw.
+
+Run the following command to update:
+
+```
+./po/generate-potfiles.sh
+```
+
 ## Updating a translations
 
 ```bash

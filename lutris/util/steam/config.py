@@ -112,7 +112,7 @@ def get_steam_library(steamid):
             settings.STEAM_API_KEY, steamid
         )
     )
-    response = requests.get(steam_games_url)
+    response = requests.get(steam_games_url, timeout=30)
     if response.status_code > 400:
         logger.error("Invalid response from steam: %s", response)
         return []

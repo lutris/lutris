@@ -88,6 +88,52 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
     return stdout.strip()
 
 
+def spawn(command, env=None, cwd=None, quiet=False, shell=False):
+    """
+        Execute a system command but discard its results and do not wait
+        for it to complete.
+
+        Params:
+            command (list): A list containing an executable and its parameters
+            env (dict): Dict of values to add to the current environment
+            cwd (str): Working directory
+            quiet (bool): Do not display log messages
+    """
+
+    # Check if the executable exists
+    if not command:
+        logger.error("No executable provided!")
+        return
+    if os.path.isabs(command[0]) and not path_exists(command[0]):
+        logger.error("No executable found in %s", command)
+        return
+
+    if not quiet:
+        logger.debug("Spawning %s", " ".join([str(i) for i in command]))
+
+    # Set up environment
+    existing_env = os.environ.copy()
+    if env:
+        if not quiet:
+            logger.debug(" ".join("{}={}".format(k, v) for k, v in env.items()))
+        env = {k: v for k, v in env.items() if v is not None}
+        existing_env.update(env)
+
+    # Piping stderr can cause slowness in the programs, use carefully
+    # (especially when using regedit with wine)
+    try:
+        subprocess.Popen(  # pylint: disable=consider-using-with
+            command,
+            shell=shell,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            env=existing_env,
+            cwd=cwd
+        )
+    except (OSError, TypeError) as ex:
+        logger.error("Could not run command %s (env: %s): %s", command, env, ex)
+
+
 def read_process_output(command, timeout=5):
     """Return the output of a command as a string"""
     try:
@@ -241,7 +287,7 @@ def remove_folder(path):
     """
     if not os.path.exists(path):
         logger.warning("Non existent path: %s", path)
-        return
+        return False
     logger.debug("Removing folder %s", path)
     if os.path.samefile(os.path.expanduser("~"), path):
         raise RuntimeError("Lutris tried to erase home directory!")
@@ -421,19 +467,26 @@ def get_disk_size(path):
     """Return the disk size in bytes of a folder"""
     total_size = 0
     for base, _dirs, files in os.walk(path):
-        total_size += sum([
+        total_size += sum(
             os.stat(os.path.join(base, f)).st_size
             for f in files
             if os.path.isfile(os.path.join(base, f))
-        ])
+        )
     return total_size
 
 
 def get_locale_list():
     """Return list of available locales"""
-    with subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE) as locale_getter:
-        output = locale_getter.communicate()
-    locales = output[0].decode('ASCII').split()  # locale names use only ascii characters
+    try:
+        with subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE) as locale_getter:
+            output = locale_getter.communicate()
+        locales = output[0].decode('ASCII').split()  # locale names use only ascii characters
+    except FileNotFoundError:
+        lang = os.environ.get('LANG', '')
+        if lang:
+            locales = [lang]
+        else:
+            locales = []
     return locales
 
 

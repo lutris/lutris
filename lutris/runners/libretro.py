@@ -26,7 +26,11 @@ def get_libretro_cores():
     # Get core identifiers from info dir
     info_path = get_default_config_path("info")
     if not os.path.exists(info_path):
-        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
+        req = requests.get(
+            "http://buildbot.libretro.com/assets/frontend/info.zip",
+            allow_redirects=True,
+            timeout=5
+        )
         if req.status_code == requests.codes.ok:  # pylint: disable=no-member
             with open(get_default_config_path('info.zip'), 'wb') as info_zip:
                 info_zip.write(req.content)
@@ -133,7 +137,7 @@ class libretro(Runner):
         return system.path_exists(self.get_executable())
 
     def is_installed(self, core=None):
-        if not core and self.config and self.game_config.get("core"):
+        if not core and self.has_explicit_config and self.game_config.get("core"):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):
             return self.is_retroarch_installed()

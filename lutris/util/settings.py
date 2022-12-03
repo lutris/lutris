@@ -19,7 +19,7 @@ class SettingsIO:
             except configparser.ParsingError as ex:
                 logger.error("Failed to readconfig file %s: %s", self.config_file, ex)
             except UnicodeDecodeError as ex:
-                logger.error("Some invalid characters are preventing " "the setting file from loading properly: %s", ex)
+                logger.error("Some invalid characters are preventing the setting file from loading properly: %s", ex)
 
     def read_setting(self, key, section="lutris", default=""):
         """Read a setting from the config file

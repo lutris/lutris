@@ -74,6 +74,10 @@ DATABASE = {
             "type": "INTEGER"
         },
         {
+            "name": "has_custom_coverart_big",
+            "type": "INTEGER"
+        },
+        {
             "name": "playtime",
             "type": "REAL"
         },
@@ -88,7 +92,11 @@ DATABASE = {
         {
             "name": "service_id",
             "type": "TEXT"
-        }
+        },
+        {
+            "name": "discord_id",
+            "type": "TEXT",
+        },
     ],
     "service_games": [
         {

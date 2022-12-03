@@ -23,6 +23,7 @@ from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe
 from lutris.util.system import path_exists
+from lutris.util.wine.dxvk import update_shader_cache
 
 
 class GameActions:
@@ -64,11 +65,11 @@ class GameActions:
             ("install_dlcs", "Install DLCs", self.on_install_dlc_clicked),
             ("show_logs", _("Show logs"), self.on_show_logs),
             ("add", _("Add installed game"), self.on_add_manually),
-            ("duplicate", _("Duplicate"), self.on_game_duplicate),
             ("configure", _("Configure"), self.on_edit_game_configuration),
             ("favorite", _("Add to favorites"), self.on_add_favorite_game),
             ("deletefavorite", _("Remove from favorites"), self.on_delete_favorite_game),
             ("execute-script", _("Execute script"), self.on_execute_script_clicked),
+            ("update-shader-cache", _("Update shader cache"), self.on_update_shader_cache),
             ("browse", _("Browse files"), self.on_browse_files),
             (
                 "desktop-shortcut",
@@ -102,6 +103,7 @@ class GameActions:
             ),
             ("install_more", _("Install another version"), self.on_install_clicked),
             ("remove", _("Remove"), self.on_remove_game),
+            ("duplicate", _("Duplicate"), self.on_game_duplicate),
             ("view", _("View on Lutris.net"), self.on_view_game),
             ("hide", _("Hide game from library"), self.on_hide_game),
             ("unhide", _("Unhide game from library"), self.on_unhide_game),
@@ -115,6 +117,7 @@ class GameActions:
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "update": self.game.is_updatable,
+            "update-shader-cache": self.game.is_cache_managed,
             "install_dlcs": self.game.is_updatable,
             "stop": self.is_game_running,
             "configure": bool(self.game.is_installed),
@@ -199,6 +202,9 @@ class GameActions:
 
     def on_install_dlc_clicked(self, _widget):
         self.game.emit("game-install-dlc")
+
+    def on_update_shader_cache(self, _widget):
+        update_shader_cache(self.game)
 
     def on_locate_installed_game(self, _button, game):
         """Show the user a dialog to import an existing install to a DRM free service

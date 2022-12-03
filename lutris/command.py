@@ -167,7 +167,7 @@ class MonitoredCommand:
         """Add the line to the associated LogBuffer object"""
         self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
 
-    def log_handler_console_output(self, line):  # pylint: disable=no-self-use
+    def log_handler_console_output(self, line):
         """Print the line to stdout"""
         with contextlib.suppress(BlockingIOError):
             sys.stdout.write(line)

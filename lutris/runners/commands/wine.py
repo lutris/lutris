@@ -3,9 +3,11 @@
 import os
 import shlex
 import time
+from gettext import gettext as _
 
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
+from lutris.exceptions import UnavailableRunnerError
 from lutris.runners import import_runner
 from lutris.util import linux, system
 from lutris.util.log import logger
@@ -146,7 +148,7 @@ def create_prefix(  # noqa: C901
         if loop_index == 60:
             logger.warning("Wine prefix creation is taking longer than expected...")
     if not os.path.exists(os.path.join(prefix, "user.reg")):
-        logger.error("No user.reg found after prefix creation. " "Prefix might not be valid")
+        logger.error("No user.reg found after prefix creation. Prefix might not be valid")
         return
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
@@ -250,7 +252,7 @@ def wineexec(  # noqa: C901
     if not wine_path:
         wine_path = runner.get_executable()
     if not wine_path:
-        raise RuntimeError("Wine is not installed")
+        raise UnavailableRunnerError(_("Wine is not installed"))
 
     if not working_dir:
         if os.path.isfile(executable):
@@ -340,8 +342,21 @@ def winetricks(
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
     if system_winetricks or not system.path_exists(winetricks_path):
         winetricks_path = system.find_executable("winetricks")
+        working_dir = None
         if not winetricks_path:
             raise RuntimeError("No installation of winetricks found")
+    else:
+        # We will use our own zentiy if available, which is here and it
+        # also needs a data file in this directory. We have to set the
+        # working_dir so it will find the data file.
+        working_dir = os.path.join(settings.RUNTIME_DIR, "winetricks")
+
+        if not env:
+            env = {}
+
+        path = env.get("PATH", os.environ["PATH"])
+        env["PATH"] = "%s:%s" % (working_dir, path)
+
     if wine_path:
         winetricks_wine = wine_path
     else:
@@ -353,11 +368,13 @@ def winetricks(
     args = app
     if str(silent).lower() in ("yes", "on", "true"):
         args = "--unattended " + args
+
     return wineexec(
         None,
         prefix=prefix,
         winetricks_wine=winetricks_wine,
         wine_path=winetricks_path,
+        working_dir=working_dir,
         arch=arch,
         args=args,
         config=config,

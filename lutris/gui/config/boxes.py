@@ -2,6 +2,7 @@
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 import os
+import urllib
 from gettext import gettext as _
 
 # Third Party Libraries
@@ -9,6 +10,7 @@ from gi.repository import Gdk, Gtk
 
 # Lutris Modules
 from lutris import settings, sysoptions
+from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label, VBox
 from lutris.gui.widgets.searchable_combobox import SearchableCombobox
 from lutris.runners import InvalidRunner, import_runner
@@ -101,6 +103,8 @@ class ConfigBox(VBox):
 
             # Reset button
             reset_btn = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
+            reset_btn.set_valign(Gtk.Align.CENTER)
+            reset_btn.set_margin_bottom(6)
             reset_btn.set_relief(Gtk.ReliefStyle.NONE)
             reset_btn.set_tooltip_text(_("Reset option to global or default config"))
             reset_btn.connect(
@@ -263,7 +267,11 @@ class ConfigBox(VBox):
         else:
             self.option_changed(widget, option_name, widget.get_active())
 
-    def _on_callback_finished(self, result, _error):
+    def _on_callback_finished(self, result, error):
+        if error:
+            ErrorDialog(str(error), parent=self.get_toplevel())
+            return
+
         widget, option, response = result
         if response:
             self.option_changed(widget, option["option"], widget.get_active())
@@ -416,10 +424,15 @@ class ConfigBox(VBox):
         file_chooser.entry.connect("changed", self._on_chooser_file_set, option_name)
 
     def _on_chooser_file_set(self, entry, option):
-        """Action triggered on file select dialog 'file-set' signal."""
-        if not os.path.isabs(entry.get_text()):
-            entry.set_text(os.path.expanduser(entry.get_text()))
-        self.option_changed(entry.get_parent(), option, entry.get_text())
+        """Action triggered when the field's content changes."""
+        text = entry.get_text()
+        if text.startswith('file:///'):
+            text = urllib.parse.unquote(text[len('file://'):])
+        if not os.path.isabs(text):
+            text = os.path.expanduser(text)
+        if text != entry.get_text():
+            entry.set_text(text)
+        self.option_changed(entry.get_parent(), option, text)
 
     # Directory chooser
     def generate_directory_chooser(self, option, path=None):
@@ -439,8 +452,13 @@ class ConfigBox(VBox):
         self.option_widget = directory_chooser
 
     def _on_chooser_dir_set(self, entry, option):
-        """Action triggered on file select dialog 'file-set' signal."""
-        self.option_changed(entry.get_parent(), option, entry.get_text())
+        """Action triggered when the field's content changes."""
+        text = entry.get_text()
+        if text.startswith('file:///'):
+            text = urllib.parse.unquote(text[len('file://'):])
+        if text != entry.get_text():
+            entry.set_text(text)
+        self.option_changed(entry.get_parent(), option, text)
 
     # Editable grid
     def generate_editable_grid(self, option_name, label, value=None):

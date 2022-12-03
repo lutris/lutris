@@ -2,6 +2,7 @@ import os
 from collections import defaultdict
 from gettext import gettext as _
 
+from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
@@ -398,6 +399,10 @@ class fsuae(Runner):
             "advanced": True,
         },
     ]
+
+    @property
+    def directory(self):
+        return os.path.join(settings.RUNNER_DIR, "fs-uae")
 
     def get_platform(self):
         model = self.runner_config.get("model")

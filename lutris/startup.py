@@ -1,7 +1,6 @@
 """Check to run at program start"""
 import os
 import sqlite3
-import time
 from gettext import gettext as _
 
 from lutris import runners, settings
@@ -181,7 +180,7 @@ def init_lutris():
         syncdb()
     except sqlite3.DatabaseError as err:
         raise RuntimeError(
-            "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
+            _("Failed to open database file in %s. Try renaming this file and relaunch Lutris") %
             settings.PGA_DB
         ) from err
     for service in DEFAULT_SERVICES:
@@ -190,26 +189,30 @@ def init_lutris():
     cleanup_games()
 
 
-def update_runtime(force=False):
-    """Update runtime components"""
-    runtime_call = update_cache.get_last_call("runtime")
-    if force or not runtime_call or runtime_call > 3600 * 12:
-        runtime_updater = RuntimeUpdater()
-        components_to_update = runtime_updater.update()
-        if components_to_update:
-            while runtime_updater.current_updates:
-                time.sleep(0.3)
-        update_cache.write_date_to_cache("runtime")
-    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager):
-        key = dll_manager_class.__name__
-        key_call = update_cache.get_last_call(key)
-        if force or not key_call or key_call > 3600 * 6:
-            dll_manager = dll_manager_class()
-            dll_manager.upgrade()
-            update_cache.write_date_to_cache(key)
-    media_call = update_cache.get_last_call("media")
-    if force or not media_call or media_call > 3600 * 24:
-        sync_media()
-        update_all_artwork()
-        update_cache.write_date_to_cache("media")
-    logger.info("Startup complete")
+class StartupRuntimeUpdater(RuntimeUpdater):
+    """Due to circular reference problems, we need to keep all these interesting
+    references here, out of runtime.py"""
+    dll_manager_classes = [DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager]
+
+    def update_runtimes(self):
+        super().update_runtimes()
+        for dll_manager_class in self.dll_manager_classes:
+            if self.cancelled:
+                break
+            key = dll_manager_class.__name__
+            key_call = update_cache.get_last_call(key)
+            if self.force or not key_call or key_call > 3600 * 6:
+                dll_manager = dll_manager_class()
+                dll_manager.upgrade()
+                update_cache.write_date_to_cache(key)
+
+        if not self.cancelled:
+            media_call = update_cache.get_last_call("media")
+            if self.force or not media_call or media_call > 3600 * 24:
+                sync_media()
+                update_all_artwork()
+                update_cache.write_date_to_cache("media")
+
+        if self.cancelled:
+            logger.info("Runtime update cancelled")
+        logger.info("Startup complete")

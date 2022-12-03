@@ -42,6 +42,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
         self.is_gog = False
+        self.discord_id = installer.get('discord_id')
 
     def get_service(self, initial=None):
         if initial:
@@ -281,6 +282,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             service=service_id,
             service_id=self.service_appid,
             id=self.game_id,
+            discord_id=self.discord_id,
         )
         return self.game_id
 

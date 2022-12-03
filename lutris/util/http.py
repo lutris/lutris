@@ -2,16 +2,21 @@
 import json
 import os
 import socket
+import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
 from ssl import CertificateError
+
+import certifi
 
 from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
 from lutris.util import system
 from lutris.util.log import logger
 
 DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
+
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 
 class HTTPError(Exception):

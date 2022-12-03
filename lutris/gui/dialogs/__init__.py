@@ -17,24 +17,44 @@ from lutris.util.log import logger
 
 class Dialog(Gtk.Dialog):
 
-    def __init__(self, title=None, parent=None, flags=0, buttons=None):
-        super().__init__(title, parent, flags, buttons)
-        self.set_border_width(10)
+    def __init__(self, title=None, parent=None, flags=0, buttons=None, **kwargs):
+        super().__init__(title, parent, flags, buttons, **kwargs)
         self.connect("delete-event", self.on_destroy)
         self.set_destroy_with_parent(True)
 
     def on_destroy(self, _widget, _data=None):
         self.destroy()
 
+    def add_styled_button(self, button_text, response_id, css_class):
+        button = self.add_button(button_text, response_id)
+        if css_class:
+            style_context = button.get_style_context()
+            style_context.add_class(css_class)
+        return button
+
+    def add_default_button(self, button_text, response_id, css_class="suggested-action"):
+        """Adds a button to the dialog with a particular response id, but
+        also makes it the default and styles it as the suggested action."""
+        button = self.add_styled_button(button_text, response_id, css_class)
+        self.set_default_response(response_id)
+        return button
+
+
+class ModalDialog(Dialog):
+    """A base class of moodal dialogs, which sets the flag for you."""
+
+    def __init__(self, title=None, parent=None, flags=0, buttons=None, **kwargs):
+        super().__init__(title, parent, flags | Gtk.DialogFlags.MODAL, buttons, **kwargs)
+
 
 class ModelessDialog(Dialog):
     """A base class for modeless dialogs. They have a parent only temporarily, so
-    they can be centered over it during creation. But eahc modeless dialog gets
-    its own window group, so it treats modal dialogs separately, and it resets
-    its transion-for after being created."""
+    they can be centered over it during creation. But each modeless dialog gets
+    its own window group, so it treats its own modal dialogs separately, and it resets
+    its transient-for after being created."""
 
-    def __init__(self, title=None, parent=None, flags=0, buttons=None):
-        super().__init__(title, parent, flags, buttons)
+    def __init__(self, title=None, parent=None, flags=0, buttons=None, **kwargs):
+        super().__init__(title, parent, flags, buttons, **kwargs)
         # These are not stuck above the 'main' window, but can be
         # re-ordered freely.
         self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
@@ -110,9 +130,11 @@ class NoticeDialog(Gtk.MessageDialog):
 
     """Display a message to the user."""
 
-    def __init__(self, message, parent=None):
+    def __init__(self, message, secondary=None, parent=None):
         super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
+        if secondary:
+            self.format_secondary_text(secondary[:256])
         self.run()
         self.destroy()
 
@@ -203,8 +225,10 @@ class FileDialog:
 
 class LutrisInitDialog(Gtk.Dialog):
 
-    def __init__(self, init_lutris):
+    def __init__(self, runtime_updater):
         super().__init__()
+        self.runtime_updater = runtime_updater
+
         self.set_size_request(320, 60)
         self.set_border_width(24)
         self.set_decorated(False)
@@ -217,19 +241,22 @@ class LutrisInitDialog(Gtk.Dialog):
         self.get_content_area().add(vbox)
         self.progress_timeout = GLib.timeout_add(125, self.show_progress)
         self.show_all()
+
+        self.connect("response", self.on_response)
         self.connect("destroy", self.on_destroy)
-        AsyncCall(self.initialize, self.init_cb, init_lutris)
+        AsyncCall(runtime_updater.update_runtimes, self.init_cb)
 
     def show_progress(self):
         self.progress.pulse()
         return True
 
-    def initialize(self, init_lutris, *args):
-        init_lutris()
-
     def init_cb(self, _result, error):
         if error:
-            ErrorDialog(str(error))
+            ErrorDialog(str(error), parent=self)
+        self.destroy()
+
+    def on_response(self, _widget, response):
+        self.runtime_updater.cancel()
         self.destroy()
 
     def on_destroy(self, window):
@@ -237,16 +264,18 @@ class LutrisInitDialog(Gtk.Dialog):
         return True
 
 
-class InstallOrPlayDialog(Gtk.Dialog):
+class InstallOrPlayDialog(ModalDialog):
 
-    def __init__(self, game_name):
-        Gtk.Dialog.__init__(self, _("%s is already installed") % game_name)
-        self.connect("delete-event", lambda *x: self.destroy())
+    def __init__(self, game_name, parent=None):
+        super().__init__(title=_("%s is already installed") % game_name, parent=parent, border_width=10)
         self.action = "play"
         self.action_confirmed = False
 
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.connect("response", self.on_response)
+
         self.set_size_request(320, 120)
-        self.set_border_width(12)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
         play_button = Gtk.RadioButton.new_with_label_from_widget(None, _("Launch game"))
@@ -257,31 +286,31 @@ class InstallOrPlayDialog(Gtk.Dialog):
         install_button.connect("toggled", self.on_button_toggled, "install")
         vbox.pack_start(install_button, False, False, 0)
 
-        confirm_button = Gtk.Button(_("OK"))
-        confirm_button.connect("clicked", self.on_confirm)
-        vbox.pack_start(confirm_button, False, False, 0)
-
         self.show_all()
         self.run()
 
-    def on_button_toggled(self, button, action):  # pylint: disable=unused-argument
+    def on_button_toggled(self, _button, action):
         logger.debug("Action set to %s", action)
         self.action = action
 
-    def on_confirm(self, button):  # pylint: disable=unused-argument
-        logger.debug("Action %s confirmed", self.action)
-        self.action_confirmed = True
+    def on_response(self, _widget, response):
+        logger.debug("Dialog response %s", response)
+        if response == Gtk.ResponseType.CANCEL:
+            self.action = None
         self.destroy()
 
 
-class LaunchConfigSelectDialog(Gtk.Dialog):
-    def __init__(self, game, configs):
-        Gtk.Dialog.__init__(self, _("Select game to launch"))
-        self.connect("delete-event", lambda *x: self.destroy())
+class LaunchConfigSelectDialog(ModalDialog):
+    def __init__(self, game, configs, parent=None):
+        super().__init__(title=_("Select game to launch"), parent=parent, border_width=10)
         self.config_index = 0
         self.confirmed = False
+
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.connect("response", self.on_response)
+
         self.set_size_request(320, 120)
-        self.set_border_width(12)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
         self.get_content_area().add(vbox)
 
@@ -294,29 +323,14 @@ class LaunchConfigSelectDialog(Gtk.Dialog):
             _button.connect("toggled", self.on_button_toggled, i + 1)
             vbox.pack_start(_button, False, False, 0)
 
-        button_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 6)
-        button_box.set_halign(Gtk.Align.END)
-        cancel_button = Gtk.Button(_("Cancel"))
-        cancel_button.connect("clicked", self.on_cancel)
-        button_box.pack_start(cancel_button, False, False, 0)
-
-        confirm_button = Gtk.Button(_("OK"))
-        confirm_button.connect("clicked", self.on_confirm)
-        button_box.pack_start(confirm_button, False, False, 0)
-        vbox.pack_start(button_box, False, False, 0)
-
         self.show_all()
         self.run()
 
     def on_button_toggled(self, _button, index):
         self.config_index = index
 
-    def on_cancel(self, _button):
-        self.confirmed = False
-        self.destroy()
-
-    def on_confirm(self, _button):
-        self.confirmed = True
+    def on_response(self, _widget, response):
+        self.confirmed = response == Gtk.ResponseType.OK
         self.destroy()
 
 
@@ -367,14 +381,17 @@ class ClientLoginDialog(GtkBuilderDialog):
             self.dialog.destroy()
 
 
-class InstallerSourceDialog(Gtk.Dialog):
+class InstallerSourceDialog(ModelessDialog):
 
     """Show install script source"""
 
     def __init__(self, code, name, parent):
-        Gtk.Dialog.__init__(self, _("Install script for {}").format(name), parent=parent)
+        super().__init__(title=_("Install script for {}").format(name), parent=parent, border_width=0)
         self.set_size_request(500, 350)
-        self.set_border_width(0)
+
+        ok_button = self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        ok_button.set_border_width(10)
+        self.connect("response", self.on_response)
 
         self.scrolled_window = Gtk.ScrolledWindow()
         self.scrolled_window.set_hexpand(True)
@@ -385,16 +402,13 @@ class InstallerSourceDialog(Gtk.Dialog):
 
         source_box = LogTextView(source_buffer, autoscroll=False)
 
+        self.get_content_area().set_border_width(0)
         self.get_content_area().add(self.scrolled_window)
         self.scrolled_window.add(source_box)
 
-        close_button = Gtk.Button(_("OK"))
-        close_button.connect("clicked", self.on_close)
-        self.get_content_area().add(close_button)
-
         self.show_all()
 
-    def on_close(self, *args):  # pylint: disable=unused-argument
+    def on_response(self, *args):
         self.destroy()
 
 
@@ -417,7 +431,7 @@ class DontShowAgainDialog(Gtk.MessageDialog):
 
         super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
 
-        self.set_border_width(12)
+        self.set_default_response(Gtk.ResponseType.OK)
         self.set_markup("<b>%s</b>" % message)
         if secondary_message:
             self.props.secondary_use_markup = True
@@ -450,27 +464,26 @@ class WineNotInstalledWarning(DontShowAgainDialog):
                 "Having Wine installed on your system guarantees that "
                 "Wine builds from Lutris will have all required dependencies.\n\nPlease "
                 "follow the instructions given in the <a "
-                "href='https://github.com/lutris/lutris/wiki/Wine-Dependencies'>Lutris Wiki</a> to "
+                "href='https://github.com/lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to "
                 "install Wine."
             ),
             parent=parent,
         )
 
 
-class MoveDialog(Gtk.Dialog):
+class MoveDialog(ModelessDialog):
     __gsignals__ = {
         "game-moved": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, game, destination):
-        super().__init__()
+    def __init__(self, game, destination, parent=None):
+        super().__init__(parent=parent, border_width=24)
 
         self.game = game
         self.destination = destination
         self.new_directory = None
 
         self.set_size_request(320, 60)
-        self.set_border_width(24)
         self.set_decorated(False)
         vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
         label = Gtk.Label(_("Moving %s to %s..." % (game, destination)))
@@ -494,6 +507,6 @@ class MoveDialog(Gtk.Dialog):
 
     def on_game_moved(self, _result, error):
         if error:
-            ErrorDialog(str(error))
+            ErrorDialog(str(error), parent=self)
         self.emit("game-moved")
         self.destroy()

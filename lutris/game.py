@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, watch_lutris_errors
+from lutris.exceptions import GameConfigError, watch_game_errors
 from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner, wine
@@ -51,6 +51,7 @@ class Game(GObject.Object):
 
     __gsignals__ = {
         "game-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
+        "game-notice": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
         "game-launch": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -83,8 +84,13 @@ class Game(GObject.Object):
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
-        self.has_custom_banner = bool(game_data.get("has_custom_banner"))
-        self.has_custom_icon = bool(game_data.get("has_custom_icon"))
+        self.custom_images = set()
+        if game_data.get("has_custom_banner"):
+            self.custom_images.add("banner")
+        if game_data.get("has_custom_icon"):
+            self.custom_images.add("icon")
+        if game_data.get("has_custom_coverart_big"):
+            self.custom_images.add("coverart_big")
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
         self.playtime = game_data.get("playtime") or 0.0
@@ -107,6 +113,9 @@ class Game(GObject.Object):
         self.timer = Timer()
         self.screen_saver_inhibitor_cookie = None
 
+        # Adding Discord App ID for RPC
+        self.discord_id = game_data.get('discord_id')
+
     def __repr__(self):
         return self.__str__()
 
@@ -115,6 +124,14 @@ class Game(GObject.Object):
         if self.runner_name:
             value += " (%s)" % self.runner_name
         return value
+
+    @property
+    def is_cache_managed(self):
+        """Is the DXVK cache receiving updates from lutris?"""
+        if self.runner:
+            env = self.runner.system_config.get("env", {})
+            return "DXVK_STATE_CACHE_PATH" in env
+        return False
 
     @property
     def is_updatable(self):
@@ -196,7 +213,16 @@ class Game(GObject.Object):
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.runner.resolve_game_path()
+        return self.resolve_game_path()
+
+    def resolve_game_path(self):
+        """Return the game's directory; if it is not known this will try to find
+        it. This can still return an empty string if it can't do that."""
+        if self.directory:
+            return self.directory
+        if self.runner:
+            return self.runner.resolve_game_path()
+        return ""
 
     def _get_runner(self):
         """Return the runner instance for this game's configuration"""
@@ -236,6 +262,8 @@ class Game(GObject.Object):
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         if delete_files and self.runner:
+            # self.directory here, not self.resolve_game_path; no guessing at
+            # directories when we delete them
             self.runner.remove_game_data(app_id=self.appid, game_path=self.directory)
         self.is_installed = False
         self.runner = None
@@ -243,11 +271,13 @@ class Game(GObject.Object):
             return
         self.emit("game-removed")
 
-    def delete(self):
+    def delete(self, no_signal=False):
         """Completely remove a game from the library"""
         if self.is_installed:
-            raise RuntimeError("Uninstall the game before deleting")
+            raise RuntimeError(_("Uninstall the game before deleting"))
         games_db.delete_game(self.id)
+        if no_signal:
+            return
         self.emit("game-removed")
 
     def set_platform_from_runner(self):
@@ -289,6 +319,10 @@ class Game(GObject.Object):
             hidden=self.is_hidden,
             service=self.service,
             service_id=self.appid,
+            discord_id=self.discord_id,
+            has_custom_banner="banner" in self.custom_images,
+            has_custom_icon="icon" in self.custom_images,
+            has_custom_coverart_big="coverart_big" in self.custom_images
         )
         self.emit("game-updated")
 
@@ -307,7 +341,7 @@ class Game(GObject.Object):
         if self.runner.use_runtime():
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
-                dialogs.ErrorDialog(_("Runtime currently updating"), _("Game might not work as expected"))
+                self.emit("game-notice", _("Runtime currently updating"), _("Game might not work as expected"))
         if ("wine" in self.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
             dialogs.WineNotInstalledWarning(parent=None)
         return True
@@ -369,14 +403,14 @@ class Game(GObject.Object):
         if wait_for_completion:
             logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
             # Monitor the prelaunch command and wait until it has finished
-            system.execute(command_array, env=env, cwd=self.directory)
+            system.execute(command_array, env=env, cwd=self.resolve_game_path())
         else:
             logger.info("Prelaunch command %s launched in the background", prelaunch_command)
             self.prelaunch_executor = MonitoredCommand(
                 command_array,
                 include_processes=[os.path.basename(command_array[0])],
                 env=env,
-                cwd=self.directory,
+                cwd=self.resolve_game_path(),
             )
             self.prelaunch_executor.start()
 
@@ -428,10 +462,12 @@ class Game(GObject.Object):
                 gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
                 if config.get("args"):
                     gameplay_info["command"] += strings.split_arguments(config["args"])
+                if config.get("working_dir"):
+                    gameplay_info["working_dir"] = config["working_dir"]
 
         return gameplay_info
 
-    @watch_lutris_errors(game_stop_result=False)
+    @watch_game_errors(game_stop_result=False)
     def configure_game(self, _ignored, error=None):  # noqa: C901
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
@@ -450,6 +486,9 @@ class Game(GObject.Object):
             "include_processes": shlex.split(self.runner.system_config.get("include_processes", "")),
             "exclude_processes": shlex.split(self.runner.system_config.get("exclude_processes", "")),
         }
+
+        if "working_dir" in gameplay_info:
+            self.game_runtime_config["working_dir"] = gameplay_info["working_dir"]
 
         # Audio control
         if self.runner.system_config.get("reset_pulse"):
@@ -494,13 +533,12 @@ class Game(GObject.Object):
         self.start_game()
         return True
 
-    @watch_lutris_errors(game_stop_result=False)
+    @watch_game_errors(game_stop_result=False)
     def launch(self):
         """Request launching a game. The game may not be installed yet."""
         if not self.is_launchable():
             logger.error("Game is not launchable")
             return False
-
 
         self.load_config()  # Reload the config before launching it.
         saves = self.config.game_level["game"].get("saves")
@@ -513,9 +551,7 @@ class Game(GObject.Object):
 
         self.state = self.STATE_LAUNCHING
         self.prelaunch_pids = system.get_running_pid_list()
-        discord_token = settings.read_setting('discord_token')
-        if discord_token:
-            discord.set_discord_status(discord_token, "Playing %s" % self.name)
+
         self.emit("game-start")
         jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
         return True
@@ -526,6 +562,7 @@ class Game(GObject.Object):
             self.game_runtime_config["args"],
             title=self.name,
             runner=self.runner,
+            cwd=self.game_runtime_config.get("working_dir"),
             env=self.game_runtime_config["env"],
             term=self.game_runtime_config["terminal"],
             log_buffer=self.log_buffer,
@@ -539,6 +576,15 @@ class Game(GObject.Object):
         self.timer.start()
         self.state = self.STATE_RUNNING
         self.emit("game-started")
+
+        print(f"Discord ID: {self.discord_id}")
+        # Game is running, let's update discord status
+        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+            logger.info("Updating Discord RPC Status")
+            discord.client.update(self.discord_id)
+        else:
+            logger.info("Discord RPC Disabled or Discord APP ID Not Present")
+
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
         with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
             np_file.write(self.name)
@@ -566,7 +612,7 @@ class Game(GObject.Object):
         def death_watch_cb(all_died, error):
             """Called after the death watch to more firmly kill any survivors."""
             if error:
-                dialogs.ErrorDialog(str(error))
+                self.emit("game-error", error)
             elif not all_died:
                 self.kill_processes(signal.SIGKILL)
             # If we still can't kill everything, we'll still say we stopped it.
@@ -597,7 +643,7 @@ class Game(GObject.Object):
         """Return a list of processes belonging to the Lutris game"""
         new_pids = self.get_new_pids()
         game_pids = []
-        game_folder = self.runner.resolve_game_path()
+        game_folder = self.resolve_game_path()
         for pid in new_pids:
             cmdline = Process(pid).cmdline or ""
             # pressure-vessel: This could potentially pick up PIDs not started by lutris?
@@ -628,7 +674,7 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
-    @watch_lutris_errors(game_stop_result=False)
+    @watch_game_errors(game_stop_result=False)
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
@@ -658,7 +704,11 @@ class Game(GObject.Object):
         logger.info("Stopping %s", self)
 
         if self.game_thread:
-            jobs.AsyncCall(self.game_thread.stop, None)
+            def stop_cb(result, error):
+                if error:
+                    self.emit("game-error", error)
+
+            jobs.AsyncCall(self.game_thread.stop, stop_cb)
         self.stop_game()
 
     def on_game_quit(self):
@@ -667,6 +717,13 @@ class Game(GObject.Object):
         if self.prelaunch_executor and self.prelaunch_executor.is_running:
             logger.info("Stopping prelaunch script")
             self.prelaunch_executor.stop()
+
+        # We need to do some cleanup before we emit game-stop as this can
+        # trigger Lutris shutdown
+
+        if self.screen_saver_inhibitor_cookie is not None:
+            SCREEN_SAVER_INHIBITOR.uninhibit(self.screen_saver_inhibitor_cookie)
+            self.screen_saver_inhibitor_cookie = None
 
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
@@ -683,7 +740,7 @@ class Game(GObject.Object):
                     command_array,
                     include_processes=[os.path.basename(postexit_command)],
                     env=self.game_runtime_config["env"],
-                    cwd=self.directory,
+                    cwd=self.resolve_game_path(),
                 )
                 postexit_thread.start()
 
@@ -703,10 +760,6 @@ class Game(GObject.Object):
         if self.compositor_disabled:
             self.set_desktop_compositing(True)
 
-        if self.screen_saver_inhibitor_cookie is not None:
-            SCREEN_SAVER_INHIBITOR.uninhibit(self.screen_saver_inhibitor_cookie)
-            self.screen_saver_inhibitor_cookie = None
-
         if self.runner.system_config.get("use_us_layout"):
             with subprocess.Popen(["setxkbmap"], env=os.environ) as setxkbmap:
                 setxkbmap.communicate()
@@ -714,9 +767,10 @@ class Game(GObject.Object):
         if self.runner.system_config.get("restore_gamma"):
             restore_gamma()
 
-        discord_token = settings.read_setting('discord_token')
-        if discord_token:
-            discord.set_discord_status(discord_token, "")
+        # Clear Discord Client Status
+        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+            logger.debug("Clearing Discord RPC")
+            discord.client.clear()
 
         self.process_return_codes()
 
@@ -830,7 +884,7 @@ def import_game(file_path, dest_dir):
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
     old_dir = lutris_config["directory"]
-    with open(os.path.join(game_dir, game_config), 'r', encoding="utf-8") as config_file :
+    with open(os.path.join(game_dir, game_config), 'r', encoding="utf-8") as config_file:
         config_data = config_file.read()
     config_data = config_data.replace(old_dir, game_dir)
     with open(os.path.join(game_dir, game_config), 'w', encoding="utf-8") as config_file:

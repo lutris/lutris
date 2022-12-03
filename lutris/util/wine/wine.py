@@ -5,6 +5,7 @@ from functools import lru_cache
 from gettext import gettext as _
 
 from lutris import runtime, settings
+from lutris.exceptions import UnavailableRunnerError
 from lutris.gui.dialogs import DontShowAgainDialog, ErrorDialog
 from lutris.runners.steam import steam
 from lutris.util import linux, system
@@ -35,10 +36,15 @@ def get_playonlinux():
 
 def _iter_proton_locations():
     """Iterate through all existing Proton locations"""
-    for path in [os.path.join(p, "common") for p in steam().get_steamapps_dirs()]:
+    try:
+        steamapp_dirs = steam().get_steamapps_dirs()
+    except:
+        return  # in case of corrupt or unreadable Steam configuration files!
+
+    for path in [os.path.join(p, "common") for p in steamapp_dirs]:
         if os.path.isdir(path):
             yield path
-    for path in [os.path.join(p, "") for p in steam().get_steamapps_dirs()]:
+    for path in [os.path.join(p, "") for p in steamapp_dirs]:
         if os.path.isdir(path):
             yield path
 
@@ -168,8 +174,11 @@ def get_lutris_wine_versions():
     if system.path_exists(WINE_DIR):
         dirs = version_sort(os.listdir(WINE_DIR), reverse=True)
         for dirname in dirs:
-            if is_version_installed(dirname):
-                versions.append(dirname)
+            try:
+                if is_version_installed(dirname):
+                    versions.append(dirname)
+            except UnavailableRunnerError:
+                pass  # if it's not properly installed, skip it
     return versions
 
 
@@ -216,7 +225,7 @@ def get_wine_version_exe(version):
     if not version:
         version = get_default_version()
     if not version:
-        raise RuntimeError("Wine is not installed")
+        raise UnavailableRunnerError(_("Wine is not installed"))
     return os.path.join(WINE_DIR, "{}/bin/wine".format(version))
 
 

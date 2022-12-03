@@ -20,7 +20,6 @@ class flatpak(Runner):
     human_name = _("Flatpak")
     runnable_alone = False
     system_options_override = [{"option": "disable_runtime", "default": True}]
-    # runner_executable = "flatpak"
     install_locations = {
         "system": "var/lib/flatpak/app/",
         "user": f"{Path.home()}/.local/share/flatpak/app/"
@@ -87,15 +86,17 @@ class flatpak(Runner):
     ]
 
     def is_installed(self):
-        return shutil.which("flatpak")
+        if shutil.which("flatpak-spawn"):
+            return True
+        return bool(shutil.which("flatpak"))
 
     def get_executable(self):
-        return shutil.which("flatpak")
+        return shutil.which("flatpak-spawn") or shutil.which("flatpak")
 
     def install(self, version=None, downloader=None, callback=None):
         raise NonInstallableRunnerError(
             _("Flatpak installation is not handled by Lutris.\n"
-              "Install Steam with the package provided by your distribution.")
+              "Install Flatpak with the package provided by your distribution.")
         )
 
     def can_uninstall(self):
@@ -106,8 +107,11 @@ class flatpak(Runner):
 
     @property
     def game_path(self):
-        install_type, application, arch, branch = (self.game_data[key] for key in
-                                                   ("install_type", "application", "arch", "branch"))
+        if shutil.which("flatpak-spawn"):
+            return "/"
+        install_type, application, arch, branch = (
+            self.game_data[key] for key in ("install_type", "application", "arch", "branch")
+        )
         return os.path.join(self.install_locations[install_type], application, arch, branch)
 
     def remove_game_data(self, app_id=None, game_path=None, **kwargs):
@@ -125,7 +129,7 @@ class flatpak(Runner):
         arch = self.game_config.get("arch", "")
         branch = self.game_config.get("branch", "")
         args = self.game_config.get("args", "")
-        app_id = self.game_config.get("application", "")
+        app_id = self.game_config.get("appid", "")
 
         if not app_id:
             return {"error": "CUSTOM", "text": "No application specified."}
@@ -137,7 +141,13 @@ class flatpak(Runner):
         if any(x in app_id for x in ("--", "/")):
             return {"error": "CUSTOM", "text": "Application ID field must not contain options or arguments."}
 
-        command = [self.get_executable(), "run"]
+        command = [self.get_executable()]
+
+        if shutil.which("flatpak-spawn"):
+            command.extend(["--host", "flatpak", "run"])
+        else:
+            command.append("run")
+
         if arch:
             command.append(f"--arch={arch}")
         if branch:

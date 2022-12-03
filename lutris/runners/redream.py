@@ -18,7 +18,7 @@ class redream(Runner):
             "option": "main_file",
             "type": "file",
             "label": _("Disc image file"),
-            "help": _("Game data file\n" "Supported formats: GDI, CDI, CHD"),
+            "help": _("Game data file\nSupported formats: GDI, CDI, CHD"),
         }
     ]
     runner_options = [

@@ -13,8 +13,9 @@ from lutris.database.games import add_game, get_game_by_field, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.dialogs import NoticeDialog
-from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
+from lutris.gui.dialogs.webconnect_dialog import DEFAULT_USER_AGENT, WebConnectDialog
 from lutris.gui.views.media_loader import download_media
+from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
 from lutris.installer import get_installers
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
@@ -30,25 +31,39 @@ class AuthTokenExpired(Exception):
 
 class LutrisBanner(ServiceMedia):
     service = 'lutris'
-    size = (184, 69)
+    size = BANNER_SIZE
     dest_path = settings.BANNER_PATH
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = 'banner_url'
 
 
 class LutrisIcon(LutrisBanner):
-    size = (32, 32)
+    size = ICON_SIZE
     dest_path = settings.ICON_PATH
     file_pattern = "lutris_%s.png"
+    file_format = "png"
     api_field = 'icon_url'
+
+    @property
+    def custom_media_storage_size(self):
+        return (128, 128)
+
+    def update_desktop(self):
+        system.update_desktop_icons()
 
 
 class LutrisCoverart(ServiceMedia):
     service = 'lutris'
     size = (264, 352)
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     dest_path = settings.COVERART_PATH
     api_field = 'coverart'
+
+    @property
+    def config_ui_size(self):
+        return (66, 88)
 
 
 class LutrisCoverartMedium(LutrisCoverart):
@@ -298,6 +313,7 @@ class OnlineService(BaseService):
 
     login_window_width = 390
     login_window_height = 500
+    login_user_agent = DEFAULT_USER_AGENT
 
     @property
     def credential_files(self):
@@ -315,8 +331,7 @@ class OnlineService(BaseService):
             return
         logger.debug("Connecting to %s", self.name)
         dialog = WebConnectDialog(self, parent)
-        dialog.set_modal(True)
-        dialog.show()
+        dialog.run()
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""
