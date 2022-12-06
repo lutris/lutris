@@ -64,8 +64,7 @@ setup(
         'PyGObject',
         'pypresence',
         'PyYAML',
-        'requests',
-        'pypresence'
+        'requests'
     ],
     url='https://lutris.net',
     description='Video game preservation platform',
