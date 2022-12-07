@@ -453,17 +453,7 @@ class Game(GObject.Object):
 
             if dlg.config_index:
                 config = configs[dlg.config_index - 1]
-                if "command" not in gameplay_info:
-                    logger.debug("No command in %s", gameplay_info)
-                    logger.debug(config)
-                    # The 'file' sort of gameplay_info cannot be made to use a configuration
-                    raise GameConfigError(_("The runner could not find a command to apply the configuration to."))
-
-                gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
-                if config.get("args"):
-                    gameplay_info["command"] += strings.split_arguments(config["args"])
-                if config.get("working_dir"):
-                    gameplay_info["working_dir"] = config["working_dir"]
+                self.runner.apply_launch_config(gameplay_info, config)
 
         return gameplay_info
 

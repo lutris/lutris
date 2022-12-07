@@ -9,10 +9,10 @@ from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import UnavailableLibrariesError
+from lutris.exceptions import GameConfigError, UnavailableLibrariesError
 from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
-from lutris.util import system
+from lutris.util import strings, system
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
@@ -249,6 +249,41 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         """
         return runtime.get_env(prefer_system_libs=self.system_config.get("prefer_system_libs", True))
+
+    def apply_launch_config(self, gameplay_info, launch_config):
+        """Updates the gameplay_info to reflect a launch_config section. Called only
+        if a non-default config is chosen."""
+        gameplay_info["command"] = self.get_launch_config_command(gameplay_info, launch_config)
+
+        if launch_config.get("working_dir"):
+            gameplay_info["working_dir"] = launch_config["working_dir"]
+
+    def get_launch_config_command(self, gameplay_info, launch_config):
+        """Generates a new command for the gameplay_info, to implement the launch_config.
+        Returns a new list of strings; the caller can modify it further.
+
+        If launch_config has no command, this builds one from the gameplay_info command
+        and the 'exe' value in the launch_config.
+
+        Runners override this when required to control the command used."""
+
+        if "command" in launch_config:
+            command = strings.split_arguments(launch_config["command"])
+        elif "command" in gameplay_info:
+            command = [gameplay_info["command"][0]]
+        else:
+            logger.debug("No command in %s", gameplay_info)
+            logger.debug(launch_config)
+            # The 'file' sort of gameplay_info cannot be made to use a configuration
+            raise GameConfigError(_("The runner could not find a command to apply the configuration to."))
+
+        if "exe" in launch_config:
+            command.append(launch_config["exe"])
+
+        if launch_config.get("args"):
+            command += strings.split_arguments(launch_config["args"])
+
+        return command
 
     def prelaunch(self):
         """Run actions before running the game, override this method in runners; raise an

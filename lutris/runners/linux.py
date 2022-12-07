@@ -5,6 +5,7 @@ import stat
 from gettext import gettext as _
 
 # Lutris Modules
+from lutris.exceptions import GameConfigError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
@@ -88,12 +89,10 @@ class linux(Runner):
     def resolve_game_path(self):
         return super().resolve_game_path() or os.path.dirname(self.game_exe or "")
 
-    def get_relative_exe(self):
-        """Return a relative path if a working dir is set in the options
+    def get_relative_exe(self, exe_path, working_dir):
+        """Return a relative path if a working dir is provided
         Some games such as Unreal Gold fail to run if given the absolute path
         """
-        exe_path = self.game_exe
-        working_dir = self.game_config.get("working_dir")
         if exe_path and working_dir:
             relative = os.path.relpath(exe_path, start=working_dir)
             if not relative.startswith("../"):
@@ -123,6 +122,26 @@ class linux(Runner):
         """Well of course Linux is installed, you're using Linux right ?"""
         return True
 
+    def get_launch_config_command(self, gameplay_info, launch_config):
+        # The linux runner has no command (by default) beyond the 'exe' itself;
+        # so the command in gameplay_info is discarded.
+        if "command" in launch_config:
+            command = split_arguments(launch_config["command"])
+        else:
+            command = []
+
+        working_dir = launch_config.get("working_dir") or self.working_dir
+
+        if "exe" in launch_config:
+            command.append(self.get_relative_exe(launch_config["exe"], working_dir))
+        elif len(command) == 0:
+            raise GameConfigError(_("The runner could not find a command or exe to use for this configuration."))
+
+        if launch_config.get("args"):
+            command += split_arguments(launch_config["args"])
+
+        return command
+
     def play(self):
         """Run native game."""
         launch_info = {}
@@ -146,7 +165,7 @@ class linux(Runner):
         if ld_library_path:
             launch_info["ld_library_path"] = os.path.expanduser(ld_library_path)
 
-        command = [self.get_relative_exe()]
+        command = [self.get_relative_exe(self.game_exe, self.working_dir)]
 
         args = self.game_config.get("args") or ""
         for arg in split_arguments(args):
