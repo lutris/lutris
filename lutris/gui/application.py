@@ -369,7 +369,7 @@ class Application(Gtk.Application):
         options = command_line.get_options_dict()
 
         # Use stdout to output logs, only if no command line argument is
-        # provided
+        # provided.
         argc = len(sys.argv) - 1
         if "-d" in sys.argv or "--debug" in sys.argv:
             argc -= 1
@@ -401,7 +401,17 @@ class Application(Gtk.Application):
             return 0
 
         init_lutris()
-        migrate()
+
+        # Perform migrations early if any command line options
+        # might require it to be done, just in case. We migrate
+        # also during the init dialog, but it should be harmless
+        # to do it twice.
+        #
+        # This way, in typical lutris usage, you get to see the
+        # init dialog when migration is happening.
+        if argc:
+            migrate()
+
         run_all_checks()
 
         if options.contains("dest"):

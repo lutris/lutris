@@ -10,6 +10,7 @@ from gi.repository import Gdk, GLib, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
+from lutris.migrations import migrate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -244,11 +245,15 @@ class LutrisInitDialog(Gtk.Dialog):
 
         self.connect("response", self.on_response)
         self.connect("destroy", self.on_destroy)
-        AsyncCall(runtime_updater.update_runtimes, self.init_cb)
+        AsyncCall(self.run_init, self.init_cb)
 
     def show_progress(self):
         self.progress.pulse()
         return True
+
+    def run_init(self):
+        migrate()
+        self.runtime_updater.update_runtimes()
 
     def init_cb(self, _result, error):
         if error:
