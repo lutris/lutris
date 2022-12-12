@@ -1,11 +1,36 @@
 VERSION=`grep "__version__" lutris/__init__.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
 GITBRANCH ?= master
+# Default GPG key ID to use for package signing.
+PPA_GPG_KEY_ID ?= 82D96E430A1F1C0F0502747E37B90EDD4E3EFAE4
 PYTHON:=$(shell which python3)
 PIP:=$(PYTHON) -m pip
 
 all:
 	export GITBRANCH=master
 	debuild
+	debclean
+
+# The same as all, but requires two environment variables related to
+# package signing.
+# 	PPA_GPG_KEY_ID
+#		Key ID used to sign the .deb package files.
+#	PPA_GPG_PASSPHRASE
+#		Decrypts the private key associated with GPG_KEY_ID.
+#
+# When running from a GitHub workflow.  The above environment variables
+# are passed in from .github/scripts/build-sign-ubuntu.sh and that script
+# receives those variables from the .github/workflows/publish-lutris-ppa.yml
+# which receives them from the repository secrets.
+github-ppa:
+	export GITBRANCH=master
+	# Automating builds for different Ubuntu codenames manipulates the
+	# version string, and so that lintian check is suppressed.  Also note
+	# that all parameters after "--lintian-opts" are passed to lintian
+	# so that _must_ be the last parameter.
+	echo "y" | debuild -S -sa \
+		-k"${PPA_GPG_KEY_ID}" \
+		-p"gpg --batch --passphrase "${PPA_GPG_PASSPHRASE}" --pinentry-mode loopback" \
+		--lintian-opts --suppress-tags malformed-debian-changelog-version
 	debclean
 
 build:
