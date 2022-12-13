@@ -93,7 +93,7 @@ class Game(GObject.Object):
             self.custom_images.add("coverart_big")
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
-        self.playtime = game_data.get("playtime") or 0.0
+        self.playtime = float(game_data.get("playtime") or 0.0)
 
         if self.game_config_id:
             self.load_config()
