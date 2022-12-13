@@ -1,57 +1,34 @@
-# Inspired by
-# https://github.com/yuezk/GlobalProtect-openconnect/blob/master/.github/workflows/build.yml
+# Handles publishing Lutris builds to the Lutris Ubuntu PPAs.  This
+# workflow is triggered when a release or prerelease is published,
+# checks out the tag associated with that release, builds a debian
+# source package, and then pushes that to the Ubuntu Launchpad.net PPA
+# where it is then built & published on their servers.
 name: Publish Lutris PPA
 
 on:
+  # See below for details about the 'release' event.
+  # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release
   release:
-    types: [published]
+    types: [released,prereleased]
 
+# The only thing that really differs between the release and staging
+# builds is the target PPA_URI.
 jobs:
-
+  # Only build the release PPA when the event is not a prerelease.
   release-ppa:
-    strategy:
-      matrix:
-        os: [ ubuntu-22.04, ubuntu-20.04 ]
+    if: github.event.release.prerelease == false
+    uses: ./.github/workflows/publish-ppa.yml
+    with:
+      PPA_URI: "ppa:lutris-team/lutris"
+    secrets:
+      PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
+      PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}
 
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      # Checkout repository
-      - uses: actions/checkout@v2
-
-      # Dependencies for the build process to generate .deb packages.
-      - name: Install Dependencies
-        run: |
-          sudo apt update
-          sudo apt install \
-            debhelper \
-            debmake \
-            devscripts \
-            dh-python \
-            meson \
-            equivs \
-            git-buildpackage
-
-      # This builds and signs the debian package for each OS in matrix.os
-      # This script also recalculates dependencies based on the current
-      # OS and can potentially produce different package control files,
-      # but these files are not kept.
-      #
-      # Signing packages uses the secrets referenced below and passes
-      # them through the below script and into the make "github-ppa"
-      # Makefile directive.
-      #
-      # It would probably be a good idea to have a unique GPG just for
-      # this process, but whatever GPG key is passed here _must_ be
-      # registered on the PPA as an authorized key.
-      - name: Build Debian Package
-        env:
-          PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
-          PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}
-        run: |
-          ./.github/scripts/build-sign-ubuntu.sh
-
-      # Pushes the build to the PPA.
-      - name: Publish to PPA
-        run: |
-          dput ppa:lutris-team/lutris ../*.changes
+  # Push all builds out to the staging PPA.
+  staging-ppa:
+    uses: ./.github/workflows/publish-ppa.yml
+    with:
+      PPA_URI: "ppa:lutris-team/lutris-staging"
+    secrets:
+      PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
+      PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}

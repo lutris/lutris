@@ -10,15 +10,15 @@ all:
 	debuild
 	debclean
 
-# The same as all, but requires two environment variables related to
-# package signing.
+# Build process for GitHub runners.
+# Requires two environment variables related to package signing.
 # 	PPA_GPG_KEY_ID
 #		Key ID used to sign the .deb package files.
 #	PPA_GPG_PASSPHRASE
 #		Decrypts the private key associated with GPG_KEY_ID.
 #
 # When running from a GitHub workflow.  The above environment variables
-# are passed in from .github/scripts/build-sign-ubuntu.sh and that script
+# are passed in from .github/scripts/build-ubuntu.sh and that script
 # receives those variables from the .github/workflows/publish-lutris-ppa.yml
 # which receives them from the repository secrets.
 github-ppa:
@@ -27,11 +27,10 @@ github-ppa:
 	# version string, and so that lintian check is suppressed.  Also note
 	# that all parameters after "--lintian-opts" are passed to lintian
 	# so that _must_ be the last parameter.
-	echo "y" | debuild -S -sa \
+	echo "y" | debuild -S \
 		-k"${PPA_GPG_KEY_ID}" \
 		-p"gpg --batch --passphrase "${PPA_GPG_PASSPHRASE}" --pinentry-mode loopback" \
 		--lintian-opts --suppress-tags malformed-debian-changelog-version
-	debclean
 
 build:
 	gbp buildpackage --git-debian-branch=${GITBRANCH}
