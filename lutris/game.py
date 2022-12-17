@@ -465,41 +465,50 @@ class Game(GObject.Object):
         game_config = self.config.game_level.get("game", {})
         configs = game_config.get("launch_configs")
 
-        if not configs:
-            return {}  # use primary configuration
-
-        config_index = None
-        preferred_launch_command_name = game_config.get("preferred_launch_command_name")
-        preferred_launch_command_index = game_config.get("preferred_launch_command_index")
-
-        def get_preferred_index():
+        def get_preferred_config_index():
             # Validate that the settings are still valid; we need the index to
             # cope when two configs have the same name but we insist on a name
             # match. Returns None if it can't find a match, and then the user
             # must decide.
-            if preferred_launch_command_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
+            preferred_name = game_config.get("preferred_launch_config_name")
+            preferred_index = game_config.get("preferred_launch_config_index")
+
+            if preferred_index == 0 or preferred_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
                 return 0
 
-            if preferred_launch_command_name:
-                if preferred_launch_command_index:
+            if preferred_name:
+                if preferred_index:
                     try:
-                        if configs[preferred_launch_command_index - 1].get("name") == preferred_launch_command_name:
-                            return preferred_launch_command_index
+                        if configs[preferred_index - 1].get("name") == preferred_name:
+                            return preferred_index
                     except IndexError:
                         pass
 
                 for index, config in enumerate(configs):
-                    if config.get("name") == preferred_launch_command_name:
+                    if config.get("name") == preferred_name:
                         return index + 1
+
             return None
 
-        config_name_to_save = preferred_launch_command_name
+        def save_preferred_config(index):
+            name = configs[index - 1].get("name") if index > 0 else Game.PRIMARY_LAUNCH_CONFIG_NAME
+            game_config["preferred_launch_config_index"] = index
+            game_config["preferred_launch_config_name"] = name
+            self.config.save()
+
+        def reset_preferred_config():
+            del game_config["preferred_launch_config_index"]
+            del game_config["preferred_launch_config_name"]
+            self.config.save()
+
+        if not configs:
+            return {}  # use primary configuration
 
         keymap = Gdk.Keymap.get_default()
         if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
-            config_name_to_save = None
+            config_index = None
         else:
-            config_index = get_preferred_index()
+            config_index = get_preferred_config_index()
 
         if config_index is None:
             dlg = dialogs.LaunchConfigSelectDialog(self, configs)
@@ -508,19 +517,9 @@ class Game(GObject.Object):
 
             config_index = dlg.config_index
             if dlg.dont_show_again:
-                if config_index == 0:
-                    config_name_to_save = Game.PRIMARY_LAUNCH_CONFIG_NAME
-                else:
-                    config_name_to_save = configs[config_index - 1].get("name")
-
-                if preferred_launch_command_name != config_name_to_save:
-                    if config_name_to_save:
-                        game_config["preferred_launch_command_name"] = config_name_to_save
-                        game_config["preferred_launch_command_index"] = config_index
-                    else:
-                        del game_config["preferred_launch_command_name"]
-                        del game_config["preferred_launch_command_index"]
-                    self.config.save()
+                save_preferred_config(config_index)
+            else:
+                reset_preferred_config()
 
         return configs[config_index - 1] if config_index > 0 else {}
 

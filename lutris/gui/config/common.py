@@ -157,17 +157,17 @@ class GameDialogCommon(ModelessDialog):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
 
         game_config = self.game.config.game_level.get("game", {})
-        preferred_launch_command_name = game_config.get("preferred_launch_command_name")
+        preferred_name = game_config.get("preferred_launch_config_name")
 
-        if preferred_launch_command_name:
+        if preferred_name:
             spacer = Gtk.Box()
             spacer.set_size_request(230, -1)
             box.pack_start(spacer, False, False, 0)
 
-            if preferred_launch_command_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
+            if preferred_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
                 text = _("The default launch option will be used for this game")
             else:
-                text = _("The '%s' launch option will be used for this game") % preferred_launch_command_name
+                text = _("The '%s' launch option will be used for this game") % preferred_name
             label = Gtk.Label(text)
             label.set_line_wrap(True)
             label.set_halign(Gtk.Align.START)
@@ -175,16 +175,17 @@ class GameDialogCommon(ModelessDialog):
             label.set_valign(Gtk.Align.CENTER)
             box.pack_start(label, True, True, 0)
             button = Gtk.Button(_("Reset"))
-            button.connect("clicked", self.on_reset_preferred_launch_command_clicked, box)
+            button.connect("clicked", self.on_reset_preferred_launch_config_clicked, box)
             button.set_valign(Gtk.Align.CENTER)
             box.pack_start(button, False, False, 0)
         else:
             box.hide()
         return box
 
-    def on_reset_preferred_launch_command_clicked(self, _button, launch_config_box):
+    def on_reset_preferred_launch_config_clicked(self, _button, launch_config_box):
         game_config = self.game.config.game_level.get("game", {})
-        del game_config["preferred_launch_command_name"]
+        del game_config["preferred_launch_config_name"]
+        del game_config["preferred_launch_config_index"]
         launch_config_box.hide()
 
     def _get_runner_box(self):
