@@ -447,49 +447,63 @@ class Game(GObject.Object):
         if "error" in gameplay_info:
             raise self.get_config_error(gameplay_info)
 
-        game_config = self.config.game_level.get("game", {})
-        if game_config.get("launch_configs"):
-            configs = game_config["launch_configs"]
-
-            config_index = None
-            preferred_launch_command_name = game_config.get("preferred_launch_command_name")
-            config_name_to_save = preferred_launch_command_name
-
-            keymap = Gdk.Keymap.get_default()
-            if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
-                config_name_to_save = None
-            elif preferred_launch_command_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
-                config_index = 0
-            elif preferred_launch_command_name:
-                for index, config in enumerate(configs):
-                    if config.get("name") == preferred_launch_command_name:
-                        config_index = index + 1
-                        break
-
-            if config_index is None:
-                dlg = dialogs.LaunchConfigSelectDialog(self, configs)
-                if not dlg.confirmed:
-                    return {}  # no error here- the user cancelled out
-
-                config_index = dlg.config_index
-                if dlg.dont_show_again:
-                    if config_index == 0:
-                        config_name_to_save = Game.PRIMARY_LAUNCH_CONFIG_NAME
-                    else:
-                        config_name_to_save = configs[config_index - 1].get("name")
-
-            if config_index:  # index 0 for no command at all
-                config = configs[config_index - 1]
-                self.runner.apply_launch_config(gameplay_info, config)
-
-            if preferred_launch_command_name != config_name_to_save:
-                if config_name_to_save:
-                    game_config["preferred_launch_command_name"] = config_name_to_save
-                else:
-                    del game_config["preferred_launch_command_name"]
-                self.config.save()
+        config = self.select_launch_config()
+            
+        if config is None:
+            return {}  # no error here- the user cancelled out
+        
+        if config:  # empty dict for primary configuration.
+            self.runner.apply_launch_config(gameplay_info, config)
 
         return gameplay_info
+
+    def select_launch_config(self):
+        """Prompt the user for which launch config to use. Returns None
+        if the user cancelled, an empty dict for the primary game configuration
+        and the launch_config as a dict if one is selected.
+        """
+        game_config = self.config.game_level.get("game", {})
+        configs = game_config.get("launch_configs")
+        
+        if not configs:
+            return {}  # use primary configuration
+
+        config_index = None
+        preferred_launch_command_name = game_config.get("preferred_launch_command_name")
+        config_name_to_save = preferred_launch_command_name
+        
+        keymap = Gdk.Keymap.get_default()
+        if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
+            config_name_to_save = None
+        elif preferred_launch_command_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
+            config_index = 0
+        elif preferred_launch_command_name:
+            for index, config in enumerate(configs):
+                if config.get("name") == preferred_launch_command_name:
+                    config_index = index + 1
+                    break
+
+        if config_index is None:
+            dlg = dialogs.LaunchConfigSelectDialog(self, configs)
+            if not dlg.confirmed:
+                return None  # no error here- the user cancelled out
+
+            config_index = dlg.config_index
+            if dlg.dont_show_again:
+                if config_index == 0:
+                    config_name_to_save = Game.PRIMARY_LAUNCH_CONFIG_NAME
+                else:
+                    config_name_to_save = configs[config_index - 1].get("name")
+                
+                if preferred_launch_command_name != config_name_to_save:
+                    if config_name_to_save:
+                        game_config["preferred_launch_command_name"] = config_name_to_save
+                    else:
+                        del game_config["preferred_launch_command_name"]
+                    self.config.save()
+                    
+        return configs[config_index - 1] if config_index > 0 else {}
+    
 
     @watch_game_errors(game_stop_result=False)
     def configure_game(self, _ignored, error=None):  # noqa: C901
