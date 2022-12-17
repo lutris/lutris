@@ -576,6 +576,24 @@ class wine(Runner):
             return self.runner_config.get("custom_wine_path", "")
         return os.path.join(WINE_DIR, version, "bin/wine")
 
+    def resolve_config_path(self, path, relative_to=None):
+        # Resolve paths with tolerance for Windows-isms;
+        # first try to fix mismatched casing, and then if that
+        # finds no file or directory, try again after swapping in
+        # slashes for backslashes.
+
+        resolved = super().resolve_config_path(path, relative_to)
+        resolved = system.fix_path_case(resolved)
+
+        if not os.path.exists(resolved) and '\\' in path:
+            fixed = path.replace('\\', '/')
+            fixed_resolved = super().resolve_config_path(fixed, relative_to)
+            fixed_resolved = system.fix_path_case(fixed_resolved)
+            if fixed_resolved:
+                return fixed_resolved
+
+        return resolved
+
     def get_executable(self, version=None, fallback=True):
         """Return the path to the Wine executable.
         A specific version can be specified if needed.

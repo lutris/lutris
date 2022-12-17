@@ -255,8 +255,10 @@ class Runner:  # pylint: disable=too-many-public-methods
         if a non-default config is chosen."""
         gameplay_info["command"] = self.get_launch_config_command(gameplay_info, launch_config)
 
-        if launch_config.get("working_dir"):
-            gameplay_info["working_dir"] = launch_config["working_dir"]
+        config_working_dir = self.get_launch_config_working_dir(launch_config)
+
+        if config_working_dir:
+            gameplay_info["working_dir"] = config_working_dir
 
     def get_launch_config_command(self, gameplay_info, launch_config):
         """Generates a new command for the gameplay_info, to implement the launch_config.
@@ -277,13 +279,61 @@ class Runner:  # pylint: disable=too-many-public-methods
             # The 'file' sort of gameplay_info cannot be made to use a configuration
             raise GameConfigError(_("The runner could not find a command to apply the configuration to."))
 
-        if "exe" in launch_config:
-            command.append(launch_config["exe"])
+        exe = self.get_launch_config_exe(launch_config)
+        if exe:
+            command.append(exe)
 
         if launch_config.get("args"):
             command += strings.split_arguments(launch_config["args"])
 
         return command
+
+    def get_launch_config_exe(self, launch_config):
+        """Locates the "exe" of the launch config. If it appears
+        to be relative to the game's working_dir, this will try to
+        adjust it to be relative to the config's instead.
+        """
+        exe = launch_config.get("exe")
+        config_working_dir = self.get_launch_config_working_dir(launch_config)
+
+        if exe and config_working_dir and not os.path.isabs(exe):
+            exe_from_config = self.resolve_config_path(exe, config_working_dir)
+            exe_from_game = self.resolve_config_path(exe)
+
+            if os.path.exists(exe_from_game) and not os.path.exists(exe_from_config):
+                relative = os.path.relpath(exe_from_game, start=config_working_dir)
+                if not relative.startswith("../"):
+                    return relative
+
+        return exe
+
+    def get_launch_config_working_dir(self, launch_config):
+        """Extracts the "working_dir" from the config, and resolves to relative
+        to the game's working directory, so that an absolute path results.
+
+        This returns None if no working_dir is present, or if it found to be bogus.
+        """
+        config_working_dir = launch_config.get("working_dir")
+        if config_working_dir:
+            config_working_dir = self.resolve_config_path(config_working_dir)
+
+        return config_working_dir
+
+    def resolve_config_path(self, path, relative_to=None):
+        """Interpret a path taken from the launch_config relative to
+        a working directory, using the game's working_dir if that is omitted.
+
+        This is provided as a method so the WINE runner can try to convert
+        Windows-style paths to usable paths.
+        """
+        if not os.path.isabs(path):
+            if not relative_to:
+                relative_to = self.working_dir
+
+            if relative_to:
+                return os.path.join(relative_to, path)
+
+        return path
 
     def prelaunch(self):
         """Run actions before running the game, override this method in runners; raise an
