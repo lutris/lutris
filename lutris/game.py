@@ -463,7 +463,8 @@ class Game(GObject.Object):
             elif preferred_launch_command_name:
                 for index, config in enumerate(configs):
                     if config.get("name") == preferred_launch_command_name:
-                        config_index = index
+                        config_index = index + 1
+                        break
 
             if config_index is None:
                 dlg = dialogs.LaunchConfigSelectDialog(self, configs)
