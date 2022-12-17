@@ -448,10 +448,10 @@ class Game(GObject.Object):
             raise self.get_config_error(gameplay_info)
 
         config = self.select_launch_config()
-            
+
         if config is None:
             return {}  # no error here- the user cancelled out
-        
+
         if config:  # empty dict for primary configuration.
             self.runner.apply_launch_config(gameplay_info, config)
 
@@ -464,24 +464,42 @@ class Game(GObject.Object):
         """
         game_config = self.config.game_level.get("game", {})
         configs = game_config.get("launch_configs")
-        
+
         if not configs:
             return {}  # use primary configuration
 
         config_index = None
         preferred_launch_command_name = game_config.get("preferred_launch_command_name")
+        preferred_launch_command_index = game_config.get("preferred_launch_command_index")
+
+        def get_preferred_index():
+            # Validate that the settings are still valid; we need the index to
+            # cope when two configs have the same name but we insist on a name
+            # match. Returns None if it can't find a match, and then the user
+            # must decide.
+            if preferred_launch_command_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
+                return 0
+
+            if preferred_launch_command_name:
+                if preferred_launch_command_index:
+                    try:
+                        if configs[preferred_launch_command_index - 1].get("name") == preferred_launch_command_name:
+                            return preferred_launch_command_index
+                    except IndexError:
+                        pass
+
+                for index, config in enumerate(configs):
+                    if config.get("name") == preferred_launch_command_name:
+                        return index + 1
+            return None
+
         config_name_to_save = preferred_launch_command_name
-        
+
         keymap = Gdk.Keymap.get_default()
         if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
             config_name_to_save = None
-        elif preferred_launch_command_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
-            config_index = 0
-        elif preferred_launch_command_name:
-            for index, config in enumerate(configs):
-                if config.get("name") == preferred_launch_command_name:
-                    config_index = index + 1
-                    break
+        else:
+            config_index = get_preferred_index()
 
         if config_index is None:
             dlg = dialogs.LaunchConfigSelectDialog(self, configs)
@@ -494,16 +512,17 @@ class Game(GObject.Object):
                     config_name_to_save = Game.PRIMARY_LAUNCH_CONFIG_NAME
                 else:
                     config_name_to_save = configs[config_index - 1].get("name")
-                
+
                 if preferred_launch_command_name != config_name_to_save:
                     if config_name_to_save:
                         game_config["preferred_launch_command_name"] = config_name_to_save
+                        game_config["preferred_launch_command_index"] = config_index
                     else:
                         del game_config["preferred_launch_command_name"]
+                        del game_config["preferred_launch_command_index"]
                     self.config.save()
-                    
+
         return configs[config_index - 1] if config_index > 0 else {}
-    
 
     @watch_game_errors(game_stop_result=False)
     def configure_game(self, _ignored, error=None):  # noqa: C901
