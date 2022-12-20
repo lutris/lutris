@@ -308,16 +308,18 @@ class Runner:  # pylint: disable=too-many-public-methods
         return exe
 
     def get_launch_config_working_dir(self, launch_config):
-        """Extracts the "working_dir" from the config, and resolves to relative
+        """Extracts the "working_dir" from the config, and resolves this relative
         to the game's working directory, so that an absolute path results.
 
-        This returns None if no working_dir is present, or if it found to be bogus.
+        This returns None if no working_dir is present, or if it found to be missing.
         """
         config_working_dir = launch_config.get("working_dir")
         if config_working_dir:
             config_working_dir = self.resolve_config_path(config_working_dir)
+            if os.path.isdir(config_working_dir):
+                return config_working_dir
 
-        return config_working_dir
+        return None
 
     def resolve_config_path(self, path, relative_to=None):
         """Interpret a path taken from the launch_config relative to
