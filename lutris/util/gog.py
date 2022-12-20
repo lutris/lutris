@@ -45,7 +45,9 @@ def get_game_config(task, gog_game_path):
         logger.warning("No executable found at %s", exe_abspath)
     config["exe"] = exe
     if task.get("workingDir"):
-        config["working_dir"] = task["workingDir"]
+        working_dir = task["workingDir"]
+        working_dir_abspath = system.fix_path_case(os.path.join(gog_game_path, working_dir))
+        config["working_dir"] = working_dir_abspath
     if task.get("arguments"):
         config["args"] = task["arguments"]
     if task.get("name"):
