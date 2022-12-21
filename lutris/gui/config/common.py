@@ -184,8 +184,8 @@ class GameDialogCommon(ModelessDialog):
 
     def on_reset_preferred_launch_config_clicked(self, _button, launch_config_box):
         game_config = self.game.config.game_level.get("game", {})
-        del game_config["preferred_launch_config_name"]
-        del game_config["preferred_launch_config_index"]
+        game_config.pop("preferred_launch_config_name", None)
+        game_config.pop("preferred_launch_config_index", None)
         launch_config_box.hide()
 
     def _get_runner_box(self):

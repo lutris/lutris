@@ -497,8 +497,8 @@ class Game(GObject.Object):
             self.config.save()
 
         def reset_preferred_config():
-            del game_config["preferred_launch_config_index"]
-            del game_config["preferred_launch_config_name"]
+            game_config.pop("preferred_launch_config_index", None)
+            game_config.pop("preferred_launch_config_name", None)
             self.config.save()
 
         if not configs:
