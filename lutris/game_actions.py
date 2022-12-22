@@ -164,7 +164,7 @@ class GameActions:
 
     def on_game_launch(self, *_args):
         """Launch a game"""
-        self.game.launch()
+        self.game.launch(self.window)
 
     def get_running_game(self):
         ids = self.application.get_running_game_ids()

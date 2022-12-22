@@ -34,7 +34,7 @@ from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow, Game.UIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -879,3 +879,65 @@ class LutrisWindow(Gtk.ApplicationWindow):  # pylint: disable=too-many-public-me
 
     def on_watched_error(self, error):
         dialogs.ErrorDialog(str(error), parent=self)
+
+    def select_launch_config(self, game):
+        game_config = game.config.game_level.get("game", {})
+        configs = game_config.get("launch_configs")
+
+        def get_preferred_config_index():
+            # Validate that the settings are still valid; we need the index to
+            # cope when two configs have the same name but we insist on a name
+            # match. Returns None if it can't find a match, and then the user
+            # must decide.
+            preferred_name = game_config.get("preferred_launch_config_name")
+            preferred_index = game_config.get("preferred_launch_config_index")
+
+            if preferred_index == 0 or preferred_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
+                return 0
+
+            if preferred_name:
+                if preferred_index:
+                    try:
+                        if configs[preferred_index - 1].get("name") == preferred_name:
+                            return preferred_index
+                    except IndexError:
+                        pass
+
+                for index, config in enumerate(configs):
+                    if config.get("name") == preferred_name:
+                        return index + 1
+
+            return None
+
+        def save_preferred_config(index):
+            name = configs[index - 1].get("name") if index > 0 else Game.PRIMARY_LAUNCH_CONFIG_NAME
+            game_config["preferred_launch_config_index"] = index
+            game_config["preferred_launch_config_name"] = name
+            game.config.save()
+
+        def reset_preferred_config():
+            game_config.pop("preferred_launch_config_index", None)
+            game_config.pop("preferred_launch_config_name", None)
+            game.config.save()
+
+        if not configs:
+            return {}  # use primary configuration
+
+        keymap = Gdk.Keymap.get_default()
+        if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
+            config_index = None
+        else:
+            config_index = get_preferred_config_index()
+
+        if config_index is None:
+            dlg = dialogs.LaunchConfigSelectDialog(game, configs, parent=self)
+            if not dlg.confirmed:
+                return None  # no error here- the user cancelled out
+
+            config_index = dlg.config_index
+            if dlg.dont_show_again:
+                save_preferred_config(config_index)
+            else:
+                reset_preferred_config()
+
+        return configs[config_index - 1] if config_index > 0 else {}
