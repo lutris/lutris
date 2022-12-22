@@ -24,11 +24,13 @@ from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.runners import wine
 # pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import update_desktop_icons
 
@@ -880,7 +882,13 @@ class LutrisWindow(Gtk.ApplicationWindow, Game.UIDelegate):  # pylint: disable=t
     def on_watched_error(self, error):
         dialogs.ErrorDialog(str(error), parent=self)
 
-    def select_launch_config(self, game):
+    def check_game_launchable(self, game):
+        if ("wine" in game.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
+            dlg = dialogs.WineNotInstalledWarning(parent=self, cancellable=True)
+            return dlg.result == Gtk.ResponseType.OK
+        return True
+
+    def select_game_launch_config(self, game):
         game_config = game.config.game_level.get("game", {})
         configs = game_config.get("launch_configs")
 
