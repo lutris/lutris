@@ -132,7 +132,7 @@ class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
 
     def __init__(self, message, secondary=None, parent=None):
-        super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         if secondary:
             self.format_secondary_text(secondary[:256])
@@ -140,7 +140,22 @@ class NoticeDialog(Gtk.MessageDialog):
         self.destroy()
 
 
+class WarningDialog(Gtk.MessageDialog):
+
+    """Display a warning to the user, who responds with whether to proceed, like
+    a QuestionDialog."""
+
+    def __init__(self, message, secondary=None, parent=None):
+        super().__init__(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL, parent=parent)
+        self.set_markup(message)
+        if secondary:
+            self.format_secondary_text(secondary[:256])
+        self.result = self.run()
+        self.destroy()
+
+
 class ErrorDialog(Gtk.MessageDialog):
+
     """Display an error message."""
 
     def __init__(self, message, secondary=None, parent=None):

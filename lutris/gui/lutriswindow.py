@@ -5,7 +5,7 @@ from gettext import gettext as _
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
-from lutris import services, settings
+from lutris import runtime, services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
@@ -125,7 +125,6 @@ class LutrisWindow(Gtk.ApplicationWindow, Game.UIDelegate):  # pylint: disable=t
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
         GObject.add_emission_hook(Game, "game-error", self.on_game_error)
-        GObject.add_emission_hook(Game, "game-notice", self.on_game_notice)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -721,10 +720,6 @@ class LutrisWindow(Gtk.ApplicationWindow, Game.UIDelegate):  # pylint: disable=t
         dialogs.ErrorDialog(str(error), parent=self)
         return True
 
-    def on_game_notice(self, game, message, secondary):
-        """Called when a game has sent the 'game-notice' signal"""
-        dialogs.NoticeDialog(message, secondary=secondary, parent=self)
-
     @GtkTemplate.Callback
     def on_add_game_button_clicked(self, *_args):
         """Add a new game manually with the AddGameDialog."""
@@ -883,9 +878,20 @@ class LutrisWindow(Gtk.ApplicationWindow, Game.UIDelegate):  # pylint: disable=t
         dialogs.ErrorDialog(str(error), parent=self)
 
     def check_game_launchable(self, game):
-        if ("wine" in game.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
+        if game.runner.use_runtime():
+            runtime_updater = runtime.RuntimeUpdater()
+            if runtime_updater.is_updating():
+                logger.warning("Game launching wil the runtime is updating")
+                dlg = dialogs.WarningDialog(_("Runtime currently updating"), _(
+                    "Game might not work as expected"), parent=self)
+                if dlg.result != Gtk.ResponseType.OK:
+                    return False
+
+        if "wine" in game.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak:
             dlg = dialogs.WineNotInstalledWarning(parent=self, cancellable=True)
-            return dlg.result == Gtk.ResponseType.OK
+            if dlg.result != Gtk.ResponseType.OK:
+                return False
+
         return True
 
     def select_game_launch_config(self, game):
