@@ -63,19 +63,24 @@ def watch_errors(error_result=None):
     return inner_decorator
 
 
-def watch_game_errors(game_stop_result):
+def watch_game_errors(game_stop_result, game=None):
     """Decorator used to catch exceptions and send events instead of propagating them normally.
     If 'game_stop_result' is not None, and the decorated function returns that, this will
     send game-stop and make the game stopped as well. This simplifies handling cancellation.
     Also, if an error occurs and is emitted, the function returns this value, so callers
     can tell that the function failed.
     """
+    stable_game = game
 
     def inner_decorator(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
             """Catch all exceptions and emit an event."""
-            game = args[0]
+            if stable_game is None:
+                game = args[0]
+            else:
+                game = stable_game
+
             try:
                 result = function(*args, **kwargs)
                 if game_stop_result is not None and result == game_stop_result and game.state != game.STATE_STOPPED:

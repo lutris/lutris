@@ -614,7 +614,8 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
             game = Game(db_game["id"])
-            game.launch()
+            ui_delegate = Game.UIDelegate()
+            game.launch(ui_delegate)
         else:
             Application.show_update_runtime_dialog()
             self.window.present()
@@ -624,7 +625,8 @@ class Application(Gtk.Application):
 
     @watch_errors(error_result=True)
     def on_game_launch(self, game):
-        game.launch()
+        ui_delegate = self.window or Game.UIDelegate()
+        game.launch(ui_delegate)
         return True  # Return True to continue handling the emission hook
 
     @watch_errors(error_result=True)
@@ -672,7 +674,8 @@ class Application(Gtk.Application):
 
             if game_id:
                 game = Game(game_id)
-                game.launch()
+                ui_delegate = self.window or Game.UIDelegate()
+                game.launch(ui_delegate)
             return True
         if not game.slug:
             raise ValueError("Invalid game passed: %s" % game)

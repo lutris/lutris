@@ -10,7 +10,7 @@ import subprocess
 import time
 from gettext import gettext as _
 
-from gi.repository import Gdk, GLib, GObject, Gtk
+from gi.repository import GLib, GObject, Gtk
 
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
@@ -66,6 +66,14 @@ class Game(GObject.Object):
         "game-install-dlc": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
+
+    class UIDelegate:
+        def select_launch_config(self, game):  #noqa: R0201
+            """Prompt the user for which launch config to use. Returns None
+            if the user cancelled, an empty dict for the primary game configuration
+            and the launch_config as a dict if one is selected.
+            """
+            return {}  # primary game
 
     def __init__(self, game_id=None):
         super().__init__()
@@ -435,7 +443,7 @@ class Game(GObject.Object):
         if killswitch and system.path_exists(self.killswitch):
             return killswitch
 
-    def get_gameplay_info(self):
+    def get_gameplay_info(self, ui_delegate):
         """Return the information provided by a runner's play method.
         Checks for possible errors; raises exceptions if they occur.
         This can show a dialog to ask the user to select a configuration;
@@ -447,7 +455,7 @@ class Game(GObject.Object):
         if "error" in gameplay_info:
             raise self.get_config_error(gameplay_info)
 
-        config = self.select_launch_config()
+        config = ui_delegate.select_launch_config(self)
 
         if config is None:
             return {}  # no error here- the user cancelled out
@@ -457,80 +465,12 @@ class Game(GObject.Object):
 
         return gameplay_info
 
-    def select_launch_config(self):
-        """Prompt the user for which launch config to use. Returns None
-        if the user cancelled, an empty dict for the primary game configuration
-        and the launch_config as a dict if one is selected.
-        """
-        game_config = self.config.game_level.get("game", {})
-        configs = game_config.get("launch_configs")
-
-        def get_preferred_config_index():
-            # Validate that the settings are still valid; we need the index to
-            # cope when two configs have the same name but we insist on a name
-            # match. Returns None if it can't find a match, and then the user
-            # must decide.
-            preferred_name = game_config.get("preferred_launch_config_name")
-            preferred_index = game_config.get("preferred_launch_config_index")
-
-            if preferred_index == 0 or preferred_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
-                return 0
-
-            if preferred_name:
-                if preferred_index:
-                    try:
-                        if configs[preferred_index - 1].get("name") == preferred_name:
-                            return preferred_index
-                    except IndexError:
-                        pass
-
-                for index, config in enumerate(configs):
-                    if config.get("name") == preferred_name:
-                        return index + 1
-
-            return None
-
-        def save_preferred_config(index):
-            name = configs[index - 1].get("name") if index > 0 else Game.PRIMARY_LAUNCH_CONFIG_NAME
-            game_config["preferred_launch_config_index"] = index
-            game_config["preferred_launch_config_name"] = name
-            self.config.save()
-
-        def reset_preferred_config():
-            game_config.pop("preferred_launch_config_index", None)
-            game_config.pop("preferred_launch_config_name", None)
-            self.config.save()
-
-        if not configs:
-            return {}  # use primary configuration
-
-        keymap = Gdk.Keymap.get_default()
-        if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
-            config_index = None
-        else:
-            config_index = get_preferred_config_index()
-
-        if config_index is None:
-            dlg = dialogs.LaunchConfigSelectDialog(self, configs)
-            if not dlg.confirmed:
-                return None  # no error here- the user cancelled out
-
-            config_index = dlg.config_index
-            if dlg.dont_show_again:
-                save_preferred_config(config_index)
-            else:
-                reset_preferred_config()
-
-        return configs[config_index - 1] if config_index > 0 else {}
-
     @watch_game_errors(game_stop_result=False)
-    def configure_game(self, _ignored, error=None):  # noqa: C901
+    def configure_game(self, ui_delegate):  # noqa: C901
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
-        if error:
-            raise error
-        gameplay_info = self.get_gameplay_info()
+        gameplay_info = self.get_gameplay_info(ui_delegate)
         if not gameplay_info:  # if user cancelled- not an error
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
@@ -590,7 +530,7 @@ class Game(GObject.Object):
         return True
 
     @watch_game_errors(game_stop_result=False)
-    def launch(self):
+    def launch(self, ui_delegate):
         """Request launching a game. The game may not be installed yet."""
         if not self.is_launchable():
             logger.error("Game is not launchable")
@@ -609,7 +549,14 @@ class Game(GObject.Object):
         self.prelaunch_pids = system.get_running_pid_list()
 
         self.emit("game-start")
-        jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
+
+        @watch_game_errors(game_stop_result=False, game=self)
+        def configure_game(_ignored, error):
+            if error:
+                raise error
+            self.configure_game(ui_delegate)
+
+        jobs.AsyncCall(self.runner.prelaunch, configure_game)
         return True
 
     def start_game(self):
@@ -847,7 +794,8 @@ class Game(GObject.Object):
 
     def write_script(self, script_path):
         """Output the launch argument in a bash script"""
-        gameplay_info = self.get_gameplay_info()
+        ui_delegate = Game.UIDelegate()
+        gameplay_info = self.get_gameplay_info(ui_delegate)
         if not gameplay_info:
             # User cancelled; errors are raised as exceptions instead of this
             return
