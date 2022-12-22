@@ -12,7 +12,7 @@ from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk
 
-from lutris import runtime, settings
+from lutris import settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
@@ -51,7 +51,6 @@ class Game(GObject.Object):
 
     __gsignals__ = {
         "game-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
-        "game-notice": (GObject.SIGNAL_RUN_FIRST, None, (str, str)),
         "game-launch": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -348,11 +347,6 @@ class Game(GObject.Object):
             installed = self.runner.install_dialog()
             if not installed:
                 return False
-
-        if self.runner.use_runtime():
-            runtime_updater = runtime.RuntimeUpdater()
-            if runtime_updater.is_updating():
-                self.emit("game-notice", _("Runtime currently updating"), _("Game might not work as expected"))
 
         return True
 
