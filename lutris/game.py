@@ -65,13 +65,32 @@ class Game(GObject.Object):
     }
 
     class UIDelegate:
+        """These objects provide UI for the game while it is being launched;
+        one provided to the launch() method.
+
+        The default implementation provide no UI and makes default choices for
+        the user, but LutrisWindow implements this to show dialogs and ask the
+        user questions.
+
+        If these methods throw any errors are reported via tha game-error signal;
+        that is not part of this delegate because errors can be report outside of
+        the launch() method, where no delegate is available.
+        """
+
         def check_game_launchable(self, game):
+            """See if the game can be launched. If there are adverse conditions,
+            this can warn the user and ask whether to launch. If this returs
+            False, the launch is cancelled. The default is to return True with no
+            actual checks.
+            """
             return True
 
         def select_game_launch_config(self, game):
             """Prompt the user for which launch config to use. Returns None
             if the user cancelled, an empty dict for the primary game configuration
             and the launch_config as a dict if one is selected.
+
+            The default is the select the primary game.
             """
             return {}  # primary game
 
