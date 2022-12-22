@@ -19,16 +19,14 @@ from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.exceptions import GameConfigError, watch_game_errors
-from lutris.gui import dialogs
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
-from lutris.runners import InvalidRunner, import_runner, wine
+from lutris.runners import InvalidRunner, import_runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
 )
 from lutris.util.graphics.xephyr import get_xephyr_command
 from lutris.util.graphics.xrandr import turn_off_except
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.process import Process
 from lutris.util.savesync import sync_saves
@@ -68,7 +66,10 @@ class Game(GObject.Object):
     }
 
     class UIDelegate:
-        def select_launch_config(self, game):  #noqa: R0201
+        def check_game_launchable(self, game):
+            return True
+
+        def select_game_launch_config(self, game):
             """Prompt the user for which launch config to use. Returns None
             if the user cancelled, an empty dict for the primary game configuration
             and the launch_config as a dict if one is selected.
@@ -336,7 +337,7 @@ class Game(GObject.Object):
         )
         self.emit("game-updated")
 
-    def is_launchable(self):
+    def check_launchable(self):
         """Verify that the current game can be launched."""
         if not self.is_installed:
             logger.error("%s (%s) not installed", self, self.id)
@@ -352,8 +353,7 @@ class Game(GObject.Object):
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
                 self.emit("game-notice", _("Runtime currently updating"), _("Game might not work as expected"))
-        if ("wine" in self.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
-            dialogs.WineNotInstalledWarning(parent=None)
+
         return True
 
     def restrict_to_display(self, display):
@@ -455,7 +455,7 @@ class Game(GObject.Object):
         if "error" in gameplay_info:
             raise self.get_config_error(gameplay_info)
 
-        config = ui_delegate.select_launch_config(self)
+        config = ui_delegate.select_game_launch_config(self)
 
         if config is None:
             return {}  # no error here- the user cancelled out
@@ -532,8 +532,11 @@ class Game(GObject.Object):
     @watch_game_errors(game_stop_result=False)
     def launch(self, ui_delegate):
         """Request launching a game. The game may not be installed yet."""
-        if not self.is_launchable():
+        if not self.check_launchable():
             logger.error("Game is not launchable")
+            return False
+
+        if not ui_delegate.check_game_launchable(self):
             return False
 
         self.load_config()  # Reload the config before launching it.

@@ -436,13 +436,16 @@ class DontShowAgainDialog(Gtk.MessageDialog):
         secondary_message=None,
         parent=None,
         checkbox_message=None,
+        cancellable=False
     ):
         # pylint: disable=no-member
         if settings.read_setting(setting) == "True":
             logger.info("Dialog %s dismissed by user", setting)
             return
 
-        super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
+        buttons = Gtk.ButtonsType.OK_CANCEL if cancellable else Gtk.ButtonsType.OK
+
+        super().__init__(type=Gtk.MessageType.WARNING, buttons=buttons, parent=parent)
 
         self.set_default_response(Gtk.ResponseType.OK)
         self.set_markup("<b>%s</b>" % message)
@@ -459,8 +462,8 @@ class DontShowAgainDialog(Gtk.MessageDialog):
 
         content_area = self.get_content_area()
         content_area.pack_start(dont_show_checkbutton, False, False, 0)
-        self.run()
-        if dont_show_checkbutton.get_active():
+        self.result = self.run()
+        if self.result == Gtk.ResponseType.OK and dont_show_checkbutton.get_active():
             settings.write_setting(setting, True)
         self.destroy()
 
@@ -469,7 +472,7 @@ class WineNotInstalledWarning(DontShowAgainDialog):
 
     """Display a warning if Wine is not detected on the system"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, cancellable=False):
         super().__init__(
             "hide-wine-systemwide-install-warning",
             _("Wine is not installed on your system."),
@@ -481,6 +484,7 @@ class WineNotInstalledWarning(DontShowAgainDialog):
                 "install Wine."
             ),
             parent=parent,
+            cancellable=cancellable
         )
 
 
