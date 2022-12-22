@@ -69,17 +69,17 @@ def watch_game_errors(game_stop_result, game=None):
     send game-stop and make the game stopped as well. This simplifies handling cancellation.
     Also, if an error occurs and is emitted, the function returns this value, so callers
     can tell that the function failed.
+
+    If you do not provide a game object directly, it is assumed to be in the first argument to
+    the decorated method (which is 'self', typically).
     """
-    stable_game = game
+    captured_game = game
 
     def inner_decorator(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
             """Catch all exceptions and emit an event."""
-            if stable_game is None:
-                game = args[0]
-            else:
-                game = stable_game
+            game = captured_game if captured_game else args[0]
 
             try:
                 result = function(*args, **kwargs)
