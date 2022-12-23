@@ -19,10 +19,11 @@ from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+from lutris.runners.runner import Runner
 
 
 # pylint: disable=too-many-instance-attributes, no-member
-class GameDialogCommon(ModelessDialog):
+class GameDialogCommon(ModelessDialog, Runner.DialogInstallUIDelegate):
     """Base class for config dialogs"""
     no_runner_label = _("Select a runner in the Game Info tab")
 

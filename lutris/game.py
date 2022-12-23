@@ -64,7 +64,7 @@ class Game(GObject.Object):
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    class UIDelegate:
+    class LaunchUIDelegate:
         """These objects provide UI for the game while it is being launched;
         one provided to the launch() method.
 
@@ -812,7 +812,7 @@ class Game(GObject.Object):
 
     def write_script(self, script_path):
         """Output the launch argument in a bash script"""
-        ui_delegate = Game.UIDelegate()
+        ui_delegate = Game.LaunchUIDelegate()
         gameplay_info = self.get_gameplay_info(ui_delegate)
         if not gameplay_info:
             # User cancelled; errors are raised as exceptions instead of this
