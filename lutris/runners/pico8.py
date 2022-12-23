@@ -81,7 +81,7 @@ class pico8(Runner):
     def __repr__(self):
         return _("PICO-8 runner (%s)") % self.config
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, version=None, downloader=None, callback=None, parent=None):
         opts = {}
         if callback:
             opts["callback"] = callback

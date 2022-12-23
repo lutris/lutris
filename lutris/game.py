@@ -18,7 +18,7 @@ from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, watch_game_errors
+from lutris.exceptions import GameConfigError, UnavailableRunnerError, watch_game_errors
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import InvalidRunner, import_runner
 from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
@@ -83,6 +83,8 @@ class Game(GObject.Object):
             False, the launch is cancelled. The default is to return True with no
             actual checks.
             """
+            if not game.runner.is_installed():
+                raise UnavailableRunnerError("The required runner '%s' is not installed." % game.runner.name)
             return True
 
         def select_game_launch_config(self, game):
@@ -356,16 +358,12 @@ class Game(GObject.Object):
         self.emit("game-updated")
 
     def check_launchable(self):
-        """Verify that the current game can be launched."""
+        """Verify that the current game can be launched, and raises exceptions if not."""
         if not self.is_installed:
             logger.error("%s (%s) not installed", self, self.id)
             raise GameConfigError(_("Tried to launch a game that isn't installed."))
         if not self.runner:
             raise GameConfigError(_("Invalid game configuration: Missing runner"))
-        if not self.runner.is_installed():
-            installed = self.runner.install_dialog()
-            if not installed:
-                return False
 
         return True
 
@@ -458,9 +456,13 @@ class Game(GObject.Object):
 
     def get_gameplay_info(self, ui_delegate):
         """Return the information provided by a runner's play method.
-        Checks for possible errors; raises exceptions if they occur.
-        This can show a dialog to ask the user to select a configuration;
-        if cancelled this will return an empty dict.
+        It checks for possible errors and raises exceptions if they occur.
+
+        This may invoke methods on the delegates to make decisions,
+        and this may show UI.
+
+        This returns an empty dictionary if the user cancels this UI,
+        in which case the game should not be run.
         """
         if not self.runner:
             raise GameConfigError(_("Invalid game configuration: Missing runner"))
@@ -473,7 +475,7 @@ class Game(GObject.Object):
         if config is None:
             return {}  # no error here- the user cancelled out
 
-        if config:  # empty dict for primary configuration.
+        if config:  # empty dict for primary configuration
             self.runner.apply_launch_config(gameplay_info, config)
 
         return gameplay_info

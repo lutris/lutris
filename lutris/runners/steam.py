@@ -238,7 +238,7 @@ class steam(Runner):
         if steamapps_paths:
             return steamapps_paths[0]
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, version=None, downloader=None, callback=None, parent=None):
         raise NonInstallableRunnerError(_(
             "Steam for Linux installation is not handled by Lutris.\n"
             "Please go to "

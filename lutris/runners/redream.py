@@ -96,10 +96,11 @@ class redream(Runner):
         },
     ]
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, version=None, downloader=None, callback=None, parent=None):
         def on_runner_installed(*args):
             dlg = QuestionDialog(
                 {
+                    "parent": parent,
                     "question": _("Do you want to select a premium license file?"),
                     "title": _("Use premium version?"),
                 }
@@ -114,7 +115,7 @@ class redream(Runner):
                 )
 
         super().install(
-            version=version, downloader=downloader, callback=on_runner_installed
+            version=version, downloader=downloader, callback=on_runner_installed, parent=parent
         )
 
     def play(self):

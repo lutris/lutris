@@ -72,7 +72,7 @@ class reicast(Runner):
             },
         ]
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, version=None, downloader=None, callback=None, parent=None):
 
         def on_runner_installed(*args):
             mapping_path = system.create_folder("~/.reicast/mappings")
@@ -81,9 +81,9 @@ class reicast(Runner):
                 shutil.copy(os.path.join(mapping_source, mapping_file), mapping_path)
 
             system.create_folder("~/.reicast/data")
-            NoticeDialog(_("You have to copy valid BIOS files to ~/.reicast/data before playing"))
+            NoticeDialog(_("You have to copy valid BIOS files to ~/.reicast/data before playing"), parent=parent)
 
-        super().install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed, parent=parent)
 
     def get_joypads(self):
         """Return list of joypad in a format usable in the options"""

@@ -214,7 +214,7 @@ class FileDialog:
 
     """Ask the user to select a file."""
 
-    def __init__(self, message=None, default_path=None, mode="open"):
+    def __init__(self, message=None, default_path=None, mode="open", parent=None):
         self.filename = None
         if not message:
             message = _("Please choose a file")
@@ -224,7 +224,7 @@ class FileDialog:
             action = Gtk.FileChooserAction.OPEN
         dialog = Gtk.FileChooserNative.new(
             message,
-            None,
+            parent,
             action,
             _("_OK"),
             _("_Cancel"),

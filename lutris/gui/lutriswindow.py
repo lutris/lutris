@@ -878,10 +878,15 @@ class LutrisWindow(Gtk.ApplicationWindow, Game.UIDelegate):  # pylint: disable=t
         dialogs.ErrorDialog(str(error), parent=self)
 
     def check_game_launchable(self, game):
+        if not game.runner.is_installed():
+            installed = game.runner.install_dialog(parent=self)
+            if not installed:
+                return False
+
         if game.runner.use_runtime():
             runtime_updater = runtime.RuntimeUpdater()
             if runtime_updater.is_updating():
-                logger.warning("Game launching wil the runtime is updating")
+                logger.warning("Game launching with the runtime is updating")
                 dlg = dialogs.WarningDialog(_("Runtime currently updating"), _(
                     "Game might not work as expected"), parent=self)
                 if dlg.result != Gtk.ResponseType.OK:

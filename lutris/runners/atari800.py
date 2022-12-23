@@ -83,15 +83,15 @@ class atari800(Runner):
         },
     ]
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, version=None, downloader=None, callback=None, parent=None):
 
         def on_runner_installed(*_args):
             config_path = system.create_folder("~/.atari800")
             bios_archive = os.path.join(config_path, "atari800-bioses.zip")
-            dlg = DownloadDialog(self.bios_url, bios_archive)
+            dlg = DownloadDialog(self.bios_url, bios_archive, parent=parent)
             dlg.run()
             if not system.path_exists(bios_archive):
-                ErrorDialog(_("Could not download Atari 800 BIOS archive"))
+                ErrorDialog(_("Could not download Atari 800 BIOS archive"), parent=parent)
                 return
             extract.extract_archive(bios_archive, config_path)
             os.remove(bios_archive)
@@ -101,7 +101,7 @@ class atari800(Runner):
             if callback:
                 callback()
 
-        super().install(version, downloader, on_runner_installed)
+        super().install(version, downloader, on_runner_installed, parent=parent)
 
     def find_good_bioses(self, bios_path):
         """ Check for correct bios files """
