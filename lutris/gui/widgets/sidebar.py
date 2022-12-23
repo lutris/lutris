@@ -201,9 +201,13 @@ class RunnerSidebarRow(SidebarRow):
                 "manage-versions"
             ))
         if self.runner.runnable_alone:
-            entries.append(("media-playback-start-symbolic", _("Run"), self.runner.run, "run"))
+            entries.append(("media-playback-start-symbolic", _("Run"), self.on_run_runner, "run"))
         entries.append(("emblem-system-symbolic", _("Configure"), self.on_configure_runner, "configure"))
         return entries
+
+    def on_run_runner(self, *_args):
+        """Runs the runner without no game."""
+        self.runner.run(self.get_toplevel())
 
     def on_configure_runner(self, *_args):
         """Show runner configuration"""
