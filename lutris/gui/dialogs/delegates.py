@@ -19,6 +19,16 @@ class DialogInstallUIDelegate(Runner.InstallUIDelegate):
     def show_install_notice(self, message, secondary=None):
         dialogs.NoticeDialog(message, secondary, parent=self)
 
+    def show_install_yesno_inquiry(self, question, title):
+        dialog = dialogs.QuestionDialog(
+            {
+                "parent": self,
+                "question": question,
+                "title": title,
+            }
+        )
+        return Gtk.ResponseType.YES == dialog.result
+
     def show_install_file_inquiry(self, question, title, message):
         dlg = dialogs.QuestionDialog(
             {
