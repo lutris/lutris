@@ -3,14 +3,11 @@ import os
 import signal
 from gettext import gettext as _
 
-from gi.repository import Gtk
-
 from lutris import runtime, settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import GameConfigError, UnavailableLibrariesError
-from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import strings, system
 from lutris.util.downloader import Downloader
@@ -49,8 +46,14 @@ class Runner:  # pylint: disable=too-many-public-methods
         def show_install_notice(self, message, secondary=None):
             """Called to show an informational message to the user.
 
-            The default is tog the message."""
+            The default is to log the message."""
             logger.info(message)
+
+        def show_install_yesno_inquiry(self, question, title):
+            """Called to ask the user a yes/no question.
+
+            The default is 'yes'."""
+            return True
 
         def show_install_file_inquiry(self, question, title, message):
             """Called to ask the user for a file.
@@ -428,28 +431,22 @@ class Runner:  # pylint: disable=too-many-public-methods
             return False
         return True
 
-    def install_dialog(self, ui_delegate, parent=None):
+    def install_dialog(self, ui_delegate):
         """Ask the user if they want to install the runner.
 
         Return success of runner installation.
         """
-        dialog = dialogs.QuestionDialog(
-            {
-                "parent": parent,
-                "question": _("The required runner is not installed.\n"
-                              "Do you wish to install it now?"),
-                "title": _("Required runner unavailable"),
-            }
-        )
-        if Gtk.ResponseType.YES == dialog.result:
-            try:
-                if hasattr(self, "get_version"):
-                    version = self.get_version(use_default=False)  # pylint: disable=no-member
-                    self.install(ui_delegate, version=version)
-                else:
-                    self.install(ui_delegate)
-            except RunnerInstallationError as ex:
-                dialogs.ErrorDialog(ex.message)
+
+        if ui_delegate.show_install_yesno_inquiry(
+            question=_("The required runner is not installed.\n"
+                       "Do you wish to install it now?"),
+            title=_("Required runner unavailable"),
+        ):
+            if hasattr(self, "get_version"):
+                version = self.get_version(use_default=False)  # pylint: disable=no-member
+                self.install(ui_delegate, version=version)
+            else:
+                self.install(ui_delegate)
 
             return self.is_installed()
         return False
