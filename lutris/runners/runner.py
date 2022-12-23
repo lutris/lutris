@@ -400,12 +400,12 @@ class Runner:  # pylint: disable=too-many-public-methods
         Reimplement in derived runner if need be."""
         return {"command": [self.get_executable()], "env": self.get_env()}
 
-    def run(self, *args):
+    def run(self, ui_delegate):
         """Run the runner alone."""
         if not self.runnable_alone:
             return
         if not self.is_installed():
-            if not self.install_dialog(Runner.InstallUIDelegate()):
+            if not self.install_dialog(ui_delegate):
                 logger.info("Runner install cancelled")
                 return
 
