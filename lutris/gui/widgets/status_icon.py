@@ -115,7 +115,7 @@ class LutrisStatusIcon:
         return installed_games
 
     def on_game_selected(self, _widget, game_id):
-        ui_delegate = self.application.window or Game.UIDelegate()
+        ui_delegate = self.application.window or Game.LaunchUIDelegate()
         Game(game_id).launch(ui_delegate)
 
 

@@ -8,7 +8,6 @@ from gettext import gettext as _
 
 # Lutris Modules
 from lutris import settings
-from lutris.gui.dialogs import NoticeDialog
 from lutris.runners.runner import Runner
 from lutris.util import joypad, system
 
@@ -72,7 +71,7 @@ class reicast(Runner):
             },
         ]
 
-    def install(self, version=None, downloader=None, callback=None, parent=None):
+    def install(self, ui_delegate, version=None, downloader=None, callback=None):
 
         def on_runner_installed(*args):
             mapping_path = system.create_folder("~/.reicast/mappings")
@@ -81,9 +80,9 @@ class reicast(Runner):
                 shutil.copy(os.path.join(mapping_source, mapping_file), mapping_path)
 
             system.create_folder("~/.reicast/data")
-            NoticeDialog(_("You have to copy valid BIOS files to ~/.reicast/data before playing"), parent=parent)
+            ui_delegate.show_install_notice(_("You have to copy valid BIOS files to ~/.reicast/data before playing"))
 
-        super().install(version, downloader, on_runner_installed, parent=parent)
+        super().install(ui_delegate, version, downloader, on_runner_installed)
 
     def get_joypads(self):
         """Return list of joypad in a format usable in the options"""

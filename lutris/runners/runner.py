@@ -364,7 +364,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if not self.runnable_alone:
             return
         if not self.is_installed():
-            if not self.install_dialog():
+            if not self.install_dialog(Runner.InstallUIDelegate()):
                 logger.info("Runner install cancelled")
                 return
 
@@ -387,7 +387,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             return False
         return True
 
-    def install_dialog(self, parent=None):
+    def install_dialog(self, ui_delegate, parent=None):
         """Ask the user if they want to install the runner.
 
         Return success of runner installation.
@@ -407,9 +407,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             try:
                 if hasattr(self, "get_version"):
                     version = self.get_version(use_default=False)  # pylint: disable=no-member
-                    self.install(downloader=simple_downloader, version=version, parent=parent)
+                    self.install(ui_delegate, downloader=simple_downloader, version=version)
                 else:
-                    self.install(downloader=simple_downloader, parent=parent)
+                    self.install(ui_delegate, downloader=simple_downloader)
             except RunnerInstallationError as ex:
                 ErrorDialog(ex.message)
 
@@ -473,7 +473,30 @@ class Runner:  # pylint: disable=too-many-public-methods
         if len(versions_for_arch) >= 1:
             return versions_for_arch[0]
 
-    def install(self, version=None, downloader=None, callback=None, parent=None):
+    class InstallUIDelegate:
+        def show_install_notice(self, message, secondary=None):
+            logger.info(message)
+
+        def show_install_file_inquiry(self, question, title, message):
+            return None
+
+    class DialogInstallUIDelegate(InstallUIDelegate):
+        def show_install_notice(self, message, secondary=None):
+            dialogs.NoticeDialog(message, secondary, parent=self)
+
+        def show_install_file_inquiry(self, question, title, message):
+            dlg = dialogs.QuestionDialog(
+                {
+                    "parent": self,
+                    "question": question,
+                    "title": title,
+                }
+            )
+            if dlg.result == dlg.YES:
+                dlg = dialogs.FileDialog(message)
+                return dlg.filename
+
+    def install(self, ui_delegate, version=None, downloader=None, callback=None):
         """Install runner using package management systems."""
         logger.debug(
             "Installing %s (version=%s, downloader=%s, callback=%s)",

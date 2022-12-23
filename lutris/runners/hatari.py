@@ -5,7 +5,6 @@ from gettext import gettext as _
 
 # Lutris Modules
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import FileDialog, QuestionDialog
 from lutris.runners.runner import Runner
 from lutris.util import system
 
@@ -128,22 +127,17 @@ class hatari(Runner):
         },
     ]
 
-    def install(self, version=None, downloader=None, callback=None, parent=None):
+    def install(self, ui_delegate, version=None, downloader=None, callback=None):
 
         def on_runner_installed(*args):
             bios_path = system.create_folder("~/.hatari/bios")
-            dlg = QuestionDialog(
-                {
-                    "parent": parent,
-                    "question": _("Do you want to select an Atari ST BIOS file?"),
-                    "title": _("Use BIOS file?"),
-                }
-            )
-            if dlg.result == dlg.YES:
-                bios_dlg = FileDialog(_("Select a BIOS file"), parent=parent)
-                bios_filename = bios_dlg.filename
-                if not bios_filename:
-                    return
+
+            bios_filename = ui_delegate.show_install_file_inquiry(
+                question=_("Do you want to select an Atari ST BIOS file?"),
+                title=_("Use BIOS file?"),
+                message=_("Select a BIOS file"))
+
+            if bios_filename:
                 shutil.copy(bios_filename, bios_path)
                 bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
                 config = LutrisConfig(runner_slug="hatari")
@@ -152,7 +146,7 @@ class hatari(Runner):
             if callback:
                 callback()
 
-        super().install(version=version, downloader=downloader, callback=on_runner_installed)
+        super().install(ui_delegate, version=version, downloader=downloader, callback=on_runner_installed)
 
     def play(self):  # pylint: disable=too-many-branches
         params = [self.get_executable()]

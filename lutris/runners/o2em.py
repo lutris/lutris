@@ -93,7 +93,7 @@ class o2em(Runner):
                     return self.platforms[i]
         return ""
 
-    def install(self, version=None, downloader=None, callback=None, parent=None):
+    def install(self, ui_delegate, version=None, downloader=None, callback=None):
 
         def on_runner_installed(*args):
             if not system.path_exists(self.bios_path):
@@ -101,7 +101,7 @@ class o2em(Runner):
             if callback:
                 callback()
 
-        super().install(version, downloader, on_runner_installed, parent=parent)
+        super().install(ui_delegate, version, downloader, on_runner_installed)
 
     def play(self):
         arguments = ["-biosdir=%s" % self.bios_path]

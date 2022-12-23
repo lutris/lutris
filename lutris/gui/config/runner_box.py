@@ -95,8 +95,9 @@ class RunnerBox(Gtk.Box):
     def on_install_clicked(self, widget):
         """Install a runner."""
         logger.debug("Install of %s requested", self.runner)
+        window = self.get_toplevel()
         try:
-            self.runner.install(downloader=simple_downloader)
+            self.runner.install(window, downloader=simple_downloader)
         except (
             runners.RunnerInstallationError,
             runners.NonInstallableRunnerError,

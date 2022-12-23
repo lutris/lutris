@@ -54,6 +54,7 @@ from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
+from lutris.runners.runner import Runner
 
 from .lutriswindow import LutrisWindow
 
@@ -614,7 +615,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
             game = Game(db_game["id"])
-            ui_delegate = Game.UIDelegate()
+            ui_delegate = Game.LaunchUIDelegate()
             game.launch(ui_delegate)
         else:
             Application.show_update_runtime_dialog()
@@ -625,7 +626,7 @@ class Application(Gtk.Application):
 
     @watch_errors(error_result=True)
     def on_game_launch(self, game):
-        ui_delegate = self.window or Game.UIDelegate()
+        ui_delegate = self.window or Game.LaunchUIDelegate()
         game.launch(ui_delegate)
         return True  # Return True to continue handling the emission hook
 
@@ -674,7 +675,7 @@ class Application(Gtk.Application):
 
             if game_id:
                 game = Game(game_id)
-                ui_delegate = self.window or Game.UIDelegate()
+                ui_delegate = self.window or Game.LaunchUIDelegate()
                 game.launch(ui_delegate)
             return True
         if not game.slug:
@@ -882,7 +883,8 @@ Also, check that the version specified is in the correct format.
             if runner.is_installed():
                 print(f"'{runner_name}' is already installed.")
             else:
-                runner.install(version=None, downloader=simple_downloader, callback=None)
+                ui_delegate = Runner.InstallUIDelegate()
+                runner.install(ui_delegate, version=None, downloader=simple_downloader, callback=None)
                 print(f"'{runner_name}' has been installed")
         except (InvalidRunner, RunnerInstallationError) as ex:
             print(ex.message)

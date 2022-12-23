@@ -25,6 +25,7 @@ from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
 from lutris.runners import wine
+from lutris.runners.runner import Runner
 # pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
@@ -36,7 +37,9 @@ from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, Game.UIDelegate):  # pylint: disable=too-many-public-methods
+class LutrisWindow(Gtk.ApplicationWindow,
+                   Game.LaunchUIDelegate,
+                   Runner.DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -879,7 +882,7 @@ class LutrisWindow(Gtk.ApplicationWindow, Game.UIDelegate):  # pylint: disable=t
 
     def check_game_launchable(self, game):
         if not game.runner.is_installed():
-            installed = game.runner.install_dialog(parent=self)
+            installed = game.runner.install_dialog(self)
             if not installed:
                 return False
 

@@ -223,12 +223,12 @@ class mame(Runner):  # pylint: disable=invalid-name
         self._platforms += [_("Arcade"), _("Nintendo Game & Watch")]
         return self._platforms
 
-    def install(self, version=None, downloader=None, callback=None, parent=None):
+    def install(self, ui_delegate, version=None, downloader=None, callback=None):
 
         def on_runner_installed(*args):
             AsyncCall(write_mame_xml, notify_mame_xml)
 
-        super().install(version=version, downloader=downloader, callback=on_runner_installed, parent=parent)
+        super().install(ui_delegate, version=version, downloader=downloader, callback=on_runner_installed)
 
     @property
     def default_path(self):
