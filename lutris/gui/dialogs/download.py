@@ -23,6 +23,10 @@ class DownloadDialog(ModalDialog):
         self.show_all()
         self.dialog_progress_box.start()
 
+    @property
+    def downloader(self):
+        return self.dialog_progress_box.downloader
+
     def download_complete(self, _widget, _data):
         self.response(Gtk.ResponseType.OK)
         self.destroy()
