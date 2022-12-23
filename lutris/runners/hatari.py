@@ -127,7 +127,7 @@ class hatari(Runner):
         },
     ]
 
-    def install(self, ui_delegate, version=None, downloader=None, callback=None):
+    def install(self, ui_delegate, version=None, callback=None):
 
         def on_runner_installed(*args):
             bios_path = system.create_folder("~/.hatari/bios")
@@ -146,7 +146,7 @@ class hatari(Runner):
             if callback:
                 callback()
 
-        super().install(ui_delegate, version=version, downloader=downloader, callback=on_runner_installed)
+        super().install(ui_delegate, version=version, callback=on_runner_installed)
 
     def play(self):  # pylint: disable=too-many-branches
         params = [self.get_executable()]

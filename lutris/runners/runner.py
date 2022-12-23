@@ -11,6 +11,7 @@ from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import GameConfigError, UnavailableLibrariesError
 from lutris.gui import dialogs
+from lutris.gui.dialogs.download import DownloadDialog
 from lutris.runners import RunnerInstallationError
 from lutris.util import strings, system
 from lutris.util.extract import ExtractFailure, extract_archive
@@ -401,17 +402,14 @@ class Runner:  # pylint: disable=too-many-public-methods
             }
         )
         if Gtk.ResponseType.YES == dialog.result:
-
-            from lutris.gui.dialogs import ErrorDialog
-            from lutris.gui.dialogs.download import simple_downloader
             try:
                 if hasattr(self, "get_version"):
                     version = self.get_version(use_default=False)  # pylint: disable=no-member
-                    self.install(ui_delegate, downloader=simple_downloader, version=version)
+                    self.install(ui_delegate, version=version)
                 else:
-                    self.install(ui_delegate, downloader=simple_downloader)
+                    self.install(ui_delegate)
             except RunnerInstallationError as ex:
-                ErrorDialog(ex.message)
+                dialogs.ErrorDialog(ex.message)
 
             return self.is_installed()
         return False
@@ -480,6 +478,10 @@ class Runner:  # pylint: disable=too-many-public-methods
         def show_install_file_inquiry(self, question, title, message):
             return None
 
+        def download_install_file(self, url, destination):
+            dialog = DownloadDialog(url, destination)
+            dialog.run()
+
     class DialogInstallUIDelegate(InstallUIDelegate):
         def show_install_notice(self, message, secondary=None):
             dialogs.NoticeDialog(message, secondary, parent=self)
@@ -496,24 +498,25 @@ class Runner:  # pylint: disable=too-many-public-methods
                 dlg = dialogs.FileDialog(message)
                 return dlg.filename
 
-    def install(self, ui_delegate, version=None, downloader=None, callback=None):
+        def download_install_file(self, url, destination):
+            dialog = DownloadDialog(url, destination, parent=self)
+            dialog.run()
+
+    def install(self, ui_delegate, version=None, callback=None):
         """Install runner using package management systems."""
         logger.debug(
-            "Installing %s (version=%s, downloader=%s, callback=%s)",
+            "Installing %s (version=%s, callback=%s)",
             self.name,
             version,
-            downloader,
             callback,
         )
-        opts = {"downloader": downloader, "callback": callback}
+        opts = {"ui_delegate": ui_delegate, "callback": callback}
         if self.download_url:
             opts["dest"] = self.directory
             return self.download_and_extract(self.download_url, **opts)
         runner = self.get_runner_version(version)
         if not runner:
             raise RunnerInstallationError(_("Failed to retrieve {} ({}) information").format(self.name, version))
-        if not downloader:
-            raise RuntimeError("Missing mandatory downloader for runner %s" % self)
 
         if "wine" in self.name:
             opts["merge_single"] = True
@@ -527,21 +530,16 @@ class Runner:  # pylint: disable=too-many-public-methods
         self.download_and_extract(runner["url"], **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
-        downloader = opts["downloader"]
+        ui_delegate = opts["ui_delegate"]
         merge_single = opts.get("merge_single", False)
         callback = opts.get("callback")
         tarball_filename = os.path.basename(url)
         runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
         if not dest:
             dest = settings.RUNNER_DIR
-        downloader(
-            url, runner_archive, self.extract, {
-                "archive": runner_archive,
-                "dest": dest,
-                "merge_single": merge_single,
-                "callback": callback,
-            }
-        )
+
+        ui_delegate.download_install_file(url, runner_archive)
+        self.extract(archive=runner_archive, dest=dest, merge_single=merge_single, callback=callback)
 
     def extract(self, archive=None, dest=None, merge_single=None, callback=None):
         if not system.path_exists(archive):

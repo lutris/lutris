@@ -81,16 +81,13 @@ class pico8(Runner):
     def __repr__(self):
         return _("PICO-8 runner (%s)") % self.config
 
-    def install(self, ui_delegate, version=None, downloader=None, callback=None):
+    def install(self, ui_delegate, version=None, callback=None):
         opts = {}
+        opts["ui_delegate"] = ui_delegate
         if callback:
             opts["callback"] = callback
         opts["dest"] = settings.RUNNER_DIR + "/pico8"
         opts["merge_single"] = True
-        if downloader:
-            opts["downloader"] = downloader
-        else:
-            raise RuntimeError("Unsupported download for this runner")
         self.download_and_extract(DOWNLOAD_URL, **opts)
 
     @property

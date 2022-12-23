@@ -95,7 +95,7 @@ class redream(Runner):
         },
     ]
 
-    def install(self, ui_delegate, version=None, downloader=None, callback=None):
+    def install(self, ui_delegate, version=None, callback=None):
         def on_runner_installed(*args):
             license_filename = ui_delegate.show_install_file_inquiry(
                 question=_("Do you want to select a premium license file?"),
@@ -108,7 +108,7 @@ class redream(Runner):
                 )
 
         super().install(
-            ui_delegate, version=version, downloader=downloader, callback=on_runner_installed
+            ui_delegate, version=version, callback=on_runner_installed
         )
 
     def play(self):
