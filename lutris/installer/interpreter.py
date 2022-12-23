@@ -8,13 +8,13 @@ from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.gui.dialogs import WineNotInstalledWarning
-from lutris.gui.dialogs.download import simple_downloader
 from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.installer.legacy import get_game_launcher
 from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
+from lutris.runners.runner import Runner
 from lutris.services.lutris import download_lutris_media
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
@@ -257,9 +257,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         """Install runner required by the install script"""
         logger.debug("Installing %s", runner.name)
         try:
+            ui_delegate = Runner.InstallUIDelegate()
             runner.install(
+                ui_delegate,
                 version=self._get_runner_version(),
-                downloader=simple_downloader,
                 callback=self.install_runners,
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
