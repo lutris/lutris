@@ -14,6 +14,7 @@ from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.runners import RunnerInstallationError
 from lutris.util import strings, system
+from lutris.util.downloader import Downloader
 from lutris.util.extract import ExtractFailure, extract_archive
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
@@ -479,8 +480,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             return None
 
         def download_install_file(self, url, destination):
-            dialog = DownloadDialog(url, destination)
-            dialog.run()
+            downloader = Downloader(url, destination, overwrite=True)
+            downloader.start()
+            return downloader.join()
 
     class DialogInstallUIDelegate(InstallUIDelegate):
         def show_install_notice(self, message, secondary=None):
@@ -501,6 +503,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         def download_install_file(self, url, destination):
             dialog = DownloadDialog(url, destination, parent=self)
             dialog.run()
+            return dialog.downloader.state == Downloader.COMPLETED
 
     def install(self, ui_delegate, version=None, callback=None):
         """Install runner using package management systems."""

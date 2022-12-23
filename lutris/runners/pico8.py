@@ -207,22 +207,9 @@ class pico8(Runner):
             if not os.path.exists(enginePath):
                 downloadUrl = ("https://www.lexaloffle.com/bbs/" + self.runner_config.get("engine") + ".js")
                 system.create_folder(os.path.dirname(enginePath))
-                downloadCompleted = False
-
-                def on_downloaded_engine():
-                    nonlocal downloadCompleted
-                    downloadCompleted = True
-
-                dl = Downloader(downloadUrl, enginePath, True, callback=on_downloaded_engine)
+                dl = Downloader(downloadUrl, enginePath, True)
                 dl.start()
-                dl.thread.join()  # Doesn't actually wait until finished
-
-                # Waits for download to complete
-                while not os.path.exists(enginePath):
-                    if downloadCompleted or dl.state == Downloader.ERROR:
-                        logger.error("Could not download engine from %s", downloadUrl)
-                        return False
-                    sleep(0.1)
+                dl.join()
 
     def play(self):
         launch_info = {}
