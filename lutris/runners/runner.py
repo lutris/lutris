@@ -10,6 +10,7 @@ from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import GameConfigError, UnavailableLibrariesError
+from lutris.gui import dialogs
 from lutris.runners import RunnerInstallationError
 from lutris.util import strings, system
 from lutris.util.downloader import Downloader
@@ -35,6 +36,46 @@ class Runner:  # pylint: disable=too-many-public-methods
     entry_point_option = "main_file"
     download_url = None
     arch = None  # If the runner is only available for an architecture that isn't x86_64
+
+    class InstallUIDelegate:
+        """These objects provide UI for a runner as it is installing itself.
+        One of these must be provided to the install() method.
+
+        The default implementation provides no UI and makes default choices for
+        the user, but DialogInstallUIDelegate implements this to show dialogs and
+        ask the user questions. Windows then inherit from DialogLaunchUIDelegate.
+        """
+
+        def show_install_notice(self, message, secondary=None):
+            """Called to show an informational message to the user.
+
+            The default is tog the message."""
+            logger.info(message)
+
+        def show_install_file_inquiry(self, question, title, message):
+            """Called to ask the user for a file.
+
+            Lutris first asks the user the question given (showing the title);
+            if the user answers 'Yes', it asks for the file using the message.
+
+            Returns None if the user answers 'No' or cancels out. Returns the
+            file path if the user selected one.
+
+            The default is to return None always.
+            """
+            return None
+
+        def download_install_file(self, url, destination):
+            """Downloads a file from a URL to a destination, overwriting any
+            file at that path.
+
+            Returns True if sucessful, and False if the user cancels.
+
+            The default is to download with no UI, and no option to cancel.
+            """
+            downloader = Downloader(url, destination, overwrite=True)
+            downloader.start()
+            return downloader.join()
 
     def __init__(self, config=None):
         """Initialize runner."""
@@ -469,18 +510,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         # If we didn't find a proper version yet, return the first available.
         if len(versions_for_arch) >= 1:
             return versions_for_arch[0]
-
-    class InstallUIDelegate:
-        def show_install_notice(self, message, secondary=None):
-            logger.info(message)
-
-        def show_install_file_inquiry(self, question, title, message):
-            return None
-
-        def download_install_file(self, url, destination):
-            downloader = Downloader(url, destination, overwrite=True)
-            downloader.start()
-            return downloader.join()
 
     def install(self, ui_delegate, version=None, callback=None):
         """Install runner using package management systems."""

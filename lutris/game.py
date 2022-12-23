@@ -68,9 +68,9 @@ class Game(GObject.Object):
         """These objects provide UI for the game while it is being launched;
         one provided to the launch() method.
 
-        The default implementation provide no UI and makes default choices for
-        the user, but LutrisWindow implements this to show dialogs and ask the
-        user questions.
+        The default implementation provides no UI and makes default choices for
+        the user, but DialogLaunchUIDelegate implements this to show dialogs and ask the
+        user questions. Windows then inherit from DialogLaunchUIDelegate.
 
         If these methods throw any errors are reported via tha game-error signal;
         that is not part of this delegate because errors can be report outside of

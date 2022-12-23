@@ -14,6 +14,8 @@ from lutris.util.log import logger
 
 
 class DialogInstallUIDelegate(Runner.InstallUIDelegate):
+    """This provides UI for runner installation via dialogs."""
+
     def show_install_notice(self, message, secondary=None):
         dialogs.NoticeDialog(message, secondary, parent=self)
 
@@ -36,6 +38,8 @@ class DialogInstallUIDelegate(Runner.InstallUIDelegate):
 
 
 class DialogLaunchUIDelegate(Game.LaunchUIDelegate):
+    """This provides UI for game launch via dialogs."""
+
     def check_game_launchable(self, game):
         if not game.runner.is_installed():
             installed = game.runner.install_dialog(self)
