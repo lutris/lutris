@@ -128,18 +128,19 @@ class hatari(Runner):
         },
     ]
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, version=None, downloader=None, callback=None, parent=None):
 
         def on_runner_installed(*args):
             bios_path = system.create_folder("~/.hatari/bios")
             dlg = QuestionDialog(
                 {
+                    "parent": parent,
                     "question": _("Do you want to select an Atari ST BIOS file?"),
                     "title": _("Use BIOS file?"),
                 }
             )
             if dlg.result == dlg.YES:
-                bios_dlg = FileDialog(_("Select a BIOS file"))
+                bios_dlg = FileDialog(_("Select a BIOS file"), parent=parent)
                 bios_filename = bios_dlg.filename
                 if not bios_filename:
                     return

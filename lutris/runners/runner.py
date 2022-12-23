@@ -387,13 +387,14 @@ class Runner:  # pylint: disable=too-many-public-methods
             return False
         return True
 
-    def install_dialog(self):
+    def install_dialog(self, parent=None):
         """Ask the user if they want to install the runner.
 
         Return success of runner installation.
         """
         dialog = dialogs.QuestionDialog(
             {
+                "parent": parent,
                 "question": _("The required runner is not installed.\n"
                               "Do you wish to install it now?"),
                 "title": _("Required runner unavailable"),
@@ -406,9 +407,9 @@ class Runner:  # pylint: disable=too-many-public-methods
             try:
                 if hasattr(self, "get_version"):
                     version = self.get_version(use_default=False)  # pylint: disable=no-member
-                    self.install(downloader=simple_downloader, version=version)
+                    self.install(downloader=simple_downloader, version=version, parent=parent)
                 else:
-                    self.install(downloader=simple_downloader)
+                    self.install(downloader=simple_downloader, parent=parent)
             except RunnerInstallationError as ex:
                 ErrorDialog(ex.message)
 
@@ -472,7 +473,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if len(versions_for_arch) >= 1:
             return versions_for_arch[0]
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, version=None, downloader=None, callback=None, parent=None):
         """Install runner using package management systems."""
         logger.debug(
             "Installing %s (version=%s, downloader=%s, callback=%s)",
