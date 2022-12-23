@@ -5,7 +5,7 @@ from gettext import gettext as _
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
-from lutris import runtime, services, settings
+from lutris import services, settings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
@@ -15,6 +15,7 @@ from lutris.game_actions import GameActions
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
+from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
 from lutris.gui.views import COL_ID, COL_NAME
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
@@ -24,22 +25,19 @@ from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
-from lutris.runners import wine
-from lutris.runners.runner import Runner
 # pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import update_desktop_icons
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
 class LutrisWindow(Gtk.ApplicationWindow,
-                   Game.LaunchUIDelegate,
-                   Runner.DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+                   DialogLaunchUIDelegate,
+                   DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -879,87 +877,3 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_watched_error(self, error):
         dialogs.ErrorDialog(str(error), parent=self)
-
-    def check_game_launchable(self, game):
-        if not game.runner.is_installed():
-            installed = game.runner.install_dialog(self)
-            if not installed:
-                return False
-
-        if game.runner.use_runtime():
-            runtime_updater = runtime.RuntimeUpdater()
-            if runtime_updater.is_updating():
-                logger.warning("Game launching with the runtime is updating")
-                dlg = dialogs.WarningDialog(_("Runtime currently updating"), _(
-                    "Game might not work as expected"), parent=self)
-                if dlg.result != Gtk.ResponseType.OK:
-                    return False
-
-        if "wine" in game.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak:
-            dlg = dialogs.WineNotInstalledWarning(parent=self, cancellable=True)
-            if dlg.result != Gtk.ResponseType.OK:
-                return False
-
-        return True
-
-    def select_game_launch_config(self, game):
-        game_config = game.config.game_level.get("game", {})
-        configs = game_config.get("launch_configs")
-
-        def get_preferred_config_index():
-            # Validate that the settings are still valid; we need the index to
-            # cope when two configs have the same name but we insist on a name
-            # match. Returns None if it can't find a match, and then the user
-            # must decide.
-            preferred_name = game_config.get("preferred_launch_config_name")
-            preferred_index = game_config.get("preferred_launch_config_index")
-
-            if preferred_index == 0 or preferred_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
-                return 0
-
-            if preferred_name:
-                if preferred_index:
-                    try:
-                        if configs[preferred_index - 1].get("name") == preferred_name:
-                            return preferred_index
-                    except IndexError:
-                        pass
-
-                for index, config in enumerate(configs):
-                    if config.get("name") == preferred_name:
-                        return index + 1
-
-            return None
-
-        def save_preferred_config(index):
-            name = configs[index - 1].get("name") if index > 0 else Game.PRIMARY_LAUNCH_CONFIG_NAME
-            game_config["preferred_launch_config_index"] = index
-            game_config["preferred_launch_config_name"] = name
-            game.config.save()
-
-        def reset_preferred_config():
-            game_config.pop("preferred_launch_config_index", None)
-            game_config.pop("preferred_launch_config_name", None)
-            game.config.save()
-
-        if not configs:
-            return {}  # use primary configuration
-
-        keymap = Gdk.Keymap.get_default()
-        if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
-            config_index = None
-        else:
-            config_index = get_preferred_config_index()
-
-        if config_index is None:
-            dlg = dialogs.LaunchConfigSelectDialog(game, configs, parent=self)
-            if not dlg.confirmed:
-                return None  # no error here- the user cancelled out
-
-            config_index = dlg.config_index
-            if dlg.dont_show_again:
-                save_preferred_config(config_index)
-            else:
-                reset_preferred_config()
-
-        return configs[config_index - 1] if config_index > 0 else {}

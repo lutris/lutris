@@ -10,8 +10,6 @@ from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import GameConfigError, UnavailableLibrariesError
-from lutris.gui import dialogs
-from lutris.gui.dialogs.download import DownloadDialog
 from lutris.runners import RunnerInstallationError
 from lutris.util import strings, system
 from lutris.util.downloader import Downloader
@@ -483,27 +481,6 @@ class Runner:  # pylint: disable=too-many-public-methods
             downloader = Downloader(url, destination, overwrite=True)
             downloader.start()
             return downloader.join()
-
-    class DialogInstallUIDelegate(InstallUIDelegate):
-        def show_install_notice(self, message, secondary=None):
-            dialogs.NoticeDialog(message, secondary, parent=self)
-
-        def show_install_file_inquiry(self, question, title, message):
-            dlg = dialogs.QuestionDialog(
-                {
-                    "parent": self,
-                    "question": question,
-                    "title": title,
-                }
-            )
-            if dlg.result == dlg.YES:
-                dlg = dialogs.FileDialog(message)
-                return dlg.filename
-
-        def download_install_file(self, url, destination):
-            dialog = DownloadDialog(url, destination, parent=self)
-            dialog.run()
-            return dialog.downloader.state == Downloader.COMPLETED
 
     def install(self, ui_delegate, version=None, callback=None):
         """Install runner using package management systems."""
