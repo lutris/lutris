@@ -77,6 +77,8 @@ class Application(Gtk.Application):
         GLib.set_application_name(_("Lutris"))
         self.css_provider = Gtk.CssProvider.new()
         self.window = None
+        self.launch_ui_delegate = Game.LaunchUIDelegate()
+        self.install_ui_delegate = Runner.InstallUIDelegate()
 
         self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
@@ -360,8 +362,7 @@ class Application(Gtk.Application):
         """
         game = Game(db_game["id"])
         game.load_config()
-        ui_delegate = self.get_launch_ui_delegate()
-        game.write_script(script_path, ui_delegate)
+        game.write_script(script_path, self.launch_ui_delegate)
 
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
@@ -500,6 +501,9 @@ class Application(Gtk.Application):
         action = installer_info["action"]
         service = installer_info["service"]
         appid = installer_info["appid"]
+        launch_config_name = installer_info["launch_config_name"]
+
+        self.launch_ui_delegate = CommandLineUIDelegate(launch_config_name)
 
         if options.contains("output-script"):
             action = "write-script"
@@ -615,10 +619,13 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
             game = Game(db_game["id"])
-            ui_delegate = self.get_launch_ui_delegate()
-            game.launch(ui_delegate)
+            game.launch(self.launch_ui_delegate)
         else:
             Application.show_update_runtime_dialog()
+            # If we're showing the window, it will handle the delegated UI
+            # from here on out, no matter what command line we got.
+            self.launch_ui_delegate = self.window
+            self.install_ui_delegate = self.window
             self.window.present()
             # If the Lutris GUI is started by itself, don't quit it when a game stops
             self.quit_on_game_exit = False
@@ -626,8 +633,7 @@ class Application(Gtk.Application):
 
     @watch_errors(error_result=True)
     def on_game_launch(self, game):
-        ui_delegate = self.get_launch_ui_delegate()
-        game.launch(ui_delegate)
+        game.launch(self.launch_ui_delegate)
         return True  # Return True to continue handling the emission hook
 
     @watch_errors(error_result=True)
@@ -675,8 +681,7 @@ class Application(Gtk.Application):
 
             if game_id:
                 game = Game(game_id)
-                ui_delegate = self.get_launch_ui_delegate()
-                game.launch(ui_delegate)
+                game.launch(self.launch_ui_delegate)
             return True
         if not game.slug:
             raise ValueError("Invalid game passed: %s" % game)
@@ -730,7 +735,14 @@ class Application(Gtk.Application):
 
     @staticmethod
     def get_lutris_action(url):
-        installer_info = {"game_slug": None, "revision": None, "action": None, "service": None, "appid": None}
+        installer_info = {
+            "game_slug": None,
+            "revision": None,
+            "action": None,
+            "service": None,
+            "appid": None,
+            "launch_config_name": None
+        }
 
         if url:
             url = url.get_strv()
@@ -854,8 +866,7 @@ class Application(Gtk.Application):
         else:
             try:
                 runner = import_runner("wine")
-                ui_delegate = self.get_install_ui_delegate()
-                runner().install(ui_delegate, version=version)
+                runner().install(self.install_ui_delegate, version=version)
                 print(f"Wine version '{version}' has been installed.")
             except (InvalidRunner, RunnerInstallationError) as ex:
                 print(ex.message)
@@ -884,8 +895,7 @@ Also, check that the version specified is in the correct format.
             if runner.is_installed():
                 print(f"'{runner_name}' is already installed.")
             else:
-                ui_delegate = self.get_install_ui_delegate()
-                runner.install(ui_delegate, version=None, callback=None)
+                runner.install(self.install_ui_delegate, version=None, callback=None)
                 print(f"'{runner_name}' has been installed")
         except (InvalidRunner, RunnerInstallationError) as ex:
             print(ex.message)
@@ -910,12 +920,6 @@ Also, check that the version specified is in the correct format.
         else:
             print(f"Runner '{runner_name}' cannot be uninstalled.")
 
-    def get_launch_ui_delegate(self):
-        return self.window or Game.LaunchUIDelegate()
-
-    def get_install_ui_delegate(self):
-        return self.window or Runner.InstallUIDelegate()
-
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
         if self.window:
@@ -933,3 +937,22 @@ Also, check that the version specified is in the correct format.
 
     def has_tray_icon(self):
         return self.tray and self.tray.is_visible()
+
+
+class CommandLineUIDelegate(Game.LaunchUIDelegate):
+    """This delegate can provide user selections that were provided on the command line."""
+    def __init__(self, launch_config_name):
+        self.launch_config_name = launch_config_name
+
+    def select_game_launch_config(self, game):
+        if not self.launch_config_name:
+            return {}
+
+        game_config = game.config.game_level.get("game", {})
+        configs = game_config.get("launch_configs")
+
+        for config in configs:
+            if config.get("name") == self.launch_config_name:
+                return config
+
+        raise RuntimeError("The launch configuration '%s' could not be found." % self.launch_config_name)
