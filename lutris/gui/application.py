@@ -360,7 +360,8 @@ class Application(Gtk.Application):
         """
         game = Game(db_game["id"])
         game.load_config()
-        game.write_script(script_path)
+        ui_delegate = self.get_launch_ui_delegate()
+        game.write_script(script_path, ui_delegate)
 
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
@@ -614,7 +615,7 @@ class Application(Gtk.Application):
                     self.do_shutdown()
                 return 0
             game = Game(db_game["id"])
-            ui_delegate = Game.LaunchUIDelegate()
+            ui_delegate = self.get_launch_ui_delegate()
             game.launch(ui_delegate)
         else:
             Application.show_update_runtime_dialog()
@@ -625,7 +626,7 @@ class Application(Gtk.Application):
 
     @watch_errors(error_result=True)
     def on_game_launch(self, game):
-        ui_delegate = self.window or Game.LaunchUIDelegate()
+        ui_delegate = self.get_launch_ui_delegate()
         game.launch(ui_delegate)
         return True  # Return True to continue handling the emission hook
 
@@ -674,7 +675,7 @@ class Application(Gtk.Application):
 
             if game_id:
                 game = Game(game_id)
-                ui_delegate = self.window or Game.LaunchUIDelegate()
+                ui_delegate = self.get_launch_ui_delegate()
                 game.launch(ui_delegate)
             return True
         if not game.slug:
@@ -853,7 +854,7 @@ class Application(Gtk.Application):
         else:
             try:
                 runner = import_runner("wine")
-                ui_delegate = Runner.InstallUIDelegate()
+                ui_delegate = self.get_install_ui_delegate()
                 runner().install(ui_delegate, version=version)
                 print(f"Wine version '{version}' has been installed.")
             except (InvalidRunner, RunnerInstallationError) as ex:
@@ -883,7 +884,7 @@ Also, check that the version specified is in the correct format.
             if runner.is_installed():
                 print(f"'{runner_name}' is already installed.")
             else:
-                ui_delegate = Runner.InstallUIDelegate()
+                ui_delegate = self.get_install_ui_delegate()
                 runner.install(ui_delegate, version=None, callback=None)
                 print(f"'{runner_name}' has been installed")
         except (InvalidRunner, RunnerInstallationError) as ex:
@@ -908,6 +909,12 @@ Also, check that the version specified is in the correct format.
             print(f"'{runner_name}' has been uninstalled.")
         else:
             print(f"Runner '{runner_name}' cannot be uninstalled.")
+
+    def get_launch_ui_delegate(self):
+        return self.window or Game.LaunchUIDelegate()
+
+    def get_install_ui_delegate(self):
+        return self.window or Runner.InstallUIDelegate()
 
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
