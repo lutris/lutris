@@ -243,6 +243,7 @@ def parse_installer_url(url):
     Parses `lutris:` urls, extracting any info necessary to install or run a game.
     """
     action = None
+    launch_config_name = None
     try:
         parsed_url = urllib.parse.urlparse(url, scheme="lutris")
     except Exception:  # pylint: disable=broad-except
@@ -258,8 +259,12 @@ def parse_installer_url(url):
     if url_path.startswith("lutris:"):
         url_path = url_path[7:]
 
-    url_parts = url_path.split("/")
-    if len(url_parts) == 2:
+    url_parts = [urllib.parse.unquote(part) for part in url_path.split("/")]
+    if len(url_parts) == 3:
+        action = url_parts[0]
+        game_slug = url_parts[1]
+        launch_config_name = url_parts[2]
+    elif len(url_parts) == 2:
         action = url_parts[0]
         game_slug = url_parts[1]
     elif len(url_parts) == 1:
@@ -282,5 +287,6 @@ def parse_installer_url(url):
         "revision": revision,
         "action": action,
         "service": service,
-        "appid": appid
+        "appid": appid,
+        "launch_config_name": launch_config_name
     }
