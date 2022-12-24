@@ -9,6 +9,7 @@ from lutris.exceptions import UnavailableGameError, watch_errors
 from lutris.game import Game
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, QuestionDialog
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
+from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
@@ -23,7 +24,7 @@ from lutris.util.strings import add_url_tags, gtk_safe, human_size
 from lutris.util.system import is_removeable
 
 
-class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
+class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
     """GUI for the install process."""
 
     def __init__(
@@ -238,7 +239,7 @@ class InstallerWindow(BaseApplicationWindow):  # pylint: disable=too-many-public
     def launch_install(self):
         # This is a shim method to allow exceptions from
         # the interpret to be reported via watch_errors().
-        self.interpreter.launch_install()
+        self.interpreter.launch_install(self)
 
     def ask_for_disc(self, message, callback, requires):
         """Ask the user to do insert a CD-ROM."""
