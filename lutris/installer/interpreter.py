@@ -14,7 +14,6 @@ from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.installer.legacy import get_game_launcher
 from lutris.runners import InvalidRunner, NonInstallableRunnerError, RunnerInstallationError, import_runner, steam, wine
-from lutris.runners.runner import Runner
 from lutris.services.lutris import download_lutris_media
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
@@ -168,10 +167,10 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.extras = self.service.get_extras(self.installer.service_appid)
         return self.extras
 
-    def launch_install(self):
+    def launch_install(self, ui_delegate):
         """Launch the install process"""
         self.runners_to_install = self.get_runners_to_install()
-        self.install_runners()
+        self.install_runners(ui_delegate)
         self.create_game_folder()
 
     def create_game_folder(self):
@@ -246,22 +245,24 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             WineNotInstalledWarning(parent=self.parent)
         return runners_to_install
 
-    def install_runners(self):
+    def install_runners(self, ui_delegate):
         """Install required runners for a game"""
         if self.runners_to_install:
-            self.install_runner(self.runners_to_install.pop(0))
+            self.install_runner(self.runners_to_install.pop(0), ui_delegate)
             return
         self.emit("runners-installed")
 
-    def install_runner(self, runner):
+    def install_runner(self, runner, ui_delegate):
         """Install runner required by the install script"""
+        def install_more_runners():
+            self.install_runners(ui_delegate)
+
         logger.debug("Installing %s", runner.name)
         try:
-            ui_delegate = Runner.InstallUIDelegate()
             runner.install(
                 ui_delegate,
                 version=self._get_runner_version(),
-                callback=self.install_runners,
+                callback=install_more_runners,
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
             logger.error(ex.message)
