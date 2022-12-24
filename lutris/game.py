@@ -810,9 +810,8 @@ class Game(GObject.Object):
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
                 raise RuntimeError(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
-    def write_script(self, script_path):
+    def write_script(self, script_path, ui_delegate):
         """Output the launch argument in a bash script"""
-        ui_delegate = Game.LaunchUIDelegate()
         gameplay_info = self.get_gameplay_info(ui_delegate)
         if not gameplay_info:
             # User cancelled; errors are raised as exceptions instead of this
