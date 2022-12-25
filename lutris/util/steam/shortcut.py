@@ -5,6 +5,7 @@ import re
 import shlex
 import shutil
 
+from lutris.api import format_installer_url
 from lutris.game import Game
 from lutris.util import resources, system
 from lutris.util.log import logger
@@ -102,10 +103,11 @@ def remove_shortcut(game):
 def generate_shortcut(game, launch_config_name):
     lutris_binary = shutil.which("lutris")
 
-    if launch_config_name:
-        launch_options = f'lutris:rungameid/{game.id}/{launch_config_name}'
-    else:
-        launch_options = f'lutris:rungameid/{game.id}'
+    launch_options = format_installer_url({
+        "action": "rungameid",
+        "game_slug": game.id,
+        "launch_config_name": launch_config_name
+    })
 
     launch_options = shlex.quote(launch_options)
 
