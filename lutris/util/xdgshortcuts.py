@@ -7,6 +7,7 @@ from textwrap import dedent
 
 from gi.repository import GLib
 
+from lutris.api import format_installer_url
 from lutris.settings import CACHE_DIR
 from lutris.util import system
 from lutris.util.linux import LINUX_SYSTEM
@@ -57,10 +58,11 @@ def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desk
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
     lutris_executable = get_lutris_executable()
 
-    if launch_config_name:
-        url = f"lutris:rungameid/{game_id}/{launch_config_name}"
-    else:
-        url = f"lutris:rungameid/{game_id}"
+    url = format_installer_url({
+        "action": "rungameid",
+        "game_slug": game_id,
+        "launch_config_name": launch_config_name
+    })
 
     launcher_content = dedent(
         """
