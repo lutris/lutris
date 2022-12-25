@@ -2,6 +2,7 @@
 import binascii
 import os
 import re
+import shlex
 import shutil
 
 from lutris.game import Game
@@ -57,7 +58,7 @@ def is_steam_game(game):
     return game.runner_name == "steam"
 
 
-def create_shortcut(game):
+def create_shortcut(game, launch_config_name=None):
     if is_steam_game(game):
         logger.warning("Not updating shortcut for Steam game")
         return
@@ -68,9 +69,12 @@ def create_shortcut(game):
             shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
     else:
         shortcuts = []
+
+    shortcuts = list(shortcuts) + [generate_shortcut(game, launch_config_name)]
+
     updated_shortcuts = {
         'shortcuts': {
-            str(index): elem for index, elem in enumerate(list(shortcuts) + [generate_shortcut(game)])
+            str(index): elem for index, elem in enumerate(shortcuts)
         }
     }
     with open(shortcut_path, "wb") as shortcut_file:
@@ -95,9 +99,16 @@ def remove_shortcut(game):
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
 
 
-def generate_shortcut(game):
+def generate_shortcut(game, launch_config_name):
     lutris_binary = shutil.which("lutris")
-    launch_options = f'lutris:rungameid/{game.id}'
+
+    if launch_config_name:
+        launch_options = f'lutris:rungameid/{game.id}/{launch_config_name}'
+    else:
+        launch_options = f'lutris:rungameid/{game.id}'
+
+    launch_options = shlex.quote(launch_options)
+
     if lutris_binary == "/app/bin/lutris":
         lutris_binary = "flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
