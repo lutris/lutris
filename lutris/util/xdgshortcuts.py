@@ -1,5 +1,6 @@
 """XDG shortcuts handling"""
 import os
+import shlex
 import shutil
 import stat
 from textwrap import dedent
@@ -51,23 +52,29 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
     return "net.lutris.{}-{}.desktop".format(game_slug, game_id)
 
 
-def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
+def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desktop=False, menu=False):
     """Create a .desktop file."""
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
     lutris_executable = get_lutris_executable()
+
+    if launch_config_name:
+        url = f"lutris:rungameid/{game_id}/{launch_config_name}"
+    else:
+        url = f"lutris:rungameid/{game_id}"
+
     launcher_content = dedent(
         """
         [Desktop Entry]
         Type=Application
         Name={}
         Icon={}
-        Exec=env LUTRIS_SKIP_INIT=1 {} lutris:rungameid/{}
+        Exec=env LUTRIS_SKIP_INIT=1 {} {}
         Categories=Game
         """.format(
             game_name,
             "lutris_{}".format(game_slug),
             lutris_executable,
-            game_id
+            shlex.quote(url)
         )
     )
 
