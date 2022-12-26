@@ -127,12 +127,12 @@ class hatari(Runner):
         },
     ]
 
-    def install(self, ui_delegate, version=None, callback=None):
+    def install(self, install_ui_delegate, version=None, callback=None):
 
         def on_runner_installed(*args):
             bios_path = system.create_folder("~/.hatari/bios")
 
-            bios_filename = ui_delegate.show_install_file_inquiry(
+            bios_filename = install_ui_delegate.show_install_file_inquiry(
                 question=_("Do you want to select an Atari ST BIOS file?"),
                 title=_("Use BIOS file?"),
                 message=_("Select a BIOS file"))
@@ -146,7 +146,7 @@ class hatari(Runner):
             if callback:
                 callback()
 
-        super().install(ui_delegate, version=version, callback=on_runner_installed)
+        super().install(install_ui_delegate, version=version, callback=on_runner_installed)
 
     def play(self):  # pylint: disable=too-many-branches
         params = [self.get_executable()]

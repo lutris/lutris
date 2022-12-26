@@ -144,7 +144,7 @@ class libretro(Runner):
         is_core_installed = system.path_exists(self.get_core_path(core))
         return self.is_retroarch_installed() and is_core_installed
 
-    def install(self, ui_delegate, version=None, callback=None):
+    def install(self, install_ui_delegate, version=None, callback=None):
         captured_super = super()  # super() does not work inside install_core()
 
         def install_core():
@@ -152,12 +152,12 @@ class libretro(Runner):
                 if callback:
                     callback()
             else:
-                captured_super.install(ui_delegate, version, callback)
+                captured_super.install(install_ui_delegate, version, callback)
 
         if not self.is_retroarch_installed():
-            captured_super.install(ui_delegate, version=None, callback=install_core)
+            captured_super.install(install_ui_delegate, version=None, callback=install_core)
         else:
-            captured_super.install(ui_delegate, version, callback)
+            captured_super.install(install_ui_delegate, version, callback)
 
     def get_run_data(self):
         return {

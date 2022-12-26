@@ -93,7 +93,7 @@ class flatpak(Runner):
     def get_executable(self):
         return shutil.which("flatpak-spawn") or shutil.which("flatpak")
 
-    def install(self, ui_delegate, version=None, callback=None):
+    def install(self, install_ui_delegate, version=None, callback=None):
         raise NonInstallableRunnerError(
             _("Flatpak installation is not handled by Lutris.\n"
               "Install Flatpak with the package provided by your distribution.")

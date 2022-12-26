@@ -519,7 +519,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if len(versions_for_arch) >= 1:
             return versions_for_arch[0]
 
-    def install(self, ui_delegate, version=None, callback=None):
+    def install(self, install_ui_delegate, version=None, callback=None):
         """Install runner using package management systems."""
         logger.debug(
             "Installing %s (version=%s, callback=%s)",
@@ -527,7 +527,7 @@ class Runner:  # pylint: disable=too-many-public-methods
             version,
             callback,
         )
-        opts = {"ui_delegate": ui_delegate, "callback": callback}
+        opts = {"install_ui_delegate": install_ui_delegate, "callback": callback}
         if self.download_url:
             opts["dest"] = self.directory
             return self.download_and_extract(self.download_url, **opts)
@@ -547,7 +547,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         self.download_and_extract(runner["url"], **opts)
 
     def download_and_extract(self, url, dest=None, **opts):
-        ui_delegate = opts["ui_delegate"]
+        install_ui_delegate = opts["install_ui_delegate"]
         merge_single = opts.get("merge_single", False)
         callback = opts.get("callback")
         tarball_filename = os.path.basename(url)
@@ -555,7 +555,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if not dest:
             dest = settings.RUNNER_DIR
 
-        ui_delegate.download_install_file(url, runner_archive)
+        install_ui_delegate.download_install_file(url, runner_archive)
         self.extract(archive=runner_archive, dest=dest, merge_single=merge_single, callback=callback)
 
     def extract(self, archive=None, dest=None, merge_single=None, callback=None):
