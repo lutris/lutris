@@ -50,7 +50,8 @@ class Game(GObject.Object):
     PRIMARY_LAUNCH_CONFIG_NAME = "(primary)"
 
     __gsignals__ = {
-        "game-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
+        "game-error": (GObject.SIGNAL_RUN_FIRST, bool, (object, )),
+        "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
         "game-launch": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -216,6 +217,18 @@ class Game(GObject.Object):
     def formatted_playtime(self):
         """Return a human readable formatted play time"""
         return strings.get_formatted_playtime(self.playtime)
+
+    def signal_error(self, error):
+        """Reports an error by firing game-error. If its handled returns
+        True to indicate it handled it, that's it. If not, this fires
+        game-unhandled-error, which is actually handled via an emission hook
+        and should not be connected otherwise.
+        
+        This allows special error handling to be set up for a partical Game, but
+        there's always something."""
+        handled = self.emit("game-error", error)
+        if not handled:
+            self.emit("game-unhandled-error", error)
 
     @staticmethod
     def get_config_error(gameplay_info):
@@ -464,6 +477,7 @@ class Game(GObject.Object):
         This returns an empty dictionary if the user cancels this UI,
         in which case the game should not be run.
         """
+
         if not self.runner:
             raise GameConfigError(_("Invalid game configuration: Missing runner"))
         gameplay_info = self.runner.play()
@@ -633,7 +647,7 @@ class Game(GObject.Object):
         def death_watch_cb(all_died, error):
             """Called after the death watch to more firmly kill any survivors."""
             if error:
-                self.emit("game-error", error)
+                self.signal_error(error)
             elif not all_died:
                 self.kill_processes(signal.SIGKILL)
             # If we still can't kill everything, we'll still say we stopped it.
@@ -727,7 +741,7 @@ class Game(GObject.Object):
         if self.game_thread:
             def stop_cb(result, error):
                 if error:
-                    self.emit("game-error", error)
+                    self.signal_error(error)
 
             jobs.AsyncCall(self.game_thread.stop, stop_cb)
         self.stop_game()
