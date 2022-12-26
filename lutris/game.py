@@ -454,7 +454,7 @@ class Game(GObject.Object):
         if killswitch and system.path_exists(self.killswitch):
             return killswitch
 
-    def get_gameplay_info(self, ui_delegate):
+    def get_gameplay_info(self, launch_ui_delegate):
         """Return the information provided by a runner's play method.
         It checks for possible errors and raises exceptions if they occur.
 
@@ -470,7 +470,7 @@ class Game(GObject.Object):
         if "error" in gameplay_info:
             raise self.get_config_error(gameplay_info)
 
-        config = ui_delegate.select_game_launch_config(self)
+        config = launch_ui_delegate.select_game_launch_config(self)
 
         if config is None:
             return {}  # no error here- the user cancelled out
@@ -481,11 +481,11 @@ class Game(GObject.Object):
         return gameplay_info
 
     @watch_game_errors(game_stop_result=False)
-    def configure_game(self, ui_delegate):  # noqa: C901
+    def configure_game(self, launch_ui_delegate):  # noqa: C901
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
-        gameplay_info = self.get_gameplay_info(ui_delegate)
+        gameplay_info = self.get_gameplay_info(launch_ui_delegate)
         if not gameplay_info:  # if user cancelled- not an error
             return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
@@ -545,13 +545,13 @@ class Game(GObject.Object):
         return True
 
     @watch_game_errors(game_stop_result=False)
-    def launch(self, ui_delegate):
+    def launch(self, launch_ui_delegate):
         """Request launching a game. The game may not be installed yet."""
         if not self.check_launchable():
             logger.error("Game is not launchable")
             return False
 
-        if not ui_delegate.check_game_launchable(self):
+        if not launch_ui_delegate.check_game_launchable(self):
             return False
 
         self.load_config()  # Reload the config before launching it.
@@ -572,7 +572,7 @@ class Game(GObject.Object):
         def configure_game(_ignored, error):
             if error:
                 raise error
-            self.configure_game(ui_delegate)
+            self.configure_game(launch_ui_delegate)
 
         jobs.AsyncCall(self.runner.prelaunch, configure_game)
         return True
@@ -810,9 +810,9 @@ class Game(GObject.Object):
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
                 raise RuntimeError(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
-    def write_script(self, script_path, ui_delegate):
+    def write_script(self, script_path, launch_ui_delegate):
         """Output the launch argument in a bash script"""
-        gameplay_info = self.get_gameplay_info(ui_delegate)
+        gameplay_info = self.get_gameplay_info(launch_ui_delegate)
         if not gameplay_info:
             # User cancelled; errors are raised as exceptions instead of this
             return
