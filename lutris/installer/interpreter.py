@@ -7,7 +7,6 @@ from gi.repository import GLib, GObject
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.gui.dialogs import WineNotInstalledWarning
 from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
@@ -20,7 +19,7 @@ from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import unpack_dependencies
-from lutris.util.wine.wine import get_wine_version, get_wine_version_exe
+from lutris.util.wine.wine import get_wine_version_exe
 
 
 class ScriptInterpreter(GObject.Object, CommandsMixin):
@@ -170,6 +169,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def launch_install(self, ui_delegate):
         """Launch the install process"""
         self.runners_to_install = self.get_runners_to_install()
+
+        if self.installer.runner.startswith("wine"):
+            if not ui_delegate.check_wine_availability():
+                return
+
         self.install_runners(ui_delegate)
         self.create_game_folder()
 
@@ -241,8 +245,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 logger.info("Runner %s needs to be installed", runner)
                 runners_to_install.append(runner)
 
-        if self.installer.runner.startswith("wine") and not get_wine_version():
-            WineNotInstalledWarning(parent=self.parent)
         return runners_to_install
 
     def install_runners(self, ui_delegate):

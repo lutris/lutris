@@ -16,6 +16,14 @@ from lutris.util.log import logger
 class DialogInstallUIDelegate(Runner.InstallUIDelegate):
     """This provides UI for runner installation via dialogs."""
 
+    def check_wine_availability(self):
+        if not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak:
+            dlg = dialogs.WineNotInstalledWarning(parent=self, cancellable=True)
+            if dlg.result != Gtk.ResponseType.OK:
+                return False
+
+        return True
+
     def show_install_notice(self, message, secondary=None):
         dialogs.NoticeDialog(message, secondary, parent=self)
 

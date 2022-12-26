@@ -159,6 +159,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 if _script["version"] == installer_version:
                     script = _script
             self.interpreter = interpreter.ScriptInterpreter(script, self)
+            self.interpreter.connect("runners-installed", self.on_runners_ready)
         except MissingGameDependency as ex:
             dlg = QuestionDialog(
                 {
@@ -232,14 +233,15 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def start_install(self):
         self.install_button.hide()
         self.source_button.hide()
-        self.interpreter.connect("runners-installed", self.on_runners_ready)
         GLib.idle_add(self.launch_install)
 
     @watch_errors()
     def launch_install(self):
         # This is a shim method to allow exceptions from
-        # the interpret to be reported via watch_errors().
-        self.interpreter.launch_install(self)
+        # the interpreter to be reported via watch_errors().
+        if not self.interpreter.launch_install(self):
+            self.install_button.show()
+            self.source_button.show()
 
     def ask_for_disc(self, message, callback, requires):
         """Ask the user to do insert a CD-ROM."""
