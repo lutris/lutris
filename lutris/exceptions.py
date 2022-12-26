@@ -91,7 +91,7 @@ def watch_game_errors(game_stop_result, game=None):
                 if game.state != game.STATE_STOPPED:
                     game.state = game.STATE_STOPPED
                     game.emit("game-stop")
-                game.emit("game-error", ex)
+                game.signal_error(ex)
                 return game_stop_result
 
         return wrapper

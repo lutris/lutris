@@ -360,7 +360,12 @@ class Application(Gtk.Application):
         """Output a script to a file.
         The script is capable of launching a game without the client
         """
+        def on_error(game, error):
+            logger.exception("Unable to generate script: %s", error)
+            return True
+
         game = Game(db_game["id"])
+        game.connect("game-error", on_error)
         game.load_config()
         game.write_script(script_path, self.launch_ui_delegate)
 
@@ -618,7 +623,13 @@ class Application(Gtk.Application):
                 if not self.window.is_visible():
                     self.do_shutdown()
                 return 0
+
+            def on_error(game, error):
+                logger.exception("Unable to launch game: %s", error)
+                return True
+
             game = Game(db_game["id"])
+            game.connect("game-error", on_error)
             game.launch(self.launch_ui_delegate)
         else:
             Application.show_update_runtime_dialog()
@@ -680,7 +691,12 @@ class Application(Gtk.Application):
                 game_id = None
 
             if game_id:
+                def on_error(game, error):
+                    logger.exception("Unable to install game: %s", error)
+                    return True
+
                 game = Game(game_id)
+                game.connect("game-error", on_error)
                 game.launch(self.launch_ui_delegate)
             return True
         if not game.slug:
