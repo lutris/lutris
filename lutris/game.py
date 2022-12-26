@@ -223,7 +223,7 @@ class Game(GObject.Object):
         True to indicate it handled it, that's it. If not, this fires
         game-unhandled-error, which is actually handled via an emission hook
         and should not be connected otherwise.
-        
+
         This allows special error handling to be set up for a partical Game, but
         there's always something."""
         handled = self.emit("game-error", error)
