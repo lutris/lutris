@@ -350,11 +350,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """Call this when the user confirms the install files
         This will start the downloads.
         """
-        self.set_status("")
-        self.cache_button.set_sensitive(False)
         try:
             self.installer_files_box.start_all()
-            self.display_continue_button(None, sensitive=False)
+            self.stack.jump_to_page(self.present_downloading_files_page)
         except PermissionError as ex:
             raise ScriptingError(_("Unable to get files: %s") % ex) from ex
 
@@ -382,8 +380,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.install_in_progress = False
 
-        self.set_status(status)
-        self.stack.jump_to_page(lambda *x: self.present_finished_page(game_id))
+        self.stack.jump_to_page(lambda *x: self.present_finished_page(game_id, status))
         self.stack.discard_navigation()
         self.close_button.grab_focus()
 
@@ -533,6 +530,13 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def present_installer_files_page(self):
         """Show installer screen with the file picker / downloader"""
 
+        self.set_status(_(
+            "Please review the files needed for the installation then click 'Continue'"))
+        self.cache_button.set_sensitive(True)
+        self.stack.present_page("installer_files", self.create_installer_files_page)
+        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
+
+    def present_downloading_files_page(self):
         def create_page():
             return Gtk.ScrolledWindow(
                 hexpand=True,
@@ -545,12 +549,20 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         def on_exit_page():
             self.installer_files_box.stop_all()
 
-        self.set_status(_(
-            "Please review the files needed for the installation then click 'Continue'"))
-        self.stack.present_page("installer_files", create_page)
-
-        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
+        self.set_status("")
+        self.cache_button.set_sensitive(False)
+        self.stack.present_page("installer_files", self.create_installer_files_page)
+        self.display_continue_button(None, sensitive=False)
         return on_exit_page
+
+    def create_installer_files_page(self):
+        return Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            child=self.installer_files_box,
+            visible=True,
+            shadow_type=Gtk.ShadowType.ETCHED_IN
+        )
 
     def present_extras_page(self):
         """Show installer screen with the extras picker"""
@@ -682,7 +694,8 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.stack.present_page("nothing", lambda *x: Gtk.Box())
         self.display_cancel_button()
 
-    def present_finished_page(self, game_id):
+    def present_finished_page(self, game_id, status):
+        self.set_status(status)
         self.stack.present_page("nothing", lambda *x: Gtk.Box())
         self.display_close_button(show_play_button=bool(game_id))
 
