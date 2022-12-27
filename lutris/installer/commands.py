@@ -168,7 +168,7 @@ class CommandsMixin:
         )
         command.accepted_return_code = return_code
         command.start()
-        GLib.idle_add(self.parent.present_log_page, command)
+        GLib.idle_add(self.parent.show_log, command)
         self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
         return "STOP"
 
@@ -204,15 +204,13 @@ class CommandsMixin:
         self._check_required_params("options", data, "input_menu")
         identifier = data.get("id")
         alias = "INPUT_%s" % identifier if identifier else None
-        has_entry = data.get("entry")
         options = data["options"]
         preselect = self._substitute(data.get("preselect", ""))
         GLib.idle_add(
-            self.parent.present_input_menu_page,
+            self.parent.show_input_menu,
             alias,
             options,
             preselect,
-            has_entry,
             self._on_input_menu_validated,
         )
         return "STOP"
@@ -240,9 +238,8 @@ class CommandsMixin:
               "containing the following file or folder:\n"
               "<i>%s</i>") % requires
         )
-        if self.installer.runner == "wine":
-            GLib.idle_add(self.parent.eject_button.show)
-        GLib.idle_add(self.parent.present_ask_for_disc_page, message, self._find_matching_disc, requires)
+        GLib.idle_add(self.parent.present_ask_for_disc_page, message,
+                      self.installer, self._find_matching_disc, requires)
         return "STOP"
 
     def _find_matching_disc(self, _widget, requires, extra_path=None):
@@ -444,7 +441,7 @@ class CommandsMixin:
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
         if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
-            GLib.idle_add(self.parent.present_log_page, command)
+            GLib.idle_add(self.parent.show_log, command)
             self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
             return "STOP"
         return None
