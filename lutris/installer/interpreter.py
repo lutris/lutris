@@ -303,7 +303,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         if result == "STOP" or self.cancelled:
             return
 
-        self.parent.set_status(_("Installing game data"))
         self.parent.present_spinner_page()
         self.parent.continue_button.hide()
 
@@ -367,18 +366,15 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 and not os.path.isfile(path)
                 and self.installer.runner not in ("web", "browser")
         ):
-            self.parent.set_status(
-                _(
-                    "The executable at path %s can't be found, please check the destination folder.\n"
-                    "Some parts of the installation process may have not completed successfully."
-                ) % path
-            )
+            status = _(
+                "The executable at path %s can't be found, please check the destination folder.\n"
+                "Some parts of the installation process may have not completed successfully."
+            ) % path
             logger.warning("No executable found at specified location %s", path)
         else:
-            install_complete_text = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
-            self.parent.set_status(install_complete_text)
+            status = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
         download_lutris_media(self.installer.game_slug)
-        self.parent.finish_install(game_id)
+        self.parent.finish_install(game_id, status)
 
     def cleanup(self):
         """Clean up install dir after a successful install"""

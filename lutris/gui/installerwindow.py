@@ -44,8 +44,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.install_in_progress = False
         self.interpreter = None
         self.installation_kind = installation_kind
-        self.log_buffer = None
-        self.log_textview = None
+        self.log_buffer = Gtk.TextBuffer()
 
         self._cancel_files_func = None
 
@@ -268,7 +267,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             buttons_box.pack_start(browse_button, True, True, 40)
             return vbox
 
-        self.present_page("ask_for_disc", "", create_page)
+        self.present_page("ask_for_disc", None, create_page)
 
     @watch_errors()
     def on_browse_clicked(self, widget, callback_data):
@@ -284,14 +283,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def present_input_menu_page(self, alias, options, preselect, has_entry, callback):
         """Display an input request as a dropdown menu with options."""
-        model = Gtk.ListStore(str, str)
-        for option in options:
-            key, label = option.popitem()
-            model.append([key, label])
-        # TODO: Need to _update_ the model too!
 
         def create_page():
-            self.input_menu_combobox = Gtk.ComboBox.new_with_model(model)
+            self.input_menu_combobox = Gtk.ComboBox()
             renderer_text = Gtk.CellRendererText()
             self.input_menu_combobox.pack_start(renderer_text, True)
             self.input_menu_combobox.add_attribute(renderer_text, "text", 1)
@@ -304,7 +298,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         def on_continue(_button):
             callback(alias, self.input_menu_combobox)
 
-        self.present_page("input_menu", "", create_page)
+        model = Gtk.ListStore(str, str)
+        for option in options:
+            key, label = option.popitem()
+            model.append([key, label])
+
+        self.input_menu_combobox.set_model(model)
+
+        self.present_page("input_menu", None, create_page)
         self.present_continue_button(on_continue)
         self.continue_button.grab_focus()
         self.on_input_menu_changed(self.input_menu_combobox)
@@ -489,7 +490,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.present_no_buttons()
         self.interpreter.launch_installer_commands()
 
-    def finish_install(self, game_id):
+    def finish_install(self, game_id, status):
         if self.config.get("create_desktop_shortcut"):
             self.create_shortcut(desktop=True)
         if self.config.get("create_menu_shortcut"):
@@ -505,7 +506,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.install_in_progress = False
 
-        self.present_nothing()
+        self.present_nothing(status)
         self.present_close_button(show_play_button=game and game.id)
         self.close_button.grab_focus()
 
@@ -606,7 +607,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """Display a short status text."""
         self.status_label.set_text(text)
 
-    def present_nothing(self, status=""):
+    def present_nothing(self, status=None):
         def create_page():
             return Gtk.Box()
 
@@ -617,27 +618,23 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         def create_page():
             spinner = Gtk.Spinner()
-            spinner.show()
             spinner.start()
             return spinner
-
-        self.present_page("spinner", "", create_page)
+        
+        self.present_page("spinner", _("Installing game data"), create_page)
 
     def present_log_page(self, command):
         """Creates a TextBuffer and attach it to a command"""
-        self.log_buffer = Gtk.TextBuffer()
+
         command.set_log_buffer(self.log_buffer)
 
         def create_page():
-            # TODO: Update log buffer!
-            self.log_textview = LogTextView(self.log_buffer)
-            scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=self.log_textview)
+            log_textview = LogTextView(self.log_buffer)
+            scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview)
             scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
-            scrolledwindow.show()
-            self.log_textview.show()
             return scrolledwindow
 
-        self.present_page("logger", "", create_page)
+        self.present_page("logger", None, create_page)
 
     def present_page(self, name, status, factory, show_all=True):
         if name not in self.stack_pages:
@@ -648,7 +645,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.stack.add_named(page, name)
             self.stack_pages[name] = page
 
-        self.set_status(status)
+        if status is not None:
+            self.set_status(status)
+
         self.stack.set_visible_child_name(name)
         return self.stack_pages[name]
 
