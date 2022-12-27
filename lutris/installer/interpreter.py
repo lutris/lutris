@@ -304,7 +304,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             return
 
         self.parent.set_status(_("Installing game data"))
-        self.parent.add_spinner()
+        self.parent.present_spinner_page()
         self.parent.continue_button.hide()
 
         commands = self.installer.script.get("installer", [])
