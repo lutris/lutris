@@ -20,7 +20,7 @@ from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
-from lutris.util.strings import add_url_tags, gtk_safe, human_size
+from lutris.util.strings import gtk_safe, human_size
 from lutris.util.system import is_removeable
 
 
@@ -82,7 +82,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.close_button = self.add_button(_("_Close"), self.on_destroy)
 
         self.continue_handler = None
-        self.stack_pages = dict()
+        self.stack_pages = {}
 
         self.show_all()
         self.close_button.hide()
@@ -94,7 +94,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.install_in_progress = True
         self.stack.show()
         self.title_label.show()
-        self.choose_installer()
+        self.present_choose_installer_page()
 
         self.present()
 
@@ -120,7 +120,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                     logger.error("Invalid script: %s", script)
                     raise ScriptingError(_('Missing field "%s" in install script') % item)
 
-    def choose_installer(self):
+    def present_choose_installer_page(self):
         """Stage where we choose an install script."""
         self.validate_scripts()
         base_script = self.installers[0]
@@ -138,7 +138,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
             return scrolledwindow
 
-        self.show_page("choose_installer", create_page)
+        self.present_page("choose_installer", create_page)
 
     @watch_errors()
     def on_cache_clicked(self, _button):
@@ -182,7 +182,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.start_install()
             return
         default_path = self.interpreter.get_default_target()
-        self.set_install_destination(default_path)
+        self.present_destination_page(default_path)
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
         self.continue_button.hide()
@@ -200,7 +200,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """Let the interpreter take charge of the next stages."""
         self.start_install()
 
-    def set_install_destination(self, default_path=None):
+    def present_destination_page(self, default_path=None):
         """Display the destination chooser."""
         self.install_button.set_visible(False)
         self.continue_button.show()
@@ -233,7 +233,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 vbox.pack_start(steam_shortcut_button, False, False, 5)
             return vbox
 
-        self.show_page("destination_page", create_page)
+        self.present_page("destination_page", create_page)
 
     def start_install(self):
         self.install_button.hide()
@@ -248,7 +248,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.install_button.show()
             self.source_button.show()
 
-    def ask_for_disc(self, message, callback, requires):
+    def present_ask_for_disc_page(self, message, callback, requires):
         """Ask the user to do insert a CD-ROM."""
 
         def wrapped_callback(*args, **kwargs):
@@ -282,7 +282,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             buttons_box.pack_start(browse_button, True, True, 40)
             return vbox
 
-        self.show_page("ask_for_disc", create_page)
+        self.present_page("ask_for_disc", create_page)
 
     @watch_errors()
     def on_browse_clicked(self, widget, callback_data):
@@ -296,7 +296,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def on_eject_clicked(self, _widget, data=None):
         self.interpreter.eject_wine_disc()
 
-    def input_menu(self, alias, options, preselect, has_entry, callback):
+    def present_input_menu_page(self, alias, options, preselect, has_entry, callback):
         """Display an input request as a dropdown menu with options."""
         model = Gtk.ListStore(str, str)
         for option in options:
@@ -305,28 +305,24 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         # TODO: Need to _update_ the model too!
 
         def create_page():
-            combobox = Gtk.ComboBox.new_with_model(model)
+            self.input_menu_combobox = Gtk.ComboBox.new_with_model(model)
             renderer_text = Gtk.CellRendererText()
-            combobox.pack_start(renderer_text, True)
-            combobox.add_attribute(renderer_text, "text", 1)
-            combobox.set_id_column(0)
-            combobox.set_active_id(preselect)
-            combobox.set_halign(Gtk.Align.CENTER)
+            self.input_menu_combobox.pack_start(renderer_text, True)
+            self.input_menu_combobox.add_attribute(renderer_text, "text", 1)
+            self.input_menu_combobox.set_id_column(0)
+            self.input_menu_combobox.set_active_id(preselect)
+            self.input_menu_combobox.set_halign(Gtk.Align.CENTER)
+            self.input_menu_combobox.connect("changed", self.on_input_menu_changed)
+            return self.input_menu_combobox
 
-            # TODO: self.widget_box.pack_start(combobox, True, False, 100)
-
-            combobox.connect("changed", self.on_input_menu_changed)
-            combobox.show()
-            return combobox
-
-        self.show_page("input_menu", create_page)
+        self.present_page("input_menu", create_page)
 
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
-        self.continue_handler = self.continue_button.connect("clicked", callback, alias, combobox)
+        self.continue_handler = self.continue_button.connect("clicked", callback, alias, self.input_menu_combobox)
         self.continue_button.grab_focus()
         self.continue_button.show()
-        self.on_input_menu_changed(combobox)
+        self.on_input_menu_changed(self.input_menu_combobox)
 
     def on_input_menu_changed(self, widget):
         """Enable continue button if a non-empty choice is selected"""
@@ -335,14 +331,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     @watch_errors()
     def on_runners_ready(self, _widget=None):
         """The runners are ready, proceed with file selection"""
-        self.show_installer_files_screen()
+        self.present_installer_files_page()
 
-    def show_installer_files_screen(self):
+    def present_installer_files_page(self):
         """Show installer screen with the file picker / downloader"""
         if self.interpreter.extras is None:
             extras = self.interpreter.get_extras()
             if extras:
-                self.show_extras(extras)
+                self.present_extras_page(extras)
                 return
         try:
             if self.installation_kind == InstallationKind.UPDATE:
@@ -374,7 +370,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
             return scrolledwindow
 
-        self.show_page("installer_files", create_page)
+        self.present_page("installer_files", create_page)
 
         self.continue_button.show()
         self.continue_button.set_sensitive(self.installer_files_box.is_ready)
@@ -396,7 +392,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             label += " (%s)" % ", ".join(_infos)
         return label
 
-    def show_extras(self, all_extras):
+    def present_extras_page(self, all_extras):
         """Show installer screen with the extras picker"""
         self.set_status(_(
             "This game has extra content. \nSelect which one you want and "
@@ -436,10 +432,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 visible=True
             )
             scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
-            scrolledwindow.show_all()
             return scrolledwindow
 
-        self.show_page("extras", create_page)
+        self.present_page("extras", create_page)
 
         self.continue_button.show()
         self.continue_button.set_sensitive(True)
@@ -489,7 +484,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         extra_store.foreach(save_extra)
 
         self.interpreter.extras = selected_extras
-        GLib.idle_add(self.show_installer_files_screen)
+        GLib.idle_add(self.present_installer_files_page)
 
     def on_files_ready(self, _widget, files_ready):
         """Toggle state of continue button based on ready state"""
@@ -517,11 +512,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self._cancel_files_func = None
         self.continue_button.hide()
         self.interpreter.game_files = widget.get_game_files()
-        self.show_nothing()
+        self.present_nothing()
         self.interpreter.launch_installer_commands()
 
     def finish_install(self, game_id):
-        self.show_nothing()
+        self.present_nothing()
 
         if self.config.get("create_desktop_shortcut"):
             self.create_shortcut(desktop=True)
@@ -558,7 +553,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.set_urgency_hint(False)
 
     def show_install_error_message(self, message):
-        self.show_nothing()
+        self.present_nothing()
         self.set_status(message)
         self.cancel_button.grab_focus()
 
@@ -647,23 +642,13 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """Display a short status text."""
         self.status_label.set_text(text)
 
-    def set_message(self, message):
-        """Display a message."""
-        def create_page():
-            # TODO: Update label
-            label = InstallerWindow.MarkupLabel("<b>%s</b>" % add_url_tags(message))
-            label.show()
-            return label
-
-        self.show_page("message", create_page)
-
-    def show_nothing(self):
+    def present_nothing(self):
         def create_page():
             return Gtk.Box()
 
-        self.show_page("nothing", create_page)
+        self.present_page("nothing", create_page)
 
-    def add_spinner(self):
+    def present_spinner_page(self):
         """Show a spinner in the middle of the view"""
 
         def create_page():
@@ -672,9 +657,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             spinner.start()
             return spinner
 
-        self.show_page("spinner", create_page)
+        self.present_page("spinner", create_page)
 
-    def attach_logger(self, command):
+    def present_log_page(self, command):
         """Creates a TextBuffer and attach it to a command"""
         self.log_buffer = Gtk.TextBuffer()
         command.set_log_buffer(self.log_buffer)
@@ -688,9 +673,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.log_textview.show()
             return scrolledwindow
 
-        self.show_page("logger", create_page)
+        self.present_page("logger", create_page)
 
-    def show_page(self, name, factory, show_all=True):
+    def present_page(self, name, factory, show_all=True):
         if name not in self.stack_pages:
             page = factory()
             if show_all:

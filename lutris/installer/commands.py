@@ -168,7 +168,7 @@ class CommandsMixin:
         )
         command.accepted_return_code = return_code
         command.start()
-        GLib.idle_add(self.parent.attach_logger, command)
+        GLib.idle_add(self.parent.present_log_page, command)
         self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
         return "STOP"
 
@@ -208,7 +208,7 @@ class CommandsMixin:
         options = data["options"]
         preselect = self._substitute(data.get("preselect", ""))
         GLib.idle_add(
-            self.parent.input_menu,
+            self.parent.present_input_menu_page,
             alias,
             options,
             preselect,
@@ -242,7 +242,7 @@ class CommandsMixin:
         )
         if self.installer.runner == "wine":
             GLib.idle_add(self.parent.eject_button.show)
-        GLib.idle_add(self.parent.ask_for_disc, message, self._find_matching_disc, requires)
+        GLib.idle_add(self.parent.present_ask_for_disc_page, message, self._find_matching_disc, requires)
         return "STOP"
 
     def _find_matching_disc(self, _widget, requires, extra_path=None):
@@ -444,7 +444,7 @@ class CommandsMixin:
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
         if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
-            GLib.idle_add(self.parent.attach_logger, command)
+            GLib.idle_add(self.parent.present_log_page, command)
             self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
             return "STOP"
         return None
