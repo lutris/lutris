@@ -49,14 +49,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self._cancel_files_func = None
 
-        self.title_label = InstallerWindow.MarkupLabel()
-        self.title_label.set_selectable(False)
+        self.title_label = InstallerWindow.MarkupLabel(selectable=False)
         self.vbox.add(self.title_label)
 
         self.status_label = InstallerWindow.MarkupLabel()
-        self.status_label.set_max_width_chars(80)
-        self.status_label.set_property("wrap", True)
-        self.status_label.set_selectable(True)
         self.vbox.add(self.status_label)
 
         self.widget_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -633,8 +629,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def set_message(self, message):
         """Display a message."""
-        label = InstallerWindow.MarkupLabel()
-        label.set_markup("<b>%s</b>" % add_url_tags(message))
+        label = InstallerWindow.MarkupLabel("<b>%s</b>" % add_url_tags(message))
         label.show()
         self.widget_box.pack_start(label, False, False, 18)
 
@@ -660,10 +655,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     class MarkupLabel(Gtk.Label):
         """Label for installer window"""
 
-        def __init__(self, markup=None):
-            super().__init__(label=markup)
-            self.set_max_width_chars(80)
-            self.set_property("wrap", True)
-            self.set_use_markup(True)
-            self.set_selectable(True)
+        def __init__(self, markup=None, selectable=True):
+            super().__init__(
+                label=markup,
+                use_markup=True,
+                wrap=True,
+                max_width_chars=80,
+                selectable=selectable)
             self.set_alignment(0.5, 0)
