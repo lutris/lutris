@@ -12,7 +12,7 @@ from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
-from lutris.gui.widgets.common import FileChooserEntry, InstallerLabel
+from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import InstallationKind, get_installers, interpreter
@@ -49,11 +49,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self._cancel_files_func = None
 
-        self.title_label = InstallerLabel()
+        self.title_label = InstallerWindow.MarkupLabel()
         self.title_label.set_selectable(False)
         self.vbox.add(self.title_label)
 
-        self.status_label = InstallerLabel()
+        self.status_label = InstallerWindow.MarkupLabel()
         self.status_label.set_max_width_chars(80)
         self.status_label.set_property("wrap", True)
         self.status_label.set_selectable(True)
@@ -253,7 +253,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 ErrorDialog(str(err), parent=self)
 
         self.clean_widgets()
-        label = InstallerLabel(message)
+        label = InstallerWindow.MarkupLabel(message)
         label.show()
         self.widget_box.add(label)
 
@@ -633,7 +633,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def set_message(self, message):
         """Display a message."""
-        label = InstallerLabel()
+        label = InstallerWindow.MarkupLabel()
         label.set_markup("<b>%s</b>" % add_url_tags(message))
         label.show()
         self.widget_box.pack_start(label, False, False, 18)
@@ -656,3 +656,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.widget_box.pack_end(scrolledwindow, True, True, 10)
         scrolledwindow.show()
         self.log_textview.show()
+
+    class MarkupLabel(Gtk.Label):
+        """Label for installer window"""
+
+        def __init__(self, markup=None):
+            super().__init__(label=markup)
+            self.set_max_width_chars(80)
+            self.set_property("wrap", True)
+            self.set_use_markup(True)
+            self.set_selectable(True)
+            self.set_alignment(0.5, 0)

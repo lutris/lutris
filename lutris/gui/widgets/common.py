@@ -204,18 +204,6 @@ class Label(Gtk.Label):
         self.set_justify(Gtk.Justification.LEFT)
 
 
-class InstallerLabel(Gtk.Label):
-    """Label for installer window"""
-
-    def __init__(self, message=None):
-        super().__init__(label=message)
-        self.set_max_width_chars(80)
-        self.set_property("wrap", True)
-        self.set_use_markup(True)
-        self.set_selectable(True)
-        self.set_alignment(0.5, 0)
-
-
 class VBox(Gtk.Box):
     def __init__(self, **kwargs):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, margin_top=18, **kwargs)
