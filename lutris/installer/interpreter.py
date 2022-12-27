@@ -303,9 +303,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         if result == "STOP" or self.cancelled:
             return
 
-        self.parent.present_spinner_page()
-        self.parent.continue_button.hide()
-
         commands = self.installer.script.get("installer", [])
         if exception:
             logger.error("Last install command failed, show error")

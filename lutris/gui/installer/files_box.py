@@ -23,7 +23,13 @@ class InstallerFilesBox(Gtk.ListBox):
         self._file_queue = []
 
     def load_installer(self, installer):
+        self.stop_all()
+
         self.installer = installer
+        self.available_files.clear()
+        self.ready_files.clear()
+        self.installer_files_boxes.clear()
+        self._file_queue.clear()
 
         for child in self.get_children():
             child.destroy()
@@ -45,14 +51,18 @@ class InstallerFilesBox(Gtk.ListBox):
         of simultaneously downloaded files down to a maximum number"""
         started_downloads = 0
         for file_id, file_entry in self.installer_files_boxes.items():
-            if file_entry.provider == "download":
-                started_downloads += 1
-                if started_downloads <= self.max_downloads:
-                    file_entry.start()
+            if file_id not in self.available_files:
+                if file_entry.provider == "download":
+                    started_downloads += 1
+                    if started_downloads <= self.max_downloads:
+                        file_entry.start()
+                    else:
+                        self._file_queue.append(file_id)
                 else:
-                    self._file_queue.append(file_id)
-            else:
-                file_entry.start()
+                    file_entry.start()
+        if len(self.available_files) == len(self.installer.files):
+            logger.info("All files remain available")
+            self.emit("files-available")
 
     def stop_all(self):
         """Stops all ongoing files gathering.
