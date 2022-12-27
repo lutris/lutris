@@ -238,7 +238,7 @@ class CommandsMixin:
               "containing the following file or folder:\n"
               "<i>%s</i>") % requires
         )
-        GLib.idle_add(self.parent.present_ask_for_disc_page, message,
+        GLib.idle_add(self.parent.ask_for_disc, message,
                       self.installer, self._find_matching_disc, requires)
         return "STOP"
 
