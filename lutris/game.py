@@ -501,7 +501,7 @@ class Game(GObject.Object):
         return gameplay_info
 
     @watch_game_errors(game_stop_result=False)
-    def configure_game(self, launch_ui_delegate):  # noqa: C901
+    def configure_game(self, launch_ui_delegate):
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
