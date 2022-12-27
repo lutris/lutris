@@ -46,18 +46,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.installation_kind = installation_kind
         self.log_buffer = Gtk.TextBuffer()
 
-        self.title_label = InstallerWindow.MarkupLabel(selectable=False)
-        self.title_label.set_markup(_("<b>Install %s</b>") % gtk_safe(self.installers[0]["name"]))
-        self.vbox.add(self.title_label)
-
-        self.status_label = InstallerWindow.MarkupLabel()
-        self.vbox.add(self.status_label)
-
-        self.stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_LEFT)
-        self.vbox.pack_start(self.stack, True, True, 0)
-
-        self.vbox.add(Gtk.HSeparator())
-
         button_box = Gtk.Box(spacing=6)
         self.back_button = Gtk.Button(_("Back"))
         self.back_button.connect("clicked", self.on_back_clicked)
@@ -66,6 +54,18 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.cache_button = Gtk.Button(_("Cache"))
         self.cache_button.connect("clicked", self.on_cache_clicked)
         button_box.add(self.cache_button)
+
+        self.title_label = InstallerWindow.MarkupLabel(selectable=False)
+        self.title_label.set_markup(_("<b>Install %s</b>") % gtk_safe(self.installers[0]["name"]))
+        self.vbox.add(self.title_label)
+
+        self.status_label = InstallerWindow.MarkupLabel()
+        self.vbox.add(self.status_label)
+
+        self.stack = InstallerWindow.NavigationStack(self.back_button)
+        self.vbox.pack_start(self.stack, True, True, 0)
+
+        self.vbox.add(Gtk.HSeparator())
 
         self.action_buttons = Gtk.Box(spacing=6)
         action_buttons_alignment = Gtk.Alignment.new(1, 0, 0, 0)
@@ -84,9 +84,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.close_button = self.add_button(_("_Close"), self.on_destroy)
 
         self.continue_handler = None
-        self.stack_pages = {}
-        self.navigation_stack = []
-        self.navigation_exit_hander = None
 
         self.input_menu_list_store = Gtk.ListStore(str, str)
 
@@ -115,9 +112,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.title_label.show()
 
         self.validate_scripts()
-        self.current_page_presenter = self.present_choose_installer_page
-        self.present_choose_installer_page()
-
+        self.stack.navigate_to_page(self.present_choose_installer_page)
         self.present()
 
     def add_button(self, label, handler=None, tooltip=None):
@@ -149,7 +144,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     @watch_errors()
     def on_back_clicked(self, _button):
-        self.navigate_back()
+        self.stack.navigate_back()
 
     @watch_errors()
     def on_installer_selected(self, _widget, installer_version):
@@ -189,7 +184,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             return
         default_path = self.interpreter.get_default_target()
         self.load_default_destination(default_path)
-        self.navigate_to_page(self.present_destination_page)
+        self.stack.navigate_to_page(self.present_destination_page)
         self.install_button.grab_focus()
 
     @watch_errors()
@@ -206,7 +201,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.location_entry.set_text(default_path)
 
     def start_install(self):
-        self.jump_to_page(self.present_spinner_page)
+        self.stack.jump_to_page(self.present_spinner_page)
         GLib.idle_add(self.launch_install)
 
     @watch_errors()
@@ -214,7 +209,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         # This is a shim method to allow exceptions from
         # the interpreter to be reported via watch_errors().
         if not self.interpreter.launch_install(self):
-            self.navigate_back()
+            self.stack.navigate_back()
 
     @watch_errors()
     def on_browse_clicked(self, widget, callback_data):
@@ -231,7 +226,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def show_input_menu(self, alias, options, preselect, callback):
         self.load_input_menu(options)
         # TODO: move more to the load method
-        self.jump_to_page(lambda *x: self.present_input_menu_page(alias, preselect, callback))
+        self.stack.jump_to_page(lambda *x: self.present_input_menu_page(alias, preselect, callback))
+
+    def ask_for_disc(self, message, installer, callback, requires):
+        self.stack.jump_to_page(lambda *x: self.present_ask_for_disc_page(message, installer, callback, requires))
 
     def load_input_menu(self, options):
         self.input_menu_list_store.clear()
@@ -251,7 +249,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             extras = self.interpreter.get_extras()
             if extras:
                 self.load_extras(extras)
-                self.navigate_to_page(self.present_extras_page)
+                self.stack.navigate_to_page(self.present_extras_page)
                 return
 
         self.on_extras_ready()
@@ -259,7 +257,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     @watch_errors()
     def on_extras_ready(self, *args):
         if self.load_installer_files():
-            self.navigate_to_page(self.present_installer_files_page)
+            self.stack.navigate_to_page(self.present_installer_files_page)
         else:
             logger.debug("Installer doesn't require files")
             self.interpreter.launch_installer_commands()
@@ -356,7 +354,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.cache_button.set_sensitive(False)
         try:
             self.installer_files_box.start_all()
-            self.present_continue_button(None, sensitive=False)
+            self.display_continue_button(None, sensitive=False)
         except PermissionError as ex:
             raise ScriptingError(_("Unable to get files: %s") % ex) from ex
 
@@ -365,7 +363,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """All files are available, continue the install"""
         logger.info("All files are available, continuing install")
         self.interpreter.game_files = widget.get_game_files()
-        self.jump_to_page(self.present_spinner_page)
+        self.stack.jump_to_page(self.present_spinner_page)
         self.interpreter.launch_installer_commands()
 
     def finish_install(self, game_id, status):
@@ -384,8 +382,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.install_in_progress = False
 
-        self.present_finished(game_id, status)
-        # TODO: Kill the back stack
+        self.set_status(status)
+        self.stack.jump_to_page(lambda *x: self.present_finished_page(game_id))
+        self.stack.discard_navigation()
         self.close_button.grab_focus()
 
         if not self.is_active():
@@ -397,7 +396,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.set_urgency_hint(False)
 
     def show_install_error_message(self, message):
-        self.navigate_to_page(lambda *x: self.present_error(message))
+        self.stack.navigate_to_page(lambda *x: self.present_error_page(message))
         self.cancel_button.grab_focus()
 
     def launch_game(self, widget, _data=None):
@@ -486,7 +485,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def show_log(self, command):
         command.set_log_buffer(self.log_buffer)
-        self.present_log_page()
+        self.stack.jump_to_page(self.present_log_page)
 
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
@@ -502,8 +501,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
             return scrolledwindow
 
-        self.present_page("choose_installer", "", create_page)
-        self.present_no_buttons()
+        self.set_status("")
+        self.stack.present_page("choose_installer", create_page)
+        self.display_no_buttons()
 
     def present_destination_page(self):
         """Display the destination chooser."""
@@ -526,8 +526,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 vbox.pack_start(steam_shortcut_button, False, False, 5)
             return vbox
 
-        self.present_page("destination_page", _("Select installation directory"), create_page)
-        self.present_install_button()
+        self.set_status(_("Select installation directory"))
+        self.stack.present_page("destination_page", create_page)
+        self.display_install_button()
 
     def present_installer_files_page(self):
         """Show installer screen with the file picker / downloader"""
@@ -544,10 +545,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         def on_exit_page():
             self.installer_files_box.stop_all()
 
-        self.present_page("installer_files", _(
-            "Please review the files needed for the installation then click 'Continue'"), create_page)
+        self.set_status(_(
+            "Please review the files needed for the installation then click 'Continue'"))
+        self.stack.present_page("installer_files", create_page)
 
-        self.present_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
+        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
         return on_exit_page
 
     def present_extras_page(self):
@@ -580,12 +582,12 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         def on_continue(_buffer):
             self.on_extras_confirmed(self.extras_tree_store)
 
-        self.present_page("extras", _(
+        self.set_status(_(
             "This game has extra content. \nSelect which one you want and "
             "they will be available in the 'extras' folder where the game is installed."
-        ), create_page)
-
-        self.present_continue_button(on_continue)
+        ))
+        self.stack.present_page("extras", create_page)
+        self.display_continue_button(on_continue)
 
     def present_spinner_page(self):
         """Show a spinner in the middle of the view"""
@@ -595,8 +597,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             spinner.start()
             return spinner
 
-        self.present_page("spinner", _("Installing game data"), create_page)
-        self.present_no_buttons()
+        self.set_status(_("Installing game data"))
+        self.stack.present_page("spinner", create_page)
+        self.display_no_buttons()
 
     def present_log_page(self):
         """Creates a TextBuffer and attach it to a command"""
@@ -607,8 +610,8 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
             return scrolledwindow
 
-        self.present_page("logger", None, create_page)
-        self.present_no_buttons()
+        self.stack.present_page("logger", create_page)
+        self.display_no_buttons()
 
     def present_input_menu_page(self, alias, preselect, callback):
         """Display an input request as a dropdown menu with options."""
@@ -626,11 +629,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         def on_continue(_button):
             callback(alias, combobox)
 
-        combobox = self.present_page("input_menu", None, create_page)
+        combobox = self.stack.present_page("input_menu", create_page)
         combobox.set_model(self.input_menu_list_store)
         combobox.set_active_id(preselect)
 
-        self.present_continue_button(on_continue)
+        self.display_continue_button(on_continue)
         self.continue_button.grab_focus()
         self.on_input_menu_changed(combobox)
 
@@ -668,70 +671,28 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             buttons_box.pack_start(browse_button, True, True, 40)
             return vbox
 
-        self.present_page("ask_for_disc", None, create_page)
+        self.stack.present_page("ask_for_disc", create_page)
         if installer.runner == "wine":
-            self.present_eject_button()
+            self.display_eject_button()
         else:
-            self.present_no_buttons()
+            self.display_no_buttons()
 
-    def present_error(self, message):
-        self.present_page("nothing", message, lambda *x: Gtk.Box())
-        self.present_cancel_button()
+    def present_error_page(self, message):
+        self.set_status(message)
+        self.stack.present_page("nothing", lambda *x: Gtk.Box())
+        self.display_cancel_button()
 
-    def present_finished(self, game_id, status=None):
-        self.present_page("nothing", status, lambda *x: Gtk.Box())
-        self.present_close_button(show_play_button=bool(game_id))
-        self.navigation_stack.clear()
-        self.current_page_presenter = None
-        self.back_button.set_sensitive(False)
+    def present_finished_page(self, game_id):
+        self.stack.present_page("nothing", lambda *x: Gtk.Box())
+        self.display_close_button(show_play_button=bool(game_id))
 
-    def navigate_to_page(self, page_presenter):
-        if self.current_page_presenter:
-            self.navigation_stack.append(self.current_page_presenter)
-            self.back_button.set_sensitive(True)
-        self.current_page_presenter = page_presenter
-
-        self.jump_to_page(page_presenter)
-
-    def jump_to_page(self, page_presenter):
-        exit_handler = self.navigation_exit_hander
-        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
-        self.navigation_exit_hander = page_presenter()
-        if exit_handler:
-            exit_handler()
-
-    def navigate_back(self):
-        if self.navigation_stack:
-            exit_handler = self.navigation_exit_hander
-            self.current_page_presenter = self.navigation_stack.pop()
-            self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
-            self.navigation_exit_hander = self.current_page_presenter()
-            self.back_button.set_sensitive(len(self.navigation_stack) > 0)
-            if exit_handler:
-                exit_handler()
-
-    def present_page(self, name, status, factory, show_all=True):
-        if name not in self.stack_pages:
-            page = factory()
-            if show_all:
-                page.show_all()
-
-            self.stack.add_named(page, name)
-            self.stack_pages[name] = page
-
-        if status is not None:
-            self.set_status(status)
-
-        self.stack.set_visible_child_name(name)
-        return self.stack_pages[name]
-
-    def present_install_button(self):
+    def display_install_button(self):
         self.present_buttons([self.source_button, self.install_button])
 
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
 
-    def present_continue_button(self, handler, sensitive=True):
+    def display_continue_button(self, handler, sensitive=True):
         self.present_buttons([self.continue_button])
 
         self.continue_button.set_sensitive(sensitive)
@@ -743,10 +704,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         else:
             self.continue_handler = None
 
-    def present_cancel_button(self):
+    def display_cancel_button(self):
         self.present_buttons([self.cancel_button])
 
-    def present_close_button(self, show_play_button):
+    def display_close_button(self, show_play_button):
         to_show = [self.close_button]
         if show_play_button:
             to_show.append(self.play_button)
@@ -755,10 +716,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
 
-    def present_eject_button(self):
+    def display_eject_button(self):
         self.present_buttons([self.eject_button])
 
-    def present_no_buttons(self):
+    def display_no_buttons(self):
         self.present_buttons([])
 
         if self.continue_handler:
@@ -787,3 +748,55 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 max_width_chars=80,
                 selectable=selectable)
             self.set_alignment(0.5, 0)
+
+    class NavigationStack(Gtk.Stack):
+        def __init__(self, back_button, **kwargs):
+            super().__init__(**kwargs)
+
+            self.back_button = back_button
+            self.stack_pages = {}
+            self.navigation_stack = []
+            self.navigation_exit_hander = None
+            self.current_page_presenter = None
+
+        def navigate_to_page(self, page_presenter):
+            if self.current_page_presenter:
+                self.navigation_stack.append(self.current_page_presenter)
+                self.back_button.set_sensitive(True)
+            self.current_page_presenter = page_presenter
+
+            self.jump_to_page(page_presenter)
+
+        def jump_to_page(self, page_presenter):
+            exit_handler = self.navigation_exit_hander
+            self.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
+            self.navigation_exit_hander = page_presenter()
+            if exit_handler:
+                exit_handler()
+
+        def navigate_back(self):
+            if self.navigation_stack:
+                exit_handler = self.navigation_exit_hander
+                self.current_page_presenter = self.navigation_stack.pop()
+                self.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
+                self.navigation_exit_hander = self.current_page_presenter()
+                self.back_button.set_sensitive(len(self.navigation_stack) > 0)
+                if exit_handler:
+                    exit_handler()
+
+        def discard_navigation(self):
+            self.navigation_stack.clear()
+            self.current_page_presenter = None
+            self.back_button.set_sensitive(False)
+
+        def present_page(self, name, factory, show_all=True):
+            if name not in self.stack_pages:
+                page = factory()
+                if show_all:
+                    page.show_all()
+
+                self.add_named(page, name)
+                self.stack_pages[name] = page
+
+            self.set_visible_child_name(name)
+            return self.stack_pages[name]
