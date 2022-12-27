@@ -1,4 +1,4 @@
-# pylint: disable=no-member
+# pylint: disable=no-member,unnecessary-dunder-call
 from collections import Counter
 
 _iter_values = 'values'
