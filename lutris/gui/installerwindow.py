@@ -86,6 +86,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.continue_handler = None
         self.stack_pages = {}
         self.navigation_stack = []
+        self.navigation_exit_hander = None
 
         self.input_menu_list_store = Gtk.ListStore(str, str)
 
@@ -540,10 +541,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 shadow_type=Gtk.ShadowType.ETCHED_IN
             )
 
+        def on_exit_page():
+            self.installer_files_box.stop_all()
+
         self.present_page("installer_files", _(
             "Please review the files needed for the installation then click 'Continue'"), create_page)
 
         self.present_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
+        return on_exit_page
 
     def present_extras_page(self):
         """Show installer screen with the extras picker"""
@@ -683,21 +688,27 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def navigate_to_page(self, page_presenter):
         if self.current_page_presenter:
             self.navigation_stack.append(self.current_page_presenter)
+            self.back_button.set_sensitive(True)
         self.current_page_presenter = page_presenter
-        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
-        page_presenter()
-        self.back_button.set_sensitive(True)
+
+        self.jump_to_page(page_presenter)
 
     def jump_to_page(self, page_presenter):
+        exit_handler = self.navigation_exit_hander
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
-        page_presenter()
+        self.navigation_exit_hander = page_presenter()
+        if exit_handler:
+            exit_handler()
 
     def navigate_back(self):
         if self.navigation_stack:
+            exit_handler = self.navigation_exit_hander
             self.current_page_presenter = self.navigation_stack.pop()
             self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
-            self.current_page_presenter()
+            self.navigation_exit_hander = self.current_page_presenter()
             self.back_button.set_sensitive(len(self.navigation_stack) > 0)
+            if exit_handler:
+                exit_handler()
 
     def present_page(self, name, status, factory, show_all=True):
         if name not in self.stack_pages:
