@@ -58,7 +58,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.vbox.add(Gtk.HSeparator())
 
-        button_box = Gtk.Box()
+        button_box = Gtk.Box(spacing=6)
+        self.back_button = Gtk.Button(_("Back"))
+        self.back_button.connect("clicked", self.on_back_clicked)
+        button_box.add(self.back_button)
+
         self.cache_button = Gtk.Button(_("Cache"))
         self.cache_button.connect("clicked", self.on_cache_clicked)
         button_box.add(self.cache_button)
@@ -81,6 +85,8 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.continue_handler = None
         self.stack_pages = {}
+        self.current_page_presenter = self.present_choose_installer_page
+        self.navigation_stack = []
 
         self.input_menu_list_store = Gtk.ListStore(str, str)
 
@@ -141,6 +147,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         CacheConfigurationDialog(parent=self)
 
     @watch_errors()
+    def on_back_clicked(self, _button):
+        self.navigate_back()
+
+    @watch_errors()
     def on_installer_selected(self, _widget, installer_version):
         """Sets the script interpreter to the correct script then proceed to
         install folder selection.
@@ -178,7 +188,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             return
         default_path = self.interpreter.get_default_target()
         self.load_default_destination(default_path)
-        self.present_destination_page()
+        self.navigate_to_page(self.present_destination_page)
         self.install_button.grab_focus()
 
     @watch_errors()
@@ -239,7 +249,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             extras = self.interpreter.get_extras()
             if extras:
                 self.load_extras(extras)
-                self.present_extras_page()
+                self.navigate_to_page(self.present_extras_page)
                 return
 
         self.on_extras_ready()
@@ -247,7 +257,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     @watch_errors()
     def on_extras_ready(self, *args):
         if self.load_installer_files():
-            self.present_installer_files_page()
+            self.navigate_to_page(self.present_installer_files_page)
         else:
             logger.debug("Installer doesn't require files")
             self.interpreter.launch_installer_commands()
@@ -374,6 +384,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.install_in_progress = False
 
         self.present_nothing(status)
+        # TODO: Kill the back stack
         self.present_close_button(show_play_button=game and game.id)
         self.close_button.grab_focus()
 
@@ -387,6 +398,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def show_install_error_message(self, message):
         self.present_nothing(message)
+        self.present_cancel_button()
         self.cancel_button.grab_focus()
 
     def launch_game(self, widget, _data=None):
@@ -661,6 +673,22 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def present_nothing(self, status=None):
         self.present_page("nothing", status, lambda *x: Gtk.Box())
+        self.navigation_stack.clear()
+        self.current_page_presenter = None
+        self.back_button.set_sensitive(False)
+
+    def navigate_to_page(self, page_presenter):
+        if self.current_page_presenter:
+            self.navigation_stack.append(self.current_page_presenter)
+        self.current_page_presenter = page_presenter
+        page_presenter()
+        self.back_button.set_sensitive(True)
+
+    def navigate_back(self):
+        if self.navigation_stack:
+            self.current_page_presenter = self.navigation_stack.pop()
+            self.current_page_presenter()
+            self.back_button.set_sensitive(len(self.navigation_stack) > 0)
 
     def present_page(self, name, status, factory, show_all=True):
         if name not in self.stack_pages:
@@ -694,6 +722,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.continue_handler = self.continue_button.connect("clicked", handler)
         else:
             self.continue_handler = None
+
+    def present_cancel_button(self):
+        self.present_buttons([self.cancel_button])
 
     def present_close_button(self, show_play_button):
         to_show = [self.close_button]
