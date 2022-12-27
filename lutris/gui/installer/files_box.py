@@ -14,15 +14,20 @@ class InstallerFilesBox(Gtk.ListBox):
         "files-available": (GObject.SIGNAL_RUN_LAST, None, ())
     }
 
-    def __init__(self, installer, parent):
+    def __init__(self):
         super().__init__()
-        self.parent = parent
-        self.installer = installer
-        self.installer_files = installer.files
+        self.installer = None
         self.ready_files = set()
         self.available_files = set()
         self.installer_files_boxes = {}
         self._file_queue = []
+
+    def load_installer(self, installer):
+        self.installer = installer
+
+        for child in self.get_children():
+            child.destroy()
+
         for installer_file in installer.files:
             installer_file_box = InstallerFileBox(installer_file)
             installer_file_box.connect("file-ready", self.on_file_ready)
@@ -95,7 +100,7 @@ class InstallerFilesBox(Gtk.ListBox):
         if self._file_queue:
             next_file_id = self._file_queue.pop()
             self.installer_files_boxes[next_file_id].start()
-        if len(self.available_files) == len(self.installer_files):
+        if len(self.available_files) == len(self.installer.files):
             logger.info("All files available")
             self.emit("files-available")
 
@@ -103,5 +108,5 @@ class InstallerFilesBox(Gtk.ListBox):
         """Return a mapping of the local files usable by the interpreter"""
         return {
             installer_file.id: installer_file.dest_file
-            for installer_file in self.installer_files
+            for installer_file in self.installer.files
         }
