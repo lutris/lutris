@@ -28,7 +28,11 @@ def get_shortcuts_vdf_path():
 
 
 def vdf_file_exists():
-    return bool(get_shortcuts_vdf_path())
+    try:
+        return bool(get_shortcuts_vdf_path())
+    except Exception as ex:
+        logger.error("Failed to locate vdf file: %s", ex)
+        return False
 
 
 def matches_id(shortcut, game):
