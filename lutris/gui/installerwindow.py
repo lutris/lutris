@@ -85,7 +85,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.continue_handler = None
         self.stack_pages = {}
-        self.current_page_presenter = self.present_choose_installer_page
         self.navigation_stack = []
 
         self.input_menu_list_store = Gtk.ListStore(str, str)
@@ -115,6 +114,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.title_label.show()
 
         self.validate_scripts()
+        self.current_page_presenter = self.present_choose_installer_page
         self.present_choose_installer_page()
 
         self.present()
@@ -205,7 +205,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.location_entry.set_text(default_path)
 
     def start_install(self):
-        self.present_no_buttons()
+        self.jump_to_page(self.present_spinner_page)
         GLib.idle_add(self.launch_install)
 
     @watch_errors()
@@ -213,7 +213,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         # This is a shim method to allow exceptions from
         # the interpreter to be reported via watch_errors().
         if not self.interpreter.launch_install(self):
-            self.present_install_button()
+            self.navigate_back()
 
     @watch_errors()
     def on_browse_clicked(self, widget, callback_data):
@@ -229,7 +229,8 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def show_input_menu(self, alias, options, preselect, callback):
         self.load_input_menu(options)
-        self.present_input_menu_page(alias, preselect, callback)
+        # TODO: move more to the load method
+        self.jump_to_page(lambda *x: self.present_input_menu_page(alias, preselect, callback))
 
     def load_input_menu(self, options):
         self.input_menu_list_store.clear()
@@ -363,8 +364,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """All files are available, continue the install"""
         logger.info("All files are available, continuing install")
         self.interpreter.game_files = widget.get_game_files()
-        self.present_nothing()
-        self.present_no_buttons()
+        self.jump_to_page(self.present_spinner_page)
         self.interpreter.launch_installer_commands()
 
     def finish_install(self, game_id, status):
@@ -383,9 +383,8 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.install_in_progress = False
 
-        self.present_nothing(status)
+        self.present_finished(game_id, status)
         # TODO: Kill the back stack
-        self.present_close_button(show_play_button=game and game.id)
         self.close_button.grab_focus()
 
         if not self.is_active():
@@ -397,8 +396,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.set_urgency_hint(False)
 
     def show_install_error_message(self, message):
-        self.present_nothing(message)
-        self.present_cancel_button()
+        self.navigate_to_page(lambda *x: self.present_error(message))
         self.cancel_button.grab_focus()
 
     def launch_game(self, widget, _data=None):
@@ -671,8 +669,13 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         else:
             self.present_no_buttons()
 
-    def present_nothing(self, status=None):
+    def present_error(self, message):
+        self.present_page("nothing", message, lambda *x: Gtk.Box())
+        self.present_cancel_button()
+
+    def present_finished(self, game_id, status=None):
         self.present_page("nothing", status, lambda *x: Gtk.Box())
+        self.present_close_button(show_play_button=bool(game_id))
         self.navigation_stack.clear()
         self.current_page_presenter = None
         self.back_button.set_sensitive(False)
@@ -681,12 +684,18 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         if self.current_page_presenter:
             self.navigation_stack.append(self.current_page_presenter)
         self.current_page_presenter = page_presenter
+        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
         page_presenter()
         self.back_button.set_sensitive(True)
+
+    def jump_to_page(self, page_presenter):
+        self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
+        page_presenter()
 
     def navigate_back(self):
         if self.navigation_stack:
             self.current_page_presenter = self.navigation_stack.pop()
+            self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
             self.current_page_presenter()
             self.back_button.set_sensitive(len(self.navigation_stack) > 0)
 
