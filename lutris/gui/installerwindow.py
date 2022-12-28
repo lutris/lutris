@@ -44,39 +44,41 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.install_in_progress = False
         self.interpreter = None
         self.installation_kind = installation_kind
-        self.log_buffer = Gtk.TextBuffer()
+        self.continue_handler = None
 
-        self.back_button = Gtk.Button(_("Back"), sensitive=False)
-        self.back_button.connect("clicked", self.on_back_clicked)
-        self.action_buttons.add(self.back_button)
-
-        self.cache_button = Gtk.Button(_("Cache"))
-        self.cache_button.connect("clicked", self.on_cache_clicked)
-        self.action_buttons.add(self.cache_button)
+        # Header labels
 
         self.title_label = InstallerWindow.MarkupLabel(selectable=False)
         self.title_label.set_markup(_("<b>Install %s</b>") % gtk_safe(self.installers[0]["name"]))
-        self.vbox.add(self.title_label)
+        self.vbox.pack_start(self.title_label, False, False, 0)
 
         self.status_label = InstallerWindow.MarkupLabel()
-        self.vbox.add(self.status_label)
+        self.vbox.pack_start(self.status_label, False, False, 0)
+
+        # Action buttons
+
+        self.back_button = self.add_start_button(_("Back"), self.on_back_clicked, sensitive=False)
+        self.cache_button = self.add_start_button(_("Cache"), self.on_cache_clicked,
+                                                  tooltip=_("Change where Lutris downloads game installer files."))
+
+        self.close_button = self.add_end_button(_("_Close"), self.on_destroy)
+        self.play_button = self.add_end_button(_("_Launch"), self.launch_game)
+        self.continue_button = self.add_end_button(_("_Continue"))
+        self.source_button = self.add_end_button(_("_View source"), self.on_source_clicked)
+        self.eject_button = self.add_end_button(_("_Eject"), self.on_eject_clicked)
+        self.cancel_button = self.add_end_button(_("C_ancel"), self.on_cancel_clicked,
+                                                 tooltip=_("Abort and revert the installation"))
+
+        # Navigation stack
 
         self.stack = InstallerWindow.NavigationStack(self.back_button)
         self.register_page_creators()
         self.vbox.pack_start(self.stack, True, True, 0)
 
-        self.vbox.add(Gtk.HSeparator())
+        self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
 
-        self.close_button = self.add_button(_("_Close"), self.on_destroy)
-        self.play_button = self.add_button(_("_Launch"), self.launch_game)
-        self.continue_button = self.add_button(_("_Continue"))
-        self.source_button = self.add_button(_("_View source"), self.on_source_clicked)
-        self.eject_button = self.add_button(_("_Eject"), self.on_eject_clicked)
-        self.cancel_button = self.add_button(
-            _("C_ancel"), self.on_cancel_clicked, tooltip=_("Abort and revert the installation")
-        )
-
-        self.continue_handler = None
+        # Pre-create some UI bits we need to refer to in several places.
+        # (We lazy allocate more of it, but these are a pain.)
 
         self.extras_tree_store = Gtk.TreeStore(
             bool,  # is selected?
@@ -97,17 +99,29 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.installer_files_box.connect("files-available", self.on_files_available)
         self.installer_files_box.connect("files-ready", self.on_files_ready)
 
-        self.show_all()
-        self.install_in_progress = True
-        self.stack.show()
-        self.title_label.show()
+        self.log_buffer = Gtk.TextBuffer()
 
+        # And... go!
+        self.show_all()
+
+        self.install_in_progress = True
         self.load_choose_installer_page()
         self.present()
 
-    def add_button(self, label, handler=None, tooltip=None):
+    def add_start_button(self, label, handler=None, tooltip=None, sensitive=True):
+        button = Gtk.Button.new_with_mnemonic(label)
+        button.set_sensitive(sensitive)
+        if tooltip:
+            button.set_tooltip_text(tooltip)
+        if handler:
+            button.connect("clicked", handler)
+        self.action_buttons.pack_start(button, False, False, 0)
+        return button
+
+    def add_end_button(self, label, handler=None, tooltip=None, sensitive=True):
         """Add a button to the action buttons box"""
         button = Gtk.Button.new_with_mnemonic(label)
+        button.set_sensitive(sensitive)
         if tooltip:
             button.set_tooltip_text(tooltip)
         if handler:
