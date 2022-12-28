@@ -306,7 +306,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         commands = self.installer.script.get("installer", [])
         if exception:
             logger.error("Last install command failed, show error")
-            self.parent.show_install_error_message(repr(exception))
+            self.parent.load_error_message_page(repr(exception))
         elif self.current_command < len(commands):
             try:
                 command = commands[self.current_command]
@@ -371,7 +371,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         else:
             status = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
         download_lutris_media(self.installer.game_slug)
-        self.parent.finish_install(game_id, status)
+        self.parent.load_finish_install_page(game_id, status)
 
     def cleanup(self):
         """Clean up install dir after a successful install"""
