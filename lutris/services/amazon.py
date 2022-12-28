@@ -561,7 +561,15 @@ class AmazonService(OnlineService):
             raise UnavailableGameError(_(
                 "Unable to get fuel.json file, please check your Amazon credentials and internet connectivity")) from ex
 
-        res_json = request.json
+        try:
+          res_json = request.json
+        except Exception as ex:
+          try:
+            res_json = json.loads(request.content.decode('utf-8').replace("'", '"'))
+          except:
+            logger.error("Unparseable json response from %s:\n%s", fuel_url, request.content)
+            raise UnavailableGameError(_(
+                "Invalid JSON response from Amazon APIs")) from ex
 
         if res_json["Main"] is None or res_json["Main"]["Command"] is None:
             return None, None
