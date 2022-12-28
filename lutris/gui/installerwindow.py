@@ -648,7 +648,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     # This page asks the user for a disc; it also has a callback used when
     # the user selects a disc. Again, this is summoned by the installer script.
 
-    # TODO: restore previous page?
     def load_ask_for_disc_page(self, message, installer, callback, requires):
         def present_ask_for_disc_page():
             """Ask the user to do insert a CD-ROM."""

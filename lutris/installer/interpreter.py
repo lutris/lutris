@@ -276,7 +276,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         try:
             runner = import_runner(runner_name)
         except InvalidRunner as err:
-            GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
             raise ScriptingError(_("Invalid runner provided %s") % runner_name) from err
         return runner
 

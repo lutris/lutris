@@ -221,7 +221,6 @@ class CommandsMixin:
         choosen_option = menu.get_active_id()
         if choosen_option:
             self.user_inputs.append({"alias": alias, "value": choosen_option})
-            GLib.idle_add(self.parent.continue_button.hide)
             self._iter_commands()
 
     def insert_disc(self, data):
@@ -399,8 +398,6 @@ class CommandsMixin:
         passed to the runner task.
         """
         self._check_required_params("name", data, "task")
-        if self.parent:
-            GLib.idle_add(self.parent.cancel_button.set_sensitive, False)
         runner_name, task_name = self._get_task_runner_and_name(data.pop("name"))
 
         # Accept return codes other than 0
@@ -438,7 +435,6 @@ class CommandsMixin:
         command = task(**data)
         if command:
             command.accepted_return_code = return_code
-        GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
         if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
             GLib.idle_add(self.parent.load_log_page, command)
