@@ -531,7 +531,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         logger.info("All files are available, continuing install")
         self.interpreter.game_files = widget.get_game_files()
         self.stack.jump_to_page(self.present_spinner_page)
-        self.stack.discard_navigation()
+        self.stack.discard_navigation()  # once we really start installing, no going back!
         self.interpreter.launch_installer_commands()
 
     # Spinner Page
@@ -544,9 +544,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def present_spinner_page(self):
         """Show a spinner in the middle of the view"""
 
+        def on_exit_page():
+            self.stack.set_back_allowed(True)
+
         self.set_status(_("Installing game data"))
         self.stack.present_page("spinner")
         self.display_no_buttons()
+        self.stack.set_back_allowed(False)
+        return on_exit_page
 
     # Log Page
 
@@ -788,14 +793,22 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.navigation_stack = []
             self.navigation_exit_hander = None
             self.current_page_presenter = None
+            self.back_allowed = True
 
         def add_named_factory(self, name, factory):
             self.page_factories[name] = factory
 
+        def set_back_allowed(self, is_allowed=True):
+            self.back_allowed = is_allowed
+            self._update_back_button()
+
+        def _update_back_button(self):
+            self.back_button.set_sensitive(self.back_allowed and self.navigation_stack)
+
         def navigate_to_page(self, page_presenter):
             if self.current_page_presenter:
                 self.navigation_stack.append(self.current_page_presenter)
-                self.back_button.set_sensitive(True)
+                self._update_back_button()
             self.current_page_presenter = page_presenter
 
             self.jump_to_page(page_presenter)
@@ -809,17 +822,20 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         def navigate_back(self):
             if self.navigation_stack:
-                exit_handler = self.navigation_exit_hander
-                self.current_page_presenter = self.navigation_stack.pop()
-                self.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
-                self.navigation_exit_hander = self.current_page_presenter()
-                self.back_button.set_sensitive(len(self.navigation_stack) > 0)
-                if exit_handler:
-                    exit_handler()
+                try:
+                    exit_handler = self.navigation_exit_hander
+                    self.current_page_presenter = self.navigation_stack.pop()
+                    self.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
+                    self.navigation_exit_hander = self.current_page_presenter()
+
+                    if exit_handler:
+                        exit_handler()
+                finally:
+                    self._update_back_button()
 
         def discard_navigation(self):
             self.navigation_stack.clear()
-            self.back_button.set_sensitive(False)
+            self._update_back_button()
 
         def present_page(self, name):
             if name not in self.stack_pages:
