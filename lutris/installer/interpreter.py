@@ -2,7 +2,7 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import GLib, GObject
+from gi.repository import GObject
 
 from lutris import settings
 from lutris.config import LutrisConfig

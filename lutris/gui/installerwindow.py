@@ -74,10 +74,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.close_button = self.add_end_button(_("_Close"), self.on_close_clicked)
         self.continue_button = self.add_end_button(_("_Continue"))
-        self.source_button = self.add_end_button(_("_View source"), self.on_source_clicked)
-        self.eject_button = self.add_end_button(_("_Eject"), self.on_eject_clicked)
         self.cancel_button = self.add_end_button(_("C_ancel"), self.on_cancel_clicked,
                                                  tooltip=_("Abort and revert the installation"))
+        self.source_button = self.add_end_button(_("_View source"), self.on_source_clicked)
+        self.eject_button = self.add_end_button(_("_Eject"), self.on_eject_clicked)
 
         # Navigation stack
 
@@ -522,7 +522,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.set_status(_("Downloading game data"))
         self.cache_button.set_sensitive(False)
         self.stack.present_page("installer_files")
-        self.display_install_button(None, sensitive=False)
+        self.display_install_button(None, sensitive=False, extra_buttons=[self.cancel_button])
         return on_exit_page
 
     def on_files_ready(self, _widget, files_ready):
@@ -573,7 +573,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.set_status(status)
         self.stack.present_page("spinner")
-        self.display_no_buttons()
+        self.display_cancel_button()
         self.stack.set_back_allowed(False)
         return on_exit_page
 
@@ -599,7 +599,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """Creates a TextBuffer and attach it to a command"""
 
         self.stack.present_page("log")
-        self.display_no_buttons()
+        self.display_cancel_button()
 
     # Input Menu Page
     #
@@ -630,7 +630,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             combobox.connect("changed", self.on_input_menu_changed)
 
             self.stack.present_replacement_page("input_menu", combobox)
-            self.display_continue_button(on_continue)
+            self.display_continue_button(on_continue, extra_buttons=[self.cancel_button])
             self.continue_button.grab_focus()
             self.on_input_menu_changed(combobox)
 
@@ -685,7 +685,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             if installer.runner == "wine":
                 self.display_eject_button()
             else:
-                self.display_no_buttons()
+                self.display_cancel_button()
 
         self.stack.jump_to_page(present_ask_for_disc_page)
 
@@ -807,16 +807,16 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         else:
             self.continue_handler = None
 
-    def display_install_button(self, handler, sensitive=True):
+    def display_install_button(self, handler, sensitive=True, extra_buttons=None):
         self.display_continue_button(handler, continue_button_label=_(
             "_Install"), sensitive=sensitive,
-            extra_buttons=[self.source_button])
+            extra_buttons=[self.source_button] + (extra_buttons or []))
 
     def display_cancel_button(self):
         self.present_buttons([self.cancel_button])
 
     def display_eject_button(self):
-        self.present_buttons([self.eject_button])
+        self.present_buttons([self.eject_button, self.cancel_button])
 
     def display_no_buttons(self):
         self.present_buttons([])
@@ -876,7 +876,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.navigation_stack = []
             self.navigation_exit_hander = None
             self.current_page_presenter = None
-            self.current_page_presenter_navigated = False
+            self.current_navigated_page_presenter = None
             self.back_allowed = True
 
         def add_named_factory(self, name, factory):
@@ -898,8 +898,8 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             In addition, this updates the navigation state so navigate_back()
             and such work, they may call the presenter again.
             """
-            if self.current_page_presenter_navigated:
-                self.navigation_stack.append(self.current_page_presenter)
+            if self.current_navigated_page_presenter:
+                self.navigation_stack.append(self.current_navigated_page_presenter)
                 self._update_back_button()
 
             self._go_to_page(page_presenter, True, transition_type=Gtk.StackTransitionType.SLIDE_LEFT)
@@ -930,12 +930,13 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         def save_current_page(self):
             """Returns a tuple containing information about the current page,
             to pass to restore_current_page()."""
-            return (self.current_page_presenter, self.current_page_presenter_navigated)
+            return (self.current_page_presenter, self.current_navigated_page_presenter)
 
         def restore_current_page(self, state):
             """Restores the current page to the one in effect when the state was generated.
             This does not disturb the navigation stack."""
-            page_presenter, navigated = state
+            page_presenter, navigated_presenter = state
+            navigated = page_presenter == navigated_presenter
             self._go_to_page(page_presenter, navigated, transition_type=Gtk.StackTransitionType.SLIDE_RIGHT)
 
         def _go_to_page(self, page_presenter, navigated, transition_type):
@@ -946,7 +947,8 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.set_transition_type(transition_type)
             self.navigation_exit_hander = page_presenter()
             self.current_page_presenter = page_presenter
-            self.current_page_presenter_navigated = navigated
+            if navigated:
+                self.current_navigated_page_presenter = page_presenter
             if exit_handler:
                 exit_handler()
 
