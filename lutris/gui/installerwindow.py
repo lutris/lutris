@@ -73,7 +73,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                                                   tooltip=_("Change where Lutris downloads game installer files."))
 
         self.close_button = self.add_end_button(_("_Close"), self.on_destroy)
-        self.play_button = self.add_end_button(_("_Launch"), self.on_launch_clicked)
         self.continue_button = self.add_end_button(_("_Continue"))
         self.source_button = self.add_end_button(_("_View source"), self.on_source_clicked)
         self.eject_button = self.add_end_button(_("_Eject"), self.on_eject_clicked)
@@ -313,7 +312,8 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.set_status(_("Select installation directory"))
         self.stack.present_page("destination")
-        self.display_continue_button(self.on_destination_confirmed, show_source_button=True)
+        self.display_continue_button(self.on_destination_confirmed,
+                                     extra_buttons=[self.source_button])
 
     @watch_errors()
     def on_destination_confirmed(self, _button=None):
@@ -419,7 +419,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             "they will be available in the 'extras' folder where the game is installed."
         ))
         self.stack.present_page("extras")
-        self.display_continue_button(on_continue)
+        self.display_continue_button(on_continue, extra_buttons=[self.source_button])
 
     @watch_errors()
     def on_extra_toggled(self, _widget, path, model):
@@ -719,12 +719,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def present_finished_page(self, game_id, status):
         self.set_status(status)
         self.stack.present_page("nothing")
-        self.display_close_button(show_play_button=bool(game_id))
+        self.display_continue_button(self.on_launch_clicked,
+                                     continue_button_label=_("_Launch"),
+                                     extra_buttons=[self.close_button])
 
-    def on_launch_clicked(self, widget, _data=None):
+    def on_launch_clicked(self, button):
         """Launch a game after it's been installed."""
-        widget.set_sensitive(False)
-        self.on_destroy(widget)
+        button.set_sensitive(False)
+        self.on_destroy(button)
         game = Game(self.interpreter.installer.game_id)
         if game.id:
             game.emit("game-launch")
@@ -750,12 +752,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def display_continue_button(self, handler,
                                 continue_button_label=_("Continue"),
-                                show_source_button=False,
-                                sensitive=True):
-        if show_source_button:
-            self.present_buttons([self.source_button, self.continue_button])
-        else:
-            self.present_buttons([self.continue_button])
+                                sensitive=True,
+                                extra_buttons=None):
+        buttons = [self.continue_button] + (extra_buttons or [])
+        self.present_buttons(buttons)
 
         self.continue_button.set_label(continue_button_label)
         self.continue_button.set_sensitive(sensitive)
@@ -769,19 +769,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def display_install_button(self, handler, sensitive=True):
         self.display_continue_button(handler, continue_button_label=_(
-            "_Install"), sensitive=sensitive, show_source_button=True)
+            "_Install"), sensitive=sensitive,
+            extra_buttons=[self.source_button])
 
     def display_cancel_button(self):
         self.present_buttons([self.cancel_button])
-
-    def display_close_button(self, show_play_button):
-        to_show = [self.close_button]
-        if show_play_button:
-            to_show.append(self.play_button)
-        self.present_buttons(to_show)
-
-        if self.continue_handler:
-            self.continue_button.disconnect(self.continue_handler)
 
     def display_eject_button(self):
         self.present_buttons([self.eject_button])
@@ -797,7 +789,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                        self.eject_button,
                        self.source_button,
                        self.continue_button,
-                       self.play_button,
                        self.close_button]
 
         for b in all_buttons:
