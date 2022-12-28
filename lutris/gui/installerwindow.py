@@ -69,7 +69,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.stack.add_named_factory("extras", self.create_extras_page)
         self.stack.add_named_factory("spinner", self.create_spinner_page)
         self.stack.add_named_factory("log", self.create_log_page)
-        self.stack.add_named_factory("input_menu", self.create_input_menu_page)
         self.stack.add_named_factory("nothing", lambda *x: Gtk.Box())
         self.vbox.pack_start(self.stack, True, True, 0)
 
@@ -91,8 +90,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.close_button = self.add_button(_("_Close"), self.on_destroy)
 
         self.continue_handler = None
-
-        self.input_menu_list_store = Gtk.ListStore(str, str)
 
         self.extras_tree_store = Gtk.TreeStore(
             bool,  # is selected?
@@ -314,12 +311,15 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.load_spinner_page(_("Preparing Lutris for installation"))
         GLib.idle_add(self.launch_install)
 
-    @watch_errors()
     def launch_install(self):
         # This is a shim method to allow exceptions from
         # the interpreter to be reported via watch_errors().
-        if not self.interpreter.launch_install(self):
-            self.stack.navigate_back()
+        try:
+            if not self.interpreter.launch_install(self):
+                self.stack.navigate_reset()
+        except Exception as ex:
+            ErrorDialog(str(ex), parent=self)
+            self.stack.navigate_reset()
 
     @watch_errors()
     def on_location_entry_changed(self, entry, _data=None):
@@ -572,84 +572,81 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     # Input Menu Page
 
     def load_input_menu_page(self, alias, options, preselect, callback):
-        self.input_menu_list_store.clear()
-        for option in options:
-            key, label = option.popitem()
-            self.input_menu_list_store.append([key, label])
+        def present_input_menu_page():
+            """Display an input request as a dropdown menu with options."""
+            def on_continue(_button):
+                callback(alias, combobox)
 
-        # TODO: move more to this method
-        self.stack.jump_to_page(lambda *x: self.present_input_menu_page(alias, preselect, callback))
+            model = Gtk.ListStore(str, str)
 
-    def create_input_menu_page(self):
-        combobox = Gtk.ComboBox()
-        renderer_text = Gtk.CellRendererText()
-        combobox.pack_start(renderer_text, True)
-        combobox.add_attribute(renderer_text, "text", 1)
-        combobox.set_id_column(0)
-        combobox.set_halign(Gtk.Align.CENTER)
-        combobox.connect("changed", self.on_input_menu_changed)
-        return combobox
+            for option in options:
+                key, label = option.popitem()
+                model.append([key, label])
 
-    def present_input_menu_page(self, alias, preselect, callback):
-        """Display an input request as a dropdown menu with options."""
+            combobox = Gtk.ComboBox.new_with_model(model)
+            renderer_text = Gtk.CellRendererText()
+            combobox.pack_start(renderer_text, True)
+            combobox.add_attribute(renderer_text, "text", 1)
+            combobox.set_id_column(0)
+            combobox.set_halign(Gtk.Align.CENTER)
+            combobox.set_active_id(preselect)
+            combobox.connect("changed", self.on_input_menu_changed)
 
-        def on_continue(_button):
-            callback(alias, combobox)
+            self.stack.present_replacement_page("input_menu", combobox)
+            self.display_continue_button(on_continue)
+            self.continue_button.grab_focus()
+            self.on_input_menu_changed(combobox)
 
-        combobox = self.stack.present_page("input_menu")
-        combobox.set_model(self.input_menu_list_store)
-        combobox.set_active_id(preselect)
+        # we must use jump_to_page() here since it would be unsave to return
+        # back to this page and re-execute the callback.
+        self.stack.jump_to_page(present_input_menu_page)
 
-        self.display_continue_button(on_continue)
-        self.continue_button.grab_focus()
-        self.on_input_menu_changed(combobox)
-
-    def on_input_menu_changed(self, widget):
+    def on_input_menu_changed(self, combobox):
         """Enable continue button if a non-empty choice is selected"""
-        self.continue_button.set_sensitive(bool(widget.get_active_id()))
+        self.continue_button.set_sensitive(bool(combobox.get_active_id()))
 
     # Ask for Disc Page
 
     def load_ask_for_disc_page(self, message, installer, callback, requires):
-        self.stack.jump_to_page(lambda *x: self.present_ask_for_disc_page(message, installer, callback, requires))
+        def present_ask_for_disc_page():
+            """Ask the user to do insert a CD-ROM."""
 
-    def present_ask_for_disc_page(self, message, installer, callback, requires):
-        """Ask the user to do insert a CD-ROM."""
+            def wrapped_callback(*args, **kwargs):
+                try:
+                    callback(*args, **kwargs)
+                except Exception as err:
+                    ErrorDialog(str(err), parent=self)
 
-        def wrapped_callback(*args, **kwargs):
-            try:
-                callback(*args, **kwargs)
-            except Exception as err:
-                ErrorDialog(str(err), parent=self)
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            label = InstallerWindow.MarkupLabel(message)
+            label.show()
+            vbox.add(label)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        label = InstallerWindow.MarkupLabel(message)
-        label.show()
-        vbox.add(label)
+            buttons_box = Gtk.Box()
+            buttons_box.show()
+            buttons_box.set_margin_top(40)
+            buttons_box.set_margin_bottom(40)
+            vbox.add(buttons_box)
 
-        buttons_box = Gtk.Box()
-        buttons_box.show()
-        buttons_box.set_margin_top(40)
-        buttons_box.set_margin_bottom(40)
-        vbox.add(buttons_box)
+            autodetect_button = Gtk.Button(label=_("Autodetect"))
+            autodetect_button.connect("clicked", wrapped_callback, requires)
+            autodetect_button.grab_focus()
+            autodetect_button.show()
+            buttons_box.pack_start(autodetect_button, True, True, 40)
 
-        autodetect_button = Gtk.Button(label=_("Autodetect"))
-        autodetect_button.connect("clicked", wrapped_callback, requires)
-        autodetect_button.grab_focus()
-        autodetect_button.show()
-        buttons_box.pack_start(autodetect_button, True, True, 40)
+            browse_button = Gtk.Button(label=_("Browse…"))
+            callback_data = {"callback": wrapped_callback, "requires": requires}
+            browse_button.connect("clicked", self.on_browse_clicked, callback_data)
+            browse_button.show()
+            buttons_box.pack_start(browse_button, True, True, 40)
 
-        browse_button = Gtk.Button(label=_("Browse…"))
-        callback_data = {"callback": wrapped_callback, "requires": requires}
-        browse_button.connect("clicked", self.on_browse_clicked, callback_data)
-        browse_button.show()
-        buttons_box.pack_start(browse_button, True, True, 40)
+            self.stack.present_replacement_page("ask_for_disc", vbox)
+            if installer.runner == "wine":
+                self.display_eject_button()
+            else:
+                self.display_no_buttons()
 
-        self.stack.present_replacement_page("ask_for_disc", vbox)
-        if installer.runner == "wine":
-            self.display_eject_button()
-        else:
-            self.display_no_buttons()
+        self.stack.jump_to_page(present_ask_for_disc_page)
 
     @watch_errors()
     def on_browse_clicked(self, widget, callback_data):
@@ -831,6 +828,18 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 try:
                     exit_handler = self.navigation_exit_hander
                     self.current_page_presenter = self.navigation_stack.pop()
+                    self.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
+                    self.navigation_exit_hander = self.current_page_presenter()
+
+                    if exit_handler:
+                        exit_handler()
+                finally:
+                    self._update_back_button()
+
+        def navigate_reset(self):
+            if self.current_page_presenter:
+                try:
+                    exit_handler = self.navigation_exit_hander
                     self.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
                     self.navigation_exit_hander = self.current_page_presenter()
 
