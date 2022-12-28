@@ -52,7 +52,9 @@ class Game(GObject.Object):
     PRIMARY_LAUNCH_CONFIG_NAME = "(primary)"
 
     __gsignals__ = {
-        "game-error": (GObject.SIGNAL_RUN_FIRST, bool, (object, )),
+        # SIGNAL_RUN_LAST works around bug https://gitlab.gnome.org/GNOME/glib/-/issues/513
+        # fix merged Dec 2020, but we support older GNOME!
+        "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object, )),
         "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
         "game-launch": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
