@@ -201,6 +201,8 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.stack.add_named_factory("nothing", lambda *x: Gtk.Box())
 
     # Choose Installer Page
+    #
+    # This page offers a choice of installer scripts to run.
 
     def load_choose_installer_page(self):
         self.validate_scripts()
@@ -266,6 +268,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                     raise ScriptingError(_('Missing field "%s" in install script') % item)
 
     # Destination Page
+    #
+    # This page selects the directory where the game will be installed,
+    # as well as few other minor options.
 
     def load_destination_page(self):
         """Stage where we select the install directory."""
@@ -346,6 +351,12 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.load_extras_page()
 
     # Extras Page
+    #
+    # This pages offers to download the extras that come with the game; the
+    # user specifies the specific extras desired.
+    #
+    # If there are no extras, the page triggers as if the user had clicked 'Continue',
+    # moving on to pre-installation, then the installer files page.
 
     def load_extras_page(self):
         def get_extra_label(extra):
@@ -462,6 +473,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.launch_installer_commands()
 
     # Installer Files & Downloading Page
+    #
+    # This page shows the files that are needed, and can download them. The user can
+    # also select pre-existing files. The downloading page uses the same page widget,
+    # but different buttons at the bottom.
 
     def load_installer_files_page(self):
         try:
@@ -536,6 +551,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.interpreter.launch_installer_commands()
 
     # Spinner Page
+    #
+    # Provides a generic progress spinner and displays a status. The back button
+    # is disabled for this page.
 
     def load_spinner_page(self, status):
         self.stack.jump_to_page(lambda *x: self.present_spinner_page(status))
@@ -558,6 +576,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         return on_exit_page
 
     # Log Page
+    #
+    # This page shos a LogTextView where an installer command can display
+    # output. This appears when summons by the installer script.
 
     def load_log_page(self, command):
         command.set_log_buffer(self.log_buffer)
@@ -579,7 +600,12 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.display_no_buttons()
 
     # Input Menu Page
+    #
+    # This page shows a list of choices to the user, and calls
+    # back into a callback when the user makes a choice. This is summoned
+    # by the installer script as well.
 
+    # TODO: restore previous page?
     def load_input_menu_page(self, alias, options, preselect, callback):
         def present_input_menu_page():
             """Display an input request as a dropdown menu with options."""
@@ -615,7 +641,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.continue_button.set_sensitive(bool(combobox.get_active_id()))
 
     # Ask for Disc Page
+    #
+    # This page asks the user for a disc; it also has a callback used when
+    # the user selects a disc. Again, this is summoned by the installer script.
 
+    # TODO: restore previous page?
     def load_ask_for_disc_page(self, message, installer, callback, requires):
         def present_ask_for_disc_page():
             """Ask the user to do insert a CD-ROM."""
@@ -670,6 +700,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.interpreter.eject_wine_disc()
 
     # Error Message Page
+    #
+    # This is used to display an error; such a error halts the installation,
+    # and isn't recoverable. Used by the installer script.
 
     def load_error_message_page(self, message):
         self.stack.navigate_to_page(lambda *x: self.present_error_page(message))
@@ -681,6 +714,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.display_cancel_button()
 
     # Finished Page
+    #
+    # This is used to inidcate that the install is complete. The user
+    # can launch the game a this point, or just close out of the window.
+    #
+    # Loading this page does some final installation steps before the UI updates.
 
     def load_finish_install_page(self, game_id, status):
         if self.config.get("create_desktop_shortcut"):
