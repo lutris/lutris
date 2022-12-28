@@ -47,7 +47,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.log_buffer = Gtk.TextBuffer()
 
         button_box = Gtk.Box(spacing=6)
-        self.back_button = Gtk.Button(_("Back"))
+        self.back_button = Gtk.Button(_("Back"), sensitive=False)
         self.back_button.connect("clicked", self.on_back_clicked)
         button_box.add(self.back_button)
 
@@ -153,38 +153,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     @watch_errors()
     def on_back_clicked(self, _button):
         self.stack.navigate_back()
-
-    @watch_errors()
-    def on_install_clicked(self, button):
-        """Let the interpreter take charge of the next stages."""
-        self.start_install()
-
-    def start_install(self):
-        self.stack.jump_to_page(self.present_spinner_page)
-        GLib.idle_add(self.launch_install)
-
-    @watch_errors()
-    def launch_install(self):
-        # This is a shim method to allow exceptions from
-        # the interpreter to be reported via watch_errors().
-        if not self.interpreter.launch_install(self):
-            self.stack.navigate_back()
-
-    def load_installer_files(self):
-        try:
-            if self.installation_kind == InstallationKind.UPDATE:
-                patch_version = self.interpreter.installer.version
-            else:
-                patch_version = None
-            self.interpreter.installer.prepare_game_files(patch_version)
-        except UnavailableGameError as ex:
-            raise ScriptingError(str(ex)) from ex
-
-        if not self.interpreter.installer.files:
-            return False
-
-        self.installer_files_box.load_installer(self.interpreter.installer)
-        return True
 
     def on_window_focus(self, _widget, *_args):
         """Remove urgency hint (flashing indicator) when window receives focus"""
@@ -357,6 +325,22 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.display_install_button()
 
     @watch_errors()
+    def on_install_clicked(self, button):
+        """Let the interpreter take charge of the next stages."""
+        self.start_install()
+
+    def start_install(self):
+        self.stack.jump_to_page(self.present_spinner_page)
+        GLib.idle_add(self.launch_install)
+
+    @watch_errors()
+    def launch_install(self):
+        # This is a shim method to allow exceptions from
+        # the interpreter to be reported via watch_errors().
+        if not self.interpreter.launch_install(self):
+            self.stack.navigate_back()
+
+    @watch_errors()
     def on_location_entry_changed(self, entry, _data=None):
         """Set the installation target for the game."""
         self.interpreter.target_path = os.path.expanduser(entry.get_text())
@@ -369,59 +353,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def on_create_steam_shortcut_clicked(self, checkbutton):
         self.config["create_steam_shortcut"] = checkbutton.get_active()
-
-    # Installer Files & Downloading Page
-
-    def create_installer_files_page(self):
-        return Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=True,
-            child=self.installer_files_box,
-            visible=True,
-            shadow_type=Gtk.ShadowType.ETCHED_IN
-        )
-
-    def present_installer_files_page(self):
-        """Show installer screen with the file picker / downloader"""
-
-        self.set_status(_(
-            "Please review the files needed for the installation then click 'Continue'"))
-        self.cache_button.set_sensitive(True)
-        self.stack.present_page("installer_files")
-        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
-
-    def present_downloading_files_page(self):
-        def on_exit_page():
-            self.installer_files_box.stop_all()
-
-        self.set_status("")
-        self.cache_button.set_sensitive(False)
-        self.stack.present_page("installer_files")
-        self.display_continue_button(None, sensitive=False)
-        return on_exit_page
-
-    def on_files_ready(self, _widget, files_ready):
-        """Toggle state of continue button based on ready state"""
-        self.continue_button.set_sensitive(files_ready)
-
-    @watch_errors()
-    def on_files_confirmed(self, _button):
-        """Call this when the user confirms the install files
-        This will start the downloads.
-        """
-        try:
-            self.installer_files_box.start_all()
-            self.stack.jump_to_page(self.present_downloading_files_page)
-        except PermissionError as ex:
-            raise ScriptingError(_("Unable to get files: %s") % ex) from ex
-
-    @watch_errors()
-    def on_files_available(self, widget):
-        """All files are available, continue the install"""
-        logger.info("All files are available, continuing install")
-        self.interpreter.game_files = widget.get_game_files()
-        self.stack.jump_to_page(self.present_spinner_page)
-        self.interpreter.launch_installer_commands()
 
     # Extras Page
 
@@ -532,6 +463,76 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         else:
             logger.debug("Installer doesn't require files")
             self.interpreter.launch_installer_commands()
+
+    # Installer Files & Downloading Page
+
+    def load_installer_files(self):
+        try:
+            if self.installation_kind == InstallationKind.UPDATE:
+                patch_version = self.interpreter.installer.version
+            else:
+                patch_version = None
+            self.interpreter.installer.prepare_game_files(patch_version)
+        except UnavailableGameError as ex:
+            raise ScriptingError(str(ex)) from ex
+
+        if not self.interpreter.installer.files:
+            return False
+
+        self.installer_files_box.load_installer(self.interpreter.installer)
+        return True
+
+    def create_installer_files_page(self):
+        return Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            child=self.installer_files_box,
+            visible=True,
+            shadow_type=Gtk.ShadowType.ETCHED_IN
+        )
+
+    def present_installer_files_page(self):
+        """Show installer screen with the file picker / downloader"""
+
+        self.set_status(_(
+            "Please review the files needed for the installation then click 'Continue'"))
+        self.cache_button.set_sensitive(True)
+        self.stack.present_page("installer_files")
+        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
+
+    def present_downloading_files_page(self):
+        def on_exit_page():
+            self.installer_files_box.stop_all()
+
+        self.set_status("")
+        self.cache_button.set_sensitive(False)
+        self.stack.present_page("installer_files")
+        self.display_continue_button(None, sensitive=False)
+        return on_exit_page
+
+    def on_files_ready(self, _widget, files_ready):
+        """Toggle state of continue button based on ready state"""
+        self.continue_button.set_sensitive(files_ready)
+
+    @watch_errors()
+    def on_files_confirmed(self, _button):
+        """Call this when the user confirms the install files
+        This will start the downloads.
+        """
+        try:
+            self.installer_files_box.start_all()
+            self.stack.jump_to_page(self.present_downloading_files_page)
+        except PermissionError as ex:
+            raise ScriptingError(_("Unable to get files: %s") % ex) from ex
+
+    @watch_errors()
+    def on_files_available(self, widget):
+        """All files are available, continue the install"""
+        logger.info("All files are available, continuing install")
+        self.interpreter.game_files = widget.get_game_files()
+        self.stack.jump_to_page(self.present_spinner_page)
+        self.stack.discard_navigation()
+        self.interpreter.launch_installer_commands()
 
     # Spinner Page
 
@@ -818,7 +819,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         def discard_navigation(self):
             self.navigation_stack.clear()
-            self.current_page_presenter = None
             self.back_button.set_sensitive(False)
 
         def present_page(self, name):
