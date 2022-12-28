@@ -86,7 +86,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         )
         self.eject_button = self.add_button(_("_Eject"), self.on_eject_clicked)
         self.source_button = self.add_button(_("_View source"), self.on_source_clicked)
-        self.install_button = self.add_button(_("_Install"), self.on_install_clicked)
         self.continue_button = self.add_button(_("_Continue"))
         self.play_button = self.add_button(_("_Launch"), self.launch_game)
         self.close_button = self.add_button(_("_Close"), self.on_destroy)
@@ -289,12 +288,12 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def select_install_folder(self):
         """Stage where we select the install directory."""
         if not self.interpreter.installer.creates_game_folder:
-            self.start_install()
+            self.on_destination_confirmed()
             return
         default_path = self.interpreter.get_default_target()
         self.load_default_destination(default_path)
         self.stack.navigate_to_page(self.present_destination_page)
-        self.install_button.grab_focus()
+        self.continue_button.grab_focus()
 
     def load_default_destination(self, default_path):
         self.location_entry.set_text(default_path)
@@ -322,14 +321,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.set_status(_("Select installation directory"))
         self.stack.present_page("destination")
-        self.display_install_button()
+        self.display_continue_button(self.on_destination_confirmed, show_source_button=True)
 
     @watch_errors()
-    def on_install_clicked(self, button):
+    def on_destination_confirmed(self, _button=None):
         """Let the interpreter take charge of the next stages."""
-        self.start_install()
-
-    def start_install(self):
         self.stack.jump_to_page(self.present_spinner_page)
         GLib.idle_add(self.launch_install)
 
@@ -402,7 +398,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def present_extras_page(self):
         """Show installer screen with the extras picker"""
 
-        def on_continue(_buffer):
+        def on_continue(_button):
             self.on_extras_confirmed(self.extras_tree_store)
 
         self.set_status(_(
@@ -498,7 +494,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             "Please review the files needed for the installation then click 'Continue'"))
         self.cache_button.set_sensitive(True)
         self.stack.present_page("installer_files")
-        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
+        self.display_install_button(self.on_files_confirmed, sensitive=self.installer_files_box.is_ready)
 
     def present_downloading_files_page(self):
         def on_exit_page():
@@ -507,12 +503,12 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.set_status("")
         self.cache_button.set_sensitive(False)
         self.stack.present_page("installer_files")
-        self.display_continue_button(None, sensitive=False)
+        self.display_install_button(None, sensitive=False)
         return on_exit_page
 
     def on_files_ready(self, _widget, files_ready):
         """Toggle state of continue button based on ready state"""
-        self.continue_button.set_sensitive(files_ready)
+        self.display_install_button(self.on_files_confirmed, sensitive=files_ready)
 
     @watch_errors()
     def on_files_confirmed(self, _button):
@@ -720,15 +716,16 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     # Buttons
 
-    def display_install_button(self):
-        self.present_buttons([self.source_button, self.install_button])
+    def display_continue_button(self, handler,
+                                continue_button_label=_("Continue"),
+                                show_source_button=False,
+                                sensitive=True):
+        if show_source_button:
+            self.present_buttons([self.source_button, self.continue_button])
+        else:
+            self.present_buttons([self.continue_button])
 
-        if self.continue_handler:
-            self.continue_button.disconnect(self.continue_handler)
-
-    def display_continue_button(self, handler, sensitive=True):
-        self.present_buttons([self.continue_button])
-
+        self.continue_button.set_label(continue_button_label)
         self.continue_button.set_sensitive(sensitive)
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
@@ -737,6 +734,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.continue_handler = self.continue_button.connect("clicked", handler)
         else:
             self.continue_handler = None
+
+    def display_install_button(self, handler, sensitive=True):
+        self.display_continue_button(handler, continue_button_label=_(
+            "_Install"), sensitive=sensitive, show_source_button=True)
 
     def display_cancel_button(self):
         self.present_buttons([self.cancel_button])
@@ -763,7 +764,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         all_buttons = [self.cancel_button,
                        self.eject_button,
                        self.source_button,
-                       self.install_button,
                        self.continue_button,
                        self.play_button,
                        self.close_button]
