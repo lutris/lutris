@@ -46,14 +46,13 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.installation_kind = installation_kind
         self.log_buffer = Gtk.TextBuffer()
 
-        button_box = Gtk.Box(spacing=6)
         self.back_button = Gtk.Button(_("Back"), sensitive=False)
         self.back_button.connect("clicked", self.on_back_clicked)
-        button_box.add(self.back_button)
+        self.action_buttons.add(self.back_button)
 
         self.cache_button = Gtk.Button(_("Cache"))
         self.cache_button.connect("clicked", self.on_cache_clicked)
-        button_box.add(self.cache_button)
+        self.action_buttons.add(self.cache_button)
 
         self.title_label = InstallerWindow.MarkupLabel(selectable=False)
         self.title_label.set_markup(_("<b>Install %s</b>") % gtk_safe(self.installers[0]["name"]))
@@ -63,31 +62,19 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.vbox.add(self.status_label)
 
         self.stack = InstallerWindow.NavigationStack(self.back_button)
-        self.stack.add_named_factory("choose_installer", self.create_choose_installer_page)
-        self.stack.add_named_factory("destination", self.create_destination_page)
-        self.stack.add_named_factory("installer_files", self.create_installer_files_page)
-        self.stack.add_named_factory("extras", self.create_extras_page)
-        self.stack.add_named_factory("spinner", self.create_spinner_page)
-        self.stack.add_named_factory("log", self.create_log_page)
-        self.stack.add_named_factory("nothing", lambda *x: Gtk.Box())
+        self.register_page_creators()
         self.vbox.pack_start(self.stack, True, True, 0)
 
         self.vbox.add(Gtk.HSeparator())
 
-        self.action_buttons = Gtk.Box(spacing=6)
-        action_buttons_alignment = Gtk.Alignment.new(1, 0, 0, 0)
-        action_buttons_alignment.add(self.action_buttons)
-        button_box.pack_end(action_buttons_alignment, True, True, 0)
-        self.vbox.pack_start(button_box, False, True, 0)
-
+        self.close_button = self.add_button(_("_Close"), self.on_destroy)
+        self.play_button = self.add_button(_("_Launch"), self.launch_game)
+        self.continue_button = self.add_button(_("_Continue"))
+        self.source_button = self.add_button(_("_View source"), self.on_source_clicked)
+        self.eject_button = self.add_button(_("_Eject"), self.on_eject_clicked)
         self.cancel_button = self.add_button(
             _("C_ancel"), self.on_cancel_clicked, tooltip=_("Abort and revert the installation")
         )
-        self.eject_button = self.add_button(_("_Eject"), self.on_eject_clicked)
-        self.source_button = self.add_button(_("_View source"), self.on_source_clicked)
-        self.continue_button = self.add_button(_("_Continue"))
-        self.play_button = self.add_button(_("_Launch"), self.launch_game)
-        self.close_button = self.add_button(_("_Close"), self.on_destroy)
 
         self.continue_handler = None
 
@@ -125,7 +112,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             button.set_tooltip_text(tooltip)
         if handler:
             button.connect("clicked", handler)
-        self.action_buttons.add(button)
+        self.action_buttons.pack_end(button, False, False, 0)
         return button
 
     @watch_errors()
@@ -200,6 +187,15 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def set_status(self, text):
         """Display a short status text."""
         self.status_label.set_text(text)
+
+    def register_page_creators(self):
+        self.stack.add_named_factory("choose_installer", self.create_choose_installer_page)
+        self.stack.add_named_factory("destination", self.create_destination_page)
+        self.stack.add_named_factory("installer_files", self.create_installer_files_page)
+        self.stack.add_named_factory("extras", self.create_extras_page)
+        self.stack.add_named_factory("spinner", self.create_spinner_page)
+        self.stack.add_named_factory("log", self.create_log_page)
+        self.stack.add_named_factory("nothing", lambda *x: Gtk.Box())
 
     # Choose Installer Page
 
