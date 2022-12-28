@@ -29,12 +29,44 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         "runners-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, installer, parent=None):
+    class InterpreterUIDelegate:
+        """This is a base class for objects that provide UI services
+        for running scripts. The InstallerWindow inherits from this."""
+
+        def __init__(self, service=None, appid=None):
+            self.service = service
+            self.appid = appid
+
+        def report_error(self, error):
+            """Called to report an error during installation. The installation will then stop."""
+            logger.exception("Error during installation: %s", str(error))
+
+        def report_status(self, status):
+            """Called to report the current activity of the installer."""
+
+        def attach_log(self, command):
+            """Called to attach the command to a log UI, so its log output can be viewed."""
+
+        def being_disc_prompt(self, message, requires, installer, callback):
+            """Called to prompt for a disc. When the disc is provided, the callback is invoked.
+            The method returns immediately, however."""
+            raise NotImplementedError()
+
+        def begin_input_menu(self, alias, options, preselect, callback):
+            """Called to prompt the user to select among a list of options. When the user
+            does so, the callback is invoked. The method returns immediately, however."""
+            raise NotImplementedError()
+
+        def report_finished(self, game_id, status):
+            """Called to report the successful completion of the installation."""
+            logger.info("Installation of game %s completed.", game_id)
+
+    def __init__(self, installer, interpreter_ui_delegate=None):
         super().__init__()
         self.target_path = None
-        self.parent = parent
-        self.service = parent.service if parent else None
-        _appid = parent.appid if parent else None
+        self.interpreter_ui_delegate = interpreter_ui_delegate or ScriptInterpreter.InterpreterUIDelegate()
+        self.service = self.interpreter_ui_delegate.service
+        _appid = self.interpreter_ui_delegate.appid
         self.game_dir_created = False  # Whether a game folder was created during the install
         # Extra files for installers, either None if the extras haven't been checked yet.
         # Or a list of IDs of extras to be downloaded during the install
@@ -305,7 +337,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         commands = self.installer.script.get("installer", [])
         if exception:
             logger.error("Last install command failed, show error")
-            self.parent.load_error_message_page(repr(exception))
+            self.interpreter_ui_delegate.report_error(exception)
         elif self.current_command < len(commands):
             try:
                 command = commands[self.current_command]
@@ -318,7 +350,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             else:
                 status_text = None
             if status_text:
-                self.parent.set_status(status_text)
+                self.interpreter_ui_delegate.report_status(status_text)
             logger.debug("Installer command: %s", command)
             AsyncCall(method, self._iter_commands, params)
         else:
@@ -370,7 +402,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         else:
             status = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
         download_lutris_media(self.installer.game_slug)
-        self.parent.load_finish_install_page(game_id, status)
+        self.interpreter_ui_delegate.report_finished(game_id, status)
 
     def cleanup(self):
         """Clean up install dir after a successful install"""
