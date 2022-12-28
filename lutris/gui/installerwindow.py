@@ -25,7 +25,18 @@ from lutris.util.system import is_removeable
 
 
 class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
-    """GUI for the install process."""
+    """GUI for the install process.
+    
+    This window is divided into pages; as you go through the install each page
+    is created and displayed to you. You can also go back and visit previous pages
+    again. Going *forward* triggers installation work- it does not all way until the
+    very end.
+
+    Most pages are defined by a load_X_page() function that initializes the page
+    when arriving at it, and which presents it. But this uses a present_X_page() page
+    that shows the page (and is used alone for the 'Back' button), and this in turn
+    uses a create_X_page() function to create the page the first time it is visited.
+    """
 
     def __init__(
         self,
@@ -104,7 +115,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         # And... go!
         self.show_all()
 
-        self.install_in_progress = True
         self.load_choose_installer_page()
         self.present()
 
@@ -325,6 +335,12 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         # This is a shim method to allow exceptions from
         # the interpreter to be reported via watch_errors().
         try:
+            # At this point we start making changes, like creating the game
+            # directory.
+            #
+            # From here out, we'll require confirmation to close this window.
+            self.install_in_progress = True
+
             if not self.interpreter.launch_install(self):
                 self.stack.navigate_reset()
         except Exception as ex:
