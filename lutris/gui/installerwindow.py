@@ -1,4 +1,5 @@
 """Window used for game installers"""
+# pylint: disable=too-many-lines
 import os
 from gettext import gettext as _
 
@@ -17,6 +18,7 @@ from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import InstallationKind, get_installers, interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
+from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
 from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
@@ -24,7 +26,9 @@ from lutris.util.strings import gtk_safe, human_size
 from lutris.util.system import is_removeable
 
 
-class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint: disable=too-many-public-methods
+class InstallerWindow(BaseApplicationWindow,
+                      DialogInstallUIDelegate,
+                      ScriptInterpreter.InterpreterUIDelegate):  # pylint: disable=too-many-public-methods
     """GUI for the install process.
 
     This window is divided into pages; as you go through the install each page
@@ -46,12 +50,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         application=None,
         installation_kind=InstallationKind.INSTALL
     ):
-        super().__init__(application=application)
+        BaseApplicationWindow.__init__(self, application=application)
+        ScriptInterpreter.InterpreterUIDelegate.__init__(self, service, appid)
         self.set_default_size(540, 320)
         self.installers = installers
         self.config = {}
-        self.service = service
-        self.appid = appid
         self.install_in_progress = False
         self.interpreter = None
         self.installation_kind = installation_kind
@@ -199,6 +202,32 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.stack.add_named_factory("spinner", self.create_spinner_page)
         self.stack.add_named_factory("log", self.create_log_page)
         self.stack.add_named_factory("nothing", lambda *x: Gtk.Box())
+
+    # Interpreter UI Delegate
+    #
+    # These methods are called from the ScriptInterpreter, and defer work until idle time
+    # so the installation itself is not interrupted or paused for UI updates.
+
+    def report_error(self, error):
+        message = repr(error)
+        GLib.idle_add(self.load_error_message_page, message)
+
+    def report_status(self, status):
+        GLib.idle_add(self.set_status, status)
+
+    def attach_log(self, command):
+        # Hook the log buffer right now, lest we miss updates.
+        command.set_log_buffer(self.log_buffer)
+        GLib.idle_add(self.load_log_page)
+
+    def being_disc_prompt(self, message, requires, installer, callback):
+        GLib.idle_add(self.load_ask_for_disc_page, message, requires, installer, callback, )
+
+    def begin_input_menu(self, alias, options, preselect, callback):
+        GLib.idle_add(self.load_input_menu_page, alias, options, preselect, callback)
+
+    def report_finished(self, game_id, status):
+        GLib.idle_add(self.load_finish_install_page, game_id, status)
 
     # Choose Installer Page
     #
@@ -545,7 +574,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """All files are available, continue the install"""
         logger.info("All files are available, continuing install")
         self.interpreter.game_files = widget.get_game_files()
-        self.launch_installer_commands()
+        # Idle-add here to ensure that the launch occurs after
+        # on_files_confirmed(), since they can race when no actual
+        # download is required.
+        GLib.idle_add(self.launch_installer_commands)
 
     def launch_installer_commands(self):
         self.load_spinner_page(_("Installing game data"))
@@ -566,7 +598,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
             self.set_status(status)
             self.stack.present_page("spinner")
-            
+
             if cancellable:
                 self.display_cancel_button()
             else:
@@ -587,8 +619,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     # This page shos a LogTextView where an installer command can display
     # output. This appears when summons by the installer script.
 
-    def load_log_page(self, command):
-        command.set_log_buffer(self.log_buffer)
+    def load_log_page(self):
         self.stack.jump_to_page(self.present_log_page)
 
     def create_log_page(self):
@@ -653,7 +684,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     # This page asks the user for a disc; it also has a callback used when
     # the user selects a disc. Again, this is summoned by the installer script.
 
-    def load_ask_for_disc_page(self, message, installer, callback, requires):
+    def load_ask_for_disc_page(self, message, requires, installer, callback):
         def present_ask_for_disc_page():
             """Ask the user to do insert a CD-ROM."""
 

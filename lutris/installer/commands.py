@@ -168,7 +168,7 @@ class CommandsMixin:
         )
         command.accepted_return_code = return_code
         command.start()
-        GLib.idle_add(self.parent.load_log_page, command)
+        self.interpreter_ui_delegate.attach_log(command)
         self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
         return "STOP"
 
@@ -192,7 +192,7 @@ class CommandsMixin:
         for filename in filenames:
             msg = _("Extracting %s") % os.path.basename(filename)
             logger.debug(msg)
-            GLib.idle_add(self.parent.set_status, msg)
+            self.interpreter_ui_delegate.report_status(msg)
             merge_single = "nomerge" not in data
             extractor = data.get("format")
             logger.debug("extracting file %s to %s", filename, dest_path)
@@ -206,13 +206,7 @@ class CommandsMixin:
         alias = "INPUT_%s" % identifier if identifier else None
         options = data["options"]
         preselect = self._substitute(data.get("preselect", ""))
-        GLib.idle_add(
-            self.parent.load_input_menu_page,
-            alias,
-            options,
-            preselect,
-            self._on_input_menu_validated,
-        )
+        self.interpreter_ui_delegate.begin_input_menu(alias, options, preselect, self._on_input_menu_validated)
         return "STOP"
 
     def _on_input_menu_validated(self, _widget, *args):
@@ -237,8 +231,8 @@ class CommandsMixin:
               "containing the following file or folder:\n"
               "<i>%s</i>") % requires
         )
-        GLib.idle_add(self.parent.load_ask_for_disc_page, message,
-                      self.installer, self._find_matching_disc, requires)
+        self.interpreter_ui_delegate.begin_disc_prompt(message, requires, self.installer,
+                                                       self._find_matching_disc)
         return "STOP"
 
     def _find_matching_disc(self, _widget, requires, extra_path=None):
@@ -437,7 +431,7 @@ class CommandsMixin:
             command.accepted_return_code = return_code
         if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
-            GLib.idle_add(self.parent.load_log_page, command)
+            self.interpreter_ui_delegate.attach_log(command)
             self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
             return "STOP"
         return None
