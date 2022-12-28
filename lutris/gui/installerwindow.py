@@ -72,7 +72,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.cache_button = self.add_start_button(_("Cache"), self.on_cache_clicked,
                                                   tooltip=_("Change where Lutris downloads game installer files."))
 
-        self.close_button = self.add_end_button(_("_Close"), self.on_destroy)
+        self.close_button = self.add_end_button(_("_Close"), self.on_close_clicked)
         self.continue_button = self.add_end_button(_("_Continue"))
         self.source_button = self.add_end_button(_("_View source"), self.on_source_clicked)
         self.eject_button = self.add_end_button(_("_Eject"), self.on_eject_clicked)
@@ -147,17 +147,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def on_back_clicked(self, _button):
         self.stack.navigate_back()
 
-    def on_destroy(self, _widget, _data=None):
-        """destroy event handler"""
-        if self.install_in_progress:
-            if self.on_cancel_clicked(_widget):
-                return True
-        else:
-            if self.interpreter:
-                self.interpreter.cleanup()
-            self.destroy()
-
-    def on_cancel_clicked(self, _widget=None):
+    def on_cancel_clicked(self, _button=None):
         """Ask a confirmation before cancelling the install"""
         widgets = []
 
@@ -726,12 +716,22 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def on_launch_clicked(self, button):
         """Launch a game after it's been installed."""
         button.set_sensitive(False)
-        self.on_destroy(button)
+        self.on_close_clicked(button)
         game = Game(self.interpreter.installer.game_id)
         if game.id:
             game.emit("game-launch")
         else:
             logger.error("Game has no ID, launch button should not be drawn")
+
+    def on_close_clicked(self, button):
+        """Close the window. During an install this is equivalent the 'Cancel' button."""
+        if self.install_in_progress:
+            if self.on_cancel_clicked(button):
+                return True
+        else:
+            if self.interpreter:
+                self.interpreter.cleanup()
+            self.destroy()
 
     def on_window_focus(self, _widget, *_args):
         """Remove urgency hint (flashing indicator) when window receives focus"""
