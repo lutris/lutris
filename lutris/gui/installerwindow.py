@@ -82,7 +82,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.vbox.pack_start(button_box, False, True, 0)
 
         self.cancel_button = self.add_button(
-            _("C_ancel"), self.confirm_cancel, tooltip=_("Abort and revert the installation")
+            _("C_ancel"), self.on_cancel_clicked, tooltip=_("Abort and revert the installation")
         )
         self.eject_button = self.add_button(_("_Eject"), self.on_eject_clicked)
         self.source_button = self.add_button(_("_View source"), self.on_source_clicked)
@@ -155,6 +155,124 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.stack.navigate_back()
 
     @watch_errors()
+    def on_install_clicked(self, button):
+        """Let the interpreter take charge of the next stages."""
+        self.start_install()
+
+    def start_install(self):
+        self.stack.jump_to_page(self.present_spinner_page)
+        GLib.idle_add(self.launch_install)
+
+    @watch_errors()
+    def launch_install(self):
+        # This is a shim method to allow exceptions from
+        # the interpreter to be reported via watch_errors().
+        if not self.interpreter.launch_install(self):
+            self.stack.navigate_back()
+
+    def load_installer_files(self):
+        try:
+            if self.installation_kind == InstallationKind.UPDATE:
+                patch_version = self.interpreter.installer.version
+            else:
+                patch_version = None
+            self.interpreter.installer.prepare_game_files(patch_version)
+        except UnavailableGameError as ex:
+            raise ScriptingError(str(ex)) from ex
+
+        if not self.interpreter.installer.files:
+            return False
+
+        self.installer_files_box.load_installer(self.interpreter.installer)
+        return True
+
+    def on_window_focus(self, _widget, *_args):
+        """Remove urgency hint (flashing indicator) when window receives focus"""
+        self.set_urgency_hint(False)
+
+    def launch_game(self, widget, _data=None):
+        """Launch a game after it's been installed."""
+        widget.set_sensitive(False)
+        self.on_destroy(widget)
+        game = Game(self.interpreter.installer.game_id)
+        if game.id:
+            game.emit("game-launch")
+        else:
+            logger.error("Game has no ID, launch button should not be drawn")
+
+    def on_destroy(self, _widget, _data=None):
+        """destroy event handler"""
+        if self.install_in_progress:
+            if self.on_cancel_clicked(_widget):
+                return True
+        else:
+            if self.interpreter:
+                self.interpreter.cleanup()
+            self.destroy()
+
+    def on_cancel_clicked(self, _widget=None):
+        """Ask a confirmation before cancelling the install"""
+        widgets = []
+
+        remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
+        if self.interpreter and self.interpreter.target_path and \
+                self.installation_kind == InstallationKind.INSTALL and \
+                is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
+            remove_checkbox.set_active(self.interpreter.game_dir_created)
+            remove_checkbox.show()
+            widgets.append(remove_checkbox)
+
+        confirm_cancel_dialog = QuestionDialog(
+            {
+                "parent": self,
+                "question": _("Are you sure you want to cancel the installation?"),
+                "title": _("Cancel installation?"),
+                "widgets": widgets
+            }
+        )
+        if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
+            logger.debug("User aborted installation cancellation")
+            return True
+        self.installer_files_box.stop_all()
+        if self.interpreter:
+            self.interpreter.revert(remove_game_dir=remove_checkbox.get_active())
+            self.interpreter.cleanup()  # still remove temporary downloads in any case
+        self.destroy()
+
+    @watch_errors()
+    def on_source_clicked(self, _button):
+        InstallerSourceDialog(
+            self.interpreter.installer.script_pretty,
+            self.interpreter.installer.game_name,
+            self
+        )
+
+    def on_watched_error(self, error):
+        ErrorDialog(str(error), parent=self)
+
+    def set_status(self, text):
+        """Display a short status text."""
+        self.status_label.set_text(text)
+
+    # Choose Installer Page
+
+    def create_choose_installer_page(self):
+        installer_picker = InstallerPicker(self.installers)
+        installer_picker.connect("installer-selected", self.on_installer_selected)
+        return Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            child=installer_picker,
+            shadow_type=Gtk.ShadowType.ETCHED_IN
+        )
+
+    def present_choose_installer_page(self):
+        """Stage where we choose an install script."""
+        self.set_status("")
+        self.stack.present_page("choose_installer")
+        self.display_no_buttons()
+
+    @watch_errors()
     def on_installer_selected(self, _widget, installer_version):
         """Sets the script interpreter to the correct script then proceed to
         install folder selection.
@@ -185,6 +303,21 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.title_label.set_markup(_("<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
         self.select_install_folder()
 
+    @watch_errors()
+    def on_runners_ready(self, _widget=None):
+        """The runners are ready, proceed with file selection"""
+
+        if self.interpreter.extras is None:
+            extras = self.interpreter.get_extras()
+            if extras:
+                self.load_extras_page(extras)
+                self.stack.navigate_to_page(self.present_extras_page)
+                return
+
+        self.on_extras_ready()
+
+    # Destination Page
+
     def select_install_folder(self):
         """Stage where we select the install directory."""
         if not self.interpreter.installer.creates_game_folder:
@@ -195,115 +328,158 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.stack.navigate_to_page(self.present_destination_page)
         self.install_button.grab_focus()
 
+    def load_default_destination(self, default_path):
+        self.location_entry.set_text(default_path)
+
+    def create_destination_page(self):
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox.pack_start(self.location_entry, False, False, 5)
+
+        desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
+        desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
+        vbox.pack_start(desktop_shortcut_button, False, False, 5)
+
+        menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
+        menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
+        vbox.pack_start(menu_shortcut_button, False, False, 5)
+
+        if steam_shortcut.vdf_file_exists():
+            steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
+            steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
+            vbox.pack_start(steam_shortcut_button, False, False, 5)
+        return vbox
+
+    def present_destination_page(self):
+        """Display the destination chooser."""
+
+        self.set_status(_("Select installation directory"))
+        self.stack.present_page("destination")
+        self.display_install_button()
+
     @watch_errors()
     def on_location_entry_changed(self, entry, _data=None):
         """Set the installation target for the game."""
         self.interpreter.target_path = os.path.expanduser(entry.get_text())
 
-    @watch_errors()
-    def on_install_clicked(self, button):
-        """Let the interpreter take charge of the next stages."""
-        self.start_install()
+    def on_create_desktop_shortcut_clicked(self, checkbutton):
+        self.config["create_desktop_shortcut"] = checkbutton.get_active()
 
-    def load_default_destination(self, default_path):
-        self.location_entry.set_text(default_path)
+    def on_create_menu_shortcut_clicked(self, checkbutton):
+        self.config["create_menu_shortcut"] = checkbutton.get_active()
 
-    def start_install(self):
-        self.stack.jump_to_page(self.present_spinner_page)
-        GLib.idle_add(self.launch_install)
+    def on_create_steam_shortcut_clicked(self, checkbutton):
+        self.config["create_steam_shortcut"] = checkbutton.get_active()
 
-    @watch_errors()
-    def launch_install(self):
-        # This is a shim method to allow exceptions from
-        # the interpreter to be reported via watch_errors().
-        if not self.interpreter.launch_install(self):
-            self.stack.navigate_back()
+    # Installer Files & Downloading Page
 
-    @watch_errors()
-    def on_browse_clicked(self, widget, callback_data):
-        dialog = DirectoryDialog(_("Select the folder where the disc is mounted"), parent=self)
-        folder = dialog.folder
-        callback = callback_data["callback"]
-        requires = callback_data["requires"]
-        callback(widget, requires, folder)
+    def create_installer_files_page(self):
+        return Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            child=self.installer_files_box,
+            visible=True,
+            shadow_type=Gtk.ShadowType.ETCHED_IN
+        )
 
-    @watch_errors()
-    def on_eject_clicked(self, _widget, data=None):
-        self.interpreter.eject_wine_disc()
+    def present_installer_files_page(self):
+        """Show installer screen with the file picker / downloader"""
 
-    def show_input_menu(self, alias, options, preselect, callback):
-        self.load_input_menu(options)
-        # TODO: move more to the load method
-        self.stack.jump_to_page(lambda *x: self.present_input_menu_page(alias, preselect, callback))
+        self.set_status(_(
+            "Please review the files needed for the installation then click 'Continue'"))
+        self.cache_button.set_sensitive(True)
+        self.stack.present_page("installer_files")
+        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
 
-    def ask_for_disc(self, message, installer, callback, requires):
-        self.stack.jump_to_page(lambda *x: self.present_ask_for_disc_page(message, installer, callback, requires))
+    def present_downloading_files_page(self):
+        def on_exit_page():
+            self.installer_files_box.stop_all()
 
-    def load_input_menu(self, options):
-        self.input_menu_list_store.clear()
-        for option in options:
-            key, label = option.popitem()
-            self.input_menu_list_store.append([key, label])
+        self.set_status("")
+        self.cache_button.set_sensitive(False)
+        self.stack.present_page("installer_files")
+        self.display_continue_button(None, sensitive=False)
+        return on_exit_page
 
-    def on_input_menu_changed(self, widget):
-        """Enable continue button if a non-empty choice is selected"""
-        self.continue_button.set_sensitive(bool(widget.get_active_id()))
+    def on_files_ready(self, _widget, files_ready):
+        """Toggle state of continue button based on ready state"""
+        self.continue_button.set_sensitive(files_ready)
 
     @watch_errors()
-    def on_runners_ready(self, _widget=None):
-        """The runners are ready, proceed with file selection"""
-
-        if self.interpreter.extras is None:
-            extras = self.interpreter.get_extras()
-            if extras:
-                self.load_extras(extras)
-                self.stack.navigate_to_page(self.present_extras_page)
-                return
-
-        self.on_extras_ready()
-
-    @watch_errors()
-    def on_extras_ready(self, *args):
-        if self.load_installer_files():
-            self.stack.navigate_to_page(self.present_installer_files_page)
-        else:
-            logger.debug("Installer doesn't require files")
-            self.interpreter.launch_installer_commands()
-
-    def load_installer_files(self):
+    def on_files_confirmed(self, _button):
+        """Call this when the user confirms the install files
+        This will start the downloads.
+        """
         try:
-            if self.installation_kind == InstallationKind.UPDATE:
-                patch_version = self.interpreter.installer.version
-            else:
-                patch_version = None
-            self.interpreter.installer.prepare_game_files(patch_version)
-        except UnavailableGameError as ex:
-            raise ScriptingError(str(ex)) from ex
+            self.installer_files_box.start_all()
+            self.stack.jump_to_page(self.present_downloading_files_page)
+        except PermissionError as ex:
+            raise ScriptingError(_("Unable to get files: %s") % ex) from ex
 
-        if not self.interpreter.installer.files:
-            return False
+    @watch_errors()
+    def on_files_available(self, widget):
+        """All files are available, continue the install"""
+        logger.info("All files are available, continuing install")
+        self.interpreter.game_files = widget.get_game_files()
+        self.stack.jump_to_page(self.present_spinner_page)
+        self.interpreter.launch_installer_commands()
 
-        self.installer_files_box.load_installer(self.interpreter.installer)
-        return True
+    # Extras Page
 
-    def load_extras(self, all_extras):
+    def load_extras_page(self, all_extras):
+        def get_extra_label(extra):
+            """Return a label for the extras picker"""
+            label = extra["name"]
+            _infos = []
+            if extra.get("total_size"):
+                _infos.append(human_size(extra["total_size"]))
+            if extra.get("type"):
+                _infos.append(extra["type"])
+            if _infos:
+                label += " (%s)" % ", ".join(_infos)
+            return label
+
         self.extras_tree_store.clear()
         for extra_source, extras in all_extras.items():
             parent = self.extras_tree_store.append(None, (None, None, None, extra_source))
             for extra in extras:
-                self.extras_tree_store.append(parent, (False, False, extra["id"], self.get_extra_label(extra)))
+                self.extras_tree_store.append(parent, (False, False, extra["id"], get_extra_label(extra)))
 
-    def get_extra_label(self, extra):
-        """Return a label for the extras picker"""
-        label = extra["name"]
-        _infos = []
-        if extra.get("total_size"):
-            _infos.append(human_size(extra["total_size"]))
-        if extra.get("type"):
-            _infos.append(extra["type"])
-        if _infos:
-            label += " (%s)" % ", ".join(_infos)
-        return label
+    def create_extras_page(self):
+        treeview = Gtk.TreeView(self.extras_tree_store)
+        treeview.set_headers_visible(False)
+        treeview.expand_all()
+        renderer_toggle = Gtk.CellRendererToggle()
+        renderer_toggle.connect("toggled", self.on_extra_toggled, self.extras_tree_store)
+        renderer_text = Gtk.CellRendererText()
+
+        installed_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0, inconsistent=1)
+        treeview.append_column(installed_column)
+
+        label_column = Gtk.TreeViewColumn(None, renderer_text)
+        label_column.add_attribute(renderer_text, "text", 3)
+        label_column.set_property("min-width", 80)
+        treeview.append_column(label_column)
+
+        return Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            child=treeview,
+            visible=True,
+            shadow_type=Gtk.ShadowType.ETCHED_IN
+        )
+
+    def present_extras_page(self):
+        """Show installer screen with the extras picker"""
+
+        def on_continue(_buffer):
+            self.on_extras_confirmed(self.extras_tree_store)
+
+        self.set_status(_(
+            "This game has extra content. \nSelect which one you want and "
+            "they will be available in the 'extras' folder where the game is installed."
+        ))
+        self.stack.present_page("extras")
+        self.display_continue_button(on_continue)
 
     @watch_errors()
     def on_extra_toggled(self, _widget, path, model):
@@ -349,256 +525,15 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.interpreter.extras = selected_extras
         GLib.idle_add(self.on_extras_ready)
 
-    def on_files_ready(self, _widget, files_ready):
-        """Toggle state of continue button based on ready state"""
-        self.continue_button.set_sensitive(files_ready)
-
     @watch_errors()
-    def on_files_confirmed(self, _button):
-        """Call this when the user confirms the install files
-        This will start the downloads.
-        """
-        try:
-            self.installer_files_box.start_all()
-            self.stack.jump_to_page(self.present_downloading_files_page)
-        except PermissionError as ex:
-            raise ScriptingError(_("Unable to get files: %s") % ex) from ex
-
-    @watch_errors()
-    def on_files_available(self, widget):
-        """All files are available, continue the install"""
-        logger.info("All files are available, continuing install")
-        self.interpreter.game_files = widget.get_game_files()
-        self.stack.jump_to_page(self.present_spinner_page)
-        self.interpreter.launch_installer_commands()
-
-    def finish_install(self, game_id, status):
-        if self.config.get("create_desktop_shortcut"):
-            self.create_shortcut(desktop=True)
-        if self.config.get("create_menu_shortcut"):
-            self.create_shortcut()
-
-        # Save game to trigger a game-updated signal,
-        # but take care not to create a blank game
-        if game_id:
-            game = Game(game_id)
-            if self.config.get("create_steam_shortcut"):
-                steam_shortcut.create_shortcut(game)
-            game.save()
-
-        self.install_in_progress = False
-
-        self.stack.jump_to_page(lambda *x: self.present_finished_page(game_id, status))
-        self.stack.discard_navigation()
-        self.close_button.grab_focus()
-
-        if not self.is_active():
-            self.set_urgency_hint(True)  # Blink in taskbar
-            self.connect("focus-in-event", self.on_window_focus)
-
-    def on_window_focus(self, _widget, *_args):
-        """Remove urgency hint (flashing indicator) when window receives focus"""
-        self.set_urgency_hint(False)
-
-    def show_install_error_message(self, message):
-        self.stack.navigate_to_page(lambda *x: self.present_error_page(message))
-        self.cancel_button.grab_focus()
-
-    def launch_game(self, widget, _data=None):
-        """Launch a game after it's been installed."""
-        widget.set_sensitive(False)
-        self.on_destroy(widget)
-        game = Game(self.interpreter.installer.game_id)
-        if game.id:
-            game.emit("game-launch")
+    def on_extras_ready(self, *args):
+        if self.load_installer_files():
+            self.stack.navigate_to_page(self.present_installer_files_page)
         else:
-            logger.error("Game has no ID, launch button should not be drawn")
+            logger.debug("Installer doesn't require files")
+            self.interpreter.launch_installer_commands()
 
-    def on_destroy(self, _widget, _data=None):
-        """destroy event handler"""
-        if self.install_in_progress:
-            if self.confirm_cancel():
-                return True
-        else:
-            if self.interpreter:
-                self.interpreter.cleanup()
-            self.destroy()
-
-    def on_create_desktop_shortcut_clicked(self, checkbutton):
-        self.config["create_desktop_shortcut"] = checkbutton.get_active()
-
-    def on_create_menu_shortcut_clicked(self, checkbutton):
-        self.config["create_menu_shortcut"] = checkbutton.get_active()
-
-    def on_create_steam_shortcut_clicked(self, checkbutton):
-        self.config["create_steam_shortcut"] = checkbutton.get_active()
-
-    def create_shortcut(self, desktop=False):
-        """Create desktop or global menu shortcuts."""
-        game_slug = self.interpreter.installer.game_slug
-        game_id = self.interpreter.installer.game_id
-        game_name = self.interpreter.installer.game_name
-
-        if desktop:
-            xdgshortcuts.create_launcher(game_slug, game_id, game_name, desktop=True)
-        else:
-            xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
-
-    def confirm_cancel(self, _widget=None):
-        """Ask a confirmation before cancelling the install"""
-        widgets = []
-
-        remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
-        if self.interpreter and self.interpreter.target_path and \
-                self.installation_kind == InstallationKind.INSTALL and \
-                is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
-            remove_checkbox.set_active(self.interpreter.game_dir_created)
-            remove_checkbox.show()
-            widgets.append(remove_checkbox)
-
-        confirm_cancel_dialog = QuestionDialog(
-            {
-                "parent": self,
-                "question": _("Are you sure you want to cancel the installation?"),
-                "title": _("Cancel installation?"),
-                "widgets": widgets
-            }
-        )
-        if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
-            logger.debug("User aborted installation cancellation")
-            return True
-        self.installer_files_box.stop_all()
-        if self.interpreter:
-            self.interpreter.revert(remove_game_dir=remove_checkbox.get_active())
-            self.interpreter.cleanup()  # still remove temporary downloads in any case
-        self.destroy()
-
-    @watch_errors()
-    def on_source_clicked(self, _button):
-        InstallerSourceDialog(
-            self.interpreter.installer.script_pretty,
-            self.interpreter.installer.game_name,
-            self
-        )
-
-    def on_watched_error(self, error):
-        ErrorDialog(str(error), parent=self)
-
-    def set_status(self, text):
-        """Display a short status text."""
-        self.status_label.set_text(text)
-
-    def show_log(self, command):
-        command.set_log_buffer(self.log_buffer)
-        self.stack.jump_to_page(self.present_log_page)
-
-    def create_choose_installer_page(self):
-        installer_picker = InstallerPicker(self.installers)
-        installer_picker.connect("installer-selected", self.on_installer_selected)
-        scrolledwindow = Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=True,
-            child=installer_picker,
-            visible=True
-        )
-        scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
-        return scrolledwindow
-
-    def present_choose_installer_page(self):
-        """Stage where we choose an install script."""
-        self.set_status("")
-        self.stack.present_page("choose_installer")
-        self.display_no_buttons()
-
-    def create_destination_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox.pack_start(self.location_entry, False, False, 5)
-
-        desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
-        desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
-        vbox.pack_start(desktop_shortcut_button, False, False, 5)
-
-        menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
-        menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
-        vbox.pack_start(menu_shortcut_button, False, False, 5)
-
-        if steam_shortcut.vdf_file_exists():
-            steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
-            steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
-            vbox.pack_start(steam_shortcut_button, False, False, 5)
-        return vbox
-
-    def present_destination_page(self):
-        """Display the destination chooser."""
-
-        self.set_status(_("Select installation directory"))
-        self.stack.present_page("destination")
-        self.display_install_button()
-
-    def create_installer_files_page(self):
-        return Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=True,
-            child=self.installer_files_box,
-            visible=True,
-            shadow_type=Gtk.ShadowType.ETCHED_IN
-        )
-
-    def present_installer_files_page(self):
-        """Show installer screen with the file picker / downloader"""
-
-        self.set_status(_(
-            "Please review the files needed for the installation then click 'Continue'"))
-        self.cache_button.set_sensitive(True)
-        self.stack.present_page("installer_files")
-        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
-
-    def present_downloading_files_page(self):
-        def on_exit_page():
-            self.installer_files_box.stop_all()
-
-        self.set_status("")
-        self.cache_button.set_sensitive(False)
-        self.stack.present_page("installer_files")
-        self.display_continue_button(None, sensitive=False)
-        return on_exit_page
-
-    def create_extras_page(self):
-        treeview = Gtk.TreeView(self.extras_tree_store)
-        treeview.set_headers_visible(False)
-        treeview.expand_all()
-        renderer_toggle = Gtk.CellRendererToggle()
-        renderer_toggle.connect("toggled", self.on_extra_toggled, self.extras_tree_store)
-        renderer_text = Gtk.CellRendererText()
-
-        installed_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0, inconsistent=1)
-        treeview.append_column(installed_column)
-
-        label_column = Gtk.TreeViewColumn(None, renderer_text)
-        label_column.add_attribute(renderer_text, "text", 3)
-        label_column.set_property("min-width", 80)
-        treeview.append_column(label_column)
-
-        return Gtk.ScrolledWindow(
-            hexpand=True,
-            vexpand=True,
-            child=treeview,
-            visible=True,
-            shadow_type=Gtk.ShadowType.ETCHED_IN
-        )
-
-    def present_extras_page(self):
-        """Show installer screen with the extras picker"""
-
-        def on_continue(_buffer):
-            self.on_extras_confirmed(self.extras_tree_store)
-
-        self.set_status(_(
-            "This game has extra content. \nSelect which one you want and "
-            "they will be available in the 'extras' folder where the game is installed."
-        ))
-        self.stack.present_page("extras")
-        self.display_continue_button(on_continue)
+    # Spinner Page
 
     def create_spinner_page(self):
         spinner = Gtk.Spinner()
@@ -612,6 +547,12 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.stack.present_page("spinner")
         self.display_no_buttons()
 
+    # Log Page
+
+    def show_log(self, command):
+        command.set_log_buffer(self.log_buffer)
+        self.stack.jump_to_page(self.present_log_page)
+
     def create_log_page(self):
         log_textview = LogTextView(self.log_buffer)
         scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview)
@@ -623,6 +564,19 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         self.stack.present_page("log")
         self.display_no_buttons()
+
+    # Input Menu Page
+
+    def show_input_menu(self, alias, options, preselect, callback):
+        self.load_input_menu_page(options)
+        # TODO: move more to the load method
+        self.stack.jump_to_page(lambda *x: self.present_input_menu_page(alias, preselect, callback))
+
+    def load_input_menu_page(self, options):
+        self.input_menu_list_store.clear()
+        for option in options:
+            key, label = option.popitem()
+            self.input_menu_list_store.append([key, label])
 
     def create_input_menu_page(self):
         combobox = Gtk.ComboBox()
@@ -647,6 +601,15 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.display_continue_button(on_continue)
         self.continue_button.grab_focus()
         self.on_input_menu_changed(combobox)
+
+    def on_input_menu_changed(self, widget):
+        """Enable continue button if a non-empty choice is selected"""
+        self.continue_button.set_sensitive(bool(widget.get_active_id()))
+
+    # Ask for Disc Page
+
+    def ask_for_disc(self, message, installer, callback, requires):
+        self.stack.jump_to_page(lambda *x: self.present_ask_for_disc_page(message, installer, callback, requires))
 
     def present_ask_for_disc_page(self, message, installer, callback, requires):
         """Ask the user to do insert a CD-ROM."""
@@ -686,6 +649,48 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         else:
             self.display_no_buttons()
 
+    @watch_errors()
+    def on_browse_clicked(self, widget, callback_data):
+        dialog = DirectoryDialog(_("Select the folder where the disc is mounted"), parent=self)
+        folder = dialog.folder
+        callback = callback_data["callback"]
+        requires = callback_data["requires"]
+        callback(widget, requires, folder)
+
+    @watch_errors()
+    def on_eject_clicked(self, _widget, data=None):
+        self.interpreter.eject_wine_disc()
+
+    # Blank Pages
+
+    def show_install_error_message(self, message):
+        self.stack.navigate_to_page(lambda *x: self.present_error_page(message))
+        self.cancel_button.grab_focus()
+
+    def finish_install(self, game_id, status):
+        if self.config.get("create_desktop_shortcut"):
+            self.create_shortcut(desktop=True)
+        if self.config.get("create_menu_shortcut"):
+            self.create_shortcut()
+
+        # Save game to trigger a game-updated signal,
+        # but take care not to create a blank game
+        if game_id:
+            game = Game(game_id)
+            if self.config.get("create_steam_shortcut"):
+                steam_shortcut.create_shortcut(game)
+            game.save()
+
+        self.install_in_progress = False
+
+        self.stack.jump_to_page(lambda *x: self.present_finished_page(game_id, status))
+        self.stack.discard_navigation()
+        self.close_button.grab_focus()
+
+        if not self.is_active():
+            self.set_urgency_hint(True)  # Blink in taskbar
+            self.connect("focus-in-event", self.on_window_focus)
+
     def present_error_page(self, message):
         self.set_status(message)
         self.stack.present_page("nothing")
@@ -695,6 +700,19 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.set_status(status)
         self.stack.present_page("nothing")
         self.display_close_button(show_play_button=bool(game_id))
+
+    def create_shortcut(self, desktop=False):
+        """Create desktop or global menu shortcuts."""
+        game_slug = self.interpreter.installer.game_slug
+        game_id = self.interpreter.installer.game_id
+        game_name = self.interpreter.installer.game_name
+
+        if desktop:
+            xdgshortcuts.create_launcher(game_slug, game_id, game_name, desktop=True)
+        else:
+            xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
+
+    # Buttons
 
     def display_install_button(self):
         self.present_buttons([self.source_button, self.install_button])
