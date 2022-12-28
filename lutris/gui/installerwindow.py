@@ -313,24 +313,26 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     @watch_errors()
     def on_destination_confirmed(self, _button=None):
         """Let the interpreter take charge of the next stages."""
+
+        def launch_install():
+            # This is a shim method to allow exceptions from
+            # the interpreter to be reported via watch_errors().
+            try:
+                # At this point we start making changes, like creating the game
+                # directory.
+                #
+                # From here out, we'll require confirmation to close this window.
+                self.install_in_progress = True
+
+                if not self.interpreter.launch_install(self):
+                    self.stack.restore_current_page(previous_page)
+            except Exception as ex:
+                ErrorDialog(str(ex), parent=self)
+                self.stack.restore_current_page(previous_page)
+
+        previous_page = self.stack.save_current_page()
         self.load_spinner_page(_("Preparing Lutris for installation"))
-        GLib.idle_add(self.launch_install)
-
-    def launch_install(self):
-        # This is a shim method to allow exceptions from
-        # the interpreter to be reported via watch_errors().
-        try:
-            # At this point we start making changes, like creating the game
-            # directory.
-            #
-            # From here out, we'll require confirmation to close this window.
-            self.install_in_progress = True
-
-            if not self.interpreter.launch_install(self):
-                self.stack.navigate_reset()
-        except Exception as ex:
-            ErrorDialog(str(ex), parent=self)
-            self.stack.navigate_reset()
+        GLib.idle_add(launch_install)
 
     @watch_errors()
     def on_location_entry_changed(self, entry, _data=None):
@@ -605,11 +607,11 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     # back into a callback when the user makes a choice. This is summoned
     # by the installer script as well.
 
-    # TODO: restore previous page?
     def load_input_menu_page(self, alias, options, preselect, callback):
         def present_input_menu_page():
             """Display an input request as a dropdown menu with options."""
             def on_continue(_button):
+                self.stack.restore_current_page(previous_page)
                 callback(alias, combobox)
 
             model = Gtk.ListStore(str, str)
@@ -634,6 +636,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
         # we must use jump_to_page() here since it would be unsave to return
         # back to this page and re-execute the callback.
+        previous_page = self.stack.save_current_page()
         self.stack.jump_to_page(present_input_menu_page)
 
     def on_input_menu_changed(self, combobox):
@@ -874,6 +877,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.navigation_stack = []
             self.navigation_exit_hander = None
             self.current_page_presenter = None
+            self.current_page_presenter_navigated = False
             self.back_allowed = True
 
         def add_named_factory(self, name, factory):
@@ -892,29 +896,26 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         def navigate_to_page(self, page_presenter):
             """Navigates to a page, by invoking 'page_presenter'.
 
-            In addition, this updates the navigation so navigate_back()
-            and naivgate_reset() work, and they may call the presenter again.
+            In addition, this updates the navigation state so navigate_back()
+            and such work, they may call the presenter again.
             """
-            if self.current_page_presenter:
+            if self.current_page_presenter_navigated:
                 self.navigation_stack.append(self.current_page_presenter)
                 self._update_back_button()
-            self.current_page_presenter = page_presenter
 
-            self.jump_to_page(page_presenter)
+            self._go_to_page(page_presenter, True, transition_type=Gtk.StackTransitionType.SLIDE_LEFT)
 
         def jump_to_page(self, page_presenter):
             """Jumps to a page, without updating navigation state.
 
-            This does not disturb the behavior of navigate_back() or
-            navigate_reset(), and indeed you can 'unjump' by calling
-            navigate_reset(). This does invoke the exit handler of the
-            current page.
+            This does not disturb the behavior of navigate_back().
+            This does invoke the exit handler of the current page.
             """
-            exit_handler = self.navigation_exit_hander
-            self.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
-            self.navigation_exit_hander = page_presenter()
-            if exit_handler:
-                exit_handler()
+            self._go_to_page(page_presenter, False, transition_type=Gtk.StackTransitionType.SLIDE_LEFT)
+
+        def jump_back_to_page(self, page_presenter):
+            """Jumps to a page, but with the reverse animation."""
+            self._go_to_page(page_presenter, False, transition_type=Gtk.StackTransitionType.SLIDE_RIGHT)
 
         def navigate_back(self):
             """This navigates to the previous page, if any. This will invoke the
@@ -922,28 +923,33 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             """
             if self.navigation_stack:
                 try:
-                    exit_handler = self.navigation_exit_hander
-                    self.current_page_presenter = self.navigation_stack.pop()
-                    self.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
-                    self.navigation_exit_hander = self.current_page_presenter()
-
-                    if exit_handler:
-                        exit_handler()
+                    back_to = self.navigation_stack.pop()
+                    self._go_to_page(back_to, True, transition_type=Gtk.StackTransitionType.SLIDE_RIGHT)
                 finally:
                     self._update_back_button()
 
-        def navigate_reset(self):
-            """This restores the current page after jump_to_page() has been used."""
-            if self.current_page_presenter:
-                try:
-                    exit_handler = self.navigation_exit_hander
-                    self.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
-                    self.navigation_exit_hander = self.current_page_presenter()
+        def save_current_page(self):
+            """Returns a tuple containing information about the current page,
+            to pass to restore_current_page()."""
+            return (self.current_page_presenter, self.current_page_presenter_navigated)
 
-                    if exit_handler:
-                        exit_handler()
-                finally:
-                    self._update_back_button()
+        def restore_current_page(self, state):
+            """Restores the current page to the one in effect when the state was generated.
+            This does not disturb the navigation stack."""
+            page_presenter, navigated = state
+            self._go_to_page(page_presenter, navigated, transition_type=Gtk.StackTransitionType.SLIDE_RIGHT)
+
+        def _go_to_page(self, page_presenter, navigated, transition_type):
+            """Switches to a page if 'navigated' is True, then when you navigate
+            away from this page, it can go on the navigation stack. It should be
+            False for 'temporary' pages that are not part of normal navigation."""
+            exit_handler = self.navigation_exit_hander
+            self.set_transition_type(transition_type)
+            self.navigation_exit_hander = page_presenter()
+            self.current_page_presenter = page_presenter
+            self.current_page_presenter_navigated = navigated
+            if exit_handler:
+                exit_handler()
 
         def discard_navigation(self):
             """This throws away the navigation history, so the back
