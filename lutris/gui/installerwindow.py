@@ -63,6 +63,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.vbox.add(self.status_label)
 
         self.stack = InstallerWindow.NavigationStack(self.back_button)
+        self.stack.add_named_factory("choose_installer", self.create_choose_installer_page)
+        self.stack.add_named_factory("destination", self.create_destination_page)
+        self.stack.add_named_factory("installer_files", self.create_installer_files_page)
+        self.stack.add_named_factory("extras", self.create_extras_page)
+        self.stack.add_named_factory("spinner", self.create_spinner_page)
+        self.stack.add_named_factory("log", self.create_log_page)
+        self.stack.add_named_factory("input_menu", self.create_input_menu_page)
+        self.stack.add_named_factory("nothing", lambda *x: Gtk.Box())
         self.vbox.pack_start(self.stack, True, True, 0)
 
         self.vbox.add(Gtk.HSeparator())
@@ -484,76 +492,48 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         command.set_log_buffer(self.log_buffer)
         self.stack.jump_to_page(self.present_log_page)
 
+    def create_choose_installer_page(self):
+        installer_picker = InstallerPicker(self.installers)
+        installer_picker.connect("installer-selected", self.on_installer_selected)
+        scrolledwindow = Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            child=installer_picker,
+            visible=True
+        )
+        scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        return scrolledwindow
+
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
-        def create_page():
-            installer_picker = InstallerPicker(self.installers)
-            installer_picker.connect("installer-selected", self.on_installer_selected)
-            scrolledwindow = Gtk.ScrolledWindow(
-                hexpand=True,
-                vexpand=True,
-                child=installer_picker,
-                visible=True
-            )
-            scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
-            return scrolledwindow
-
         self.set_status("")
-        self.stack.present_page("choose_installer", create_page)
+        self.stack.present_page("choose_installer")
         self.display_no_buttons()
+
+    def create_destination_page(self):
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox.pack_start(self.location_entry, False, False, 5)
+
+        desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
+        desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
+        vbox.pack_start(desktop_shortcut_button, False, False, 5)
+
+        menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
+        menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
+        vbox.pack_start(menu_shortcut_button, False, False, 5)
+
+        if steam_shortcut.vdf_file_exists():
+            steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
+            steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
+            vbox.pack_start(steam_shortcut_button, False, False, 5)
+        return vbox
 
     def present_destination_page(self):
         """Display the destination chooser."""
 
-        def create_page():
-            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            vbox.pack_start(self.location_entry, False, False, 5)
-
-            desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
-            desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
-            vbox.pack_start(desktop_shortcut_button, False, False, 5)
-
-            menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
-            menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
-            vbox.pack_start(menu_shortcut_button, False, False, 5)
-
-            if steam_shortcut.vdf_file_exists():
-                steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
-                steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
-                vbox.pack_start(steam_shortcut_button, False, False, 5)
-            return vbox
-
         self.set_status(_("Select installation directory"))
-        self.stack.present_page("destination_page", create_page)
+        self.stack.present_page("destination")
         self.display_install_button()
-
-    def present_installer_files_page(self):
-        """Show installer screen with the file picker / downloader"""
-
-        self.set_status(_(
-            "Please review the files needed for the installation then click 'Continue'"))
-        self.cache_button.set_sensitive(True)
-        self.stack.present_page("installer_files", self.create_installer_files_page)
-        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
-
-    def present_downloading_files_page(self):
-        def create_page():
-            return Gtk.ScrolledWindow(
-                hexpand=True,
-                vexpand=True,
-                child=self.installer_files_box,
-                visible=True,
-                shadow_type=Gtk.ShadowType.ETCHED_IN
-            )
-
-        def on_exit_page():
-            self.installer_files_box.stop_all()
-
-        self.set_status("")
-        self.cache_button.set_sensitive(False)
-        self.stack.present_page("installer_files", self.create_installer_files_page)
-        self.display_continue_button(None, sensitive=False)
-        return on_exit_page
 
     def create_installer_files_page(self):
         return Gtk.ScrolledWindow(
@@ -564,32 +544,51 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             shadow_type=Gtk.ShadowType.ETCHED_IN
         )
 
+    def present_installer_files_page(self):
+        """Show installer screen with the file picker / downloader"""
+
+        self.set_status(_(
+            "Please review the files needed for the installation then click 'Continue'"))
+        self.cache_button.set_sensitive(True)
+        self.stack.present_page("installer_files")
+        self.display_continue_button(self.on_files_confirmed, self.installer_files_box.is_ready)
+
+    def present_downloading_files_page(self):
+        def on_exit_page():
+            self.installer_files_box.stop_all()
+
+        self.set_status("")
+        self.cache_button.set_sensitive(False)
+        self.stack.present_page("installer_files")
+        self.display_continue_button(None, sensitive=False)
+        return on_exit_page
+
+    def create_extras_page(self):
+        treeview = Gtk.TreeView(self.extras_tree_store)
+        treeview.set_headers_visible(False)
+        treeview.expand_all()
+        renderer_toggle = Gtk.CellRendererToggle()
+        renderer_toggle.connect("toggled", self.on_extra_toggled, self.extras_tree_store)
+        renderer_text = Gtk.CellRendererText()
+
+        installed_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0, inconsistent=1)
+        treeview.append_column(installed_column)
+
+        label_column = Gtk.TreeViewColumn(None, renderer_text)
+        label_column.add_attribute(renderer_text, "text", 3)
+        label_column.set_property("min-width", 80)
+        treeview.append_column(label_column)
+
+        return Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            child=treeview,
+            visible=True,
+            shadow_type=Gtk.ShadowType.ETCHED_IN
+        )
+
     def present_extras_page(self):
         """Show installer screen with the extras picker"""
-
-        def create_page():
-            treeview = Gtk.TreeView(self.extras_tree_store)
-            treeview.set_headers_visible(False)
-            treeview.expand_all()
-            renderer_toggle = Gtk.CellRendererToggle()
-            renderer_toggle.connect("toggled", self.on_extra_toggled, self.extras_tree_store)
-            renderer_text = Gtk.CellRendererText()
-
-            installed_column = Gtk.TreeViewColumn(None, renderer_toggle, active=0, inconsistent=1)
-            treeview.append_column(installed_column)
-
-            label_column = Gtk.TreeViewColumn(None, renderer_text)
-            label_column.add_attribute(renderer_text, "text", 3)
-            label_column.set_property("min-width", 80)
-            treeview.append_column(label_column)
-
-            return Gtk.ScrolledWindow(
-                hexpand=True,
-                vexpand=True,
-                child=treeview,
-                visible=True,
-                shadow_type=Gtk.ShadowType.ETCHED_IN
-            )
 
         def on_continue(_buffer):
             self.on_extras_confirmed(self.extras_tree_store)
@@ -598,50 +597,50 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             "This game has extra content. \nSelect which one you want and "
             "they will be available in the 'extras' folder where the game is installed."
         ))
-        self.stack.present_page("extras", create_page)
+        self.stack.present_page("extras")
         self.display_continue_button(on_continue)
+
+    def create_spinner_page(self):
+        spinner = Gtk.Spinner()
+        spinner.start()
+        return spinner
 
     def present_spinner_page(self):
         """Show a spinner in the middle of the view"""
 
-        def create_page():
-            spinner = Gtk.Spinner()
-            spinner.start()
-            return spinner
-
         self.set_status(_("Installing game data"))
-        self.stack.present_page("spinner", create_page)
+        self.stack.present_page("spinner")
         self.display_no_buttons()
+
+    def create_log_page(self):
+        log_textview = LogTextView(self.log_buffer)
+        scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview)
+        scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        return scrolledwindow
 
     def present_log_page(self):
         """Creates a TextBuffer and attach it to a command"""
 
-        def create_page():
-            log_textview = LogTextView(self.log_buffer)
-            scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview)
-            scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
-            return scrolledwindow
-
-        self.stack.present_page("logger", create_page)
+        self.stack.present_page("log")
         self.display_no_buttons()
+
+    def create_input_menu_page(self):
+        combobox = Gtk.ComboBox()
+        renderer_text = Gtk.CellRendererText()
+        combobox.pack_start(renderer_text, True)
+        combobox.add_attribute(renderer_text, "text", 1)
+        combobox.set_id_column(0)
+        combobox.set_halign(Gtk.Align.CENTER)
+        combobox.connect("changed", self.on_input_menu_changed)
+        return combobox
 
     def present_input_menu_page(self, alias, preselect, callback):
         """Display an input request as a dropdown menu with options."""
 
-        def create_page():
-            combobox = Gtk.ComboBox()
-            renderer_text = Gtk.CellRendererText()
-            combobox.pack_start(renderer_text, True)
-            combobox.add_attribute(renderer_text, "text", 1)
-            combobox.set_id_column(0)
-            combobox.set_halign(Gtk.Align.CENTER)
-            combobox.connect("changed", self.on_input_menu_changed)
-            return combobox
-
         def on_continue(_button):
             callback(alias, combobox)
 
-        combobox = self.stack.present_page("input_menu", create_page)
+        combobox = self.stack.present_page("input_menu")
         combobox.set_model(self.input_menu_list_store)
         combobox.set_active_id(preselect)
 
@@ -658,32 +657,30 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             except Exception as err:
                 ErrorDialog(str(err), parent=self)
 
-        def create_page():
-            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            label = InstallerWindow.MarkupLabel(message)
-            label.show()
-            vbox.add(label)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        label = InstallerWindow.MarkupLabel(message)
+        label.show()
+        vbox.add(label)
 
-            buttons_box = Gtk.Box()
-            buttons_box.show()
-            buttons_box.set_margin_top(40)
-            buttons_box.set_margin_bottom(40)
-            vbox.add(buttons_box)
+        buttons_box = Gtk.Box()
+        buttons_box.show()
+        buttons_box.set_margin_top(40)
+        buttons_box.set_margin_bottom(40)
+        vbox.add(buttons_box)
 
-            autodetect_button = Gtk.Button(label=_("Autodetect"))
-            autodetect_button.connect("clicked", wrapped_callback, requires)
-            autodetect_button.grab_focus()
-            autodetect_button.show()
-            buttons_box.pack_start(autodetect_button, True, True, 40)
+        autodetect_button = Gtk.Button(label=_("Autodetect"))
+        autodetect_button.connect("clicked", wrapped_callback, requires)
+        autodetect_button.grab_focus()
+        autodetect_button.show()
+        buttons_box.pack_start(autodetect_button, True, True, 40)
 
-            browse_button = Gtk.Button(label=_("Browse…"))
-            callback_data = {"callback": wrapped_callback, "requires": requires}
-            browse_button.connect("clicked", self.on_browse_clicked, callback_data)
-            browse_button.show()
-            buttons_box.pack_start(browse_button, True, True, 40)
-            return vbox
+        browse_button = Gtk.Button(label=_("Browse…"))
+        callback_data = {"callback": wrapped_callback, "requires": requires}
+        browse_button.connect("clicked", self.on_browse_clicked, callback_data)
+        browse_button.show()
+        buttons_box.pack_start(browse_button, True, True, 40)
 
-        self.stack.present_page("ask_for_disc", create_page)
+        self.stack.present_replacement_page("ask_for_disc", vbox)
         if installer.runner == "wine":
             self.display_eject_button()
         else:
@@ -691,12 +688,12 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def present_error_page(self, message):
         self.set_status(message)
-        self.stack.present_page("nothing", lambda *x: Gtk.Box())
+        self.stack.present_page("nothing")
         self.display_cancel_button()
 
     def present_finished_page(self, game_id, status):
         self.set_status(status)
-        self.stack.present_page("nothing", lambda *x: Gtk.Box())
+        self.stack.present_page("nothing")
         self.display_close_button(show_play_button=bool(game_id))
 
     def display_install_button(self):
@@ -767,10 +764,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             super().__init__(**kwargs)
 
             self.back_button = back_button
+            self.page_factories = {}
             self.stack_pages = {}
             self.navigation_stack = []
             self.navigation_exit_hander = None
             self.current_page_presenter = None
+
+        def add_named_factory(self, name, factory):
+            self.page_factories[name] = factory
 
         def navigate_to_page(self, page_presenter):
             if self.current_page_presenter:
@@ -802,14 +803,28 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.current_page_presenter = None
             self.back_button.set_sensitive(False)
 
-        def present_page(self, name, factory, show_all=True):
+        def present_page(self, name):
             if name not in self.stack_pages:
+                factory = self.page_factories[name]
                 page = factory()
-                if show_all:
-                    page.show_all()
+                page.show_all()
 
                 self.add_named(page, name)
                 self.stack_pages[name] = page
 
             self.set_visible_child_name(name)
             return self.stack_pages[name]
+
+        def present_replacement_page(self, name, page):
+            old_page = self.stack_pages.get(name)
+
+            if old_page:
+                self.remove(old_page)
+
+            page.show_all()
+
+            self.add_named(page, name)
+            self.stack_pages[name] = page
+
+            self.set_visible_child_name(name)
+            return page
