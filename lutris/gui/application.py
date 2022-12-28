@@ -631,6 +631,9 @@ class Application(Gtk.Application):
             game = Game(db_game["id"])
             game.connect("game-error", on_error)
             game.launch(self.launch_ui_delegate)
+
+            if game.state == game.STATE_STOPPED and not self.window.is_visible():
+                self.do_shutdown()
         else:
             Application.show_update_runtime_dialog()
             # If we're showing the window, it will handle the delegated UI
