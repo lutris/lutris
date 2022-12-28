@@ -453,7 +453,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def on_extras_ready(self, *args):
         if not self.load_installer_files_page():
             logger.debug("Installer doesn't require files")
-            self.interpreter.launch_installer_commands()
+            self.launch_installer_commands()
 
     # Installer Files & Downloading Page
 
@@ -522,6 +522,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """All files are available, continue the install"""
         logger.info("All files are available, continuing install")
         self.interpreter.game_files = widget.get_game_files()
+        self.launch_installer_commands()
+
+    def launch_installer_commands(self):
         self.load_spinner_page(_("Installing game data"))
         self.stack.discard_navigation()  # once we really start installing, no going back!
         self.interpreter.launch_installer_commands()
