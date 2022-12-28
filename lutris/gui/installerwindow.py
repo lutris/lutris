@@ -257,10 +257,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.title_label.set_markup(_("<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
         self.load_destination_page()
 
-    @watch_errors()
-    def on_runners_ready(self, _widget=None):
-        self.load_extras_page()
-
     def validate_scripts(self):
         """Auto-fixes some script aspects and checks for mandatory fields"""
         if not self.installers:
@@ -315,7 +311,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     @watch_errors()
     def on_destination_confirmed(self, _button=None):
         """Let the interpreter take charge of the next stages."""
-        self.load_spinner_page()
+        self.load_spinner_page(_("Preparing Lutris for installation"))
         GLib.idle_add(self.launch_install)
 
     @watch_errors()
@@ -338,6 +334,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def on_create_steam_shortcut_clicked(self, checkbutton):
         self.config["create_steam_shortcut"] = checkbutton.get_active()
+
+    @watch_errors()
+    def on_runners_ready(self, _widget=None):
+        self.load_extras_page()
 
     # Extras Page
 
@@ -496,7 +496,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         def on_exit_page():
             self.installer_files_box.stop_all()
 
-        self.set_status("")
+        self.set_status(_("Downloading game data"))
         self.cache_button.set_sensitive(False)
         self.stack.present_page("installer_files")
         self.display_install_button(None, sensitive=False)
@@ -522,27 +522,27 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """All files are available, continue the install"""
         logger.info("All files are available, continuing install")
         self.interpreter.game_files = widget.get_game_files()
-        self.load_spinner_page()
+        self.load_spinner_page(_("Installing game data"))
         self.stack.discard_navigation()  # once we really start installing, no going back!
         self.interpreter.launch_installer_commands()
 
     # Spinner Page
 
-    def load_spinner_page(self):
-        self.stack.jump_to_page(self.present_spinner_page)
+    def load_spinner_page(self, status):
+        self.stack.jump_to_page(lambda *x: self.present_spinner_page(status))
 
     def create_spinner_page(self):
         spinner = Gtk.Spinner()
         spinner.start()
         return spinner
 
-    def present_spinner_page(self):
+    def present_spinner_page(self, status):
         """Show a spinner in the middle of the view"""
 
         def on_exit_page():
             self.stack.set_back_allowed(True)
 
-        self.set_status(_("Installing game data"))
+        self.set_status(status)
         self.stack.present_page("spinner")
         self.display_no_buttons()
         self.stack.set_back_allowed(False)
@@ -556,9 +556,12 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     def create_log_page(self):
         log_textview = LogTextView(self.log_buffer)
-        scrolledwindow = Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview)
-        scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
-        return scrolledwindow
+        return Gtk.ScrolledWindow(
+            hexpand=True,
+            vexpand=True,
+            child=log_textview,
+            shadow_type=Gtk.ShadowType.ETCHED_IN
+        )
 
     def present_log_page(self):
         """Creates a TextBuffer and attach it to a command"""
