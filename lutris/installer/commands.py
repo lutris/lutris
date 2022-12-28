@@ -168,7 +168,7 @@ class CommandsMixin:
         )
         command.accepted_return_code = return_code
         command.start()
-        GLib.idle_add(self.parent.show_log, command)
+        GLib.idle_add(self.parent.load_log_page, command)
         self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
         return "STOP"
 
@@ -207,7 +207,7 @@ class CommandsMixin:
         options = data["options"]
         preselect = self._substitute(data.get("preselect", ""))
         GLib.idle_add(
-            self.parent.show_input_menu,
+            self.parent.load_input_menu_page,
             alias,
             options,
             preselect,
@@ -238,7 +238,7 @@ class CommandsMixin:
               "containing the following file or folder:\n"
               "<i>%s</i>") % requires
         )
-        GLib.idle_add(self.parent.ask_for_disc, message,
+        GLib.idle_add(self.parent.load_ask_for_disc_page, message,
                       self.installer, self._find_matching_disc, requires)
         return "STOP"
 
@@ -441,7 +441,7 @@ class CommandsMixin:
         GLib.idle_add(self.parent.cancel_button.set_sensitive, True)
         if isinstance(command, MonitoredCommand):
             # Monitor thread and continue when task has executed
-            GLib.idle_add(self.parent.show_log, command)
+            GLib.idle_add(self.parent.load_log_page, command)
             self.heartbeat = GLib.timeout_add(1000, self._monitor_task, command)
             return "STOP"
         return None

@@ -118,8 +118,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.stack.show()
         self.title_label.show()
 
-        self.validate_scripts()
-        self.stack.navigate_to_page(self.present_choose_installer_page)
+        self.load_choose_installer_page()
         self.present()
 
     def add_button(self, label, handler=None, tooltip=None):
@@ -132,18 +131,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.action_buttons.add(button)
         return button
 
-    def validate_scripts(self):
-        """Auto-fixes some script aspects and checks for mandatory fields"""
-        if not self.installers:
-            raise ScriptingError(_("No installer available"))
-        for script in self.installers:
-            for item in ["description", "notes"]:
-                script[item] = script.get(item) or ""
-            for item in ["name", "runner", "version"]:
-                if item not in script:
-                    logger.error("Invalid script: %s", script)
-                    raise ScriptingError(_('Missing field "%s" in install script') % item)
-
     @watch_errors()
     def on_cache_clicked(self, _button):
         """Open the cache configuration dialog"""
@@ -152,10 +139,6 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     @watch_errors()
     def on_back_clicked(self, _button):
         self.stack.navigate_back()
-
-    def on_window_focus(self, _widget, *_args):
-        """Remove urgency hint (flashing indicator) when window receives focus"""
-        self.set_urgency_hint(False)
 
     def launch_game(self, widget, _data=None):
         """Launch a game after it's been installed."""
@@ -223,6 +206,10 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     # Choose Installer Page
 
+    def load_choose_installer_page(self):
+        self.validate_scripts()
+        self.stack.navigate_to_page(self.present_choose_installer_page)
+
     def create_choose_installer_page(self):
         installer_picker = InstallerPicker(self.installers)
         installer_picker.connect("installer-selected", self.on_installer_selected)
@@ -268,35 +255,37 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             return
 
         self.title_label.set_markup(_("<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
-        self.select_install_folder()
+        self.load_destination_page()
 
     @watch_errors()
     def on_runners_ready(self, _widget=None):
-        """The runners are ready, proceed with file selection"""
+        self.load_extras_page()
 
-        if self.interpreter.extras is None:
-            extras = self.interpreter.get_extras()
-            if extras:
-                self.load_extras_page(extras)
-                self.stack.navigate_to_page(self.present_extras_page)
-                return
-
-        self.on_extras_ready()
+    def validate_scripts(self):
+        """Auto-fixes some script aspects and checks for mandatory fields"""
+        if not self.installers:
+            raise ScriptingError(_("No installer available"))
+        for script in self.installers:
+            for item in ["description", "notes"]:
+                script[item] = script.get(item) or ""
+            for item in ["name", "runner", "version"]:
+                if item not in script:
+                    logger.error("Invalid script: %s", script)
+                    raise ScriptingError(_('Missing field "%s" in install script') % item)
 
     # Destination Page
 
-    def select_install_folder(self):
+    def load_destination_page(self):
         """Stage where we select the install directory."""
         if not self.interpreter.installer.creates_game_folder:
             self.on_destination_confirmed()
             return
+
         default_path = self.interpreter.get_default_target()
-        self.load_default_destination(default_path)
+        self.location_entry.set_text(default_path)
+
         self.stack.navigate_to_page(self.present_destination_page)
         self.continue_button.grab_focus()
-
-    def load_default_destination(self, default_path):
-        self.location_entry.set_text(default_path)
 
     def create_destination_page(self):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -326,7 +315,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     @watch_errors()
     def on_destination_confirmed(self, _button=None):
         """Let the interpreter take charge of the next stages."""
-        self.stack.jump_to_page(self.present_spinner_page)
+        self.load_spinner_page()
         GLib.idle_add(self.launch_install)
 
     @watch_errors()
@@ -352,7 +341,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     # Extras Page
 
-    def load_extras_page(self, all_extras):
+    def load_extras_page(self):
         def get_extra_label(extra):
             """Return a label for the extras picker"""
             label = extra["name"]
@@ -365,11 +354,19 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 label += " (%s)" % ", ".join(_infos)
             return label
 
-        self.extras_tree_store.clear()
-        for extra_source, extras in all_extras.items():
-            parent = self.extras_tree_store.append(None, (None, None, None, extra_source))
-            for extra in extras:
-                self.extras_tree_store.append(parent, (False, False, extra["id"], get_extra_label(extra)))
+        if self.interpreter.extras is None:
+            all_extras = self.interpreter.get_extras()
+            if all_extras:
+                self.extras_tree_store.clear()
+                for extra_source, extras in all_extras.items():
+                    parent = self.extras_tree_store.append(None, (None, None, None, extra_source))
+                    for extra in extras:
+                        self.extras_tree_store.append(parent, (False, False, extra["id"], get_extra_label(extra)))
+
+                self.stack.navigate_to_page(self.present_extras_page)
+                return
+
+        self.on_extras_ready()
 
     def create_extras_page(self):
         treeview = Gtk.TreeView(self.extras_tree_store)
@@ -454,15 +451,13 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     @watch_errors()
     def on_extras_ready(self, *args):
-        if self.load_installer_files():
-            self.stack.navigate_to_page(self.present_installer_files_page)
-        else:
+        if not self.load_installer_files_page():
             logger.debug("Installer doesn't require files")
             self.interpreter.launch_installer_commands()
 
     # Installer Files & Downloading Page
 
-    def load_installer_files(self):
+    def load_installer_files_page(self):
         try:
             if self.installation_kind == InstallationKind.UPDATE:
                 patch_version = self.interpreter.installer.version
@@ -476,6 +471,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             return False
 
         self.installer_files_box.load_installer(self.interpreter.installer)
+        self.stack.navigate_to_page(self.present_installer_files_page)
         return True
 
     def create_installer_files_page(self):
@@ -526,11 +522,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         """All files are available, continue the install"""
         logger.info("All files are available, continuing install")
         self.interpreter.game_files = widget.get_game_files()
-        self.stack.jump_to_page(self.present_spinner_page)
+        self.load_spinner_page()
         self.stack.discard_navigation()  # once we really start installing, no going back!
         self.interpreter.launch_installer_commands()
 
     # Spinner Page
+
+    def load_spinner_page(self):
+        self.stack.jump_to_page(self.present_spinner_page)
 
     def create_spinner_page(self):
         spinner = Gtk.Spinner()
@@ -551,7 +550,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     # Log Page
 
-    def show_log(self, command):
+    def load_log_page(self, command):
         command.set_log_buffer(self.log_buffer)
         self.stack.jump_to_page(self.present_log_page)
 
@@ -569,16 +568,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     # Input Menu Page
 
-    def show_input_menu(self, alias, options, preselect, callback):
-        self.load_input_menu_page(options)
-        # TODO: move more to the load method
-        self.stack.jump_to_page(lambda *x: self.present_input_menu_page(alias, preselect, callback))
-
-    def load_input_menu_page(self, options):
+    def load_input_menu_page(self, alias, options, preselect, callback):
         self.input_menu_list_store.clear()
         for option in options:
             key, label = option.popitem()
             self.input_menu_list_store.append([key, label])
+
+        # TODO: move more to this method
+        self.stack.jump_to_page(lambda *x: self.present_input_menu_page(alias, preselect, callback))
 
     def create_input_menu_page(self):
         combobox = Gtk.ComboBox()
@@ -610,7 +607,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
 
     # Ask for Disc Page
 
-    def ask_for_disc(self, message, installer, callback, requires):
+    def load_ask_for_disc_page(self, message, installer, callback, requires):
         self.stack.jump_to_page(lambda *x: self.present_ask_for_disc_page(message, installer, callback, requires))
 
     def present_ask_for_disc_page(self, message, installer, callback, requires):
@@ -663,13 +660,20 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     def on_eject_clicked(self, _widget, data=None):
         self.interpreter.eject_wine_disc()
 
-    # Blank Pages
+    # Error Message Page
 
-    def show_install_error_message(self, message):
+    def load_error_message_page(self, message):
         self.stack.navigate_to_page(lambda *x: self.present_error_page(message))
         self.cancel_button.grab_focus()
 
-    def finish_install(self, game_id, status):
+    def present_error_page(self, message):
+        self.set_status(message)
+        self.stack.present_page("nothing")
+        self.display_cancel_button()
+
+    # Finished Page
+
+    def load_finish_install_page(self, game_id, status):
         if self.config.get("create_desktop_shortcut"):
             self.create_shortcut(desktop=True)
         if self.config.get("create_menu_shortcut"):
@@ -693,15 +697,14 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             self.set_urgency_hint(True)  # Blink in taskbar
             self.connect("focus-in-event", self.on_window_focus)
 
-    def present_error_page(self, message):
-        self.set_status(message)
-        self.stack.present_page("nothing")
-        self.display_cancel_button()
-
     def present_finished_page(self, game_id, status):
         self.set_status(status)
         self.stack.present_page("nothing")
         self.display_close_button(show_play_button=bool(game_id))
+
+    def on_window_focus(self, _widget, *_args):
+        """Remove urgency hint (flashing indicator) when window receives focus"""
+        self.set_urgency_hint(False)
 
     def create_shortcut(self, desktop=False):
         """Create desktop or global menu shortcuts."""
