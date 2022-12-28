@@ -902,7 +902,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 self.navigation_stack.append(self.current_navigated_page_presenter)
                 self._update_back_button()
 
-            self._go_to_page(page_presenter, True, transition_type=Gtk.StackTransitionType.SLIDE_LEFT)
+            self._go_to_page(page_presenter, True, Gtk.StackTransitionType.SLIDE_LEFT)
 
         def jump_to_page(self, page_presenter):
             """Jumps to a page, without updating navigation state.
@@ -910,11 +910,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             This does not disturb the behavior of navigate_back().
             This does invoke the exit handler of the current page.
             """
-            self._go_to_page(page_presenter, False, transition_type=Gtk.StackTransitionType.SLIDE_LEFT)
-
-        def jump_back_to_page(self, page_presenter):
-            """Jumps to a page, but with the reverse animation."""
-            self._go_to_page(page_presenter, False, transition_type=Gtk.StackTransitionType.SLIDE_RIGHT)
+            self._go_to_page(page_presenter, False, Gtk.StackTransitionType.NONE)
 
         def navigate_back(self):
             """This navigates to the previous page, if any. This will invoke the
@@ -923,7 +919,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             if self.navigation_stack:
                 try:
                     back_to = self.navigation_stack.pop()
-                    self._go_to_page(back_to, True, transition_type=Gtk.StackTransitionType.SLIDE_RIGHT)
+                    self._go_to_page(back_to, True, Gtk.StackTransitionType.SLIDE_RIGHT)
                 finally:
                     self._update_back_button()
 
@@ -937,7 +933,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             This does not disturb the navigation stack."""
             page_presenter, navigated_presenter = state
             navigated = page_presenter == navigated_presenter
-            self._go_to_page(page_presenter, navigated, transition_type=Gtk.StackTransitionType.SLIDE_RIGHT)
+            self._go_to_page(page_presenter, navigated, Gtk.StackTransitionType.NONE)
 
         def _go_to_page(self, page_presenter, navigated, transition_type):
             """Switches to a page if 'navigated' is True, then when you navigate
