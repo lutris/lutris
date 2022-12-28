@@ -331,7 +331,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
                 self.stack.restore_current_page(previous_page)
 
         previous_page = self.stack.save_current_page()
-        self.load_spinner_page(_("Preparing Lutris for installation"))
+        self.load_spinner_page(_("Preparing Lutris for installation"), cancellable=False)
         GLib.idle_add(launch_install)
 
     @watch_errors()
@@ -557,25 +557,30 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
     # Provides a generic progress spinner and displays a status. The back button
     # is disabled for this page.
 
-    def load_spinner_page(self, status):
-        self.stack.jump_to_page(lambda *x: self.present_spinner_page(status))
+    def load_spinner_page(self, status, cancellable=True):
+        def present_spinner_page():
+            """Show a spinner in the middle of the view"""
+
+            def on_exit_page():
+                self.stack.set_back_allowed(True)
+
+            self.set_status(status)
+            self.stack.present_page("spinner")
+            
+            if cancellable:
+                self.display_cancel_button()
+            else:
+                self.display_no_buttons()
+
+            self.stack.set_back_allowed(False)
+            return on_exit_page
+
+        self.stack.jump_to_page(present_spinner_page)
 
     def create_spinner_page(self):
         spinner = Gtk.Spinner()
         spinner.start()
         return spinner
-
-    def present_spinner_page(self, status):
-        """Show a spinner in the middle of the view"""
-
-        def on_exit_page():
-            self.stack.set_back_allowed(True)
-
-        self.set_status(status)
-        self.stack.present_page("spinner")
-        self.display_cancel_button()
-        self.stack.set_back_allowed(False)
-        return on_exit_page
 
     # Log Page
     #
