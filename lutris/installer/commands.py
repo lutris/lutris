@@ -247,7 +247,9 @@ class CommandsMixin:
                 logger.debug("Found %s on cdrom %s", requires, drive)
                 self.game_disc = drive
                 self._iter_commands()
-                break
+                return
+        
+        raise RuntimeError(_("The required file '%s' could not be located.") % requires)
 
     def mkdir(self, directory):
         """Create directory"""
