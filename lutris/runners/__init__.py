@@ -16,7 +16,6 @@ __all__ = [
     "mame",
     "mednafen",
     "scummvm",
-    "residualvm",
     "libretro",
     # Commodore
     "fsuae",
