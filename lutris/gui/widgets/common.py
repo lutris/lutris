@@ -73,6 +73,9 @@ class FileChooserEntry(Gtk.Box):
         self.entry.set_activates_default(activates_default)
         self.entry.set_completion(self.get_completion())
         self.entry.connect("changed", self.on_entry_changed)
+        self.entry.connect("activate", self.on_activate)
+        self.entry.connect("focus-out-event", self.on_focus_out)
+
         if path:
             self.entry.set_text(path)
 
@@ -137,18 +140,15 @@ class FileChooserEntry(Gtk.Box):
         if not path:
             return
 
-        path = path.strip("\r\n")
+        # If the user isn't editing this entry, we'll apply updates
+        # immediately upon any change
 
-        if path.startswith('file:///'):
-            path = urllib.parse.unquote(path[len('file://'):])
+        if not self.entry.has_focus():
+            if self.commit_changes():
+                # We changed the text on commit, so we return here to avoid a double changed signal
+                return
 
-        path = os.path.expanduser(path)
-        self.update_completion(path)
         self.path = path
-
-        if path != widget.get_text():
-            widget.set_text(path)  # fires the changed signal again, so all this re-runs
-            return
 
         if self.warn_if_ntfs and LINUX_SYSTEM.get_fs_type_for_path(path) == "ntfs":
             ntfs_box = Gtk.Box(spacing=6, visible=True)
@@ -179,6 +179,29 @@ class FileChooserEntry(Gtk.Box):
             self.pack_end(non_writable_destination_label, False, False, 10)
 
         self.emit("changed")
+
+    def on_activate(self, _widget):
+        self.commit_changes()
+
+    def on_focus_out(self, _widget, _event):
+        self.commit_changes()
+
+    def commit_changes(self):
+        original_path = self.get_text()
+        path = original_path.strip("\r\n")
+
+        if path.startswith('file:///'):
+            path = urllib.parse.unquote(path[len('file://'):])
+
+        path = os.path.expanduser(path)
+
+        self.update_completion(path)
+
+        if path != original_path:
+            self.entry.set_text(path)
+            return True
+
+        return False
 
     def update_completion(self, current_path):
         """Update the auto-completion widget with the current path"""
