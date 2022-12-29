@@ -172,9 +172,8 @@ Lutris supports the following game identifiers:
 Example: The `appid` for https://store.steampowered.com/app/238960/Path_of_Exile/ is `238960`.
 This ID is used for installing and running the game.
 
-`game_id`: Identifier used for ScummVM / ResidualVM games. Can be looked up
+`game_id`: Identifier used for ScummVM games. Can be looked up
 on the game compatibility list: https://www.scummvm.org/compatibility/
-and https://www.residualvm.org/compatibility/
 
 `gogid`: GOG identifier. Can be looked up on https://www.gogdb.org/products Be
 sure to reference the base game and not one of its package or DLC.
