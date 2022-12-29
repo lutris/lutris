@@ -344,23 +344,20 @@ class InstallerWindow(BaseApplicationWindow,
     def on_destination_confirmed(self, _button=None):
         """Let the interpreter take charge of the next stages."""
 
+        @watch_errors(handler_object=self)
         def launch_install():
             # This is a shim method to allow exceptions from
             # the interpreter to be reported via watch_errors().
-            try:
-                # At this point we start making changes, like creating the game
-                # directory.
-                #
-                # From here out, we'll require confirmation to close this window.
-                self.install_in_progress = True
 
-                if not self.interpreter.launch_install(self):
-                    self.stack.restore_current_page(previous_page)
-            except Exception as ex:
-                ErrorDialog(str(ex), parent=self)
-                self.stack.restore_current_page(previous_page)
+            # At this point we start making changes, like creating the game
+            # directory.
+            #
+            # From here out, we'll require confirmation to close this window.
+            self.install_in_progress = True
 
-        previous_page = self.stack.save_current_page()
+            if not self.interpreter.launch_install(self):
+                self.stack.navigation_reset()
+
         self.load_spinner_page(_("Preparing Lutris for installation"), cancellable=False)
         GLib.idle_add(launch_install)
 
@@ -648,8 +645,13 @@ class InstallerWindow(BaseApplicationWindow,
         def present_input_menu_page():
             """Display an input request as a dropdown menu with options."""
             def on_continue(_button):
-                self.stack.restore_current_page(previous_page)
-                callback(alias, combobox)
+                try:
+                    callback(alias, combobox)
+                    self.stack.restore_current_page(previous_page)
+                except Exception as err:
+                    # If the callback fails, the installation does not continue
+                    # to run, so we'll go to error page.
+                    self.load_error_message_page(str(err))
 
             model = Gtk.ListStore(str, str)
 
@@ -694,6 +696,8 @@ class InstallerWindow(BaseApplicationWindow,
                     callback(*args, **kwargs)
                     self.stack.restore_current_page(previous_page)
                 except Exception as err:
+                    # If the callback fails, the installation does not continue
+                    # to run, so we'll go to error page.
                     self.load_error_message_page(str(err))
 
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -981,6 +985,8 @@ class InstallerWindow(BaseApplicationWindow,
                     self._update_back_button()
 
         def navigation_reset(self):
+            """This reverse the effect of jump_to_page(), returning to the last
+            page actually navigate to."""
             if self.current_navigated_page_presenter:
                 if self.current_page_presenter != self.current_navigated_page_presenter:
                     self._go_to_page(self.current_navigated_page_presenter, True, Gtk.StackTransitionType.SLIDE_RIGHT)
