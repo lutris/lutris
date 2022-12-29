@@ -787,6 +787,7 @@ class InstallerWindow(BaseApplicationWindow,
         self.stack.present_page("nothing")
         self.display_continue_button(self.on_launch_clicked,
                                      continue_button_label=_("_Launch"),
+                                     suggested_action=False,
                                      extra_buttons=[self.close_button])
 
     def on_launch_clicked(self, button):
@@ -829,6 +830,7 @@ class InstallerWindow(BaseApplicationWindow,
     def display_continue_button(self, handler,
                                 continue_button_label=_("Continue"),
                                 sensitive=True,
+                                suggested_action=True,
                                 extra_buttons=None):
         """This shows the continue button, plus any extra buttons you indicate.
         This will also set the label and sensitivity of the continue button.
@@ -844,6 +846,14 @@ class InstallerWindow(BaseApplicationWindow,
 
         self.continue_button.set_label(continue_button_label)
         self.continue_button.set_sensitive(sensitive)
+
+        style_context = self.continue_button.get_style_context()
+
+        if suggested_action:
+            style_context.add_class("suggested-action")
+        else:
+            style_context.remove_class("suggested-action")
+
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
 
