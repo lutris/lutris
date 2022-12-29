@@ -216,6 +216,8 @@ class CommandsMixin:
         if choosen_option:
             self.user_inputs.append({"alias": alias, "value": choosen_option})
             self._iter_commands()
+        else:
+            raise RuntimeError("A required input option was not selected, so the installation can't continue.")
 
     def insert_disc(self, data):
         """Request user to insert an optical disc"""
@@ -248,7 +250,7 @@ class CommandsMixin:
                 self.game_disc = drive
                 self._iter_commands()
                 return
-        
+
         raise RuntimeError(_("The required file '%s' could not be located.") % requires)
 
     def mkdir(self, directory):

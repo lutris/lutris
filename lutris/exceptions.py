@@ -44,16 +44,17 @@ class UnavailableRunnerError(Exception):
     """Raised when a runner is not installed or not installed fully."""
 
 
-def watch_errors(error_result=None):
+def watch_errors(error_result=None, handler_object=None):
     """Decorator used to catch exceptions for GUI signal handlers. This
     catches any exception from the decorated function and calls
     on_watch_errors(error) on the first argument, which we presume to be self.
     and then the method will return 'error_result'"""
+    captured_handler_object = handler_object
 
     def inner_decorator(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
-            myself = args[0]
+            myself = captured_handler_object or args[0]
             try:
                 return function(*args, **kwargs)
             except Exception as ex:
