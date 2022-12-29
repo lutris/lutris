@@ -830,8 +830,17 @@ class InstallerWindow(BaseApplicationWindow,
                                 continue_button_label=_("Continue"),
                                 sensitive=True,
                                 extra_buttons=None):
+        """This shows the continue button, plus any extra buttons you indicate.
+        This will also set the label and sensitivity of the continue button.
+
+        Finallly, you cna provide the clicked handler for the button,
+        though that can be None to leave it disconnected.
+
+        We call this repeatedly, as we arrive at each page. Each call disconnects
+        the previous clicked handler and connects the new one.
+        """
         buttons = [self.continue_button] + (extra_buttons or [])
-        self.present_buttons(buttons)
+        self.display_buttons(buttons)
 
         self.continue_button.set_label(continue_button_label)
         self.continue_button.set_sensitive(sensitive)
@@ -844,23 +853,22 @@ class InstallerWindow(BaseApplicationWindow,
             self.continue_handler = None
 
     def display_install_button(self, handler, sensitive=True, extra_buttons=None):
+        """Displays the continue button, but labels it 'Install'."""
         self.display_continue_button(handler, continue_button_label=_(
             "_Install"), sensitive=sensitive,
             extra_buttons=[self.source_button] + (extra_buttons or []))
 
     def display_cancel_button(self):
-        self.present_buttons([self.cancel_button])
+        self.display_buttons([self.cancel_button])
 
     def display_eject_button(self):
-        self.present_buttons([self.eject_button, self.cancel_button])
+        self.display_buttons([self.eject_button, self.cancel_button])
 
     def display_no_buttons(self):
-        self.present_buttons([])
+        self.display_buttons([])
 
-        if self.continue_handler:
-            self.continue_button.disconnect(self.continue_handler)
-
-    def present_buttons(self, buttons):
+    def display_buttons(self, buttons):
+        """Shows exactly the buttons given, and hides the others."""
         all_buttons = [self.cancel_button,
                        self.eject_button,
                        self.source_button,
@@ -972,7 +980,7 @@ class InstallerWindow(BaseApplicationWindow,
             self._go_to_page(page_presenter, navigated, Gtk.StackTransitionType.NONE)
 
         def _go_to_page(self, page_presenter, navigated, transition_type):
-            """Switches to a page if 'navigated' is True, then when you navigate
+            """Switches to a page. If 'navigated' is True, then when you navigate
             away from this page, it can go on the navigation stack. It should be
             False for 'temporary' pages that are not part of normal navigation."""
             exit_handler = self.navigation_exit_hander
@@ -1008,7 +1016,7 @@ class InstallerWindow(BaseApplicationWindow,
             return self.stack_pages[name]
 
         def present_replacement_page(self, name, page):
-            """This display a page that is given, rather than lazy-creating one. It
+            """This displays a page that is given, rather than lazy-creating one. It
             still needs a name, but if you re-use a name this will replace the old page.
 
             This is useful for pages that need special initialization each time they
