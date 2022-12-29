@@ -189,6 +189,7 @@ class InstallerWindow(BaseApplicationWindow,
 
     def on_watched_error(self, error):
         ErrorDialog(str(error), parent=self)
+        self.stack.navigation_reset()
 
     def set_status(self, text):
         """Display a short status text."""
@@ -976,6 +977,11 @@ class InstallerWindow(BaseApplicationWindow,
                     self._go_to_page(back_to, True, Gtk.StackTransitionType.SLIDE_RIGHT)
                 finally:
                     self._update_back_button()
+
+        def navigation_reset(self):
+            if self.current_navigated_page_presenter:
+                if self.current_page_presenter != self.current_navigated_page_presenter:
+                    self._go_to_page(self.current_navigated_page_presenter, True, Gtk.StackTransitionType.SLIDE_RIGHT)
 
         def save_current_page(self):
             """Returns a tuple containing information about the current page,
