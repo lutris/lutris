@@ -221,7 +221,7 @@ class InstallerWindow(BaseApplicationWindow,
         command.set_log_buffer(self.log_buffer)
         GLib.idle_add(self.load_log_page)
 
-    def being_disc_prompt(self, message, requires, installer, callback):
+    def begin_disc_prompt(self, message, requires, installer, callback):
         GLib.idle_add(self.load_ask_for_disc_page, message, requires, installer, callback, )
 
     def begin_input_menu(self, alias, options, preselect, callback):
@@ -692,8 +692,9 @@ class InstallerWindow(BaseApplicationWindow,
             def wrapped_callback(*args, **kwargs):
                 try:
                     callback(*args, **kwargs)
+                    self.stack.restore_current_page(previous_page)
                 except Exception as err:
-                    ErrorDialog(str(err), parent=self)
+                    self.load_error_message_page(str(err))
 
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             label = InstallerWindow.MarkupLabel(message)
@@ -724,6 +725,7 @@ class InstallerWindow(BaseApplicationWindow,
             else:
                 self.display_cancel_button()
 
+        previous_page = self.stack.save_current_page()
         self.stack.jump_to_page(present_ask_for_disc_page)
 
     @watch_errors()
