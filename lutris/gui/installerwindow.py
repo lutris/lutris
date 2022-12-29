@@ -223,7 +223,7 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
             warn_if_non_empty=True,
             warn_if_ntfs=True
         )
-        location_entry.entry.connect("changed", self.on_target_changed)
+        location_entry.connect("changed", self.on_target_changed)
         self.widget_box.pack_start(location_entry, False, False, 0)
 
     def start_install(self):

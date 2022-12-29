@@ -2,7 +2,6 @@
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 import os
-import urllib
 from gettext import gettext as _
 
 # Third Party Libraries
@@ -421,18 +420,7 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.option_widget = file_chooser
-        file_chooser.entry.connect("changed", self._on_chooser_file_set, option_name)
-
-    def _on_chooser_file_set(self, entry, option):
-        """Action triggered when the field's content changes."""
-        text = entry.get_text()
-        if text.startswith('file:///'):
-            text = urllib.parse.unquote(text[len('file://'):])
-        if not os.path.isabs(text):
-            text = os.path.expanduser(text)
-        if text != entry.get_text():
-            entry.set_text(text)
-        self.option_changed(entry.get_parent(), option, text)
+        file_chooser.connect("changed", self._on_chooser_file_set, option_name)
 
     # Directory chooser
     def generate_directory_chooser(self, option, path=None):
@@ -445,17 +433,15 @@ class ConfigBox(VBox):
         directory_chooser = FileChooserEntry(
             title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER, path=path, default_path=default_path
         )
-        directory_chooser.entry.connect("changed", self._on_chooser_dir_set, option_name)
+        directory_chooser.connect("changed", self._on_chooser_file_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(directory_chooser, True, True, 0)
         self.option_widget = directory_chooser
 
-    def _on_chooser_dir_set(self, entry, option):
+    def _on_chooser_file_set(self, entry, option):
         """Action triggered when the field's content changes."""
         text = entry.get_text()
-        if text.startswith('file:///'):
-            text = urllib.parse.unquote(text[len('file://'):])
         if text != entry.get_text():
             entry.set_text(text)
         self.option_changed(entry.get_parent(), option, text)

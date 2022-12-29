@@ -45,7 +45,7 @@ class CacheConfigurationDialog(ModalDialog):
             path=self.cache_path,
             activates_default=True
         )
-        path_chooser.entry.connect("changed", self._on_cache_path_set)
+        path_chooser.connect("changed", self._on_cache_path_set)
         box.pack_start(path_chooser, True, True, 0)
 
         prefs_box.pack_start(box, False, False, 6)

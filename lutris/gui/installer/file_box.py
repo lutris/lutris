@@ -167,7 +167,7 @@ class InstallerFileBox(Gtk.VBox):
                 Gtk.FileChooserAction.OPEN,
                 path=None
             )
-            location_entry.entry.connect("changed", self.on_location_changed)
+            location_entry.connect("changed", self.on_location_changed)
             location_entry.show()
             box.pack_start(location_entry, False, False, 0)
             if self.installer_file.uses_pga_cache(create=True):

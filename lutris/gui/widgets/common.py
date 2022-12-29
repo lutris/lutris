@@ -1,6 +1,7 @@
 """Misc widgets used in the GUI."""
 # Standard Library
 import os
+import urllib.parse
 from gettext import gettext as _
 
 # Third Party Libraries
@@ -39,6 +40,10 @@ class FileChooserEntry(Gtk.Box):
     """Editable entry with a file picker button"""
 
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
+
+    __gsignals__ = {
+        "changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
 
     def __init__(
         self,
@@ -131,9 +136,20 @@ class FileChooserEntry(Gtk.Box):
         path = widget.get_text()
         if not path:
             return
+
+        path = path.strip("\r\n")
+
+        if path.startswith('file:///'):
+            path = urllib.parse.unquote(path[len('file://'):])
+
         path = os.path.expanduser(path)
         self.update_completion(path)
         self.path = path
+
+        if path != widget.get_text():
+            widget.set_text(path)  # fires the changed signal again, so all this re-runs
+            return
+
         if self.warn_if_ntfs and LINUX_SYSTEM.get_fs_type_for_path(path) == "ntfs":
             ntfs_box = Gtk.Box(spacing=6, visible=True)
             warning_image = Gtk.Image(visible=True)
@@ -161,6 +177,8 @@ class FileChooserEntry(Gtk.Box):
                 "is not writable by the current user."
             ))
             self.pack_end(non_writable_destination_label, False, False, 10)
+
+        self.emit("changed")
 
     def update_completion(self, current_path):
         """Update the auto-completion widget with the current path"""
