@@ -208,7 +208,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 return False
 
         self.install_runners(ui_delegate)
-        self.create_game_folder()
         return True
 
     def create_game_folder(self):
@@ -314,8 +313,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def launch_installer_commands(self):
         """Run the pre-installation steps and launch install."""
-        if self.target_path and os.path.exists(self.target_path):
-            os.chdir(self.target_path)
+        self.create_game_folder()
+
         os.makedirs(self.cache_path, exist_ok=True)
 
         # Copy extras to game folder
@@ -357,7 +356,22 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             if status_text:
                 self.interpreter_ui_delegate.report_status(status_text)
             logger.debug("Installer command: %s", command)
-            AsyncCall(method, self._iter_commands, params)
+
+            if self.target_path and os.path.exists(self.target_path):
+                # Establish a CWD for the command, but remove it afterwards
+                # for safety. We'd better not rely on this, many tasks can be
+                # fiddling with the CWD at the same time.
+                def dispatch():
+                    prev_cwd = os.getcwd()
+                    os.chdir(self.target_path)
+                    try:
+                        return method(params)
+                    finally:
+                        os.chdir(prev_cwd)
+
+                AsyncCall(dispatch, self._iter_commands)
+            else:
+                AsyncCall(method, self._iter_commands, params)
         else:
             logger.debug("Commands %d out of %s completed", self.current_command, len(commands))
             self._finish_install()
