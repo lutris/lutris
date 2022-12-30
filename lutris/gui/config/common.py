@@ -54,6 +54,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self.runner_index = None
         self.lutris_config = None
         self.service_medias = {"icon": LutrisIcon(), "banner": LutrisBanner(), "coverart_big": LutrisCoverart()}
+        self.notebook_page_generators = {}
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -71,9 +72,16 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     def build_notebook(self):
         self.notebook = Gtk.Notebook(visible=True)
         self.notebook.set_show_border(False)
-        self.notebook.connect("switch-page", lambda _n, _p, index:
-                              self.update_advanced_switch_visibilty(index))
+        self.notebook.connect("switch-page", self.on_notebook_switch_page)
         self.vbox.pack_start(self.notebook, True, True, 0)
+
+    def on_notebook_switch_page(self, notebook, page, index):
+        generator = self.notebook_page_generators.get(index)
+        if generator:
+            generator()
+            del self.notebook_page_generators[index]
+
+        self.update_advanced_switch_visibilty(index)
 
     def build_tabs(self, config_level):
         """Build tabs (for game and runner levels)"""
@@ -327,34 +335,47 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
                     self.game.runner = runners.import_runner(self.runner_name)()
                 except runners.InvalidRunner:
                     pass
-            self.game_box = GameBox(self.lutris_config, self.game)
-            game_sw = self.build_scrolled_window(self.game_box)
+            self.game_box = self._build_options_tab(_("Game options"),
+                                                    lambda: GameBox(self.lutris_config, self.game))
         elif self.runner_name:
             game = Game(None)
             game.runner_name = self.runner_name
-            self.game_box = GameBox(self.lutris_config, game)
-            game_sw = self.build_scrolled_window(self.game_box)
+            self.game_box = self._build_options_tab(_("Game options"),
+                                                    lambda: GameBox(self.lutris_config, game))
         else:
-            game_sw = Gtk.Label(label=self.no_runner_label)
-        self._add_notebook_tab(game_sw, _("Game options"))
+            self._build_missing_options_tab(self.no_runner_label, _("Game options"))
 
     def _build_runner_tab(self, _config_level):
         if self.runner_name:
-            self.runner_box = RunnerBox(self.lutris_config, self.game)
-            runner_sw = self.build_scrolled_window(self.runner_box)
+            self.runner_box = self._build_options_tab(_("Runner options"),
+                                                      lambda: RunnerBox(self.lutris_config))
         else:
-            runner_sw = Gtk.Label(label=self.no_runner_label)
-        page_index = self._add_notebook_tab(runner_sw, _("Runner options"))
-        self.option_page_indices.add(page_index)
+            self._build_missing_options_tab(self.no_runner_label, _("Runner options"))
 
     def _build_system_tab(self, _config_level):
+        self.system_box = self._build_options_tab(_("System options"),
+                                                  lambda: SystemBox(self.lutris_config))
+
+    def _build_options_tab(self, notebook_label, box_factory):
         if not self.lutris_config:
             raise RuntimeError("Lutris config not loaded yet")
-        self.system_box = SystemBox(self.lutris_config)
+        config_box = box_factory()
         page_index = self._add_notebook_tab(
-            self.build_scrolled_window(self.system_box),
-            _("System options")
+            self.build_scrolled_window(config_box),
+            notebook_label
         )
+
+        if page_index == 0:
+            config_box.generate_widgets()
+        else:
+            self.notebook_page_generators[page_index] = config_box.generate_widgets
+
+        self.option_page_indices.add(page_index)
+        return config_box
+
+    def _build_missing_options_tab(self, missing_label, notebook_label):
+        label = Gtk.Label(label=self.no_runner_label)
+        page_index = self._add_notebook_tab(label, notebook_label)
         self.option_page_indices.add(page_index)
 
     def _add_notebook_tab(self, widget, label):

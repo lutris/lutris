@@ -234,13 +234,13 @@ class FileChooserEntry(Gtk.Box):
 class Label(Gtk.Label):
     """Standardised label for config vboxes."""
 
-    def __init__(self, message=None):
+    def __init__(self, message=None, width_request=230):
         """Custom init of label."""
         super().__init__(label=message)
         self.set_line_wrap(True)
         self.set_max_width_chars(22)
         self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        self.set_size_request(230, -1)
+        self.set_size_request(width_request, -1)
         self.set_alignment(0, 0.5)
         self.set_justify(Gtk.Justification.LEFT)
 
