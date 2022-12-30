@@ -61,6 +61,8 @@ class InstallerScriptBox(Gtk.VBox):
 
         install_button = Gtk.Button(_("Install"))
         install_button.connect("clicked", self.on_install_clicked)
+        style_context = install_button.get_style_context()
+        style_context.add_class("suggested-action")
         align.add(install_button)
         return align
 
