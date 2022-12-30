@@ -270,6 +270,7 @@ class InstallerWindow(BaseApplicationWindow,
         self.set_status("")
         self.stack.present_page("choose_installer")
         self.display_cancel_button()
+        self.cache_button.set_sensitive(True)
 
     @watch_errors()
     def on_installer_selected(self, _widget, installer_version):
@@ -356,6 +357,7 @@ class InstallerWindow(BaseApplicationWindow,
         self.stack.present_page("destination")
         self.display_continue_button(self.on_destination_confirmed,
                                      extra_buttons=[self.source_button])
+        self.cache_button.set_sensitive(True)
 
     @watch_errors()
     def on_destination_confirmed(self, _button=None):
@@ -463,6 +465,7 @@ class InstallerWindow(BaseApplicationWindow,
         ))
         self.stack.present_page("extras")
         self.display_continue_button(on_continue, extra_buttons=[self.source_button])
+        self.cache_button.set_sensitive(True)
 
     @watch_errors()
     def on_extra_toggled(self, _widget, path, model):
@@ -551,7 +554,7 @@ class InstallerWindow(BaseApplicationWindow,
 
         self.set_status(_(
             "Please review the files needed for the installation then click 'Continue'"))
-        self.cache_button.set_sensitive(True)
+        self.cache_button.set_sensitive(False)
         self.stack.present_page("installer_files")
         self.display_install_button(self.on_files_confirmed, sensitive=self.installer_files_box.is_ready)
 
@@ -689,6 +692,7 @@ class InstallerWindow(BaseApplicationWindow,
             combobox.add_attribute(renderer_text, "text", 1)
             combobox.set_id_column(0)
             combobox.set_halign(Gtk.Align.CENTER)
+            combobox.set_valign(Gtk.Align.START)
             combobox.set_active_id(preselect)
             combobox.connect("changed", self.on_input_menu_changed)
 

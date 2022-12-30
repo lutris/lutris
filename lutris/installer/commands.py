@@ -209,9 +209,7 @@ class CommandsMixin:
         self.interpreter_ui_delegate.begin_input_menu(alias, options, preselect, self._on_input_menu_validated)
         return "STOP"
 
-    def _on_input_menu_validated(self, _widget, *args):
-        alias = args[0]
-        menu = args[1]
+    def _on_input_menu_validated(self, alias, menu):
         choosen_option = menu.get_active_id()
         if choosen_option:
             self.user_inputs.append({"alias": alias, "value": choosen_option})
