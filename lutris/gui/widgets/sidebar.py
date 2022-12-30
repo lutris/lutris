@@ -15,6 +15,7 @@ from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import has_stock_icon
+from lutris.installer.interpreter import ScriptInterpreter
 from lutris.services.base import AuthTokenExpired, BaseService
 from lutris.util.jobs import AsyncCall
 
@@ -286,6 +287,7 @@ class LutrisSidebar(Gtk.ListBox):
         }
         GObject.add_emission_hook(RunnerBox, "runner-installed", self.update)
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update)
+        GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.on_services_changed)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
