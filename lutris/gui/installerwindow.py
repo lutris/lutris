@@ -376,12 +376,15 @@ class InstallerWindow(BaseApplicationWindow,
         """Set the installation target for the game."""
         self.interpreter.target_path = os.path.expanduser(entry.get_text())
 
+    @watch_errors()
     def on_create_desktop_shortcut_clicked(self, checkbutton):
         self.config["create_desktop_shortcut"] = checkbutton.get_active()
 
+    @watch_errors()
     def on_create_menu_shortcut_clicked(self, checkbutton):
         self.config["create_menu_shortcut"] = checkbutton.get_active()
 
+    @watch_errors()
     def on_create_steam_shortcut_clicked(self, checkbutton):
         self.config["create_steam_shortcut"] = checkbutton.get_active()
 
@@ -562,6 +565,7 @@ class InstallerWindow(BaseApplicationWindow,
         self.display_install_button(None, sensitive=False)
         return on_exit_page
 
+    @watch_errors()
     def on_files_ready(self, _widget, files_ready):
         """Toggle state of continue button based on ready state"""
         self.display_install_button(self.on_files_confirmed, sensitive=files_ready)
@@ -698,6 +702,7 @@ class InstallerWindow(BaseApplicationWindow,
         previous_page = self.stack.save_current_page()
         self.stack.jump_to_page(present_input_menu_page)
 
+    @watch_errors()
     def on_input_menu_changed(self, combobox):
         """Enable continue button if a non-empty choice is selected"""
         self.continue_button.set_sensitive(bool(combobox.get_active_id()))
@@ -817,6 +822,7 @@ class InstallerWindow(BaseApplicationWindow,
                                      continue_button_label=_("_Launch"),
                                      suggested_action=False)
 
+    @watch_errors()
     def on_launch_clicked(self, button):
         """Launch a game after it's been installed."""
         button.set_sensitive(False)
@@ -827,6 +833,7 @@ class InstallerWindow(BaseApplicationWindow,
         else:
             logger.error("Game has no ID, launch button should not be drawn")
 
+    @watch_errors()
     def on_window_focus(self, _widget, *_args):
         """Remove urgency hint (flashing indicator) when window receives focus"""
         self.set_urgency_hint(False)
