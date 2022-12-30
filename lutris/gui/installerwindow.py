@@ -56,9 +56,13 @@ class InstallerWindow(BaseApplicationWindow,
         self.installers = installers
         self.config = {}
         self.install_in_progress = False
+        self.install_complete = False
         self.interpreter = None
         self.installation_kind = installation_kind
         self.continue_handler = None
+
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
 
         # Header labels
 
@@ -75,12 +79,14 @@ class InstallerWindow(BaseApplicationWindow,
         self.cache_button = self.add_start_button(_("Cache"), self.on_cache_clicked,
                                                   tooltip=_("Change where Lutris downloads game installer files."))
 
-        self.close_button = self.add_end_button(_("_Close"), self.on_close_clicked)
         self.continue_button = self.add_end_button(_("_Continue"))
-        self.cancel_button = self.add_end_button(_("C_ancel"), self.on_cancel_clicked,
-                                                 tooltip=_("Abort and revert the installation"))
+        self.cancel_button = self.add_end_button(_("_Cancel"), self.on_cancel_clicked)
         self.source_button = self.add_end_button(_("_View source"), self.on_source_clicked)
         self.eject_button = self.add_end_button(_("_Eject"), self.on_eject_clicked)
+
+        # The cancel button doubles as 'Close' and 'Abort' depending on the state of the install
+        key, mod = Gtk.accelerator_parse("Escape")
+        self.cancel_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         # Navigation stack
 
@@ -150,32 +156,42 @@ class InstallerWindow(BaseApplicationWindow,
     def on_back_clicked(self, _button):
         self.stack.navigate_back()
 
+    def on_destroy(self, _widget, _data=None):
+        self.on_cancel_clicked()
+
+    def on_key_pressed(self, _widget, event):
+        pass
+
+    @watch_errors()
     def on_cancel_clicked(self, _button=None):
-        """Ask a confirmation before cancelling the install"""
-        widgets = []
+        """Ask a confirmation before cancelling the install, if it has started."""
+        if self.install_in_progress:
+            widgets = []
 
-        remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
-        if self.interpreter and self.interpreter.target_path and \
-                self.installation_kind == InstallationKind.INSTALL and \
-                is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
-            remove_checkbox.set_active(self.interpreter.game_dir_created)
-            remove_checkbox.show()
-            widgets.append(remove_checkbox)
+            remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
+            if self.interpreter and self.interpreter.target_path and \
+                    self.installation_kind == InstallationKind.INSTALL and \
+                    is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
+                remove_checkbox.set_active(self.interpreter.game_dir_created)
+                remove_checkbox.show()
+                widgets.append(remove_checkbox)
 
-        confirm_cancel_dialog = QuestionDialog(
-            {
-                "parent": self,
-                "question": _("Are you sure you want to cancel the installation?"),
-                "title": _("Cancel installation?"),
-                "widgets": widgets
-            }
-        )
-        if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
-            logger.debug("User aborted installation cancellation")
-            return True
-        self.installer_files_box.stop_all()
+            confirm_cancel_dialog = QuestionDialog(
+                {
+                    "parent": self,
+                    "question": _("Are you sure you want to cancel the installation?"),
+                    "title": _("Cancel installation?"),
+                    "widgets": widgets
+                }
+            )
+            if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
+                logger.debug("User aborted installation cancellation")
+                return
+            self.installer_files_box.stop_all()
+            if self.interpreter:
+                self.interpreter.revert(remove_game_dir=remove_checkbox.get_active())
+
         if self.interpreter:
-            self.interpreter.revert(remove_game_dir=remove_checkbox.get_active())
             self.interpreter.cleanup()  # still remove temporary downloads in any case
         self.destroy()
 
@@ -252,7 +268,7 @@ class InstallerWindow(BaseApplicationWindow,
         """Stage where we choose an install script."""
         self.set_status("")
         self.stack.present_page("choose_installer")
-        self.display_no_buttons()
+        self.display_cancel_button()
 
     @watch_errors()
     def on_installer_selected(self, _widget, installer_version):
@@ -549,7 +565,7 @@ class InstallerWindow(BaseApplicationWindow,
         self.set_status(_("Downloading game data"))
         self.cache_button.set_sensitive(False)
         self.stack.present_page("installer_files")
-        self.display_install_button(None, sensitive=False, extra_buttons=[self.cancel_button])
+        self.display_install_button(None, sensitive=False)
         return on_exit_page
 
     def on_files_ready(self, _widget, files_ready):
@@ -669,7 +685,7 @@ class InstallerWindow(BaseApplicationWindow,
             combobox.connect("changed", self.on_input_menu_changed)
 
             self.stack.present_replacement_page("input_menu", combobox)
-            self.display_continue_button(on_continue, extra_buttons=[self.cancel_button])
+            self.display_continue_button(on_continue)
             self.continue_button.grab_focus()
             self.on_input_menu_changed(combobox)
 
@@ -780,10 +796,11 @@ class InstallerWindow(BaseApplicationWindow,
             game.save()
 
         self.install_in_progress = False
+        self.install_complete = True
 
         self.stack.jump_to_page(lambda *x: self.present_finished_page(game_id, status))
         self.stack.discard_navigation()
-        self.close_button.grab_focus()
+        self.cancel_button.grab_focus()
 
         if not self.is_active():
             self.set_urgency_hint(True)  # Blink in taskbar
@@ -794,28 +811,17 @@ class InstallerWindow(BaseApplicationWindow,
         self.stack.present_page("nothing")
         self.display_continue_button(self.on_launch_clicked,
                                      continue_button_label=_("_Launch"),
-                                     suggested_action=False,
-                                     extra_buttons=[self.close_button])
+                                     suggested_action=False)
 
     def on_launch_clicked(self, button):
         """Launch a game after it's been installed."""
         button.set_sensitive(False)
-        self.on_close_clicked(button)
+        self.on_cancel_clicked(button)
         game = Game(self.interpreter.installer.game_id)
         if game.id:
             game.emit("game-launch")
         else:
             logger.error("Game has no ID, launch button should not be drawn")
-
-    def on_close_clicked(self, button):
-        """Close the window. During an install this is equivalent the 'Cancel' button."""
-        if self.install_in_progress:
-            if self.on_cancel_clicked(button):
-                return True
-        else:
-            if self.interpreter:
-                self.interpreter.cleanup()
-            self.destroy()
 
     def on_window_focus(self, _widget, *_args):
         """Remove urgency hint (flashing indicator) when window receives focus"""
@@ -839,18 +845,15 @@ class InstallerWindow(BaseApplicationWindow,
                                 sensitive=True,
                                 suggested_action=True,
                                 extra_buttons=None):
-        """This shows the continue button, plus any extra buttons you indicate.
-        This will also set the label and sensitivity of the continue button.
+        """This shows the continue button, the close button, and any extra buttons you
+        indicate. This will also set the label and sensitivity of the continue button.
 
-        Finallly, you cna provide the clicked handler for the button,
+        Finallly, you cna provide the clicked handler for the continue button,
         though that can be None to leave it disconnected.
 
         We call this repeatedly, as we arrive at each page. Each call disconnects
         the previous clicked handler and connects the new one.
         """
-        buttons = [self.continue_button] + (extra_buttons or [])
-        self.display_buttons(buttons)
-
         self.continue_button.set_label(continue_button_label)
         self.continue_button.set_sensitive(sensitive)
 
@@ -869,11 +872,14 @@ class InstallerWindow(BaseApplicationWindow,
         else:
             self.continue_handler = None
 
-    def display_install_button(self, handler, sensitive=True, extra_buttons=None):
+        buttons = [self.continue_button, self.cancel_button] + (extra_buttons or [])
+        self.display_buttons(buttons)
+
+    def display_install_button(self, handler, sensitive=True):
         """Displays the continue button, but labels it 'Install'."""
         self.display_continue_button(handler, continue_button_label=_(
             "_Install"), sensitive=sensitive,
-            extra_buttons=[self.source_button] + (extra_buttons or []))
+            extra_buttons=[self.source_button])
 
     def display_cancel_button(self):
         self.display_buttons([self.cancel_button])
@@ -885,12 +891,24 @@ class InstallerWindow(BaseApplicationWindow,
         self.display_buttons([])
 
     def display_buttons(self, buttons):
-        """Shows exactly the buttons given, and hides the others."""
-        all_buttons = [self.cancel_button,
-                       self.eject_button,
+        """Shows exactly the buttons given, and hides the others. Updates the close button
+        according to whether the install has started."""
+
+        style_context = self.cancel_button.get_style_context()
+
+        if self.install_in_progress:
+            self.cancel_button.set_label(_("_Abort"))
+            self.cancel_button.set_tooltip_text(_("Abort and revert the installation"))
+            style_context.add_class("destructive-action")
+        else:
+            self.cancel_button.set_label(_("_Close") if self.install_complete else _("_Cancel"))
+            self.cancel_button.set_tooltip_text("")
+            style_context.remove_class("destructive-action")
+
+        all_buttons = [self.eject_button,
                        self.source_button,
                        self.continue_button,
-                       self.close_button]
+                       self.cancel_button]
 
         for b in all_buttons:
             b.set_visible(b in buttons)
