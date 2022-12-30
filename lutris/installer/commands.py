@@ -14,7 +14,7 @@ from lutris import runtime
 from lutris.cache import get_cache_path
 from lutris.command import MonitoredCommand
 from lutris.database.games import get_game_by_field
-from lutris.exceptions import UnavailableRunnerError
+from lutris.exceptions import UnavailableRunnerError, watch_errors
 from lutris.game import Game
 from lutris.installer.errors import ScriptingError
 from lutris.runners import import_task
@@ -440,14 +440,16 @@ class CommandsMixin:
             return "STOP"
         return None
 
+    @watch_errors(error_result=False)
     def _monitor_task(self, command):
         if not command.is_running:
             logger.debug("Return code: %s", command.return_code)
             if command.return_code not in (str(command.accepted_return_code), "0"):
                 raise ScriptingError(_("Command exited with code %s") % command.return_code)
+
             self._iter_commands()
             return False
-        return True
+        return True  # keep checking
 
     def write_file(self, params):
         """Write text to a file."""
