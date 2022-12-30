@@ -119,6 +119,7 @@ class InstallerWindow(BaseApplicationWindow,
         self.installer_files_box.connect("files-ready", self.on_files_ready)
 
         self.log_buffer = Gtk.TextBuffer()
+        self.error_reporter = self.load_error_message_page
 
         # And... go!
         self.show_all()
@@ -227,7 +228,7 @@ class InstallerWindow(BaseApplicationWindow,
 
     def report_error(self, error):
         message = repr(error)
-        GLib.idle_add(self.load_error_message_page, message)
+        GLib.idle_add(self.error_reporter, message)
 
     def report_status(self, status):
         GLib.idle_add(self.set_status, status)
@@ -648,8 +649,17 @@ class InstallerWindow(BaseApplicationWindow,
     def present_log_page(self):
         """Creates a TextBuffer and attach it to a command"""
 
+        def on_exit_page():
+            self.error_reporter = saved_reporter
+
+        def on_error(error):
+            self.set_status(str(error))
+
+        saved_reporter = self.error_reporter
+        self.error_reporter = on_error
         self.stack.present_page("log")
         self.display_cancel_button()
+        return on_exit_page
 
     # Input Menu Page
     #
