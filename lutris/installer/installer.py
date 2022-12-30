@@ -5,6 +5,7 @@ from gettext import gettext as _
 
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
+from lutris.exceptions import AuthenticationError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
@@ -144,14 +145,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         """Gathers necessary files before iterating through them."""
         if not self.script_files:
             return
-        if not self.service:
-            return
-        if self.service.online and not self.service.is_connected():
-            logger.info("Not authenticated to %s", self.service.id)
-            return
+        if self.service and self.service.online and not self.service.is_connected():
+            raise AuthenticationError(_("YOu are not authenticated to %s"), self.service.id)
 
-        installer_files = None
-        installer_file_id = self.get_user_provided_file()
+        installer_file_id = self.get_user_provided_file() if self.service else None
 
         self.files = [file.copy() for file in self.script_files if file.id != installer_file_id]
 
@@ -159,7 +156,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         for file in self.files:
             file.set_url(self.interpreter._substitute(file.url))
 
-        if installer_file_id:
+        if installer_file_id and self.service:
             logger.info("Getting files for %s", installer_file_id)
             if self.service.has_extras:
                 logger.info("Adding selected extras to downloads")
