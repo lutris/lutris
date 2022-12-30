@@ -5,7 +5,7 @@ import urllib.parse
 from gettext import gettext as _
 
 # Third Party Libraries
-from gi.repository import GObject, Gtk, Pango
+from gi.repository import GLib, GObject, Gtk, Pango
 
 # Lutris Modules
 from lutris.gui.widgets.utils import get_stock_icon
@@ -75,6 +75,7 @@ class FileChooserEntry(Gtk.Box):
         self.entry.connect("changed", self.on_entry_changed)
         self.entry.connect("activate", self.on_activate)
         self.entry.connect("focus-out-event", self.on_focus_out)
+        self.entry.connect("backspace", self.on_backspace)
 
         if path:
             self.entry.set_text(path)
@@ -144,7 +145,7 @@ class FileChooserEntry(Gtk.Box):
         # immediately upon any change
 
         if not self.entry.has_focus():
-            if self.commit_changes():
+            if self.normalize_path():
                 # We changed the text on commit, so we return here to avoid a double changed signal
                 return
 
@@ -181,12 +182,27 @@ class FileChooserEntry(Gtk.Box):
         self.emit("changed")
 
     def on_activate(self, _widget):
-        self.commit_changes()
+        self.normalize_path()
+        self.detect_changes()
 
     def on_focus_out(self, _widget, _event):
-        self.commit_changes()
+        self.normalize_path()
+        self.detect_changes()
 
-    def commit_changes(self):
+    def on_backspace(self, _widget):
+        GLib.idle_add(self.detect_changes)
+
+    def detect_changes(self):
+        """Detects if the text has changed and updates self.path and fires
+        the changed signal. Lame, but Gtk.Entry does not always fire its
+        changed event when edited!"""
+        new_path = self.get_text()
+        if self.path != new_path:
+            self.path = new_path
+            self.emit("changed")
+        return False  # used as idle function
+
+    def normalize_path(self):
         original_path = self.get_text()
         path = original_path.strip("\r\n")
 
