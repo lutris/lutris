@@ -133,8 +133,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         return errors
 
     def get_user_provided_file(self):
-        """Return and remove the first user provided file, which is used for game stores"""
-        for index, file in enumerate(self.script_files):
+        """Return the first user provided file, which is used for game stores"""
+        for file in self.script_files:
             if file.url.startswith("N/A"):
                 return file.id
 
