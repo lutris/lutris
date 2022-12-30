@@ -52,7 +52,7 @@ class InstallerWindow(BaseApplicationWindow,
     ):
         BaseApplicationWindow.__init__(self, application=application)
         ScriptInterpreter.InterpreterUIDelegate.__init__(self, service, appid)
-        self.set_default_size(540, 320)
+        self.set_default_size(740, 460)
         self.installers = installers
         self.config = {}
         self.install_in_progress = False
