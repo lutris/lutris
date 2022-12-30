@@ -365,13 +365,6 @@ class InstallerWindow(BaseApplicationWindow,
         def launch_install():
             # This is a shim method to allow exceptions from
             # the interpreter to be reported via watch_errors().
-
-            # At this point we start making changes, like creating the game
-            # directory.
-            #
-            # From here out, we'll require confirmation to close this window.
-            self.install_in_progress = True
-
             if not self.interpreter.launch_install(self):
                 self.stack.navigation_reset()
 
@@ -595,6 +588,7 @@ class InstallerWindow(BaseApplicationWindow,
         GLib.idle_add(self.launch_installer_commands)
 
     def launch_installer_commands(self):
+        self.install_in_progress = True
         self.load_spinner_page(_("Installing game data"))
         self.stack.discard_navigation()  # once we really start installing, no going back!
         self.interpreter.launch_installer_commands()
