@@ -215,7 +215,7 @@ class HumbleBundleService(OnlineService):
                 download_links.append(download)
         return download_links
 
-    def get_installer_files(self, installer, installer_file_id):
+    def get_installer_files(self, installer, installer_file_id, _selected_extras):
         """Replace the user provided file with download links from Humble Bundle"""
         try:
             link = get_humble_download_link(installer.service_appid, installer.runner)

@@ -93,7 +93,6 @@ class GOGService(OnlineService):
 
     def __init__(self):
         super().__init__()
-        self.selected_extras = None
 
         gog_locales = {
             "en": "en-US",
@@ -402,10 +401,10 @@ class GOGService(OnlineService):
                 })
         return download_links
 
-    def get_extra_files(self, downloads, installer):
+    def get_extra_files(self, downloads, installer, selected_extras):
         extra_files = []
         for extra in downloads["bonus_content"]:
-            if str(extra["id"]) not in self.selected_extras:
+            if str(extra["id"]) not in selected_extras:
                 continue
             links = self.query_download_links(extra)
             for link in links:
@@ -481,7 +480,7 @@ class GOGService(OnlineService):
             raise UnavailableGameError(_("Unable to determine correct file to launch installer"))
         return files
 
-    def get_installer_files(self, installer, installer_file_id):
+    def get_installer_files(self, installer, installer_file_id, selected_extras):
         try:
             downloads = self.get_downloads(installer.service_appid)
         except HTTPError as err:
@@ -491,8 +490,8 @@ class GOGService(OnlineService):
             files = self._format_links(installer, installer_file_id, links)
         else:
             files = []
-        if self.selected_extras:
-            for extra_file in self.get_extra_files(downloads, installer):
+        if selected_extras:
+            for extra_file in self.get_extra_files(downloads, installer, selected_extras):
                 files.append(extra_file)
         return files
 

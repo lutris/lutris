@@ -13,11 +13,18 @@ from lutris.util.strings import add_url_tags, gtk_safe
 class InstallerFile:
     """Representation of a file in the `files` sections of an installer"""
 
-    def __init__(self, game_slug, file_id, file_meta):
+    def __init__(self, game_slug, file_id, file_meta, dest_file = None):
         self.game_slug = game_slug
         self.id = file_id.replace("-", "_")  # pylint: disable=invalid-name
         self._file_meta = file_meta
-        self._dest_file = None  # Used to override the destination
+        self._dest_file = dest_file  # Used to override the destination
+
+    def copy(self):
+        """Copies this file object, so the copy can be modified safely."""
+        if isinstance(self._file_meta, dict):
+            return InstallerFile(self.game_slug, self.id, dict(self._file_meta), self.dest_file)
+        else:
+            return InstallerFile(self.game_slug, self.id, self._file_meta, self.dest_file)
 
     @property
     def url(self):

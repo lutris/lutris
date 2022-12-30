@@ -95,10 +95,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         if self.installer.creates_game_folder:
             self.target_path = self.get_default_target()
 
-        # Run variable substitution on the URLs
-        for file in self.installer.files:
-            file.set_url(self._substitute(file.url))
-
     @property
     def appid(self):
         logger.warning("Do not access appid from interpreter")

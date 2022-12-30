@@ -33,11 +33,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
         self.variables = self.script.get("variables", {})
-        self.files = [
+        self.script_files = [
             InstallerFile(self.game_slug, file_id, file_meta)
             for file_desc in self.script.get("files", [])
             for file_id, file_meta in file_desc.items()
         ]
+        self.files = []
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
@@ -93,7 +94,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             # Steam games installs in their steamapps directory
             return False
         if (
-                self.files
+                self.script_files
                 or self.script.get("game", {}).get("gog")
                 or self.script.get("game", {}).get("prefix")
         ):
@@ -131,16 +132,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             errors.append("Scripts can't have both extends and requires")
         return errors
 
-    def pop_user_provided_file(self):
+    def get_user_provided_file(self):
         """Return and remove the first user provided file, which is used for game stores"""
-        for index, file in enumerate(self.files):
+        for index, file in enumerate(self.script_files):
             if file.url.startswith("N/A"):
-                self.files.pop(index)
                 return file.id
+
+        return None
 
     def prepare_game_files(self, patch_version=None):
         """Gathers necessary files before iterating through them."""
-        if not self.files:
+        if not self.script_files:
             return
         if not self.service:
             return
@@ -149,30 +151,31 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return
 
         installer_files = None
-        installer_file_id = self.pop_user_provided_file()
+        installer_file_id = self.get_user_provided_file()
         if not installer_file_id:
             return
 
-        try:
-            logger.info("Getting files for %s", installer_file_id)
-            if self.service.has_extras:
-                logger.info("Adding selected extras to downloads")
-                self.service.selected_extras = self.interpreter.extras
-            if patch_version:
-                # If a patch version is given download the patch files instead of the installer
-                installer_files = self.service.get_patch_files(self, installer_file_id)
-            else:
-                installer_files = self.service.get_installer_files(self, installer_file_id)
-            for installer_file in installer_files:
-                self.files.append(installer_file)
-        finally:
-            if not installer_files:
-                # Failed to get the service game, put back a user provided file
-                logger.debug("Unable to get files from service. Setting %s to manual.", installer_file_id)
-                self.files.insert(0, InstallerFile(self.game_slug, installer_file_id, {
-                    "url": "N/A: Provider installer file",
-                    "filename": ""
-                }))
+        self.files = [file.copy() for file in self.script_files if file.id != installer_file_id]
+
+        # Run variable substitution on the URLs from the script
+        for file in self.files:
+            file.set_url(self.interpreter._substitute(file.url))
+
+        logger.info("Getting files for %s", installer_file_id)
+        if self.service.has_extras:
+            logger.info("Adding selected extras to downloads")
+            self.service.selected_extras = self.interpreter.extras
+        if patch_version:
+            # If a patch version is given download the patch files instead of the installer
+            installer_files = self.service.get_patch_files(self, installer_file_id)
+        else:
+            installer_files = self.service.get_installer_files(self, installer_file_id, self.interpreter.extras)
+        for installer_file in installer_files:
+            self.files.append(installer_file)
+
+        if not installer_files:
+            # Failed to get the service game, put back a user provided file
+            logger.debug("Unable to get files from service. Setting %s to manual.", installer_file_id)
 
     def _substitute_config(self, script_config):
         """Substitute values such as $GAMEDIR in a config dict."""
