@@ -13,6 +13,7 @@ from lutris.gui import dialogs
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
+from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import has_stock_icon
@@ -255,16 +256,27 @@ class RunnerSidebarRow(SidebarRow):
 
 class CategorySidebarRow(SidebarRow):
 
-    def __init__(self, category):
+    def __init__(self, category, application):
         super().__init__(
             category['name'],
             "user_category",
             category['name'],
-            Gtk.Image.new_from_icon_name("folder-symbolic", Gtk.IconSize.MENU)
+            Gtk.Image.new_from_icon_name("folder-symbolic", Gtk.IconSize.MENU),
+            application=application
         )
         self.category = category
 
         self._sort_name = locale.strxfrm(category['name'])
+
+    def get_actions(self):
+        """Return the definition of buttons to be added to the row"""
+        return [
+            ("applications-system-symbolic", _("Edit Games"), self.on_category_clicked, "manage-category-games")
+        ]
+
+    def on_category_clicked(self, button):
+        EditCategoryGamesDialog(self.application.window, self.category)
+        return True
 
     def __lt__(self, other):
         if not isinstance(other, CategorySidebarRow):
@@ -551,7 +563,7 @@ class LutrisSidebar(Gtk.ListBox):
 
         for category in categories:
             if category["name"] not in self.category_rows:
-                new_category_row = CategorySidebarRow(category)
+                new_category_row = CategorySidebarRow(category, application=self.application)
                 self.category_rows[category["name"]] = new_category_row
                 insert_row(new_category_row)
 
