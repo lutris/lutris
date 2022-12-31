@@ -65,8 +65,7 @@ class DialogLaunchUIDelegate(Game.LaunchUIDelegate):
                 return False
 
         if game.runner.use_runtime():
-            runtime_updater = runtime.RuntimeUpdater()
-            if runtime_updater.is_updating():
+            if runtime.RuntimeUpdater.is_updating:
                 logger.warning("Game launching with the runtime is updating")
                 dlg = dialogs.WarningDialog(_("Runtime currently updating"), _(
                     "Game might not work as expected"), parent=self)

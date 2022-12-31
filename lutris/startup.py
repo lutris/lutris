@@ -12,7 +12,6 @@ from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
 from lutris.services import DEFAULT_SERVICES
 from lutris.services.lutris import sync_media
-from lutris.util import update_cache
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
@@ -194,25 +193,18 @@ class StartupRuntimeUpdater(RuntimeUpdater):
     references here, out of runtime.py"""
     dll_manager_classes = [DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager]
 
-    def update_runtimes(self):
-        super().update_runtimes()
+    def __init__(self, force=False):
+        super().__init__(force)
         for dll_manager_class in self.dll_manager_classes:
-            if self.cancelled:
-                break
             key = dll_manager_class.__name__
-            key_call = update_cache.get_last_call(key)
-            if self.force or not key_call or key_call > 3600 * 6:
-                dll_manager = dll_manager_class()
-                dll_manager.upgrade()
-                update_cache.write_date_to_cache(key)
+            self.add_update(key, lambda c=dll_manager_class: self._update_dll_manager(c), hours=6)
 
-        if not self.cancelled:
-            media_call = update_cache.get_last_call("media")
-            if self.force or not media_call or media_call > 3600 * 24:
-                sync_media()
-                update_all_artwork()
-                update_cache.write_date_to_cache("media")
+        self.add_update("media", self._update_media, hours=24)
 
-        if self.cancelled:
-            logger.info("Runtime update cancelled")
-        logger.info("Startup complete")
+    def _update_dll_manager(self, dll_manager_class):
+        dll_manager = dll_manager_class()
+        dll_manager.upgrade()
+
+    def _update_media(self):
+        sync_media()
+        update_all_artwork()

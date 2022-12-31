@@ -289,8 +289,9 @@ class Application(Gtk.Application):
             logger.debug("Skipping initialization")
         else:
             runtime_updater = StartupRuntimeUpdater(force=False)
-            init_dialog = LutrisInitDialog(runtime_updater)
-            init_dialog.run()
+            if runtime_updater.has_updates:
+                init_dialog = LutrisInitDialog(runtime_updater)
+                init_dialog.run()
 
     def get_window_key(self, **kwargs):
         if kwargs.get("appid"):
