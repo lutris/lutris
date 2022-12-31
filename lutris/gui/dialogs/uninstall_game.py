@@ -42,7 +42,7 @@ class UninstallGameDialog(ModalDialog):
         elif len(get_games(filters={"directory": self.game.directory})) > 1:
             self.folder_label.set_markup(
                 _("The folder %s is used by other games and will be kept.") % self.game.directory)
-        elif is_removeable(self.game.directory, self.game.config.system_config):
+        elif self.game.config and is_removeable(self.game.directory, self.game.config.system_config):
             self.delete_button.set_sensitive(False)
             self.folder_label.set_markup(_("<i>Calculating size…</i>"))
             AsyncCall(get_disk_size, self.folder_size_cb, self.game.directory)

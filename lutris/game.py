@@ -319,6 +319,11 @@ class Game(GObject.Object):
             self.runner.remove_game_data(app_id=self.appid, game_path=self.directory)
         self.is_installed = False
         self.runner = None
+
+        if str(self.id) in LOG_BUFFERS:  # Reset game logs on removal
+            log_buffer = LOG_BUFFERS[str(self.id)]
+            log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
+
         if no_signal:
             return
         self.emit("game-removed")
