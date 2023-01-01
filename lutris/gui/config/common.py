@@ -232,7 +232,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         image_button.set_valign(Gtk.Align.CENTER)
         banner_box.add(image_button)
 
-        reset_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
+        reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
         reset_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_button.set_tooltip_text(reset_tooltip)
         reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)

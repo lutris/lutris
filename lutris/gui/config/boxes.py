@@ -104,7 +104,7 @@ class ConfigBox(VBox):
             self.call_widget_generator(option, option_key, value, default)
 
             # Reset button
-            reset_btn = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
+            reset_btn = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
             reset_btn.set_valign(Gtk.Align.CENTER)
             reset_btn.set_margin_bottom(6)
             reset_btn.set_relief(Gtk.ReliefStyle.NONE)
