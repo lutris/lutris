@@ -213,6 +213,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
 
     def _get_banner_box(self):
         banner_box = Gtk.Grid()
+        banner_box.set_margin_top(12)
         banner_box.set_column_spacing(12)
         banner_box.set_row_spacing(4)
 
