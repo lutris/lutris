@@ -214,6 +214,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     def _get_banner_box(self):
         banner_box = Gtk.Grid()
         banner_box.set_column_spacing(12)
+        banner_box.set_row_spacing(4)
 
         self._create_image_button(banner_box, "coverart_big", _("Set custom cover art"), _("Remove custom cover art"))
         self._create_image_button(banner_box, "banner", _("Set custom banner"), _("Remove custom banner"))
