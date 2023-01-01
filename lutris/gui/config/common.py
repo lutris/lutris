@@ -12,7 +12,7 @@ from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
-from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
+from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import import_runner
@@ -99,7 +99,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             self.advanced_switch.set_visible(show_switch)
 
     def _build_info_tab(self):
-        info_box = VBox()
+        info_box = Gtk.VBox()
 
         if self.game:
             centering_container = Gtk.HBox()
@@ -233,8 +233,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self._set_image(image_type, image_button)
         image_button.set_tooltip_text(image_tooltip)
         image_button.connect("clicked", self.on_custom_image_select, image_type)
-        image_button_container.pack_start(image_button, True, True, 0)
-        banner_box.add(image_button_container)
+        image_button_container.pack_start(image_button, True, True, 0)        
 
         reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
         reset_button.set_relief(Gtk.ReliefStyle.NONE)
@@ -242,6 +241,8 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
         reset_button.set_valign(Gtk.Align.CENTER)
         reset_button_container.pack_start(reset_button, True, False, 0)
+        
+        banner_box.add(image_button_container)
         banner_box.attach_next_to(reset_button_container, image_button_container, Gtk.PositionType.BOTTOM, 1, 1)
 
         self.image_buttons[image_type] = image_button
