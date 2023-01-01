@@ -53,7 +53,7 @@ class InstallerFileBox(Gtk.VBox):
             "url": self.installer_file.url,
             "dest": self.installer_file.dest_file,
             "referer": self.installer_file.referer
-        })
+        }, downloader=self.installer_file.downloader)
         download_progress.connect("complete", self.on_download_complete)
         download_progress.connect("cancel", self.on_download_cancelled)
         download_progress.show()

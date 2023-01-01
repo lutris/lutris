@@ -34,6 +34,7 @@ def get_games_where(**conditions):
         Args:
             conditions (dict): named arguments with each field matches its desired value.
             Special values for field names can be used:
+                <field>__lessthan will return rows where `field` is less than the value
                 <field>__isnull will return rows where `field` is NULL if the value is True
                 <field>__not will invert the condition using `!=` instead of `=`
                 <field>__in will match rows for every value of `value`, which should be an iterable
@@ -49,6 +50,9 @@ def get_games_where(**conditions):
         field, *extra_conditions = field.split("__")
         if extra_conditions:
             extra_condition = extra_conditions[0]
+            if extra_condition == "lessthan":
+                condition_fields.append("{} < ?".format(field))
+                condition_values.append(value)
             if extra_condition == "isnull":
                 condition_fields.append("{} is {} null".format(field, "" if value else "not"))
             if extra_condition == "not":

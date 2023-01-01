@@ -634,3 +634,23 @@ class CommandsMixin:
                 "executable": file_id,
                 "args": args
             })
+
+    def install_or_extract(self, file_id):
+        """Runs if file is executable or extracts if file is archive"""
+        file_path = self._get_file_path(file_id)
+        runner = self.installer.runner
+        if runner != "wine":
+            raise ScriptingError(_("install_or_extract only works with wine!"))
+        if file_path.endswith(".exe"):
+            params = {
+                "name": "wineexec",
+                "executable": file_id
+            }
+            return self.task(params)
+
+        slug = self.installer.game_slug
+        params = {
+            "file": file_id,
+            "dst": f"$GAMEDIR/drive_c/{slug}"
+        }
+        return self.extract(params)

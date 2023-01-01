@@ -84,6 +84,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         if not self.installer.script:
             raise ScriptingError(_("This installer doesn't have a 'script' section"))
+        if not self.service and self.installer.service:
+            self.service = self.installer.service
         script_errors = self.installer.get_errors()
         if script_errors:
             raise ScriptingError(
