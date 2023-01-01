@@ -257,6 +257,8 @@ def substitute(string_template, variables):
 def merge_folders(source, destination):
     """Merges the content of source to destination"""
     logger.debug("Merging %s into %s", source, destination)
+    # We do not use shutil.copytree() here because that would copy
+    # the file permissions, and we do not want them.
     source = os.path.abspath(source)
     for (dirpath, dirnames, filenames) in os.walk(source):
         source_relpath = dirpath[len(source):].strip("/")
