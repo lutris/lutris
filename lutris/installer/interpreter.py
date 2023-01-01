@@ -71,7 +71,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.game_dir_created = False  # Whether a game folder was created during the install
         # Extra files for installers, either None if the extras haven't been checked yet.
         # Or a list of IDs of extras to be downloaded during the install
-        self.extras = None
+        self.extras = []
         self.game_disc = None
         self.game_files = {}
         self.cancelled = False
@@ -312,7 +312,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         os.makedirs(self.cache_path, exist_ok=True)
 
         # Copy extras to game folder
-        if len(self.extras) and len(self.extras) == len(self.installer.files):
+        if self.extras and len(self.extras) == len(self.installer.files):
             # Reset the install script in case there are only extras.
             logger.warning("Installer with only extras and no game files")
             self.installer.script["installer"] = []
