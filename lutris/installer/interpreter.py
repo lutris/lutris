@@ -190,10 +190,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def get_extras(self):
         """Get extras and store them to move them at the end of the install"""
         if not self.service or not self.service.has_extras:
-            self.extras = []
-            return self.extras
-        self.extras = self.service.get_extras(self.installer.service_appid)
-        return self.extras
+            return []
+        return self.service.get_extras(self.installer.service_appid)
 
     def launch_install(self, ui_delegate):
         """Launch the install process; returns False if cancelled by the user."""

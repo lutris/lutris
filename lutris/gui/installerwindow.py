@@ -415,19 +415,17 @@ class InstallerWindow(BaseApplicationWindow,
                 label += " (%s)" % ", ".join(_infos)
             return label
 
-        if self.interpreter.extras is None:
-            all_extras = self.interpreter.get_extras()
-            if all_extras:
-                self.extras_tree_store.clear()
-                for extra_source, extras in all_extras.items():
-                    parent = self.extras_tree_store.append(None, (None, None, None, extra_source))
-                    for extra in extras:
-                        self.extras_tree_store.append(parent, (False, False, extra["id"], get_extra_label(extra)))
+        all_extras = self.interpreter.get_extras()
+        if all_extras:
+            self.extras_tree_store.clear()
+            for extra_source, extras in all_extras.items():
+                parent = self.extras_tree_store.append(None, (None, None, None, extra_source))
+                for extra in extras:
+                    self.extras_tree_store.append(parent, (False, False, extra["id"], get_extra_label(extra)))
 
-                self.stack.navigate_to_page(self.present_extras_page)
-                return
-
-        self.on_extras_ready()
+            self.stack.navigate_to_page(self.present_extras_page)
+        else:
+            self.on_extras_ready()
 
     def create_extras_page(self):
         treeview = Gtk.TreeView(self.extras_tree_store)
