@@ -384,6 +384,12 @@ class Game(GObject.Object):
         self.emit("game-updated")
 
     def save_lastplayed(self):
+        """Save only the platform field- do not restore any other values the user may have changed
+        in another window."""
+        games_db.update_existing(id=self.id, slug=self.slug, platform=self.platform)
+        self.emit("game-updated")
+
+    def save_platform(self):
         """Save only the lastplayed field- do not restore any other values the user may have changed
         in another window."""
         games_db.update_existing(id=self.id, slug=self.slug, lastplayed=self.lastplayed)

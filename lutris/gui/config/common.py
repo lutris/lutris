@@ -573,7 +573,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self.game.runner_name = self.runner_name
         self.game.is_installed = True
         self.game.config = self.lutris_config
-        self.game.save(save_config=True)
+        self.game.save()
         self.destroy()
         self.saved = True
         return True
