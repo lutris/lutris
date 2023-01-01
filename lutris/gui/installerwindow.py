@@ -202,9 +202,9 @@ class InstallerWindow(BaseApplicationWindow, DialogInstallUIDelegate):  # pylint
         self.install_button.show()
 
     @watch_errors()
-    def on_target_changed(self, text_entry, _data=None):
+    def on_target_changed(self, entry, _data=None):
         """Set the installation target for the game."""
-        self.interpreter.target_path = os.path.expanduser(text_entry.get_text())
+        self.interpreter.target_path = os.path.expanduser(entry.get_text())
 
     @watch_errors()
     def on_install_clicked(self, button):
