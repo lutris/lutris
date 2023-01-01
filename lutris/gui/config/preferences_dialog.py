@@ -68,13 +68,13 @@ class PreferencesDialog(GameDialogCommon):
 
     def on_sidebar_activated(self, _listbox, row):
         stack_id = row.get_children()[0].stack_id
-        
+
         generator = self.page_generators.get(stack_id)
-        
+
         if generator:
             del self.page_generators[stack_id]
             generator()
-        
+
         show_actions = stack_id == "system-stack"
         self.set_header_bar_widgets_visbility(show_actions)
         self.get_header_bar().set_show_close_button(not show_actions)
