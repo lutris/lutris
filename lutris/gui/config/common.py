@@ -226,6 +226,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         and adds the image button to self.image_buttons for future reference."""
 
         image_button_container = Gtk.VBox()
+        reset_button_container = Gtk.HBox()
 
         image_button = Gtk.Button()
         self._set_image(image_type, image_button)
@@ -239,7 +240,8 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         reset_button.set_tooltip_text(reset_tooltip)
         reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
         reset_button.set_valign(Gtk.Align.CENTER)
-        banner_box.attach_next_to(reset_button, image_button_container, Gtk.PositionType.BOTTOM, 1, 1)
+        reset_button_container.pack_start(reset_button, True, False, 0)
+        banner_box.attach_next_to(reset_button_container, image_button_container, Gtk.PositionType.BOTTOM, 1, 1)
 
         self.image_buttons[image_type] = image_button
 
