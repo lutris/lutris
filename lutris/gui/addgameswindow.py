@@ -30,9 +30,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             "scan_folder"
         ),
         (
-            "media-optical-dvd-symbolic",
-            _("Install a Windows game from media"),
-            _("Launch a setup file from an optical drive or download"),
+            "application-x-executable-symbolic",
+            _("Install a Windows game from an executable"),
+            _("Launch a Windows executable (.exe) installer"),
             "install_from_setup"
         ),
         (
