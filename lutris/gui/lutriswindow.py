@@ -49,7 +49,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         "view-updated": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    games_scrollwindow = GtkTemplate.Child()
+    games_stack = GtkTemplate.Child()
     sidebar_revealer = GtkTemplate.Child()
     sidebar_scrolled = GtkTemplate.Child()
     game_revealer = GtkTemplate.Child()
@@ -86,7 +86,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.set_service(self.filters.get("service"))
         self.icon_type = self.load_icon_type()
         self.game_store = GameStore(self.service, self.service_media)
-        self.view = Gtk.Box()
+        self.current_view = Gtk.Box()
+        self.views = {}
 
         self.connect("delete-event", self.on_window_delete)
         self.connect("configure-event", self.on_window_configure)
@@ -97,7 +98,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.init_template()
         self._init_actions()
 
-        self.set_viewtype_icon(self.view_type)
+        self.set_viewtype_icon(self.current_view_type)
 
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
@@ -195,12 +196,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_load(self, widget, data=None):
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
-        self.view.grab_focus()
-        self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
+        self.current_view.grab_focus()
+        self.current_view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
 
     def on_sidebar_realize(self, widget, data=None):
         """Grab the initial focus after the sidebar is initialized - so the view is ready."""
-        self.view.grab_focus()
+        self.current_view.grab_focus()
 
     def load_filters(self):
         """Load the initial filters when creating the view"""
@@ -448,7 +449,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.hide_overlay()
         games = self.get_games_from_filters()
         logger.debug("Showing %d games", len(games))
-        self.view.service = self.service.id if self.service else None
+        for view in self.views.values():
+            view.service = self.service.id if self.service else None
         GLib.idle_add(self.update_revealer)
         for game in games:
             self.game_store.add_game(game)
@@ -541,7 +543,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         # which keys actually start searching
         if event.keyval == Gdk.KEY_Escape:
             self.search_entry.set_text("")
-            self.view.grab_focus()
+            self.current_view.grab_focus()
             return Gtk.ApplicationWindow.do_key_press_event(self, event)
 
         if (  # pylint: disable=too-many-boolean-expressions
@@ -575,25 +577,33 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if not self.game_store:
             logger.error("No game store yet")
             return
-        if self.view:
-            self.view.destroy()
         self.game_store = GameStore(self.service, self.service_media)
-        if self.view_type == "grid":
-            self.view = GameGridView(
-                self.game_store,
-                self.game_store.service_media,
-                hide_text=settings.read_setting("hide_text_under_icons") == "True"
-            )
-        else:
-            self.view = GameListView(self.game_store, self.game_store.service_media)
 
-        self.view.connect("game-selected", self.on_game_selection_changed)
-        self.view.connect("game-activated", self.on_game_activated)
-        self.view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
-        for child in self.games_scrollwindow.get_children():
-            child.destroy()
-        self.games_scrollwindow.add(self.view)
-        self.view.show_all()
+        view_type = self.current_view_type
+
+        if view_type in self.views:
+            self.current_view = self.views[view_type]
+            self.current_view.set_game_store(self.game_store)
+        else:
+            if view_type == "grid":
+                self.current_view = GameGridView(
+                    self.game_store,
+                    hide_text=settings.read_setting("hide_text_under_icons") == "True"
+                )
+            else:
+                self.current_view = GameListView(self.game_store)
+
+            self.current_view.connect("game-selected", self.on_game_selection_changed)
+            self.current_view.connect("game-activated", self.on_game_activated)
+            self.current_view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
+
+            scrolledwindow = Gtk.ScrolledWindow()
+            scrolledwindow.add(self.current_view)
+            scrolledwindow.show_all()
+            self.games_stack.add_named(scrolledwindow, view_type)
+            self.views[view_type] = self.current_view
+
+        self.games_stack.set_visible_child_name(view_type)
         self.update_store()
 
     def set_viewtype_icon(self, view_type):
@@ -701,14 +711,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_search_entry_key_press(self, widget, event):
         if event.keyval == Gdk.KEY_Down:
             if self.current_view_type == 'grid':
-                self.view.select_path(Gtk.TreePath('0'))  # needed for gridview only
+                self.current_view.select_path(Gtk.TreePath('0'))  # needed for gridview only
                 # if game_bar is alive at this point it can mess grid item selection up
                 # for some unknown reason,
                 # it is safe to close it here, it will be reopened automatically.
                 if self.game_bar:
                     self.game_bar.destroy()  # for gridview only
-            self.view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
-            self.view.grab_focus()
+            self.current_view.set_cursor(Gtk.TreePath('0'), None, False)  # needed for both view types
+            self.current_view.grab_focus()
 
     @GtkTemplate.Callback
     def on_about_clicked(self, *_args):
