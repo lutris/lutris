@@ -316,6 +316,20 @@ def wineexec(  # noqa: C901
 # pragma pylint: enable=too-many-locals
 
 
+def find_winetricks(wine_path, system_winetricks=False):
+    winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
+    if (system_winetricks or not system.path_exists(winetricks_path)):
+        winetricks_path = system.find_executable("winetricks")
+        if not winetricks_path:
+            raise RuntimeError("No installation of winetricks found")
+    if wine_path:
+        winetricks_wine = wine_path
+    else:
+        wine = import_runner("wine")
+        winetricks_wine = wine().get_executable()
+    return winetricks_path
+
+
 def winetricks(
     app,
     prefix=None,
@@ -328,16 +342,7 @@ def winetricks(
 ):
     """Execute winetricks."""
     wine_config = config or LutrisConfig(runner_slug="wine")
-    winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
-    if (wine_config.runner_config.get("system_winetricks") or not system.path_exists(winetricks_path)):
-        winetricks_path = system.find_executable("winetricks")
-        if not winetricks_path:
-            raise RuntimeError("No installation of winetricks found")
-    if wine_path:
-        winetricks_wine = wine_path
-    else:
-        wine = import_runner("wine")
-        winetricks_wine = wine().get_executable()
+    winetricks_path = find_winetricks(wine_path, wine_config.runner_config.get("system_winetricks"))
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, winetricks_wine)
     args = app
@@ -393,12 +398,14 @@ def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=
     cab_installer.cleanup()
 
 
-def open_wine_terminal(terminal, wine_path, prefix, env):
+def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
+    winetricks_path = find_winetricks(wine_path, system_winetricks)
     aliases = {
         "wine": wine_path,
         "winecfg": wine_path + "cfg",
         "wineserver": wine_path + "server",
         "wineboot": wine_path + "boot",
+        "winetricks": winetricks_path,
     }
     env["WINEPREFIX"] = prefix
     shell_command = get_shell_command(prefix, env, aliases)
