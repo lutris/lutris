@@ -1,7 +1,6 @@
 """Check to run at program start"""
 import os
 import sqlite3
-import time
 from gettext import gettext as _
 
 from lutris import runners, settings
@@ -13,10 +12,10 @@ from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
 from lutris.services import DEFAULT_SERVICES
 from lutris.services.lutris import sync_media
-from lutris.util import update_cache
 from lutris.util.graphics import drivers, vkquery
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.steam.shortcut import update_all_artwork
 from lutris.util.system import create_folder
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
@@ -148,7 +147,7 @@ def fill_missing_platforms():
         game.set_platform_from_runner()
         if game.platform:
             logger.info("Platform for %s set to %s", game.name, game.platform)
-            game.save(save_config=False)
+            game.save_platform()
 
 
 def run_all_checks():
@@ -180,7 +179,7 @@ def init_lutris():
         syncdb()
     except sqlite3.DatabaseError as err:
         raise RuntimeError(
-            "Failed to open database file in %s. Try renaming this file and relaunch Lutris" %
+            _("Failed to open database file in %s. Try renaming this file and relaunch Lutris") %
             settings.PGA_DB
         ) from err
     for service in DEFAULT_SERVICES:
@@ -189,25 +188,23 @@ def init_lutris():
     cleanup_games()
 
 
-def update_runtime(force=False):
-    """Update runtime components"""
-    runtime_call = update_cache.get_last_call("runtime")
-    if force or not runtime_call or runtime_call > 3600 * 12:
-        runtime_updater = RuntimeUpdater()
-        components_to_update = runtime_updater.update()
-        if components_to_update:
-            while runtime_updater.current_updates:
-                time.sleep(0.3)
-        update_cache.write_date_to_cache("runtime")
-    for dll_manager_class in (DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager):
-        key = dll_manager_class.__name__
-        key_call = update_cache.get_last_call(key)
-        if force or not key_call or key_call > 3600 * 6:
-            dll_manager = dll_manager_class()
-            dll_manager.upgrade()
-            update_cache.write_date_to_cache(key)
-    media_call = update_cache.get_last_call("media")
-    if force or not media_call or media_call > 3600 * 24:
+class StartupRuntimeUpdater(RuntimeUpdater):
+    """Due to circular reference problems, we need to keep all these interesting
+    references here, out of runtime.py"""
+    dll_manager_classes = [DXVKManager, DXVKNVAPIManager, VKD3DManager, D3DExtrasManager, dgvoodoo2Manager]
+
+    def __init__(self, force=False):
+        super().__init__(force)
+        for dll_manager_class in self.dll_manager_classes:
+            key = dll_manager_class.__name__
+            self.add_update(key, lambda c=dll_manager_class: self._update_dll_manager(c), hours=6)
+
+        self.add_update("media", self._update_media, hours=24)
+
+    def _update_dll_manager(self, dll_manager_class):
+        dll_manager = dll_manager_class()
+        dll_manager.upgrade()
+
+    def _update_media(self):
         sync_media()
-        update_cache.write_date_to_cache("media")
-    logger.info("Startup complete")
+        update_all_artwork()

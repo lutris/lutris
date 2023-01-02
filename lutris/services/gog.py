@@ -9,7 +9,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 from lxml import etree
 
 from lutris import settings
-from lutris.exceptions import AuthenticationError, UnavailableGame
+from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import OnlineService
@@ -27,6 +27,7 @@ class GogSmallBanner(ServiceMedia):
     size = (100, 60)
     dest_path = os.path.join(settings.CACHE_DIR, "gog/banners/small")
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = "image"
     url_pattern = "https:%s_prof_game_100x60.jpg"
 
@@ -177,7 +178,8 @@ class GOGService(OnlineService):
         request = Request(url)
         try:
             request.get()
-        except HTTPError:
+        except HTTPError as http_error:
+            logger.error(http_error)
             logger.error("Failed to get token, check your GOG credentials.")
             logger.warning("Clearing existing credentials")
             self.logout()
@@ -278,7 +280,7 @@ class GOGService(OnlineService):
         return self.make_request(url)
 
     def get_game_dlcs(self, product_id):
-        """Return the list of DLC products the user owns for a game"""
+        """Return the list of DLC products for a game"""
         game_details = self.get_game_details(product_id)
         if not game_details["dlcs"]:
             return []
@@ -300,9 +302,9 @@ class GOGService(OnlineService):
             response = self.make_api_request(downlink)
         except HTTPError as ex:
             logger.error("HTTP error: %s", ex)
-            raise UnavailableGame from ex
+            raise UnavailableGameError(_("The download of '%s' failed.") % downlink) from ex
         if not response:
-            raise UnavailableGame
+            raise UnavailableGameError(_("The download of '%s' failed.") % downlink)
         for field in ("checksum", "downlink"):
             field_url = response[field]
             parsed = urlparse(field_url)
@@ -430,7 +432,7 @@ class GOGService(OnlineService):
             _installer = gog_installers[0]
             return self.query_download_links(_installer)
         except HTTPError as err:
-            raise UnavailableGame("Couldn't load the download links for this game") from err
+            raise UnavailableGameError(_("Couldn't load the download links for this game")) from err
 
     def get_patch_files(self, installer, installer_file_id):
         logger.debug("Getting patches for %s", installer.version)
@@ -476,14 +478,14 @@ class GOGService(OnlineService):
                 "checksum_url": installer_file.get("checksum_url")
             }))
         if not file_id_provided:
-            raise UnavailableGame("Unable to determine correct file to launch installer")
+            raise UnavailableGameError(_("Unable to determine correct file to launch installer"))
         return files
 
     def get_installer_files(self, installer, installer_file_id):
         try:
             downloads = self.get_downloads(installer.service_appid)
         except HTTPError as err:
-            raise UnavailableGame("Couldn't load the downloads for this game") from err
+            raise UnavailableGameError(_("Couldn't load the downloads for this game")) from err
         links = self._get_installer_links(installer, downloads)
         if links:
             files = self._format_links(installer, installer_file_id, links)
@@ -540,33 +542,83 @@ class GOGService(OnlineService):
             }
         }
 
+    def get_games_owned(self):
+        """Return IDs of games owned by user"""
+        url = "{}/user/data/games".format(self.embed_url)
+        return self.make_api_request(url)
+
     def get_dlc_installers(self, db_game):
+        """Return all available DLC installers for game"""
         appid = db_game["service_id"]
+
         dlcs = self.get_game_dlcs(appid)
+
         installers = []
+
         for dlc in dlcs:
             dlc_id = "gogdlc-%s" % dlc["slug"]
-            installer = {
-                "name": db_game["name"],
-                "version": dlc["title"],
-                "slug": dlc["slug"],
-                "description": "DLC for %s" % db_game["name"],
-                "game_slug": slugify(db_game["name"]),
-                "runner": "wine",
-                "is_dlc": True,
-                "dlcid": dlc["id"],
-                "gogid": dlc["id"],
-                "script": {
-                    "extends": db_game["installer_slug"],
-                    "files": [
-                        {dlc_id: "N/A:Select the patch from GOG"}
-                    ],
-                    "installer": [
-                        {"task": {"name": "wineexec", "executable": dlc_id}}
-                    ]
+
+            # remove mac installers for now
+            installfiles = [installer for installer in dlc["downloads"].get(
+                "installers", []) if installer["os"] != "mac"]
+
+            for file in installfiles:
+                # supports linux
+                if file["os"].lower() == "linux":
+                    runner = "linux"
+                    script = [{"extract": {"dst": "$CACHE/GOG", "file": dlc_id, "format": "zip"}},
+                              {"merge": {"dst": "$GAMEDIR", "src": "$CACHE/GOG/data/noarch/"}}]
+                else:
+                    runner = "wine"
+                    script = [{"task": {"name": "wineexec", "executable": dlc_id}}]
+
+                installer = {
+                    "name": db_game["name"],
+                    # add runner in brackets - wrong installer can be run when this is not unique
+                    "version": f"{dlc['title']} ({runner})",
+                    "slug": dlc["slug"],
+                    "description": "DLC for %s" % db_game["name"],
+                    "game_slug": slugify(db_game["name"]),
+                    "runner": runner,
+                    "is_dlc": True,
+                    "dlcid": dlc["id"],
+                    "gogid": dlc["id"],
+                    "script": {
+                        "extends": db_game["installer_slug"],
+                        "files": [
+                            {dlc_id: "N/A:Select the patch from GOG"}
+                        ],
+                        "installer": script
+                    }
                 }
-            }
-            installers.append(installer)
+                installers.append(installer)
+
+        return installers
+
+    def get_dlc_installers_owned(self, db_game):
+        """Return DLC installers for owned DLC"""
+
+        owned = self.get_games_owned()
+        installers = self.get_dlc_installers(db_game)
+
+        installers = [installer for installer in installers if installer["dlcid"] in owned["owned"]]
+
+        return installers
+
+    def get_dlc_installers_runner(self, db_game, runner, only_owned=True):
+        """Return DLC installers for requested runner
+        only_owned=True only return installers for owned DLC (default)"""
+        if only_owned:
+            installers = self.get_dlc_installers_owned(db_game)
+        else:
+            installers = self.get_dlc_installers(db_game)
+
+        # only handle linux & wine for now
+        if runner != "linux":
+            runner = "wine"
+
+        installers = [installer for installer in installers if installer["runner"] == runner]
+
         return installers
 
     def get_update_installers(self, db_game):
@@ -575,7 +627,7 @@ class GOGService(OnlineService):
         patch_installers = []
         for version in patch_versions:
             patch = patch_versions[version]
-            size = human_size(sum([part["total_size"] for part in patch]))
+            size = human_size(sum(part["total_size"] for part in patch))
             patch_id = "gogpatch-%s" % slugify(patch[0]["version"])
             installer = {
                 "name": db_game["name"],

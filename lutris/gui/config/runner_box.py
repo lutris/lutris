@@ -5,9 +5,8 @@ from gi.repository import GObject, Gtk
 from lutris import runners
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
-from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
-from lutris.gui.widgets.utils import ICON_SIZE, get_icon
+from lutris.gui.widgets.utils import ICON_SIZE, get_runtime_icon
 from lutris.util.log import logger
 
 
@@ -28,7 +27,7 @@ class RunnerBox(Gtk.Box):
         self.set_margin_left(12)
         self.set_margin_right(12)
         self.runner = runners.import_runner(runner_name)()
-        icon = get_icon(self.runner.name, icon_format='pixbuf', size=ICON_SIZE)
+        icon = get_runtime_icon(self.runner.name, icon_format='pixbuf', size=ICON_SIZE)
         if icon:
             runner_icon = Gtk.Image(visible=True)
             runner_icon.set_from_pixbuf(icon)
@@ -74,10 +73,11 @@ class RunnerBox(Gtk.Box):
             _button.get_style_context().add_class("circular")
             _button.connect("clicked", self.on_versions_clicked)
         else:
-            if self.runner.is_installed():
+            if self.runner.can_uninstall():
                 _button = Gtk.Button.new_from_icon_name("edit-delete-symbolic", Gtk.IconSize.BUTTON)
                 _button.get_style_context().add_class("circular")
                 _button.connect("clicked", self.on_remove_clicked)
+                _button.set_sensitive(self.runner.can_uninstall())
             else:
                 _button = Gtk.Button.new_from_icon_name("system-software-install-symbolic", Gtk.IconSize.BUTTON)
                 _button.get_style_context().add_class("circular")
@@ -86,24 +86,23 @@ class RunnerBox(Gtk.Box):
         return _button
 
     def on_versions_clicked(self, widget):
-        RunnerInstallDialog(
-            _("Manage %s versions") % self.runner.name,
-            None,
-            self.runner.name
-        )
-        # connect a runner-installed signal from the above dialog?
+        window = self.get_toplevel()
+        application = window.get_application()
+        title = _("Manage %s versions") % self.runner.name
+        application.show_window(RunnerInstallDialog, title=title, runner=self.runner, parent=window)
 
     def on_install_clicked(self, widget):
         """Install a runner."""
         logger.debug("Install of %s requested", self.runner)
+        window = self.get_toplevel()
         try:
-            self.runner.install(downloader=simple_downloader)
+            self.runner.install(window)
         except (
             runners.RunnerInstallationError,
             runners.NonInstallableRunnerError,
         ) as ex:
             logger.error(ex)
-            ErrorDialog(ex.message)
+            ErrorDialog(ex.message, parent=self.get_toplevel())
             return
         if self.runner.is_installed():
             self.emit("runner-installed")
@@ -118,6 +117,7 @@ class RunnerBox(Gtk.Box):
     def on_remove_clicked(self, widget):
         dialog = QuestionDialog(
             {
+                "parent": self.get_toplevel(),
                 "title": _("Do you want to uninstall %s?") % self.runner.human_name,
                 "question": _("This will remove <b>%s</b> and all associated data." % self.runner.human_name)
 

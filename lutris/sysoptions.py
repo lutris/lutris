@@ -7,8 +7,7 @@ from gettext import gettext as _
 
 from lutris import runners
 from lutris.util import linux, system
-from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
-from lutris.util.graphics import drivers
+from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME, has_graphic_adapter_description
 
 VULKAN_DATA_DIRS = [
     "/usr/local/etc/vulkan",  # standard site-local location
@@ -29,6 +28,24 @@ def get_resolution_choices():
     resolution_choices = list(zip(resolutions, resolutions))
     resolution_choices.insert(0, (_("Keep current"), "off"))
     return resolution_choices
+
+
+def get_locale_choices():
+    """Return list of available locales as label, value tuples
+    suitable for inclusion in drop-downs.
+    """
+    locales = system.get_locale_list()
+
+    # adds "(recommended)" string to utf8 locales
+    locales_humanized = locales.copy()
+    for index, locale in enumerate(locales_humanized):
+        if "utf8" in locale:
+            locales_humanized[index] += " " + _("(recommended)")
+
+    locale_choices = list(zip(locales_humanized, locales))
+    locale_choices.insert(0, (_("System"), ""))
+
+    return locale_choices
 
 
 def get_output_choices():
@@ -65,15 +82,13 @@ def get_optirun_choices():
     return choices
 
 
-def get_gpu_vendor_cmd(nvidia_files):
+def get_gpu_vendor_cmd(is_nvidia):
     """Run glxinfo command to get vendor based on certain conditions"""
-    glxinfocmd = "glxinfo | grep -i opengl | grep -i vendor"
-
-    if USE_DRI_PRIME == 1:
-        glxinfocmd = "DRI_PRIME=1 glxinfo | grep -i opengl | grep -i vendor"
-    elif nvidia_files == 1:
-        glxinfocmd = "__GLX_VENDOR_LIBRARY_NAME=nvidia glxinfo | grep -i opengl | grep -i vendor"
-    return glxinfocmd
+    if is_nvidia:
+        return "__GLX_VENDOR_LIBRARY_NAME=nvidia glxinfo | grep -i opengl | grep -i vendor"
+    if USE_DRI_PRIME:
+        return "DRI_PRIME=1 glxinfo | grep -i opengl | grep -i vendor"
+    return "glxinfo | grep -i opengl | grep -i vendor"
 
 
 def get_vk_icd_choices():
@@ -82,7 +97,7 @@ def get_vk_icd_choices():
     amdradv = []
     nvidia = []
     amdvlk = []
-    choices = [(_("Auto: WARNING -- No Vulkan Loader detected!"), "")]
+    amdvlkpro = []
     icd_files = defaultdict(list)
     # Add loaders
     for data_dir in VULKAN_DATA_DIRS:
@@ -96,27 +111,65 @@ def get_vk_icd_choices():
                 amdradv.append(loader)
             elif "nvidia" in loader:
                 nvidia.append(loader)
-            elif "amd_icd" in loader:
-                amdvlk.append(loader)
+            elif "amd" in loader:
+                if "pro" in loader:
+                    amdvlkpro.append(loader)
+                else:
+                    amdvlk.append(loader)
 
     intel_files = ":".join(intel)
     amdradv_files = ":".join(amdradv)
     nvidia_files = ":".join(nvidia)
     amdvlk_files = ":".join(amdvlk)
+    amdvlkpro_files = ":".join(amdvlkpro)
 
-    glxinfocmd = get_gpu_vendor_cmd(0)
-    if nvidia_files:
-        glxinfocmd = get_gpu_vendor_cmd(1)
-    with subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as glxvendorget:
-        glxvendor = glxvendorget.communicate()[0].decode("utf-8")
-    default_gpu = glxvendor
+    # Start the 'choices' with an 'auto' choice. But which one?
+    auto_intel_name = _("Auto: Intel Open Source (MESA: ANV)")
+    auto_amdradv_name = _("Auto: AMD RADV Open Source (MESA: RADV)")
+    auto_nvidia_name = _("Auto: Nvidia Proprietary")
 
-    if "Intel" in default_gpu:
-        choices = [(_("Auto: Intel Open Source (MESA: ANV)"), intel_files)]
-    elif "AMD" in default_gpu:
-        choices = [(_("Auto: AMD RADV Open Source (MESA: RADV)"), amdradv_files)]
-    elif "NVIDIA" in default_gpu:
-        choices = [(_("Auto: Nvidia Proprietary"), nvidia_files)]
+    vk_icd_filenames = os.getenv("VK_ICD_FILENAMES")
+    if vk_icd_filenames:
+        # VK_ICD_FILENAMES is what we are going to set in the end, so
+        # if it starts out set, the 'Auto' choice should always leave it
+        # alone- but we do want to pick a nice name for it.
+        #
+        # Note that when the choice is "", we just leave VK_ICD_FILENAMES
+        # alone and do not overwrite it.
+        if "intel" in vk_icd_filenames:
+            choices = [(auto_intel_name, "")]
+        elif "radeon" in vk_icd_filenames or "amd" in vk_icd_filenames or "pro" in vk_icd_filenames:
+            choices = [(auto_amdradv_name, "")]
+        elif "nvidia" in vk_icd_filenames:
+            choices = [(auto_nvidia_name, "")]
+        else:
+            choices = [(_("Auto: WARNING -- No Vulkan Loader detected!"), "")]
+    else:
+        # Without VK_ICD_FILENAMES, we'll try to figure out what GPU the
+        # user has installed and which has ICD files. If that fails, we'll
+        # just use blank and hope for the best.
+        choices = [(_("Auto: WARNING -- No Vulkan Loader detected!"), "")]
+
+        glxinfocmd = get_gpu_vendor_cmd(bool(nvidia_files))
+        with subprocess.Popen(glxinfocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as glxvendorget:
+            glxvendor = glxvendorget.communicate()[0].decode("utf-8")
+        default_gpu = glxvendor
+
+        if "Intel" in default_gpu and intel_files:
+            choices = [(auto_intel_name, intel_files)]
+        elif "AMD" in default_gpu and amdradv_files:
+            choices = [(auto_amdradv_name, amdradv_files)]
+        elif "NVIDIA" in default_gpu and intel_files:
+            choices = [(auto_nvidia_name, nvidia_files)]
+        elif USE_DRI_PRIME:
+            # We have multiple video chipsets, pick something that is instlaled if possible;
+            # we prefer NVIDIA and AMD over Intel, because don't we all?
+            if nvidia_files and has_graphic_adapter_description("NVIDIA"):
+                choices = [(auto_nvidia_name, nvidia_files)]
+            elif amdradv_files and has_graphic_adapter_description("AMD"):
+                choices = [(auto_amdradv_name, amdradv_files)]
+            elif intel_files and has_graphic_adapter_description("Intel"):
+                choices = [(auto_intel_name, intel_files)]
 
     if intel_files:
         choices.append(("Intel Open Source (MESA: ANV)", intel_files))
@@ -125,7 +178,13 @@ def get_vk_icd_choices():
     if nvidia_files:
         choices.append(("Nvidia Proprietary", nvidia_files))
     if amdvlk_files:
-        choices.append(("AMDVLK/AMDGPU-PRO Proprietary", amdvlk_files))
+        if not amdvlkpro_files:
+            choices.append(("AMDVLK/AMDGPU-PRO Proprietary", amdvlk_files))
+        else:
+            choices.append(("AMDVLK Open source", amdvlk_files))
+    if amdvlkpro_files:
+        choices.append(("AMDGPU-PRO Proprietary", amdvlkpro_files))
+    choices.append((_("Unspecified (Use System Default)"), ""))
     return choices
 
 
@@ -174,7 +233,7 @@ system_options = [  # pylint: disable=invalid-name
         "label": _("Enable gamescope"),
         "default": False,
         "advanced": True,
-        "condition": bool(system.find_executable("gamescope")) and not drivers.is_nvidia(),
+        "condition": bool(system.find_executable("gamescope")) and linux.LINUX_SYSTEM.nvidia_gamescope_support(),
         "help": _("Use gamescope to draw the game window isolated from your desktop.\n"
                   "Use Ctrl+Super+F to toggle fullscreen"),
     },
@@ -296,15 +355,9 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "option": "mangohud",
-        "type": "choice",
+        "type": "bool",
         "label": _("FPS counter (MangoHud)"),
-        "choices": (
-            (_("Disabled"), ""),
-            (_("Enabled"), "on"),
-            (_("Enabled (32bit)"), "gl32")
-        ),
-        "default": "",
-        "advanced": False,
+        "default": False,
         "condition": bool(system.find_executable("mangohud")),
         "help": _("Display the game's FPS + other information. Requires MangoHud to be installed."),
     },
@@ -321,7 +374,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "gamemode",
         "type": "bool",
         "default": linux.LINUX_SYSTEM.gamemode_available(),
-        "condition": linux.LINUX_SYSTEM.gamemode_available,
+        "condition": linux.LINUX_SYSTEM.gamemode_available(),
         "label": _("Enable Feral GameMode"),
         "help": _("Request a set of optimisations be temporarily applied to the host OS"),
     },
@@ -401,6 +454,17 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("The terminal emulator used with the CLI mode. "
                   "Choose from the list of detected terminal apps or enter "
                   "the terminal's command or path."),
+    },
+    {
+        "option": "locale",
+        "type": "choice",
+        "label": _("Locale"),
+        "choices": (
+            get_locale_choices()
+        ),
+        "default": "",
+        "advanced": False,
+        "help": _("Can be used to force certain locale for an app. Fixes encoding issues in legacy software."),
     },
     {
         "option": "env",

@@ -5,6 +5,7 @@ import os
 import subprocess
 import gi
 
+
 try:
     gi.require_version("GnomeDesktop", "3.0")
     from gi.repository import GnomeDesktop
@@ -22,6 +23,7 @@ except ImportError:
 from gi.repository import Gdk, GLib, Gio, Gtk
 
 from lutris.util import system
+from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.graphics.displayconfig import MutterDisplayManager
 from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs
 from lutris.util.log import logger
@@ -51,6 +53,14 @@ def restore_gamma():
         logger.warning("xgamma is not available on your system")
     except PermissionError:
         logger.warning("you do not have permission to call xgamma")
+
+
+def has_graphic_adapter_description(match_text):
+    """Returns True if a graphics adapter is found with 'match_text' in its description."""
+    for adapter in _get_graphics_adapters():
+        if match_text in adapter[1]:
+            return True
+    return False
 
 
 def _get_graphics_adapters():
@@ -93,6 +103,9 @@ class DisplayManager:
     def get_resolutions(self):
         """Return available resolutions"""
         resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
+        if not resolutions:
+            logger.error("Failed to generate resolution list from default GdkScreen")
+            resolutions = ['%dx%d' % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
     def _get_primary_output(self):
@@ -107,7 +120,7 @@ class DisplayManager:
         output = self._get_primary_output()
         if not output:
             logger.error("Failed to get a default output")
-            return "", ""
+            return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
         current_mode = output.get_current_mode()
         return str(current_mode.get_width()), str(current_mode.get_height())
 
@@ -173,14 +186,14 @@ def get_desktop_environment():
     desktop_session = os.environ.get("DESKTOP_SESSION", "").lower()
     if not desktop_session:
         return None
-    if desktop_session.endswith("plasma"):
-        return DesktopEnvironment.PLASMA
     if desktop_session.endswith("mate"):
         return DesktopEnvironment.MATE
     if desktop_session.endswith("xfce"):
         return DesktopEnvironment.XFCE
     if desktop_session.endswith("deepin"):
         return DesktopEnvironment.DEEPIN
+    if "plasma" in desktop_session:
+        return DesktopEnvironment.PLASMA
     return DesktopEnvironment.UNKNOWN
 
 

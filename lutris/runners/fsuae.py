@@ -1,37 +1,143 @@
-# Standard Library
 import os
+from collections import defaultdict
 from gettext import gettext as _
 
-# Lutris Modules
+from lutris import settings
 from lutris.runners.runner import Runner
+from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER
+
+AMIGAS = {
+    "A500": {
+        "name": _("Amiga 500"),
+        "bios_sha1": [
+            "891e9a547772fe0c6c19b610baf8bc4ea7fcb785",
+            "c39bd9094d4e5f4e28c1411f3086950406062e87",
+            "90933936cce43ca9bc6bf375662c076b27e3c458",
+        ]
+    },
+    "A500+": {
+        "name": _("Amiga 500+"),
+        "bios_sha1": [
+            "c5839f5cb98a7a8947065c3ed2f14f5f42e334a1"
+        ]
+    },
+    "A600": {
+        "name": _("Amiga 600"),
+        "bios_sha1": [
+            "02843c4253bbd29aba535b0aa3bd9a85034ecde4"
+        ]
+    },
+    "A1200": {
+        "name": _("Amiga 1200"),
+        "bios_sha1": [
+            "e21545723fe8374e91342617604f1b3d703094f1"
+        ]
+    },
+    "A3000": {
+        "name": _("Amiga 3000"),
+        "bios_sha1": [
+            "f8e210d72b4c4853e0c9b85d223ba20e3d1b36ee"
+        ]
+    },
+    "A4000": {
+        "name": _("Amiga 4000"),
+        "bios_sha1": [
+            "5fe04842d04a489720f0f4bb0e46948199406f49",
+            "c3c481160866e60d085e436a24db3617ff60b5f9"
+        ]
+    },
+    "A1000": {
+        "name": _("Amiga 1000"),
+        "bios_sha1": [
+            "11f9e62cf299f72184835b7b2a70a16333fc0d88"
+        ]
+    },
+    "CD32": {
+        "name": _("Amiga CD32"),
+        "bios_sha1": [
+            "3525be8887f79b5929e017b42380a79edfee542d"
+        ],
+        "bios_ext_sha1": [
+            "5bef3d628ce59cc02a66e6e4ae0da48f60e78f7f"
+        ]
+    },
+    "CDTV": {
+        "name": _("Commodore CDTV"),
+        "bios_sha1": [
+            "891e9a547772fe0c6c19b610baf8bc4ea7fcb785",
+            "c39bd9094d4e5f4e28c1411f3086950406062e87",
+            "90933936cce43ca9bc6bf375662c076b27e3c458",
+        ],
+        "bios_ext_sha1": [
+            "7ba40ffa17e500ed9fed041f3424bd81d9c907be"
+        ]
+    }
+}
+
+
+def get_bios_hashes():
+    """Return mappings of sha1 hashes to Amiga models
+    The first mapping contains the kickstarts and the second one, the extensions (for CD32/CDTV)
+    """
+    hashes = defaultdict(list)
+    ext_hashes = defaultdict(list)
+    for model, model_def in AMIGAS.items():
+        for sha1_hash in model_def["bios_sha1"]:
+            hashes[sha1_hash].append(model)
+        if "bios_ext_sha1" in model_def:
+            for sha1_hash in model_def["bios_ext_sha1"]:
+                ext_hashes[sha1_hash].append(model)
+    return hashes, ext_hashes
+
+
+def scan_dir_for_bios(path):
+    """Return a tuple of mappings of Amiga models and their corresponding kickstart file.
+
+    Kickstart files must reside in `path`
+    The first mapping contains the kickstarts and the second one, the extensions (for CD32/CDTV)
+    """
+    bios_sizes = [262144, 524288]
+    hashes, ext_hashes = get_bios_hashes()
+    found_bios = {}
+    found_ext = {}
+    incomplete_bios = []
+    for file_name in os.listdir(path):
+        abs_path = os.path.join(path, file_name)
+        file_size = os.path.getsize(abs_path)
+        if file_size not in bios_sizes:
+            continue
+        checksum = system.get_file_checksum(abs_path, "sha1")
+        if checksum in hashes:
+            for model in hashes[checksum]:
+                found_bios[model] = abs_path
+        if checksum in ext_hashes:
+            for model in ext_hashes[checksum]:
+                found_ext[model] = abs_path
+    for model in found_bios:
+        if "bios_ext_sha1" in AMIGAS[model] and model not in found_ext:
+            incomplete_bios.append(model)
+    found_bios = {k: v for k, v in found_bios.items() if k not in incomplete_bios}
+    return found_bios, found_ext
 
 
 class fsuae(Runner):
     human_name = _("FS-UAE")
     description = _("Amiga emulator")
     platforms = [
-        _("Amiga 500"),
-        _("Amiga 500+"),
-        _("Amiga 600"),
-        _("Amiga 1000"),
-        _("Amiga 1200"),
-        _("Amiga 1200"),
-        _("Amiga 4000"),
-        _("Amiga CD32"),
-        _("Commodore CDTV"),
+        AMIGAS["A500"]["name"],
+        AMIGAS["A500+"]["name"],
+        AMIGAS["A600"]["name"],
+        AMIGAS["A1000"]["name"],
+        AMIGAS["A1200"]["name"],
+        AMIGAS["A1200"]["name"],
+        AMIGAS["A4000"]["name"],
+        AMIGAS["CD32"]["name"],
+        AMIGAS["CDTV"]["name"],
     ]
-    model_choices = [
-        (_("Amiga 500"), "A500"),
-        (_("Amiga 500+ with 1 MB chip RAM"), "A500+"),
-        (_("Amiga 600 with 1 MB chip RAM"), "A600"),
-        (_("Amiga 1000 with 512 KB chip RAM"), "A1000"),
-        (_("Amiga 1200 with 2 MB chip RAM"), "A1200"),
-        (_("Amiga 1200 but with 68020 processor"), "A1200/020"),
-        (_("Amiga 4000 with 2 MB chip RAM and a 68040"), "A4000/040"),
-        (_("Amiga CD32"), "CD32"),
-        (_("Commodore CDTV"), "CDTV"),
-    ]
+
+    model_choices = [(model["name"], key) for key, model in AMIGAS.items()]
+
     cpumodel_choices = [
         (_("68000"), "68000"),
         (_("68010"), "68010"),
@@ -293,6 +399,10 @@ class fsuae(Runner):
             "advanced": True,
         },
     ]
+
+    @property
+    def directory(self):
+        return os.path.join(settings.RUNNER_DIR, "fs-uae")
 
     def get_platform(self):
         model = self.runner_config.get("model")

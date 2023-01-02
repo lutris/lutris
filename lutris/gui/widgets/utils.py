@@ -2,7 +2,7 @@
 import array
 import os
 
-from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
+from gi.repository import GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.util import datapath, system
@@ -31,12 +31,7 @@ def get_main_window(widget):
 
 def open_uri(uri):
     """Opens a local or remote URI with the default application"""
-    system.reset_library_preloads()
-    try:
-        Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
-    except GLib.Error as ex:
-        logger.exception("Failed to open URI %s: %s, falling back to xdg-open", uri, ex)
-        system.execute(["xdg-open", uri])
+    system.spawn(["xdg-open", uri])
 
 
 def get_pixbuf(image, size, fallback=None, is_installed=True):
@@ -92,29 +87,40 @@ def get_stock_icon(name, size):
         return None
 
 
-def get_icon(icon_name, icon_format="image", size=None, icon_type="runner"):
-    """Return an icon based on the given name, format, size and type.
+def get_runtime_icon(icon_name, icon_format="image", size=None):
+    """Return an icon based on the given name, format, size and type. Only
+    the icons installed in Lutris's runtime directory are searched.
 
     Keyword arguments:
     icon_name -- The name of the icon to retrieve
     format -- The format of the icon, which should be either 'image' or 'pixbuf' (default 'image')
     size -- The size for the desired image (default None)
-    icon_type -- Retrieve either a 'runner' or 'platform' icon (default 'runner')
     """
-    filename = icon_name.lower().replace(" ", "") + ".png"
-    icon_path = os.path.join(settings.RUNTIME_DIR, "icons/hicolor/64x64/apps", filename)
-    if not os.path.exists(icon_path):
-        return None
-    if icon_format == "image":
-        icon = Gtk.Image()
-        if size:
-            icon.set_from_pixbuf(get_pixbuf(icon_path, size))
-        else:
-            icon.set_from_file(icon_path)
-        return icon
-    if icon_format == "pixbuf" and size:
-        return get_pixbuf(icon_path, size)
-    raise ValueError("Invalid arguments")
+    filename = icon_name.lower().replace(" ", "")
+    # We prefer bitmaps over SVG, because we've got some SVG icons with the
+    # wrong size (oops) and this avoids them.
+    search_directories = [
+        "icons/hicolor/64x64/apps",
+        "icons/hicolor/24x24/apps",
+        "icons",
+        "icons/hicolor/scalable/apps",
+        "icons/hicolor/symbolic/apps"]
+    extensions = [".png", ".svg"]
+    for search_dir in search_directories:
+        for ext in extensions:
+            icon_path = os.path.join(settings.RUNTIME_DIR, search_dir, filename + ext)
+            if os.path.exists(icon_path):
+                if icon_format == "image":
+                    icon = Gtk.Image()
+                    if size:
+                        icon.set_from_pixbuf(get_pixbuf(icon_path, size))
+                    else:
+                        icon.set_from_file(icon_path)
+                    return icon
+                if icon_format == "pixbuf" and size:
+                    return get_pixbuf(icon_path, size)
+                raise ValueError("Invalid arguments")
+    return None
 
 
 def get_overlay(overlay_path, size):

@@ -6,9 +6,11 @@ __all__ = [
     "linux",
     "steam",
     "web",
+    "flatpak",
     # Microsoft based
     "wine",
     "dosbox",
+    "xemu",
     # Multi-system
     "easyrpg",
     "mame",

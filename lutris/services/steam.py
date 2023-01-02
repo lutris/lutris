@@ -26,6 +26,7 @@ class SteamBanner(ServiceMedia):
     size = (184, 69)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/banners")
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = "appid"
     url_pattern = "http://cdn.akamai.steamstatic.com/steam/apps/%s/capsule_184x69.jpg"
 
@@ -35,6 +36,7 @@ class SteamCover(ServiceMedia):
     size = (200, 300)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/covers")
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = "appid"
     url_pattern = "http://cdn.steamstatic.com/steam/apps/%s/library_600x900.jpg"
 
@@ -44,6 +46,7 @@ class SteamBannerLarge(ServiceMedia):
     size = (460, 215)
     dest_path = os.path.join(settings.CACHE_DIR, "steam/header")
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = "appid"
     url_pattern = "https://cdn.cloudflare.steamstatic.com/steam/apps/%s/header.jpg"
 
@@ -155,14 +158,22 @@ class SteamService(BaseService):
 
     def add_installed_games(self):
         """Syncs installed Steam games with Lutris"""
+        stats = {"installed": 0, "removed": 0, "deduped": 0, "paths": []}
         installed_appids = []
         for steamapps_path in self.steamapps_paths:
             for appmanifest_file in get_appmanifests(steamapps_path):
+                if steamapps_path not in stats["paths"]:
+                    stats["paths"].append(steamapps_path)
                 app_manifest_path = os.path.join(steamapps_path, appmanifest_file)
                 app_manifest = AppManifest(app_manifest_path)
                 installed_appids.append(app_manifest.steamid)
                 self.install_from_steam(app_manifest)
-
+                stats["installed"] += 1
+        if stats["paths"]:
+            logger.debug("%s Steam games detected and installed", stats["installed"])
+            logger.debug("Games found in: %s", ", ".join(stats["paths"]))
+        else:
+            logger.debug("No Steam folder found with games")
         db_games = get_games(filters={"runner": "steam"})
         for db_game in db_games:
             steam_game = Game(db_game["id"])
@@ -173,6 +184,8 @@ class SteamService(BaseService):
                 continue
             if appid not in installed_appids:
                 steam_game.remove(no_signal=True)
+                stats["removed"] += 1
+        logger.debug("%s Steam games removed", stats["removed"])
 
         db_appids = defaultdict(list)
         db_games = get_games(filters={"service": "steam"})
@@ -187,7 +200,9 @@ class SteamService(BaseService):
                 steam_game = Game(game_id)
                 if not steam_game.playtime:
                     steam_game.remove(no_signal=True)
-                    steam_game.delete()
+                    steam_game.delete(no_signal=True)
+                    stats["deduped"] += 1
+        logger.debug("%s Steam games deduplicated", stats["deduped"])
 
     def generate_installer(self, db_game):
         """Generate a basic Steam installer"""

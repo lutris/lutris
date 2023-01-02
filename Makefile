@@ -1,11 +1,36 @@
 VERSION=`grep "__version__" lutris/__init__.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
 GITBRANCH ?= master
+# Default GPG key ID to use for package signing.
+PPA_GPG_KEY_ID ?= 82D96E430A1F1C0F0502747E37B90EDD4E3EFAE4
 PYTHON:=$(shell which python3)
 PIP:=$(PYTHON) -m pip
 
 all:
 	export GITBRANCH=master
 	debuild
+	debclean
+
+# The same as all, but requires two environment variables related to
+# package signing.
+# 	PPA_GPG_KEY_ID
+#		Key ID used to sign the .deb package files.
+#	PPA_GPG_PASSPHRASE
+#		Decrypts the private key associated with GPG_KEY_ID.
+#
+# When running from a GitHub workflow.  The above environment variables
+# are passed in from .github/scripts/build-sign-ubuntu.sh and that script
+# receives those variables from the .github/workflows/publish-lutris-ppa.yml
+# which receives them from the repository secrets.
+github-ppa:
+	export GITBRANCH=master
+	# Automating builds for different Ubuntu codenames manipulates the
+	# version string, and so that lintian check is suppressed.  Also note
+	# that all parameters after "--lintian-opts" are passed to lintian
+	# so that _must_ be the last parameter.
+	echo "y" | debuild -S -sa \
+		-k"${PPA_GPG_KEY_ID}" \
+		-p"gpg --batch --passphrase "${PPA_GPG_PASSPHRASE}" --pinentry-mode loopback" \
+		--lintian-opts --suppress-tags malformed-debian-changelog-version
 	debclean
 
 build:
@@ -56,16 +81,7 @@ snap:
 	snapcraft
 
 dev:
-	$(PIP) install --user --upgrade poetry
-	poetry install --no-root --remove-untracked
-
-lock:
-# Update poetry.lock with packages and versions based on current pyproject.toml settings
-	poetry update --lock
-
-show-tree:
-# Show a tree of installed packages and their dependencies
-	poetry show --tree
+	pip3 install isort flake8 pylint autopep8 pytest
 
 # ============
 # Style checks
@@ -74,10 +90,10 @@ show-tree:
 style: isort autopep8  ## Format code
 
 isort:
-	poetry run isort lutris
+	isort lutris
 
 autopep8:
-	poetry run autopep8 --in-place --recursive --ignore E402 setup.py lutris
+	autopep8 --in-place --recursive --ignore E402 setup.py lutris
 
 
 # ===============
@@ -87,22 +103,22 @@ autopep8:
 check: isort-check flake8 pylint
 
 isort-check:
-	poetry run isort lutris -c
+	isort lutris -c
 
 flake8:
-	poetry run flake8 . --count --max-complexity=25 --max-line-length=120 --show-source --statistics
+	flake8 . --count --max-complexity=25 --max-line-length=120 --show-source --statistics
 
 pylint:
-	poetry run pylint lutris --rcfile=.pylintrc --output-format=colorized
+	pylint lutris --rcfile=.pylintrc --output-format=colorized
 
 bandit:
-	poetry run bandit . --recursive --skip B101,B105,B107,B108,B303,B310,B311,B314,B320,B404,B405,B410,B602,B603,B607,B608
+	bandit . --recursive --skip B101,B105,B107,B108,B303,B310,B311,B314,B320,B404,B405,B410,B602,B603,B607,B608
 
 black:
-	poetry run black . --check
+	black . --check
 
 mypy:
-	poetry run mypy . --ignore-missing-imports --install-types --non-interactive
+	mypy . --ignore-missing-imports --install-types --non-interactive
 
 # =============
 # Abbreviations

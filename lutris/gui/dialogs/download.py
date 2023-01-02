@@ -2,16 +2,16 @@ from gettext import gettext as _
 
 from gi.repository import Gtk
 
+from lutris.gui.dialogs import ModalDialog
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 
 
-class DownloadDialog(Gtk.Dialog):
+class DownloadDialog(ModalDialog):
     """Dialog showing a download in progress."""
 
-    def __init__(self, url=None, dest=None, title=None, label=None, downloader=None):
-        Gtk.Dialog.__init__(self, title or _("Downloading file"))
+    def __init__(self, url=None, dest=None, title=None, label=None, downloader=None, parent=None):
+        super().__init__(title=title or _("Downloading file"), parent=parent, border_width=10)
         self.set_size_request(485, 104)
-        self.set_border_width(12)
         params = {"url": url, "dest": dest, "title": label or _("Downloading %s") % url}
         self.dialog_progress_box = DownloadProgressBox(params, downloader=downloader)
 
@@ -23,11 +23,15 @@ class DownloadDialog(Gtk.Dialog):
         self.show_all()
         self.dialog_progress_box.start()
 
+    @property
+    def downloader(self):
+        return self.dialog_progress_box.downloader
+
     def download_complete(self, _widget, _data):
         self.response(Gtk.ResponseType.OK)
         self.destroy()
 
-    def download_cancelled(self, _widget, data):
+    def download_cancelled(self, _widget):
         self.response(Gtk.ResponseType.CANCEL)
         self.destroy()
 
@@ -35,12 +39,3 @@ class DownloadDialog(Gtk.Dialog):
         if response == Gtk.ResponseType.DELETE_EVENT:
             self.dialog_progress_box.downloader.cancel()
             self.destroy()
-
-
-def simple_downloader(url, destination, callback, callback_args=None):
-    """Basic downloader with a DownloadDialog"""
-    if not callback_args:
-        callback_args = {}
-    dialog = DownloadDialog(url, destination)
-    dialog.run()
-    return callback(**callback_args)

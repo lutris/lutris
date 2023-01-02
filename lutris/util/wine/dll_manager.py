@@ -115,6 +115,9 @@ class DLLManager:
         if self.is_available():
             logger.warning("%s already available at %s", self.component, self.path)
 
+        if not system.path_exists(self.versions_path):
+            self.fetch_versions()
+
         url = self.get_download_url()
         if not url:
             logger.warning("Could not find a release for %s %s", self.component, self.version)

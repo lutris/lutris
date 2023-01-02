@@ -1,0 +1,57 @@
+# Inspired by
+# https://github.com/yuezk/GlobalProtect-openconnect/blob/master/.github/workflows/build.yml
+name: Publish Lutris PPA
+
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  release-ppa:
+    strategy:
+      matrix:
+        os: [ ubuntu-22.04, ubuntu-20.04 ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Checkout repository
+      - uses: actions/checkout@v2
+
+      # Dependencies for the build process to generate .deb packages.
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install \
+            debhelper \
+            debmake \
+            devscripts \
+            dh-python \
+            meson \
+            equivs \
+            git-buildpackage
+
+      # This builds and signs the debian package for each OS in matrix.os
+      # This script also recalculates dependencies based on the current
+      # OS and can potentially produce different package control files,
+      # but these files are not kept.
+      #
+      # Signing packages uses the secrets referenced below and passes
+      # them through the below script and into the make "github-ppa"
+      # Makefile directive.
+      #
+      # It would probably be a good idea to have a unique GPG just for
+      # this process, but whatever GPG key is passed here _must_ be
+      # registered on the PPA as an authorized key.
+      - name: Build Debian Package
+        env:
+          PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
+          PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}
+        run: |
+          ./.github/scripts/build-sign-ubuntu.sh
+
+      # Pushes the build to the PPA.
+      - name: Publish to PPA
+        run: |
+          dput ppa:lutris-team/lutris ../*.changes

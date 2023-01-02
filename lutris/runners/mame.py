@@ -223,12 +223,12 @@ class mame(Runner):  # pylint: disable=invalid-name
         self._platforms += [_("Arcade"), _("Nintendo Game & Watch")]
         return self._platforms
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, install_ui_delegate, version=None, callback=None):
 
         def on_runner_installed(*args):
             AsyncCall(write_mame_xml, notify_mame_xml)
 
-        super().install(version=version, downloader=downloader, callback=on_runner_installed)
+        super().install(install_ui_delegate, version=version, callback=on_runner_installed)
 
     @property
     def default_path(self):
@@ -275,7 +275,6 @@ class mame(Runner):  # pylint: disable=invalid-name
                 env=runtime.get_env(),
                 cwd=self.working_dir
             )
-        return True
 
     def get_shader_params(self, shader_dir, shaders):
         """Returns a list of CLI parameters to apply a list of shaders"""

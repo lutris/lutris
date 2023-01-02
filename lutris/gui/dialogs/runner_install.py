@@ -2,6 +2,7 @@
 # pylint: disable=no-member
 import gettext
 import os
+import re
 from collections import defaultdict
 from gettext import gettext as _
 
@@ -10,21 +11,19 @@ from gi.repository import GLib, Gtk
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
-from lutris.gui.dialogs import Dialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import ErrorDialog, ModalDialog, ModelessDialog, QuestionDialog
+from lutris.gui.widgets.utils import has_stock_icon
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.log import logger
 
 
-class ShowAppsDialog(Dialog):
+class ShowAppsDialog(ModalDialog):
     def __init__(self, title, parent, runner_version, apps):
-        super().__init__(title, parent, Gtk.DialogFlags.MODAL)
-        self.add_buttons(
-            Gtk.STOCK_OK, Gtk.ResponseType.OK
-        )
-
-        self.set_default_size(400, 500)
+        super().__init__(title, parent, border_width=10)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.set_default_size(600, 400)
 
         label = Gtk.Label.new(_("Showing games using %s") % runner_version)
         self.vbox.add(label)
@@ -49,7 +48,7 @@ class ShowAppsDialog(Dialog):
         self.show_all()
 
 
-class RunnerInstallDialog(Dialog):
+class RunnerInstallDialog(ModelessDialog):
     """Dialog displaying available runner version and downloads them"""
     COL_VER = 0
     COL_ARCH = 1
@@ -58,10 +57,14 @@ class RunnerInstallDialog(Dialog):
     COL_PROGRESS = 4
     COL_USAGE = 5
 
+    INSTALLED_ICON_NAME = "software-installed-symbolic" \
+        if has_stock_icon("software-installed-symbolic") else "wine-symbolic"
+
     def __init__(self, title, parent, runner):
-        super().__init__(title, parent, 0)
-        self.add_buttons(_("_OK"), Gtk.ButtonsType.OK)
-        self.runner = runner
+        super().__init__(title, parent, 0, border_width=10)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.runner_name = runner.name
+        self.runner_directory = runner.directory
         self.runner_info = {}
         self.installing = {}
         self.set_default_size(640, 480)
@@ -78,7 +81,7 @@ class RunnerInstallDialog(Dialog):
         self.show_all()
 
         self.runner_store = Gtk.ListStore(str, str, str, bool, int, int)
-        jobs.AsyncCall(api.get_runners, self.runner_fetch_cb, self.runner)
+        jobs.AsyncCall(api.get_runners, self.runner_fetch_cb, self.runner_name)
 
     def runner_fetch_cb(self, runner_info, error):
         """Clear the box and display versions from runner_info"""
@@ -128,11 +131,15 @@ class RunnerInstallDialog(Dialog):
             row.runner = runner
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             row.hbox = hbox
-            chk_installed = Gtk.CheckButton()
-            chk_installed.set_sensitive(False)
-            chk_installed.set_active(runner[self.COL_INSTALLED])
-            hbox.pack_start(chk_installed, False, True, 0)
-            row.chk_installed = chk_installed
+
+            icon = Gtk.Image.new_from_icon_name(self.INSTALLED_ICON_NAME, Gtk.IconSize.MENU)
+            icon.set_visible(runner[self.COL_INSTALLED])
+            icon_container = Gtk.Box()
+            icon_container.set_size_request(16, 16)
+            icon_container.pack_start(icon, False, False, 0)
+
+            hbox.pack_start(icon_container, False, True, 0)
+            row.icon = icon
 
             lbl_version = Gtk.Label(runner[self.COL_VER])
             lbl_version.set_max_width_chars(20)
@@ -155,16 +162,18 @@ class RunnerInstallDialog(Dialog):
                 app_count = runner[self.COL_USAGE] or 0
                 if app_count > 0:
                     usage_button_text = gettext.ngettext(
-                        "_View %d game",
-                        "_View %d games",
+                        "View %d game",
+                        "View %d games",
                         app_count
                     ) % app_count
 
-                    usage_button = Gtk.Button.new_with_mnemonic(usage_button_text)
-                    usage_button.connect("button_press_event", self.on_show_apps_usage, row)
+                    usage_button = Gtk.LinkButton.new_with_label(usage_button_text)
+                    usage_button.set_valign(Gtk.Align.CENTER)
+                    usage_button.connect("clicked", self.on_show_apps_usage, row)
                     hbox.pack_end(usage_button, False, True, 2)
 
             button = Gtk.Button()
+            button.set_size_request(100, -1)
             hbox.pack_end(button, False, True, 0)
             hbox.reorder_child(button, 0)
             row.install_uninstall_cancel_button = button
@@ -177,30 +186,38 @@ class RunnerInstallDialog(Dialog):
 
     def update_listboxrow(self, row):
         row.install_progress.set_visible(False)
-        row.chk_installed.set_active(row.runner[self.COL_INSTALLED])
+
+        runner = row.runner
+        icon = row.icon
+        icon.set_visible(runner[self.COL_INSTALLED])
+
         button = row.install_uninstall_cancel_button
+        style_context = button.get_style_context()
         if row.handler_id is not None:
             button.disconnect(row.handler_id)
             row.handler_id = None
-        if row.runner[self.COL_VER] in self.installing:
+        if runner[self.COL_VER] in self.installing:
+            style_context.remove_class("destructive-action")
             button.set_label(_("Cancel"))
-            handler_id = button.connect("button_press_event", self.on_cancel_install, row)
+            handler_id = button.connect("clicked", self.on_cancel_install, row)
         else:
-            if row.runner[self.COL_INSTALLED]:
+            if runner[self.COL_INSTALLED]:
+                style_context.add_class("destructive-action")
                 button.set_label(_("Uninstall"))
-                handler_id = button.connect("button_press_event", self.on_uninstall_runner, row)
+                handler_id = button.connect("clicked", self.on_uninstall_runner, row)
             else:
+                style_context.remove_class("destructive-action")
                 button.set_label(_("Install"))
-                handler_id = button.connect("button_press_event", self.on_install_runner, row)
+                handler_id = button.connect("clicked", self.on_install_runner, row)
 
         row.install_uninstall_cancel_button = button
         row.handler_id = handler_id
 
-    def on_show_apps_usage(self, _widget, _button, row):
+    def on_show_apps_usage(self, _button, row):
         """Return grid with games that uses this wine version"""
         runner = row.runner
         runner_version = "%s-%s" % (runner[self.COL_VER], runner[self.COL_ARCH])
-        runner_games = get_games_by_runner(self.runner)
+        runner_games = get_games_by_runner(self.runner_name)
         apps = []
         for db_game in runner_games:
             if not db_game["installed"]:
@@ -219,7 +236,8 @@ class RunnerInstallDialog(Dialog):
     def populate_store(self):
         """Return a ListStore populated with the runner versions"""
         version_usage = self.get_usage_stats()
-        for version_info in reversed(self.runner_info["versions"]):
+        ordered = sorted(self.runner_info["versions"], key=RunnerInstallDialog.get_version_sort_key)
+        for version_info in reversed(ordered):
             is_installed = os.path.exists(self.get_runner_path(version_info["version"], version_info["architecture"]))
             games_using = version_usage.get("%(version)s-%(architecture)s" % version_info)
             self.runner_store.append(
@@ -229,20 +247,35 @@ class RunnerInstallDialog(Dialog):
                 ]
             )
 
+    @staticmethod
+    def get_version_sort_key(version):
+        """Generate a sorting key that sorts first on the version number part of the version,
+        and which breaks the version number into its components, which are parsed as integers"""
+        raw_version = version["version"]
+        # Extract version numbers from the end of the version string.
+        # We look for things like xx-7.2 or xxx-4.3-2. A leading period
+        # will be part of the version, but a leading hyphen will not.
+        match = re.search(r"^(.*?)\-?(\d[.\-\d]*)$", raw_version)
+        if match:
+            version_parts = [int(p) for p in match.group(2).replace("-", ".").split(".") if p]
+            return version_parts, raw_version, version["architecture"]
+
+        # If we fail to extract the version, we'll wind up sorting this one to the end.
+        return [], raw_version, version["architecture"]
+
     def get_installed_versions(self):
         """List versions available locally"""
-        runner_path = os.path.join(settings.RUNNER_DIR, self.runner)
-        if not os.path.exists(runner_path):
+        if not os.path.exists(self.runner_directory):
             return set()
         return {
             tuple(p.rsplit("-", 1))
-            for p in os.listdir(runner_path)
+            for p in os.listdir(self.runner_directory)
             if "-" in p
         }
 
     def get_runner_path(self, version, arch):
         """Return the local path where the runner is/will be installed"""
-        return os.path.join(settings.RUNNER_DIR, self.runner, "{}-{}".format(version, arch))
+        return os.path.join(self.runner_directory, "{}-{}".format(version, arch))
 
     def get_dest_path(self, row):
         """Return temporary path where the runners should be downloaded to"""
@@ -264,7 +297,7 @@ class RunnerInstallDialog(Dialog):
         else:
             self.install_runner(row)
 
-    def on_cancel_install(self, widget, button, row):
+    def on_cancel_install(self, widget, row):
         self.cancel_install(row)
 
     def cancel_install(self, row):
@@ -277,7 +310,7 @@ class RunnerInstallDialog(Dialog):
         self.update_listboxrow(row)
         row.install_progress.set_visible(False)
 
-    def on_uninstall_runner(self, widget, button, row):
+    def on_uninstall_runner(self, widget, row):
         self.uninstall_runner(row)
 
     def uninstall_runner(self, row):
@@ -287,14 +320,14 @@ class RunnerInstallDialog(Dialog):
         arch = runner[self.COL_ARCH]
         system.remove_folder(self.get_runner_path(version, arch))
         runner[self.COL_INSTALLED] = False
-        if self.runner == "wine":
+        if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
 
             get_wine_versions.cache_clear()
         self.update_listboxrow(row)
 
-    def on_install_runner(self, _widget, _button, row):
+    def on_install_runner(self, _widget, row):
         self.install_runner(row)
 
     def install_runner(self, row):
@@ -344,7 +377,7 @@ class RunnerInstallDialog(Dialog):
 
     def get_usage_stats(self):
         """Return the usage for each version"""
-        runner_games = get_games_by_runner(self.runner)
+        runner_games = get_games_by_runner(self.runner_name)
         version_usage = defaultdict(list)
         for db_game in runner_games:
             if not db_game["installed"]:
@@ -386,7 +419,7 @@ class RunnerInstallDialog(Dialog):
         row.install_progress.set_fraction(0.0)
         row.install_progress.hide()
         self.update_listboxrow(row)
-        if self.runner == "wine":
+        if self.runner_name == "wine":
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import get_wine_versions
             get_wine_versions.cache_clear()

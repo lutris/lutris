@@ -84,7 +84,7 @@ class InstallerFilesBox(Gtk.ListBox):
         Blocks the installer from continuing.
         """
         file_id = widget.installer_file.id
-        self.ready_files.remove(file_id)
+        self.ready_files.discard(file_id)
         self.check_files_ready()
 
     def on_file_available(self, widget):

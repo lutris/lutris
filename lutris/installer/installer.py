@@ -32,7 +32,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.game_slug = installer["game_slug"]
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
-        self.variables = installer.get("variables", {})
+        self.variables = self.script.get("variables", {})
         self.files = [
             InstallerFile(self.game_slug, file_id, file_meta)
             for file_desc in self.script.get("files", [])
@@ -42,6 +42,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
         self.is_gog = False
+        self.discord_id = installer.get('discord_id')
 
     def get_service(self, initial=None):
         if initial:
@@ -62,12 +63,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if not self.service:
             return
         if self.service.id == "steam":
-            return installer.get("steamid")
+            return installer.get("steamid") or installer.get("service_id")
         game_config = self.script.get("game", {})
         if self.service.id == "gog":
-            return game_config.get("gogid") or installer.get("gogid")
+            return game_config.get("gogid") or installer.get("gogid") or installer.get("service_id")
         if self.service.id == "humblebundle":
-            return game_config.get("humbleid") or installer.get("humblestoreid")
+            return game_config.get("humbleid") or installer.get("humblestoreid") or installer.get("service_id")
 
     @property
     def script_pretty(self):
@@ -140,10 +141,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     def prepare_game_files(self, patch_version=None):
         """Gathers necessary files before iterating through them."""
         if not self.files:
-            logger.info("No files to prepare")
             return
         if not self.service:
-            logger.debug("No service to retrieve files from")
             return
         if self.service.online and not self.service.is_connected():
             logger.info("Not authenticated to %s", self.service.id)
@@ -183,15 +182,16 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             if str(value).lower() == 'false':
                 value = False
             if key == "launch_configs":
-                # launch configuration don't need substitutions at least for now.
-                config[key] = value
+                config[key] = [
+                    {k: self.interpreter._substitute(v) for (k, v) in _conf.items()}
+                    for _conf in value
+                ]
             elif isinstance(value, list):
                 config[key] = [self.interpreter._substitute(i) for i in value]
             elif isinstance(value, dict):
                 config[key] = {k: self.interpreter._substitute(v) for (k, v) in value.items()}
             elif isinstance(value, bool):
                 config[key] = value
-
             else:
                 config[key] = self.interpreter._substitute(value)
         return config
@@ -232,6 +232,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                                                                    make_executable=True)
             elif AUTO_WIN32_EXE in config["game"].get("exe", ""):
                 config["game"]["exe"] = find_windows_game_executable(self.interpreter.target_path)
+        config["name"] = self.game_name
+        config["script"] = self.script
+        config["variables"] = self.variables
+        config["version"] = self.version
+        config["requires"] = self.requires
+        config["slug"] = self.slug
+        config["game_slug"] = self.game_slug
+        config["year"] = self.year
+        if self.service:
+            config["service"] = self.service.id
+            config["service_id"] = self.service_appid
         return config
 
     def save(self):
@@ -271,6 +282,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             service=service_id,
             service_id=self.service_appid,
             id=self.game_id,
+            discord_id=self.discord_id,
         )
         return self.game_id
 

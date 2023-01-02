@@ -115,9 +115,12 @@ properties:
                 name:
                   type: string
                   description: Identifier to show in the launcher dialog
+                command:
+                  type: string
+                  description: Full bash command to execute, overriding default game command entirely
                 exe:
                   type: string
-                  description: Main game executable
+                  description: Main game executable, to combine with the command
                 args:
                   type: string
                   description: Additional command arguments

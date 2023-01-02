@@ -2,16 +2,21 @@
 import json
 import os
 import socket
+import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
 from ssl import CertificateError
+
+import certifi
 
 from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
 from lutris.util import system
 from lutris.util.log import logger
 
 DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
+
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
 
 class HTTPError(Exception):
@@ -79,10 +84,10 @@ class Request:
     def user_agent(self):
         return "{} {}".format(PROJECT, VERSION)
 
-    def get(self, data=None):
-        logger.debug("GET %s", self.url)
+    def _request(self, method, data=None):
+        logger.debug("%s %s", method, self.url)
         try:
-            req = urllib.request.Request(url=self.url, data=data, headers=self.headers)
+            req = urllib.request.Request(url=self.url, data=data, headers=self.headers, method=method)
         except ValueError as ex:
             raise HTTPError("Failed to create HTTP request to %s: %s" % (self.url, ex)) from ex
         try:
@@ -126,8 +131,11 @@ class Request:
                 return
             yield chunk
 
-    def post(self, data):
-        raise NotImplementedError
+    def get(self, data=None):
+        return self._request("GET", data)
+
+    def post(self, data=None):
+        return self._request("POST", data)
 
     def write_to_file(self, path):
         content = self.content

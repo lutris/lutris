@@ -10,8 +10,9 @@ class PreferencesBox(VBox):
     settings_options = {
         "hide_client_on_game_start": _("Minimize client when a game is launched"),
         "hide_text_under_icons": _("Hide text under icons (requires restart)"),
-        "show_tray_icon": _("Show Tray Icon (requires restart)"),
-        "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)")
+        "show_tray_icon": _("Show Tray Icon"),
+        "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)"),
+        "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
     }
 
     def _get_section_label(self, text):
@@ -60,3 +61,7 @@ class PreferencesBox(VBox):
         if setting_key == "dark_theme":
             application = Gio.Application.get_default()
             application.style_manager.is_config_dark = state
+        elif setting_key == "show_tray_icon":
+            application = Gio.Application.get_default()
+            if application.window.get_visible():
+                application.set_tray_icon()

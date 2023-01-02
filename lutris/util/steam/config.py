@@ -11,12 +11,12 @@ from lutris.util.log import logger
 from lutris.util.steam.vdfutils import vdf_parse
 
 STEAM_DATA_DIRS = (
+    "~/.steam/debian-installation",
     "~/.steam",
     "~/.local/share/steam",
     "~/.local/share/Steam",
     "~/.steam/steam",
     "~/.var/app/com.valvesoftware.Steam/data/steam",
-    "~/.steam/debian-installation",
     "/usr/share/steam",
     "/usr/local/share/steam",
 )
@@ -112,7 +112,7 @@ def get_steam_library(steamid):
             settings.STEAM_API_KEY, steamid
         )
     )
-    response = requests.get(steam_games_url)
+    response = requests.get(steam_games_url, timeout=30)
     if response.status_code > 400:
         logger.error("Invalid response from steam: %s", response)
         return []

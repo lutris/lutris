@@ -23,6 +23,7 @@ from lutris.util.log import logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe
 from lutris.util.system import path_exists
+from lutris.util.wine.dxvk import update_shader_cache
 
 
 class GameActions:
@@ -64,11 +65,11 @@ class GameActions:
             ("install_dlcs", "Install DLCs", self.on_install_dlc_clicked),
             ("show_logs", _("Show logs"), self.on_show_logs),
             ("add", _("Add installed game"), self.on_add_manually),
-            ("duplicate", _("Duplicate"), self.on_game_duplicate),
             ("configure", _("Configure"), self.on_edit_game_configuration),
             ("favorite", _("Add to favorites"), self.on_add_favorite_game),
             ("deletefavorite", _("Remove from favorites"), self.on_delete_favorite_game),
             ("execute-script", _("Execute script"), self.on_execute_script_clicked),
+            ("update-shader-cache", _("Update shader cache"), self.on_update_shader_cache),
             ("browse", _("Browse files"), self.on_browse_files),
             (
                 "desktop-shortcut",
@@ -102,6 +103,7 @@ class GameActions:
             ),
             ("install_more", _("Install another version"), self.on_install_clicked),
             ("remove", _("Remove"), self.on_remove_game),
+            ("duplicate", _("Duplicate"), self.on_game_duplicate),
             ("view", _("View on Lutris.net"), self.on_view_game),
             ("hide", _("Hide game from library"), self.on_hide_game),
             ("unhide", _("Unhide game from library"), self.on_unhide_game),
@@ -115,6 +117,7 @@ class GameActions:
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "update": self.game.is_updatable,
+            "update-shader-cache": self.game.is_cache_managed,
             "install_dlcs": self.game.is_updatable,
             "stop": self.is_game_running,
             "configure": bool(self.game.is_installed),
@@ -138,8 +141,8 @@ class GameActions:
             "steam-shortcut": (
                 self.game.is_installed
                 and steam_shortcut.vdf_file_exists()
-                and not steam_shortcut.all_shortcuts_set(self.game)
-                and not steam_shortcut.has_steamtype_runner(self.game)
+                and not steam_shortcut.shortcut_exists(self.game)
+                and not steam_shortcut.is_steam_game(self.game)
             ),
             "rm-desktop-shortcut": bool(
                 self.game.is_installed
@@ -152,8 +155,8 @@ class GameActions:
             "rm-steam-shortcut": bool(
                 self.game.is_installed
                 and steam_shortcut.vdf_file_exists()
-                and steam_shortcut.all_shortcuts_set(self.game)
-                and not steam_shortcut.has_steamtype_runner(self.game)
+                and steam_shortcut.shortcut_exists(self.game)
+                and not steam_shortcut.is_steam_game(self.game)
             ),
             "remove": True,
             "view": True,
@@ -163,7 +166,7 @@ class GameActions:
 
     def on_game_launch(self, *_args):
         """Launch a game"""
-        self.game.launch()
+        self.game.launch(self.window)
 
     def get_running_game(self):
         ids = self.application.get_running_game_ids()
@@ -184,7 +187,7 @@ class GameActions:
         if not _buffer:
             logger.info("No log for game %s", self.game)
         return LogWindow(
-            title=_("Log for {}").format(self.game),
+            game=self.game,
             buffer=_buffer,
             application=self.application
         )
@@ -201,6 +204,9 @@ class GameActions:
 
     def on_install_dlc_clicked(self, _widget):
         self.game.emit("game-install-dlc")
+
+    def on_update_shader_cache(self, _widget):
+        update_shader_cache(self.game)
 
     def on_locate_installed_game(self, _button, game):
         """Show the user a dialog to import an existing install to a DRM free service
@@ -291,15 +297,21 @@ class GameActions:
 
     def on_create_menu_shortcut(self, *_args):
         """Add the selected game to the system's Games menu."""
-        xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, menu=True)
+        launch_config_name = self._select_game_launch_config_name(self.game)
+        if launch_config_name is not None:
+            xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, menu=True)
 
     def on_create_steam_shortcut(self, *_args):
         """Add the selected game to steam as a nonsteam-game."""
-        steam_shortcut.update_shortcut(self.game)
+        launch_config_name = self._select_game_launch_config_name(self.game)
+        if launch_config_name is not None:
+            steam_shortcut.create_shortcut(self.game, launch_config_name)
 
     def on_create_desktop_shortcut(self, *_args):
         """Create a desktop launcher for the selected game."""
-        xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, desktop=True)
+        launch_config_name = self._select_game_launch_config_name(self.game)
+        if launch_config_name is not None:
+            xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, launch_config_name, desktop=True)
 
     def on_remove_menu_shortcut(self, *_args):
         """Remove an XDG menu shortcut"""
@@ -307,11 +319,25 @@ class GameActions:
 
     def on_remove_steam_shortcut(self, *_args):
         """Remove the selected game from list of non-steam apps."""
-        steam_shortcut.remove_all_shortcuts(self.game)
+        steam_shortcut.remove_shortcut(self.game)
 
     def on_remove_desktop_shortcut(self, *_args):
         """Remove a .desktop shortcut"""
         xdgshortcuts.remove_launcher(self.game.slug, self.game.id, desktop=True)
+
+    def _select_game_launch_config_name(self, game):
+        game_config = game.config.game_level.get("game", {})
+        configs = game_config.get("launch_configs")
+
+        if not configs:
+            return ""  # use primary configuration
+
+        dlg = dialogs.LaunchConfigSelectDialog(game, configs, title=_("Select shortcut target"), parent=self.window)
+        if not dlg.confirmed:
+            return None  # no error here- the user cancelled out
+
+        config_index = dlg.config_index
+        return configs[config_index - 1]["name"] if config_index > 0 else ""
 
     def on_view_game(self, _widget):
         """Callback to open a game on lutris.net"""
@@ -320,6 +346,6 @@ class GameActions:
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""
         if self.game.is_installed:
-            UninstallGameDialog(game_id=self.game.id, parent=self.window)
+            UninstallGameDialog(game_id=self.game.id, parent=self.window).run()
         else:
-            RemoveGameDialog(game_id=self.game.id, parent=self.window)
+            RemoveGameDialog(game_id=self.game.id, parent=self.window).run()

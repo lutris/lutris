@@ -2,9 +2,11 @@
 import json
 import os
 import re
+import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections import OrderedDict
 
 import requests
 
@@ -76,14 +78,23 @@ def get_user_info():
 def get_runners(runner_name):
     """Return the available runners for a given runner name"""
     api_url = settings.SITE_URL + "/api/runners/" + runner_name
-    response = http.Request(api_url).get()
-    return response.json
+    host = settings.SITE_URL.split("//")[1]
+
+    answers = socket.getaddrinfo(host, 443)
+    (_family, _type, _proto, _canonname, _sockaddr) = answers[0]
+    headers = OrderedDict({
+        'Host': host
+    })
+    session = requests.Session()
+    session.headers = headers
+    response = session.get(api_url, headers=headers)
+    return response.json()
 
 
-def get_http_response(url, payload):
+def get_http_post_response(url, payload):
     response = http.Request(url, headers={"Content-Type": "application/json"})
     try:
-        response.get(data=payload)
+        response.post(data=payload)
     except http.HTTPError as ex:
         logger.error("Unable to get games from API: %s", ex)
         return None
@@ -106,7 +117,7 @@ def get_game_api_page(game_slugs, page=1):
     if not game_slugs:
         return []
     payload = json.dumps({"games": game_slugs, "page": page}).encode("utf-8")
-    return get_http_response(url, payload)
+    return get_http_post_response(url, payload)
 
 
 def get_game_service_api_page(service, appids, page=1):
@@ -117,7 +128,7 @@ def get_game_service_api_page(service, appids, page=1):
     if not appids:
         return []
     payload = json.dumps({"appids": appids}).encode("utf-8")
-    return get_http_response(url, payload)
+    return get_http_post_response(url, payload)
 
 
 def get_api_games(game_slugs=None, page=1, service=None):
@@ -164,10 +175,40 @@ def get_game_installers(game_slug, revision=None):
     if response is None:
         raise RuntimeError("Couldn't get installer at %s" % installer_url)
 
-    if not revision:
-        return response["results"]
     # Revision requests return a single installer
-    return [response]
+    if revision:
+        installers = [response]
+    else:
+        installers = response["results"]
+    return [normalize_installer(i) for i in installers]
+
+
+def get_game_details(slug):
+    url = settings.SITE_URL + "/api/games/%s" % slug
+    request = http.Request(url)
+    try:
+        response = request.get()
+    except http.HTTPError as ex:
+        logger.debug("Unable to load %s: %s", slug, ex)
+        return {}
+    return response.json
+
+
+def normalize_installer(installer):
+    """Adjusts an installer dict so it is in the correct form, with values
+    of the expected types."""
+    def must_be_str(key):
+        if key in installer:
+            installer[key] = str(installer[key])
+
+    must_be_str("name")
+    must_be_str("version")
+    must_be_str("os")
+    must_be_str("slug")
+    must_be_str("game_slug")
+    must_be_str("dlcid")
+    must_be_str("runner")
+    return installer
 
 
 def search_games(query):
@@ -202,6 +243,7 @@ def parse_installer_url(url):
     Parses `lutris:` urls, extracting any info necessary to install or run a game.
     """
     action = None
+    launch_config_name = None
     try:
         parsed_url = urllib.parse.urlparse(url, scheme="lutris")
     except Exception:  # pylint: disable=broad-except
@@ -217,8 +259,12 @@ def parse_installer_url(url):
     if url_path.startswith("lutris:"):
         url_path = url_path[7:]
 
-    url_parts = url_path.split("/")
-    if len(url_parts) == 2:
+    url_parts = [urllib.parse.unquote(part) for part in url_path.split("/")]
+    if len(url_parts) == 3:
+        action = url_parts[0]
+        game_slug = url_parts[1]
+        launch_config_name = url_parts[2]
+    elif len(url_parts) == 2:
         action = url_parts[0]
         game_slug = url_parts[1]
     elif len(url_parts) == 1:
@@ -241,5 +287,45 @@ def parse_installer_url(url):
         "revision": revision,
         "action": action,
         "service": service,
-        "appid": appid
+        "appid": appid,
+        "launch_config_name": launch_config_name
     }
+
+
+def format_installer_url(installer_info):
+    """
+    Generates 'lutris:' urls, given the same dictionary that
+    parse_intaller_url returns.
+    """
+
+    game_slug = installer_info.get("game_slug")
+    revision = installer_info.get("revision")
+    action = installer_info.get("action")
+    service = installer_info.get("service")
+    appid = installer_info.get("appid")
+    launch_config_name = installer_info.get("launch_config_name")
+    parts = []
+
+    if action:
+        parts.append(action)
+    elif not launch_config_name:
+        raise ValueError("A 'lutris:' URL can contain a launch configuration name only if it has an action.")
+
+    if game_slug:
+        parts.append(game_slug)
+    else:
+        parts.append(service + ":" + appid)
+
+    if launch_config_name:
+        parts.append(launch_config_name)
+
+    parts = [urllib.parse.quote(str(part)) for part in parts]
+    path = "/".join(parts)
+
+    if revision:
+        query = urllib.parse.urlencode({"revision": str(revision)})
+    else:
+        query = ""
+
+    url = urllib.parse.urlunparse(("lutris", "", path, "", query, None))
+    return url

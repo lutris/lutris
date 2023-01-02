@@ -1,6 +1,5 @@
 """System utilities"""
 import hashlib
-import inspect
 import os
 import re
 import shutil
@@ -9,6 +8,7 @@ import stat
 import string
 import subprocess
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import Gio, GLib
 
@@ -85,6 +85,52 @@ def execute(command, env=None, cwd=None, log_errors=False, quiet=False, shell=Fa
     if stderr and log_errors:
         logger.error(stderr)
     return stdout.strip()
+
+
+def spawn(command, env=None, cwd=None, quiet=False, shell=False):
+    """
+        Execute a system command but discard its results and do not wait
+        for it to complete.
+
+        Params:
+            command (list): A list containing an executable and its parameters
+            env (dict): Dict of values to add to the current environment
+            cwd (str): Working directory
+            quiet (bool): Do not display log messages
+    """
+
+    # Check if the executable exists
+    if not command:
+        logger.error("No executable provided!")
+        return
+    if os.path.isabs(command[0]) and not path_exists(command[0]):
+        logger.error("No executable found in %s", command)
+        return
+
+    if not quiet:
+        logger.debug("Spawning %s", " ".join([str(i) for i in command]))
+
+    # Set up environment
+    existing_env = os.environ.copy()
+    if env:
+        if not quiet:
+            logger.debug(" ".join("{}={}".format(k, v) for k, v in env.items()))
+        env = {k: v for k, v in env.items() if v is not None}
+        existing_env.update(env)
+
+    # Piping stderr can cause slowness in the programs, use carefully
+    # (especially when using regedit with wine)
+    try:
+        subprocess.Popen(  # pylint: disable=consider-using-with
+            command,
+            shell=shell,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            env=existing_env,
+            cwd=cwd
+        )
+    except (OSError, TypeError) as ex:
+        logger.error("Could not run command %s (env: %s): %s", command, env, ex)
 
 
 def read_process_output(command, timeout=5):
@@ -211,12 +257,24 @@ def substitute(string_template, variables):
 def merge_folders(source, destination):
     """Merges the content of source to destination"""
     logger.debug("Merging %s into %s", source, destination)
-    # Check if dirs_exist_ok is defined ( Python >= 3.8)
-    sig = inspect.signature(shutil.copytree)
-    if "dirs_exist_ok" in sig.parameters:
-        shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True, dirs_exist_ok=True)
-    else:
-        shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True)
+    # We do not use shutil.copytree() here because that would copy
+    # the file permissions, and we do not want them.
+    source = os.path.abspath(source)
+    for (dirpath, dirnames, filenames) in os.walk(source):
+        source_relpath = dirpath[len(source):].strip("/")
+        dst_abspath = os.path.join(destination, source_relpath)
+        for dirname in dirnames:
+            new_dir = os.path.join(dst_abspath, dirname)
+            logger.debug("creating dir: %s", new_dir)
+            try:
+                os.mkdir(new_dir)
+            except OSError:
+                pass
+        for filename in filenames:
+            # logger.debug("Copying %s", filename)
+            if not os.path.exists(dst_abspath):
+                os.makedirs(dst_abspath)
+            shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
 
 
 def remove_folder(path):
@@ -225,7 +283,7 @@ def remove_folder(path):
     """
     if not os.path.exists(path):
         logger.warning("Non existent path: %s", path)
-        return
+        return False
     logger.debug("Removing folder %s", path)
     if os.path.samefile(os.path.expanduser("~"), path):
         raise RuntimeError("Lutris tried to erase home directory!")
@@ -257,8 +315,9 @@ def list_unique_folders(folders):
     return unique_dirs.values()
 
 
-def is_removeable(path):
-    """Check if a folder is safe to remove (not system or home, ...)"""
+def is_removeable(path, system_config):
+    """Check if a folder is safe to remove (not system or home, ...). This needs the
+    system config dict so it can check the default game path, too."""
     if not path_exists(path):
         return False
 
@@ -272,6 +331,12 @@ def is_removeable(path):
             return False
         if len(parts) == 3 and parts[2] in PROTECTED_HOME_FOLDERS:
             return False
+
+    if system_config:
+        default_game_path = system_config.get("game_path")
+        if path_contains(path, default_game_path, resolve_symlinks=False):
+            return False
+
     return True
 
 
@@ -324,6 +389,24 @@ def reverse_expanduser(path):
         path = path[len(user_path):].strip("/")
         return "~/" + path
     return path
+
+
+def path_contains(parent, child, resolve_symlinks=False):
+    """Tests if a child path is actually within a parent directory
+    or a subdirectory of it. Resolves relative paths, and ~, and
+    optionally symlinks."""
+
+    if parent is None or child is None:
+        return False
+
+    resolved_parent = Path(os.path.abspath(os.path.expanduser(parent)))
+    resolved_child = Path(os.path.abspath(os.path.expanduser(child)))
+
+    if resolve_symlinks:
+        resolved_parent = resolved_parent.resolve()
+        resolved_child = resolved_child.resolve()
+
+    return resolved_child == resolved_parent or resolved_parent in resolved_child.parents
 
 
 def path_exists(path, check_symlinks=False, exclude_empty=False):
@@ -380,12 +463,27 @@ def get_disk_size(path):
     """Return the disk size in bytes of a folder"""
     total_size = 0
     for base, _dirs, files in os.walk(path):
-        total_size += sum([
+        total_size += sum(
             os.stat(os.path.join(base, f)).st_size
             for f in files
             if os.path.isfile(os.path.join(base, f))
-        ])
+        )
     return total_size
+
+
+def get_locale_list():
+    """Return list of available locales"""
+    try:
+        with subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE) as locale_getter:
+            output = locale_getter.communicate()
+        locales = output[0].decode('ASCII').split()  # locale names use only ascii characters
+    except FileNotFoundError:
+        lang = os.environ.get('LANG', '')
+        if lang:
+            locales = [lang]
+        else:
+            locales = []
+    return locales
 
 
 def get_running_pid_list():
@@ -437,3 +535,12 @@ def get_mountpoint_drives():
 def get_drive_for_path(path):
     """Return the physical drive a file is located on"""
     return get_mountpoint_drives().get(find_mount_point(path))
+
+
+def set_keyboard_layout(layout):
+    setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
+    xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
+    with subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE) as xkbcomp:
+        with subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin) as setxkbmap:
+            setxkbmap.communicate()
+            xkbcomp.communicate()

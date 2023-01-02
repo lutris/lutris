@@ -12,17 +12,17 @@ from gettext import gettext as _
 
 from gi.repository import GLib, GObject, Gtk
 
-from lutris import runtime, settings
+from lutris import settings
 from lutris.command import MonitoredCommand
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.exceptions import GameConfigError, watch_lutris_errors
-from lutris.gui import dialogs
+from lutris.exceptions import GameConfigError, UnavailableRunnerError, watch_game_errors
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
-from lutris.runners import InvalidRunner, import_runner, wine
-from lutris.util import audio, extract, jobs, linux, strings, system, xdgshortcuts
+from lutris.runners import InvalidRunner, import_runner
+from lutris.runners.wine import get_wine_version
+from lutris.util import audio, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
     DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, disable_compositing, enable_compositing, restore_gamma
 )
@@ -31,6 +31,7 @@ from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import LOG_BUFFERS, logger
 from lutris.util.process import Process
+from lutris.util.savesync import sync_saves
 from lutris.util.timer import Timer
 from lutris.util.yaml import write_yaml_to_file
 
@@ -48,8 +49,13 @@ class Game(GObject.Object):
     STATE_LAUNCHING = "launching"
     STATE_RUNNING = "running"
 
+    PRIMARY_LAUNCH_CONFIG_NAME = "(primary)"
+
     __gsignals__ = {
-        "game-error": (GObject.SIGNAL_RUN_FIRST, None, (str, )),
+        # SIGNAL_RUN_LAST works around bug https://gitlab.gnome.org/GNOME/glib/-/issues/513
+        # fix merged Dec 2020, but we support older GNOME!
+        "game-error": (GObject.SIGNAL_RUN_LAST, bool, (object, )),
+        "game-unhandled-error": (GObject.SIGNAL_RUN_FIRST, None, (object, )),
         "game-launch": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-start": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-started": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -62,6 +68,42 @@ class Game(GObject.Object):
         "game-install-dlc": (GObject.SIGNAL_RUN_FIRST, None, ()),
         "game-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
+
+    class LaunchUIDelegate:
+        """These objects provide UI for the game while it is being launched;
+        one provided to the launch() method.
+
+        The default implementation provides no UI and makes default choices for
+        the user, but DialogLaunchUIDelegate implements this to show dialogs and ask the
+        user questions. Windows then inherit from DialogLaunchUIDelegate.
+
+        If these methods throw any errors are reported via tha game-error signal;
+        that is not part of this delegate because errors can be report outside of
+        the launch() method, where no delegate is available.
+        """
+
+        def check_game_launchable(self, game):
+            """See if the game can be launched. If there are adverse conditions,
+            this can warn the user and ask whether to launch. If this returs
+            False, the launch is cancelled. The default is to return True with no
+            actual checks.
+            """
+            if not game.runner.is_installed():
+                raise UnavailableRunnerError("The required runner '%s' is not installed." % game.runner.name)
+
+            if "wine" in game.runner_name and not get_wine_version() and not LINUX_SYSTEM.is_flatpak:
+                logger.warning("WINE is not installed.")
+
+            return True
+
+        def select_game_launch_config(self, game):
+            """Prompt the user for which launch config to use. Returns None
+            if the user cancelled, an empty dict for the primary game configuration
+            and the launch_config as a dict if one is selected.
+
+            The default is the select the primary game.
+            """
+            return {}  # primary game
 
     def __init__(self, game_id=None):
         super().__init__()
@@ -82,11 +124,16 @@ class Game(GObject.Object):
         self.platform = game_data.get("platform") or ""
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
-        self.has_custom_banner = bool(game_data.get("has_custom_banner"))
-        self.has_custom_icon = bool(game_data.get("has_custom_icon"))
+        self.custom_images = set()
+        if game_data.get("has_custom_banner"):
+            self.custom_images.add("banner")
+        if game_data.get("has_custom_icon"):
+            self.custom_images.add("icon")
+        if game_data.get("has_custom_coverart_big"):
+            self.custom_images.add("coverart_big")
         self.service = game_data.get("service")
         self.appid = game_data.get("service_id")
-        self.playtime = game_data.get("playtime") or 0.0
+        self.playtime = float(game_data.get("playtime") or 0.0)
 
         if self.game_config_id:
             self.load_config()
@@ -106,6 +153,9 @@ class Game(GObject.Object):
         self.timer = Timer()
         self.screen_saver_inhibitor_cookie = None
 
+        # Adding Discord App ID for RPC
+        self.discord_id = game_data.get('discord_id')
+
     def __repr__(self):
         return self.__str__()
 
@@ -116,6 +166,14 @@ class Game(GObject.Object):
         return value
 
     @property
+    def is_cache_managed(self):
+        """Is the DXVK cache receiving updates from lutris?"""
+        if self.runner:
+            env = self.runner.system_config.get("env", {})
+            return "DXVK_STATE_CACHE_PATH" in env
+        return False
+
+    @property
     def is_updatable(self):
         """Return whether the game can be upgraded"""
         return self.service == "gog"
@@ -123,11 +181,11 @@ class Game(GObject.Object):
     @property
     def is_favorite(self):
         """Return whether the game is in the user's favorites"""
-        categories = categories_db.get_categories_in_game(self.id)
-        for category in categories:
-            if category == "favorite":
-                return True
-        return False
+        return "favorite" in self.get_categories()
+
+    def get_categories(self):
+        """Return the categories the game is in."""
+        return categories_db.get_categories_in_game(self.id)
 
     def add_to_favorites(self):
         """Add the game to the 'favorite' category"""
@@ -168,6 +226,18 @@ class Game(GObject.Object):
         """Return a human readable formatted play time"""
         return strings.get_formatted_playtime(self.playtime)
 
+    def signal_error(self, error):
+        """Reports an error by firing game-error. If its handled returns
+        True to indicate it handled it, that's it. If not, this fires
+        game-unhandled-error, which is actually handled via an emission hook
+        and should not be connected otherwise.
+
+        This allows special error handling to be set up for a partical Game, but
+        there's always something."""
+        handled = self.emit("game-error", error)
+        if not handled:
+            self.emit("game-unhandled-error", error)
+
     @staticmethod
     def get_config_error(gameplay_info):
         """Return a GameConfigError based on the runner's output."""
@@ -195,7 +265,16 @@ class Game(GObject.Object):
 
     def get_browse_dir(self):
         """Return the path to open with the Browse Files action."""
-        return self.runner.game_path
+        return self.resolve_game_path()
+
+    def resolve_game_path(self):
+        """Return the game's directory; if it is not known this will try to find
+        it. This can still return an empty string if it can't do that."""
+        if self.directory:
+            return self.directory
+        if self.runner:
+            return self.runner.resolve_game_path()
+        return ""
 
     def _get_runner(self):
         """Return the runner instance for this game's configuration"""
@@ -235,18 +314,27 @@ class Game(GObject.Object):
             self.config.remove()
         xdgshortcuts.remove_launcher(self.slug, self.id, desktop=True, menu=True)
         if delete_files and self.runner:
-            self.runner.remove_game_data(game_path=self.directory)
+            # self.directory here, not self.resolve_game_path; no guessing at
+            # directories when we delete them
+            self.runner.remove_game_data(app_id=self.appid, game_path=self.directory)
         self.is_installed = False
         self.runner = None
+
+        if str(self.id) in LOG_BUFFERS:  # Reset game logs on removal
+            log_buffer = LOG_BUFFERS[str(self.id)]
+            log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
+
         if no_signal:
             return
         self.emit("game-removed")
 
-    def delete(self):
+    def delete(self, no_signal=False):
         """Completely remove a game from the library"""
         if self.is_installed:
-            raise RuntimeError("Uninstall the game before deleting")
+            raise RuntimeError(_("Uninstall the game before deleting"))
         games_db.delete_game(self.id)
+        if no_signal:
+            return
         self.emit("game-removed")
 
     def set_platform_from_runner(self):
@@ -258,60 +346,63 @@ class Game(GObject.Object):
         if not self.platform:
             logger.warning("The %s runner didn't provide a platform for %s", self.runner.human_name, self)
 
-    def save(self, save_config=False):
+    def save(self):
         """
-        Save the game's config and metadata, if `save_config` is set to False,
-        do not save the config. This is useful when exiting the game since the
-        config might have changed and we don't want to override the changes.
+        Save the game's config and metadata.
         """
         if self.config:
-            logger.debug("Saving %s with config ID %s", self, self.config.game_config_id)
             configpath = self.config.game_config_id
-            if save_config:
-                self.config.save()
+            logger.debug("Saving %s with config ID %s", self, self.config.game_config_id)
+            self.config.save()
         else:
-            logger.warning("Saving %s without a configuration", self)
+            logger.warning("Saving %s with the configuration missing", self)
             configpath = ""
         self.set_platform_from_runner()
-        self.id = games_db.add_or_update(
-            name=self.name,
-            runner=self.runner_name,
-            slug=self.slug,
-            platform=self.platform,
-            directory=self.directory,
-            installed=self.is_installed,
-            year=self.year,
-            lastplayed=self.lastplayed,
-            configpath=configpath,
-            id=self.id,
-            playtime=self.playtime,
-            hidden=self.is_hidden,
-            service=self.service,
-            service_id=self.appid,
-        )
+
+        game_data = {
+            "name": self.name,
+            "runner": self.runner_name,
+            "slug": self.slug,
+            "platform": self.platform,
+            "directory": self.directory,
+            "installed": self.is_installed,
+            "year": self.year,
+            "lastplayed": self.lastplayed,
+            "configpath": configpath,
+            "id": self.id,
+            "playtime": self.playtime,
+            "hidden": self.is_hidden,
+            "service": self.service,
+            "service_id": self.appid,
+            "discord_id": self.discord_id,
+            "has_custom_banner": "banner" in self.custom_images,
+            "has_custom_icon": "icon" in self.custom_images,
+            "has_custom_coverart_big": "coverart_big" in self.custom_images
+        }
+
+        self.id = games_db.add_or_update(**game_data)
         self.emit("game-updated")
 
-    def is_launchable(self):
-        """Verify that the current game can be launched."""
+    def save_lastplayed(self):
+        """Save only the platform field- do not restore any other values the user may have changed
+        in another window."""
+        games_db.update_existing(id=self.id, slug=self.slug, platform=self.platform)
+        self.emit("game-updated")
+
+    def save_platform(self):
+        """Save only the lastplayed field- do not restore any other values the user may have changed
+        in another window."""
+        games_db.update_existing(id=self.id, slug=self.slug, lastplayed=self.lastplayed)
+        self.emit("game-updated")
+
+    def check_launchable(self):
+        """Verify that the current game can be launched, and raises exceptions if not."""
         if not self.is_installed:
             logger.error("%s (%s) not installed", self, self.id)
-            dialogs.ErrorDialog(_("Tried to launch a game that isn't installed."))
-            return False
+            raise GameConfigError(_("Tried to launch a game that isn't installed."))
         if not self.runner:
-            dialogs.ErrorDialog(_("Invalid game configuration: Missing runner"))
-            return False
-        if not self.runner.is_installed():
-            installed = self.runner.install_dialog()
-            if not installed:
-                dialogs.ErrorDialog(_("Runner not installed."))
-                return False
+            raise GameConfigError(_("Invalid game configuration: Missing runner"))
 
-        if self.runner.use_runtime():
-            runtime_updater = runtime.RuntimeUpdater()
-            if runtime_updater.is_updating():
-                dialogs.ErrorDialog(_("Runtime currently updating"), _("Game might not work as expected"))
-        if ("wine" in self.runner_name and not wine.get_wine_version() and not LINUX_SYSTEM.is_flatpak):
-            dialogs.WineNotInstalledWarning(parent=None)
         return True
 
     def restrict_to_display(self, display):
@@ -360,15 +451,6 @@ class Game(GObject.Object):
         self.antimicro_thread = MonitoredCommand(antimicro_command)
         self.antimicro_thread.start()
 
-    @staticmethod
-    def set_keyboard_layout(layout):
-        setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
-        xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
-        with subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE) as xkbcomp:
-            with subprocess.Popen(setxkbmap_command, env=os.environ, stdout=xkbcomp.stdin) as setxkbmap:
-                setxkbmap.communicate()
-                xkbcomp.communicate()
-
     def start_prelaunch_command(self, wait_for_completion=False):
         """Start the prelaunch command specified in the system options"""
         prelaunch_command = self.runner.system_config.get("prelaunch_command")
@@ -380,14 +462,14 @@ class Game(GObject.Object):
         if wait_for_completion:
             logger.info("Prelauch command: %s, waiting for completion", prelaunch_command)
             # Monitor the prelaunch command and wait until it has finished
-            system.execute(command_array, env=env, cwd=self.directory)
+            system.execute(command_array, env=env, cwd=self.resolve_game_path())
         else:
             logger.info("Prelaunch command %s launched in the background", prelaunch_command)
             self.prelaunch_executor = MonitoredCommand(
                 command_array,
                 include_processes=[os.path.basename(command_array[0])],
                 env=env,
-                cwd=self.directory,
+                cwd=self.resolve_game_path(),
             )
             self.prelaunch_executor.start()
 
@@ -410,61 +492,41 @@ class Game(GObject.Object):
         if killswitch and system.path_exists(self.killswitch):
             return killswitch
 
-    def get_gameplay_info(self):
+    def get_gameplay_info(self, launch_ui_delegate):
         """Return the information provided by a runner's play method.
-        Checks for possible errors.
+        It checks for possible errors and raises exceptions if they occur.
+
+        This may invoke methods on the delegates to make decisions,
+        and this may show UI.
+
+        This returns an empty dictionary if the user cancels this UI,
+        in which case the game should not be run.
         """
+
         if not self.runner:
-            logger.warning("Trying to launch %s without a runner", self)
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
-            return {}
+            raise GameConfigError(_("Invalid game configuration: Missing runner"))
         gameplay_info = self.runner.play()
         if "error" in gameplay_info:
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
             raise self.get_config_error(gameplay_info)
 
-        if self.config.game_level.get("game", {}).get("launch_configs"):
-            configs = self.config.game_level["game"]["launch_configs"]
-            dlg = dialogs.LaunchConfigSelectDialog(self, configs)
-            if not dlg.confirmed:
-                self.state = self.STATE_STOPPED
-                self.emit("game-stop")
-                return {}
+        config = launch_ui_delegate.select_game_launch_config(self)
 
-            if dlg.config_index:
-                config = configs[dlg.config_index - 1]
-                if "command" not in gameplay_info:
-                    logger.debug("No command in %s", gameplay_info)
-                    logger.debug(config)
-                    self.state = self.STATE_STOPPED
-                    self.emit("game-stop")
-                    return {}
+        if config is None:
+            return {}  # no error here- the user cancelled out
 
-                gameplay_info["command"] = [gameplay_info["command"][0], config["exe"]]
-                if config.get("args"):
-                    gameplay_info["command"] += strings.split_arguments(config["args"])
+        if config:  # empty dict for primary configuration
+            self.runner.apply_launch_config(gameplay_info, config)
 
         return gameplay_info
 
-    @watch_lutris_errors
-    def configure_game(self, prelaunched, error=None):  # noqa: C901
+    @watch_game_errors(game_stop_result=False)
+    def configure_game(self, launch_ui_delegate):
         """Get the game ready to start, applying all the options
         This methods sets the game_runtime_config attribute.
         """
-        if error:
-            logger.error(error)
-            dialogs.ErrorDialog(str(error))
-        if not prelaunched:
-            logger.error("Game prelaunch unsuccessful")
-            dialogs.ErrorDialog(_("An error prevented the game from running"))
-            self.state = self.STATE_STOPPED
-            self.emit("game-stop")
-            return
-        gameplay_info = self.get_gameplay_info()
-        if not gameplay_info:
-            return
+        gameplay_info = self.get_gameplay_info(launch_ui_delegate)
+        if not gameplay_info:  # if user cancelled- not an error
+            return False
         command, env = get_launch_parameters(self.runner, gameplay_info)
         env["game_name"] = self.name  # What is this used for??
         self.game_runtime_config = {
@@ -475,13 +537,16 @@ class Game(GObject.Object):
             "exclude_processes": shlex.split(self.runner.system_config.get("exclude_processes", "")),
         }
 
+        if "working_dir" in gameplay_info:
+            self.game_runtime_config["working_dir"] = gameplay_info["working_dir"]
+
         # Audio control
         if self.runner.system_config.get("reset_pulse"):
             audio.reset_pulse()
 
         # Input control
         if self.runner.system_config.get("use_us_layout"):
-            self.set_keyboard_layout("us")
+            system.set_keyboard_layout("us")
 
         # Display control
         self.original_outputs = DISPLAY_MANAGER.get_config()
@@ -516,14 +581,22 @@ class Game(GObject.Object):
             self.start_prelaunch_command(self.runner.system_config.get("prelaunch_wait"))
 
         self.start_game()
+        return True
 
-    def launch(self):
+    @watch_game_errors(game_stop_result=False)
+    def launch(self, launch_ui_delegate):
         """Request launching a game. The game may not be installed yet."""
-        if not self.is_launchable():
+        if not self.check_launchable():
             logger.error("Game is not launchable")
-            return
+            return False
+
+        if not launch_ui_delegate.check_game_launchable(self):
+            return False
 
         self.load_config()  # Reload the config before launching it.
+        saves = self.config.game_level["game"].get("saves")
+        if saves:
+            sync_saves(self)
 
         if str(self.id) in LOG_BUFFERS:  # Reset game logs on each launch
             log_buffer = LOG_BUFFERS[str(self.id)]
@@ -531,8 +604,17 @@ class Game(GObject.Object):
 
         self.state = self.STATE_LAUNCHING
         self.prelaunch_pids = system.get_running_pid_list()
+
         self.emit("game-start")
-        jobs.AsyncCall(self.runner.prelaunch, self.configure_game)
+
+        @watch_game_errors(game_stop_result=False, game=self)
+        def configure_game(_ignored, error):
+            if error:
+                raise error
+            self.configure_game(launch_ui_delegate)
+
+        jobs.AsyncCall(self.runner.prelaunch, configure_game)
+        return True
 
     def start_game(self):
         """Run a background command to lauch the game"""
@@ -540,6 +622,7 @@ class Game(GObject.Object):
             self.game_runtime_config["args"],
             title=self.name,
             runner=self.runner,
+            cwd=self.game_runtime_config.get("working_dir"),
             env=self.game_runtime_config["env"],
             term=self.game_runtime_config["terminal"],
             log_buffer=self.log_buffer,
@@ -553,6 +636,15 @@ class Game(GObject.Object):
         self.timer.start()
         self.state = self.STATE_RUNNING
         self.emit("game-started")
+
+        print(f"Discord ID: {self.discord_id}")
+        # Game is running, let's update discord status
+        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+            logger.info("Updating Discord RPC Status")
+            discord.client.update(self.discord_id)
+        else:
+            logger.info("Discord RPC Disabled or Discord APP ID Not Present")
+
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
         with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
             np_file.write(self.name)
@@ -580,7 +672,7 @@ class Game(GObject.Object):
         def death_watch_cb(all_died, error):
             """Called after the death watch to more firmly kill any survivors."""
             if error:
-                dialogs.ErrorDialog(str(error))
+                self.signal_error(error)
             elif not all_died:
                 self.kill_processes(signal.SIGKILL)
             # If we still can't kill everything, we'll still say we stopped it.
@@ -597,6 +689,8 @@ class Game(GObject.Object):
                 os.kill(int(pid), sig)
             except ProcessLookupError as ex:
                 logger.debug("Failed to kill game process: %s", ex)
+            except PermissionError:
+                logger.debug("Permission to kill process %s denied", pid)
 
     def get_stop_pids(self):
         """Finds the PIDs of processes that need killin'!"""
@@ -609,7 +703,7 @@ class Game(GObject.Object):
         """Return a list of processes belonging to the Lutris game"""
         new_pids = self.get_new_pids()
         game_pids = []
-        game_folder = self.runner.game_path or ""
+        game_folder = self.resolve_game_path()
         for pid in new_pids:
             cmdline = Process(pid).cmdline or ""
             # pressure-vessel: This could potentially pick up PIDs not started by lutris?
@@ -640,19 +734,12 @@ class Game(GObject.Object):
             self.timer.end()
             self.playtime += self.timer.duration / 3600
 
-    def prelaunch_beat(self):
-        """Watch the prelaunch command"""
-        if self.prelaunch_executor and self.prelaunch_executor.is_running:
-            return True
-        self.start_game()
-        return False
-
+    @watch_game_errors(game_stop_result=False)
     def beat(self):
         """Watch the game's process(es)."""
         if self.game_thread.error:
-            dialogs.ErrorDialog(_("<b>Error lauching the game:</b>\n") + self.game_thread.error)
             self.on_game_quit()
-            return False
+            raise RuntimeError(_("<b>Error lauching the game:</b>\n") + self.game_thread.error)
 
         # The killswitch file should be set to a device (ie. /dev/input/js0)
         # When that device is unplugged, the game is forced to quit.
@@ -677,7 +764,11 @@ class Game(GObject.Object):
         logger.info("Stopping %s", self)
 
         if self.game_thread:
-            jobs.AsyncCall(self.game_thread.stop, None)
+            def stop_cb(result, error):
+                if error:
+                    self.signal_error(error)
+
+            jobs.AsyncCall(self.game_thread.stop, stop_cb)
         self.stop_game()
 
     def on_game_quit(self):
@@ -686,6 +777,13 @@ class Game(GObject.Object):
         if self.prelaunch_executor and self.prelaunch_executor.is_running:
             logger.info("Stopping prelaunch script")
             self.prelaunch_executor.stop()
+
+        # We need to do some cleanup before we emit game-stop as this can
+        # trigger Lutris shutdown
+
+        if self.screen_saver_inhibitor_cookie is not None:
+            SCREEN_SAVER_INHIBITOR.uninhibit(self.screen_saver_inhibitor_cookie)
+            self.screen_saver_inhibitor_cookie = None
 
         self.heartbeat = None
         if self.state != self.STATE_STOPPED:
@@ -702,14 +800,14 @@ class Game(GObject.Object):
                     command_array,
                     include_processes=[os.path.basename(postexit_command)],
                     env=self.game_runtime_config["env"],
-                    cwd=self.directory,
+                    cwd=self.resolve_game_path(),
                 )
                 postexit_thread.start()
 
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
-        self.save(save_config=False)
+        self.save_lastplayed()
 
         os.chdir(os.path.expanduser("~"))
 
@@ -722,16 +820,17 @@ class Game(GObject.Object):
         if self.compositor_disabled:
             self.set_desktop_compositing(True)
 
-        if self.screen_saver_inhibitor_cookie is not None:
-            SCREEN_SAVER_INHIBITOR.uninhibit(self.screen_saver_inhibitor_cookie)
-            self.screen_saver_inhibitor_cookie = None
-
         if self.runner.system_config.get("use_us_layout"):
             with subprocess.Popen(["setxkbmap"], env=os.environ) as setxkbmap:
                 setxkbmap.communicate()
 
         if self.runner.system_config.get("restore_gamma"):
             restore_gamma()
+
+        # Clear Discord Client Status
+        if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
+            logger.debug("Clearing Discord RPC")
+            discord.client.clear()
 
         self.process_return_codes()
 
@@ -742,19 +841,19 @@ class Game(GObject.Object):
             error = "error while loading shared lib"
             error_line = strings.lookup_string_in_text(error, self.game_thread.stdout)
             if error_line:
-                dialogs.ErrorDialog(_("<b>Error: Missing shared library.</b>\n\n%s") % error_line)
+                raise RuntimeError(_("<b>Error: Missing shared library.</b>\n\n%s") % error_line)
 
         if self.game_thread.return_code == 1:
             # Error Wine version conflict
             error = "maybe the wrong wineserver"
             if strings.lookup_string_in_text(error, self.game_thread.stdout):
-                dialogs.ErrorDialog(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
+                raise RuntimeError(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
-    def write_script(self, script_path):
+    def write_script(self, script_path, launch_ui_delegate):
         """Output the launch argument in a bash script"""
-        gameplay_info = self.get_gameplay_info()
+        gameplay_info = self.get_gameplay_info(launch_ui_delegate)
         if not gameplay_info:
-            logger.error("Unable to retrieve game information for %s. Can't write a script", self)
+            # User cancelled; errors are raised as exceptions instead of this
             return
         export_bash_script(self.runner, gameplay_info, script_path)
 
@@ -800,7 +899,6 @@ class Game(GObject.Object):
 
 def export_game(slug, dest_dir):
     """Export a full game folder along with some lutris metadata"""
-
     # List of runner where we know for sure that 1 folder = 1 game.
     # For runners that handle ROMs, we have to handle this more finely.
     # There is likely more than one game in a ROM folder but a ROM
@@ -811,7 +909,6 @@ def export_game(slug, dest_dir):
         "dosbox",
         "scummvm",
     ]
-
     db_game = games_db.get_game_by_field(slug, "slug")
     if db_game["runner"] not in exportable_runners:
         raise RuntimeError("Game %s can't be exported." % db_game["name"])
@@ -846,7 +943,14 @@ def import_game(file_path, dest_dir):
     game_config = [f for f in os.listdir(game_dir) if f.endswith(".lutris")][0]
     with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
         lutris_config = json.load(config_file)
-    # old_dir = lutris_config["directory"]
+    old_dir = lutris_config["directory"]
+    with open(os.path.join(game_dir, game_config), 'r', encoding="utf-8") as config_file:
+        config_data = config_file.read()
+    config_data = config_data.replace(old_dir, game_dir)
+    with open(os.path.join(game_dir, game_config), 'w', encoding="utf-8") as config_file:
+        config_file.write(config_data)
+    with open(os.path.join(game_dir, game_config), encoding="utf-8") as config_file:
+        lutris_config = json.load(config_file)
     config_filename = os.path.join(settings.CONFIG_DIR, "games/%s.yml" % lutris_config["configpath"])
     write_yaml_to_file(lutris_config["config"], config_filename)
     game_id = games_db.add_or_update(

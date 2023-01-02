@@ -42,4 +42,4 @@ def get_last_call(key):
     if not date:
         return 0
     delta = datetime.now() - date
-    return delta.seconds
+    return delta.total_seconds()

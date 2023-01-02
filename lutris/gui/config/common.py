@@ -3,7 +3,7 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import Gdk, GLib, Gtk, Pango
+from gi.repository import Gtk, Pango
 
 from lutris import runners, settings
 from lutris.config import LutrisConfig, make_game_config_id
@@ -11,26 +11,27 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
-from lutris.gui.dialogs import Dialog, DirectoryDialog, ErrorDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
-from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE, get_pixbuf
+from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import import_runner
-from lutris.services.lutris import LutrisBanner, LutrisIcon
-from lutris.util import resources, system
+from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 
 
 # pylint: disable=too-many-instance-attributes, no-member
-class GameDialogCommon(Dialog):
+class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     """Base class for config dialogs"""
     no_runner_label = _("Select a runner in the Game Info tab")
 
-    def __init__(self, title, parent=None):
-        super().__init__(title, parent=parent)
-        self.set_type_hint(Gdk.WindowTypeHint.NORMAL)
+    def __init__(self, title, parent=None, use_header_bar=True):
+        super().__init__(title, parent=parent, border_width=0, use_header_bar=use_header_bar)
         self.set_default_size(DIALOG_WIDTH, DIALOG_HEIGHT)
+        self.vbox.set_border_width(0)
+
         self.notebook = None
         self.name_entry = None
         self.runner_box = None
@@ -44,27 +45,21 @@ class GameDialogCommon(Dialog):
         self.year_entry = None
         self.slug_change_button = None
         self.runner_dropdown = None
-        self.banner_button = None
-        self.icon_button = None
+        self.image_buttons = {}
+        self.option_page_indices = set()
+        self.advanced_switch = None
         self.game_box = None
         self.system_box = None
         self.runner_name = None
         self.runner_index = None
         self.lutris_config = None
+        self.service_medias = {"icon": LutrisIcon(), "banner": LutrisBanner(), "coverart_big": LutrisCoverart()}
+        self.notebook_page_generators = {}
 
-        # These are independent windows, but start centered over
-        # a parent like a dialog. Not modal, not really transient,
-        # and does not share modality with other windows - so it
-        # needs its own window group.
-        Gtk.WindowGroup().add_window(self)
-        GLib.idle_add(self.clear_transient_for)
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
 
-    def clear_transient_for(self):
-        # we need the parent set to be centered over the parent, but
-        # we don't want to be transient really- we want other windows
-        # able to come to the front.
-        self.set_transient_for(None)
-        return False
+        self.connect("response", self.on_response)
 
     @staticmethod
     def build_scrolled_window(widget):
@@ -77,7 +72,16 @@ class GameDialogCommon(Dialog):
     def build_notebook(self):
         self.notebook = Gtk.Notebook(visible=True)
         self.notebook.set_show_border(False)
-        self.vbox.pack_start(self.notebook, True, True, 10)
+        self.notebook.connect("switch-page", self.on_notebook_switch_page)
+        self.vbox.pack_start(self.notebook, True, True, 0)
+
+    def on_notebook_switch_page(self, notebook, page, index):
+        generator = self.notebook_page_generators.get(index)
+        if generator:
+            generator()
+            del self.notebook_page_generators[index]
+
+        self.update_advanced_switch_visibilty(index)
 
     def build_tabs(self, config_level):
         """Build tabs (for game and runner levels)"""
@@ -87,6 +91,12 @@ class GameDialogCommon(Dialog):
             self._build_game_tab()
         self._build_runner_tab(config_level)
         self._build_system_tab(config_level)
+        self.update_advanced_switch_visibilty(self.notebook.get_current_page())
+
+    def update_advanced_switch_visibilty(self, current_page_index):
+        if self.advanced_switch and self.notebook:
+            show_switch = current_page_index in self.option_page_indices
+            self.advanced_switch.set_visible(show_switch)
 
     def _build_info_tab(self):
         info_box = VBox()
@@ -104,6 +114,7 @@ class GameDialogCommon(Dialog):
         if self.game:
             info_box.pack_start(self._get_slug_box(), False, False, 6)
             info_box.pack_start(self._get_directory_box(), False, False, 6)
+            info_box.pack_start(self._get_launch_config_box(), False, False, 6)
 
         info_sw = self.build_scrolled_window(info_box)
         self._add_notebook_tab(info_sw, _("Game info"))
@@ -113,6 +124,7 @@ class GameDialogCommon(Dialog):
         label = Label(_("Name"))
         box.pack_start(label, False, False, 0)
         self.name_entry = Gtk.Entry()
+        self.name_entry.set_max_length(150)
         if self.game:
             self.name_entry.set_text(self.game.name)
         box.pack_start(self.name_entry, True, True, 0)
@@ -150,6 +162,41 @@ class GameDialogCommon(Dialog):
         box.pack_start(move_button, False, False, 0)
         return box
 
+    def _get_launch_config_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
+
+        game_config = self.game.config.game_level.get("game", {})
+        preferred_name = game_config.get("preferred_launch_config_name")
+
+        if preferred_name:
+            spacer = Gtk.Box()
+            spacer.set_size_request(230, -1)
+            box.pack_start(spacer, False, False, 0)
+
+            if preferred_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
+                text = _("The default launch option will be used for this game")
+            else:
+                text = _("The '%s' launch option will be used for this game") % preferred_name
+            label = Gtk.Label(text)
+            label.set_line_wrap(True)
+            label.set_halign(Gtk.Align.START)
+            label.set_xalign(0.0)
+            label.set_valign(Gtk.Align.CENTER)
+            box.pack_start(label, True, True, 0)
+            button = Gtk.Button(_("Reset"))
+            button.connect("clicked", self.on_reset_preferred_launch_config_clicked, box)
+            button.set_valign(Gtk.Align.CENTER)
+            box.pack_start(button, False, False, 0)
+        else:
+            box.hide()
+        return box
+
+    def on_reset_preferred_launch_config_clicked(self, _button, launch_config_box):
+        game_config = self.game.config.game_level.get("game", {})
+        game_config.pop("preferred_launch_config_name", None)
+        game_config.pop("preferred_launch_config_index", None)
+        launch_config_box.hide()
+
     def _get_runner_box(self):
         runner_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
 
@@ -167,52 +214,51 @@ class GameDialogCommon(Dialog):
         label = Label("")
         banner_box.pack_start(label, False, False, 0)
 
-        self.banner_button = Gtk.Button()
-        self._set_image("banner")
-        self.banner_button.connect("clicked", self.on_custom_image_select, "banner")
-        banner_box.pack_start(self.banner_button, False, False, 0)
-
-        reset_banner_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
-        reset_banner_button.set_relief(Gtk.ReliefStyle.NONE)
-        reset_banner_button.set_tooltip_text(_("Remove custom banner"))
-        reset_banner_button.connect("clicked", self.on_custom_image_reset_clicked, "banner")
-        banner_box.pack_start(reset_banner_button, False, False, 0)
-
-        self.icon_button = Gtk.Button()
-        self._set_image("icon")
-        self.icon_button.connect("clicked", self.on_custom_image_select, "icon")
-        banner_box.pack_start(self.icon_button, False, False, 0)
-
-        reset_icon_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
-        reset_icon_button.set_relief(Gtk.ReliefStyle.NONE)
-        reset_icon_button.set_tooltip_text(_("Remove custom icon"))
-        reset_icon_button.connect("clicked", self.on_custom_image_reset_clicked, "icon")
-        banner_box.pack_start(reset_icon_button, False, False, 0)
+        self._create_image_button(banner_box, "coverart_big", _("Set custom cover art"), _("Remove custom cover art"))
+        self._create_image_button(banner_box, "banner", _("Set custom banner"), _("Remove custom banner"))
+        self._create_image_button(banner_box, "icon", _("Set custom icon"), _("Remove custom icon"))
 
         return banner_box
+
+    def _create_image_button(self, banner_box, image_type, image_tooltip, reset_tooltip):
+        """This adds an image button and its reset button to the box given,
+        and adds the image button to self.image_buttons for future reference."""
+        image_button = Gtk.Button()
+        self._set_image(image_type, image_button)
+        image_button.set_tooltip_text(image_tooltip)
+        image_button.connect("clicked", self.on_custom_image_select, image_type)
+        image_button.set_valign(Gtk.Align.CENTER)
+        banner_box.pack_start(image_button, False, False, 0)
+
+        reset_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
+        reset_button.set_relief(Gtk.ReliefStyle.NONE)
+        reset_button.set_tooltip_text(reset_tooltip)
+        reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
+        reset_button.set_valign(Gtk.Align.CENTER)
+        banner_box.pack_start(reset_button, False, False, 0)
+        self.image_buttons[image_type] = image_button
 
     def _get_year_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
 
         label = Label(_("Release year"))
         box.pack_start(label, False, False, 0)
-
         self.year_entry = NumberEntry()
+        self.year_entry.set_max_length(10)
         if self.game:
             self.year_entry.set_text(str(self.game.year or ""))
         box.pack_start(self.year_entry, True, True, 0)
 
         return box
 
-    def _set_image(self, image_format):
+    def _set_image(self, image_format, image_button):
+        service_media = self.service_medias[image_format]
         image = Gtk.Image()
-        service_media = LutrisBanner() if image_format == "banner" else LutrisIcon()
-        game_slug = self.game.slug if self.game else ""
-        image.set_from_pixbuf(service_media.get_pixbuf_for_game(game_slug))
-        if image_format == "banner":
-            self.banner_button.set_image(image)
-        else:
-            self.icon_button.set_image(image)
+        game_slug = self.slug or (self.game.slug if self.game else "")
+
+        pixbuf = service_media.get_pixbuf_for_game(game_slug, service_media.config_ui_size)
+        image.set_from_pixbuf(pixbuf)
+        image_button.set_image(image)
 
     def _get_runner_dropdown(self):
         runner_liststore = self._get_runner_liststore()
@@ -254,7 +300,12 @@ class GameDialogCommon(Dialog):
         self.change_game_slug()
 
     def change_game_slug(self):
-        self.slug = self.slug_entry.get_text()
+        slug = self.slug_entry.get_text()
+        download_lutris_media(slug)
+
+        self.slug = slug
+        for image_type, image_button in self.image_buttons.items():
+            self._set_image(image_type, image_button)
         self.slug_entry.set_sensitive(False)
         self.slug_change_button.set_label(_("Change"))
 
@@ -263,7 +314,7 @@ class GameDialogCommon(Dialog):
                                        default_path=self.game.directory, parent=self)
         if not new_location.folder or new_location.folder == self.game.directory:
             return
-        move_dialog = dialogs.MoveDialog(self.game, new_location.folder)
+        move_dialog = dialogs.MoveDialog(self.game, new_location.folder, parent=self)
         move_dialog.connect("game-moved", self.on_game_moved)
         move_dialog.move()
 
@@ -284,63 +335,102 @@ class GameDialogCommon(Dialog):
                     self.game.runner = runners.import_runner(self.runner_name)()
                 except runners.InvalidRunner:
                     pass
-            self.game_box = GameBox(self.lutris_config, self.game)
-            game_sw = self.build_scrolled_window(self.game_box)
+            self.game_box = self._build_options_tab(_("Game options"),
+                                                    lambda: GameBox(self.lutris_config, self.game))
         elif self.runner_name:
             game = Game(None)
             game.runner_name = self.runner_name
-            self.game_box = GameBox(self.lutris_config, game)
-            game_sw = self.build_scrolled_window(self.game_box)
+            self.game_box = self._build_options_tab(_("Game options"),
+                                                    lambda: GameBox(self.lutris_config, game))
         else:
-            game_sw = Gtk.Label(label=self.no_runner_label)
-        self._add_notebook_tab(game_sw, _("Game options"))
+            self._build_missing_options_tab(self.no_runner_label, _("Game options"))
 
     def _build_runner_tab(self, _config_level):
         if self.runner_name:
-            self.runner_box = RunnerBox(self.lutris_config, self.game)
-            runner_sw = self.build_scrolled_window(self.runner_box)
+            self.runner_box = self._build_options_tab(_("Runner options"),
+                                                      lambda: RunnerBox(self.lutris_config))
         else:
-            runner_sw = Gtk.Label(label=self.no_runner_label)
-        self._add_notebook_tab(runner_sw, _("Runner options"))
+            self._build_missing_options_tab(self.no_runner_label, _("Runner options"))
 
     def _build_system_tab(self, _config_level):
+        self.system_box = self._build_options_tab(_("System options"),
+                                                  lambda: SystemBox(self.lutris_config))
+
+    def _build_options_tab(self, notebook_label, box_factory):
         if not self.lutris_config:
             raise RuntimeError("Lutris config not loaded yet")
-        self.system_box = SystemBox(self.lutris_config)
-        self._add_notebook_tab(
-            self.build_scrolled_window(self.system_box),
-            _("System options")
+        config_box = box_factory()
+        page_index = self._add_notebook_tab(
+            self.build_scrolled_window(config_box),
+            notebook_label
         )
 
+        if page_index == 0:
+            config_box.generate_widgets()
+        else:
+            self.notebook_page_generators[page_index] = config_box.generate_widgets
+
+        self.option_page_indices.add(page_index)
+        return config_box
+
+    def _build_missing_options_tab(self, missing_label, notebook_label):
+        label = Gtk.Label(label=self.no_runner_label)
+        page_index = self._add_notebook_tab(label, notebook_label)
+        self.option_page_indices.add(page_index)
+
     def _add_notebook_tab(self, widget, label):
-        self.notebook.append_page(widget, Gtk.Label(label=label))
+        return self.notebook.append_page(widget, Gtk.Label(label=label))
 
     def build_action_area(self, button_callback):
-        self.action_area.set_layout(Gtk.ButtonBoxStyle.EDGE)
-
-        # Advanced settings checkbox
-        checkbox = Gtk.CheckButton(label=_("Show advanced options"))
-        if settings.read_setting("show_advanced_options") == "True":
-            checkbox.set_active(True)
-        checkbox.connect("toggled", self.on_show_advanced_options_toggled)
-        self.action_area.pack_start(checkbox, False, False, 5)
+        self.action_area.set_layout(Gtk.ButtonBoxStyle.END)
+        self.action_area.set_border_width(10)
 
         # Buttons
-        hbox = Gtk.Box()
-        cancel_button = Gtk.Button(label=_("Cancel"))
-        cancel_button.connect("clicked", self.on_cancel_clicked)
-        hbox.pack_start(cancel_button, True, True, 10)
+        cancel_button = self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        cancel_button.set_valign(Gtk.Align.CENTER)
 
-        save_button = Gtk.Button(label=_("Save"))
+        save_button = self.add_styled_button(_("Save"), Gtk.ResponseType.NONE, css_class="suggested-action")
+        save_button.set_valign(Gtk.Align.CENTER)
         save_button.connect("clicked", button_callback)
-        hbox.pack_start(save_button, True, True, 0)
-        self.action_area.pack_start(hbox, True, True, 0)
 
-    def on_show_advanced_options_toggled(self, checkbox):
-        value = bool(checkbox.get_active())
-        settings.write_setting("show_advanced_options", value)
+        key, mod = Gtk.accelerator_parse("<Control>s")
+        save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
-        self._set_advanced_options_visible(value)
+        # Advanced settings toggle
+
+        if self.props.use_header_bar:
+            switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                                 spacing=5,
+                                 no_show_all=True)
+            switch_box.set_tooltip_text(_("Show advanced options"))
+
+            switch_label = Gtk.Label(_("Advanced"), visible=True)
+            switch = Gtk.Switch(visible=True)
+            switch.set_state(settings.read_setting("show_advanced_options") == "True")
+            switch.connect("state_set", lambda _w, s:
+                           self.on_show_advanced_options_toggled(bool(s)))
+
+            switch_box.pack_start(switch_label, False, False, 0)
+            switch_box.pack_end(switch, False, False, 0)
+
+            header_bar = self.get_header_bar()
+            header_bar.pack_end(switch_box)
+
+            self.advanced_switch = switch_box
+            self.update_advanced_switch_visibilty(self.notebook.get_current_page())
+        else:
+            checkbox = Gtk.CheckButton(label=_("Show advanced options"))
+            checkbox.set_active(settings.read_setting("show_advanced_options") == "True")
+            checkbox.connect("toggled", lambda *x:
+                             self.on_show_advanced_options_toggled(bool(checkbox.get_active())))
+            checkbox.set_halign(Gtk.Align.START)
+            self.action_area.pack_start(checkbox, True, True, 0)
+            self.action_area.set_child_secondary(checkbox, True)
+
+    def on_show_advanced_options_toggled(self, is_active):
+        settings.write_setting("show_advanced_options", is_active)
+
+        self._set_advanced_options_visible(is_active)
 
     def _set_advanced_options_visible(self, value):
         """Change visibility of advanced options across all config tabs."""
@@ -404,16 +494,19 @@ class GameDialogCommon(Dialog):
     def _rebuild_tabs(self):
         for i in range(self.notebook.get_n_pages(), 1, -1):
             self.notebook.remove_page(i - 1)
+        self.option_page_indices.clear()
         self._build_game_tab()
         self._build_runner_tab("game")
         self._build_system_tab("game")
         self.show_all()
 
-    def on_cancel_clicked(self, _widget=None, _event=None):
-        """Dialog destroy callback."""
-        if self.game:
-            self.game.load_config()
-        self.destroy()
+    def on_response(self, _widget, response):
+        if response in (Gtk.ResponseType.CANCEL, response == Gtk.ResponseType.DELETE_EVENT):
+            # Reload the config to clean out any changes we may have made
+            if self.game:
+                self.game.load_config()
+        if response != Gtk.ResponseType.NONE:
+            self.destroy()
 
     def is_valid(self):
         if not self.runner_name:
@@ -468,6 +561,10 @@ class GameDialogCommon(Dialog):
         runner_class = runners.import_runner(self.runner_name)
         runner = runner_class(self.lutris_config)
 
+        # extract icon for wine games
+        if self.runner_name == "wine" and "icon" not in self.game.custom_images:
+            runner.extract_icon_exe(self.slug)
+
         self.game.name = name
         self.game.slug = self.slug
         self.game.year = year
@@ -476,7 +573,7 @@ class GameDialogCommon(Dialog):
         self.game.runner_name = self.runner_name
         self.game.is_installed = True
         self.game.config = self.lutris_config
-        self.game.save(save_config=True)
+        self.game.save()
         self.destroy()
         self.saved = True
         return True
@@ -497,35 +594,28 @@ class GameDialogCommon(Dialog):
 
         response = dialog.run()
         if response == Gtk.ResponseType.ACCEPT:
+            slug = self.slug or self.game.slug
             image_path = dialog.get_filename()
-            if image_type == "banner":
-                self.game.has_custom_banner = True
-                dest_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % self.game.slug)
-                size = BANNER_SIZE
-                file_format = "jpeg"
-            else:
-                self.game.has_custom_icon = True
-                dest_path = resources.get_icon_path(self.game.slug)
-                size = ICON_SIZE
-                file_format = "png"
+            service_media = self.service_medias[image_type]
+            self.game.custom_images.add(image_type)
+            dest_path = service_media.get_absolute_path(slug)
+            file_format = service_media.file_format
+            size = service_media.custom_media_storage_size
             pixbuf = get_pixbuf(image_path, size)
-            pixbuf.savev(dest_path, file_format, [], [])
-            self._set_image(image_type)
-
-            if image_type == "icon":
-                system.update_desktop_icons()
+            # JPEG encoding looks rather better at high quality;
+            # PNG encoding just ignores this option.
+            pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
+            self._set_image(image_type, self.image_buttons[image_type])
+            service_media.update_desktop()
 
         dialog.destroy()
 
     def on_custom_image_reset_clicked(self, _widget, image_type):
-        if image_type == "banner":
-            self.game.has_custom_banner = False
-            dest_path = os.path.join(settings.BANNER_PATH, "%s.jpg" % self.game.slug)
-        elif image_type == "icon":
-            self.game.has_custom_icon = False
-            dest_path = resources.get_icon_path(self.game.slug)
-        else:
-            raise ValueError("Unsupported image type %s" % image_type)
+        slug = self.slug or self.game.slug
+        service_media = self.service_medias[image_type]
+        dest_path = service_media.get_absolute_path(slug)
+        self.game.custom_images.discard(image_type)
         if os.path.isfile(dest_path):
             os.remove(dest_path)
-        self._set_image(image_type)
+        download_lutris_media(self.game.slug)
+        self._set_image(image_type, self.image_buttons[image_type])

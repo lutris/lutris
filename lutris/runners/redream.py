@@ -3,7 +3,6 @@ import shutil
 from gettext import gettext as _
 
 from lutris import settings
-from lutris.gui.dialogs import FileDialog, QuestionDialog
 from lutris.runners.runner import Runner
 
 
@@ -18,7 +17,7 @@ class redream(Runner):
             "option": "main_file",
             "type": "file",
             "label": _("Disc image file"),
-            "help": _("Game data file\n" "Supported formats: GDI, CDI, CHD"),
+            "help": _("Game data file\nSupported formats: GDI, CDI, CHD"),
         }
     ]
     runner_options = [
@@ -96,25 +95,20 @@ class redream(Runner):
         },
     ]
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, install_ui_delegate, version=None, callback=None):
         def on_runner_installed(*args):
-            dlg = QuestionDialog(
-                {
-                    "question": _("Do you want to select a premium license file?"),
-                    "title": _("Use premium version?"),
-                }
-            )
-            if dlg.result == dlg.YES:
-                license_dlg = FileDialog(_("Select a license file"))
-                license_filename = license_dlg.filename
-                if not license_filename:
-                    return
+            license_filename = install_ui_delegate.show_install_file_inquiry(
+                question=_("Do you want to select a premium license file?"),
+                title=_("Use premium version?"),
+                message=_("Use premium version?"))
+
+            if license_filename:
                 shutil.copy(
                     license_filename, os.path.join(settings.RUNNER_DIR, "redream")
                 )
 
         super().install(
-            version=version, downloader=downloader, callback=on_runner_installed
+            install_ui_delegate, version=version, callback=on_runner_installed
         )
 
     def play(self):

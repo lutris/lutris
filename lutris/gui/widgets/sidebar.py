@@ -6,13 +6,16 @@ from gi.repository import GLib, GObject, Gtk, Pango
 from lutris import runners, services
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.exceptions import watch_errors
 from lutris.game import Game
+from lutris.gui import dialogs
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import has_stock_icon
+from lutris.installer.interpreter import ScriptInterpreter
 from lutris.services.base import AuthTokenExpired, BaseService
 from lutris.util.jobs import AsyncCall
 
@@ -144,9 +147,9 @@ class ServiceSidebarRow(SidebarRow):
         if error:
             if isinstance(error, AuthTokenExpired):
                 self.service.logout()
-                self.service.login()
+                self.service.login(parent=self.get_toplevel())
             else:
-                ErrorDialog(str(error))
+                ErrorDialog(str(error), parent=self.get_toplevel())
         GLib.timeout_add(2000, self.enable_refresh_button)
 
     def enable_refresh_button(self):
@@ -179,7 +182,7 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
         if self.service.is_authenticated():
             self.service.logout()
         else:
-            self.service.login()
+            self.service.login(parent=self.get_toplevel())
         self.create_button_box()
 
 
@@ -201,18 +204,29 @@ class RunnerSidebarRow(SidebarRow):
                 "manage-versions"
             ))
         if self.runner.runnable_alone:
-            entries.append(("media-playback-start-symbolic", _("Run"), self.runner.run, "run"))
+            entries.append(("media-playback-start-symbolic", _("Run"), self.on_run_runner, "run"))
         entries.append(("emblem-system-symbolic", _("Configure"), self.on_configure_runner, "configure"))
         return entries
 
+    @watch_errors()
+    def on_run_runner(self, *_args):
+        """Runs the runner without no game."""
+        self.runner.run(self.get_toplevel())
+
+    @watch_errors()
     def on_configure_runner(self, *_args):
         """Show runner configuration"""
         self.application.show_window(RunnerConfigDialog, runner=self.runner)
 
+    @watch_errors()
     def on_manage_versions(self, *_args):
         """Manage runner versions"""
         dlg_title = _("Manage %s versions") % self.runner.name
-        RunnerInstallDialog(dlg_title, self.get_toplevel(), self.runner.name)
+        self.application.show_window(RunnerInstallDialog, title=dlg_title,
+                                     runner=self.runner, parent=self.get_toplevel())
+
+    def on_watched_error(self, error):
+        dialogs.ErrorDialog(str(error), parent=self.get_toplevel())
 
 
 class SidebarHeader(Gtk.Box):
@@ -273,6 +287,7 @@ class LutrisSidebar(Gtk.ListBox):
         }
         GObject.add_emission_hook(RunnerBox, "runner-installed", self.update)
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update)
+        GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.on_services_changed)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)

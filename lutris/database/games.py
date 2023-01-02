@@ -58,7 +58,7 @@ def get_games_where(**conditions):
                 if not hasattr(value, "__iter__"):
                     raise ValueError("Value should be an iterable (%s given)" % value)
                 if len(value) > 999:
-                    raise ValueError("SQLite limnited to a maximum of 999 parameters.")
+                    raise ValueError("SQLite limited to a maximum of 999 parameters.")
                 if value:
                     condition_fields.append("{} in ({})".format(field, ", ".join("?" * len(value)) or ""))
                     condition_values = list(chain(condition_values, value))
@@ -158,12 +158,22 @@ def add_or_update(**params):
     will try to match it, otherwise it will try matching
     by slug, creating one when possible.
     """
+    game_id = update_existing(**params)
+    if game_id:
+        return game_id
+
+    return add_game(**params)
+
+
+def update_existing(**params):
+    """Updates a game, but do not add one. If the game exists, this returns its ID;
+    if not it returns None and makes no changes."""
     game_id = get_matching_game(params)
     if game_id:
         params["id"] = game_id
         sql.db_update(settings.PGA_DB, "games", params, {"id": game_id})
         return game_id
-    return add_game(**params)
+    return None
 
 
 def get_matching_game(params):

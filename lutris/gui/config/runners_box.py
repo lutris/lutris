@@ -1,7 +1,7 @@
 """Add, remove and configure runners"""
 from gettext import gettext as _
 
-from gi.repository import GLib, Gtk
+from gi.repository import Gtk
 
 from lutris import runners, settings
 from lutris.gui.config.base_config_box import BaseConfigBox
@@ -21,7 +21,6 @@ class RunnersBox(BaseConfigBox):
         ))
         self.runner_listbox = Gtk.ListBox(visible=True)
         self.pack_start(self.runner_listbox, False, False, 12)
-        GLib.idle_add(self.populate_runners)
 
     def populate_runners(self):
         for runner_name in sorted(runners.__all__):

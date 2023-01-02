@@ -40,7 +40,7 @@ class LutrisStatusIcon:
         """Whether the icon is visible"""
         if APP_INDICATOR_SUPPORTED:
             return self.icon.get_status() != AppIndicator.IndicatorStatus.PASSIVE
-        return self.icon.is_visible()
+        return self.icon.get_visible()
 
     def set_visible(self, value):
         """Set the visibility of the icon"""
@@ -77,7 +77,18 @@ class LutrisStatusIcon:
 
     def on_activate(self, _status_icon, _event=None):
         """Callback to show or hide the window"""
-        self.application.window.present()
+        app_window = self.application.window
+        if app_window.get_visible():
+            # If the window has any transients, hiding it will hide them too
+            # never to be shown again, which is broken. So we don't allow that.
+            windows = Gtk.Window.list_toplevels()
+            for w in windows:
+                if w.get_transient_for() == app_window:
+                    return
+
+            app_window.hide()
+        else:
+            app_window.show()
 
     def on_menu_popup(self, _status_icon, button, time):
         """Callback to show the contextual menu"""
@@ -104,7 +115,8 @@ class LutrisStatusIcon:
         return installed_games
 
     def on_game_selected(self, _widget, game_id):
-        Game(game_id).launch()
+        launch_ui_delegate = self.application.get_launch_ui_delegate()
+        Game(game_id).launch(launch_ui_delegate)
 
 
 class LutrisTray(Gtk.StatusIcon):

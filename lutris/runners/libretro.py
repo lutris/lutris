@@ -21,13 +21,16 @@ def get_libretro_cores():
     cores = []
     runner_path = get_default_config_path()
     if not os.path.exists(runner_path):
-        logger.warning("No folder at %s", runner_path)
         return []
 
     # Get core identifiers from info dir
     info_path = get_default_config_path("info")
     if not os.path.exists(info_path):
-        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True)
+        req = requests.get(
+            "http://buildbot.libretro.com/assets/frontend/info.zip",
+            allow_redirects=True,
+            timeout=5
+        )
         if req.status_code == requests.codes.ok:  # pylint: disable=no-member
             with open(get_default_config_path('info.zip'), 'wb') as info_zip:
                 info_zip.write(req.content)
@@ -134,14 +137,14 @@ class libretro(Runner):
         return system.path_exists(self.get_executable())
 
     def is_installed(self, core=None):
-        if not core and self.game_config.get("core"):
+        if not core and self.has_explicit_config and self.game_config.get("core"):
             core = self.game_config["core"]
         if not core or self.runner_config.get("runner_executable"):
             return self.is_retroarch_installed()
         is_core_installed = system.path_exists(self.get_core_path(core))
         return self.is_retroarch_installed() and is_core_installed
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, install_ui_delegate, version=None, callback=None):
         captured_super = super()  # super() does not work inside install_core()
 
         def install_core():
@@ -149,12 +152,12 @@ class libretro(Runner):
                 if callback:
                     callback()
             else:
-                captured_super.install(version, downloader, callback)
+                captured_super.install(install_ui_delegate, version, callback)
 
         if not self.is_retroarch_installed():
-            captured_super.install(version=None, downloader=downloader, callback=install_core)
+            captured_super.install(install_ui_delegate, version=None, callback=install_core)
         else:
-            captured_super.install(version, downloader, callback)
+            captured_super.install(install_ui_delegate, version, callback)
 
     def get_run_data(self):
         return {
@@ -241,8 +244,6 @@ class libretro(Runner):
                 # firmware is missing
                 # TODO Add dialog for copying the firmware in the correct
                 # location
-
-        return True
 
     def get_runner_parameters(self):
         parameters = []

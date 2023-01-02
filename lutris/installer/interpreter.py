@@ -7,8 +7,7 @@ from gi.repository import GLib, GObject
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
-from lutris.gui.dialogs import WineNotInstalledWarning
-from lutris.gui.dialogs.download import simple_downloader
+from lutris.installer import AUTO_EXE_PREFIX
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -20,7 +19,7 @@ from lutris.util.display import DISPLAY_MANAGER
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import unpack_dependencies
-from lutris.util.wine.wine import get_wine_version, get_wine_version_exe
+from lutris.util.wine.wine import get_wine_version_exe
 
 
 class ScriptInterpreter(GObject.Object, CommandsMixin):
@@ -47,7 +46,9 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.user_inputs = []
         self.current_command = 0  # Current installer command when iterating through them
         self.runners_to_install = []
+        self.current_resolution = DISPLAY_MANAGER.get_current_resolution()
         self.installer = LutrisInstaller(installer, self, service=self.service, appid=_appid)
+
         if not self.installer.script:
             raise ScriptingError(_("This installer doesn't have a 'script' section"))
         script_errors = self.installer.get_errors()
@@ -56,11 +57,14 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 _("Invalid script: \n{}").format("\n".join(script_errors)), self.installer.script
             )
 
-        self.current_resolution = DISPLAY_MANAGER.get_current_resolution()
         self._check_binary_dependencies()
         self._check_dependency()
         if self.installer.creates_game_folder:
             self.target_path = self.get_default_target()
+
+        # Run variable substitution on the URLs
+        for file in self.installer.files:
+            file.set_url(self._substitute(file.url))
 
     @property
     def appid(self):
@@ -156,18 +160,23 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def get_extras(self):
         """Get extras and store them to move them at the end of the install"""
-        logger.debug("Checking if service provide extra files")
         if not self.service or not self.service.has_extras:
             self.extras = []
             return self.extras
         self.extras = self.service.get_extras(self.installer.service_appid)
         return self.extras
 
-    def launch_install(self):
-        """Launch the install process"""
+    def launch_install(self, ui_delegate):
+        """Launch the install process; returns False if cancelled by the user."""
         self.runners_to_install = self.get_runners_to_install()
-        self.install_runners()
+
+        if self.installer.runner.startswith("wine"):
+            if not ui_delegate.check_wine_availability():
+                return False
+
+        self.install_runners(ui_delegate)
         self.create_game_folder()
+        return True
 
     def create_game_folder(self):
         """Create the game folder if needed and store if is was created"""
@@ -237,25 +246,26 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 logger.info("Runner %s needs to be installed", runner)
                 runners_to_install.append(runner)
 
-        if self.installer.runner.startswith("wine") and not get_wine_version():
-            WineNotInstalledWarning(parent=self.parent)
         return runners_to_install
 
-    def install_runners(self):
+    def install_runners(self, ui_delegate):
         """Install required runners for a game"""
         if self.runners_to_install:
-            self.install_runner(self.runners_to_install.pop(0))
+            self.install_runner(self.runners_to_install.pop(0), ui_delegate)
             return
         self.emit("runners-installed")
 
-    def install_runner(self, runner):
+    def install_runner(self, runner, ui_delegate):
         """Install runner required by the install script"""
+        def install_more_runners():
+            self.install_runners(ui_delegate)
+
         logger.debug("Installing %s", runner.name)
         try:
             runner.install(
+                ui_delegate,
                 version=self._get_runner_version(),
-                downloader=simple_downloader,
-                callback=self.install_runners,
+                callback=install_more_runners,
             )
         except (NonInstallableRunnerError, RunnerInstallationError) as ex:
             logger.error(ex.message)
@@ -277,7 +287,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         os.makedirs(self.cache_path, exist_ok=True)
 
         # Copy extras to game folder
-        if len(self.extras) == len(self.installer.files):
+        if len(self.extras) and len(self.extras) == len(self.installer.files):
             # Reset the install script in case there are only extras.
             logger.warning("Installer with only extras and no game files")
             self.installer.script["installer"] = []
@@ -300,7 +310,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         commands = self.installer.script.get("installer", [])
         if exception:
             logger.error("Last install command failed, show error")
-            self.parent.on_install_error(repr(exception))
+            self.parent.show_install_error_message(repr(exception))
         elif self.current_command < len(commands):
             try:
                 command = commands[self.current_command]
@@ -317,6 +327,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             logger.debug("Installer command: %s", command)
             AsyncCall(method, self._iter_commands, params)
         else:
+            logger.debug("Commands %d out of %s completed", self.current_command, len(commands))
             self._finish_install()
 
     @staticmethod
@@ -350,7 +361,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             path = self._substitute(launcher_value)
             if not os.path.isabs(path) and self.target_path:
                 path = os.path.join(self.target_path, path)
-        if path and not os.path.isfile(path) and self.installer.runner not in ("web", "browser"):
+        if (
+                path
+                and AUTO_EXE_PREFIX not in path
+                and not os.path.isfile(path)
+                and self.installer.runner not in ("web", "browser")
+        ):
             self.parent.set_status(
                 _(
                     "The executable at path %s can't be found, please check the destination folder.\n"
@@ -362,7 +378,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             install_complete_text = (self.installer.script.get("install_complete_text") or _("Installation completed!"))
             self.parent.set_status(install_complete_text)
         download_lutris_media(self.installer.game_slug)
-        self.parent.on_install_finished(game_id)
+        self.parent.finish_install(game_id)
 
     def cleanup(self):
         """Clean up install dir after a successful install"""

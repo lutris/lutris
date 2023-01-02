@@ -4,7 +4,7 @@ from gi.repository import GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
-from lutris.gui.widgets.utils import ICON_SIZE, get_icon
+from lutris.gui.widgets.utils import ICON_SIZE, get_runtime_icon, has_stock_icon
 from lutris.services import SERVICES
 
 
@@ -42,12 +42,13 @@ class ServicesBox(BaseConfigBox):
             visible=True,
         )
         service = SERVICES[service_key]
-        pixbuf = get_icon(service.icon, icon_format="pixbuf", size=ICON_SIZE)
+        pixbuf = get_runtime_icon(service.icon, icon_format="pixbuf", size=ICON_SIZE)
         if pixbuf:
             icon = Gtk.Image(visible=True)
             icon.set_from_pixbuf(pixbuf)
         else:
-            icon = Gtk.Image.new_from_icon_name(service.id, Gtk.IconSize.DND)
+            icon_name = service.id if has_stock_icon(service.id) else "package-x-generic-symbolic"
+            icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DND)
             icon.show()
         box.pack_start(icon, False, False, 0)
         label = Gtk.Label(service.name, visible=True)

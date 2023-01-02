@@ -1,4 +1,5 @@
 import os
+import threading
 import time
 
 import requests
@@ -31,14 +32,13 @@ class Downloader:
         COMPLETED
     ) = list(range(5))
 
-    def __init__(self, url, dest, overwrite=False, referer=None, callback=None):
+    def __init__(self, url, dest, overwrite=False, referer=None):
         self.url = url
         self.dest = dest
         self.overwrite = overwrite
         self.referer = referer
         self.stop_request = None
         self.thread = None
-        self.callback = callback
 
         # Read these after a check_progress()
         self.state = self.INIT
@@ -56,6 +56,7 @@ class Downloader:
         self.speed_check_time = 0
         self.time_left_check_time = 0
         self.file_pointer = None
+        self.progress_event = threading.Event()
 
     def __str__(self):
         return "downloader for %s" % self.url
@@ -68,7 +69,7 @@ class Downloader:
         if self.overwrite and os.path.isfile(self.dest):
             os.remove(self.dest)
         self.file_pointer = open(self.dest, "wb")  # pylint: disable=consider-using-with
-        self.thread = jobs.AsyncCall(self.async_download, self.download_cb)
+        self.thread = jobs.AsyncCall(self.async_download, None)
         self.stop_request = self.thread.stop_request
 
     def reset(self):
@@ -89,13 +90,34 @@ class Downloader:
         self.time_left_check_time = 0
         self.file_pointer = None
 
-    def check_progress(self):
+    def check_progress(self, blocking=False):
         """Append last downloaded chunk to dest file and store stats.
 
+        blocking: if true and still downloading, block until some progress is made.
         :return: progress (between 0.0 and 1.0)"""
+        if blocking and self.state in [self.INIT, self.DOWNLOADING] and self.progress_fraction < 1.0:
+            self.progress_event.wait()
+            self.progress_event.clear()
+
         if self.state not in [self.CANCELLED, self.ERROR]:
             self.get_stats()
         return self.progress_fraction
+
+    def join(self, progress_callback=None):
+        """Blocks waiting for the downlaod to complete.
+
+        'progress_callback' is invoked repeatedly as the download
+        proceeds, if given, and is passed the downloader itself.
+
+        Returns True on success, False if cancelled."""
+        while self.state == self.DOWNLOADING:
+            self.check_progress(blocking=True)
+            if progress_callback:
+                progress_callback(self)
+
+        if self.error:
+            raise self.error
+        return self.state == self.COMPLETED
 
     def cancel(self):
         """Request download stop and remove destination file."""
@@ -109,16 +131,38 @@ class Downloader:
         if os.path.isfile(self.dest):
             os.remove(self.dest)
 
-    def download_cb(self, _result, error):
-        if error:
-            logger.error("Download failed: %s", error)
-            self.state = self.ERROR
-            self.error = error
-            if self.file_pointer:
-                self.file_pointer.close()
-                self.file_pointer = None
-            return
+    def async_download(self):
+        try:
+            headers = requests.utils.default_headers()
+            headers["User-Agent"] = "Lutris/%s" % __version__
+            if self.referer:
+                headers["Referer"] = self.referer
+            response = requests.get(self.url, headers=headers, stream=True, timeout=30)
+            if response.status_code != 200:
+                logger.info("%s returned a %s error", self.url, response.status_code)
+            response.raise_for_status()
+            self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
+            self.progress_event.set()
+            for chunk in response.iter_content(chunk_size=1024):
+                if not self.file_pointer:
+                    break
+                if chunk:
+                    self.downloaded_size += len(chunk)
+                    self.file_pointer.write(chunk)
+                self.progress_event.set()
+            self.on_download_completed()
+        except Exception as ex:
+            self.on_download_failed(ex)
 
+    def on_download_failed(self, error):
+        logger.error("Download failed: %s", error)
+        self.state = self.ERROR
+        self.error = error
+        if self.file_pointer:
+            self.file_pointer.close()
+            self.file_pointer = None
+
+    def on_download_completed(self):
         if self.state == self.CANCELLED:
             return
 
@@ -132,25 +176,6 @@ class Downloader:
         self.state = self.COMPLETED
         self.file_pointer.close()
         self.file_pointer = None
-        if self.callback:
-            self.callback()
-
-    def async_download(self, stop_request=None):
-        headers = requests.utils.default_headers()
-        headers["User-Agent"] = "Lutris/%s" % __version__
-        if self.referer:
-            headers["Referer"] = self.referer
-        response = requests.get(self.url, headers=headers, stream=True)
-        if response.status_code != 200:
-            logger.info("%s returned a %s error", self.url, response.status_code)
-        response.raise_for_status()
-        self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
-        for chunk in response.iter_content(chunk_size=1024):
-            if not self.file_pointer:
-                break
-            if chunk:
-                self.downloaded_size += len(chunk)
-                self.file_pointer.write(chunk)
 
     def get_stats(self):
         """Calculate and store download stats."""

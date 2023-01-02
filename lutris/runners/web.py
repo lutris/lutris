@@ -175,8 +175,8 @@ class web(Runner):
     system_options_override = [{"option": "disable_runtime", "default": True}]
     runner_executable = "web/electron/electron"
 
-    def get_env(self, os_env=True):
-        env = super().get_env(os_env)
+    def get_env(self, os_env=True, disable_runtime=False):
+        env = super().get_env(os_env, disable_runtime=disable_runtime)
 
         enable_flash_player = self.runner_config.get("enable_flash")
         env["ENABLE_FLASH_PLAYER"] = "1" if enable_flash_player else "0"

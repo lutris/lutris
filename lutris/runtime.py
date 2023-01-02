@@ -6,7 +6,7 @@ import time
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.util import http, jobs, system
+from lutris.util import http, jobs, system, update_cache
 from lutris.util.downloader import Downloader
 from lutris.util.extract import extract_archive
 from lutris.util.linux import LINUX_SYSTEM
@@ -187,14 +187,68 @@ class Runtime:
 class RuntimeUpdater:
     """Class handling the runtime updates"""
 
-    current_updates = 0
+    cancelled = False
     status_updater = None
+    update_functions = []
+    downloaders = {}
+    is_updating = False
 
-    def is_updating(self):
-        """Return True if the update process is running"""
-        return self.current_updates > 0
+    def __init__(self, force=False):
+        self.force = force
+        self.add_update("runtime", self._update_runtime_components, hours=12)
 
-    def update(self):
+    def add_update(self, key, update_function, hours):
+        """__init__ calls this to register each update. This function
+        only registers the update if it hasn't been tried in the last
+        'hours' hours. This is trakced in 'updates.json', and identified
+        by 'key' in that file."""
+        last_call = update_cache.get_last_call(key)
+        if self.force or not last_call or last_call > 3600 * hours:
+            self.update_functions.append((key, update_function))
+
+    @property
+    def has_updates(self):
+        """Returns True if there are any updates to perform."""
+        return len(self.update_functions) > 0
+
+    def update_runtimes(self):
+        """Performs all the registered updates. If 'self.cancel()' is called,
+        it will immediately stop."""
+
+        if RuntimeUpdater.is_updating:
+            return
+
+        try:
+            RuntimeUpdater.is_updating = True
+
+            for key, func in self.update_functions:
+                if self.cancelled:
+                    break
+
+                func()
+                update_cache.write_date_to_cache(key)
+
+            if self.cancelled:
+                logger.info("Runtime update cancelled")
+            logger.info("Startup complete")
+        finally:
+            RuntimeUpdater.is_updating = False
+
+    def cancel(self):
+        self.cancelled = True
+        for downloader in self.downloaders:
+            downloader.cancel()
+
+    def _update_runtime_components(self):
+        """Update runtime components"""
+        components_to_update = self._populate_component_downloaders()
+        if components_to_update:
+            while self.downloaders:
+                time.sleep(0.3)
+                if self.cancelled:
+                    return
+
+    def _populate_component_downloaders(self):
         """Launch the update process"""
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled, not updating it.")
@@ -204,8 +258,8 @@ class RuntimeUpdater:
             runtime = Runtime(remote_runtime["name"], self)
             downloader = runtime.download(remote_runtime)
             if downloader:
-                self.current_updates += 1
-        return self.current_updates
+                self.downloaders[runtime] = downloader
+        return len(self.downloaders)
 
     @staticmethod
     def _iter_remote_runtimes():
@@ -244,8 +298,8 @@ class RuntimeUpdater:
     def notify_finish(self, runtime):
         """A runtime has finished downloading"""
         logger.debug("Runtime %s is now updated and available", runtime.name)
-        self.current_updates -= 1
-        if self.current_updates == 0:
+        del self.downloaders[runtime]
+        if not self.downloaders:
             logger.info("Runtime is fully updated.")
 
 

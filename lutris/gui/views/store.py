@@ -132,15 +132,15 @@ class GameStore(GObject.Object):
             return False
         row[COL_ID] = str(store_item.id)
         row[COL_SLUG] = store_item.slug
-        row[COL_NAME] = gtk_safe(store_item.name)
+        row[COL_NAME] = store_item.name
         if settings.SHOW_MEDIA:
             row[COL_ICON] = store_item.get_pixbuf()
         else:
             row[COL_ICON] = None
         row[COL_YEAR] = store_item.year
         row[COL_RUNNER] = store_item.runner
-        row[COL_RUNNER_HUMAN_NAME] = gtk_safe(store_item.runner_text)
-        row[COL_PLATFORM] = gtk_safe(store_item.platform)
+        row[COL_RUNNER_HUMAN_NAME] = store_item.runner_text
+        row[COL_PLATFORM] = store_item.platform
         row[COL_LASTPLAYED] = store_item.lastplayed
         row[COL_LASTPLAYED_TEXT] = store_item.lastplayed_text
         row[COL_INSTALLED] = store_item.installed

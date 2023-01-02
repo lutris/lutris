@@ -38,9 +38,10 @@ Depends: ${misc:Depends},
          mesa-utils,
 Recommends: python3-evdev,
             gvfs-backends,
-            libwine-development,
+            libwine-development | libwine,
             winetricks,
 Suggests: gamemode,
+          gamescope,
 Description: video game preservation platform
  Lutris helps you install and play video games from all eras and from most
  gaming systems. By leveraging and combining existing emulators, engine

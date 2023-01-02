@@ -1,14 +1,23 @@
 """XDG shortcuts handling"""
 import os
+import shlex
 import shutil
 import stat
 from textwrap import dedent
 
 from gi.repository import GLib
 
+from lutris.api import format_installer_url
 from lutris.settings import CACHE_DIR
 from lutris.util import system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+
+
+def get_lutris_executable():
+    if LINUX_SYSTEM.is_flatpak:
+        return "flatpak run net.lutris.Lutris"
+    return "lutris"
 
 
 def get_xdg_entry(directory):
@@ -21,7 +30,7 @@ def get_xdg_entry(directory):
         "DOCUMENTS": GLib.UserDirectory.DIRECTORY_DOCUMENTS,
     }
     directory = directory.upper()
-    if directory not in special_dir.keys():
+    if directory not in special_dir:
         raise ValueError(
             directory + " not supported. Only those folders are supported: " + ", ".join(special_dir.keys())
         )
@@ -44,19 +53,31 @@ def get_xdg_basename(game_slug, game_id, base_dir=None):
     return "net.lutris.{}-{}.desktop".format(game_slug, game_id)
 
 
-def create_launcher(game_slug, game_id, game_name, desktop=False, menu=False):
+def create_launcher(game_slug, game_id, game_name, launch_config_name=None, desktop=False, menu=False):
     """Create a .desktop file."""
-
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
+    lutris_executable = get_lutris_executable()
+
+    url = format_installer_url({
+        "action": "rungameid",
+        "game_slug": game_id,
+        "launch_config_name": launch_config_name
+    })
+
     launcher_content = dedent(
         """
         [Desktop Entry]
         Type=Application
         Name={}
         Icon={}
-        Exec=env LUTRIS_SKIP_INIT=1 lutris lutris:rungameid/{}
+        Exec=env LUTRIS_SKIP_INIT=1 {} {}
         Categories=Game
-        """.format(game_name, "lutris_{}".format(game_slug), game_id)
+        """.format(
+            game_name,
+            "lutris_{}".format(game_slug),
+            lutris_executable,
+            shlex.quote(url)
+        )
     )
 
     launcher_filename = get_xdg_basename(game_slug, game_id)

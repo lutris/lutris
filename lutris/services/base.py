@@ -1,6 +1,7 @@
 """Generic service utilities"""
 import os
 import shutil
+from gettext import gettext as _
 
 from gi.repository import Gio, GObject
 
@@ -8,11 +9,14 @@ from lutris import api, settings
 from lutris.api import get_game_installers
 from lutris.config import write_game_config
 from lutris.database import sql
-from lutris.database.games import add_game, get_games
+from lutris.database.games import add_game, get_game_by_field, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
+from lutris.gui.dialogs import NoticeDialog
+from lutris.gui.dialogs.webconnect_dialog import DEFAULT_USER_AGENT, WebConnectDialog
 from lutris.gui.views.media_loader import download_media
+from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
+from lutris.installer import get_installers
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.cookies import WebkitCookieJar
@@ -27,25 +31,39 @@ class AuthTokenExpired(Exception):
 
 class LutrisBanner(ServiceMedia):
     service = 'lutris'
-    size = (184, 69)
+    size = BANNER_SIZE
     dest_path = settings.BANNER_PATH
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     api_field = 'banner_url'
 
 
 class LutrisIcon(LutrisBanner):
-    size = (32, 32)
+    size = ICON_SIZE
     dest_path = settings.ICON_PATH
     file_pattern = "lutris_%s.png"
+    file_format = "png"
     api_field = 'icon_url'
+
+    @property
+    def custom_media_storage_size(self):
+        return (128, 128)
+
+    def update_desktop(self):
+        system.update_desktop_icons()
 
 
 class LutrisCoverart(ServiceMedia):
     service = 'lutris'
     size = (264, 352)
     file_pattern = "%s.jpg"
+    file_format = "jpeg"
     dest_path = settings.COVERART_PATH
     api_field = 'coverart'
+
+    @property
+    def config_ui_size(self):
+        return (66, 88)
 
 
 class LutrisCoverartMedium(LutrisCoverart):
@@ -82,11 +100,28 @@ class BaseService(GObject.Object):
         return self.id
 
     def run(self):
-        """Override this method to run a launcher"""
-        logger.warning("This service doesn't run anything")
+        """Launch the game client"""
+        launcher = self.get_launcher()
+        if launcher:
+            launcher.emit("game-launch")
 
     def is_launchable(self):
+        if self.client_installer:
+            return get_game_by_field(self.client_installer, "slug")
         return False
+
+    def get_launcher(self):
+        if not self.client_installer:
+            return
+        db_launcher = get_game_by_field(self.client_installer, "slug")
+        if db_launcher:
+            return Game(db_launcher["id"])
+
+    def is_launcher_installed(self):
+        launcher = self.get_launcher()
+        if not launcher:
+            return False
+        return launcher.is_installed
 
     def reload(self):
         """Refresh the service's games"""
@@ -276,16 +311,27 @@ class OnlineService(BaseService):
     cache_path = NotImplemented
     requires_login_page = False
 
+    login_window_width = 390
+    login_window_height = 500
+    login_user_agent = DEFAULT_USER_AGENT
+
     @property
     def credential_files(self):
         """Return a list of all files used for authentication"""
         return [self.cookies_path]
 
     def login(self, parent=None):
+        if self.client_installer and not self.is_launcher_installed():
+            NoticeDialog(
+                _("This service requires a game launcher. The following steps will install it.\n"
+                  "Once the client is installed, you can login to %s.") % self.name)
+            application = Gio.Application.get_default()
+            installers = get_installers(game_slug=self.client_installer)
+            application.show_installer_window(installers)
+            return
         logger.debug("Connecting to %s", self.name)
         dialog = WebConnectDialog(self, parent)
-        dialog.set_modal(True)
-        dialog.show()
+        dialog.run()
 
     def is_authenticated(self):
         """Return whether the service is authenticated"""

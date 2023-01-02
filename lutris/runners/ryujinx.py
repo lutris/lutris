@@ -91,4 +91,3 @@ class ryujinx(Runner):
     def prelaunch(self):
         for key in ["prod_keys", "title_keys"]:
             self._update_key(key_type=key)
-        return True

@@ -3,6 +3,7 @@ from gettext import gettext as _
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import api
+from lutris.exceptions import watch_errors
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, FileDialog
 from lutris.gui.widgets.window import BaseApplicationWindow
@@ -71,6 +72,10 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             self.listbox.add(row)
         self.listbox.connect("row-activated", self.on_row_activated)
 
+    def on_watched_error(self, error):
+        ErrorDialog(str(error), parent=self)
+
+    @watch_errors()
     def on_row_activated(self, listbox, row):
         if row.callback_name:
             callback = getattr(self, row.callback_name)
@@ -123,7 +128,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def search_installers(self):
         """Search installers with the Lutris API"""
-        self.title_label.set_markup("<b>Search Lutris.net</b>")
+        self.title_label.set_markup(_("<b>Search Lutris.net</b>"))
         self.listbox.destroy()
         hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, visible=True)
         entry = Gtk.SearchEntry(visible=True)
@@ -155,9 +160,10 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.vbox.pack_start(spinner, False, False, 18)
         AsyncCall(scan_directory, self._on_folder_scanned, script_dlg.folder)
 
+    @watch_errors()
     def _on_folder_scanned(self, result, error):
         if error:
-            ErrorDialog(error)
+            ErrorDialog(str(error), parent=self)
             self.destroy()
             return
         for child in self.vbox.get_children():
@@ -183,12 +189,14 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         for folder in missing:
             missing_listbox.add(self.build_row("", gtk_safe(folder), ""))
 
+    @watch_errors()
     def _on_search_updated(self, entry):
         if self.search_timer_id:
             GLib.source_remove(self.search_timer_id)
         self.text_query = entry.get_text().strip()
         self.search_timer_id = GLib.timeout_add(750, self.update_search_results)
 
+    @watch_errors()
     def _on_game_selected(self, listbox, row):
         game_slug = row.api_info["slug"]
         installers = get_installers(game_slug=game_slug)
@@ -196,6 +204,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         application.show_installer_window(installers)
         self.destroy()
 
+    @watch_errors()
     def update_search_results(self):
         # Don't start a search while another is going; defer it instead.
         if self.search_spinner.get_visible():
@@ -209,10 +218,10 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             self.search_spinner.start()
             AsyncCall(api.search_games, self.update_search_results_cb, self.text_query)
 
+    @watch_errors()
     def update_search_results_cb(self, api_games, error):
         if error:
-            ErrorDialog(error)
-            return
+            raise error
 
         self.search_spinner.stop()
         self.search_spinner.hide()
@@ -242,7 +251,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         """Install from a setup file"""
         self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.listbox.destroy()
-        label = self._get_label("Game name")
+        label = self._get_label(_("Game name"))
         self.vbox.add(label)
         entry = Gtk.Entry(visible=True)
         self.vbox.add(entry)
@@ -250,11 +259,12 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         button.connect("clicked", self._on_install_setup_continue, entry)
         self.vbox.add(button)
 
+    @watch_errors()
     def _on_install_setup_continue(self, button, entry):
         name = entry.get_text().strip()
         installer = {
             "name": name,
-            "version": "Setup file",
+            "version": _("Setup file"),
             "slug": slugify(name) + "-setup",
             "game_slug": slugify(name),
             "runner": "wine",
@@ -263,7 +273,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
                     "exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"
                 },
                 "files": [
-                    {"setupfile": "N/A:Select the setup file"}
+                    {"setupfile": "N/A:%s" % _("Select the setup file")}
                 ],
                 "installer": [
                     {"task": {"name": "wineexec", "executable": "setupfile"}}
