@@ -75,6 +75,7 @@ class Application(Gtk.Application):
         GObject.add_emission_hook(Game, "game-install-dlc", self.on_game_install_dlc)
 
         GLib.set_application_name(_("Lutris"))
+        self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
         self.window = None
         self.launch_ui_delegate = Game.LaunchUIDelegate()
@@ -133,6 +134,14 @@ class Application(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
             _("Install a game from a yml file"),
+            None,
+        )
+        self.add_main_option(
+            "force",
+            ord("f"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("Force updates"),
             None,
         )
         self.add_main_option(
@@ -283,12 +292,11 @@ class Application(Gtk.Application):
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-    @staticmethod
-    def show_update_runtime_dialog():
+    def show_update_runtime_dialog(self):
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
-            runtime_updater = StartupRuntimeUpdater(force=False)
+            runtime_updater = StartupRuntimeUpdater(force=self.force_updates)
             if runtime_updater.has_updates:
                 init_dialog = LutrisInitDialog(runtime_updater)
                 init_dialog.run()
@@ -407,7 +415,8 @@ class Application(Gtk.Application):
             print(executable_name + "-" + settings.VERSION)
             logger.setLevel(logging.NOTSET)
             return 0
-
+        if options.contains("force"):
+            self.force_updates = True
         init_lutris()
 
         # Perform migrations early if any command line options
@@ -636,7 +645,7 @@ class Application(Gtk.Application):
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
                 self.do_shutdown()
         else:
-            Application.show_update_runtime_dialog()
+            self.show_update_runtime_dialog()
             # If we're showing the window, it will handle the delegated UI
             # from here on out, no matter what command line we got.
             self.launch_ui_delegate = self.window
