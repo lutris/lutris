@@ -263,11 +263,13 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     def get_fs_type_for_path(self, path):
         """Return the filesystem type a given path uses"""
-        path_drive = system.get_drive_for_path(path)
+        mount_point = system.find_mount_point(path)
         for drive in self.get_drives():
             for partition in drive.get("children", []):
-                if "/dev/%s" % partition["name"] == path_drive:
+                if (mount_point in partition.get("mountpoints", [])
+                        or mount_point == partition.get("mountpoint")):
                     return partition["fstype"]
+        return None
 
     def get_glxinfo(self):
         """Return a GlxInfo instance if the gfxinfo tool is available"""
