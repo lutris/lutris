@@ -281,22 +281,6 @@ class RunnerInstallDialog(ModelessDialog):
         """Return temporary path where the runners should be downloaded to"""
         return os.path.join(settings.CACHE_DIR, os.path.basename(row[self.COL_URL]))
 
-    def on_installed_toggled(self, _widget, path):
-        row = self.runner_store[path]
-        if row[self.COL_VER] in self.installing:
-            confirm_dlg = QuestionDialog(
-                {
-                    "question": _("Do you want to cancel the download?"),
-                    "title": _("Download starting"),
-                }
-            )
-            if confirm_dlg.result == confirm_dlg.YES:
-                self.cancel_install(row)
-        elif row[self.COL_INSTALLED]:
-            self.uninstall_runner(row)
-        else:
-            self.install_runner(row)
-
     def on_cancel_install(self, widget, row):
         self.cancel_install(row)
 
