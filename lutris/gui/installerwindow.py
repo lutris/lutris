@@ -854,7 +854,7 @@ class InstallerWindow(BaseApplicationWindow,
     # Buttons
 
     def display_continue_button(self, handler,
-                                continue_button_label=_("Continue"),
+                                continue_button_label=_("_Continue"),
                                 sensitive=True,
                                 suggested_action=True,
                                 extra_buttons=None):
