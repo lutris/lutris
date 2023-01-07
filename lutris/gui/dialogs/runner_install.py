@@ -323,7 +323,7 @@ class RunnerInstallDialog(ModelessDialog):
         if not url:
             ErrorDialog(_("Version %s is not longer available") % runner[self.COL_VER])
             return
-        downloader = Downloader(runner[self.COL_URL], dest_path, overwrite=True)
+        downloader = Downloader(url, dest_path, overwrite=True)
         GLib.timeout_add(100, self.get_progress, downloader, row)
         self.installing[runner[self.COL_VER]] = downloader
         downloader.start()
