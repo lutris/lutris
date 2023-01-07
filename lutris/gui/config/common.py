@@ -322,6 +322,9 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         """Show a notification when the game is moved"""
         new_directory = dialog.new_directory
         if new_directory:
+            self.game = Game(self.game.id)
+            self.lutris_config = self.game.config
+            self._rebuild_tabs()
             self.directory_entry.set_text(new_directory)
             send_notification("Finished moving game", "%s moved to %s" % (dialog.game, new_directory))
         else:
@@ -492,6 +495,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self.notebook.set_current_page(current_page)
 
     def _rebuild_tabs(self):
+        """Rebuild notebook pages"""
         for i in range(self.notebook.get_n_pages(), 1, -1):
             self.notebook.remove_page(i - 1)
         self.option_page_indices.clear()
