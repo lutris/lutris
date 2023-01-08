@@ -41,14 +41,14 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         ),
         (
             "x-office-document-symbolic",
-            None,
+            "document-open-symbolic",
             _("Install from a local install script"),
             _("Run a YAML install script"),
             "install_from_script"
         ),
         (
             "list-add-symbolic",
-            None,
+            "document-open-symbolic",
             _("Add locally installed game"),
             _("Manually configure a game available locally"),
             "add_local_game"
