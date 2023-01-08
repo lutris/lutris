@@ -71,7 +71,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.title_label = Gtk.Label(visible=True)
         self.vbox.pack_start(self.title_label, False, False, 12)
 
-        back_button = Gtk.Button(_("Back"))
+        back_button = Gtk.Button(_("Back"), sensitive=False)
         back_button.connect("clicked", self.on_back_clicked)
         self.action_buttons.pack_start(back_button, False, False, 0)
 
