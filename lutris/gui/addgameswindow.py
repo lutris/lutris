@@ -60,6 +60,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def __init__(self, application=None):
         super().__init__(application=application)
         self.set_default_size(640, 450)
+        self.search_entry = None
+        self.search_frame = None
+        self.search_listbox = None
         self.search_timer_id = None
         self.search_spinner = None
         self.text_query = None
@@ -258,7 +261,6 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             for folder in installed:
                 installed_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
 
-        
         if missing:
             missing_label = self._get_label("No match found")
             vbox.pack_end(missing_label, False, False, 0)
