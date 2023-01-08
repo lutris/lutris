@@ -97,6 +97,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.navigate_to_page(self.present_inital_page)
 
     def create_initial_page(self):
+        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
         listbox = Gtk.ListBox()
         listbox.set_activate_on_single_click(True)
         for icon, next_icon, text, subtext, callback_name in self.sections:
@@ -105,7 +106,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
             listbox.add(row)
         listbox.connect("row-activated", self.on_row_activated)
-        return listbox
+        frame.add(listbox)
+        return frame
 
     def present_inital_page(self):
         self.stack.present_page("initial")
@@ -134,12 +136,15 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.result_label = self._get_label("")
         vbox.pack_start(self.result_label, False, False, 0)
         self.search_entry.connect("changed", self._on_search_updated)
-        self.search_listbox = Gtk.ListBox()
+
+        self.search_frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
+        self.search_listbox = Gtk.ListBox(visible=True)
         self.search_listbox.connect("row-activated", self._on_game_selected)
         scroll = Gtk.ScrolledWindow(visible=True)
         scroll.set_vexpand(True)
         scroll.add(self.search_listbox)
-        vbox.pack_start(scroll, True, True, 0)
+        self.search_frame.add(scroll)
+        vbox.pack_start(self.search_frame, True, True, 0)
         return vbox
 
     def present_search_installers_page(self):
@@ -194,7 +199,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             row = self._get_listbox_row("", gtk_safe(game['name']), f"{year}{platforms}")
             row.api_info = game
             self.search_listbox.add(row)
-        self.search_listbox.show()
+        self.search_frame.show()
 
     @watch_errors()
     def _on_game_selected(self, listbox, row):
@@ -239,26 +244,33 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.navigate_to_page(present_installed_games_page)
 
     def create_installed_games_page(self, installed, missing):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        installed_label = self._get_label("Installed games")
-        vbox.add(installed_label)
-        installed_listbox = Gtk.ListBox()
-        installed_scroll = Gtk.ScrolledWindow()
-        installed_scroll.set_vexpand(True)
-        installed_scroll.add(installed_listbox)
-        vbox.add(installed_scroll)
-        for folder in installed:
-            installed_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 
-        missing_label = self._get_label("No match found")
-        vbox.add(missing_label)
-        missing_listbox = Gtk.ListBox()
-        missing_scroll = Gtk.ScrolledWindow()
-        missing_scroll.set_vexpand(True)
-        missing_scroll.add(missing_listbox)
-        vbox.add(missing_scroll)
-        for folder in missing:
-            missing_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
+        if installed:
+            installed_label = self._get_label("Installed games")
+            vbox.pack_start(installed_label, False, False, 0)
+
+            installed_listbox = Gtk.ListBox()
+            installed_scroll = Gtk.ScrolledWindow(shadow_type=Gtk.ShadowType.ETCHED_IN)
+            installed_scroll.set_vexpand(True)
+            installed_scroll.add(installed_listbox)
+            vbox.pack_end(installed_scroll, True, True, 0)
+            for folder in installed:
+                installed_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
+
+        
+        if missing:
+            missing_label = self._get_label("No match found")
+            vbox.pack_end(missing_label, False, False, 0)
+
+            missing_listbox = Gtk.ListBox()
+            missing_scroll = Gtk.ScrolledWindow(shadow_type=Gtk.ShadowType.ETCHED_IN)
+            missing_scroll.set_vexpand(True)
+            missing_scroll.add(missing_listbox)
+            vbox.pack_end(missing_scroll, True, True, 0)
+            for folder in missing:
+                missing_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
+
         return vbox
 
     # Install from Setup
