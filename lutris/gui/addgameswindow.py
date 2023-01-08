@@ -125,6 +125,10 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def search_installers(self):
         """Search installers with the Lutris API"""
+        if self.search_entry:
+            self.search_entry.set_text("")
+            self.result_label.set_text("")
+            self.search_frame.hide()
         self.stack.navigate_to_page(self.present_search_installers_page)
 
     def create_search_installers_page(self):
