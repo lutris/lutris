@@ -141,15 +141,16 @@ class BaseService(GObject.Object):
         """Download all game media from the service"""
         all_medias = self.medias.copy()
         all_medias.update(self.extra_medias)
+
+        service_medias = [media_type() for media_type in all_medias.values()]
+
         # Download icons
-        for icon_type in all_medias:
-            service_media = all_medias[icon_type]()
+        for service_media in service_medias:
             media_urls = service_media.get_media_urls()
             download_media(media_urls, service_media)
 
         # Process icons
-        for icon_type in all_medias:
-            service_media = all_medias[icon_type]()
+        for service_media in service_medias:
             service_media.render()
 
     def wipe_game_cache(self):
