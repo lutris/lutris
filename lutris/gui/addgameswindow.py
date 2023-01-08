@@ -67,6 +67,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.search_spinner = None
         self.text_query = None
         self.result_label = None
+        self.continue_install_setup_button = None
         self.title_label = Gtk.Label(visible=True)
         self.vbox.pack_start(self.title_label, False, False, 12)
 
@@ -294,15 +295,24 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         vbox.add(label)
         entry = Gtk.Entry()
         vbox.add(entry)
-        button = Gtk.Button(_("Continue"))
-        button.connect("clicked", self._on_install_setup_continue, entry)
-        button.set_halign(Gtk.Align.END)
-        vbox.add(button)
+
+        self.continue_install_setup_button = Gtk.Button(_("Continue"))
+        self.continue_install_setup_button.connect("clicked", self._on_install_setup_continue, entry)
+
+        style_context = self.continue_install_setup_button.get_style_context()
+        style_context.add_class("suggested-action")
+
+        self.action_buttons.pack_end(self.continue_install_setup_button, False, False, 0)
         return vbox
 
     def present_install_from_setup_page(self):
+        def on_exit_page():
+            self.continue_install_setup_button.hide()
+
         self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.stack.present_page("install_from_setup")
+        self.continue_install_setup_button.show()
+        return on_exit_page
 
     @watch_errors()
     def _on_install_setup_continue(self, button, entry):
