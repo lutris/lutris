@@ -226,10 +226,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             AsyncCall(scan_directory, self._on_folder_scanned, script_dlg.folder)
 
         script_dlg = DirectoryDialog(_("Select folder to scan"), parent=self)
-        if not script_dlg.folder:
-            self.destroy()
-            return
-        self.stack.jump_to_page(present_scan_folder_page)
+        if script_dlg.folder:
+            self.stack.jump_to_page(present_scan_folder_page)
 
     def create_scan_folder_page(self):
         spinner = Gtk.Spinner(visible=True)
@@ -249,7 +247,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
         if error:
             ErrorDialog(str(error), parent=self)
-            self.destroy()
+            self.stack.navigation_reset()
             return
 
         installed, missing = result
@@ -340,7 +338,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             installers = get_installers(installer_file=script_dlg.filename)
             application = Gio.Application.get_default()
             application.show_installer_window(installers)
-        self.destroy()
+            self.destroy()
 
     # Add Local Game
 
