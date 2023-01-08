@@ -20,30 +20,35 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     sections = [
         (
             "system-search-symbolic",
+            "go-next-symbolic",
             _("Search the Lutris website for installers"),
             _("Query our website for community installers"),
-            "search_installers"
+            "search_installers",
         ),
         (
             "folder-new-symbolic",
+            "go-next-symbolic",
             _("Scan a folder for games"),
             _("Mass-import a folder of games"),
             "scan_folder"
         ),
         (
             "media-optical-dvd-symbolic",
+            "go-next-symbolic",
             _("Install a Windows game from media"),
             _("Launch a setup file from an optical drive or download"),
             "install_from_setup"
         ),
         (
             "x-office-document-symbolic",
+            None,
             _("Install from a local install script"),
             _("Run a YAML install script"),
             "install_from_script"
         ),
         (
             "list-add-symbolic",
+            None,
             _("Add locally installed game"),
             _("Manually configure a game available locally"),
             "add_local_game"
@@ -64,6 +69,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.vbox.pack_start(self.title_label, False, False, 12)
 
         back_button = Gtk.Button(_("Back"))
+        back_button.connect("clicked", self.on_back_clicked)
+        self.action_buttons.pack_start(back_button, False, False, 0)
+
         self.stack = NavigationStack(back_button)
         self.vbox.pack_start(self.stack, True, True, 12)
 
@@ -77,14 +85,22 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
         self.load_initial_page()
 
+    def on_back_clicked(self, _widget):
+        self.stack.navigate_back()
+
+    def on_watched_error(self, error):
+        ErrorDialog(str(error), parent=self)
+
+    # Initial Page
+
     def load_initial_page(self):
         self.stack.navigate_to_page(self.present_inital_page)
 
     def create_initial_page(self):
         listbox = Gtk.ListBox()
         listbox.set_activate_on_single_click(True)
-        for icon, text, subtext, callback_name in self.sections:
-            row = self.build_row(icon, text, subtext)
+        for icon, next_icon, text, subtext, callback_name in self.sections:
+            row = self._get_listbox_row(icon, text, subtext, next_icon)
             row.callback_name = callback_name
 
             listbox.add(row)
@@ -94,59 +110,13 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def present_inital_page(self):
         self.stack.present_page("initial")
 
-    def on_watched_error(self, error):
-        ErrorDialog(str(error), parent=self)
-
     @watch_errors()
     def on_row_activated(self, listbox, row):
         if row.callback_name:
             callback = getattr(self, row.callback_name)
             callback()
 
-    def _get_row(self):
-        row = Gtk.ListBoxRow(visible=True)
-        row.set_selectable(False)
-        row.set_activatable(True)
-        return row
-
-    def _get_box(self):
-        return Gtk.Box(
-            spacing=12,
-            margin_right=12,
-            margin_left=12,
-            margin_top=12,
-            margin_bottom=12,
-            visible=True,
-        )
-
-    def _get_icon(self, name, small=False):
-        if small:
-            size = Gtk.IconSize.MENU
-        else:
-            size = Gtk.IconSize.DND
-        icon = Gtk.Image.new_from_icon_name(name, size)
-        icon.show()
-        return icon
-
-    def _get_label(self, text):
-        label = Gtk.Label(visible=True)
-        label.set_markup(text)
-        label.set_alignment(0, 0.5)
-        return label
-
-    def build_row(self, icon_name, text, subtext):
-        row = self._get_row()
-        box = self._get_box()
-        if icon_name:
-            icon = self._get_icon(icon_name)
-            box.pack_start(icon, False, False, 0)
-        label = self._get_label(f"<b>{text}</b>\n{subtext}")
-        box.pack_start(label, True, True, 0)
-        if icon_name:
-            next_icon = self._get_icon("go-next-symbolic", small=True)
-            box.pack_start(next_icon, False, False, 0)
-        row.add(box)
-        return row
+    # Search Installers Page
 
     def search_installers(self):
         """Search installers with the Lutris API"""
@@ -154,7 +124,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.navigate_to_page(self.present_search_installers_page)
 
     def create_search_installers_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, no_show_all=True, visible=True)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, no_show_all=True, spacing=6, visible=True)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
         self.search_entry = Gtk.SearchEntry(visible=True)
         hbox.pack_start(self.search_entry, True, True, 0)
@@ -176,75 +146,12 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.present_page("search_installers")
         self.search_entry.grab_focus()
 
-    def scan_folder(self):
-        """Scan a folder of already installed games"""
-        def present_scan_folder_page():
-            self.stack.present_page("scan_folder")
-            AsyncCall(scan_directory, self._on_folder_scanned, script_dlg.folder)
-
-        self.title_label.set_markup("<b>Import games from a folder</b>")
-        script_dlg = DirectoryDialog(_("Select folder to scan"), parent=self)
-        if not script_dlg.folder:
-            self.destroy()
-            return
-        self.stack.jump_to_page(present_scan_folder_page)
-    
-    def create_scan_folder_page(self):
-        spinner = Gtk.Spinner(visible=True)
-        spinner.start()
-        return spinner
-
-    @watch_errors()
-    def _on_folder_scanned(self, result, error):
-        def present_installed_games_page():
-            page = self.create_installed_games_page(installed, missing)
-            self.stack.present_replacement_page("installed_games", page)
-
-        if error:
-            ErrorDialog(str(error), parent=self)
-            self.destroy()
-            return
-
-        installed, missing = result
-        self.stack.navigate_to_page(present_installed_games_page)
-
-    def create_installed_games_page(self, installed, missing):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        installed_label = self._get_label("Installed games")
-        vbox.add(installed_label)
-        installed_listbox = Gtk.ListBox()
-        installed_scroll = Gtk.ScrolledWindow()
-        installed_scroll.set_vexpand(True)
-        installed_scroll.add(installed_listbox)
-        vbox.add(installed_scroll)
-        for folder in installed:
-            installed_listbox.add(self.build_row("", gtk_safe(folder), ""))
-
-        missing_label = self._get_label("No match found")
-        vbox.add(missing_label)
-        missing_listbox = Gtk.ListBox()
-        missing_scroll = Gtk.ScrolledWindow()
-        missing_scroll.set_vexpand(True)
-        missing_scroll.add(missing_listbox)
-        vbox.add(missing_scroll)
-        for folder in missing:
-            missing_listbox.add(self.build_row("", gtk_safe(folder), ""))
-        return vbox
-
     @watch_errors()
     def _on_search_updated(self, entry):
         if self.search_timer_id:
             GLib.source_remove(self.search_timer_id)
         self.text_query = entry.get_text().strip()
         self.search_timer_id = GLib.timeout_add(750, self.update_search_results)
-
-    @watch_errors()
-    def _on_game_selected(self, listbox, row):
-        game_slug = row.api_info["slug"]
-        installers = get_installers(game_slug=game_slug)
-        application = Gio.Application.get_default()
-        application.show_installer_window(installers)
-        self.destroy()
 
     @watch_errors()
     def update_search_results(self):
@@ -284,10 +191,77 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             if platforms and year:
                 platforms = ", " + platforms
 
-            row = self.build_row("", gtk_safe(game['name']), f"{year}{platforms}")
+            row = self._get_listbox_row("", gtk_safe(game['name']), f"{year}{platforms}")
             row.api_info = game
             self.search_listbox.add(row)
         self.search_listbox.show()
+
+    @watch_errors()
+    def _on_game_selected(self, listbox, row):
+        game_slug = row.api_info["slug"]
+        installers = get_installers(game_slug=game_slug)
+        application = Gio.Application.get_default()
+        application.show_installer_window(installers)
+        self.destroy()
+
+    # Scan Folder Page
+
+    def scan_folder(self):
+        """Scan a folder of already installed games"""
+        def present_scan_folder_page():
+            self.stack.present_page("scan_folder")
+            AsyncCall(scan_directory, self._on_folder_scanned, script_dlg.folder)
+
+        self.title_label.set_markup("<b>Import games from a folder</b>")
+        script_dlg = DirectoryDialog(_("Select folder to scan"), parent=self)
+        if not script_dlg.folder:
+            self.destroy()
+            return
+        self.stack.jump_to_page(present_scan_folder_page)
+
+    def create_scan_folder_page(self):
+        spinner = Gtk.Spinner(visible=True)
+        spinner.start()
+        return spinner
+
+    @watch_errors()
+    def _on_folder_scanned(self, result, error):
+        def present_installed_games_page():
+            page = self.create_installed_games_page(installed, missing)
+            self.stack.present_replacement_page("installed_games", page)
+
+        if error:
+            ErrorDialog(str(error), parent=self)
+            self.destroy()
+            return
+
+        installed, missing = result
+        self.stack.navigate_to_page(present_installed_games_page)
+
+    def create_installed_games_page(self, installed, missing):
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        installed_label = self._get_label("Installed games")
+        vbox.add(installed_label)
+        installed_listbox = Gtk.ListBox()
+        installed_scroll = Gtk.ScrolledWindow()
+        installed_scroll.set_vexpand(True)
+        installed_scroll.add(installed_listbox)
+        vbox.add(installed_scroll)
+        for folder in installed:
+            installed_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
+
+        missing_label = self._get_label("No match found")
+        vbox.add(missing_label)
+        missing_listbox = Gtk.ListBox()
+        missing_scroll = Gtk.ScrolledWindow()
+        missing_scroll.set_vexpand(True)
+        missing_scroll.add(missing_listbox)
+        vbox.add(missing_scroll)
+        for folder in missing:
+            missing_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
+        return vbox
+
+    # Install from Setup
 
     def install_from_setup(self):
         """Install from a setup file"""
@@ -334,6 +308,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         application.show_installer_window([installer])
         self.destroy()
 
+    # Install from Script
+
     def install_from_script(self):
         """Install from a YAML file"""
         script_dlg = FileDialog(_("Select a Lutris installer"))
@@ -343,7 +319,50 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             application.show_installer_window(installers)
         self.destroy()
 
+    # Add Local Game
+
     def add_local_game(self):
         """Manually configure game"""
         AddGameDialog(None)
         self.destroy()
+
+    # Implementation
+
+    def _get_icon(self, name, small=False):
+        if small:
+            size = Gtk.IconSize.MENU
+        else:
+            size = Gtk.IconSize.DND
+        icon = Gtk.Image.new_from_icon_name(name, size)
+        icon.show()
+        return icon
+
+    def _get_label(self, text):
+        label = Gtk.Label(visible=True)
+        label.set_markup(text)
+        label.set_alignment(0, 0.5)
+        return label
+
+    def _get_listbox_row(self, left_icon_name, text, subtext, right_icon_name=""):
+        row = Gtk.ListBoxRow(visible=True)
+        row.set_selectable(False)
+        row.set_activatable(True)
+
+        box = Gtk.Box(
+            spacing=12,
+            margin_right=12,
+            margin_left=12,
+            margin_top=12,
+            margin_bottom=12,
+            visible=True)
+
+        if left_icon_name:
+            icon = self._get_icon(left_icon_name)
+            box.pack_start(icon, False, False, 0)
+        label = self._get_label(f"<b>{text}</b>\n{subtext}")
+        box.pack_start(label, True, True, 0)
+        if left_icon_name:
+            next_icon = self._get_icon(right_icon_name, small=True)
+            box.pack_start(next_icon, False, False, 0)
+        row.add(box)
+        return row
