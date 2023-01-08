@@ -69,14 +69,16 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.result_label = None
         self.continue_install_setup_button = None
         self.title_label = Gtk.Label(visible=True)
-        self.vbox.pack_start(self.title_label, False, False, 12)
+        self.vbox.pack_start(self.title_label, False, False, 0)
 
         back_button = Gtk.Button(_("Back"), sensitive=False)
         back_button.connect("clicked", self.on_back_clicked)
         self.action_buttons.pack_start(back_button, False, False, 0)
 
         self.stack = NavigationStack(back_button)
-        self.vbox.pack_start(self.stack, True, True, 12)
+        self.vbox.pack_start(self.stack, True, True, 0)
+
+        self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
 
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
