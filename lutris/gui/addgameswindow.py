@@ -68,7 +68,6 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.text_query = None
         self.result_label = None
         self.title_label = Gtk.Label(visible=True)
-        self.title_label.set_markup(f"<b>{self.title_text}</b>")
         self.vbox.pack_start(self.title_label, False, False, 12)
 
         back_button = Gtk.Button(_("Back"))
@@ -113,6 +112,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         return frame
 
     def present_inital_page(self):
+        self.title_label.set_markup(f"<b>{self.title_text}</b>")
         self.stack.present_page("initial")
 
     @watch_errors()
@@ -125,7 +125,6 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def search_installers(self):
         """Search installers with the Lutris API"""
-        self.title_label.set_markup(_("<b>Search Lutris.net</b>"))
         self.stack.navigate_to_page(self.present_search_installers_page)
 
     def create_search_installers_page(self):
@@ -151,6 +150,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         return vbox
 
     def present_search_installers_page(self):
+        self.title_label.set_markup(_("<b>Search Lutris.net</b>"))
         self.stack.present_page("search_installers")
         self.search_entry.grab_focus()
 
@@ -217,10 +217,10 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def scan_folder(self):
         """Scan a folder of already installed games"""
         def present_scan_folder_page():
+            self.title_label.set_markup("<b>Import games from a folder</b>")
             self.stack.present_page("scan_folder")
             AsyncCall(scan_directory, self._on_folder_scanned, script_dlg.folder)
 
-        self.title_label.set_markup("<b>Import games from a folder</b>")
         script_dlg = DirectoryDialog(_("Select folder to scan"), parent=self)
         if not script_dlg.folder:
             self.destroy()
@@ -235,6 +235,11 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     @watch_errors()
     def _on_folder_scanned(self, result, error):
         def present_installed_games_page():
+            if installed or missing:
+                self.title_label.set_markup(_("<b>Games found</b>"))
+            else:
+                self.title_label.set_markup(_("<b>No games found</b>"))
+
             page = self.create_installed_games_page(installed, missing)
             self.stack.present_replacement_page("installed_games", page)
 
@@ -257,14 +262,11 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             installed_scroll = Gtk.ScrolledWindow(shadow_type=Gtk.ShadowType.ETCHED_IN)
             installed_scroll.set_vexpand(True)
             installed_scroll.add(installed_listbox)
-            vbox.pack_end(installed_scroll, True, True, 0)
+            vbox.pack_start(installed_scroll, True, True, 0)
             for folder in installed:
                 installed_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
 
         if missing:
-            missing_label = self._get_label("No match found")
-            vbox.pack_end(missing_label, False, False, 0)
-
             missing_listbox = Gtk.ListBox()
             missing_scroll = Gtk.ScrolledWindow(shadow_type=Gtk.ShadowType.ETCHED_IN)
             missing_scroll.set_vexpand(True)
@@ -273,13 +275,15 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             for folder in missing:
                 missing_listbox.add(self._get_listbox_row("", gtk_safe(folder), ""))
 
+            missing_label = self._get_label("No match found")
+            vbox.pack_end(missing_label, False, False, 0)
+
         return vbox
 
     # Install from Setup
 
     def install_from_setup(self):
         """Install from a setup file"""
-        self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.stack.navigate_to_page(self.present_install_from_setup_page)
 
     def create_install_from_setup_page(self):
@@ -295,6 +299,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         return vbox
 
     def present_install_from_setup_page(self):
+        self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.stack.present_page("install_from_setup")
 
     @watch_errors()
