@@ -48,7 +48,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         ),
         (
             "list-add-symbolic",
-            "document-open-symbolic",
+            "view-more-horizontal-symbolic",
             _("Add locally installed game"),
             _("Manually configure a game available locally"),
             "add_local_game"
@@ -343,7 +343,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def install_from_script(self):
         """Install from a YAML file"""
-        script_dlg = FileDialog(_("Select a Lutris installer"))
+        script_dlg = FileDialog(_("Select a Lutris installer"), parent=self)
         if script_dlg.filename:
             installers = get_installers(installer_file=script_dlg.filename)
             application = Gio.Application.get_default()
@@ -354,8 +354,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def add_local_game(self):
         """Manually configure game"""
-        AddGameDialog(None)
-        self.destroy()
+        AddGameDialog(parent=self)
+        GLib.idle_add(self.destroy)  # defer destory so the game dialog can be centered first
 
     # Implementation
 
