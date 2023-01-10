@@ -350,6 +350,11 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     @watch_errors()
     def _on_install_setup_continue(self, button):
         name = self.install_from_setup_game_name_entry.get_text().strip()
+
+        if not name:
+            ErrorDialog(_("You must provide a name for the game you are installing."), parent=self)
+            return
+
         installer = {
             "name": name,
             "version": _("Setup file"),
