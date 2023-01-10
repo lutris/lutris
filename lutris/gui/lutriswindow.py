@@ -448,7 +448,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.game_store.store.clear()
         self.hide_overlay()
         games = self.get_games_from_filters()
-        logger.debug("Showing %d games", len(games))
+        if games:
+            self.search_entry.set_placeholder_text(_("Search %s game%s") % (len(games), "s" if len(games) > 1 else ""))
+        else:
+            self.search_entry.set_placeholder_text(_("Search games"))
         for view in self.views.values():
             view.service = self.service.id if self.service else None
         GLib.idle_add(self.update_revealer)
