@@ -345,7 +345,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def present_install_from_setup_page(self):
         self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.stack.present_page("install_from_setup")
-        self.display_continue_button(self._on_install_setup_continue)
+        self.display_continue_button(self._on_install_setup_continue, label=_("Install"))
 
     @watch_errors()
     def _on_install_setup_continue(self, button):
