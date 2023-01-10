@@ -6,7 +6,7 @@ from gi.repository import Gio, GLib, Gtk
 from lutris import api
 from lutris.exceptions import watch_errors
 from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.dialogs import ErrorDialog, FileDialog
+from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.gui.widgets.window import BaseApplicationWindow
@@ -43,7 +43,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         ),
         (
             "x-office-document-symbolic",
-            "document-open-symbolic",
+            "go-next-symbolic",
             _("Install from a local install script"),
             _("Run a YAML install script"),
             "install_from_script"
@@ -76,7 +76,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         back_button.connect("clicked", self.on_back_clicked)
         self.action_buttons.pack_start(back_button, False, False, 0)
 
-        self.continue_button = Gtk.Button(_("Continue"), no_show_all=True)
+        self.continue_button = Gtk.Button(_("_Continue"), no_show_all=True, use_underline=True)
         self.action_buttons.pack_end(self.continue_button, False, False, 0)
         self.continue_handler = None
 
@@ -93,12 +93,17 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
         self.install_from_setup_game_name_entry = Gtk.Entry()
 
+        self.install_script_file_chooser = FileChooserEntry(
+            title=_("Select script"), action=Gtk.FileChooserAction.OPEN
+        )
+
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
         self.stack.add_named_factory("scan_folder", self.create_scan_folder_page)
         self.stack.add_named_factory("scanning_folder", self.create_scanning_folder_page)
         self.stack.add_named_factory("installed_games", self.create_installed_games_page)
         self.stack.add_named_factory("install_from_setup", self.create_install_from_setup_page)
+        self.stack.add_named_factory("install_from_script", self.create_install_from_script_page)
 
         self.show_all()
 
@@ -330,7 +335,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def on_close(self, _widget):
         self.destroy()
 
-    # Install from Setup
+    # Install from Setup Page
 
     def install_from_setup(self):
         """Install from a setup file"""
@@ -345,7 +350,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def present_install_from_setup_page(self):
         self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.stack.present_page("install_from_setup")
-        self.display_continue_button(self._on_install_setup_continue, label=_("Install"))
+        self.display_continue_button(self._on_install_setup_continue, label=_("_Install"))
 
     @watch_errors()
     def _on_install_setup_continue(self, button):
@@ -377,13 +382,32 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         application.show_installer_window([installer])
         self.destroy()
 
-    # Install from Script
+    # Install from Script Page
 
     def install_from_script(self):
         """Install from a YAML file"""
-        script_dlg = FileDialog(_("Select a Lutris installer"), parent=self)
-        if script_dlg.filename:
-            installers = get_installers(installer_file=script_dlg.filename)
+        self.stack.navigate_to_page(self.present_install_from_script_page)
+
+    def create_install_from_script_page(self):
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        label = self._get_label(_("Script file"))
+        vbox.add(label)
+        vbox.add(self.install_script_file_chooser)
+        return vbox
+
+    def present_install_from_script_page(self):
+        self.title_label.set_markup("<b>Select a Lutris installer</b>")
+        self.stack.present_page("install_from_script")
+        self.display_continue_button(self.on_continue_install_from_script_clicked, label=_("_Install"))
+
+    def on_continue_install_from_script_clicked(self, _widget):
+        path = self.install_script_file_chooser.get_text()
+        if not path:
+            ErrorDialog(_("You must select a script file to install."), parent=self)
+        elif not os.path.isfile(path):
+            ErrorDialog(_("No file exists at '%s'.") % path, parent=self)
+        else:
+            installers = get_installers(installer_file=path)
             application = Gio.Application.get_default()
             application.show_installer_window(installers)
             self.destroy()
@@ -397,7 +421,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     # Continue Button
 
-    def display_continue_button(self, handler, label=_("Continue"), suggested_action=True):
+    def display_continue_button(self, handler, label=_("_Continue"), suggested_action=True):
         self.continue_button.set_label(label)
         style_context = self.continue_button.get_style_context()
 
