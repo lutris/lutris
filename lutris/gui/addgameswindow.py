@@ -1,3 +1,4 @@
+import os
 from gettext import gettext as _
 
 from gi.repository import Gio, GLib, Gtk
@@ -5,7 +6,8 @@ from gi.repository import Gio, GLib, Gtk
 from lutris import api
 from lutris.exceptions import watch_errors
 from lutris.gui.config.add_game import AddGameDialog
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, FileDialog
+from lutris.gui.dialogs import ErrorDialog, FileDialog
+from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import AUTO_WIN32_EXE, get_installers
@@ -68,6 +70,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.text_query = None
         self.result_label = None
         self.continue_install_setup_button = None
+        self.continue_scan_folder_button = None
         self.title_label = Gtk.Label(visible=True)
         self.vbox.pack_start(self.title_label, False, False, 0)
 
@@ -83,6 +86,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
         self.stack.add_named_factory("scan_folder", self.create_scan_folder_page)
+        self.stack.add_named_factory("scanning_folder", self.create_scanning_folder_page)
         self.stack.add_named_factory("installed_games", self.create_installed_games_page)
         self.stack.add_named_factory("install_from_setup", self.create_install_from_setup_page)
 
@@ -223,17 +227,55 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def scan_folder(self):
         """Scan a folder of already installed games"""
-        def present_scan_folder_page():
-            self.title_label.set_markup("<b>Import games from a folder</b>")
-            self.stack.present_page("scan_folder")
-            AsyncCall(scan_directory, self._on_folder_scanned, script_dlg.folder)
-
-        script_dlg = DirectoryDialog(_("Select folder to scan"), parent=self)
-        if script_dlg.folder:
-            self.stack.jump_to_page(present_scan_folder_page)
+        self.stack.navigate_to_page(self.present_scan_folder_page)
 
     def create_scan_folder_page(self):
-        spinner = Gtk.Spinner(visible=True)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        label = self._get_label(_("Folder to scan"))
+        vbox.add(label)
+        directory_chooser = FileChooserEntry(
+            title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER
+        )
+        vbox.add(directory_chooser)
+
+        self.continue_scan_folder_button = Gtk.Button(_("Continue"))
+        self.continue_scan_folder_button.connect("clicked", self.on_continue_scan_folder_clicked, directory_chooser)
+
+        style_context = self.continue_scan_folder_button.get_style_context()
+        style_context.add_class("suggested-action")
+        self.action_buttons.pack_end(self.continue_scan_folder_button, False, False, 0)
+        return vbox
+
+    def present_scan_folder_page(self):
+        def on_exit_page():
+            self.continue_scan_folder_button.hide()
+
+        self.title_label.set_markup("<b>Select folder to scan for games</b>")
+        self.stack.present_page("scan_folder")
+        self.continue_scan_folder_button.show()
+        return on_exit_page
+
+    def on_continue_scan_folder_clicked(self, _widget, directory_chooser):
+        path = directory_chooser.get_text()
+        if not path:
+            ErrorDialog(_("You must select a folder to scan for games."), parent=self)
+        elif not os.path.isdir(path):
+            ErrorDialog(_("No folder exists at '%s'.") % path, parent=self)
+        else:
+            self.load_scanning_folder_page(path)
+
+    # Scanning Folder Page
+
+    def load_scanning_folder_page(self, path):
+        def present_scanning_folder_page():
+            self.title_label.set_markup("<b>Importing games from a folder</b>")
+            self.stack.present_page("scanning_folder")
+            AsyncCall(scan_directory, self._on_folder_scanned, path)
+
+        self.stack.jump_to_page(present_scanning_folder_page)
+
+    def create_scanning_folder_page(self):
+        spinner = Gtk.Spinner()
         spinner.start()
         return spinner
 
