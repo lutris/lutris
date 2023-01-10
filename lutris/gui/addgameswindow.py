@@ -69,8 +69,6 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.search_spinner = None
         self.text_query = None
         self.result_label = None
-        self.continue_install_setup_button = None
-        self.continue_scan_folder_button = None
         self.title_label = Gtk.Label(visible=True)
         self.vbox.pack_start(self.title_label, False, False, 0)
 
@@ -78,10 +76,22 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         back_button.connect("clicked", self.on_back_clicked)
         self.action_buttons.pack_start(back_button, False, False, 0)
 
+        self.continue_button = Gtk.Button(_("Continue"), no_show_all=True)
+        self.action_buttons.pack_end(self.continue_button, False, False, 0)
+        self.continue_handler = None
+
         self.stack = NavigationStack(back_button)
         self.vbox.pack_start(self.stack, True, True, 0)
 
         self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
+
+        # Pre-create some controls so they can be used in signal handlers
+
+        self.scan_directory_chooser = FileChooserEntry(
+            title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER
+        )
+
+        self.install_from_setup_game_name_entry = Gtk.Entry()
 
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
@@ -121,6 +131,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def present_inital_page(self):
         self.title_label.set_markup(f"<b>{self.title_text}</b>")
         self.stack.present_page("initial")
+        self.display_no_continue_button()
 
     @watch_errors()
     def on_row_activated(self, listbox, row):
@@ -164,6 +175,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.title_label.set_markup(_("<b>Search Lutris.net</b>"))
         self.stack.present_page("search_installers")
         self.search_entry.grab_focus()
+        self.display_no_continue_button()
 
     @watch_errors()
     def _on_search_updated(self, entry):
@@ -233,30 +245,16 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         label = self._get_label(_("Folder to scan"))
         vbox.add(label)
-        directory_chooser = FileChooserEntry(
-            title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER
-        )
-        vbox.add(directory_chooser)
-
-        self.continue_scan_folder_button = Gtk.Button(_("Continue"))
-        self.continue_scan_folder_button.connect("clicked", self.on_continue_scan_folder_clicked, directory_chooser)
-
-        style_context = self.continue_scan_folder_button.get_style_context()
-        style_context.add_class("suggested-action")
-        self.action_buttons.pack_end(self.continue_scan_folder_button, False, False, 0)
+        vbox.add(self.scan_directory_chooser)
         return vbox
 
     def present_scan_folder_page(self):
-        def on_exit_page():
-            self.continue_scan_folder_button.hide()
-
         self.title_label.set_markup("<b>Select folder to scan for games</b>")
         self.stack.present_page("scan_folder")
-        self.continue_scan_folder_button.show()
-        return on_exit_page
+        self.display_continue_button(self.on_continue_scan_folder_clicked)
 
-    def on_continue_scan_folder_clicked(self, _widget, directory_chooser):
-        path = directory_chooser.get_text()
+    def on_continue_scan_folder_clicked(self, _widget):
+        path = self.scan_directory_chooser.get_text()
         if not path:
             ErrorDialog(_("You must select a folder to scan for games."), parent=self)
         elif not os.path.isdir(path):
@@ -270,6 +268,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         def present_scanning_folder_page():
             self.title_label.set_markup("<b>Importing games from a folder</b>")
             self.stack.present_page("scanning_folder")
+            self.display_no_continue_button()
             AsyncCall(scan_directory, self._on_folder_scanned, path)
 
         self.stack.jump_to_page(present_scanning_folder_page)
@@ -289,6 +288,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
             page = self.create_installed_games_page(installed, missing)
             self.stack.present_replacement_page("installed_games", page)
+            self.display_continue_button(self.on_close, _("Close"), suggested_action=False)
 
         if error:
             ErrorDialog(str(error), parent=self)
@@ -327,6 +327,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
         return vbox
 
+    def on_close(self, _widget):
+        self.destroy()
+
     # Install from Setup
 
     def install_from_setup(self):
@@ -335,32 +338,18 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def create_install_from_setup_page(self):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        label = self._get_label(_("Game name"))
-        vbox.add(label)
-        entry = Gtk.Entry()
-        vbox.add(entry)
-
-        self.continue_install_setup_button = Gtk.Button(_("Continue"))
-        self.continue_install_setup_button.connect("clicked", self._on_install_setup_continue, entry)
-
-        style_context = self.continue_install_setup_button.get_style_context()
-        style_context.add_class("suggested-action")
-
-        self.action_buttons.pack_end(self.continue_install_setup_button, False, False, 0)
+        vbox.add(self._get_label(_("Game name")))
+        vbox.add(self.install_from_setup_game_name_entry)
         return vbox
 
     def present_install_from_setup_page(self):
-        def on_exit_page():
-            self.continue_install_setup_button.hide()
-
         self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.stack.present_page("install_from_setup")
-        self.continue_install_setup_button.show()
-        return on_exit_page
+        self.display_continue_button(self._on_install_setup_continue)
 
     @watch_errors()
-    def _on_install_setup_continue(self, button, entry):
-        name = entry.get_text().strip()
+    def _on_install_setup_continue(self, button):
+        name = self.install_from_setup_game_name_entry.get_text().strip()
         installer = {
             "name": name,
             "version": _("Setup file"),
@@ -400,6 +389,31 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         """Manually configure game"""
         AddGameDialog(parent=self)
         GLib.idle_add(self.destroy)  # defer destory so the game dialog can be centered first
+
+    # Continue Button
+
+    def display_continue_button(self, handler, label=_("Continue"), suggested_action=True):
+        self.continue_button.set_label(label)
+        style_context = self.continue_button.get_style_context()
+
+        if suggested_action:
+            style_context.add_class("suggested-action")
+        else:
+            style_context.remove_class("suggested-action")
+
+        if self.continue_handler:
+            self.continue_button.disconnect(self.continue_handler)
+
+        self.continue_handler = self.continue_button.connect("clicked", handler)
+
+        self.continue_button.show()
+
+    def display_no_continue_button(self):
+        self.continue_button.hide()
+
+        if self.continue_handler:
+            self.continue_button.disconnect(self.continue_handler)
+            self.continue_handler = None
 
     # Implementation
 
