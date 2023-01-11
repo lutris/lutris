@@ -20,7 +20,7 @@ class NavigationStack(Gtk.Stack):
     it can configure other aspects of the InstallerWindow. Packaging
     all this into a presenter function keeps things in sync as you navigate.
 
-    A present function can return an exit function, called when you navigate away
+    A presenter function can return an exit function, called when you navigate away
     from the page again.
     """
 
@@ -73,10 +73,22 @@ class NavigationStack(Gtk.Stack):
         """This navigates to the previous page, if any. This will invoke the
         current page's exit function, and the previous page's presenter function.
         """
-        if self.navigation_stack:
+        if self.navigation_stack and self.back_allowed:
             try:
                 back_to = self.navigation_stack.pop()
                 self._go_to_page(back_to, True, Gtk.StackTransitionType.SLIDE_RIGHT)
+            finally:
+                self._update_back_button()
+
+    def navigate_home(self):
+        """This navigates to the first page, effectively navigating back until it
+        can go no further back. It does not actually traverse the intermediate pages
+        though, but goes directly to the first."""
+        if self.navigation_stack and self.back_allowed:
+            try:
+                home = self.navigation_stack[0]
+                self.navigation_stack.clear()
+                self._go_to_page(home, True, Gtk.StackTransitionType.SLIDE_RIGHT)
             finally:
                 self._update_back_button()
 

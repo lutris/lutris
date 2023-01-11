@@ -77,6 +77,10 @@ class InstallerWindow(BaseApplicationWindow,
         # Action buttons
 
         self.back_button = self.add_start_button(_("Back"), self.on_back_clicked, sensitive=False)
+        key, mod = Gtk.accelerator_parse("<Alt>Left")
+        self.back_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        key, mod = Gtk.accelerator_parse("<Alt>Home")
+        self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, self.on_navigate_home)
         self.cache_button = self.add_start_button(_("Cache"), self.on_cache_clicked,
                                                   tooltip=_("Change where Lutris downloads game installer files."))
 
@@ -157,6 +161,10 @@ class InstallerWindow(BaseApplicationWindow,
     @watch_errors()
     def on_back_clicked(self, _button):
         self.stack.navigate_back()
+
+    @watch_errors()
+    def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
+        self.stack.navigate_home()
 
     def on_destroy(self, _widget, _data=None):
         self.on_cancel_clicked()
