@@ -88,7 +88,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.action_buttons.pack_end(self.continue_button, False, False, 0)
         self.continue_handler = None
 
-        self.cancel_button = Gtk.Button(_("_Cancel"), use_underline=True)
+        self.cancel_button = Gtk.Button(_("Cancel"), use_underline=True)
         self.cancel_button.connect("clicked", self.on_cancel_clicked)
         key, mod = Gtk.accelerator_parse("Escape")
         self.cancel_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
@@ -497,10 +497,10 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.continue_handler = self.continue_button.connect("clicked", handler)
 
         self.continue_button.show()
-        self.cancel_button.set_label(_("_Cancel"))
+        self.cancel_button.set_label(_("Cancel"))
         self.cancel_button.show()
 
-    def display_cancel_button(self, label=_("_Cancel")):
+    def display_cancel_button(self, label=_("Cancel")):
         self.cancel_button.set_label(label)
         self.cancel_button.show()
         self.continue_button.hide()
