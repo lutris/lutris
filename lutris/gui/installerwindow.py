@@ -80,7 +80,7 @@ class InstallerWindow(BaseApplicationWindow,
                                                   tooltip=_("Change where Lutris downloads game installer files."))
 
         self.continue_button = self.add_end_button(_("_Continue"))
-        self.cancel_button = self.add_end_button(_("_Cancel"), self.on_cancel_clicked)
+        self.cancel_button = self.add_end_button(_("Cancel"), self.on_cancel_clicked)
         self.source_button = self.add_end_button(_("_View source"), self.on_source_clicked)
         self.eject_button = self.add_end_button(_("_Eject"), self.on_eject_clicked)
 
@@ -159,9 +159,6 @@ class InstallerWindow(BaseApplicationWindow,
 
     def on_destroy(self, _widget, _data=None):
         self.on_cancel_clicked()
-
-    def on_key_pressed(self, _widget, event):
-        pass
 
     @watch_errors()
     def on_cancel_clicked(self, _button=None):
@@ -914,7 +911,7 @@ class InstallerWindow(BaseApplicationWindow,
             self.cancel_button.set_tooltip_text(_("Abort and revert the installation"))
             style_context.add_class("destructive-action")
         else:
-            self.cancel_button.set_label(_("_Close") if self.install_complete else _("_Cancel"))
+            self.cancel_button.set_label(_("_Close") if self.install_complete else _("Cancel"))
             self.cancel_button.set_tooltip_text("")
             style_context.remove_class("destructive-action")
 
