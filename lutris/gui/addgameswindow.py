@@ -64,11 +64,12 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.set_default_size(640, 450)
         self.search_entry = None
         self.search_frame = None
+        self.search_explanation_label = None
         self.search_listbox = None
         self.search_timer_id = None
         self.search_spinner = None
         self.text_query = None
-        self.result_label = None
+        self.search_result_label = None
         self.title_label = Gtk.Label(visible=True)
         self.vbox.pack_start(self.title_label, False, False, 0)
 
@@ -162,8 +163,10 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         """Search installers with the Lutris API"""
         if self.search_entry:
             self.search_entry.set_text("")
-            self.result_label.set_text("")
+            self.search_result_label.set_text("")
+            self.search_result_label.hide()
             self.search_frame.hide()
+            self.search_explanation_label.show()
         self.stack.navigate_to_page(self.present_search_installers_page)
 
     def create_search_installers_page(self):
@@ -174,9 +177,20 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.search_spinner = Gtk.Spinner(visible=False)
         hbox.pack_end(self.search_spinner, False, False, 6)
         vbox.pack_start(hbox, False, False, 0)
-        self.result_label = self._get_label("")
-        vbox.pack_start(self.result_label, False, False, 0)
+        self.search_result_label = self._get_label("")
+        self.search_result_label.hide()
+        vbox.pack_start(self.search_result_label, False, False, 0)
         self.search_entry.connect("changed", self._on_search_updated)
+
+        explanation = _(
+            "Lutris will search Lutris.net for games matching the terms you enter, and any "
+            "that it finds will appear here.\n\n"
+            "When you click on a game that it found, the installer window will appear to "
+            "perform the installation."
+        )
+
+        self.search_explanation_label = self._get_explaination_label(explanation)
+        vbox.add(self.search_explanation_label)
 
         self.search_frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.search_listbox = Gtk.ListBox(visible=True)
@@ -185,6 +199,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         scroll.set_vexpand(True)
         scroll.add(self.search_listbox)
         self.search_frame.add(scroll)
+
         vbox.pack_start(self.search_frame, True, True, 0)
         return vbox
 
@@ -226,11 +241,11 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         count = len(api_games.get('results', []))
 
         if not count:
-            self.result_label.set_markup(_("No results"))
+            self.search_result_label.set_markup(_("No results"))
         elif count == total_count:
-            self.result_label.set_markup(_(f"Showing <b>{count}</b> results"))
+            self.search_result_label.set_markup(_(f"Showing <b>{count}</b> results"))
         else:
-            self.result_label.set_markup(_(f"<b>{total_count}</b> results, only displaying first {count}"))
+            self.search_result_label.set_markup(_(f"<b>{total_count}</b> results, only displaying first {count}"))
         for row in self.search_listbox.get_children():
             row.destroy()
         for game in api_games.get("results", []):
@@ -242,7 +257,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             row = self._get_listbox_row("", gtk_safe(game['name']), f"{year}{platforms}")
             row.api_info = game
             self.search_listbox.add(row)
+        self.search_result_label.show()
         self.search_frame.show()
+        self.search_explanation_label.hide()
 
     @watch_errors()
     def _on_game_selected(self, listbox, row):
@@ -263,6 +280,15 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         label = self._get_label(_("Folder to scan"))
         vbox.add(label)
         vbox.add(self.scan_directory_chooser)
+
+        explanation = _(
+            "Lutris will search this folder for sub-folders that contain games it recognizes.\n\n"
+            "Any games it finds that are not already in Lutris will be added.\n\n"
+            "When you click 'Continue' below, the search will begin, and any games found will "
+            "be added at once."
+        )
+
+        vbox.add(self._get_explaination_label(explanation))
         return vbox
 
     def present_scan_folder_page(self):
@@ -354,6 +380,15 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         vbox.add(self._get_label(_("Game name")))
         vbox.add(self.install_from_setup_game_name_entry)
+
+        explanation = _(
+            "Enter the name of the game you will install.\n\nWhen you click 'Install' below, "
+            "the installer window will appear and guide you through a simple installation.\n\n"
+            "It will prompt you for a setup executable, and will use WINE to install it with "
+            "no special options."
+        )
+
+        vbox.add(self._get_explaination_label(explanation))
         return vbox
 
     def present_install_from_setup_page(self):
@@ -402,6 +437,16 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         label = self._get_label(_("Script file"))
         vbox.add(label)
         vbox.add(self.install_script_file_chooser)
+
+        explanation = _(
+            "Lutris install scripts are JSON files that guide Lutris through "
+            "the installation process.\n\n"
+            "They can be obtained on Lutris.net, or written by hand.\n\n"
+            "When you click 'Install' below, the installer window will "
+            "appear and load the script, and it will guide the process from there."
+        )
+
+        vbox.add(self._get_explaination_label(explanation))
         return vbox
 
     def present_install_from_script_page(self):
@@ -476,6 +521,17 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         label = Gtk.Label(visible=True)
         label.set_markup(text)
         label.set_alignment(0, 0.5)
+        return label
+
+    def _get_explaination_label(self, markup):
+        label = Gtk.Label(
+            visible=True,
+            margin_right=12,
+            margin_left=12,
+            margin_top=12,
+            margin_bottom=12)
+        label.set_markup(markup)
+        label.set_line_wrap(True)
         return label
 
     def _get_listbox_row(self, left_icon_name, text, subtext, right_icon_name=""):
