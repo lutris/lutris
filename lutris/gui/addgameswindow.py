@@ -72,6 +72,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.title_label = Gtk.Label(visible=True)
         self.vbox.pack_start(self.title_label, False, False, 0)
 
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
+
         back_button = Gtk.Button(_("Back"), sensitive=False)
         back_button.connect("clicked", self.on_back_clicked)
         self.action_buttons.pack_start(back_button, False, False, 0)
@@ -79,6 +82,12 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.continue_button = Gtk.Button(_("_Continue"), no_show_all=True, use_underline=True)
         self.action_buttons.pack_end(self.continue_button, False, False, 0)
         self.continue_handler = None
+
+        self.cancel_button = Gtk.Button(_("_Cancel"), use_underline=True)
+        self.cancel_button.connect("clicked", self.on_cancel_clicked)
+        key, mod = Gtk.accelerator_parse("Escape")
+        self.cancel_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        self.action_buttons.pack_end(self.cancel_button, False, False, 0)
 
         self.stack = NavigationStack(back_button)
         self.vbox.pack_start(self.stack, True, True, 0)
@@ -112,6 +121,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def on_back_clicked(self, _widget):
         self.stack.navigate_back()
 
+    def on_cancel_clicked(self, _widget):
+        self.destroy()
+
     def on_watched_error(self, error):
         ErrorDialog(str(error), parent=self)
 
@@ -136,7 +148,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def present_inital_page(self):
         self.title_label.set_markup(f"<b>{self.title_text}</b>")
         self.stack.present_page("initial")
-        self.display_no_continue_button()
+        self.display_cancel_button()
 
     @watch_errors()
     def on_row_activated(self, listbox, row):
@@ -180,7 +192,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.title_label.set_markup(_("<b>Search Lutris.net</b>"))
         self.stack.present_page("search_installers")
         self.search_entry.grab_focus()
-        self.display_no_continue_button()
+        self.display_cancel_button()
 
     @watch_errors()
     def _on_search_updated(self, entry):
@@ -293,7 +305,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
             page = self.create_installed_games_page(installed, missing)
             self.stack.present_replacement_page("installed_games", page)
-            self.display_continue_button(self.on_close, _("Close"), suggested_action=False)
+            self.display_cancel_button(label=_("_Close"))
 
         if error:
             ErrorDialog(str(error), parent=self)
@@ -331,9 +343,6 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             vbox.pack_end(missing_label, False, False, 0)
 
         return vbox
-
-    def on_close(self, _widget):
-        self.destroy()
 
     # Install from Setup Page
 
@@ -436,9 +445,17 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.continue_handler = self.continue_button.connect("clicked", handler)
 
         self.continue_button.show()
+        self.cancel_button.set_label(_("_Cancel"))
+        self.cancel_button.show()
+
+    def display_cancel_button(self, label=_("_Cancel")):
+        self.cancel_button.set_label(label)
+        self.cancel_button.show()
+        self.continue_button.hide()
 
     def display_no_continue_button(self):
         self.continue_button.hide()
+        self.cancel_button.hide()
 
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
