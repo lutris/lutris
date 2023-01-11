@@ -76,9 +76,13 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
-        back_button = Gtk.Button(_("Back"), sensitive=False)
-        back_button.connect("clicked", self.on_back_clicked)
-        self.action_buttons.pack_start(back_button, False, False, 0)
+        self.back_button = Gtk.Button(_("Back"), sensitive=False)
+        self.back_button.connect("clicked", self.on_back_clicked)
+        key, mod = Gtk.accelerator_parse("<Alt>Left")
+        self.back_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        key, mod = Gtk.accelerator_parse("<Alt>Home")
+        self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, self.on_navigate_home)
+        self.action_buttons.pack_start(self.back_button, False, False, 0)
 
         self.continue_button = Gtk.Button(_("_Continue"), no_show_all=True, use_underline=True)
         self.action_buttons.pack_end(self.continue_button, False, False, 0)
@@ -90,7 +94,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.cancel_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
         self.action_buttons.pack_end(self.cancel_button, False, False, 0)
 
-        self.stack = NavigationStack(back_button)
+        self.stack = NavigationStack(self.back_button)
         self.vbox.pack_start(self.stack, True, True, 0)
 
         self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
@@ -121,6 +125,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def on_back_clicked(self, _widget):
         self.stack.navigate_back()
+
+    def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
+        self.stack.navigate_home()
 
     def on_cancel_clicked(self, _widget):
         self.destroy()
