@@ -196,7 +196,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             "perform the installation."
         )
 
-        self.search_explanation_label = self._get_explaination_label(explanation)
+        self.search_explanation_label = self._get_explanation_label(explanation)
         vbox.add(self.search_explanation_label)
 
         self.search_frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
@@ -295,7 +295,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             "be added at once."
         )
 
-        vbox.add(self._get_explaination_label(explanation))
+        vbox.add(self._get_explanation_label(explanation))
         return vbox
 
     def present_scan_folder_page(self):
@@ -395,7 +395,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             "no special options."
         )
 
-        vbox.add(self._get_explaination_label(explanation))
+        vbox.add(self._get_explanation_label(explanation))
         return vbox
 
     def present_install_from_setup_page(self):
@@ -453,7 +453,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             "appear and load the script, and it will guide the process from there."
         )
 
-        vbox.add(self._get_explaination_label(explanation))
+        vbox.add(self._get_explanation_label(explanation))
         return vbox
 
     def present_install_from_script_page(self):
@@ -530,7 +530,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         label.set_alignment(0, 0.5)
         return label
 
-    def _get_explaination_label(self, markup):
+    def _get_explanation_label(self, markup):
         label = Gtk.Label(
             visible=True,
             margin_right=12,
