@@ -285,10 +285,11 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.navigate_to_page(self.present_scan_folder_page)
 
     def create_scan_folder_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
         label = self._get_label(_("Folder to scan"))
-        vbox.add(label)
-        vbox.add(self.scan_directory_chooser)
+        grid.attach(label, 0, 0, 1, 1)
+        grid.attach(self.scan_directory_chooser, 1, 0, 1, 1)
+        self.scan_directory_chooser.set_hexpand(True)
 
         explanation = _(
             "Lutris will search this folder for sub-folders that contain games it recognizes.\n\n"
@@ -297,8 +298,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             "be added at once."
         )
 
-        vbox.add(self._get_explanation_label(explanation))
-        return vbox
+        grid.attach(self._get_explanation_label(explanation), 0, 1, 2, 1)
+        return grid
 
     def present_scan_folder_page(self):
         self.title_label.set_markup("<b>Select folder to scan for games</b>")
@@ -469,10 +470,11 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.navigate_to_page(self.present_install_from_script_page)
 
     def create_install_from_script_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
         label = self._get_label(_("Script file"))
-        vbox.add(label)
-        vbox.add(self.install_script_file_chooser)
+        grid.attach(label, 0, 0, 1, 1)
+        grid.attach(self.install_script_file_chooser, 1, 0, 1, 1)
+        self.install_script_file_chooser.set_hexpand(True)
 
         explanation = _(
             "Lutris install scripts are JSON files that guide Lutris through "
@@ -482,8 +484,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             "appear and load the script, and it will guide the process from there."
         )
 
-        vbox.add(self._get_explanation_label(explanation))
-        return vbox
+        grid.attach(self._get_explanation_label(explanation), 0, 1, 2, 1)
+        return grid
 
     def present_install_from_script_page(self):
         self.title_label.set_markup("<b>Select a Lutris installer</b>")
