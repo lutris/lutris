@@ -106,6 +106,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         )
 
         self.install_from_setup_game_name_entry = Gtk.Entry()
+        self.install_from_setup_game_slug_checkbox = Gtk.CheckButton(label="Identifier")
+        self.install_from_setup_game_slug_entry = Gtk.Entry(sensitive=False)
 
         self.install_script_file_chooser = FileChooserEntry(
             title=_("Select script"), action=Gtk.FileChooserAction.OPEN
@@ -384,9 +386,20 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.navigate_to_page(self.present_install_from_setup_page)
 
     def create_install_from_setup_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        vbox.add(self._get_label(_("Game name")))
-        vbox.add(self.install_from_setup_game_name_entry)
+        name_label = self._get_label(_("Game name"))
+
+        self.install_from_setup_game_name_entry.set_hexpand(True)
+        self.install_from_setup_game_slug_entry.set_hexpand(True)
+
+        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        grid.set_column_homogeneous(False)
+        grid.attach(name_label, 0, 0, 1, 1)
+        grid.attach(self.install_from_setup_game_name_entry, 1, 0, 1, 1)
+        grid.attach(self.install_from_setup_game_slug_checkbox, 0, 1, 1, 1)
+        grid.attach(self.install_from_setup_game_slug_entry, 1, 1, 1, 1)
+
+        self.install_from_setup_game_name_entry.connect("changed", self.on_install_from_setup_game_name_changed)
+        self.install_from_setup_game_slug_checkbox.connect("toggled", self.on_install_from_setup_game_slug_toggled)
 
         explanation = _(
             "Enter the name of the game you will install.\n\nWhen you click 'Install' below, "
@@ -395,13 +408,24 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             "no special options."
         )
 
-        vbox.add(self._get_explanation_label(explanation))
-        return vbox
+        grid.attach(self._get_explanation_label(explanation), 0, 2, 2, 1)
+        return grid
 
     def present_install_from_setup_page(self):
         self.title_label.set_markup(_("<b>Select setup file</b>"))
         self.stack.present_page("install_from_setup")
         self.display_continue_button(self._on_install_setup_continue, label=_("_Install"))
+
+    @watch_errors()
+    def on_install_from_setup_game_slug_toggled(self, checkbutton):
+        self.install_from_setup_game_slug_entry.set_sensitive(checkbutton.get_active())
+        self.on_install_from_setup_game_name_changed()
+
+    @watch_errors()
+    def on_install_from_setup_game_name_changed(self, *_args):
+        if not self.install_from_setup_game_slug_checkbox.get_active():
+            name = self.install_from_setup_game_name_entry.get_text()
+            self.install_from_setup_game_slug_entry.set_text(slugify(name))
 
     @watch_errors()
     def _on_install_setup_continue(self, button):
@@ -411,11 +435,16 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             ErrorDialog(_("You must provide a name for the game you are installing."), parent=self)
             return
 
+        if self.install_from_setup_game_slug_checkbox.get_active():
+            game_slug = self.install_from_setup_game_slug_entry.get_text()
+        else:
+            game_slug = slugify(name)
+
         installer = {
             "name": name,
             "version": _("Setup file"),
-            "slug": slugify(name) + "-setup",
-            "game_slug": slugify(name),
+            "slug": game_slug + "-setup",
+            "game_slug": game_slug,
             "runner": "wine",
             "script": {
                 "game": {
