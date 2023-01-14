@@ -13,6 +13,7 @@ from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import AUTO_WIN32_EXE, get_installers
 from lutris.scanners.lutris import scan_directory
 from lutris.util.jobs import AsyncCall
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.strings import gtk_safe, slugify
 
 
@@ -108,6 +109,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.install_from_setup_game_name_entry = Gtk.Entry()
         self.install_from_setup_game_slug_checkbox = Gtk.CheckButton(label="Identifier")
         self.install_from_setup_game_slug_entry = Gtk.Entry(sensitive=False)
+        self.install_from_setup_32bit_prefix_checkbox = None
 
         self.install_script_file_chooser = FileChooserEntry(
             title=_("Select script"), action=Gtk.FileChooserAction.OPEN
@@ -405,11 +407,21 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         explanation = _(
             "Enter the name of the game you will install.\n\nWhen you click 'Install' below, "
             "the installer window will appear and guide you through a simple installation.\n\n"
-            "It will prompt you for a setup executable, and will use WINE to install it with "
-            "no special options."
+            "It will prompt you for a setup executable, and will use Wine to install it.\n\n"
+            "If you know the Lutris identifier for the game, you can provide it for improved "
+            "Lutris integration, such as Lutris provided banners."
         )
 
         grid.attach(self._get_explanation_label(explanation), 0, 2, 2, 1)
+
+        if LINUX_SYSTEM.is_64_bit:
+            self.install_from_setup_32bit_prefix_checkbox = Gtk.CheckButton(
+                label=_("32-bit Wine prefix (not recommended)"))
+
+            grid.attach(self.install_from_setup_32bit_prefix_checkbox, 0, 3, 2, 1)
+            self.install_from_setup_32bit_prefix_checkbox.set_valign(Gtk.Align.END)
+            self.install_from_setup_32bit_prefix_checkbox.set_vexpand(True)
+        grid.set_vexpand(True)
         return grid
 
     def present_install_from_setup_page(self):
@@ -441,6 +453,12 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         else:
             game_slug = slugify(name)
 
+        if (self.install_from_setup_32bit_prefix_checkbox
+                and not self.install_from_setup_32bit_prefix_checkbox.get_active()):
+            arch = "win64"
+        else:
+            arch = "win32"
+
         installer = {
             "name": name,
             "version": _("Setup file"),
@@ -455,7 +473,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
                     {"setupfile": "N/A:%s" % _("Select the setup file")}
                 ],
                 "installer": [
-                    {"task": {"name": "wineexec", "executable": "setupfile"}}
+                    {"task": {"name": "wineexec", "executable": "setupfile", "arch": arch}}
                 ]
             }
         }
