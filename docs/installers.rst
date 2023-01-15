@@ -391,6 +391,17 @@ If the game makes use of Steam data, the value should be
 ``$STEAM:appid:path/to/data``. This will check that the data is available
 or install it otherwise.
 
+If the game of file is hosted on moddb.com, it is necessary to understand that
+the platform rotates the actual download links every few hours, making it
+impractical to set these links as source url in installers. Lutris has
+routines to overcome this limitation (with blessing from moddb.com). When
+specifying a file hosted on moddb.com, please use the url of the files details
+page (the one with the red "Download now" button).
+
+Example URLs for ModDB files::
+
+    https://www.moddb.com/games/{game-title}/downloads/{file-title}
+    https://www.moddb.com/mods/{mod-title}/downloads/{file-title}
 
 Writing the installation script
 ===============================
