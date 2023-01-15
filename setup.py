@@ -67,7 +67,7 @@ setup(
         'PyYAML',
         'requests',
         'pypresence',
-        'moddb'
+        'moddb >= 0.8.1'
     ],
     url='https://lutris.net',
     description='Video game preservation platform',
