@@ -1,6 +1,6 @@
 import unittest
 import moddb
-from lutris.util.moddb import ModDB
+from lutris.util.moddb import ModDB, is_moddb_url
 
 
 class ModDBHelperTests(unittest.TestCase):
@@ -96,33 +96,33 @@ class ModDBHelperTests(unittest.TestCase):
   ## is_moddb_url
   def test_is_moddb_url_has_www_success(self):
     url = 'https://www.moddb.com/something'
-    self.assertTrue(self.helper_obj._is_moddb_url(url))
+    self.assertTrue(is_moddb_url(url))
   
   def test_is_moddb_url_no_slug_has_www_success(self):
     url = 'https://www.moddb.com'
-    self.assertTrue(self.helper_obj._is_moddb_url(url))
+    self.assertTrue(is_moddb_url(url))
 
   def test_is_moddb_url_no_www_success(self):
     url = 'https://moddb.com/something'
-    self.assertTrue(self.helper_obj._is_moddb_url(url))
+    self.assertTrue(is_moddb_url(url))
   
   def test_is_moddb_url_no_slug_no_www_success(self):
     url = 'https://moddb.com'
-    self.assertTrue(self.helper_obj._is_moddb_url(url))
+    self.assertTrue(is_moddb_url(url))
 
   def test_is_moddb_url_other_subdomain_failure(self):
     url = 'https://subdomain.moddb.com/something'
-    self.assertFalse(self.helper_obj._is_moddb_url(url))
+    self.assertFalse(is_moddb_url(url))
   
   def test_is_moddb_url_no_slug_other_subdomain_failure(self):
     url = 'https://subdomain.moddb.com'
-    self.assertFalse(self.helper_obj._is_moddb_url(url))
+    self.assertFalse(is_moddb_url(url))
 
   def test_is_moddb_url_random_domain_failure(self):
     url = 'https://somedomain.com/something'
-    self.assertFalse(self.helper_obj._is_moddb_url(url))
+    self.assertFalse(is_moddb_url(url))
   
   def test_is_moddb_url_no_slug_random_domain_failure(self):
     url = 'https://somedomain.com'
-    self.assertFalse(self.helper_obj._is_moddb_url(url))
+    self.assertFalse(is_moddb_url(url))
 

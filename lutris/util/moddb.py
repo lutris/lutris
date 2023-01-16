@@ -6,19 +6,19 @@ import types
 MODDB_FQDN = 'https://www.moddb.com'
 MODDB_URL_MATCHER = '^https://(www\.)?moddb\.com'
 
+def is_moddb_url(url):
+    return re.match(MODDB_URL_MATCHER, url.lower()) is not None
+
 
 class ModDB:
     def __init__(self, parse_page_method: types.MethodType = moddb.parse_page):
         self.parse = parse_page_method
 
     def transform_url(self, moddb_permalink_url):
-        if not self._is_moddb_url(moddb_permalink_url):
+        if not is_moddb_url(moddb_permalink_url):
             raise RuntimeError("provided url must be from moddb.com")
 
         return MODDB_FQDN + self._autoselect_moddb_mirror(self._get_html_and_resolve_mirrors_list(moddb_permalink_url))._url
-
-    def _is_moddb_url(self, url):
-        return re.match(MODDB_URL_MATCHER, url.lower()) is not None
 
     def _autoselect_moddb_mirror(self, mirrors_list):
         # dumb autoselect for now: rank mirrors by capacity (lower is better), pick first (lowest load)

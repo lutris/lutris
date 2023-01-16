@@ -143,7 +143,7 @@ class InstallerFile:
 
     def is_downloadable(self):
         """Return True if the file can be downloaded (even from the local filesystem)"""
-        return self.url.startswith(("http", "file", "MODDB"))
+        return self.url.startswith(("http", "file"))
 
     def uses_pga_cache(self, create=False):
         """Determines whether the installer files are stored in a PGA cache
