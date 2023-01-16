@@ -45,7 +45,6 @@ setup(
         'lutris.util.egs',
         'lutris.util.graphics',
         'lutris.util.mame',
-        'lutris.util.moddb',
         'lutris.util.steam',
         'lutris.util.steam.vdf',
         'lutris.util.retroarch',
