@@ -15,7 +15,7 @@ from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
 from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config_from_path, get_gog_game_path
 from lutris.util.log import logger
-from lutris.util.moddb import ModDB
+from lutris.util.moddb import ModDB, is_moddb_url
 
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
@@ -156,8 +156,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # Run variable substitution on the URLs from the script
         for file in self.files:
             file.set_url(self.interpreter._substitute(file.url))
-            if file.url.startswith("MODDB:"):
-                file.set_url(ModDB().transform_url(file.url[6:]))
+            if is_moddb_url(file.url):
+                file.set_url(ModDB().transform_url(file.url))
 
         if installer_file_id and self.service:
             logger.info("Getting files for %s", installer_file_id)
