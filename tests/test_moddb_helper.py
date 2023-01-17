@@ -40,6 +40,13 @@ class ModDBHelperTests(unittest.TestCase):
     hlpr = ModDB(custom)
     self.assertEqual(hlpr.parse, custom)
 
+  ## missing moddb lib handling
+  def test_transform_url_missing_lib_noop(self):
+    moddb_url = 'https://www.moddb.com/downloads/mirror/somethingsomething'
+    hlpr = ModDB(moddb_lib=None)
+    transformed = hlpr.transform_url(moddb_url)
+    self.assertEqual(transformed, moddb_url)
+
   ## transform_url
   def test_transform_url_url_is_mirror_with_www_throws(self):
     moddb_url = 'https://www.moddb.com/downloads/mirror/somethingsomething'

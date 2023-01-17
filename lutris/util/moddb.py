@@ -18,8 +18,8 @@ def _try_import_moddb_library():
         logger.warn('The moddb library is not available, though the installer is attempting to install a file hosted on moddb.com. The moddb.com URLs will not be transformed, and rather passed as-is.')
 
 class ModDB:
-    def __init__(self, parse_page_method: types.MethodType=None):
-        self.moddb_lib = _try_import_moddb_library()
+    def __init__(self, parse_page_method: types.MethodType=None, moddb_lib: types.ModuleType=_try_import_moddb_library()):
+        self.moddb_lib = moddb_lib
         self.parse = parse_page_method
         if self.parse is None and self.moddb_lib is not None:
           self.parse = self.moddb_lib.parse_page
