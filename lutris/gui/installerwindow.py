@@ -168,6 +168,7 @@ class InstallerWindow(BaseApplicationWindow,
 
             remove_checkbox = Gtk.CheckButton.new_with_label(_("Remove game files"))
             if self.interpreter and self.interpreter.target_path and \
+                    self.interpreter.game_dir_created and \
                     self.installation_kind == InstallationKind.INSTALL and \
                     is_removeable(self.interpreter.target_path, LutrisConfig().system_config):
                 remove_checkbox.set_active(self.interpreter.game_dir_created)
