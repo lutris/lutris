@@ -1,6 +1,7 @@
 """Helper functions to assist downloading files from ModDB"""
 import re
 import types
+from lutris.util.log import logger
 
 MODDB_FQDN = 'https://www.moddb.com'
 MODDB_URL_MATCHER = '^https://(www\.)?moddb\.com'
@@ -14,16 +15,19 @@ def _try_import_moddb_library():
         lib = __import__('moddb')
         return lib
     except ImportError as ierr:
-        raise ImportError('The moddb library is not available, though the installer is attempting to install a file hosted on moddb.com. Aborting.') from ierr
+        logger.warn('The moddb library is not available, though the installer is attempting to install a file hosted on moddb.com. The moddb.com URLs will not be transformed, and rather passed as-is.')
 
 class ModDB:
     def __init__(self, parse_page_method: types.MethodType=None):
         self.moddb_lib = _try_import_moddb_library()
         self.parse = parse_page_method
-        if self.parse is None:
+        if self.parse is None and self.moddb_lib is not None:
           self.parse = self.moddb_lib.parse_page
 
     def transform_url(self, moddb_permalink_url):
+        # no-op in case the lib did not load
+        if self.parse is None:
+            return moddb_permalink_url
         if not is_moddb_url(moddb_permalink_url):
             raise RuntimeError('Provided URL must be from moddb.com')
 
