@@ -5,7 +5,7 @@ import types
 
 MODDB_FQDN = 'https://www.moddb.com'
 MODDB_URL_MATCHER = '^https://(www\.)?moddb\.com'
-MODDB_MIRROR_URL_MATCHER = '^https://(www\.)?moddbi\.com/downloads/mirror'
+MODDB_MIRROR_URL_MATCHER = '^https://(www\.)?moddb\.com/downloads/mirror'
 
 def is_moddb_url(url):
     return re.match(MODDB_URL_MATCHER, url.lower()) is not None
@@ -17,7 +17,7 @@ class ModDB:
 
     def transform_url(self, moddb_permalink_url):
         if not is_moddb_url(moddb_permalink_url):
-            raise RuntimeError('provided url must be from moddb.com')
+            raise RuntimeError('Provided URL must be from moddb.com')
 
         return MODDB_FQDN + self._autoselect_moddb_mirror(self._get_html_and_resolve_mirrors_list(moddb_permalink_url))._url
 
@@ -31,15 +31,15 @@ class ModDB:
         # while downloading a file instead of a web page
         # with no obvious reason to the user as to why
         if self._is_moddb_mirror_url(moddb_permalink_url):
-            raise RuntimeError('supplied url points directly to a mirror. This is an incorrect configuration, please refer to installers.rst for details.')
+            raise RuntimeError('Provided URL points directly to a moddb.com mirror. This is an incorrect configuration, please refer to installers.rst for details.')
 
         moddb_obj = self.parse(moddb_permalink_url)
         if not isinstance(moddb_obj, moddb.pages.File):
-            raise RuntimeError('supplied url does not point to the page of a file hosted on moddb.com')
+            raise RuntimeError('Provided URL does not point to the page of a file hosted on moddb.com')
 
         mirrors_list = moddb_obj.get_mirrors()
         if not any(mirrors_list):
-            raise RuntimeError('no available mirror for the file hosted on moddb.com')
+            raise RuntimeError('No available mirror was available for the file hosted on moddb.com')
 
         return mirrors_list
 
