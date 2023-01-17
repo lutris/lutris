@@ -1,5 +1,4 @@
 """Helper functions to assist downloading files from ModDB"""
-import moddb
 import re
 import types
 
@@ -10,10 +9,19 @@ MODDB_MIRROR_URL_MATCHER = '^https://(www\.)?moddb\.com/downloads/mirror'
 def is_moddb_url(url):
     return re.match(MODDB_URL_MATCHER, url.lower()) is not None
 
+def _try_import_moddb_library():
+    try:
+        lib = __import__('moddb')
+        return lib
+    except ImportError as ierr:
+        raise ImportError('The moddb library is not available, though the installer is attempting to install a file hosted on moddb.com. Aborting.') from ierr
 
 class ModDB:
-    def __init__(self, parse_page_method: types.MethodType = moddb.parse_page):
+    def __init__(self, parse_page_method: types.MethodType=None):
+        self.moddb_lib = _try_import_moddb_library()
         self.parse = parse_page_method
+        if self.parse is None:
+          self.parse = self.moddb_lib.parse_page
 
     def transform_url(self, moddb_permalink_url):
         if not is_moddb_url(moddb_permalink_url):
@@ -34,7 +42,7 @@ class ModDB:
             raise RuntimeError('Provided URL points directly to a moddb.com mirror. This is an incorrect configuration, please refer to installers.rst for details.')
 
         moddb_obj = self.parse(moddb_permalink_url)
-        if not isinstance(moddb_obj, moddb.pages.File):
+        if not isinstance(moddb_obj, self.moddb_lib.pages.File):
             raise RuntimeError('Provided URL does not point to the page of a file hosted on moddb.com')
 
         mirrors_list = moddb_obj.get_mirrors()
