@@ -94,6 +94,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if self.runner == "steam":
             # Steam games installs in their steamapps directory
             return False
+        if not self.script.get("installer"):
+            # No command can affect files
+            return False
         if (
                 self.script_files
                 or self.script.get("game", {}).get("gog")
