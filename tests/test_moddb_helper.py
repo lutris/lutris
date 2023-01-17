@@ -41,6 +41,16 @@ class ModDBHelperTests(unittest.TestCase):
     self.assertEqual(hlpr.parse, custom)
 
   ## transform_url
+  def test_transform_url_url_is_mirror_with_www_throws(self):
+    moddb_url = 'https://www.moddb.com/downloads/mirror/somethingsomething'
+    with self.assertRaises(RuntimeError):
+        transformed = self.helper_obj.transform_url(moddb_url)
+
+  def test_transform_url_url_is_mirror_no_www_throws(self):
+    moddb_url = 'https://moddb.com/downloads/mirror/somethingsomething'
+    with self.assertRaises(RuntimeError):
+        transformed = self.helper_obj.transform_url(moddb_url)
+
   def test_transform_url_url_match_happy_path(self):
     self \
       .with_mirror("/first_url", 12.4)
