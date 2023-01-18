@@ -24,7 +24,7 @@ class InstallerFile:
         if isinstance(self._file_meta, dict):
             return InstallerFile(self.game_slug, self.id, self._file_meta.copy(), self.dest_file)
 
-        return InstallerFile(self.game_slug, self.id, self._file_meta, self.dest_file)
+        return InstallerFile(self.game_slug, self.id, self._file_meta, self._dest_file)
 
     @property
     def url(self):

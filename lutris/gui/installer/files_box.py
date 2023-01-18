@@ -84,10 +84,7 @@ class InstallerFilesBox(Gtk.ListBox):
 
     def check_files_ready(self):
         """Checks if all installer files are ready and emit a signal if so"""
-        if self.is_ready:
-            self.emit("files-ready", self.is_ready)
-        else:
-            logger.info("Waiting for user to provide files")
+        self.emit("files-ready", self.is_ready)
 
     def on_file_ready(self, widget):
         """Fired when a file has a valid provider.
