@@ -1,4 +1,5 @@
 """Helper functions to assist downloading files from ModDB"""
+import importlib
 import re
 import types
 
@@ -15,7 +16,7 @@ def is_moddb_url(url):
 
 def _try_import_moddb_library():
     try:
-        lib = __import__('moddb')
+        lib = importlib.import_module('moddb')
         return lib
     except ImportError:
         # no logging works here for some reason
@@ -39,7 +40,7 @@ class ModDB:
 
     def transform_url(self, moddb_permalink_url):
         # no-op in case the lib did not load
-        if self.parse is None:
+        if self.moddb_lib is None:
             return moddb_permalink_url
         if not is_moddb_url(moddb_permalink_url):
             raise RuntimeError('Provided URL must be from moddb.com')
