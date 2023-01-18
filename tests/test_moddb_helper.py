@@ -7,7 +7,7 @@ class ModDBHelperTests(unittest.TestCase):
     def setUp(self):
         self.mirrors_list = []
         self.page_type = self.ModDBFileObj
-        self.helper_obj = ModDB(self.parse)
+        self.helper_obj = ModDB(parse_page_method=self.parse)
 
     def with_mirror(self, url: str, capacity: float):
         self.mirrors_list.append(moddb.boxes.Mirror(url=url, capacity=capacity))
@@ -17,17 +17,17 @@ class ModDBHelperTests(unittest.TestCase):
         self.page_type = page_type
 
     def parse(self, url):
-        return self.page_type(self.page_type, self.mirrors_list)
+        return self.page_type(self.mirrors_list)
 
     class ModDBFileObj(moddb.pages.File):
-        def __init__(self, page_type, mirrors_list):
+        def __init__(self, mirrors_list):
             self.mirrors_list = mirrors_list
 
         def get_mirrors(self):
             return self.mirrors_list
 
     class ModDBSomeOtherObj:
-        def __init__(self, page_type, mirrors_list):
+        def __init__(self, mirrors_list):
             pass
 
     # ctor
@@ -38,7 +38,7 @@ class ModDBHelperTests(unittest.TestCase):
     def test_ctor_custom_method(self):
         def custom():
             pass
-        hlpr = ModDB(custom)
+        hlpr = ModDB(parse_page_method=custom)
         self.assertEqual(hlpr.parse, custom)
 
     # missing moddb lib handling
