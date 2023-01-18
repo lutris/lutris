@@ -1,31 +1,41 @@
 """Helper functions to assist downloading files from ModDB"""
 import re
 import types
+
 from lutris.util.log import logger
 
 MODDB_FQDN = 'https://www.moddb.com'
-MODDB_URL_MATCHER = '^https://(www\.)?moddb\.com'
-MODDB_MIRROR_URL_MATCHER = '^https://(www\.)?moddb\.com/downloads/mirror'
+MODDB_URL_MATCHER = r"^https://(www\.)?moddb\.com"
+MODDB_MIRROR_URL_MATCHER = r"^https://(www\.)?moddb\.com/downloads/mirror"
+
 
 def is_moddb_url(url):
     return re.match(MODDB_URL_MATCHER, url.lower()) is not None
+
 
 def _try_import_moddb_library():
     try:
         lib = __import__('moddb')
         return lib
-    except ImportError as ierr:
+    except ImportError:
         # no logging works here for some reason
         return None
 
+
 class ModDB:
-    def __init__(self, parse_page_method: types.MethodType=None, moddb_lib: types.ModuleType=_try_import_moddb_library()):
+    def __init__(
+            self,
+            parse_page_method: types.MethodType = None,
+            moddb_lib: types.ModuleType = _try_import_moddb_library()):
         if moddb_lib is None:
-            logger.warn('The moddb library is not available, though the installer is attempting to install a file hosted on moddb.com. The moddb.com URLs will not be transformed, and rather passed as-is.')
+            logger.warning(
+                'The moddb library is not available, though the installer'
+                ' is attempting to install a file hosted on moddb.com. The'
+                ' moddb.com URLs will not be transformed, and rather passed as-is.')
         self.moddb_lib = moddb_lib
         self.parse = parse_page_method
         if self.parse is None and self.moddb_lib is not None:
-          self.parse = self.moddb_lib.parse_page
+            self.parse = self.moddb_lib.parse_page
 
     def transform_url(self, moddb_permalink_url):
         # no-op in case the lib did not load
@@ -34,7 +44,8 @@ class ModDB:
         if not is_moddb_url(moddb_permalink_url):
             raise RuntimeError('Provided URL must be from moddb.com')
 
-        return MODDB_FQDN + self._autoselect_moddb_mirror(self._get_html_and_resolve_mirrors_list(moddb_permalink_url))._url
+        return MODDB_FQDN + self._autoselect_moddb_mirror(
+            self._get_html_and_resolve_mirrors_list(moddb_permalink_url))._url
 
     def _autoselect_moddb_mirror(self, mirrors_list):
         # dumb autoselect for now: rank mirrors by capacity (lower is better), pick first (lowest load)
@@ -46,7 +57,10 @@ class ModDB:
         # while downloading a file instead of a web page
         # with no obvious reason to the user as to why
         if self._is_moddb_mirror_url(moddb_permalink_url):
-            raise RuntimeError('Provided URL points directly to a moddb.com mirror. This is an incorrect configuration, please refer to installers.rst for details.')
+            raise RuntimeError(
+                'Provided URL points directly to a moddb.com mirror.'
+                ' This is an incorrect configuration, please refer to'
+                ' installers.rst for details.')
 
         moddb_obj = self.parse(moddb_permalink_url)
         if not isinstance(moddb_obj, self.moddb_lib.pages.File):
