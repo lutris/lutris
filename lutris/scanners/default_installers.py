@@ -16,6 +16,10 @@ DEFAULT_INSTALLERS = {
         "runner": "libretro",
         "game": {"core": "genesis_plus_gx", "main_file": "rom"},
     },
+    "pico": {
+        "runner": "libretro",
+        "game": {"core": "picodrive", "main_file": "rom"},
+    },
     "segacd": {
         "runner": "libretro",
         "game": {"core": "picodrive", "main_file": "rom"},

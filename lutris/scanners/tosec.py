@@ -18,6 +18,7 @@ PLATFORM_PATTERNS = {
     "Sega CD": "segacd",
     "Saturn": "saturn",
     "Dreamcast": "dc",
+    "PICO": "pico",
     "ColecoVision": "colecovision",
     "Atari 8bit": "atari800",
     "Atari - 8-bit": "atari800",
@@ -145,4 +146,7 @@ def clean_rom_name(name):
             good_index = i
         if c in ("(", "]"):
             in_parens = False
-    return name[:len(name)-good_index].strip()
+    name = name[:len(name)-good_index].strip()
+    if name.endswith(", The"):
+        name = "The " + name[:-5]
+    return name
