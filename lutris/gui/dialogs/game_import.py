@@ -10,7 +10,7 @@ from lutris.scanners.tosec import search_tosec_by_md5, guess_platform, clean_rom
 from lutris.scanners.default_installers import DEFAULT_INSTALLERS
 from lutris.util.log import logger
 from lutris.util.jobs import AsyncCall
-from lutris.util.system import get_md5_hash
+from lutris.util.system import get_md5_hash, get_md5_in_zip
 from lutris.util.strings import slugify
 from lutris.services.lutris import download_lutris_media
 
@@ -83,7 +83,10 @@ class ImportGameDialog(ModalDialog):
         results = []
         for filename in self.files:
             self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Calculating checksum..."))
-            md5 = get_md5_hash(filename)
+            if filename.lower().endswith(".zip"):
+                md5 = get_md5_in_zip(filename)
+            else:
+                md5 = get_md5_hash(filename)
             self.file_hashes[filename] = md5
             self.files_by_hash[md5] = filename
             self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Looking up checkum on Lutris.net..."))

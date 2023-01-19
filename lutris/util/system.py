@@ -3,6 +3,7 @@ import hashlib
 import os
 import re
 import shutil
+import zipfile
 import signal
 import stat
 import string
@@ -147,16 +148,33 @@ def read_process_output(command, timeout=5):
         return ""
 
 
+def get_md5_in_zip(filename):
+    """Return the md5 hash of a file in a zip"""
+    with zipfile.ZipFile(filename, 'r') as archive:
+        files = archive.namelist()
+        if len(files) > 1:
+            logger.warning("More than 1 file in archive %s, reading 1st one: %s", filename, files[0])
+        with archive.open(files[0]) as file_in_zip:
+            _hash = read_file_md5(file_in_zip)
+    return _hash
+
+
 def get_md5_hash(filename):
     """Return the md5 hash of a file."""
-    md5 = hashlib.md5()
     try:
         with open(filename, "rb") as _file:
-            for chunk in iter(lambda: _file.read(8192), b""):
-                md5.update(chunk)
+            _hash =  read_file_md5(_file)
     except IOError:
         logger.warning("Error reading %s", filename)
         return False
+    return _hash
+
+
+
+def read_file_md5(filedesc):
+    md5 = hashlib.md5()
+    for chunk in iter(lambda: filedesc.read(8192), b""):
+        md5.update(chunk)
     return md5.hexdigest()
 
 
