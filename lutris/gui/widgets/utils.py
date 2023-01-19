@@ -35,22 +35,24 @@ def open_uri(uri):
 
 
 def get_pixbuf(image, size, fallback=None, is_installed=True):
-    """Return a pixbuf from file `image` at `size` or fallback to `fallback`"""
+    """Return a pixbuf from file `image` at `size` or fallback to `fallback`
+    This will preserve the images aspect ratio, but *not* that of the fallback-
+    that is scaled to fit the size exactly. If is_installed is False, the
+    pixbuf will be faded out."""
     width, height = size
     pixbuf = None
     if system.path_exists(image, exclude_empty=True):
         try:
+            # new_from_file_at_size scales but preserves aspect ratio
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, width, height)
-            pixbuf = pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.NEAREST)
         except GLib.GError:
             logger.error("Unable to load icon from image %s", image)
     else:
         if not fallback:
             fallback = get_default_icon(size)
         if system.path_exists(fallback):
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(fallback, width, height)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(fallback, width, height, preserve_aspect_ratio=False)
     if is_installed and pixbuf:
-        pixbuf = pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.NEAREST)
         return pixbuf
     overlay = os.path.join(datapath.get(), "media/unavailable.png")
     transparent_pixbuf = get_overlay(overlay, size).copy()
@@ -59,8 +61,8 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
             transparent_pixbuf,
             0,
             0,
-            size[0],
-            size[1],
+            width,
+            height,
             0,
             0,
             1,
