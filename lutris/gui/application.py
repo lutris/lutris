@@ -970,6 +970,7 @@ Also, check that the version specified is in the correct format.
 
 class CommandLineUIDelegate(Game.LaunchUIDelegate):
     """This delegate can provide user selections that were provided on the command line."""
+
     def __init__(self, launch_config_name):
         self.launch_config_name = launch_config_name
 
