@@ -49,6 +49,10 @@ DEFAULT_INSTALLERS = {
         "runner": "libretro",
         "game": {"core": "desmume", "main_file": "rom"},
     },
+    "gb": {
+        "runner": "libretro",
+        "game": {"core": "gambatte", "main_file": "rom"},
+    },
     "gba": {
         "runner": "libretro",
         "game": {"core": "vba_next", "main_file": "rom"},

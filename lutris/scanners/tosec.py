@@ -25,6 +25,7 @@ PLATFORM_PATTERNS = {
     "Nintendo DS": "ds",
     "Nintendo Famicom": "nes",
     "Nintendo Entertainment System": "nes",
+    "Nintendo 64": "n64",
     "Super Nintendo Entertainment System": "snes",
     "Super Famicom": "snes",
     "Game Boy Advance": "gba",

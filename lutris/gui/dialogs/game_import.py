@@ -71,6 +71,8 @@ class ImportGameDialog(ModalDialog):
         if self.auto_launch_button.get_active():
             game.emit("game-launch")
             self.destroy()
+        else:
+            logger.debug('Game not launched')
 
     def search_checksums(self):
         game_id = self.find_game(self.files[0])
@@ -106,6 +108,9 @@ class ImportGameDialog(ModalDialog):
                             game = Game(game_id)
                             game.emit("game-installed")
                             self.game_launch(game)
+                        else:
+                            logger.warning("Platform not found")
+                        return
 
     def display_game_info(self, game, rom):
         filename = self.files_by_hash[rom["md5"]]
@@ -120,6 +125,7 @@ class ImportGameDialog(ModalDialog):
 
     def add_game(self, game, filepath):
         name = clean_rom_name(game["name"])
+        logger.info("Installing %s", name)
         installer = copy(DEFAULT_INSTALLERS[self.platform])
         for key, value in installer["game"].items():
             if value == "rom":
