@@ -8,6 +8,10 @@ DEFAULT_INSTALLERS = {
         "runner": "libretro",
         "game": {"core": "genesis_plus_gx", "main_file": "rom"},
     },
+    "gg": {
+        "runner": "libretro",
+        "game": {"core": "genesis_plus_gx", "main_file": "rom"},
+    },
     "md": {
         "runner": "libretro",
         "game": {"core": "genesis_plus_gx", "main_file": "rom"},
@@ -31,6 +35,10 @@ DEFAULT_INSTALLERS = {
     "atari-800": {
         "runner": "atari800",
         "game": {"main_file": "rom", "machine": "xl"}
+    },
+    "lynx": {
+        "runner": "libretro",
+        "game": {"core": "handy", "main_file": "rom"},
     },
     "atari-st": {
         "runner": "hatari",
