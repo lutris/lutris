@@ -8,7 +8,38 @@ from lutris.util.system import get_md5_hash
 
 archive_formats = [".zip", ".7z", ".rar", ".gz"]
 save_formats = [".srm"]
-
+PLATFORM_PATTERNS = {
+    "3DO": "3do",
+    "Amiga CD32": "amiga-cd32",
+    "Amiga": "amiga",
+    "Master System": "sms",
+    "Genesis": "md",
+    "Sega CD": "segacd",
+    "Saturn": "saturn",
+    "Dreamcast": "dc",
+    "ColecoVision": "colecovision",
+    "Atari 8bit": "atari800",
+    "Atari - 8-bit": "atari800",
+    "Atari ST": "atari-st",
+    "Atari - ST": "atari-st",
+    "Nintendo DS": "ds",
+    "Nintendo Famicom": "nes",
+    "Nintendo Entertainment System": "nes",
+    "Super Nintendo Entertainment System": "snes",
+    "Super Famicom": "snes",
+    "Game Boy Advance": "gba",
+    "Game Boy": "gb",
+    "GameCube": "gamecube",
+    "Wii": "wii",
+    "Switch": "switch",
+    "PlayStation 2": "ps2",
+    "PlayStation 3": "ps3",
+    "PlayStation Vita": "psvita",
+    "PlayStationPortable": "psp",
+    "PlayStation Portable": "psp",
+    "PlayStation": "ps1",
+    "CD-i": "cdi",
+}
 
 def search_tosec_by_md5(md5sum):
     """Retrieve a lutris bundle from the API"""
@@ -59,8 +90,6 @@ def scan_folder(folder, extract_archives=False):
         roms[filename] = search_tosec_by_md5(md5sum)
         checksums[md5sum] = filename
 
-    print(archives)
-
     for rom, result in roms.items():
         if not result:
             print("no result for %s" % rom)
@@ -94,3 +123,23 @@ def scan_folder(folder, extract_archives=False):
                     )
                 except FileNotFoundError:
                     logger.error("Failed to rename %s to %s", source, dest)
+
+
+def guess_platform(game):
+    category = game["category"]["name"]
+    for pattern, platform in PLATFORM_PATTERNS.items():
+        if pattern in category:
+            return platform
+
+
+def clean_rom_name(name):
+    in_parens = False
+    good_index = 0
+    for i, c in enumerate(name[::-1], start=1):
+        if c in (")", "]"):
+            in_parens = True
+        if in_parens:
+            good_index = i
+        if c in ("(", "]"):
+            in_parens = False
+    return name[:len(name)-good_index].strip()

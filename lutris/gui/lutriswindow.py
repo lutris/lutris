@@ -2,7 +2,7 @@
 import os
 from collections import namedtuple
 from gettext import gettext as _
-from urllib.parse import urlparse, unquote
+from urllib.parse import unquote, urlparse
 
 from gi.repository import Gdk, Gio, GLib, GObject, Gtk
 
@@ -16,8 +16,8 @@ from lutris.game_actions import GameActions
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
-from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
+from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.views import COL_ID, COL_NAME
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
@@ -210,14 +210,13 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Grab the initial focus after the sidebar is initialized - so the view is ready."""
         self.current_view.grab_focus()
 
-
     def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         """Handler for drop event"""
         file_paths = [unquote(urlparse(uri).path) for uri in data.get_uris()]
-        dialog = ImportGameDialog(file_paths, parent=self)
+        # Only deal with 1 file at the moment
+        dialog = ImportGameDialog([file_paths[0]], parent=self)
         dialog.run()
         dialog.destroy()
-
 
     def load_filters(self):
         """Load the initial filters when creating the view"""
