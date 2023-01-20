@@ -55,14 +55,16 @@ def get_pixbuf(image, size, fallback=None, is_installed=True):
     if is_installed and pixbuf:
         return pixbuf
     overlay = os.path.join(datapath.get(), "media/unavailable.png")
+    if pixbuf:
+        size = (pixbuf.get_width(), pixbuf.get_height())
     transparent_pixbuf = get_overlay(overlay, size).copy()
     if pixbuf:
         pixbuf.composite(
             transparent_pixbuf,
             0,
             0,
-            width,
-            height,
+            size[0],
+            size[1],
             0,
             0,
             1,
