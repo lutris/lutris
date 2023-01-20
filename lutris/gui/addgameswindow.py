@@ -7,6 +7,7 @@ from lutris import api
 from lutris.exceptions import watch_errors
 from lutris.gui.config.add_game import AddGameDialog
 from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.gui.widgets.window import BaseApplicationWindow
@@ -48,6 +49,13 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             _("Install from a local install script"),
             _("Run a YAML install script"),
             "install_from_script"
+        ),
+        (
+            "application-x-firmware-symbolic",
+            "go-next-symbolic",
+            _("Import a ROM"),
+            _("Import a ROM that is known to Lutris"),
+            "import_rom"
         ),
         (
             "list-add-symbolic",
@@ -115,6 +123,10 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             title=_("Select script"), action=Gtk.FileChooserAction.OPEN
         )
 
+        self.import_rom_file_chooser = FileChooserEntry(
+            title=_("Select ROM file"), action=Gtk.FileChooserAction.OPEN
+        )
+
         self.stack.add_named_factory("initial", self.create_initial_page)
         self.stack.add_named_factory("search_installers", self.create_search_installers_page)
         self.stack.add_named_factory("scan_folder", self.create_scan_folder_page)
@@ -122,6 +134,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.add_named_factory("installed_games", self.create_installed_games_page)
         self.stack.add_named_factory("install_from_setup", self.create_install_from_setup_page)
         self.stack.add_named_factory("install_from_script", self.create_install_from_script_page)
+        self.stack.add_named_factory("import_rom", self.create_import_rom_page)
 
         self.show_all()
 
@@ -520,6 +533,46 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
             installers = get_installers(installer_file=path)
             application = Gio.Application.get_default()
             application.show_installer_window(installers)
+            self.destroy()
+
+    # Install ROM Page
+
+    def import_rom(self):
+        """Install from a YAML file"""
+        self.stack.navigate_to_page(self.present_import_rom_page)
+
+    def create_import_rom_page(self):
+        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        label = self._get_label(_("ROM file"))
+        grid.attach(label, 0, 0, 1, 1)
+        grid.attach(self.import_rom_file_chooser, 1, 0, 1, 1)
+        self.import_rom_file_chooser.set_hexpand(True)
+
+        explanation = _(
+            "Lutris will identify a ROM via its MD5 hash and download game "
+            "information from Lutris.net.\n\n"
+            "When you click 'Install' below, the process of installing the game will "
+            "begin."
+        )
+
+        grid.attach(self._get_explanation_label(explanation), 0, 1, 2, 1)
+        return grid
+
+    def present_import_rom_page(self):
+        self.title_label.set_markup("<b>Select a ROM file</b>")
+        self.stack.present_page("import_rom")
+        self.display_continue_button(self.on_continue_import_rom_clicked, label=_("_Install"))
+
+    def on_continue_import_rom_clicked(self, _widget):
+        path = self.import_rom_file_chooser.get_text()
+        if not path:
+            ErrorDialog(_("You must select a ROM file to install."), parent=self)
+        elif not os.path.isfile(path):
+            ErrorDialog(_("No file exists at '%s'.") % path, parent=self)
+        else:
+            dialog = ImportGameDialog([path], parent=self)
+            dialog.run()
+            dialog.destroy()
             self.destroy()
 
     # Add Local Game
