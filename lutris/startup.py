@@ -3,6 +3,12 @@ import os
 import sqlite3
 from gettext import gettext as _
 
+import gi
+gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
+
+from gi.repository import GdkPixbuf
+
 from lutris import runners, settings
 from lutris.database.games import delete_game, get_games, get_games_where
 from lutris.database.schema import syncdb
@@ -135,6 +141,17 @@ def check_vulkan():
         logger.warning("Vulkan is not available or your system isn't Vulkan capable")
 
 
+def check_gnome():
+    required_names = ['svg', 'png', 'jpeg']
+    format_names = [f.get_name() for f in GdkPixbuf.Pixbuf.get_formats()]
+
+    logger.debug("Installed GdkPixbufFormats: %s", format_names)
+
+    for required in required_names:
+        if required not in format_names:
+            logger.error("'%s' PixBuf support is not installed.", required.upper())
+
+
 def fill_missing_platforms():
     """Sets the platform on games where it's missing.
     This should never happen.
@@ -155,6 +172,7 @@ def run_all_checks():
     check_driver()
     check_libs()
     check_vulkan()
+    check_gnome()
     fill_missing_platforms()
 
 
