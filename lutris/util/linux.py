@@ -233,6 +233,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         """Return whether Steam is installed locally"""
         return (
             bool(system.find_executable("steam"))
+            or bool(system.find_executable("com.valvesoftware.Steam"))
             or os.path.exists(os.path.expanduser("~/.steam/steam/ubuntu12_32/steam"))
         )
 
