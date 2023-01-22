@@ -378,6 +378,17 @@ class Application(Gtk.Application):
         game.load_config()
         game.write_script(script_path, self.launch_ui_delegate)
 
+    def do_handle_local_options(self, options):
+        # Text only commands
+
+        # Print Lutris version and exit
+        if options.contains("version"):
+            executable_name = os.path.basename(sys.argv[0])
+            print(executable_name + "-" + settings.VERSION)
+            logger.setLevel(logging.NOTSET)
+            return 0
+        return -1  # continue command line processes
+
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
         # pylint: disable=too-many-statements
@@ -407,16 +418,9 @@ class Application(Gtk.Application):
             log.console_handler.setFormatter(log.DEBUG_FORMATTER)
             logger.setLevel(logging.DEBUG)
 
-        # Text only commands
-
-        # Print Lutris version and exit
-        if options.contains("version"):
-            executable_name = os.path.basename(sys.argv[0])
-            print(executable_name + "-" + settings.VERSION)
-            logger.setLevel(logging.NOTSET)
-            return 0
         if options.contains("force"):
             self.force_updates = True
+
         init_lutris()
 
         # Perform migrations early if any command line options
