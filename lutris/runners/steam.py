@@ -30,6 +30,7 @@ class steam(Runner):
     human_name = _("Steam")
     platforms = [_("Linux")]
     runner_executable = "steam"
+    runner_executable_flatpak = "com.valvesoftware.Steam"
     game_options = [
         {
             "option": "appid",
@@ -162,7 +163,7 @@ class steam(Runner):
         runner_executable = self.runner_config.get("runner_executable")
         if runner_executable and os.path.isfile(runner_executable):
             return runner_executable
-        return system.find_executable(self.runner_executable)
+        return system.find_executable(self.runner_executable) or system.find_executable(self.runner_executable_flatpak)
 
     @property
     def working_dir(self):
