@@ -40,6 +40,10 @@ DEFAULT_INSTALLERS = {
         "runner": "atari800",
         "game": {"main_file": "rom", "machine": "xl"}
     },
+    "atari2600": {
+        "runner": "stella",
+        "game": {"main_file": "rom" }
+    },
     "lynx": {
         "runner": "libretro",
         "game": {"core": "handy", "main_file": "rom"},
