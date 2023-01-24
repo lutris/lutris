@@ -52,6 +52,7 @@ class ModDBHelperTests(unittest.TestCase):
     def test_ctor_custom_method(self):
         if SKIP_TESTS:
             return
+
         def custom():
             pass
         hlpr = ModDB(parse_page_method=custom)

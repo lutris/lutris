@@ -163,12 +163,11 @@ def get_md5_hash(filename):
     """Return the md5 hash of a file."""
     try:
         with open(filename, "rb") as _file:
-            _hash =  read_file_md5(_file)
+            _hash = read_file_md5(_file)
     except IOError:
         logger.warning("Error reading %s", filename)
         return False
     return _hash
-
 
 
 def read_file_md5(filedesc):

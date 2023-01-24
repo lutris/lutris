@@ -42,7 +42,7 @@ DEFAULT_INSTALLERS = {
     },
     "atari2600": {
         "runner": "stella",
-        "game": {"main_file": "rom" }
+        "game": {"main_file": "rom"}
     },
     "lynx": {
         "runner": "libretro",

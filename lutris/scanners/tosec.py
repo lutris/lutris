@@ -46,6 +46,7 @@ PLATFORM_PATTERNS = {
     "CD-i": "cdi",
 }
 
+
 def search_tosec_by_md5(md5sum):
     """Retrieve a lutris bundle from the API"""
     if not md5sum:
@@ -147,7 +148,7 @@ def clean_rom_name(name):
             good_index = i
         if c in ("(", "]"):
             in_parens = False
-    name = name[:len(name)-good_index].strip()
+    name = name[:len(name) - good_index].strip()
     if name.endswith(", The"):
         name = "The " + name[:-5]
     return name

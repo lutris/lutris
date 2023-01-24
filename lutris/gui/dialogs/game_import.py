@@ -14,6 +14,7 @@ from lutris.util.system import get_md5_hash, get_md5_in_zip
 from lutris.util.strings import slugify
 from lutris.services.lutris import download_lutris_media
 
+
 class ImportGameDialog(ModalDialog):
     def __init__(self, files, parent=None) -> None:
         super().__init__(
