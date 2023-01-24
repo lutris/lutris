@@ -30,12 +30,17 @@ class RunnersBox(BaseConfigBox):
         self.pack_start(self.runner_list_frame, False, False, 6)
 
     def populate_runners(self):
+        runner_count = 0
         for runner_name in sorted(runners.__all__):
             list_box_row = Gtk.ListBoxRow(visible=True)
             list_box_row.set_selectable(False)
             list_box_row.set_activatable(False)
             list_box_row.add(RunnerBox(runner_name))
             self.runner_listbox.add(list_box_row)
+            runner_count += 1
+
+        # pretty sure there will always be many runners, so assume plural
+        self.search_entry.set_placeholder_text(_("Search %s runners") % runner_count)
 
     @staticmethod
     def on_folder_clicked(_widget):
