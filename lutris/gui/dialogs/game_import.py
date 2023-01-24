@@ -1,5 +1,5 @@
 from gettext import gettext as _
-from copy import copy
+from copy import deepcopy
 from gi.repository import Gtk
 
 from lutris.game import Game
@@ -129,7 +129,7 @@ class ImportGameDialog(ModalDialog):
     def add_game(self, game, filepath):
         name = clean_rom_name(game["name"])
         logger.info("Installing %s", name)
-        installer = copy(DEFAULT_INSTALLERS[self.platform])
+        installer = deepcopy(DEFAULT_INSTALLERS[self.platform])
         for key, value in installer["game"].items():
             if value == "rom":
                 installer["game"][key] = filepath
