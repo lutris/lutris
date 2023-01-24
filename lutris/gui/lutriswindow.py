@@ -464,7 +464,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.hide_overlay()
         games = self.get_games_from_filters()
         if games:
-            self.search_entry.set_placeholder_text(_("Search %s game%s") % (len(games), "s" if len(games) > 1 else ""))
+            if len(games) > 1:
+                self.search_entry.set_placeholder_text(_("Search %s games") % len(games))
+            else:
+                self.search_entry.set_placeholder_text(_("Search 1 game"))
         else:
             self.search_entry.set_placeholder_text(_("Search games"))
         for view in self.views.values():
