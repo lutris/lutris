@@ -36,7 +36,7 @@ DEFAULT_INSTALLERS = {
         "runner": "mame",
         "game": {"main_file": "rom", "machine": "coleco", "device": "cart"}
     },
-    "atari-800": {
+    "atari800": {
         "runner": "atari800",
         "game": {"main_file": "rom", "machine": "xl"}
     },
