@@ -1,18 +1,19 @@
-from gettext import gettext as _
 from copy import deepcopy
+from gettext import gettext as _
+
 from gi.repository import Gtk
 
-from lutris.game import Game
-from lutris.gui.dialogs import ModalDialog
 from lutris.config import write_game_config
 from lutris.database.games import add_game, get_games
-from lutris.scanners.tosec import search_tosec_by_md5, guess_platform, clean_rom_name
+from lutris.game import Game
+from lutris.gui.dialogs import ModalDialog
 from lutris.scanners.default_installers import DEFAULT_INSTALLERS
-from lutris.util.log import logger
-from lutris.util.jobs import AsyncCall
-from lutris.util.system import get_md5_hash, get_md5_in_zip
-from lutris.util.strings import slugify
+from lutris.scanners.tosec import clean_rom_name, guess_platform, search_tosec_by_md5
 from lutris.services.lutris import download_lutris_media
+from lutris.util.jobs import AsyncCall
+from lutris.util.log import logger
+from lutris.util.strings import slugify
+from lutris.util.system import get_md5_hash, get_md5_in_zip
 
 
 class ImportGameDialog(ModalDialog):

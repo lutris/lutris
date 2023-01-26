@@ -3,11 +3,11 @@ import hashlib
 import os
 import re
 import shutil
-import zipfile
 import signal
 import stat
 import string
 import subprocess
+import zipfile
 from gettext import gettext as _
 from pathlib import Path
 
