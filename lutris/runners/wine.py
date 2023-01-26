@@ -709,11 +709,13 @@ class wine(Runner):
 
     def run_wine_terminal(self, *args):
         terminal = self.system_config.get("terminal_app")
+        system_winetricks = self.runner_config.get("system_winetricks")
         open_wine_terminal(
             terminal=terminal,
             wine_path=self.get_executable(),
             prefix=self.prefix_path,
-            env=self.get_env(os_env=True)
+            env=self.get_env(os_env=True),
+            system_winetricks=system_winetricks,
         )
 
     def run_winetricks(self, *args):
