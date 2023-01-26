@@ -16,6 +16,7 @@ from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
 from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
+from lutris.util.steam.config import get_steam_dir
 from lutris.util.strings import parse_version, split_arguments
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
@@ -569,6 +570,8 @@ class wine(Runner):
             for proton_path in get_proton_paths():
                 if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
                     return os.path.join(proton_path, version, "dist/bin/wine")
+                if os.path.isfile(os.path.join(proton_path, version, "files/bin/wine")):
+                    return os.path.join(proton_path, version, "files/bin/wine")
         if version.startswith("PlayOnLinux"):
             version, arch = version.split()[1].rsplit("-", 1)
             return os.path.join(POL_PATH, "wine", "linux-" + arch, version, "bin/wine")
@@ -826,6 +829,7 @@ class wine(Runner):
         prefix_manager = WinePrefixManager(self.prefix_path)
         if self.runner_config.get("autoconf_joypad", False):
             prefix_manager.configure_joypads()
+        prefix_manager.create_user_symlinks()
         self.sandbox(prefix_manager)
         self.set_regedit_keys()
 
@@ -912,6 +916,11 @@ class wine(Runner):
         if overrides:
             self.dll_overrides.update(overrides)
         env["WINEDLLOVERRIDES"] = get_overrides_env(self.dll_overrides)
+
+        # Proton support
+        if "Proton" in self.get_version():
+            env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = get_steam_dir()
+            env["STEAM_COMPAT_DATA_PATH"] = self.prefix_path
         return env
 
     def get_runtime_env(self):
