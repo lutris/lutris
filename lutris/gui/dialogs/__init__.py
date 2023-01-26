@@ -476,6 +476,7 @@ class DontShowAgainDialog(Gtk.MessageDialog):
         # pylint: disable=no-member
         if settings.read_setting(setting) == "True":
             logger.info("Dialog %s dismissed by user", setting)
+            self.result = Gtk.ResponseType.OK
             return
 
         buttons = Gtk.ButtonsType.OK_CANCEL if cancellable else Gtk.ButtonsType.OK
