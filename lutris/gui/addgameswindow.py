@@ -38,7 +38,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         ),
         (
             "application-x-executable-symbolic",
-            "media-optical-dvd-symbolic",
+            "go-next-symbolic",
             _("Install a Windows game from an executable"),
             _("Launch a Windows executable (.exe) installer"),
             "install_from_setup"
