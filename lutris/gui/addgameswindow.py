@@ -429,7 +429,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
         if LINUX_SYSTEM.is_64_bit:
             self.install_from_setup_32bit_prefix_checkbox = Gtk.CheckButton(
-                label=_("32-bit Wine prefix (not recommended)"))
+                label=_("32-bit Wine prefix"))
 
             grid.attach(self.install_from_setup_32bit_prefix_checkbox, 0, 3, 2, 1)
             self.install_from_setup_32bit_prefix_checkbox.set_valign(Gtk.Align.END)
@@ -508,7 +508,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.install_script_file_chooser.set_hexpand(True)
 
         explanation = _(
-            "Lutris install scripts are JSON files that guide Lutris through "
+            "Lutris install scripts are YAML files that guide Lutris through "
             "the installation process.\n\n"
             "They can be obtained on Lutris.net, or written by hand.\n\n"
             "When you click 'Install' below, the installer window will "
@@ -551,6 +551,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         explanation = _(
             "Lutris will identify a ROM via its MD5 hash and download game "
             "information from Lutris.net.\n\n"
+            "The ROM data used for this comes from the TOSEC project.\n\n"
             "When you click 'Install' below, the process of installing the game will "
             "begin."
         )
