@@ -137,6 +137,12 @@ class NoticeDialog(Gtk.MessageDialog):
         self.set_markup(message)
         if secondary:
             self.format_secondary_text(secondary[:256])
+
+        # So you can copy warning text
+        for child in self.get_message_area().get_children():
+            if isinstance(child, Gtk.Label):
+                child.set_selectable(True)
+
         self.run()
         self.destroy()
 
@@ -151,6 +157,12 @@ class WarningDialog(Gtk.MessageDialog):
         self.set_markup(message)
         if secondary:
             self.format_secondary_text(secondary[:256])
+
+        # So you can copy warning text
+        for child in self.get_message_area().get_children():
+            if isinstance(child, Gtk.Label):
+                child.set_selectable(True)
+
         self.result = self.run()
         self.destroy()
 
@@ -166,6 +178,12 @@ class ErrorDialog(Gtk.MessageDialog):
         self.set_markup(message[:256])
         if secondary:
             self.format_secondary_text(secondary[:256])
+
+        # So you can copy error text
+        for child in self.get_message_area().get_children():
+            if isinstance(child, Gtk.Label):
+                child.set_selectable(True)
+
         self.run()
         self.destroy()
 
