@@ -76,18 +76,11 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkScrolledWindow" id="games_scrollwindow">
+                      <object class="GtkStack" id="games_stack">
                         <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="vexpand">True</property>
+                        <property name="can-focus">False</property>
                         <child>
-                          <object class="GtkViewport" id="games_viewport">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <child>
-                              <placeholder/>
-                            </child>
-                          </object>
+                          <placeholder/>
                         </child>
                       </object>
                       <packing>

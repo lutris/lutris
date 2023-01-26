@@ -1,6 +1,6 @@
 # pylint: disable=wrong-import-position
 #
-# Copyright (C) 2022 Mathieu Comandon <strider@strycore.com>
+# Copyright (C) 2009 Mathieu Comandon <strider@strycore.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -75,6 +75,7 @@ class Application(Gtk.Application):
         GObject.add_emission_hook(Game, "game-install-dlc", self.on_game_install_dlc)
 
         GLib.set_application_name(_("Lutris"))
+        self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
         self.window = None
         self.launch_ui_delegate = Game.LaunchUIDelegate()
@@ -133,6 +134,14 @@ class Application(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
             _("Install a game from a yml file"),
+            None,
+        )
+        self.add_main_option(
+            "force",
+            ord("f"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("Force updates"),
             None,
         )
         self.add_main_option(
@@ -283,12 +292,11 @@ class Application(Gtk.Application):
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-    @staticmethod
-    def show_update_runtime_dialog():
+    def show_update_runtime_dialog(self):
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
-            runtime_updater = StartupRuntimeUpdater(force=False)
+            runtime_updater = StartupRuntimeUpdater(force=self.force_updates)
             if runtime_updater.has_updates:
                 init_dialog = LutrisInitDialog(runtime_updater)
                 init_dialog.run()
@@ -370,6 +378,17 @@ class Application(Gtk.Application):
         game.load_config()
         game.write_script(script_path, self.launch_ui_delegate)
 
+    def do_handle_local_options(self, options):
+        # Text only commands
+
+        # Print Lutris version and exit
+        if options.contains("version"):
+            executable_name = os.path.basename(sys.argv[0])
+            print(executable_name + "-" + settings.VERSION)
+            logger.setLevel(logging.NOTSET)
+            return 0
+        return -1  # continue command line processes
+
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
         # pylint: disable=too-many-statements
@@ -399,14 +418,8 @@ class Application(Gtk.Application):
             log.console_handler.setFormatter(log.DEBUG_FORMATTER)
             logger.setLevel(logging.DEBUG)
 
-        # Text only commands
-
-        # Print Lutris version and exit
-        if options.contains("version"):
-            executable_name = os.path.basename(sys.argv[0])
-            print(executable_name + "-" + settings.VERSION)
-            logger.setLevel(logging.NOTSET)
-            return 0
+        if options.contains("force"):
+            self.force_updates = True
 
         init_lutris()
 
@@ -636,7 +649,7 @@ class Application(Gtk.Application):
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
                 self.do_shutdown()
         else:
-            Application.show_update_runtime_dialog()
+            self.show_update_runtime_dialog()
             # If we're showing the window, it will handle the delegated UI
             # from here on out, no matter what command line we got.
             self.launch_ui_delegate = self.window
@@ -961,6 +974,7 @@ Also, check that the version specified is in the correct format.
 
 class CommandLineUIDelegate(Game.LaunchUIDelegate):
     """This delegate can provide user selections that were provided on the command line."""
+
     def __init__(self, launch_config_name):
         self.launch_config_name = launch_config_name
 

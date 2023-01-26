@@ -449,7 +449,7 @@ class ConfigBox(VBox):
         text = entry.get_text()
         if text != entry.get_text():
             entry.set_text(text)
-        self.option_changed(entry.get_parent(), option, text)
+        self.option_changed(entry, option, text)
 
     # Editable grid
     def generate_editable_grid(self, option_name, label, value=None):

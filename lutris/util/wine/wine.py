@@ -57,6 +57,8 @@ def get_proton_paths():
         for version in proton_versions:
             if system.path_exists(os.path.join(path, version, "dist/bin/wine")):
                 paths.add(path)
+            if system.path_exists(os.path.join(path, version, "files/bin/wine")):
+                paths.add(path)
     return list(paths)
 
 
@@ -191,6 +193,10 @@ def get_proton_versions():
             path = os.path.join(proton_path, version, "dist/bin/wine")
             if os.path.isfile(path):
                 versions.append(version)
+            # Support Proton Experimental
+            path = os.path.join(proton_path, version, "files/bin/wine")
+            if os.path.isfile(path):
+                versions.append(version)
     return versions
 
 
@@ -215,8 +221,7 @@ def get_wine_versions():
     versions = []
     versions += get_system_wine_versions()
     versions += get_lutris_wine_versions()
-    if os.environ.get("LUTRIS_ENABLE_PROTON"):
-        versions += get_proton_versions()
+    versions += get_proton_versions()
     versions += get_pol_wine_versions()
     return versions
 

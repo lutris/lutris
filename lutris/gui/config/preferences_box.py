@@ -28,8 +28,10 @@ class PreferencesBox(VBox):
         self.set_margin_right(80)
         self.set_margin_left(80)
         self.add(self._get_section_label(_("Interface options")))
+        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         listbox = Gtk.ListBox(visible=True)
-        self.pack_start(listbox, False, False, 12)
+        frame.add(listbox)
+        self.pack_start(frame, False, False, 12)
         for setting_key, label in self.settings_options.items():
             list_box_row = Gtk.ListBoxRow(visible=True)
             list_box_row.set_selectable(False)

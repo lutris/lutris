@@ -48,16 +48,19 @@ class WinePrefixManager:
             logger.warning("No path specified for Wine prefix")
         self.path = path
 
+    def get_user_dir(self, default_user=None):
+        user = default_user or os.getenv("USER") or "lutrisuser"
+        return os.path.join(self.path, "drive_c/users/", user)
+
     @property
     def user_dir(self):
         """Returns the directory that contains the current user's profile in the WINE prefix."""
-        user = os.getenv("USER") or 'lutrisuser'
-        return os.path.join(self.path, "drive_c/users/", user)
+        return self.get_user_dir()
 
     @property
     def appdata_dir(self):
         """Returns the app-data directory for the user; this depends on a registry key."""
-        user_dir = self.user_dir
+        user_dir = self.get_user_dir()
         folder = self.get_registry_key(
             self.hkcu_prefix + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
             "AppData",
@@ -81,6 +84,15 @@ class WinePrefixManager:
         except OSError as ex:
             logger.error("Failed to setup desktop integration, the prefix may not be valid.")
             logger.exception(ex)
+
+    def create_user_symlinks(self):
+        """Link together user profiles created by Wine and Proton"""
+        wine_user_dir = self.get_user_dir()
+        proton_user_dir = self.get_user_dir(default_user="steamuser")
+        if os.path.exists(wine_user_dir) and not os.path.exists(proton_user_dir):
+            os.symlink(wine_user_dir, proton_user_dir, target_is_directory=True)
+        elif os.path.exists(proton_user_dir) and not os.path.exists(wine_user_dir):
+            os.symlink(proton_user_dir, wine_user_dir, target_is_directory=True)
 
     def get_registry_path(self, key):
         """Matches registry keys to a registry file

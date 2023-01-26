@@ -21,21 +21,24 @@ class GameListView(Gtk.TreeView, GameView):
 
     __gsignals__ = GameView.__gsignals__
 
-    def __init__(self, store, service_media):
-        self.game_store = store
-        self.service_media = service_media
-        self.model = self.game_store.store
-        super().__init__(model=self.model)
+    def __init__(self, store):
+        super().__init__()
         GameView.__init__(self)
+
         self.set_rules_hint(True)
 
         # Icon column
         if settings.SHOW_MEDIA:
             image_cell = Gtk.CellRendererPixbuf()
-            column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
-            column.set_reorderable(True)
-            column.set_sort_indicator(False)
-            self.append_column(column)
+            self.media_column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
+            self.media_column.set_reorderable(True)
+            self.media_column.set_sort_indicator(False)
+            self.media_column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+            self.append_column(self.media_column)
+        else:
+            self.media_column = None
+
+        self.set_game_store(store)
 
         # Text columns
         default_text_cell = self.set_text_cell()
@@ -58,6 +61,16 @@ class GameListView(Gtk.TreeView, GameView):
         self.connect_signals()
         self.connect("row-activated", self.on_row_activated)
         self.get_selection().connect("changed", self.on_cursor_changed)
+
+    def set_game_store(self, game_store):
+        self.game_store = game_store
+        self.service_media = game_store.service_media
+        self.model = game_store.store
+        self.set_model(self.model)
+
+        if self.media_column:
+            media_width = game_store.service_media.size[0]
+            self.media_column.set_fixed_width(media_width)
 
     @staticmethod
     def set_text_cell():

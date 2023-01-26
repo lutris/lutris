@@ -13,13 +13,13 @@ from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
+from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 
 
 # pylint: disable=too-many-instance-attributes, no-member
@@ -332,6 +332,9 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         """Show a notification when the game is moved"""
         new_directory = dialog.new_directory
         if new_directory:
+            self.game = Game(self.game.id)
+            self.lutris_config = self.game.config
+            self._rebuild_tabs()
             self.directory_entry.set_text(new_directory)
             send_notification("Finished moving game", "%s moved to %s" % (dialog.game, new_directory))
         else:
@@ -502,6 +505,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self.notebook.set_current_page(current_page)
 
     def _rebuild_tabs(self):
+        """Rebuild notebook pages"""
         for i in range(self.notebook.get_n_pages(), 1, -1):
             self.notebook.remove_page(i - 1)
         self.option_page_indices.clear()
@@ -583,7 +587,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self.game.runner_name = self.runner_name
         self.game.is_installed = True
         self.game.config = self.lutris_config
-        self.game.save(save_config=True)
+        self.game.save()
         self.destroy()
         self.saved = True
         return True

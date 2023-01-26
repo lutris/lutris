@@ -187,7 +187,7 @@ class GameActions:
         if not _buffer:
             logger.info("No log for game %s", self.game)
         return LogWindow(
-            title=_("Log for {}").format(self.game),
+            game=self.game,
             buffer=_buffer,
             application=self.application
         )

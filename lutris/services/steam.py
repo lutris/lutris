@@ -112,7 +112,7 @@ class SteamService(BaseService):
         self.is_loading = False
         return steam_games
 
-    def get_installer_files(self, installer, installer_file_id):
+    def get_installer_files(self, installer, installer_file_id, _selected_extras):
         steam_uri = "$STEAM:%s:."
         appid = str(installer.script["game"]["appid"])
         return [

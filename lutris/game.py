@@ -319,6 +319,11 @@ class Game(GObject.Object):
             self.runner.remove_game_data(app_id=self.appid, game_path=self.directory)
         self.is_installed = False
         self.runner = None
+
+        if str(self.id) in LOG_BUFFERS:  # Reset game logs on removal
+            log_buffer = LOG_BUFFERS[str(self.id)]
+            log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
+
         if no_signal:
             return
         self.emit("game-removed")
@@ -341,41 +346,53 @@ class Game(GObject.Object):
         if not self.platform:
             logger.warning("The %s runner didn't provide a platform for %s", self.runner.human_name, self)
 
-    def save(self, save_config=False):
+    def save(self):
         """
-        Save the game's config and metadata, if `save_config` is set to False,
-        do not save the config. This is useful when exiting the game since the
-        config might have changed and we don't want to override the changes.
+        Save the game's config and metadata.
         """
         if self.config:
-            logger.debug("Saving %s with config ID %s", self, self.config.game_config_id)
             configpath = self.config.game_config_id
-            if save_config:
-                self.config.save()
+            logger.debug("Saving %s with config ID %s", self, self.config.game_config_id)
+            self.config.save()
         else:
-            logger.warning("Saving %s without a configuration", self)
+            logger.warning("Saving %s with the configuration missing", self)
             configpath = ""
         self.set_platform_from_runner()
-        self.id = games_db.add_or_update(
-            name=self.name,
-            runner=self.runner_name,
-            slug=self.slug,
-            platform=self.platform,
-            directory=self.directory,
-            installed=self.is_installed,
-            year=self.year,
-            lastplayed=self.lastplayed,
-            configpath=configpath,
-            id=self.id,
-            playtime=self.playtime,
-            hidden=self.is_hidden,
-            service=self.service,
-            service_id=self.appid,
-            discord_id=self.discord_id,
-            has_custom_banner="banner" in self.custom_images,
-            has_custom_icon="icon" in self.custom_images,
-            has_custom_coverart_big="coverart_big" in self.custom_images
-        )
+
+        game_data = {
+            "name": self.name,
+            "runner": self.runner_name,
+            "slug": self.slug,
+            "platform": self.platform,
+            "directory": self.directory,
+            "installed": self.is_installed,
+            "year": self.year,
+            "lastplayed": self.lastplayed,
+            "configpath": configpath,
+            "id": self.id,
+            "playtime": self.playtime,
+            "hidden": self.is_hidden,
+            "service": self.service,
+            "service_id": self.appid,
+            "discord_id": self.discord_id,
+            "has_custom_banner": "banner" in self.custom_images,
+            "has_custom_icon": "icon" in self.custom_images,
+            "has_custom_coverart_big": "coverart_big" in self.custom_images
+        }
+
+        self.id = games_db.add_or_update(**game_data)
+        self.emit("game-updated")
+
+    def save_lastplayed(self):
+        """Save only the platform field- do not restore any other values the user may have changed
+        in another window."""
+        games_db.update_existing(id=self.id, slug=self.slug, platform=self.platform)
+        self.emit("game-updated")
+
+    def save_platform(self):
+        """Save only the lastplayed field- do not restore any other values the user may have changed
+        in another window."""
+        games_db.update_existing(id=self.id, slug=self.slug, lastplayed=self.lastplayed)
         self.emit("game-updated")
 
     def check_launchable(self):
@@ -790,7 +807,7 @@ class Game(GObject.Object):
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
         self.lastplayed = int(time.time())
-        self.save(save_config=False)
+        self.save_lastplayed()
 
         os.chdir(os.path.expanduser("~"))
 

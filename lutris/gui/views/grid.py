@@ -13,28 +13,36 @@ class GameGridView(Gtk.IconView, GameView):
 
     min_width = 70  # Minimum width for a cell
 
-    def __init__(self, store, service_media, hide_text=False):
-        self.game_store = store
-        self.service_media = service_media
-        self.model = self.game_store.store
-        super().__init__(model=self.game_store.store)
+    def __init__(self, store, hide_text=False):
+        super().__init__()
         GameView.__init__(self)
 
         self.service = None
         self.set_column_spacing(6)
         self.set_pixbuf_column(COL_ICON)
         self.set_item_padding(1)
-        self.cell_width = max(service_media.size[0], self.min_width)
         if hide_text:
             self.cell_renderer = None
         else:
-            self.cell_renderer = GridViewCellRendererText(self.cell_width)
+            self.cell_renderer = GridViewCellRendererText()
             self.pack_end(self.cell_renderer, False)
             self.add_attribute(self.cell_renderer, "markup", COL_NAME)
+
+        self.set_game_store(store)
 
         self.connect_signals()
         self.connect("item-activated", self.on_item_activated)
         self.connect("selection-changed", self.on_selection_changed)
+
+    def set_game_store(self, game_store):
+        self.game_store = game_store
+        self.service_media = game_store.service_media
+        self.model = game_store.store
+        self.set_model(self.model)
+
+        if self.cell_renderer:
+            cell_width = max(game_store.service_media.size[0], self.min_width)
+            self.cell_renderer.set_width(cell_width)
 
     def select(self):
         self.select_path(self.current_path)

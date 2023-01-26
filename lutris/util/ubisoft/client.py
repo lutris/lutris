@@ -218,9 +218,10 @@ class UbisoftConnectClient():
         user_data = {}
         tasty_storage_values = ['userId', 'nameOnPlatform', 'ticket', 'rememberMeTicket', 'sessionId']
         for json_ in storage_jsons:
-            for key in json_:
-                if key in tasty_storage_values:
-                    user_data[key] = json_[key]
+            if json_:  # we do get nulls in this list of json dictionaries sometimes
+                for key in json_:
+                    if key in tasty_storage_values:
+                        user_data[key] = json_[key]
 
         user_data['userId'] = user_data.pop('userId')
         user_data['username'] = user_data.pop('nameOnPlatform')
