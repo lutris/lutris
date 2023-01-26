@@ -12,8 +12,8 @@ from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
+from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
-from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry, VBox
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import import_runner
@@ -99,10 +99,13 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             self.advanced_switch.set_visible(show_switch)
 
     def _build_info_tab(self):
-        info_box = VBox()
+        info_box = Gtk.VBox()
 
         if self.game:
-            info_box.pack_start(self._get_banner_box(), False, False, 6)  # Banner
+            centering_container = Gtk.HBox()
+            banner_box = self._get_banner_box()
+            centering_container.pack_start(banner_box, True, False, 0)
+            info_box.pack_start(centering_container, False, False, 0)  # Banner
 
         info_box.pack_start(self._get_name_box(), False, False, 6)  # Game name
 
@@ -209,10 +212,10 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         return runner_box
 
     def _get_banner_box(self):
-        banner_box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-
-        label = Label("")
-        banner_box.pack_start(label, False, False, 0)
+        banner_box = Gtk.Grid()
+        banner_box.set_margin_top(12)
+        banner_box.set_column_spacing(12)
+        banner_box.set_row_spacing(4)
 
         self._create_image_button(banner_box, "coverart_big", _("Set custom cover art"), _("Remove custom cover art"))
         self._create_image_button(banner_box, "banner", _("Set custom banner"), _("Remove custom banner"))
@@ -223,19 +226,26 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     def _create_image_button(self, banner_box, image_type, image_tooltip, reset_tooltip):
         """This adds an image button and its reset button to the box given,
         and adds the image button to self.image_buttons for future reference."""
+
+        image_button_container = Gtk.VBox()
+        reset_button_container = Gtk.HBox()
+
         image_button = Gtk.Button()
         self._set_image(image_type, image_button)
         image_button.set_tooltip_text(image_tooltip)
         image_button.connect("clicked", self.on_custom_image_select, image_type)
-        image_button.set_valign(Gtk.Align.CENTER)
-        banner_box.pack_start(image_button, False, False, 0)
+        image_button_container.pack_start(image_button, True, True, 0)        
 
-        reset_button = Gtk.Button.new_from_icon_name("edit-clear", Gtk.IconSize.MENU)
+        reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
         reset_button.set_relief(Gtk.ReliefStyle.NONE)
         reset_button.set_tooltip_text(reset_tooltip)
         reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
         reset_button.set_valign(Gtk.Align.CENTER)
-        banner_box.pack_start(reset_button, False, False, 0)
+        reset_button_container.pack_start(reset_button, True, False, 0)
+        
+        banner_box.add(image_button_container)
+        banner_box.attach_next_to(reset_button_container, image_button_container, Gtk.PositionType.BOTTOM, 1, 1)
+
         self.image_buttons[image_type] = image_button
 
     def _get_year_box(self):
