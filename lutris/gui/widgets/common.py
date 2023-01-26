@@ -88,6 +88,10 @@ class FileChooserEntry(Gtk.Box):
         box.add(browse_button)
         self.pack_start(box, False, False, 0)
 
+    def set_text(self, path):
+        self.path = os.path.expanduser(path)
+        self.entry.set_text(self.path)
+
     def get_text(self):
         """Return the entry's text"""
         return self.entry.get_text()

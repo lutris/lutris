@@ -5,6 +5,7 @@ import re
 import shlex
 import unicodedata
 import uuid
+from gettext import gettext as _
 
 # Lutris Modules
 from lutris.util.log import logger
@@ -128,14 +129,18 @@ def get_formatted_playtime(playtime):
         return NO_PLAYTIME
 
     hours = math.floor(playtime)
-    if hours:
-        hours_text = "%d hour%s" % (hours, "s" if hours > 1 else "")
+    if hours == 1:
+        hours_text = _("1 hour")
+    elif hours > 1:
+        hours_text = _("%d hours") % hours
     else:
         hours_text = ""
 
     minutes = int((playtime - hours) * 60)
-    if minutes:
-        minutes_text = "%d minute%s" % (minutes, "s" if minutes > 1 else "")
+    if minutes == 1:
+        minutes_text = _("1 minute")
+    elif minutes > 1:
+        minutes_text = _("%d minutes") % minutes
     else:
         minutes_text = ""
 

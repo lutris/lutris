@@ -62,7 +62,6 @@ properties:
       - pcsxr
       - ppsspp
       - reicast
-      - residualvm
       - rpcs3
       - scummvm
       - snes9x

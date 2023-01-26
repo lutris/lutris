@@ -11,7 +11,7 @@ from gi.repository import GLib, Gtk
 from lutris import api, settings
 from lutris.database.games import get_games_by_runner
 from lutris.game import Game
-from lutris.gui.dialogs import ErrorDialog, ModalDialog, ModelessDialog, QuestionDialog
+from lutris.gui.dialogs import ErrorDialog, ModalDialog, ModelessDialog
 from lutris.gui.widgets.utils import has_stock_icon
 from lutris.util import jobs, system
 from lutris.util.downloader import Downloader
@@ -281,22 +281,6 @@ class RunnerInstallDialog(ModelessDialog):
         """Return temporary path where the runners should be downloaded to"""
         return os.path.join(settings.CACHE_DIR, os.path.basename(row[self.COL_URL]))
 
-    def on_installed_toggled(self, _widget, path):
-        row = self.runner_store[path]
-        if row[self.COL_VER] in self.installing:
-            confirm_dlg = QuestionDialog(
-                {
-                    "question": _("Do you want to cancel the download?"),
-                    "title": _("Download starting"),
-                }
-            )
-            if confirm_dlg.result == confirm_dlg.YES:
-                self.cancel_install(row)
-        elif row[self.COL_INSTALLED]:
-            self.uninstall_runner(row)
-        else:
-            self.install_runner(row)
-
     def on_cancel_install(self, widget, row):
         self.cancel_install(row)
 
@@ -339,7 +323,7 @@ class RunnerInstallDialog(ModelessDialog):
         if not url:
             ErrorDialog(_("Version %s is not longer available") % runner[self.COL_VER])
             return
-        downloader = Downloader(runner[self.COL_URL], dest_path, overwrite=True)
+        downloader = Downloader(url, dest_path, overwrite=True)
         GLib.timeout_add(100, self.get_progress, downloader, row)
         self.installing[runner[self.COL_VER]] = downloader
         downloader.start()

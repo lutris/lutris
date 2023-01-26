@@ -326,19 +326,8 @@ def wineexec(  # noqa: C901
 # pragma pylint: enable=too-many-locals
 
 
-def winetricks(
-    app,
-    prefix=None,
-    arch=None,
-    silent=True,
-    wine_path=None,
-    config=None,
-    env=None,
-    disable_runtime=False,
-    system_winetricks=False,
-    runner=None
-):
-    """Execute winetricks."""
+def find_winetricks(env=None, system_winetricks=False):
+    """Find winetricks path."""
     winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
     if system_winetricks or not system.path_exists(winetricks_path):
         winetricks_path = system.find_executable("winetricks")
@@ -356,6 +345,24 @@ def winetricks(
 
         path = env.get("PATH", os.environ["PATH"])
         env["PATH"] = "%s:%s" % (working_dir, path)
+
+    return (winetricks_path, working_dir, env)
+
+
+def winetricks(
+    app,
+    prefix=None,
+    arch=None,
+    silent=True,
+    wine_path=None,
+    config=None,
+    env=None,
+    disable_runtime=False,
+    system_winetricks=False,
+    runner=None
+):
+    """Execute winetricks."""
+    winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
 
     if wine_path:
         winetricks_wine = wine_path
@@ -419,12 +426,14 @@ def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=
     cab_installer.cleanup()
 
 
-def open_wine_terminal(terminal, wine_path, prefix, env):
+def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
+    winetricks_path, _working_dir, env = find_winetricks(env, system_winetricks)
     aliases = {
         "wine": wine_path,
         "winecfg": wine_path + "cfg",
         "wineserver": wine_path + "server",
         "wineboot": wine_path + "boot",
+        "winetricks": winetricks_path,
     }
     env["WINEPREFIX"] = prefix
     shell_command = get_shell_command(prefix, env, aliases)

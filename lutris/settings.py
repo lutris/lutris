@@ -10,7 +10,7 @@ from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
 VERSION = __version__
-COPYRIGHT = _("(c) 2010-2022 Lutris Team")
+COPYRIGHT = _("(c) 2009 Lutris Team")
 AUTHORS = [_("The Lutris team")]
 
 
@@ -41,8 +41,8 @@ SITE_URL = sio.read_setting("website") or "https://lutris.net"
 
 DRIVER_HOWTO_URL = "https://github.com/lutris/docs/blob/master/InstallingDrivers.md"
 INSTALLER_URL = SITE_URL + "/api/installers/%s"
-# XXX change this, should query on the installer, not the game.
-INSTALLER_REVISION_URL = SITE_URL + "/api/installers/games/%s/revisions/%s"
+
+INSTALLER_REVISION_URL = SITE_URL + "/api/installers/game/%s/revisions/%s"
 GAME_URL = SITE_URL + "/games/%s/"
 RUNTIME_URL = SITE_URL + "/api/runtimes"
 

@@ -76,7 +76,8 @@ disable=
     wrong-import-position,
     import-outside-toplevel,
     duplicate-code,
-    consider-using-f-string
+    consider-using-f-string,
+    no-self-use
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

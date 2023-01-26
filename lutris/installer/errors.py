@@ -18,6 +18,9 @@ class ScriptingError(Exception):
         logger.error(self.__str__())
 
     def __str__(self):
+        if self.faulty_data is None:
+            return self.message
+
         faulty_data = repr(self.faulty_data)
         return self.message + "\n%s" % faulty_data if faulty_data else ""
 

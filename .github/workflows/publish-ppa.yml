@@ -1,0 +1,67 @@
+# This is a reusable workflow that should not be called directly, but
+# instead, from another workflow as an action to be executed.
+name: Publish PPA
+
+on:
+  workflow_call:
+    inputs:
+      # This should be in the format: "ppa:username/repo"
+      # Ex. "ppa:lutris-team/lutris"
+      PPA_URI:
+        required: true
+        type: string
+
+    # Signing packages uses the secrets referenced below and passes
+    # them through the build-ubuntu.sh script and into the "github-ppa"
+    # Makefile directive.
+    #
+    # It would probably be a good idea to have a unique GPG key just
+    # for this process, but whatever GPG key is passed here _must_ be
+    # registered on the PPA_URI as an authorized key.
+    secrets:
+      PPA_GPG_PRIVATE_KEY:
+        required: true
+      PPA_GPG_PASSPHRASE:
+        required: true
+
+jobs:
+
+  publish-ppa:
+    # GitHub only has runners for LTS versions of Ubuntu.
+    # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+    # Also note that, although a runner exists for Ubuntu 18.04, the
+    # lutris build-dependencies are not supported on that version.
+    strategy:
+      matrix:
+        os: [ ubuntu-22.04, ubuntu-20.04 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Install build dependencies
+        run: |
+          ./.github/scripts/install-ubuntu.sh
+
+      # This builds and signs the debian package for each OS in matrix.os
+      # This script also recalculates dependencies based on the current
+      # OS and can potentially produce different package control files,
+      # but these files are not kept.
+      - name: Build the Debian Package
+        env:
+          PPA_URI: ${{ inputs.PPA_URI }}
+          PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
+          PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}
+          # This will be passed through to the build-specific script for
+          # Jammy and causes it to produce additional builds for the Ubuntu
+          # codenames listed below.
+          # Ex. "kinetic lunar"
+          JAMMY_BUILDS: "kinetic lunar"
+        run: |
+          ./.github/scripts/build-ubuntu.sh
+
+      # Pushes the build to the PPA_URI.
+      - name: Publish to PPA
+        run: |
+          dput ${{ inputs.PPA_URI }} ../*.changes
