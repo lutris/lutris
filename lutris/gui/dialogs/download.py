@@ -23,6 +23,10 @@ class DownloadDialog(ModalDialog):
         self.show_all()
         self.dialog_progress_box.start()
 
+    @property
+    def downloader(self):
+        return self.dialog_progress_box.downloader
+
     def download_complete(self, _widget, _data):
         self.response(Gtk.ResponseType.OK)
         self.destroy()
@@ -35,12 +39,3 @@ class DownloadDialog(ModalDialog):
         if response == Gtk.ResponseType.DELETE_EVENT:
             self.dialog_progress_box.downloader.cancel()
             self.destroy()
-
-
-def simple_downloader(url, destination, callback, callback_args=None):
-    """Basic downloader with a DownloadDialog"""
-    if not callback_args:
-        callback_args = {}
-    dialog = DownloadDialog(url, destination)
-    dialog.run()
-    return callback(**callback_args)

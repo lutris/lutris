@@ -189,28 +189,66 @@ class RuntimeUpdater:
 
     cancelled = False
     status_updater = None
+    update_functions = []
     downloaders = {}
+    is_updating = False
 
     def __init__(self, force=False):
         self.force = force
+        self.add_update("runtime", self._update_runtime_components, hours=12)
+
+    def add_update(self, key, update_function, hours):
+        """__init__ calls this to register each update. This function
+        only registers the update if it hasn't been tried in the last
+        'hours' hours. This is trakced in 'updates.json', and identified
+        by 'key' in that file."""
+        last_call = update_cache.get_last_call(key)
+        if self.force or not last_call or last_call > 3600 * hours:
+            self.update_functions.append((key, update_function))
+
+    @property
+    def has_updates(self):
+        """Returns True if there are any updates to perform."""
+        return len(self.update_functions) > 0
 
     def update_runtimes(self):
+        """Performs all the registered updates. If 'self.cancel()' is called,
+        it will immediately stop."""
+
+        if RuntimeUpdater.is_updating:
+            return
+
+        try:
+            RuntimeUpdater.is_updating = True
+
+            for key, func in self.update_functions:
+                if self.cancelled:
+                    break
+
+                func()
+                update_cache.write_date_to_cache(key)
+
+            if self.cancelled:
+                logger.info("Runtime update cancelled")
+            logger.info("Startup complete")
+        finally:
+            RuntimeUpdater.is_updating = False
+
+    def cancel(self):
+        self.cancelled = True
+        for downloader in self.downloaders:
+            downloader.cancel()
+
+    def _update_runtime_components(self):
         """Update runtime components"""
-        runtime_call = update_cache.get_last_call("runtime")
-        if self.force or not runtime_call or runtime_call > 3600 * 12:
-            components_to_update = self.update()
-            if components_to_update:
-                while self.downloaders:
-                    time.sleep(0.3)
-                    if self.cancelled:
-                        return
-            update_cache.write_date_to_cache("runtime")
+        components_to_update = self._populate_component_downloaders()
+        if components_to_update:
+            while self.downloaders:
+                time.sleep(0.3)
+                if self.cancelled:
+                    return
 
-    def is_updating(self):
-        """Return True if the update process is running"""
-        return bool(self.downloaders)
-
-    def update(self):
+    def _populate_component_downloaders(self):
         """Launch the update process"""
         if RUNTIME_DISABLED:
             logger.warning("Runtime disabled, not updating it.")
@@ -222,11 +260,6 @@ class RuntimeUpdater:
             if downloader:
                 self.downloaders[runtime] = downloader
         return len(self.downloaders)
-
-    def cancel(self):
-        self.cancelled = True
-        for downloader in self.downloaders:
-            downloader.cancel()
 
     @staticmethod
     def _iter_remote_runtimes():

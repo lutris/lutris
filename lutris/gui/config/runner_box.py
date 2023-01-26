@@ -5,7 +5,6 @@ from gi.repository import GObject, Gtk
 from lutris import runners
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import ErrorDialog, QuestionDialog
-from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import ICON_SIZE, get_runtime_icon
 from lutris.util.log import logger
@@ -95,8 +94,9 @@ class RunnerBox(Gtk.Box):
     def on_install_clicked(self, widget):
         """Install a runner."""
         logger.debug("Install of %s requested", self.runner)
+        window = self.get_toplevel()
         try:
-            self.runner.install(downloader=simple_downloader)
+            self.runner.install(window)
         except (
             runners.RunnerInstallationError,
             runners.NonInstallableRunnerError,
@@ -107,7 +107,7 @@ class RunnerBox(Gtk.Box):
         if self.runner.is_installed():
             self.emit("runner-installed")
         else:
-            logger.error("Runner failed to install")
+            ErrorDialog("Runner failed to install", parent=self.get_toplevel())
 
     def on_configure_clicked(self, widget):
         window = self.get_toplevel()

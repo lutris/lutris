@@ -140,6 +140,7 @@ class GameActions:
             ),
             "steam-shortcut": (
                 self.game.is_installed
+                and steam_shortcut.vdf_file_exists()
                 and not steam_shortcut.shortcut_exists(self.game)
                 and not steam_shortcut.is_steam_game(self.game)
             ),
@@ -153,6 +154,7 @@ class GameActions:
             ),
             "rm-steam-shortcut": bool(
                 self.game.is_installed
+                and steam_shortcut.vdf_file_exists()
                 and steam_shortcut.shortcut_exists(self.game)
                 and not steam_shortcut.is_steam_game(self.game)
             ),
@@ -164,7 +166,7 @@ class GameActions:
 
     def on_game_launch(self, *_args):
         """Launch a game"""
-        self.game.launch()
+        self.game.launch(self.window)
 
     def get_running_game(self):
         ids = self.application.get_running_game_ids()
@@ -185,7 +187,7 @@ class GameActions:
         if not _buffer:
             logger.info("No log for game %s", self.game)
         return LogWindow(
-            title=_("Log for {}").format(self.game),
+            game=self.game,
             buffer=_buffer,
             application=self.application
         )
@@ -295,15 +297,21 @@ class GameActions:
 
     def on_create_menu_shortcut(self, *_args):
         """Add the selected game to the system's Games menu."""
-        xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, menu=True)
+        launch_config_name = self._select_game_launch_config_name(self.game)
+        if launch_config_name is not None:
+            xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, menu=True)
 
     def on_create_steam_shortcut(self, *_args):
         """Add the selected game to steam as a nonsteam-game."""
-        steam_shortcut.create_shortcut(self.game)
+        launch_config_name = self._select_game_launch_config_name(self.game)
+        if launch_config_name is not None:
+            steam_shortcut.create_shortcut(self.game, launch_config_name)
 
     def on_create_desktop_shortcut(self, *_args):
         """Create a desktop launcher for the selected game."""
-        xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, desktop=True)
+        launch_config_name = self._select_game_launch_config_name(self.game)
+        if launch_config_name is not None:
+            xdgshortcuts.create_launcher(self.game.slug, self.game.id, self.game.name, launch_config_name, desktop=True)
 
     def on_remove_menu_shortcut(self, *_args):
         """Remove an XDG menu shortcut"""
@@ -316,6 +324,20 @@ class GameActions:
     def on_remove_desktop_shortcut(self, *_args):
         """Remove a .desktop shortcut"""
         xdgshortcuts.remove_launcher(self.game.slug, self.game.id, desktop=True)
+
+    def _select_game_launch_config_name(self, game):
+        game_config = game.config.game_level.get("game", {})
+        configs = game_config.get("launch_configs")
+
+        if not configs:
+            return ""  # use primary configuration
+
+        dlg = dialogs.LaunchConfigSelectDialog(game, configs, title=_("Select shortcut target"), parent=self.window)
+        if not dlg.confirmed:
+            return None  # no error here- the user cancelled out
+
+        config_index = dlg.config_index
+        return configs[config_index - 1]["name"] if config_index > 0 else ""
 
     def on_view_game(self, _widget):
         """Callback to open a game on lutris.net"""

@@ -19,6 +19,7 @@ class PreferencesDialog(GameDialogCommon):
         self.set_border_width(0)
         self.set_default_size(1010, 600)
         self.lutris_config = LutrisConfig()
+        self.page_generators = {}
 
         hbox = Gtk.HBox(visible=True)
         sidebar = Gtk.ListBox(visible=True)
@@ -39,20 +40,27 @@ class PreferencesDialog(GameDialogCommon):
             self.build_scrolled_window(PreferencesBox()),
             "prefs-stack"
         )
+
+        runners_box = RunnersBox()
+        self.page_generators["runners-stack"] = runners_box.populate_runners
         self.stack.add_named(
-            self.build_scrolled_window(RunnersBox()),
+            self.build_scrolled_window(runners_box),
             "runners-stack"
         )
         self.stack.add_named(
             self.build_scrolled_window(ServicesBox()),
             "services-stack"
         )
+
+        sysinfo_box = SysInfoBox()
+        self.page_generators["sysinfo-stack"] = sysinfo_box.populate
         self.stack.add_named(
-            self.build_scrolled_window(SysInfoBox()),
+            self.build_scrolled_window(sysinfo_box),
             "sysinfo-stack"
         )
+
         self.system_box = SystemBox(self.lutris_config)
-        self.system_box.show_all()
+        self.page_generators["system-stack"] = self.system_box.generate_widgets
         self.stack.add_named(
             self.build_scrolled_window(self.system_box),
             "system-stack"
@@ -60,7 +68,15 @@ class PreferencesDialog(GameDialogCommon):
         self.build_action_area(self.on_save)
 
     def on_sidebar_activated(self, _listbox, row):
-        if row.get_children()[0].stack_id == "system-stack":
+        stack_id = row.get_children()[0].stack_id
+
+        generator = self.page_generators.get(stack_id)
+
+        if generator:
+            del self.page_generators[stack_id]
+            generator()
+
+        if stack_id == "system-stack":
             self.action_area.show_all()
         else:
             self.action_area.hide()

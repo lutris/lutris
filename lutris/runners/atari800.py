@@ -3,8 +3,6 @@ import os.path
 from gettext import gettext as _
 
 from lutris.config import LutrisConfig
-from lutris.gui.dialogs import ErrorDialog
-from lutris.gui.dialogs.download import DownloadDialog
 from lutris.runners.runner import Runner
 from lutris.util import display, extract, system
 
@@ -83,16 +81,14 @@ class atari800(Runner):
         },
     ]
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, install_ui_delegate, version=None, callback=None):
 
         def on_runner_installed(*_args):
             config_path = system.create_folder("~/.atari800")
             bios_archive = os.path.join(config_path, "atari800-bioses.zip")
-            dlg = DownloadDialog(self.bios_url, bios_archive)
-            dlg.run()
+            install_ui_delegate.download_install_file(self.bios_url, bios_archive)
             if not system.path_exists(bios_archive):
-                ErrorDialog(_("Could not download Atari 800 BIOS archive"))
-                return
+                raise RuntimeError(_("Could not download Atari 800 BIOS archive"))
             extract.extract_archive(bios_archive, config_path)
             os.remove(bios_archive)
             config = LutrisConfig(runner_slug="atari800")
@@ -101,7 +97,7 @@ class atari800(Runner):
             if callback:
                 callback()
 
-        super().install(version, downloader, on_runner_installed)
+        super().install(install_ui_delegate, version, on_runner_installed)
 
     def find_good_bioses(self, bios_path):
         """ Check for correct bios files """

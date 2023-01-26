@@ -2,7 +2,7 @@
     "human_name": "Mini vMac",
     "description": "Mini vMac is an open source emulator of 68000 based Macintosh computers.",
     "platforms": ["Macintosh"],
-    "runner_executable": "minivmac/MinivMac",
+    "runner_executable": "minivmac/Mini vMac",
     "download_url": "https://www.gryphel.com/d/minivmac/minivmac-37.03/minivmac-37.03-lx64.bin.tgz",
     "game_options": [
         {

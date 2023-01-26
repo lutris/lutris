@@ -4,12 +4,14 @@ from gettext import gettext as _
 
 import gi
 
+gi.require_version('Gdk', '3.0')
 gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gdk, GLib, GObject, Gtk
 
 from lutris import api, settings
 from lutris.gui.widgets.log_text_view import LogTextView
+from lutris.migrations import migrate
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -131,15 +133,42 @@ class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
 
     def __init__(self, message, secondary=None, parent=None):
-        super().__init__(buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK, parent=parent)
         self.set_markup(message)
         if secondary:
             self.format_secondary_text(secondary[:256])
+
+        # So you can copy warning text
+        for child in self.get_message_area().get_children():
+            if isinstance(child, Gtk.Label):
+                child.set_selectable(True)
+
         self.run()
         self.destroy()
 
 
+class WarningDialog(Gtk.MessageDialog):
+
+    """Display a warning to the user, who responds with whether to proceed, like
+    a QuestionDialog."""
+
+    def __init__(self, message, secondary=None, parent=None):
+        super().__init__(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL, parent=parent)
+        self.set_markup(message)
+        if secondary:
+            self.format_secondary_text(secondary[:256])
+
+        # So you can copy warning text
+        for child in self.get_message_area().get_children():
+            if isinstance(child, Gtk.Label):
+                child.set_selectable(True)
+
+        self.result = self.run()
+        self.destroy()
+
+
 class ErrorDialog(Gtk.MessageDialog):
+
     """Display an error message."""
 
     def __init__(self, message, secondary=None, parent=None):
@@ -149,6 +178,12 @@ class ErrorDialog(Gtk.MessageDialog):
         self.set_markup(message[:256])
         if secondary:
             self.format_secondary_text(secondary[:256])
+
+        # So you can copy error text
+        for child in self.get_message_area().get_children():
+            if isinstance(child, Gtk.Label):
+                child.set_selectable(True)
+
         self.run()
         self.destroy()
 
@@ -198,7 +233,7 @@ class FileDialog:
 
     """Ask the user to select a file."""
 
-    def __init__(self, message=None, default_path=None, mode="open"):
+    def __init__(self, message=None, default_path=None, mode="open", parent=None):
         self.filename = None
         if not message:
             message = _("Please choose a file")
@@ -208,7 +243,7 @@ class FileDialog:
             action = Gtk.FileChooserAction.OPEN
         dialog = Gtk.FileChooserNative.new(
             message,
-            None,
+            parent,
             action,
             _("_OK"),
             _("_Cancel"),
@@ -244,11 +279,15 @@ class LutrisInitDialog(Gtk.Dialog):
 
         self.connect("response", self.on_response)
         self.connect("destroy", self.on_destroy)
-        AsyncCall(runtime_updater.update_runtimes, self.init_cb)
+        AsyncCall(self.run_init, self.init_cb)
 
     def show_progress(self):
         self.progress.pulse()
         return True
+
+    def run_init(self):
+        migrate()
+        self.runtime_updater.update_runtimes()
 
     def init_cb(self, _result, error):
         if error:
@@ -301,9 +340,10 @@ class InstallOrPlayDialog(ModalDialog):
 
 
 class LaunchConfigSelectDialog(ModalDialog):
-    def __init__(self, game, configs, parent=None):
-        super().__init__(title=_("Select game to launch"), parent=parent, border_width=10)
+    def __init__(self, game, configs, title, parent=None, has_dont_show_again=False):
+        super().__init__(title=title, parent=parent, border_width=10)
         self.config_index = 0
+        self.dont_show_again = False
         self.confirmed = False
 
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
@@ -323,11 +363,19 @@ class LaunchConfigSelectDialog(ModalDialog):
             _button.connect("toggled", self.on_button_toggled, i + 1)
             vbox.pack_start(_button, False, False, 0)
 
+        if has_dont_show_again:
+            dont_show_checkbutton = Gtk.CheckButton(_("Do not ask again for this game."))
+            dont_show_checkbutton.connect("toggled", self.on_dont_show_checkbutton_toggled)
+            vbox.pack_end(dont_show_checkbutton, False, False, 6)
+
         self.show_all()
         self.run()
 
     def on_button_toggled(self, _button, index):
         self.config_index = index
+
+    def on_dont_show_checkbutton_toggled(self, _button):
+        self.dont_show_again = _button.get_active()
 
     def on_response(self, _widget, response):
         self.confirmed = response == Gtk.ResponseType.OK
@@ -423,13 +471,16 @@ class DontShowAgainDialog(Gtk.MessageDialog):
         secondary_message=None,
         parent=None,
         checkbox_message=None,
+        cancellable=False
     ):
         # pylint: disable=no-member
         if settings.read_setting(setting) == "True":
             logger.info("Dialog %s dismissed by user", setting)
             return
 
-        super().__init__(type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK, parent=parent)
+        buttons = Gtk.ButtonsType.OK_CANCEL if cancellable else Gtk.ButtonsType.OK
+
+        super().__init__(type=Gtk.MessageType.WARNING, buttons=buttons, parent=parent)
 
         self.set_default_response(Gtk.ResponseType.OK)
         self.set_markup("<b>%s</b>" % message)
@@ -446,8 +497,8 @@ class DontShowAgainDialog(Gtk.MessageDialog):
 
         content_area = self.get_content_area()
         content_area.pack_start(dont_show_checkbutton, False, False, 0)
-        self.run()
-        if dont_show_checkbutton.get_active():
+        self.result = self.run()
+        if self.result == Gtk.ResponseType.OK and dont_show_checkbutton.get_active():
             settings.write_setting(setting, True)
         self.destroy()
 
@@ -456,7 +507,7 @@ class WineNotInstalledWarning(DontShowAgainDialog):
 
     """Display a warning if Wine is not detected on the system"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, cancellable=False):
         super().__init__(
             "hide-wine-systemwide-install-warning",
             _("Wine is not installed on your system."),
@@ -468,6 +519,7 @@ class WineNotInstalledWarning(DontShowAgainDialog):
                 "install Wine."
             ),
             parent=parent,
+            cancellable=cancellable
         )
 
 

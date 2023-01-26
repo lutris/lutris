@@ -1,6 +1,5 @@
 """System utilities"""
 import hashlib
-import inspect
 import os
 import re
 import shutil
@@ -8,6 +7,7 @@ import signal
 import stat
 import string
 import subprocess
+import zipfile
 from gettext import gettext as _
 from pathlib import Path
 
@@ -148,16 +148,32 @@ def read_process_output(command, timeout=5):
         return ""
 
 
+def get_md5_in_zip(filename):
+    """Return the md5 hash of a file in a zip"""
+    with zipfile.ZipFile(filename, 'r') as archive:
+        files = archive.namelist()
+        if len(files) > 1:
+            logger.warning("More than 1 file in archive %s, reading 1st one: %s", filename, files[0])
+        with archive.open(files[0]) as file_in_zip:
+            _hash = read_file_md5(file_in_zip)
+    return _hash
+
+
 def get_md5_hash(filename):
     """Return the md5 hash of a file."""
-    md5 = hashlib.md5()
     try:
         with open(filename, "rb") as _file:
-            for chunk in iter(lambda: _file.read(8192), b""):
-                md5.update(chunk)
+            _hash = read_file_md5(_file)
     except IOError:
         logger.warning("Error reading %s", filename)
         return False
+    return _hash
+
+
+def read_file_md5(filedesc):
+    md5 = hashlib.md5()
+    for chunk in iter(lambda: filedesc.read(8192), b""):
+        md5.update(chunk)
     return md5.hexdigest()
 
 
@@ -258,27 +274,24 @@ def substitute(string_template, variables):
 def merge_folders(source, destination):
     """Merges the content of source to destination"""
     logger.debug("Merging %s into %s", source, destination)
-    # Check if dirs_exist_ok is defined ( Python >= 3.8)
-    sig = inspect.signature(shutil.copytree)
-    if "dirs_exist_ok" in sig.parameters:
-        shutil.copytree(source, destination, symlinks=False, ignore_dangling_symlinks=True, dirs_exist_ok=True)
-    else:
-        source = os.path.abspath(source)
-        for (dirpath, dirnames, filenames) in os.walk(source):
-            source_relpath = dirpath[len(source):].strip("/")
-            dst_abspath = os.path.join(destination, source_relpath)
-            for dirname in dirnames:
-                new_dir = os.path.join(dst_abspath, dirname)
-                logger.debug("creating dir: %s", new_dir)
-                try:
-                    os.mkdir(new_dir)
-                except OSError:
-                    pass
-            for filename in filenames:
-                # logger.debug("Copying %s", filename)
-                if not os.path.exists(dst_abspath):
-                    os.makedirs(dst_abspath)
-                shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
+    # We do not use shutil.copytree() here because that would copy
+    # the file permissions, and we do not want them.
+    source = os.path.abspath(source)
+    for (dirpath, dirnames, filenames) in os.walk(source):
+        source_relpath = dirpath[len(source):].strip("/")
+        dst_abspath = os.path.join(destination, source_relpath)
+        for dirname in dirnames:
+            new_dir = os.path.join(dst_abspath, dirname)
+            logger.debug("creating dir: %s", new_dir)
+            try:
+                os.mkdir(new_dir)
+            except OSError:
+                pass
+        for filename in filenames:
+            # logger.debug("Copying %s", filename)
+            if not os.path.exists(dst_abspath):
+                os.makedirs(dst_abspath)
+            shutil.copy(os.path.join(dirpath, filename), os.path.join(dst_abspath, filename), follow_symlinks=False)
 
 
 def remove_folder(path):

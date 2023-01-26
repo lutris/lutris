@@ -20,8 +20,10 @@ class ServicesBox(BaseConfigBox):
             _("Access your game libraries from various sources. "
               "Changes require a restart to take effect.")
         ))
+        self.frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
         self.listbox = Gtk.ListBox(visible=True)
-        self.pack_start(self.listbox, False, False, 12)
+        self.frame.add(self.listbox)
+        self.pack_start(self.frame, False, False, 12)
         GLib.idle_add(self.populate_services)
 
     def populate_services(self):

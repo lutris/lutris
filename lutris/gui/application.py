@@ -1,6 +1,6 @@
 # pylint: disable=wrong-import-position
 #
-# Copyright (C) 2022 Mathieu Comandon <strider@strycore.com>
+# Copyright (C) 2009 Mathieu Comandon <strider@strycore.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,7 +39,6 @@ from lutris.command import exec_command
 from lutris.database import games as games_db
 from lutris.game import Game, export_game, import_game
 from lutris.installer import get_installers
-from lutris.gui.dialogs.download import simple_downloader
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, LutrisInitDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.installerwindow import InstallerWindow, InstallationKind
@@ -54,6 +53,7 @@ from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_paths
 from lutris.services import get_enabled_services
 from lutris.database.services import ServiceGameCollection
+from lutris.runners.runner import Runner
 
 from .lutriswindow import LutrisWindow
 
@@ -75,8 +75,11 @@ class Application(Gtk.Application):
         GObject.add_emission_hook(Game, "game-install-dlc", self.on_game_install_dlc)
 
         GLib.set_application_name(_("Lutris"))
+        self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
         self.window = None
+        self.launch_ui_delegate = Game.LaunchUIDelegate()
+        self.install_ui_delegate = Runner.InstallUIDelegate()
 
         self.running_games = Gio.ListStore.new(Game)
         self.app_windows = {}
@@ -131,6 +134,14 @@ class Application(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
             _("Install a game from a yml file"),
+            None,
+        )
+        self.add_main_option(
+            "force",
+            ord("f"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("Force updates"),
             None,
         )
         self.add_main_option(
@@ -281,14 +292,14 @@ class Application(Gtk.Application):
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-    @staticmethod
-    def show_update_runtime_dialog():
+    def show_update_runtime_dialog(self):
         if os.environ.get("LUTRIS_SKIP_INIT"):
             logger.debug("Skipping initialization")
         else:
-            runtime_updater = StartupRuntimeUpdater(force=False)
-            init_dialog = LutrisInitDialog(runtime_updater)
-            init_dialog.run()
+            runtime_updater = StartupRuntimeUpdater(force=self.force_updates)
+            if runtime_updater.has_updates:
+                init_dialog = LutrisInitDialog(runtime_updater)
+                init_dialog.run()
 
     def get_window_key(self, **kwargs):
         if kwargs.get("appid"):
@@ -358,9 +369,25 @@ class Application(Gtk.Application):
         """Output a script to a file.
         The script is capable of launching a game without the client
         """
+        def on_error(game, error):
+            logger.exception("Unable to generate script: %s", error)
+            return True
+
         game = Game(db_game["id"])
+        game.connect("game-error", on_error)
         game.load_config()
-        game.write_script(script_path)
+        game.write_script(script_path, self.launch_ui_delegate)
+
+    def do_handle_local_options(self, options):
+        # Text only commands
+
+        # Print Lutris version and exit
+        if options.contains("version"):
+            executable_name = os.path.basename(sys.argv[0])
+            print(executable_name + "-" + settings.VERSION)
+            logger.setLevel(logging.NOTSET)
+            return 0
+        return -1  # continue command line processes
 
     def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
@@ -369,7 +396,7 @@ class Application(Gtk.Application):
         options = command_line.get_options_dict()
 
         # Use stdout to output logs, only if no command line argument is
-        # provided
+        # provided.
         argc = len(sys.argv) - 1
         if "-d" in sys.argv or "--debug" in sys.argv:
             argc -= 1
@@ -391,17 +418,21 @@ class Application(Gtk.Application):
             log.console_handler.setFormatter(log.DEBUG_FORMATTER)
             logger.setLevel(logging.DEBUG)
 
-        # Text only commands
-
-        # Print Lutris version and exit
-        if options.contains("version"):
-            executable_name = os.path.basename(sys.argv[0])
-            print(executable_name + "-" + settings.VERSION)
-            logger.setLevel(logging.NOTSET)
-            return 0
+        if options.contains("force"):
+            self.force_updates = True
 
         init_lutris()
-        migrate()
+
+        # Perform migrations early if any command line options
+        # might require it to be done, just in case. We migrate
+        # also during the init dialog, but it should be harmless
+        # to do it twice.
+        #
+        # This way, in typical lutris usage, you get to see the
+        # init dialog when migration is happening.
+        if argc:
+            migrate()
+
         run_all_checks()
 
         if options.contains("dest"):
@@ -489,6 +520,9 @@ class Application(Gtk.Application):
         action = installer_info["action"]
         service = installer_info["service"]
         appid = installer_info["appid"]
+        launch_config_name = installer_info["launch_config_name"]
+
+        self.launch_ui_delegate = CommandLineUIDelegate(launch_config_name)
 
         if options.contains("output-script"):
             action = "write-script"
@@ -603,10 +637,23 @@ class Application(Gtk.Application):
                 if not self.window.is_visible():
                     self.do_shutdown()
                 return 0
+
+            def on_error(game, error):
+                logger.exception("Unable to launch game: %s", error)
+                return True
+
             game = Game(db_game["id"])
-            game.launch()
+            game.connect("game-error", on_error)
+            game.launch(self.launch_ui_delegate)
+
+            if game.state == game.STATE_STOPPED and not self.window.is_visible():
+                self.do_shutdown()
         else:
-            Application.show_update_runtime_dialog()
+            self.show_update_runtime_dialog()
+            # If we're showing the window, it will handle the delegated UI
+            # from here on out, no matter what command line we got.
+            self.launch_ui_delegate = self.window
+            self.install_ui_delegate = self.window
             self.window.present()
             # If the Lutris GUI is started by itself, don't quit it when a game stops
             self.quit_on_game_exit = False
@@ -614,7 +661,7 @@ class Application(Gtk.Application):
 
     @watch_errors(error_result=True)
     def on_game_launch(self, game):
-        game.launch()
+        game.launch(self.launch_ui_delegate)
         return True  # Return True to continue handling the emission hook
 
     @watch_errors(error_result=True)
@@ -661,8 +708,13 @@ class Application(Gtk.Application):
                 game_id = None
 
             if game_id:
+                def on_error(game, error):
+                    logger.exception("Unable to install game: %s", error)
+                    return True
+
                 game = Game(game_id)
-                game.launch()
+                game.connect("game-error", on_error)
+                game.launch(self.launch_ui_delegate)
             return True
         if not game.slug:
             raise ValueError("Invalid game passed: %s" % game)
@@ -716,7 +768,14 @@ class Application(Gtk.Application):
 
     @staticmethod
     def get_lutris_action(url):
-        installer_info = {"game_slug": None, "revision": None, "action": None, "service": None, "appid": None}
+        installer_info = {
+            "game_slug": None,
+            "revision": None,
+            "action": None,
+            "service": None,
+            "appid": None,
+            "launch_config_name": None
+        }
 
         if url:
             url = url.get_strv()
@@ -840,7 +899,7 @@ class Application(Gtk.Application):
         else:
             try:
                 runner = import_runner("wine")
-                runner().install(downloader=simple_downloader, version=version)
+                runner().install(self.install_ui_delegate, version=version)
                 print(f"Wine version '{version}' has been installed.")
             except (InvalidRunner, RunnerInstallationError) as ex:
                 print(ex.message)
@@ -869,7 +928,7 @@ Also, check that the version specified is in the correct format.
             if runner.is_installed():
                 print(f"'{runner_name}' is already installed.")
             else:
-                runner.install(version=None, downloader=simple_downloader, callback=None)
+                runner.install(self.install_ui_delegate, version=None, callback=None)
                 print(f"'{runner_name}' has been installed")
         except (InvalidRunner, RunnerInstallationError) as ex:
             print(ex.message)
@@ -911,3 +970,23 @@ Also, check that the version specified is in the correct format.
 
     def has_tray_icon(self):
         return self.tray and self.tray.is_visible()
+
+
+class CommandLineUIDelegate(Game.LaunchUIDelegate):
+    """This delegate can provide user selections that were provided on the command line."""
+
+    def __init__(self, launch_config_name):
+        self.launch_config_name = launch_config_name
+
+    def select_game_launch_config(self, game):
+        if not self.launch_config_name:
+            return {}
+
+        game_config = game.config.game_level.get("game", {})
+        configs = game_config.get("launch_configs")
+
+        for config in configs:
+            if config.get("name") == self.launch_config_name:
+                return config
+
+        raise RuntimeError("The launch configuration '%s' could not be found." % self.launch_config_name)

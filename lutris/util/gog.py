@@ -34,18 +34,28 @@ def get_gog_config(gog_game_path):
 
 
 def get_game_config(task, gog_game_path):
+    def resolve_path(path):
+        """GOG's paths are relative to the gog_game_path, not relative to each other,
+        so we resolve them all to absolute paths and fix casing issues. If required,
+        we'll replace backslashes with slashes."""
+        resolved = system.fix_path_case(os.path.join(gog_game_path, path))
+        if os.path.exists(resolved):
+            return resolved
+
+        resolved = system.fix_path_case(os.path.join(gog_game_path, path.replace("\\", "/")))
+        if os.path.exists(resolved):
+            return resolved
+
+        logger.warning("GOG configuratipath '%s' could not be resolved", path)
+        return path
+
     config = {}
     if "path" not in task:
         return
-    exe = task["path"]
-    exe_abspath = system.fix_path_case(os.path.join(gog_game_path, exe))
-    if os.path.exists(exe_abspath):
-        exe = exe_abspath
-    else:
-        logger.warning("No executable found at %s", exe_abspath)
-    config["exe"] = exe
+
+    config["exe"] = resolve_path(task["path"])
     if task.get("workingDir"):
-        config["working_dir"] = task["workingDir"]
+        config["working_dir"] = resolve_path(task["workingDir"])
     if task.get("arguments"):
         config["args"] = task["arguments"]
     if task.get("name"):

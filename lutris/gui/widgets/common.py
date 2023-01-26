@@ -1,10 +1,11 @@
 """Misc widgets used in the GUI."""
 # Standard Library
 import os
+import urllib.parse
 from gettext import gettext as _
 
 # Third Party Libraries
-from gi.repository import GObject, Gtk, Pango
+from gi.repository import GLib, GObject, Gtk, Pango
 
 # Lutris Modules
 from lutris.gui.widgets.utils import get_stock_icon
@@ -40,6 +41,10 @@ class FileChooserEntry(Gtk.Box):
 
     max_completion_items = 15  # Maximum number of items to display in the autocompletion dropdown.
 
+    __gsignals__ = {
+        "changed": (GObject.SIGNAL_RUN_FIRST, None, ()),
+    }
+
     def __init__(
         self,
         title=_("Select file"),
@@ -68,6 +73,10 @@ class FileChooserEntry(Gtk.Box):
         self.entry.set_activates_default(activates_default)
         self.entry.set_completion(self.get_completion())
         self.entry.connect("changed", self.on_entry_changed)
+        self.entry.connect("activate", self.on_activate)
+        self.entry.connect("focus-out-event", self.on_focus_out)
+        self.entry.connect("backspace", self.on_backspace)
+
         if path:
             self.entry.set_text(path)
 
@@ -78,6 +87,10 @@ class FileChooserEntry(Gtk.Box):
         box.pack_start(self.entry, True, True, 0)
         box.add(browse_button)
         self.pack_start(box, False, False, 0)
+
+    def set_text(self, path):
+        self.path = os.path.expanduser(path)
+        self.entry.set_text(self.path)
 
     def get_text(self):
         """Return the entry's text"""
@@ -131,9 +144,17 @@ class FileChooserEntry(Gtk.Box):
         path = widget.get_text()
         if not path:
             return
-        path = os.path.expanduser(path)
-        self.update_completion(path)
+
+        # If the user isn't editing this entry, we'll apply updates
+        # immediately upon any change
+
+        if not self.entry.has_focus():
+            if self.normalize_path():
+                # We changed the text on commit, so we return here to avoid a double changed signal
+                return
+
         self.path = path
+
         if self.warn_if_ntfs and LINUX_SYSTEM.get_fs_type_for_path(path) == "ntfs":
             ntfs_box = Gtk.Box(spacing=6, visible=True)
             warning_image = Gtk.Image(visible=True)
@@ -161,6 +182,46 @@ class FileChooserEntry(Gtk.Box):
                 "is not writable by the current user."
             ))
             self.pack_end(non_writable_destination_label, False, False, 10)
+
+        self.emit("changed")
+
+    def on_activate(self, _widget):
+        self.normalize_path()
+        self.detect_changes()
+
+    def on_focus_out(self, _widget, _event):
+        self.normalize_path()
+        self.detect_changes()
+
+    def on_backspace(self, _widget):
+        GLib.idle_add(self.detect_changes)
+
+    def detect_changes(self):
+        """Detects if the text has changed and updates self.path and fires
+        the changed signal. Lame, but Gtk.Entry does not always fire its
+        changed event when edited!"""
+        new_path = self.get_text()
+        if self.path != new_path:
+            self.path = new_path
+            self.emit("changed")
+        return False  # used as idle function
+
+    def normalize_path(self):
+        original_path = self.get_text()
+        path = original_path.strip("\r\n")
+
+        if path.startswith('file:///'):
+            path = urllib.parse.unquote(path[len('file://'):])
+
+        path = os.path.expanduser(path)
+
+        self.update_completion(path)
+
+        if path != original_path:
+            self.entry.set_text(path)
+            return True
+
+        return False
 
     def update_completion(self, current_path):
         """Update the auto-completion widget with the current path"""
@@ -193,27 +254,15 @@ class FileChooserEntry(Gtk.Box):
 class Label(Gtk.Label):
     """Standardised label for config vboxes."""
 
-    def __init__(self, message=None):
+    def __init__(self, message=None, width_request=230):
         """Custom init of label."""
         super().__init__(label=message)
         self.set_line_wrap(True)
         self.set_max_width_chars(22)
         self.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        self.set_size_request(230, -1)
+        self.set_size_request(width_request, -1)
         self.set_alignment(0, 0.5)
         self.set_justify(Gtk.Justification.LEFT)
-
-
-class InstallerLabel(Gtk.Label):
-    """Label for installer window"""
-
-    def __init__(self, message=None):
-        super().__init__(label=message)
-        self.set_max_width_chars(80)
-        self.set_property("wrap", True)
-        self.set_use_markup(True)
-        self.set_selectable(True)
-        self.set_alignment(0.5, 0)
 
 
 class VBox(Gtk.Box):

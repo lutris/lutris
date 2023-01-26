@@ -14,15 +14,26 @@ class InstallerFilesBox(Gtk.ListBox):
         "files-available": (GObject.SIGNAL_RUN_LAST, None, ())
     }
 
-    def __init__(self, installer, parent):
+    def __init__(self):
         super().__init__()
-        self.parent = parent
-        self.installer = installer
-        self.installer_files = installer.files
+        self.installer = None
         self.ready_files = set()
         self.available_files = set()
         self.installer_files_boxes = {}
         self._file_queue = []
+
+    def load_installer(self, installer):
+        self.stop_all()
+
+        self.installer = installer
+        self.available_files.clear()
+        self.ready_files.clear()
+        self.installer_files_boxes.clear()
+        self._file_queue.clear()
+
+        for child in self.get_children():
+            child.destroy()
+
         for installer_file in installer.files:
             installer_file_box = InstallerFileBox(installer_file)
             installer_file_box.connect("file-ready", self.on_file_ready)
@@ -38,16 +49,23 @@ class InstallerFilesBox(Gtk.ListBox):
     def start_all(self):
         """Iterates through installer files while keeping the number
         of simultaneously downloaded files down to a maximum number"""
+
+        if len(self.available_files) == len(self.installer.files):
+            logger.info("All files remain available")
+            self.emit("files-available")
+            return
+
         started_downloads = 0
         for file_id, file_entry in self.installer_files_boxes.items():
-            if file_entry.provider == "download":
-                started_downloads += 1
-                if started_downloads <= self.max_downloads:
-                    file_entry.start()
+            if file_id not in self.available_files:
+                if file_entry.provider == "download":
+                    started_downloads += 1
+                    if started_downloads <= self.max_downloads:
+                        file_entry.start()
+                    else:
+                        self._file_queue.append(file_id)
                 else:
-                    self._file_queue.append(file_id)
-            else:
-                file_entry.start()
+                    file_entry.start()
 
     def stop_all(self):
         """Stops all ongoing files gathering.
@@ -66,10 +84,7 @@ class InstallerFilesBox(Gtk.ListBox):
 
     def check_files_ready(self):
         """Checks if all installer files are ready and emit a signal if so"""
-        if self.is_ready:
-            self.emit("files-ready", self.is_ready)
-        else:
-            logger.info("Waiting for user to provide files")
+        self.emit("files-ready", self.is_ready)
 
     def on_file_ready(self, widget):
         """Fired when a file has a valid provider.
@@ -84,7 +99,7 @@ class InstallerFilesBox(Gtk.ListBox):
         Blocks the installer from continuing.
         """
         file_id = widget.installer_file.id
-        self.ready_files.remove(file_id)
+        self.ready_files.discard(file_id)
         self.check_files_ready()
 
     def on_file_available(self, widget):
@@ -95,7 +110,7 @@ class InstallerFilesBox(Gtk.ListBox):
         if self._file_queue:
             next_file_id = self._file_queue.pop()
             self.installer_files_boxes[next_file_id].start()
-        if len(self.available_files) == len(self.installer_files):
+        if len(self.available_files) == len(self.installer.files):
             logger.info("All files available")
             self.emit("files-available")
 
@@ -103,5 +118,5 @@ class InstallerFilesBox(Gtk.ListBox):
         """Return a mapping of the local files usable by the interpreter"""
         return {
             installer_file.id: installer_file.dest_file
-            for installer_file in self.installer_files
+            for installer_file in self.installer.files
         }

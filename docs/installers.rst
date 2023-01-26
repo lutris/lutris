@@ -172,9 +172,8 @@ Lutris supports the following game identifiers:
 Example: The `appid` for https://store.steampowered.com/app/238960/Path_of_Exile/ is `238960`.
 This ID is used for installing and running the game.
 
-`game_id`: Identifier used for ScummVM / ResidualVM games. Can be looked up
+`game_id`: Identifier used for ScummVM games. Can be looked up
 on the game compatibility list: https://www.scummvm.org/compatibility/
-and https://www.residualvm.org/compatibility/
 
 `gogid`: GOG identifier. Can be looked up on https://www.gogdb.org/products Be
 sure to reference the base game and not one of its package or DLC.
@@ -392,6 +391,17 @@ If the game makes use of Steam data, the value should be
 ``$STEAM:appid:path/to/data``. This will check that the data is available
 or install it otherwise.
 
+If the game or file is hosted on moddb.com, it is necessary to understand that
+the platform rotates the actual download links every few hours, making it
+impractical to set these links as source url in installers. Lutris has
+routines to overcome this limitation (with blessing from moddb.com). When
+specifying a file hosted on moddb.com, please use the url of the files details
+page (the one with the red "Download now" button).
+
+Example URLs for ModDB files::
+
+    https://www.moddb.com/games/{game-title}/downloads/{file-title}
+    https://www.moddb.com/mods/{mod-title}/downloads/{file-title}
 
 Writing the installation script
 ===============================

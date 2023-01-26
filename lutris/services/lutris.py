@@ -120,8 +120,7 @@ class LutrisService(OnlineService):
             slug = db_game
         installers = get_game_installers(slug)
         if not installers:
-            logger.warning("No installer for %s", slug)
-            return
+            raise RuntimeError(_("Lutris has no installers for %s. Try using a different service instead.") % slug)
         application = Gio.Application.get_default()
         application.show_installer_window(installers)
 

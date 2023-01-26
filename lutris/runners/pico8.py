@@ -81,16 +81,13 @@ class pico8(Runner):
     def __repr__(self):
         return _("PICO-8 runner (%s)") % self.config
 
-    def install(self, version=None, downloader=None, callback=None):
+    def install(self, install_ui_delegate, version=None, callback=None):
         opts = {}
+        opts["install_ui_delegate"] = install_ui_delegate
         if callback:
             opts["callback"] = callback
         opts["dest"] = settings.RUNNER_DIR + "/pico8"
         opts["merge_single"] = True
-        if downloader:
-            opts["downloader"] = downloader
-        else:
-            raise RuntimeError("Unsupported download for this runner")
         self.download_and_extract(DOWNLOAD_URL, **opts)
 
     @property
@@ -210,22 +207,9 @@ class pico8(Runner):
             if not os.path.exists(enginePath):
                 downloadUrl = ("https://www.lexaloffle.com/bbs/" + self.runner_config.get("engine") + ".js")
                 system.create_folder(os.path.dirname(enginePath))
-                downloadCompleted = False
-
-                def on_downloaded_engine():
-                    nonlocal downloadCompleted
-                    downloadCompleted = True
-
-                dl = Downloader(downloadUrl, enginePath, True, callback=on_downloaded_engine)
+                dl = Downloader(downloadUrl, enginePath, True)
                 dl.start()
-                dl.thread.join()  # Doesn't actually wait until finished
-
-                # Waits for download to complete
-                while not os.path.exists(enginePath):
-                    if downloadCompleted or dl.state == Downloader.ERROR:
-                        logger.error("Could not download engine from %s", downloadUrl)
-                        return False
-                    sleep(0.1)
+                dl.join()
 
     def play(self):
         launch_info = {}

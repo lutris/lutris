@@ -243,6 +243,7 @@ def parse_installer_url(url):
     Parses `lutris:` urls, extracting any info necessary to install or run a game.
     """
     action = None
+    launch_config_name = None
     try:
         parsed_url = urllib.parse.urlparse(url, scheme="lutris")
     except Exception:  # pylint: disable=broad-except
@@ -258,8 +259,12 @@ def parse_installer_url(url):
     if url_path.startswith("lutris:"):
         url_path = url_path[7:]
 
-    url_parts = url_path.split("/")
-    if len(url_parts) == 2:
+    url_parts = [urllib.parse.unquote(part) for part in url_path.split("/")]
+    if len(url_parts) == 3:
+        action = url_parts[0]
+        game_slug = url_parts[1]
+        launch_config_name = url_parts[2]
+    elif len(url_parts) == 2:
         action = url_parts[0]
         game_slug = url_parts[1]
     elif len(url_parts) == 1:
@@ -282,5 +287,45 @@ def parse_installer_url(url):
         "revision": revision,
         "action": action,
         "service": service,
-        "appid": appid
+        "appid": appid,
+        "launch_config_name": launch_config_name
     }
+
+
+def format_installer_url(installer_info):
+    """
+    Generates 'lutris:' urls, given the same dictionary that
+    parse_intaller_url returns.
+    """
+
+    game_slug = installer_info.get("game_slug")
+    revision = installer_info.get("revision")
+    action = installer_info.get("action")
+    service = installer_info.get("service")
+    appid = installer_info.get("appid")
+    launch_config_name = installer_info.get("launch_config_name")
+    parts = []
+
+    if action:
+        parts.append(action)
+    elif not launch_config_name:
+        raise ValueError("A 'lutris:' URL can contain a launch configuration name only if it has an action.")
+
+    if game_slug:
+        parts.append(game_slug)
+    else:
+        parts.append(service + ":" + appid)
+
+    if launch_config_name:
+        parts.append(launch_config_name)
+
+    parts = [urllib.parse.quote(str(part)) for part in parts]
+    path = "/".join(parts)
+
+    if revision:
+        query = urllib.parse.urlencode({"revision": str(revision)})
+    else:
+        query = ""
+
+    url = urllib.parse.urlunparse(("lutris", "", path, "", query, None))
+    return url

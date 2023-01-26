@@ -2,7 +2,6 @@
 # Standard Library
 # pylint: disable=no-member,too-many-public-methods
 import os
-import urllib
 from gettext import gettext as _
 
 # Third Party Libraries
@@ -21,6 +20,8 @@ from lutris.util.log import logger
 class ConfigBox(VBox):
 
     """Dynamically generate a vbox built upon on a python dict."""
+
+    config_section = NotImplemented
 
     def __init__(self, game=None):
         super().__init__()
@@ -55,30 +56,31 @@ class ConfigBox(VBox):
 
         help_box.show_all()
 
-    def generate_widgets(self, config_section):  # noqa: C901 # pylint: disable=too-many-branches,too-many-statements
+    def generate_widgets(self):  # noqa: C901 # pylint: disable=too-many-branches,too-many-statements
         """Parse the config dict and generates widget accordingly."""
         if not self.options:
-            no_options_label = Label(_("No options available"))
+            no_options_label = Label(_("No options available"), width_request=-1)
             no_options_label.set_halign(Gtk.Align.CENTER)
             no_options_label.set_valign(Gtk.Align.CENTER)
             self.pack_start(no_options_label, True, True, 0)
+            self.show_all()
             return
 
         # Select config section.
-        if config_section == "game":
+        if self.config_section == "game":
             self.config = self.lutris_config.game_config
             self.raw_config = self.lutris_config.raw_game_config
-        elif config_section == "runner":
+        elif self.config_section == "runner":
             self.config = self.lutris_config.runner_config
             self.raw_config = self.lutris_config.raw_runner_config
-        elif config_section == "system":
+        elif self.config_section == "system":
             self.config = self.lutris_config.system_config
             self.raw_config = self.lutris_config.raw_system_config
 
         # Go thru all options.
         for option in self.options:
             if "scope" in option:
-                if config_section not in option["scope"]:
+                if self.config_section not in option["scope"]:
                     continue
             option_key = option["option"]
             value = self.config.get(option_key)
@@ -153,6 +155,8 @@ class ConfigBox(VBox):
                     hbox.set_no_show_all(True)
             hbox.pack_start(self.wrapper, True, True, 0)
             self.pack_start(hbox, False, False, 0)
+
+        self.show_all()
 
     def call_widget_generator(self, option, option_key, value, default):  # noqa: C901
         """Call the right generation method depending on option type."""
@@ -421,18 +425,7 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(file_chooser, True, True, 0)
         self.option_widget = file_chooser
-        file_chooser.entry.connect("changed", self._on_chooser_file_set, option_name)
-
-    def _on_chooser_file_set(self, entry, option):
-        """Action triggered when the field's content changes."""
-        text = entry.get_text()
-        if text.startswith('file:///'):
-            text = urllib.parse.unquote(text[len('file://'):])
-        if not os.path.isabs(text):
-            text = os.path.expanduser(text)
-        if text != entry.get_text():
-            entry.set_text(text)
-        self.option_changed(entry.get_parent(), option, text)
+        file_chooser.connect("changed", self._on_chooser_file_set, option_name)
 
     # Directory chooser
     def generate_directory_chooser(self, option, path=None):
@@ -445,20 +438,18 @@ class ConfigBox(VBox):
         directory_chooser = FileChooserEntry(
             title=_("Select folder"), action=Gtk.FileChooserAction.SELECT_FOLDER, path=path, default_path=default_path
         )
-        directory_chooser.entry.connect("changed", self._on_chooser_dir_set, option_name)
+        directory_chooser.connect("changed", self._on_chooser_file_set, option_name)
         directory_chooser.set_valign(Gtk.Align.CENTER)
         self.wrapper.pack_start(label, False, False, 0)
         self.wrapper.pack_start(directory_chooser, True, True, 0)
         self.option_widget = directory_chooser
 
-    def _on_chooser_dir_set(self, entry, option):
+    def _on_chooser_file_set(self, entry, option):
         """Action triggered when the field's content changes."""
         text = entry.get_text()
-        if text.startswith('file:///'):
-            text = urllib.parse.unquote(text[len('file://'):])
         if text != entry.get_text():
             entry.set_text(text)
-        self.option_changed(entry.get_parent(), option, text)
+        self.option_changed(entry, option, text)
 
     # Editable grid
     def generate_editable_grid(self, option_name, label, value=None):
@@ -620,6 +611,7 @@ class ConfigBox(VBox):
 
 
 class GameBox(ConfigBox):
+    config_section = "game"
 
     def __init__(self, lutris_config, game):
         ConfigBox.__init__(self, game)
@@ -636,12 +628,13 @@ class GameBox(ConfigBox):
                 self.options = self.runner.game_options
         else:
             logger.warning("No runner in game supplied to GameBox")
-        self.generate_widgets("game")
 
 
 class RunnerBox(ConfigBox):
 
     """Configuration box for runner specific options"""
+
+    config_section = "runner"
 
     def __init__(self, lutris_config, game=None):
         ConfigBox.__init__(self, game)
@@ -658,10 +651,10 @@ class RunnerBox(ConfigBox):
                 "If modified, these options supersede the same options from "
                 "the base runner configuration."
             ))
-        self.generate_widgets("runner")
 
 
 class SystemBox(ConfigBox):
+    config_section = "system"
 
     def __init__(self, lutris_config):
         ConfigBox.__init__(self)
@@ -685,5 +678,3 @@ class SystemBox(ConfigBox):
                 "If modified, these options supersede the same options from "
                 "the global preferences."
             ))
-
-        self.generate_widgets("system")
