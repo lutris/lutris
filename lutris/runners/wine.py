@@ -921,6 +921,9 @@ class wine(Runner):
         if "Proton" in self.get_version():
             env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = get_steam_dir()
             env["STEAM_COMPAT_DATA_PATH"] = self.prefix_path
+            env["STEAM_COMPAT_APP_ID"] = '0'
+            env["SteamAppId"] = '0'
+            env["SteamGameId"] = "lutris-game"
         return env
 
     def get_runtime_env(self):
