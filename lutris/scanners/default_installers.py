@@ -120,5 +120,41 @@ DEFAULT_INSTALLERS = {
     "msx": {
         "runner": "libretro",
         "game": {"core": "bluemsx", "main_file": "rom"},
-    }
+    },
+    "archimedes": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "flop1", "machine": "aa4000"}
+    },
+    "bbc": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "flop1", "machine": "bbcbp128"}
+    },
+    "electron": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "flop1", "machine": "electron"}
+    },
+    "astrocade": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "cart", "machine": "astrocde"}
+    },
+    "wonderswancolor": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "cart", "machine": "wscolor"}
+    },
+    "wonderswan": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "cart", "machine": "wswan"}
+    },
+    "cpc6128disk": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "flop1", "machine": "cpc6128p"}
+    },
+    "gx4000": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "cart", "machine": "gx4000"}
+    },
+    "apple2": {
+        "runner": "mame",
+        "game": {"main_file": "rom", "device": "flop1", "machine": "apple2gs"}
+    },
 }
