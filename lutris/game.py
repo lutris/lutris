@@ -379,17 +379,16 @@ class Game(GObject.Object):
             "has_custom_icon": "icon" in self.custom_images,
             "has_custom_coverart_big": "coverart_big" in self.custom_images
         }
-
         self.id = games_db.add_or_update(**game_data)
         self.emit("game-updated")
 
-    def save_lastplayed(self):
+    def save_platform(self):
         """Save only the platform field- do not restore any other values the user may have changed
         in another window."""
         games_db.update_existing(id=self.id, slug=self.slug, platform=self.platform)
         self.emit("game-updated")
 
-    def save_platform(self):
+    def save_lastplayed(self):
         """Save only the lastplayed field- do not restore any other values the user may have changed
         in another window."""
         games_db.update_existing(id=self.id, slug=self.slug, lastplayed=self.lastplayed)
