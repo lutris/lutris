@@ -116,5 +116,9 @@ DEFAULT_INSTALLERS = {
     "cdi": {
         "runner": "mame",
         "game": {"main_file": "rom", "device": "cdrm", "machine": "cdimono1"}
+    },
+    "msx": {
+        "runner": "libretro",
+        "game": {"core": "bluemsx", "main_file": "rom"},
     }
 }

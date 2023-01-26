@@ -44,6 +44,7 @@ PLATFORM_PATTERNS = {
     "PlayStation Portable": "psp",
     "PlayStation": "ps1",
     "CD-i": "cdi",
+    "MSX2": "msx",
 }
 
 
