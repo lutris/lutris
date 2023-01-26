@@ -232,6 +232,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
 
         image_button = Gtk.Button()
         self._set_image(image_type, image_button)
+        image_button.set_valign(Gtk.Align.CENTER)
         image_button.set_tooltip_text(image_tooltip)
         image_button.connect("clicked", self.on_custom_image_select, image_type)
         image_button_container.pack_start(image_button, True, True, 0)
