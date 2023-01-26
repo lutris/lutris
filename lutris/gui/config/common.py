@@ -234,7 +234,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         self._set_image(image_type, image_button)
         image_button.set_tooltip_text(image_tooltip)
         image_button.connect("clicked", self.on_custom_image_select, image_type)
-        image_button_container.pack_start(image_button, True, True, 0)        
+        image_button_container.pack_start(image_button, True, True, 0)
 
         reset_button = Gtk.Button.new_from_icon_name("edit-undo-symbolic", Gtk.IconSize.MENU)
         reset_button.set_relief(Gtk.ReliefStyle.NONE)
@@ -242,7 +242,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         reset_button.connect("clicked", self.on_custom_image_reset_clicked, image_type)
         reset_button.set_valign(Gtk.Align.CENTER)
         reset_button_container.pack_start(reset_button, True, False, 0)
-        
+
         banner_box.add(image_button_container)
         banner_box.attach_next_to(reset_button_container, image_button_container, Gtk.PositionType.BOTTOM, 1, 1)
 

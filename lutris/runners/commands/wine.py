@@ -427,7 +427,7 @@ def install_cab_component(cabfile, component, wine_path=None, prefix=None, arch=
 
 
 def open_wine_terminal(terminal, wine_path, prefix, env, system_winetricks):
-    winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
+    winetricks_path, _working_dir, env = find_winetricks(env, system_winetricks)
     aliases = {
         "wine": wine_path,
         "winecfg": wine_path + "cfg",
