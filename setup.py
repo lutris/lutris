@@ -65,7 +65,6 @@ setup(
         'pypresence',
         'PyYAML',
         'requests',
-        'pypresence',
         'moddb >= 0.8.1'
     ],
     url='https://lutris.net',
