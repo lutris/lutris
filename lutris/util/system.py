@@ -537,23 +537,6 @@ def find_mount_point(path):
     return path
 
 
-def get_mountpoint_drives():
-    """Return a mapping of mount points with their corresponding drives"""
-    mounts = read_process_output(["mount", "-v"]).split("\n")
-    mount_map = []
-    for mount in mounts:
-        mount_parts = mount.split()
-        if len(mount_parts) < 3:
-            continue
-        mount_map.append((mount_parts[2], mount_parts[0]))
-    return dict(mount_map)
-
-
-def get_drive_for_path(path):
-    """Return the physical drive a file is located on"""
-    return get_mountpoint_drives().get(find_mount_point(path))
-
-
 def set_keyboard_layout(layout):
     setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
     xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
