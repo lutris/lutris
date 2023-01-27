@@ -4,10 +4,13 @@ import json
 import os
 from gettext import gettext as _
 
+from gi.repository import Gtk
+
 from lutris import settings
 from lutris.exceptions import UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
+from lutris.gui.dialogs import QuestionDialog, HumbleBundleCookiesDialog
 from lutris.services.base import OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -76,6 +79,26 @@ class HumbleBundleService(OnlineService):
 
     supported_platforms = ("linux", "windows")
     is_loading = False
+
+    def login(self, parent=None):
+        dialog = QuestionDialog({
+            "title": _("Workaround for Humble Bundle authentication"),
+            "question": _("Humble Bundle is restricting API calls from software like Lutris and GameHub.\n"
+                "Authentication to the service will likely fail.\n"
+                "There is a workaround involving copying cookies "
+                "from Firefox, do you want to do this instead?"),
+            "parent": parent
+        })
+        if dialog.result == Gtk.ResponseType.YES:
+            dialog = HumbleBundleCookiesDialog()
+            if dialog.cookies_content:
+                with open(self.cookies_path, "w", encoding="utf-8") as cookies_file:
+                    cookies_file.write(dialog.cookies_content)
+                self.login_callback(None)
+            else:
+                self.logout()
+        else:
+            return super().login(parent=parent)
 
     def login_callback(self, url):
         """Called after the user has logged in successfully"""

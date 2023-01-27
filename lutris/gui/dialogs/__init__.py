@@ -563,3 +563,52 @@ class MoveDialog(ModelessDialog):
             ErrorDialog(str(error), parent=self)
         self.emit("game-moved")
         self.destroy()
+
+
+
+
+class HumbleBundleCookiesDialog(ModalDialog):
+    def __init__(self, parent=None):
+        super().__init__(_("Humble Bundle Cookie Authentication"), parent)
+        self.cookies_content = None
+        self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+        self.add_default_button(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+        self.connect("response", self.on_response)
+
+        self.set_size_request(640, 512)
+
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
+        self.get_content_area().add(vbox)
+        label = Gtk.Label()
+        label.set_markup(_(
+            "<b>Humble Bundle Authentication via cookie import</b>\n"
+            "\n"
+            "<b>In Firefox</b>\n"
+            "- Install the folling extension: "
+            "<a href='https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/'>"
+            "https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/"
+            "</a>\n"
+            "- Open a tab to humblebundle.com and make sure you are logged in.\n"
+            "- Click the cookie icon in the top right corner, next to the settings menu\n"
+            "- Check 'Prefix HttpOnly cookies' and click 'humblebundle.com'\n"
+            "- Open the generated file and paste the contents below."
+        ))
+        vbox.pack_start(label, False, False, 24)
+        self.textview = Gtk.TextView()
+        self.textview.set_left_margin(12)
+        self.textview.set_right_margin(12)
+        scrolledwindow = Gtk.ScrolledWindow()
+        scrolledwindow.set_hexpand(True)
+        scrolledwindow.set_vexpand(True)
+        scrolledwindow.add(self.textview)
+        vbox.pack_start(scrolledwindow, True, True, 24)
+        self.show_all()
+        self.run()
+
+    def on_response(self, _widget, response):
+        if response == Gtk.ResponseType.CANCEL:
+            self.cookies_content = None
+        else:
+            buffer = self.textview.get_buffer()
+            self.cookies_content = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True)
+        self.destroy()
