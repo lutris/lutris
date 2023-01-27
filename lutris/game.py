@@ -641,7 +641,6 @@ class Game(GObject.Object):
         self.state = self.STATE_RUNNING
         self.emit("game-started")
 
-        print(f"Discord ID: {self.discord_id}")
         # Game is running, let's update discord status
         if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
             logger.info("Updating Discord RPC Status")
