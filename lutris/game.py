@@ -391,7 +391,12 @@ class Game(GObject.Object):
     def save_lastplayed(self):
         """Save only the lastplayed field- do not restore any other values the user may have changed
         in another window."""
-        games_db.update_existing(id=self.id, slug=self.slug, lastplayed=self.lastplayed)
+        games_db.update_existing(
+            id=self.id,
+            slug=self.slug,
+            lastplayed=self.lastplayed,
+            playtime=self.playtime
+        )
         self.emit("game-updated")
 
     def check_launchable(self):
@@ -732,6 +737,7 @@ class Game(GObject.Object):
         if not self.timer.finished:
             self.timer.end()
             self.playtime += self.timer.duration / 3600
+            logger.debug("Playtime: %s", self.formatted_playtime)
 
     @watch_game_errors(game_stop_result=False)
     def beat(self):
