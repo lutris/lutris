@@ -645,8 +645,6 @@ class Game(GObject.Object):
         if settings.read_setting('discord_rpc') == 'True' and self.discord_id:
             logger.info("Updating Discord RPC Status")
             discord.client.update(self.discord_id)
-        else:
-            logger.info("Discord RPC Disabled or Discord APP ID Not Present")
 
         self.heartbeat = GLib.timeout_add(HEARTBEAT_DELAY, self.beat)
         with open(self.now_playing_path, "w", encoding="utf-8") as np_file:
