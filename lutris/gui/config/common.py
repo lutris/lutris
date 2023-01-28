@@ -12,8 +12,8 @@ from lutris.gui import dialogs
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, QuestionDialog
-from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
+from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import import_runner

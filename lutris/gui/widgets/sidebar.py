@@ -127,9 +127,15 @@ class ServiceSidebarRow(SidebarRow):
 
     def get_actions(self):
         """Return the definition of buttons to be added to the row"""
-        return [
+        displayed_buttons = []
+        if self.service.is_launchable():
+            displayed_buttons.append(
+                ("media-playback-start-symbolic", _("Run"), self.on_service_run, "run")
+            )
+        displayed_buttons.append(
             ("view-refresh-symbolic", _("Reload"), self.on_refresh_clicked, "refresh")
-        ]
+        )
+        return displayed_buttons
 
     def on_service_run(self, button):
         """Run a launcher associated with a service"""

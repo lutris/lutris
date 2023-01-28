@@ -40,6 +40,7 @@ setup(
         'lutris.services',
         'lutris.util',
         'lutris.util.amazon',
+        'lutris.util.battlenet',
         'lutris.util.discord',
         'lutris.util.dolphin',
         'lutris.util.egs',
@@ -65,6 +66,7 @@ setup(
         'pypresence',
         'PyYAML',
         'requests',
+        'protobuf',
         'moddb >= 0.8.1'
     ],
     url='https://lutris.net',

@@ -33,7 +33,8 @@ def get_services():
         "egs": EpicGamesStoreService,
         "origin": OriginService,
         "ubisoft": UbisoftConnectService,
-        "amazon": AmazonService
+        "amazon": AmazonService,
+        "battlenet": BattleNetService,
     }
     if not LINUX_SYSTEM.is_flatpak:
         _services["xdg"] = XDGService

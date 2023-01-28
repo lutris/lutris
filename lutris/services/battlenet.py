@@ -1,252 +1,236 @@
-"""Battle.net service.
-Not ready yet.
-"""
-import pickle
+"""Battle.net service"""
+import json
+import os
 from gettext import gettext as _
-from urllib.parse import parse_qs, urlparse
 
-import requests
+from gi.repository import Gio
 
-from lutris.services.base import OnlineService
+from lutris import settings
+from lutris.config import LutrisConfig, write_game_config
+from lutris.database.games import add_game, get_game_by_field
+from lutris.database.services import ServiceGameCollection
+# from lutris.util import system
+from lutris.game import Game
+from lutris.services.base import BaseService
+from lutris.services.service_game import ServiceGame
+from lutris.services.service_media import ServiceMedia
+from lutris.util.battlenet.definitions import ProductDbInfo
+from lutris.util.battlenet.product_db_pb2 import ProductDb
 from lutris.util.log import logger
 
-CLIENT_ID = "6cb41a854631426c8a74d4084c4d61f2"
-CLIENT_SECRET = "FFwxmMBGtEqPydyi9FMhj1zIvlJrBTE1"
-REDIRECT_URI = "https://lutris.net"
-USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0"
+GAME_IDS = {
+    's1': ('s1', 'StarCraft', 'S1', 'starcraft-remastered'),
+    's2': ('s2', 'StarCraft II', 'S2', 'starcraft-ii'),
+    'wow': ('wow', 'World of Warcraft', 'WoW', 'world-of-warcraft'),
+    'wow_classic': ('wow_classic', 'World of Warcraft Classic', 'WoW_wow_classic', 'world-of-warcraft-classic'),
+    'pro': ('pro', 'Overwatch 2', 'Pro', 'overwatch-2'),
+    'w3': ('w3', 'Warcraft III', 'W3', 'warcraft-iii-reforged'),
+    'hs_beta': ('hs_beta', 'Hearthstone', 'WTCG', 'hearthstone'),
+    'heroes': ('heroes', 'Heroes of the Storm', 'Hero', 'heroes-of-the-storm'),
+    'd3cn': ('d3cn', '暗黑破壞神III', 'D3CN', 'diablo-iii'),
+    'diablo3': ('diablo3', 'Diablo III', 'D3', 'diablo-iii'),
+    'viper': ('viper', 'Call of Duty: Black Ops 4', 'VIPR', 'call-of-duty-black-ops-4'),
+    'odin': ('odin', 'Call of Duty: Modern Warfare', 'ODIN', 'call-of-duty-modern-warfare'),
+    'lazarus': ('lazarus', 'Call of Duty: MW2 Campaign Remastered', 'LAZR',
+                'call-of-duty-modern-warfare-2-campaign-remastered'),
+    'zeus': ('zeus', 'Call of Duty: Black Ops Cold War', 'ZEUS', 'call-of-duty-black-ops-cold-war'),
+    'rtro': ('rtro', 'Blizzard Arcade Collection', 'RTRO', 'blizzard-arcade-collection'),
+    'wlby': ('wlby', 'Crash Bandicoot 4: It\'s About Time', 'WLBY', 'crash-bandicoot-4-its-about-time'),
+    'osi': ('osi', 'Diablo® II: Resurrected', 'OSI', 'diablo-2-ressurected'),
+    'fore': ('fore', 'Call of Duty: Vanguard', 'FORE', 'call-of-duty-vanguard'),
+    'd2': ('d2', 'Diablo® II', 'Diablo II', 'diablo-ii'),
+    'd2LOD': ('d2LOD', 'Diablo® II: Lord of Destruction®', 'Diablo II', 'diablo-ii-lord-of-destruction'),
+    'w3ROC': ('w3ROC', 'Warcraft® III: Reign of Chaos', 'Warcraft III', "warcraft-iii-reign-of-chaos"),
+    'w3tft': ('w3tft', 'Warcraft® III: The Frozen Throne®', 'Warcraft III', "warcraft-iii-the-frozen-throne"),
+    'sca': ('sca', 'StarCraft® Anthology', 'Starcraft', 'starcraft')
+}
 
 
-class InvalidCredentials(Exception):
-    pass
+class BattleNetCover(ServiceMedia):
+    service = 'battlenet'
+    size = (176, 234)
+    file_pattern = "%s.jpg"
+    file_format = "jpeg"
+    dest_path = os.path.join(settings.CACHE_DIR, "battlenet/coverart")
+    api_field = 'coverart'
 
 
-def _found_region(cookies):
-    try:
-        for cookie in cookies:
-            if cookie['name'] == 'JSESSIONID':
-                _region = cookie['domain'].split('.')[0]
-                # 4th region - chinese uses different endpoints, not covered by current plugin
-                if _region.lower() in ['eu', 'us', 'kr']:
-                    return _region
-                raise ValueError(f'Unknown region {_region}')
-        raise ValueError('JSESSIONID cookie not found')
-    except Exception:
-        return 'eu'
+class BattleNetGame(ServiceGame):
+    """Game from Battle.net"""
+    service = "battlenet"
+    runner = "wine"
+    installer_slug = "battlenet"
+
+    @classmethod
+    def create(cls, blizzard_game):
+        """Create a service game from an entry from the Dolphin cache"""
+        service_game = cls()
+        service_game.name = blizzard_game[1]
+        service_game.appid = blizzard_game[0]
+        service_game.slug = blizzard_game[3]
+        service_game.details = json.dumps({
+            "id": blizzard_game[0],
+            "name": blizzard_game[1],
+            "slug": blizzard_game[3],
+            "product_code": blizzard_game[2],
+            "coverart": "https://lutris.net/games/cover/%s.jpg" % blizzard_game[3]
+        })
+        return service_game
 
 
-def guess_region(local_client):
-    """
-    1. read the consts.py
-    2. try read the battlenet db OR config get the region info.
-    3. try query https://www.blizzard.com/en-us/user
-    4. failed return ""
-    """
-    try:
-        if local_client._load_local_files():
-            if local_client.config_parser.region:
-                return local_client.config_parser.region.lower()
-
-            if local_client.database_parser.region:
-                return local_client.database_parser.region.lower()
-
-        response = requests.get('https://www.blizzard.com/en-us/user', timeout=10)
-        assert response.status_code == 200
-        return response.json()['region'].lower()
-    except Exception as e:
-        logger.error('%s', e)
-        return ""
-
-
-class BattleNetClient():
-    def __init__(self, plugin):
-        self._plugin = plugin
-        self.user_details = None
-        self._region = None
-        self.session = None
-        self.creds = None
-        self.timeout = 40.0
-        self.attempted_to_set_battle_tag = None
-        self.auth_data = {}
-
-    def is_authenticated(self):
-        return self.session is not None
-
-    def shutdown(self):
-        if self.session:
-            self.session.close()
-            self.session = None
-
-    def process_stored_credentials(self, stored_credentials):
-        auth_data = {
-            "cookie_jar": pickle.loads(bytes.fromhex(stored_credentials['cookie_jar'])),
-            "access_token": stored_credentials['access_token'],
-            "region": stored_credentials['region'] if 'region' in stored_credentials else 'eu'
-        }
-
-        # set default user_details data from cache
-        if 'user_details_cache' in stored_credentials:
-            self.user_details = stored_credentials['user_details_cache']
-            self.auth_data = auth_data
-        return auth_data
-
-    def get_auth_data_login(self, cookie_jar, credentials):
-        code = parse_qs(urlparse(credentials['end_uri']).query)["code"][0]
-
-        s = requests.Session()
-        url = f"{self.blizzard_oauth_url}/token"
-        data = {
-            "grant_type": "authorization_code",
-            "redirect_uri": REDIRECT_URI,
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "code": code
-        }
-        response = s.post(url, data=data)
-        response.raise_for_status()
-        result = response.json()
-        access_token = result["access_token"]
-        self.auth_data = {"cookie_jar": cookie_jar, "access_token": access_token, "region": self.region}
-        return self.auth_data
-
-    # NOTE: use user data to present usertag/name to Galaxy, if this token expires and plugin cannot refresh it
-    # use stored usertag/name if token validation fails, this is temporary solution, as we do not need that
-    # endpoint for nothing else at this moment
-    def validate_auth_status(self, auth_status):
-        if 'error' in auth_status:
-            if not self.user_details:
-                raise InvalidCredentials()
-            return False
-        if not self.user_details:
-            raise InvalidCredentials()
-        if not ("authorities" in auth_status and "IS_AUTHENTICATED_FULLY" in auth_status["authorities"]):
-            raise InvalidCredentials()
-        return True
-
-    def parse_user_details(self):
-        if 'battletag' in self.user_details and 'id' in self.user_details:
-            return (self.user_details["id"], self.user_details["battletag"])
-        raise InvalidCredentials()
-
-    def authenticate_using_login(self):
-        _URI = (
-            f'{self.blizzard_oauth_url}/authorize?response_type=code&'
-            f'client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&scope=wow.profile+sc2.profile'
-        )
-        return {
-            "window_title": "Login to Battle.net",
-            "window_width": 540,
-            "window_height": 700,
-            "start_uri": _URI,
-            "end_uri_regex": r"(.*logout&app=oauth.*)|(^http://friendsofgalaxy\.com.*)"
-        }
-
-    def parse_auth_after_setting_battletag(self):
-        self.creds["user_details_cache"] = self.user_details
-        try:
-            battletag = self.user_details["battletag"]
-        except KeyError as ex:
-            raise InvalidCredentials() from ex
-        self._plugin.store_credentials(self.creds)
-        return (self.user_details["id"], battletag)
-
-    def parse_cookies(self, cookies):
-        if not self.region:
-            self.region = _found_region(cookies)
-        new_cookies = {cookie["name"]: cookie["value"] for cookie in cookies}
-        return requests.cookies.cookiejar_from_dict(new_cookies)
-
-    def set_credentials(self):
-        self.creds = {
-            "cookie_jar": pickle.dumps(self.auth_data["cookie_jar"]).hex(),
-            "access_token": self.auth_data["access_token"],
-            "user_details_cache": self.user_details,
-            "region": self.auth_data["region"]
-        }
-
-    def parse_battletag(self):
-        try:
-            battletag = self.user_details["battletag"]
-        except KeyError:
-            st_parameter = requests.utils.dict_from_cookiejar(self.auth_data["cookie_jar"])["BA-tassadar"]
-            start_uri = f'{self.blizzard_battlenet_login_url}/flow/' \
-                f'app.app?step=login&ST={st_parameter}&app=app&cr=true'
-            auth_params = {
-                "window_title": "Login to Battle.net",
-                "window_width": 540,
-                "window_height": 700,
-                "start_uri": start_uri,
-                "end_uri_regex": r".*accountName.*"
-            }
-            self.attempted_to_set_battle_tag = True
-            return auth_params
-
-        self._plugin.store_credentials(self.creds)
-        return (self.user_details["id"], battletag)
-
-    async def create_session(self):
-        self.session = requests.Session()
-        self.session.cookies = self.auth_data["cookie_jar"]
-        self.region = self.auth_data["region"]
-        self.session.max_redirects = 300
-        self.session.headers = {
-            "Authorization": f"Bearer {self.auth_data['access_token']}",
-            "User-Agent": USER_AGENT
-        }
-
-    def refresh_credentials(self):
-        creds = {
-            "cookie_jar": pickle.dumps(self.session.cookies).hex(),
-            "access_token": self.auth_data["access_token"],
-            "region": self.auth_data["region"],
-            "user_details_cache": self.user_details
-        }
-        self._plugin.store_credentials(creds)
-
-    @property
-    def region(self):
-        if self._region is None:
-            self._region = guess_region(self._plugin.local_client)
-        return self._region
-
-    @region.setter
-    def region(self, value):
-        self._region = value
-
-    @property
-    def blizzard_accounts_url(self):
-        if self.region == 'cn':
-            return "https://account.blizzardgames.cn"
-        return f"https://{self.region}.account.blizzard.com"
-
-    @property
-    def blizzard_oauth_url(self):
-        if self.region == 'cn':
-            return "https://www.battlenet.com.cn/oauth"
-        return f"https://{self.region}.battle.net/oauth"
-
-    @property
-    def blizzard_api_url(self):
-        if self.region == 'cn':
-            return "https://gateway.battlenet.com.cn"
-        return f"https://{self.region}.api.blizzard.com"
-
-    @property
-    def blizzard_battlenet_download_url(self):
-        if self.region == 'cn':
-            return "https://cn.blizzard.com/zh-cn/apps/battle.net/desktop"
-        return "https://www.blizzard.com/apps/battle.net/desktop"
-
-    @property
-    def blizzard_battlenet_login_url(self):
-        if self.region == 'cn':
-            return 'https://www.battlenet.com.cn/login/zh'
-        return f'https://{self.region}.battle.net/login/en'
-
-
-class BattleNetService(OnlineService):
+class BattleNetService(BaseService):
     """Service class for Battle.net"""
 
     id = "battlenet"
     name = _("Battle.net")
     icon = "battlenet"
-    medias = {}
+    runner = "wine"
+    medias = {
+        "coverart": BattleNetCover
+    }
+    default_format = "coverart"
+    client_installer = "battlenet"
+    cookies_path = os.path.join(settings.CACHE_DIR, ".bnet.auth")
+    cache_path = os.path.join(settings.CACHE_DIR, "bnet-library.json")
+    redirect_uri = "https://lutris.net"
+
+    @property
+    def battlenet_config_path(self):
+        return ""
+
+    def load(self):
+        games = [BattleNetGame.create(game) for game in GAME_IDS.values()]
+        for game in games:
+            game.save()
+        return games
+
+    def add_installed_games(self):
+        """Scan an existing EGS install for games"""
+        bnet_game = get_game_by_field(self.client_installer, "slug")
+        if not bnet_game:
+            logger.error("Battle.net is not installed in Lutris")
+            return
+        bnet_prefix = bnet_game["directory"].split("drive_c")[0]
+        parser = BlizzardProductDbParser(bnet_prefix)
+        for game in parser.games:
+            self.install_from_battlenet(bnet_game, game)
+
+    def install_from_battlenet(self, bnet_game, game):
+        app_id = game.ngdp
+        logger.debug("Installing Battle.net game %s", app_id)
+        service_game = ServiceGameCollection.get_game("battlenet", app_id)
+        if not service_game:
+            logger.error("Aborting install, %s is not present in the game library.", app_id)
+            return
+        lutris_game_id = service_game["slug"] + "-" + self.id
+        existing_game = get_game_by_field(lutris_game_id, "installer_slug")
+        if existing_game:
+            return
+        game_config = LutrisConfig(game_config_id=bnet_game["configpath"]).game_level
+        game_config["game"]["args"] = '--exec="launch %s"' % game.ngdp
+        configpath = write_game_config(lutris_game_id, game_config)
+        game_id = add_game(
+            name=service_game["name"],
+            runner=bnet_game["runner"],
+            slug=service_game["slug"],
+            directory=bnet_game["directory"],
+            installed=1,
+            installer_slug=lutris_game_id,
+            configpath=configpath,
+            service=self.id,
+            service_id=app_id,
+            platform="Windows"
+        )
+        return game_id
+
+    def generate_installer(self, db_game, egs_db_game):
+        egs_game = Game(egs_db_game["id"])
+        egs_exe = egs_game.config.game_config["exe"]
+        if not os.path.isabs(egs_exe):
+            egs_exe = os.path.join(egs_game.config.game_config["prefix"], egs_exe)
+        return {
+            "name": db_game["name"],
+            "version": self.name,
+            "slug": db_game["slug"] + "-" + self.id,
+            "game_slug": db_game["slug"],
+            "runner": self.runner,
+            "appid": db_game["appid"],
+            "script": {
+                "requires": self.client_installer,
+                "game": {
+                    "args": '--exec="launch %s"' % db_game["appid"],
+                },
+                "installer": [
+                    {"task": {
+                        "name": "wineexec",
+                        "executable": egs_exe,
+                        "args": '--exec="install %s"' % db_game["appid"],
+                        "prefix": egs_game.config.game_config["prefix"],
+                        "description": (
+                            "Battle.net will now open. Please launch "
+                            "the installation of %s then close Battle.net "
+                            "once the game has been downloaded." % db_game["name"]
+                        )
+                    }}
+                ]
+            }
+        }
+
+    def install(self, db_game):
+        bnet_game = get_game_by_field(self.client_installer, "slug")
+        application = Gio.Application.get_default()
+        application.show_installer_window(
+            [self.generate_installer(db_game, bnet_game)],
+            service=self,
+            appid=db_game["appid"]
+        )
+
+
+class BlizzardProductDbParser:
+    # Adapted from DatabaseParser in https://github.com/bartok765/galaxy_blizzard_plugin
+    NOT_GAMES = ('bna', 'agent')
+    PRODUCT_DB_PATH = "/drive_c/ProgramData/Battle.net/Agent/product.db"
+
+    def __init__(self, prefix_path):
+        self.data = self.load_product_db(prefix_path + self.PRODUCT_DB_PATH)
+        self.products = {}
+        self._region = ''
+        self.parse()
+
+    @property
+    def region(self):
+        return self._region
+
+    @staticmethod
+    def load_product_db(product_db_path):
+        with open(product_db_path, 'rb') as f:
+            pdb = f.read()
+        return pdb
+
+    @property
+    def games(self):
+        if self.products:
+            return [v for k, v in self.products.items() if k not in self.NOT_GAMES]
+        return []
+
+    def parse(self):
+        self.products = {}
+        database = ProductDb()
+        database.ParseFromString(self.data)
+
+        for product_install in database.product_installs:  # pylint: disable=no-member
+            # process region
+            if product_install.product_code in ['agent',
+                                                'bna'] and not self.region:
+                self._region = product_install.settings.play_region
+
+            ngdp_code = product_install.product_code
+            uninstall_tag = product_install.uid
+            install_path = product_install.settings.install_path
+            playable = product_install.cached_product_state.base_product_state.playable
+            version = product_install.cached_product_state.base_product_state.current_version_str
+            installed = product_install.cached_product_state.base_product_state.installed
+
+            self.products[ngdp_code] = ProductDbInfo(
+                uninstall_tag, ngdp_code, install_path, version, playable, installed
+            )

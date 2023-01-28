@@ -565,8 +565,6 @@ class MoveDialog(ModelessDialog):
         self.destroy()
 
 
-
-
 class HumbleBundleCookiesDialog(ModalDialog):
     def __init__(self, parent=None):
         super().__init__(_("Humble Bundle Cookie Authentication"), parent)
