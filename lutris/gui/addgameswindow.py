@@ -140,12 +140,15 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
         self.load_initial_page()
 
+    @watch_errors()
     def on_back_clicked(self, _widget):
         self.stack.navigate_back()
 
+    @watch_errors()
     def on_navigate_home(self, _accel_group, _window, _keyval, _modifier):
         self.stack.navigate_home()
 
+    @watch_errors()
     def on_cancel_clicked(self, _widget):
         self.destroy()
 
@@ -321,6 +324,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.present_page("scan_folder")
         self.display_continue_button(self.on_continue_scan_folder_clicked)
 
+    @watch_errors()
     def on_continue_scan_folder_clicked(self, _widget):
         path = self.scan_directory_chooser.get_text()
         if not path:
@@ -523,6 +527,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.present_page("install_from_script")
         self.display_continue_button(self.on_continue_install_from_script_clicked, label=_("_Install"))
 
+    @watch_errors()
     def on_continue_install_from_script_clicked(self, _widget):
         path = self.install_script_file_chooser.get_text()
         if not path:
@@ -564,6 +569,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.stack.present_page("import_rom")
         self.display_continue_button(self.on_continue_import_rom_clicked, label=_("_Install"))
 
+    @watch_errors()
     def on_continue_import_rom_clicked(self, _widget):
         path = self.import_rom_file_chooser.get_text()
         if not path:
