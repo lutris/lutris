@@ -91,7 +91,7 @@ class ImportGameDialog(ModalDialog):
                 md5 = get_md5_hash(filename)
             self.file_hashes[filename] = md5
             self.files_by_hash[md5] = filename
-            self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Looking up checkum on Lutris.net..."))
+            self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Looking up checksum on Lutris.net..."))
             result = search_tosec_by_md5(md5)
             if not result:
                 result = [{"name": "Not found", "category": {"name": ""}, "roms": [{"md5": md5}]}]
