@@ -66,6 +66,14 @@ class InstallerFile:
             return self._file_meta.get("referer")
 
     @property
+    def downloader(self):
+        if isinstance(self._file_meta, dict):
+            dl = self._file_meta.get("downloader")
+            if dl and not dl.dest:
+                dl.dest = self.dest_file
+            return dl
+
+    @property
     def checksum(self):
         if isinstance(self._file_meta, dict):
             return self._file_meta.get("checksum")

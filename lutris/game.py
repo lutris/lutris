@@ -176,7 +176,7 @@ class Game(GObject.Object):
     @property
     def is_updatable(self):
         """Return whether the game can be upgraded"""
-        return self.service == "gog"
+        return self.service in ["gog", "itchio"]
 
     @property
     def is_favorite(self):

@@ -32,9 +32,10 @@ class Downloader:
         COMPLETED
     ) = list(range(5))
 
-    def __init__(self, url, dest, overwrite=False, referer=None):
+    def __init__(self, url, dest, overwrite=False, referer=None, cookies=None):
         self.url = url
         self.dest = dest
+        self.cookies = cookies
         self.overwrite = overwrite
         self.referer = referer
         self.stop_request = None
@@ -137,7 +138,7 @@ class Downloader:
             headers["User-Agent"] = "Lutris/%s" % __version__
             if self.referer:
                 headers["Referer"] = self.referer
-            response = requests.get(self.url, headers=headers, stream=True, timeout=30)
+            response = requests.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
             if response.status_code != 200:
                 logger.info("%s returned a %s error", self.url, response.status_code)
             response.raise_for_status()

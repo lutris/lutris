@@ -31,6 +31,7 @@ def get_services():
         "gog": GOGService,
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
+        "itchio": ItchIoService,
         "origin": OriginService,
         "ubisoft": UbisoftConnectService,
         "amazon": AmazonService,
@@ -52,7 +53,6 @@ SERVICES = get_services()
 # Those services are not yet ready to be used
 WIP_SERVICES = {
     "battlenet": BattleNetService,
-    "itchio": ItchIoService,
     "mame": MAMEService,
     "flathub": FlathubService
 }

@@ -57,6 +57,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return SERVICES["humblebundle"]()
         if "gog" in version and "gog" in SERVICES:
             return SERVICES["gog"]()
+        if "itch.io" in version and "itchio" in SERVICES:
+            return SERVICES["itchio"]()
 
     def get_appid(self, installer, initial=None):
         if installer.get("is_dlc"):
@@ -65,13 +67,19 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return initial
         if not self.service:
             return
+        service_id = None
         if self.service.id == "steam":
-            return installer.get("steamid") or installer.get("service_id")
+            service_id = installer.get("steamid") or installer.get("service_id")
         game_config = self.script.get("game", {})
         if self.service.id == "gog":
-            return game_config.get("gogid") or installer.get("gogid") or installer.get("service_id")
+            service_id = game_config.get("gogid") or installer.get("gogid") or installer.get("service_id")
         if self.service.id == "humblebundle":
-            return game_config.get("humbleid") or installer.get("humblestoreid") or installer.get("service_id")
+            service_id = game_config.get("humbleid") or installer.get("humblestoreid") or installer.get("service_id")
+        if self.service.id == "itchio":
+            service_id = game_config.get("itchid") or installer.get("itchid") or installer.get("service_id")
+        if service_id:
+            return service_id
+        return
 
     @property
     def script_pretty(self):
