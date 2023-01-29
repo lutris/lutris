@@ -31,20 +31,24 @@ class ImportGameDialog(ModalDialog):
         self.file_hashes = {}
         self.files_by_hash = {}
         self.platform = None
-        self.set_size_request(480, 220)
-        self.get_content_area().add(self.get_file_labels_listbox(files))
+        self.set_size_request(480, 240)
+        self.get_content_area().add(Gtk.Frame(
+            shadow_type=Gtk.ShadowType.ETCHED_IN,
+            child=self.get_file_labels_listbox(files)
+        ))
         self.auto_launch_button = Gtk.CheckButton(_("Launch game"), visible=True, active=True)
         self.get_content_area().add(self.auto_launch_button)
         self.show_all()
         AsyncCall(self.search_checksums, self.search_result_finished)
 
     def get_file_labels_listbox(self, files):
-        listbox = Gtk.ListBox()
+        listbox = Gtk.ListBox(vexpand=True)
         listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         for file_path in files:
             row = Gtk.ListBoxRow()
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             vbox.set_margin_left(12)
+            vbox.set_margin_right(12)
 
             description_label = Gtk.Label(halign=Gtk.Align.START)
             vbox.pack_start(description_label, True, True, 5)
