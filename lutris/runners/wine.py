@@ -921,7 +921,8 @@ class wine(Runner):
 
         # Proton support
         if "Proton" in self.get_version():
-            env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = get_steam_dir()
+            if get_steam_dir() is not None:  # May be None for example if Proton-GE is used but Steam is not installed
+                env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = get_steam_dir()
             env["STEAM_COMPAT_DATA_PATH"] = self.prefix_path
             env["STEAM_COMPAT_APP_ID"] = '0'
             env["SteamAppId"] = '0'
