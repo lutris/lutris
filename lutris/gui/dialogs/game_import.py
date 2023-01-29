@@ -12,7 +12,7 @@ from lutris.scanners.tosec import clean_rom_name, guess_platform, search_tosec_b
 from lutris.services.lutris import download_lutris_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.strings import slugify
+from lutris.util.strings import slugify, gtk_safe
 from lutris.util.system import get_md5_hash, get_md5_in_zip
 
 
@@ -27,17 +27,18 @@ class ImportGameDialog(ModalDialog):
         self.checksum_labels = {}
         self.description_labels = {}
         self.category_labels = {}
+        self.error_labels = {}
         self.file_hashes = {}
         self.files_by_hash = {}
         self.platform = None
         self.set_size_request(480, 220)
-        self.get_content_area().add(self.add_file_labels(files))
+        self.get_content_area().add(self.get_file_labels_listbox(files))
         self.auto_launch_button = Gtk.CheckButton(_("Launch game"), visible=True, active=True)
         self.get_content_area().add(self.auto_launch_button)
         self.show_all()
         AsyncCall(self.search_checksums, self.search_result_finished)
 
-    def add_file_labels(self, files):
+    def get_file_labels_listbox(self, files):
         listbox = Gtk.ListBox()
         listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         for file_path in files:
@@ -45,25 +46,27 @@ class ImportGameDialog(ModalDialog):
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             vbox.set_margin_left(12)
 
-            description_label = Gtk.Label("")
-            description_label.set_halign(Gtk.Align.START)
+            description_label = Gtk.Label(halign=Gtk.Align.START)
             vbox.pack_start(description_label, True, True, 5)
             self.description_labels[file_path] = description_label
 
-            label = Gtk.Label(file_path)
-            label.set_halign(Gtk.Align.START)
-            vbox.pack_start(label, True, True, 5)
+            file_path_label = Gtk.Label(file_path, halign=Gtk.Align.START, xalign=0)
+            file_path_label.set_line_wrap(True)
+            vbox.pack_start(file_path_label, True, True, 5)
 
-            checksum_label = Gtk.Label("")
+            checksum_label = Gtk.Label(halign=Gtk.Align.START)
             checksum_label.set_markup("<i>%s</i>" % _("Looking for installed game..."))
-            checksum_label.set_halign(Gtk.Align.START)
             vbox.pack_start(checksum_label, True, True, 5)
             self.checksum_labels[file_path] = checksum_label
 
-            category_label = Gtk.Label("")
-            category_label.set_halign(Gtk.Align.START)
+            category_label = Gtk.Label(halign=Gtk.Align.START)
             vbox.pack_start(category_label, True, True, 5)
             self.category_labels[file_path] = category_label
+
+            error_label = Gtk.Label(no_show_all=True, halign=Gtk.Align.START, xalign=0)
+            error_label.set_line_wrap(True)
+            vbox.pack_start(error_label, True, True, 5)
+            self.error_labels[file_path] = error_label
 
             row.add(vbox)
             listbox.add(row)
@@ -128,16 +131,20 @@ class ImportGameDialog(ModalDialog):
             for rom_set in result:
                 for rom in rom_set["roms"]:
                     if rom["md5"] in self.files_by_hash:
-                        self.display_game_info(rom_set, rom)
-                        if self.platform:
-                            filename = self.files_by_hash[rom["md5"]]
+                        filename = self.files_by_hash[rom["md5"]]
+                        try:
+                            self.display_game_info(rom_set, rom)
                             game_id = self.add_game(rom_set, filename)
                             game = Game(game_id)
                             game.emit("game-installed")
                             self.game_launch(game)
-                        else:
-                            logger.warning("Platform not found")
-                        return
+                            return
+                        except Exception as ex:
+                            logger.exception(_("Failed to import a ROM: %s"), ex)
+                            error_label = self.error_labels[filename]
+                            error_label.set_markup(
+                                "<span style=\"italic\" foreground=\"red\">%s</span>" % gtk_safe(str(ex)))
+                            error_label.show()
 
     def display_game_info(self, rom_set, rom):
         filename = self.files_by_hash[rom["md5"]]
@@ -150,10 +157,19 @@ class ImportGameDialog(ModalDialog):
         label.set_text(category)
         self.platform = guess_platform(rom_set)
 
+        if not self.platform:
+            raise RuntimeError(_("The platform '%s' is unknown to Lutris.") % category)
+
     def add_game(self, game, filepath):
         name = clean_rom_name(game["name"])
         logger.info("Installing %s", name)
-        installer = deepcopy(DEFAULT_INSTALLERS[self.platform])
+
+        try:
+            installer = deepcopy(DEFAULT_INSTALLERS[self.platform])
+        except KeyError as error:
+            raise RuntimeError(
+                _("Lutris does not have a default installer for the '%s' platform.") % self.platform) from error
+
         for key, value in installer["game"].items():
             if value == "rom":
                 installer["game"][key] = filepath

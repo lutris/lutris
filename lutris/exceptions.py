@@ -37,7 +37,7 @@ class AuthenticationError(Exception):
 
 
 class UnavailableGameError(Exception):
-    """Raised when a game is available from a service"""
+    """Raised when a game is unavailable from a service"""
 
 
 class UnavailableRunnerError(Exception):
