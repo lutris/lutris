@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from copy import deepcopy
 from gettext import gettext as _
 
@@ -103,7 +104,7 @@ class ImportGameDialog(ModalDialog):
             # this will do it on the GUI main thread instead.
             GLib.idle_add(lambda: self.progress_labels[filepath].set_markup("<i>%s</i>" % gtk_safe(message)))
 
-        results = []
+        results = OrderedDict()  # must preserve order, on any Python version
         for filename in self.files:
             try:
                 show_progress(filename, _("Looking for installed game..."))
@@ -127,9 +128,7 @@ class ImportGameDialog(ModalDialog):
             finally:
                 show_progress(filename, "")
 
-            for r in result:
-                r["filename"] = filename
-            results.append(result)
+            results[filename] = result
         return results
 
     def search_result_finished(self, results, error):
@@ -139,15 +138,14 @@ class ImportGameDialog(ModalDialog):
 
         # If any selected game is already installed we will launch it
         # and install nothing
-        for result in results:
+        for result in results.values():
             for rom_set in result:
                 if "game" in rom_set:
                     self.game_launch(rom_set["game"])
                     return
 
-        for result in results:
+        for filename, result in results.items():
             for rom_set in result:
-                filename = rom_set["filename"]
                 try:
                     self.progress_labels[filename].hide()
 
