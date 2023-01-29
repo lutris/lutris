@@ -77,24 +77,37 @@ class ImportGameDialog(ModalDialog):
             logger.debug('Game not launched')
 
     def search_checksums(self):
-        game_id = self.find_game(self.files[0])
-        if game_id:
-            self.game_launch(Game(game_id))
-            return []
+        all_games = get_games()
+
+        def find_game(filepath):
+            for db_game in all_games:
+                g = Game(db_game["id"])
+                if not g.config:
+                    continue
+                for _key, value in g.config.game_config.items():
+                    if value == filepath:
+                        logger.debug("Found %s", g)
+                        return g
 
         results = []
         for filename in self.files:
-            self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Calculating checksum..."))
-            if filename.lower().endswith(".zip"):
-                md5 = get_md5_in_zip(filename)
+            game = find_game(self.files[0])
+            if game:
+                # Found a game to launch instead of installing, but we can't safely
+                # do this on this thread.
+                result = [{"name": game.name, "game": game}]
             else:
-                md5 = get_md5_hash(filename)
-            self.file_hashes[filename] = md5
-            self.files_by_hash[md5] = filename
-            self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Looking up checksum on Lutris.net..."))
-            result = search_tosec_by_md5(md5)
-            if not result:
-                result = [{"name": "Not found", "category": {"name": ""}, "roms": [{"md5": md5}]}]
+                self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Calculating checksum..."))
+                if filename.lower().endswith(".zip"):
+                    md5 = get_md5_in_zip(filename)
+                else:
+                    md5 = get_md5_hash(filename)
+                self.file_hashes[filename] = md5
+                self.files_by_hash[md5] = filename
+                self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Looking up checksum on Lutris.net..."))
+                result = search_tosec_by_md5(md5)
+                if not result:
+                    result = [{"name": "Not found", "category": {"name": ""}, "roms": [{"md5": md5}]}]
             results.append(result)
         return results
 
@@ -102,14 +115,23 @@ class ImportGameDialog(ModalDialog):
         if error:
             logger.error(error)
             return
+
+        # If any selected game is already installed we will launch it
+        # and install nothing
         for result in results:
-            for game in result:
-                for rom in game["roms"]:
+            for rom_set in result:
+                if "game" in rom_set:
+                    self.game_launch(rom_set["game"])
+                    return
+
+        for result in results:
+            for rom_set in result:
+                for rom in rom_set["roms"]:
                     if rom["md5"] in self.files_by_hash:
-                        self.display_game_info(game, rom)
+                        self.display_game_info(rom_set, rom)
                         if self.platform:
                             filename = self.files_by_hash[rom["md5"]]
-                            game_id = self.add_game(game, filename)
+                            game_id = self.add_game(rom_set, filename)
                             game = Game(game_id)
                             game.emit("game-installed")
                             self.game_launch(game)
@@ -117,16 +139,16 @@ class ImportGameDialog(ModalDialog):
                             logger.warning("Platform not found")
                         return
 
-    def display_game_info(self, game, rom):
+    def display_game_info(self, rom_set, rom):
         filename = self.files_by_hash[rom["md5"]]
         label = self.checksum_labels[filename]
         label.set_text(rom["md5"])
         label = self.description_labels[filename]
-        label.set_markup("<b>%s</b>" % game["name"])
-        category = game["category"]["name"]
+        label.set_markup("<b>%s</b>" % rom_set["name"])
+        category = rom_set["category"]["name"]
         label = self.category_labels[filename]
         label.set_text(category)
-        self.platform = guess_platform(game)
+        self.platform = guess_platform(rom_set)
 
     def add_game(self, game, filepath):
         name = clean_rom_name(game["name"])
@@ -148,13 +170,3 @@ class ImportGameDialog(ModalDialog):
         )
         download_lutris_media(slug)
         return game_id
-
-    def find_game(self, filepath):
-        for game in get_games():
-            g = Game(game["id"])
-            if not g.config:
-                continue
-            for _key, value in g.config.game_config.items():
-                if value == filepath:
-                    logger.debug("Found %s", g)
-                    return g.id
