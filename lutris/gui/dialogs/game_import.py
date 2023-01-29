@@ -28,8 +28,6 @@ class ImportGameDialog(ModalDialog):
         self.description_labels = {}
         self.category_labels = {}
         self.error_labels = {}
-        self.file_hashes = {}
-        self.files_by_hash = {}
         self.platform = None
         self.set_size_request(480, 240)
         self.get_content_area().add(Gtk.Frame(
@@ -98,23 +96,26 @@ class ImportGameDialog(ModalDialog):
 
         results = []
         for filename in self.files:
-            game = find_game(self.files[0])
-            if game:
-                # Found a game to launch instead of installing, but we can't safely
-                # do this on this thread.
-                result = [{"name": game.name, "game": game}]
-            else:
-                self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Calculating checksum..."))
-                if filename.lower().endswith(".zip"):
-                    md5 = get_md5_in_zip(filename)
+            try:
+                game = find_game(self.files[0])
+                if game:
+                    # Found a game to launch instead of installing, but we can't safely
+                    # do this on this thread.
+                    result = [{"name": game.name, "game": game, "roms": []}]
                 else:
-                    md5 = get_md5_hash(filename)
-                self.file_hashes[filename] = md5
-                self.files_by_hash[md5] = filename
-                self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Looking up checksum on Lutris.net..."))
-                result = search_tosec_by_md5(md5)
-                if not result:
-                    result = [{"name": "Not found", "category": {"name": ""}, "roms": [{"md5": md5}]}]
+                    self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Calculating checksum..."))
+                    if filename.lower().endswith(".zip"):
+                        md5 = get_md5_in_zip(filename)
+                    else:
+                        md5 = get_md5_hash(filename)
+                    self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Looking up checksum on Lutris.net..."))
+                    result = search_tosec_by_md5(md5)
+                    if not result:
+                        raise RuntimeError(_("This ROM could not be identified."))
+            except Exception as error:
+                result = [{"error": error, "roms": []}]
+            for r in result:
+                r["filename"] = filename
             results.append(result)
         return results
 
@@ -133,25 +134,26 @@ class ImportGameDialog(ModalDialog):
 
         for result in results:
             for rom_set in result:
-                for rom in rom_set["roms"]:
-                    if rom["md5"] in self.files_by_hash:
-                        filename = self.files_by_hash[rom["md5"]]
-                        try:
-                            self.display_game_info(rom_set, rom)
-                            game_id = self.add_game(rom_set, filename)
-                            game = Game(game_id)
-                            game.emit("game-installed")
-                            self.game_launch(game)
-                            return
-                        except Exception as ex:
-                            logger.exception(_("Failed to import a ROM: %s"), ex)
-                            error_label = self.error_labels[filename]
-                            error_label.set_markup(
-                                "<span style=\"italic\" foreground=\"red\">%s</span>" % gtk_safe(str(ex)))
-                            error_label.show()
+                filename = rom_set["filename"]
+                try:
+                    if "error" in rom_set:
+                        raise rom_set["error"]
 
-    def display_game_info(self, rom_set, rom):
-        filename = self.files_by_hash[rom["md5"]]
+                    for rom in rom_set["roms"]:
+                        self.display_game_info(filename, rom_set, rom)
+                        game_id = self.add_game(rom_set, filename)
+                        game = Game(game_id)
+                        game.emit("game-installed")
+                        self.game_launch(game)
+                        return
+                except Exception as ex:
+                    logger.exception(_("Failed to import a ROM: %s"), ex)
+                    error_label = self.error_labels[filename]
+                    error_label.set_markup(
+                        "<span style=\"italic\" foreground=\"red\">%s</span>" % gtk_safe(str(ex)))
+                    error_label.show()
+
+    def display_game_info(self, filename, rom_set, rom):
         label = self.checksum_labels[filename]
         label.set_text(rom["md5"])
         label = self.description_labels[filename]
