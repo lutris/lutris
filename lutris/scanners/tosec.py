@@ -22,6 +22,7 @@ PLATFORM_PATTERNS = {
     "ColecoVision": "colecovision",
     "Atari 8bit": "atari800",
     "Atari - 8-bit": "atari800",
+    "Atari 2600": "atari2600",
     "Atari - 2600": "atari2600",
     "Atari Lynx": "lynx",
     "Atari ST": "atari-st",
