@@ -1,7 +1,7 @@
 from copy import deepcopy
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GLib
 
 from lutris.config import write_game_config
 from lutris.database.games import add_game, get_games
@@ -24,6 +24,7 @@ class ImportGameDialog(ModalDialog):
             border_width=10
         )
         self.files = files
+        self.progress_labels = {}
         self.checksum_labels = {}
         self.description_labels = {}
         self.category_labels = {}
@@ -56,12 +57,15 @@ class ImportGameDialog(ModalDialog):
             file_path_label.set_line_wrap(True)
             vbox.pack_start(file_path_label, True, True, 5)
 
-            checksum_label = Gtk.Label(halign=Gtk.Align.START)
-            checksum_label.set_markup("<i>%s</i>" % _("Looking for installed game..."))
+            progress_label = Gtk.Label(halign=Gtk.Align.START)
+            vbox.pack_start(progress_label, True, True, 5)
+            self.progress_labels[file_path] = progress_label
+
+            checksum_label = Gtk.Label(no_show_all=True, halign=Gtk.Align.START)
             vbox.pack_start(checksum_label, True, True, 5)
             self.checksum_labels[file_path] = checksum_label
 
-            category_label = Gtk.Label(halign=Gtk.Align.START)
+            category_label = Gtk.Label(no_show_all=True, halign=Gtk.Align.START)
             vbox.pack_start(category_label, True, True, 5)
             self.category_labels[file_path] = category_label
 
@@ -94,26 +98,35 @@ class ImportGameDialog(ModalDialog):
                         logger.debug("Found %s", g)
                         return g
 
+        def show_progress(filepath, message):
+            # It's not safe to directly update labels from a worker thread, so
+            # this will do it on the GUI main thread instead.
+            GLib.idle_add(lambda: self.progress_labels[filepath].set_markup("<i>%s</i>" % gtk_safe(message)))
+
         results = []
         for filename in self.files:
             try:
-                game = find_game(self.files[0])
+                show_progress(filename, _("Looking for installed game..."))
+                game = find_game(filename)
                 if game:
                     # Found a game to launch instead of installing, but we can't safely
                     # do this on this thread.
                     result = [{"name": game.name, "game": game, "roms": []}]
                 else:
-                    self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Calculating checksum..."))
+                    show_progress(filename, _("Calculating checksum..."))
                     if filename.lower().endswith(".zip"):
                         md5 = get_md5_in_zip(filename)
                     else:
                         md5 = get_md5_hash(filename)
-                    self.checksum_labels[filename].set_markup("<i>%s</i>" % _("Looking up checksum on Lutris.net..."))
+                    show_progress(filename, _("Looking up checksum on Lutris.net..."))
                     result = search_tosec_by_md5(md5)
                     if not result:
                         raise RuntimeError(_("This ROM could not be identified."))
             except Exception as error:
                 result = [{"error": error, "roms": []}]
+            finally:
+                show_progress(filename, "")
+
             for r in result:
                 r["filename"] = filename
             results.append(result)
@@ -136,6 +149,8 @@ class ImportGameDialog(ModalDialog):
             for rom_set in result:
                 filename = rom_set["filename"]
                 try:
+                    self.progress_labels[filename].hide()
+
                     if "error" in rom_set:
                         raise rom_set["error"]
 
@@ -156,11 +171,13 @@ class ImportGameDialog(ModalDialog):
     def display_game_info(self, filename, rom_set, rom):
         label = self.checksum_labels[filename]
         label.set_text(rom["md5"])
+        label.show()
         label = self.description_labels[filename]
         label.set_markup("<b>%s</b>" % rom_set["name"])
         category = rom_set["category"]["name"]
         label = self.category_labels[filename]
         label.set_text(category)
+        label.show()
         self.platform = guess_platform(rom_set)
 
         if not self.platform:
