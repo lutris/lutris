@@ -17,6 +17,7 @@ from lutris.game import Game
 from lutris.gui.dialogs import DontShowAgainDialog
 from lutris.runners.json import load_json_runners
 from lutris.runtime import RuntimeUpdater
+from lutris.scanners.lutris import build_path_cache
 from lutris.services import DEFAULT_SERVICES
 from lutris.services.lutris import sync_media
 from lutris.util.graphics import drivers, vkquery
@@ -202,6 +203,7 @@ def init_lutris():
         if not settings.read_setting(service, section="services"):
             settings.write_setting(service, True, section="services")
     cleanup_games()
+    build_path_cache()
 
 
 class StartupRuntimeUpdater(RuntimeUpdater):

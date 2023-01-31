@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from lutris import runners
 from lutris.gui.application import Application
-from lutris.gui.config.add_game import AddGameDialog
+from lutris.gui.config.add_game_dialog import AddGameDialog
 # from lutris import settings
 from lutris.gui.config.common import GameDialogCommon
 from lutris.gui.views.store import sort_func

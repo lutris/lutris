@@ -27,6 +27,7 @@ from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.scanners.lutris import remove_from_path_cache
 # pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
@@ -132,7 +133,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
-        GObject.add_emission_hook(Game, "game-removed", self.on_game_collection_changed)
+        GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
         GObject.add_emission_hook(Game, "game-unhandled_error", self.on_game_unhandled_error)
 
     def _init_actions(self):
@@ -874,9 +875,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
             self.game_store.remove_game(game.id)
         return True
 
-    def on_game_collection_changed(self, _sender):
+    def on_game_removed(self, game):
         """Simple method used to refresh the view"""
+        remove_from_path_cache(game)
         self.emit("view-updated")
+
         return True
 
     @watch_errors()

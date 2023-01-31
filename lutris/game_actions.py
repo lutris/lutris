@@ -12,7 +12,7 @@ from lutris.config import duplicate_game_config
 from lutris.database.games import add_game, get_game_by_field, get_unusued_game_name
 from lutris.game import Game
 from lutris.gui import dialogs
-from lutris.gui.config.add_game import AddGameDialog
+from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.dialogs.log import LogWindow

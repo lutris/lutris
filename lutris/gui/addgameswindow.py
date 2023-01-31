@@ -5,7 +5,7 @@ from gi.repository import Gio, GLib, Gtk
 
 from lutris import api
 from lutris.exceptions import watch_errors
-from lutris.gui.config.add_game import AddGameDialog
+from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.widgets.common import FileChooserEntry

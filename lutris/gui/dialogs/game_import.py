@@ -2,18 +2,19 @@ from collections import OrderedDict
 from copy import deepcopy
 from gettext import gettext as _
 
-from gi.repository import Gtk, GLib
+from gi.repository import GLib, Gtk
 
 from lutris.config import write_game_config
-from lutris.database.games import add_game, get_games
+from lutris.database.games import add_game
 from lutris.game import Game
 from lutris.gui.dialogs import ModalDialog
 from lutris.scanners.default_installers import DEFAULT_INSTALLERS
+from lutris.scanners.lutris import add_to_path_cache, get_path_cache
 from lutris.scanners.tosec import clean_rom_name, guess_platform, search_tosec_by_md5
 from lutris.services.lutris import download_lutris_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
-from lutris.util.strings import slugify, gtk_safe
+from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import get_md5_hash, get_md5_in_zip
 
 
@@ -87,17 +88,7 @@ class ImportGameDialog(ModalDialog):
             logger.debug('Game not launched')
 
     def search_checksums(self):
-        all_games = get_games()
-
-        def find_game(filepath):
-            for db_game in all_games:
-                g = Game(db_game["id"])
-                if not g.config:
-                    continue
-                for _key, value in g.config.game_config.items():
-                    if value == filepath:
-                        logger.debug("Found %s", g)
-                        return g
+        game_path_cache = get_path_cache()
 
         def show_progress(filepath, message):
             # It's not safe to directly update labels from a worker thread, so
@@ -108,11 +99,13 @@ class ImportGameDialog(ModalDialog):
         for filename in self.files:
             try:
                 show_progress(filename, _("Looking for installed game..."))
-                game = find_game(filename)
-                if game:
-                    # Found a game to launch instead of installing, but we can't safely
-                    # do this on this thread.
-                    result = [{"name": game.name, "game": game, "roms": []}]
+                if filename in game_path_cache.values():
+                    for game_id in game_path_cache:
+                        if game_path_cache[game_id] == filename:
+                            # Found a game to launch instead of installing, but we can't safely
+                            # do this on this thread.
+                            game = Game(game_id)
+                            result = [{"name": game.name, "game": game, "roms": []}]
                 else:
                     show_progress(filename, _("Calculating checksum..."))
                     if filename.lower().endswith(".zip"):
@@ -206,4 +199,5 @@ class ImportGameDialog(ModalDialog):
             configpath=configpath
         )
         download_lutris_media(slug)
+        add_to_path_cache(Game(game_id))
         return game_id

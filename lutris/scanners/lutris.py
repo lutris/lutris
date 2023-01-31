@@ -1,12 +1,18 @@
+import json
 import os
+import time
 
+from lutris import settings
 from lutris.api import get_api_games, get_game_installers
 from lutris.database.games import get_games
+from lutris.game import Game
 from lutris.installer.errors import MissingGameDependency
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.services.lutris import download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+
+GAME_PATH_CACHE_PATH = os.path.join(settings.CACHE_DIR, "game-paths.json")
 
 
 def get_game_slugs_and_folders(dirname):
@@ -95,3 +101,67 @@ def scan_directory(dirname):
     installed_map = {slug: folder for slug, folder in slugs_map.items() if slug in slugs_installed}
     missing_map = {slug: folder for slug, folder in slugs_map.items() if slug not in slugs_installed}
     return installed_map, missing_map
+
+
+def get_path_from_config(game):
+    """Return the path of the main entry point for a game"""
+    if not game.config:
+        logger.warning("Game %s has no configuration", game)
+        return ""
+    for key in ["exe", "main_file", "iso", "rom"]:
+        if key in game.config.game_config:
+            path = game.config.game_config[key]
+            if not path.startswith("/"):
+                path = os.path.join(game.directory, path)
+            return path
+    logger.warning("No path found in %s", game.config)
+    return ""
+
+
+def get_game_paths():
+    game_paths = {}
+    all_games = get_games(filters={'installed': 1})
+    for db_game in all_games:
+        game = Game(db_game["id"])
+        path = get_path_from_config(game)
+        if not path:
+            logger.warning("Game %s has no path", game)
+            continue
+        game_paths[db_game["id"]] = path
+    return game_paths
+
+
+def build_path_cache():
+    """Generate a new cache path"""
+    start_time = time.time()
+    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
+        game_paths = get_game_paths()
+        json.dump(game_paths, cache_file, indent=2)
+    end_time = time.time()
+    logger.debug("Game path cache built in %0.2f seconds", end_time - start_time)
+
+
+def add_to_path_cache(game):
+    path = get_path_from_config(game)
+    if not path:
+        logger.warning("No path for %s", game)
+        return
+    current_cache = get_path_cache()
+    current_cache[game.id] = path
+    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
+        json.dump(current_cache, cache_file, indent=2)
+
+
+def remove_from_path_cache(game):
+    current_cache = get_path_cache()
+    if game.id not in current_cache:
+        return
+    del current_cache[game.id]
+    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
+        json.dump(current_cache, cache_file, indent=2)
+
+
+def get_path_cache():
+    """Return the contents of the path cache file"""
+    with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
+        return json.load(cache_file)
