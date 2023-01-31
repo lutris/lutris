@@ -27,7 +27,7 @@ from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
-from lutris.scanners.lutris import remove_from_path_cache, add_to_path_cache, get_missing_game_ids
+from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remove_from_path_cache
 # pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService

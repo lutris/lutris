@@ -17,6 +17,7 @@ PROGRAM_FILES_IGNORES = {
     "InstallShield Installation Information": "*",
     "Microsoft XNA": "*",
     "Microsoft.NET": "*",
+    "GameSpy Arcade": "*"
 }
 
 IGNORED_DIRS = {
@@ -72,6 +73,8 @@ IGNORED_EXES = [
     "dotNetFx40_Full_setup.exe",
     "sysinfo.exe",
     "register.exe",
+    "UNINSTAL.EXE",
+    "GSArcade.exe",
 ]
 
 KNOWN_DIRS = [
@@ -137,14 +140,14 @@ def get_content_folders(path):
         if files:
             found_dirs.append(root)
     folders = []
-    for dir in found_dirs:
+    for found_dir in found_dirs:
         skip = False
         for _dir in folders:
-            if dir.startswith(_dir):
+            if found_dir.startswith(_dir):
                 skip = True
         if skip:
             continue
-        folders.append(dir)
+        folders.append(found_dir)
     return folders
 
 
@@ -159,8 +162,6 @@ def find_exes_in_path(folder):
                 continue
             if filename.lower().endswith(".exe"):
                 exes.append(os.path.join(folder, filename))
-            # if "executable" in file_type:
-            #     print(filename, file_type)
     return exes
 
 
