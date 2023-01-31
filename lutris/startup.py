@@ -173,6 +173,7 @@ def run_all_checks():
     check_vulkan()
     check_gnome()
     fill_missing_platforms()
+    build_path_cache()
 
 
 def cleanup_games():
@@ -203,7 +204,7 @@ def init_lutris():
         if not settings.read_setting(service, section="services"):
             settings.write_setting(service, True, section="services")
     cleanup_games()
-    build_path_cache()
+
 
 
 class StartupRuntimeUpdater(RuntimeUpdater):

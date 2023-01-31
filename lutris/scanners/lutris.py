@@ -108,9 +108,11 @@ def get_path_from_config(game):
     if not game.config:
         logger.warning("Game %s has no configuration", game)
         return ""
-    for key in ["exe", "main_file", "iso", "rom"]:
+    for key in ["exe", "main_file", "iso", "rom", "disk-a", "path", "files"]:
         if key in game.config.game_config:
             path = game.config.game_config[key]
+            if key == "files":
+                path = path[0]
             if not path.startswith("/"):
                 path = os.path.join(game.directory, path)
             return path
@@ -123,6 +125,8 @@ def get_game_paths():
     all_games = get_games(filters={'installed': 1})
     for db_game in all_games:
         game = Game(db_game["id"])
+        if game.runner_name in ("steam", "web"):
+            continue
         path = get_path_from_config(game)
         if not path:
             logger.warning("Game %s has no path", game)
@@ -131,8 +135,10 @@ def get_game_paths():
     return game_paths
 
 
-def build_path_cache():
+def build_path_cache(recreate=False):
     """Generate a new cache path"""
+    if os.path.exists(GAME_PATH_CACHE_PATH) and not recreate:
+        return
     start_time = time.time()
     with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
         game_paths = get_game_paths()
