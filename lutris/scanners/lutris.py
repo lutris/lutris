@@ -108,6 +108,9 @@ def get_path_from_config(game):
     if not game.config:
         logger.warning("Game %s has no configuration", game)
         return ""
+    # Skip MAME roms referenced by their ID
+    if game.runner_name == "mame" and "." not in game.config.game_config["main_file"]:
+        return
     for key in ["exe", "main_file", "iso", "rom", "disk-a", "path", "files"]:
         if key in game.config.game_config:
             path = game.config.game_config[key]
@@ -129,7 +132,6 @@ def get_game_paths():
             continue
         path = get_path_from_config(game)
         if not path:
-            logger.warning("Game %s has no path", game)
             continue
         game_paths[db_game["id"]] = path
     return game_paths
