@@ -52,6 +52,10 @@ DEFAULT_INSTALLERS = {
         "runner": "hatari",
         "game": {"disk-a": "rom", }
     },
+    "jaguar": {
+        "runner": "libretro",
+        "game": {"core": "virtualjaguar", "main_file": "rom"},
+    },
     "amiga": {
         "runner": "fsuae",
         "game": {"main_file": "rom"}

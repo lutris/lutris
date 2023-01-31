@@ -27,6 +27,7 @@ PLATFORM_PATTERNS = {
     "Atari Lynx": "lynx",
     "Atari ST": "atari-st",
     "Atari - ST": "atari-st",
+    "Atari Jaguar": "jaguar",
     "Nintendo DS": "ds",
     "Super Nintendo Entertainment System": "snes",
     "Super Famicom": "snes",
