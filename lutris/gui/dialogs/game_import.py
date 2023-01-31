@@ -9,7 +9,7 @@ from lutris.database.games import add_game
 from lutris.game import Game
 from lutris.gui.dialogs import ModalDialog
 from lutris.scanners.default_installers import DEFAULT_INSTALLERS
-from lutris.scanners.lutris import add_to_path_cache, get_path_cache
+from lutris.scanners.lutris import get_path_cache
 from lutris.scanners.tosec import clean_rom_name, guess_platform, search_tosec_by_md5
 from lutris.services.lutris import download_lutris_media
 from lutris.util.jobs import AsyncCall
@@ -199,5 +199,4 @@ class ImportGameDialog(ModalDialog):
             configpath=configpath
         )
         download_lutris_media(slug)
-        add_to_path_cache(Game(game_id))
         return game_id

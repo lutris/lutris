@@ -27,7 +27,7 @@ from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
 from lutris.gui.widgets.utils import load_icon_theme, open_uri
-from lutris.scanners.lutris import remove_from_path_cache
+from lutris.scanners.lutris import remove_from_path_cache, add_to_path_cache, get_missing_game_ids
 # pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
@@ -126,7 +126,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.game_bar = None
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
-
+        self.get_missing_games()
         self.connect("view-updated", self.update_store)
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
@@ -284,6 +284,17 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Return a list of currently running games"""
         return games_db.get_games_by_ids([game.id for game in self.application.running_games])
 
+    def get_missing_games(self):
+        missing_ids = get_missing_game_ids()
+        missing_games = games_db.get_games_by_ids(missing_ids)
+        if missing_games:
+            self.sidebar.missing_row.show()
+        else:
+            if missing_ids:
+                logger.warning("Path cache out of date? (%s IDs missing)", len(missing_ids))
+            self.sidebar.missing_row.hide()
+        return missing_games
+
     def get_recent_games(self):
         """Return a list of currently running games"""
         searches, _filters, excludes = self.get_sql_filters()
@@ -367,6 +378,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
             return self.get_service_games(service_name)
         dynamic_categories = {
             "recent": self.get_recent_games,
+            "missing": self.get_missing_games,
             "running": self.get_running_games,
         }
         if self.filters.get("dynamic_category") in dynamic_categories:
@@ -844,6 +856,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_game_updated(self, game):
         """Updates an individual entry in the view when a game is updated"""
+        add_to_path_cache(game)
         if game.appid and self.service:
             db_game = ServiceGameCollection.get_game(self.service.id, game.appid)
         else:
@@ -878,8 +891,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_removed(self, game):
         """Simple method used to refresh the view"""
         remove_from_path_cache(game)
+        self.get_missing_games()
         self.emit("view-updated")
-
         return True
 
     @watch_errors()

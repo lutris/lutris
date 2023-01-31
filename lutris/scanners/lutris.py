@@ -148,6 +148,8 @@ def build_path_cache(recreate=False):
 
 
 def add_to_path_cache(game):
+    """Add or update the path of a game in the cache"""
+    logger.debug("Adding %s to path cache", game)
     path = get_path_from_config(game)
     if not path:
         logger.warning("No path for %s", game)
@@ -159,10 +161,12 @@ def add_to_path_cache(game):
 
 
 def remove_from_path_cache(game):
+    logger.debug("Removing %s from path cache", game)
     current_cache = get_path_cache()
-    if game.id not in current_cache:
+    if str(game.id) not in current_cache:
+        logger.warning("Game %s (id=%s) not in cache path", game, game.id)
         return
-    del current_cache[game.id]
+    del current_cache[str(game.id)]
     with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
         json.dump(current_cache, cache_file, indent=2)
 
@@ -171,3 +175,12 @@ def get_path_cache():
     """Return the contents of the path cache file"""
     with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
         return json.load(cache_file)
+
+
+def get_missing_game_ids():
+    """Return a list of IDs for games that can't be found"""
+    missing_ids = []
+    for game_id, path in get_path_cache().items():
+        if not os.path.exists(path):
+            missing_ids.append(game_id)
+    return missing_ids

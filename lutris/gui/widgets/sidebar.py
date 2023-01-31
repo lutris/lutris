@@ -281,6 +281,7 @@ class LutrisSidebar(Gtk.ListBox):
         self.categories = None
         # A dummy objects that allows inspecting why/when we have a show() call on the object.
         self.running_row = DummyRow()
+        self.missing_row = DummyRow()
         if selected:
             self.selected_row_type, self.selected_row_id = selected.split(":")
         else:
@@ -356,6 +357,13 @@ class LutrisSidebar(Gtk.ListBox):
                 Gtk.Image.new_from_icon_name("favorite-symbolic", Gtk.IconSize.MENU)
             )
         )
+        self.missing_row = SidebarRow(
+            "missing",
+            "dynamic_category",
+            _("Missing"),
+            Gtk.Image.new_from_icon_name("dialog-warning-symbolic", Gtk.IconSize.MENU)
+        )
+        self.add(self.missing_row)
 
         self.running_row = SidebarRow(
             "running",

@@ -5,7 +5,6 @@ from gi.repository import Gtk, Pango
 from lutris.database.games import get_games
 from lutris.game import Game
 from lutris.gui.dialogs import ModalDialog, QuestionDialog
-from lutris.scanners.lutris import remove_from_path_cache
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
@@ -100,7 +99,6 @@ class UninstallGameDialog(ModalDialog):
                 self.folder_label.set_markup(_("Uninstalling game and deleting files..."))
             else:
                 self.folder_label.set_markup(_("Uninstalling game..."))
-            remove_from_path_cache(self.game)
             self.game.remove(self.delete_files)
         self.destroy()
 
