@@ -8,7 +8,7 @@ from lutris.gui.dialogs import ModalDialog, QuestionDialog
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
-from lutris.util.system import get_disk_size, is_removeable, reverse_expanduser
+from lutris.util.system import get_disk_size, is_removeable, reverse_expanduser, path_exists
 
 
 class UninstallGameDialog(ModalDialog):
@@ -46,6 +46,10 @@ class UninstallGameDialog(ModalDialog):
             self.delete_button.set_sensitive(False)
             self.folder_label.set_markup(_("<i>Calculating size…</i>"))
             AsyncCall(get_disk_size, self.folder_size_cb, self.game.directory)
+        elif not path_exists(self.game.directory):
+            self.folder_label.set_markup(
+                _("%s does not exist.") % reverse_expanduser(self.game.directory)
+            )
         else:
             self.folder_label.set_markup(
                 _("Content of %s are protected and will not be deleted.") % reverse_expanduser(self.game.directory)
