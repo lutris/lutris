@@ -1,6 +1,78 @@
 import os
 import shutil
 import sys
+from copy import copy
+
+from lutris.util import magic
+
+PROGRAM_FILES_IGNORES = {
+    "Common Files": {
+        "Microsoft Shared": "*",
+        "System": "*",
+        "InstallShield": "*"
+    },
+    "Internet Explorer": "*",
+    "Windows Media Player": "*",
+    "Windows NT": "*",
+    "InstallShield Installation Information": "*",
+    "Microsoft XNA": "*",
+    "Microsoft.NET": "*",
+}
+
+IGNORED_DIRS = {
+    "ProgramData": {
+        "Microsoft": { "Windows": "*" },
+        "GOG.com": "*",
+        "Package Cache": "*",
+    },
+    "Program Files": PROGRAM_FILES_IGNORES,
+    "Program Files (x86)": PROGRAM_FILES_IGNORES,
+    "windows": "*",
+    "users": {
+        "Public": "*",
+        os.getenv("USER"): {
+            "Desktop": "*",
+            "Videos": "*",
+            "Temp": "*",
+            "Cookies": "*",
+            "AppData": {
+                "LocalLow": "*",
+                "Local": {
+                    "Microsoft": "*"
+                },
+                "Roaming": { "Microsoft": "*", "wine_gecko": "*" },
+            },
+            "Local Settings": {
+                "Application Data": { "Microsoft": "*" },
+                "History": "*",
+                "Temporary Internet Files": "*"
+            },
+            "Application Data": {
+                "Microsoft": "*",
+                "wine_gecko": "*"
+            },
+            "Start Menu": "*",
+            "PrintHood": "*",
+            "Favorites": "*",
+            "Recent": "*",
+            "Downloads": "*",
+            "Templates": "*",
+            "NetHood": "*",
+            "My Pictures": "*",
+        }
+    }
+}
+
+IGNORED_EXES = [
+    "UNWISE.EXE",
+    "unins000.exe",
+    "Uninstall.exe",
+    "UnSetup.exe",
+    "UE3Redist.exe",
+    "dotNetFx40_Full_setup.exe",
+    "sysinfo.exe",
+    "register.exe",
+]
 
 KNOWN_DIRS = [
     "ProgramData/Microsoft/Windows",
@@ -33,9 +105,74 @@ def remove_empty_dirs(dirname):
     return empty_folders
 
 
-if __name__ == "__main__":
-    dirname = sys.argv[1]
-    delete_known_dirs(dirname)
+def cleanup_prefix(path):
+    delete_known_dirs(path)
     empty_folders = True
     while empty_folders:
-        empty_folders = remove_empty_dirs(dirname)
+        empty_folders = remove_empty_dirs(path)
+
+
+def is_ignored_path(path_parts):
+    ignored_dirs = copy(IGNORED_DIRS)
+    if len(path_parts) in (0, 1):
+        return True
+    for level, part in enumerate(path_parts):
+        if level == 0:
+            if part == "dosdevices":
+                return True
+        if part in ignored_dirs:
+            if ignored_dirs[part] == "*":
+                return True
+            ignored_dirs = ignored_dirs[part]
+    return False
+
+def get_content_folders(path):
+    found_dirs = []
+    for root, _dirs, files in os.walk(path, topdown=True):
+        # print(root, files, dirs)
+        relpath = root[len(path):].strip("/")
+        path_parts = relpath.split("/")
+        if is_ignored_path(path_parts):
+            continue
+        if files:
+            found_dirs.append(root)
+    folders = []
+    for dir in found_dirs:
+        skip = False
+        for _dir in folders:
+            if dir.startswith(_dir):
+                skip = True
+        if skip:
+            continue
+        folders.append(dir)
+    return folders
+
+
+def find_exes_in_path(folder):
+    exes = []
+    for filename in os.listdir(folder):
+        abspath = os.path.join(folder, filename)
+        if os.path.isdir(abspath):
+            exes += find_exes_in_path(abspath)
+        if os.path.isfile(abspath):
+            if filename in IGNORED_EXES:
+                continue
+            if filename.lower().endswith(".exe"):
+                exes.append(os.path.join(folder, filename))
+            # if "executable" in file_type:
+            #     print(filename, file_type)
+    return exes
+
+
+def scan_prefix(path):
+    folders = get_content_folders(path)
+    exes = []
+    for folder in folders:
+        if "drive_c/users" in folder:
+            continue
+        exes += find_exes_in_path(folder)
+    for exe in exes:
+        print("EXE", exe)
+
+if __name__ == "__main__":
+    scan_prefix(sys.argv[1])
