@@ -168,7 +168,10 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     def _get_launch_config_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12, visible=True)
 
-        game_config = self.game.config.game_level.get("game", {})
+        if self.game.config:
+            game_config = self.game.config.game_level.get("game", {})
+        else:
+            game_config = {}
         preferred_name = game_config.get("preferred_launch_config_name")
 
         if preferred_name:
