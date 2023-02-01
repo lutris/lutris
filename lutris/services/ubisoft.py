@@ -136,6 +136,8 @@ class UbisoftConnectService(OnlineService):
             "drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/"
             "cache/configuration/configurations"
         )
+        if not os.path.exists(configurations_path):
+            return
         with open(configurations_path, "rb") as config_file:
             content = config_file.read()
         return content
