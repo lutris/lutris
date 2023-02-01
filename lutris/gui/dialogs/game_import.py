@@ -37,7 +37,7 @@ class ImportGameDialog(ModalDialog):
             shadow_type=Gtk.ShadowType.ETCHED_IN,
             child=self.get_file_labels_listbox(files)
         ))
-        self.auto_launch_button = Gtk.CheckButton(_("Launch game"), visible=True, active=True)
+        self.auto_launch_button = Gtk.CheckButton(_("Launch game"), visible=True, active=len(files) == 1)
         self.get_content_area().add(self.auto_launch_button)
         self.show_all()
         AsyncCall(self.search_checksums, self.search_result_finished)
