@@ -158,6 +158,7 @@ class ImportGameDialog(ModalDialog):
                 game_id = self.add_game(rom_set, filename)
                 game = Game(game_id)
                 game.emit("game-installed")
+                game.emit("game-updated")
                 if launch_game:
                     self.game_launch(game)
                 return True
