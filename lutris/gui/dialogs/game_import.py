@@ -81,11 +81,8 @@ class ImportGameDialog(ModalDialog):
         return listbox
 
     def game_launch(self, game):
-        if self.auto_launch_button.get_active():
-            game.emit("game-launch")
-            self.destroy()
-        else:
-            logger.debug('Game not launched')
+        game.emit("game-launch")
+        self.destroy()
 
     def search_checksums(self):
         game_path_cache = get_path_cache()
@@ -129,39 +126,53 @@ class ImportGameDialog(ModalDialog):
             logger.error(error)
             return
 
-        # If any selected game is already installed we will launch it
-        # and install nothing
-        for result in results.values():
-            for rom_set in result:
-                if "game" in rom_set:
-                    self.game_launch(rom_set["game"])
-                    return
+        launch_game = self.auto_launch_button.get_active()
+
+        if launch_game:
+            # Prefer to launch an already installed game
+            for result in results.values():
+                for rom_set in result:
+                    if "game" in rom_set:
+                        self.game_launch(rom_set["game"])
+                        return
 
         for filename, result in results.items():
             for rom_set in result:
-                try:
-                    self.progress_labels[filename].hide()
+                if self.import_rom(rom_set, filename, launch_game):
+                    if launch_game:
+                        return  # only launch the first install, then just stop
+                    break
 
-                    if "error" in rom_set:
-                        raise rom_set["error"]
+    def import_rom(self, rom_set, filename, launch_game):
+        """Tries to install a specific ROM, or reports failure. Returns True if
+        successful, False if not. If 'launch_game' is true, launches the game
+        it installed, if successful."""
+        try:
+            self.progress_labels[filename].hide()
 
-                    for rom in rom_set["roms"]:
-                        self.display_game_info(filename, rom_set, rom)
-                        game_id = self.add_game(rom_set, filename)
-                        game = Game(game_id)
-                        game.emit("game-installed")
-                        self.game_launch(game)
-                        return
-                except Exception as ex:
-                    logger.exception(_("Failed to import a ROM: %s"), ex)
-                    error_label = self.error_labels[filename]
-                    error_label.set_markup(
-                        "<span style=\"italic\" foreground=\"red\">%s</span>" % gtk_safe(str(ex)))
-                    error_label.show()
+            if "error" in rom_set:
+                raise rom_set["error"]
 
-    def display_game_info(self, filename, rom_set, rom):
+            for rom in rom_set["roms"]:
+                self.display_game_info(filename, rom_set, rom["md5"])
+                game_id = self.add_game(rom_set, filename)
+                game = Game(game_id)
+                game.emit("game-installed")
+                if launch_game:
+                    self.game_launch(game)
+                return True
+        except Exception as ex:
+            logger.exception(_("Failed to import a ROM: %s"), ex)
+            error_label = self.error_labels[filename]
+            error_label.set_markup(
+                "<span style=\"italic\" foreground=\"red\">%s</span>" % gtk_safe(str(ex)))
+            error_label.show()
+
+        return False
+
+    def display_game_info(self, filename, rom_set, checksum):
         label = self.checksum_labels[filename]
-        label.set_text(rom["md5"])
+        label.set_text(checksum)
         label.show()
         label = self.description_labels[filename]
         label.set_markup("<b>%s</b>" % rom_set["name"])
@@ -174,8 +185,8 @@ class ImportGameDialog(ModalDialog):
         if not self.platform:
             raise RuntimeError(_("The platform '%s' is unknown to Lutris.") % category)
 
-    def add_game(self, game, filepath):
-        name = clean_rom_name(game["name"])
+    def add_game(self, rom_set, filepath):
+        name = clean_rom_name(rom_set["name"])
         logger.info("Installing %s", name)
 
         try:

@@ -206,7 +206,6 @@ def init_lutris():
     cleanup_games()
 
 
-
 class StartupRuntimeUpdater(RuntimeUpdater):
     """Due to circular reference problems, we need to keep all these interesting
     references here, out of runtime.py"""

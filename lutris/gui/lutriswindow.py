@@ -214,8 +214,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_drag_data_received(self, widget, drag_context, x, y, data, info, time):
         """Handler for drop event"""
         file_paths = [unquote(urlparse(uri).path) for uri in data.get_uris()]
-        # Only deal with 1 file at the moment
-        dialog = ImportGameDialog([file_paths[0]], parent=self)
+        dialog = ImportGameDialog(file_paths, parent=self)
         dialog.run()
         dialog.destroy()
 
