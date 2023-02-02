@@ -23,7 +23,7 @@ class ImportGameDialog(ModalDialog):
         super().__init__(
             _("Import a game"),
             parent=parent,
-            border_width=10
+            border_width=0
         )
         self.files = files
         self.progress_labels = {}
@@ -31,14 +31,11 @@ class ImportGameDialog(ModalDialog):
         self.description_labels = {}
         self.category_labels = {}
         self.error_labels = {}
+        self.launch_buttons = {}
         self.platform = None
         self.set_size_request(480, 240)
-        self.get_content_area().add(Gtk.Frame(
-            shadow_type=Gtk.ShadowType.ETCHED_IN,
-            child=self.get_file_labels_listbox(files)
-        ))
-        self.auto_launch_button = Gtk.CheckButton(_("Launch game"), visible=True, active=len(files) == 1)
-        self.get_content_area().add(self.auto_launch_button)
+        self.vbox.set_border_width(0)  # pylint: disable=no-member  # keep everything flush with the window edge
+        self.get_content_area().add(self.get_file_labels_listbox(files))
         self.show_all()
         AsyncCall(self.search_checksums, self.search_result_finished)
 
@@ -47,9 +44,11 @@ class ImportGameDialog(ModalDialog):
         listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         for file_path in files:
             row = Gtk.ListBoxRow()
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            hbox.set_margin_left(12)
+            hbox.set_margin_right(12)
+
             vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            vbox.set_margin_left(12)
-            vbox.set_margin_right(12)
 
             description_label = Gtk.Label(halign=Gtk.Align.START)
             vbox.pack_start(description_label, True, True, 5)
@@ -76,13 +75,15 @@ class ImportGameDialog(ModalDialog):
             vbox.pack_start(error_label, True, True, 5)
             self.error_labels[file_path] = error_label
 
-            row.add(vbox)
+            hbox.pack_start(vbox, True, True, 0)
+
+            launch_button = Gtk.Button(_("Launch"), valign=Gtk.Align.CENTER, sensitive=False)
+            hbox.pack_end(launch_button, False, False, 0)
+            self.launch_buttons[file_path] = launch_button
+
+            row.add(hbox)
             listbox.add(row)
         return listbox
-
-    def game_launch(self, game):
-        game.emit("game-launch")
-        self.destroy()
 
     def search_checksums(self):
         game_path_cache = get_path_cache()
@@ -126,41 +127,33 @@ class ImportGameDialog(ModalDialog):
             logger.error(error)
             return
 
-        launch_game = self.auto_launch_button.get_active()
-
-        if launch_game:
-            # Prefer to launch an already installed game
-            for result in results.values():
-                for rom_set in result:
-                    if "game" in rom_set:
-                        self.game_launch(rom_set["game"])
-                        return
-
         for filename, result in results.items():
             for rom_set in result:
-                if self.import_rom(rom_set, filename, launch_game):
-                    if launch_game:
-                        return  # only launch the first install, then just stop
+                if self.import_rom(rom_set, filename):
                     break
 
-    def import_rom(self, rom_set, filename, launch_game):
+    def import_rom(self, rom_set, filename):
         """Tries to install a specific ROM, or reports failure. Returns True if
-        successful, False if not. If 'launch_game' is true, launches the game
-        it installed, if successful."""
+        successful, False if not."""
         try:
             self.progress_labels[filename].hide()
 
             if "error" in rom_set:
                 raise rom_set["error"]
 
+            if "game" in rom_set:
+                game = rom_set["game"]
+                self.display_existing_game_info(filename, game)
+                self.enable_game_launch(filename, game)
+                return True
+
             for rom in rom_set["roms"]:
-                self.display_game_info(filename, rom_set, rom["md5"])
+                self.display_new_game_info(filename, rom_set, rom["md5"])
                 game_id = self.add_game(rom_set, filename)
                 game = Game(game_id)
                 game.emit("game-installed")
                 game.emit("game-updated")
-                if launch_game:
-                    self.game_launch(game)
+                self.enable_game_launch(filename, game)
                 return True
         except Exception as ex:
             logger.exception(_("Failed to import a ROM: %s"), ex)
@@ -171,7 +164,27 @@ class ImportGameDialog(ModalDialog):
 
         return False
 
-    def display_game_info(self, filename, rom_set, checksum):
+    def enable_game_launch(self, filename, game):
+        launch_button = self.launch_buttons[filename]
+        launch_button.set_sensitive(True)
+        launch_button.connect("clicked", self.on_launch_clicked, game)
+
+    def on_launch_clicked(self, _button, game):
+        game.emit("game-launch")
+        self.destroy()
+
+    def display_existing_game_info(self, filename, game):
+        label = self.checksum_labels[filename]
+        label.set_markup("<i>%s</i>" % _("Game already installed in Lutris"))
+        label.show()
+        label = self.description_labels[filename]
+        label.set_markup("<b>%s</b>" % game.name)
+        category = game.platform
+        label = self.category_labels[filename]
+        label.set_text(category)
+        label.show()
+
+    def display_new_game_info(self, filename, rom_set, checksum):
         label = self.checksum_labels[filename]
         label.set_text(checksum)
         label.show()
