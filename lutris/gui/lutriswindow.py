@@ -215,8 +215,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Handler for drop event"""
         file_paths = [unquote(urlparse(uri).path) for uri in data.get_uris()]
         dialog = ImportGameDialog(file_paths, parent=self)
-        dialog.run()
-        dialog.destroy()
+        dialog.show()
 
     def load_filters(self):
         """Load the initial filters when creating the view"""

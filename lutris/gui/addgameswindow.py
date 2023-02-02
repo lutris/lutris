@@ -577,9 +577,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         elif not os.path.isfile(path):
             ErrorDialog(_("No file exists at '%s'.") % path, parent=self)
         else:
-            dialog = ImportGameDialog([path], parent=self)
-            dialog.run()
-            dialog.destroy()
+            dialog = ImportGameDialog([path], parent=self.application.window)
+            dialog.show()
             self.destroy()
 
     # Add Local Game
