@@ -70,7 +70,7 @@ class ModelessDialog(Dialog):
 
     def _clear_transient_for(self):
         # we need the parent set to be centered over the parent, but
-        # we don't want to be transient really- we want other windows
+        # we don't want to be transient really - we want other windows
         # able to come to the front.
         self.set_transient_for(None)
         return False

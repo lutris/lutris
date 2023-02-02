@@ -7,7 +7,7 @@ from gi.repository import GLib, Gtk
 from lutris.config import write_game_config
 from lutris.database.games import add_game
 from lutris.game import Game
-from lutris.gui.dialogs import ModalDialog
+from lutris.gui.dialogs import ModelessDialog
 from lutris.scanners.default_installers import DEFAULT_INSTALLERS
 from lutris.scanners.lutris import get_path_cache
 from lutris.scanners.tosec import clean_rom_name, guess_platform, search_tosec_by_md5
@@ -18,7 +18,7 @@ from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import get_md5_hash, get_md5_in_zip
 
 
-class ImportGameDialog(ModalDialog):
+class ImportGameDialog(ModelessDialog):
     def __init__(self, files, parent=None) -> None:
         super().__init__(
             _("Import a game"),
