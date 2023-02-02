@@ -23,7 +23,7 @@ class ImportGameDialog(ModelessDialog):
         super().__init__(
             _("Import a game"),
             parent=parent,
-            border_width=0
+            border_width=10
         )
         self.files = files
         self.progress_labels = {}
@@ -34,10 +34,24 @@ class ImportGameDialog(ModelessDialog):
         self.launch_buttons = {}
         self.platform = None
         self.set_size_request(480, 240)
-        self.vbox.set_border_width(0)  # pylint: disable=no-member  # keep everything flush with the window edge
-        self.get_content_area().add(self.get_file_labels_listbox(files))
+
+        frame = Gtk.Frame(
+            shadow_type=Gtk.ShadowType.ETCHED_IN,
+            child=self.get_file_labels_listbox(files))
+
+        self.get_content_area().pack_start(frame, True, True, 6)
+        self.close_button = self.add_button(Gtk.STOCK_STOP, Gtk.ResponseType.CANCEL)
+        self.connect("response", self.on_response)
+
         self.show_all()
-        AsyncCall(self.search_checksums, self.search_result_finished)
+        self.search_call = AsyncCall(self.search_checksums, self.search_result_finished)
+
+    def on_response(self, _widget, response):
+        if response in (Gtk.ResponseType.CLOSE, Gtk.ResponseType.CANCEL, Gtk.ResponseType.DELETE_EVENT):
+            if self.search_call:
+                self.search_call.stop_request.set()
+            else:
+                self.destroy()
 
     def get_file_labels_listbox(self, files):
         listbox = Gtk.ListBox(vexpand=True)
@@ -85,6 +99,10 @@ class ImportGameDialog(ModelessDialog):
             listbox.add(row)
         return listbox
 
+    @property
+    def search_stopping(self):
+        return self.search_call and self.search_call.stop_request.is_set()
+
     def search_checksums(self):
         game_path_cache = get_path_cache()
 
@@ -95,6 +113,9 @@ class ImportGameDialog(ModelessDialog):
 
         results = OrderedDict()  # must preserve order, on any Python version
         for filename in self.files:
+            if self.search_stopping:
+                break
+
             try:
                 show_progress(filename, _("Looking for installed game..."))
                 if filename in game_path_cache.values():
@@ -110,6 +131,10 @@ class ImportGameDialog(ModelessDialog):
                         md5 = get_md5_in_zip(filename)
                     else:
                         md5 = get_md5_hash(filename)
+
+                    if self.search_stopping:
+                        break
+
                     show_progress(filename, _("Looking up checksum on Lutris.net..."))
                     result = search_tosec_by_md5(md5)
                     if not result:
@@ -123,6 +148,9 @@ class ImportGameDialog(ModelessDialog):
         return results
 
     def search_result_finished(self, results, error):
+        self.search_call = None
+        self.close_button.set_label(Gtk.STOCK_CLOSE)
+
         if error:
             logger.error(error)
             return
