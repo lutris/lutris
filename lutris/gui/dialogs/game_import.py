@@ -35,12 +35,18 @@ class ImportGameDialog(ModelessDialog):
         self.platform = None
         self.set_size_request(480, 240)
 
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
+
         frame = Gtk.Frame(
             shadow_type=Gtk.ShadowType.ETCHED_IN,
             child=self.get_file_labels_listbox(files))
 
         self.get_content_area().pack_start(frame, True, True, 6)
+
         self.close_button = self.add_button(Gtk.STOCK_STOP, Gtk.ResponseType.CANCEL)
+        key, mod = Gtk.accelerator_parse("Escape")
+        self.close_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
         self.connect("response", self.on_response)
 
         self.show_all()
