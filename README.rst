@@ -54,7 +54,7 @@ Configuration files
 
 * ``~/.config/lutris``: The client, runners, and game configuration files
 
-   There is be no need to manually edit these files as everything should be done from the client.
+   There is no need to manually edit these files as everything should be done from the client.
 
 * ``lutris.conf``: Preferences for the client's UI
 
