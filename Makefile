@@ -10,6 +10,13 @@ all:
 	debuild
 	debclean
 
+
+unsigned:
+	export GITBRANCH=master
+	debuild -i -us -uc -b
+	debclean
+
+
 # Build process for GitHub runners.
 # Requires two environment variables related to package signing.
 # 	PPA_GPG_KEY_ID
