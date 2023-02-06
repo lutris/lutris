@@ -3,26 +3,20 @@ import shutil
 import sys
 from copy import copy
 
-from lutris.util import magic
-
 PROGRAM_FILES_IGNORES = {
-    "Common Files": {
-        "Microsoft Shared": "*",
-        "System": "*",
-        "InstallShield": "*"
-    },
+    "Common Files": {"Microsoft Shared": "*", "System": "*", "InstallShield": "*"},
     "Internet Explorer": "*",
     "Windows Media Player": "*",
     "Windows NT": "*",
     "InstallShield Installation Information": "*",
     "Microsoft XNA": "*",
     "Microsoft.NET": "*",
-    "GameSpy Arcade": "*"
+    "GameSpy Arcade": "*",
 }
 
 IGNORED_DIRS = {
     "ProgramData": {
-        "Microsoft": { "Windows": "*" },
+        "Microsoft": {"Windows": "*"},
         "GOG.com": "*",
         "Package Cache": "*",
     },
@@ -38,20 +32,15 @@ IGNORED_DIRS = {
             "Cookies": "*",
             "AppData": {
                 "LocalLow": "*",
-                "Local": {
-                    "Microsoft": "*"
-                },
-                "Roaming": { "Microsoft": "*", "wine_gecko": "*" },
+                "Local": {"Microsoft": "*"},
+                "Roaming": {"Microsoft": "*", "wine_gecko": "*"},
             },
             "Local Settings": {
-                "Application Data": { "Microsoft": "*" },
+                "Application Data": {"Microsoft": "*"},
                 "History": "*",
-                "Temporary Internet Files": "*"
+                "Temporary Internet Files": "*",
             },
-            "Application Data": {
-                "Microsoft": "*",
-                "wine_gecko": "*"
-            },
+            "Application Data": {"Microsoft": "*", "wine_gecko": "*"},
             "Start Menu": "*",
             "PrintHood": "*",
             "Favorites": "*",
@@ -60,8 +49,8 @@ IGNORED_DIRS = {
             "Templates": "*",
             "NetHood": "*",
             "My Pictures": "*",
-        }
-    }
+        },
+    },
 }
 
 IGNORED_EXES = [
@@ -129,6 +118,7 @@ def is_ignored_path(path_parts):
             ignored_dirs = ignored_dirs[part]
     return False
 
+
 def get_content_folders(path):
     found_dirs = []
     for root, _dirs, files in os.walk(path, topdown=True):
@@ -174,6 +164,7 @@ def scan_prefix(path):
         exes += find_exes_in_path(folder)
     for exe in exes:
         print("EXE", exe)
+
 
 if __name__ == "__main__":
     scan_prefix(sys.argv[1])
