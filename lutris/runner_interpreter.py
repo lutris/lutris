@@ -111,7 +111,20 @@ def get_launch_parameters(runner, gameplay_info):
 def get_gamescope_args(launch_arguments, system_config):
     """Insert gamescope at the start of the launch arguments"""
     launch_arguments.insert(0, "--")
-    launch_arguments.insert(0, "-f")
+    if system_config.get("gamescope_force_grab_cursor"):
+        launch_arguments.insert(0, "--force-grab-cursor")
+    if system_config.get("gamescope_fsr_sharpness"):
+        gamescope_fsr_sharpness = system_config["gamescope_fsr_sharpness"]
+        launch_arguments.insert(0, gamescope_fsr_sharpness)
+        launch_arguments.insert(0, "--fsr-sharpness")
+        launch_arguments.insert(0, "-U")
+    if system_config.get("gamescope_window_mode"):
+        gamescope_window_mode = system_config["gamescope_window_mode"]
+        launch_arguments.insert(0, gamescope_window_mode)
+    if system_config.get("gamescope_fps_limiter"):
+        gamescope_fps_limiter = system_config["gamescope_fps_limiter"]
+        launch_arguments.insert(0, gamescope_fps_limiter)
+        launch_arguments.insert(0, "-r")
     if system_config.get("gamescope_output_res"):
         output_width, output_height = system_config["gamescope_output_res"].lower().split("x")
         launch_arguments.insert(0, output_height)
