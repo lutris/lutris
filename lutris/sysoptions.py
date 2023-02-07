@@ -230,30 +230,96 @@ system_options = [  # pylint: disable=invalid-name
     {
         "option": "gamescope",
         "type": "bool",
-        "label": _("Enable gamescope"),
+        "label": _("[ Gamescope ] Enable"),
         "default": False,
         "advanced": True,
         "condition": bool(system.find_executable("gamescope")) and linux.LINUX_SYSTEM.nvidia_gamescope_support(),
         "help": _("Use gamescope to draw the game window isolated from your desktop.\n"
-                  "Use Ctrl+Super+F to toggle fullscreen"),
+                  "Use Super + F to toggle fullscreen."),
+    },
+    {
+        "option": "gamescope_force_grab_cursor",
+        "type": "bool",
+        "label": _("[ Gamescope ] Relative Mouse Mode"),
+        "advanced": True,
+        "default": False,
+        "condition": bool(system.find_executable("gamescope")),
+        "help": _("Locks the cursor to the gamescope window.\n"
+                  "\n"
+                  "Always use relative mouse mode instead of flipping\n"
+                  "dependent on cursor visibility (--force-grab-cursor).\n"
+                  "(Option for the git version of gamescope ONLY!)"),
     },
     {
         "option": "gamescope_output_res",
-        "type": "string",
-        "label": _("Gamescope output resolution"),
-        "default": False,
+        "type": "choice_with_entry",
+        "label": _("[ Gamescope ] Output Resolution"),
+        "choices": DISPLAY_MANAGER.get_resolutions,
+        "default": "1280x720",
         "advanced": True,
         "condition": bool(system.find_executable("gamescope")),
-        "help": _("Resolution of the window on your desktop"),
+        "help": _("Set the resolution used by gamescope (-W, -H).\n"
+                  "Resizing the gamescope window will update these settings."),
     },
     {
         "option": "gamescope_game_res",
-        "type": "string",
-        "label": _("Gamescope game resolution"),
-        "default": False,
+        "type": "choice_with_entry",
+        "label": _("[ Gamescope ] Game Resolution"),
+        "choices": DISPLAY_MANAGER.get_resolutions,
+        "default": "1920x1080",
         "advanced": True,
         "condition": bool(system.find_executable("gamescope")),
-        "help": _("Resolution of the screen visible to the game"),
+        "help": _("Set the maximum resolution used by the game (-w, -h).\n"
+                  "\n"
+                  "Available preset for a WQHD monitor (1440p):\n"
+                  "1970 x 1108 (Ultra Quality preset) - 1.3x scaling,\n"
+                  "1280 x 720 (Quality preset) - 1.5x scaling,\n"
+                  "1506 x 847 (Balanced preset) - 1.7x scaling,\n"
+                  "1280 x 720 (Performance preset) - 2.0x scaling."),
+    },
+    {
+        "option": "gamescope_window_mode",
+        "label": _("[ Gamescope ] Window Mode"),
+        "type": "choice",
+        "choices": (
+            (_("Fullscreen"), "-f"),
+            (_("Windowed"), ""),
+            (_("Borderless"), "-b"),
+        ),
+        "default": "-f",
+        "advanced": True,
+        "condition": bool(system.find_executable("gamescope")),
+        "help": _("Run gamescope in fullscreen, windowed or borderless mode\n"
+                  "Toggle fullscreen (-f) : Super + F"),
+    },
+    {
+        "option": "gamescope_fsr_sharpness",
+        "label": _("[ Gamescope ] FSR Sharpness"),
+        "type": "choice",
+        "choices": (
+            (_("Disabled"), ""),
+            (_("Level 0 (max)"), "0"),
+            (_("Level 1"), "1"),
+            (_("Level 2"), "2"),
+            (_("Level 3"), "3"),
+            (_("Level 4"), "4"),
+            (_("Level 5 (min)"), "5"),
+        ),
+        "default": "3",
+        "advanced": True,
+        "condition": bool(system.find_executable("gamescope")),
+        "help": _("Use AMD FidelityFX™ Super Resolution 1.0 for upscaling (-U).\n"
+                  "Upscaler sharpness from 0 (max) to 5 (min)."),
+    },
+    {
+        "option": "gamescope_fps_limiter",
+        "label": _("[ Gamescope ] FPS Limiter"),
+        "type": "string",
+        "advanced": True,
+        "condition": bool(system.find_executable("gamescope")),
+        "help": _("Set a frame-rate limit for gamescope specified in frames per second (-r).\n"
+                  "\n"
+                  "Empty string = Disabled"),
     },
     {
         "option": "single_cpu",
