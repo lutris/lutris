@@ -19,12 +19,9 @@ class hatari(Runner):
 
     game_options = [
         {
-            "option":
-            "disk-a",
-            "type":
-            "file",
-            "label":
-            _("Floppy Disk A"),
+            "option": "disk-a",
+            "type": "file",
+            "label": _("Floppy Disk A"),
             "help": _(
                 "Hatari supports floppy disk images in the following "
                 "formats: ST, DIM, MSA, STX, IPF, RAW and CRT. The last "
@@ -33,12 +30,9 @@ class hatari(Runner):
             ),
         },
         {
-            "option":
-            "disk-b",
-            "type":
-            "file",
-            "label":
-            _("Floppy Disk B"),
+            "option": "disk-b",
+            "type": "file",
+            "label": _("Floppy Disk B"),
             "help": _(
                 "Hatari supports floppy disk images in the following "
                 "formats: ST, DIM, MSA, STX, IPF, RAW and CRT. The last "
@@ -52,12 +46,9 @@ class hatari(Runner):
 
     runner_options = [
         {
-            "option":
-            "bios_file",
-            "type":
-            "file",
-            "label":
-            _("Bios file (TOS)"),
+            "option": "bios_file",
+            "type": "file",
+            "label": _("Bios file (TOS)"),
             "help": _(
                 "TOS is the operating system of the Atari ST "
                 "and is necessary to run applications with the best "
@@ -79,14 +70,10 @@ class hatari(Runner):
             "help": _("Double the screen size in windowed mode."),
         },
         {
-            "option":
-            "borders",
-            "type":
-            "bool",
-            "label":
-            _("Add borders to display"),
-            "default":
-            False,
+            "option": "borders",
+            "type": "bool",
+            "label": _("Add borders to display"),
+            "default": False,
             "help": _(
                 "Useful for some games and demos using the overscan "
                 "technique. The Atari ST displayed borders around the "
@@ -97,14 +84,10 @@ class hatari(Runner):
             ),
         },
         {
-            "option":
-            "status",
-            "type":
-            "bool",
-            "label":
-            _("Display status bar"),
-            "default":
-            False,
+            "option": "status",
+            "type": "bool",
+            "label": _("Display status bar"),
+            "default": False,
             "help": _(
                 "Displays a status bar with some useful information, "
                 "like green leds lighting up when the floppy disks are "
@@ -114,16 +97,16 @@ class hatari(Runner):
         {
             "option": "joy0",
             "type": "choice",
-            "label": _("Joystick 1"),
+            "label": _("Joystick 0"),
             "choices": joystick_choices,
             "default": "none",
         },
         {
             "option": "joy1",
             "type": "choice",
-            "label": _("Joystick 2"),
+            "label": _("Joystick 1"),
             "choices": joystick_choices,
-            "default": "none",
+            "default": "real",
         },
     ]
 
@@ -191,5 +174,9 @@ class hatari(Runner):
             return {"error": "FILE_NOT_FOUND", "file": diska}
         params.append("--disk-a")
         params.append(diska)
+
+        diskb = self.game_config.get("disk-b")
+        params.append("--disk-b")
+        params.append(diskb)
 
         return {"command": params}
