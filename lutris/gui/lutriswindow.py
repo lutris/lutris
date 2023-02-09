@@ -134,7 +134,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
-        GObject.add_emission_hook(Game, "game-unhandled_error", self.on_game_unhandled_error)
+        GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -760,7 +760,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_game_unhandled_error(self, game, error):
         """Called when a game has sent the 'game-error' signal"""
-        logger.exception("%s has encountered an error: %s", game, error, exc_info=error)
         dialogs.ErrorDialog(str(error), parent=self)
         return True
 
