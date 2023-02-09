@@ -2,6 +2,8 @@
 from functools import wraps
 from gettext import gettext as _
 
+from lutris.util.log import logger
+
 
 class LutrisError(Exception):
 
@@ -58,6 +60,7 @@ def watch_errors(error_result=None, handler_object=None):
             try:
                 return function(*args, **kwargs)
             except Exception as ex:
+                logger.exception(str(ex), exc_info=ex)
                 myself.on_watched_error(ex)
                 return error_result
         return wrapper
@@ -89,6 +92,7 @@ def watch_game_errors(game_stop_result, game=None):
                     game.emit("game-stop")
                 return result
             except Exception as ex:
+                logger.exception("%s has encountered an error: %s", game, ex, exc_info=ex)
                 if game.state != game.STATE_STOPPED:
                     game.state = game.STATE_STOPPED
                     game.emit("game-stop")
