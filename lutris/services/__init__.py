@@ -3,7 +3,7 @@ import os
 
 from lutris import settings
 from lutris.services.amazon import AmazonService
-from lutris.services.battlenet import BattleNetService
+from lutris.services.battlenet import BattleNetService, BNET_ENABLED
 from lutris.services.dolphin import DolphinService
 from lutris.services.egs import EpicGamesStoreService
 from lutris.services.flathub import FlathubService
@@ -34,9 +34,10 @@ def get_services():
         "itchio": ItchIoService,
         "origin": OriginService,
         "ubisoft": UbisoftConnectService,
-        "amazon": AmazonService,
-        "battlenet": BattleNetService,
+        "amazon": AmazonService
     }
+    if BNET_ENABLED:
+        _services["battlenet"] = BattleNetService
     if not LINUX_SYSTEM.is_flatpak:
         _services["xdg"] = XDGService
     if LINUX_SYSTEM.has_steam:

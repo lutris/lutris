@@ -9,13 +9,17 @@ from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
-# from lutris.util import system
 from lutris.game import Game
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
-from lutris.util.battlenet.product_db_pb2 import ProductDb
+try:
+    from lutris.util.battlenet.product_db_pb2 import ProductDb
+    BNET_ENABLED = True
+except (ImportError, TypeError):
+    BNET_ENABLED = False
+
 from lutris.util.log import logger
 
 GAME_IDS = {
