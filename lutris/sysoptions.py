@@ -5,17 +5,16 @@ import os
 import re
 import shutil
 import subprocess
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from gettext import gettext as _
 
 from lutris import runners
 from lutris.util import linux, system
-from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME, has_graphic_adapter_description
+from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, USE_DRI_PRIME
 from lutris.util.log import logger
 
-
-# vulkan dirs used by distros or containers that aren't
-# from https://github.com/KhronosGroup/Vulkan-Loader/blob/v1.3.235/docs/LoaderDriverInterface.md#driver-discovery-on-linux
+# vulkan dirs used by distros or containers that aren't from:
+# https://github.com/KhronosGroup/Vulkan-Loader/blob/v1.3.235/docs/LoaderDriverInterface.md#driver-discovery-on-linux
 # don't include the /vulkan suffix
 FALLBACK_VULKAN_DATA_DIRS = [
     "/usr/local/etc",  # standard site-local location
@@ -116,8 +115,9 @@ def get_vulkan_gpu(icd_files, prime):
     if prime:
         subprocess_env["DRI_PRIME"] = "1"
 
-    infocmd = f"vulkaninfo --summary | grep deviceName | head -n 1 | tr -s '[:blank:]' | cut -d ' ' -f 3-"
-    with subprocess.Popen(infocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=subprocess_env) as infoget:
+    infocmd = "vulkaninfo --summary | grep deviceName | head -n 1 | tr -s '[:blank:]' | cut -d ' ' -f 3-"
+    with subprocess.Popen(infocmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          env=subprocess_env) as infoget:
         result = infoget.communicate()[0].decode("utf-8").strip()
     if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
         return "No GPU"
@@ -141,7 +141,7 @@ def get_vk_icd_files():
             # unixy env vars with multiple paths are : delimited
             for path in paths.split(":"):
                 path = os.path.join(path, "vulkan")
-                if os.path.exists(path) and not path in all_icd_search_paths:
+                if os.path.exists(path) and path not in all_icd_search_paths:
                     logger.debug("Added '%s' to vulkan ICD search path", path)
                     all_icd_search_paths.append(path)
 
@@ -166,8 +166,8 @@ def get_vk_icd_files():
 
     # FALLBACK
     # dirs that aren't from the loader spec are searched last
-    for dir in FALLBACK_VULKAN_DATA_DIRS:
-        add_icd_search_path(dir)
+    for fallback_dir in FALLBACK_VULKAN_DATA_DIRS:
+        add_icd_search_path(fallback_dir)
 
     all_icd_files = []
 
@@ -255,13 +255,13 @@ system_options = [  # pylint: disable=invalid-name
     },
     {
         "option":
-        "disable_runtime",
+            "disable_runtime",
         "type":
-        "bool",
+            "bool",
         "label":
-        _("Disable Lutris Runtime"),
+            _("Disable Lutris Runtime"),
         "default":
-        False,
+            False,
         "help": _("The Lutris Runtime loads some libraries before running the "
                   "game, which can cause some incompatibilities in some cases. "
                   "Check this option to disable it."),

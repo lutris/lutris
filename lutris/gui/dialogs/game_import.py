@@ -117,6 +117,35 @@ class ImportGameDialog(ModelessDialog):
             # this will do it on the GUI main thread instead.
             GLib.idle_add(lambda: self.progress_labels[filepath].set_markup("<i>%s</i>" % gtk_safe(message)))
 
+        def get_existing_game(filepath):
+            for game_id, game_path in game_path_cache.items():
+                if game_path == filepath:
+                    return Game(game_id)
+
+            return None
+
+        def search_single(filepath):
+            existing_game = get_existing_game(filepath)
+            if existing_game:
+                # Found a game to launch instead of installing, but we can't safely
+                # do this on this thread, so we return the game and handle it later.
+                return [{"name": existing_game.name, "game": existing_game, "roms": []}]
+
+            show_progress(filepath, _("Calculating checksum..."))
+            if filepath.lower().endswith(".zip"):
+                md5 = get_md5_in_zip(filepath)
+            else:
+                md5 = get_md5_hash(filepath)
+
+            if self.search_stopping:
+                return None
+
+            show_progress(filename, _("Looking up checksum on Lutris.net..."))
+            result = search_tosec_by_md5(md5)
+            if not result:
+                raise RuntimeError(_("This ROM could not be identified."))
+            return result
+
         results = OrderedDict()  # must preserve order, on any Python version
         for filename in self.files:
             if self.search_stopping:
@@ -124,33 +153,15 @@ class ImportGameDialog(ModelessDialog):
 
             try:
                 show_progress(filename, _("Looking for installed game..."))
-                if filename in game_path_cache.values():
-                    for game_id in game_path_cache:
-                        if game_path_cache[game_id] == filename:
-                            # Found a game to launch instead of installing, but we can't safely
-                            # do this on this thread.
-                            game = Game(game_id)
-                            result = [{"name": game.name, "game": game, "roms": []}]
-                else:
-                    show_progress(filename, _("Calculating checksum..."))
-                    if filename.lower().endswith(".zip"):
-                        md5 = get_md5_in_zip(filename)
-                    else:
-                        md5 = get_md5_hash(filename)
-
-                    if self.search_stopping:
-                        break
-
-                    show_progress(filename, _("Looking up checksum on Lutris.net..."))
-                    result = search_tosec_by_md5(md5)
-                    if not result:
-                        raise RuntimeError(_("This ROM could not be identified."))
+                result = search_single(filename)
             except Exception as error:
                 result = [{"error": error, "roms": []}]
             finally:
                 show_progress(filename, "")
 
-            results[filename] = result
+            if result:
+                results[filename] = result
+
         return results
 
     def search_result_finished(self, results, error):
