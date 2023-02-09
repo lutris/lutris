@@ -81,7 +81,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             generator()
             del self.notebook_page_generators[index]
 
-        self.update_advanced_switch_visibilty(index)
+        self.update_advanced_switch_visibility(index)
 
     def build_tabs(self, config_level):
         """Build tabs (for game and runner levels)"""
@@ -91,9 +91,9 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             self._build_game_tab()
         self._build_runner_tab(config_level)
         self._build_system_tab(config_level)
-        self.update_advanced_switch_visibilty(self.notebook.get_current_page())
+        self.update_advanced_switch_visibility(self.notebook.get_current_page())
 
-    def update_advanced_switch_visibilty(self, current_page_index):
+    def update_advanced_switch_visibility(self, current_page_index):
         if self.advanced_switch and self.notebook:
             show_switch = current_page_index in self.option_page_indices
             self.advanced_switch.set_visible(show_switch)
@@ -434,7 +434,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             header_bar.pack_end(switch_box)
 
             self.advanced_switch = switch_box
-            self.update_advanced_switch_visibilty(self.notebook.get_current_page())
+            self.update_advanced_switch_visibility(self.notebook.get_current_page())
         else:
             checkbox = Gtk.CheckButton(label=_("Show advanced options"))
             checkbox.set_active(settings.read_setting("show_advanced_options") == "True")
