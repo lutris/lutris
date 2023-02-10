@@ -609,15 +609,21 @@ class CommandsMixin:
             else:
                 dosbox_config = {}
             single_conf = None
+            config_file = None
             for filename in os.listdir(self.target_path):
                 if filename == "dosbox.conf":
                     dosbox_config["main_file"] = filename
                 elif filename.endswith("_single.conf"):
                     single_conf = filename
                 elif filename.endswith(".conf"):
-                    dosbox_config["config_file"] = filename
+                    config_file = filename
             if single_conf:
                 dosbox_config["main_file"] = single_conf
+            if config_file:
+                if dosbox_config.get("main_file"):
+                    dosbox_config["config_file"] = config_file
+                else:
+                    dosbox_config["main_file"] = config_file
             self.installer.script["game"] = dosbox_config
             self.installer.runner = "dosbox"
         elif scummvm_found:
