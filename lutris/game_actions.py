@@ -113,7 +113,7 @@ class GameActions:
         """Return a dictionary of actions that should be shown for a game"""
         return {
             "add": not self.game.is_installed,
-            "duplicate": True,
+            "duplicate": self.game.is_installed,
             "install": not self.game.is_installed,
             "play": self.game.is_installed and not self.is_game_running,
             "update": self.game.is_updatable,
@@ -123,7 +123,7 @@ class GameActions:
             "configure": bool(self.game.is_installed),
             "browse": self.game.is_installed and self.game.runner_name != "browser",
             "show_logs": self.game.is_installed,
-            "favorite": not self.game.is_favorite,
+            "favorite": not self.game.is_favorite and self.game.is_installed,
             "deletefavorite": self.game.is_favorite,
             "install_more": not self.game.service and self.game.is_installed,
             "execute-script": bool(
@@ -158,7 +158,7 @@ class GameActions:
                 and steam_shortcut.shortcut_exists(self.game)
                 and not steam_shortcut.is_steam_game(self.game)
             ),
-            "remove": True,
+            "remove": self.game.is_installed,
             "view": True,
             "hide": self.game.is_installed and not self.game.is_hidden,
             "unhide": self.game.is_hidden,
@@ -341,7 +341,7 @@ class GameActions:
 
     def on_view_game(self, _widget):
         """Callback to open a game on lutris.net"""
-        open_uri("https://lutris.net/games/%s" % self.game.slug)
+        open_uri("https://lutris.net/games/%s" % self.game.slug.replace("_", "-"))
 
     def on_remove_game(self, *_args):
         """Callback that present the uninstall dialog to the user"""

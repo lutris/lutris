@@ -36,11 +36,9 @@ class GameView:
                 return
             selected_id = self.get_selected_id(_iter)
             game_row = self.game_store.get_row_by_id(selected_id)
-            game_id = None
             if self.service:
                 game = get_game_for_service(self.service, game_row[COL_ID])
-                if game:
-                    game_id = game["id"]
+                game_id = game["id"] if game else -1
             else:
                 game_id = game_row[COL_ID]
             if not game_id:

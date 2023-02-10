@@ -592,9 +592,9 @@ class CommandsMixin:
         scummvm_found = False
         windows_override_found = False  # DOS games that also have a Windows executable
         for filename in file_list:
-            if "dosbox/dosbox.exe" in filename.lower():
+            if "dosbox.exe" in filename.lower():
                 dosbox_found = True
-            if "scummvm/scummvm.exe" in filename.lower():
+            if "scummvm.exe" in filename.lower():
                 scummvm_found = True
             if "_some_windows.exe" in filename.lower():
                 # There's not a good way to handle exceptions without extracting the .info file
@@ -602,14 +602,28 @@ class CommandsMixin:
                 windows_override_found = True
         if dosbox_found and not windows_override_found:
             self._extract_gog_game(file_id)
-            dosbox_config = {
-                "working_dir": "$GAMEDIR/DOSBOX",
-            }
+            if "DOSBOX" in os.listdir(self.target_path):
+                dosbox_config = {
+                    "working_dir": "$GAMEDIR/DOSBOX",
+                }
+            else:
+                dosbox_config = {}
+            single_conf = None
+            config_file = None
             for filename in os.listdir(self.target_path):
-                if filename.endswith("_single.conf"):
+                if filename == "dosbox.conf":
                     dosbox_config["main_file"] = filename
+                elif filename.endswith("_single.conf"):
+                    single_conf = filename
                 elif filename.endswith(".conf"):
-                    dosbox_config["config_file"] = filename
+                    config_file = filename
+            if single_conf:
+                dosbox_config["main_file"] = single_conf
+            if config_file:
+                if dosbox_config.get("main_file"):
+                    dosbox_config["config_file"] = config_file
+                else:
+                    dosbox_config["main_file"] = config_file
             self.installer.script["game"] = dosbox_config
             self.installer.runner = "dosbox"
         elif scummvm_found:

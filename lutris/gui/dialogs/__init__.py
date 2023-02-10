@@ -70,7 +70,7 @@ class ModelessDialog(Dialog):
 
     def _clear_transient_for(self):
         # we need the parent set to be centered over the parent, but
-        # we don't want to be transient really- we want other windows
+        # we don't want to be transient really - we want other windows
         # able to come to the front.
         self.set_transient_for(None)
         return False
@@ -129,7 +129,6 @@ class AboutDialog(GtkBuilderDialog):
 
 
 class NoticeDialog(Gtk.MessageDialog):
-
     """Display a message to the user."""
 
     def __init__(self, message, secondary=None, parent=None):
@@ -148,7 +147,6 @@ class NoticeDialog(Gtk.MessageDialog):
 
 
 class WarningDialog(Gtk.MessageDialog):
-
     """Display a warning to the user, who responds with whether to proceed, like
     a QuestionDialog."""
 
@@ -168,7 +166,6 @@ class WarningDialog(Gtk.MessageDialog):
 
 
 class ErrorDialog(Gtk.MessageDialog):
-
     """Display an error message."""
 
     def __init__(self, message, secondary=None, parent=None):
@@ -189,7 +186,6 @@ class ErrorDialog(Gtk.MessageDialog):
 
 
 class QuestionDialog(Gtk.MessageDialog):
-
     """Ask the user a question."""
 
     YES = Gtk.ResponseType.YES
@@ -209,7 +205,6 @@ class QuestionDialog(Gtk.MessageDialog):
 
 
 class DirectoryDialog:
-
     """Ask the user to select a directory."""
 
     def __init__(self, message, default_path=None, parent=None):
@@ -230,7 +225,6 @@ class DirectoryDialog:
 
 
 class FileDialog:
-
     """Ask the user to select a file."""
 
     def __init__(self, message=None, default_path=None, mode="open", parent=None):
@@ -386,8 +380,8 @@ class ClientLoginDialog(GtkBuilderDialog):
     glade_file = "dialog-lutris-login.ui"
     dialog_object = "lutris-login"
     __gsignals__ = {
-        "connected": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT, )),
-        "cancel": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT, )),
+        "connected": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+        "cancel": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
     }
 
     def __init__(self, parent):
@@ -430,7 +424,6 @@ class ClientLoginDialog(GtkBuilderDialog):
 
 
 class InstallerSourceDialog(ModelessDialog):
-
     """Show install script source"""
 
     def __init__(self, code, name, parent):
@@ -461,7 +454,6 @@ class InstallerSourceDialog(ModelessDialog):
 
 
 class DontShowAgainDialog(Gtk.MessageDialog):
-
     """Display a message to the user and offer an option not to display this dialog again."""
 
     def __init__(
@@ -505,7 +497,6 @@ class DontShowAgainDialog(Gtk.MessageDialog):
 
 
 class WineNotInstalledWarning(DontShowAgainDialog):
-
     """Display a warning if Wine is not detected on the system"""
 
     def __init__(self, parent=None, cancellable=False):
