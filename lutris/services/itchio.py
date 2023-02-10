@@ -418,7 +418,7 @@ class ItchIoService(OnlineService):
 
         # Skip time based checks if we already know it's outdated
         if not outdated:
-            outdated = self._check_outdated_in_db(db_game, key, upload)
+            outdated = self._check_update_with_db(db_game, key, upload)
 
         if outdated:
             installer = {
