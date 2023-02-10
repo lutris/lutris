@@ -751,7 +751,10 @@ class Game(GObject.Object):
             self.force_stop()
             return False
         game_pids = self.get_game_pids()
-        if not self.game_thread.is_running and not game_pids:
+        runs_only_prelaunch = False
+        if self.prelaunch_executor and self.prelaunch_executor.is_running:
+            runs_only_prelaunch = game_pids == {self.prelaunch_executor.game_process.pid}
+        if runs_only_prelaunch or (not self.game_thread.is_running and not game_pids):
             logger.debug("Game thread stopped")
             self.on_game_quit()
             return False
