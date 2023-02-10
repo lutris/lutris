@@ -350,16 +350,42 @@ class ItchIoService(OnlineService):
             }
         }
 
+    def _check_update_with_db(self, db_game, key, upload=None):
+        stamp = 0
+        if upload:
+            uploads = [upload["upload"] if "upload" in upload else upload]
+        else:
+            uploads = self.fetch_uploads(db_game["service_id"], key)
+            if "uploads" in uploads:
+                uploads = uploads["uploads"]
+
+        for _upload in uploads:
+            # skip extras
+            if _upload["type"] in self.extra_types:
+                continue
+            ts = self._rfc3999_to_timestamp(_upload["updated_at"])
+            if (not stamp) or (ts > stamp):
+                stamp = ts
+
+        if stamp:
+            dbg = games_db.get_games_where(
+                installed_at__lessthan=stamp,
+                service=self.id,
+                service_id=db_game["service_id"]
+            )
+            return len(dbg)
+        return False
+
     def get_update_installers(self, db_game):
         """Check for updates"""
         patch_installers = []
         key = self.get_key(db_game["service_id"])
         upload = None
-        stamp = None
+        outdated = False
         patch_url = None
+        info = {}
         info_filename = os.path.join(db_game["directory"], ".lutrisgame.json")
         if os.path.exists(info_filename):
-            info = {}
             with open(info_filename, encoding="utf-8") as info_file:
                 info = json.load(info_file)
             if "upload" in info:
@@ -372,35 +398,31 @@ class ItchIoService(OnlineService):
                 #         patch_urls.append("builds/{}/download/patch/default".format(build["id"]))
                 # else:
                 # Do overinstall of upload / Full build url
-                patch_url = self.get_download_link(info["upload"], key)
-                upload = self.fetch_upload(info["upload"], key)
+                try:
+                    upload = self.fetch_upload(info["upload"], key)
+                    upload = upload["upload"] if "upload" in upload else upload
+                    patch_url = self.get_download_link(info["upload"], key)
+                except HTTPError as error:
+                    if error.code == 400:
+                        # Bad request probably means the upload was removed
+                        logger.info("Upload %s for %s seems to be removed.",
+                                    info["upload"],
+                                    db_game["name"]
+                                    )
+                        outdated = True
 
-        if upload:
-            uploads = [upload["upload"] if "upload" in upload else upload]
-        else:
-            uploads = self.fetch_uploads(db_game["service_id"], key)
-            if "uploads" in uploads:
-                uploads = uploads["uploads"]
+                ts = self._rfc3999_to_timestamp(upload.get("updated_at", 0))
+                if int(info.get("date", 0)) >= ts:
+                    return
+                info["date"] = int(datetime.datetime.now().timestamp())
 
-        stamp = 0
-        for _upload in uploads:
-            _s = _upload["updated_at"]
-            # Python does ootb not fully comply with RFC3999; Cut after seconds
-            _s = datetime.datetime.fromisoformat(_s[:_s.rfind(".")]).timestamp()
-            if (not stamp) or (_s < stamp):
-                stamp = _s
-
-        outdated = False
-        if stamp:
-            dbg = games_db.get_games_where(
-                installed_at__lessthan=stamp,
-                service=self.id,
-                service_id=db_game["service_id"]
-            )
-            outdated = len(dbg)
+        # Skip time based checks if we already know it's outdated
+        if not outdated:
+            outdated = self._check_outdated_in_db(db_game, key, upload)
 
         if outdated:
             installer = {
+                "version": "itch.io",
                 "name": db_game["name"],
                 "slug": db_game["installer_slug"],
                 "game_slug": db_game["slug"],
@@ -416,7 +438,11 @@ class ItchIoService(OnlineService):
 
             if patch_url:
                 installer["script"]["files"] = [
-                    {"itchupload": patch_url}
+                    {"itchupload": {
+                        "url": patch_url,
+                        "filename": "update.zip",
+                        "downloader": Downloader(patch_url, None, overwrite=True, cookies=self.load_cookies()),
+                    }}
                 ]
             else:
                 installer["script"]["files"] = [
@@ -430,6 +456,15 @@ class ItchIoService(OnlineService):
             elif db_game["runner"] == "wine":
                 installer["script"]["installer"].append(
                     {"merge": {"src": "$CACHE", "dst": "$GAMEDIR/drive_c/%s" % db_game["slug"]}}
+                )
+
+            if patch_url:
+                installer["script"]["installer"].append(
+                    {"write_json": {
+                        "data": info,
+                        "file": info_filename,
+                        "merge": True
+                    }}
                 )
 
             patch_installers.append(installer)
@@ -447,44 +482,57 @@ class ItchIoService(OnlineService):
         filtered = []
         extras = []
         files = []
-        for upload in uploads["uploads"]:
-            if selected_extras and (upload["type"] in self.extra_types):
-                extras.append(upload)
-                continue
-            # default =  games/tools ("executables")
-            if upload["type"] == "default" and (installer.runner in ("linux", "wine")):
-                is_linux = installer.runner == "linux" and "p_linux" in upload["traits"]
-                is_windows = installer.runner == "wine" and "p_windows" in upload["traits"]
-                is_demo = "demo" in upload["traits"]
-                if not (is_linux or is_windows):
+        link = None
+        filename = "setup.zip"
+
+        file = next(_file.copy() for _file in installer.script_files if _file.id == installer_file_id)
+        if not file.url.startswith("N/A"):
+            link = file.url
+
+        data = {
+            "service": self.id,
+            "appid": installer.service_appid,
+            "slug": installer.game_slug,
+            "runner": installer.runner,
+            "date": int(datetime.datetime.now().timestamp())
+        }
+
+        if not link or len(selected_extras) > 0:
+            for upload in uploads["uploads"]:
+                if selected_extras and (upload["type"] in self.extra_types):
+                    extras.append(upload)
                     continue
+                # default =  games/tools ("executables")
+                if upload["type"] == "default" and (installer.runner in ("linux", "wine")):
+                    is_linux = installer.runner == "linux" and "p_linux" in upload["traits"]
+                    is_windows = installer.runner == "wine" and "p_windows" in upload["traits"]
+                    is_demo = "demo" in upload["traits"]
+                    if not (is_linux or is_windows):
+                        continue
 
-                upload["Weight"] = self.get_file_weight(upload["filename"], is_demo)
-                if upload["Weight"] == 0xFF:
+                    upload["Weight"] = self.get_file_weight(upload["filename"], is_demo)
+                    if upload["Weight"] == 0xFF:
+                        continue
+
+                    filtered.append(upload)
                     continue
+                # TODO: Implement embedded types: flash, unity, java, html
+                # I have not found keys for embdedded games
+                # but people COULD write custom installers.
+                # So far embedded games can be played directly on itch.io
 
-                filtered.append(upload)
-                continue
-            # TODO: Implement embedded types: flash, unity, java, html
-            # I have not found keys for embdedded games
-            # but people COULD write custom installers.
-            # So far embedded games can be played directly on itch.io
-
-        if len(filtered) > 0:
+        if len(filtered) > 0 and not link:
             filtered.sort(key=lambda upload: upload["Weight"])
             # Lutris does not support installer selection
             upload = filtered[0]
-
-            data = {
-                "service": self.id,
-                "appid": installer.service_appid,
-                "upload": str(upload["id"]),
-                "slug": installer.game_slug,
-                "runner": installer.runner
-            }
+            data["upload"] = str(upload["id"])
             if "build_id" in upload:
                 data["build"] = str(upload["build_id"])
 
+            link = self.get_download_link(upload["id"], key)
+            filename = upload["filename"]
+
+        if link:
             # Adding a file with some basic info for e.g. patching
             installer.script["installer"].append({"write_json": {
                 "data": data,
@@ -492,11 +540,10 @@ class ItchIoService(OnlineService):
                 "merge": False
             }})
 
-            link = self.get_download_link(upload["id"], key)
             files.append(
                 InstallerFile(installer.game_slug, installer_file_id, {
                     "url": link,
-                    "filename": upload["filename"],
+                    "filename": filename or file.filename or "setup.zip",
                     "downloader": Downloader(link, None, overwrite=True, cookies=self.load_cookies()),
                 })
             )
@@ -515,6 +562,11 @@ class ItchIoService(OnlineService):
 
         return files
 
+    def get_patch_files(self, installer, installer_file_id):
+        """Similar to get_installer_files but for patches"""
+        # No really, it is the same! so we just call get_installer_files
+        return self.get_installer_files(installer, installer_file_id, [])
+
     def get_file_weight(self, name, demo):
         if name.endswith(".rpm"):
             return 0xFF  # Not supported as an extractor
@@ -530,3 +582,7 @@ class ItchIoService(OnlineService):
         if demo:
             weight |= 0x40
         return weight
+
+    def _rfc3999_to_timestamp(self, _s):
+        # Python does ootb not fully comply with RFC3999; Cut after seconds
+        return datetime.datetime.fromisoformat(_s[:_s.rfind(".")]).timestamp()
