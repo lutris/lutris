@@ -97,7 +97,7 @@ class InstallerWindow(ModelessDialog,
 
         # Navigation stack
 
-        self.stack = NavigationStack(self.back_button)
+        self.stack = NavigationStack(self.back_button, cancel_button=self.cancel_button)
         self.register_page_creators()
         content_area.pack_start(self.stack, True, True, 0)
 
@@ -229,9 +229,12 @@ class InstallerWindow(ModelessDialog,
             if confirm_cancel_dialog.result != Gtk.ResponseType.YES:
                 logger.debug("User aborted installation cancellation")
                 return
+
             self.installer_files_box.stop_all()
             if self.interpreter:
                 self.interpreter.revert(remove_game_dir=remove_checkbox.get_active())
+        else:
+            self.installer_files_box.stop_all()
 
         if self.interpreter:
             self.interpreter.cleanup()  # still remove temporary downloads in any case
@@ -927,7 +930,7 @@ class InstallerWindow(ModelessDialog,
         else:
             self.continue_handler = None
 
-        buttons = [self.continue_button, self.cancel_button] + (extra_buttons or [])
+        buttons = [self.continue_button] + (extra_buttons or [])
         self.display_buttons(buttons)
 
     def display_install_button(self, handler, sensitive=True):
@@ -937,7 +940,7 @@ class InstallerWindow(ModelessDialog,
                                      extra_buttons=[self.source_button])
 
     def display_cancel_button(self, extra_buttons=None):
-        self.display_buttons([self.cancel_button] + (extra_buttons or []))
+        self.display_buttons(extra_buttons or [])
 
     def display_buttons(self, buttons):
         """Shows exactly the buttons given, and hides the others. Updates the close button
@@ -956,8 +959,7 @@ class InstallerWindow(ModelessDialog,
 
         all_buttons = [self.cache_button,
                        self.source_button,
-                       self.continue_button,
-                       self.cancel_button]
+                       self.continue_button]
 
         for b in all_buttons:
             b.set_visible(b in buttons)

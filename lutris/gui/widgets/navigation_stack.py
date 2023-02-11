@@ -24,17 +24,19 @@ class NavigationStack(Gtk.Stack):
     from the page again.
     """
 
-    def __init__(self, back_button, **kwargs):
+    def __init__(self, back_button, cancel_button=None, **kwargs):
         super().__init__(**kwargs)
 
         self.back_button = back_button
+        self.cancel_button = cancel_button
         self.page_factories = {}
         self.stack_pages = {}
         self.navigation_stack = []
-        self.navigation_exit_hander = None
+        self.navigation_exit_handler = None
         self.current_page_presenter = None
         self.current_navigated_page_presenter = None
         self.back_allowed = True
+        self.cancel_allowed = True
 
     def add_named_factory(self, name, factory):
         """This specifies the factory functioin for the page named;
@@ -46,8 +48,15 @@ class NavigationStack(Gtk.Stack):
         self.back_allowed = is_allowed
         self._update_back_button()
 
+    def set_cancel_allowed(self, is_allowed=True):
+        """This turns the back button off, or back on."""
+        self.cancel_allowed = is_allowed
+        self._update_back_button()
+
     def _update_back_button(self):
-        self.back_button.set_visible(self.back_allowed and self.navigation_stack)
+        can_go_back = self.back_allowed and self.navigation_stack
+        self.back_button.set_visible(can_go_back)
+        self.cancel_button.set_visible(not can_go_back and self.cancel_allowed)
 
     def navigate_to_page(self, page_presenter):
         """Navigates to a page, by invoking 'page_presenter'.
@@ -115,14 +124,15 @@ class NavigationStack(Gtk.Stack):
         """Switches to a page. If 'navigated' is True, then when you navigate
         away from this page, it can go on the navigation stack. It should be
         False for 'temporary' pages that are not part of normal navigation."""
-        exit_handler = self.navigation_exit_hander
+        exit_handler = self.navigation_exit_handler
         self.set_transition_type(transition_type)
-        self.navigation_exit_hander = page_presenter()
+        self.navigation_exit_handler = page_presenter()
         self.current_page_presenter = page_presenter
         if navigated:
             self.current_navigated_page_presenter = page_presenter
         if exit_handler:
             exit_handler()
+        self._update_back_button()
 
     def discard_navigation(self):
         """This throws away the navigation history, so the back

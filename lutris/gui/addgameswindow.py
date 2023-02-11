@@ -102,7 +102,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.cancel_button = Gtk.Button(_("Cancel"), use_underline=True)
         self.cancel_button.connect("clicked", self.on_cancel_clicked)
         key, mod = Gtk.accelerator_parse("Escape")
-        self.cancel_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, lambda *_args: self.destroy())
         header_bar.pack_start(self.cancel_button)
         header_bar.set_show_close_button(False)
 
@@ -112,7 +112,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         content_area.set_margin_left(18)
         content_area.set_spacing(12)
 
-        self.stack = NavigationStack(self.back_button)
+        self.stack = NavigationStack(self.back_button, cancel_button=self.cancel_button)
         content_area.pack_start(self.stack, True, True, 0)
 
         # Pre-create some controls so they can be used in signal handlers
@@ -624,16 +624,16 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         self.continue_button.show()
         self.cancel_button.set_label(_("Cancel"))
-        self.cancel_button.show()
+        self.stack.set_cancel_allowed(True)
 
     def display_cancel_button(self, label=_("Cancel")):
         self.cancel_button.set_label(label)
-        self.cancel_button.show()
+        self.stack.set_cancel_allowed(True)
         self.continue_button.hide()
 
     def display_no_continue_button(self):
         self.continue_button.hide()
-        self.cancel_button.hide()
+        self.stack.set_cancel_allowed(False)
 
         if self.continue_handler:
             self.continue_button.disconnect(self.continue_handler)
