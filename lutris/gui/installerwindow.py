@@ -3,12 +3,12 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import GLib, Gtk
+from gi.repository import Gio, GLib, Gtk
 
 from lutris.config import LutrisConfig
 from lutris.exceptions import UnavailableGameError, watch_errors
 from lutris.game import Game
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, QuestionDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, QuestionDialog, ModelessDialog
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.installer.files_box import InstallerFilesBox
@@ -16,7 +16,6 @@ from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
-from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import InstallationKind, get_installers, interpreter
 from lutris.installer.errors import MissingGameDependency, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
@@ -27,7 +26,7 @@ from lutris.util.strings import gtk_safe, human_size
 from lutris.util.system import is_removeable
 
 
-class InstallerWindow(BaseApplicationWindow,
+class InstallerWindow(ModelessDialog,
                       DialogInstallUIDelegate,
                       ScriptInterpreter.InterpreterUIDelegate):  # pylint: disable=too-many-public-methods
     """GUI for the install process.
@@ -48,10 +47,10 @@ class InstallerWindow(BaseApplicationWindow,
         installers,
         service=None,
         appid=None,
-        application=None,
-        installation_kind=InstallationKind.INSTALL
+        installation_kind=InstallationKind.INSTALL,
+        **kwargs
     ):
-        BaseApplicationWindow.__init__(self, application=application)
+        ModelessDialog.__init__(self, use_header_bar=True, **kwargs)
         ScriptInterpreter.InterpreterUIDelegate.__init__(self, service, appid)
         self.set_default_size(740, 460)
         self.installers = installers
@@ -65,16 +64,18 @@ class InstallerWindow(BaseApplicationWindow,
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
-        # Header labels
+        self.vbox.set_margin_top(18)
+        self.vbox.set_margin_bottom(18)
+        self.vbox.set_margin_right(18)
+        self.vbox.set_margin_left(18)
+        self.vbox.set_spacing(12)
 
-        self.title_label = InstallerWindow.MarkupLabel(selectable=False)
-        self.title_label.set_markup(_("<b>Install %s</b>") % gtk_safe(self.installers[0]["name"]))
-        self.vbox.pack_start(self.title_label, False, False, 0)
+        # Header labels
 
         self.status_label = InstallerWindow.MarkupLabel()
         self.vbox.pack_start(self.status_label, False, False, 0)
 
-        # Action buttons
+        # Header bar buttons
 
         self.back_button = self.add_start_button(_("Back"), self.on_back_clicked)
         self.back_button.set_no_show_all(True)
@@ -82,13 +83,11 @@ class InstallerWindow(BaseApplicationWindow,
         self.back_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
         key, mod = Gtk.accelerator_parse("<Alt>Home")
         self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, self.on_navigate_home)
-        self.cache_button = self.add_start_button(_("Cache"), self.on_cache_clicked,
-                                                  tooltip=_("Change where Lutris downloads game installer files."))
+
+        self.cancel_button = self.add_start_button(_("Cancel"), self.on_cancel_clicked)
+        self.get_header_bar().set_show_close_button(False)
 
         self.continue_button = self.add_end_button(_("_Continue"))
-        self.cancel_button = self.add_end_button(_("Cancel"), self.on_cancel_clicked)
-        self.source_button = self.add_end_button(_("_View source"), self.on_source_clicked)
-        self.eject_button = self.add_end_button(_("_Eject"), self.on_eject_clicked)
 
         # The cancel button doubles as 'Close' and 'Abort' depending on the state of the install
         key, mod = Gtk.accelerator_parse("Escape")
@@ -101,6 +100,19 @@ class InstallerWindow(BaseApplicationWindow,
         self.vbox.pack_start(self.stack, True, True, 0)
 
         self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
+
+        # Action buttons
+
+        self.action_buttons = Gtk.Box(spacing=6)
+        self.vbox.pack_end(self.action_buttons, False, False, 0)
+
+        self.cache_button = self.add_action_start_button(_("Cache"),
+                                                         self.on_cache_clicked,
+                                                         tooltip=_(
+                                                             "Change where Lutris downloads game installer files."))
+
+        self.source_button = self.add_action_end_button(_("_View source"), self.on_source_clicked)
+        self.eject_button = self.add_action_end_button(_("_Eject"), self.on_eject_clicked)
 
         # Pre-create some UI bits we need to refer to in several places.
         # (We lazy allocate more of it, but these are a pain.)
@@ -140,7 +152,9 @@ class InstallerWindow(BaseApplicationWindow,
             button.set_tooltip_text(tooltip)
         if handler:
             button.connect("clicked", handler)
-        self.action_buttons.pack_start(button, False, False, 0)
+
+        header_bar = self.get_header_bar()
+        header_bar.pack_start(button)
         return button
 
     def add_end_button(self, label, handler=None, tooltip=None, sensitive=True):
@@ -151,6 +165,31 @@ class InstallerWindow(BaseApplicationWindow,
             button.set_tooltip_text(tooltip)
         if handler:
             button.connect("clicked", handler)
+
+        header_bar = self.get_header_bar()
+        header_bar.pack_end(button)
+        return button
+
+    def add_action_start_button(self, label, handler=None, tooltip=None, sensitive=True):
+        button = Gtk.Button.new_with_mnemonic(label)
+        button.set_sensitive(sensitive)
+        if tooltip:
+            button.set_tooltip_text(tooltip)
+        if handler:
+            button.connect("clicked", handler)
+
+        self.action_buttons.pack_start(button, False, False, 0)
+        return button
+
+    def add_action_end_button(self, label, handler=None, tooltip=None, sensitive=True):
+        """Add a button to the action buttons box"""
+        button = Gtk.Button.new_with_mnemonic(label)
+        button.set_sensitive(sensitive)
+        if tooltip:
+            button.set_tooltip_text(tooltip)
+        if handler:
+            button.connect("clicked", handler)
+
         self.action_buttons.pack_end(button, False, False, 0)
         return button
 
@@ -276,6 +315,7 @@ class InstallerWindow(BaseApplicationWindow,
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
         self.set_status("")
+        self.set_title(_("Install %s") % gtk_safe(self.installers[0]["name"]))
         self.stack.present_page("choose_installer")
         self.display_cancel_button()
         self.cache_button.set_sensitive(True)
@@ -305,10 +345,11 @@ class InstallerWindow(BaseApplicationWindow,
             )
             if dlg.result == Gtk.ResponseType.YES:
                 installers = get_installers(game_slug=ex.slug)
-                self.application.show_installer_window(installers)
+                application = Gio.Application.get_default()
+                application.show_installer_window(installers)
             return
 
-        self.title_label.set_markup(_("<b>Installing {}</b>").format(gtk_safe(self.interpreter.installer.game_name)))
+        self.set_title(_("Installing {}").format(gtk_safe(self.interpreter.installer.game_name)))
         self.load_destination_page()
 
     def validate_scripts(self):
