@@ -6,11 +6,10 @@ from gi.repository import Gio, GLib, Gtk
 from lutris import api
 from lutris.exceptions import watch_errors
 from lutris.gui.config.add_game_dialog import AddGameDialog
-from lutris.gui.dialogs import ErrorDialog
+from lutris.gui.dialogs import ErrorDialog, ModelessDialog
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.navigation_stack import NavigationStack
-from lutris.gui.widgets.window import BaseApplicationWindow
 from lutris.installer import AUTO_WIN32_EXE, get_installers
 from lutris.scanners.lutris import scan_directory
 from lutris.util.jobs import AsyncCall
@@ -18,7 +17,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.strings import gtk_safe, slugify
 
 
-class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-methods
+class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
     """Show a selection of ways to add games to Lutris"""
 
     sections = [
@@ -66,10 +65,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         )
     ]
 
-    title_text = _("Add games to Lutris")
-
-    def __init__(self, application=None):
-        super().__init__(application=application)
+    def __init__(self, **kwargs):
+        ModelessDialog.__init__(self, title=_("Add games to Lutris"), use_header_bar=True, **kwargs)
         self.set_default_size(640, 450)
         self.search_entry = None
         self.search_frame = None
@@ -79,34 +76,41 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         self.search_spinner = None
         self.text_query = None
         self.search_result_label = None
-        self.title_label = Gtk.Label(visible=True)
-        self.vbox.pack_start(self.title_label, False, False, 0)
+        self.page_title_label = Gtk.Label(visible=True)
+        self.vbox.pack_start(self.page_title_label, False, False, 0)
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
-        self.back_button = Gtk.Button(_("Back"), sensitive=False)
+        header_bar = self.get_header_bar()
+
+        self.back_button = Gtk.Button(_("Back"), no_show_all=True)
         self.back_button.connect("clicked", self.on_back_clicked)
         key, mod = Gtk.accelerator_parse("<Alt>Left")
         self.back_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
         key, mod = Gtk.accelerator_parse("<Alt>Home")
         self.accelerators.connect(key, mod, Gtk.AccelFlags.VISIBLE, self.on_navigate_home)
-        self.action_buttons.pack_start(self.back_button, False, False, 0)
+        header_bar.pack_start(self.back_button)
 
         self.continue_button = Gtk.Button(_("_Continue"), no_show_all=True, use_underline=True)
-        self.action_buttons.pack_end(self.continue_button, False, False, 0)
+        header_bar.pack_end(self.continue_button)
         self.continue_handler = None
 
         self.cancel_button = Gtk.Button(_("Cancel"), use_underline=True)
         self.cancel_button.connect("clicked", self.on_cancel_clicked)
         key, mod = Gtk.accelerator_parse("Escape")
         self.cancel_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
-        self.action_buttons.pack_end(self.cancel_button, False, False, 0)
+        header_bar.pack_start(self.cancel_button)
+        header_bar.set_show_close_button(False)
+
+        self.vbox.set_margin_top(18)
+        self.vbox.set_margin_bottom(18)
+        self.vbox.set_margin_right(18)
+        self.vbox.set_margin_left(18)
+        self.vbox.set_spacing(12)
 
         self.stack = NavigationStack(self.back_button)
         self.vbox.pack_start(self.stack, True, True, 0)
-
-        self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
 
         # Pre-create some controls so they can be used in signal handlers
 
@@ -174,7 +178,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         return frame
 
     def present_inital_page(self):
-        self.title_label.set_markup(f"<b>{self.title_text}</b>")
+        self.set_page_title_markup(None)
         self.stack.present_page("initial")
         self.display_cancel_button()
 
@@ -231,7 +235,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         return vbox
 
     def present_search_installers_page(self):
-        self.title_label.set_markup(_("<b>Search Lutris.net</b>"))
+        self.set_page_title_markup(_("<b>Search Lutris.net</b>"))
         self.stack.present_page("search_installers")
         self.search_entry.grab_focus()
         self.display_cancel_button()
@@ -320,7 +324,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         return grid
 
     def present_scan_folder_page(self):
-        self.title_label.set_markup("<b>Select folder to scan for games</b>")
+        self.set_page_title_markup("<b>Select folder to scan for games</b>")
         self.stack.present_page("scan_folder")
         self.display_continue_button(self.on_continue_scan_folder_clicked)
 
@@ -338,7 +342,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
 
     def load_scanning_folder_page(self, path):
         def present_scanning_folder_page():
-            self.title_label.set_markup("<b>Importing games from a folder</b>")
+            self.set_page_title_markup("<b>Importing games from a folder</b>")
             self.stack.present_page("scanning_folder")
             self.display_no_continue_button()
             AsyncCall(scan_directory, self._on_folder_scanned, path)
@@ -354,9 +358,9 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
     def _on_folder_scanned(self, result, error):
         def present_installed_games_page():
             if installed or missing:
-                self.title_label.set_markup(_("<b>Games found</b>"))
+                self.set_page_title_markup(_("<b>Games found</b>"))
             else:
-                self.title_label.set_markup(_("<b>No games found</b>"))
+                self.set_page_title_markup(_("<b>No games found</b>"))
 
             page = self.create_installed_games_page(installed, missing)
             self.stack.present_replacement_page("installed_games", page)
@@ -442,7 +446,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         return grid
 
     def present_install_from_setup_page(self):
-        self.title_label.set_markup(_("<b>Select setup file</b>"))
+        self.set_page_title_markup(_("<b>Select setup file</b>"))
         self.stack.present_page("install_from_setup")
         self.display_continue_button(self._on_install_setup_continue, label=_("_Install"))
 
@@ -523,7 +527,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         return grid
 
     def present_install_from_script_page(self):
-        self.title_label.set_markup("<b>Select a Lutris installer</b>")
+        self.set_page_title_markup("<b>Select a Lutris installer</b>")
         self.stack.present_page("install_from_script")
         self.display_continue_button(self.on_continue_install_from_script_clicked, label=_("_Install"))
 
@@ -565,7 +569,7 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         return grid
 
     def present_import_rom_page(self):
-        self.title_label.set_markup("<b>Select a ROM file</b>")
+        self.set_page_title_markup("<b>Select a ROM file</b>")
         self.stack.present_page("import_rom")
         self.display_continue_button(self.on_continue_import_rom_clicked, label=_("_Install"))
 
@@ -577,7 +581,8 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         elif not os.path.isfile(path):
             ErrorDialog(_("No file exists at '%s'.") % path, parent=self)
         else:
-            dialog = ImportGameDialog([path], parent=self.application.window)
+            application = Gio.Application.get_default()
+            dialog = ImportGameDialog([path], parent=application.window)
             dialog.show()
             self.destroy()
 
@@ -587,6 +592,16 @@ class AddGamesWindow(BaseApplicationWindow):  # pylint: disable=too-many-public-
         """Manually configure game"""
         AddGameDialog(parent=self)
         GLib.idle_add(self.destroy)  # defer destory so the game dialog can be centered first
+
+    # Subtitle Label
+
+    def set_page_title_markup(self, markup):
+        """Places some text at the top of the page; set markup to 'None' to remove it."""
+        if markup:
+            self.page_title_label.set_markup(markup)
+            self.page_title_label.show()
+        else:
+            self.page_title_label.hide()
 
     # Continue Button
 
