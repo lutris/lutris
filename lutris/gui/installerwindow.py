@@ -101,6 +101,24 @@ class InstallerWindow(ModelessDialog,
         self.register_page_creators()
         content_area.pack_start(self.stack, True, True, 0)
 
+        # Menu buttons
+
+        menu_icon = Gtk.Image.new_from_icon_name("open-menu-symbolic", Gtk.IconSize.MENU)
+        self.menu_button = Gtk.MenuButton(child=menu_icon)
+        self.menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, halign=Gtk.Align.END)
+        self.menu_box.set_border_width(9)
+        self.menu_box.set_spacing(3)
+        self.menu_box.set_can_focus(False)
+        self.menu_button.set_popover(Gtk.Popover(child=self.menu_box, can_focus=False, relative_to=self.menu_button))
+        self.get_header_bar().pack_end(self.menu_button)
+
+        self.cache_button = self.add_menu_button(_("Cache"),
+                                                 self.on_cache_clicked,
+                                                 tooltip=_(
+                                                     "Change where Lutris downloads game installer files."))
+
+        self.source_button = self.add_menu_button(_("View source"), self.on_source_clicked)
+
         # Action buttons
 
         self.action_separator = Gtk.HSeparator()
@@ -109,12 +127,6 @@ class InstallerWindow(ModelessDialog,
         self.action_buttons = Gtk.Box(spacing=6)
         content_area.pack_end(self.action_buttons, False, False, 0)
 
-        self.cache_button = self.add_action_start_button(_("Cache"),
-                                                         self.on_cache_clicked,
-                                                         tooltip=_(
-                                                             "Change where Lutris downloads game installer files."))
-
-        self.source_button = self.add_action_end_button(_("_View source"), self.on_source_clicked)
         self.eject_button = self.add_action_end_button(_("_Eject"), self.on_eject_clicked)
 
         # Pre-create some UI bits we need to refer to in several places.
@@ -173,17 +185,6 @@ class InstallerWindow(ModelessDialog,
         header_bar.pack_end(button)
         return button
 
-    def add_action_start_button(self, label, handler=None, tooltip=None, sensitive=True):
-        button = Gtk.Button.new_with_mnemonic(label)
-        button.set_sensitive(sensitive)
-        if tooltip:
-            button.set_tooltip_text(tooltip)
-        if handler:
-            button.connect("clicked", handler)
-
-        self.action_buttons.pack_start(button, False, False, 0)
-        return button
-
     def add_action_end_button(self, label, handler=None, tooltip=None, sensitive=True):
         """Add a button to the action buttons box"""
         button = Gtk.Button.new_with_mnemonic(label)
@@ -194,6 +195,18 @@ class InstallerWindow(ModelessDialog,
             button.connect("clicked", handler)
 
         self.action_buttons.pack_end(button, False, False, 0)
+        return button
+
+    def add_menu_button(self, label, handler=None, tooltip=None, sensitive=True):
+        """Add a button to the menu in the header bar"""
+        button = Gtk.ModelButton(label, visible=True, xalign=0.0)
+        button.set_sensitive(sensitive)
+        if tooltip:
+            button.set_tooltip_text(tooltip)
+        if handler:
+            button.connect("clicked", handler)
+
+        self.menu_box.pack_start(button, False, False, 0)
         return button
 
     @watch_errors()
@@ -975,13 +988,17 @@ class InstallerWindow(ModelessDialog,
         for b in all_buttons:
             b.set_visible(b in buttons)
 
-        is_action_visible = False
-        for b in self.action_buttons.get_children():
-            if b.get_visible() and b.get_sensitive():
-                is_action_visible = True
-                break
-        self.action_separator.set_visible(is_action_visible)
-        self.action_buttons.set_visible(is_action_visible)
+        def set_parent_visibility(parent, hidable_widgets):
+            any_visible = False
+            for b in parent.get_children():
+                if b.get_visible():
+                    any_visible = True
+                    break
+            for w in hidable_widgets:
+                w.set_visible(any_visible)
+
+        set_parent_visibility(self.action_buttons, [self.action_buttons, self.action_separator])
+        set_parent_visibility(self.menu_box, [self.menu_button])
 
     class MarkupLabel(Gtk.Label):
         """Label for installer window"""
