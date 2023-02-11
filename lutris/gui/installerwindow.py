@@ -101,9 +101,10 @@ class InstallerWindow(ModelessDialog,
         self.register_page_creators()
         content_area.pack_start(self.stack, True, True, 0)
 
-        content_area.pack_start(Gtk.HSeparator(), False, False, 0)
-
         # Action buttons
+
+        self.action_separator = Gtk.HSeparator()
+        content_area.pack_start(self.action_separator, False, False, 0)
 
         self.action_buttons = Gtk.Box(spacing=6)
         content_area.pack_end(self.action_buttons, False, False, 0)
@@ -319,8 +320,7 @@ class InstallerWindow(ModelessDialog,
         self.set_status("")
         self.set_title(_("Install %s") % gtk_safe(self.installers[0]["name"]))
         self.stack.present_page("choose_installer")
-        self.display_cancel_button()
-        self.cache_button.set_sensitive(True)
+        self.display_cancel_button(extra_buttons=[self.cache_button])
 
     @watch_errors()
     def on_installer_selected(self, _widget, installer_version):
@@ -407,8 +407,7 @@ class InstallerWindow(ModelessDialog,
         self.set_status(_("Select installation directory"))
         self.stack.present_page("destination")
         self.display_continue_button(self.on_destination_confirmed,
-                                     extra_buttons=[self.source_button])
-        self.cache_button.set_sensitive(True)
+                                     extra_buttons=[self.cache_button, self.source_button])
 
     @watch_errors()
     def on_destination_confirmed(self, _button=None):
@@ -513,8 +512,7 @@ class InstallerWindow(ModelessDialog,
             "they will be available in the 'extras' folder where the game is installed."
         ))
         self.stack.present_page("extras")
-        self.display_continue_button(on_continue, extra_buttons=[self.source_button])
-        self.cache_button.set_sensitive(True)
+        self.display_continue_button(on_continue, extra_buttons=[self.cache_button, self.source_button])
 
     @watch_errors()
     def on_extra_toggled(self, _widget, path, model):
@@ -555,6 +553,7 @@ class InstallerWindow(ModelessDialog,
             selected, _inconsistent, id_, _label = store[iter_]
             if selected and id_:
                 selected_extras.append(id_)
+
         extra_store.foreach(save_extra)
 
         self.interpreter.extras = selected_extras
@@ -603,7 +602,6 @@ class InstallerWindow(ModelessDialog,
 
         self.set_status(_(
             "Please review the files needed for the installation then click 'Continue'"))
-        self.cache_button.set_sensitive(False)
         self.stack.present_page("installer_files")
         self.display_install_button(self.on_files_confirmed, sensitive=self.installer_files_box.is_ready)
 
@@ -612,7 +610,6 @@ class InstallerWindow(ModelessDialog,
             self.installer_files_box.stop_all()
 
         self.set_status(_("Downloading game data"))
-        self.cache_button.set_sensitive(False)
         self.stack.present_page("installer_files")
         self.display_install_button(None, sensitive=False)
         return on_exit_page
@@ -720,6 +717,7 @@ class InstallerWindow(ModelessDialog,
     def load_input_menu_page(self, alias, options, preselect, callback):
         def present_input_menu_page():
             """Display an input request as a dropdown menu with options."""
+
             def on_continue(_button):
                 try:
                     callback(alias, combobox)
@@ -912,7 +910,7 @@ class InstallerWindow(ModelessDialog,
         """This shows the continue button, the close button, and any extra buttons you
         indicate. This will also set the label and sensitivity of the continue button.
 
-        Finallly, you cna provide the clicked handler for the continue button,
+        Finally, you cna provide the clicked handler for the continue button,
         though that can be None to leave it disconnected.
 
         We call this repeatedly, as we arrive at each page. Each call disconnects
@@ -942,11 +940,11 @@ class InstallerWindow(ModelessDialog,
     def display_install_button(self, handler, sensitive=True):
         """Displays the continue button, but labels it 'Install'."""
         self.display_continue_button(handler, continue_button_label=_(
-            "_Install"), sensitive=sensitive,
-            extra_buttons=[self.source_button])
+                                     "_Install"), sensitive=sensitive,
+                                     extra_buttons=[self.source_button])
 
-    def display_cancel_button(self):
-        self.display_buttons([self.cancel_button])
+    def display_cancel_button(self, extra_buttons=None):
+        self.display_buttons([self.cancel_button] + (extra_buttons or []))
 
     def display_eject_button(self):
         self.display_buttons([self.eject_button, self.cancel_button])
@@ -970,12 +968,21 @@ class InstallerWindow(ModelessDialog,
             style_context.remove_class("destructive-action")
 
         all_buttons = [self.eject_button,
+                       self.cache_button,
                        self.source_button,
                        self.continue_button,
                        self.cancel_button]
 
         for b in all_buttons:
             b.set_visible(b in buttons)
+
+        is_action_visible = False
+        for b in self.action_buttons.get_children():
+            if b.get_visible() and b.get_sensitive():
+                is_action_visible = True
+                break
+        self.action_separator.set_visible(is_action_visible)
+        self.action_buttons.set_visible(is_action_visible)
 
     class MarkupLabel(Gtk.Label):
         """Label for installer window"""
