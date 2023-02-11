@@ -76,8 +76,11 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.search_spinner = None
         self.text_query = None
         self.search_result_label = None
+
+        content_area = self.get_content_area()
+
         self.page_title_label = Gtk.Label(visible=True)
-        self.vbox.pack_start(self.page_title_label, False, False, 0)
+        content_area.pack_start(self.page_title_label, False, False, 0)
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -103,14 +106,14 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         header_bar.pack_start(self.cancel_button)
         header_bar.set_show_close_button(False)
 
-        self.vbox.set_margin_top(18)
-        self.vbox.set_margin_bottom(18)
-        self.vbox.set_margin_right(18)
-        self.vbox.set_margin_left(18)
-        self.vbox.set_spacing(12)
+        content_area.set_margin_top(18)
+        content_area.set_margin_bottom(18)
+        content_area.set_margin_right(18)
+        content_area.set_margin_left(18)
+        content_area.set_spacing(12)
 
         self.stack = NavigationStack(self.back_button)
-        self.vbox.pack_start(self.stack, True, True, 0)
+        content_area.pack_start(self.stack, True, True, 0)
 
         # Pre-create some controls so they can be used in signal handlers
 
