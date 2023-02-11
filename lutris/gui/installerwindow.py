@@ -421,7 +421,8 @@ class InstallerWindow(ModelessDialog,
             if not self.interpreter.launch_install(self):
                 self.stack.navigation_reset()
 
-        self.load_spinner_page(_("Preparing Lutris for installation"), cancellable=False)
+        self.load_spinner_page(_("Preparing Lutris for installation"), cancellable=False,
+                               extra_buttons=[self.cache_button, self.source_button])
         GLib.idle_add(launch_install)
 
     @watch_errors()
@@ -652,7 +653,7 @@ class InstallerWindow(ModelessDialog,
     # Provides a generic progress spinner and displays a status. The back button
     # is disabled for this page.
 
-    def load_spinner_page(self, status, cancellable=True):
+    def load_spinner_page(self, status, cancellable=True, extra_buttons=None):
         def present_spinner_page():
             """Show a spinner in the middle of the view"""
 
@@ -663,9 +664,9 @@ class InstallerWindow(ModelessDialog,
             self.stack.present_page("spinner")
 
             if cancellable:
-                self.display_cancel_button()
+                self.display_cancel_button(extra_buttons=extra_buttons)
             else:
-                self.display_no_buttons()
+                self.display_buttons(extra_buttons or [])
 
             self.stack.set_back_allowed(False)
             return on_exit_page
@@ -949,9 +950,6 @@ class InstallerWindow(ModelessDialog,
 
     def display_eject_button(self):
         self.display_buttons([self.eject_button, self.cancel_button])
-
-    def display_no_buttons(self):
-        self.display_buttons([])
 
     def display_buttons(self, buttons):
         """Shows exactly the buttons given, and hides the others. Updates the close button
