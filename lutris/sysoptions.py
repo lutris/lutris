@@ -95,6 +95,7 @@ def get_vulkan_gpus(icd_files):
     """Runs vulkaninfo to determine the default and DRI_PRIME gpu if available"""
 
     if not shutil.which("vulkaninfo"):
+        logger.warning("vulkaninfo not available, unable to list GPUs")
         return "Unknown GPU"
 
     gpu = get_vulkan_gpu(icd_files, False)
@@ -121,15 +122,10 @@ def get_vulkan_gpu(icd_files, prime):
         result = infoget.communicate()[0].decode("utf-8").strip()
     if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
         return "No GPU"
-
-    logger.debug("vulkaninfo output for icds %s and DRI_PRIME %s = %s", icd_files, prime, result)
-
     # Shorten result to just the friendly name of the GPU
     # vulkaninfo returns Vendor Friendly Name (Chip Developer Name)
     # AMD Radeon Pro W6800 (RADV NAVI21) -> AMD Radeon Pro W6800
-    result = re.sub(r"\s*\(.*?\)", "", result)
-
-    return result
+    return re.sub(r"\s*\(.*?\)", "", result)
 
 
 def get_vk_icd_files():
@@ -177,7 +173,6 @@ def get_vk_icd_files():
         # so it's consistent every time
         icd_files = sorted(glob.glob(path))
         if icd_files:
-            logger.debug("Added '%s' to all_icd_files", icd_files)
             all_icd_files += icd_files
 
     return all_icd_files
