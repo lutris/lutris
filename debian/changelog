@@ -4,7 +4,12 @@ lutris (0.5.13) UNRELEASED; urgency=medium
   * Add drag and drop on the main window. Dropped files will be matched
     No-Intro, Redump and TOSEC checksums.
   * Add support for ModDB links in installers (moddb python module required)
-  * Add 'Back' button to installer window.
+  * Added "Missing" sidebar option for games whose directory is missing
+  * Re-style the configuration, preferences, installer and add-games windows
+  * Group configuration options into sections
+  * Added checkbox to stop asking for the launch config for a game
+  * Support for launch-configs in shortcuts and the command line
+  * The add-games window can now create 32-bit WINE prefixes
   * Add filter field to runner list
   * Show game count in search bar
   * Workaround Humble Bundle authentication issues by allowing importing
@@ -12,6 +17,8 @@ lutris (0.5.13) UNRELEASED; urgency=medium
   * Add Itch.io integration
   * Add Battle.net integration (protobuf dependency required)
   * Improve detection of DOSBox games on GOG
+  * Added "Unspecified" Vulkan ICD option
+  * Removed ResidualVM (now merged into ScummVM)
 
  -- Mathieu Comandon <strider@strycore.com>  Fri, 10 Feb 2023 13:15:40 -0800
 
