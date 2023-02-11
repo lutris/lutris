@@ -47,7 +47,7 @@ class NavigationStack(Gtk.Stack):
         self._update_back_button()
 
     def _update_back_button(self):
-        self.back_button.set_sensitive(self.back_allowed and self.navigation_stack)
+        self.back_button.set_visible(self.back_allowed and self.navigation_stack)
 
     def navigate_to_page(self, page_presenter):
         """Navigates to a page, by invoking 'page_presenter'.

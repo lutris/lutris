@@ -76,7 +76,8 @@ class InstallerWindow(BaseApplicationWindow,
 
         # Action buttons
 
-        self.back_button = self.add_start_button(_("Back"), self.on_back_clicked, sensitive=False)
+        self.back_button = self.add_start_button(_("Back"), self.on_back_clicked)
+        self.back_button.set_no_show_all(True)
         key, mod = Gtk.accelerator_parse("<Alt>Left")
         self.back_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
         key, mod = Gtk.accelerator_parse("<Alt>Home")
