@@ -77,6 +77,7 @@ class ConfigBox(VBox):
             self.config = self.lutris_config.system_config
             self.raw_config = self.lutris_config.raw_system_config
 
+        current_section = None
         # Go thru all options.
         for option in self.options:
             if "scope" in option:
@@ -90,6 +91,27 @@ class ConfigBox(VBox):
                 option["choices"] = option["choices"]()
             if callable(option.get("condition")):
                 option["condition"] = option["condition"]()
+
+            if option.get("section"):
+                in_section = True
+                if option["section"] != current_section:
+                    current_section = option["section"]
+                    frame = Gtk.Frame()
+                    frame.set_margin_start(12)
+                    frame.set_margin_end(12)
+                    frame.set_margin_top(12)
+                    frame.set_margin_bottom(12)
+
+                    frame.set_label(option["section"])
+                    frame_widgets = Gtk.VBox()
+                    frame_widgets.set_margin_top(12)
+                    frame_widgets.set_margin_bottom(12)
+                    frame.add(frame_widgets)
+                    self.pack_start(frame, False, False, 0)
+            else:
+                in_section = False
+                frame = None
+                frame_widgets = None
 
             self.wrapper = Gtk.Box()
             self.wrapper.set_spacing(12)
@@ -140,7 +162,7 @@ class ConfigBox(VBox):
                 self.wrapper.props.has_tooltip = True
                 self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
 
-            hbox = Gtk.Box()
+            hbox = Gtk.Box(visible=True)
             hbox.set_margin_left(18)
             hbox.pack_end(placeholder, False, False, 5)
             # Grey out option if condition unmet
@@ -154,7 +176,10 @@ class ConfigBox(VBox):
                 if show_advanced != "True":
                     hbox.set_no_show_all(True)
             hbox.pack_start(self.wrapper, True, True, 0)
-            self.pack_start(hbox, False, False, 0)
+            if in_section:
+                frame_widgets.pack_start(hbox, False, False, 0)
+            else:
+                self.pack_start(hbox, False, False, 0)
 
         self.show_all()
 
