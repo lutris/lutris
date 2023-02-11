@@ -74,7 +74,7 @@ class InstallerWindow(ModelessDialog,
 
         # Header labels
 
-        self.status_label = InstallerWindow.MarkupLabel()
+        self.status_label = InstallerWindow.MarkupLabel(no_show_all=True)
         content_area.pack_start(self.status_label, False, False, 0)
 
         # Header bar buttons
@@ -261,6 +261,7 @@ class InstallerWindow(ModelessDialog,
     def set_status(self, text):
         """Display a short status text."""
         self.status_label.set_text(text)
+        self.status_label.set_visible(bool(text))
 
     def register_page_creators(self):
         self.stack.add_named_factory("choose_installer", self.create_choose_installer_page)
@@ -384,21 +385,21 @@ class InstallerWindow(ModelessDialog,
         self.continue_button.grab_focus()
 
     def create_destination_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox.pack_start(self.location_entry, False, False, 5)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        vbox.pack_start(self.location_entry, False, False, 0)
 
         desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
         desktop_shortcut_button.connect("clicked", self.on_create_desktop_shortcut_clicked)
-        vbox.pack_start(desktop_shortcut_button, False, False, 5)
+        vbox.pack_start(desktop_shortcut_button, False, False, 0)
 
         menu_shortcut_button = Gtk.CheckButton(_("Create application menu shortcut"), visible=True)
         menu_shortcut_button.connect("clicked", self.on_create_menu_shortcut_clicked)
-        vbox.pack_start(menu_shortcut_button, False, False, 5)
+        vbox.pack_start(menu_shortcut_button, False, False, 0)
 
         if steam_shortcut.vdf_file_exists():
             steam_shortcut_button = Gtk.CheckButton(_("Create steam shortcut"), visible=True)
             steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
-            vbox.pack_start(steam_shortcut_button, False, False, 5)
+            vbox.pack_start(steam_shortcut_button, False, False, 0)
         return vbox
 
     def present_destination_page(self):
@@ -987,11 +988,11 @@ class InstallerWindow(ModelessDialog,
     class MarkupLabel(Gtk.Label):
         """Label for installer window"""
 
-        def __init__(self, markup=None, selectable=True):
+        def __init__(self, markup=None, **kwargs):
             super().__init__(
                 label=markup,
                 use_markup=True,
                 wrap=True,
                 max_width_chars=80,
-                selectable=selectable)
+                **kwargs)
             self.set_alignment(0.5, 0)
