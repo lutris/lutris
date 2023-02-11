@@ -283,6 +283,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "gamescope_force_grab_cursor",
         "type": "bool",
         "label": _("Relative Mouse Mode"),
+        "advanced": True,
         "default": False,
         "condition": bool(system.find_executable("gamescope")),
         "help": _("Always use relative mouse mode instead of flipping\n"
@@ -308,6 +309,7 @@ system_options = [  # pylint: disable=invalid-name
         "option": "gamescope_game_res",
         "type": "choice_with_entry",
         "label": _("Game Resolution"),
+        "advanced": True,
         "choices": DISPLAY_MANAGER.get_resolutions,
         "condition": bool(system.find_executable("gamescope")),
         "help": _("Set the maximum resolution used by the game (-w, -h).\n"
@@ -319,6 +321,7 @@ system_options = [  # pylint: disable=invalid-name
         "section": "Gamescope",
         "option": "gamescope_window_mode",
         "label": _("Window Mode"),
+        "advanced": True,
         "type": "choice",
         "choices": (
             (_("Fullscreen"), "-f"),
@@ -334,6 +337,7 @@ system_options = [  # pylint: disable=invalid-name
         "section": "Gamescope",
         "option": "gamescope_fsr_sharpness",
         "label": _("FSR Level"),
+        "advanced": True,
         "type": "string",
         "condition": bool(system.find_executable("gamescope")),
         "help": _("Use AMD FidelityFX™ Super Resolution 1.0 for upscaling (-U).\n"
@@ -345,6 +349,7 @@ system_options = [  # pylint: disable=invalid-name
         "section": "Gamescope",
         "option": "gamescope_fps_limiter",
         "label": _("FPS Limiter"),
+        "advanced": True,
         "type": "string",
         "condition": bool(system.find_executable("gamescope")),
         "help": _("Set a frame-rate limit for gamescope specified in frames per second (-r).\n"
