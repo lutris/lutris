@@ -196,6 +196,7 @@ class wine(Runner):
             },
             {
                 "option": "dxvk",
+                "section": _("DXVK"),
                 "label": _("Enable DXVK"),
                 "type": "extended_bool",
                 "callback": dxvk_vulkan_callback,
@@ -209,6 +210,7 @@ class wine(Runner):
             },
             {
                 "option": "dxvk_version",
+                "section": _("DXVK"),
                 "label": _("DXVK version"),
                 "advanced": True,
                 "type": "choice_with_entry",
@@ -218,6 +220,7 @@ class wine(Runner):
 
             {
                 "option": "vkd3d",
+                "section": _("VKD3D"),
                 "label": _("Enable VKD3D"),
                 "type": "extended_bool",
                 "callback": dxvk_vulkan_callback,
@@ -230,6 +233,7 @@ class wine(Runner):
             },
             {
                 "option": "vkd3d_version",
+                "section": _("VKD3D"),
                 "label": _("VKD3D version"),
                 "advanced": True,
                 "type": "choice_with_entry",
@@ -238,6 +242,7 @@ class wine(Runner):
             },
             {
                 "option": "d3d_extras",
+                "section": _("D3D Extras"),
                 "label": _("Enable D3D Extras"),
                 "type": "bool",
                 "default": True,
@@ -249,6 +254,7 @@ class wine(Runner):
             },
             {
                 "option": "d3d_extras_version",
+                "section": _("D3D Extras"),
                 "label": _("D3D Extras version"),
                 "advanced": True,
                 "type": "choice_with_entry",
@@ -257,6 +263,7 @@ class wine(Runner):
             },
             {
                 "option": "dxvk_nvapi",
+                "section": _("DXVK-NVAPI / DLSS"),
                 "label": _("Enable DXVK-NVAPI / DLSS"),
                 "type": "bool",
                 "default": True,
@@ -267,6 +274,7 @@ class wine(Runner):
             },
             {
                 "option": "dxvk_nvapi_version",
+                "section": _("DXVK-NVAPI / DLSS"),
                 "label": _("DXVK NVAPI version"),
                 "advanced": True,
                 "type": "choice_with_entry",
@@ -275,6 +283,7 @@ class wine(Runner):
             },
             {
                 "option": "dgvoodoo2",
+                "section": _("dgvoodoo2"),
                 "label": _("Enable dgvoodoo2"),
                 "type": "bool",
                 "default": False,
@@ -287,6 +296,7 @@ class wine(Runner):
             },
             {
                 "option": "dgvoodoo2_version",
+                "section": _("dgvoodoo2"),
                 "label": _("dgvoodoo2 version"),
                 "advanced": True,
                 "type": "choice_with_entry",
@@ -355,6 +365,7 @@ class wine(Runner):
             },
             {
                 "option": "Desktop",
+                "section": _("Virtual Desktop"),
                 "label": _("Windowed (virtual desktop)"),
                 "type": "bool",
                 "default": False,
@@ -366,6 +377,7 @@ class wine(Runner):
             },
             {
                 "option": "WineDesktop",
+                "section": _("Virtual Desktop"),
                 "label": _("Virtual desktop resolution"),
                 "type": "choice_with_entry",
                 "choices": DISPLAY_MANAGER.get_resolutions,
@@ -373,6 +385,7 @@ class wine(Runner):
             },
             {
                 "option": "Dpi",
+                "section": _("DPI"),
                 "label": _("Enable DPI Scaling"),
                 "type": "bool",
                 "default": False,
@@ -383,6 +396,7 @@ class wine(Runner):
             },
             {
                 "option": "ExplicitDpi",
+                "section": _("DPI"),
                 "label": _("DPI"),
                 "type": "string",
                 "help": _(
@@ -468,6 +482,7 @@ class wine(Runner):
             {
                 "option": "sandbox",
                 "type": "bool",
+                "section": _("Sandbox"),
                 "label": _("Create a sandbox for Wine folders"),
                 "default": True,
                 "advanced": True,
@@ -480,6 +495,7 @@ class wine(Runner):
             {
                 "option": "sandbox_dir",
                 "type": "directory_chooser",
+                "section": _("Sandbox"),
                 "label": _("Sandbox directory"),
                 "help": _("Custom directory for desktop integration folders."),
                 "advanced": True,
