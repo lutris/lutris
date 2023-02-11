@@ -172,9 +172,6 @@ class ConfigBox(VBox):
             # Hide if advanced
             if option.get("advanced"):
                 hbox.get_style_context().add_class("advanced")
-                show_advanced = settings.read_setting("show_advanced_options")
-                if show_advanced != "True":
-                    hbox.set_no_show_all(True)
             hbox.pack_start(self.wrapper, True, True, 0)
             if in_section:
                 frame_widgets.pack_start(hbox, False, False, 0)
@@ -182,6 +179,31 @@ class ConfigBox(VBox):
                 self.pack_start(hbox, False, False, 0)
 
         self.show_all()
+
+        show_advanced = settings.read_setting("show_advanced_options") == "True"
+        self.set_advanced_visibility(show_advanced)
+
+    def set_advanced_visibility(self, value):
+        """Sets the visibility of every 'advanced' option and every section that
+        contains only 'advanced' options."""
+        def update_widgets(widgets):
+            any_visible = False
+            for widget in widgets:
+                if isinstance(widget, Gtk.Frame):
+                    frame_visible = update_widgets(widget.get_child().get_children())
+                    any_visible = any_visible or frame_visible
+                    widget.set_visible(frame_visible)
+                elif widget.get_style_context().has_class("advanced"):
+                    widget.set_visible(value)
+                    if value:
+                        any_visible = True
+                        widget.set_no_show_all(not value)
+                        widget.show_all()
+                else:
+                    any_visible = True
+            return any_visible
+
+        update_widgets(self.get_children())
 
     def call_widget_generator(self, option, option_key, value, default):  # noqa: C901
         """Call the right generation method depending on option type."""

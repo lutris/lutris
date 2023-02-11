@@ -451,18 +451,11 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
 
     def _set_advanced_options_visible(self, value):
         """Change visibility of advanced options across all config tabs."""
-        widgets = self.system_box.get_children()
+        self.system_box.set_advanced_visibility(value)
         if self.runner_name:
-            widgets += self.runner_box.get_children()
+            self.runner_box.set_advanced_visibility(value)
         if self.game:
-            widgets += self.game_box.get_children()
-
-        for widget in widgets:
-            if widget.get_style_context().has_class("advanced"):
-                widget.set_visible(value)
-                if value:
-                    widget.set_no_show_all(not value)
-                    widget.show_all()
+            self.game_box.set_advanced_visibility(value)
 
     def on_runner_changed(self, widget):
         """Action called when runner drop down is changed."""
