@@ -35,12 +35,14 @@ class pico8(Runner):
         {
             "option": "fullscreen",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("Fullscreen"),
             "default": True,
             "help": _("Launch in fullscreen."),
         },
         {
             "option": "window_size",
+            "section": _("Graphics"),
             "label": _("Window size"),
             "type": "string",
             "default": "640x512",

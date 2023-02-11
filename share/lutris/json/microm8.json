@@ -13,10 +13,10 @@
         }
     ],
     "runner_options": [
-
         {
             "option": "fullscreen",
             "type": "bool",
+            "section": "Graphics",
             "label": "Fullscreen",
             "default": false,
             "argument": "-fullscreen"
@@ -24,6 +24,7 @@
         {
             "option": "bw",
             "type": "bool",
+            "section": "Graphics",
             "label": "Black and White",
             "default": false,
             "argument": "-bw"

@@ -79,19 +79,23 @@ class dosbox(Runner):
     ]
     runner_options = [
         {
-            "option":
-            "scaler",
-            "label":
-            _("Graphic scaler"),
-            "type":
-            "choice",
-            "choices":
-            scaler_modes,
-            "default":
-            "normal3x",
+            "option": "fullscreen",
+            "section": _("Graphics"),
+            "label": _("Open game in fullscreen"),
+            "type": "bool",
+            "default": False,
+            "help": _("Tells DOSBox to launch the game in fullscreen."),
+        },
+        {
+            "option": "scaler",
+            "section": _("Graphics"),
+            "label": _("Graphic scaler"),
+            "type": "choice",
+            "choices": scaler_modes,
+            "default": "normal3x",
             "help":
-            _("The algorithm used to scale up the game's base "
-              "resolution, resulting in different visual styles. "),
+                _("The algorithm used to scale up the game's base "
+                  "resolution, resulting in different visual styles. "),
         },
         {
             "option": "exit",
@@ -99,13 +103,6 @@ class dosbox(Runner):
             "type": "bool",
             "default": True,
             "help": _("Shut down DOSBox when the game is quit."),
-        },
-        {
-            "option": "fullscreen",
-            "label": _("Open game in fullscreen"),
-            "type": "bool",
-            "default": False,
-            "help": _("Tells DOSBox to launch the game in fullscreen."),
         },
     ]
 

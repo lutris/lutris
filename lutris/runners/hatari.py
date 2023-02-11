@@ -59,12 +59,14 @@ class hatari(Runner):
         {
             "option": "fullscreen",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("Fullscreen"),
             "default": False,
         },
         {
             "option": "zoom",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("Scale up display by 2 (Atari ST/STE)"),
             "default": True,
             "help": _("Double the screen size in windowed mode."),
@@ -72,6 +74,7 @@ class hatari(Runner):
         {
             "option": "borders",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("Add borders to display"),
             "default": False,
             "help": _(
@@ -86,6 +89,7 @@ class hatari(Runner):
         {
             "option": "status",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("Display status bar"),
             "default": False,
             "help": _(
@@ -97,6 +101,7 @@ class hatari(Runner):
         {
             "option": "joy0",
             "type": "choice",
+            "section": _("Joysticks"),
             "label": _("Joystick 0"),
             "choices": joystick_choices,
             "default": "none",
@@ -104,6 +109,7 @@ class hatari(Runner):
         {
             "option": "joy1",
             "type": "choice",
+            "section": _("Joysticks"),
             "label": _("Joystick 1"),
             "choices": joystick_choices,
             "default": "real",

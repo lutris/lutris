@@ -127,6 +127,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         {
             "option": "autoboot_command",
             "type": "string",
+            "section": _("Autoboot"),
             "label": _("Autoboot command"),
             "help": _("Autotype this command when the system has started, "
                       "an enter keypress is automatically added."),
@@ -134,6 +135,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         {
             "option": "autoboot_delay",
             "type": "range",
+            "section": _("Autoboot"),
             "label": _("Delay before entering autoboot command"),
             "min": 0,
             "max": 120,
@@ -154,12 +156,14 @@ class mame(Runner):  # pylint: disable=invalid-name
         {
             "option": "fullscreen",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("Fullscreen"),
             "default": True,
         },
         {
             "option": "crt",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("CRT effect ()"),
             "help": _("Applies a CRT effect to the screen."
                       "Requires OpenGL renderer."),
@@ -168,6 +172,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         {
             "option": "video",
             "type": "choice",
+            "section": _("Graphics"),
             "label": _("Video backend"),
             "choices": (
                 (_("Auto"), ""),
@@ -181,6 +186,7 @@ class mame(Runner):  # pylint: disable=invalid-name
         {
             "option": "waitvsync",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("Wait for VSync"),
             "help":
             _("Enable waiting for  the  start  of  vblank  before "

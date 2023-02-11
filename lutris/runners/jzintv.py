@@ -40,11 +40,13 @@ class jzintv(Runner):
         {
             "option": "fullscreen",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("Fullscreen")
         },
         {
             "option": "resolution",
             "type": "choice",
+            "section": _("Graphics"),
             "label": _("Resolution"),
             "choices": (
                 ("320 x 200", "0"),

@@ -71,16 +71,15 @@ class mednafen(Runner):
         {
             "option": "fs",
             "type": "bool",
+            "section": _("Graphics"),
             "label": _("Fullscreen"),
             "default": False
         },
         {
-            "option":
-            "stretch",
-            "type":
-            "choice",
-            "label":
-            _("Aspect ratio"),
+            "option": "stretch",
+            "type": "choice",
+            "section": _("Graphics"),
+            "label": _("Aspect ratio"),
             "choices": (
                 (_("Disabled"), "0"),
                 (_("Stretched"), "full"),
@@ -88,16 +87,13 @@ class mednafen(Runner):
                 (_("Integer scale"), "aspect_int"),
                 (_("Multiple of 2 scale"), "aspect_mult2"),
             ),
-            "default":
-            "aspect_int",
+            "default": "aspect_int",
         },
         {
-            "option":
-            "scaler",
-            "type":
-            "choice",
-            "label":
-            _("Video scaler"),
+            "option": "scaler",
+            "type": "choice",
+            "section": _("Graphics"),
+            "label": _("Video scaler"),
             "choices": (
                 ("none", "none"),
                 ("hq2x", "hq2x"),
@@ -116,16 +112,12 @@ class mednafen(Runner):
                 ("nny3x", "nny3x"),
                 ("nny4x", "nny4x"),
             ),
-            "default":
-            DEFAULT_MEDNAFEN_SCALER,
+            "default": DEFAULT_MEDNAFEN_SCALER,
         },
         {
-            "option":
-            "sound_device",
-            "type":
-            "choice",
-            "label":
-            _("Sound device"),
+            "option": "sound_device",
+            "type": "choice",
+            "label": _("Sound device"),
             "choices": (
                 (_("Mednafen default"), "default"),
                 (_("ALSA default"), "sexyal-literal-default"),
@@ -133,8 +125,7 @@ class mednafen(Runner):
                 ("hw:1", "hw:1,0"),
                 ("hw:2", "hw:2,0"),
             ),
-            "default":
-            "sexyal-literal-default"
+            "default": "sexyal-literal-default"
         },
         {
             "option": "dont_map_controllers",

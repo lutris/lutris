@@ -44,6 +44,7 @@ class reicast(Runner):
             {
                 "option": "device_id_1",
                 "type": "choice",
+                "section": _("Gamepads"),
                 "label": _("Gamepad 1"),
                 "choices": self.get_joypads,
                 "default": "-1",
@@ -51,6 +52,7 @@ class reicast(Runner):
             {
                 "option": "device_id_2",
                 "type": "choice",
+                "section": _("Gamepads"),
                 "label": _("Gamepad 2"),
                 "choices": self.get_joypads,
                 "default": "-1",
@@ -58,6 +60,7 @@ class reicast(Runner):
             {
                 "option": "device_id_3",
                 "type": "choice",
+                "section": _("Gamepads"),
                 "label": _("Gamepad 3"),
                 "choices": self.get_joypads,
                 "default": "-1",
@@ -65,6 +68,7 @@ class reicast(Runner):
             {
                 "option": "device_id_4",
                 "type": "choice",
+                "section": _("Gamepads"),
                 "label": _("Gamepad 4"),
                 "choices": self.get_joypads,
                 "default": "-1",

@@ -73,12 +73,14 @@ class scummvm(Runner):
     runner_options = [
         {
             "option": "fullscreen",
+            "section": _("Graphics"),
             "label": _("Fullscreen"),
             "type": "bool",
             "default": True,
         },
         {
             "option": "subtitles",
+            "section": _("Graphics"),
             "label": _("Enable subtitles"),
             "type": "bool",
             "default": False,
@@ -86,6 +88,7 @@ class scummvm(Runner):
         },
         {
             "option": "aspect",
+            "section": _("Graphics"),
             "label": _("Aspect ratio correction"),
             "type": "bool",
             "default": True,
@@ -98,6 +101,7 @@ class scummvm(Runner):
         },
         {
             "option": "gfx-mode",
+            "section": _("Graphics"),
             "label": _("Graphic scaler"),
             "type": "choice",
             "default": "3x",
@@ -121,6 +125,7 @@ class scummvm(Runner):
         },
         # {
         #    "option": "scale-factor",
+        #    "section": _("Graphics"),
         #    "label": _("Scaler factor"),
         #    "type": "choice",
         #    "choices": [
@@ -137,6 +142,7 @@ class scummvm(Runner):
         # },
         {
             "option": "render-mode",
+            "section": _("Graphics"),
             "label": _("Render mode"),
             "type": "choice",
             "choices": [
@@ -158,6 +164,7 @@ class scummvm(Runner):
         },
         {
             "option": "filtering",
+            "section": _("Graphics"),
             "label": _("Filtering"),
             "type": "bool",
             "help": _("Uses bilinear interpolation instead of nearest neighbor "
@@ -212,6 +219,7 @@ class scummvm(Runner):
         {
             "option": "music-tempo",
             "type": "string",
+            "section": _("Audio"),
             "label": _("Music tempo"),
             "help": _("Sets music tempo (in percent, 50-200) for SCUMM games (default: 100)"),
             "advanced": True,
@@ -219,12 +227,14 @@ class scummvm(Runner):
         {
             "option": "dimuse-tempo",
             "type": "string",
+            "section": _("Audio"),
             "label": _("Digital iMuse tempo"),
             "help": _("Sets internal Digital iMuse tempo (10 - 100) per second (default: 10)"),
             "advanced": True,
         },
         {
             "option": "music-driver",
+            "section": _("Audio"),
             "label": _("Music driver"),
             "type": "choice",
             "choices": [
@@ -246,6 +256,7 @@ class scummvm(Runner):
         },
         {
             "option": "output-rate",
+            "section": _("Audio"),
             "label": _("Output rate"),
             "type": "choice",
             "choices": [
@@ -258,6 +269,7 @@ class scummvm(Runner):
         },
         {
             "option": "opl-driver",
+            "section": _("Audio"),
             "label": _("OPL driver"),
             "type": "choice",
             "choices": [
@@ -277,6 +289,7 @@ class scummvm(Runner):
         {
             "option": "music-volume",
             "type": "string",
+            "section": _("Audio"),
             "label": _("Music volume"),
             "help": _("Sets the music volume, 0-255 (default: 192)"),
             "advanced": True,
@@ -284,6 +297,7 @@ class scummvm(Runner):
         {
             "option": "sfx-volume",
             "type": "string",
+            "section": _("Audio"),
             "label": _("SFX volume"),
             "help": _("Sets the sfx volume, 0-255 (default: 192)"),
             "advanced": True,
@@ -291,6 +305,7 @@ class scummvm(Runner):
         {
             "option": "speech-volume",
             "type": "string",
+            "section": _("Audio"),
             "label": _("Speech volume"),
             "help": _("Sets the speech volume, 0-255 (default: 192)"),
             "advanced": True,
@@ -298,12 +313,14 @@ class scummvm(Runner):
         {
             "option": "midi-gain",
             "type": "string",
+            "section": _("Audio"),
             "label": _("MIDI gain"),
             "help": _("Sets the gain for MIDI playback. 0-1000 (default: 100)"),
             "advanced": True,
         },
         {
             "option": "soundfont",
+            "section": _("Audio"),
             "type": "string",
             "label": _("Soundfont"),
             "help": _("Specifies the path to a soundfont file."),
@@ -311,6 +328,7 @@ class scummvm(Runner):
         },
         {
             "option": "multi-midi",
+            "section": _("Audio"),
             "label": _("Mixed AdLib/MIDI mode"),
             "type": "bool",
             "default": False,
@@ -319,6 +337,7 @@ class scummvm(Runner):
         },
         {
             "option": "native-mt32",
+            "section": _("Audio"),
             "label": _("True Roland MT-32"),
             "type": "bool",
             "default": False,
@@ -328,6 +347,7 @@ class scummvm(Runner):
         },
         {
             "option": "enable-gs",
+            "section": _("Audio"),
             "label": _("Enable Roland GS"),
             "type": "bool",
             "default": False,
@@ -359,6 +379,7 @@ class scummvm(Runner):
         {
             "option": "debug-level",
             "type": "string",
+            "section": _("Debugging"),
             "label": _("Debug level"),
             "help": _("Sets debug verbosity level"),
             "advanced": True,
@@ -366,6 +387,7 @@ class scummvm(Runner):
         {
             "option": "debug-flags",
             "type": "string",
+            "section": _("Debugging"),
             "label": _("Debug flags"),
             "help": _("Enables engine specific debug flags"),
             "advanced": True,

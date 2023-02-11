@@ -70,6 +70,7 @@ class atari800(Runner):
             "option": "fullscreen",
             "type": "bool",
             "default": False,
+            "section": _("Graphics"),
             "label": _("Fullscreen"),
         },
         {
@@ -77,6 +78,7 @@ class atari800(Runner):
             "type": "choice",
             "choices": get_resolutions(),
             "default": "desktop",
+            "section": _("Graphics"),
             "label": _("Fullscreen resolution"),
         },
     ]

@@ -139,13 +139,6 @@ class easyrpg(Runner):
 
     runner_options = [
         {
-            "option": "fullscreen",
-            "type": "bool",
-            "label": _("Fullscreen"),
-            "help": _("Start in fullscreen mode."),
-            "default": False
-        },
-        {
             "option": "audio",
             "type": "bool",
             "label": _("Enable audio"),
@@ -154,63 +147,6 @@ class easyrpg(Runner):
                 "(in case you prefer your own music)."
             ),
             "default": True
-        },
-        {
-            "option": "mouse",
-            "type": "bool",
-            "label": _("Enable mouse"),
-            "help": _(
-                "Use mouse click for decision and scroll wheel for lists."
-            ),
-            "default": False
-        },
-        {
-            "option": "touch",
-            "type": "bool",
-            "label": _("Enable touch"),
-            "help": _("Use one/two finger tap for decision/cancel."),
-            "default": False
-        },
-        {
-            "option": "hide_title",
-            "type": "bool",
-            "label": _("Hide title"),
-            "help": _(
-                "Hide the title background image and center the command menu."
-            ),
-            "default": False
-        },
-        {
-            "option": "vsync",
-            "type": "bool",
-            "label": _("Enable VSync"),
-            "help": _(
-                "Switch off to disable VSync and use the FPS limit. "
-                "VSync may or may not be supported on all platforms."
-            ),
-            "default": True
-        },
-        {
-            "option": "fps_limit",
-            "type": "string",
-            "label": _("FPS limit"),
-            "help": _(
-                "Set a custom frames per second limit. If unspecified, "
-                "the default is 60 FPS. Set to '0' to disable the frame "
-                "limiter. This option may not be supported on all platforms."
-            )
-        },
-        {
-            "option": "show_fps",
-            "type": "choice",
-            "label": _("Show FPS"),
-            "help": _("Enable frames per second counter."),
-            "choices": [
-                (_("Disabled"), "off"),
-                (_("Fullscreen & title bar"), "on"),
-                (_("Fullscreen, title bar & window"), "full")
-            ],
-            "default": "off"
         },
         {
             "option": "seed",
@@ -226,8 +162,80 @@ class easyrpg(Runner):
             "default": False
         },
         {
+            "option": "mouse",
+            "type": "bool",
+            "section": _("Controls"),
+            "label": _("Enable mouse"),
+            "help": _(
+                "Use mouse click for decision and scroll wheel for lists."
+            ),
+            "default": False
+        },
+        {
+            "option": "touch",
+            "type": "bool",
+            "section": _("Controls"),
+            "label": _("Enable touch"),
+            "help": _("Use one/two finger tap for decision/cancel."),
+            "default": False
+        },
+        {
+            "option": "fullscreen",
+            "type": "bool",
+            "section": _("Graphics"),
+            "label": _("Fullscreen"),
+            "help": _("Start in fullscreen mode."),
+            "default": False
+        },
+        {
+            "option": "hide_title",
+            "type": "bool",
+            "section": _("Graphics"),
+            "label": _("Hide title"),
+            "help": _(
+                "Hide the title background image and center the command menu."
+            ),
+            "default": False
+        },
+        {
+            "option": "vsync",
+            "type": "bool",
+            "section": _("Graphics"),
+            "label": _("Enable VSync"),
+            "help": _(
+                "Switch off to disable VSync and use the FPS limit. "
+                "VSync may or may not be supported on all platforms."
+            ),
+            "default": True
+        },
+        {
+            "option": "fps_limit",
+            "type": "string",
+            "section": _("Graphics"),
+            "label": _("FPS limit"),
+            "help": _(
+                "Set a custom frames per second limit. If unspecified, "
+                "the default is 60 FPS. Set to '0' to disable the frame "
+                "limiter. This option may not be supported on all platforms."
+            )
+        },
+        {
+            "option": "show_fps",
+            "type": "choice",
+            "section": _("Graphics"),
+            "label": _("Show FPS"),
+            "help": _("Enable frames per second counter."),
+            "choices": [
+                (_("Disabled"), "off"),
+                (_("Fullscreen & title bar"), "on"),
+                (_("Fullscreen, title bar & window"), "full")
+            ],
+            "default": "off"
+        },
+        {
             "option": "rtp",
             "type": "bool",
+            "section": _("Runtime Package"),
             "label": _("Enable RTP"),
             "help": _(
                 "Switch off to disable support for the Runtime Package (RTP)."
@@ -237,6 +245,7 @@ class easyrpg(Runner):
         {
             "option": "rpg2k_rtp_path",
             "type": "directory_chooser",
+            "section": _("Runtime Package"),
             "label": _("RPG2000 RTP location"),
             "help": _(
                 "Full path to a directory containing an "
@@ -246,6 +255,7 @@ class easyrpg(Runner):
         {
             "option": "rpg2k3_rtp_path",
             "type": "directory_chooser",
+            "section": _("Runtime Package"),
             "label": _("RPG2003 RTP location"),
             "help": _(
                 "Full path to a directory containing an "
@@ -255,6 +265,7 @@ class easyrpg(Runner):
         {
             "option": "rpg_rtp_path",
             "type": "directory_chooser",
+            "section": _("Runtime Package"),
             "label": _("Fallback RTP location"),
             "help": _("Full path to a directory containing a combined RTP.")
         },
