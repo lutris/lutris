@@ -119,16 +119,6 @@ class InstallerWindow(ModelessDialog,
 
         self.source_button = self.add_menu_button(_("View source"), self.on_source_clicked)
 
-        # Action buttons
-
-        self.action_separator = Gtk.HSeparator()
-        content_area.pack_start(self.action_separator, False, False, 0)
-
-        self.action_buttons = Gtk.Box(spacing=6)
-        content_area.pack_end(self.action_buttons, False, False, 0)
-
-        self.eject_button = self.add_action_end_button(_("_Eject"), self.on_eject_clicked)
-
         # Pre-create some UI bits we need to refer to in several places.
         # (We lazy allocate more of it, but these are a pain.)
 
@@ -185,18 +175,6 @@ class InstallerWindow(ModelessDialog,
         header_bar.pack_end(button)
         return button
 
-    def add_action_end_button(self, label, handler=None, tooltip=None, sensitive=True):
-        """Add a button to the action buttons box"""
-        button = Gtk.Button.new_with_mnemonic(label)
-        button.set_sensitive(sensitive)
-        if tooltip:
-            button.set_tooltip_text(tooltip)
-        if handler:
-            button.connect("clicked", handler)
-
-        self.action_buttons.pack_end(button, False, False, 0)
-        return button
-
     def add_menu_button(self, label, handler=None, tooltip=None, sensitive=True):
         """Add a button to the menu in the header bar"""
         button = Gtk.ModelButton(label, visible=True, xalign=0.0)
@@ -227,7 +205,7 @@ class InstallerWindow(ModelessDialog,
 
     @watch_errors()
     def on_cancel_clicked(self, _button=None):
-        """Ask a confirmation before cancelling the install, if it has started."""
+        """Ask a confirmation before cancelling the installation, if it has started."""
         if self.install_in_progress:
             widgets = []
 
@@ -791,34 +769,34 @@ class InstallerWindow(ModelessDialog,
                     # to run, so we'll go to error page.
                     self.load_error_message_page(str(err))
 
-            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
             label = InstallerWindow.MarkupLabel(message)
-            label.show()
-            vbox.add(label)
+            vbox.pack_start(label, False, False, 0)
 
             buttons_box = Gtk.Box()
-            buttons_box.show()
             buttons_box.set_margin_top(40)
             buttons_box.set_margin_bottom(40)
-            vbox.add(buttons_box)
+            vbox.pack_start(buttons_box, False, False, 0)
 
             autodetect_button = Gtk.Button(label=_("Autodetect"))
             autodetect_button.connect("clicked", wrapped_callback, requires)
             autodetect_button.grab_focus()
-            autodetect_button.show()
             buttons_box.pack_start(autodetect_button, True, True, 40)
 
             browse_button = Gtk.Button(label=_("Browse…"))
             callback_data = {"callback": wrapped_callback, "requires": requires}
             browse_button.connect("clicked", self.on_browse_clicked, callback_data)
-            browse_button.show()
             buttons_box.pack_start(browse_button, True, True, 40)
 
             self.stack.present_replacement_page("ask_for_disc", vbox)
             if installer.runner == "wine":
-                self.display_eject_button()
-            else:
-                self.display_cancel_button()
+                eject_button = Gtk.Button(_("Eject"), halign=Gtk.Align.END)
+                eject_button.connect("clicked", self.on_eject_clicked)
+                vbox.pack_end(eject_button, False, False, 0)
+                vbox.pack_end(Gtk.Separator(), False, False, 0)
+
+            vbox.show_all()
+            self.display_cancel_button()
 
         previous_page = self.stack.save_current_page()
         self.stack.jump_to_page(present_ask_for_disc_page)
@@ -961,9 +939,6 @@ class InstallerWindow(ModelessDialog,
     def display_cancel_button(self, extra_buttons=None):
         self.display_buttons([self.cancel_button] + (extra_buttons or []))
 
-    def display_eject_button(self):
-        self.display_buttons([self.eject_button, self.cancel_button])
-
     def display_buttons(self, buttons):
         """Shows exactly the buttons given, and hides the others. Updates the close button
         according to whether the install has started."""
@@ -979,8 +954,7 @@ class InstallerWindow(ModelessDialog,
             self.cancel_button.set_tooltip_text("")
             style_context.remove_class("destructive-action")
 
-        all_buttons = [self.eject_button,
-                       self.cache_button,
+        all_buttons = [self.cache_button,
                        self.source_button,
                        self.continue_button,
                        self.cancel_button]
@@ -988,17 +962,12 @@ class InstallerWindow(ModelessDialog,
         for b in all_buttons:
             b.set_visible(b in buttons)
 
-        def set_parent_visibility(parent, hidable_widgets):
-            any_visible = False
-            for b in parent.get_children():
-                if b.get_visible():
-                    any_visible = True
-                    break
-            for w in hidable_widgets:
-                w.set_visible(any_visible)
-
-        set_parent_visibility(self.action_buttons, [self.action_buttons, self.action_separator])
-        set_parent_visibility(self.menu_box, [self.menu_button])
+        any_visible = False
+        for b in self.menu_box.get_children():
+            if b.get_visible():
+                any_visible = True
+                break
+        self.menu_button.set_visible(any_visible)
 
     class MarkupLabel(Gtk.Label):
         """Label for installer window"""
