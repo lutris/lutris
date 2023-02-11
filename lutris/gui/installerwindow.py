@@ -64,16 +64,18 @@ class InstallerWindow(ModelessDialog,
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
-        self.vbox.set_margin_top(18)
-        self.vbox.set_margin_bottom(18)
-        self.vbox.set_margin_right(18)
-        self.vbox.set_margin_left(18)
-        self.vbox.set_spacing(12)
+        content_area = self.get_content_area()
+
+        content_area.set_margin_top(18)
+        content_area.set_margin_bottom(18)
+        content_area.set_margin_right(18)
+        content_area.set_margin_left(18)
+        content_area.set_spacing(12)
 
         # Header labels
 
         self.status_label = InstallerWindow.MarkupLabel()
-        self.vbox.pack_start(self.status_label, False, False, 0)
+        content_area.pack_start(self.status_label, False, False, 0)
 
         # Header bar buttons
 
@@ -97,14 +99,14 @@ class InstallerWindow(ModelessDialog,
 
         self.stack = NavigationStack(self.back_button)
         self.register_page_creators()
-        self.vbox.pack_start(self.stack, True, True, 0)
+        content_area.pack_start(self.stack, True, True, 0)
 
-        self.vbox.pack_start(Gtk.HSeparator(), False, False, 0)
+        content_area.pack_start(Gtk.HSeparator(), False, False, 0)
 
         # Action buttons
 
         self.action_buttons = Gtk.Box(spacing=6)
-        self.vbox.pack_end(self.action_buttons, False, False, 0)
+        content_area.pack_end(self.action_buttons, False, False, 0)
 
         self.cache_button = self.add_action_start_button(_("Cache"),
                                                          self.on_cache_clicked,
