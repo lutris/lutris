@@ -8,7 +8,7 @@ from gi.repository import Gio, GLib, Gtk
 from lutris.config import LutrisConfig
 from lutris.exceptions import UnavailableGameError, watch_errors
 from lutris.game import Game
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, QuestionDialog, ModelessDialog
+from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, InstallerSourceDialog, ModelessDialog, QuestionDialog
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.installer.files_box import InstallerFilesBox

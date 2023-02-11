@@ -14,6 +14,7 @@ from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
+
 try:
     from lutris.util.battlenet.product_db_pb2 import ProductDb
     BNET_ENABLED = True

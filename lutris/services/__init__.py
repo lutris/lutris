@@ -3,7 +3,7 @@ import os
 
 from lutris import settings
 from lutris.services.amazon import AmazonService
-from lutris.services.battlenet import BattleNetService, BNET_ENABLED
+from lutris.services.battlenet import BNET_ENABLED, BattleNetService
 from lutris.services.dolphin import DolphinService
 from lutris.services.egs import EpicGamesStoreService
 from lutris.services.flathub import FlathubService
