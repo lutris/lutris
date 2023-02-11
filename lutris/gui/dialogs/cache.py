@@ -10,7 +10,7 @@ from lutris.gui.widgets.common import FileChooserEntry
 class CacheConfigurationDialog(ModalDialog):
     def __init__(self, parent=None):
         super().__init__(
-            _("Cache configuration"),
+            _("Download cache configuration"),
             parent=parent,
             flags=Gtk.DialogFlags.MODAL,
             border_width=10

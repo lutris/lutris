@@ -112,12 +112,12 @@ class InstallerWindow(ModelessDialog,
         self.menu_button.set_popover(Gtk.Popover(child=self.menu_box, can_focus=False, relative_to=self.menu_button))
         self.get_header_bar().pack_end(self.menu_button)
 
-        self.cache_button = self.add_menu_button(_("Cache"),
+        self.cache_button = self.add_menu_button(_("Configure download cache"),
                                                  self.on_cache_clicked,
                                                  tooltip=_(
                                                      "Change where Lutris downloads game installer files."))
 
-        self.source_button = self.add_menu_button(_("View source"), self.on_source_clicked)
+        self.source_button = self.add_menu_button(_("View installer source"), self.on_source_clicked)
 
         # Pre-create some UI bits we need to refer to in several places.
         # (We lazy allocate more of it, but these are a pain.)
