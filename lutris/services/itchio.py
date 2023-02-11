@@ -411,10 +411,11 @@ class ItchIoService(OnlineService):
                                     )
                         outdated = True
 
-                ts = self._rfc3999_to_timestamp(upload.get("updated_at", 0))
-                if int(info.get("date", 0)) >= ts:
-                    return
-                info["date"] = int(datetime.datetime.now().timestamp())
+                if upload:
+                    ts = self._rfc3999_to_timestamp(upload.get("updated_at", 0))
+                    if int(info.get("date", 0)) >= ts:
+                        return
+                    info["date"] = int(datetime.datetime.now().timestamp())
 
         # Skip time based checks if we already know it's outdated
         if not outdated:
