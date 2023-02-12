@@ -6,12 +6,13 @@ from gi.repository import GObject, Gtk, Pango
 from lutris import runners, services
 from lutris.database.games import get_game_by_field, get_game_for_service
 from lutris.game import Game
+from lutris.game_actions import GameActions
 from lutris.gui.widgets.utils import get_link_button
 from lutris.util.strings import gtk_safe
 
 
 class GameBar(Gtk.Box):
-    def __init__(self, db_game, game_actions, application):
+    def __init__(self, db_game, application, window):
         """Create the game bar with a database row"""
         super().__init__(orientation=Gtk.Orientation.VERTICAL, visible=True,
                          margin_top=12,
@@ -19,6 +20,10 @@ class GameBar(Gtk.Box):
                          margin_bottom=12,
                          margin_right=12,
                          spacing=6)
+
+        self.application = application
+        self.window = window
+
         self.game_start_hook_id = GObject.add_emission_hook(Game, "game-start", self.on_game_state_changed)
         self.game_started_hook_id = GObject.add_emission_hook(Game, "game-started", self.on_game_state_changed)
         self.game_stopped_hook_id = GObject.add_emission_hook(Game, "game-stopped", self.on_game_state_changed)
@@ -28,7 +33,6 @@ class GameBar(Gtk.Box):
         self.connect("destroy", self.on_destroy)
 
         self.set_margin_bottom(12)
-        self.game_actions = game_actions
         self.db_game = db_game
         self.service = None
         if db_game.get("service"):
@@ -53,7 +57,6 @@ class GameBar(Gtk.Box):
             self.game = application.get_game_by_id(game_id) or Game(game_id)
         else:
             self.game = Game.create_empty_service_game(db_game, self.service)
-        game_actions.game = self.game
         self.update_view()
 
     def on_destroy(self, widget):
@@ -72,6 +75,8 @@ class GameBar(Gtk.Box):
 
     def update_view(self):
         """Populate the view with widgets"""
+        game_actions = GameActions(self.game, window=self.window, application=self.application)
+
         game_label = self.get_game_name_label()
         game_label.set_halign(Gtk.Align.START)
         self.pack_start(game_label, False, False, 0)
@@ -79,7 +84,7 @@ class GameBar(Gtk.Box):
         hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
         self.pack_start(hbox, False, False, 0)
 
-        self.play_button = self.get_play_button()
+        self.play_button = self.get_play_button(game_actions)
         hbox.pack_start(self.play_button, False, False, 0)
 
         if self.game.is_installed:
@@ -179,14 +184,14 @@ class GameBar(Gtk.Box):
         style_context.add_class("linked")
         return box
 
-    def get_locate_installed_game_button(self):
+    def get_locate_installed_game_button(self, game_actions):
         """Return a button to locate an existing install"""
         button = get_link_button("Locate installed game")
         button.show()
-        button.connect("clicked", self.game_actions.on_locate_installed_game, self.game)
+        button.connect("clicked", game_actions.on_locate_installed_game, self.game)
         return {"locate": button}
 
-    def get_play_button(self):
+    def get_play_button(self, game_actions):
         """Return the widget for install/play/stop and game config"""
         button = Gtk.Button(visible=True)
         button.set_size_request(120, 32)
@@ -195,16 +200,16 @@ class GameBar(Gtk.Box):
         if self.game.is_installed:
             if self.game.state == self.game.STATE_STOPPED:
                 button.set_label(_("Play"))
-                button.connect("clicked", self.game_actions.on_game_launch)
+                button.connect("clicked", game_actions.on_game_launch)
             elif self.game.state == self.game.STATE_LAUNCHING:
                 button.set_label(_("Launching"))
                 button.set_sensitive(False)
             else:
                 button.set_label(_("Stop"))
-                button.connect("clicked", self.game_actions.on_game_stop)
+                button.connect("clicked", game_actions.on_game_stop)
         else:
             button.set_label(_("Install"))
-            button.connect("clicked", self.game_actions.on_install_clicked)
+            button.connect("clicked", game_actions.on_install_clicked)
             if self.service:
                 if self.service.local:
                     # Local services don't show an install dialog, they can be launched directly
@@ -212,23 +217,23 @@ class GameBar(Gtk.Box):
                 if self.service.drm_free:
                     button.set_size_request(84, 32)
                     box.add(button)
-                    popover = self.get_popover(self.get_locate_installed_game_button(), popover_button)
+                    popover = self.get_popover(self.get_locate_installed_game_button(game_actions), popover_button)
                     popover_button.set_popover(popover)
                     box.add(popover_button)
                     return box
                 return button
         button.set_size_request(84, 32)
         box.add(button)
-        popover = self.get_popover(self.get_game_buttons(), popover_button)
+        popover = self.get_popover(self.get_game_buttons(game_actions), popover_button)
         popover_button.set_popover(popover)
         box.add(popover_button)
         return box
 
-    def get_game_buttons(self):
+    def get_game_buttons(self, game_actions):
         """Return a dictionary of buttons to use in the panel"""
-        displayed = self.game_actions.get_displayed_entries()
+        displayed = game_actions.get_displayed_entries()
         buttons = {}
-        for action in self.game_actions.get_game_actions():
+        for action in game_actions.get_game_actions():
             action_id, label, callback = action
             if action_id in ("play", "stop", "install"):
                 continue

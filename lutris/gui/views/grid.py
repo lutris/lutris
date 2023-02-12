@@ -13,9 +13,9 @@ class GameGridView(Gtk.IconView, GameView):
 
     min_width = 70  # Minimum width for a cell
 
-    def __init__(self, store, game_actions, hide_text=False):
+    def __init__(self, store, hide_text=False):
         Gtk.IconView.__init__(self)
-        GameView.__init__(self, game_actions, store.service)
+        GameView.__init__(self, store.service)
 
         self.set_column_spacing(6)
         self.set_pixbuf_column(COL_ICON)

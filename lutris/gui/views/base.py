@@ -3,6 +3,7 @@ from gi.repository import Gdk, GObject, Gtk
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
+from lutris.game_actions import GameActions
 from lutris.gui.views import COL_ID
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 
@@ -15,9 +16,8 @@ class GameView:
         "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, game_actions, service):
+    def __init__(self, service):
         self.current_path = None
-        self.game_actions = game_actions
         self.service = service
 
     def connect_signals(self):
@@ -50,11 +50,9 @@ class GameView:
             else:
                 return
 
-            if game:
-                self.game_actions.game = game
-
-            contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
-            contextual_menu.popup(event, self.game_actions)
+            game_actions = GameActions(game, window=self.get_toplevel())
+            contextual_menu = ContextualMenu(game_actions.get_game_actions())
+            contextual_menu.popup(event, game_actions)
 
     def get_selected_id(self, selected_item):
         return self.get_model().get_value(selected_item, COL_ID)

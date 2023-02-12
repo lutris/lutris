@@ -29,10 +29,10 @@ from lutris.util.wine.dxvk import update_shader_cache
 class GameActions:
     """Regroup a list of callbacks for a game"""
 
-    def __init__(self, application=None, window=None):
+    def __init__(self, game, window, application=None):
         self.application = application or Gio.Application.get_default()
-        self.window = window
-        self.game = None
+        self.window = window  # also used as a LaunchUIDelegate
+        self.game = game
 
     @property
     def is_game_running(self):

@@ -12,7 +12,6 @@ from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import watch_errors
 from lutris.game import Game
-from lutris.game_actions import GameActions
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.preferences_dialog import PreferencesDialog
@@ -81,7 +80,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.window_size = (width, height)
         self.maximized = settings.read_setting("maximized") == "True"
         self.service = None
-        self.game_actions = GameActions(application=application, window=self)
         self.search_timer_id = None
         self.selected_category = settings.read_setting("selected_category", default="runner:all")
         self.filters = self.load_filters()
@@ -425,7 +423,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if game:
             if self.game_bar:
                 self.game_bar.destroy()
-            self.game_bar = GameBar(game, self.game_actions, self.application)
+
+            self.game_bar = GameBar(game, self.application, self)
             self.revealer_box.pack_start(self.game_bar, True, True, 0)
         elif self.game_bar:
             # The game bar can't be destroyed here because the game gets unselected on Wayland
@@ -619,11 +618,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if view_type == "grid":
                 self.current_view = GameGridView(
                     self.game_store,
-                    self.game_actions,
                     hide_text=settings.read_setting("hide_text_under_icons") == "True"
                 )
             else:
-                self.current_view = GameListView(self.game_store, self.game_actions)
+                self.current_view = GameListView(self.game_store)
 
             self.current_view.connect("game-selected", self.on_game_selection_changed)
             self.current_view.connect("game-activated", self.on_game_activated)
@@ -853,7 +851,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_updated(self, game):
         """Updates an individual entry in the view when a game is updated"""
         add_to_path_cache(game)
-        self.game_actions.on_game_state_changed(game)
         if game.appid and self.service:
             db_game = ServiceGameCollection.get_game(self.service.id, game.appid)
         else:
@@ -886,14 +883,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
         return True
 
     def on_game_installed(self, game):
-        self.game_actions.on_game_state_changed(game)
         return True
 
     def on_game_removed(self, game):
         """Simple method used to refresh the view"""
         remove_from_path_cache(game)
         self.get_missing_games()
-        self.game_actions.on_game_state_changed(game)
         self.emit("view-updated")
         return True
 
