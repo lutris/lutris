@@ -32,34 +32,16 @@ class GameActions:
     def __init__(self, application=None, window=None):
         self.application = application or Gio.Application.get_default()
         self.window = window
-        self.game_id = None
-        self._game = None
-
-    @property
-    def game(self):
-        if not self._game:
-            if self.game_id is not None:
-                self._game = self.application.get_game_by_id(self.game_id)
-            if not self._game:
-                self._game = Game(self.game_id)
-        return self._game
+        self.game = None
 
     @property
     def is_game_running(self):
-        return self.game_id is not None and bool(self.application.get_game_by_id(self.game_id))
-
-    def set_game(self, game=None, game_id=None):
-        if game:
-            self._game = game
-            self.game_id = game.get_safe_id()
-        else:
-            self._game = None
-            self.game_id = game_id
+        return self.game and self.game.is_db_stored and bool(self.application.get_game_by_id(self.game.id))
 
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""
-        if self.game.is_db_stored and game.id == self.game.id:
-            self.set_game(game)
+        if self.game and game.id == self.game.get_safe_id():
+            self.game = game
 
     def get_game_actions(self):
         """Return a list of game actions and their callbacks"""
@@ -175,11 +157,14 @@ class GameActions:
         self.game.launch(self.window)
 
     def get_running_game(self):
-        ids = self.application.get_running_game_ids()
-        for game_id in ids:
-            if self.game.is_db_stored and str(game_id) == str(self.game.id):
-                return self.game
-        logger.warning("Game %s not in %s", self.game_id, ids)
+        if self.game and self.game.is_db_stored:
+            ids = self.application.get_running_game_ids()
+            for game_id in ids:
+                if str(game_id) == str(self.game.id):
+                    return self.game
+            logger.warning("Game %s not in %s", self.game.id, ids)
+
+        return None
 
     def on_game_stop(self, _caller):
         """Stops the game"""

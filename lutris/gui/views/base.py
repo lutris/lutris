@@ -51,7 +51,7 @@ class GameView:
                 return
 
             if game:
-                self.game_actions.set_game(game=game)
+                self.game_actions.game = game
 
             contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
             contextual_menu.popup(event, self.game_actions)

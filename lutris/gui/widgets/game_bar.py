@@ -53,7 +53,7 @@ class GameBar(Gtk.Box):
             self.game = application.get_game_by_id(game_id) or Game(game_id)
         else:
             self.game = Game.create_empty_service_game(db_game, self.service)
-        game_actions.set_game(self.game)
+        game_actions.game = self.game
         self.update_view()
 
     def on_destroy(self, widget):
