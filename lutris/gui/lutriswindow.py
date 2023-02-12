@@ -22,7 +22,6 @@ from lutris.gui.views import COL_ID, COL_NAME
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
-from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.game_bar import GameBar
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.sidebar import LutrisSidebar
@@ -133,6 +132,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         GObject.add_emission_hook(BaseService, "service-games-loaded", self.on_service_games_updated)
         GObject.add_emission_hook(Game, "game-updated", self.on_game_updated)
         GObject.add_emission_hook(Game, "game-stopped", self.on_game_stopped)
+        GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
         GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
 
@@ -205,7 +205,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
         self.current_view.grab_focus()
-        self.current_view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
 
     def on_sidebar_realize(self, widget, data=None):
         """Grab the initial focus after the sidebar is initialized - so the view is ready."""
@@ -482,7 +481,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         else:
             self.search_entry.set_placeholder_text(_("Search games"))
         for view in self.views.values():
-            view.service = self.service.id if self.service else None
+            view.service = self.service
         GLib.idle_add(self.update_revealer)
         for game in games:
             self.game_store.add_game(game)
@@ -620,14 +619,14 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if view_type == "grid":
                 self.current_view = GameGridView(
                     self.game_store,
+                    self.game_actions,
                     hide_text=settings.read_setting("hide_text_under_icons") == "True"
                 )
             else:
-                self.current_view = GameListView(self.game_store)
+                self.current_view = GameListView(self.game_store, self.game_actions)
 
             self.current_view.connect("game-selected", self.on_game_selection_changed)
             self.current_view.connect("game-activated", self.on_game_activated)
-            self.current_view.contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
 
             scrolledwindow = Gtk.ScrolledWindow()
             scrolledwindow.add(self.current_view)
@@ -854,6 +853,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_game_updated(self, game):
         """Updates an individual entry in the view when a game is updated"""
         add_to_path_cache(game)
+        self.game_actions.on_game_state_changed(game)
         if game.appid and self.service:
             db_game = ServiceGameCollection.get_game(self.service.id, game.appid)
         else:
@@ -885,10 +885,15 @@ class LutrisWindow(Gtk.ApplicationWindow,
             self.game_store.remove_game(game.id)
         return True
 
+    def on_game_installed(self, game):
+        self.game_actions.on_game_state_changed(game)
+        return True
+
     def on_game_removed(self, game):
         """Simple method used to refresh the view"""
         remove_from_path_cache(game)
         self.get_missing_games()
+        self.game_actions.on_game_state_changed(game)
         self.emit("view-updated")
         return True
 

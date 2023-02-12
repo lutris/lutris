@@ -52,11 +52,7 @@ class GameBar(Gtk.Box):
         if game_id:
             self.game = application.get_game_by_id(game_id) or Game(game_id)
         else:
-            self.game = Game()
-            self.game.name = db_game["name"]
-            self.game.slug = db_game["slug"]
-            self.game.appid = self.appid
-            self.game.service = self.service.id if self.service else None
+            self.game = Game.create_empty_service_game(db_game, self.service)
         game_actions.set_game(self.game)
         self.update_view()
 
@@ -270,11 +266,11 @@ class GameBar(Gtk.Box):
     def on_game_state_changed(self, game):
         """Handler called when the game has changed state"""
         if (
-            game.id == self.game.id
+            (self.game.is_db_stored and game.id == self.game.id)
             or (self.appid and game.appid == self.appid)
         ):
             self.game = game
-        else:
+        elif self.game != game:
             return True
         self.clear_view()
         self.update_view()

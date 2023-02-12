@@ -1,9 +1,10 @@
 from gi.repository import Gdk, GObject, Gtk
 
 from lutris.database.games import get_game_for_service
+from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.game_actions import GameActions
 from lutris.gui.views import COL_ID
+from lutris.gui.widgets.contextual_menu import ContextualMenu
 
 
 class GameView:
@@ -14,10 +15,10 @@ class GameView:
         "remove-game": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self):
-        self.service = None  # Stores the service.id in a string
+    def __init__(self, game_actions, service):
         self.current_path = None
-        self.contextual_menu = None
+        self.game_actions = game_actions
+        self.service = service
 
     def connect_signals(self):
         """Signal handlers common to all views"""
@@ -31,23 +32,29 @@ class GameView:
         view.current_path = view.get_path_at_pos(event.x, event.y)
         if view.current_path:
             view.select()
-            _iter = self.get_model().get_iter(view.current_path[0])
+            model = self.get_model()
+            _iter = model.get_iter(view.current_path[0])
             if not _iter:
                 return
-            selected_id = self.get_selected_id(_iter)
-            game_row = self.game_store.get_row_by_id(selected_id)
+            col_id = str(model.get_value(_iter, COL_ID))
             if self.service:
-                game = get_game_for_service(self.service, game_row[COL_ID])
-                game_id = game["id"] if game else -1
-            else:
-                game_id = game_row[COL_ID]
-            if not game_id:
-                return
-            game = Game(game_id)
-            game_actions = GameActions()
-            game_actions.set_game(game=game)
+                db_game = get_game_for_service(self.service.id, col_id)
 
-            self.contextual_menu.popup(event, game_actions)
+                if db_game:
+                    game = Game(db_game["id"])
+                else:
+                    db_game = ServiceGameCollection.get_game(self.service.id, col_id)
+                    game = Game.create_empty_service_game(db_game, self.service)
+            elif col_id:
+                game = Game(col_id)
+            else:
+                return
+
+            if game:
+                self.game_actions.set_game(game=game)
+
+            contextual_menu = ContextualMenu(self.game_actions.get_game_actions())
+            contextual_menu.popup(event, self.game_actions)
 
     def get_selected_id(self, selected_item):
         return self.get_model().get_value(selected_item, COL_ID)

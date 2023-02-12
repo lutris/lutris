@@ -38,22 +38,28 @@ class GameActions:
     @property
     def game(self):
         if not self._game:
-            self._game = self.application.get_game_by_id(self.game_id)
+            if self.game_id is not None:
+                self._game = self.application.get_game_by_id(self.game_id)
             if not self._game:
                 self._game = Game(self.game_id)
         return self._game
 
     @property
     def is_game_running(self):
-        return bool(self.application.get_game_by_id(self.game_id))
+        return self.game_id is not None and bool(self.application.get_game_by_id(self.game_id))
 
     def set_game(self, game=None, game_id=None):
         if game:
             self._game = game
-            self.game_id = game.id
+            self.game_id = game.get_safe_id()
         else:
             self._game = None
             self.game_id = game_id
+
+    def on_game_state_changed(self, game):
+        """Handler called when the game has changed state"""
+        if self.game.is_db_stored and game.id == self.game.id:
+            self.set_game(game)
 
     def get_game_actions(self):
         """Return a list of game actions and their callbacks"""
@@ -158,7 +164,7 @@ class GameActions:
                 and steam_shortcut.shortcut_exists(self.game)
                 and not steam_shortcut.is_steam_game(self.game)
             ),
-            "remove": self.game.is_installed,
+            "remove": self.game.is_installed or self.game.is_db_stored,
             "view": True,
             "hide": self.game.is_installed and not self.game.is_hidden,
             "unhide": self.game.is_hidden,
@@ -171,7 +177,7 @@ class GameActions:
     def get_running_game(self):
         ids = self.application.get_running_game_ids()
         for game_id in ids:
-            if str(game_id) == str(self.game.id):
+            if self.game.is_db_stored and str(game_id) == str(self.game.id):
                 return self.game
         logger.warning("Game %s not in %s", self.game_id, ids)
 
@@ -196,7 +202,7 @@ class GameActions:
         """Install a game"""
         # Install the currently selected game in the UI
         if not self.game.slug:
-            raise RuntimeError("No game to install: %s" % self.game.id)
+            raise RuntimeError("No game to install: %s" % self.game.get_safe_id())
         self.game.emit("game-install")
 
     def on_update_clicked(self, _widget):
