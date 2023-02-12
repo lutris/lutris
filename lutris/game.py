@@ -223,17 +223,17 @@ class Game(GObject.Object):
 
     @property
     def formatted_playtime(self):
-        """Return a human readable formatted play time"""
+        """Return a human-readable formatted play time"""
         return strings.get_formatted_playtime(self.playtime)
 
     def signal_error(self, error):
-        """Reports an error by firing game-error. If its handled returns
-        True to indicate it handled it, that's it. If not, this fires
+        """Reports an error by firing game-error. If handled, it returns
+        True to indicate it handled it, and that's it. If not, this fires
         game-unhandled-error, which is actually handled via an emission hook
         and should not be connected otherwise.
 
-        This allows special error handling to be set up for a partical Game, but
-        there's always something."""
+        This allows special error handling to be set up for a particular Game, but
+        there's always some handling."""
         handled = self.emit("game-error", error)
         if not handled:
             self.emit("game-unhandled-error", error)
