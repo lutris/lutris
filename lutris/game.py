@@ -193,14 +193,17 @@ class Game(GObject.Object):
     @property
     def id(self):
         if self._id is None:
-            raise RuntimeError("The game '%s' is not stored in the PGA." % self.name)
+            logger.error("The game '%s' has no ID, it is not stored in the PGA.", self.name)
         return self._id
 
     def get_safe_id(self):
+        """Returns the ID, or None if this Game has not got one; use this
+        rather than 'id' if your code expects to cope with the None."""
         return self._id
 
     @property
     def is_db_stored(self):
+        """True if this Game has an ID, which means it is saved in the PGA."""
         return self._id is not None
 
     @property
