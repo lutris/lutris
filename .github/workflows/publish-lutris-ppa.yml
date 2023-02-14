@@ -9,7 +9,7 @@ on:
   # See below for details about the 'release' event.
   # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release
   release:
-    types: [released,prereleased]
+    types: [released,prereleased,published]
 
 # The only thing that really differs between the release and staging
 # builds is the target PPA_URI.
