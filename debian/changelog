@@ -1,4 +1,4 @@
-lutris (0.5.13) UNRELEASED; urgency=medium
+lutris (0.5.13) jammy; urgency=medium
 
   * Add support for Proton
   * Add drag and drop on the main window. Dropped files will be matched
