@@ -196,7 +196,7 @@ class wine(Runner):
             },
             {
                 "option": "dxvk",
-                "section": _("DXVK"),
+                "section": _("Graphics"),
                 "label": _("Enable DXVK"),
                 "type": "extended_bool",
                 "callback": dxvk_vulkan_callback,
@@ -210,7 +210,7 @@ class wine(Runner):
             },
             {
                 "option": "dxvk_version",
-                "section": _("DXVK"),
+                "section": _("Graphics"),
                 "label": _("DXVK version"),
                 "advanced": True,
                 "type": "choice_with_entry",
@@ -220,7 +220,7 @@ class wine(Runner):
 
             {
                 "option": "vkd3d",
-                "section": _("VKD3D"),
+                "section": _("Graphics"),
                 "label": _("Enable VKD3D"),
                 "type": "extended_bool",
                 "callback": dxvk_vulkan_callback,
@@ -233,7 +233,7 @@ class wine(Runner):
             },
             {
                 "option": "vkd3d_version",
-                "section": _("VKD3D"),
+                "section": _("Graphics"),
                 "label": _("VKD3D version"),
                 "advanced": True,
                 "type": "choice_with_entry",
@@ -242,7 +242,7 @@ class wine(Runner):
             },
             {
                 "option": "d3d_extras",
-                "section": _("D3D Extras"),
+                "section": _("Graphics"),
                 "label": _("Enable D3D Extras"),
                 "type": "bool",
                 "default": True,
@@ -254,7 +254,7 @@ class wine(Runner):
             },
             {
                 "option": "d3d_extras_version",
-                "section": _("D3D Extras"),
+                "section": _("Graphics"),
                 "label": _("D3D Extras version"),
                 "advanced": True,
                 "type": "choice_with_entry",
@@ -263,7 +263,7 @@ class wine(Runner):
             },
             {
                 "option": "dxvk_nvapi",
-                "section": _("DXVK-NVAPI / DLSS"),
+                "section": _("Graphics"),
                 "label": _("Enable DXVK-NVAPI / DLSS"),
                 "type": "bool",
                 "default": True,
@@ -274,7 +274,7 @@ class wine(Runner):
             },
             {
                 "option": "dxvk_nvapi_version",
-                "section": _("DXVK-NVAPI / DLSS"),
+                "section": _("Graphics"),
                 "label": _("DXVK NVAPI version"),
                 "advanced": True,
                 "type": "choice_with_entry",
@@ -283,7 +283,7 @@ class wine(Runner):
             },
             {
                 "option": "dgvoodoo2",
-                "section": _("dgvoodoo2"),
+                "section": _("Graphics"),
                 "label": _("Enable dgvoodoo2"),
                 "type": "bool",
                 "default": False,
@@ -296,7 +296,7 @@ class wine(Runner):
             },
             {
                 "option": "dgvoodoo2_version",
-                "section": _("dgvoodoo2"),
+                "section": _("Graphics"),
                 "label": _("dgvoodoo2 version"),
                 "advanced": True,
                 "type": "choice_with_entry",
