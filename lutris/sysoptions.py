@@ -272,7 +272,7 @@ system_options = [  # pylint: disable=invalid-name
         "section": "Gamescope",
         "option": "gamescope",
         "type": "bool",
-        "label": _("Enable"),
+        "label": _("Enable Gamescope"),
         "default": False,
         "condition": bool(system.find_executable("gamescope")) and linux.LINUX_SYSTEM.nvidia_gamescope_support(),
         "help": _("Use gamescope to draw the game window isolated from your desktop.\n"
