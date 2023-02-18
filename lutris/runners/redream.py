@@ -21,10 +21,16 @@ class redream(Runner):
         }
     ]
     runner_options = [
-        {"option": "fs", "type": "bool", "label": _("Fullscreen"), "default": False},
+        {
+            "option": "fs",
+            "type": "bool",
+            "section": _("Graphics"),
+            "label": _("Fullscreen"),
+            "default": False},
         {
             "option": "ar",
             "type": "choice",
+            "section": _("Graphics"),
             "label": _("Aspect Ratio"),
             "choices": [(_("4:3"), "4:3"), (_("Stretch"), "stretch")],
             "default": "4:3",
