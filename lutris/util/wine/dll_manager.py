@@ -210,6 +210,29 @@ class DLLManager:
                 filename = os.path.basename(file)
                 yield appdata_dir, file, filename
 
+    def setup(self, enable):
+        """Enable or disable DLLs"""
+
+        # manual version only sets the dlls to native (in get_enabling_dll_overrides())
+        manager_version = self.version
+        if not manager_version or manager_version.lower() != "manual":
+            if enable:
+                self.enable()
+            else:
+                self.disable()
+
+    def get_enabling_dll_overrides(self):
+        """Returns aa dll-override dict for the dlls in this manager; these options will
+        enable the manager's dll, so call this only for enabled managers."""
+        overrides = {}
+
+        for dll in self.managed_dlls:
+            # We have to make sure that the dll exists before setting it to native
+            if self.dll_exists(dll):
+                overrides[dll] = "n"
+
+        return overrides
+
     def enable(self):
         """Enable Dlls for the current prefix"""
         if not self.is_available():
