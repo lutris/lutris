@@ -143,8 +143,7 @@ def get_gamescope_args(launch_arguments, system_config):
 
 def export_bash_script(runner, gameplay_info, script_path):
     """Convert runner configuration into a bash script"""
-    if getattr(runner, 'prelaunch', None) is not None:
-        runner.prelaunch()
+    runner.prelaunch()
     command, env = get_launch_parameters(runner, gameplay_info)
     # Override TERM otherwise the script might not run
     env["TERM"] = "xterm"

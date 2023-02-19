@@ -427,8 +427,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         command = command_data.get("command")
         env = (command_data.get("env") or {}).copy()
 
-        if hasattr(self, "prelaunch"):
-            self.prelaunch()
+        self.prelaunch()
 
         command_runner = MonitoredCommand(command, runner=self, env=env)
         command_runner.start()
