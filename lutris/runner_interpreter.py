@@ -148,11 +148,19 @@ def export_bash_script(runner, gameplay_info, script_path):
     # Override TERM otherwise the script might not run
     env["TERM"] = "xterm"
     script_content = "#!/bin/bash\n\n\n"
+
     script_content += "# Environment variables\n"
+
     for name, value in env.items():
         script_content += 'export %s="%s"\n' % (name, value)
+
+    if "working_dir" in gameplay_info:
+        script_content += "\n# Working Directory\n"
+        script_content += "cd %s\n" % shlex.quote(gameplay_info["working_dir"])
+
     script_content += "\n# Command\n"
     script_content += " ".join([shlex.quote(c) for c in command])
+
     with open(script_path, "w", encoding='utf-8') as script_file:
         script_file.write(script_content)
 

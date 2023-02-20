@@ -546,6 +546,9 @@ class Game(GObject.Object):
         if "error" in gameplay_info:
             raise self.get_config_error(gameplay_info)
 
+        if "working_dir" not in gameplay_info:
+            gameplay_info["working_dir"] = self.runner.working_dir
+
         config = launch_ui_delegate.select_game_launch_config(self)
 
         if config is None:
