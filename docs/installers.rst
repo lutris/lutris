@@ -210,7 +210,7 @@ Example: ``$GAMEDIR/path/to/game``
 that comes with a map editor, or that need to be launched with different arguments)
 you can specify them in this section. In this section, you can have a list of configurations
 containing ``exe``, ``args`` and ``working_dir`` plus a ``name`` to show in the launcher dialog.
-Example:
+Example::
 
   game:
     exe: main.exe
@@ -556,9 +556,7 @@ or ``a`` to append data to an existing file.
 Refer to the YAML documentation for reference on how to including multiline
 documents and quotes.
 
-Example:
-
-::
+Example::
 
     - write_file:
         file: $GAMEDIR/myfile.txt
@@ -575,9 +573,7 @@ to first truncate the file. Note that the file is entirely rewritten and
 comments are left out; Make sure to compare the initial and resulting file to
 spot any potential parsing issues.
 
-Example:
-
-::
+Example::
 
     - write_config:
         file: $GAMEDIR/myfile.ini
@@ -603,9 +599,7 @@ Use the ``file`` (an absolute path or a ``file id``) and ``data`` parameters.
 Note that the file is entirely rewritten; Make sure to compare the initial
 and resulting file to spot any potential parsing issues. You can set the optional parameter ``merge`` to ``false`` if you want to overwrite the JSON file instead of updating it.
 
-Example:
-
-::
+Example::
 
     - write_json:
         file: $GAMEDIR/myfile.json
@@ -613,9 +607,7 @@ Example:
           Sound:
             Enabled: 'false'
 
-This writes (or updates) a file with the following content:
-
-::
+This writes (or updates) a file with the following content::
 
     {
       "Sound": {
@@ -653,9 +645,7 @@ Currently, the following tasks are implemented:
 
     * ``install_mono``: optional variable to stop installing mono
 
-    Example:
-
-    ::
+    Example::
 
         - task:
             name: create_prefix
@@ -705,9 +695,7 @@ Currently, the following tasks are implemented:
 *   wine: ``eject_disk`` runs eject_disk in your ``prefix`` argument. Parameters are
     ``prefix`` (optional wineprefix path).
 
-    Example:
-
-    ::
+    Example::
 
         - task:
             name: eject_disc
@@ -718,9 +706,7 @@ Currently, the following tasks are implemented:
     (optional WINEPREFIX), ``arch``
     (optional architecture of the prefix).
 
-    Example:
-
-    ::
+    Example::
 
         - task:
             name: set_regedit
@@ -733,9 +719,7 @@ Currently, the following tasks are implemented:
     are ``key``, ``prefix``
     (optional WINEPREFIX), ``arch`` (optional architecture of the prefix).
 
-    Example:
-
-    ::
+    Example::
 
         - task:
             name: set_regedit
@@ -759,9 +743,7 @@ Currently, the following tasks are implemented:
   are ``prefix`` (optional WINEPREFIX),
   ``arch`` (optional architecture of the prefix).
 
-  Example
-
-  ::
+  Example::
 
     - task:
         name: winekill
@@ -773,9 +755,7 @@ Currently, the following tasks are implemented:
     ``executable``'s dir or the ``config_file``'s dir), ``exit`` (set to
     ``false`` to prevent DOSBox to exit when the ``executable`` is terminated).
 
-    Example:
-
-    ::
+    Example::
 
         - task:
             name: dosexec
@@ -798,9 +778,7 @@ If need be, you can add an ``id`` parameter to the directive which will make the
 selected value available with ``$INPUT_<id>`` with "<id>" obviously being the
 id you specified. The id must contain only numbers, letters and underscores.
 
-Example:
-
-::
+Example::
 
     - input_menu:
         description: "Choose the game's language:"
@@ -879,9 +857,7 @@ Example gog wine game, some installer crash with with /SILENT or /VERYSILENT
 option (Cuphead and Star Wars: Battlefront II for example), (most options can
 be found here http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline,
 there is undocumented gog option ``/NOGUI``, you need to use it when you use
-``/SILENT`` and ``/SUPPRESSMSGBOXES`` parameters):
-
-::
+``/SILENT`` and ``/SUPPRESSMSGBOXES`` parameters)::
 
     name: My Game
     game_slug: my-game
