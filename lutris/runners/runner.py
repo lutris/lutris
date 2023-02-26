@@ -465,15 +465,17 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Return whether the runner is installed"""
         return system.path_exists(self.get_executable())
 
-    def get_runner_version(self, version=None):
+    def get_runner_version(self, version=None, lutris_only=False):
         """Get the appropriate version for a runner
 
         Params:
             version (str): Optional version to lookup, will return this one if found
+            lutris_only (bool): True to reject 'system' and such pseudo-versions (for WINE)
 
         Returns:
             dict: Dict containing version, architecture and url for the runner, None
-            if the data can't be retrieved.
+            if the data can't be retrieved. If a pseudo-version is accepted, may be
+            a dict containing only the version itself.
         """
         logger.info(
             "Getting runner information for %s%s",
@@ -530,7 +532,7 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.download_url:
             opts["dest"] = self.directory
             return self.download_and_extract(self.download_url, **opts)
-        runner = self.get_runner_version(version)
+        runner = self.get_runner_version(version, lutris_only=True)
         if not runner:
             raise RunnerInstallationError(_("Failed to retrieve {} ({}) information").format(self.name, version))
 

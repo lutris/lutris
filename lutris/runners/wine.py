@@ -569,11 +569,11 @@ class wine(Runner):
             arch = detect_arch(self.prefix_path, self.get_executable())
         return arch
 
-    def get_runner_version(self, version=None):
+    def get_runner_version(self, version=None, lutris_only=False):
         if not version:
             version = self.get_version()
 
-        if version and version in WINE_PATHS:
+        if version and not lutris_only and version in WINE_PATHS:
             return {"version": version}
 
         return super().get_runner_version(version)
