@@ -495,7 +495,7 @@ class AmazonService(OnlineService):
             request_data = {
                 "Operation": "GetPatches",
                 "versionId": version,
-                "fileHashes": list(batch),
+                "fileHashes": batch,
                 "deltaEncodings": ["FUEL_PATCH", "NONE"],
                 "adgGoodId": game_id,
             }
