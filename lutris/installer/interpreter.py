@@ -263,8 +263,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                         # end of the install.
                         if self.installer.runner not in self.installer.script:
                             self.installer.script[self.installer.runner] = {}
-                        version = "{}-{}".format(default_wine["version"],
-                                                 default_wine["architecture"])
+                        if "architecture" in default_wine:
+                            version = "{}-{}".format(default_wine["version"],
+                                                     default_wine["architecture"])
+                        else:
+                            version = default_wine["version"]
                         params["version"] = \
                             self.installer.script[self.installer.runner]["version"] = version
                     else:

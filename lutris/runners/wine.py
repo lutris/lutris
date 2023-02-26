@@ -571,7 +571,10 @@ class wine(Runner):
 
     def get_runner_version(self, version=None):
         if not version:
-            return super().get_runner_version(self.get_version())
+            version = self.get_version()
+
+        if version and version in WINE_PATHS:
+            return {"version": version}
 
         return super().get_runner_version(version)
 
