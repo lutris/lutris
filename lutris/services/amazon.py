@@ -482,10 +482,10 @@ class AmazonService(OnlineService):
         """Get game files"""
         access_token = self.get_access_token()
 
-        def get_batches(list, batch_size):
+        def get_batches(to_batch, batch_size):
             i = 0
-            while i < len(list):
-                yield list[i:i + batch_size]
+            while i < len(to_batch):
+                yield to_batch[i:i + batch_size]
                 i += batch_size
 
         batches = get_batches(file_list, 500)
