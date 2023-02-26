@@ -8,7 +8,6 @@ import secrets
 import struct
 import time
 import uuid
-from itertools import batched
 from gettext import gettext as _
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -483,7 +482,13 @@ class AmazonService(OnlineService):
         """Get game files"""
         access_token = self.get_access_token()
 
-        batches = batched(file_list, 500)
+        def get_batches(list, batch_size):
+            i = 0
+            while i < len(list):
+                yield list[i:i + batch_size]
+                i += batch_size
+
+        batches = get_batches(file_list, 500)
         patches = []
 
         for batch in batches:
