@@ -569,6 +569,12 @@ class wine(Runner):
             arch = detect_arch(self.prefix_path, self.get_executable())
         return arch
 
+    def get_runner_version(self, version=None):
+        if not version:
+            return super().get_runner_version(self.get_version())
+
+        return super().get_runner_version(version)
+
     def get_version(self, use_default=True):
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version"""
