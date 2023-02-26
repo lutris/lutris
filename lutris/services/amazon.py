@@ -8,6 +8,7 @@ import secrets
 import struct
 import time
 import uuid
+from itertools import batched
 from gettext import gettext as _
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -482,29 +483,35 @@ class AmazonService(OnlineService):
         """Get game files"""
         access_token = self.get_access_token()
 
-        request_data = {
-            "Operation": "GetPatches",
-            "versionId": version,
-            "fileHashes": file_list,
-            "deltaEncodings": ["FUEL_PATCH", "NONE"],
-            "adgGoodId": game_id,
-        }
+        batches = batched(file_list, 500)
+        patches = []
 
-        response = self.request_sds(
-            "com.amazonaws.gearbox."
-            "softwaredistribution.service.model."
-            "SoftwareDistributionService.GetPatches",
-            access_token,
-            request_data,
-        )
+        for batch in batches:
+            request_data = {
+                "Operation": "GetPatches",
+                "versionId": version,
+                "fileHashes": list(batch),
+                "deltaEncodings": ["FUEL_PATCH", "NONE"],
+                "adgGoodId": game_id,
+            }
 
-        if not response:
-            logger.error("There was an error getting patches: %s", game_id)
-            raise UnavailableGameError(_(
-                "Unable to get the patches of game, "
-                "please check your Amazon credentials and internet connectivity"), game_id)
+            response = self.request_sds(
+                "com.amazonaws.gearbox."
+                "softwaredistribution.service.model."
+                "SoftwareDistributionService.GetPatches",
+                access_token,
+                request_data,
+            )
 
-        return response["patches"]
+            if not response:
+                logger.error("There was an error getting patches: %s", game_id)
+                raise UnavailableGameError(_(
+                    "Unable to get the patches of game, "
+                    "please check your Amazon credentials and internet connectivity"), game_id)
+
+            patches += response["patches"]
+
+        return patches
 
     def structure_manifest_data(self, manifest):
         """Transform the manifest to more convenient data structures"""
@@ -541,7 +548,7 @@ class AmazonService(OnlineService):
         file_dict, directories, hashpairs = self.structure_manifest_data(manifest)
 
         game_patches = self.get_game_patches(game_id, manifest_info["versionId"], hashpairs)
-        for __, patch in enumerate(game_patches):
+        for patch in game_patches:
             file_dict[patch["patchHash"]["value"]]["url"] = patch["downloadUrls"][0]
 
         return file_dict, directories
