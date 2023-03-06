@@ -9,8 +9,16 @@ on:
   # See below for details about the 'release' event.
   # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release
   release:
-    types: [released,prereleased,published]
+    types: [released,prereleased]
 
+# Requires that PPA_GPG_PRIVATE_KEY & PPA_GPG_PASSPHRASE be defined
+# as repository secrets and that PPA_RELEASE_URI & PPA_STAGING_URI
+# be defined as repository variables.
+# Ex. PPA_GPG_PRIVATE_KEY: (( output of `gpg -a --export-secret-key <key_id>` ))
+# Ex. PPA_GPG_PASSPHRASE: (( password used to export the above key ))
+# Ex. PPA_STAGING_URI: ppa:lutris-team/lutris-staging
+# Ex. PPA_RELEASE_URI: ppa:lutris-team/lutris
+#
 # The only thing that really differs between the release and staging
 # builds is the target PPA_URI.
 jobs:
@@ -19,7 +27,7 @@ jobs:
     if: github.event.release.prerelease == false
     uses: ./.github/workflows/publish-ppa.yml
     with:
-      PPA_URI: "ppa:lutris-team/lutris"
+      PPA_URI: ${{ vars.PPA_RELEASE_URI }}
     secrets:
       PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
       PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}
@@ -28,7 +36,7 @@ jobs:
   staging-ppa:
     uses: ./.github/workflows/publish-ppa.yml
     with:
-      PPA_URI: "ppa:lutris-team/lutris-staging"
+      PPA_URI: ${{ vars.PPA_STAGING_URI }}
     secrets:
       PPA_GPG_PRIVATE_KEY: ${{ secrets.PPA_GPG_PRIVATE_KEY }}
       PPA_GPG_PASSPHRASE: ${{ secrets.PPA_GPG_PASSPHRASE }}
