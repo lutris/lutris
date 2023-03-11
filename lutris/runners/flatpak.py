@@ -110,7 +110,7 @@ class flatpak(Runner):
         if shutil.which("flatpak-spawn"):
             return "/"
         install_type, application, arch, branch = (
-            self.game_data[key] for key in ("install_type", "application", "arch", "branch")
+            self.game_config[key] for key in ("install_type", "appid", "arch", "branch")
         )
         return os.path.join(self.install_locations[install_type], application, arch, branch)
 
