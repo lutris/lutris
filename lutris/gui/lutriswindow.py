@@ -90,6 +90,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.current_view = Gtk.Box()
         self.views = {}
 
+        self.dynamic_categories_game_factories = {
+            "recent": self.get_recent_games,
+            "missing": self.get_missing_games,
+            "running": self.get_running_games,
+        }
+
         self.connect("delete-event", self.on_window_delete)
         self.connect("configure-event", self.on_window_configure)
         self.connect("realize", self.on_load)
@@ -125,6 +131,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.revealer_box = Gtk.HBox(visible=True)
         self.game_revealer.add(self.revealer_box)
         self.get_missing_games()
+        self.update_action_state()
+
         self.connect("view-updated", self.update_store)
         GObject.add_emission_hook(BaseService, "service-login", self.on_service_login)
         GObject.add_emission_hook(BaseService, "service-logout", self.on_service_logout)
@@ -137,7 +145,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
-        Action.__new__.__defaults__ = (None, None, True, None, None)
+        Action.__new__.__defaults__ = (None, None, None, None, None)
 
         actions = {
             "add-game": Action(self.on_add_game_button_clicked),
@@ -151,11 +159,17 @@ class LutrisWindow(Gtk.ApplicationWindow,
             ),
             "toggle-viewtype": Action(self.on_toggle_viewtype),
             "icon-type": Action(self.on_icontype_state_change, type="s", default=self.icon_type),
-            "view-sorting": Action(self.on_view_sorting_state_change, type="s", default=self.view_sorting),
+            "view-sorting": Action(
+                self.on_view_sorting_state_change,
+                type="s",
+                default=self.view_sorting,
+                enabled=lambda: self.is_view_sort_active
+            ),
             "view-sorting-ascending": Action(
                 self.on_view_sorting_direction_change,
                 type="b",
                 default=self.view_sorting_ascending,
+                enabled=lambda: self.is_view_sort_active
             ),
             "show-side-panel": Action(
                 self.on_side_panel_state_change,
@@ -175,6 +189,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         }
 
         self.actions = {}
+        self.action_state_updaters = []
         app = self.props.application
         for name, value in actions.items():
             if not value.type:
@@ -190,11 +205,19 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 action = Gio.SimpleAction.new_stateful(name, param_type, default_value)
                 action.connect("change-state", value.callback)
             self.actions[name] = action
-            if value.enabled is False:
-                action.props.enabled = False
+            if value.enabled:
+                def updater(action=action, value=value):
+                    action.props.enabled = value.enabled()
+                self.action_state_updaters.append(updater)
             self.add_action(action)
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
+
+    def update_action_state(self):
+        """This invokes the functions to update the enabled states of all the actions
+        which can be disabled."""
+        for updater in self.action_state_updaters:
+            updater()
 
     @property
     def service_media(self):
@@ -277,6 +300,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if self.view_sorting_ascending
             else "COLLATE NOCASE DESC"
         )]
+
+    @property
+    def is_view_sort_active(self):
+        """True if the iew sorting options will be effective; dynamic categories ignore them."""
+        return self.filters.get("dynamic_category") not in self.dynamic_categories_game_factories
 
     def apply_view_sort(self, items, resolver=lambda i: i):
         """This sorts a list of items according to the view settings of this window;
@@ -407,13 +435,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 self.show_label(_("Connect your %s account to access your games") % self.service.name)
                 return []
             return self.get_service_games(service_name)
-        dynamic_categories = {
-            "recent": self.get_recent_games,
-            "missing": self.get_missing_games,
-            "running": self.get_running_games,
-        }
-        if self.filters.get("dynamic_category") in dynamic_categories:
-            return dynamic_categories[self.filters["dynamic_category"]]()
+        if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
+            return self.dynamic_categories_game_factories[self.filters["dynamic_category"]]()
         if self.filters.get("category") and self.filters["category"] != "all":
             game_ids = categories_db.get_game_ids_for_category(self.filters["category"])
         else:
@@ -670,6 +693,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         self.games_stack.set_visible_child_name(view_type)
         self.update_store()
+        self.update_action_state()
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
