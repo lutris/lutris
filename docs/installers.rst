@@ -513,8 +513,7 @@ Executing a file
 
 Execute files with the ``execute`` directive. Use the ``file`` parameter to
 reference a ``file id`` or a path, ``args`` to add command arguments,
-``terminal`` (set to "true") to execute in a new terminal window, ``working_dir``
-to set the directory to execute the command in (defaults to the install path).
+``working_dir`` to set the directory to execute the command in (defaults to the install path).
 The command is executed within the Lutris Runtime (resolving most shared
 library dependencies). The file is made executable if necessary, no need to run
 chmodx before. You can also use ``env`` (environment variables), ``exclude_processes`` (space-separated list of processes to exclude from being monitored when determining if the execute phase finished), ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusion list) and ``disable_runtime`` (run a process without the Lutris Runtime, useful for running system binaries).
@@ -522,14 +521,8 @@ chmodx before. You can also use ``env`` (environment variables), ``exclude_proce
 Example::
 
     - execute:
-        args: --argh
+        args: --arg
         file: great_id
-        terminal: true
-        exclude_processes: process_not_to_monitor "Process Not To Monitor"
-        include_processes: excluded_process_from_the_list
-        disable_runtime: true
-        env:
-          key: value
 
 You can use the ``command`` parameter instead of ``file`` and ``args``. This
 lets you run bash/shell commands easier. ``bash`` is used and is added to ``include_processes`` internally.
