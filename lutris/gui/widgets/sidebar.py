@@ -398,14 +398,16 @@ class LutrisSidebar(Gtk.ListBox):
             self.add(SidebarRow(platform, "platform", platform, self.get_sidebar_icon(icon_name)))
 
         self.update()
+        self.show_all()
+        self.running_row.hide()
+        GLib.idle_add(self._preselect_active_row)
 
+    def _preselect_active_row(self):
+        """Select the active row based on initial selected row"""
         for row in self.get_children():
             if row.type == self.selected_row_type and row.id == self.selected_row_id:
                 self.select_row(row)
                 break
-
-        self.show_all()
-        self.running_row.hide()
 
     def _filter_func(self, row):
         if not row or not row.id or row.type in ("category", "dynamic_category", "service"):
