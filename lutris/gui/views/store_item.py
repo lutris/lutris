@@ -94,15 +94,6 @@ class StoreItem:
             image_path = self._game_data["icon"]
         else:
             image_path = self.service_media.get_absolute_path(self.slug)
-            if not system.path_exists(image_path):
-                service = self._game_data.get("service")
-                appid = self._game_data.get("service_id")
-                if appid:
-                    service_game = ServiceGameCollection.get_game(service, appid)
-                else:
-                    service_game = None
-                if service_game:
-                    image_path = self.service_media.get_absolute_path(service_game["slug"])
         if system.path_exists(image_path):
             return get_pixbuf(image_path, self.service_media.size, is_installed=self.installed)
         return self.service_media.get_pixbuf_for_game(
