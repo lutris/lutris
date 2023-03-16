@@ -1,5 +1,6 @@
 """Main window for the Lutris interface."""
 import os
+import re
 from collections import namedtuple
 from gettext import gettext as _
 from urllib.parse import unquote, urlparse
@@ -266,14 +267,69 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     @property
     def sort_params(self):
-        _sort_params = [("installed", "COLLATE NOCASE DESC")]
-        _sort_params.append((
+        """This provides a list of sort options for SQL generation; this isn't
+        exactly a match for what self.apply_view_sort does, but it is as close
+        as may be, in the hope that a faster DB sort will get is close and result
+        in a faster sort overall."""
+        return [("installed", "COLLATE NOCASE DESC"), (
             self.view_sorting,
             "COLLATE NOCASE ASC"
             if self.view_sorting_ascending
             else "COLLATE NOCASE DESC"
-        ))
-        return _sort_params
+        )]
+
+    def apply_view_sort(self, items, resolver=lambda i: i):
+        """This sorts a list of items according to the view settings of this window;
+        the items can be anything, but you can provide a lambda that provides a
+        database game dictionary for each one; this dictionary carries the
+        data we sort on (though any field may be missing).
+
+        This sort always sorts installed games ahead of uninstalled ones, even when
+        the sort is set to descending.
+
+        This treats 'name' sorting specially, applying a natural sort so that
+        'Mega slap battler 20' comes after 'Mega slap battler 3'. For this reason,
+        we can't just accept the sort the database gives us via self.sort_params;
+        that'll get us close, but we must resort to get it right."""
+        view_sorting = self.view_sorting
+        sort_defaults = {
+            "name": "",
+            "year": 0,
+            "lastplayed": 0.0,
+            "installed_at": 0.0,
+            "playtime": 0.0,
+        }
+
+        def natural_sort_key(value):
+            def pad_numbers(text):
+                return text.zfill(16) if text.isdigit() else text
+
+            key = [pad_numbers(c) for c in re.split('([0-9]+)', value)]
+            return key
+
+        def get_sort_value(item):
+            db_game = resolver(item)
+            if not db_game:
+                installation_flag = False
+                value = sort_defaults.get(view_sorting, "")
+            else:
+                installation_flag = bool(db_game.get("installed"))
+                value = db_game.get(view_sorting)
+
+                if view_sorting == "name":
+                    value = natural_sort_key(value)
+
+            # We want installed games to always be first, even in
+            # a descending sort.
+            if self.view_sorting_ascending:
+                installation_flag = not installation_flag
+
+            # Users may have obsolete view_sorting settings, so
+            # we must tolerate them. We treat them all as blank.
+            value = value or sort_defaults.get(view_sorting, "")
+            return [installation_flag, value]
+
+        return sorted(items, key=get_sort_value, reverse=not self.view_sorting_ascending)
 
     def get_running_games(self):
         """Return a list of currently running games"""
@@ -337,30 +393,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
         else:
             lutris_games = {g["service_id"]: g for g in games_db.get_games(filters={"service": self.service.id})}
 
-        def get_sort_value(game):
-            sort_defaults = {
-                "name": "",
-                "year": 0,
-                "lastplayed": 0.0,
-                "installed_at": 0.0,
-                "playtime": 0.0,
-            }
-            view_sorting = self.view_sorting
-            lutris_game = lutris_games.get(game["appid"])
-            if not lutris_game:
-                return sort_defaults.get(view_sorting, "")
-            value = lutris_game.get(view_sorting)
-            if value:
-                return value
-            # Users may have obsolete view_sorting settings, so
-            # we must tolerate them. We treat them all as blank.
-            return sort_defaults.get(view_sorting, "")
-
         return [
-            self.combine_games(game, lutris_games.get(game["appid"])) for game in sorted(
+            self.combine_games(game, lutris_games.get(game["appid"])) for game in self.apply_view_sort(
                 service_games,
-                key=get_sort_value,
-                reverse=not self.view_sorting_ascending
+                lambda game: lutris_games.get(game["appid"]) or game
             ) if self.game_matches(game)
         ]
 
@@ -391,7 +427,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         )
         if game_ids is not None:
             return [game for game in games if game["id"] in game_ids]
-        return games
+        return self.apply_view_sort(games)
 
     def get_sql_filters(self):
         """Return the current filters for the view"""

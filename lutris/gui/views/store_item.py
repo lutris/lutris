@@ -2,7 +2,6 @@
 import time
 
 from lutris.database.games import get_service_games
-from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.gui.widgets.utils import get_pixbuf
 from lutris.runners import RUNNER_NAMES
