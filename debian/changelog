@@ -19,6 +19,7 @@ lutris (0.5.13) jammy; urgency=medium
   * Improve detection of DOSBox games on GOG
   * Added "Unspecified" Vulkan ICD option
   * Removed ResidualVM (now merged into ScummVM)
+  * Performance improvements
 
  -- Mathieu Comandon <strider@strycore.com>  Fri, 10 Feb 2023 13:15:40 -0800
 
