@@ -28,10 +28,10 @@ class GameListView(Gtk.TreeView, GameView):
 
         self.set_rules_hint(True)
 
-        # Icon column
+        # Image column
         if settings.SHOW_MEDIA:
-            self.image_cell = GridViewCellRendererImage()
-            self.media_column = Gtk.TreeViewColumn("", self.image_cell,
+            self.image_renderer = GridViewCellRendererImage()
+            self.media_column = Gtk.TreeViewColumn("", self.image_renderer,
                                                    pixbuf_path=COL_PIXBUF_PATH,
                                                    is_installed=COL_INSTALLED)
             self.media_column.set_reorderable(True)
@@ -39,6 +39,7 @@ class GameListView(Gtk.TreeView, GameView):
             self.media_column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
             self.append_column(self.media_column)
         else:
+            self.image_renderer = None
             self.media_column = None
 
         self.set_game_store(store)
@@ -72,8 +73,10 @@ class GameListView(Gtk.TreeView, GameView):
         self.set_model(self.model)
 
         size = game_store.service_media.size
-        self.image_cell.cell_width = size[0]
-        self.image_cell.cell_height = size[1]
+
+        if self.image_renderer:
+            self.image_renderer.cell_width = size[0]
+            self.image_renderer.cell_height = size[1]
 
         if self.media_column:
             media_width = size[0]
