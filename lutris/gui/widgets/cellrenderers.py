@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from gi.repository import Gtk, Gdk, Pango, GObject
 
 from lutris.gui.widgets.utils import get_pixbuf
@@ -36,8 +38,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return 0, 0, self.cell_width, self.cell_height
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
-        if self.cell_width > 0 and self.cell_height > 0:
-            pixbuf = get_pixbuf(self.pixbuf_path, (self.cell_width, self.cell_height))
+        if self.cell_width > 0 and self.cell_height > 0 and self.pixbuf_path:
+            pixbuf = self._get_pixbuf(self.pixbuf_path, (self.cell_width, self.cell_height))
 
             if pixbuf:
                 x = cell_area.x + (cell_area.width - pixbuf.get_width()) / 2
@@ -45,3 +47,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
                 Gdk.cairo_set_source_pixbuf(cr, pixbuf, x, y)
                 cr.paint()
+
+    @lru_cache(maxsize=128)
+    def _get_pixbuf(self, path, size):
+        return get_pixbuf(path, size)
