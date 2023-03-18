@@ -36,11 +36,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return 0, 0, self.cell_width, self.cell_height
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
-        pixbuf = get_pixbuf(self.pixbuf_path, (self.cell_width, self.cell_height))
+        if self.cell_width > 0 and self.cell_height > 0:
+            pixbuf = get_pixbuf(self.pixbuf_path, (self.cell_width, self.cell_height))
 
-        if pixbuf:
-            x = cell_area.x + (cell_area.width - self.cell_width) / 2
-            y = cell_area.y + (cell_area.height - self.cell_height) / 2
+            if pixbuf:
+                x = cell_area.x + (cell_area.width - self.cell_width) / 2
+                y = cell_area.y + (cell_area.height - self.cell_height) / 2
 
-            Gdk.cairo_set_source_pixbuf(cr, pixbuf, x, y)
-            cr.paint()
+                Gdk.cairo_set_source_pixbuf(cr, pixbuf, x, y)
+                cr.paint()

@@ -13,10 +13,10 @@ from lutris.gui.views import (
 )
 from lutris.gui.views.base import GameView
 from lutris.gui.views.store import sort_func
+from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage
 
 
 class GameListView(Gtk.TreeView, GameView):
-
     """Show the main list of games."""
 
     __gsignals__ = GameView.__gsignals__
@@ -29,8 +29,8 @@ class GameListView(Gtk.TreeView, GameView):
 
         # Icon column
         if settings.SHOW_MEDIA:
-            image_cell = Gtk.CellRendererPixbuf()
-            self.media_column = Gtk.TreeViewColumn("", image_cell, pixbuf=COL_ICON)
+            self.image_cell = GridViewCellRendererImage()
+            self.media_column = Gtk.TreeViewColumn("", self.image_cell, pixbuf_path=COL_ICON)
             self.media_column.set_reorderable(True)
             self.media_column.set_sort_indicator(False)
             self.media_column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
@@ -68,8 +68,12 @@ class GameListView(Gtk.TreeView, GameView):
         self.model = game_store.store
         self.set_model(self.model)
 
+        size = game_store.service_media.size
+        self.image_cell.cell_width = size[0]
+        self.image_cell.cell_height = size[1]
+
         if self.media_column:
-            media_width = game_store.service_media.size[0]
+            media_width = size[0]
             self.media_column.set_fixed_width(media_width)
 
     @staticmethod
