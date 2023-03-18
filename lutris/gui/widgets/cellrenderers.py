@@ -40,8 +40,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             pixbuf = get_pixbuf(self.pixbuf_path, (self.cell_width, self.cell_height))
 
             if pixbuf:
-                x = cell_area.x + (cell_area.width - self.cell_width) / 2
-                y = cell_area.y + (cell_area.height - self.cell_height) / 2
+                x = cell_area.x + (cell_area.width - pixbuf.get_width()) / 2
+                y = cell_area.y + cell_area.height - pixbuf.get_height()
 
                 Gdk.cairo_set_source_pixbuf(cr, pixbuf, x, y)
                 cr.paint()
