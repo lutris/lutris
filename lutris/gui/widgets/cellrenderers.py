@@ -20,12 +20,31 @@ class GridViewCellRendererText(Gtk.CellRendererText):
 
 
 class GridViewCellRendererImage(Gtk.CellRenderer):
+    """A pixbuf cell renderer that takes not the pixbuf but a path to an image file;
+    it loads that image only when rendering. It also has properties for its width
+    and height, so it need not load the pixbuf to know its size."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.cell_width = 0
-        self.cell_height = 0
+        self._cell_width = 0
+        self._cell_height = 0
         self._pixbuf_path = None
         self._is_installed = True
+
+    @GObject.Property(type=int, default=0)
+    def cell_width(self):
+        return self._cell_width
+
+    @cell_width.setter
+    def cell_width(self, value):
+        self._cell_width = value
+
+    @GObject.Property(type=int, default=0)
+    def cell_height(self):
+        return self._cell_height
+
+    @cell_height.setter
+    def cell_height(self, value):
+        self._cell_height = value
 
     @GObject.Property(type=str)
     def pixbuf_path(self):
