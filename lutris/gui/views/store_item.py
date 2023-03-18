@@ -72,7 +72,9 @@ class StoreItem:
     def platform(self):
         """Platform"""
         _platform = self._game_data.get("platform")
-        if not _platform and not self.service and self.installed:
+        if "platform" in self._game_data:
+            _platform = self._game_data["platform"]
+        elif not self.service and self.installed:
             game_inst = Game(self._game_data["id"])
             if game_inst.platform:
                 _platform = game_inst.platform
