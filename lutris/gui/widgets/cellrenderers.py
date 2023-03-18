@@ -67,17 +67,26 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return 0, 0, self.cell_width, self.cell_height
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
-        width = self.cell_width
-        height = self.cell_height
+        # HiDPI support - we'll load the pixbuf at a larger size, but scale
+        # it down during rendering. If the render target is really high-DPI
+        # and the source image has the detail, this will preserve it.
+        scale_factor = widget.get_scale_factor() if widget else 1
+
+        width = self.cell_width * scale_factor
+        height = self.cell_height * scale_factor
         path = self.pixbuf_path
+
         if width > 0 and height > 0 and path:  # pylint: disable=comparison-with-callable
             pixbuf = self._get_pixbuf(path, (width, height), self.is_installed)
 
             if pixbuf:
-                x = cell_area.x + (cell_area.width - pixbuf.get_width()) / 2
-                y = cell_area.y + cell_area.height - pixbuf.get_height()
-
-                Gdk.cairo_set_source_pixbuf(cr, pixbuf, x, y)
+                actual_width = pixbuf.get_width() / scale_factor
+                actual_height = pixbuf.get_height() / scale_factor
+                x = cell_area.x + (cell_area.width - actual_width) / 2  # centered
+                y = cell_area.y + cell_area.height - actual_height  # at bottom of cell
+                cr.translate(x, y)
+                cr.scale(1 / scale_factor, 1 / scale_factor)
+                Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
                 cr.paint()
 
     @lru_cache(maxsize=128)
