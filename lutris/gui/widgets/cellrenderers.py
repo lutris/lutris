@@ -23,6 +23,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     """A pixbuf cell renderer that takes not the pixbuf but a path to an image file;
     it loads that image only when rendering. It also has properties for its width
     and height, so it need not load the pixbuf to know its size."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._cell_width = 0
@@ -66,8 +67,11 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return 0, 0, self.cell_width, self.cell_height
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
-        if self.cell_width > 0 and self.cell_height > 0 and self.pixbuf_path:
-            pixbuf = self._get_pixbuf(self.pixbuf_path, (self.cell_width, self.cell_height), self.is_installed)
+        width = self.cell_width
+        height = self.cell_height
+        path = self.pixbuf_path
+        if width > 0 and height > 0 and path:  # pylint: disable=comparison-with-callable
+            pixbuf = self._get_pixbuf(path, (width, height), self.is_installed)
 
             if pixbuf:
                 x = cell_area.x + (cell_area.width - pixbuf.get_width()) / 2

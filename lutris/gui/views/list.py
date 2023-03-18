@@ -8,7 +8,8 @@ from gi.repository import Gdk, Gtk, Pango
 # Lutris Modules
 from lutris import settings
 from lutris.gui.views import (
-    COL_ICON, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_NAME, COL_PLATFORM,
+    COL_PIXBUF_PATH, COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT, COL_LASTPLAYED, COL_LASTPLAYED_TEXT, COL_NAME,
+    COL_PLATFORM,
     COL_PLAYTIME, COL_PLAYTIME_TEXT, COL_RUNNER_HUMAN_NAME, COL_YEAR, COLUMN_NAMES, COL_INSTALLED
 )
 from lutris.gui.views.base import GameView
@@ -30,7 +31,9 @@ class GameListView(Gtk.TreeView, GameView):
         # Icon column
         if settings.SHOW_MEDIA:
             self.image_cell = GridViewCellRendererImage()
-            self.media_column = Gtk.TreeViewColumn("", self.image_cell, pixbuf_path=COL_ICON, is_installed=COL_INSTALLED)
+            self.media_column = Gtk.TreeViewColumn("", self.image_cell,
+                                                   pixbuf_path=COL_PIXBUF_PATH,
+                                                   is_installed=COL_INSTALLED)
             self.media_column.set_reorderable(True)
             self.media_column.set_sort_indicator(False)
             self.media_column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
