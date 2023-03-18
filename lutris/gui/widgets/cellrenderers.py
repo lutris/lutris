@@ -25,6 +25,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.cell_width = 0
         self.cell_height = 0
         self._pixbuf_path = None
+        self._is_installed = True
 
     @GObject.Property(type=str)
     def pixbuf_path(self):
@@ -34,12 +35,20 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def pixbuf_path(self, value):
         self._pixbuf_path = value
 
+    @GObject.Property(type=bool, default=True)
+    def is_installed(self):
+        return self._is_installed
+
+    @is_installed.setter
+    def is_installed(self, value):
+        self._is_installed = value
+
     def do_get_size(self, widget, cell_area):
         return 0, 0, self.cell_width, self.cell_height
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
         if self.cell_width > 0 and self.cell_height > 0 and self.pixbuf_path:
-            pixbuf = self._get_pixbuf(self.pixbuf_path, (self.cell_width, self.cell_height))
+            pixbuf = self._get_pixbuf(self.pixbuf_path, (self.cell_width, self.cell_height), self.is_installed)
 
             if pixbuf:
                 x = cell_area.x + (cell_area.width - pixbuf.get_width()) / 2
@@ -49,5 +58,5 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 cr.paint()
 
     @lru_cache(maxsize=128)
-    def _get_pixbuf(self, path, size):
-        return get_pixbuf(path, size)
+    def _get_pixbuf(self, path, size, is_installed):
+        return get_pixbuf(path, size, is_installed=is_installed)
