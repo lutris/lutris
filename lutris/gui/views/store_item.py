@@ -89,12 +89,15 @@ class StoreItem:
             return False
         return self._game_data.get("installed")
 
+    def get_pixbuf_path(self):
+        if self._game_data.get("icon"):
+            return self._game_data["icon"]
+        else:
+            return self.service_media.get_absolute_path(self.slug)
+
     def get_pixbuf(self):
         """Pixbuf varying on icon type"""
-        if self._game_data.get("icon"):
-            image_path = self._game_data["icon"]
-        else:
-            image_path = self.service_media.get_absolute_path(self.slug)
+        image_path = self.get_pixbuf_path()
         if system.path_exists(image_path):
             return get_pixbuf(image_path, self.service_media.size, is_installed=self.installed)
         return self.service_media.get_pixbuf_for_game(

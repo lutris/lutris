@@ -71,7 +71,7 @@ class GameStore(GObject.Object):
             str,
             str,
             str,
-            Pixbuf,
+            str,
             str,
             str,
             str,
@@ -134,7 +134,7 @@ class GameStore(GObject.Object):
         row[COL_SLUG] = store_item.slug
         row[COL_NAME] = store_item.name
         if settings.SHOW_MEDIA:
-            row[COL_ICON] = store_item.get_pixbuf()
+            row[COL_ICON] = store_item.get_pixbuf_path()
         else:
             row[COL_ICON] = None
         row[COL_YEAR] = store_item.year
@@ -158,7 +158,7 @@ class GameStore(GObject.Object):
                 str(game.id),
                 game.slug,
                 game.name,
-                game.get_pixbuf() if settings.SHOW_MEDIA else None,
+                game.get_pixbuf_path() if settings.SHOW_MEDIA else None,
                 game.year,
                 game.runner,
                 game.runner_text,

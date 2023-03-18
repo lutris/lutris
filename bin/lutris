@@ -51,5 +51,11 @@ except ImportError:
 
 from lutris.gui.application import Application  # pylint: disable=no-name-in-module
 
+import time
+start = time.time()
+
 app = Application()  # pylint: disable=invalid-name
-sys.exit(app.run(sys.argv))
+app.run(sys.argv)
+
+end = time.time()
+print(end-start)
