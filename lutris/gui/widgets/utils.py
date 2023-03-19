@@ -34,45 +34,100 @@ def open_uri(uri):
     system.spawn(["xdg-open", uri])
 
 
-def get_pixbuf(image, size, fallback=None, is_installed=True):
-    """Return a pixbuf from file `image` at `size` or fallback to `fallback`
-    This will preserve the images aspect ratio, but *not* that of the fallback-
-    that is scaled to fit the size exactly. If is_installed is False, the
-    pixbuf will be faded out."""
-    width, height = size
-    pixbuf = None
-    if system.path_exists(image, exclude_empty=True):
-        try:
-            # new_from_file_at_size scales but preserves aspect ratio
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image, width, height)
-        except GLib.GError:
-            logger.error("Unable to load icon from image %s", image)
-    else:
-        if not fallback:
-            fallback = get_default_icon(size)
-        if system.path_exists(fallback):
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(fallback, width, height, preserve_aspect_ratio=False)
-    if is_installed and pixbuf:
+def get_pixbuf(path, size):
+    """Return a pixbuf from file `image` at `size`, preserving its aspect ratio.
+    If the file is not found or can't be decoded, this will return the default
+    icon. If 'size' square, this is a Lutris icon; if not it is a gradient filling
+    the full size given."""
+    pixbuf = get_pixbuf_by_path(path, size)
+
+    if pixbuf:
         return pixbuf
-    overlay = os.path.join(datapath.get(), "media/unavailable.png")
+
+    default_icon = get_default_icon_path(size)
+    pixbuf = get_scaled_pixbuf_by_path(default_icon, size)
+
     if pixbuf:
-        size = (pixbuf.get_width(), pixbuf.get_height())
-    transparent_pixbuf = get_overlay(overlay, size).copy()
-    if pixbuf:
-        pixbuf.composite(
-            transparent_pixbuf,
-            0,
-            0,
-            size[0],
-            size[1],
-            0,
-            0,
-            1,
-            1,
-            GdkPixbuf.InterpType.NEAREST,
-            100,
-        )
+        return pixbuf
+
+    return get_unavailable_pixbuf(size)
+
+
+def get_default_icon_path(size):
+    """Returns the path to the default icon for the size given; it's
+    a Lutris icon for a square size, and a gradient for other sizes."""
+    if not size or size[0] == size[1]:
+        filename = "media/default_icon.png"
+    else:
+        filename = "media/default_banner.png"
+    return os.path.join(datapath.get(), filename)
+
+
+def get_pixbuf_by_path(path, size=None):
+    """Reads an image file and returns the pixbuf. If you provide a size, this scales
+    the file to fit that size, preserving the aspect ratio. If the file is missing or
+    unreadable, this returns None."""
+    if not system.path_exists(path, exclude_empty=True):
+        return None
+
+    try:
+        if size:
+            # new_from_file_at_size scales but preserves aspect ratio
+            width, height = size
+            return GdkPixbuf.Pixbuf.new_from_file_at_size(path, width, height)
+
+        return GdkPixbuf.Pixbuf.new_from_file(path)
+    except GLib.GError:
+        logger.error("Unable to load icon from image %s", path)
+
+
+def get_scaled_pixbuf_by_path(path, size):
+    """Reads an image file and returns the pixbuf. If you provide a size, this scales
+    the file to full that size, ignore the aspect ratio. If the file is missing or
+    unreadable, this returns None."""
+    if not system.path_exists(path):
+        return None
+
+    try:
+        if size:
+            width, height = size
+            return GdkPixbuf.Pixbuf.new_from_file_at_scale(path, width, height, preserve_aspect_ratio=False)
+
+        return GdkPixbuf.Pixbuf.new_from_file(path)
+    except GLib.GError:
+        logger.error("Unable to load icon from image %s", path)
+
+
+def get_uninstalled_pixbuf(original_pixbuf):
+    """Applies a transparency effect to the pixbuf given, and returns a new pixbuf of
+    the same size containing the result. If passed None, this returns None."""
+    if not original_pixbuf:
+        return None
+
+    size = (original_pixbuf.get_width(), original_pixbuf.get_height())
+    transparent_pixbuf = get_unavailable_pixbuf(size)
+    original_pixbuf.composite(
+        transparent_pixbuf,
+        0,
+        0,
+        size[0],
+        size[1],
+        0,
+        0,
+        1,
+        1,
+        GdkPixbuf.InterpType.NEAREST,
+        100,
+    )
     return transparent_pixbuf
+
+
+def get_unavailable_pixbuf(size):
+    """Returns a partially transparent image in a pixbuf of the size given; we blend this into
+    other images to indicate that a game is not installed."""
+    width, height = size
+    overlay_path = os.path.join(datapath.get(), "media/unavailable.png")
+    return GdkPixbuf.Pixbuf.new_from_file_at_scale(overlay_path, width, height, preserve_aspect_ratio=False)
 
 
 def has_stock_icon(name):
@@ -125,19 +180,6 @@ def get_runtime_icon(icon_name, icon_format="image", size=None):
                     return get_pixbuf(icon_path, size)
                 raise ValueError("Invalid arguments")
     return None
-
-
-def get_overlay(overlay_path, size):
-    width, height = size
-    transparent_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(overlay_path, width, height)
-    transparent_pixbuf = transparent_pixbuf.scale_simple(width, height, GdkPixbuf.InterpType.NEAREST)
-    return transparent_pixbuf
-
-
-def get_default_icon(size):
-    if size[0] == size[1]:
-        return os.path.join(datapath.get(), "media/default_icon.png")
-    return os.path.join(datapath.get(), "media/default_banner.png")
 
 
 def convert_to_background(background_path, target_size=(320, 1080)):
