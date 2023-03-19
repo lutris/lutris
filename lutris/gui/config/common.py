@@ -16,7 +16,7 @@ from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, Que
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
-from lutris.gui.widgets.utils import get_pixbuf, get_image_file_format
+from lutris.gui.widgets.utils import get_pixbuf, get_image_file_format, clear_pixbuf_caches
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
@@ -613,19 +613,21 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             dest_path = service_media.get_absolute_path(slug)
             file_format = service_media.file_format
 
-            if file_format == get_image_file_format(image_path):
-                shutil.copy(image_path, dest_path, follow_symlinks=True)
-            else:
-                # If we must transcode the image, we'll scale the image up based on
-                # the UI scale factor, to try to avoid blurriness. Of course this won't
-                # work if the user changes the scaling later, but what can you do.
-                scale_factor = self.get_scale_factor()
-                width, height = service_media.custom_media_storage_size
-                size = (width * scale_factor, height * scale_factor)
-                pixbuf = get_pixbuf(image_path, size)
-                # JPEG encoding looks rather better at high quality;
-                # PNG encoding just ignores this option.
-                pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
+            if image_path != dest_path:
+                if file_format == get_image_file_format(image_path):
+                    shutil.copy(image_path, dest_path, follow_symlinks=True)
+                else:
+                    # If we must transcode the image, we'll scale the image up based on
+                    # the UI scale factor, to try to avoid blurriness. Of course this won't
+                    # work if the user changes the scaling later, but what can you do.
+                    scale_factor = self.get_scale_factor()
+                    width, height = service_media.custom_media_storage_size
+                    size = (width * scale_factor, height * scale_factor)
+                    pixbuf = get_pixbuf(image_path, size)
+                    # JPEG encoding looks rather better at high quality;
+                    # PNG encoding just ignores this option.
+                    pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
+                clear_pixbuf_caches()
             self._set_image(image_type, self.image_buttons[image_type])
             service_media.update_desktop()
 
@@ -639,4 +641,5 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         if os.path.isfile(dest_path):
             os.remove(dest_path)
         download_lutris_media(self.game.slug)
+        clear_pixbuf_caches()
         self._set_image(image_type, self.image_buttons[image_type])

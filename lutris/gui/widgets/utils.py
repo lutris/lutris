@@ -1,6 +1,7 @@
 """Various utilities using the GObject framework"""
 import array
 import os
+from functools import lru_cache
 
 from gi.repository import GdkPixbuf, Gio, GLib, Gtk
 
@@ -41,13 +42,13 @@ def get_image_file_format(path):
     ext = os.path.splitext(path)[1].lower()
     if ext in [".jpg", ".jpeg"]:
         return "jpeg"
-    elif path == ".png":
+    if path == ".png":
         return "png"
 
     file_type = magic.from_file(path).lower()
     if "jpeg image data" in file_type:
         return "jpeg"
-    elif "png image data" in file_type:
+    if "png image data" in file_type:
         return "png"
 
     return None
@@ -70,6 +71,20 @@ def get_pixbuf(path, size):
         return pixbuf
 
     return get_unavailable_pixbuf(size)
+
+
+@lru_cache(maxsize=128)
+def get_cached_pixbuf_by_path(path, is_installed=True):
+    """This keeps a global cache of pixbufs displayed in the uI;
+    these can have the 'uninstalled' effect applied to them, and will
+    be cached that way."""
+    pixbuf = get_pixbuf_by_path(path)
+    return pixbuf if is_installed else get_uninstalled_pixbuf(pixbuf)
+
+
+def clear_pixbuf_caches():
+    """This clears the pixbuf cached that get_cached_pixbuf_by_path() uses."""
+    get_cached_pixbuf_by_path.cache_clear()
 
 
 def get_default_icon_path(size):

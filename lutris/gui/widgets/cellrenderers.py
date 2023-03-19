@@ -1,9 +1,6 @@
-from functools import lru_cache
-
 from gi.repository import Gtk, Gdk, Pango, GObject
 
-from lutris.gui.widgets.utils import get_pixbuf_by_path, get_uninstalled_pixbuf, \
-    get_default_icon_path
+from lutris.gui.widgets.utils import get_default_icon_path, get_cached_pixbuf_by_path
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -73,14 +70,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         path = self.pixbuf_path
 
         if cell_width > 0 and cell_height > 0 and path:  # pylint: disable=comparison-with-callable
-            pixbuf = self._get_pixbuf(path, self.is_installed)
+            pixbuf = get_cached_pixbuf_by_path(path, self.is_installed)
 
             if pixbuf:
                 x, y, fit_factor_x, fit_factor_y = self._get_fit_factors(pixbuf, cell_area)
             else:
                 # The default icon needs to be scaled to fill the cell space
                 path = get_default_icon_path((cell_width, cell_height))
-                pixbuf = self._get_pixbuf(path, self.is_installed)
+                pixbuf = get_cached_pixbuf_by_path(path, self.is_installed)
                 x, y, fit_factor_x, fit_factor_y = self._get_fill_factors(pixbuf, cell_area)
 
             if pixbuf:
@@ -115,10 +112,3 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         x = cell_area.x + (cell_area.width - actual_width * fit_factor_x) / 2  # centered
         y = cell_area.y + cell_area.height - actual_height * fit_factor_y  # at bottom of cell
         return x, y, fit_factor_x, fit_factor_y
-
-    @lru_cache(maxsize=128)
-    def _get_pixbuf(self, path, is_installed=True):
-        """This function is really here to cache the images, so it needs
-        to be 'pure'- we need all the parameters to be parameters here."""
-        pixbuf = get_pixbuf_by_path(path)
-        return pixbuf if is_installed else get_uninstalled_pixbuf(pixbuf)
