@@ -118,6 +118,9 @@ def get_gamescope_args(launch_arguments, system_config):
         launch_arguments.insert(0, gamescope_fsr_sharpness)
         launch_arguments.insert(0, "--fsr-sharpness")
         launch_arguments.insert(0, "-U")
+    if system_config.get("gamescope_flags"):
+        gamescope_flags = system_config["gamescope_flags"]
+        launch_arguments.insert(0, gamescope_flags)
     if system_config.get("gamescope_window_mode"):
         gamescope_window_mode = system_config["gamescope_window_mode"]
         launch_arguments.insert(0, gamescope_window_mode)

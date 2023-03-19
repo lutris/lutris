@@ -357,6 +357,18 @@ system_options = [  # pylint: disable=invalid-name
                   "<b>Empty string:</b> Disabled"),
     },
     {
+        "section": "Gamescope",
+        "option": "gamescope_flags",
+        "label": _("Custom Settings"),
+        "advanced": True,
+        "type": "string",
+        "condition": bool(system.find_executable("gamescope")),
+        "help": _("Set additional flags for gamescope (if available).\n"
+                  "See 'gamescope --help' for a full list of options.\n"
+                  "\n"
+                  "<b>Empty String:</b> Disabled"),
+    },
+    {
         "section": "CPU",
         "option": "single_cpu",
         "type": "bool",
