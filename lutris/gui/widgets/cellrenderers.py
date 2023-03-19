@@ -2,7 +2,8 @@ from functools import lru_cache
 
 from gi.repository import Gtk, Gdk, Pango, GObject
 
-from lutris.gui.widgets.utils import get_pixbuf
+from lutris.gui.widgets.utils import get_pixbuf_by_path, get_uninstalled_pixbuf, \
+    get_default_icon_path
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -67,28 +68,57 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return 0, 0, self.cell_width, self.cell_height
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
-        # HiDPI support - we'll load the pixbuf at a larger size, but scale
-        # it down during rendering. If the render target is really high-DPI
-        # and the source image has the detail, this will preserve it.
-        scale_factor = widget.get_scale_factor() if widget else 1
-
-        width = self.cell_width * scale_factor
-        height = self.cell_height * scale_factor
+        cell_width = self.cell_width
+        cell_height = self.cell_height
         path = self.pixbuf_path
 
-        if width > 0 and height > 0 and path:  # pylint: disable=comparison-with-callable
-            pixbuf = self._get_pixbuf(path, (width, height), self.is_installed)
+        if cell_width > 0 and cell_height > 0 and path:  # pylint: disable=comparison-with-callable
+            pixbuf = self._get_pixbuf(path, self.is_installed)
 
             if pixbuf:
-                actual_width = pixbuf.get_width() / scale_factor
-                actual_height = pixbuf.get_height() / scale_factor
-                x = cell_area.x + (cell_area.width - actual_width) / 2  # centered
-                y = cell_area.y + cell_area.height - actual_height  # at bottom of cell
+                x, y, fit_factor_x, fit_factor_y = self._get_fit_factors(pixbuf, cell_area)
+            else:
+                # The default icon needs to be scaled to fill the cell space
+                path = get_default_icon_path((cell_width, cell_height))
+                pixbuf = self._get_pixbuf(path, self.is_installed)
+                x, y, fit_factor_x, fit_factor_y = self._get_fill_factors(pixbuf, cell_area)
+
+            if pixbuf:
                 cr.translate(x, y)
-                cr.scale(1 / scale_factor, 1 / scale_factor)
+                cr.scale(fit_factor_x, fit_factor_y)
                 Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
                 cr.paint()
 
+    def _get_fit_factors(self, pixbuf, target_area):
+        """The provides the position and scaling to draw a pixbuf in the
+        target area, preserving its aspect ratio."""
+        if not pixbuf:
+            return 0, 0, 0, 0
+
+        actual_width = pixbuf.get_width()
+        actual_height = pixbuf.get_height()
+
+        fit_factor_x = min(self.cell_width / actual_width, self.cell_height / actual_height)
+        fit_factor_y = fit_factor_x
+        x = target_area.x + (target_area.width - actual_width * fit_factor_x) / 2  # centered
+        y = target_area.y + target_area.height - actual_height * fit_factor_y  # at bottom of cell
+        return x, y, fit_factor_x, fit_factor_y
+
+    def _get_fill_factors(self, pixbuf, cell_area):
+        """The provides the position and scaling to draw a pixbuf, filling the
+        target area, and not preserving its aspect ratio."""
+        actual_width = pixbuf.get_width()
+        actual_height = pixbuf.get_height()
+
+        fit_factor_x = self.cell_width / actual_width
+        fit_factor_y = self.cell_height / actual_height
+        x = cell_area.x + (cell_area.width - actual_width * fit_factor_x) / 2  # centered
+        y = cell_area.y + cell_area.height - actual_height * fit_factor_y  # at bottom of cell
+        return x, y, fit_factor_x, fit_factor_y
+
     @lru_cache(maxsize=128)
-    def _get_pixbuf(self, path, size, is_installed):
-        return get_pixbuf(path, size, is_installed=is_installed)
+    def _get_pixbuf(self, path, is_installed=True):
+        """This function is really here to cache the images, so it needs
+        to be 'pure'- we need all the parameters to be parameters here."""
+        pixbuf = get_pixbuf_by_path(path)
+        return pixbuf if is_installed else get_uninstalled_pixbuf(pixbuf)
