@@ -5,7 +5,7 @@ import os
 from gi.repository import GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
-from lutris.util import datapath, system
+from lutris.util import datapath, system, magic
 from lutris.util.log import logger
 
 try:
@@ -32,6 +32,25 @@ def get_main_window(widget):
 def open_uri(uri):
     """Opens a local or remote URI with the default application"""
     system.spawn(["xdg-open", uri])
+
+
+def get_image_file_format(path):
+    """Returns the file format fo an image, either 'jpeg' or 'png';
+    we deduce this from the file extension, or if that fails the
+    file's 'magic' prefix bytes."""
+    ext = os.path.splitext(path)[1].lower()
+    if ext in [".jpg", ".jpeg"]:
+        return "jpeg"
+    elif path == ".png":
+        return "png"
+
+    file_type = magic.from_file(path).lower()
+    if "jpeg image data" in file_type:
+        return "jpeg"
+    elif "png image data" in file_type:
+        return "png"
+
+    return None
 
 
 def get_pixbuf(path, size):
