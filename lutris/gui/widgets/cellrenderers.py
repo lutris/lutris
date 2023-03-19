@@ -1,3 +1,4 @@
+import cairo
 from gi.repository import Gtk, Gdk, Pango, GObject
 
 from lutris.gui.widgets.utils import get_default_icon_path, get_cached_pixbuf_by_path
@@ -84,6 +85,11 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 cr.translate(x, y)
                 cr.scale(fit_factor_x, fit_factor_y)
                 Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+
+                if widget and widget.get_scale_factor() > 1:
+                    # This is slow, but we're being scaled we get edge artifacts
+                    # with the default FILTER_GOOD.
+                    cr.get_source().set_filter(cairo.FILTER_BEST)
                 cr.paint()
 
     def _get_fit_factors(self, pixbuf, target_area):
@@ -99,7 +105,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         fit_factor_y = fit_factor_x
         x = target_area.x + (target_area.width - actual_width * fit_factor_x) / 2  # centered
         y = target_area.y + target_area.height - actual_height * fit_factor_y  # at bottom of cell
-        return x, y, fit_factor_x, fit_factor_y
+        # Try to place x,y on a pixel edge
+        return round(x), round(y), fit_factor_x, fit_factor_y
 
     def _get_fill_factors(self, pixbuf, cell_area):
         """The provides the position and scaling to draw a pixbuf, filling the
@@ -111,4 +118,5 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         fit_factor_y = self.cell_height / actual_height
         x = cell_area.x + (cell_area.width - actual_width * fit_factor_x) / 2  # centered
         y = cell_area.y + cell_area.height - actual_height * fit_factor_y  # at bottom of cell
-        return x, y, fit_factor_x, fit_factor_y
+        # Try to place x,y on a pixel edge
+        return round(x), round(y), fit_factor_x, fit_factor_y
