@@ -16,6 +16,7 @@ from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, ModelessDialog, Que
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
+from lutris.gui.widgets.scaled_image import ScaledImage
 from lutris.gui.widgets.utils import get_pixbuf, get_image_file_format, clear_pixbuf_caches
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
@@ -274,11 +275,17 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         return box
 
     def _set_image(self, image_format, image_button):
+        scale_factor = self.get_scale_factor()
         service_media = self.service_medias[image_format]
-        image = Gtk.Image()
         game_slug = self.slug or (self.game.slug if self.game else "")
+        width, height = service_media.config_ui_size
 
-        pixbuf = service_media.get_pixbuf_for_game(game_slug, service_media.config_ui_size)
+        # This is ugly, but GTK pixbufs are measured in physical pixels, but
+        # Gtk.Image assumes those pixels are 96 dpi, which can produce blurry results
+        # on a high-DPI display. We instead get a bigger pixbuf, and have ScaledImage
+        # scale it back down during drawing.
+        pixbuf = service_media.get_pixbuf_for_game(game_slug, (width * scale_factor, height * scale_factor))
+        image = ScaledImage(1 / scale_factor)
         image.set_from_pixbuf(pixbuf)
         image_button.set_image(image)
 
@@ -428,8 +435,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         switch_label = Gtk.Label(_("Advanced"), no_show_all=True, visible=True)
         switch = Gtk.Switch(no_show_all=True, visible=True)
         switch.set_state(settings.read_setting("show_advanced_options") == "True")
-        switch.connect("state_set", lambda _w, s:
-                       self.on_show_advanced_options_toggled(bool(s)))
+        switch.connect("state_set", lambda _w, s: self.on_show_advanced_options_toggled(bool(s)))
 
         switch_box.pack_start(switch_label, False, False, 0)
         switch_box.pack_end(switch, False, False, 0)
@@ -466,11 +472,11 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
                 {
                     "parent": self,
                     "question":
-                    _("Are you sure you want to change the runner for this game ? "
-                      "This will reset the full configuration for this game and "
-                      "is not reversible."),
+                        _("Are you sure you want to change the runner for this game ? "
+                          "This will reset the full configuration for this game and "
+                          "is not reversible."),
                     "title":
-                    _("Confirm runner change"),
+                        _("Confirm runner change"),
                 }
             )
 
