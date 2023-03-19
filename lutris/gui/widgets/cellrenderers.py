@@ -87,8 +87,9 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
 
                 if widget and widget.get_scale_factor() > 1:
-                    # This is slow, but we're being scaled we get edge artifacts
-                    # with the default FILTER_GOOD.
+                    # This is slow, but if we're being scaled we get edge artifacts
+                    # with the default FILTER_GOOD. FILTER_NEAREST looks okay too,
+                    # but this is prettier.
                     cr.get_source().set_filter(cairo.FILTER_BEST)
                 cr.paint()
 
