@@ -3,7 +3,7 @@
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.gui.views import COL_PIXBUF_PATH, COL_NAME, COL_INSTALLED
+from lutris.gui.views import COL_MEDIA_PATH, COL_NAME, COL_INSTALLED
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText, GridViewCellRendererImage
 from lutris.util.log import logger
@@ -23,7 +23,7 @@ class GameGridView(Gtk.IconView, GameView):
         if settings.SHOW_MEDIA:
             self.image_renderer = GridViewCellRendererImage()
             self.pack_start(self.image_renderer, False)
-            self.add_attribute(self.image_renderer, "pixbuf_path", COL_PIXBUF_PATH)
+            self.add_attribute(self.image_renderer, "media_path", COL_MEDIA_PATH)
             self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
         else:
             self.image_renderer = None

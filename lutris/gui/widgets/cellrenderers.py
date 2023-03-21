@@ -27,7 +27,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         super().__init__(*args, **kwargs)
         self._cell_width = 0
         self._cell_height = 0
-        self._pixbuf_path = None
+        self._media_path = None
         self._is_installed = True
 
     @GObject.Property(type=int, default=0)
@@ -47,12 +47,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._cell_height = value
 
     @GObject.Property(type=str)
-    def pixbuf_path(self):
-        return self._pixbuf_path
+    def media_path(self):
+        return self._media_path
 
-    @pixbuf_path.setter
-    def pixbuf_path(self, value):
-        self._pixbuf_path = value
+    @media_path.setter
+    def media_path(self, value):
+        self._media_path = value
 
     @GObject.Property(type=bool, default=True)
     def is_installed(self):
@@ -68,7 +68,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def do_render(self, cr, widget, background_area, cell_area, flags):
         cell_width = self.cell_width
         cell_height = self.cell_height
-        path = self.pixbuf_path
+        path = self.media_path
 
         if cell_width > 0 and cell_height > 0 and path:  # pylint: disable=comparison-with-callable
             pixbuf = get_cached_pixbuf_by_path(path, self.is_installed)
@@ -90,7 +90,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                     # This is slow, but if we're being scaled we get edge artifacts
                     # with the default FILTER_GOOD. FILTER_NEAREST looks okay too,
                     # but this is prettier.
-                    cr.get_source().set_filter(cairo.FILTER_BEST)
+                    cr.get_source().set_filter(cairo.Filter.BEST)  # pylint: disable=no-member
                 cr.paint()
 
     def _get_fit_factors(self, pixbuf, target_area):

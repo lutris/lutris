@@ -616,7 +616,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
             image_path = dialog.get_filename()
             service_media = self.service_medias[image_type]
             self.game.custom_images.add(image_type)
-            dest_path = service_media.get_absolute_path(slug)
+            dest_path = service_media.get_media_path(slug)
             file_format = service_media.file_format
 
             if image_path != dest_path:
@@ -642,7 +642,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     def on_custom_image_reset_clicked(self, _widget, image_type):
         slug = self.slug or self.game.slug
         service_media = self.service_medias[image_type]
-        dest_path = service_media.get_absolute_path(slug)
+        dest_path = service_media.get_media_path(slug)
         self.game.custom_images.discard(image_type)
         if os.path.isfile(dest_path):
             os.remove(dest_path)
