@@ -141,6 +141,27 @@ def check_vulkan():
     """Reports if Vulkan is enabled on the system"""
     if not vkquery.is_vulkan_supported():
         logger.warning("Vulkan is not available or your system isn't Vulkan capable")
+    else:
+        required_vulkan_api_version = 1, 3, 0
+        api_version = vkquery.get_vulkan_api_version_tuple()
+        if api_version < required_vulkan_api_version:
+            logger.warning("Vulkan reports an API version of %s.%s.%s, but %s.%s.%s is required for the latest DXVK.",
+                           api_version[0], api_version[1], api_version[2], required_vulkan_api_version[0],
+                           required_vulkan_api_version[1], required_vulkan_api_version[2])
+            setting = "dismiss-obsolete-vulkan-api-warning"
+            if settings.read_setting(setting) != "True":
+                DontShowAgainDialog(
+                    setting,
+                    _("Obsolete vulkan libraries"),
+                    secondary_message=_(
+                        "Lutris has detected that Vulkan API version %s.%s.%s is installed, "
+                        "but to use the latest DXVK version, %s.%s.%s is required.\n\n"
+                        "You may need to upgrade your drivers to a newer version."
+                    ) % (
+                        api_version[0], api_version[1], api_version[2],
+                        required_vulkan_api_version[0], required_vulkan_api_version[1], required_vulkan_api_version[2]
+                    )
+                )
 
 
 def check_gnome():
