@@ -27,8 +27,19 @@ def vk_make_version(major, minor, patch):
     return c_uint32((major << 22) | (minor << 12) | patch)
 
 
-class VkApplicationInfo(Structure):
+def vk_api_version_major(version):
+    return (version.value >> 22) & 0x7F
 
+
+def vk_api_version_minor(version):
+    return (version.value >> 12) & 0x3FF
+
+
+def vk_api_version_patch(version):
+    return version.value & 0xFFF
+
+
+class VkApplicationInfo(Structure):
     """Python shim for struct VkApplicationInfo
 
     https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkApplicationInfo.html
@@ -55,7 +66,6 @@ class VkApplicationInfo(Structure):
 
 
 class VkInstanceCreateInfo(Structure):
-
     """Python shim for struct VkInstanceCreateInfo
 
     https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkInstanceCreateInfo.html
@@ -100,3 +110,30 @@ def is_vulkan_supported():
     result = vulkan.vkEnumeratePhysicalDevices(instance, byref(dev_count), 0)
     vulkan.vkDestroyInstance(instance, 0)
     return result == VK_SUCCESS and dev_count.value > 0
+
+
+def get_vulkan_api_version_tuple():
+    """
+    Queries libvulkan to get the API version; if this library is missing
+    it returns None. Returns a tuple of (major, minor, patch) version numbers.
+    """
+    try:
+        vulkan = CDLL("libvulkan.so.1")
+    except OSError:
+        return None
+
+    try:
+        enumerate_instance_version = vulkan.vkEnumerateInstanceVersion
+    except AttributeError:
+        # Vulkan 1.0 did not have vkEnumerateInstanceVersion at all!
+        return 1, 0
+
+    version = c_uint32(0)
+    result = enumerate_instance_version(byref(version))
+    if result == VK_SUCCESS:
+        major = vk_api_version_major(version)
+        minor = vk_api_version_minor(version)
+        patch = vk_api_version_patch(version)
+        return major, minor, patch
+
+    return None
