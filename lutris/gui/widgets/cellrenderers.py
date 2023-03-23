@@ -1,7 +1,7 @@
 import cairo
-from gi.repository import Gtk, Gdk, Pango, GObject
+from gi.repository import Gtk, Pango, GObject
 
-from lutris.gui.widgets.utils import get_default_icon_path, get_cached_pixbuf_by_path
+from lutris.gui.widgets.utils import get_default_icon_path, get_cached_surface_by_path
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -69,53 +69,26 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cell_width = self.cell_width
         cell_height = self.cell_height
         path = self.media_path
+        scale_factor = widget.get_scale_factor() if widget else 1
 
         if cell_width > 0 and cell_height > 0 and path:  # pylint: disable=comparison-with-callable
-            pixbuf = get_cached_pixbuf_by_path(path, self.is_installed)
+            surface = get_cached_surface_by_path(path, cell_width, cell_height, scale_factor, self.is_installed)
 
-            if pixbuf:
-                x, y, fit_factor_x, fit_factor_y = self._get_fit_factors(pixbuf, cell_area)
-            else:
+            if not surface:
                 # The default icon needs to be scaled to fill the cell space.
                 path = get_default_icon_path((cell_width, cell_height))
-                pixbuf = get_cached_pixbuf_by_path(path, self.is_installed)
-                x, y, fit_factor_x, fit_factor_y = self._get_fill_factors(pixbuf, cell_area)
+                surface = get_cached_surface_by_path(path, cell_width, cell_height, scale_factor,
+                                                     self.is_installed, preserve_aspect_ratio=False)
 
-            if pixbuf:
-                # The pixbuf will render at 0, 0, and we scale around that point, so we
-                # need to translate the co-ordinate system so that will work.
-                cr.translate(x, y)
-                cr.scale(fit_factor_x, fit_factor_y)
-                Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+            if surface:
+                ss_scale_x, ss_scale_y = surface.get_device_scale()
+                width = surface.get_width() / ss_scale_x
+                height = surface.get_height() / ss_scale_y
+
+                x = round(cell_area.x + (cell_area.width - width) / 2)  # centered
+                y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
+
+                cr.set_source_surface(surface, x, y)
                 cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
-                cr.rectangle(0, 0, pixbuf.get_width(), pixbuf.get_height())
+                cr.rectangle(x, y, width, height)
                 cr.fill()
-
-    def _get_fit_factors(self, pixbuf, target_area):
-        """The provides the position and scaling to draw a pixbuf in the
-        target area, preserving its aspect ratio."""
-        if not pixbuf:
-            return 0, 0, 0, 0
-
-        actual_width = pixbuf.get_width()
-        actual_height = pixbuf.get_height()
-
-        fit_factor_x = min(self.cell_width / actual_width, self.cell_height / actual_height)
-        fit_factor_y = fit_factor_x
-        x = target_area.x + (target_area.width - actual_width * fit_factor_x) / 2  # centered
-        y = target_area.y + target_area.height - actual_height * fit_factor_y  # at bottom of cell
-        # Try to place x,y on a pixel edge
-        return round(x), round(y), fit_factor_x, fit_factor_y
-
-    def _get_fill_factors(self, pixbuf, cell_area):
-        """The provides the position and scaling to draw a pixbuf, filling the
-        target area, and not preserving its aspect ratio."""
-        actual_width = pixbuf.get_width()
-        actual_height = pixbuf.get_height()
-
-        fit_factor_x = self.cell_width / actual_width
-        fit_factor_y = self.cell_height / actual_height
-        x = cell_area.x + (cell_area.width - actual_width * fit_factor_x) / 2  # centered
-        y = cell_area.y + cell_area.height - actual_height * fit_factor_y  # at bottom of cell
-        # Try to place x,y on a pixel edge
-        return round(x), round(y), fit_factor_x, fit_factor_y

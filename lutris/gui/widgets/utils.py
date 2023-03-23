@@ -2,8 +2,10 @@
 import array
 import os
 from functools import lru_cache
+from math import ceil
 
-from gi.repository import GdkPixbuf, Gio, GLib, Gtk
+import cairo
+from gi.repository import GdkPixbuf, Gio, GLib, Gdk, Gtk
 
 from lutris import settings
 from lutris.util import datapath, system, magic
@@ -73,18 +75,79 @@ def get_pixbuf(path, size):
     return get_unavailable_pixbuf(size)
 
 
-@lru_cache(maxsize=128)
-def get_cached_pixbuf_by_path(path, is_installed=True):
-    """This keeps a global cache of pixbufs displayed in the uI;
-    these can have the 'uninstalled' effect applied to them, and will
-    be cached that way."""
+def get_cached_surface_by_path(path, width, height, device_scale,
+                               is_installed=True, preserve_aspect_ratio=True):
+    """Returns a Cairo surface containing the image at the path given, as with
+    get_surface_by_path() and using the same parameters as that function.
+
+    This function caches the surfaces, so do not modify them. A separate, larger
+    cache is kept for small surfaces (icons and banners) and a smaller one for large
+    (cover-art) surfaces.
+    """
+    if width > 200 or height > 200:
+        return _get_cached_big_surface_by_path(path, width, height, device_scale, is_installed,
+                                               preserve_aspect_ratio)
+
+    return _get_cached_small_surface_by_path(path, width, height, device_scale, is_installed,
+                                             preserve_aspect_ratio)
+
+
+@lru_cache(maxsize=512)
+def _get_cached_small_surface_by_path(path, width, height, device_scale,
+                                      is_installed=True, preserve_aspect_ratio=True):
+    return get_scaled_surface_by_path(path, width, height, device_scale, is_installed, preserve_aspect_ratio)
+
+
+@lru_cache(maxsize=64)
+def _get_cached_big_surface_by_path(path, width, height, device_scale,
+                                    is_installed=True, preserve_aspect_ratio=True):
+    return get_scaled_surface_by_path(path, width, height, device_scale, is_installed, preserve_aspect_ratio)
+
+
+def get_scaled_surface_by_path(path, width, height, device_scale,
+                               is_installed=True, preserve_aspect_ratio=True):
+    """Returns a Cairo surface containing the image at the path given. It has the height and width indicated,
+    and is faded out if not installed.
+
+    You specify the device_scale, and the bitmap is generated at an enlarged size accordingly,
+    but with the device scale of the surface also set; in this way a high-DPI image can be
+    rendered conveniently.
+
+    If you pass True for preserve_aspect_ratio, the aspect ratio of the image is preserved,
+    but will be no larger than width x height.
+
+    If the path cannot be read, this returns None.
+    """
     pixbuf = get_pixbuf_by_path(path)
-    return pixbuf if is_installed else get_uninstalled_pixbuf(pixbuf)
+    if pixbuf:
+        if not is_installed:
+            pixbuf = get_uninstalled_pixbuf(pixbuf)
+
+        pb_width = pixbuf.get_width()
+        pb_height = pixbuf.get_height()
+
+        scale_x = (width / pb_width) * device_scale
+        scale_y = (height / pb_height) * device_scale
+
+        if preserve_aspect_ratio:
+            scale_x = min(scale_x, scale_y)
+            scale_y = scale_x
+
+        w = int(ceil(pb_width * scale_x))
+        h = int(ceil(pb_height * scale_y))
+        surface = cairo.ImageSurface(cairo.Format.ARGB32, w, h)  # pylint:disable=no-member
+        cr = cairo.Context(surface)  # pylint:disable=no-member
+        cr.scale(scale_x, scale_y)
+        Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+        cr.paint()
+        surface.set_device_scale(device_scale, device_scale)
+        return surface
 
 
-def clear_pixbuf_caches():
-    """This clears the pixbuf cached that get_cached_pixbuf_by_path() uses."""
-    get_cached_pixbuf_by_path.cache_clear()
+def clear_surface_caches():
+    """This clears the surface caches that get_cached_surface_by_path() uses."""
+    _get_cached_small_surface_by_path.cache_clear()
+    _get_cached_big_surface_by_path.cache_clear()
 
 
 def get_default_icon_path(size):
