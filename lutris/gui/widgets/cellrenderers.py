@@ -76,8 +76,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             if pixbuf:
                 x, y, fit_factor_x, fit_factor_y = self._get_fit_factors(pixbuf, cell_area)
             else:
-                # The default icon needs to be scaled to fill the cell space, but it so happens
-                # that the default images do not produce edge artifacts anyway.
+                # The default icon needs to be scaled to fill the cell space.
                 path = get_default_icon_path((cell_width, cell_height))
                 pixbuf = get_cached_pixbuf_by_path(path, self.is_installed)
                 x, y, fit_factor_x, fit_factor_y = self._get_fill_factors(pixbuf, cell_area)
