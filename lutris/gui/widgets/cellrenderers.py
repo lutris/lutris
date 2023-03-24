@@ -1,7 +1,7 @@
 import cairo
-from gi.repository import Gtk, Pango, GObject
+from gi.repository import GLib, Gtk, Pango, GObject
 
-from lutris.gui.widgets.utils import get_default_icon_path, get_cached_surface_by_path
+from lutris.gui.widgets.utils import get_default_icon_path, get_scaled_surface_by_path, get_media_generation_number
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -29,6 +29,10 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._cell_height = 0
         self._media_path = None
         self._is_installed = True
+        self.cached_surfaces_new = {}
+        self.cached_surfaces_old = {}
+        self.cycle_cache_idle_id = None
+        self.cached_surface_generation = 0
 
     @GObject.Property(type=int, default=0)
     def cell_width(self):
@@ -37,6 +41,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     @cell_width.setter
     def cell_width(self, value):
         self._cell_width = value
+        self.clear_cache()
 
     @GObject.Property(type=int, default=0)
     def cell_height(self):
@@ -45,6 +50,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     @cell_height.setter
     def cell_height(self, value):
         self._cell_height = value
+        self.clear_cache()
 
     @GObject.Property(type=str)
     def media_path(self):
@@ -69,16 +75,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cell_width = self.cell_width
         cell_height = self.cell_height
         path = self.media_path
-        scale_factor = widget.get_scale_factor() if widget else 1
 
         if cell_width > 0 and cell_height > 0 and path:  # pylint: disable=comparison-with-callable
-            surface = get_cached_surface_by_path(path, cell_width, cell_height, scale_factor, self.is_installed)
-
+            surface = self.get_cached_surface_by_path(widget, path)
             if not surface:
                 # The default icon needs to be scaled to fill the cell space.
                 path = get_default_icon_path((cell_width, cell_height))
-                surface = get_cached_surface_by_path(path, cell_width, cell_height, scale_factor,
-                                                     self.is_installed, preserve_aspect_ratio=False)
+                surface = self.get_cached_surface_by_path(widget, path,
+                                                          preserve_aspect_ratio=False)
 
             if surface:
                 ss_scale_x, ss_scale_y = surface.get_device_scale()
@@ -92,3 +96,56 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
                 cr.rectangle(x, y, width, height)
                 cr.fill()
+
+            # Idle time will wait until the widget has drawn whatever it wants to;
+            # we can then discard surfaces we aren't using anymore.
+            if not self.cycle_cache_idle_id:
+                self.cycle_cache_idle_id = GLib.idle_add(self.cycle_cache)
+
+    def clear_cache(self):
+        """Discards all cached surfaces; used when some properties are changed."""
+        self.cached_surfaces_old.clear()
+        self.cached_surfaces_new.clear()
+
+    def cycle_cache(self):
+        """Is the key cache size control trick. When called, the surfaces cached or used
+        since the last call are preserved, but those not touched are discarded.
+
+        We call this at idle time after rendering a cell; this should keep all the surfaces
+        rendered at that time, so during scrolling the visible media are kept and scrolling is smooth.
+        At other times we may discard almost all surfaces, saving memory."""
+        self.cached_surfaces_old = self.cached_surfaces_new
+        self.cached_surfaces_new = {}
+        self.cycle_cache_idle_id = None
+
+    def get_cached_surface_by_path(self, widget, path, preserve_aspect_ratio=True):
+        """This obtains the scaled surface to rander for a given media path; this is cached
+        in this render, but we'll clear that cache when the media generation number is changed,
+        or certain properties are. We also age surfaces from the cache at idle time after
+        rendering."""
+        if self.cached_surface_generation != get_media_generation_number():
+            self.cached_surface_generation = get_media_generation_number()
+            self.clear_cache()
+
+        key = widget, path, preserve_aspect_ratio
+
+        surface = self.cached_surfaces_new.get(key)
+        if surface:
+            return surface
+
+        surface = self.cached_surfaces_old.get(key)
+
+        if not surface:
+            surface = self.get_surface_by_path(widget, path, preserve_aspect_ratio)
+
+        self.cached_surfaces_new[key] = surface
+        return surface
+
+    def get_surface_by_path(self, widget, path, preserve_aspect_ratio=True):
+        cell_width = self.cell_width
+        cell_height = self.cell_height
+        scale_factor = widget.get_scale_factor() if widget else 1
+
+        return get_scaled_surface_by_path(path, cell_width, cell_height, scale_factor,
+                                          is_installed=self.is_installed,
+                                          preserve_aspect_ratio=preserve_aspect_ratio)

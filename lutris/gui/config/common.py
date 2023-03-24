@@ -17,7 +17,7 @@ from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.notifications import send_notification
 from lutris.gui.widgets.scaled_image import ScaledImage
-from lutris.gui.widgets.utils import get_pixbuf, get_image_file_format, clear_surface_caches
+from lutris.gui.widgets.utils import get_pixbuf, get_image_file_format, invalidate_media_caches
 from lutris.runners import import_runner
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
 from lutris.util.log import logger
@@ -633,7 +633,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
                     # JPEG encoding looks rather better at high quality;
                     # PNG encoding just ignores this option.
                     pixbuf.savev(dest_path, file_format, ["quality"], ["100"])
-                clear_surface_caches()
+                invalidate_media_caches()
             self._set_image(image_type, self.image_buttons[image_type])
             service_media.update_desktop()
 
@@ -647,5 +647,5 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         if os.path.isfile(dest_path):
             os.remove(dest_path)
         download_lutris_media(self.game.slug)
-        clear_surface_caches()
+        invalidate_media_caches()
         self._set_image(image_type, self.image_buttons[image_type])

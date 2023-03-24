@@ -1,7 +1,6 @@
 """Various utilities using the GObject framework"""
 import array
 import os
-from functools import lru_cache
 from math import ceil
 
 import cairo
@@ -18,6 +17,8 @@ except ImportError:
 
 ICON_SIZE = (32, 32)
 BANNER_SIZE = (184, 69)
+
+_surface_generation_number = 0
 
 
 def get_main_window(widget):
@@ -75,35 +76,6 @@ def get_pixbuf(path, size):
     return get_unavailable_pixbuf(size)
 
 
-def get_cached_surface_by_path(path, width, height, device_scale,
-                               is_installed=True, preserve_aspect_ratio=True):
-    """Returns a Cairo surface containing the image at the path given, as with
-    get_surface_by_path() and using the same parameters as that function.
-
-    This function caches the surfaces, so do not modify them. A separate, larger
-    cache is kept for small surfaces (icons and banners) and a smaller one for large
-    (cover-art) surfaces.
-    """
-    if width > 200 or height > 200:
-        return _get_cached_big_surface_by_path(path, width, height, device_scale, is_installed,
-                                               preserve_aspect_ratio)
-
-    return _get_cached_small_surface_by_path(path, width, height, device_scale, is_installed,
-                                             preserve_aspect_ratio)
-
-
-@lru_cache(maxsize=512)
-def _get_cached_small_surface_by_path(path, width, height, device_scale,
-                                      is_installed=True, preserve_aspect_ratio=True):
-    return get_scaled_surface_by_path(path, width, height, device_scale, is_installed, preserve_aspect_ratio)
-
-
-@lru_cache(maxsize=64)
-def _get_cached_big_surface_by_path(path, width, height, device_scale,
-                                    is_installed=True, preserve_aspect_ratio=True):
-    return get_scaled_surface_by_path(path, width, height, device_scale, is_installed, preserve_aspect_ratio)
-
-
 def get_scaled_surface_by_path(path, width, height, device_scale,
                                is_installed=True, preserve_aspect_ratio=True):
     """Returns a Cairo surface containing the image at the path given. It has the height and width indicated,
@@ -139,15 +111,23 @@ def get_scaled_surface_by_path(path, width, height, device_scale,
         cr = cairo.Context(surface)  # pylint:disable=no-member
         cr.scale(scale_x, scale_y)
         Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+        cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
         cr.paint()
         surface.set_device_scale(device_scale, device_scale)
         return surface
 
 
-def clear_surface_caches():
-    """This clears the surface caches that get_cached_surface_by_path() uses."""
-    _get_cached_small_surface_by_path.cache_clear()
-    _get_cached_big_surface_by_path.cache_clear()
+def get_media_generation_number():
+    """Returns a number that is incremented whenever cached media may no longer
+    be valid. Caller can check to see if this has changed before using their own caches."""
+    return _surface_generation_number
+
+
+def invalidate_media_caches():
+    """Increments the media generation number; this indicates that cached media
+    from earlier generations may be invalid and should be reloaded."""
+    global _surface_generation_number
+    _surface_generation_number += 1
 
 
 def get_default_icon_path(size):
