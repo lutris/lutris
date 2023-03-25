@@ -142,12 +142,13 @@ def check_vulkan():
     if not vkquery.is_vulkan_supported():
         logger.warning("Vulkan is not available or your system isn't Vulkan capable")
     else:
-        required_vulkan_api_version = 1, 3, 0
-        api_version = vkquery.get_vulkan_api_version_tuple()
-        if api_version < required_vulkan_api_version:
-            logger.warning("Vulkan reports an API version of %s.%s.%s, but %s.%s.%s is required for the latest DXVK.",
-                           api_version[0], api_version[1], api_version[2], required_vulkan_api_version[0],
-                           required_vulkan_api_version[1], required_vulkan_api_version[2])
+        required_api_version = 1, 3, 0
+        library_api_version = vkquery.get_vulkan_api_version_tuple()
+        if library_api_version and library_api_version < required_api_version:
+            logger.warning("Vulkan reports an API version of %s.%s.%s. "
+                           "%s.%s.%s is required for the latest DXVK.",
+                           library_api_version[0], library_api_version[1], library_api_version[2],
+                           required_api_version[0], required_api_version[1], required_api_version[2])
             setting = "dismiss-obsolete-vulkan-api-warning"
             if settings.read_setting(setting) != "True":
                 DontShowAgainDialog(
@@ -155,11 +156,33 @@ def check_vulkan():
                     _("Obsolete vulkan libraries"),
                     secondary_message=_(
                         "Lutris has detected that Vulkan API version %s.%s.%s is installed, "
+                        "but to use the latest DXVK version, %s.%s.%s is required."
+                    ) % (
+                        library_api_version[0], library_api_version[1], library_api_version[2],
+                        required_api_version[0], required_api_version[1], required_api_version[2]
+                    )
+                )
+                return
+
+        max_dev_api_version = vkquery.get_max_device_api_version_tuple()
+
+        if max_dev_api_version and max_dev_api_version < required_api_version:
+            logger.warning("Vulkan reports a best physical device API version of %s.%s.%s. "
+                           "%s.%s.%s is required for the latest DXVK.",
+                           max_dev_api_version[0], max_dev_api_version[1], max_dev_api_version[2],
+                           required_api_version[0], required_api_version[1], required_api_version[2])
+            setting = "dismiss-obsolete-vulkan-api-warning"
+            if settings.read_setting(setting) != "True":
+                DontShowAgainDialog(
+                    setting,
+                    _("Obsolete vulkan libraries"),
+                    secondary_message=_(
+                        "Lutris has detected that the best device available supports Vulkan API %s.%s.%s, "
                         "but to use the latest DXVK version, %s.%s.%s is required.\n\n"
                         "You may need to upgrade your drivers to a newer version."
                     ) % (
-                        api_version[0], api_version[1], api_version[2],
-                        required_vulkan_api_version[0], required_vulkan_api_version[1], required_vulkan_api_version[2]
+                        max_dev_api_version[0], max_dev_api_version[1], max_dev_api_version[2],
+                        required_api_version[0], required_api_version[1], required_api_version[2]
                     )
                 )
 
