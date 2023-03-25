@@ -164,7 +164,7 @@ def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
 
         return GdkPixbuf.Pixbuf.new_from_file(path)
     except GLib.GError:
-        logger.error("Unable to load icon from image %s", path)
+        logger.exception("Unable to load icon from image %s", path)
 
 
 def has_stock_icon(name):
@@ -182,7 +182,7 @@ def get_stock_icon(name, size):
     try:
         return theme.load_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK)
     except GLib.GError:
-        logger.error("Failed to read icon %s", name)
+        logger.exception("Failed to read icon %s", name)
         return None
 
 
