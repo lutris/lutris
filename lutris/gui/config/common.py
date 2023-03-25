@@ -280,15 +280,8 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         scale_factor = self.get_scale_factor()
         service_media = self.service_medias[image_format]
         game_slug = self.slug or (self.game.slug if self.game else "")
-        width, height = service_media.config_ui_size
-
-        # This is ugly, but GTK pixbufs are measured in physical pixels, and
-        # Gtk.Image assumes those pixels are 96 dpi, which can produce blurry results
-        # on a high-DPI display. We instead get a bigger pixbuf, and have ScaledImage
-        # scale it back down during drawing.
-        pixbuf = service_media.get_pixbuf_for_game(game_slug, (width * scale_factor, height * scale_factor))
-        image = ScaledImage(1 / scale_factor)
-        image.set_from_pixbuf(pixbuf)
+        media_path = service_media.get_media_path(game_slug)
+        image = ScaledImage.new_scaled_from_path(media_path, service_media.config_ui_size, scale_factor)
         image_button.set_image(image)
 
     def _get_runner_dropdown(self):

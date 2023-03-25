@@ -1,5 +1,7 @@
 from gi.repository import Gtk
 
+from lutris.gui.widgets.utils import get_pixbuf
+
 
 class ScaledImage(Gtk.Image):
     """This class provides a rather basic feature the GtkImage doesn't offer- the ability
@@ -10,6 +12,19 @@ class ScaledImage(Gtk.Image):
     def __init__(self, scale_factor, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.scale_factor = scale_factor
+
+    @staticmethod
+    def new_scaled_from_path(path, size, scale_factor):
+        """Constructs an image showing the image at the path, scaled to the size given.
+        The scale factor is used to scale up the pixbuf, but scale down the image so
+        a higher-res image can be shown in the same space on a High-DPI screen. You
+        pass your widget's get_scale_factor() here."""
+
+        pixbuf_size = (size[0] * scale_factor, size[1] * scale_factor)
+        pixbuf = get_pixbuf(path, pixbuf_size)
+        image = ScaledImage(1 / scale_factor)
+        image.set_from_pixbuf(pixbuf)
+        return image
 
     def do_get_preferred_width(self):
         minimum, natural = Gtk.Image.do_get_preferred_width(self)
