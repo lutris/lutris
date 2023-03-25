@@ -5,7 +5,6 @@ import time
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
-from lutris.gui.widgets.utils import get_pixbuf
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
 from lutris.util.log import logger

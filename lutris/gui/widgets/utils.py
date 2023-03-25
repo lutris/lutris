@@ -56,26 +56,6 @@ def get_image_file_format(path):
     return None
 
 
-def get_pixbuf(path, size):
-    """Return a pixbuf from file `image` at `size`, preserving its aspect ratio.
-    If the file is not found or can't be decoded, this will return the default
-    icon. If 'size' square, this is a Lutris icon; if not it is a gradient filling
-    the full size given."""
-    pixbuf = get_pixbuf_by_path(path, size)
-
-    if pixbuf:
-        return pixbuf
-
-    default_icon = get_default_icon_path(size)
-    pixbuf = get_pixbuf_by_path(default_icon, size, preserve_aspect_ratio=False)
-
-    if pixbuf:
-        return pixbuf
-
-    logger.error("The default media '%s' could not be loaded", default_icon)
-    return None
-
-
 def get_surface_size(surface):
     """Returns the size of a surface, accounting for the device scale;
     the surface's get_width() and get_height() are in physical pixels."""
@@ -184,24 +164,6 @@ def get_stock_icon(name, size):
     except GLib.GError:
         logger.exception("Failed to read icon %s", name)
         return None
-
-
-def get_runtime_icon_image(icon_name, fallback_stock_icon_name=None, visible=False):
-    """Returns a Gtk.Image of an icon for runtime or service; the image has the
-    default icon size. If the icon can't be found, we'll fall back onto another,
-    stock icon. If you don't supply one (or it's not available) we'll fall back
-    further to 'package-x-generic-symbolic'; we always give you something."""
-    path = get_runtime_icon_path(icon_name)
-    pixbuf = get_pixbuf_by_path(path, size=ICON_SIZE)
-    if pixbuf:
-        icon = Gtk.Image.new_from_pixbuf(pixbuf)
-    else:
-        if not has_stock_icon(fallback_stock_icon_name):
-            fallback_stock_icon_name = "package-x-generic-symbolic"
-
-        icon = Gtk.Image.new_from_icon_name(fallback_stock_icon_name, Gtk.IconSize.DND)
-    icon.set_visible(visible)
-    return icon
 
 
 def get_runtime_icon_path(icon_name):

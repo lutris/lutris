@@ -281,7 +281,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         service_media = self.service_medias[image_format]
         game_slug = self.slug or (self.game.slug if self.game else "")
         media_path = service_media.get_media_path(game_slug)
-        image = ScaledImage.new_scaled_from_path(media_path, service_media.config_ui_size, scale_factor)
+        image = ScaledImage.new_from_media_path(media_path, service_media.config_ui_size, scale_factor)
         image_button.set_image(image)
 
     def _get_runner_dropdown(self):

@@ -4,7 +4,7 @@ from gi.repository import GLib, GObject, Gtk
 
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
-from lutris.gui.widgets.utils import get_runtime_icon_image
+from lutris.gui.widgets.scaled_image import ScaledImage
 from lutris.services import SERVICES
 
 
@@ -45,7 +45,9 @@ class ServicesBox(BaseConfigBox):
         )
         service = SERVICES[service_key]
 
-        icon = get_runtime_icon_image(service.icon, service.id, visible=True)
+        icon = ScaledImage.get_runtime_icon_image(service.icon, service.id,
+                                                  scale_factor=self.get_scale_factor(),
+                                                  visible=True)
         box.pack_start(icon, False, False, 0)
         label = Gtk.Label(service.name, visible=True)
         label.set_alignment(0, 0.5)
