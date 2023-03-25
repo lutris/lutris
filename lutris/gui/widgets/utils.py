@@ -72,7 +72,8 @@ def get_pixbuf(path, size):
     if pixbuf:
         return pixbuf
 
-    return get_unavailable_pixbuf(size)
+    logger.error("The default media '%s' could not be loaded", default_icon)
+    return None
 
 
 def get_surface_size(surface):
@@ -164,14 +165,6 @@ def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
         return GdkPixbuf.Pixbuf.new_from_file(path)
     except GLib.GError:
         logger.error("Unable to load icon from image %s", path)
-
-
-def get_unavailable_pixbuf(size):
-    """Returns an entirely transparent pixbuf of the size given; we use this when
-    no other image can be loaded, not even the default."""
-    width, height = size
-    overlay_path = os.path.join(datapath.get(), "media/unavailable.png")
-    return GdkPixbuf.Pixbuf.new_from_file_at_scale(overlay_path, width, height, preserve_aspect_ratio=False)
 
 
 def has_stock_icon(name):
