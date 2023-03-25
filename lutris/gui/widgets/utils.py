@@ -257,16 +257,6 @@ def image2pixbuf(image):
     return GdkPixbuf.Pixbuf.new_from_data(image_array, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4)
 
 
-def get_link_button(text):
-    """Return a transparent text button for the side panels"""
-    button = Gtk.Button(text, visible=True)
-    button.props.relief = Gtk.ReliefStyle.NONE
-    button.get_children()[0].set_alignment(0, 0.5)
-    button.get_style_context().add_class("panel-button")
-    button.set_size_request(-1, 24)
-    return button
-
-
 def load_icon_theme():
     """Add the lutris icon folder to the default theme"""
     icon_theme = Gtk.IconTheme.get_default()
