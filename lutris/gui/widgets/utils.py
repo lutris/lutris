@@ -156,16 +156,6 @@ def has_stock_icon(name):
     return theme.has_icon(name)
 
 
-def get_stock_icon(name, size):
-    """Return a pixbuf from a stock icon name"""
-    theme = Gtk.IconTheme.get_default()
-    try:
-        return theme.load_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK)
-    except GLib.GError:
-        logger.exception("Failed to read icon %s", name)
-        return None
-
-
 def get_runtime_icon_path(icon_name):
     """Finds the icon file for an icon whose name is given; this searches the icons
     in Lutris's runtime directory. The name is normalized by removing spaces
