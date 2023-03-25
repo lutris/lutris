@@ -1,7 +1,8 @@
 import cairo
 from gi.repository import GLib, Gtk, Pango, GObject
 
-from lutris.gui.widgets.utils import get_default_icon_path, get_scaled_surface_by_path, get_media_generation_number
+from lutris.gui.widgets.utils import get_default_icon_path, get_scaled_surface_by_path, get_media_generation_number, \
+    get_surface_size
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -85,9 +86,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                                                           preserve_aspect_ratio=False)
 
             if surface:
-                ss_scale_x, ss_scale_y = surface.get_device_scale()
-                width = surface.get_width() / ss_scale_x
-                height = surface.get_height() / ss_scale_y
+                width, height = get_surface_size(surface)
 
                 x = round(cell_area.x + (cell_area.width - width) / 2)  # centered
                 y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
@@ -142,10 +141,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return surface
 
     def get_surface_by_path(self, widget, path, preserve_aspect_ratio=True):
-        cell_width = self.cell_width
-        cell_height = self.cell_height
+        cell_size = (self.cell_width, self.cell_height)
         scale_factor = widget.get_scale_factor() if widget else 1
-
-        return get_scaled_surface_by_path(path, cell_width, cell_height, scale_factor,
-                                          is_installed=self.is_installed,
+        alpha = 1 if self.is_installed else 100 / 255  # pylint:disable=using-constant-test
+        return get_scaled_surface_by_path(path, cell_size, scale_factor, alpha,
                                           preserve_aspect_ratio=preserve_aspect_ratio)

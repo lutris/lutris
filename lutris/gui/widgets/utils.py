@@ -1,7 +1,6 @@
 """Various utilities using the GObject framework"""
 import array
 import os
-from math import ceil
 
 import cairo
 from gi.repository import GdkPixbuf, Gio, GLib, Gdk, Gtk
@@ -68,7 +67,7 @@ def get_pixbuf(path, size):
         return pixbuf
 
     default_icon = get_default_icon_path(size)
-    pixbuf = get_scaled_pixbuf_by_path(default_icon, size)
+    pixbuf = get_pixbuf_by_path(default_icon, size, preserve_aspect_ratio=False)
 
     if pixbuf:
         return pixbuf
@@ -76,43 +75,49 @@ def get_pixbuf(path, size):
     return get_unavailable_pixbuf(size)
 
 
-def get_scaled_surface_by_path(path, width, height, device_scale,
-                               is_installed=True, preserve_aspect_ratio=True):
-    """Returns a Cairo surface containing the image at the path given. It has the height and width indicated,
-    and is faded out if not installed.
+def get_surface_size(surface):
+    """Returns the size of a surface, accounting for the device scale;
+    the surface's get_width() and get_height() are in physical pixels."""
+    device_scale_x, device_scale_y = surface.get_device_scale()
+    width = surface.get_width() / device_scale_x
+    height = surface.get_height() / device_scale_y
+    return width, height
+
+
+def get_scaled_surface_by_path(path, size, device_scale, alpha=1, preserve_aspect_ratio=True):
+    """Returns a Cairo surface containing the image at the path given. It has the size indicated,
+    and if alpha is less than 1, it will be partially transparent to that degree.
 
     You specify the device_scale, and the bitmap is generated at an enlarged size accordingly,
     but with the device scale of the surface also set; in this way a high-DPI image can be
     rendered conveniently.
 
     If you pass True for preserve_aspect_ratio, the aspect ratio of the image is preserved,
-    but will be no larger than width x height.
+    but will be no larger than the size (times the device_scale).
 
     If the path cannot be read, this returns None.
     """
     pixbuf = get_pixbuf_by_path(path)
     if pixbuf:
-        if not is_installed:
-            pixbuf = get_uninstalled_pixbuf(pixbuf)
+        pixbuf_width = pixbuf.get_width()
+        pixbuf_height = pixbuf.get_height()
 
-        pb_width = pixbuf.get_width()
-        pb_height = pixbuf.get_height()
-
-        scale_x = (width / pb_width) * device_scale
-        scale_y = (height / pb_height) * device_scale
+        scale_x = (size[0] / pixbuf_width) * device_scale
+        scale_y = (size[1] / pixbuf_height) * device_scale
 
         if preserve_aspect_ratio:
             scale_x = min(scale_x, scale_y)
             scale_y = scale_x
 
-        w = int(ceil(pb_width * scale_x))
-        h = int(ceil(pb_height * scale_y))
-        surface = cairo.ImageSurface(cairo.Format.ARGB32, w, h)  # pylint:disable=no-member
+        pixel_width = int(round(pixbuf_width * scale_x))
+        pixel_height = int(round(pixbuf_height * scale_y))
+
+        surface = cairo.ImageSurface(cairo.Format.ARGB32, pixel_width, pixel_height)  # pylint:disable=no-member
         cr = cairo.Context(surface)  # pylint:disable=no-member
         cr.scale(scale_x, scale_y)
         Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
         cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
-        cr.paint()
+        cr.paint_with_alpha(alpha)
         surface.set_device_scale(device_scale, device_scale)
         return surface
 
@@ -140,10 +145,10 @@ def get_default_icon_path(size):
     return os.path.join(datapath.get(), filename)
 
 
-def get_pixbuf_by_path(path, size=None):
+def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
     """Reads an image file and returns the pixbuf. If you provide a size, this scales
-    the file to fit that size, preserving the aspect ratio. If the file is missing or
-    unreadable, this returns None."""
+    the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is
+    True. If the file is missing or unreadable, this returns None."""
     if not system.path_exists(path, exclude_empty=True):
         return None
 
@@ -151,23 +156,9 @@ def get_pixbuf_by_path(path, size=None):
         if size:
             # new_from_file_at_size scales but preserves aspect ratio
             width, height = size
-            return GdkPixbuf.Pixbuf.new_from_file_at_size(path, width, height)
+            if preserve_aspect_ratio:
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(path, width, height)
 
-        return GdkPixbuf.Pixbuf.new_from_file(path)
-    except GLib.GError:
-        logger.error("Unable to load icon from image %s", path)
-
-
-def get_scaled_pixbuf_by_path(path, size):
-    """Reads an image file and returns the pixbuf. If you provide a size, this scales
-    the file to full that size, ignore the aspect ratio. If the file is missing or
-    unreadable, this returns None."""
-    if not system.path_exists(path):
-        return None
-
-    try:
-        if size:
-            width, height = size
             return GdkPixbuf.Pixbuf.new_from_file_at_scale(path, width, height, preserve_aspect_ratio=False)
 
         return GdkPixbuf.Pixbuf.new_from_file(path)
@@ -175,33 +166,9 @@ def get_scaled_pixbuf_by_path(path, size):
         logger.error("Unable to load icon from image %s", path)
 
 
-def get_uninstalled_pixbuf(original_pixbuf):
-    """Applies a transparency effect to the pixbuf given, and returns a new pixbuf of
-    the same size containing the result. If passed None, this returns None."""
-    if not original_pixbuf:
-        return None
-
-    size = (original_pixbuf.get_width(), original_pixbuf.get_height())
-    transparent_pixbuf = get_unavailable_pixbuf(size)
-    original_pixbuf.composite(
-        transparent_pixbuf,
-        0,
-        0,
-        size[0],
-        size[1],
-        0,
-        0,
-        1,
-        1,
-        GdkPixbuf.InterpType.NEAREST,
-        100,
-    )
-    return transparent_pixbuf
-
-
 def get_unavailable_pixbuf(size):
-    """Returns a partially transparent image in a pixbuf of the size given; we blend this into
-    other images to indicate that a game is not installed."""
+    """Returns an entirely transparent pixbuf of the size given; we use this when
+    no other image can be loaded, not even the default."""
     width, height = size
     overlay_path = os.path.join(datapath.get(), "media/unavailable.png")
     return GdkPixbuf.Pixbuf.new_from_file_at_scale(overlay_path, width, height, preserve_aspect_ratio=False)
