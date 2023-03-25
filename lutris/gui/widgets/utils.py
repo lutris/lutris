@@ -148,7 +148,7 @@ def get_default_icon_path(size):
 def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
     """Reads an image file and returns the pixbuf. If you provide a size, this scales
     the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is
-    True. If the file is missing or unreadable, this returns None."""
+    True. If the file is missing or unreadable, or if 'path' is None, this returns None."""
     if not system.path_exists(path, exclude_empty=True):
         return None
 
@@ -176,6 +176,9 @@ def get_unavailable_pixbuf(size):
 
 def has_stock_icon(name):
     """This tests if a GTK stock icon is known; if not we can try a fallback."""
+    if not name:
+        return False
+
     theme = Gtk.IconTheme.get_default()
     return theme.has_icon(name)
 
@@ -190,14 +193,31 @@ def get_stock_icon(name, size):
         return None
 
 
-def get_runtime_icon(icon_name, icon_format="image", size=None):
-    """Return an icon based on the given name, format, size and type. Only
-    the icons installed in Lutris's runtime directory are searched.
+def get_runtime_icon_image(icon_name, fallback_stock_icon_name=None, visible=False):
+    """Returns a Gtk.Image of an icon for runtime or service; the image has the
+    default icon size. If the icon can't be found, we'll fall back onto another,
+    stock icon. If you don't supply one (or it's not available) we'll fall back
+    further to 'package-x-generic-symbolic'; we always give you something."""
+    path = get_runtime_icon_path(icon_name)
+    pixbuf = get_pixbuf_by_path(path, size=ICON_SIZE)
+    if pixbuf:
+        icon = Gtk.Image.new_from_pixbuf(pixbuf)
+    else:
+        if not has_stock_icon(fallback_stock_icon_name):
+            fallback_stock_icon_name = "package-x-generic-symbolic"
 
-    Keyword arguments:
+        icon = Gtk.Image.new_from_icon_name(fallback_stock_icon_name, Gtk.IconSize.DND)
+    icon.set_visible(visible)
+    return icon
+
+
+def get_runtime_icon_path(icon_name):
+    """Finds the icon file for an icon whose name is given; this searches the icons
+    in Lutris's runtime directory. The name is normalized by removing spaces
+    and lower-casing it, and both .png and .svg files with the name can be found.
+
+    Arguments:
     icon_name -- The name of the icon to retrieve
-    format -- The format of the icon, which should be either 'image' or 'pixbuf' (default 'image')
-    size -- The size for the desired image (default None)
     """
     filename = icon_name.lower().replace(" ", "")
     # We prefer bitmaps over SVG, because we've got some SVG icons with the
@@ -213,16 +233,7 @@ def get_runtime_icon(icon_name, icon_format="image", size=None):
         for ext in extensions:
             icon_path = os.path.join(settings.RUNTIME_DIR, search_dir, filename + ext)
             if os.path.exists(icon_path):
-                if icon_format == "image":
-                    icon = Gtk.Image()
-                    if size:
-                        icon.set_from_pixbuf(get_pixbuf(icon_path, size))
-                    else:
-                        icon.set_from_file(icon_path)
-                    return icon
-                if icon_format == "pixbuf" and size:
-                    return get_pixbuf(icon_path, size)
-                raise ValueError("Invalid arguments")
+                return icon_path
     return None
 
 
