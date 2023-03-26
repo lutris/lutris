@@ -283,7 +283,9 @@ def get_vulkan_api_version_tuple():
 
 def get_device_info():
     """
-    Returns the greatest API version found among the physical devices
+    Returns a dictionary of the physical devices known to Vulkan, omitting software
+    rendered devices. The keys are the device names, and the values are their API
+    version tuples.
     """
     try:
         vulkan = CDLL("libvulkan.so.1")
@@ -323,12 +325,18 @@ def get_device_info():
     return devices_dict
 
 
-def get_max_device_api_version_tuple():
-    """
-    Returns the greatest API version found among the physical devices
-    """
+def get_best_device_info():
+    """Returns the name and version tuple of the device with the highest
+    version; this is the best tuple from the get_device_info() method, so
+    the key element is the name, and the value element is a version tuple.
+    Go nested tuples!"""
     devices_dict = get_device_info()
-    return max(devices_dict.values())
+    by_version = sorted(
+        devices_dict.items(),
+        key=lambda t: t[1],
+        reverse=True
+    )
+    return by_version[0]
 
 
 def make_version_tuple(source_int):
