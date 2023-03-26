@@ -27,7 +27,7 @@ from lutris.util.steam.shortcut import update_all_artwork
 from lutris.util.system import create_folder
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
-from lutris.util.wine.dxvk import DXVKManager
+from lutris.util.wine.dxvk import DXVKManager, REQUIRED_VULKAN_API_VERSION
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.vkd3d import VKD3DManager
 
@@ -142,7 +142,7 @@ def check_vulkan():
     if not vkquery.is_vulkan_supported():
         logger.warning("Vulkan is not available or your system isn't Vulkan capable")
     else:
-        required_api_version = 1, 3, 0
+        required_api_version = REQUIRED_VULKAN_API_VERSION
         library_api_version = vkquery.get_vulkan_api_version_tuple()
         if library_api_version and library_api_version < required_api_version:
             logger.warning("Vulkan reports an API version of %s. "
@@ -156,7 +156,8 @@ def check_vulkan():
                     _("Obsolete vulkan libraries"),
                     secondary_message=_(
                         "Lutris has detected that Vulkan API version %s is installed, "
-                        "but to use the latest DXVK version, %s is required."
+                        "but to use the latest DXVK version, %s is required.\n\n"
+                        "DXVK 1.x will be used instead."
                     ) % (
                         vkquery.format_version_tuple(library_api_version),
                         vkquery.format_version_tuple(required_api_version)
@@ -176,11 +177,11 @@ def check_vulkan():
             if settings.read_setting(setting) != "True":
                 DontShowAgainDialog(
                     setting,
-                    _("Obsolete vulkan libraries"),
+                    _("Obsolete vulkan driver support"),
                     secondary_message=_(
                         "Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
                         "but to use the latest DXVK version, %s is required.\n\n"
-                        "You may need to upgrade your drivers to a newer version."
+                        "DXVK 1.x will be used instead."
                     ) % (
                         max_dev_name,
                         vkquery.format_version_tuple(max_dev_api_version),
