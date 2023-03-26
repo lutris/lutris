@@ -4,7 +4,7 @@
 """Query Vulkan capabilities"""
 # Standard Library
 from ctypes import CDLL, POINTER, Structure, byref, c_char_p, c_int32, c_uint32, c_void_p, pointer, c_char, c_uint8, \
-    c_uint64, c_float, c_size_t
+    c_uint64, c_float, c_size_t, c_byte
 
 VkResult = c_int32  # enum (size == 4)
 VK_SUCCESS = 0
@@ -20,6 +20,8 @@ VK_UUID_SIZE = 16
 
 VkInstanceCreateFlags = c_int32  # enum (size == 4)
 VkPhysicalDeviceType = c_int32  # enum (size == 4)
+VK_PHYSICAL_DEVICE_TYPE_CPU = 4
+
 VkSampleCountFlags = c_int32  # enum (size == 4)
 
 VkInstance = c_void_p  # handle (struct ptr)
@@ -226,11 +228,11 @@ class VkPhysicalDeviceProperties(Structure):
         ("driverVersion", c_uint32),
         ("vendorID", c_uint32),
         ("deviceID", c_uint32),
+        ("deviceType", VkPhysicalDeviceType),
         ("deviceName", c_char * VK_MAX_PHYSICAL_DEVICE_NAME_SIZE),
         ("pipelineCacheUUID", c_uint8 * VK_UUID_SIZE),
         ("limits", VkPhysicalDeviceLimits),
-        ("sparseProperties", VkPhysicalDeviceSparseProperties),
-        ("space", c_uint32 * 512)
+        ("sparseProperties", VkPhysicalDeviceSparseProperties)
     ]
 
 
@@ -274,15 +276,12 @@ def get_vulkan_api_version_tuple():
     version = c_uint32(0)
     result = enumerate_instance_version(byref(version))
     if result == VK_SUCCESS:
-        major = vk_api_version_major(version.value)
-        minor = vk_api_version_minor(version.value)
-        patch = vk_api_version_patch(version.value)
-        return major, minor, patch
+        return make_version_tuple(version.value)
 
     return None
 
 
-def get_max_device_api_version_tuple():
+def get_device_info():
     """
     Returns the greatest API version found among the physical devices
     """
@@ -306,19 +305,38 @@ def get_max_device_api_version_tuple():
     if result != VK_SUCCESS:
         return None
 
-    versions = []
     getPhysicalDeviceProperties = vulkan.vkGetPhysicalDeviceProperties
     getPhysicalDeviceProperties.restype = None
     getPhysicalDeviceProperties.argtypes = [VkPhysicalDevice, c_void_p]  # pointer(VkPhysicalDeviceProperties)]
 
+    devices_dict = {}
     for physical_device in devices:
         dev_props = VkPhysicalDeviceProperties()
         getPhysicalDeviceProperties(physical_device, byref(dev_props))
 
-        major = vk_api_version_major(dev_props.apiVersion)
-        minor = vk_api_version_minor(dev_props.apiVersion)
-        patch = vk_api_version_patch(dev_props.apiVersion)
-        versions.append((major, minor, patch))
+        if dev_props.deviceType != VK_PHYSICAL_DEVICE_TYPE_CPU:
+            name = dev_props.deviceName.decode("utf-8")
+            api_version = make_version_tuple(dev_props.apiVersion)
+            devices_dict[name] = api_version
 
     vulkan.vkDestroyInstance(instance, 0)
-    return max(versions)
+    return devices_dict
+
+
+def get_max_device_api_version_tuple():
+    """
+    Returns the greatest API version found among the physical devices
+    """
+    devices_dict = get_device_info()
+    return max(devices_dict.values())
+
+
+def make_version_tuple(source_int):
+    major = vk_api_version_major(source_int)
+    minor = vk_api_version_minor(source_int)
+    patch = vk_api_version_patch(source_int)
+    return major, minor, patch
+
+
+def format_version_tuple(version_tuple):
+    return "%s.%s.%s" % version_tuple
