@@ -4,7 +4,7 @@
 """Query Vulkan capabilities"""
 # Standard Library
 from ctypes import CDLL, POINTER, Structure, byref, c_char_p, c_int32, c_uint32, c_void_p, pointer, c_char, c_uint8, \
-    c_uint64, c_float, c_size_t, c_byte
+    c_uint64, c_float, c_size_t
 
 VkResult = c_int32  # enum (size == 4)
 VK_SUCCESS = 0
