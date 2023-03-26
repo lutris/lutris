@@ -5,6 +5,7 @@
 # Standard Library
 from ctypes import CDLL, POINTER, Structure, byref, c_char_p, c_int32, c_uint32, c_void_p, pointer, c_char, c_uint8, \
     c_uint64, c_float, c_size_t
+from functools import cache
 
 VkResult = c_int32  # enum (size == 4)
 VK_SUCCESS = 0
@@ -236,6 +237,7 @@ class VkPhysicalDeviceProperties(Structure):
     ]
 
 
+@cache
 def is_vulkan_supported():
     """
     Returns True iff vulkan library can be loaded, initialized,
@@ -257,6 +259,7 @@ def is_vulkan_supported():
     return result == VK_SUCCESS and dev_count.value > 0
 
 
+@cache
 def get_vulkan_api_version_tuple():
     """
     Queries libvulkan to get the API version; if this library is missing
@@ -336,7 +339,19 @@ def get_best_device_info():
         key=lambda t: t[1],
         reverse=True
     )
-    return by_version[0]
+    return by_version[0] if by_version else None
+
+
+@cache
+def get_expected_api_version_tuple():
+    """Returns the version tuple of the API version we expect
+    to have; it is the least of the Vulkan library API version, and
+    the best device's API version."""
+    api_version = get_vulkan_api_version_tuple()
+    best_dev = get_best_device_info()
+    if best_dev:
+        return min(api_version, best_dev[1])
+    return api_version
 
 
 def make_version_tuple(source_int):

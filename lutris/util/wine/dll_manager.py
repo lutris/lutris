@@ -45,8 +45,16 @@ class DLLManager:
         """Return version (latest known version if not provided)"""
         if self._version:
             return self._version
-        if self.versions:
-            return self.versions[0]
+        versions = self.versions
+        if versions:
+            recommended_versions = [v for v in versions if self.is_recommended_version(v)]
+            return recommended_versions[0] if recommended_versions else versions[0]
+
+    def is_recommended_version(self, version):
+        """True if the version given should be usable as the default; false if it
+        should not be the default, but may be selected by the user. If only
+        non-recommended versions exist, we'll still default to one of them, however."""
+        return True
 
     @property
     def path(self):
