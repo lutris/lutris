@@ -1,8 +1,9 @@
+# pylint:disable=using-constant-test
 import cairo
 from gi.repository import GLib, Gtk, Pango, GObject
 
 from lutris.gui.widgets.utils import get_default_icon_path, get_scaled_surface_by_path, get_media_generation_number, \
-    get_surface_size, has_stock_icon, get_runtime_icon_path, ICON_SIZE
+    get_surface_size, get_runtime_icon_path
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -111,8 +112,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                     icon_path = get_runtime_icon_path(self.platform)
                 if icon_path:
                     icon_size = 16, 16
-                    alpha = 1 if self.is_installed else 100/255
-                    x = min(x + cell_width - icon_size[0] / 2  - 1, cell_area.x + cell_area.width - icon_size[0] -1 )
+                    alpha = 1 if self.is_installed else 100 / 255
+                    x = min(x + cell_width - icon_size[0] / 2 - 1, cell_area.x + cell_area.width - icon_size[0] - 1)
                     y = cell_area.y + cell_area.height - icon_size[1] - 1
 
                     cr.save()
@@ -120,7 +121,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                     cr.set_source_rgba(1, 1, 1, alpha)
                     cr.fill()
 
-                    cr.rectangle(x-.5, y-.5, icon_size[0] + 1, icon_size[0] + 1)
+                    cr.rectangle(x - .5, y - .5, icon_size[0] + 1, icon_size[0] + 1)
                     cr.set_source_rgba(0, 0, 0, alpha)
                     cr.set_line_width(.5)
                     cr.stroke()
@@ -177,6 +178,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def get_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
         cell_size = size or (self.cell_width, self.cell_height)
         scale_factor = widget.get_scale_factor() if widget else 1
-        alpha = 1 if self.is_installed else 100 / 255  # pylint:disable=using-constant-test
+        alpha = 1 if self.is_installed else 100 / 255
         return get_scaled_surface_by_path(path, cell_size, scale_factor, alpha,
                                           preserve_aspect_ratio=preserve_aspect_ratio)
