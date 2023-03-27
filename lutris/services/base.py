@@ -303,6 +303,11 @@ class BaseService(GObject.Object):
         """Specific services should implement this"""
         return ""
 
+    def get_game_platform(self, db_game):
+        """Interprets the database record for this game from this service
+        to extract its platform, or returns None if this is not available."""
+        return db_game.get("platform")
+
 
 class OnlineService(BaseService):
     """Base class for online gaming services"""

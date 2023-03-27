@@ -1,11 +1,10 @@
 """Game representation for views"""
-import json
 import time
 
 from lutris.database import games
 from lutris.database.games import get_service_games
-from lutris.game import Game
 from lutris.runners import get_runner_human_name
+from lutris.services import SERVICES
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
 
@@ -101,16 +100,17 @@ class StoreItem:
         _platform = self._game_data.get("platform")
         if "platform" in self._game_data:
             _platform = self._game_data["platform"]
-        elif self.service == "lutris":
-            _details = self._game_data.get("details")
-            if _details:
-                _platforms = json.loads(_details).get("platforms")
-                if _platforms and len(_platforms) == 1:
-                    _platform = _platforms[0].get("name")
-        elif not self.service and self.installed:
-            game_inst = Game(self._game_data["id"])
-            if game_inst.platform:
-                _platform = game_inst.platform
+
+        if not _platform:
+            game_data = games.get_game_for_service(self.service, self._game_data["appid"])
+
+            if game_data:
+                _platform = game_data.get("game_data")
+
+        if not _platform and self.service in SERVICES:
+            service = SERVICES[self.service]()
+            _platform = service.get_game_platform(self._game_data)
+
         return gtk_safe(_platform)
 
     @property
