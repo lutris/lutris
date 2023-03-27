@@ -3,7 +3,7 @@
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.gui.views import COL_MEDIA_PATH, COL_NAME, COL_INSTALLED
+from lutris.gui.views import COL_MEDIA_PATH, COL_NAME, COL_INSTALLED, COL_PLATFORM
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererText, GridViewCellRendererImage
 from lutris.util.log import logger
@@ -24,6 +24,7 @@ class GameGridView(Gtk.IconView, GameView):
             self.image_renderer = GridViewCellRendererImage()
             self.pack_start(self.image_renderer, False)
             self.add_attribute(self.image_renderer, "media_path", COL_MEDIA_PATH)
+            self.add_attribute(self.image_renderer, "platform", COL_PLATFORM)
             self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
         else:
             self.image_renderer = None

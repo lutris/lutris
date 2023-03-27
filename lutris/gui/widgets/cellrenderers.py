@@ -2,7 +2,7 @@ import cairo
 from gi.repository import GLib, Gtk, Pango, GObject
 
 from lutris.gui.widgets.utils import get_default_icon_path, get_scaled_surface_by_path, get_media_generation_number, \
-    get_surface_size
+    get_surface_size, has_stock_icon, get_runtime_icon_path, ICON_SIZE
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -29,6 +29,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._cell_width = 0
         self._cell_height = 0
         self._media_path = None
+        self._platform = None
         self._is_installed = True
         self.cached_surfaces_new = {}
         self.cached_surfaces_old = {}
@@ -60,6 +61,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     @media_path.setter
     def media_path(self, value):
         self._media_path = value
+
+    @GObject.Property(type=str)
+    def platform(self):
+        return self._platform
+
+    @platform.setter
+    def platform(self, value):
+        self._platform = value
 
     @GObject.Property(type=bool, default=True)
     def is_installed(self):
@@ -96,6 +105,31 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 cr.rectangle(x, y, width, height)
                 cr.fill()
 
+            if self.platform:
+                icon_path = get_runtime_icon_path(self.platform + "-symbolic")
+                if not icon_path:
+                    icon_path = get_runtime_icon_path(self.platform)
+                if icon_path:
+                    icon_size = 16, 16
+                    alpha = 1 if self.is_installed else 100/255
+                    x = min(x + cell_width - icon_size[0] / 2  - 1, cell_area.x + cell_area.width - icon_size[0] -1 )
+                    y = cell_area.y + cell_area.height - icon_size[1] - 1
+
+                    cr.save()
+                    cr.rectangle(x, y, icon_size[0], icon_size[0])
+                    cr.set_source_rgba(1, 1, 1, alpha)
+                    cr.fill()
+
+                    cr.rectangle(x-.5, y-.5, icon_size[0] + 1, icon_size[0] + 1)
+                    cr.set_source_rgba(0, 0, 0, alpha)
+                    cr.set_line_width(.5)
+                    cr.stroke()
+                    cr.restore()
+
+                    icon = self.get_cached_surface_by_path(widget, icon_path, icon_size)
+                    cr.set_source_surface(icon, x, y)
+                    cr.paint()
+
             # Idle time will wait until the widget has drawn whatever it wants to;
             # we can then discard surfaces we aren't using anymore.
             if not self.cycle_cache_idle_id:
@@ -117,7 +151,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.cached_surfaces_new = {}
         self.cycle_cache_idle_id = None
 
-    def get_cached_surface_by_path(self, widget, path, preserve_aspect_ratio=True):
+    def get_cached_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
         """This obtains the scaled surface to rander for a given media path; this is cached
         in this render, but we'll clear that cache when the media generation number is changed,
         or certain properties are. We also age surfaces from the cache at idle time after
@@ -126,7 +160,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             self.cached_surface_generation = get_media_generation_number()
             self.clear_cache()
 
-        key = widget, path, preserve_aspect_ratio, self.is_installed
+        key = widget, path, size, self.is_installed, preserve_aspect_ratio
 
         surface = self.cached_surfaces_new.get(key)
         if surface:
@@ -135,13 +169,13 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         surface = self.cached_surfaces_old.get(key)
 
         if not surface:
-            surface = self.get_surface_by_path(widget, path, preserve_aspect_ratio)
+            surface = self.get_surface_by_path(widget, path, size, preserve_aspect_ratio)
 
         self.cached_surfaces_new[key] = surface
         return surface
 
-    def get_surface_by_path(self, widget, path, preserve_aspect_ratio=True):
-        cell_size = (self.cell_width, self.cell_height)
+    def get_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
+        cell_size = size or (self.cell_width, self.cell_height)
         scale_factor = widget.get_scale_factor() if widget else 1
         alpha = 1 if self.is_installed else 100 / 255  # pylint:disable=using-constant-test
         return get_scaled_surface_by_path(path, cell_size, scale_factor, alpha,
