@@ -183,7 +183,7 @@ def get_runtime_icon_path(icon_name):
 
 
 def convert_to_background(background_path, target_size=(320, 1080)):
-    """Converts a image to a pane background"""
+    """Converts an image to a pane background"""
     coverart = Image.open(background_path)
     coverart = coverart.convert("RGBA")
 
