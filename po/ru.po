@@ -23,7 +23,7 @@ msgstr "Lutris"
 
 #: share/applications/net.lutris.Lutris.desktop:4
 msgid "Video Game Preservation Platform"
-msgstr ""
+msgstr "Платформа для сохранения видеоигр"
 
 #: share/applications/net.lutris.Lutris.desktop:6
 msgid "gaming;wine;emulator;"
@@ -32,7 +32,7 @@ msgstr "gaming;wine;emulator;"
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:11
 #: share/lutris/ui/about-dialog.ui:18
 msgid "Video game preservation platform"
-msgstr ""
+msgstr "Платформа для сохранения видеоигр"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:14
 msgid "Main window"
@@ -206,9 +206,8 @@ msgid "The file {} could not be found"
 msgstr "Не удалось найти файл {}"
 
 #: lutris/game.py:256
-msgid ""
-"This game has no executable set. The install process didn't finish properly."
-msgstr ""
+msgid "This game has no executable set. The install process didn't finish properly."
+msgstr "В этой игре нет исполняемого набора. Процесс установки не завершился должным образом."
 
 #: lutris/game.py:259
 #, python-format
@@ -232,7 +231,7 @@ msgstr "Установить игру заново"
 
 #: lutris/game.py:406
 msgid "Tried to launch a game that isn't installed."
-msgstr ""
+msgstr "Пытались запустить игру, которая не установлена."
 
 #: lutris/game.py:408 lutris/game.py:511
 msgid "Invalid game configuration: Missing runner"
@@ -317,7 +316,7 @@ msgstr "Выполнить скрипт"
 
 #: lutris/game_actions.py:72
 msgid "Update shader cache"
-msgstr ""
+msgstr "Обновить кэш шейдеров"
 
 #: lutris/game_actions.py:73
 msgid "Browse files"
@@ -359,7 +358,7 @@ msgstr "Удалить"
 
 #: lutris/game_actions.py:106
 msgid "Duplicate"
-msgstr ""
+msgstr "Дубликат"
 
 #: lutris/game_actions.py:107
 msgid "View on Lutris.net"
@@ -383,7 +382,7 @@ msgstr ""
 
 #: lutris/game_actions.py:231
 msgid "Duplicate game?"
-msgstr ""
+msgstr "Дублирующая игра?"
 
 #: lutris/game_actions.py:292
 msgid "This game has no installation directory"
@@ -406,15 +405,15 @@ msgstr "Удалить ярлык с рабочего стола"
 
 #: lutris/gui/addgameswindow.py:28
 msgid "Search the Lutris website for installers"
-msgstr ""
+msgstr "Найдите установщик на веб-сайте Lutris"
 
 #: lutris/gui/addgameswindow.py:29
 msgid "Query our website for community installers"
-msgstr ""
+msgstr "Запросите установщик на веб-сайте нашего сообщества"
 
 #: lutris/gui/addgameswindow.py:35
 msgid "Scan a folder for games"
-msgstr ""
+msgstr "Сканировать папку на наличие игр"
 
 #: lutris/gui/addgameswindow.py:36
 msgid "Mass-import a folder of games"
@@ -456,12 +455,12 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:69
 msgid "Add games to Lutris"
-msgstr ""
+msgstr "Добавить игры в Lutris"
 
 #. Action buttons
 #: lutris/gui/addgameswindow.py:88 lutris/gui/installerwindow.py:79
 msgid "Back"
-msgstr ""
+msgstr "Назад"
 
 #. defer destory so the game dialog can be centered first
 #. Continue Button
@@ -508,7 +507,7 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:271
 msgid "No results"
-msgstr ""
+msgstr "Нет результатов"
 
 #: lutris/gui/addgameswindow.py:273
 #, python-brace-format
@@ -655,7 +654,7 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:576
 msgid "You must select a ROM file to install."
-msgstr ""
+msgstr "Вы должны выбрать файл ROM для установки."
 
 #: lutris/gui/application.py:92
 msgid ""
@@ -748,15 +747,15 @@ msgstr "Установить раннер"
 
 #: lutris/gui/application.py:232
 msgid "Export a game"
-msgstr ""
+msgstr "Экспортировать игру"
 
 #: lutris/gui/application.py:240 lutris/gui/dialogs/game_import.py:24
 msgid "Import a game"
-msgstr ""
+msgstr "Импортировать игру"
 
 #: lutris/gui/application.py:248
 msgid "Destination path for export"
-msgstr ""
+msgstr "Конечный путь для экспорта"
 
 #: lutris/gui/application.py:256
 msgid "Display the list of games in JSON format"
@@ -917,7 +916,7 @@ msgstr "Переместить"
 
 #: lutris/gui/config/common.py:183
 msgid "The default launch option will be used for this game"
-msgstr ""
+msgstr "Для этой игры будет использоваться опция запуска по умолчанию"
 
 #: lutris/gui/config/common.py:185
 #, python-format
@@ -926,7 +925,7 @@ msgstr ""
 
 #: lutris/gui/config/common.py:192
 msgid "Reset"
-msgstr ""
+msgstr "Сброс"
 
 #: lutris/gui/config/common.py:209 lutris/gui/views/list.py:50
 msgid "Runner"
@@ -934,7 +933,7 @@ msgstr "Раннер"
 
 #: lutris/gui/config/common.py:223
 msgid "Set custom cover art"
-msgstr ""
+msgstr "Установить пользовательскую иконку"
 
 #: lutris/gui/config/common.py:223
 #, fuzzy
@@ -994,7 +993,7 @@ msgstr "Показать продвинутые параметры"
 
 #: lutris/gui/config/common.py:424
 msgid "Advanced"
-msgstr ""
+msgstr "Дополнительные"
 
 #: lutris/gui/config/common.py:475
 msgid ""
@@ -1101,7 +1100,7 @@ msgstr "Параметры игры"
 
 #: lutris/gui/config/runners_box.py:17
 msgid "Add, remove or configure runners"
-msgstr ""
+msgstr "Добавление, удаление или настройка раннеров"
 
 #: lutris/gui/config/runners_box.py:19
 msgid ""
@@ -1151,7 +1150,7 @@ msgstr "Скрывать текст за иконками"
 
 #: lutris/gui/config/sysinfo_box.py:36
 msgid "Copy to clipboard"
-msgstr ""
+msgstr "Копировать в буфер обмена"
 
 #: lutris/gui/config/sysinfo_box.py:39
 #, fuzzy
