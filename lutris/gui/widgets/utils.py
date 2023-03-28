@@ -65,9 +65,8 @@ def get_surface_size(surface):
     return width, height
 
 
-def get_scaled_surface_by_path(path, size, device_scale, alpha=1, preserve_aspect_ratio=True):
-    """Returns a Cairo surface containing the image at the path given. It has the size indicated,
-    and if alpha is less than 1, it will be partially transparent to that degree.
+def get_scaled_surface_by_path(path, size, device_scale, preserve_aspect_ratio=True):
+    """Returns a Cairo surface containing the image at the path given. It has the size indicated.
 
     You specify the device_scale, and the bitmap is generated at an enlarged size accordingly,
     but with the device scale of the surface also set; in this way a high-DPI image can be
@@ -98,7 +97,7 @@ def get_scaled_surface_by_path(path, size, device_scale, alpha=1, preserve_aspec
         cr.scale(scale_x, scale_y)
         Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
         cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
-        cr.paint_with_alpha(alpha)
+        cr.paint()
         surface.set_device_scale(device_scale, device_scale)
         return surface
 
