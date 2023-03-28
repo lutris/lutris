@@ -109,7 +109,9 @@ class StoreItem:
 
         if not _platform and self.service in SERVICES:
             service = SERVICES[self.service]()
-            _platform = service.get_game_platform(self._game_data)
+            _platforms = service.get_game_platforms(self._game_data)
+            if _platforms:
+                _platform = ", ".join(_platforms)
 
         return gtk_safe(_platform)
 

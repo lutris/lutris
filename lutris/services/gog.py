@@ -648,11 +648,10 @@ class GOGService(OnlineService):
             patch_installers.append(installer)
         return patch_installers
 
-    def get_game_platform(self, db_game):
+    def get_game_platforms(self, db_game):
         details = db_game.get("details")
         if details:
             worksOn = json.loads(details).get("worksOn")
-            platforms = [key for key, value in worksOn.items() if value]
-            if platforms and len(platforms) == 1:
-                return platforms[0]
+            if worksOn is not None:
+                return [name for name, works in worksOn.items() if works]
         return None
