@@ -124,7 +124,7 @@ class LutrisService(OnlineService):
         application = Gio.Application.get_default()
         application.show_installer_window(installers)
 
-    def get_game_platforms(sself, db_game):
+    def get_game_platforms(self, db_game):
         details = db_game.get("details")
         if details:
             platforms = json.loads(details).get("platforms")
