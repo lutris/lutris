@@ -306,7 +306,7 @@ class BaseService(GObject.Object):
     def get_game_platforms(self, db_game):
         """Interprets the database record for this game from this service
         to extract its platform, or returns None if this is not available."""
-        return db_game.get("platform")
+        return None
 
 
 class OnlineService(BaseService):
