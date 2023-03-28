@@ -91,13 +91,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         alpha = 1 if self.is_installed else 100 / 255
 
         if cell_width > 0 and cell_height > 0 and path:  # pylint: disable=comparison-with-callable
-            surface = self.get_cached_surface_by_path(widget, path, alpha)
+            surface = self.get_cached_surface_by_path(widget, path)
             if not surface:
                 # The default icon needs to be scaled to fill the cell space.
                 path = get_default_icon_path((cell_width, cell_height))
-                surface = self.get_cached_surface_by_path(widget, path, alpha,
+                surface = self.get_cached_surface_by_path(widget, path,
                                                           preserve_aspect_ratio=False)
 
+            cr.push_group()
             if surface:
                 width, height = get_surface_size(surface)
 
@@ -118,32 +119,36 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 icon_paths = [get_runtime_icon_path(p + "-symbolic") for p in platforms]
                 icon_paths = [path for path in icon_paths if path]
                 if icon_paths:
-                    icon_size = 16, 16
-                    x = min(x + cell_width - icon_size[0] / 2 - 1, cell_area.x + cell_area.width - icon_size[0] - 1)
-                    y = cell_area.y + cell_area.height - icon_size[1] - 1
-                    y_offset = min(icon_size[1] + 3, floor(cell_area.height / len(icon_paths)))
-                    y = y - y_offset * (len(icon_paths) - 1)
+                    icon_size = (8, 8) if cell_height < 64 else (16, 16)
+                    x = min(x + cell_width - icon_size[0] / 2 - 1, cell_area.x + cell_area.width - icon_size[0] - 2)
+                    h = icon_size[1] + 2
+                    spacing = (cell_area.height - h * len(icon_paths)) / max(1, len(icon_paths) - 1)
+                    spacing = min(spacing, 1)
+                    y_offset = h + spacing
+                    y = cell_area.y + cell_area.height - h - y_offset * (len(icon_paths) - 1)
 
                     cr.push_group()
                     for icon_path in icon_paths:
                         if icon_path:
                             cr.save()
-                            cr.rectangle(x, y, icon_size[0], icon_size[0])
+                            cr.rectangle(x + 1, y + 1, icon_size[0], icon_size[0])
                             cr.set_source_rgba(1, 1, 1)
                             cr.fill()
 
-                            cr.rectangle(x - .5, y - .5, icon_size[0] + 1, icon_size[0] + 1)
+                            cr.rectangle(x + 0.5, y + 0.5, icon_size[0] + 1, icon_size[0] + 1)
                             cr.set_source_rgba(0, 0, 0)
-                            cr.set_line_width(.5)
+                            cr.set_line_width(1)
                             cr.stroke()
 
                             icon = self.get_cached_surface_by_path(widget, icon_path, size=icon_size)
-                            cr.set_source_surface(icon, x, y)
+                            cr.set_source_surface(icon, x + 1, y + 1)
                             cr.paint()
                             cr.restore()
                             y = y + y_offset
                     cr.pop_group_to_source()
-                    cr.paint_with_alpha(alpha)
+                    cr.paint()
+            cr.pop_group_to_source()
+            cr.paint_with_alpha(alpha)
 
             # Idle time will wait until the widget has drawn whatever it wants to;
             # we can then discard surfaces we aren't using anymore.
@@ -166,7 +171,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.cached_surfaces_new = {}
         self.cycle_cache_idle_id = None
 
-    def get_cached_surface_by_path(self, widget, path, alpha=1, size=None, preserve_aspect_ratio=True):
+    def get_cached_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
         """This obtains the scaled surface to rander for a given media path; this is cached
         in this render, but we'll clear that cache when the media generation number is changed,
         or certain properties are. We also age surfaces from the cache at idle time after
@@ -175,7 +180,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             self.cached_surface_generation = get_media_generation_number()
             self.clear_cache()
 
-        key = widget, path, alpha, size, preserve_aspect_ratio
+        key = widget, path, size, preserve_aspect_ratio
 
         surface = self.cached_surfaces_new.get(key)
         if surface:
@@ -184,13 +189,13 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         surface = self.cached_surfaces_old.get(key)
 
         if not surface:
-            surface = self.get_surface_by_path(widget, path, alpha, size, preserve_aspect_ratio)
+            surface = self.get_surface_by_path(widget, path, size, preserve_aspect_ratio)
 
         self.cached_surfaces_new[key] = surface
         return surface
 
-    def get_surface_by_path(self, widget, path, alpha=1, size=None, preserve_aspect_ratio=True):
+    def get_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
         cell_size = size or (self.cell_width, self.cell_height)
         scale_factor = widget.get_scale_factor() if widget else 1
-        return get_scaled_surface_by_path(path, cell_size, scale_factor, alpha,
+        return get_scaled_surface_by_path(path, cell_size, scale_factor,
                                           preserve_aspect_ratio=preserve_aspect_ratio)
