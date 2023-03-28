@@ -1,4 +1,5 @@
 # pylint:disable=using-constant-test
+# pylint:disable=comparison-with-callable
 from math import floor
 
 import cairo
@@ -90,7 +91,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         path = self.media_path
         alpha = 1 if self.is_installed else 100 / 255
 
-        if cell_width > 0 and cell_height > 0 and path:  # pylint: disable=comparison-with-callable
+        if cell_width > 0 and cell_height > 0 and path:
             surface = self.get_cached_surface_by_path(widget, path)
             if not surface:
                 # The default icon needs to be scaled to fill the cell space.
@@ -98,62 +99,78 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 surface = self.get_cached_surface_by_path(widget, path,
                                                           preserve_aspect_ratio=False)
 
-            cr.push_group()
             if surface:
-                width, height = get_surface_size(surface)
+                x, y = self.get_media_position(surface, cell_area)
 
-                x = round(cell_area.x + (cell_area.width - width) / 2)  # centered
-                y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
-
-                cr.set_source_surface(surface, x, y)
-                cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
-                cr.rectangle(x, y, width, height)
-                cr.fill()
-
-            if self.platform:
-                if "," in self.platform:
-                    platforms = self.platform.split(",")
+                if alpha >= 1:
+                    self.render_media(cr, widget, surface, x, y)
+                    self.render_platforms(cr, widget, x + cell_width, cell_area)
                 else:
-                    platforms = [self.platform]
-
-                icon_paths = [get_runtime_icon_path(p + "-symbolic") for p in platforms]
-                icon_paths = [path for path in icon_paths if path]
-                if icon_paths:
-                    icon_size = (8, 8) if cell_height < 64 else (16, 16)
-                    x = min(x + cell_width - icon_size[0] / 2 - 1, cell_area.x + cell_area.width - icon_size[0] - 2)
-                    h = icon_size[1] + 2
-                    spacing = (cell_area.height - h * len(icon_paths)) / max(1, len(icon_paths) - 1)
-                    spacing = min(spacing, 1)
-                    y_offset = h + spacing
-                    y = cell_area.y + cell_area.height - h - y_offset * (len(icon_paths) - 1)
-
                     cr.push_group()
-                    for icon_path in icon_paths:
-                        if icon_path:
-                            cr.save()
-                            cr.rectangle(x + 1, y + 1, icon_size[0], icon_size[0])
-                            cr.set_source_rgba(1, 1, 1)
-                            cr.fill()
-
-                            cr.rectangle(x + 0.5, y + 0.5, icon_size[0] + 1, icon_size[0] + 1)
-                            cr.set_source_rgba(0, 0, 0)
-                            cr.set_line_width(1)
-                            cr.stroke()
-
-                            icon = self.get_cached_surface_by_path(widget, icon_path, size=icon_size)
-                            cr.set_source_surface(icon, x + 1, y + 1)
-                            cr.paint()
-                            cr.restore()
-                            y = y + y_offset
+                    self.render_media(cr, widget, surface, x, y)
+                    self.render_platforms(cr, widget, x + cell_width, cell_area)
                     cr.pop_group_to_source()
-                    cr.paint()
-            cr.pop_group_to_source()
-            cr.paint_with_alpha(alpha)
+                    cr.paint_with_alpha(alpha)
 
             # Idle time will wait until the widget has drawn whatever it wants to;
             # we can then discard surfaces we aren't using anymore.
             if not self.cycle_cache_idle_id:
                 self.cycle_cache_idle_id = GLib.idle_add(self.cycle_cache)
+
+    def get_media_position(self, surface, cell_area):
+        width, height = get_surface_size(surface)
+        x = round(cell_area.x + (cell_area.width - width) / 2)  # centered
+        y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
+        return x, y
+
+    def render_media(self, cr, widget, surface, x, y):
+        width, height = get_surface_size(surface)
+
+        cr.set_source_surface(surface, x, y)
+        cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
+        cr.rectangle(x, y, width, height)
+        cr.fill()
+
+    def render_platforms(self, cr, widget, media_right, cell_area):
+        platform = self.platform
+        if platform and self.cell_height >= 64:
+            if "," in platform:
+                platforms = platform.split(",")  # pylint:disable=no-member
+            else:
+                platforms = [platform]
+
+            icon_paths = [get_runtime_icon_path(p + "-symbolic") for p in platforms]
+            icon_paths = [path for path in icon_paths if path]
+            if icon_paths:
+                self.render_badges(cr, widget, icon_paths, (16, 16), media_right, cell_area)
+
+    def render_badges(self, cr, widget, icon_paths, icon_size, media_right, cell_area):
+        def render_badge(badge_x, badge_y, path):
+            cr.rectangle(badge_x + 1, badge_y + 1, icon_size[0], icon_size[0])
+            cr.set_source_rgba(1, 1, 1)
+            cr.fill()
+
+            cr.rectangle(badge_x + 0.5, badge_y + 0.5, icon_size[0] + 1, icon_size[0] + 1)
+            cr.set_source_rgba(0, 0, 0)
+            cr.set_line_width(1)
+            cr.stroke()
+
+            icon = self.get_cached_surface_by_path(widget, path, size=icon_size)
+            cr.set_source_surface(icon, badge_x + 1, badge_y + 1)
+            cr.paint()
+
+        badge_width = icon_size[0] + 2
+        badge_height = icon_size[1] + 2
+
+        x = min(media_right, cell_area.x + cell_area.width - badge_width)
+        spacing = (cell_area.height - badge_height * len(icon_paths)) / max(1, len(icon_paths) - 1)
+        spacing = min(spacing, 1)
+        y_offset = floor(badge_height + spacing)
+        y = cell_area.y + cell_area.height - badge_height - y_offset * (len(icon_paths) - 1)
+
+        for icon_path in icon_paths:
+            render_badge(x, y, icon_path)
+            y = y + y_offset
 
     def clear_cache(self):
         """Discards all cached surfaces; used when some properties are changed."""
