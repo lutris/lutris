@@ -30,6 +30,7 @@ from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remo
 # pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
+from lutris.settings import SHOW_BADGES
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -719,6 +720,9 @@ class LutrisWindow(Gtk.ApplicationWindow,
             self.games_stack.add_named(scrolledwindow, view_type)
             self.views[view_type] = self.current_view
 
+        if view_type == "grid":
+            self.current_view.show_badges = SHOW_BADGES and not bool(
+                self.filters.get("platform") or self.filters.get("runner"))
         self.games_stack.set_visible_child_name(view_type)
         self.update_store()
         self.update_action_state()

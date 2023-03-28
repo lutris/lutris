@@ -10,6 +10,7 @@ class SysInfoBox(Gtk.Box):
     settings_options = {
         "hide_client_on_game_start": _("Minimize client when a game is launched"),
         "hide_text_under_icons": _("Hide text under icons"),
+        "hide_badges_on_icons": _("Hide badges on icons"),
         "show_tray_icon": _("Show Tray Icon"),
     }
 

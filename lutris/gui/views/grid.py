@@ -19,13 +19,12 @@ class GameGridView(Gtk.IconView, GameView):
         GameView.__init__(self, store.service)
 
         self.set_column_spacing(6)
+        self._show_badges = True
 
         if settings.SHOW_MEDIA:
             self.image_renderer = GridViewCellRendererImage()
             self.pack_start(self.image_renderer, False)
-            self.add_attribute(self.image_renderer, "media_path", COL_MEDIA_PATH)
-            self.add_attribute(self.image_renderer, "platform", COL_PLATFORM)
-            self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
+            self._initialize_image_renderer_attributes()
         else:
             self.image_renderer = None
         self.set_item_padding(1)
@@ -57,6 +56,26 @@ class GameGridView(Gtk.IconView, GameView):
         if self.cell_renderer:
             cell_width = max(size[0], self.min_width)
             self.cell_renderer.set_width(cell_width)
+
+    @property
+    def show_badges(self):
+        return self._show_badges
+
+    @show_badges.setter
+    def show_badges(self, value):
+        if self._show_badges != value:
+            self._show_badges = value
+            self._initialize_image_renderer_attributes()
+
+    def _initialize_image_renderer_attributes(self):
+        if self.image_renderer:
+            self.clear_attributes(self.image_renderer)
+            self.add_attribute(self.image_renderer, "media_path", COL_MEDIA_PATH)
+            if self.show_badges:
+                self.add_attribute(self.image_renderer, "platform", COL_PLATFORM)
+            else:
+                self.image_renderer.platform = None
+            self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
 
     def select(self):
         self.select_path(self.current_path)
