@@ -10,7 +10,7 @@ class PreferencesBox(VBox):
     settings_options = {
         "hide_client_on_game_start": _("Minimize client when a game is launched"),
         "hide_text_under_icons": _("Hide text under icons (requires restart)"),
-        "hide_badges_on_icons": _("Hide badges on icons (requires restart)"),
+        "hide_badges_on_icons": _("Hide badges on icons"),
         "show_tray_icon": _("Show Tray Icon"),
         "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)"),
         "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
@@ -60,11 +60,12 @@ class PreferencesBox(VBox):
     def _on_setting_change(self, widget, state, setting_key):
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, state)
+        application = Gio.Application.get_default()
 
         if setting_key == "dark_theme":
-            application = Gio.Application.get_default()
             application.style_manager.is_config_dark = state
         elif setting_key == "show_tray_icon":
-            application = Gio.Application.get_default()
             if application.window.get_visible():
                 application.set_tray_icon()
+
+        self.get_toplevel().emit("settings-changed", setting_key)

@@ -30,7 +30,6 @@ from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remo
 # pylint: disable=no-member
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
-from lutris.settings import SHOW_BADGES
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -142,6 +141,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
         GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
+        GObject.add_emission_hook(PreferencesDialog, "settings-changed", self.on_settings_changed)
 
         # Finally trigger the initialization of the view here
         selected_category = settings.read_setting("selected_category", default="runner:all")
@@ -720,12 +720,16 @@ class LutrisWindow(Gtk.ApplicationWindow,
             self.games_stack.add_named(scrolledwindow, view_type)
             self.views[view_type] = self.current_view
 
-        if view_type == "grid":
-            self.current_view.show_badges = SHOW_BADGES and not bool(
-                self.filters.get("platform") or self.filters.get("runner"))
+        self.update_view_settings()
         self.games_stack.set_visible_child_name(view_type)
         self.update_store()
         self.update_action_state()
+
+    def update_view_settings(self):
+        if self.current_view_type == "grid":
+            show_badges = settings.read_setting("hide_badges_on_icons") != 'True'
+            self.current_view.show_badges = show_badges and not bool(
+                self.filters.get("platform") or self.filters.get("runner"))
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
@@ -930,6 +934,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         GLib.idle_add(self.update_revealer, game)
         return False
+
+    def on_settings_changed(self, dialog, settings_key):
+        self.update_view_settings()
+        if self.current_view:
+            self.current_view.queue_draw()
+        return True
 
     def is_game_displayed(self, game):
         """Return whether a game should be displayed on the view"""

@@ -1,7 +1,7 @@
 """Configuration dialog for client and system options"""
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from lutris.config import LutrisConfig
 from lutris.gui.config.boxes import SystemBox
@@ -14,6 +14,10 @@ from lutris.gui.config.sysinfo_box import SysInfoBox
 
 # pylint: disable=no-member
 class PreferencesDialog(GameDialogCommon):
+    __gsignals__ = {
+        "settings-changed": (GObject.SIGNAL_RUN_LAST, None, (str, )),
+    }
+
     def __init__(self, parent=None):
         super().__init__(_("Lutris settings"), parent=parent)
         self.set_border_width(0)
