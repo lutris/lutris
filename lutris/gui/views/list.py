@@ -75,8 +75,8 @@ class GameListView(Gtk.TreeView, GameView):
         size = game_store.service_media.size
 
         if self.image_renderer:
-            self.image_renderer.cell_width = size[0]
-            self.image_renderer.cell_height = size[1]
+            self.image_renderer.media_width = size[0]
+            self.image_renderer.media_height = size[1]
 
         if self.media_column:
             media_width = size[0]

@@ -50,8 +50,8 @@ class GameGridView(Gtk.IconView, GameView):
         size = game_store.service_media.size
 
         if self.image_renderer:
-            self.image_renderer.cell_width = size[0]
-            self.image_renderer.cell_height = size[1]
+            self.image_renderer.media_width = size[0]
+            self.image_renderer.media_height = size[1]
 
         if self.cell_renderer:
             cell_width = max(size[0], self.min_width)
@@ -66,6 +66,7 @@ class GameGridView(Gtk.IconView, GameView):
         if self._show_badges != value:
             self._show_badges = value
             self._initialize_image_renderer_attributes()
+            self.queue_draw()
 
     def _initialize_image_renderer_attributes(self):
         if self.image_renderer:

@@ -704,7 +704,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.update_action_state()
 
     def update_view_settings(self):
-        if self.current_view_type == "grid":
+        if self.current_view and self.current_view_type == "grid":
             show_badges = settings.read_setting("hide_badges_on_icons") != 'True'
             self.current_view.show_badges = show_badges and not bool(
                 self.filters.get("platform") or self.filters.get("runner"))
@@ -910,8 +910,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def on_settings_changed(self, dialog, settings_key):
         self.update_view_settings()
-        if self.current_view:
-            self.current_view.queue_draw()
         return True
 
     def is_game_displayed(self, game):
