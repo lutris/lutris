@@ -123,6 +123,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
         return x, y
 
+    def get_badge_icon_size(self):
+        if self.cell_height < 128:
+            return 16, 16
+        elif self.cell_height < 256:
+            return 24, 24
+        else:
+            return 32, 32
+
     def render_media(self, cr, widget, surface, x, y):
         width, height = get_surface_size(surface)
 
@@ -142,7 +150,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             icon_paths = [get_runtime_icon_path(p + "-symbolic") for p in platforms]
             icon_paths = [path for path in icon_paths if path]
             if icon_paths:
-                self.render_badges(cr, widget, icon_paths, (16, 16), media_right, cell_area)
+                icon_size = self.get_badge_icon_size()
+                self.render_badges(cr, widget, icon_paths, icon_size, media_right, cell_area)
 
     def render_badges(self, cr, widget, icon_paths, icon_size, media_right, cell_area):
         def render_badge(badge_x, badge_y, path):
