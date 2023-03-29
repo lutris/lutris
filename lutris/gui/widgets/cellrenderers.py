@@ -30,8 +30,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._cell_width = 0
-        self._cell_height = 0
+        self._media_width = 0
+        self._media_height = 0
         self._media_path = None
         self._platform = None
         self._is_installed = True
@@ -41,25 +41,30 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.cached_surface_generation = 0
 
     @GObject.Property(type=int, default=0)
-    def cell_width(self):
-        return self._cell_width
+    def media_width(self):
+        """This is the width of the media being rendered; if the cell is larger
+        it will be centered in the cell area."""
+        return self._media_width
 
-    @cell_width.setter
-    def cell_width(self, value):
-        self._cell_width = value
+    @media_width.setter
+    def media_width(self, value):
+        self._media_width = value
         self.clear_cache()
 
     @GObject.Property(type=int, default=0)
-    def cell_height(self):
-        return self._cell_height
+    def media_height(self):
+        """This is the height of the media being rendered; if the cell is larger
+        it will be at the bottom of the cell area."""
+        return self._media_height
 
-    @cell_height.setter
-    def cell_height(self, value):
-        self._cell_height = value
+    @media_height.setter
+    def media_height(self, value):
+        self._media_height = value
         self.clear_cache()
 
     @GObject.Property(type=str)
     def media_path(self):
+        """This is the path to the media file to be displayed."""
         return self._media_path
 
     @media_path.setter
@@ -68,6 +73,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     @GObject.Property(type=str)
     def platform(self):
+        """This is the platform text, a comma separated list; we try to convert
+        this into icons, if it is not None."""
         return self._platform
 
     @platform.setter
@@ -76,6 +83,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     @GObject.Property(type=bool, default=True)
     def is_installed(self):
+        """This flag indicates if the game is installed; if not the media is shown
+        faded out."""
         return self._is_installed
 
     @is_installed.setter
@@ -83,19 +92,19 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._is_installed = value
 
     def do_get_size(self, widget, cell_area):
-        return 0, 0, self.cell_width, self.cell_height
+        return 0, 0, self.media_width, self.media_height
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
-        cell_width = self.cell_width
-        cell_height = self.cell_height
+        media_width = self.media_width
+        media_height = self.media_height
         path = self.media_path
         alpha = 1 if self.is_installed else 100 / 255
 
-        if cell_width > 0 and cell_height > 0 and path:
+        if media_width > 0 and media_height > 0 and path:
             surface = self.get_cached_surface_by_path(widget, path)
             if not surface:
                 # The default icon needs to be scaled to fill the cell space.
-                path = get_default_icon_path((cell_width, cell_height))
+                path = get_default_icon_path((media_width, media_height))
                 surface = self.get_cached_surface_by_path(widget, path,
                                                           preserve_aspect_ratio=False)
 
@@ -104,11 +113,11 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, x + cell_width, cell_area)
+                    self.render_platforms(cr, widget, x + media_width, cell_area)
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, x + cell_width, cell_area)
+                    self.render_platforms(cr, widget, x + media_width, cell_area)
                     cr.pop_group_to_source()
                     cr.paint_with_alpha(alpha)
 
@@ -118,20 +127,26 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 self.cycle_cache_idle_id = GLib.idle_add(self.cycle_cache)
 
     def get_media_position(self, surface, cell_area):
+        """Computes the position of the upper left corner where we will render
+        a surface within the cell area."""
         width, height = get_surface_size(surface)
         x = round(cell_area.x + (cell_area.width - width) / 2)  # centered
         y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
         return x, y
 
     def get_badge_icon_size(self):
-        if self.cell_height < 128:
+        """Returns the size of the badge icons to render, or None to hide them."""
+        if self.media_height < 64:
+            return None
+        if self.media_height < 128:
             return 16, 16
-        elif self.cell_height < 256:
+        if self.media_height < 256:
             return 24, 24
-        else:
-            return 32, 32
+        return 32, 32
 
     def render_media(self, cr, widget, surface, x, y):
+        """Renders the media itself, given the surface containing it
+        and the position."""
         width, height = get_surface_size(surface)
 
         cr.set_source_surface(surface, x, y)
@@ -140,8 +155,11 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cr.fill()
 
     def render_platforms(self, cr, widget, media_right, cell_area):
+        """Renders the stack of platform icons. They appear lined up vertically to the
+        right of 'media_right', if that will fit in 'cell_area'."""
         platform = self.platform
-        if platform and self.cell_height >= 64:
+        icon_size = self.get_badge_icon_size()
+        if platform and icon_size:
             if "," in platform:
                 platforms = platform.split(",")  # pylint:disable=no-member
             else:
@@ -150,10 +168,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             icon_paths = [get_runtime_icon_path(p + "-symbolic") for p in platforms]
             icon_paths = [path for path in icon_paths if path]
             if icon_paths:
-                icon_size = self.get_badge_icon_size()
-                self.render_badges(cr, widget, icon_paths, icon_size, media_right, cell_area)
+                self.render_badge_stack(cr, widget, icon_paths, icon_size, media_right, cell_area)
 
-    def render_badges(self, cr, widget, icon_paths, icon_size, media_right, cell_area):
+    def render_badge_stack(self, cr, widget, icon_paths, icon_size, media_right, cell_area):
+        """Renders a vertical stack of badges, placed at the edge of the media, off to the right
+        of 'media_right' if this will fit in the 'cell_area'. The icons in icon_paths are drawn from
+        top to bottom, and spaced to fit in 'cell_area', even if they overlap because of this."""
         def render_badge(badge_x, badge_y, path):
             cr.rectangle(badge_x + 1, badge_y + 1, icon_size[0], icon_size[0])
             cr.set_source_rgba(1, 1, 1)
@@ -171,7 +191,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         badge_width = icon_size[0] + 2
         badge_height = icon_size[1] + 2
 
-        x = min(media_right, cell_area.x + cell_area.width - badge_width)
+        x = min(media_right + 1, cell_area.x + cell_area.width - badge_width)
         spacing = (cell_area.height - badge_height * len(icon_paths)) / max(1, len(icon_paths) - 1)
         spacing = min(spacing, 1)
         y_offset = floor(badge_height + spacing)
@@ -221,7 +241,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return surface
 
     def get_surface_by_path(self, widget, path, size=None, preserve_aspect_ratio=True):
-        cell_size = size or (self.cell_width, self.cell_height)
+        cell_size = size or (self.media_width, self.media_height)
         scale_factor = widget.get_scale_factor() if widget else 1
         return get_scaled_surface_by_path(path, cell_size, scale_factor,
                                           preserve_aspect_ratio=preserve_aspect_ratio)
