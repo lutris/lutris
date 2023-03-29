@@ -5,7 +5,6 @@ import time
 
 from lutris import settings
 from lutris.database.services import ServiceGameCollection
-from lutris.gui.widgets.utils import get_pixbuf
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
 from lutris.util.log import logger
@@ -34,17 +33,13 @@ class ServiceMedia:
     def get_filename(self, slug):
         return self.file_pattern % slug
 
-    def get_absolute_path(self, slug):
-        """Return the abolute path of a local media"""
+    def get_media_path(self, slug):
+        """Return the absolute path of a local media file"""
         return os.path.join(self.dest_path, self.get_filename(slug))
 
     def exists(self, slug):
         """Whether the icon for the specified slug exists locally"""
-        return system.path_exists(self.get_absolute_path(slug))
-
-    def get_pixbuf_for_game(self, slug, size=None):
-        image_abspath = self.get_absolute_path(slug)
-        return get_pixbuf(image_abspath, size or self.size)
+        return system.path_exists(self.get_media_path(slug))
 
     def get_media_url(self, details):
         if self.api_field not in details:

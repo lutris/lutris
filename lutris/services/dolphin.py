@@ -91,7 +91,7 @@ class DolphinGame(ServiceGame):
 
     def get_banner(self, cache_entry):
         banner = DolphinBanner()
-        banner_path = banner.get_absolute_path(self.appid)
+        banner_path = banner.get_media_path(self.appid)
 
         if os.path.exists(banner_path):
             return banner_path

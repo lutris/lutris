@@ -18,10 +18,6 @@
   border: 0;
 }
 
-.panel-button label {
-    font-weight: normal;
-}
-
 .info-pill {
   background-color: alpha(currentColor, .07);
   border-radius: 5px;

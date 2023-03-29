@@ -87,12 +87,12 @@ class StoreItem:
             return False
         return self._game_data.get("installed")
 
-    def get_pixbuf_path(self):
+    def get_media_path(self):
         """Returns the path to the image file for this item"""
         if self._game_data.get("icon"):
             return self._game_data["icon"]
 
-        return self.service_media.get_absolute_path(self.slug)
+        return self.service_media.get_media_path(self.slug)
 
     @property
     def installed_at(self):

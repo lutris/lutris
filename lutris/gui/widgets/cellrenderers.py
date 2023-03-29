@@ -1,6 +1,8 @@
-from gi.repository import Gtk, Gdk, Pango, GObject
+import cairo
+from gi.repository import GLib, Gtk, Pango, GObject
 
-from lutris.gui.widgets.utils import get_default_icon_path, get_cached_pixbuf_by_path
+from lutris.gui.widgets.utils import get_default_icon_path, get_scaled_surface_by_path, get_media_generation_number, \
+    get_surface_size
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -26,8 +28,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         super().__init__(*args, **kwargs)
         self._cell_width = 0
         self._cell_height = 0
-        self._pixbuf_path = None
+        self._media_path = None
         self._is_installed = True
+        self.cached_surfaces_new = {}
+        self.cached_surfaces_old = {}
+        self.cycle_cache_idle_id = None
+        self.cached_surface_generation = 0
 
     @GObject.Property(type=int, default=0)
     def cell_width(self):
@@ -36,6 +42,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     @cell_width.setter
     def cell_width(self, value):
         self._cell_width = value
+        self.clear_cache()
 
     @GObject.Property(type=int, default=0)
     def cell_height(self):
@@ -44,14 +51,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     @cell_height.setter
     def cell_height(self, value):
         self._cell_height = value
+        self.clear_cache()
 
     @GObject.Property(type=str)
-    def pixbuf_path(self):
-        return self._pixbuf_path
+    def media_path(self):
+        return self._media_path
 
-    @pixbuf_path.setter
-    def pixbuf_path(self, value):
-        self._pixbuf_path = value
+    @media_path.setter
+    def media_path(self, value):
+        self._media_path = value
 
     @GObject.Property(type=bool, default=True)
     def is_installed(self):
@@ -67,48 +75,74 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def do_render(self, cr, widget, background_area, cell_area, flags):
         cell_width = self.cell_width
         cell_height = self.cell_height
-        path = self.pixbuf_path
+        path = self.media_path
 
         if cell_width > 0 and cell_height > 0 and path:  # pylint: disable=comparison-with-callable
-            pixbuf = get_cached_pixbuf_by_path(path, self.is_installed)
-
-            if pixbuf:
-                x, y, fit_factor_x, fit_factor_y = self._get_fit_factors(pixbuf, cell_area)
-            else:
-                # The default icon needs to be scaled to fill the cell space
+            surface = self.get_cached_surface_by_path(widget, path)
+            if not surface:
+                # The default icon needs to be scaled to fill the cell space.
                 path = get_default_icon_path((cell_width, cell_height))
-                pixbuf = get_cached_pixbuf_by_path(path, self.is_installed)
-                x, y, fit_factor_x, fit_factor_y = self._get_fill_factors(pixbuf, cell_area)
+                surface = self.get_cached_surface_by_path(widget, path,
+                                                          preserve_aspect_ratio=False)
 
-            if pixbuf:
-                cr.translate(x, y)
-                cr.scale(fit_factor_x, fit_factor_y)
-                Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
-                cr.paint()
+            if surface:
+                width, height = get_surface_size(surface)
 
-    def _get_fit_factors(self, pixbuf, target_area):
-        """The provides the position and scaling to draw a pixbuf in the
-        target area, preserving its aspect ratio."""
-        if not pixbuf:
-            return 0, 0, 0, 0
+                x = round(cell_area.x + (cell_area.width - width) / 2)  # centered
+                y = round(cell_area.y + cell_area.height - height)  # at bottom of cell
 
-        actual_width = pixbuf.get_width()
-        actual_height = pixbuf.get_height()
+                cr.set_source_surface(surface, x, y)
+                cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
+                cr.rectangle(x, y, width, height)
+                cr.fill()
 
-        fit_factor_x = min(self.cell_width / actual_width, self.cell_height / actual_height)
-        fit_factor_y = fit_factor_x
-        x = target_area.x + (target_area.width - actual_width * fit_factor_x) / 2  # centered
-        y = target_area.y + target_area.height - actual_height * fit_factor_y  # at bottom of cell
-        return x, y, fit_factor_x, fit_factor_y
+            # Idle time will wait until the widget has drawn whatever it wants to;
+            # we can then discard surfaces we aren't using anymore.
+            if not self.cycle_cache_idle_id:
+                self.cycle_cache_idle_id = GLib.idle_add(self.cycle_cache)
 
-    def _get_fill_factors(self, pixbuf, cell_area):
-        """The provides the position and scaling to draw a pixbuf, filling the
-        target area, and not preserving its aspect ratio."""
-        actual_width = pixbuf.get_width()
-        actual_height = pixbuf.get_height()
+    def clear_cache(self):
+        """Discards all cached surfaces; used when some properties are changed."""
+        self.cached_surfaces_old.clear()
+        self.cached_surfaces_new.clear()
 
-        fit_factor_x = self.cell_width / actual_width
-        fit_factor_y = self.cell_height / actual_height
-        x = cell_area.x + (cell_area.width - actual_width * fit_factor_x) / 2  # centered
-        y = cell_area.y + cell_area.height - actual_height * fit_factor_y  # at bottom of cell
-        return x, y, fit_factor_x, fit_factor_y
+    def cycle_cache(self):
+        """Is the key cache size control trick. When called, the surfaces cached or used
+        since the last call are preserved, but those not touched are discarded.
+
+        We call this at idle time after rendering a cell; this should keep all the surfaces
+        rendered at that time, so during scrolling the visible media are kept and scrolling is smooth.
+        At other times we may discard almost all surfaces, saving memory."""
+        self.cached_surfaces_old = self.cached_surfaces_new
+        self.cached_surfaces_new = {}
+        self.cycle_cache_idle_id = None
+
+    def get_cached_surface_by_path(self, widget, path, preserve_aspect_ratio=True):
+        """This obtains the scaled surface to rander for a given media path; this is cached
+        in this render, but we'll clear that cache when the media generation number is changed,
+        or certain properties are. We also age surfaces from the cache at idle time after
+        rendering."""
+        if self.cached_surface_generation != get_media_generation_number():
+            self.cached_surface_generation = get_media_generation_number()
+            self.clear_cache()
+
+        key = widget, path, preserve_aspect_ratio
+
+        surface = self.cached_surfaces_new.get(key)
+        if surface:
+            return surface
+
+        surface = self.cached_surfaces_old.get(key)
+
+        if not surface:
+            surface = self.get_surface_by_path(widget, path, preserve_aspect_ratio)
+
+        self.cached_surfaces_new[key] = surface
+        return surface
+
+    def get_surface_by_path(self, widget, path, preserve_aspect_ratio=True):
+        cell_size = (self.cell_width, self.cell_height)
+        scale_factor = widget.get_scale_factor() if widget else 1
+        alpha = 1 if self.is_installed else 100 / 255  # pylint:disable=using-constant-test
+        return get_scaled_surface_by_path(path, cell_size, scale_factor, alpha,
+                                          preserve_aspect_ratio=preserve_aspect_ratio)
