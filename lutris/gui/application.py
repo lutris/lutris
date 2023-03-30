@@ -959,7 +959,8 @@ Also, check that the version specified is in the correct format.
     def do_shutdown(self):  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
         if self.window:
-            settings.write_setting("selected_category", self.window.selected_category)
+            selected_category = "%s:%s" % self.window.selected_category
+            settings.write_setting("selected_category", selected_category)
             self.window.destroy()
         Gtk.Application.do_shutdown(self)
 

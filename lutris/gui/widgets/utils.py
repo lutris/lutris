@@ -1,9 +1,9 @@
 """Various utilities using the GObject framework"""
 import array
 import os
-from functools import lru_cache
 
-from gi.repository import GdkPixbuf, Gio, GLib, Gtk
+import cairo
+from gi.repository import GdkPixbuf, Gio, GLib, Gdk, Gtk
 
 from lutris import settings
 from lutris.util import datapath, system, magic
@@ -16,6 +16,8 @@ except ImportError:
 
 ICON_SIZE = (32, 32)
 BANNER_SIZE = (184, 69)
+
+_surface_generation_number = 0
 
 
 def get_main_window(widget):
@@ -54,37 +56,64 @@ def get_image_file_format(path):
     return None
 
 
-def get_pixbuf(path, size):
-    """Return a pixbuf from file `image` at `size`, preserving its aspect ratio.
-    If the file is not found or can't be decoded, this will return the default
-    icon. If 'size' square, this is a Lutris icon; if not it is a gradient filling
-    the full size given."""
-    pixbuf = get_pixbuf_by_path(path, size)
-
-    if pixbuf:
-        return pixbuf
-
-    default_icon = get_default_icon_path(size)
-    pixbuf = get_scaled_pixbuf_by_path(default_icon, size)
-
-    if pixbuf:
-        return pixbuf
-
-    return get_unavailable_pixbuf(size)
+def get_surface_size(surface):
+    """Returns the size of a surface, accounting for the device scale;
+    the surface's get_width() and get_height() are in physical pixels."""
+    device_scale_x, device_scale_y = surface.get_device_scale()
+    width = surface.get_width() / device_scale_x
+    height = surface.get_height() / device_scale_y
+    return width, height
 
 
-@lru_cache(maxsize=128)
-def get_cached_pixbuf_by_path(path, is_installed=True):
-    """This keeps a global cache of pixbufs displayed in the uI;
-    these can have the 'uninstalled' effect applied to them, and will
-    be cached that way."""
+def get_scaled_surface_by_path(path, size, device_scale, alpha=1, preserve_aspect_ratio=True):
+    """Returns a Cairo surface containing the image at the path given. It has the size indicated,
+    and if alpha is less than 1, it will be partially transparent to that degree.
+
+    You specify the device_scale, and the bitmap is generated at an enlarged size accordingly,
+    but with the device scale of the surface also set; in this way a high-DPI image can be
+    rendered conveniently.
+
+    If you pass True for preserve_aspect_ratio, the aspect ratio of the image is preserved,
+    but will be no larger than the size (times the device_scale).
+
+    If the path cannot be read, this returns None.
+    """
     pixbuf = get_pixbuf_by_path(path)
-    return pixbuf if is_installed else get_uninstalled_pixbuf(pixbuf)
+    if pixbuf:
+        pixbuf_width = pixbuf.get_width()
+        pixbuf_height = pixbuf.get_height()
+
+        scale_x = (size[0] / pixbuf_width) * device_scale
+        scale_y = (size[1] / pixbuf_height) * device_scale
+
+        if preserve_aspect_ratio:
+            scale_x = min(scale_x, scale_y)
+            scale_y = scale_x
+
+        pixel_width = int(round(pixbuf_width * scale_x))
+        pixel_height = int(round(pixbuf_height * scale_y))
+
+        surface = cairo.ImageSurface(cairo.Format.ARGB32, pixel_width, pixel_height)  # pylint:disable=no-member
+        cr = cairo.Context(surface)  # pylint:disable=no-member
+        cr.scale(scale_x, scale_y)
+        Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+        cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
+        cr.paint_with_alpha(alpha)
+        surface.set_device_scale(device_scale, device_scale)
+        return surface
 
 
-def clear_pixbuf_caches():
-    """This clears the pixbuf cached that get_cached_pixbuf_by_path() uses."""
-    get_cached_pixbuf_by_path.cache_clear()
+def get_media_generation_number():
+    """Returns a number that is incremented whenever cached media may no longer
+    be valid. Caller can check to see if this has changed before using their own caches."""
+    return _surface_generation_number
+
+
+def invalidate_media_caches():
+    """Increments the media generation number; this indicates that cached media
+    from earlier generations may be invalid and should be reloaded."""
+    global _surface_generation_number
+    _surface_generation_number += 1
 
 
 def get_default_icon_path(size):
@@ -97,10 +126,10 @@ def get_default_icon_path(size):
     return os.path.join(datapath.get(), filename)
 
 
-def get_pixbuf_by_path(path, size=None):
+def get_pixbuf_by_path(path, size=None, preserve_aspect_ratio=True):
     """Reads an image file and returns the pixbuf. If you provide a size, this scales
-    the file to fit that size, preserving the aspect ratio. If the file is missing or
-    unreadable, this returns None."""
+    the file to fit that size, preserving the aspect ratio if preserve_aspect_ratio is
+    True. If the file is missing or unreadable, or if 'path' is None, this returns None."""
     if not system.path_exists(path, exclude_empty=True):
         return None
 
@@ -108,86 +137,32 @@ def get_pixbuf_by_path(path, size=None):
         if size:
             # new_from_file_at_size scales but preserves aspect ratio
             width, height = size
-            return GdkPixbuf.Pixbuf.new_from_file_at_size(path, width, height)
+            if preserve_aspect_ratio:
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(path, width, height)
 
-        return GdkPixbuf.Pixbuf.new_from_file(path)
-    except GLib.GError:
-        logger.error("Unable to load icon from image %s", path)
-
-
-def get_scaled_pixbuf_by_path(path, size):
-    """Reads an image file and returns the pixbuf. If you provide a size, this scales
-    the file to full that size, ignore the aspect ratio. If the file is missing or
-    unreadable, this returns None."""
-    if not system.path_exists(path):
-        return None
-
-    try:
-        if size:
-            width, height = size
             return GdkPixbuf.Pixbuf.new_from_file_at_scale(path, width, height, preserve_aspect_ratio=False)
 
         return GdkPixbuf.Pixbuf.new_from_file(path)
     except GLib.GError:
-        logger.error("Unable to load icon from image %s", path)
-
-
-def get_uninstalled_pixbuf(original_pixbuf):
-    """Applies a transparency effect to the pixbuf given, and returns a new pixbuf of
-    the same size containing the result. If passed None, this returns None."""
-    if not original_pixbuf:
-        return None
-
-    size = (original_pixbuf.get_width(), original_pixbuf.get_height())
-    transparent_pixbuf = get_unavailable_pixbuf(size)
-    original_pixbuf.composite(
-        transparent_pixbuf,
-        0,
-        0,
-        size[0],
-        size[1],
-        0,
-        0,
-        1,
-        1,
-        GdkPixbuf.InterpType.NEAREST,
-        100,
-    )
-    return transparent_pixbuf
-
-
-def get_unavailable_pixbuf(size):
-    """Returns a partially transparent image in a pixbuf of the size given; we blend this into
-    other images to indicate that a game is not installed."""
-    width, height = size
-    overlay_path = os.path.join(datapath.get(), "media/unavailable.png")
-    return GdkPixbuf.Pixbuf.new_from_file_at_scale(overlay_path, width, height, preserve_aspect_ratio=False)
+        logger.exception("Unable to load icon from image %s", path)
 
 
 def has_stock_icon(name):
     """This tests if a GTK stock icon is known; if not we can try a fallback."""
+    if not name:
+        return False
+
     theme = Gtk.IconTheme.get_default()
     return theme.has_icon(name)
 
 
-def get_stock_icon(name, size):
-    """Return a pixbuf from a stock icon name"""
-    theme = Gtk.IconTheme.get_default()
-    try:
-        return theme.load_icon(name, size, Gtk.IconLookupFlags.GENERIC_FALLBACK)
-    except GLib.GError:
-        logger.error("Failed to read icon %s", name)
-        return None
+def get_runtime_icon_path(icon_name):
+    """Finds the icon file for an icon whose name is given; this searches the icons
+    in Lutris's runtime directory. The name is normalized by removing spaces
+    and lower-casing it, and both .png and .svg files with the name can be found.
 
-
-def get_runtime_icon(icon_name, icon_format="image", size=None):
-    """Return an icon based on the given name, format, size and type. Only
-    the icons installed in Lutris's runtime directory are searched.
-
-    Keyword arguments:
+    Arguments:
     icon_name -- The name of the icon to retrieve
-    format -- The format of the icon, which should be either 'image' or 'pixbuf' (default 'image')
-    size -- The size for the desired image (default None)
     """
     filename = icon_name.lower().replace(" ", "")
     # We prefer bitmaps over SVG, because we've got some SVG icons with the
@@ -203,16 +178,7 @@ def get_runtime_icon(icon_name, icon_format="image", size=None):
         for ext in extensions:
             icon_path = os.path.join(settings.RUNTIME_DIR, search_dir, filename + ext)
             if os.path.exists(icon_path):
-                if icon_format == "image":
-                    icon = Gtk.Image()
-                    if size:
-                        icon.set_from_pixbuf(get_pixbuf(icon_path, size))
-                    else:
-                        icon.set_from_file(icon_path)
-                    return icon
-                if icon_format == "pixbuf" and size:
-                    return get_pixbuf(icon_path, size)
-                raise ValueError("Invalid arguments")
+                return icon_path
     return None
 
 
@@ -289,16 +255,6 @@ def image2pixbuf(image):
     image_array = array.array('B', image.tobytes())
     width, height = image.size
     return GdkPixbuf.Pixbuf.new_from_data(image_array, GdkPixbuf.Colorspace.RGB, True, 8, width, height, width * 4)
-
-
-def get_link_button(text):
-    """Return a transparent text button for the side panels"""
-    button = Gtk.Button(text, visible=True)
-    button.props.relief = Gtk.ReliefStyle.NONE
-    button.get_children()[0].set_alignment(0, 0.5)
-    button.get_style_context().add_class("panel-button")
-    button.set_size_request(-1, 24)
-    return button
 
 
 def load_icon_theme():

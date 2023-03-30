@@ -268,7 +268,7 @@ class DummyRow():
 class LutrisSidebar(Gtk.ListBox):
     __gtype_name__ = "LutrisSidebar"
 
-    def __init__(self, application, selected=None):
+    def __init__(self, application):
         super().__init__()
         self.set_size_request(200, -1)
         self.application = application
@@ -282,10 +282,6 @@ class LutrisSidebar(Gtk.ListBox):
         # A dummy objects that allows inspecting why/when we have a show() call on the object.
         self.running_row = DummyRow()
         self.missing_row = DummyRow()
-        if selected:
-            self.selected_row_type, self.selected_row_id = selected.split(":")
-        else:
-            self.selected_row_type, self.selected_row_id = ("category", "all")
         self.row_headers = {
             "library": SidebarHeader(_("Library")),
             "sources": SidebarHeader(_("Sources")),
@@ -400,12 +396,21 @@ class LutrisSidebar(Gtk.ListBox):
         self.update()
         self.show_all()
         self.running_row.hide()
-        GLib.idle_add(self._preselect_active_row)
 
-    def _preselect_active_row(self):
-        """Select the active row based on initial selected row"""
+    @property
+    def selected_category(self):
+        """The selected sidebar row, as a tuple of category and category value,
+        like ('service', 'lutris')."""
+        row = self.get_selected_row()
+        return row.type, row.id if row else ("category", "all")
+
+    @selected_category.setter
+    def selected_category(self, value):
+        """Selects the rrow for the category indicated by a category tuple,
+        like ('service', 'lutris')"""
+        selected_row_type, selected_row_id = value or ("category", "all")
         for row in self.get_children():
-            if row.type == self.selected_row_type and row.id == self.selected_row_id:
+            if row.type == selected_row_type and row.id == selected_row_id:
                 self.select_row(row)
                 break
 
