@@ -108,8 +108,6 @@ class Game(GObject.Object):
     def __init__(self, game_id=None):
         super().__init__()
         self._id = game_id  # pylint: disable=invalid-name
-        self.runner = None
-        self.config = None
 
         # Load attributes from database
         game_data = games_db.get_game_by_field(game_id, "id")
@@ -135,8 +133,9 @@ class Game(GObject.Object):
         self.appid = game_data.get("service_id")
         self.playtime = float(game_data.get("playtime") or 0.0)
 
-        if self.game_config_id:
-            self.load_config()
+        self._config = None
+        self._runner = None
+
         self.game_uuid = None
         self.game_thread = None
         self.antimicro_thread = None
@@ -309,20 +308,29 @@ class Game(GObject.Object):
             return self.runner.resolve_game_path()
         return ""
 
-    def _get_runner(self):
-        """Return the runner instance for this game's configuration"""
-        try:
-            runner_class = import_runner(self.runner_name)
-            return runner_class(self.config)
-        except InvalidRunner:
-            logger.error("Unable to import runner %s for %s", self.runner_name, self.slug)
+    @property
+    def config(self):
+        if not self.is_installed or not self.game_config_id:
+            return None
+        if not self._config:
+            self._config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
+        return self._config
 
-    def load_config(self):
-        """Load the game's configuration."""
-        if not self.is_installed:
-            return
-        self.config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
-        self.runner = self._get_runner()
+    def reload_config(self):
+        """Triggers the config to reload when next used; this also reloads the runner,
+        so that it will pick up the new configuration."""
+        self._config = None
+        self._runner = None
+
+    @property
+    def runner(self):
+        if not self._runner:
+            try:
+                runner_class = import_runner(self.runner_name)
+                self._runner = runner_class(self.config)
+            except InvalidRunner:
+                logger.error("Unable to import runner %s for %s", self.runner_name, self.slug)
+        return self._runner
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
@@ -351,7 +359,8 @@ class Game(GObject.Object):
             # directories when we delete them
             self.runner.remove_game_data(app_id=self.appid, game_path=self.directory)
         self.is_installed = False
-        self.runner = None
+        self._config = None
+        self._runner = None
 
         if str(self.id) in LOG_BUFFERS:  # Reset game logs on removal
             log_buffer = LOG_BUFFERS[str(self.id)]
@@ -633,7 +642,7 @@ class Game(GObject.Object):
         if not launch_ui_delegate.check_game_launchable(self):
             return False
 
-        self.load_config()  # Reload the config before launching it.
+        self.reload_config()  # Reload the config before launching it.
         saves = self.config.game_level["game"].get("saves")
         if saves:
             sync_saves(self)

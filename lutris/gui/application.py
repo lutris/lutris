@@ -375,7 +375,7 @@ class Application(Gtk.Application):
 
         game = Game(db_game["id"])
         game.connect("game-error", on_error)
-        game.load_config()
+        game.reload_config()
         game.write_script(script_path, self.launch_ui_delegate)
 
     def do_handle_local_options(self, options):

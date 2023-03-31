@@ -522,7 +522,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         if response in (Gtk.ResponseType.CANCEL, response == Gtk.ResponseType.DELETE_EVENT):
             # Reload the config to clean out any changes we may have made
             if self.game:
-                self.game.load_config()
+                self.game.reload_config()
         if response != Gtk.ResponseType.NONE:
             self.destroy()
 
