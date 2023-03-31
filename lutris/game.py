@@ -316,6 +316,10 @@ class Game(GObject.Object):
             self._config = LutrisConfig(runner_slug=self.runner_name, game_config_id=self.game_config_id)
         return self._config
 
+    @config.setter
+    def config(self, value):
+        self._config = value
+
     def reload_config(self):
         """Triggers the config to reload when next used; this also reloads the runner,
         so that it will pick up the new configuration."""
@@ -331,6 +335,10 @@ class Game(GObject.Object):
             except InvalidRunner:
                 logger.error("Unable to import runner %s for %s", self.runner_name, self.slug)
         return self._runner
+
+    @runner.setter
+    def runner(self, value):
+        self._runner = value
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
