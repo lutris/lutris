@@ -675,16 +675,9 @@ class GameBox(ConfigBox):
     def __init__(self, lutris_config, game):
         ConfigBox.__init__(self, game)
         self.lutris_config = lutris_config
-        if game.runner_name:
-            if not game.runner:
-                try:
-                    self.runner = import_runner(game.runner_name)()
-                except InvalidRunner:
-                    self.runner = None
-            else:
-                self.runner = game.runner
-            if self.runner:
-                self.options = self.runner.game_options
+        self.runner = game.runner
+        if self.runner:
+            self.options = self.runner.game_options
         else:
             logger.warning("No runner in game supplied to GameBox")
 

@@ -113,7 +113,7 @@ class Game(GObject.Object):
         game_data = games_db.get_game_by_field(game_id, "id")
 
         self.slug = game_data.get("slug") or ""
-        self.runner_name = game_data.get("runner") or ""
+        self._runner_name = game_data.get("runner") or ""
         self.directory = game_data.get("directory") or ""
         self.name = game_data.get("name") or ""
         self.game_config_id = game_data.get("configpath") or ""
@@ -319,6 +319,9 @@ class Game(GObject.Object):
     @config.setter
     def config(self, value):
         self._config = value
+        self._runner = None
+        if value:
+            self.game_config_id = value.game_config_id
 
     def reload_config(self):
         """Triggers the config to reload when next used; this also reloads the runner,
@@ -327,7 +330,20 @@ class Game(GObject.Object):
         self._runner = None
 
     @property
+    def runner_name(self):
+        return self._runner_name
+
+    @runner_name.setter
+    def runner_name(self, value):
+        self._runner_name = value
+        if self._runner and self._runner.name != value:
+            self._runner = None
+
+    @property
     def runner(self):
+        if not self.runner_name:
+            return None
+
         if not self._runner:
             try:
                 runner_class = import_runner(self.runner_name)
@@ -339,6 +355,8 @@ class Game(GObject.Object):
     @runner.setter
     def runner(self, value):
         self._runner = value
+        if value:
+            self._runner_name = value.name
 
     def set_desktop_compositing(self, enable):
         """Enables or disables compositing"""
