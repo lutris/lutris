@@ -402,7 +402,7 @@ class LutrisSidebar(Gtk.ListBox):
         """The selected sidebar row, as a tuple of category and category value,
         like ('service', 'lutris')."""
         row = self.get_selected_row()
-        return row.type, row.id if row else ("category", "all")
+        return (row.type, row.id) if row else ("category", "all")
 
     @selected_category.setter
     def selected_category(self, value):
