@@ -96,7 +96,7 @@ class LutrisStatusIcon:
 
     def on_quit_application(self, _widget):
         """Callback to quit the program"""
-        self.application.do_shutdown()
+        self.application.quit()
 
     def _make_menu_item_for_game(self, game):
         menu_item = Gtk.MenuItem()
