@@ -1,4 +1,5 @@
 """Main window for the Lutris interface."""
+# pylint:disable=too-many-lines
 import os
 import re
 from collections import namedtuple
@@ -713,17 +714,33 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
             self.current_view.connect("game-selected", self.on_game_selection_changed)
             self.current_view.connect("game-activated", self.on_game_activated)
+            self.views[view_type] = self.current_view
 
+        scrolledwindow = self.games_stack.get_child_by_name(view_type)
+
+        if not scrolledwindow:
             scrolledwindow = Gtk.ScrolledWindow()
+            self.games_stack.add_named(scrolledwindow, view_type)
+
+        if not scrolledwindow.get_child():
             scrolledwindow.add(self.current_view)
             scrolledwindow.show_all()
-            self.games_stack.add_named(scrolledwindow, view_type)
-            self.views[view_type] = self.current_view
 
         self.update_view_settings()
         self.games_stack.set_visible_child_name(view_type)
         self.update_store()
         self.update_action_state()
+
+    def rebuild_view(self, view_type):
+        """Discards the view named by 'view_type' and if it is the current view,
+        regenerates it. This is used to update view settings that can only be
+        set during view construction, and not updated later."""
+        if view_type in self.views:
+            scrolledwindow = self.games_stack.get_child_by_name(view_type)
+            scrolledwindow.remove(self.views[view_type])
+            del self.views["grid"]
+            if self.current_view_type == view_type:
+                self.redraw_view()
 
     def update_view_settings(self):
         if self.current_view and self.current_view_type == "grid":
@@ -936,7 +953,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
         return False
 
     def on_settings_changed(self, dialog, settings_key):
-        self.update_view_settings()
+        if settings_key == "hide_text_under_icons":
+            self.rebuild_view("grid")
+        else:
+            self.update_view_settings()
         return True
 
     def is_game_displayed(self, game):
