@@ -5,11 +5,13 @@ from gettext import gettext as _
 from lutris.runners.runner import Runner
 from lutris.util import system
 
+PLATFORMS = [_("Nintendo GameCube"), _("Nintendo Wii")]
+
 
 class dolphin(Runner):
     description = _("GameCube and Wii emulator")
     human_name = _("Dolphin")
-    platforms = [_("Nintendo GameCube"), _("Nintendo Wii")]
+    platforms = PLATFORMS
     require_libs = ["libOpenGL.so.0", ]
     runnable_alone = True
     runner_executable = "dolphin/dolphin-emu"
