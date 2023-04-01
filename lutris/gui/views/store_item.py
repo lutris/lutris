@@ -101,7 +101,7 @@ class StoreItem:
         if "platform" in self._game_data:
             _platform = self._game_data["platform"]
 
-        if not _platform:
+        if not _platform and "appid" in self._game_data:
             game_data = games.get_game_for_service(self.service, self._game_data["appid"])
 
             if game_data:
