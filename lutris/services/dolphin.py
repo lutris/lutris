@@ -5,6 +5,7 @@ from gettext import gettext as _
 from PIL import Image
 
 from lutris import settings
+from lutris.runners.dolphin import PLATFORMS
 from lutris.services.base import BaseService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -59,6 +60,19 @@ class DolphinService(BaseService):
     def get_game_directory(self, installer):
         """Pull install location from installer"""
         return os.path.dirname(installer["script"]["game"]["main_file"])
+
+    def get_game_platforms(self, db_game):
+        if "details" in db_game:
+            details = json.loads(db_game.get("details"))
+            if details and details.get("platform"):
+                try:
+                    platform_number = int(details["platform"])
+                    if 0 <= platform_number < len(PLATFORMS):
+                        platform = PLATFORMS[platform_number]
+                        return [platform]
+                except ValueError:
+                    return None
+        return None
 
 
 class DolphinGame(ServiceGame):

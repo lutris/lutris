@@ -136,11 +136,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     def get_badge_icon_size(self):
         """Returns the size of the badge icons to render, or None to hide them."""
-        if self.media_height < 64:
+        media_size = max(self.media_height, self.media_width)
+        if media_size < 64:
             return None
-        if self.media_height < 128:
+        if media_size < 128:
             return 16, 16
-        if self.media_height < 256:
+        if media_size < 256:
             return 24, 24
         return 32, 32
 

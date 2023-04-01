@@ -746,7 +746,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         if self.current_view and self.current_view_type == "grid":
             show_badges = settings.read_setting("hide_badges_on_icons") != 'True'
             self.current_view.show_badges = show_badges and not bool(
-                self.filters.get("platform") or self.filters.get("runner"))
+                self.filters.get("platform"))
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
