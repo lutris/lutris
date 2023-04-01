@@ -65,13 +65,14 @@ class DolphinService(BaseService):
         if "details" in db_game:
             details = json.loads(db_game.get("details"))
             if details and details.get("platform"):
-                try:
+                platform_value = details["platform"]
+                if platform_value.isdigit():
                     platform_number = int(details["platform"])
                     if 0 <= platform_number < len(PLATFORMS):
                         platform = PLATFORMS[platform_number]
                         return [platform]
-                except ValueError:
-                    return None
+
+                return [platform_value]
         return None
 
 
