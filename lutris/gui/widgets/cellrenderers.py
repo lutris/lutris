@@ -135,13 +135,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return x, y
 
     def get_badge_icon_size(self):
-        """Returns the size of the badge icons to render, or None to hide them."""
-        media_size = max(self.media_height, self.media_width)
-        if media_size < 64:
+        """Returns the size of the badge icons to render, or None to hide them. We check
+        width for the smallest size because Dolphin has very thin banners, but we only hide
+        badges for icons, not banners."""
+        if self.media_width < 64:
             return None
-        if media_size < 128:
+        if self.media_height < 128:
             return 16, 16
-        if media_size < 256:
+        if self.media_height < 256:
             return 24, 24
         return 32, 32
 
