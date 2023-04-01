@@ -9,7 +9,7 @@ from lutris.gui.widgets.common import VBox
 class PreferencesBox(VBox):
     settings_options = {
         "hide_client_on_game_start": _("Minimize client when a game is launched"),
-        "hide_text_under_icons": _("Hide text under icons (requires restart)"),
+        "hide_text_under_icons": _("Hide text under icons"),
         "hide_badges_on_icons": _("Hide badges on icons"),
         "show_tray_icon": _("Show Tray Icon"),
         "dark_theme": _("Use dark theme (requires dark theme variant for Gtk)"),
