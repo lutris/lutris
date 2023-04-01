@@ -488,7 +488,7 @@ class wine(Runner):
                 "advanced": True,
                 "help": _(
                     "Do not use $HOME for desktop integration folders.\n"
-                    "By default, it use the directories in the confined "
+                    "By default, it will use the directories in the confined "
                     "Windows environment."
                 ),
             },
