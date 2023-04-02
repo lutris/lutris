@@ -121,7 +121,7 @@ class ServiceSidebarRow(SidebarRow):
             service.id,
             "service",
             service.name,
-            Gtk.Image.new_from_icon_name(service.icon, Gtk.IconSize.MENU)
+            LutrisSidebar.get_sidebar_icon(service.icon)
         )
         self.service = service
 
@@ -304,7 +304,8 @@ class LutrisSidebar(Gtk.ListBox):
         self.set_header_func(self._header_func)
         self.show_all()
 
-    def get_sidebar_icon(self, icon_name):
+    @staticmethod
+    def get_sidebar_icon(icon_name):
         name = icon_name if has_stock_icon(icon_name) else "package-x-generic-symbolic"
         icon = Gtk.Image.new_from_icon_name(name, Gtk.IconSize.MENU)
 
@@ -385,13 +386,13 @@ class LutrisSidebar(Gtk.ListBox):
                 runner_name,
                 "runner",
                 runner.human_name,
-                self.get_sidebar_icon(icon_name),
+                LutrisSidebar.get_sidebar_icon(icon_name),
                 application=self.application
             ))
 
         for platform in self.platforms:
             icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
-            self.add(SidebarRow(platform, "platform", platform, self.get_sidebar_icon(icon_name)))
+            self.add(SidebarRow(platform, "platform", platform, LutrisSidebar.get_sidebar_icon(icon_name)))
 
         self.update()
         self.show_all()
