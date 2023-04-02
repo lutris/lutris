@@ -15,6 +15,7 @@ from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.utils import has_stock_icon
 from lutris.installer.interpreter import ScriptInterpreter
+from lutris.services import SERVICES
 from lutris.services.base import AuthTokenExpired, BaseService
 from lutris.util.jobs import AsyncCall
 
@@ -23,6 +24,8 @@ SLUG = 1
 ICON = 2
 LABEL = 3
 GAMECOUNT = 4
+
+SERVICE_INDICES = {name: index for index, name in enumerate(SERVICES.keys())}
 
 
 class SidebarRow(Gtk.ListBoxRow):
@@ -68,6 +71,12 @@ class SidebarRow(Gtk.ListBoxRow):
         self.box.pack_end(self.btn_box, False, False, 0)
         self.spinner = Gtk.Spinner()
         self.box.pack_end(self.spinner, False, False, 0)
+
+    @property
+    def sort_key(self):
+        """An index indicate the place this row has within its type. The id is used
+        as a tie-breaker."""
+        return 0
 
     def get_actions(self):
         return []
@@ -123,6 +132,10 @@ class ServiceSidebarRow(SidebarRow):
             LutrisSidebar.get_sidebar_icon(service.icon)
         )
         self.service = service
+
+    @property
+    def sort_key(self):
+        return SERVICE_INDICES[self.id]
 
     def get_actions(self):
         """Return the definition of buttons to be added to the row"""
@@ -440,7 +453,7 @@ class LutrisSidebar(Gtk.ListBox):
             together, and rows in a hopefully reasonable order as we insert them."""
             header_row = self.row_headers.get(row.type) if row.type else None
             header_index = header_row.header_index if header_row else 0
-            return header_index, row.id
+            return header_index, row.sort_key, row.id
 
         def insert_row(row):
             """Find the best place to insert the row, to maintain order, and inserts it there."""
@@ -513,16 +526,19 @@ class LutrisSidebar(Gtk.ListBox):
         return True
 
     def on_service_auth_changed(self, service):
-        self.service_rows[service.id].create_button_box()
-        self.service_rows[service.id].update_buttons()
+        if service.id in self.service_rows:
+            self.service_rows[service.id].create_button_box()
+            self.service_rows[service.id].update_buttons()
         return True
 
     def on_service_games_updating(self, service):
-        self.service_rows[service.id].is_updating = True
-        self.service_rows[service.id].update_buttons()
+        if service.id in self.service_rows:
+            self.service_rows[service.id].is_updating = True
+            self.service_rows[service.id].update_buttons()
         return True
 
     def on_service_games_updated(self, service):
-        self.service_rows[service.id].is_updating = False
-        self.service_rows[service.id].update_buttons()
+        if service.id in self.service_rows:
+            self.service_rows[service.id].is_updating = False
+            self.service_rows[service.id].update_buttons()
         return True
