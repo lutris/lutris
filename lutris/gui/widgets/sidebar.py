@@ -238,9 +238,8 @@ class RunnerSidebarRow(SidebarRow):
 class SidebarHeader(Gtk.Box):
     """Header shown on top of each sidebar section"""
 
-    def __init__(self, name, header_index):
+    def __init__(self, name):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
-        self.header_index = header_index
         self.get_style_context().add_class("sidebar-header")
         label = Gtk.Label(
             halign=Gtk.Align.START,
@@ -276,23 +275,23 @@ class LutrisSidebar(Gtk.ListBox):
         self.get_style_context().add_class("sidebar")
         self.installed_runners = []
         self.service_rows = {}
-        self.runner_rows = {}
-        self.platform_rows = {}
-        self.active_services = None
         self.active_platforms = None
+        self.runners = None
+        self.platforms = None
+        self.categories = None
         # A dummy objects that allows inspecting why/when we have a show() call on the object.
         self.running_row = DummyRow()
         self.missing_row = DummyRow()
         self.row_headers = {
-            "library": SidebarHeader(_("Library"), header_index=0),
-            "service": SidebarHeader(_("Sources"), header_index=1),
-            "runner": SidebarHeader(_("Runners"), header_index=2),
-            "platform": SidebarHeader(_("Platforms"), header_index=3),
+            "library": SidebarHeader(_("Library")),
+            "sources": SidebarHeader(_("Sources")),
+            "runners": SidebarHeader(_("Runners")),
+            "platforms": SidebarHeader(_("Platforms")),
         }
         GObject.add_emission_hook(RunnerBox, "runner-installed", self.update)
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update)
         GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update)
-        GObject.add_emission_hook(ServicesBox, "services-changed", self.update)
+        GObject.add_emission_hook(ServicesBox, "services-changed", self.on_services_changed)
         GObject.add_emission_hook(Game, "game-start", self.on_game_start)
         GObject.add_emission_hook(Game, "game-stop", self.on_game_stop)
         GObject.add_emission_hook(Game, "game-updated", self.update)
@@ -324,7 +323,9 @@ class LutrisSidebar(Gtk.ListBox):
         the sidebar's signals are connected.
         """
         self.active_platforms = games_db.get_used_platforms()
-        self.active_services = services.get_enabled_services()
+        self.runners = sorted(runners.__all__)
+        self.platforms = sorted(runners.RUNNER_PLATFORMS)
+        self.categories = categories_db.get_categories()
 
         self.add(
             SidebarRow(
@@ -369,6 +370,29 @@ class LutrisSidebar(Gtk.ListBox):
         # I wanted this to be on top but it really messes with the headers when showing/hiding the row.
         self.add(self.running_row)
 
+        service_classes = services.get_enabled_services()
+        for service_name in service_classes:
+            service = service_classes[service_name]()
+            row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow
+            service_row = row_class(service)
+            self.service_rows[service_name] = service_row
+            self.add(service_row)
+
+        for runner_name in self.runners:
+            icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
+            runner = runners.import_runner(runner_name)()
+            self.add(RunnerSidebarRow(
+                runner_name,
+                "runner",
+                runner.human_name,
+                self.get_sidebar_icon(icon_name),
+                application=self.application
+            ))
+
+        for platform in self.platforms:
+            icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
+            self.add(SidebarRow(platform, "platform", platform, self.get_sidebar_icon(icon_name)))
+
         self.update()
         self.show_all()
         self.running_row.hide()
@@ -391,10 +415,8 @@ class LutrisSidebar(Gtk.ListBox):
                 break
 
     def _filter_func(self, row):
-        if not row or not row.id or row.type in ("category", "dynamic_category"):
+        if not row or not row.id or row.type in ("category", "dynamic_category", "service"):
             return True
-        if row.type == "service":
-            return row.id in self.active_services
         if row.type == "runner":
             if row.id is None:
                 return True  # 'All'
@@ -405,65 +427,17 @@ class LutrisSidebar(Gtk.ListBox):
         if not before:
             row.set_header(self.row_headers["library"])
         elif before.type in ("category", "dynamic_category") and row.type == "service":
-            row.set_header(self.row_headers[row.type])
+            row.set_header(self.row_headers["sources"])
         elif before.type == "service" and row.type == "runner":
-            row.set_header(self.row_headers[row.type])
+            row.set_header(self.row_headers["runners"])
         elif before.type == "runner" and row.type == "platform":
-            row.set_header(self.row_headers[row.type])
+            row.set_header(self.row_headers["platforms"])
         else:
             row.set_header(None)
 
     def update(self, *_args):
-        self.active_services = services.get_enabled_services()
         self.installed_runners = [runner.name for runner in runners.get_installed()]
         self.active_platforms = games_db.get_used_platforms()
-
-        def get_sequence(row):
-            header_row = self.row_headers.get(row.type) if row.type else None
-            return header_row.header_index if header_row else 0
-
-        def insert_row(row):
-            index = 0
-            seq = get_sequence(row)
-            while True:
-                r = self.get_row_at_index(index)
-                if not r or get_sequence(r) > seq:
-                    break;
-                index += 1
-            self.insert(row, index)
-
-        for service_name, service_class in self.active_services.items():
-            if service_name not in self.service_rows:
-                service = service_class()
-                row_class = OnlineServiceSidebarRow if service.online else ServiceSidebarRow
-                service_row = row_class(service)
-                service_row.show_all()
-                self.service_rows[service_name] = service_row
-                insert_row(service_row)
-
-        for runner_name in self.installed_runners:
-            if runner_name not in self.runner_rows:
-                icon_name = runner_name.lower().replace(" ", "") + "-symbolic"
-                runner = runners.import_runner(runner_name)()
-                runner_row = RunnerSidebarRow(
-                    runner_name,
-                    "runner",
-                    runner.human_name,
-                    self.get_sidebar_icon(icon_name),
-                    application=self.application
-                )
-                self.runner_rows[runner_name] = runner_row
-                runner_row.show_all()
-                insert_row(runner_row)
-
-        for platform in self.active_platforms:
-            if platform not in self.platform_rows:
-                icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
-                platform_row = SidebarRow(platform, "platform", platform, self.get_sidebar_icon(icon_name))
-                platform_row.show_all()
-                self.platform_rows[platform] = platform_row
-                insert_row(platform_row)
-
         self.invalidate_filter()
         return True
 
@@ -495,4 +469,10 @@ class LutrisSidebar(Gtk.ListBox):
     def on_service_games_updated(self, service):
         self.service_rows[service.id].is_updating = False
         self.service_rows[service.id].update_buttons()
+        return True
+
+    def on_services_changed(self, _widget):
+        for child in self.get_children():
+            child.destroy()
+        self.initialize_rows()
         return True
