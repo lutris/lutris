@@ -240,6 +240,7 @@ class SidebarHeader(Gtk.Box):
     def __init__(self, name, header_index):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.header_index = header_index
+        self.first_row = None
         self.get_style_context().add_class("sidebar-header")
         label = Gtk.Label(
             halign=Gtk.Align.START,
@@ -419,6 +420,14 @@ class LutrisSidebar(Gtk.ListBox):
             header = None
 
         if row.get_header() != header:
+            # GTK is messy here; a header can't belong to two rows at once,
+            # so we must remove it from the one that owns it, if any, and
+            # also from the sidebar itself. Then we can reuse it.
+            if header.first_row:
+                header.first_row.set_header(None)
+                if header.get_parent() == self:
+                    self.remove(header)
+            header.first_row = row
             row.set_header(header)
 
     def update_rows(self, *_args):
