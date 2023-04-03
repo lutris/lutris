@@ -30,7 +30,11 @@ class EditCategoryGamesDialog(GameDialogCommon):
         self.vbox.set_spacing(10)
         self.vbox.pack_start(self._create_games_checkboxes(), True, True, 0)
 
-        self.build_action_area(self.on_save)
+        # Hide advanced-switch since it is unused
+        for widget in self.advanced_switch_widgets:
+            widget.set_no_show_all(True)
+            widget.hide()
+
         self.show_all()
 
     def _create_games_checkboxes(self):
@@ -81,20 +85,3 @@ class EditCategoryGamesDialog(GameDialogCommon):
             self.parent.on_game_updated(game)
 
         self.destroy()
-
-    # Override the save action box, because we don't need the advanced-checkbox
-    def build_action_area(self, button_callback, callback2=None):
-        self.action_area.set_layout(Gtk.ButtonBoxStyle.END)
-        # Buttons
-        hbox = Gtk.Box()
-        cancel_button = Gtk.Button(label=_("Cancel"))
-        cancel_button.connect("clicked", self.on_cancel_clicked)
-        hbox.pack_start(cancel_button, True, True, 10)
-
-        save_button = Gtk.Button(label=_("Save"))
-        if callback2:
-            save_button.connect("clicked", button_callback, callback2)
-        else:
-            save_button.connect("clicked", button_callback)
-        hbox.pack_start(save_button, True, True, 0)
-        self.action_area.pack_start(hbox, True, True, 0)
