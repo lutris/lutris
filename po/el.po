@@ -1,15 +1,10 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the lutris package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# Καραχάλιος-Στάγκας Αθανάσιος-Νεκτάριος <nasos.karachalios.stagas@gmail.com>, 2023.
-#
+
 msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-21 08:09+0200\n"
-"PO-Revision-Date: 2023-03-30 04:02+0300\n"
+"POT-Creation-Date: 2023-04-03 09:45+0300\n"
+"PO-Revision-Date: 2023-04-03 09:46+0300\n"
 "Last-Translator: Καραχάλιος-Στάγκας Αθανάσιος-Νεκτάριος <nasos.karachalios."
 "stagas@gmail.com>\n"
 "Language-Team: Greek, Modern (1453-) <->\n"
@@ -119,7 +114,7 @@ msgstr "Όνομα χρήστη"
 msgid "Search..."
 msgstr "Αναζήτηση..."
 
-#: share/lutris/ui/lutris-window.ui:147 lutris/gui/lutriswindow.py:540
+#: share/lutris/ui/lutris-window.ui:147 lutris/gui/lutriswindow.py:546
 msgid "Search games"
 msgstr "Αναζήτηση παιχνιδιών"
 
@@ -139,7 +134,7 @@ msgstr "Μεγέθυνση "
 msgid "Sort Ascending"
 msgstr "Ταξινόμηση με αύξουσα σειρά"
 
-#: share/lutris/ui/lutris-window.ui:360 lutris/gui/config/common.py:136
+#: share/lutris/ui/lutris-window.ui:360 lutris/gui/config/common.py:137
 #: lutris/gui/views/list.py:52 lutris/gui/views/list.py:182
 msgid "Name"
 msgstr "Όνομα"
@@ -203,18 +198,102 @@ msgstr ""
 "στο σύστημά σας:\n"
 "{libs}"
 
+#: lutris/game.py:280
+msgid "Error the runner is not installed"
+msgstr "Σφάλμα το πρόγραμμα εκτέλεσης δεν είναι εγκατεστημένο"
+
+#: lutris/game.py:282
+msgid "A bios file is required to run this game"
+msgstr "Απαιτείται ένα αρχείο BIOS για την εκτέλεση αυτού του παιχνιδιού"
+
+#: lutris/game.py:286
+msgid "The file {} could not be found"
+msgstr "Δεν ήταν δυνατή η εύρεση του αρχείου {}"
+
+#: lutris/game.py:288
+msgid ""
+"This game has no executable set. The install process didn't finish properly."
+msgstr ""
+"Αυτό το παιχνίδι δεν έχει προκαθορισμένο εκτελέσιμο  Η διαδικασία "
+"εγκατάστασης δεν ολοκληρώθηκε σωστά."
+
+#: lutris/game.py:291
+#, python-format
+msgid "The file %s is not executable"
+msgstr "Το αρχείο %s δεν είναι εκτελέσιμο"
+
+#: lutris/game.py:293
+#, python-format
+msgid "The path '%s' is not set. please set it in the options."
+msgstr ""
+"Η διαδρομή '%s' δεν έχει οριστεί. παρακαλούμε να το ορίσετε στις ρυθμίσεις."
+
+#: lutris/game.py:295
+#, python-format
+msgid "Unhandled error: %s"
+msgstr "Σφάλμα που δεν επιλύθηκε: %s"
+
+#: lutris/game.py:402
+msgid "Uninstall the game before deleting"
+msgstr "Απεγκατάσταση του παιχνιδιού πριν από τη διαγραφή"
+
+#: lutris/game.py:474
+msgid "Tried to launch a game that isn't installed."
+msgstr "Προσπάθεια εκινησης παιχνίδιου που δεν είναι εγκατεστημένο."
+
+#: lutris/game.py:476 lutris/game.py:579
+msgid "Invalid game configuration: Missing runner"
+msgstr "Μη έγκυρη διαμόρφωση παιχνιδιού: Λείπει το πρόγραμμα εκτέλεσης"
+
+#: lutris/game.py:508
+msgid "Unable to find Xephyr, install it or disable the Xephyr option"
+msgstr ""
+"Δεν είναι δυνατή η εύρεση του Xephyr, εγκατάστασή του ή η απενεργοποίηση της "
+"επιλογής Xephyr"
+
+#: lutris/game.py:555
+#, python-format
+msgid ""
+"The selected terminal application could not be launched:\n"
+"%s"
+msgstr ""
+"Δεν ήταν δυνατή η εκκίνηση της επιλεγμένης εφαρμογής τερματικού:\n"
+"%s"
+
+#: lutris/game.py:815
+msgid "<b>Error lauching the game:</b>\n"
+msgstr "<b>Σφάλμα κατά την εκκίνηση του παιχνιδιού:</b>\n"
+
+#: lutris/game.py:920
+#, python-format
+msgid ""
+"<b>Error: Missing shared library.</b>\n"
+"\n"
+"%s"
+msgstr ""
+"<b>Σφάλμα: Λείπει η κοινόχρηστη βιβλιοθήκη.</b>\n"
+"\n"
+"%s"
+
+#: lutris/game.py:926
+msgid ""
+"<b>Error: A different Wine version is already using the same Wine prefix.</b>"
+msgstr ""
+"<b>Σφάλμα: Μια διαφορετική έκδοση Wine χρησιμοποιεί ήδη το ίδιο πρόθεμα Wine."
+"</b>"
+
 #. Local services don't show an install dialog, they can be launched directly
-#: lutris/game_actions.py:49 lutris/gui/widgets/game_bar.py:202
-#: lutris/gui/widgets/game_bar.py:216
+#: lutris/game_actions.py:49 lutris/gui/widgets/game_bar.py:206
+#: lutris/gui/widgets/game_bar.py:220
 msgid "Play"
 msgstr "Εκκίνηση"
 
-#: lutris/game_actions.py:50 lutris/gui/widgets/game_bar.py:208
+#: lutris/game_actions.py:50 lutris/gui/widgets/game_bar.py:212
 msgid "Stop"
 msgstr "Διάκοπη"
 
 #: lutris/game_actions.py:51 lutris/gui/dialogs/runner_install.py:210
-#: lutris/gui/installer/script_box.py:62 lutris/gui/widgets/game_bar.py:211
+#: lutris/gui/installer/script_box.py:62 lutris/gui/widgets/game_bar.py:215
 msgid "Install"
 msgstr "Εγκατάσταση"
 
@@ -335,90 +414,6 @@ msgstr ""
 msgid "Select shortcut target"
 msgstr "Επιλέξτε προορισμό συντόμευσης"
 
-#: lutris/game.py:281
-msgid "Error the runner is not installed"
-msgstr "Σφάλμα το πρόγραμμα εκτέλεσης δεν είναι εγκατεστημένο"
-
-#: lutris/game.py:283
-msgid "A bios file is required to run this game"
-msgstr "Απαιτείται ένα αρχείο BIOS για την εκτέλεση αυτού του παιχνιδιού"
-
-#: lutris/game.py:287
-msgid "The file {} could not be found"
-msgstr "Δεν ήταν δυνατή η εύρεση του αρχείου {}"
-
-#: lutris/game.py:289
-msgid ""
-"This game has no executable set. The install process didn't finish properly."
-msgstr ""
-"Αυτό το παιχνίδι δεν έχει προκαθορισμένο εκτελέσιμο  Η διαδικασία "
-"εγκατάστασης δεν ολοκληρώθηκε σωστά."
-
-#: lutris/game.py:292
-#, python-format
-msgid "The file %s is not executable"
-msgstr "Το αρχείο %s δεν είναι εκτελέσιμο"
-
-#: lutris/game.py:294
-#, python-format
-msgid "The path '%s' is not set. please set it in the options."
-msgstr ""
-"Η διαδρομή '%s' δεν έχει οριστεί. παρακαλούμε να το ορίσετε στις ρυθμίσεις."
-
-#: lutris/game.py:296
-#, python-format
-msgid "Unhandled error: %s"
-msgstr "Σφάλμα που δεν επιλύθηκε: %s"
-
-#: lutris/game.py:367
-msgid "Uninstall the game before deleting"
-msgstr "Απεγκατάσταση του παιχνιδιού πριν από τη διαγραφή"
-
-#: lutris/game.py:439
-msgid "Tried to launch a game that isn't installed."
-msgstr "Προσπάθεια εκινησης παιχνίδιου που δεν είναι εγκατεστημένο."
-
-#: lutris/game.py:441 lutris/game.py:544
-msgid "Invalid game configuration: Missing runner"
-msgstr "Μη έγκυρη διαμόρφωση παιχνιδιού: Λείπει το πρόγραμμα εκτέλεσης"
-
-#: lutris/game.py:473
-msgid "Unable to find Xephyr, install it or disable the Xephyr option"
-msgstr ""
-"Δεν είναι δυνατή η εύρεση του Xephyr, εγκατάστασή του ή η απενεργοποίηση της "
-"επιλογής Xephyr"
-
-#: lutris/game.py:520
-#, python-format
-msgid ""
-"The selected terminal application could not be launched:\n"
-"%s"
-msgstr ""
-"Δεν ήταν δυνατή η εκκίνηση της επιλεγμένης εφαρμογής τερματικού:\n"
-"%s"
-
-#: lutris/game.py:780
-msgid "<b>Error lauching the game:</b>\n"
-msgstr "<b>Σφάλμα κατά την εκκίνηση του παιχνιδιού:</b>\n"
-
-#: lutris/game.py:885
-#, python-format
-msgid ""
-"<b>Error: Missing shared library.</b>\n"
-"\n"
-"%s"
-msgstr ""
-"<b>Σφάλμα: Λείπει η κοινόχρηστη βιβλιοθήκη.</b>\n"
-"\n"
-"%s"
-
-#: lutris/game.py:891
-msgid ""
-"<b>Error: A different Wine version is already using the same Wine prefix.</b>"
-msgstr ""
-"<b>Σφάλμα: Μια διαφορετική έκδοση Wine χρησιμοποιεί ήδη το ίδιο πρόθεμα Wine."
-"</b>"
-
 #: lutris/gui/addgameswindow.py:27
 msgid "Search the Lutris website for installers"
 msgstr "Αναζήτηση στην ιστοσελίδα του Lutris για εγκαταστάτες"
@@ -485,7 +480,7 @@ msgstr "_Συνεχία"
 
 #. Buttons
 #: lutris/gui/addgameswindow.py:102 lutris/gui/addgameswindow.py:626
-#: lutris/gui/addgameswindow.py:629 lutris/gui/config/common.py:418
+#: lutris/gui/addgameswindow.py:629 lutris/gui/config/common.py:412
 #: lutris/gui/dialogs/runner_install.py:201 lutris/gui/installerwindow.py:89
 #: lutris/gui/installerwindow.py:956
 #: lutris/gui/widgets/download_progress_box.py:95
@@ -872,7 +867,7 @@ msgstr ""
 msgid "%s (default)"
 msgstr "%s (προεπιλογή)"
 
-#: lutris/gui/config/boxes.py:438 lutris/gui/widgets/common.py:50
+#: lutris/gui/config/boxes.py:438 lutris/gui/widgets/common.py:49
 msgid "Select file"
 msgstr "Επιλογή αρχείου"
 
@@ -892,14 +887,14 @@ msgstr "Επιλογή αρχείων"
 msgid "_Add"
 msgstr "_ Προσθήκη"
 
-#: lutris/gui/config/boxes.py:556 lutris/gui/dialogs/__init__.py:217
-#: lutris/gui/dialogs/__init__.py:243 lutris/gui/dialogs/issue.py:72
-#: lutris/gui/widgets/common.py:113
+#: lutris/gui/config/boxes.py:556 lutris/gui/dialogs/issue.py:72
+#: lutris/gui/dialogs/__init__.py:217 lutris/gui/dialogs/__init__.py:243
+#: lutris/gui/widgets/common.py:112
 #: lutris/gui/widgets/download_progress_box.py:47
 msgid "_Cancel"
 msgstr "_Ακύρωση"
 
-#: lutris/gui/config/boxes.py:709
+#: lutris/gui/config/boxes.py:702
 msgid ""
 "If modified, these options supersede the same options from the base runner "
 "configuration."
@@ -907,7 +902,7 @@ msgstr ""
 "Εάν τροποποιηθούν, αυτές οι επιλογές αντικαθιστούν τις ίδιες επιλογές από τη "
 "βασική διαμόρφωση του δρομέα."
 
-#: lutris/gui/config/boxes.py:730
+#: lutris/gui/config/boxes.py:723
 msgid ""
 "If modified, these options supersede the same options from the base runner "
 "configuration, which themselves supersede the global preferences."
@@ -916,7 +911,7 @@ msgstr ""
 "βασική ρύθμιση παραμέτρων του δρομέα, οι οποίες αντικαθιστούν τις καθολικές "
 "προτιμήσεις."
 
-#: lutris/gui/config/boxes.py:736
+#: lutris/gui/config/boxes.py:729
 msgid ""
 "If modified, these options supersede the same options from the global "
 "preferences."
@@ -924,110 +919,110 @@ msgstr ""
 "Εάν τροποποιηθούν, αυτές οι επιλογές αντικαθιστούν τις ίδιες επιλογές από "
 "τις καθολικές προτιμήσεις."
 
-#: lutris/gui/config/common.py:30
+#: lutris/gui/config/common.py:31
 msgid "Select a runner in the Game Info tab"
 msgstr "Επιλέξτε έναν δρομέα στην καρτέλα Πληροφορίες παιχνιδιού"
 
-#: lutris/gui/config/common.py:132
+#: lutris/gui/config/common.py:133
 msgid "Game info"
 msgstr "Πληροφορίες παιχνιδιού"
 
-#: lutris/gui/config/common.py:148
+#: lutris/gui/config/common.py:149
 msgid "Identifier"
 msgstr "Αναγνωριστικό"
 
-#: lutris/gui/config/common.py:157 lutris/gui/config/common.py:339
+#: lutris/gui/config/common.py:158 lutris/gui/config/common.py:336
 msgid "Change"
 msgstr "Αλλαγή"
 
-#: lutris/gui/config/common.py:166
+#: lutris/gui/config/common.py:167
 msgid "Directory"
 msgstr "Κατάλογος"
 
-#: lutris/gui/config/common.py:172
+#: lutris/gui/config/common.py:173
 msgid "Move"
 msgstr "Μετακίνηση"
 
-#: lutris/gui/config/common.py:192
+#: lutris/gui/config/common.py:193
 msgid "The default launch option will be used for this game"
 msgstr ""
 "Η προεπιλεγμένη επιλογή εκκίνησης θα χρησιμοποιηθεί για αυτό το παιχνίδι"
 
-#: lutris/gui/config/common.py:194
+#: lutris/gui/config/common.py:195
 #, python-format
 msgid "The '%s' launch option will be used for this game"
 msgstr "Η επιλογή εκκίνησης '%s' θα χρησιμοποιηθεί για αυτό το παιχνίδι"
 
-#: lutris/gui/config/common.py:201
+#: lutris/gui/config/common.py:202
 msgid "Reset"
 msgstr "Επαναφορά"
 
-#: lutris/gui/config/common.py:218 lutris/gui/views/list.py:54
+#: lutris/gui/config/common.py:220 lutris/gui/views/list.py:54
 msgid "Runner"
 msgstr "Πρόγραμμα Εκτέλεσης"
 
-#: lutris/gui/config/common.py:232
+#: lutris/gui/config/common.py:234
 msgid "Set custom cover art"
 msgstr "Ορισμός προσαρμοσμένου εξώφυλλου"
 
-#: lutris/gui/config/common.py:232
+#: lutris/gui/config/common.py:234
 msgid "Remove custom cover art"
 msgstr "Αφαίρεση προσαρμοσμένου εξώφυλλου"
 
-#: lutris/gui/config/common.py:233
+#: lutris/gui/config/common.py:235
 msgid "Set custom banner"
 msgstr "Ορισμός προσαρμοσμένου πανό"
 
-#: lutris/gui/config/common.py:233
+#: lutris/gui/config/common.py:235
 msgid "Remove custom banner"
 msgstr "Αφαίρεση προσαρμοσμένου πανό"
 
-#: lutris/gui/config/common.py:234
+#: lutris/gui/config/common.py:236
 msgid "Set custom icon"
 msgstr "Ορισμός προσαρμοσμένου εικονιδίου"
 
-#: lutris/gui/config/common.py:234
+#: lutris/gui/config/common.py:236
 msgid "Remove custom icon"
 msgstr "Κατάργηση προσαρμοσμένου εικονιδίου"
 
-#: lutris/gui/config/common.py:267
+#: lutris/gui/config/common.py:269
 msgid "Release year"
 msgstr "Έτος κυκλοφορίας"
 
-#: lutris/gui/config/common.py:315
+#: lutris/gui/config/common.py:310
 msgid "Select a runner from the list"
 msgstr "Επιλέξτε ένα δρομέα από τη λίστα"
 
-#: lutris/gui/config/common.py:323
+#: lutris/gui/config/common.py:319
 msgid "Apply"
 msgstr "Εφαρμογή"
 
-#: lutris/gui/config/common.py:370 lutris/gui/config/common.py:375
-#: lutris/gui/config/common.py:378
+#: lutris/gui/config/common.py:364 lutris/gui/config/common.py:369
+#: lutris/gui/config/common.py:372
 msgid "Game options"
 msgstr "Επιλογές παιχνιδιού"
 
-#: lutris/gui/config/common.py:382 lutris/gui/config/common.py:385
+#: lutris/gui/config/common.py:376 lutris/gui/config/common.py:379
 msgid "Runner options"
 msgstr "Επιλογές δρομέα"
 
-#: lutris/gui/config/common.py:388
+#: lutris/gui/config/common.py:382
 msgid "System options"
 msgstr "Επιλογές συστήματος"
 
-#: lutris/gui/config/common.py:421
+#: lutris/gui/config/common.py:415
 msgid "Save"
 msgstr "Αποθήκευση"
 
-#: lutris/gui/config/common.py:433
+#: lutris/gui/config/common.py:427
 msgid "Show advanced options"
 msgstr "Εμφάνιση επιλογών για προχωρημένους"
 
-#: lutris/gui/config/common.py:435
+#: lutris/gui/config/common.py:429
 msgid "Advanced"
 msgstr "Για προχωρημένους"
 
-#: lutris/gui/config/common.py:475
+#: lutris/gui/config/common.py:470
 msgid ""
 "Are you sure you want to change the runner for this game ? This will reset "
 "the full configuration for this game and is not reversible."
@@ -1036,36 +1031,36 @@ msgstr ""
 "θα επαναφέρει τις πλήρεις ρυθμίσεις για αυτό το παιχνίδι και δεν είναι "
 "αναστρέψιμο."
 
-#: lutris/gui/config/common.py:479
+#: lutris/gui/config/common.py:474
 msgid "Confirm runner change"
 msgstr "Επιβεβαίωση αλλαγής δρομέα"
 
-#: lutris/gui/config/common.py:531
+#: lutris/gui/config/common.py:526
 msgid "Runner not provided"
 msgstr "Δεν παρέχεται πρόγραμμα εκτέλεσης"
 
-#: lutris/gui/config/common.py:534
+#: lutris/gui/config/common.py:529
 msgid "Please fill in the name"
 msgstr "Παρακαλώ συμπληρώστε το όνομα"
 
-#: lutris/gui/config/common.py:537
+#: lutris/gui/config/common.py:532
 msgid "Steam AppID not provided"
 msgstr "Το αναγνωριστικό εφαρμογής Steam δεν παρέχεται"
 
-#: lutris/gui/config/common.py:555
+#: lutris/gui/config/common.py:550
 msgid "The following fields have invalid values: "
 msgstr "Τα ακόλουθα πεδία έχουν μη έγκυρες τιμές: "
 
-#: lutris/gui/config/common.py:562
+#: lutris/gui/config/common.py:558
 msgid "Current configuration is not valid, ignoring save request"
 msgstr ""
 "Η τρέχουσα διαμόρφωση δεν είναι έγκυρη, αγνοώντας το αίτημα αποθήκευσης"
 
-#: lutris/gui/config/common.py:601
+#: lutris/gui/config/common.py:593
 msgid "Please choose a custom image"
 msgstr "Παρακαλούμε επιλέξτε μια προσαρμοσμένη εικόνα"
 
-#: lutris/gui/config/common.py:609
+#: lutris/gui/config/common.py:601
 msgid "Images"
 msgstr "Εικόνες"
 
@@ -1107,11 +1102,11 @@ msgstr "Ρυθμίσεις Lutris"
 msgid "Interface"
 msgstr "Διεπαφή"
 
-#: lutris/gui/config/preferences_dialog.py:28 lutris/gui/widgets/sidebar.py:292
+#: lutris/gui/config/preferences_dialog.py:28 lutris/gui/widgets/sidebar.py:288
 msgid "Runners"
 msgstr "Δρομείς"
 
-#: lutris/gui/config/preferences_dialog.py:29 lutris/gui/widgets/sidebar.py:291
+#: lutris/gui/config/preferences_dialog.py:29 lutris/gui/widgets/sidebar.py:287
 msgid "Sources"
 msgstr "Πηγές"
 
@@ -1122,21 +1117,6 @@ msgstr "Πληροφορίες υλισμικού"
 #: lutris/gui/config/preferences_dialog.py:31
 msgid "Global options"
 msgstr "Καθολικές επιλογές"
-
-#: lutris/gui/config/runner_box.py:91 lutris/gui/widgets/sidebar.py:230
-#, python-format
-msgid "Manage %s versions"
-msgstr "Διαχείριση εκδόσεων %s"
-
-#: lutris/gui/config/runner_box.py:121
-#, python-format
-msgid "Do you want to uninstall %s?"
-msgstr "Θέλετε να απεγκαταστήσετε το %s;"
-
-#: lutris/gui/config/runner_box.py:122
-#, python-format
-msgid "This will remove <b>%s</b> and all associated data."
-msgstr "Αυτό θα αφαιρέσει το <b>%s</b> και όλα τα σχετικά δεδομένα."
 
 #: lutris/gui/config/runners_box.py:17
 msgid "Add, remove or configure runners"
@@ -1160,6 +1140,21 @@ msgstr "Κανένα πρόγραμμα εκτέλεσης δεν ανταποκ
 msgid "Search %s runners"
 msgstr "Αναζήτηση δρομέων %s"
 
+#: lutris/gui/config/runner_box.py:90 lutris/gui/widgets/sidebar.py:230
+#, python-format
+msgid "Manage %s versions"
+msgstr "Διαχείριση εκδόσεων %s"
+
+#: lutris/gui/config/runner_box.py:123
+#, python-format
+msgid "Do you want to uninstall %s?"
+msgstr "Θέλετε να απεγκαταστήσετε το %s;"
+
+#: lutris/gui/config/runner_box.py:124
+#, python-format
+msgid "This will remove <b>%s</b> and all associated data."
+msgstr "Αυτό θα αφαιρέσει το <b>%s</b> και όλα τα σχετικά δεδομένα."
+
 #: lutris/gui/config/services_box.py:18
 msgid "Enable integrations with game sources"
 msgstr "Ενεργοποίηση ενσωματώσεων με πηγές παιχνιδιών"
@@ -1176,11 +1171,11 @@ msgstr ""
 msgid "Hide text under icons"
 msgstr "Απόκρυψη κειμένου κάτω από εικονίδια"
 
-#: lutris/gui/config/sysinfo_box.py:36
+#: lutris/gui/config/sysinfo_box.py:39
 msgid "Copy to clipboard"
 msgstr "Αντιγραφή στο πρόχειρο"
 
-#: lutris/gui/config/sysinfo_box.py:39
+#: lutris/gui/config/sysinfo_box.py:42
 msgid "<b>System information</b>"
 msgstr "<b>Πληροφορίες συστήματος</b>"
 
@@ -1271,111 +1266,6 @@ msgstr ""
 "Το Lutris δεν διαθέτει προεπιλεγμένο πρόγραμμα εγκατάστασης για την "
 "πλατφόρμα '%s'."
 
-#: lutris/gui/dialogs/__init__.py:216 lutris/gui/dialogs/__init__.py:242
-#: lutris/gui/dialogs/issue.py:71 lutris/gui/widgets/common.py:113
-msgid "_OK"
-msgstr "_Εντάξει"
-
-#: lutris/gui/dialogs/__init__.py:233
-msgid "Please choose a file"
-msgstr "Παρακαλώ επιλέξτε ένα αρχείο"
-
-#: lutris/gui/dialogs/__init__.py:265
-msgid "Checking for runtime updates, please wait…"
-msgstr "Έλεγχος για ενημερώσεις χρόνου εκτέλεσης, παρακαλώ περιμένετε…"
-
-#: lutris/gui/dialogs/__init__.py:303
-#, python-format
-msgid "%s is already installed"
-msgstr "Το %s είναι ήδη εγκατεστημένο"
-
-#: lutris/gui/dialogs/__init__.py:314
-msgid "Launch game"
-msgstr "Εκκίνηση παιχνιδιού"
-
-#: lutris/gui/dialogs/__init__.py:318
-msgid "Install the game again"
-msgstr "Εγκατάσταση εκ νέου του παιχνιδιού"
-
-#: lutris/gui/dialogs/__init__.py:361
-msgid "Do not ask again for this game."
-msgstr "Μην ξανά ρωτήσετε για αυτό το παιχνίδι."
-
-#: lutris/gui/dialogs/__init__.py:420
-msgid "Login failed"
-msgstr "Αποτυχία σύνδεσης"
-
-#: lutris/gui/dialogs/__init__.py:430
-msgid "Install script for {}"
-msgstr "Δέσμες ενεργειών εγκατάστασης για {}"
-
-#: lutris/gui/dialogs/__init__.py:485
-msgid "Do not display this message again."
-msgstr "Μην εμφανίζετε ξανά αυτό το μήνυμα."
-
-#: lutris/gui/dialogs/__init__.py:505
-msgid "Wine is not installed on your system."
-msgstr "Το Wine δεν είναι εγκατεστημένο στο σύστημά σας."
-
-#: lutris/gui/dialogs/__init__.py:507
-msgid ""
-"Having Wine installed on your system guarantees that Wine builds from Lutris "
-"will have all required dependencies.\n"
-"\n"
-"Please follow the instructions given in the <a href='https://github.com/"
-"lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to install Wine."
-msgstr ""
-"Η εγκατάσταση του Wine στο σύστημά σας εγγυάται ότι οι κατασκευές του Wine "
-"από το Lutris θα έχουν όλες τις απαιτούμενες εξαρτήσεις.\n"
-"\n"
-"Παρακαλούμε ακολουθήστε τις οδηγίες που δίνονται στο <a href='https://github."
-"com/lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> για να "
-"εγκαταστήσετε το Wine."
-
-#: lutris/gui/dialogs/__init__.py:533
-#, python-format
-msgid "Moving %s to %s..."
-msgstr "Μετακίνηση του %s στο %s..."
-
-#: lutris/gui/dialogs/__init__.py:561
-msgid "Humble Bundle Cookie Authentication"
-msgstr "Αυθεντικοποίηση cookie του Humble Bundle"
-
-#: lutris/gui/dialogs/__init__.py:573
-msgid ""
-"<b>Humble Bundle Authentication via cookie import</b>\n"
-"\n"
-"<b>In Firefox</b>\n"
-"- Install the follwing extension: <a href='https://addons.mozilla.org/en-US/"
-"firefox/addon/export-cookies-txt/'>https://addons.mozilla.org/en-US/firefox/"
-"addon/export-cookies-txt/</a>\n"
-"- Open a tab to humblebundle.com and make sure you are logged in.\n"
-"- Click the cookie icon in the top right corner, next to the settings menu\n"
-"- Check 'Prefix HttpOnly cookies' and click 'humblebundle.com'\n"
-"- Open the generated file and paste the contents below. Click OK to finish.\n"
-"- You can delete the cookies file generated by Firefox\n"
-"- Optionally, <a href='https://support.humblebundle.com/hc/en-us/requests/"
-"new'>open a support ticket</a> to ask Humble Bundle to fix their "
-"configuration."
-msgstr ""
-"<b>Humble Bundle Authentication via cookie import</b>\n"
-"\n"
-"<b>Στον Firefox</b>\n"
-"-  Εγκαταστήστε την ακόλουθη επέκταση: <a href='https://addons.mozilla.org/"
-"en-US/firefox/addon/export-cookies-txt/'>https://addons.mozilla.org/en-US/"
-"firefox/addon/export-cookies-txt/</a>\n"
-"- Ανοίξτε μια καρτέλα στο humblebundle.com και βεβαιωθείτε ότι έχετε "
-"συνδεθεί.\n"
-"-Κάντε κλικ στο εικονίδιο cookie στην επάνω δεξιά γωνία, δίπλα στο μενού "
-"ρυθμίσεων.\n"
-"-Επιλέξτε 'Prefix HttpOnly cookies' και κάντε κλικ στο 'humblebundle.com'.\n"
-"-Ανοίξτε το παραγόμενο αρχείο και επικολλήστε τα περιεχόμενα παρακάτω. Κάντε "
-"κλικ στο OK για να ολοκληρώσετε.\n"
-"-Μπορείτε να διαγράψετε το αρχείο cookies που δημιουργείται από τον Firefox\n"
-"-Προαιρετικά, <a href='https://support.humblebundle.com/hc/en-us/requests/"
-"new'>ανοίξτε ένα εισιτήριο υποστήριξης</a> για να ζητήσετε από την Humble "
-"Bundle να διορθώσει τις ρυθμίσεις της."
-
 #: lutris/gui/dialogs/issue.py:24
 msgid "<b>Submit an issue</b>"
 msgstr "<b>Υποβολή προβλήματος</b>"
@@ -1398,6 +1288,11 @@ msgstr "_Αποθήκευση"
 #: lutris/gui/dialogs/issue.py:68
 msgid "Select a location to save the issue"
 msgstr "Επιλέξτε μια τοποθεσία για να αποθηκεύσετε το θέμα"
+
+#: lutris/gui/dialogs/issue.py:71 lutris/gui/dialogs/__init__.py:216
+#: lutris/gui/dialogs/__init__.py:242 lutris/gui/widgets/common.py:112
+msgid "_OK"
+msgstr "_Εντάξει"
 
 #: lutris/gui/dialogs/issue.py:88
 #, python-format
@@ -1539,35 +1434,105 @@ msgstr ""
 msgid "Loading..."
 msgstr "Φόρτωση..."
 
-#: lutris/gui/installer/file_box.py:94
-#, python-brace-format
-msgid "Steam game <b>{appid}</b>"
-msgstr "Παιχνίδι Steam <b>{appid}</b>"
+#: lutris/gui/dialogs/__init__.py:233
+msgid "Please choose a file"
+msgstr "Παρακαλώ επιλέξτε ένα αρχείο"
 
-#: lutris/gui/installer/file_box.py:108
-msgid "Download"
-msgstr "Λήψη"
+#: lutris/gui/dialogs/__init__.py:265
+msgid "Checking for runtime updates, please wait…"
+msgstr "Έλεγχος για ενημερώσεις χρόνου εκτέλεσης, παρακαλώ περιμένετε…"
 
-#: lutris/gui/installer/file_box.py:110
-msgid "Use Cache"
-msgstr "Χρήση προσωρινής μνήμης"
+#: lutris/gui/dialogs/__init__.py:303
+#, python-format
+msgid "%s is already installed"
+msgstr "Το %s είναι ήδη εγκατεστημένο"
 
-#: lutris/gui/installer/file_box.py:112 lutris/runners/steam.py:30
-#: lutris/services/steam.py:76
-msgid "Steam"
-msgstr "Steam"
+#: lutris/gui/dialogs/__init__.py:314
+msgid "Launch game"
+msgstr "Εκκίνηση παιχνιδιού"
 
-#: lutris/gui/installer/file_box.py:113
-msgid "Select File"
-msgstr "Επιλογή αρχείου"
+#: lutris/gui/dialogs/__init__.py:318
+msgid "Install the game again"
+msgstr "Εγκατάσταση εκ νέου του παιχνιδιού"
 
-#: lutris/gui/installer/file_box.py:174
-msgid "Cache file for future installations"
-msgstr "Αρχείο προσωρινής μνήμης για μελλοντικές εγκαταστάσεις"
+#: lutris/gui/dialogs/__init__.py:361
+msgid "Do not ask again for this game."
+msgstr "Μην ξανά ρωτήσετε για αυτό το παιχνίδι."
 
-#: lutris/gui/installer/file_box.py:193
-msgid "Source:"
-msgstr "Πηγή:"
+#: lutris/gui/dialogs/__init__.py:420
+msgid "Login failed"
+msgstr "Αποτυχία σύνδεσης"
+
+#: lutris/gui/dialogs/__init__.py:430
+msgid "Install script for {}"
+msgstr "Δέσμες ενεργειών εγκατάστασης για {}"
+
+#: lutris/gui/dialogs/__init__.py:485
+msgid "Do not display this message again."
+msgstr "Μην εμφανίζετε ξανά αυτό το μήνυμα."
+
+#: lutris/gui/dialogs/__init__.py:505
+msgid "Wine is not installed on your system."
+msgstr "Το Wine δεν είναι εγκατεστημένο στο σύστημά σας."
+
+#: lutris/gui/dialogs/__init__.py:507
+msgid ""
+"Having Wine installed on your system guarantees that Wine builds from Lutris "
+"will have all required dependencies.\n"
+"\n"
+"Please follow the instructions given in the <a href='https://github.com/"
+"lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> to install Wine."
+msgstr ""
+"Η εγκατάσταση του Wine στο σύστημά σας εγγυάται ότι οι κατασκευές του Wine "
+"από το Lutris θα έχουν όλες τις απαιτούμενες εξαρτήσεις.\n"
+"\n"
+"Παρακαλούμε ακολουθήστε τις οδηγίες που δίνονται στο <a href='https://github."
+"com/lutris/docs/blob/master/WineDependencies.md'>Lutris Wiki</a> για να "
+"εγκαταστήσετε το Wine."
+
+#: lutris/gui/dialogs/__init__.py:533
+#, python-format
+msgid "Moving %s to %s..."
+msgstr "Μετακίνηση του %s στο %s..."
+
+#: lutris/gui/dialogs/__init__.py:561
+msgid "Humble Bundle Cookie Authentication"
+msgstr "Αυθεντικοποίηση cookie του Humble Bundle"
+
+#: lutris/gui/dialogs/__init__.py:573
+msgid ""
+"<b>Humble Bundle Authentication via cookie import</b>\n"
+"\n"
+"<b>In Firefox</b>\n"
+"- Install the follwing extension: <a href='https://addons.mozilla.org/en-US/"
+"firefox/addon/export-cookies-txt/'>https://addons.mozilla.org/en-US/firefox/"
+"addon/export-cookies-txt/</a>\n"
+"- Open a tab to humblebundle.com and make sure you are logged in.\n"
+"- Click the cookie icon in the top right corner, next to the settings menu\n"
+"- Check 'Prefix HttpOnly cookies' and click 'humblebundle.com'\n"
+"- Open the generated file and paste the contents below. Click OK to finish.\n"
+"- You can delete the cookies file generated by Firefox\n"
+"- Optionally, <a href='https://support.humblebundle.com/hc/en-us/requests/"
+"new'>open a support ticket</a> to ask Humble Bundle to fix their "
+"configuration."
+msgstr ""
+"<b>Humble Bundle Authentication via cookie import</b>\n"
+"\n"
+"<b>Στον Firefox</b>\n"
+"-  Εγκαταστήστε την ακόλουθη επέκταση: <a href='https://addons.mozilla.org/"
+"en-US/firefox/addon/export-cookies-txt/'>https://addons.mozilla.org/en-US/"
+"firefox/addon/export-cookies-txt/</a>\n"
+"- Ανοίξτε μια καρτέλα στο humblebundle.com και βεβαιωθείτε ότι έχετε "
+"συνδεθεί.\n"
+"-Κάντε κλικ στο εικονίδιο cookie στην επάνω δεξιά γωνία, δίπλα στο μενού "
+"ρυθμίσεων.\n"
+"-Επιλέξτε 'Prefix HttpOnly cookies' και κάντε κλικ στο 'humblebundle.com'.\n"
+"-Ανοίξτε το παραγόμενο αρχείο και επικολλήστε τα περιεχόμενα παρακάτω. Κάντε "
+"κλικ στο OK για να ολοκληρώσετε.\n"
+"-Μπορείτε να διαγράψετε το αρχείο cookies που δημιουργείται από τον Firefox\n"
+"-Προαιρετικά, <a href='https://support.humblebundle.com/hc/en-us/requests/"
+"new'>ανοίξτε ένα εισιτήριο υποστήριξης</a> για να ζητήσετε από την Humble "
+"Bundle να διορθώσει τις ρυθμίσεις της."
 
 #: lutris/gui/installerwindow.py:115
 msgid "Configure download cache"
@@ -1688,20 +1653,50 @@ msgstr "_Ματαίωση"
 msgid "Abort and revert the installation"
 msgstr "Ματαίωση και επαναφορά της εγκατάστασης"
 
-#: lutris/gui/lutriswindow.py:435
+#: lutris/gui/installer/file_box.py:94
+#, python-brace-format
+msgid "Steam game <b>{appid}</b>"
+msgstr "Παιχνίδι Steam <b>{appid}</b>"
+
+#: lutris/gui/installer/file_box.py:108
+msgid "Download"
+msgstr "Λήψη"
+
+#: lutris/gui/installer/file_box.py:110
+msgid "Use Cache"
+msgstr "Χρήση προσωρινής μνήμης"
+
+#: lutris/gui/installer/file_box.py:112 lutris/runners/steam.py:30
+#: lutris/services/steam.py:76
+msgid "Steam"
+msgstr "Steam"
+
+#: lutris/gui/installer/file_box.py:113
+msgid "Select File"
+msgstr "Επιλογή αρχείου"
+
+#: lutris/gui/installer/file_box.py:174
+msgid "Cache file for future installations"
+msgstr "Αρχείο προσωρινής μνήμης για μελλοντικές εγκαταστάσεις"
+
+#: lutris/gui/installer/file_box.py:193
+msgid "Source:"
+msgstr "Πηγή:"
+
+#: lutris/gui/lutriswindow.py:441
 #, python-format
 msgid "Connect your %s account to access your games"
 msgstr ""
 "Συνδέστε το λογαριασμό σας %s για να αποκτήσετε πρόσβαση στα παιχνίδια σας"
 
-#: lutris/gui/lutriswindow.py:505
+#: lutris/gui/lutriswindow.py:511
 #, python-format
 msgid "Add a game matching '%s' to your favorites to see it here."
 msgstr ""
 "Προσθέστε ένα παιχνίδι που ταιριάζει με το '%s' στα αγαπημένα σας για να το "
 "δείτε εδώ."
 
-#: lutris/gui/lutriswindow.py:508
+#: lutris/gui/lutriswindow.py:514
 #, python-format
 msgid ""
 "No installed games matching '%s' found. Press Ctrl+I to show uninstalled "
@@ -1711,7 +1706,7 @@ msgstr ""
 "Ctrl+I για να εμφανίσετε τα απεγκατεστημένα παιχνίδια."
 
 #. but not if missing!
-#: lutris/gui/lutriswindow.py:510
+#: lutris/gui/lutriswindow.py:516
 #, python-format
 msgid ""
 "No visible games matching '%s' found. Press Ctrl+H to show hidden games."
@@ -1719,38 +1714,38 @@ msgstr ""
 "Δεν βρέθηκαν ορατά παιχνίδια που να ταιριάζουν με το '%s'. Πατήστε Ctrl+H "
 "για να εμφανίσετε κρυφά παιχνίδια."
 
-#: lutris/gui/lutriswindow.py:513
+#: lutris/gui/lutriswindow.py:519
 #, python-format
 msgid "No games matching '%s' found "
 msgstr "Δεν βρέθηκαν παιχνίδια που να ταιριάζουν με το '%s' "
 
-#: lutris/gui/lutriswindow.py:516
+#: lutris/gui/lutriswindow.py:522
 msgid "Add games to your favorites to see them here."
 msgstr "Προσθέστε παιχνίδια στα αγαπημένα σας για να τα βλέπετε εδώ."
 
-#: lutris/gui/lutriswindow.py:518
+#: lutris/gui/lutriswindow.py:524
 msgid "No installed games found. Press Ctrl+I to show uninstalled games."
 msgstr ""
 "Δεν βρέθηκαν εγκατεστημένα παιχνίδια. Πατήστε Ctrl+I για να εμφανιστούν τα "
 "απεγκατεστημένα παιχνίδια."
 
 #. but not if missing!
-#: lutris/gui/lutriswindow.py:520
+#: lutris/gui/lutriswindow.py:526
 msgid "No visible games found. Press Ctrl+H to show hidden games."
 msgstr ""
 "Δεν βρέθηκαν ορατά παιχνίδια. Πατήστε Ctrl+H για να εμφανίσετε κρυφά "
 "παιχνίδια."
 
-#: lutris/gui/lutriswindow.py:528
+#: lutris/gui/lutriswindow.py:534
 msgid "No games found"
 msgstr "Δεν βρέθηκαν παιχνίδια"
 
-#: lutris/gui/lutriswindow.py:536
+#: lutris/gui/lutriswindow.py:542
 #, python-format
 msgid "Search %s games"
 msgstr "Αναζήτηση %s παιχνιδιών"
 
-#: lutris/gui/lutriswindow.py:538
+#: lutris/gui/lutriswindow.py:544
 msgid "Search 1 game"
 msgstr "Αναζήτηση 1 παιχνιδιού"
 
@@ -1759,11 +1754,11 @@ msgstr "Αναζήτηση 1 παιχνιδιού"
 msgid "Platform"
 msgstr "Πλατφόρμα"
 
-#: lutris/gui/widgets/common.py:83
+#: lutris/gui/widgets/common.py:82
 msgid "Browse..."
 msgstr "Περιήγηση..."
 
-#: lutris/gui/widgets/common.py:165
+#: lutris/gui/widgets/common.py:164
 msgid ""
 "<b>Warning!</b> The selected path is located on a drive formatted by "
 "Windows.\n"
@@ -1774,7 +1769,7 @@ msgstr ""
 "Τα παιχνίδια και τα προγράμματα που είναι εγκατεστημένα σε δίσκους των "
 "Windows συνήθως <b>δεν λειτουργούν</b>."
 
-#: lutris/gui/widgets/common.py:173
+#: lutris/gui/widgets/common.py:172
 msgid ""
 "<b>Warning!</b> The selected path contains files. Installation might not "
 "work properly."
@@ -1782,18 +1777,18 @@ msgstr ""
 "<b>Προειδοποίηση!</b> Η επιλεγμένη διαδρομή περιέχει αρχεία. Η εγκατάσταση "
 "ενδέχεται να μην λειτουργήσει σωστά."
 
-#: lutris/gui/widgets/common.py:181
+#: lutris/gui/widgets/common.py:180
 msgid ""
 "<b>Warning</b> The destination folder is not writable by the current user."
 msgstr ""
 "<b>Προειδοποίηση</b> Ο φάκελος προορισμού δεν είναι εγγράψιμος από τον "
 "τρέχοντα χρήστη."
 
-#: lutris/gui/widgets/common.py:302
+#: lutris/gui/widgets/common.py:301
 msgid "Add"
 msgstr "Προσθήκη"
 
-#: lutris/gui/widgets/common.py:306
+#: lutris/gui/widgets/common.py:305
 msgid "Delete"
 msgstr "Διαγραφή"
 
@@ -1810,7 +1805,7 @@ msgstr "Διακόπηκε η λήψη"
 msgid "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} remaining"
 msgstr "{downloaded:0.2f} / {size:0.2f}MB ({speed:0.2f}MB/s), {time} απομένουν"
 
-#: lutris/gui/widgets/game_bar.py:151
+#: lutris/gui/widgets/game_bar.py:170
 #, python-format
 msgid ""
 "Platform:\n"
@@ -1819,7 +1814,7 @@ msgstr ""
 "Πλατφόρμα:\n"
 "<b>%s</b>"
 
-#: lutris/gui/widgets/game_bar.py:160
+#: lutris/gui/widgets/game_bar.py:179
 #, python-format
 msgid ""
 "Time played:\n"
@@ -1828,7 +1823,7 @@ msgstr ""
 "Χρόνος παιχνιδιού:\n"
 "<b>%s</b>"
 
-#: lutris/gui/widgets/game_bar.py:169
+#: lutris/gui/widgets/game_bar.py:188
 #, python-format
 msgid ""
 "Last played:\n"
@@ -1837,7 +1832,11 @@ msgstr ""
 "Τελευταίο παιχνίδι:\n"
 "<b>%s</b>"
 
-#: lutris/gui/widgets/game_bar.py:205
+#: lutris/gui/widgets/game_bar.py:193
+msgid "Locate installed game"
+msgstr "Εντοπισμός εγκατεστημένου παιχνιδιού"
+
+#: lutris/gui/widgets/game_bar.py:209
 msgid "Launching"
 msgstr "Εκκίνηση"
 
@@ -1862,31 +1861,31 @@ msgstr "Σύνδεση"
 msgid "Manage Versions"
 msgstr "Διαχείριση εκδόσεων"
 
-#: lutris/gui/widgets/sidebar.py:290
+#: lutris/gui/widgets/sidebar.py:286
 msgid "Library"
 msgstr "Βιβλιοθήκη"
 
-#: lutris/gui/widgets/sidebar.py:293
+#: lutris/gui/widgets/sidebar.py:289
 msgid "Platforms"
 msgstr "Πλατφόρμες"
 
-#: lutris/gui/widgets/sidebar.py:338 lutris/util/system.py:28
+#: lutris/gui/widgets/sidebar.py:335 lutris/util/system.py:28
 msgid "Games"
 msgstr "Παιχνίδια"
 
-#: lutris/gui/widgets/sidebar.py:347
+#: lutris/gui/widgets/sidebar.py:344
 msgid "Recent"
 msgstr "Πρόσφατα"
 
-#: lutris/gui/widgets/sidebar.py:356
+#: lutris/gui/widgets/sidebar.py:353
 msgid "Favorites"
 msgstr "Αγαπημένα"
 
-#: lutris/gui/widgets/sidebar.py:363
+#: lutris/gui/widgets/sidebar.py:360
 msgid "Missing"
 msgstr "Λείπει το"
 
-#: lutris/gui/widgets/sidebar.py:371
+#: lutris/gui/widgets/sidebar.py:368
 msgid "Running"
 msgstr "Εκτελείτε"
 
@@ -2031,6 +2030,19 @@ msgstr "Λάθος τιμή για τη λειτουργία write_file: '%s'"
 msgid "install_or_extract only works with wine!"
 msgstr "το install_or_extract λειτουργεί μόνο με το wine!"
 
+#: lutris/installer/installer.py:161
+#, python-format
+msgid "YOu are not authenticated to %s"
+msgstr "Δεν έχετε πιστοποιηθεί στο %s"
+
+#: lutris/installer/installer.py:200
+msgid "Game config key must be a string"
+msgstr "Το κλειδί ρυθμίσεων παιχνιδιού πρέπει να είναι μια συμβολοσειρά"
+
+#: lutris/installer/installer.py:250
+msgid "Invalid 'game' section"
+msgstr "Μη έγκυρο τμήμα 'game'"
+
 #: lutris/installer/installer_file.py:34
 #, python-format
 msgid "missing field `url` for file `%s`"
@@ -2053,19 +2065,6 @@ msgstr "Μη έγκυρο άθροισμα ελέγχου, αναμενόμεν�
 #: lutris/installer/installer_file.py:214
 msgid " checksum mismatch "
 msgstr " Αναντιστοιχία αθροίσματος ελέγχου "
-
-#: lutris/installer/installer.py:161
-#, python-format
-msgid "YOu are not authenticated to %s"
-msgstr "Δεν έχετε πιστοποιηθεί στο %s"
-
-#: lutris/installer/installer.py:200
-msgid "Game config key must be a string"
-msgstr "Το κλειδί ρυθμίσεων παιχνιδιού πρέπει να είναι μια συμβολοσειρά"
-
-#: lutris/installer/installer.py:250
-msgid "Invalid 'game' section"
-msgstr "Μη έγκυρο τμήμα 'game'"
 
 #: lutris/installer/interpreter.py:86
 msgid "This installer doesn't have a 'script' section"
@@ -5371,7 +5370,7 @@ msgstr "Δημιουργία ενός sandbox για τους φακέλους W
 #: lutris/runners/wine.py:490
 msgid ""
 "Do not use $HOME for desktop integration folders.\n"
-"By default, it use the directories in the confined Windows environment."
+"By default, it will use the directories in the confined Windows environment."
 msgstr ""
 "Μην χρησιμοποιείται το $HOME για τους φακέλους ενσωμάτωσης της επιφάνειας "
 "εργασίας.\n"
@@ -5415,7 +5414,7 @@ msgstr "Winetricks"
 msgid "Wine Control Panel"
 msgstr "Πίνακας ελέγχου Wine"
 
-#: lutris/runners/wine.py:706
+#: lutris/runners/wine.py:705
 msgid "Select an EXE or MSI file"
 msgstr "Επιλογή ενός αρχείου EXE ή MSI"
 
@@ -5695,6 +5694,10 @@ msgstr ""
 msgid "Origin"
 msgstr "Origin"
 
+#: lutris/services/steamwindows.py:25
+msgid "Steam for Windows"
+msgstr "Steam για τα Windows"
+
 #: lutris/services/steam.py:105
 msgid ""
 "Failed to load games. Check that your profile is set to public during the "
@@ -5702,10 +5705,6 @@ msgid ""
 msgstr ""
 "Αποτυχία φόρτωσης παιχνιδιών. Ελέγξτε ότι το προφίλ σας έχει οριστεί ως "
 "δημόσιο κατά τη διάρκεια του συγχρονισμού."
-
-#: lutris/services/steamwindows.py:25
-msgid "Steam for Windows"
-msgstr "Steam για τα Windows"
 
 #: lutris/services/ubisoft.py:82
 msgid "Ubisoft Connect"
