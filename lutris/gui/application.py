@@ -280,7 +280,7 @@ class Application(Gtk.Application):
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         action = Gio.SimpleAction.new("quit")
-        action.connect("activate", lambda *x: self.do_shutdown())
+        action.connect("activate", lambda *x: self.quit())
         self.add_action(action)
         self.add_accelerator("<Primary>q", "app.quit")
 
@@ -375,7 +375,7 @@ class Application(Gtk.Application):
 
         game = Game(db_game["id"])
         game.connect("game-error", on_error)
-        game.load_config()
+        game.reload_config()
         game.write_script(script_path, self.launch_ui_delegate)
 
     def do_handle_local_options(self, options):
@@ -620,7 +620,7 @@ class Application(Gtk.Application):
 
         if action == "cancel":
             if not self.window.is_visible():
-                self.do_shutdown()
+                self.quit()
             return 0
 
         if action == "install":
@@ -635,7 +635,7 @@ class Application(Gtk.Application):
             if not db_game or not db_game["id"]:
                 logger.warning("No game found in library")
                 if not self.window.is_visible():
-                    self.do_shutdown()
+                    self.quit()
                 return 0
 
             def on_error(game, error):
@@ -647,7 +647,7 @@ class Application(Gtk.Application):
             game.launch(self.launch_ui_delegate)
 
             if game.state == game.STATE_STOPPED and not self.window.is_visible():
-                self.do_shutdown()
+                self.quit()
         else:
             self.show_update_runtime_dialog()
             # If we're showing the window, it will handle the delegated UI
@@ -692,7 +692,7 @@ class Application(Gtk.Application):
         elif not self.window.is_visible():
             if self.running_games.get_n_items() == 0:
                 if self.quit_on_game_exit or not self.has_tray_icon():
-                    self.do_shutdown()
+                    self.quit()
         return True
 
     @watch_errors(error_result=True)

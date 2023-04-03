@@ -94,6 +94,9 @@ def get_games_by_ids(game_ids):
 
 
 def get_game_for_service(service, appid):
+    if service == "lutris":
+        return get_game_by_field(appid, field="slug")
+
     existing_games = get_games(filters={"service_id": appid, "service": service})
     if existing_games:
         return existing_games[0]

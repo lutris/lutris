@@ -476,8 +476,8 @@ class wine(Runner):
                 "advanced": True,
                 "default": False,
                 "help":
-                _("Automatically disables one of Wine's detected joypad "
-                  "to avoid having 2 controllers detected"),
+                    _("Automatically disables one of Wine's detected joypad "
+                      "to avoid having 2 controllers detected"),
             },
             {
                 "option": "sandbox",
@@ -488,7 +488,7 @@ class wine(Runner):
                 "advanced": True,
                 "help": _(
                     "Do not use $HOME for desktop integration folders.\n"
-                    "By default, it use the directories in the confined "
+                    "By default, it will use the directories in the confined "
                     "Windows environment."
                 ),
             },
@@ -518,8 +518,7 @@ class wine(Runner):
     @property
     def prefix_path(self):
         """Return the absolute path of the Wine prefix"""
-        _prefix_path = self.game_config.get("prefix") \
-            or os.environ.get("WINEPREFIX")
+        _prefix_path = self.game_config.get("prefix") or os.environ.get("WINEPREFIX")
         if not _prefix_path and self.game_config.get("exe"):
             # Find prefix from game if we have one
             _prefix_path = find_prefix(self.game_exe)
@@ -1064,9 +1063,9 @@ class wine(Runner):
         # Relative path
         return path
 
-    def extract_icon_exe(self, game_slug):
+    def extract_icon(self, game_slug):
         """Extracts the 128*128 icon from EXE and saves it, if not resizes the biggest icon found.
-            returns true if an icon is saved, false if not"""
+        returns true if an icon is saved, false if not"""
         try:
             wantedsize = (128, 128)
             pathtoicon = settings.ICON_PATH + "/lutris_" + game_slug + ".png"
