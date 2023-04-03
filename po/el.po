@@ -1,10 +1,9 @@
-
 msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-04-03 09:45+0300\n"
-"PO-Revision-Date: 2023-04-03 09:46+0300\n"
+"PO-Revision-Date: 2023-04-03 15:02+0300\n"
 "Last-Translator: Καραχάλιος-Στάγκας Αθανάσιος-Νεκτάριος <nasos.karachalios."
 "stagas@gmail.com>\n"
 "Language-Team: Greek, Modern (1453-) <->\n"
@@ -885,7 +884,7 @@ msgstr "Επιλογή αρχείων"
 
 #: lutris/gui/config/boxes.py:555
 msgid "_Add"
-msgstr "_ Προσθήκη"
+msgstr "_Προσθήκη"
 
 #: lutris/gui/config/boxes.py:556 lutris/gui/dialogs/issue.py:72
 #: lutris/gui/dialogs/__init__.py:217 lutris/gui/dialogs/__init__.py:243
@@ -6445,7 +6444,7 @@ msgid ""
 "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>How-to:-"
 "Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
 msgstr ""
-"Τα όρια  δεν έχουν ρυθμιστεί σωστά. Παρακαλούμε αυξήστε τα όπως περιγράφεται "
+"Τα όρια δεν έχουν ρυθμιστεί σωστά. Παρακαλούμε αυξήστε τα όπως περιγράφεται "
 "εδώ: <a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>Πώς "
 "να: - Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
 
