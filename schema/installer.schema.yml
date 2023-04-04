@@ -371,7 +371,7 @@ properties:
                   type: boolean
                   description: Suppress threading
                 description:
-                  type: boolean
+                  type: string
                   description: A message be shown to the user during the execution of the task
                 working_dir:
                   type: string
@@ -440,7 +440,7 @@ properties:
             - required: [ write_file ]
             - required: [ write_config ]
             - required: [ write_json ]
-            - required: [ write_task ]
+            - required: [ task ]
             - required: [ input_menu ]
       system:
         type: object
