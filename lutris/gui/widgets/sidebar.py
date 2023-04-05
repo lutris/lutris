@@ -121,7 +121,7 @@ class ServiceSidebarRow(SidebarRow):
             service.id,
             "service",
             service.name,
-            Gtk.Image.new_from_icon_name(service.icon, Gtk.IconSize.MENU)
+            LutrisSidebar.get_sidebar_icon(service.icon)
         )
         self.service = service
 
@@ -268,7 +268,7 @@ class DummyRow():
 class LutrisSidebar(Gtk.ListBox):
     __gtype_name__ = "LutrisSidebar"
 
-    def __init__(self, application, selected=None):
+    def __init__(self, application):
         super().__init__()
         self.set_size_request(200, -1)
         self.application = application
@@ -282,10 +282,6 @@ class LutrisSidebar(Gtk.ListBox):
         # A dummy objects that allows inspecting why/when we have a show() call on the object.
         self.running_row = DummyRow()
         self.missing_row = DummyRow()
-        if selected:
-            self.selected_row_type, self.selected_row_id = selected.split(":")
-        else:
-            self.selected_row_type, self.selected_row_id = ("category", "all")
         self.row_headers = {
             "library": SidebarHeader(_("Library")),
             "sources": SidebarHeader(_("Sources")),
@@ -308,7 +304,8 @@ class LutrisSidebar(Gtk.ListBox):
         self.set_header_func(self._header_func)
         self.show_all()
 
-    def get_sidebar_icon(self, icon_name):
+    @staticmethod
+    def get_sidebar_icon(icon_name):
         name = icon_name if has_stock_icon(icon_name) else "package-x-generic-symbolic"
         icon = Gtk.Image.new_from_icon_name(name, Gtk.IconSize.MENU)
 
@@ -389,23 +386,32 @@ class LutrisSidebar(Gtk.ListBox):
                 runner_name,
                 "runner",
                 runner.human_name,
-                self.get_sidebar_icon(icon_name),
+                LutrisSidebar.get_sidebar_icon(icon_name),
                 application=self.application
             ))
 
         for platform in self.platforms:
             icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
-            self.add(SidebarRow(platform, "platform", platform, self.get_sidebar_icon(icon_name)))
+            self.add(SidebarRow(platform, "platform", platform, LutrisSidebar.get_sidebar_icon(icon_name)))
 
         self.update()
         self.show_all()
         self.running_row.hide()
-        GLib.idle_add(self._preselect_active_row)
 
-    def _preselect_active_row(self):
-        """Select the active row based on initial selected row"""
+    @property
+    def selected_category(self):
+        """The selected sidebar row, as a tuple of category and category value,
+        like ('service', 'lutris')."""
+        row = self.get_selected_row()
+        return (row.type, row.id) if row else ("category", "all")
+
+    @selected_category.setter
+    def selected_category(self, value):
+        """Selects the rrow for the category indicated by a category tuple,
+        like ('service', 'lutris')"""
+        selected_row_type, selected_row_id = value or ("category", "all")
         for row in self.get_children():
-            if row.type == self.selected_row_type and row.id == self.selected_row_id:
+            if row.type == selected_row_type and row.id == selected_row_id:
                 self.select_row(row)
                 break
 

@@ -71,10 +71,11 @@ class DolphinGame(ServiceGame):
     @classmethod
     def new_from_cache(cls, cache_entry):
         """Create a service game from an entry from the Dolphin cache"""
+        name = cache_entry["internal_name"] or os.path.splitext(cache_entry["file_name"])[0]
         service_game = cls()
-        service_game.name = cache_entry["internal_name"]
+        service_game.name = name
         service_game.appid = str(cache_entry["game_id"])
-        service_game.slug = slugify(cache_entry["internal_name"])
+        service_game.slug = slugify(name)
         service_game.icon = service_game.get_banner(cache_entry)
 
         service_game.details = json.dumps({

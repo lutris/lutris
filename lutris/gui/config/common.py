@@ -361,11 +361,6 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
     def _build_game_tab(self):
         if self.game and self.runner_name:
             self.game.runner_name = self.runner_name
-            if not self.game.runner or self.game.runner.name != self.runner_name:
-                try:
-                    self.game.runner = runners.import_runner(self.runner_name)()
-                except runners.InvalidRunner:
-                    pass
             self.game_box = self._build_options_tab(_("Game options"),
                                                     lambda: GameBox(self.lutris_config, self.game))
         elif self.runner_name:
@@ -522,7 +517,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         if response in (Gtk.ResponseType.CANCEL, response == Gtk.ResponseType.DELETE_EVENT):
             # Reload the config to clean out any changes we may have made
             if self.game:
-                self.game.load_config()
+                self.game.reload_config()
         if response != Gtk.ResponseType.NONE:
             self.destroy()
 
@@ -577,21 +572,16 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         if not self.lutris_config.game_config_id:
             self.lutris_config.game_config_id = make_game_config_id(self.slug)
 
-        runner_class = runners.import_runner(self.runner_name)
-        runner = runner_class(self.lutris_config)
-
-        # extract icon for wine games
-        if self.runner_name == "wine" and "icon" not in self.game.custom_images:
-            runner.extract_icon_exe(self.slug)
-
         self.game.name = name
         self.game.slug = self.slug
         self.game.year = year
-        self.game.game_config_id = self.lutris_config.game_config_id
-        self.game.runner = runner
-        self.game.runner_name = self.runner_name
         self.game.is_installed = True
         self.game.config = self.lutris_config
+        self.game.runner_name = self.runner_name
+
+        if "icon" not in self.game.custom_images:
+            self.game.runner.extract_icon(self.slug)
+
         self.game.save()
         self.destroy()
         self.saved = True

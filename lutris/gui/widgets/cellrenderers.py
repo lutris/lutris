@@ -126,7 +126,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             self.cached_surface_generation = get_media_generation_number()
             self.clear_cache()
 
-        key = widget, path, preserve_aspect_ratio
+        key = widget, path, preserve_aspect_ratio, self.is_installed
 
         surface = self.cached_surfaces_new.get(key)
         if surface:

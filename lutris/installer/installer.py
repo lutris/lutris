@@ -158,7 +158,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if not self.script_files:
             return
         if self.service and self.service.online and not self.service.is_connected():
-            raise AuthenticationError(_("YOu are not authenticated to %s"), self.service.id)
+            raise AuthenticationError(_("You are not authenticated to %s") % self.service.id)
 
         installer_file_id = self.get_user_provided_file() if self.service else None
 

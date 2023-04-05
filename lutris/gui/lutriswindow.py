@@ -82,7 +82,6 @@ class LutrisWindow(Gtk.ApplicationWindow,
         self.maximized = settings.read_setting("maximized") == "True"
         self.service = None
         self.search_timer_id = None
-        self.selected_category = settings.read_setting("selected_category", default="runner:all")
         self.filters = self.load_filters()
         self.set_service(self.filters.get("service"))
         self.icon_type = self.load_icon_type()
@@ -115,7 +114,7 @@ class LutrisWindow(Gtk.ApplicationWindow,
         lutris_icon = Gtk.Image.new_from_icon_name("lutris", Gtk.IconSize.MENU)
         lutris_icon.set_margin_right(3)
 
-        self.sidebar = LutrisSidebar(self.application, selected=self.selected_category)
+        self.sidebar = LutrisSidebar(self.application)
         self.sidebar.connect("selected-rows-changed", self.on_sidebar_changed)
         # "realize" is order sensitive- must connect after sidebar itself connects the same signal
         self.sidebar.connect("realize", self.on_sidebar_realize)
@@ -142,6 +141,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
         GObject.add_emission_hook(Game, "game-installed", self.on_game_installed)
         GObject.add_emission_hook(Game, "game-removed", self.on_game_removed)
         GObject.add_emission_hook(Game, "game-unhandled-error", self.on_game_unhandled_error)
+
+        # Finally trigger the initialization of the view here
+        selected_category = settings.read_setting("selected_category", default="runner:all")
+        self.sidebar.selected_category = selected_category.split(":") if selected_category else None
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -223,6 +226,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def service_media(self):
         return self.get_service_media(self.load_icon_type())
 
+    @property
+    def selected_category(self):
+        return self.sidebar.selected_category
+
     def on_load(self, widget, data=None):
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
@@ -240,12 +247,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
     def load_filters(self):
         """Load the initial filters when creating the view"""
-        category, value = self.selected_category.split(":")
+        # The main sidebar-category filter will be populated when the sidebar row is selected, after this
         filters = {
-            category: value
-        }  # Type of filter corresponding to the selected sidebar element
-        filters["hidden"] = settings.read_setting("show_hidden_games").lower() == "true"
-        filters["installed"] = settings.read_setting("filter_installed").lower() == "true"
+            "hidden": settings.read_setting("show_hidden_games").lower() == "true",
+            "installed": settings.read_setting("filter_installed").lower() == "true"
+        }
         return filters
 
     def hidden_state_change(self, action, value):
@@ -861,10 +867,8 @@ class LutrisWindow(Gtk.ApplicationWindow,
             if filter_type in self.filters:
                 self.filters.pop(filter_type)
 
-        row = widget.get_selected_row()
-        if row:
-            self.selected_category = "%s:%s" % (row.type, row.id)
-            self.filters[row.type] = row.id
+        row_type, row_id = widget.selected_category
+        self.filters[row_type] = row_id
 
         service_name = self.filters.get("service")
         self.set_service(service_name)

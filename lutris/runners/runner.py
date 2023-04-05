@@ -608,3 +608,8 @@ class Runner:  # pylint: disable=too-many-public-methods
         """Stop the running game. If this leaves any game processes running,
         the caller will SIGKILL them (after a delay)."""
         game.kill_processes(signal.SIGTERM)
+
+    def extract_icon(self, game_slug):
+        """The config UI calls this to extract the game icon. Most runners do not
+        support this and do nothing. This is not called if a custom icon is installed
+        for the game."""
