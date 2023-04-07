@@ -1,3 +1,10 @@
+# SPDX-FileCopyrightText: 2014-2023 Lutris Team and Contributors <https://lutris.net>
+# SPDX-FileCopyrightText: 2014-2023 Mathieu Comandon <strider@strycore.com>
+# SPDX-FileCopyrightText: 2019 Stephan Lachnit <stephanlachnit@debian.org>
+# SPDX-FileCopyrightText: 2020-2021 Alexandru Rudi <https://github.com/AlexanderRavenheart>
+# SPDX-FileCopyrightText: 2022-2023 Amy Gauna <https://github.com/Amaylia>
+# 
+# SPDX-License-Identifier: GPL-3.0-or-later
 VERSION=`grep "__version__" lutris/__init__.py | cut -d" " -f 3 | sed 's|"\(.*\)"|\1|'`
 GITBRANCH ?= master
 # Default GPG key ID to use for package signing.

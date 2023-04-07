@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017-2022 Lutris Team and Contributors <https://lutris.net>
+# SPDX-FileCopyrightText: 2017-2022 Mathieu Comandon <strider@strycore.com>
+# SPDX-FileCopyrightText: 2020-2021 Alexander Ravenheart (Alexandru-Rudi) <alexander.ravenheart@gmail.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 dist: bionic
 language: python
 python:

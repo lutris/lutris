@@ -1,4 +1,7 @@
 #!/bin/sh
+# SPDX-FileCopyrightText: 2020-2021 Stephan Lachnit <stephanlachnit@debian.org>
+# 
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 cd "$(dirname "$(realpath "$0")")/.."
 

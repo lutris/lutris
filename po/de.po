@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022-2023 Lutris Team and Contributors <https://lutris.net>
+# SPDX-FileCopyrightText: 2020, 2022 Sven J. Grewe <svengrewe@posteo.de>
+# 
+# SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"

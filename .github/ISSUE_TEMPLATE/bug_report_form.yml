@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021-2023 Lutris Team and Contributors
+# 
+# SPDX-License-Identifier: CC0-1.0
 name: Bug Report
 description: File a bug report
 labels: ["needs triage"]

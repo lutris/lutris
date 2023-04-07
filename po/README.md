@@ -1,3 +1,10 @@
+<!--
+SPDX-FileCopyrightText: 2020-2023 Lutris Team and Contributors
+SPDX-FileCopyrightText: 2020-2021 Stephan Lachnit <stephanlachnit@debian.org>
+SPDX-FileCopyrightText: 2020-2022 SwimmingTiger <hu60.cn@gmail.com>
+
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
 # i18n
 
 Please read the notes below before opening a PR.

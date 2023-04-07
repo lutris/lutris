@@ -1,0 +1,65 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: lutris
+Upstream-Contact: Lutris Team <https://lutris.net>
+Source: https://github.com/lutris/lutris
+
+Files: lutris/*
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
+
+Files: schema/*
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
+
+Files: share/*
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
+
+Files: snap/*
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
+
+Files: tests/*
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
+
+Files: utils/*
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
+
+Files: share/lutris/ui/*.ui
+Copyright: 2014-2023 Lutris Team and Contributors <https://lutris.net>
+           2014-2023 Mathieu Comandon
+License: GPL-3.0-or-later
+
+Files: debian/*
+Copyright: 2010-2023 Lutris Team and Contributors <https://lutris.net>
+           2010-2023 Mathieu Comandon
+           2019-2022 Stephan Lachnit <stephanlachnit@debian.org>
+License: GPL-3.0-or-later
+ On Debian systems, the complete text of the General Public License version 3
+ can be found in "/usr/share/common-licenses/GPL-3".
+
+Files: lutris.spec
+Copyright: 2012-2023 Lutris Team and Contributors <https://lutris.net>
+           2012-2023 Mathieu Comandon
+License: GPL-3.0-or-later
+
+Files: po/LINGUAS
+  po/POTFILES
+  .agignore
+  .editorconfig
+  .flake8
+  .gitignore
+  .isort.cfg
+  .pylintrc
+  .yapf
+  AUTHORS
+  MANIFEST.in
+  optional_settings.py.in
+Copyright: 2012-2023 Lutris Team and Contributors <https://lutris.net>
+License: CC0-1.0
+
+Files: .github/*
+Copyright: 2021-2023 Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later

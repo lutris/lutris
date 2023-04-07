@@ -1,4 +1,6 @@
-# Nikita Grishko <yakrobat@protonmail.com>, 2020.
+# SPDX-FileCopyrightText: 2020 Nikita Grishko <yakrobat@protonmail.com>
+# 
+# SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"

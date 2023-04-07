@@ -1,3 +1,11 @@
+..
+    SPDX-FileCopyrightText: 2010-2023 Lutris Team and Contributors <https://lutris.net>
+    SPDX-FileCopyrightText: 2010-2023 Mathieu Comandon <strider@strycore.com>
+    SPDX-FileCopyrightText: 2018 William 'LEARAX' Culhane <https://github.com/w-culhane>
+    SPDX-FileCopyrightText: 2018 Medath <https://github.com/Medath>
+    SPDX-FileCopyrightText: 2022 Ahmed Al Balochi <https://github.com/ahmed-al-balochi>
+    SPDX-FileCopyrightText: 2022 Martin Juhl <m@rtinjuhl.dk>
+    SPDX-License-Identifier: GPL-3.0-or-later
 ******
 Lutris
 ******

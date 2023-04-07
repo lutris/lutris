@@ -1,3 +1,15 @@
+..
+  SPDX-FileCopyrightText: 2013-2023 Lutris Team and Contributors <https://lutris.net>
+  SPDX-FileCopyrightText: 2013-2023 Mathieu Comandon <strider@strycore.com>
+  SPDX-FileCopyrightText: 2014-2016 Pascal Reinhard (Xodetaetl) <dev@xod.me>
+  SPDX-FileCopyrightText: 2017-2018 Daniel J. <https://github.com/daniel-j>
+  SPDX-FileCopyrightText: 2017-2018 soredake
+  SPDX-FileCopyrightText: 2018 Medath <https://github.com/Medath>
+  SPDX-FileCopyrightText: 2019 cxf <https://github.com/AccountOneOff>
+  SPDX-FileCopyrightText: 2020 Ben 'hydrian' Tyger <https://github.com/hydrian>
+  SPDX-FileCopyrightText: 2021 Aleksandr Oleinikov <https://github.com/tannisroot>
+  SPDX-FileCopyrightText: 2023 Antoine Mazeas <https://github.com/karthanistyr>
+  SPDX-License-Identifier: GPL-3.0-or-later
 ==================
 Writing installers
 ==================
