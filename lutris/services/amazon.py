@@ -4,6 +4,7 @@ import hashlib
 import json
 import lzma
 import os
+import re
 import secrets
 import struct
 import time
@@ -245,7 +246,7 @@ class AmazonService(OnlineService):
             raise AuthenticationError(_("Unable to register device, please log in again")) from ex
 
         res_json = request.json
-        logger.info("Succesfully registered a device")
+        logger.info("Successfully registered a device")
         user_data = res_json["response"]["success"]
         return user_data
 
@@ -577,7 +578,8 @@ class AmazonService(OnlineService):
             res_json = request.json
         except Exception as ex:
             try:
-                res_json = json.loads(request.content.decode('utf-8').replace("'", '"'))
+                repaired_json = AmazonService.repair_json(request.content.decode('utf-8'))
+                res_json = json.loads(repaired_json)
             except:
                 logger.error("Unparseable json response from %s:\n%s", fuel_url, request.content)
                 raise UnavailableGameError(_(
@@ -594,6 +596,17 @@ class AmazonService(OnlineService):
                 game_args += arg if game_args == "" else " " + arg
 
         return game_cmd, game_args
+
+    @staticmethod
+    def repair_json(text):
+        # Amazon's JSON is not very sanity conformant. This code tries to
+        # normalize it before parsing.
+        repaired = text.replace("'", '"')
+
+        # Try to remove trailing commas after the final element of a list.
+        repaired = re.sub(r'[]][,]\s*[]]', ']]', repaired)
+        repaired = re.sub(r'[}][,]\s*[]]', '}]', repaired)
+        return repaired
 
     def get_game_cmd_line(self, fuel_url):
         """Get the executable path and the arguments for run the game"""
