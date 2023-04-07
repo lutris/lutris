@@ -168,6 +168,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 default=self.view_sorting,
                 enabled=lambda: self.is_view_sort_active
             ),
+            "view-sorting-installed-first": Action(
+                self.on_view_sorting_installed_first_change,
+                type="b",
+                default=self.view_sorting_installed_first,
+                enabled=lambda: self.is_view_sort_active
+            ),
             "view-sorting-ascending": Action(
                 self.on_view_sorting_direction_change,
                 type="b",
@@ -291,6 +297,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
         return settings.read_setting("view_sorting_ascending").lower() != "false"
 
     @property
+    def view_sorting_installed_first(self):
+        return settings.read_setting("view_sorting_installed_first").lower() != "false"
+
+    @property
     def show_hidden_games(self):
         return settings.read_setting("show_hidden_games").lower() == "true"
 
@@ -300,12 +310,20 @@ class LutrisWindow(Gtk.ApplicationWindow,
         exactly a match for what self.apply_view_sort does, but it is as close
         as may be, in the hope that a faster DB sort will get is close and result
         in a faster sort overall."""
-        return [("installed", "COLLATE NOCASE DESC"), (
+
+        params = []
+
+        if self.view_sorting_installed_first:
+            params.append(("installed", "COLLATE NOCASE DESC"))
+
+        params.append((
             self.view_sorting,
             "COLLATE NOCASE ASC"
             if self.view_sorting_ascending
             else "COLLATE NOCASE DESC"
-        )]
+        ))
+
+        return params
 
     @property
     def is_view_sort_active(self):
@@ -353,15 +371,19 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 if view_sorting == "name":
                     value = natural_sort_key(value)
 
-            # We want installed games to always be first, even in
-            # a descending sort.
-            if self.view_sorting_ascending:
-                installation_flag = not installation_flag
-
             # Users may have obsolete view_sorting settings, so
             # we must tolerate them. We treat them all as blank.
             value = value or sort_defaults.get(view_sorting, "")
-            return [installation_flag, value]
+
+            if self.view_sorting_installed_first:
+                # We want installed games to always be first, even in
+                # a descending sort.
+                if self.view_sorting_ascending:
+                    installation_flag = not installation_flag
+
+                return [installation_flag, value]
+
+            return value
 
         return sorted(items, key=get_sort_value, reverse=not self.view_sorting_ascending)
 
@@ -852,6 +874,11 @@ class LutrisWindow(Gtk.ApplicationWindow,
     def on_view_sorting_direction_change(self, action, value):
         self.actions["view-sorting-ascending"].set_state(value)
         settings.write_setting("view_sorting_ascending", bool(value))
+        self.emit("view-updated")
+
+    def on_view_sorting_installed_first_change(self, action, value):
+        self.actions["view-sorting-installed-first"].set_state(value)
+        settings.write_setting("view_sorting_installed_first", bool(value))
         self.emit("view-updated")
 
     def on_side_panel_state_change(self, action, value):
