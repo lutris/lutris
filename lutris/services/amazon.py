@@ -601,6 +601,10 @@ class AmazonService(OnlineService):
     def repair_json(text):
         # Amazon's JSON is not very sanity conformant. This code tries to
         # normalize it before parsing.
+        #
+        # NOTE: it may be that Amazon is sending us JSON like YAML;
+        # yaml.safe_load() might work better, but this has been tested
+        # so, we'll go with it for now.
         repaired = text.replace("'", '"')
 
         # Try to remove trailing commas after the final element of a list.
