@@ -4,13 +4,14 @@ import hashlib
 import json
 import lzma
 import os
-import re
 import secrets
 import struct
 import time
 import uuid
 from gettext import gettext as _
 from urllib.parse import parse_qs, urlencode, urlparse
+
+import yaml
 
 from lutris import settings
 from lutris.exceptions import AuthenticationError, UnavailableGameError
@@ -575,15 +576,16 @@ class AmazonService(OnlineService):
                 "Unable to get fuel.json file, please check your Amazon credentials and internet connectivity")) from ex
 
         try:
-            res_json = request.json
+            res_yaml_text = request.text
+            res_json = yaml.safe_load(res_yaml_text)
         except Exception as ex:
+            # Maybe it can be parsed as plain JSON. May as well try it.
             try:
-                repaired_json = AmazonService.repair_json(request.content.decode('utf-8'))
-                res_json = json.loads(repaired_json)
-            except:
-                logger.error("Unparseable json response from %s:\n%s", fuel_url, request.content)
+                logger.exception("Unparesable yaml response from %s:\n%s", fuel_url, res_yaml_text)
+                res_json = json.loads(res_yaml_text)
+            except Exception:
                 raise UnavailableGameError(_(
-                    "Invalid JSON response from Amazon APIs")) from ex
+                    "Invalid response from Amazon APIs")) from ex
 
         if res_json["Main"] is None or res_json["Main"]["Command"] is None:
             return None, None
@@ -596,21 +598,6 @@ class AmazonService(OnlineService):
                 game_args += arg if game_args == "" else " " + arg
 
         return game_cmd, game_args
-
-    @staticmethod
-    def repair_json(text):
-        # Amazon's JSON is not very sanity conformant. This code tries to
-        # normalize it before parsing.
-        #
-        # NOTE: it may be that Amazon is sending us JSON like YAML;
-        # yaml.safe_load() might work better, but this has been tested
-        # so, we'll go with it for now.
-        repaired = text.replace("'", '"')
-
-        # Try to remove trailing commas after the final element of a list.
-        repaired = re.sub(r'[]][,]\s*[]]', ']]', repaired)
-        repaired = re.sub(r'[}][,]\s*[]]', '}]', repaired)
-        return repaired
 
     def get_game_cmd_line(self, fuel_url):
         """Get the executable path and the arguments for run the game"""
