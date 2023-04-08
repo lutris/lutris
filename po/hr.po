@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: 2022-2023 Lutris Team and Contributors <https://lutris.net>
-# SPDX-FileCopyrightText: 2019-2022 gogogogi <https://github.com/muzena>
+# Copyright (C) 2022-2023 Lutris Team and Contributors <https://lutris.net>
+# Copyright (C) 2019-2022 gogogogi <https://github.com/muzena>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""

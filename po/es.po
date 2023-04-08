@@ -1,8 +1,6 @@
-# SPDX-FileCopyrightText: 2022-2023 Lutris Team and Contributors <https://lutris.net>
-# SPDX-FileCopyrightText: 2016 mandruis
-# SPDX-FileCopyrightText: 2018 cxf <https://github.com/AccountOneOff>
-# SPDX-FileCopyrightText: 2021 Óscar Fernández Díaz <oscfdezdz@tuta.io>
-# SPDX-FileCopyrightText: 2022 Miguel Barrio Orsikowsky <megamik79@protonmail.com>
+# Copyright (C) 2021-2023 Lutris Team and Contributors <https://lutris.net>
+# Copyright (C) 2021 Óscar Fernández Díaz <oscfdezdz@tuta.io>
+# Copyright (C) 2022 Miguel Barrio Orsikowsky <megamik79@protonmail.com>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (C) 2022 Maximiliano Sandoval <https://github.com/A6GibKm>
+# 
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from os import environ, path
 from subprocess import call

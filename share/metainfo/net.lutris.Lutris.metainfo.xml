@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2009 Lutris -->
+<!--
+Copyright (C) 2009-2023 Lutris Team and Contributors
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
 <component type="desktop">
   <id>net.lutris.Lutris</id>
   <project_license>GPL-3.0-or-later</project_license>

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020 Kevin Kim <https://github.com/chaeya>
+# Copyright (C) 2020 Kevin Kim <https://github.com/chaeya>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""

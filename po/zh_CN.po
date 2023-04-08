@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2020-2023 Lutris Team and Contributors <https://lutris.net>
-# SPDX-FileCopyrightText: 2020-2022 SwimmingTiger <https://github.com/SwimmingTiger>
-# SPDX-FileCopyrightText: 2021 Yidaozhan Ya <yidaozhan_ya@outlook.com>
+# Copyright (C) 2020-2023 Lutris Team and Contributors <https://lutris.net>
+# Copyright (C) 2020-2022 SwimmingTiger <https://github.com/SwimmingTiger>
+# Copyright (C) 2021 Yidaozhan Ya <yidaozhan_ya@outlook.com>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""

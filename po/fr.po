@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2022-2023 Lutris Team and Contributors <https://lutris.net>
-# SPDX-FileCopyrightText: 2020 Stelfux <coles@tuta.io>
-# SPDX-FileCopyrightText: 2022 rene-coty <irenee.thirion@outlook.fr>
+# Copyright (C) 2022-2023 Lutris Team and Contributors <https://lutris.net>
+# Copyright (C) 2020 Stelfux <coles@tuta.io>
+# Copyright (C) 2022 rene-coty <irenee.thirion@outlook.fr>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""

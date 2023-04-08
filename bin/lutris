@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2010-2023 Lutris Team and Contributors
-# SPDX-FileCopyrightText: 2010-2021 Mathieu Comandon <strider@strycore.com>
-# SPDX-FileCopyrightText: 2016 Patrick 'TingPing' Griffis <tingpin@tingping.se>
-# SPDX-FileCopyrightText: 2019 Luc 'DevilishSpirits' B. <https://github.com/DevilishSpirits>
-# SPDX-FileCopyrightText: 2019 Manuel Vögele <https://github.com/manuelVo>
-# SPDX-FileCopyrightText: 2020 Stephan Lachnit <stephanlachnit@debian.org>
-# SPDX-FileCopyrightText: 2020 SwimmingTiger <hu60.cn@gmail.com>
-# SPDX-FileCopyrightText: 2023 Daniel Johnson <https://github.com/danieljohnson2>
+# Copyright (C) 2010-2023 Lutris Team and Contributors
+# Copyright (C) 2010-2021 Mathieu Comandon <strider@strycore.com>
+# Copyright (C) 2016 Patrick 'TingPing' Griffis <tingpin@tingping.se>
+# Copyright (C) 2020 SwimmingTiger <hu60.cn@gmail.com>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 

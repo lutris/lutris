@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2020-2023 Lutris Team and Contributors <https://lutris.net>
-# SPDX-FileCopyrightText: 2020 Mahmut Elmas <mahmutelmas@gmail.com>
-# SPDX-FileCopyrightText: 2021 beachdirge <https://github.com/beachdirge>
+# Copyright (C) 2020-2023 Lutris Team and Contributors <https://lutris.net>
+# Copyright (C) 2020 Mahmut Elmas <mahmutelmas@gmail.com>
+# Copyright (C) 2021 beachdirge <https://github.com/beachdirge>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""

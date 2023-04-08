@@ -1,8 +1,7 @@
 ..
-    SPDX-FileCopyrightText: 2014-2023 Lutris Team and Contributors <https://lutris.net>
-    SPDX-FileCopyrightText: 2014-2023 Mathieu Comandon <strider@strycore.com>
-    SPDX-FileCopyrightText: 2019 Adehom <https://github.com/Adehom>
-    SPDX-FileCopyrightText: 2020 tannisroot <https://github.com/tannisroot>
+    Copyright (C) 2014-2023 Lutris Team and Contributors <https://lutris.net>
+    Copyright (C) 2014-2023 Mathieu Comandon <strider@strycore.com>
+    Copyright (C) 2020 tannisroot <https://github.com/tannisroot>
     SPDX-License-Identifier: GPL-3.0-or-later
 Installing Lutris
 =================

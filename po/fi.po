@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: 2022-2023 Lutris Team and Contributors <https://lutris.net>
-# SPDX-FileCopyrightText: 2022 Heidi Wenger <heidi.wenger@protonmail.com>
+# Copyright (C) 2022-2023 Lutris Team and Contributors <https://lutris.net>
+# Copyright (C) 2022 Heidi Wenger <heidi.wenger@protonmail.com>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""

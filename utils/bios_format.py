@@ -1,3 +1,6 @@
+# Copyright (C) 2021 Mathieu Comandon <strider@strycore.com>
+# 
+# SPDX-License-Identifier: GPL-3.0-or-later
 import json
 
 bios_list = """

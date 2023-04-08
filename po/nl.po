@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2023 Heimen Stoffels <vistausss@fastmail.com>
+# Copyright (C) 2020-2023 Heimen Stoffels <vistausss@fastmail.com>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""

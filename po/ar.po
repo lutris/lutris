@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Ali 'Ali-x98' Aljishi <ahj696@hotmail.com>
+# Copyright (C) 2023 Ali 'Ali-x98' Aljishi <ahj696@hotmail.com>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""

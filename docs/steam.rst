@@ -1,5 +1,5 @@
 ..
-    SPDX-FileCopyrightText: 2013-2015 Mathieu Comandon <strider@strycore.com>
+    Copyright (C) 2013-2015 Mathieu Comandon <strider@strycore.com>
     SPDX-License-Identifier: GPL-3.0-or-later
 AppState
 --------

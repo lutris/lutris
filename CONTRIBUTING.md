@@ -1,6 +1,6 @@
 <!--
-SPDX-FileCopyrightText: 2018-2022 Lutris Team and Contributors <https://lutris.net>
-SPDX-FileCopyrightText: 2018-2019, 2021, 2022 Mathieu Comandon <strider@strycore.com>
+Copyright (C) 2018-2022 Lutris Team and Contributors <https://lutris.net>
+Copyright (C) 2018-2019, 2021, 2022 Mathieu Comandon <strider@strycore.com>
 
 SPDX-License-Identifier: GPL-3.0-or-later
 -->

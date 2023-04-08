@@ -1,7 +1,7 @@
-# SPDX-FileCopyrightText: 2019-2023 Lutris Team and Contributors
-# SPDX-FileCopyrightText: 2019 Luc 'DevilishSpirits' B. <https://github.com/DevilishSpirits>
-# SPDX-FileCopyrightText: 2020 Stephan Lachnit <stephanlachnit@debian.org>
-# SPDX-FileCopyrightText: 2020 SwimmingTiger <hu60.cn@gmail.com>
+# Copyright (C) 2019-2023 Lutris Team and Contributors
+# Copyright (C) 2019 Luc 'DevilishSpirits' B. <https://github.com/DevilishSpirits>
+# Copyright (C) 2020 Stephan Lachnit <stephanlachnit@debian.org>
+# Copyright (C) 2020 SwimmingTiger <hu60.cn@gmail.com>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 project(

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2010-2023 Lutris Team and Contributors
-# SPDX-FileCopyrightText: 2010-2018,2020-2023 Mathieu Comandon <strider@strycore.com>
+# Copyright (C) 2010-2023 Lutris Team and Contributors
+# Copyright (C) 2010-2018,2020-2023 Mathieu Comandon <strider@strycore.com>
 # 
 # SPDX-License-Identifier: GPL-3.0-or-later
 import os

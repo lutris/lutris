@@ -3,33 +3,8 @@ Upstream-Name: lutris
 Upstream-Contact: Lutris Team <https://lutris.net>
 Source: https://github.com/lutris/lutris
 
-Files: lutris/*
-Copyright: Lutris Team and Contributors <https://lutris.net>
-License: GPL-3.0-or-later
-
-Files: schema/*
-Copyright: Lutris Team and Contributors <https://lutris.net>
-License: GPL-3.0-or-later
-
-Files: share/*
-Copyright: Lutris Team and Contributors <https://lutris.net>
-License: GPL-3.0-or-later
-
-Files: snap/*
-Copyright: Lutris Team and Contributors <https://lutris.net>
-License: GPL-3.0-or-later
-
-Files: tests/*
-Copyright: Lutris Team and Contributors <https://lutris.net>
-License: GPL-3.0-or-later
-
-Files: utils/*
-Copyright: Lutris Team and Contributors <https://lutris.net>
-License: GPL-3.0-or-later
-
-Files: share/lutris/ui/*.ui
-Copyright: 2014-2023 Lutris Team and Contributors <https://lutris.net>
-           2014-2023 Mathieu Comandon
+Files: .github/*
+Copyright: 2021-2023 Lutris Team and Contributors <https://lutris.net>
 License: GPL-3.0-or-later
 
 Files: debian/*
@@ -39,6 +14,48 @@ Copyright: 2010-2023 Lutris Team and Contributors <https://lutris.net>
 License: GPL-3.0-or-later
  On Debian systems, the complete text of the General Public License version 3
  can be found in "/usr/share/common-licenses/GPL-3".
+
+Files: lutris/database/*
+       lutris/gui/*
+       lutris/installer/*
+       lutris/migrations/*
+       lutris/runners/*
+       lutris/scanners/*
+       lutris/services/*
+       lutris/util/*
+       lutris/*.py
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
+
+Files: schema/*
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
+
+Files: share/applications/net.lutris.Lutris.desktop
+       share/lutris/bin/*
+       share/lutris/conf/*
+       share/lutris/json/*
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
+
+Files: share/icons/*
+Copyright: 2010 Ludovic Soulié
+           2019 Alexsandr Oleinikov <https://github.com/tannisroot>
+           2019 Scout339 <https://github.com/Scout339>
+License: GPL-3.0-or-later
+
+Files: share/lutris/ui/*
+Copyright: 2014-2023 Lutris Team and Contributors <https://lutris.net>
+           2014-2023 Mathieu Comandon
+License: GPL-3.0-or-later
+
+Files: share/man/man1/lutris.1
+Copyright: 2020 Stephan Lachnit <stephanlachnit@debian.org>
+License: GPL-3.0-or-later
+
+Files: tests/*
+Copyright: Lutris Team and Contributors <https://lutris.net>
+License: GPL-3.0-or-later
 
 Files: lutris.spec
 Copyright: 2012-2023 Lutris Team and Contributors <https://lutris.net>
@@ -58,8 +75,4 @@ Files: po/LINGUAS
   MANIFEST.in
   optional_settings.py.in
 Copyright: 2012-2023 Lutris Team and Contributors <https://lutris.net>
-License: CC0-1.0
-
-Files: .github/*
-Copyright: 2021-2023 Lutris Team and Contributors <https://lutris.net>
 License: GPL-3.0-or-later

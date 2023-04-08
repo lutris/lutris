@@ -1,3 +1,7 @@
+# Copyright (C) 2021-2023 Lutris Team and Contributors <https://lutris.net>
+# Copyright (C) 2021, 2023 Mathieu Comandon <strider@strycore.com>
+# 
+# SPDX-License-Identifier: GPL-3.0-or-later
 import os
 import shutil
 import sys

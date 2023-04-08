@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2020-2023 Lutris Team and Contributors
+# Copyright (C) 2020-2023 Lutris Team and Contributors
 # 
-# SPDX-License-Identifier: CC0-1.0
+# SPDX-License-Identifier: GPL-3.0-or-later
 i18n = import('i18n')
 
 i18n.gettext(
