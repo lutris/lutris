@@ -8,6 +8,7 @@ lutris (0.5.13) jammy; urgency=medium
   * Re-style the configuration, preferences, installer and add-games windows
   * Group configuration options into sections
   * Added checkbox to stop asking for the launch config for a game
+  * Added checkbox to sort installed games first
   * Support for launch-configs in shortcuts and the command line
   * The add-games window can now create 32-bit WINE prefixes
   * Add filter field to runner list
