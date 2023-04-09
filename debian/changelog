@@ -19,6 +19,7 @@ lutris (0.5.13) jammy; urgency=medium
   * Improve detection of DOSBox games on GOG
   * Added "Unspecified" Vulkan ICD option
   * Removed ResidualVM (now merged into ScummVM)
+  * Detect obsolete Vulkan drivers, warn and default to DXVK 1.x for them
   * Improved High-DPI support for custom media
   * Performance improvements
 
