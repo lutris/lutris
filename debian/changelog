@@ -9,6 +9,7 @@ lutris (0.5.13) jammy; urgency=medium
   * Group configuration options into sections
   * Added checkbox to stop asking for the launch config for a game
   * Support for launch-configs in shortcuts and the command line
+  * Show platform badges on banners and cover-art
   * The add-games window can now create 32-bit WINE prefixes
   * Add filter field to runner list
   * Show game count in search bar
