@@ -937,7 +937,8 @@ class wine(Runner):
             env["STEAM_COMPAT_DATA_PATH"] = self.prefix_path
             env["STEAM_COMPAT_APP_ID"] = '0'
             env["SteamAppId"] = '0'
-            env["SteamGameId"] = "lutris-game"
+            if not ("SteamGameId" in env):
+                env["SteamGameId"] = "lutris-game"
         return env
 
     def get_runtime_env(self):
