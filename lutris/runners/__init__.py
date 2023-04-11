@@ -44,7 +44,8 @@ __all__ = [
     "zdoom",
 ]
 ADDON_RUNNERS = {}
-RUNNER_PLATFORMS = {}
+RUNNER_NAMES = {}  # This needs to be initialized at startup with get_runner_names
+RUNNER_PLATFORMS = {}  # This also must be initialized at the right moment
 
 
 class InvalidRunner(Exception):
@@ -125,4 +126,5 @@ def get_platforms():
     return platforms
 
 
-RUNNER_NAMES = {}  # This needs to be initialized at startup with get_runner_names
+def get_runner_human_name(runner_name):
+    return RUNNER_NAMES.get(runner_name)

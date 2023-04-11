@@ -3,7 +3,7 @@ import time
 
 from lutris.database.games import get_service_games
 from lutris.game import Game
-from lutris.runners import RUNNER_NAMES
+from lutris.runners import get_runner_human_name
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
 
@@ -64,7 +64,7 @@ class StoreItem:
     @property
     def runner_text(self):
         """Runner name"""
-        return gtk_safe(RUNNER_NAMES.get(self.runner))
+        return gtk_safe(get_runner_human_name(self.runner))
 
     @property
     def platform(self):
