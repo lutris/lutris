@@ -1,9 +1,9 @@
 """Game representation for views"""
 import time
+from functools import lru_cache
 
 from lutris.database import games
 from lutris.database.games import get_service_games
-from lutris.game import Game
 from lutris.runners import get_runner_human_name
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
@@ -25,6 +25,29 @@ class StoreItem:
 
     def __repr__(self):
         return "<Store id=%s slug=%s>" % (self.id, self.slug)
+
+    @property
+    @lru_cache()
+    def _installed_game_data(self):
+        """Provides- and caches- the DB data for the installed game corresponding to this one,
+        if it's a service game. We can get away with caching this because StoreItem instances are
+        very short-lived, so the game won't be changed underneath us."""
+        appid = self._game_data.get("appid")
+        if appid:
+            return games.get_game_for_service(self.service, self._game_data["appid"])
+
+        return None
+
+    def _get_game_attribute(self, key):
+        value = self._game_data.get(key)
+
+        if not value:
+            game_data = self._installed_game_data
+
+            if game_data:
+                value = game_data.get(key)
+
+        return value
 
     @property
     def id(self):  # pylint: disable=invalid-name
@@ -55,19 +78,12 @@ class StoreItem:
     @property
     def year(self):
         """Year"""
-        return str(self._game_data.get("year") or "")
+        return str(self._get_game_attribute("year") or "")
 
     @property
     def runner(self):
         """Runner slug"""
-        _runner = self._game_data.get("runner")
-
-        if not _runner and "appid" in self._game_data:
-            game_data = games.get_game_for_service(self.service, self._game_data["appid"])
-
-            if game_data:
-                _runner = game_data.get("runner")
-
+        _runner = self._get_game_attribute("runner")
         return gtk_safe(_runner) or ""
 
     @property
@@ -78,13 +94,7 @@ class StoreItem:
     @property
     def platform(self):
         """Platform"""
-        _platform = self._game_data.get("platform")
-        if "platform" in self._game_data:
-            _platform = self._game_data["platform"]
-        elif not self.service and self.installed:
-            game_inst = Game(self._game_data["id"])
-            if game_inst.platform:
-                _platform = game_inst.platform
+        _platform = self._get_game_attribute("platform")
         return gtk_safe(_platform)
 
     @property
@@ -106,7 +116,7 @@ class StoreItem:
     @property
     def installed_at(self):
         """Date of install"""
-        return self._game_data.get("installed_at")
+        return self._get_game_attribute("installed_at")
 
     @property
     def installed_at_text(self):
@@ -119,7 +129,7 @@ class StoreItem:
     @property
     def lastplayed(self):
         """Date of last play"""
-        return self._game_data.get("lastplayed")
+        return self._get_game_attribute("lastplayed")
 
     @property
     def lastplayed_text(self):
@@ -135,7 +145,7 @@ class StoreItem:
     def playtime(self):
         """Playtime duration in hours"""
         try:
-            return float(self._game_data.get("playtime", 0))
+            return float(self._get_game_attribute("playtime") or 0)
         except (TypeError, ValueError):
             return 0.0
 
