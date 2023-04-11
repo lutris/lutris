@@ -238,7 +238,6 @@ def init_lutris():
     runners.inject_runners(load_json_runners())
     # Load runner names and platforms
     runners.RUNNER_NAMES = runners.get_runner_names()
-    runners.RUNNER_PLATFORMS = runners.get_platforms()
     init_dirs()
     try:
         syncdb()
