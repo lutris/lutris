@@ -1,6 +1,7 @@
 """Game representation for views"""
 import time
 
+from lutris.database import games
 from lutris.database.games import get_service_games
 from lutris.game import Game
 from lutris.runners import get_runner_human_name
@@ -59,7 +60,15 @@ class StoreItem:
     @property
     def runner(self):
         """Runner slug"""
-        return gtk_safe(self._game_data.get("runner")) or ""
+        _runner = self._game_data.get("runner")
+
+        if not _runner and "appid" in self._game_data:
+            game_data = games.get_game_for_service(self.service, self._game_data["appid"])
+
+            if game_data:
+                _runner = game_data.get("runner")
+
+        return gtk_safe(_runner) or ""
 
     @property
     def runner_text(self):
