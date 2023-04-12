@@ -236,8 +236,6 @@ def init_lutris():
     """Run full initialization of Lutris"""
     logger.info("Starting Lutris %s", settings.VERSION)
     runners.inject_runners(load_json_runners())
-    # Load runner names
-    runners.RUNNER_NAMES = runners.get_runner_names()
     init_dirs()
     try:
         syncdb()

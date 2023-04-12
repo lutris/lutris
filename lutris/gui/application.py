@@ -860,9 +860,9 @@ class Application(Gtk.Application):
                 self._print(command_line, path)
 
     def print_runners(self):
-        runnersName = get_runner_names()
-        sortednames = sorted(runnersName.keys(), key=lambda x: x.lower())
-        for name in sortednames:
+        runner_names = get_runner_names()
+        sorted_names = sorted(runner_names, key=lambda x: x.lower())
+        for name in sorted_names:
             print(name)
 
     def print_wine_runners(self):

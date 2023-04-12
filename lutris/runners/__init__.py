@@ -1,5 +1,4 @@
 """Runner loaders"""
-from collections import defaultdict
 
 __all__ = [
     # Native
@@ -43,9 +42,9 @@ __all__ = [
     "o2em",
     "zdoom",
 ]
+
 ADDON_RUNNERS = {}
-RUNNER_NAMES = {}  # This needs to be initialized at startup with get_runner_names
-RUNNER_PLATFORMS = {}  # This also must be initialized at the right moment
+_cached_runner_human_names = {}
 
 
 class InvalidRunner(Exception):
@@ -108,23 +107,20 @@ def inject_runners(runners):
     for runner_name in runners:
         ADDON_RUNNERS[runner_name] = runners[runner_name]
         __all__.append(runner_name)
+    _cached_runner_human_names.clear()
 
 
 def get_runner_names():
-    return {
-        runner: import_runner(runner)().human_name for runner in __all__
-    }
-
-
-def get_platforms():
-    """Return a dictionary of all supported platforms with their runners"""
-    platforms = defaultdict(list)
-    for runner_name in __all__:
-        runner = import_runner(runner_name)()
-        for platform in runner.platforms:
-            platforms[platform].append(runner_name)
-    return platforms
+    return __all__
 
 
 def get_runner_human_name(runner_name):
-    return RUNNER_NAMES.get(runner_name)
+    """Returns a human-readable name for a runner; as a convenience, if the name
+    is falsy (None or blank) this returns an empty string. Provides caching for the
+    names."""
+    if runner_name:
+        if runner_name not in _cached_runner_human_names:
+            _cached_runner_human_names[runner_name] = import_runner(runner_name)().human_name
+        return _cached_runner_human_names[runner_name]
+
+    return ""
