@@ -97,15 +97,7 @@ class StoreItem:
     @property
     def platform(self):
         """Platform"""
-        _platform = self._game_data.get("platform")
-        if "platform" in self._game_data:
-            _platform = self._game_data["platform"]
-
-        if not _platform and "appid" in self._game_data:
-            game_data = self._installed_game_data
-
-            if game_data:
-                _platform = game_data.get("platform")
+        _platform = self._get_game_attribute("platform")
 
         if not _platform and self.service in SERVICES:
             service = SERVICES[self.service]()
