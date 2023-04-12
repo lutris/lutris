@@ -1,6 +1,5 @@
 """Game representation for views"""
 import time
-from functools import lru_cache
 
 from lutris.database import games
 from lutris.database.games import get_service_games
@@ -18,6 +17,7 @@ class StoreItem:
         if not game_data:
             raise RuntimeError("No game data provided")
         self._game_data = game_data
+        self._cached_installed_game_data = None
         self.service_media = service_media
 
     def __str__(self):
@@ -27,14 +27,16 @@ class StoreItem:
         return "<Store id=%s slug=%s>" % (self.id, self.slug)
 
     @property
-    @lru_cache()
     def _installed_game_data(self):
         """Provides- and caches- the DB data for the installed game corresponding to this one,
         if it's a service game. We can get away with caching this because StoreItem instances are
         very short-lived, so the game won't be changed underneath us."""
         appid = self._game_data.get("appid")
         if appid:
-            return games.get_game_for_service(self.service, self._game_data["appid"])
+            if self._cached_installed_game_data is None:
+                self._cached_installed_game_data = games.get_game_for_service(self.service,
+                                                                              self._game_data["appid"]) or {}
+            return self._cached_installed_game_data
 
         return None
 

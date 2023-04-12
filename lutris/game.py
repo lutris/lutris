@@ -596,8 +596,8 @@ class Game(GObject.Object):
 
     @watch_game_errors(game_stop_result=False)
     def configure_game(self, launch_ui_delegate):
-        """Get the game ready to start, applying all the options
-        This methods sets the game_runtime_config attribute.
+        """Get the game ready to start, applying all the options.
+        This method sets the game_runtime_config attribute.
         """
         gameplay_info = self.get_gameplay_info(launch_ui_delegate)
         if not gameplay_info:  # if user cancelled- not an error
