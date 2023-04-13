@@ -1,4 +1,5 @@
 """Main window for the Lutris interface."""
+# pylint: disable=too-many-lines
 import os
 import re
 from collections import namedtuple

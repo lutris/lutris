@@ -109,6 +109,7 @@ def remove_shortcut(game):
     with open(shortcut_path, "wb") as shortcut_file:
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
 
+
 def generate_preliminary_id(game):
     lutris_binary = shutil.which("lutris")
     if lutris_binary == "/app/bin/lutris":
@@ -156,9 +157,6 @@ def generate_shortcut(game, launch_config_name):
         'DevkitOverrideAppID': 0,
         'LastPlayTime': 0,
     }
-
-
-
 
 
 def set_artwork(game):
