@@ -44,16 +44,22 @@ def matches_id(shortcut, game):
     return game_id == str(game.id)
 
 
+def get_shortcuts():
+    """Return all Steam shortcuts"""
+    shortcut_path = get_shortcuts_vdf_path()
+    if not shortcut_path or not os.path.exists(shortcut_path):
+        return []
+    with open(shortcut_path, "rb") as shortcut_file:
+        shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts']
+    return shortcuts
+
+
 def shortcut_exists(game):
     try:
-        shortcut_path = get_shortcuts_vdf_path()
-        if not shortcut_path or not os.path.exists(shortcut_path):
+        shortcuts = get_shortcuts()
+        if not shortcuts:
             return False
-
-        with open(shortcut_path, "rb") as shortcut_file:
-            shortcuts = vdf.binary_loads(shortcut_file.read())['shortcuts'].values()
-
-        return bool([s for s in shortcuts if matches_id(s, game)])
+        return bool([s for s in shortcuts.values() if matches_id(s, game)])
     except Exception as ex:
         logger.error("Failed to read shortcut vdf file: %s", ex)
         return False
@@ -144,11 +150,10 @@ def get_steam_shortcut_id(game):
         lutris_binary = "flatpak"
     exe = f'"{lutris_binary}"'
     unique_id = ''.join([exe, game.name])
-    return binascii.crc32(str.encode(unique_id)) | 0x80000000
+    return binascii.crc32(str.encode(unique_id, 'utf-8')) | 0x80000000
 
 
 def set_artwork(game):
-    logger.debug("Setting artwork for %s Steam shortcut", game)
     config_path = get_config_path()
     if not config_path:
         return None
@@ -163,11 +168,13 @@ def set_artwork(game):
     if not system.path_exists(target_cover, exclude_empty=True):
         try:
             shutil.copyfile(source_cover, target_cover)
+            logger.debug("Copied %s cover to %s", game, target_cover)
         except FileNotFoundError as ex:
             logger.error("Failed to copy cover to %s: %s", target_cover, ex)
     if not system.path_exists(target_banner, exclude_empty=True):
         try:
             shutil.copyfile(source_banner, target_banner)
+            logger.debug("Copied %s cover to %s", game, target_banner)
         except FileNotFoundError as ex:
             logger.error("Failed to copy banner to %s: %s", target_banner, ex)
 
