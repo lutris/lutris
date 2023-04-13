@@ -2,11 +2,10 @@
 import os
 import shutil
 
-from lutris.util.graphics import vkquery
-
 from lutris import api
 from lutris.settings import RUNTIME_DIR
 from lutris.util.extract import extract_archive
+from lutris.util.graphics import vkquery
 from lutris.util.http import download_file
 from lutris.util.log import logger
 from lutris.util.system import create_folder, execute, remove_folder

@@ -1,7 +1,8 @@
 from gi.repository import Gtk
 
-from lutris.gui.widgets.utils import get_pixbuf_by_path, get_runtime_icon_path, has_stock_icon, ICON_SIZE, \
-    get_default_icon_path
+from lutris.gui.widgets.utils import (
+    ICON_SIZE, get_default_icon_path, get_pixbuf_by_path, get_runtime_icon_path, has_stock_icon
+)
 from lutris.util.log import logger
 
 

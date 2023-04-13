@@ -3,9 +3,9 @@
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.gui.views import COL_MEDIA_PATH, COL_NAME, COL_INSTALLED, COL_PLATFORM
+from lutris.gui.views import COL_INSTALLED, COL_MEDIA_PATH, COL_NAME, COL_PLATFORM
 from lutris.gui.views.base import GameView
-from lutris.gui.widgets.cellrenderers import GridViewCellRendererText, GridViewCellRendererImage
+from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage, GridViewCellRendererText
 from lutris.util.log import logger
 
 

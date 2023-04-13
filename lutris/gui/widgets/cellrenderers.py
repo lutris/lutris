@@ -3,10 +3,12 @@
 from math import floor
 
 import cairo
-from gi.repository import GLib, Gtk, Pango, GObject
+from gi.repository import GLib, GObject, Gtk, Pango
 
-from lutris.gui.widgets.utils import get_default_icon_path, get_scaled_surface_by_path, get_media_generation_number, \
-    get_surface_size, get_runtime_icon_path
+from lutris.gui.widgets.utils import (
+    get_default_icon_path, get_media_generation_number, get_runtime_icon_path, get_scaled_surface_by_path,
+    get_surface_size
+)
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):

@@ -1,7 +1,7 @@
 """Configuration dialog for client and system options"""
 from gettext import gettext as _
 
-from gi.repository import Gtk, GObject
+from gi.repository import GObject, Gtk
 
 from lutris.config import LutrisConfig
 from lutris.gui.config.boxes import SystemBox

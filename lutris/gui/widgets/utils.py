@@ -3,10 +3,10 @@ import array
 import os
 
 import cairo
-from gi.repository import GdkPixbuf, Gio, GLib, Gdk, Gtk
+from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
-from lutris.util import datapath, system, magic
+from lutris.util import datapath, magic, system
 from lutris.util.log import logger
 
 try:
