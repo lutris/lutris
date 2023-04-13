@@ -109,6 +109,23 @@ def remove_shortcut(game):
     with open(shortcut_path, "wb") as shortcut_file:
         shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
 
+def generate_preliminary_id(game):
+    lutris_binary = shutil.which("lutris")
+    if lutris_binary == "/app/bin/lutris":
+        lutris_binary = "flatpak"
+    exe = f'"{lutris_binary}"'
+    unique_id = ''.join([exe, game.name])
+    top = binascii.crc32(str.encode(unique_id, 'utf-8')) | 0x80000000
+    return (top << 32) | 0x02000000
+
+
+def generate_appid(game):
+    return str(generate_preliminary_id(game) >> 32)
+
+
+def generate_shortcut_id(game):
+    return (generate_preliminary_id(game) >> 32) - 0x100000000
+
 
 def generate_shortcut(game, launch_config_name):
     lutris_binary = shutil.which("lutris")
@@ -125,32 +142,23 @@ def generate_shortcut(game, launch_config_name):
         lutris_binary = "flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
     return {
-        'AllowDesktopConfig': 1,
-        'AllowOverlay': 1,
+        'appid': generate_shortcut_id(game),
         'AppName': game.name,
-        'Devkit': 0,
-        'DevkitGameID': '',
         'Exe': f'"{lutris_binary}"',
-        'IsHidden': 0,
-        'LastPlayTime': 0,
-        'LaunchOptions': launch_options,
-        'OpenVR': 0,
-        'ShortcutPath': '',
         'StartDir': f'"{os.path.dirname(lutris_binary)}"',
         'icon': resources.get_icon_path(game.slug),
-        'tags': {  # has been replaced by "collections" in steam. Tags are not visible in the UI anymore.
-            '0': "Lutris"   # to identify generated shortcuts
-        }
+        'LaunchOptions': launch_options,
+        'IsHidden': 0,
+        'AllowDesktopConfig': 1,
+        'AllowOverlay': 1,
+        'OpenVR': 0,
+        'Devkit': 0,
+        'DevkitOverrideAppID': 0,
+        'LastPlayTime': 0,
     }
 
 
-def get_steam_shortcut_id(game):
-    lutris_binary = shutil.which("lutris")
-    if lutris_binary == "/app/bin/lutris":
-        lutris_binary = "flatpak"
-    exe = f'"{lutris_binary}"'
-    unique_id = ''.join([exe, game.name])
-    return binascii.crc32(str.encode(unique_id, 'utf-8')) | 0x80000000
+
 
 
 def set_artwork(game):
@@ -160,7 +168,7 @@ def set_artwork(game):
     artwork_path = os.path.join(config_path, "grid")
     if not os.path.exists(artwork_path):
         os.makedirs(artwork_path)
-    shortcut_id = get_steam_shortcut_id(game)
+    shortcut_id = generate_appid(game)
     source_cover = resources.get_cover_path(game.slug)
     source_banner = resources.get_banner_path(game.slug)
     target_cover = os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))
