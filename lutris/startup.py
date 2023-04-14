@@ -123,7 +123,7 @@ def check_libs(all_components=False):
         if settings.read_setting(setting) != "True":
             DontShowAgainDialog(
                 setting,
-                _("Missing vulkan libraries"),
+                _("Missing Vulkan libraries"),
                 secondary_message=_(
                     "Lutris was unable to detect Vulkan support for "
                     "the %s architecture.\n"
@@ -153,7 +153,7 @@ def check_vulkan():
             if settings.read_setting(setting) != "True":
                 DontShowAgainDialog(
                     setting,
-                    _("Obsolete vulkan libraries"),
+                    _("Obsolete Vulkan libraries"),
                     secondary_message=_(
                         "Lutris has detected that Vulkan API version %s is installed, "
                         "but to use the latest DXVK version, %s is required.\n\n"
@@ -177,7 +177,7 @@ def check_vulkan():
             if settings.read_setting(setting) != "True":
                 DontShowAgainDialog(
                     setting,
-                    _("Obsolete vulkan driver support"),
+                    _("Obsolete Vulkan driver support"),
                     secondary_message=_(
                         "Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
                         "but to use the latest DXVK version, %s is required.\n\n"
