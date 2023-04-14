@@ -163,6 +163,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
                 accel="<Primary>i",
             ),
             "toggle-viewtype": Action(self.on_toggle_viewtype),
+            "toggle-badges": Action(
+                self.on_toggle_badges,
+                type="b",
+                default=settings.read_setting("hide_badges_on_icons"),
+                accel="<Primary>p"
+            ),
             "icon-type": Action(self.on_icontype_state_change, type="s", default=self.icon_type),
             "view-sorting": Action(
                 self.on_view_sorting_state_change,
@@ -951,6 +957,12 @@ class LutrisWindow(Gtk.ApplicationWindow,
 
         GLib.idle_add(self.update_revealer, game)
         return False
+
+    def on_toggle_badges(self, _widget, _data):
+        """Event handler to toggle badge visibility"""
+        state = settings.read_setting("hide_badges_on_icons").lower() == "true"
+        settings.write_setting("hide_badges_on_icons", not state)
+        self.on_settings_changed(None, "hide_badges_on_icons")
 
     def on_settings_changed(self, dialog, settings_key):
         if settings_key == "hide_text_under_icons":
