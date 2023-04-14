@@ -334,14 +334,15 @@ def get_best_device_info():
     """Returns the name and version tuple of the device with the highest
     version; this is the best tuple from the get_device_info() method, so
     the key element is the name, and the value element is a version tuple.
-    Go nested tuples!"""
+    Go nested tuples! If there are no devices at all, this returns
+    (None, None), but still a tuple."""
     devices_dict = get_device_info()
     by_version = sorted(
         devices_dict.items(),
         key=lambda t: t[1],
         reverse=True
     )
-    return by_version[0] if by_version else None
+    return by_version[0] if by_version else (None, None)
 
 
 @lru_cache(maxsize=None)
@@ -350,9 +351,9 @@ def get_expected_api_version_tuple():
     to have; it is the least of the Vulkan library API version, and
     the best device's API version."""
     api_version = get_vulkan_api_version_tuple()
-    best_dev = get_best_device_info()
-    if best_dev:
-        return min(api_version, best_dev[1])
+    _best_dev_name, best_dev_version = get_best_device_info()
+    if best_dev_version:
+        return min(api_version, best_dev_version)
     return api_version
 
 
