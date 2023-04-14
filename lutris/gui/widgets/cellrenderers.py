@@ -116,15 +116,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
             if surface:
                 x, y = self.get_media_position(surface, cell_area)
-                surface_width = get_surface_size(surface)[0]
 
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, x + surface_width, cell_area)
+                    self.render_platforms(cr, widget, surface, x, cell_area)
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, x + surface_width, cell_area)
+                    self.render_platforms(cr, widget, surface, x, cell_area)
                     cr.pop_group_to_source()
                     cr.paint_with_alpha(alpha)
 
@@ -132,6 +131,45 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             # we can then discard surfaces we aren't using anymore.
             if not self.cycle_cache_idle_id:
                 self.cycle_cache_idle_id = GLib.idle_add(self.cycle_cache)
+
+    @staticmethod
+    def is_bright_corner(surface, corner_size):
+        """Tests several pixels near the corner of the surface where the badges
+        are drawn. If all are 'bright', we'll render the badges differently. This
+        means all 4 components must be at least 128/255."""
+        surface_format = surface.get_format()
+
+        # We only use the ARGB32 format, so we just give up
+        # for anything else.
+        if surface_format != cairo.FORMAT_ARGB32:  # pylint:disable=no-member
+            return False
+
+        pixel_width = surface.get_width()
+        pixel_height = surface.get_height()
+
+        def is_bright_pixel(x, y):
+            # Checks if a pixel is 'bright'; this does not care
+            # if the pixel is big or little endian- it just checks
+            # all four channels.
+            if 0 <= x < pixel_width and 0 <= y < pixel_height:
+                stride = surface.get_stride()
+                data = surface.get_data()
+
+                offset = (y * stride) + x * 4
+                pixel = data[offset: offset + 4]
+
+                for channel in pixel:
+                    if channel < 128:
+                        return False
+                return True
+            return False
+
+        return (
+            is_bright_pixel(pixel_width - 1, pixel_height - 1)
+            and is_bright_pixel(pixel_width - corner_size[0], pixel_height - 1)
+            and is_bright_pixel(pixel_width - 1, pixel_height - corner_size[1])
+            and is_bright_pixel(pixel_width - corner_size[0], pixel_height - corner_size[1])
+        )
 
     def get_media_position(self, surface, cell_area):
         """Computes the position of the upper left corner where we will render
@@ -163,7 +201,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cr.rectangle(x, y, width, height)
         cr.fill()
 
-    def render_platforms(self, cr, widget, media_right, cell_area):
+    def render_platforms(self, cr, widget, surface, surface_x, cell_area):
         """Renders the stack of platform icons. They appear lined up vertically to the
         right of 'media_right', if that will fit in 'cell_area'."""
         platform = self.platform
@@ -177,23 +215,33 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             icon_paths = [get_runtime_icon_path(p + "-symbolic") for p in platforms]
             icon_paths = [path for path in icon_paths if path]
             if icon_paths:
-                self.render_badge_stack(cr, widget, icon_paths, icon_size, media_right, cell_area)
+                self.render_badge_stack(cr, widget, surface, surface_x, icon_paths, icon_size, cell_area)
 
-    def render_badge_stack(self, cr, widget, icon_paths, icon_size, media_right, cell_area):
+    def render_badge_stack(self, cr, widget, surface, surface_x, icon_paths, icon_size, cell_area):
         """Renders a vertical stack of badges, placed at the edge of the media, off to the right
         of 'media_right' if this will fit in the 'cell_area'. The icons in icon_paths are drawn from
         top to bottom, and spaced to fit in 'cell_area', even if they overlap because of this."""
-        def render_badge(badge_x, badge_y, path):
-            cr.rectangle(badge_x, badge_y, icon_size[0], icon_size[0])
-            cr.set_source_rgba(0.2, 0.2, 0.2, 0.6)
-            cr.fill()
-
-            icon = self.get_cached_surface_by_path(widget, path, size=icon_size)
-            cr.set_source_rgba(0.8, 0.8, 0.8, 0.6)
-            cr.mask_surface(icon, badge_x, badge_y)
 
         badge_width = icon_size[0]
         badge_height = icon_size[1]
+        on_bright_surface = GridViewCellRendererImage.is_bright_corner(surface, (badge_width, badge_height))
+
+        alpha = 0.6
+        bright_color = 0.8, 0.8, 0.8
+        dark_color = 0.2, 0.2, 0.2
+        back_color = bright_color if on_bright_surface else dark_color
+        fore_color = dark_color if on_bright_surface else bright_color
+
+        def render_badge(badge_x, badge_y, path):
+            cr.rectangle(badge_x, badge_y, icon_size[0], icon_size[0])
+            cr.set_source_rgba(back_color[0], back_color[1], back_color[2], alpha)
+            cr.fill()
+
+            icon = self.get_cached_surface_by_path(widget, path, size=icon_size)
+            cr.set_source_rgba(fore_color[0], fore_color[1], fore_color[2], alpha)
+            cr.mask_surface(icon, badge_x, badge_y)
+
+        media_right = surface_x + get_surface_size(surface)[0]
 
         x = media_right - badge_width
         spacing = (cell_area.height - badge_height * len(icon_paths)) / max(1, len(icon_paths) - 1)
