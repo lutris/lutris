@@ -191,7 +191,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         badge_width = icon_size[0]
         badge_height = icon_size[1]
 
-        x = media_right - badge_width - 1
+        x = media_right - badge_width
         spacing = (cell_area.height - badge_height * len(icon_paths)) / max(1, len(icon_paths) - 1)
         spacing = min(spacing, 1)
         y_offset = floor(badge_height + spacing)
