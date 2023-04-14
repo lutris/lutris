@@ -112,14 +112,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
             if surface:
                 x, y = self.get_media_position(surface, cell_area)
+                surface_width = get_surface_size(surface)[0]
 
                 if alpha >= 1:
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, x + media_width, cell_area)
+                    self.render_platforms(cr, widget, x + surface_width, cell_area)
                 else:
                     cr.push_group()
                     self.render_media(cr, widget, surface, x, y)
-                    self.render_platforms(cr, widget, x + media_width, cell_area)
+                    self.render_platforms(cr, widget, x + surface_width, cell_area)
                     cr.pop_group_to_source()
                     cr.paint_with_alpha(alpha)
 
