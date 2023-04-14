@@ -16,14 +16,19 @@ class PreferencesBox(VBox):
         "discord_rpc": _("Enable Discord Rich Presence for Available Games"),
     }
 
+    settings_accelerators = {
+        "hide_badges_on_icons": "<Primary>p"
+    }
+
     def _get_section_label(self, text):
         label = Gtk.Label(visible=True)
         label.set_markup("<b>%s</b>" % text)
         label.set_alignment(0, 0.5)
         return label
 
-    def __init__(self):
+    def __init__(self, accelerators):
         super().__init__(visible=True)
+        self.accelerators = accelerators
         self.set_margin_top(50)
         self.set_margin_bottom(50)
         self.set_margin_right(80)
@@ -54,6 +59,11 @@ class PreferencesBox(VBox):
         if settings.read_setting(setting_key).lower() == "true":
             checkbox.set_active(True)
         checkbox.connect("state-set", self._on_setting_change, setting_key)
+
+        if setting_key in self.settings_accelerators:
+            key, mod = Gtk.accelerator_parse(self.settings_accelerators[setting_key])
+            checkbox.add_accelerator("activate", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+
         box.pack_start(checkbox, False, False, 12)
         return box
 

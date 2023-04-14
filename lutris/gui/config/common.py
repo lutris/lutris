@@ -416,7 +416,7 @@ class GameDialogCommon(ModelessDialog, DialogInstallUIDelegate):
         save_button.set_valign(Gtk.Align.CENTER)
         save_button.connect("clicked", self.on_save)
 
-        key, mod = Gtk.accelerator_parse("<Control>s")
+        key, mod = Gtk.accelerator_parse("<Primary>s")
         save_button.add_accelerator("clicked", self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         # Advanced settings toggle

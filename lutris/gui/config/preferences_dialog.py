@@ -25,6 +25,9 @@ class PreferencesDialog(GameDialogCommon):
         self.lutris_config = LutrisConfig()
         self.page_generators = {}
 
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
+
         hbox = Gtk.HBox(visible=True)
         sidebar = Gtk.ListBox(visible=True)
         sidebar.connect("row-selected", self.on_sidebar_activated)
@@ -41,7 +44,7 @@ class PreferencesDialog(GameDialogCommon):
         self.vbox.pack_start(hbox, True, True, 0)
         self.vbox.set_border_width(0)  # keep everything flush with the window edge
         self.stack.add_named(
-            self.build_scrolled_window(PreferencesBox()),
+            self.build_scrolled_window(PreferencesBox(self.accelerators)),
             "prefs-stack"
         )
 
