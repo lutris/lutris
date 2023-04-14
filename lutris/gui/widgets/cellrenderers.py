@@ -179,23 +179,19 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         of 'media_right' if this will fit in the 'cell_area'. The icons in icon_paths are drawn from
         top to bottom, and spaced to fit in 'cell_area', even if they overlap because of this."""
         def render_badge(badge_x, badge_y, path):
-            cr.rectangle(badge_x + 1, badge_y + 1, icon_size[0], icon_size[0])
-            cr.set_source_rgba(1, 1, 1)
+            cr.rectangle(badge_x, badge_y, icon_size[0], icon_size[0])
+            cr.set_source_rgba(0.95, 0.95, 0.95, 0.2)
             cr.fill()
 
-            cr.rectangle(badge_x + 0.5, badge_y + 0.5, icon_size[0] + 1, icon_size[0] + 1)
-            cr.set_source_rgba(0, 0, 0)
-            cr.set_line_width(1)
-            cr.stroke()
-
             icon = self.get_cached_surface_by_path(widget, path, size=icon_size)
-            cr.set_source_surface(icon, badge_x + 1, badge_y + 1)
+            cr.set_source_surface(icon, badge_x, badge_y)
+
             cr.paint()
 
-        badge_width = icon_size[0] + 2
-        badge_height = icon_size[1] + 2
+        badge_width = icon_size[0]
+        badge_height = icon_size[1]
 
-        x = min(media_right + 1, cell_area.x + cell_area.width - badge_width)
+        x = media_right - badge_width - 1
         spacing = (cell_area.height - badge_height * len(icon_paths)) / max(1, len(icon_paths) - 1)
         spacing = min(spacing, 1)
         y_offset = floor(badge_height + spacing)
