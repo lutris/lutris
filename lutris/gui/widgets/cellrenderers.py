@@ -180,13 +180,13 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         top to bottom, and spaced to fit in 'cell_area', even if they overlap because of this."""
         def render_badge(badge_x, badge_y, path):
             cr.rectangle(badge_x, badge_y, icon_size[0], icon_size[0])
-            cr.set_source_rgba(0.95, 0.95, 0.95, 0.35)
+            cr.set_source_rgba(0.8, 0.8, 0.8, 0.6)
             cr.fill()
 
             icon = self.get_cached_surface_by_path(widget, path, size=icon_size)
             cr.set_source_surface(icon, badge_x, badge_y)
 
-            cr.paint()
+            cr.paint_with_alpha(0.6)
 
         badge_width = icon_size[0]
         badge_height = icon_size[1]
