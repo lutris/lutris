@@ -113,7 +113,7 @@ def remove_shortcut(game):
 def generate_preliminary_id(game):
     lutris_binary = shutil.which("lutris")
     if lutris_binary == "/app/bin/lutris":
-        lutris_binary = "flatpak"
+        lutris_binary = "/usr/bin/flatpak"
     exe = f'"{lutris_binary}"'
     unique_id = ''.join([exe, game.name])
     top = binascii.crc32(str.encode(unique_id, 'utf-8')) | 0x80000000
@@ -140,7 +140,7 @@ def generate_shortcut(game, launch_config_name):
     launch_options = shlex.quote(launch_options)
 
     if lutris_binary == "/app/bin/lutris":
-        lutris_binary = "flatpak"
+        lutris_binary = "/usr/bin/flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
     return {
         'appid': generate_shortcut_id(game),
