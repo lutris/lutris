@@ -261,7 +261,7 @@ class StartupRuntimeUpdater(RuntimeUpdater):
             key = dll_manager_class.__name__
             self.add_update(key, lambda c=dll_manager_class: self._update_dll_manager(c), hours=6)
 
-        self.add_update("media", self._update_media, hours=24)
+        self.add_update("media", self._update_media, hours=240)
 
     def _update_dll_manager(self, dll_manager_class):
         dll_manager = dll_manager_class()
