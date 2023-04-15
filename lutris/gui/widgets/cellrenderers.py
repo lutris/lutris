@@ -12,7 +12,8 @@ from lutris.gui.widgets.utils import (
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
-    """CellRendererText adjusted for grid view display, removes extra padding"""
+    """CellRendererText adjusted for grid view display, removes extra padding
+    and caches cell metrics for improved resize performance."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,9 +21,66 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         self.props.wrap_mode = Pango.WrapMode.WORD
         self.props.xalign = 0.5
         self.props.yalign = 0
+        self.fixed_width = None
+        self.cached_height = {}
+        self.cached_width = {}
 
     def set_width(self, width):
+        self.fixed_width = width
         self.props.wrap_width = width
+        self.clear_caches()
+
+    def clear_caches(self):
+        self.cached_height.clear()
+        self.cached_width.clear()
+
+    def do_get_preferred_width(self, widget):
+        text = self.props.text
+        if self.fixed_width and text in self.cached_width:
+            return self.cached_width[text]
+
+        width = Gtk.CellRendererText.do_get_preferred_width(self, widget)
+
+        if self.fixed_width:
+            self.cached_width[text] = width
+
+        return width
+
+    def do_get_preferred_width_for_height(self, widget, width):
+        text = self.props.text
+        if self.fixed_width and text in self.cached_width:
+            return self.cached_width[text]
+
+        width = Gtk.CellRendererText.do_get_preferred_width_for_height(self, widget, width)
+
+        if self.fixed_width:
+            self.cached_width[text] = width
+
+        return width
+
+    def do_get_preferred_height(self, widget):
+        text = self.props.text
+        if self.fixed_width and text in self.cached_height:
+            return self.cached_height[text]
+
+        height = Gtk.CellRendererText.do_get_preferred_height(self, widget)
+
+        if self.fixed_width:
+            self.cached_height[text] = height
+
+        return height
+
+    def do_get_preferred_height_for_width(self, widget, width):
+        text = self.props.text
+        if self.fixed_width and text in self.cached_height:
+            return self.cached_height[text]
+
+        height = Gtk.CellRendererText.do_get_preferred_height_for_width(self, widget, width)
+
+        if self.fixed_width:
+            self.cached_height[text] = height
+
+        return height
 
 
 class GridViewCellRendererImage(Gtk.CellRenderer):
