@@ -93,8 +93,11 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def is_installed(self, value):
         self._is_installed = value
 
-    def do_get_size(self, widget, cell_area):
-        return 0, 0, self.media_width, self.media_height
+    def do_get_preferred_width(self, widget):
+        return self.media_width, self.media_width
+
+    def do_get_preferred_height(self, widget):
+        return self.media_height, self.media_height
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
         media_width = self.media_width
