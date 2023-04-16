@@ -474,7 +474,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
     def on_install_from_setup_game_name_changed(self, *_args):
         if not self.install_from_setup_game_slug_checkbox.get_active():
             name = self.install_from_setup_game_name_entry.get_text()
-            self.install_from_setup_game_slug_entry.set_text(slugify(name))
+            proposed_slug = slugify(name) if name else ""
+            self.install_from_setup_game_slug_entry.set_text(proposed_slug)
 
     @watch_errors()
     def _on_install_setup_continue(self, button):
