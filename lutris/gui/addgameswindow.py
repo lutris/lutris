@@ -123,7 +123,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.install_from_setup_game_name_entry = Gtk.Entry()
         self.install_from_setup_game_slug_checkbox = Gtk.CheckButton(label="Identifier")
         self.install_from_setup_game_slug_entry = Gtk.Entry(sensitive=False)
-        self.install_preset_dropdown = None
+        self.installer_presets = Gtk.ListStore(str, str)
+        self.install_preset_dropdown = Gtk.ComboBox.new_with_model(self.installer_presets)
 
         self.install_script_file_chooser = FileChooserEntry(
             title=_("Select script"), action=Gtk.FileChooserAction.OPEN
@@ -440,16 +441,12 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         preset_label = Gtk.Label(_("Installer preset:"), visible=True)
         grid.attach(preset_label, 0, 3, 1, 1)
 
-        self.installer_presets = Gtk.ListStore(str, str)
         self.installer_presets.append(["win10", _("Windows 10 64-bit (Default)")])
         self.installer_presets.append(["win7", _("Windows 7 64-bit")])
         self.installer_presets.append(["winxp", _("Windows XP 32-bit")])
         self.installer_presets.append(["winxp-3dfx", _("Windows XP + 3DFX 32-bit")])
         self.installer_presets.append(["win98", _("Windows 98 32-bit")])
         self.installer_presets.append(["win98-3dfx", _("Windows 98 + 3DFX 32-bit")])
-
-        self.install_preset_dropdown = Gtk.ComboBox.new_with_model(self.installer_presets)
-        self.install_preset_dropdown.set_halign(Gtk.Align.START)
 
         renderer_text = Gtk.CellRendererText()
         self.install_preset_dropdown.pack_start(renderer_text, True)
@@ -458,6 +455,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.install_preset_dropdown.set_active_id('win10')
 
         grid.attach(self.install_preset_dropdown, 1, 3, 1, 1)
+        self.install_preset_dropdown.set_halign(Gtk.Align.START)
+
         grid.set_vexpand(True)
         return grid
 
