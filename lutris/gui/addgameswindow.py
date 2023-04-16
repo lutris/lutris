@@ -445,10 +445,11 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.installer_presets.append(["win7", _("Windows 7 64-bit")])
         self.installer_presets.append(["winxp", _("Windows XP 32-bit")])
         self.installer_presets.append(["winxp-3dfx", _("Windows XP + 3DFX 32-bit")])
-        self.installer_presets.append(["win98", _("Windows 98")])
-        self.installer_presets.append(["win98-3dfx", _("Windows 98 + 3DFX")])
+        self.installer_presets.append(["win98", _("Windows 98 32-bit")])
+        self.installer_presets.append(["win98-3dfx", _("Windows 98 + 3DFX 32-bit")])
 
         self.install_preset_dropdown = Gtk.ComboBox.new_with_model(self.installer_presets)
+        self.install_preset_dropdown.set_halign(Gtk.Align.START)
 
         renderer_text = Gtk.CellRendererText()
         self.install_preset_dropdown.pack_start(renderer_text, True)
