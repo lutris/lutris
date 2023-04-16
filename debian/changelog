@@ -11,7 +11,7 @@ lutris (0.5.13) jammy; urgency=medium
   * Added checkbox to sort installed games first
   * Support for launch-configs in shortcuts and the command line
   * Show platform badges on banners and cover-art
-  * The add-games window can now create 32-bit WINE prefixes
+  * The add-games window can now specify Windows versions, bitness, etc
   * Add filter field to runner list
   * Show game count in search bar
   * Workaround Humble Bundle authentication issues by allowing importing
