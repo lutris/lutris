@@ -107,13 +107,14 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             # No command can affect files
             return False
         if (
-                self.script_files
-                or self.script.get("game", {}).get("gog")
-                or self.script.get("game", {}).get("prefix")
+            self.script_files
+            or self.script.get("game", {}).get("gog")
+            or self.script.get("game", {}).get("prefix")
         ):
             return True
-        command_names = [list(c.keys())[0] for c in self.script.get("installer", [])]
-        if "insert-disc" in command_names:
+        command_names = [self.interpreter._get_command_name_and_params(c)[0]
+                         for c in self.script.get("installer", [])]
+        if "insert_disc" in command_names:
             return True
         return False
 
