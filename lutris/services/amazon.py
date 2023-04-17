@@ -8,6 +8,7 @@ import secrets
 import struct
 import time
 import uuid
+from collections import defaultdict
 from gettext import gettext as _
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -352,7 +353,7 @@ class AmazonService(OnlineService):
         user_data = self.load_user_data()
         serial = user_data["extensions"]["device_info"]["device_serial_number"]
 
-        games = []
+        games_by_asin = defaultdict(list)
         nextToken = None
         while True:
             request_data = self.get_sync_request_data(serial, nextToken)
@@ -368,13 +369,23 @@ class AmazonService(OnlineService):
             if not json_data:
                 return
 
-            games.extend(json_data["entitlements"])
+            for game_json in json_data["entitlements"]:
+                product = game_json["product"]
+
+                asin = product["asin"]
+                games_by_asin[asin].append(game_json)
 
             if "nextToken" not in json_data:
                 break
 
             logger.info("Got next token in response, making next request")
             nextToken = json_data["nextToken"]
+
+        # If Amazon gives is the same game with different ids we'll pick the
+        # least ID. Probably we should just use ASIN as the ID, but since we didn't
+        # do this in the first release of the Amazon integration, we'll maintain compatibility
+        # by using the top level ID whenever we can.
+        games = [sorted(gl, key=lambda g: g["id"])[0] for gl in games_by_asin.values()]
 
         with open(self.cache_path, "w", encoding='utf-8') as amazon_cache:
             json.dump(games, amazon_cache)
