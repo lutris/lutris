@@ -328,7 +328,7 @@ system_options = [  # pylint: disable=invalid-name
             (_("Windowed"), ""),
             (_("Borderless"), "-b"),
         ),
-        "default": "",
+        "default": "-f",
         "condition": bool(system.find_executable("gamescope")),
         "help": _("Run gamescope in fullscreen, windowed or borderless mode\n"
                   "Toggle fullscreen (-f) : Super + F"),
