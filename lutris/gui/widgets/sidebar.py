@@ -17,7 +17,6 @@ from lutris.gui.widgets.utils import has_stock_icon
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.services import SERVICES
 from lutris.services.base import AuthTokenExpired, BaseService
-from lutris.util.jobs import AsyncCall
 
 TYPE = 0
 SLUG = 1
@@ -159,9 +158,9 @@ class ServiceSidebarRow(SidebarRow):
         if self.service.online and not self.service.is_connected():
             self.service.logout()
             return
-        AsyncCall(self.service.reload, self.service_load_cb)
+        self.service.start_reload(self.service_reloaded_cb)
 
-    def service_load_cb(self, _result, error):
+    def service_reloaded_cb(self, error):
         if error:
             if isinstance(error, AuthTokenExpired):
                 self.service.logout()

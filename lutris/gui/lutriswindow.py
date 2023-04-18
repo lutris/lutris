@@ -32,7 +32,6 @@ from lutris.scanners.lutris import add_to_path_cache, get_missing_game_ids, remo
 from lutris.services.base import BaseService
 from lutris.services.lutris import LutrisService
 from lutris.util import datapath
-from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.system import update_desktop_icons
 
@@ -787,10 +786,10 @@ class LutrisWindow(Gtk.ApplicationWindow,
             self.move(int(self.window_x), int(self.window_y))
 
     def on_service_login(self, service):
-        AsyncCall(service.reload, self._service_login_cb)
+        service.start_reload(self._service_reloaded_cb)
         return True
 
-    def _service_login_cb(self, _result, error):
+    def _service_reloaded_cb(self, error):
         if error:
             dialogs.ErrorDialog(str(error), parent=self)
 
