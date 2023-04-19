@@ -495,6 +495,8 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         win_ver = installer_preset.split("-")[0]
         if win_ver != "win10":
             win_ver_task = {"task": {"name": "winetricks", "app": win_ver, "arch": arch}}
+        else:
+            win_ver_task = None
 
         installer = {
             "name": name,
