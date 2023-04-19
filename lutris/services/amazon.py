@@ -163,11 +163,8 @@ class AmazonService(OnlineService):
             games = [AmazonGame.new_from_amazon_game(game) for game in self.get_library()]
             for game in games:
                 game.save()
-        except:
-            logger.error("Unable to get games library")
-            games = None
-
-        self.is_loading = False
+        finally:
+            self.is_loading = False
         return games
 
     def save_user_data(self, user_data):

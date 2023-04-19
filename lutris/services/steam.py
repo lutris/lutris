@@ -199,6 +199,7 @@ class SteamService(BaseService):
             for game_id in game_ids:
                 steam_game = Game(game_id)
                 if not steam_game.playtime:
+                    # Unsafe to emit a signal from a worker thread!
                     steam_game.remove(no_signal=True)
                     steam_game.delete(no_signal=True)
                     stats["deduped"] += 1
