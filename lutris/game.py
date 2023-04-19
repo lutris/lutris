@@ -139,7 +139,7 @@ class Game(GObject.Object):
         self.game_uuid = None
         self.game_thread = None
         self.antimicro_thread = None
-        self.prelaunch_pids = []
+        self.prelaunch_pids = None
         self.prelaunch_executor = None
         self.heartbeat = None
         self.killswitch = None
@@ -680,6 +680,10 @@ class Game(GObject.Object):
         self.state = self.STATE_LAUNCHING
         self.prelaunch_pids = system.get_running_pid_list()
 
+        if not self.prelaunch_pids:
+            logger.error("No prelaunch PIDs could be obtained. Game stop may be ineffective.")
+            self.prelaunch_pids = None
+
         self.emit("game-start")
 
         @watch_game_errors(game_stop_result=False, game=self)
@@ -788,7 +792,11 @@ class Game(GObject.Object):
 
     def get_new_pids(self):
         """Return list of PIDs started since the game was launched"""
-        return set(system.get_running_pid_list()) - set(self.prelaunch_pids)
+        if self.prelaunch_pids:
+            return set(system.get_running_pid_list()) - set(self.prelaunch_pids)
+        else:
+            logger.error("No prelaunch PIDs recorded. The game's PIDs cannot be computed.")
+            return set()
 
     def stop_game(self):
         """Cleanup after a game as stopped"""
