@@ -148,7 +148,6 @@ class OriginService(OnlineService):
         "&redirect_uri=%s"
     ) % redirect_uri
     login_user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0 QtWebEngine/5.8.0"
-    is_loading = False
 
     def __init__(self):
         super().__init__()
@@ -246,11 +245,7 @@ class OriginService(OnlineService):
         return str(user_id), str(persona_id), str(user_name)
 
     def load(self):
-        if self.is_loading:
-            logger.warning("Origin games are already loading")
-            return
         user_id, _persona_id, _user_name = self.get_identity()
-        self.is_loading = True
         games = self.get_library(user_id)
         logger.info("Retrieved %s games from Origin library", len(games))
         origin_games = []
@@ -258,7 +253,6 @@ class OriginService(OnlineService):
             origin_game = OriginGame.new_from_api(game)
             origin_game.save()
             origin_games.append(origin_game)
-        self.is_loading = False
         return origin_games
 
     def get_library(self, user_id):

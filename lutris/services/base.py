@@ -86,6 +86,7 @@ class BaseService(GObject.Object):
     medias = {}
     extra_medias = {}
     default_format = "icon"
+    is_loading = False
 
     __gsignals__ = {
         "service-games-load": (GObject.SIGNAL_RUN_FIRST, None, ()),
@@ -129,10 +130,19 @@ class BaseService(GObject.Object):
         does so on the main thread- and runs the reload on a worker thread. It calls
         reloaded_callback when done, passing any error (or None on success)"""
         def do_reload():
-            self.wipe_game_cache()
-            self.load()
-            self.load_icons()
-            self.add_installed_games()
+            if self.is_loading:
+                logger.warning("'%s' games are already loading", self.name)
+                return
+
+            try:
+                self.is_loading = True
+
+                self.wipe_game_cache()
+                self.load()
+                self.load_icons()
+                self.add_installed_games()
+            finally:
+                self.is_loading = False
 
         def reload_cb(_result, error):
             self.emit("service-games-loaded")

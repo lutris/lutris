@@ -63,7 +63,6 @@ class FlathubService(BaseService):
     api_url = "https://flathub.org/api/v1/apps/category/Game"
     cache_path = os.path.join(settings.CACHE_DIR, "flathub-library.json")
 
-    is_loading = False
     branch = "stable"
     arch = "x86_64"
     install_type = "system"  # can be either system (default) or user
@@ -83,10 +82,6 @@ class FlathubService(BaseService):
 
     def load(self):
         """Load the available games from Flathub"""
-        if self.is_loading:
-            logger.warning("Flathub games are already loading")
-            return
-        self.is_loading = True
         response = requests.get(self.api_url, timeout=5)
         entries = response.json()
         # seen = set()
@@ -98,7 +93,6 @@ class FlathubService(BaseService):
             # seen.add(game["flatpakAppId"])
         for game in flathub_games:
             game.save()
-        self.is_loading = False
         return flathub_games
 
     def install(self, db_game):

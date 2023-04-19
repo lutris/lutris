@@ -90,8 +90,6 @@ class AmazonService(OnlineService):
 
     locale = "en-US"
 
-    is_loading = False
-
     @property
     def credential_files(self):
         return [self.user_path, self.cookies_path]
@@ -152,19 +150,12 @@ class AmazonService(OnlineService):
 
     def load(self):
         """Load the user game library from the Amazon API"""
-        if self.is_loading:
-            logger.warning("Amazon games are already loading")
-            return
         if not self.is_connected():
             logger.error("User not connected to Amazon")
             return
-        self.is_loading = True
-        try:
-            games = [AmazonGame.new_from_amazon_game(game) for game in self.get_library()]
-            for game in games:
-                game.save()
-        finally:
-            self.is_loading = False
+        games = [AmazonGame.new_from_amazon_game(game) for game in self.get_library()]
+        for game in games:
+            game.save()
         return games
 
     def save_user_data(self, user_data):

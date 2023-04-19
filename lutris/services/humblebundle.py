@@ -78,7 +78,6 @@ class HumbleBundleService(OnlineService):
     cache_path = os.path.join(settings.CACHE_DIR, "humblebundle/library/")
 
     supported_platforms = ("linux", "windows")
-    is_loading = False
 
     def login(self, parent=None):
         dialog = QuestionDialog({
@@ -112,16 +111,10 @@ class HumbleBundleService(OnlineService):
 
     def load(self):
         """Load the user's Humble Bundle library"""
-        if self.is_loading:
-            logger.warning("Humble bundle games are already loading")
-            return
-
-        self.is_loading = True
         try:
             library = self.get_library()
-        except ValueError:
-            logger.error("Failed to get Humble Bundle library. Try logging out and back-in.")
-            return
+        except ValueError as ex:
+            raise RuntimeError("Failed to get Humble Bundle library. Try logging out and back-in.") from ex
         humble_games = []
         seen = set()
         for game in library:
@@ -131,7 +124,6 @@ class HumbleBundleService(OnlineService):
             seen.add(game["human_name"])
         for game in humble_games:
             game.save()
-        self.is_loading = False
         return humble_games
 
     def make_api_request(self, url):
