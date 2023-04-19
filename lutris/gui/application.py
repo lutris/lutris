@@ -758,7 +758,7 @@ class Application(Gtk.Application):
             ids.append(str(game.id))
         return ids
 
-    def get_game_by_id(self, game_id):
+    def get_running_game_by_id(self, game_id):
         for i in range(self.running_games.get_n_items()):
             game = self.running_games.get_item(i)
             if str(game.id) == str(game_id):

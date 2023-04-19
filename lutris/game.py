@@ -794,9 +794,9 @@ class Game(GObject.Object):
         """Return list of PIDs started since the game was launched"""
         if self.prelaunch_pids:
             return set(system.get_running_pid_list()) - set(self.prelaunch_pids)
-        else:
-            logger.error("No prelaunch PIDs recorded. The game's PIDs cannot be computed.")
-            return set()
+
+        logger.error("No prelaunch PIDs recorded. The game's PIDs cannot be computed.")
+        return set()
 
     def stop_game(self):
         """Cleanup after a game as stopped"""

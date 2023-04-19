@@ -1,4 +1,4 @@
-from gi.repository import Gdk, GObject, Gtk
+from gi.repository import Gio, Gdk, GObject, Gtk
 
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
@@ -41,18 +41,23 @@ class GameView:
                 db_game = get_game_for_service(self.service.id, col_id)
 
                 if db_game:
-                    game = Game(db_game["id"])
+                    game = self.get_game_by_id(db_game["id"])
                 else:
                     db_game = ServiceGameCollection.get_game(self.service.id, col_id)
                     game = Game.create_empty_service_game(db_game, self.service)
             elif col_id:
-                game = Game(col_id)
+                game = self.get_game_by_id(col_id)
             else:
                 return
 
             game_actions = GameActions(game, window=self.get_toplevel())
             contextual_menu = ContextualMenu(game_actions.get_game_actions())
             contextual_menu.popup(event, game_actions)
+
+    def get_game_by_id(self, game_id):
+        application = Gio.Application.get_default()
+        game = application.get_running_game_by_id(game_id) if application else None
+        return game or Game(game_id)
 
     def get_selected_id(self, selected_item):
         return self.get_model().get_value(selected_item, COL_ID)
