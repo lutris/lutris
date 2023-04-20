@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 from gettext import gettext as _
 from pathlib import Path
@@ -80,17 +81,22 @@ class FlathubService(BaseService):
             os.remove(self.cache_path)
         super().wipe_game_cache()
 
+    def get_flatpak_cmd(self):
+        flatpak_abspath = shutil.which("flatpak")
+        if flatpak_abspath:
+            return [flatpak_abspath]
+        flatpak_spawn_abspath = shutil.which("flatpak-spawn")
+        if flatpak_spawn_abspath:
+            return [flatpak_spawn_abspath, "--host", "run", "flatpak"]
+        raise RuntimeError("No flatpak or flatpak-spawn found")
+
     def load(self):
         """Load the available games from Flathub"""
         response = requests.get(self.api_url, timeout=5)
         entries = response.json()
-        # seen = set()
         flathub_games = []
         for game in entries:
-            # if game["flatpakAppId"] in seen:
-            #     continue
             flathub_games.append(FlathubGame.new_from_flathub_game(game))
-            # seen.add(game["flatpakAppId"])
         for game in flathub_games:
             game.save()
         return flathub_games
@@ -103,10 +109,6 @@ class FlathubService(BaseService):
         if not self.is_flathub_remote_active():
             logger.error("Flathub is not configured on the system. Visit https://flatpak.org/setup/ for instructions.")
             return
-        # Check if game is already installed
-        if app_id in self.get_installed_apps():
-            logger.debug("%s is already installed.", app_id)
-            return
         # Install the game
         service_installers = self.get_installers_from_api(app_id)
         if not service_installers:
@@ -114,11 +116,11 @@ class FlathubService(BaseService):
         application = Gio.Application.get_default()
         application.show_installer_window(service_installers, service=self, appid=app_id)
 
-    @staticmethod
-    def get_installed_apps():
+    def get_installed_apps(self):
         """Get list of installed Flathub apps"""
         try:
-            process = subprocess.run(["flatpak", "list", "--app", "--columns=application"],
+            flatpak_cmd = self.get_flatpak_cmd()
+            process = subprocess.run(flatpak_cmd + ["list", "--app", "--columns=application"],
                                      capture_output=True, check=True, encoding="utf-8", text=True, timeout=5.0)
             return process.stdout.splitlines() or []
         except (TimeoutError, subprocess.CalledProcessError) as err:
@@ -128,16 +130,19 @@ class FlathubService(BaseService):
     def is_flathub_remote_active(self):
         """Check if Flathub is configured and enabled as a flatpak repository"""
         remotes = self.get_active_remotes()
+        if not remotes:
+            logger.warning("Remotes not found, Flathub considered installed")
+            return True
         for remote in remotes:
             if 'flathub' in remote.values():
                 return True
         return False
 
-    @staticmethod
-    def get_active_remotes():
+    def get_active_remotes(self):
         """Get a list of dictionaries containing name, title and url"""
         try:
-            process = subprocess.run(["flatpak", "remotes", "--columns=name,title,url"],
+            flatpak_cmd = self.get_flatpak_cmd()
+            process = subprocess.run(flatpak_cmd + ["remotes", "--columns=name,title,url"],
                                      capture_output=True, check=True, encoding="utf-8", text=True, timeout=5.0)
             entries = []
             for line in process.stdout.splitlines():
