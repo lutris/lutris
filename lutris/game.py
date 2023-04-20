@@ -777,6 +777,10 @@ class Game(GObject.Object):
 
     def get_game_pids(self):
         """Return a list of processes belonging to the Lutris game"""
+        if not self.game_uuid:
+            logger.error("No LUTRIS_GAME_UUID recorded. The game's PIDs cannot be computed.")
+            return set()
+
         new_pids = self.get_new_pids()
         game_pids = []
         game_folder = self.resolve_game_path()
@@ -785,6 +789,7 @@ class Game(GObject.Object):
             # pressure-vessel: This could potentially pick up PIDs not started by lutris?
             if game_folder in cmdline or "pressure-vessel" in cmdline:
                 game_pids.append(pid)
+
         return set(game_pids + [
             pid for pid in new_pids
             if Process(pid).environ.get("LUTRIS_GAME_UUID") == self.game_uuid
