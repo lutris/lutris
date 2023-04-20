@@ -87,7 +87,7 @@ class FlathubService(BaseService):
             return [flatpak_abspath]
         flatpak_spawn_abspath = shutil.which("flatpak-spawn")
         if flatpak_spawn_abspath:
-            return [flatpak_spawn_abspath, "--host", "run", "flatpak"]
+            return [flatpak_spawn_abspath, "--host", "flatpak"]
         raise RuntimeError("No flatpak or flatpak-spawn found")
 
     def load(self):
@@ -183,7 +183,7 @@ class FlathubService(BaseService):
                         "execute":
                         {
                             "file": flatpak_cmd[0],
-                            "args": " ".join(flatpak_cmd[1:]) + f"install --app --noninteractive flathub "
+                            "args": " ".join(flatpak_cmd[1:]) + f" install --app --noninteractive flathub "
                                     f"app/{db_game['appid']}/{self.arch}/{self.branch}",
                             "disable_runtime": True
                         }
