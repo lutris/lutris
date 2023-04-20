@@ -408,9 +408,3 @@ known-standard-library=
 # Force import order to recognize a module as part of a third party library.
 known-third-party=
 
-
-[EXCEPTIONS]
-
-# Exceptions that will emit a warning when being caught. Defaults to
-# "Exception"
-overgeneral-exceptions=Exception
