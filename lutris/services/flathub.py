@@ -159,6 +159,7 @@ class FlathubService(BaseService):
 
     def generate_installer(self, db_game):
         # TODO: Add options for user to select arch, branch and install_type
+        flatpak_cmd = self.get_flatpak_cmd()
         return {
             "appid": db_game["appid"],
             "game_slug": slugify(db_game["name"]),
@@ -176,13 +177,13 @@ class FlathubService(BaseService):
                 "system": {
                     "disable_runtime": True
                 },
-                "require-binaries": "flatpak",
+                "require-binaries": flatpak_cmd[0],
                 "installer": [
                     {
                         "execute":
                         {
-                            "file": "flatpak",
-                            "args": f"install --app --noninteractive flathub "
+                            "file": flatpak_cmd[0],
+                            "args": " ".join(flatpak_cmd[1:]) + f"install --app --noninteractive flathub "
                                     f"app/{db_game['appid']}/{self.arch}/{self.branch}",
                             "disable_runtime": True
                         }
