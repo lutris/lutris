@@ -52,7 +52,6 @@ class pcsx2(Runner):
         },
     ]
 
-
     # PCSX2 currently uses an AppImage, no need for the runtime.
     system_options_override = [{"option": "disable_runtime", "default": True}]
 

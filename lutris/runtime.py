@@ -139,6 +139,7 @@ class Runtime:
             downloader.ERROR,
         ]:
             logger.debug("Runtime update interrupted")
+            self.on_downloaded(None)
             return False
 
         downloader.check_progress()
@@ -151,8 +152,12 @@ class Runtime:
         """Actions taken once a runtime is downloaded
 
         Arguments:
-            path (str): local path to the runtime archive
+            path (str): local path to the runtime archive, or None on download failure
         """
+        if not path:
+            self.updater.notify_finish(self)
+            return False
+
         stats = os.stat(path)
         if not stats.st_size:
             logger.error("Download failed: file %s is empty, Deleting file.", path)
@@ -236,7 +241,7 @@ class RuntimeUpdater:
 
     def cancel(self):
         self.cancelled = True
-        for downloader in self.downloaders:
+        for downloader in self.downloaders.values():
             downloader.cancel()
 
     def _update_runtime_components(self):
@@ -300,7 +305,7 @@ class RuntimeUpdater:
         logger.debug("Runtime %s is now updated and available", runtime.name)
         del self.downloaders[runtime]
         if not self.downloaders:
-            logger.info("Runtime is fully updated.")
+            logger.info("Runtime update completed.")
 
 
 def get_env(version=None, prefer_system_libs=False, wine_path=None):

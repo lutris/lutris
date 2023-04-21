@@ -153,10 +153,10 @@ class Downloader:
                 self.progress_event.set()
             self.on_download_completed()
         except Exception as ex:
+            logger.exception("Download failed: %s", ex)
             self.on_download_failed(ex)
 
     def on_download_failed(self, error):
-        logger.error("Download failed: %s", error)
         self.state = self.ERROR
         self.error = error
         if self.file_pointer:
