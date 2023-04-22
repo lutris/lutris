@@ -15,7 +15,6 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
-from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.steam.config import get_steam_dir
 from lutris.util.strings import parse_version, split_arguments
