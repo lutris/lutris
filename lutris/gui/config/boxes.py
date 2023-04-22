@@ -166,10 +166,11 @@ class ConfigBox(VBox):
             hbox.pack_start(self.wrapper, True, True, 0)
 
             if "warning" in option:
-                option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
+                option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True)
                 option_container.pack_start(hbox, False, False, 0)
                 warning = ConfigBox.WarningBox(option["warning"])
                 warning.set_margin_left(18)
+                warning.set_margin_bottom(6)
                 warning.update_warning(self.config)
                 self.warning_boxes[option_key] = warning
                 option_container.pack_start(warning, False, False, 0)
