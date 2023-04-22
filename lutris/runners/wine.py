@@ -4,6 +4,8 @@ import os
 import shlex
 from gettext import gettext as _
 
+from lutris.util.graphics import vkquery
+
 from lutris import runtime, settings
 from lutris.gui.dialogs import FileDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
@@ -13,14 +15,13 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, get_default_dpi
-from lutris.util.graphics.vkquery import is_vulkan_supported
 from lutris.util.jobs import thread_safe_call
 from lutris.util.log import logger
 from lutris.util.steam.config import get_steam_dir
 from lutris.util.strings import parse_version, split_arguments
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
-from lutris.util.wine.dxvk import DXVKManager
+from lutris.util.wine.dxvk import DXVKManager, REQUIRED_VULKAN_API_VERSION
 from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, ExtractIcon
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
@@ -34,6 +35,49 @@ from lutris.util.wine.wine import (
 
 DEFAULT_WINE_PREFIX = "~/.wine"
 MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
+
+
+def _get_dxvk_warning(config):
+    if config.get("dxvk") and not vkquery.is_vulkan_supported():
+        return _("Vulkan is not installed or is not supported by your system")
+
+    return None
+
+
+def _get_dxvk_version_warning(config):
+    if config.get("dxvk") and vkquery.is_vulkan_supported():
+        version = config.get("dxvk_version")
+        if version and not version.startswith("v1."):
+            required_api_version = REQUIRED_VULKAN_API_VERSION
+            library_api_version = vkquery.get_vulkan_api_version_tuple()
+            if library_api_version and library_api_version < required_api_version:
+                return _("Lutris has detected that Vulkan API version %s is installed, "
+                         "but to use the latest DXVK version, %s is required."
+                         ) % (
+                    vkquery.format_version_tuple(library_api_version),
+                    vkquery.format_version_tuple(required_api_version)
+                )
+
+            max_dev_name, max_dev_api_version = vkquery.get_best_device_info()
+
+            if max_dev_api_version and max_dev_api_version < required_api_version:
+                return _("Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
+                         "but to use the latest DXVK version, %s is required."
+                         ) % (
+                    max_dev_name,
+                    vkquery.format_version_tuple(max_dev_api_version),
+                    vkquery.format_version_tuple(required_api_version)
+                )
+
+    return None
+
+
+def _get_vkd3d_warning(config):
+    if config.get("vkd3d"):
+        if not vkquery.is_vulkan_supported():
+            return _("Vulkan is not installed or is not supported by your system")
+
+    return None
 
 
 class wine(Runner):
@@ -158,13 +202,6 @@ class wine(Runner):
 
             return widget, option, response
 
-        def dxvk_vulkan_callback(widget, option, config):
-            response = True
-            if not is_vulkan_supported():
-                if not thread_safe_call(display_vulkan_error):
-                    response = False
-            return widget, option, response
-
         self.runner_options = [
             {
                 "option": "version",
@@ -198,10 +235,9 @@ class wine(Runner):
                 "option": "dxvk",
                 "section": _("Graphics"),
                 "label": _("Enable DXVK"),
-                "type": "extended_bool",
-                "callback": dxvk_vulkan_callback,
-                "callback_on": True,
+                "type": "bool",
                 "default": True,
+                "warning": _get_dxvk_warning,
                 "active": True,
                 "help": _(
                     "Use DXVK to "
@@ -216,15 +252,15 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": DXVKManager().version_choices,
                 "default": DXVKManager().version,
+                "warning": _get_dxvk_version_warning
             },
 
             {
                 "option": "vkd3d",
                 "section": _("Graphics"),
                 "label": _("Enable VKD3D"),
-                "type": "extended_bool",
-                "callback": dxvk_vulkan_callback,
-                "callback_on": True,
+                "type": "bool",
+                "warning": _get_vkd3d_warning,
                 "default": True,
                 "active": True,
                 "help": _(
@@ -989,7 +1025,7 @@ class wine(Runner):
         if using_dxvk:
             # Set this to 1 to enable access to more RAM for 32bit applications
             launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
-            if not is_vulkan_supported():
+            if not vkquery.is_vulkan_supported():
                 if not display_vulkan_error(on_launch=True):
                     return {"error": "VULKAN_NOT_FOUND"}
 
