@@ -149,22 +149,7 @@ def check_vulkan():
             logger.warning("Vulkan reports an API version of %s. "
                            "%s is required for the latest DXVK.",
                            vkquery.format_version(library_api_version),
-                           vkquery.format_version(library_api_version))
-            setting = "dismiss-obsolete-vulkan-api-warning"
-            if settings.read_setting(setting) != "True":
-                DontShowAgainDialog(
-                    setting,
-                    _("Obsolete Vulkan libraries"),
-                    secondary_message=_(
-                        "Lutris has detected that Vulkan API version %s is installed, "
-                        "but to use the latest DXVK version, %s is required.\n\n"
-                        "DXVK 1.x will be used instead."
-                    ) % (
-                        vkquery.format_version(library_api_version),
-                        vkquery.format_version(required_api_version)
-                    )
-                )
-                return
+                           vkquery.format_version(required_api_version))
 
         devices = vkquery.get_device_info()
 
@@ -174,21 +159,6 @@ def check_vulkan():
                            devices[0].name,
                            vkquery.format_version(devices[0].api_version),
                            vkquery.format_version(required_api_version))
-            setting = "dismiss-obsolete-vulkan-api-warning"
-            if settings.read_setting(setting) != "True":
-                DontShowAgainDialog(
-                    setting,
-                    _("Obsolete Vulkan driver support"),
-                    secondary_message=_(
-                        "Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
-                        "but to use the latest DXVK version, %s is required.\n\n"
-                        "DXVK 1.x will be used instead."
-                    ) % (
-                        devices[0].name,
-                        vkquery.format_version(devices[0].api_version),
-                        vkquery.format_version(required_api_version)
-                    )
-                )
 
 
 def check_gnome():
