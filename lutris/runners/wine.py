@@ -37,49 +37,6 @@ DEFAULT_WINE_PREFIX = "~/.wine"
 MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
-def _get_dxvk_warning(config):
-    if config.get("dxvk") and not vkquery.is_vulkan_supported():
-        return _("Vulkan is not installed or is not supported by your system")
-
-    return None
-
-
-def _get_dxvk_version_warning(config):
-    if config.get("dxvk") and vkquery.is_vulkan_supported():
-        version = config.get("dxvk_version")
-        if version and not version.startswith("v1."):
-            required_api_version = REQUIRED_VULKAN_API_VERSION
-            library_api_version = vkquery.get_vulkan_api_version_tuple()
-            if library_api_version and library_api_version < required_api_version:
-                return _("Lutris has detected that Vulkan API version %s is installed, "
-                         "but to use the latest DXVK version, %s is required."
-                         ) % (
-                    vkquery.format_version_tuple(library_api_version),
-                    vkquery.format_version_tuple(required_api_version)
-                )
-
-            max_dev_name, max_dev_api_version = vkquery.get_best_device_info()
-
-            if max_dev_api_version and max_dev_api_version < required_api_version:
-                return _("Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
-                         "but to use the latest DXVK version, %s is required."
-                         ) % (
-                    max_dev_name,
-                    vkquery.format_version_tuple(max_dev_api_version),
-                    vkquery.format_version_tuple(required_api_version)
-                )
-
-    return None
-
-
-def _get_vkd3d_warning(config):
-    if config.get("vkd3d"):
-        if not vkquery.is_vulkan_supported():
-            return _("Vulkan is not installed or is not supported by your system")
-
-    return None
-
-
 class wine(Runner):
     description = _("Runs Windows games")
     human_name = _("Wine")
@@ -172,21 +129,6 @@ class wine(Runner):
                 version_choices.append((label, version))
             return version_choices
 
-        def esync_limit_callback(widget, option, config):
-            limits_set = is_esync_limit_set()
-            wine_path = self.get_path_for_version(config["version"])
-            wine_ver = is_version_esync(wine_path)
-            response = True
-
-            if not wine_ver:
-                response = thread_safe_call(esync_display_version_warning)
-
-            if not limits_set:
-                thread_safe_call(esync_display_limit_warning)
-                response = False
-
-            return widget, option, response
-
         def fsync_support_callback(widget, option, config):
             fsync_supported = is_fsync_supported()
             wine_path = self.get_path_for_version(config["version"])
@@ -237,7 +179,7 @@ class wine(Runner):
                 "label": _("Enable DXVK"),
                 "type": "bool",
                 "default": True,
-                "warning": _get_dxvk_warning,
+                "warning": self._get_dxvk_warning,
                 "active": True,
                 "help": _(
                     "Use DXVK to "
@@ -252,7 +194,7 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": DXVKManager().version_choices,
                 "default": DXVKManager().version,
-                "warning": _get_dxvk_version_warning
+                "warning": self._get_dxvk_version_warning
             },
 
             {
@@ -260,7 +202,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("Enable VKD3D"),
                 "type": "bool",
-                "warning": _get_vkd3d_warning,
+                "warning": self._get_vkd3d_warning,
                 "default": True,
                 "active": True,
                 "help": _(
@@ -342,9 +284,8 @@ class wine(Runner):
             {
                 "option": "esync",
                 "label": _("Enable Esync"),
-                "type": "extended_bool",
-                "callback": esync_limit_callback,
-                "callback_on": True,
+                "type": "bool",
+                "warning": self._get_esync_warning,
                 "active": True,
                 "default": True,
                 "help": _(
@@ -1132,3 +1073,59 @@ class wine(Runner):
             logger.exception("Failed to extract exe icon: %s", err)
 
         return False
+
+    def _get_dxvk_warning(self, config):
+        if config.get("dxvk") and not vkquery.is_vulkan_supported():
+            return _("Vulkan is not installed or is not supported by your system")
+
+        return None
+
+    def _get_dxvk_version_warning(self, config):
+        if config.get("dxvk") and vkquery.is_vulkan_supported():
+            version = config.get("dxvk_version")
+            if version and not version.startswith("v1."):
+                required_api_version = REQUIRED_VULKAN_API_VERSION
+                library_api_version = vkquery.get_vulkan_api_version_tuple()
+                if library_api_version and library_api_version < required_api_version:
+                    return _("Lutris has detected that Vulkan API version %s is installed, "
+                             "but to use the latest DXVK version, %s is required."
+                             ) % (
+                        vkquery.format_version_tuple(library_api_version),
+                        vkquery.format_version_tuple(required_api_version)
+                    )
+
+                max_dev_name, max_dev_api_version = vkquery.get_best_device_info()
+
+                if max_dev_api_version and max_dev_api_version < required_api_version:
+                    return _("Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
+                             "but to use the latest DXVK version, %s is required."
+                             ) % (
+                        max_dev_name,
+                        vkquery.format_version_tuple(max_dev_api_version),
+                        vkquery.format_version_tuple(required_api_version)
+                    )
+
+        return None
+
+    def _get_esync_warning(self, config):
+        if config.get("esync"):
+            limits_set = is_esync_limit_set()
+            wine_path = self.get_path_for_version(config["version"])
+            wine_ver = is_version_esync(wine_path)
+
+            if not wine_ver:
+                return _("<b>Warning</b> The Wine build you have selected does not support Esync")
+
+            if not limits_set:
+                return _("<b>Warning</b> Your limits are not set correctly. Please increase them as described here:\n"
+                         "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
+                         "How-to-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>")
+
+        return None
+
+    def _get_vkd3d_warning(self, config):
+        if config.get("vkd3d"):
+            if not vkquery.is_vulkan_supported():
+                return _("Vulkan is not installed or is not supported by your system")
+
+        return None
