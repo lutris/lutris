@@ -170,6 +170,7 @@ class ConfigBox(VBox):
                 option_container.pack_start(hbox, False, False, 0)
                 warning = ConfigBox.WarningBox(option["warning"])
                 warning.set_margin_left(18)
+                warning.set_margin_right(18)
                 warning.set_margin_bottom(6)
                 warning.update_warning(self.config)
                 self.warning_boxes[option_key] = warning
@@ -196,7 +197,8 @@ class ConfigBox(VBox):
             warning_image = Gtk.Image(visible=True)
             warning_image.set_from_icon_name("dialog-warning", Gtk.IconSize.DND)
             self.pack_start(warning_image, False, False, 0)
-            self.warning_label = Gtk.Label(visible=True)
+            self.warning_label = Gtk.Label(visible=True, xalign=0)
+            self.warning_label.set_line_wrap(True)
             self.pack_start(self.warning_label, False, False, 0)
 
         def update_warning(self, config):
