@@ -36,6 +36,103 @@ DEFAULT_WINE_PREFIX = "~/.wine"
 MIN_SAFE_VERSION = "7.0"  # Wine installers must run with at least this version
 
 
+def _get_dxvk_warning(config):
+    if config.get("dxvk") and not vkquery.is_vulkan_supported():
+        return _("Vulkan is not installed or is not supported by your system")
+
+    return None
+
+
+def _get_dxvk_version_warning(config):
+    if config.get("dxvk") and vkquery.is_vulkan_supported():
+        version = config.get("dxvk_version")
+        if version and not version.startswith("v1."):
+            required_api_version = REQUIRED_VULKAN_API_VERSION
+            library_api_version = vkquery.get_vulkan_api_version_tuple()
+            if library_api_version and library_api_version < required_api_version:
+                return _("Lutris has detected that Vulkan API version %s is installed, "
+                         "but to use the latest DXVK version, %s is required."
+                         ) % (
+                    vkquery.format_version_tuple(library_api_version),
+                    vkquery.format_version_tuple(required_api_version)
+                )
+
+            max_dev_name, max_dev_api_version = vkquery.get_best_device_info()
+
+            if max_dev_api_version and max_dev_api_version < required_api_version:
+                return _("Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
+                         "but to use the latest DXVK version, %s is required."
+                         ) % (
+                    max_dev_name,
+                    vkquery.format_version_tuple(max_dev_api_version),
+                    vkquery.format_version_tuple(required_api_version)
+                )
+
+    return None
+
+
+def _get_vkd3d_warning(config):
+    if config.get("vkd3d"):
+        if not vkquery.is_vulkan_supported():
+            return _("Vulkan is not installed or is not supported by your system")
+
+    return None
+
+
+def _get_path_for_version(config, version=None):
+    """Return the absolute path of a wine executable for a given version,
+    or the configured version if you don't ask for a version."""
+    if not version:
+        version = config["version"]
+
+    if version in WINE_PATHS:
+        return system.find_executable(WINE_PATHS[version])
+    if "Proton" in version:
+        for proton_path in get_proton_paths():
+            if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
+                return os.path.join(proton_path, version, "dist/bin/wine")
+            if os.path.isfile(os.path.join(proton_path, version, "files/bin/wine")):
+                return os.path.join(proton_path, version, "files/bin/wine")
+    if version.startswith("PlayOnLinux"):
+        version, arch = version.split()[1].rsplit("-", 1)
+        return os.path.join(POL_PATH, "wine", "linux-" + arch, version, "bin/wine")
+    if version == "custom":
+        return config.get("custom_wine_path", "")
+    return os.path.join(WINE_DIR, version, "bin/wine")
+
+
+def _get_esync_warning(config):
+    if config.get("esync"):
+        limits_set = is_esync_limit_set()
+        wine_path = _get_path_for_version(config)
+        wine_ver = is_version_esync(wine_path)
+
+        if not wine_ver:
+            return _("<b>Warning</b> The Wine build you have selected does not support Esync")
+
+        if not limits_set:
+            return _("<b>Warning</b> Your limits are not set correctly. Please increase them as described here:\n"
+                     "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
+                     "How-to-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>")
+
+    return None
+
+
+def _get_fsync_warning(config):
+    if config.get("fsync"):
+        fsync_supported = is_fsync_supported()
+        wine_path = _get_path_for_version(config)
+        wine_ver = is_version_fsync(wine_path)
+
+        if not wine_ver:
+            return _("<b>Warning</b> The Wine build you have selected does not support Fsync.")
+
+        if not fsync_supported:
+            return _("<b>Warning</b> Your kernel is not patched for fsync.")
+
+        return None
+
+
 class wine(Runner):
     description = _("Runs Windows games")
     human_name = _("Wine")
@@ -163,7 +260,7 @@ class wine(Runner):
                 "label": _("Enable DXVK"),
                 "type": "bool",
                 "default": True,
-                "warning": self._get_dxvk_warning,
+                "warning": _get_dxvk_warning,
                 "active": True,
                 "help": _(
                     "Use DXVK to "
@@ -178,7 +275,7 @@ class wine(Runner):
                 "type": "choice_with_entry",
                 "choices": DXVKManager().version_choices,
                 "default": DXVKManager().version,
-                "warning": self._get_dxvk_version_warning
+                "warning": _get_dxvk_version_warning
             },
 
             {
@@ -186,7 +283,7 @@ class wine(Runner):
                 "section": _("Graphics"),
                 "label": _("Enable VKD3D"),
                 "type": "bool",
-                "warning": self._get_vkd3d_warning,
+                "warning": _get_vkd3d_warning,
                 "default": True,
                 "active": True,
                 "help": _(
@@ -269,7 +366,7 @@ class wine(Runner):
                 "option": "esync",
                 "label": _("Enable Esync"),
                 "type": "bool",
-                "warning": self._get_esync_warning,
+                "warning": _get_esync_warning,
                 "active": True,
                 "default": True,
                 "help": _(
@@ -283,7 +380,7 @@ class wine(Runner):
                 "label": _("Enable Fsync"),
                 "type": "bool",
                 "default": is_fsync_supported(),
-                "warning": self._get_fsync_warning,
+                "warning": _get_fsync_warning,
                 "active": True,
                 "help": _(
                     "Enable futex-based synchronization (fsync). "
@@ -548,20 +645,7 @@ class wine(Runner):
 
     def get_path_for_version(self, version):
         """Return the absolute path of a wine executable for a given version"""
-        if version in WINE_PATHS:
-            return system.find_executable(WINE_PATHS[version])
-        if "Proton" in version:
-            for proton_path in get_proton_paths():
-                if os.path.isfile(os.path.join(proton_path, version, "dist/bin/wine")):
-                    return os.path.join(proton_path, version, "dist/bin/wine")
-                if os.path.isfile(os.path.join(proton_path, version, "files/bin/wine")):
-                    return os.path.join(proton_path, version, "files/bin/wine")
-        if version.startswith("PlayOnLinux"):
-            version, arch = version.split()[1].rsplit("-", 1)
-            return os.path.join(POL_PATH, "wine", "linux-" + arch, version, "bin/wine")
-        if version == "custom":
-            return self.runner_config.get("custom_wine_path", "")
-        return os.path.join(WINE_DIR, version, "bin/wine")
+        return _get_path_for_version(self.runner_config, version)
 
     def resolve_config_path(self, path, relative_to=None):
         # Resolve paths with tolerance for Windows-isms;
@@ -1056,73 +1140,3 @@ class wine(Runner):
             logger.exception("Failed to extract exe icon: %s", err)
 
         return False
-
-    def _get_dxvk_warning(self, config):
-        if config.get("dxvk") and not vkquery.is_vulkan_supported():
-            return _("Vulkan is not installed or is not supported by your system")
-
-        return None
-
-    def _get_dxvk_version_warning(self, config):
-        if config.get("dxvk") and vkquery.is_vulkan_supported():
-            version = config.get("dxvk_version")
-            if version and not version.startswith("v1."):
-                required_api_version = REQUIRED_VULKAN_API_VERSION
-                library_api_version = vkquery.get_vulkan_api_version_tuple()
-                if library_api_version and library_api_version < required_api_version:
-                    return _("Lutris has detected that Vulkan API version %s is installed, "
-                             "but to use the latest DXVK version, %s is required."
-                             ) % (
-                        vkquery.format_version_tuple(library_api_version),
-                        vkquery.format_version_tuple(required_api_version)
-                    )
-
-                max_dev_name, max_dev_api_version = vkquery.get_best_device_info()
-
-                if max_dev_api_version and max_dev_api_version < required_api_version:
-                    return _("Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
-                             "but to use the latest DXVK version, %s is required."
-                             ) % (
-                        max_dev_name,
-                        vkquery.format_version_tuple(max_dev_api_version),
-                        vkquery.format_version_tuple(required_api_version)
-                    )
-
-        return None
-
-    def _get_vkd3d_warning(self, config):
-        if config.get("vkd3d"):
-            if not vkquery.is_vulkan_supported():
-                return _("Vulkan is not installed or is not supported by your system")
-
-        return None
-
-    def _get_esync_warning(self, config):
-        if config.get("esync"):
-            limits_set = is_esync_limit_set()
-            wine_path = self.get_path_for_version(config["version"])
-            wine_ver = is_version_esync(wine_path)
-
-            if not wine_ver:
-                return _("<b>Warning</b> The Wine build you have selected does not support Esync")
-
-            if not limits_set:
-                return _("<b>Warning</b> Your limits are not set correctly. Please increase them as described here:\n"
-                         "<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>"
-                         "How-to-Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>")
-
-        return None
-
-    def _get_fsync_warning(self, config):
-        if config.get("fsync"):
-            fsync_supported = is_fsync_supported()
-            wine_path = self.get_path_for_version(config["version"])
-            wine_ver = is_version_fsync(wine_path)
-
-            if not wine_ver:
-                return _("<b>Warning</b> The Wine build you have selected does not support Fsync.")
-
-            if not fsync_supported:
-                return _("<b>Warning</b> Your kernel is not patched for fsync.")
-
-            return None
