@@ -33,6 +33,9 @@ class ConfigBox(VBox):
         self.tooltip_default = None
         self.files = []
         self.files_list_store = None
+        self.reset_buttons = {}
+        self.wrappers = {}
+        self.warning_boxes = {}
 
     def generate_top_info_box(self, text):
         """Add a top section with general help text for the current tab"""
@@ -86,7 +89,6 @@ class ConfigBox(VBox):
                     continue
             option_key = option["option"]
             value = self.config.get(option_key)
-            default = option.get("default")
 
             if callable(option.get("choices")) and option["type"] != "choice_with_search":
                 option["choices"] = option["choices"]()
@@ -105,6 +107,7 @@ class ConfigBox(VBox):
             self.wrapper = Gtk.Box()
             self.wrapper.set_spacing(12)
             self.wrapper.set_margin_bottom(6)
+            self.wrappers[option_key] = self.wrapper
 
             # Set tooltip's "Default" part
             default = option.get("default")
@@ -127,6 +130,7 @@ class ConfigBox(VBox):
                 self.option_widget,
                 self.wrapper,
             )
+            self.reset_buttons[option_key] = reset_btn
 
             placeholder = Gtk.Box()
             placeholder.set_size_request(32, 32)
@@ -152,22 +156,58 @@ class ConfigBox(VBox):
                 self.wrapper.connect("query-tooltip", self.on_query_tooltip, helptext)
 
             hbox = Gtk.Box(visible=True)
+            option_container = hbox
             hbox.set_margin_left(18)
             hbox.pack_end(placeholder, False, False, 5)
             # Grey out option if condition unmet
             if "condition" in option and not option["condition"]:
                 hbox.set_sensitive(False)
 
+            hbox.pack_start(self.wrapper, True, True, 0)
+
+            if "warning" in option:
+                option_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, visible=True)
+                option_container.pack_start(hbox, False, False, 0)
+                warning = ConfigBox.WarningBox(option["warning"])
+                warning.set_margin_left(18)
+                warning.update_warning(self.config)
+                self.warning_boxes[option_key] = warning
+                option_container.pack_start(warning, False, False, 0)
+
             # Hide if advanced
             if option.get("advanced"):
-                hbox.get_style_context().add_class("advanced")
-            hbox.pack_start(self.wrapper, True, True, 0)
-            current_vbox.pack_start(hbox, False, False, 0)
+                option_container.get_style_context().add_class("advanced")
 
+            current_vbox.pack_start(option_container, False, False, 0)
         self.show_all()
 
         show_advanced = settings.read_setting("show_advanced_options") == "True"
         self.set_advanced_visibility(show_advanced)
+
+    def update_warnings(self):
+        for box in self.warning_boxes.values():
+            box.update_warning(self.config)
+
+    class WarningBox(Gtk.Box):
+        def __init__(self, warning):
+            self.warning = warning
+            super().__init__(spacing=6, visible=False, no_show_all=True)
+            warning_image = Gtk.Image(visible=True)
+            warning_image.set_from_icon_name("dialog-warning", Gtk.IconSize.DND)
+            self.pack_start(warning_image, False, False, 0)
+            self.warning_label = Gtk.Label(visible=True)
+            self.pack_start(self.warning_label, False, False, 0)
+
+        def update_warning(self, config):
+            if callable(self.warning):
+                text = self.warning(config)
+            else:
+                text = self.warning
+
+            if text:
+                self.warning_label.set_markup(str(text))
+
+            self.set_visible(bool(text))
 
     def set_advanced_visibility(self, value):
         """Sets the visibility of every 'advanced' option and every section that
@@ -604,15 +644,16 @@ class ConfigBox(VBox):
         """Common actions when value changed on a widget"""
         self.raw_config[option_name] = value
         self.config[option_name] = value
+        reset_btn = self.reset_buttons.get(option_name)
+        wrapper = self.wrappers.get(option_name)
 
-        wrapper = widget.get_parent()
-        hbox = wrapper.get_parent()
+        if reset_btn:
+            reset_btn.set_visible(True)
 
-        # Dirty way to get the reset btn. I tried passing it through the
-        # methods but got some strange unreliable behavior.
-        reset_btn = hbox.get_children()[1].get_children()[0]
-        reset_btn.set_visible(True)
-        self.set_style_property("font-weight", "bold", wrapper)
+        if wrapper:
+            self.set_style_property("font-weight", "bold", wrapper)
+
+        self.update_warnings()
 
     def on_reset_button_clicked(self, btn, option, _widget, wrapper):
         """Clear option (remove from config, reset option widget)."""

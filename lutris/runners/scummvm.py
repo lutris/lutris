@@ -7,6 +7,30 @@ from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.strings import split_arguments
 
+_supported_scale_factors = {
+    "hq": ["2", "3"],
+    "edge": ["2", "3"],
+    "advmame": ["2", "3"],
+    "sai": ["2"],
+    "supersai": ["2"],
+    "supereagle": ["2"],
+    "dotmatrix": ["2"],
+    "tv2x": ["2"],
+}
+
+
+def _get_scale_factor_warning(config):
+    """Generate a warning message for when the scaler and scale-factor can't be used together."""
+    if "scaler" in config and "scale-factor" in config:
+        scaler = config["scaler"]
+        if scaler in _supported_scale_factors:
+            scale_factor = config["scale-factor"]
+            if scale_factor not in _supported_scale_factors[scaler]:
+                return "<b>Warning</b> The '%s' scaler does not work with a scale factor of %s." % (
+                    scaler, scale_factor)
+
+    return None
+
 
 class scummvm(Runner):
     description = _("Engine for point-and-click games.")
@@ -118,26 +142,27 @@ class scummvm(Runner):
                 ("tv2x", "tv2x"),
             ],
             "help":
-            _("The algorithm used to scale up the game's base "
-              "resolution, resulting in different visual styles. "),
+                _("The algorithm used to scale up the game's base "
+                  "resolution, resulting in different visual styles. "),
         },
         {
-           "option": "scale-factor",
-           "section": _("Graphics"),
-           "label": _("Scale factor"),
-           "type": "choice",
-           "default": "3",
-           "choices": [
-               ("1", "1"),
-               ("2", "2"),
-               ("3", "3"),
-               ("4", "4"),
-               ("5", "5"),
-           ],
-           "help":
-           _("Changes the resolution of the game. "
-             "For example, a 2x scale will take a 320x200 "
-             "resolution game and scale it up to 640x400. "),
+            "option": "scale-factor",
+            "section": _("Graphics"),
+            "label": _("Scale factor"),
+            "type": "choice",
+            "default": "3",
+            "choices": [
+                ("1", "1"),
+                ("2", "2"),
+                ("3", "3"),
+                ("4", "4"),
+                ("5", "5"),
+            ],
+            "help":
+                _("Changes the resolution of the game. "
+                  "For example, a 2x scale will take a 320x200 "
+                  "resolution game and scale it up to 640x400. "),
+            "warning": _get_scale_factor_warning
         },
         {
             "option": "render-mode",
