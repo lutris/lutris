@@ -25,7 +25,7 @@ def _get_opengl_warning(config):
         if renderer and renderer != "software":
             scaler = config["scaler"]
             if scaler and scaler != "normal":
-                return "<b>Warning</b> Scalers only with with software rendering."
+                return _("<b>Warning</b> Scalers may not work with OpenGL rendering.")
 
     return None
 
@@ -37,7 +37,7 @@ def _get_scale_factor_warning(config):
         if scaler in _supported_scale_factors:
             scale_factor = config["scale-factor"]
             if scale_factor not in _supported_scale_factors[scaler]:
-                return "<b>Warning</b> The '%s' scaler does not work with a scale factor of %s." % (
+                return _("<b>Warning</b> The '%s' scaler does not work with a scale factor of %s.") % (
                     scaler, scale_factor)
 
     return None
@@ -191,7 +191,7 @@ class scummvm(Runner):
             ],
             "default": "",
             "advanced": True,
-            "help": _("Changes the graphics hardware the game will target, if the game supports this."),
+            "help": _("Changes the rendering method used for 3D games."),
         },
         {
             "option": "render-mode",

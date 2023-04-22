@@ -676,6 +676,7 @@ class ConfigBox(VBox):
             child.destroy()
         self.call_widget_generator(option, option_key, reset_value, option.get("default"))
         self.wrapper.show_all()
+        self.update_warnings()
 
     @staticmethod
     def set_style_property(property_, value, wrapper):
