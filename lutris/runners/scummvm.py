@@ -19,6 +19,17 @@ _supported_scale_factors = {
 }
 
 
+def _get_opengl_warning(config):
+    if "scaler" in config and "renderer" in config:
+        renderer = config["renderer"]
+        if renderer and renderer != "software":
+            scaler = config["scaler"]
+            if scaler and scaler != "normal":
+                return "<b>Warning</b> Scalers only with with software rendering."
+
+    return None
+
+
 def _get_scale_factor_warning(config):
     """Generate a warning message for when the scaler and scale-factor can't be used together."""
     if "scaler" in config and "scale-factor" in config:
@@ -63,6 +74,7 @@ class scummvm(Runner):
         "fullscreen": "--fullscreen",
         "scaler": "--scaler=%s",
         "scale-factor": "--scale-factor=%s",
+        "renderer": "--renderer=%s",
         "render-mode": "--render-mode=%s",
         "stretch-mode": "--stretch-mode=%s",
         "filtering": "--filtering",
@@ -142,6 +154,7 @@ class scummvm(Runner):
                 ("dotmatrix", "dotmatrix"),
                 ("tv2x", "tv2x"),
             ],
+            "warning": _get_opengl_warning,
             "help":
                 _("The algorithm used to scale up the game's base "
                   "resolution, resulting in different visual styles. "),
@@ -166,12 +179,27 @@ class scummvm(Runner):
             "warning": _get_scale_factor_warning
         },
         {
+            "option": "renderer",
+            "section": _("Graphics"),
+            "label": _("Renderer"),
+            "type": "choice",
+            "choices": [
+                (_("Auto"), ""),
+                (_("Software"), "software"),
+                (_("OpenGL"), "opengl"),
+                (_("OpenGL (with shaders)"), "opengl_shaders")
+            ],
+            "default": "",
+            "advanced": True,
+            "help": _("Changes the graphics hardware the game will target, if the game supports this."),
+        },
+        {
             "option": "render-mode",
             "section": _("Graphics"),
             "label": _("Render mode"),
             "type": "choice",
             "choices": [
-                (_("None"), ""),
+                (_("Auto"), ""),
                 ("hercGreen", "hercGreen"),
                 ("hercAmber", "hercAmber"),
                 ("cga", "cga"),
@@ -195,7 +223,7 @@ class scummvm(Runner):
             "label": _("Stretch mode"),
             "type": "choice",
             "choices": [
-                (_("None"), ""),
+                (_("Auto"), ""),
                 (_("Center"), "center"),
                 (_("Pixel Perfect"), "pixel-perfect"),
                 (_("Even Pixels"), "even-pixels"),
