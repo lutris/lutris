@@ -9,11 +9,9 @@ from gi.repository import Gdk, Gtk
 
 # Lutris Modules
 from lutris import settings, sysoptions
-from lutris.gui.dialogs import ErrorDialog
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label, VBox
 from lutris.gui.widgets.searchable_combobox import SearchableCombobox
 from lutris.runners import InvalidRunner, import_runner
-from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
 
@@ -271,9 +269,6 @@ class ConfigBox(VBox):
         elif option_type == "bool":
             self.generate_checkbox(option, value)
             self.tooltip_default = "Enabled" if default else "Disabled"
-        elif option_type == "extended_bool":
-            self.generate_checkbox_with_callback(option, value)
-            self.tooltip_default = "Enabled" if default else "Disabled"
         elif option_type == "range":
             self.generate_range(option_key, option["min"], option["max"], option["label"], value)
         elif option_type == "string":
@@ -317,48 +312,9 @@ class ConfigBox(VBox):
         self.wrapper.pack_start(switch, False, False, 0)
         self.option_widget = switch
 
-    # Checkbox with callback
-    def generate_checkbox_with_callback(self, option, value=None):
-        """Generate a checkbox. With callback"""
-
-        label = Label(option["label"])
-        self.wrapper.pack_start(label, False, False, 0)
-
-        checkbox = Gtk.Switch()
-        checkbox.set_sensitive(option["active"] is True)
-        if value is True:
-            checkbox.set_active(value)
-
-        checkbox.connect("notify::active", self._on_toggle_with_callback, option)
-        checkbox.set_valign(Gtk.Align.CENTER)
-        self.wrapper.pack_start(checkbox, False, False, 0)
-        self.option_widget = checkbox
-
     def checkbox_toggle(self, widget, _gparam, option_name):
         """Action for the checkbox's toggled signal."""
         self.option_changed(widget, option_name, widget.get_active())
-
-    def _on_toggle_with_callback(self, widget, _gparam, option):
-        """Action for the checkbox's toggled signal. With callback method"""
-
-        option_name = option["option"]
-        callback = option["callback"]
-        callback_on = option.get("callback_on")
-        if widget.get_active() == callback_on or callback_on is None:
-            AsyncCall(callback, self._on_callback_finished, widget, option, self.config)
-        else:
-            self.option_changed(widget, option_name, widget.get_active())
-
-    def _on_callback_finished(self, result, error):
-        if error:
-            ErrorDialog(str(error), parent=self.get_toplevel())
-            return
-
-        widget, option, response = result
-        if response:
-            self.option_changed(widget, option["option"], widget.get_active())
-        else:
-            widget.set_active(False)
 
     # Entry
     def generate_entry(self, option_name, label, value=None, option_size=None):
