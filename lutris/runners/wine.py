@@ -129,21 +129,6 @@ class wine(Runner):
                 version_choices.append((label, version))
             return version_choices
 
-        def fsync_support_callback(widget, option, config):
-            fsync_supported = is_fsync_supported()
-            wine_path = self.get_path_for_version(config["version"])
-            wine_ver = is_version_fsync(wine_path)
-            response = True
-
-            if not wine_ver:
-                response = thread_safe_call(fsync_display_version_warning)
-
-            if not fsync_supported:
-                thread_safe_call(fsync_display_support_warning)
-                response = False
-
-            return widget, option, response
-
         self.runner_options = [
             {
                 "option": "version",
@@ -297,10 +282,9 @@ class wine(Runner):
             {
                 "option": "fsync",
                 "label": _("Enable Fsync"),
-                "type": "extended_bool",
+                "type": "bool",
                 "default": is_fsync_supported(),
-                "callback": fsync_support_callback,
-                "callback_on": True,
+                "warning": self._get_fsync_warning,
                 "active": True,
                 "help": _(
                     "Enable futex-based synchronization (fsync). "
@@ -1108,6 +1092,13 @@ class wine(Runner):
 
         return None
 
+    def _get_vkd3d_warning(self, config):
+        if config.get("vkd3d"):
+            if not vkquery.is_vulkan_supported():
+                return _("Vulkan is not installed or is not supported by your system")
+
+        return None
+
     def _get_esync_warning(self, config):
         if config.get("esync"):
             limits_set = is_esync_limit_set()
@@ -1124,9 +1115,16 @@ class wine(Runner):
 
         return None
 
-    def _get_vkd3d_warning(self, config):
-        if config.get("vkd3d"):
-            if not vkquery.is_vulkan_supported():
-                return _("Vulkan is not installed or is not supported by your system")
+    def _get_fsync_warning(self, config):
+        if config.get("fsync"):
+            fsync_supported = is_fsync_supported()
+            wine_path = self.get_path_for_version(config["version"])
+            wine_ver = is_version_fsync(wine_path)
 
-        return None
+            if not wine_ver:
+                return _("<b>Warning</b> The Wine build you have selected does not support Fsync.")
+
+            if not fsync_supported:
+                return _("<b>Warning</b> Your kernel is not patched for fsync.")
+
+            return None
