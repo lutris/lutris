@@ -170,6 +170,7 @@ class scummvm(Runner):
             "label": _("Render mode"),
             "type": "choice",
             "choices": [
+                (_("None"), ""),
                 ("hercGreen", "hercGreen"),
                 ("hercAmber", "hercAmber"),
                 ("cga", "cga"),
@@ -183,6 +184,7 @@ class scummvm(Runner):
                 ("atari", "atari"),
                 ("macintosh", "macintosh"),
             ],
+            "default": "",
             "advanced": True,
             "help": _("Changes how the game is rendered."),
         },
