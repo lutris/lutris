@@ -37,7 +37,7 @@ class scummvm(Runner):
         "aspect": "--aspect-ratio",
         "subtitles": "--subtitles",
         "fullscreen": "--fullscreen",
-        "gfx-mode": "--gfx-mode=%s",
+        "scaler": "--scaler=%s",
         "scale-factor": "--scale-factor=%s",
         "render-mode": "--render-mode=%s",
         "filtering": "--filtering",
@@ -100,46 +100,45 @@ class scummvm(Runner):
             ),
         },
         {
-            "option": "gfx-mode",
+            "option": "scaler",
             "section": _("Graphics"),
             "label": _("Graphic scaler"),
             "type": "choice",
-            "default": "3x",
+            "default": "normal",
             "choices": [
-                ("1x", "1x"),
-                ("2x", "2x"),
-                ("3x", "3x"),
-                ("hq2x", "hq2x"),
-                ("hq3x", "hq3x"),
-                ("advmame2x", "advmame2x"),
-                ("advmame3x", "advmame3x"),
-                ("2xsai", "2xsai"),
-                ("super2xsai", "super2xsai"),
+                ("normal", "normal"),
+                ("hq", "hq"),
+                ("edge", "edge"),
+                ("advmame", "advmame"),
+                ("sai", "sai"),
+                ("supersai", "supersai"),
                 ("supereagle", "supereagle"),
-                ("tv2x", "tv2x"),
+                ("pm", "pm"),
                 ("dotmatrix", "dotmatrix"),
+                ("tv2x", "tv2x"),
             ],
             "help":
             _("The algorithm used to scale up the game's base "
               "resolution, resulting in different visual styles. "),
         },
-        # {
-        #    "option": "scale-factor",
-        #    "section": _("Graphics"),
-        #    "label": _("Scaler factor"),
-        #    "type": "choice",
-        #    "choices": [
-        #        ("1", "1"),
-        #        ("2", "2"),
-        #        ("3", "3"),
-        #        ("4", "4"),
-        #        ("5", "5"),
-        #    ],
-        #    "help":
-        #    _("Changes the resolution of the game. "
-        #      "For example, a 2x scaler will take a 320x200 "
-        #      "resolution game and scale it up to 640x400. "),
-        # },
+        {
+           "option": "scale-factor",
+           "section": _("Graphics"),
+           "label": _("Scale factor"),
+           "type": "choice",
+           "default": "3",
+           "choices": [
+               ("1", "1"),
+               ("2", "2"),
+               ("3", "3"),
+               ("4", "4"),
+               ("5", "5"),
+           ],
+           "help":
+           _("Changes the resolution of the game. "
+             "For example, a 2x scale will take a 320x200 "
+             "resolution game and scale it up to 640x400. "),
+        },
         {
             "option": "render-mode",
             "section": _("Graphics"),
