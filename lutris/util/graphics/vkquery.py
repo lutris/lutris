@@ -295,22 +295,22 @@ def get_device_info():
     try:
         vulkan = CDLL("libvulkan.so.1")
     except OSError:
-        return False
+        return {}
     app_info = VkApplicationInfo("vkinfo", version=(0, 1, 0))
     create_info = VkInstanceCreateInfo(app_info)
     instance = VkInstance()
     result = vulkan.vkCreateInstance(byref(create_info), 0, byref(instance))
     if result != VK_SUCCESS:
-        return None
+        return {}
     dev_count = c_uint32(0)
     result = vulkan.vkEnumeratePhysicalDevices(instance, byref(dev_count), 0)
     if result != VK_SUCCESS or dev_count.value <= 0:
-        return None
+        return {}
 
     devices = (VkPhysicalDevice * dev_count.value)()
     result = vulkan.vkEnumeratePhysicalDevices(instance, byref(dev_count), byref(devices))
     if result != VK_SUCCESS:
-        return None
+        return {}
 
     getPhysicalDeviceProperties = vulkan.vkGetPhysicalDeviceProperties
     getPhysicalDeviceProperties.restype = None
@@ -337,6 +337,8 @@ def get_best_device_info():
     Go nested tuples! If there are no devices at all, this returns
     (None, None), but still a tuple."""
     devices_dict = get_device_info()
+    if not devices_dict:
+        return None, None
     by_version = sorted(
         devices_dict.items(),
         key=lambda t: t[1],
