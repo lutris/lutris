@@ -72,7 +72,7 @@ class StyleManager(GObject.Object):
             self._dbus_proxy = proxy
             self._read_portal_setting()
         else:
-            raise Exception("Could not start GDBusProxy")
+            raise RuntimeError("Could not start GDBusProxy")
 
     def _call_cb(self, obj, result):
         values = obj.call_finish(result)
@@ -80,7 +80,7 @@ class StyleManager(GObject.Object):
             value = values[0]
             self.color_scheme = self._read_value(value)
         else:
-            raise Exception("Could not read color-scheme")
+            raise RuntimeError("Could not read color-scheme")
 
     def _on_settings_changed(self, _proxy, _sender_name, signal_name, params):
         if signal_name != "SettingChanged":
