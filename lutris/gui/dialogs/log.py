@@ -45,7 +45,7 @@ class LogWindow(GObject.Object):
         self.window.show_all()
 
     def on_key_press_event(self, widget, event):
-        shift = (event.state & Gdk.ModifierType.SHIFT_MASK)
+        shift = event.state & Gdk.ModifierType.SHIFT_MASK
         if event.keyval == Gdk.KEY_Return:
             if shift:
                 self.search_entry.emit("previous-match")

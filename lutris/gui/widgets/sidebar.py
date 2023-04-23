@@ -495,7 +495,7 @@ class LutrisSidebar(Gtk.ListBox):
 
         for platform in self.active_platforms:
             if platform not in self.platform_rows:
-                icon_name = (platform.lower().replace(" ", "").replace("/", "_") + "-symbolic")
+                icon_name = platform.lower().replace(" ", "").replace("/", "_") + "-symbolic"
                 platform_row = SidebarRow(
                     platform,
                     "platform",

@@ -1,5 +1,6 @@
 """Class to manipulate a process"""
 import os
+
 from lutris.util.log import logger
 
 IGNORED_PROCESSES = (

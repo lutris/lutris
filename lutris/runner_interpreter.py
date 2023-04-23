@@ -61,7 +61,7 @@ def get_launch_parameters(runner, gameplay_info):
 
     prefix_command = system_config.get("prefix_command") or ""
     if prefix_command:
-        launch_arguments = (shlex.split(os.path.expandvars(prefix_command)) + launch_arguments)
+        launch_arguments = shlex.split(os.path.expandvars(prefix_command)) + launch_arguments
 
     single_cpu = system_config.get("single_cpu") or False
     if single_cpu:
