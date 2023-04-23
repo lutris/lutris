@@ -1,6 +1,5 @@
 """Class to manipulate a process"""
 import os
-
 from lutris.util.log import logger
 
 IGNORED_PROCESSES = (
@@ -35,9 +34,12 @@ class Process:
         try:
             with open(file_path, encoding='utf-8') as proc_file:
                 content = proc_file.read()
-        except (ProcessLookupError, FileNotFoundError, PermissionError):
+        except PermissionError:
             return ""
-        return content
+        except (ProcessLookupError, FileNotFoundError) as ex:
+            logger.debug(ex)
+            return ""
+        return content.strip("\x00")
 
     def get_stat(self, parsed=True):
         stat_filename = "/proc/{}/stat".format(self.pid)
@@ -110,8 +112,10 @@ class Process:
         """Return the process' environment variables"""
         environ_path = "/proc/{}/environ".format(self.pid)
         _environ_text = self._read_content(environ_path)
+        if not _environ_text:
+            return {}
         if "=" not in _environ_text:
-            logger.debug("Invalid environment value in %s", environ_path)
+            logger.debug("Invalid environment value '%s' (%s) in %s", _environ_text, len(_environ_text), environ_path)
             return {}
         return dict([line.split("=", 1) for line in _environ_text.split("\x00") if line])
 
