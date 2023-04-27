@@ -11,7 +11,7 @@ from lutris.util.log import logger
 from lutris.util.system import create_folder, execute, remove_folder
 from lutris.util.wine.dll_manager import DLLManager
 
-REQUIRED_VULKAN_API_VERSION = 1, 3, 0
+REQUIRED_VULKAN_API_VERSION = vkquery.vk_make_version(1, 3, 0)
 
 
 class DXVKManager(DLLManager):
@@ -20,7 +20,7 @@ class DXVKManager(DLLManager):
     versions_path = os.path.join(base_dir, "dxvk_versions.json")
     managed_dlls = ("dxgi", "d3d11", "d3d10core", "d3d9",)
     releases_url = "https://api.github.com/repos/lutris/dxvk/releases"
-    vulkan_api_version = vkquery.get_expected_api_version_tuple()
+    vulkan_api_version = vkquery.get_expected_api_version()
 
     def is_recommended_version(self, version):
         # DXVK 2.x and later require Vulkan 1.3, so if that iss lacking
