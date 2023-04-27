@@ -11,7 +11,7 @@ class pcsx2(Runner):
     description = _("PlayStation 2 emulator")
     platforms = [_("Sony PlayStation 2")]
     runnable_alone = True
-    runner_executable = "pcsx2/PCSX2"
+    runner_executable = "pcsx2/pcsx2-qt"
     game_options = [{
         "option": "main_file",
         "type": "file",
@@ -37,19 +37,7 @@ class pcsx2(Runner):
             "type": "bool",
             "label": _("No GUI"),
             "default": False
-        },
-        {
-            "option": "config_file",
-            "type": "file",
-            "label": _("Custom config file"),
-            "advanced": True,
-        },
-        {
-            "option": "config_path",
-            "type": "directory_chooser",
-            "label": _("Custom config path"),
-            "advanced": True,
-        },
+        }
     ]
 
     # PCSX2 currently uses an AppImage, no need for the runtime.
@@ -59,15 +47,11 @@ class pcsx2(Runner):
         arguments = [self.get_executable()]
 
         if self.runner_config.get("fullscreen"):
-            arguments.append("--fullscreen")
+            arguments.append("-fullscreen")
         if self.runner_config.get("full_boot"):
-            arguments.append("--fullboot")
+            arguments.append("-slowboot")
         if self.runner_config.get("nogui"):
-            arguments.append("--nogui")
-        if self.runner_config.get("config_file"):
-            arguments.append("--cfg={}".format(self.runner_config["config_file"]))
-        if self.runner_config.get("config_path"):
-            arguments.append("--cfgpath={}".format(self.runner_config["config_path"]))
+            arguments.append("-nogui")
 
         iso = self.game_config.get("main_file") or ""
         if not system.path_exists(iso):
