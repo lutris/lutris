@@ -1,4 +1,4 @@
-# generated on 2023-03-19T10:23:10+00:00
+# generated on 2023-04-27T18:29:58+00:00
 
 share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
@@ -73,6 +73,7 @@ lutris/gui/widgets/__init__.py
 lutris/gui/widgets/log_text_view.py
 lutris/gui/widgets/navigation_stack.py
 lutris/gui/widgets/notifications.py
+lutris/gui/widgets/scaled_image.py
 lutris/gui/widgets/searchable_combobox.py
 lutris/gui/widgets/sidebar.py
 lutris/gui/widgets/status_icon.py
