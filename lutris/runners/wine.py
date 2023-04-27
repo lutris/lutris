@@ -48,24 +48,24 @@ def _get_dxvk_version_warning(config):
         version = config.get("dxvk_version")
         if version and not version.startswith("v1."):
             required_api_version = REQUIRED_VULKAN_API_VERSION
-            library_api_version = vkquery.get_vulkan_api_version_tuple()
+            library_api_version = vkquery.get_vulkan_api_version()
             if library_api_version and library_api_version < required_api_version:
                 return _("Lutris has detected that Vulkan API version %s is installed, "
                          "but to use the latest DXVK version, %s is required."
                          ) % (
-                    vkquery.format_version_tuple(library_api_version),
-                    vkquery.format_version_tuple(required_api_version)
+                    vkquery.format_version(library_api_version),
+                    vkquery.format_version(required_api_version)
                 )
 
-            max_dev_name, max_dev_api_version = vkquery.get_best_device_info()
+            devices = vkquery.get_device_info()
 
-            if max_dev_api_version and max_dev_api_version < required_api_version:
+            if devices and devices[0].api_version < required_api_version:
                 return _("Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
                          "but to use the latest DXVK version, %s is required."
                          ) % (
-                    max_dev_name,
-                    vkquery.format_version_tuple(max_dev_api_version),
-                    vkquery.format_version_tuple(required_api_version)
+                    devices[0].name,
+                    vkquery.format_version(devices[0].api_version),
+                    vkquery.format_version(required_api_version)
                 )
 
     return None
