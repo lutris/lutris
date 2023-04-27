@@ -367,4 +367,7 @@ def make_version_tuple(source_int):
 
 
 def format_version_tuple(version_tuple):
-    return "%s.%s.%s" % version_tuple
+    if version_tuple:
+        return "%s.%s.%s" % version_tuple
+
+    return "(none)"
