@@ -202,6 +202,11 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         if surface_format != cairo.FORMAT_ARGB32:  # pylint:disable=no-member
             return False
 
+        # Scale the corner according to the surface's scale factor -
+        # normally the same as our UI scale factor.
+        device_scale_x, device_scale_y = surface.get_device_scale()
+        corner_pixel_width = int(corner_size[0] * device_scale_x)
+        corner_pixel_height = int(corner_size[1] * device_scale_y)
         pixel_width = surface.get_width()
         pixel_height = surface.get_height()
 
@@ -224,9 +229,9 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
         return (
             is_bright_pixel(pixel_width - 1, pixel_height - 1)
-            and is_bright_pixel(pixel_width - corner_size[0], pixel_height - 1)
-            and is_bright_pixel(pixel_width - 1, pixel_height - corner_size[1])
-            and is_bright_pixel(pixel_width - corner_size[0], pixel_height - corner_size[1])
+            and is_bright_pixel(pixel_width - corner_pixel_width, pixel_height - 1)
+            and is_bright_pixel(pixel_width - 1, pixel_height - corner_pixel_height)
+            and is_bright_pixel(pixel_width - corner_pixel_width, pixel_height - corner_pixel_height)
         )
 
     def get_media_position(self, surface, cell_area):
