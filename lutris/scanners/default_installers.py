@@ -109,6 +109,10 @@ DEFAULT_INSTALLERS = {
         "runner": "pcsx2",
         "game": {"main_file": "rom"}
     },
+    "3ds": {
+        "runner": "citra",
+        "game": {"main_file": "rom"}
+    },
     "ps3": {
         "runner": "rpcs3",
         "game": {"main_file": "rom"}
