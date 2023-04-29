@@ -23,7 +23,7 @@ msgstr "Lutris"
 
 #: share/applications/net.lutris.Lutris.desktop:4
 msgid "Video Game Preservation Platform"
-msgstr "Платформа для сохранения видеоигр"
+msgstr "Площадка для сохранения видеоигр"
 
 #: share/applications/net.lutris.Lutris.desktop:6
 msgid "gaming;wine;emulator;"
@@ -32,7 +32,7 @@ msgstr "gaming;wine;emulator;"
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:11
 #: share/lutris/ui/about-dialog.ui:18
 msgid "Video game preservation platform"
-msgstr "Платформа для сохранения видеоигр"
+msgstr "Площадка для сохранения видеоигр"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:14
 msgid "Main window"
@@ -75,8 +75,8 @@ msgstr ""
 "или ПРИГОДНОСТИ ДЛЯ ОПРЕДЕЛЕННЫХ ЦЕЛЕЙ. Подробнее см. в Стандартной\n"
 "общественной лицензии GNU.\n"
 "\n"
-"Вы должны были получить копию Стандартной общественной лицензии GNU\n"
-"вместе с этой программой. Если это не так, см. <https://www.gnu.org/licenses/"
+"Вы должны были получить копию Основной общественной лицензии GNU\n"
+"вместе с этим приложением. Если это не так, см. <https://www.gnu.org/licenses/"
 ">.\n"
 
 #: share/lutris/ui/dialog-lutris-login.ui:8
@@ -126,7 +126,7 @@ msgstr "Масштаб:"
 
 #: share/lutris/ui/lutris-window.ui:345
 msgid "Sort Ascending"
-msgstr "Сортировать по возрастанию"
+msgstr "Упорядочивать по возрастанию"
 
 #: share/lutris/ui/lutris-window.ui:360 lutris/gui/config/common.py:127
 #: lutris/gui/views/list.py:48 lutris/gui/views/list.py:172
@@ -207,7 +207,7 @@ msgstr "Не удалось найти файл {}"
 
 #: lutris/game.py:256
 msgid "This game has no executable set. The install process didn't finish properly."
-msgstr "В этой игре нет исполняемого набора. Процесс установки не завершился должным образом."
+msgstr "В этой игре нет исполняемого набора. Установка не завершилась должным образом."
 
 #: lutris/game.py:259
 #, python-format
@@ -217,7 +217,7 @@ msgstr "Файл %s не является исполняемым"
 #: lutris/game.py:261
 #, python-format
 msgid "The path '%s' is not set. please set it in the options."
-msgstr "Путь '%s' не установлен, пожалуйста установите его в опциях."
+msgstr "Путь «%s» не установлен, пожалуйста установите его в опциях."
 
 #: lutris/game.py:263
 #, python-format
@@ -395,7 +395,7 @@ msgid ""
 "The folder doesn't exist."
 msgstr ""
 "Не удается открыть %s \n"
-"Каталог не существует."
+"Папка не существует."
 
 #. use primary configuration
 #: lutris/game_actions.py:335
@@ -405,15 +405,15 @@ msgstr "Удалить ярлык с рабочего стола"
 
 #: lutris/gui/addgameswindow.py:28
 msgid "Search the Lutris website for installers"
-msgstr "Найдите установщик на веб-сайте Lutris"
+msgstr "Найдите установщик на сайте Lutris"
 
 #: lutris/gui/addgameswindow.py:29
 msgid "Query our website for community installers"
-msgstr "Запросите установщик на веб-сайте нашего сообщества"
+msgstr "Запросите установщик на сайте нашего сообщества"
 
 #: lutris/gui/addgameswindow.py:35
 msgid "Scan a folder for games"
-msgstr "Сканировать папку на наличие игр"
+msgstr "Проверить папку на наличие игр"
 
 #: lutris/gui/addgameswindow.py:36
 msgid "Mass-import a folder of games"
@@ -480,7 +480,7 @@ msgstr "Отмена"
 
 #: lutris/gui/addgameswindow.py:114 lutris/gui/config/boxes.py:439
 msgid "Select folder"
-msgstr "Выбрать каталог"
+msgstr "Выбрать папку"
 
 #: lutris/gui/addgameswindow.py:123
 #, fuzzy
@@ -522,7 +522,7 @@ msgstr ""
 #: lutris/gui/addgameswindow.py:307
 #, fuzzy
 msgid "Folder to scan"
-msgstr "Выбрать каталог"
+msgstr "Выбрать папку"
 
 #: lutris/gui/addgameswindow.py:313
 msgid ""
@@ -538,7 +538,7 @@ msgstr ""
 #: lutris/gui/addgameswindow.py:331
 #, fuzzy
 msgid "You must select a folder to scan for games."
-msgstr "Выбрать каталог"
+msgstr "Выбрать папку"
 
 #: lutris/gui/addgameswindow.py:333
 #, python-format
@@ -562,7 +562,7 @@ msgstr "З_акрыть"
 #: lutris/gui/addgameswindow.py:409
 #, fuzzy
 msgid "Game name"
-msgstr "Информация об игре"
+msgstr "Сведения об игре"
 
 #: lutris/gui/addgameswindow.py:425
 msgid ""
@@ -639,7 +639,7 @@ msgstr ""
 #: lutris/runners/snes9x.py:27 lutris/runners/vice.py:38
 #: lutris/runners/yuzu.py:23
 msgid "ROM file"
-msgstr "Файл образа ПЗУ (ROM)"
+msgstr "Файл образа ПЗУ"
 
 #: lutris/gui/addgameswindow.py:557
 msgid ""
@@ -654,7 +654,7 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:576
 msgid "You must select a ROM file to install."
-msgstr "Вы должны выбрать файл ROM для установки."
+msgstr "Вы должны выбрать файл ПЗУ для установки."
 
 #: lutris/gui/application.py:92
 msgid ""
@@ -1150,12 +1150,12 @@ msgstr "Скрывать текст за иконками"
 
 #: lutris/gui/config/sysinfo_box.py:36
 msgid "Copy to clipboard"
-msgstr "Копировать в буфер обмена"
+msgstr "Скопировать в буфер обмена"
 
 #: lutris/gui/config/sysinfo_box.py:39
 #, fuzzy
 msgid "<b>System information</b>"
-msgstr "Информация о системе"
+msgstr "Сведения о системе"
 
 #: lutris/gui/dialogs/cache.py:13
 msgid "Cache configuration"
@@ -1167,7 +1167,7 @@ msgstr "Путь к кэшу"
 
 #: lutris/gui/dialogs/cache.py:43
 msgid "Set the folder for the cache path"
-msgstr "Укажите каталог для кэша"
+msgstr "Укажите папку для кэша"
 
 #: lutris/gui/dialogs/cache.py:55
 msgid ""
@@ -1183,7 +1183,7 @@ msgstr ""
 
 #: lutris/gui/dialogs/delegates.py:70
 msgid "Runtime currently updating"
-msgstr "В данный момент среда выполнения обновляется"
+msgstr "На данное время среда исполнения обновляется"
 
 #: lutris/gui/dialogs/delegates.py:71
 msgid "Game might not work as expected"
@@ -1414,7 +1414,7 @@ msgstr "Пожалуйста, выберите файл"
 
 #: lutris/gui/dialogs/__init__.py:271
 msgid "Checking for runtime updates, please wait…"
-msgstr ""
+msgstr "Проверка обновлений сред исполения, пожалуйста, подождите"
 
 #: lutris/gui/dialogs/__init__.py:309
 #, python-format
