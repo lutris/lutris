@@ -7,6 +7,7 @@ from gettext import gettext as _
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris import settings
 
 
 class dosbox(Runner):
@@ -14,7 +15,7 @@ class dosbox(Runner):
     description = _("MS-DOS emulator")
     platforms = [_("MS-DOS")]
     runnable_alone = True
-    runner_executable = "dosbox/bin/dosbox"
+    runner_executable = "dosbox/dosbox"
     require_libs = []
     game_options = [
         {
@@ -119,7 +120,24 @@ class dosbox(Runner):
     @property
     def main_file(self):
         return self.make_absolute(self.game_config.get("main_file"))
+        
+    @property
+    def libs_dir(self):
+        path = os.path.join(settings.RUNNER_DIR, "dosbox/lib")
+        return path if system.path_exists(path) else ""
 
+    def get_command(self):
+        return [
+            self.get_executable(),
+               ]
+                       
+    def get_run_data(self):
+        env = self.get_env()
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [
+            self.libs_dir,
+            env.get("LD_LIBRARY_PATH")]))
+        return {"env": env, "command": self.get_command()}    
+    
     @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
@@ -162,4 +180,4 @@ class dosbox(Runner):
         if args:
             command.extend(args)
 
-        return {"command": command}
+        return {"command": command, "ld_library_path": self.libs_dir}
