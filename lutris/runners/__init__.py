@@ -23,6 +23,7 @@ __all__ = [
     "atari800",
     "hatari",
     # Nintendo
+    "citra" ,
     "snes9x",
     "mupen64plus",
     "dolphin",
